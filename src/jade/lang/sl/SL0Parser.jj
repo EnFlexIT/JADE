@@ -170,7 +170,6 @@ class SL0Parser {
       });
 
       Frame result = theParser.SL0Content(o);
-      result.dump();
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
