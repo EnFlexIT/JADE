@@ -71,10 +71,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		myIMTPManager = p.getIMTPManager();
 		myPlatformManager = pm;
 		invalidPlatformManager = false;
-		localServices = new HashMap();
-		backupManagers = new HashMap();
+		localServices = new HashMap(5);
+		backupManagers = new HashMap(1);
 
-    myLogger = Logger.getMyLogger(this.getClass().getName());
+    myLogger = Logger.getMyLogger(getClass().getName());
   }
 
 
