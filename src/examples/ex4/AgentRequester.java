@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1999/02/14 22:50:20  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+  Added some block() calls to avoid wasting CPU time.
+
   Revision 1.8  1998/11/18 22:53:42  Giovanni
   Fixed a bug: receiveAfterAgree Behaviour was added directly to the
   agent instead of being added to mainBehaviour.
@@ -123,7 +127,7 @@ public class AgentRequester extends Agent {
 
     };
 
-    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
+    mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
 
@@ -137,47 +141,50 @@ public class AgentRequester extends Agent {
 
     ComplexBehaviour receive1stReply = NonDeterministicBehaviour.createWhenAny(this);
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
 	ACLMessage msg = Receiver.receive(AgentRequester.this, "not-understood");
 	if(msg != null)
 	  dumpMessage(msg);
+        else block();
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
 	ACLMessage msg = Receiver.receive(AgentRequester.this, "refuse");
 	if(msg != null)
 	  dumpMessage(msg);
+        else block();
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
 	ACLMessage msg = Receiver.receive(AgentRequester.this, "agree");
 	if(msg != null)
 	  receiveAgree(msg);
+        else block();
 	finished = (msg != null);
       }
 
     });
 
     // Nondeterministically receives not-understood, refuse or agree.
-    mainBehaviour.addBehaviour(receive1stReply);
+    mainBehaviour.addSubBehaviour(receive1stReply);
 
     // If agree is received, also receive inform or failure messages.
-    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
+    mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
 
       private ComplexBehaviour receiveAfterAgree;
 
@@ -185,32 +192,34 @@ public class AgentRequester extends Agent {
 	if(agreed()) {
 
 	  receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(AgentRequester.this);
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
+	  receiveAfterAgree.addSubBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
 	      ACLMessage msg = Receiver.receive(AgentRequester.this, "failure");
 	      if(msg != null)
 		handleFailure(msg);
+              else block();
 	      finished = (msg != null);
 	    }
 
 	  });
 
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
+	  receiveAfterAgree.addSubBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
 	      ACLMessage msg = Receiver.receive(AgentRequester.this, "inform");
 	      if(msg != null)
 		handleInform(msg);
+              else block();
 	      finished = (msg != null);
 	    }
 
 	  });
 
 	  // Schedules next behaviour for execution
-	  parent.addBehaviour(receiveAfterAgree);
+	  parent.addSubBehaviour(receiveAfterAgree);
 	}
 
 	else
@@ -257,7 +266,7 @@ public class AgentRequester extends Agent {
     convID = newConvID();
 
     String text = "( request " +
-      "    :sender " + myName +
+      "    :sender " + getLocalName() +
       "    :receiver " + myPeer +
       "    :protocol fipa-request" +
       "    :language \"Plain Text\"" +
