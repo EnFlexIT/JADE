@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1998/10/30 18:28:22  rimassa
+  Made cyclic a SequentialBehaviour of the Agent, taking advantage of
+  new reset() method.
+
   Revision 1.4  1998/10/04 18:00:12  rimassa
   Added a 'Log:' field to every source file.
 
@@ -31,7 +35,12 @@ public class Agent3 extends Agent {
 
   protected void setup() {
 
-    ComplexBehaviour myBehaviour1 = new SequentialBehaviour(this);
+    ComplexBehaviour myBehaviour1 = new SequentialBehaviour(this) {
+      protected void postAction() {
+	reset();
+      }
+    };
+
     ComplexBehaviour myBehaviour2 = new SequentialBehaviour(this);
 
     ComplexBehaviour myBehaviour2_1 = new SequentialBehaviour(this);
