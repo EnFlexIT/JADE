@@ -132,9 +132,11 @@ public class Logger {
 			sb.append(']');
 			
 			// ID
-			sb.append('[');
-			sb.append(id);
-			sb.append(']');
+			if (id != null) {
+				sb.append('[');
+				sb.append(id);
+				sb.append(']');
+			}
 		
 			// Thread
 			if (printThread) {
