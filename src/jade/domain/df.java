@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.16  1999/02/04 13:19:14  rimassa
+  Fixed a bug in the content of the search result.
+  The FIPA-request protocol now complies with the FIPA specs. Also the
+  requested action is returned in the content of the agree and inform
+  done messages.
+
   Revision 1.15  1999/02/03 11:50:18  rimassa
   Some 'private' instance variables made 'protected', to allow code
   compilation under jdk 1.2.
@@ -101,12 +107,12 @@ public class df extends Agent {
     // reference
     private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
       if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (attributeValue == null))
-	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE);
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
     }
 
     private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
       if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (!attributeValue.hasMoreElements()))
-	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE);
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
     }
 
     // This method parses the message content and puts
@@ -121,14 +127,14 @@ public class df extends Agent {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	// pe.printStackTrace();
+	pe.printStackTrace();
  	System.out.println("DF ParseException with: " + content);
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	// tme.printStackTrace();
+	tme.printStackTrace();
   System.out.println("DF TokenMgrError with: " + content);
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
 
       // Finally, assign each attribute value to an instance variable,
@@ -180,6 +186,7 @@ public class df extends Agent {
     // Send a 'not-understood' message back to the requester
     protected void sendNotUnderstood(ACLMessage msg) {
       msg.setType("not-understood");
+      msg.setContent("(" + myRequest.getContent() + " (unknown reason))");
       send(msg);
     }
     
@@ -187,28 +194,28 @@ public class df extends Agent {
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
       // FIXME. Fipa97 version 2 is different
-      msg.setContent("(:fipa-man-exception (" + reason + "))");
+      msg.setContent("(" + myRequest.getContent() + " (:fipa-man-exception (" + reason + ")))");
       send(msg);
     }
 
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
     msg.setType("failure");
-    msg.setContent("(:fipa-man-exception (" + reason + "))");
+    msg.setContent("(" + myRequest.getContent() + " (:fipa-man-exception (" + reason + ")))");
     send(msg);
     }
     
     // Send an 'agree' message back to the requester
     protected void sendAgree(ACLMessage msg) {
       msg.setType("agree");
-      msg.setContent("( action df " + myActionName + " )");
+      msg.setContent("(" + myRequest.getContent() + " (true))"); 
       send(msg);
     }
 
     // Send an 'inform' message back to the requester
     protected void sendInform(ACLMessage msg) {
       msg.setType("inform");
-      msg.setContent("( done ( " + myActionName + " ) )");
+      msg.setContent("( done " + myRequest.getContent() + ")");
       send(msg);
     }
 
@@ -374,12 +381,14 @@ public class df extends Agent {
        *
        ***********************************************************/
 
+
+
       while(constraints.hasMoreElements()) {
 	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)constraints.nextElement();
 	String name = c.getName();
 	String fn = c.getFn();
 	int arg = c.getArg();
-
+	//      System.err.println("Constraints = " +name+fn+arg); 
 	if(arg <= 0)
 	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
 
@@ -496,15 +505,17 @@ public class df extends Agent {
 
 	StringWriter text = new StringWriter();
 	matchesFound.toText(text);
-	String content = text.toString();
 
+	String content = "(result " + myRequest.getContent() + text.toString() + ")";
+	// System.err.println("myRequest.getContent="+myRequest.getContent());
+	// System.err.println("text.toString()="+text.toString());
 	myReply.setContent(content);
 	myReply.setType("inform");
 	send(myReply);
 
       }
       else {
-	addBehaviour(new RecursiveSearchBehaviour(dfd, myReply, matchesFound, dfDepth - 1));
+	addBehaviour(new RecursiveSearchBehaviour(dfd, myReply, matchesFound, dfDepth - 1, myRequest));
       }
 
     }
@@ -516,12 +527,13 @@ public class df extends Agent {
 
     ACLMessage reply;
     AgentManagementOntology.DFSearchResult result;
-
+    ACLMessage originalRequestToSearchMsg;
     RecursiveSearchBehaviour(AgentManagementOntology.DFAgentDescriptor dfd, ACLMessage msg,
-			     AgentManagementOntology.DFSearchResult res, int dfDepth) {
+			     AgentManagementOntology.DFSearchResult res, int dfDepth, ACLMessage requestToSearchMsg) {
 
       reply = msg;
       result = res;
+      originalRequestToSearchMsg = requestToSearchMsg;
 
       ComplexBehaviour searchThemAll = NonDeterministicBehaviour.createWhenAll(df.this);
 
@@ -558,7 +570,8 @@ public class df extends Agent {
 	  StringWriter text = new StringWriter();
 	  try {
 	    result.toText(text);
-	    String content = text.toString();
+	    String content = "(result " + 
+	      originalRequestToSearchMsg.getContent() + text.toString() + ")";
 	    reply.setContent(content);
 	    reply.setType("inform");
 	    send(reply);
@@ -627,8 +640,8 @@ public class df extends Agent {
       if(type == null)
 	return;
       if(type.equalsIgnoreCase("fipa-df") || type.equalsIgnoreCase("df")) {
-      	subDFs.put(dfd.getName(), dfd);
-      	System.out.println("Registered New SUB-DF");
+	System.err.println("FEDERATED NEW DF");
+	subDFs.put(dfd.getName(), dfd);
       }
     }
   }
