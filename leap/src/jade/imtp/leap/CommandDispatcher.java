@@ -43,7 +43,6 @@ import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.Runtime;
 import jade.core.UnreachableException;
-import jade.core.CaseInsensitiveString;
 import jade.mtp.TransportAddress;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;

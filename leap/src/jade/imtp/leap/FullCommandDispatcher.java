@@ -157,7 +157,7 @@ class FullCommandDispatcher extends CommandDispatcher {
       urls.add(url);
 
       // Put the peer in the table of local ICPs.
-      CaseInsensitiveString proto = new CaseInsensitiveString(tp.getName());
+      String proto = tp.getName().toLowerCase();
       List                  list = (List) icps.get(proto);
       if (list == null) {
         icps.put(proto, (list = new ArrayList()));
@@ -333,8 +333,8 @@ class FullCommandDispatcher extends CommandDispatcher {
    */
   protected byte[] send(TransportAddress ta, byte[] commandPayload) throws UnreachableException {
 
-    // Get an ICP suitable for the given TransportAddress.
-    List list = (List) icps.get(ta.getProto());
+    // Get the ICPs suitable for the given TransportAddress.
+    List list = (List) icps.get(ta.getProto().toLowerCase());
 
     if (list == null) {
       throw new UnreachableException("no ICP suitable for protocol "+ta.getProto()+".");
