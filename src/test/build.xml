@@ -11,6 +11,7 @@
     <!--pathelement path="${env.CLASSPATH}"/-->
     <pathelement location="add-ons/leap/j2se/classes"/>
     <pathelement location="classes"/>
+    <pathelement location="add-ons/benchmark/classes"/>
     <fileset dir="lib">
         <include name="*.jar"/>
     </fileset>
