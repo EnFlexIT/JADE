@@ -55,11 +55,6 @@ public interface MainReplicationSlice extends Service.Slice {
     */
     static final String NAME = "jade.core.replication.MainReplication";
 
-    /**
-       This command name represents the action of sending an ACL
-       message from an agent to another.
-    */
-    static final String DUMMY_VERTICAL = "Dummy-Vertical";
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_GETLABEL = "1";
@@ -73,6 +68,8 @@ public interface MainReplicationSlice extends Service.Slice {
     static final String H_RESUMEDAGENT = "9";
     static final String H_NEWMTP = "10";
     static final String H_DEADMTP = "11";
+    static final String H_NEWTOOL = "12";
+    static final String H_DEADTOOL = "13";
 
     int getLabel() throws IMTPException;
     String getServiceManagerAddress() throws IMTPException;
@@ -88,5 +85,8 @@ public interface MainReplicationSlice extends Service.Slice {
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
+
+    void newTool(AID tool) throws IMTPException;
+    void deadTool(AID tool) throws IMTPException;
 
 }
