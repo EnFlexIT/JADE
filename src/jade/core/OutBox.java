@@ -52,11 +52,13 @@ class OutBox {
 	 * receiver.
 	 * This method is executed by the TimerDispatcher Thread when a 
 	 * retransmission timer expires. Therefore a Box of messages for the
-	 * indicated receiver must already exist.
+	 * indicated receiver must already exist. Moreover the busy flag of 
+	 * this Box must be reset to allow deliverers to handle messages in it
    */
 	synchronized void addFirst( AID receiverID, ACLMessage msg ){
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		b.addFirst(msg);
+		b.setBusy(false);
 		// Wakes up all deliverers
 		notifyAll();
 	}
@@ -110,7 +112,7 @@ class OutBox {
 	/**
 	 * A message for the receiver receiverID has been successfully delivered
 	 * If the Box of messages for that receiver is now empty --> remove it.
-	 * Otherwise just mark is as idel (not busy).
+	 * Otherwise just mark it as idel (not busy).
    */
 	synchronized void handleDelivered( AID receiverID ){
 		Box b = (Box) messagesByReceiver.get(receiverID);
