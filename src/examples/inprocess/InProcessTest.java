@@ -121,7 +121,7 @@ public class InProcessTest {
 	  AgentContainer ac = rt.createAgentContainer(p);
 
 	  // Create a new agent, a DummyAgent
-	  Agent dummy = ac.createAgent("inProcess", "jade.tools.DummyAgent.DummyAgent", new Object[0]);
+	  AgentController dummy = ac.createNewAgent("inProcess", "jade.tools.DummyAgent.DummyAgent", new Object[0]);
 
 	  // Fire up the agent
 	  System.out.println("Starting up a DummyAgent...");
@@ -132,7 +132,7 @@ public class InProcessTest {
 
 	  // Kill the DummyAgent
 	  System.out.println("Killing DummyAgent...");
-	  dummy.delete();
+	  dummy.kill();
 
 	  // Create another peripheral container within the same JVM
 	  // NB. Two containers CAN'T share the same Profile object!!! -->
@@ -146,7 +146,7 @@ public class InProcessTest {
 	  Object[] arguments = new Object[2];
 	  arguments[0] = "Hello World!";
 	  arguments[1]=dummy;
-	  Agent mobile = another.createAgent("Johnny", "examples.mobile.MobileAgent", arguments);
+	  AgentController mobile = another.createNewAgent("Johnny", "examples.mobile.MobileAgent", arguments);
 	  mobile.start();
 
 	  return;
@@ -166,7 +166,7 @@ public class InProcessTest {
       AgentContainer cont = rt.createAgentContainer(pContainer);
 
       System.out.println("Launching the rma agent on the main container ...");
-      Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new Object[0]);
+      AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
       // Launch a custom agent, taking an object via the
@@ -177,7 +177,7 @@ public class InProcessTest {
 
       CondVar startUpLatch = new CondVar();
 
-      Agent custom = mc.createAgent("customAgent", CustomAgent.class.getName(), new Object[] { startUpLatch });
+      Agent custom = (Agent)mc.createNewAgent("customAgent", CustomAgent.class.getName(), new Object[] { startUpLatch });
       custom.start();
 
       // Wait until the agent starts up and notifies the Object

@@ -26,7 +26,7 @@ package examples.thanksAgent;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -41,11 +41,12 @@ import jade.wrapper.*;
 /**
  * This agent has the following functionality: 
  * <ul>
- * <li> When being born one will register 
- * <li> It will create a list of agents registered in DF.
- * <li> It will send a message to them of greeting 
- * <li> It will listen if there is some answer 
- * <li> To the agents who answer it will thank to them to answer. 
+ * <li> registers with the DF
+ * <li> creates a list of agents
+ * <li> each of this new agents registers with the DF
+ * <li> the father agent sends a message of greeting to each of them
+ * <li> it waits for an answer to the greeting
+ * <li> it thanks the agents that have answered 
  * </ul>
  * @author Fabio Bellifemine, TILab
  * @version $Date$ $Revision$
@@ -66,7 +67,7 @@ public class ThanksAgent extends Agent {
 	    DFAgentDescription dfd = new DFAgentDescription();
 	    dfd.setName(getAID());
 	    // register the description with the DF
-	    DFServiceCommunicator.register(this, dfd);
+	    DFService.register(this, dfd);
 	    System.out.println(getLocalName()+" REGISTERED WITH THE DF");
 	} catch (FIPAException e) {
 	    e.printStackTrace();
