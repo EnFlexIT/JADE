@@ -104,7 +104,7 @@ public class MessageTemplate implements Serializable {
     }
 
       public String toString(){
-	  return op1.toString()+  " AND " + op2.toString();
+	  return "("+op1.toString()+  " AND " + op2.toString()+")";
       }
 
   } // End of AndExpression class
@@ -124,7 +124,7 @@ public class MessageTemplate implements Serializable {
     }
       //only for debug
       public String toString(){
-	  return op1.toString()+  " OR " + op2.toString();
+	  return "("+op1.toString()+  " OR " + op2.toString()+")";
       }
 
   } // End of OrExpression class
@@ -141,7 +141,7 @@ public class MessageTemplate implements Serializable {
     }
       //only for debug
       public String toString(){
-	  return  "NOT " + op.toString();
+	  return  "(NOT " + op.toString()+")";
       }
   } // End of NotExpression class
 
