@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/06/22 13:16:17  rimassa
+  Added a method to perform asynchronous disposal of the DF GUI.
+
   Revision 1.7  1999/04/06 16:11:46  rimassa
   Reimplemented DF GUI using Swing.
 
@@ -163,6 +166,29 @@ class DFGUI extends JFrame {
     super.setVisible(b);
   }//setVisible(boolean)
 
+
+  // Perform asynchronous disposal to avoid nasty InterruptedException
+  // printout.
+  void disposeAsync() {
+
+    class disposeIt implements Runnable {
+      private Window toDispose;
+
+      public disposeIt(Window w) {
+	toDispose = w;
+      }
+
+      public void run() {
+	toDispose.dispose();
+      }
+
+    }
+
+    // Make AWT Event Dispatcher thread dispose RMA window for us.
+    EventQueue.invokeLater(new disposeIt(this));
+
+  }
+
   static public void main(String args[]) {
     (new DFGUI()).setVisible(true);
   }//main(String[])
@@ -242,7 +268,6 @@ class DFGUI extends JFrame {
   void miExit_Action(java.awt.event.ActionEvent event) {
     // FIXME: add a window to ask are you sure the default DF is mandatory!?
     
-    dispose();
     agent.doDelete();
 
   }
