@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.28  1999/03/17 13:06:12  rimassa
+  A small change to use complete agent GUID in addressing the platform
+  Global Descriptor Table.
+
   Revision 1.27  1999/03/14 17:50:27  rimassa
   Changed acc class to take advantage of new
   FipaRequestResponderBehaviour class.
@@ -363,9 +367,9 @@ public class ams extends Agent {
           try {
 	    String agentName = (String)e.nextElement();
 	    String containerName = myPlatform.AMSGetContainerName(agentName);
-	    String agentAddress = myPlatform.AMSGetAddress(agentName);
+	    String agentAddress = myPlatform.AMSGetAddress(agentName); // FIXME: Need to use AMSAgDesc directly
 	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-	    amsd.setName(agentName + '@' + agentAddress); // FIXME: 'agentName' should contain the address, too.
+	    amsd.setName(agentName);
 	    amsd.setAddress(agentAddress);
 	    amsd.setAPState(Agent.AP_ACTIVE);
 
@@ -586,6 +590,7 @@ public class ams extends Agent {
       AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
       String agentName = kaa.getAgentName();
       String password = kaa.getPassword();
+
       myPlatform.AMSKillAgent(agentName, password);
 
       sendAgree();
