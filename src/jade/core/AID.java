@@ -27,6 +27,7 @@ package jade.core;
 import java.io.Serializable;
 import java.io.Writer; // FIXME: This must go away
 import java.io.IOException; // FIXME: This must go away
+import java.io.StringWriter; 
 
 import java.util.List;
 import java.util.ArrayList;
@@ -193,6 +194,13 @@ public class AID implements Cloneable, Comparable, Serializable {
   public Properties getAllUserDefinedSlot(){
     return userDefSlots;
   }
+
+    // FIXME This should just replace toString()
+    public String toFullString() {
+	StringWriter text = new StringWriter();
+	toText(text);
+	return text.toString();
+    }
 
   /**
    * This method is called from ACLMessage in order to create
