@@ -1,0 +1,153 @@
+
+<!-- ANT BUILD FILE FOR THE TEST SUITE -->
+
+<!-- The following targets are expected to be used by users:
+ant testsuite - to compile test Suite
+-->
+
+<!-- set properties for this project -->
+<project name="testsuite" default="test" basedir=".">
+  <description>Test Suite build file</description>
+  <property name="version" value="2.6"/>
+
+  <property name="EXECidlj" value="true"/>
+  <!-- by default idlj is not executed, set to true the value for the
+       previous property if you want to execute idlj -->
+  <property environment="env"/>
+  <!-- set global properties for this build -->
+  <property name="root" location="."/>
+  <property name="src" location="src"/>
+  <property name="build" location="classes"/>
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the directory structure -->
+    <mkdir dir="${build}"/>
+    <condition property="javacc.home.is.set">
+      <not>
+        <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
+      </not>
+    </condition>
+    <condition property="jess.home.is.set">
+      <not>
+        <equals arg1="${env.JESS_HOME}" arg2="$${env.JESS_HOME}"/>
+      </not>
+    </condition>
+    <condition property="EXECidlj.is.set">
+      <equals arg1="${EXECidlj}" arg2="true"/>
+    </condition>
+  </target>
+  <target name="check_javacc" unless="javacc.home.is.set">
+    <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
+  </target>
+  <target name="check_jess" unless="jess.home.is.set">
+    <echo>jess task is being skipped. If you want to compile the examples based on JESS, set the environment variable JESS_HOME to the home directory where your jess program has been installed.</echo>
+  </target>
+  <target name="check_execIdlj" unless="EXECidlj.is.set">
+    <echo>IDLJ task is being skipped.</echo>
+  </target>
+  <!--     _______________________________________________
+                               compile
+         _______________________________________________ -->
+  <target name="jade" depends="init,parser,idlj" description="compile the source ">
+
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="on" deprecation="on" excludes="demo/**,examples/**,test/**"/>
+    <copy todir="${build}/jade/tools/DummyAgent/images">
+      <fileset dir="${src}/jade/tools/DummyAgent/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/sniffer/images">
+      <fileset dir="${src}/jade/tools/sniffer/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/dfgui/images">
+      <fileset dir="${src}/jade/tools/dfgui/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/rma/images">
+      <fileset dir="${src}/jade/tools/rma/images"/>
+    </copy>
+    <copy todir="${build}/jade/gui/images">
+      <fileset dir="${src}/jade/gui/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/introspector/gui/images">
+      <fileset dir="${src}/jade/tools/introspector/gui/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/testagent/images">
+      <fileset dir="${src}/jade/tools/testagent/images"/>
+    </copy>
+    <copy todir="${build}/jade/tools/gui/images">
+      <fileset dir="${src}/jade/tools/gui/images"/>
+    </copy>
+    <copy todir="${build}/jade/gui/help">
+      <fileset dir="${src}/jade/gui/help">
+        <include name="*.html"/>
+      </fileset>
+    </copy>
+    <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
+    <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
+  </target>
+  <!--     _______________________________________________
+                                idlj
+          _______________________________________________ -->
+  <target name="idlj" depends="init,check_execIdlj" if="EXECidlj.is.set">
+    <echo>WARNING: Executing the idlj task might create wrong java files</echo>
+    <exec dir="${src}" executable="idlj.exe">
+      <arg line="-fall fipa.idl"/>
+    </exec>
+  </target>
+  <!--     _______________________________________________
+                              parser
+         _______________________________________________ -->
+  <target name="parser" depends="init, check_javacc, MakeACLParser, MakeSL0Parser, MakeSLParser" description="generate parser with javacc"/>
+  <target name="MakeACLParser" depends="init, check_javacc" if="javacc.home.is.set">
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
+  </target>
+  <target name="MakeSL0Parser" depends="init, check_javacc" if="javacc.home.is.set">
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/sl" target="src/jade/lang/sl/SL0Parser.jj"/>
+  </target>
+  <target name="MakeSLParser" depends="init, check_javacc" if="javacc.home.is.set">
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
+  </target>
+  <!--    __________________________________________________
+                            clean
+        __________________________________________________ -->
+  <target name="clean" description="clean up">
+    <!-- Delete the ${build} directory tree -->
+    <delete includeEmptyDirs="true">
+      <fileset dir="${build}" excludes="**/*.mf"/>
+    </delete>
+  </target>
+
+  <!--     _______________________________________________
+                               examples
+         _______________________________________________ -->
+  <target name="examples" depends="jade,examples1" description="compile the examples "/>
+  <target name="examples1" depends="jade" description="compile all examples except the demo and the JESS-based examples">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${build}/**"/>
+  </target>
+
+  <!--     _______________________________________________
+                               test
+         _______________________________________________ -->
+  <target name="test" depends="jade,examples" description="compile the test ">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <copy todir="${build}/test/common/testSuite/gui/images">
+      <fileset dir="${src}/test/common/testSuite/gui/images"/>
+    </copy> 
+    
+    <copy file="${src}/test/testerList.xml" todir="${build}/test"/>
+    <copy file="${src}/test/behaviours/blockTimeOutTestsList.xml" todir="${build}/test/behaviours"/>
+    <copy file="${src}/test/behaviours/performanceTestsList.xml" todir="${build}/test/behaviours"/>
+    <copy file="${src}/test/common/xml/listTests.dtd" todir="${build}/test/common/xml"/>
+    <copy file="${src}/test/content/contentTestsList.xml" todir="${build}/test/content"/>
+    <copy file="${src}/test/content/SLOperatorTestsList.xml" todir="${build}/test/content"/>
+    <copy file="${src}/test/domain/jadeManagementOntoTestsList.xml" todir="${build}/test/domain"/>
+    <copy file="${src}/test/domain/df/dfTestsList.xml" todir="${build}/test/domain/df"/>
+    <copy file="${src}/test/interPlatform/interPlatformTestsList.xml" todir="${build}/test/interPlatform"/>
+    <copy file="${src}/test/mobility/mobilityTestsList.xml" todir="${build}/test/mobility"/>
+    <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${build}/test/proto"/>
+    <copy file="${src}/test/proto/contractNetProtoTestsList.xml" todir="${build}/test/proto"/>
+
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="test/**" classpath="${build}/**"/>
+  </target>
+
+</project>
