@@ -942,7 +942,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			return;
 		    }
 		    catch(MTPException mtpe) {
-			System.out.println("Bad address [" + address + "]: trying the next one...");
+			System.out.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
 		    }
 		}
 		notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
