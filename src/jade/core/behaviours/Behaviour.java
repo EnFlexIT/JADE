@@ -250,11 +250,14 @@ public abstract class Behaviour implements Serializable {
      method is to realize multistep cyclic behaviours without needing
      expensive constructions an deletion of objects at each loop
      iteration.
+     This method provides also to clear the dataStore.
      Remind to call super.reset() from the sub-classes.
   */
   public void reset() {
   	startFlag = true;
-    restart();
+	if (myStore != null)
+	    myStore.clear();
+	restart();
   }
 
   /**
