@@ -41,6 +41,7 @@ import java.util.HashMap;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import jade.core.behaviours.Behaviour;
 
@@ -83,6 +84,36 @@ import jade.domain.FIPAException;
 
 public class Agent implements Runnable, Serializable {
 
+  private final static short UNPROTECTMYPOINTER = 0;
+  private SecurityManager mySecurityManager; // private pointer 
+  //FIXME So far the SecurityManager is private, but it should become protected
+  /** This private inner class stores all the permissions for this
+   * Agent object. 
+   * The default is that everything is allowed until it is not
+   * explicitly disallowed.
+  **/
+  private class SecurityManager {
+    private Vector unpermissions = new Vector(1);
+    /**
+      adds a new permission
+    **/
+    private void allow(short permission){
+      unpermissions.remove(new Short(permission));
+    }
+    /**
+      removes a permission
+    **/
+    private void disallow(short permission) {
+      unpermissions.add(new Short(permission));
+    }
+    /**
+     *@return true if this permission has not yet been disallowed
+     * therefore the default is that everything is allowed!
+     **/
+    private boolean isAllowed(short permission) {
+      return !unpermissions.contains(new Short(permission));
+    }
+  }
   // This inner class is used to force agent termination when a signal
   // from the outside is received
   private class AgentDeathError extends Error {
@@ -405,6 +436,7 @@ public class Agent implements Runnable, Serializable {
   public Agent() {
     myAPState = AP_INITIATED;
     myScheduler = new Scheduler(this);
+    mySecurityManager = new SecurityManager();
   }
 
   /**
@@ -676,13 +708,18 @@ public class Agent implements Runnable, Serializable {
      @param name The local name of the agent.
   */
   public void doStart(String name) {
-    if (myToolkit == null)  
+    if (myToolkit == null) {
       // myToolkit=null if the agent is started by an external application. 
       // if this application lives in a JVM different from where the 
       // AgentContainer lives an exception will be thrown, of course!
       // because Starter.theContainer is a static variable, the following
       // call works without any problem.
-      setToolkit(Starter.getContainer());  
+      if (! mySecurityManager.isAllowed(UNPROTECTMYPOINTER)) {
+	System.err.println("This agent has explicitly set the permission to start it only from a container");
+	return;  //FIXME It should throw an Exception
+      }	else
+	setToolkit(Starter.getContainer()); 
+    }
     myToolkit.handleStart(name, this);
   }
 
