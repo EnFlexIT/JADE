@@ -20,6 +20,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
 package examples.jess;
 
 import jade.lang.acl.ACLMessage;
@@ -27,10 +28,9 @@ import jade.core.Agent;
 
 /**
 Javadoc documentation for the file
-@author Fabio Bellifemine CSELT S.p.A 
+@author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
-
 /**
  * This class extends and implements a BasicJessBehaviour.
  * @see BasicJessBehaviour
@@ -59,16 +59,19 @@ public class JessBehaviour extends BasicJessBehaviour {
     if (msg.getContent() != null) 
       fact = fact + ") (content " + super.quote(msg.getContent());
 
-    if (msg.getReplyWith() != null)      fact=fact+") (reply-with " + msg.getReplyWith();
-    if (msg.getReplyTo() != null)        fact=fact+") (in-reply-to " + msg.getReplyTo();   
-    if (msg.getEnvelope() != null)       fact=fact+") (envelope " + msg.getEnvelope();    
-    if (msg.getLanguage() != null)       fact=fact+") (language " + msg.getLanguage();    
-    if (msg.getOntology() != null)       fact=fact+") (ontology " + msg.getOntology();    
-    if (msg.getReplyBy() != null)        fact=fact+") (reply-by " + msg.getReplyBy();    
-    if (msg.getProtocol() != null)       fact=fact+") (protocol " + msg.getProtocol();  
-    if (msg.getConversationId() != null) fact=fact+") (conversation-id " + msg.getConversationId(); 
+    if (!isEmpty(msg.getReplyWith()))    fact=fact+") (reply-with " + msg.getReplyWith();
+    if (!isEmpty(msg.getReplyTo()))      fact=fact+") (in-reply-to " + msg.getReplyTo();   
+    if (!isEmpty(msg.getEnvelope()))     fact=fact+") (envelope " + msg.getEnvelope();    
+    if (!isEmpty(msg.getLanguage()))     fact=fact+") (language " + msg.getLanguage();    
+    if (!isEmpty(msg.getOntology()))     fact=fact+") (ontology " + msg.getOntology();    
+    if (!isEmpty(msg.getReplyBy()))      fact=fact+") (reply-by " + msg.getReplyBy();    
+    if (!isEmpty(msg.getProtocol()))     fact=fact+") (protocol " + msg.getProtocol();  
+    if (!isEmpty(msg.getConversationId())) fact=fact+") (conversation-id " + msg.getConversationId(); 
     fact=fact+")))";
     return fact;
+  }
+  private boolean isEmpty(String string) {
+    return string == null || string.equals("");
   }
 
 }
