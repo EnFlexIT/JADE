@@ -39,7 +39,6 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -80,17 +79,17 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     return impl.getPlatformName();
   }
 
-  public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException {
-    impl.bornAgent(name, cid);
+  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NameClashException, NotFoundException, IMTPException, AuthException {
+    impl.bornAgent(name, cid, identity, delegation);
   }
   
   public void removeContainer(ContainerID cid) throws RemoteException, IMTPException {
     impl.removeContainer(cid);
   }
   
-  public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, AuthException {
+  public String addContainer(AgentContainerRMI ac, ContainerID cid, String username, byte[] password) throws RemoteException, IMTPException, AuthException {
     AgentContainer cont = manager.getAdapter(ac);
-    return impl.addContainer(cont, cid, user, passwd);
+    return impl.addContainer(cont, cid, username, password);
   }
 
   public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
@@ -105,10 +104,14 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     impl.resumedAgent(name);
   }
   
-  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws RemoteException, NotFoundException, IMTPException {
-    impl.changedAgentPrincipal(name, from, to, identity);
+  public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
+    impl.changedAgentPrincipal(name, identity, delegation);
   }
   
+  public AgentPrincipal getAgentPrincipal(AID name) throws RemoteException, IMTPException, NotFoundException {
+    return impl.getAgentPrincipal(name);
+  }
+
   public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
     impl.newMTP(mtp, cid);
   }

@@ -65,7 +65,6 @@ import jade.content.ContentManager;
 import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.PrivilegedExceptionAction;
@@ -945,28 +944,26 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	}
 
 	//__SECURITY__BEGIN
-	public UserPrincipal extractUser(String ownership) {
-		UserPrincipal user = getAuthority().createUserPrincipal();
+	public static String extractUsername(String ownership) {
 		int dot2 = ownership.indexOf(':');
-		user.init((dot2 != -1) ? ownership.substring(0, dot2) : ownership);
-		return user;
+		return (dot2 != -1) ?
+				ownership.substring(0, dot2) : ownership;
 	}
 
-	public byte[] extractPassword(String ownership) {
-		byte[] word = null;
+	public static byte[] extractPassword(String ownership) {
 		int dot2 = ownership.indexOf(':');
-		word = (dot2 != -1) ? ownership.substring(dot2 + 1, ownership.length()).getBytes() : new byte[] {};
-		return word;
+		return (dot2 != -1 && dot2 < ownership.length() - 1) ?
+				ownership.substring(dot2 + 1, ownership.length()).getBytes() : new byte[] {};
 	}
 
-	public void setPrincipal(AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) {
+	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
 		AgentPrincipal old = getPrincipal();
 		synchronized (principalLock) {
 			this.identity = identity;
 			this.delegation = delegation;
 			this.delegations = new DelegationCertificate[] {delegation};
-			this.principal = principal;
-			notifyChangedAgentPrincipal(old, principal, identity);
+			this.principal = (AgentPrincipal)identity.getSubject();
+			notifyChangedAgentPrincipal(old, identity, delegation);
 		}
 	}
 
@@ -976,12 +973,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			synchronized (principalLock) {
 				Authority authority = getAuthority();
 				if (principal == null) {
-					UserPrincipal user = extractUser(ownership);
-					principal = authority.createAgentPrincipal();
-					principal.init(myAID, user);
+					String user = extractUsername(ownership);
+					principal = authority.createAgentPrincipal(myAID, user);
 				}
-				p = authority.createAgentPrincipal();
-				p.init(principal.getName());
+				p = principal;
 			}
 		}
 		return p;
@@ -1917,28 +1912,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 
-	private class SendAction implements PrivilegedExceptionAction {
-		ACLMessage message;
-		SendAction(ACLMessage message) {
-			this.message = message;
-		}
-		public Object run() throws AuthException {
-			notifySend(message);
-			return null;
-		}
-	}
-	
-	private class ReceiveAction implements PrivilegedExceptionAction {
-		ACLMessage message;
-		ReceiveAction(ACLMessage message) {
-			this.message = message;
-		}
-		public Object run() throws AuthException {
-			notifyReceived(message);
-			return null;
-		}
-	}
-	
 	/**
 		Send an <b>ACL</b> message to another agent. This methods sends
 		a message to the agent specified in <code>:receiver</code>
@@ -1948,7 +1921,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		send.
 		@see jade.lang.acl.ACLMessage
 	*/
-	public final void send(ACLMessage msg) {
+	public final void send(final ACLMessage msg) {
 		try {
 			if (msg.getSender().getName().length() < 1)
 				msg.setSender(myAID);
@@ -1957,8 +1930,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			msg.setSender(myAID);
 		}
 		try {
-		    //notifySend(msg);
-		    doPrivileged(new SendAction(msg));
+			// Notify send
+			doPrivileged(new jade.security.PrivilegedExceptionAction() {
+				public Object run() throws AuthException {
+					notifySend(msg);
+					return null;
+				}
+			});
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1975,8 +1953,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.lang.acl.ACLMessage
 	*/
 	public final ACLMessage receive() {
-		synchronized (waitLock) {
-			if (msgQueue.isEmpty()) {
+		return receive(null);
+		/*
+		synchronized(waitLock) {
+			if(msgQueue.isEmpty()) {
 				return null;
 			}
 			else {
@@ -1993,6 +1973,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				return currentMessage;
 			}
 		}
+		*/
 	}
 
 	/**
@@ -2010,25 +1991,28 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage msg = null;
 		synchronized (waitLock) {
-			Iterator messages = msgQueue.iterator();
-
-			while (messages.hasNext()) {
-				ACLMessage cursor = (ACLMessage)messages.next();
-				if (pattern.match(cursor)) {
+			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
+				final ACLMessage cursor = (ACLMessage)messages.next();
+				if (pattern == null || pattern.match(cursor)) {
 					try {
-						doPrivileged(new ReceiveAction(cursor)); 
-					        //notifyReceived(cursor);
-						msgQueue.remove(cursor);
+						messages.remove(); //!!! msgQueue.remove(msg);
+						// Notify receive
+						doPrivileged(new jade.security.PrivilegedExceptionAction() {
+							public Object run() throws AuthException {
+								notifyReceived(cursor);
+								return null;
+							}
+						});
 						currentMessage = cursor;
 						msg = cursor;
 						break; // Exit while loop
 					}
 					catch (Exception e) {
+						// Continue loop, discard message
 					}
 				}
 			}
 		}
-
 		return msg;
 	}
 
@@ -2219,9 +2203,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 //__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
-  private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) {
+  private void notifyChangedAgentPrincipal(AgentPrincipal from, IdentityCertificate identity, DelegationCertificate delegation) {
     if (myToolkit != null)
-      myToolkit.handleChangedAgentPrincipal(myAID, from, to, identity);
+      myToolkit.handleChangedAgentPrincipal(myAID, from, identity, delegation);
   }
 //__SECURITY__END
 

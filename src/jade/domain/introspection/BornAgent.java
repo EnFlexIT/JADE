@@ -40,6 +40,8 @@ public class BornAgent implements Event {
 
   private AID agent;
   private ContainerID where;
+  private String state;
+  private String ownership;
 
   public String getName() {
     return NAME;
@@ -61,5 +63,20 @@ public class BornAgent implements Event {
     return agent;
   }
 
+  public void setState(String as) {
+    state = as;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setOwnership(String o) {
+    ownership = o;
+  }
+
+  public String getOwnership() {
+    return ownership;
+  }
 
 }

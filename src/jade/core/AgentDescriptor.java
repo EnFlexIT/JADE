@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.security.AgentPrincipal;
+
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -32,6 +35,7 @@ class AgentDescriptor {
 
   private AgentProxy proxy;
   private ContainerID containerID;
+  private AgentPrincipal principal;
   private boolean locked = false;
 
   public void setProxy(AgentProxy rp) {
@@ -48,6 +52,14 @@ class AgentDescriptor {
 
   public ContainerID getContainerID() {
     return containerID;
+  }
+
+  public void setPrincipal(AgentPrincipal p) {
+    principal = p;
+  }
+
+  public AgentPrincipal getPrincipal() {
+    return principal;
   }
 
   public synchronized void lock() {

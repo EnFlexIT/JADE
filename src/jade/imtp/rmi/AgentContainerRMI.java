@@ -63,8 +63,9 @@ interface AgentContainerRMI extends Remote {
     public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException, IMTPException;
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
-    public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException;
-    public void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException;
+    public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException;
+    public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws RemoteException, IMTPException;
+    public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException;
     public void copyAgent(AID agentID, Location where, String newName) throws RemoteException, NotFoundException, IMTPException;
     public void enableSniffer(AID snifferName, AID toBeSniffed) throws RemoteException, IMTPException;
     public void enableDebugger(AID debuggerName, AID toBeDebugged) throws RemoteException, IMTPException;

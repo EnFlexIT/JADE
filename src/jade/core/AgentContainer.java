@@ -64,8 +64,9 @@ public interface AgentContainer {
   void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
 
 //__SECURITY__BEGIN
-  void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
-  void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException;
+  void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
+  void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException;
+  void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException;
 //__SECURITY__END
 
   void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;

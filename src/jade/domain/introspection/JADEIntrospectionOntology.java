@@ -134,6 +134,7 @@ public class JADEIntrospectionOntology {
 
 	theInstance.addRole(ADDEDCONTAINER, new SlotDescriptor[] {
 	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
+	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, AddedContainer.class); 
 
 	theInstance.addRole(REMOVEDCONTAINER, new SlotDescriptor[] {
@@ -152,7 +153,9 @@ public class JADEIntrospectionOntology {
 
 	theInstance.addRole(BORNAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O),
+	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, BornAgent.class); 
 
 	theInstance.addRole(DEADAGENT, new SlotDescriptor[] {

@@ -26,7 +26,7 @@ package jade.security;
 import java.util.Date;
 
 
-public interface JADECertificate extends jade.util.leap.Serializable {
+public interface JADECertificate {
 	
 	public void setSubject(JADEPrincipal subject);
 	public JADEPrincipal getSubject();

@@ -73,7 +73,6 @@ import jade.proto.FipaRequestResponderBehaviour;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.JADEPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
@@ -405,6 +404,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    AddedContainer ac = new AddedContainer();
 	    ac.setContainer(cid);
+	    ac.setOwnership(getContainerPrincipal(cid).getOwnership());
 
 	    EventRecord er = new EventRecord(ac, here());
 	    Occurred o = new Occurred();
@@ -423,7 +423,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	  // Send all agent names, along with their container name.
 	  AID[] agents = myPlatform.agentNames();
-	  for(int i = 0; i < agents.length; i++) {
+	  for (int i = 0; i < agents.length; i++) {
 
 	    AID agentName = agents[i];
 	    ContainerID cid = myPlatform.getContainerID(agentName);
@@ -431,34 +431,10 @@ public class ams extends Agent implements AgentManager.Listener {
 	    BornAgent ba = new BornAgent();
 	    ba.setAgent(agentName);
 	    ba.setWhere(cid);
+	    ba.setState(getAgentState(agentName));
+	    ba.setOwnership(getAgentOwnership(agentName));
 
 	    EventRecord er = new EventRecord(ba, here());
-	    Occurred o = new Occurred();
-	    o.set_0(er);
-
-	    List l = new ArrayList(1);
-	    l.add(o);
-
-	    toolNotification.clearAllReceiver();
-	    toolNotification.addReceiver(newTool);
-	    fillMsgContent(toolNotification, l);
-
-	    send(toolNotification);
-	  }
-
-	  // Send all agent principals.
-	  for (int i = 0; i < agents.length; i++) {
-
-	    AID agentName = agents[i];
-	    ContainerID cid = myPlatform.getContainerID(agentName);
-
-	    ChangedAgentOwnership cao = new ChangedAgentOwnership();
-	    cao.setAgent(agentName);
-	    cao.setFrom(AgentPrincipal.NONE);
-	    cao.setTo(getAgentOwnership(agentName));
-	    cao.setWhere(cid);
-
-	    EventRecord er = new EventRecord(cao, here());
 	    Occurred o = new Occurred();
 	    o.set_0(er);
 
@@ -637,56 +613,52 @@ public class ams extends Agent implements AgentManager.Listener {
 		protected void processAction(Action a) throws FIPAException, AuthException {
 			CreateAgent ca = (CreateAgent)a.get_1();
 
-			String agentName = ca.getAgentName();
-			AID agentID = new AID(agentName, AID.ISLOCALNAME);
-			String className = ca.getClassName();
-			ContainerID container = ca.getContainer();
+			final String agentName = ca.getAgentName();
+			final AID agentID = new AID(agentName, AID.ISLOCALNAME);
+			final String className = ca.getClassName();
+			final ContainerID container = ca.getContainer();
 			Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
 			//create the array of string
 			ArrayList listArg = new ArrayList();
 			while (arg.hasNext())
 				listArg.add(arg.next().toString());
-			String[] arguments = new String[listArg.size()];
+			final String[] arguments = new String[listArg.size()];
 			for (int n = 0; n < listArg.size(); n++)
 				arguments[n] = (String)listArg.get(n);
 
-			String ownership = UserPrincipal.NONE;
 			AID creator = getRequest().getSender();
-			ownership = getAgentOwnership(creator);
+			final String ownership = getAgentOwnership(creator);
 
 			Authority authority = getAuthority();
-			UserPrincipal user = authority.createUserPrincipal();
-			user.init(ownership);
-			AgentPrincipal agent = authority.createAgentPrincipal();
-			agent.init(agentID, user);
+			AgentPrincipal agent = authority.createAgentPrincipal(agentID, ownership);
 
-			IdentityCertificate identity = authority.createIdentityCertificate();
-			if (identity != null) {
-				identity.setSubject(agent);
-				authority.sign(identity, getIdentity(), new DelegationCertificate[] {getDelegation()});
+			DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator.getName());
+
+			final IdentityCertificate identity = authority.createIdentityCertificate();
+			identity.setSubject(agent);
+			authority.sign(identity, getIdentity(), new DelegationCertificate[] {creatorDelegation});
+
+			final DelegationCertificate delegation = authority.createDelegationCertificate();
+			if (ca.getDelegation() != null) {
+				delegation.decode(ca.getDelegation());
 			}
-
-			DelegationCertificate delegation = authority.createDelegationCertificate();
-			if (delegation != null) {
-				if (ca.getDelegation() != null) {
-					delegation.decode(ca.getDelegation());
-				}
-				else {
-					DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator.getName());
-					delegation.setSubject(agent);
-					if (creatorDelegation != null)
-						for (Iterator i = creatorDelegation.getPermissions().iterator(); i.hasNext(); )
-							delegation.addPermission(i.next());
-					authority.sign(delegation, getIdentity(), new DelegationCertificate[] {creatorDelegation});
-				}
+			else {
+				delegation.setSubject(agent);
+				if (creatorDelegation != null)
+					delegation.addPermissions(creatorDelegation.getPermissions());
+				authority.sign(delegation, getIdentity(), new DelegationCertificate[] {creatorDelegation});
 			}
 
 			sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
 			try {
-				authority.checkAction(Authority.AGENT_CREATE, agent, getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(creator.getName())});
+				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+					public Object run() throws UnreachableException, AuthException {
+						myPlatform.create(agentName, className, arguments, container, ownership, identity, delegation);
+						return null;
+					}
+				}, getIdentity(), new DelegationCertificate[] {creatorDelegation});
 
-				myPlatform.create(agentName, className, arguments, container, ownership, identity, delegation);
 				// An 'inform Done' message will be sent to the requester only
 				// when the newly created agent will register itself with the
 				// AMS. The new agent's name will be used as the key in the map.
@@ -697,16 +669,19 @@ public class ams extends Agent implements AgentManager.Listener {
 
 				creations.put(agentID, new CreationInfo(getRequest(), reply, ownership, identity, delegation));
 			}
-			catch(UnreachableException ue) {
+			catch (UnreachableException ue) {
 				throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
 			}
-			catch(AuthException ae) {
+			catch (AuthException ae) {
 				ACLMessage failure = getReply();
 				failure.setPerformative(ACLMessage.FAILURE);
 				failure.setContent(createExceptionalMsgContent(a, getRequest().getOntology(), new FIPAException(ae.getMessage())));
 				send(failure);
 			}
-
+			catch (Exception e) {
+				// Never thrown
+				e.printStackTrace();
+			}
 		}
 
 	} // End of CreateBehaviour class
@@ -719,24 +694,23 @@ public class ams extends Agent implements AgentManager.Listener {
       return new KillBehaviour(msg);
     }
 
-    protected void processAction(Action a) throws FIPAException {
+    protected void processAction(Action a) throws FIPAException, AuthException {
       // Kill an agent
       KillAgent ka = (KillAgent)a.get_1();
       AID agentID = ka.getAgent();
       String password = ka.getPassword();
 
       try {
-	myPlatform.kill(agentID, password);
-	sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	sendReply(ACLMessage.INFORM, doneAction(a));
+        myPlatform.kill(agentID);
+        sendReply(ACLMessage.AGREE, createAgreeContent(a));
+        sendReply(ACLMessage.INFORM, doneAction(a));
       }
-      catch(UnreachableException ue) {
-	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+      catch (UnreachableException ue) {
+        throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
-      catch(NotFoundException nfe) {
-	throw new NotRegistered();
+      catch (NotFoundException nfe) {
+        throw new NotRegistered();
       }
-
     }
 
   } // End of KillBehaviour class
@@ -1216,7 +1190,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		if (creation != null)
 			old.setOwnership(creation.getOwnership());
 		else
-			old.setOwnership(UserPrincipal.NONE);
+			old.setOwnership(AgentPrincipal.NONE);
 
 		String[] addresses = myPlatform.platformAddresses();
 		for (int i = 0; i < addresses.length; i++)
@@ -1243,13 +1217,13 @@ public class ams extends Agent implements AgentManager.Listener {
 		AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
 	}
 
-	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
+	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws AuthException {
 		Authority authority = getAuthority();
-		AID name = old.getName();
+		final AID name = old.getName();
 
 		String oldOwnership = old.getOwnership();
 		if (oldOwnership == null)
-			oldOwnership = UserPrincipal.NONE;
+			oldOwnership = AgentPrincipal.NONE;
 		String newOwnership = amsd.getOwnership();
 		if (newOwnership == null)
 			newOwnership = oldOwnership;
@@ -1259,15 +1233,12 @@ public class ams extends Agent implements AgentManager.Listener {
 		amsd.setOwnership(oldOwnership);
 		amsd.setState(oldState);
 
-		UserPrincipal oldUser = authority.createUserPrincipal();
-		oldUser.init(oldOwnership);
-		AgentPrincipal oldAgent = authority.createAgentPrincipal();
-		oldAgent.init(old.getName(), oldUser);
+		AgentPrincipal oldAgent = authority.createAgentPrincipal(old.getName(), oldOwnership);
 
-		UserPrincipal newUser = extractUser(newOwnership);
-		byte[] word = extractPassword(newOwnership);
-		AgentPrincipal newAgent = authority.createAgentPrincipal();
-		newAgent.init(name, newUser);
+		final byte[] password = extractPassword(newOwnership);
+		final String username = extractUsername(newOwnership);
+		
+		AgentPrincipal newAgent = authority.createAgentPrincipal(name, username);
 
 		// we have to find the "subject" of this action
 		IdentityCertificate actorIdentity = null;
@@ -1275,21 +1246,6 @@ public class ams extends Agent implements AgentManager.Listener {
 		// we use sender's delegation to ams
 		actorIdentity = getIdentity();
 		actorDelegation = (DelegationCertificate)delegations.get(sender.getName());
-		if (actorDelegation == null && creation != null) {
-			// we use creation certificates
-			actorIdentity = creation.getIdentity();
-			actorDelegation = creation.getDelegation();
-		}
-		if (actorDelegation == null) { //!!! && ! newOwnership.equals(oldOwnership)
-			// we use new ownership to authenticate new user
-			actorIdentity = authority.createIdentityCertificate();
-			actorDelegation = authority.createDelegationCertificate();
-			if (actorIdentity != null && actorDelegation != null) {
-				actorIdentity.setSubject(newAgent);
-				actorDelegation.setSubject(newAgent);
-				authority.authenticate(actorIdentity, actorDelegation, word);
-			}
-		}
 
 		try {
 			authority.checkAction(action, oldAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
@@ -1298,37 +1254,41 @@ public class ams extends Agent implements AgentManager.Listener {
 				return;
 
 			// change agent principal
-			if (! newOwnership.equals(oldOwnership)) {
-				authority.checkAction(Authority.AGENT_TAKE, oldAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
-
-				IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-				DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-				if (agentIdentity != null && agentDelegation != null) {
-					agentIdentity.setSubject(newAgent);
-					agentDelegation.setSubject(newAgent);
-					authority.authenticate(agentIdentity, agentDelegation, word);
-				}
-				myPlatform.changeAgentPrincipal(name, newAgent, agentIdentity, agentDelegation);
-				amsd.setOwnership(newUser.getName());
+			if (! newOwnership.equals(oldOwnership) || password != null) {
+				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+					public Object run() throws NotFoundException, UnreachableException, AuthException {
+						myPlatform.take(name, username, password);
+						return null;
+					}
+				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				amsd.setOwnership(username);
 			}
 			agentDescriptions.register(amsd.getName(), amsd);
 			old.setOwnership(amsd.getOwnership());
 
 			// change agent state
 			if (! oldState.equals(AMSAgentDescription.SUSPENDED) && newState.equals(AMSAgentDescription.SUSPENDED)) {
-				authority.checkAction(Authority.AGENT_SUSPEND, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
-				myPlatform.suspend(name, "");
+				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+					public Object run() throws NotFoundException, UnreachableException, AuthException {
+						myPlatform.suspend(name);
+						return null;
+					}
+				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
 				amsd.setState(newState);
 			}
 			else if (oldState.equals(AMSAgentDescription.SUSPENDED) && ! newState.equals(AMSAgentDescription.SUSPENDED)) {
-				authority.checkAction(Authority.AGENT_RESUME, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
-				myPlatform.activate(name, "");
+				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+					public Object run() throws NotFoundException, UnreachableException, AuthException {
+						myPlatform.activate(name);
+						return null;
+					}
+				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
 				amsd.setState(newState);
 			}
 			agentDescriptions.register(amsd.getName(), amsd);
 		}
-		catch (NotFoundException nfe) {
-			nfe.printStackTrace();
+		catch (NotFoundException ne) {
+			ne.printStackTrace();
 		}
 		catch (UnreachableException ue) {
 			ue.printStackTrace();
@@ -1336,6 +1296,10 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch (AuthException ae) {
 			agentDescriptions.register(old.getName(), old);
 			throw ae;
+		}
+		catch (Exception e) {
+			// Never thrown
+			e.printStackTrace();
 		}
 	}
 
@@ -1348,7 +1312,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	void AMSMoveAgent(AID agent, Location where, AID sender) throws FIPAException, AuthException {
 		checkAction(Authority.AGENT_MOVE, agent, sender);
 		try {
-			myPlatform.move(agent, where, "");
+			myPlatform.move(agent, where);
 		}
 		catch (UnreachableException ue) {
 			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -1362,7 +1326,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	void AMSCloneAgent(AID agent, Location where, String newName, AID sender) throws FIPAException, AuthException {
 		checkAction(Authority.AGENT_COPY, agent, sender);
 		try {
-			myPlatform.copy(agent, where, newName, "");
+			myPlatform.copy(agent, where, newName);
 		}
 		catch(UnreachableException ue) {
 			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -1387,32 +1351,23 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	void checkAction(String action, AID agent, AID sender) throws AuthException {
-		//!!! null-check
 		getAuthority().checkAction(action, getAgentPrincipal(agent), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
 	}
 	
 	void checkAction(String action, ContainerID container, AID sender) throws AuthException {
-		//!!! null-check
 		getAuthority().checkAction(action, getContainerPrincipal(container), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
 	}
 	
 	AgentPrincipal getAgentPrincipal(AID agent) {
-		Authority authority = getAuthority();
-		UserPrincipal user = authority.createUserPrincipal();
-		user.init(getAgentOwnership(agent));
-		AgentPrincipal principal = authority.createAgentPrincipal();
-		principal.init(agent, user);
-		return principal;
+		return getAuthority().createAgentPrincipal(agent, getAgentOwnership(agent));
 	}
 
 	ContainerPrincipal getContainerPrincipal(ContainerID container) {
 		ContainerPrincipal principal = (ContainerPrincipal)containers.get(container);
+		//!!!
 		if (principal == null) {
 			Authority authority = getAuthority();
-			UserPrincipal user = authority.createUserPrincipal();
-			user.init(UserPrincipal.NONE);
-			principal = authority.createContainerPrincipal();
-			principal.init(container, user);
+			principal = authority.createContainerPrincipal(container, ContainerPrincipal.NONE);
 		}
 		return principal;
 	}
@@ -1422,10 +1377,21 @@ public class ams extends Agent implements AgentManager.Listener {
 		amsd.setName(new AID(agent.getName(), AID.ISGUID));
 		List l = agentDescriptions.search(amsd);
 		if (l.size() == 0)
-			return UserPrincipal.NONE;
+			return AgentPrincipal.NONE;
 
 		amsd = (AMSAgentDescription)l.get(0);
 		return amsd.getOwnership();
+	}
+	
+	String getAgentState(AID agent) {
+		AMSAgentDescription amsd = new AMSAgentDescription();
+		amsd.setName(new AID(agent.getName(), AID.ISGUID));
+		List l = agentDescriptions.search(amsd);
+		if (l.size() == 0)
+			return AMSAgentDescription.ACTIVE;
+
+		amsd = (AMSAgentDescription)l.get(0);
+		return amsd.getState();
 	}
 	
   // Methods to be called from AgentPlatform to notify AMS of special events
@@ -1484,13 +1450,16 @@ public class ams extends Agent implements AgentManager.Listener {
   public void bornAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
+    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
     
     if (creations.get(agentID) == null)
-    	creations.put(agentID, new CreationInfo(null, null, UserPrincipal.NONE, null, null));
+    	creations.put(agentID, new CreationInfo(null, null, ownership, null, null));
 
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);
     ba.setWhere(cid);
+    ba.setState(AMSAgentDescription.ACTIVE);
+    ba.setOwnership(ownership);
 
     EventRecord er = new EventRecord(ba, here());
     er.setWhen(ev.getTime());
@@ -1543,12 +1512,17 @@ public class ams extends Agent implements AgentManager.Listener {
   */
   public void suspendedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
-    AID agentID = ev.getAgent();
+    AID name = ev.getAgent();
     
-    // Registry needs an update here!!!
-
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if (amsd != null) {
+	    // Registry needs an update here
+			amsd.setState(AMSAgentDescription.SUSPENDED);
+			agentDescriptions.register(name, amsd);
+		}
+		
     SuspendedAgent sa = new SuspendedAgent();
-    sa.setAgent(agentID);
+    sa.setAgent(name);
     sa.setWhere(cid);
 
     EventRecord er = new EventRecord(sa, here());
@@ -1565,12 +1539,17 @@ public class ams extends Agent implements AgentManager.Listener {
   */
   public void resumedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
-    AID aid = ev.getAgent();
-
-    // Registry needs an update here!!!
-
+    AID name = ev.getAgent();
+    
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if (amsd != null) {
+	    // Registry needs an update here
+			amsd.setState(AMSAgentDescription.ACTIVE);
+			agentDescriptions.register(name, amsd);
+		}
+		
     ResumedAgent ra = new ResumedAgent();
-    ra.setAgent(aid);
+    ra.setAgent(name);
     ra.setWhere(cid);
 
     EventRecord er = new EventRecord(ra, here());
@@ -1587,23 +1566,21 @@ public class ams extends Agent implements AgentManager.Listener {
 	*/
 	public void changedAgentPrincipal(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
-    AID aid = ev.getAgent();
-
-    // Registry needs an update here!!!
-		CreationInfo creation = (CreationInfo)creations.get(aid);
-		if (creation == null)
-			creations.put(aid, new CreationInfo(null, null,
-					((AgentPrincipal)ev.getNewPrincipal()).getUser().getName(), null, null));
-		else
-			creations.put(aid, new CreationInfo(creation.getRequest(), creation.getReply(),
-					((AgentPrincipal)ev.getNewPrincipal()).getUser().getName(),
-					creation.getIdentity(), creation.getDelegation()));
+    AID name = ev.getAgent();
+    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
+    
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if (amsd != null) {
+	    // Registry needs an update here
+			amsd.setOwnership(ownership);
+			agentDescriptions.register(name, amsd);
+		}
 
 		ChangedAgentOwnership cao = new ChangedAgentOwnership();
-		cao.setAgent(aid);
+		cao.setAgent(name);
 		cao.setWhere(cid);
-		cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getUser().getName());
-		cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getUser().getName());
+		cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
+		cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
 
 		EventRecord er = new EventRecord(cao, here());
 		er.setWhen(ev.getTime());

@@ -79,12 +79,16 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.uninstallMTP(address);
     }
     
-    public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
-      impl.changeAgentPrincipal(agentID, principal, identity, delegation);
+    public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
+      impl.changeAgentPrincipal(agentID, identity, delegation);
     }
     
-    public void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException {
-      impl.changeContainerPrincipal(principal, identity, delegation);
+    public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws RemoteException, IMTPException {
+      impl.changedAgentPrincipal(agentID, principal);
+    }
+    
+    public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException {
+      impl.changeContainerPrincipal(identity, delegation);
     }
     
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {

@@ -29,7 +29,6 @@ import jade.mtp.MTPDescriptor;
 
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
@@ -52,19 +51,20 @@ public interface MainContainer {
 
     String getPlatformName() throws IMTPException;
 
-    String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException;
+    String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException;
     void removeContainer(ContainerID cid) throws IMTPException;
 
     AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException;
+    void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
 
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
 //__SECURITY__BEGIN
-    void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws IMTPException, NotFoundException;
+    void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
+    AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException;
     JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException;
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END

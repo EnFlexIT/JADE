@@ -28,8 +28,6 @@ import jade.core.AID;
 
 public interface AgentPrincipal extends JADEPrincipal {
 
-	public void init(AID agentID, UserPrincipal user);
-	public AID getAgentID();
-	public UserPrincipal getUser();
+	public String getOwnership();
 
 }

@@ -37,7 +37,6 @@ import jade.mtp.MTPDescriptor;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.AuthException;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -75,15 +74,14 @@ public interface AgentManager {
   ContainerID getContainerID(AID agentID) throws NotFoundException;
   void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, AuthException;
 
-  void killContainer(ContainerID cid);
-  void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
+  void killContainer(ContainerID cid) throws AuthException;
+  void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
 
-  void suspend(AID agentID, String password) throws NotFoundException, UnreachableException;
-  void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
+  void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
+  void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
 
 //__SECURITY__BEGIN
-  void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException;
-  //void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthException;
+  void take(AID agentID, String username, byte[] password) throws NotFoundException, UnreachableException, AuthException;
   Authority getAuthority();
 //__SECURITY__END
 
@@ -96,8 +94,8 @@ public interface AgentManager {
   void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
   void debugOff(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
 
-  void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
-  void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
+  void move(AID agentID, Location where) throws NotFoundException, UnreachableException, AuthException;
+  void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, UnreachableException, AuthException;
 
   MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
   void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;

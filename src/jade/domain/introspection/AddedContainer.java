@@ -39,6 +39,7 @@ public class AddedContainer implements Event {
   public static final String NAME = "Added-Container";
 
   private ContainerID container;
+  private String ownership;
 
   public String getName() {
     return NAME;
@@ -50,6 +51,14 @@ public class AddedContainer implements Event {
 
   public ContainerID getContainer() {
     return container;
+  }
+
+  public void setOwnership(String o) {
+    ownership = o;
+  }
+
+  public String getOwnership() {
+    return ownership;
   }
 
 }

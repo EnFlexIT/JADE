@@ -29,60 +29,39 @@ import jade.core.AID;
 import jade.core.ContainerID;
 
 
-public class DummyPrincipal implements AgentPrincipal, UserPrincipal, ContainerPrincipal {
+public class DummyPrincipal implements AgentPrincipal, ContainerPrincipal, jade.util.leap.Serializable {
 	
-	protected String name1 = null;
-	protected String name2 = null;
-	protected static final char sep = '/';
+	protected String name = null;
 	
 	public DummyPrincipal() {
 	}
 	
 	public DummyPrincipal(String name) {
-		init(name);
+		this.name = name;
 	}
 	
-	public void init(String name) {
-		if (name.indexOf(sep) == -1)
-			name = name + sep;
-		int pos = name.indexOf(sep);
-		
-		name1 = pos > 0 ? name.substring(0, pos) : null;
-		name2 = pos < name.length() - 1 ? name.substring(pos + 1, name.length()) : null;
+	public DummyPrincipal(AID agentID, String ownership) {
+		this.name = ownership;
 	}
 	
-	public void init(AID agentID, UserPrincipal user) {
-		name1 = user != null ? user.getName() : null;
-		name2 = agentID != null ? agentID.getName() : null;
+	public DummyPrincipal(ContainerID containerID, String ownership) {
+		this.name = ownership;
 	}
 	
-	public void init(ContainerID containerID, UserPrincipal user) {
-		name1 = user != null ? user.getName() : null;
-		name2 = containerID != null ? containerID.getName() : null;
+	public String getOwnership() {
+		return name;
 	}
 	
 	public String getName() {
-		return (name1 != null ? name1 : "") + (name2 != null ? sep + name2 : "");
+		return (name != null) ? name : "";
 	}
 	
-	public AID getAgentID() {
-		return name2 != null ? new AID(name2, AID.ISLOCALNAME) : null;
-	}
-	
-	public ContainerID getContainerID() {
-		return name2 != null ? new ContainerID(name2, null) : null;
-	}
-	
-	public UserPrincipal getUser() {
-		return name1 != null ? new DummyPrincipal(name1) : null;
+	public boolean implies(JADEPrincipal p) {
+		return true;
 	}
 	
 	public String toString() {
 		return getName();
-	}
-	
-	public boolean equals(Object o) {
-		return (o != null) && getName().equals(o.toString());
 	}
 	
 }

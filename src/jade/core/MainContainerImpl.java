@@ -58,7 +58,6 @@ import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -143,10 +142,9 @@ class MainContainerImpl implements Platform, AgentManager {
 		return authority;
 	}
 
-	public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] password) throws IMTPException, AuthException {
+	public void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 		// Authenticate user
-		ContainerPrincipal principal = getAuthority().createContainerPrincipal();
-		principal.init(cid, user);
+		ContainerPrincipal principal = getAuthority().createContainerPrincipal(cid, username);
 		IdentityCertificate identity = authority.createIdentityCertificate();
 		DelegationCertificate delegation = authority.createDelegationCertificate();
 		if (identity != null && delegation != null) {
@@ -157,27 +155,24 @@ class MainContainerImpl implements Platform, AgentManager {
 		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[] {delegation});
 
 		// Set the container-principal
-		ac.changeContainerPrincipal(principal, identity, delegation);
+		ac.changeContainerPrincipal(identity, delegation);
 
 		// Add the calling container as the main container and set its name
 		cid.setName(MAIN_CONTAINER_NAME);
 		containers.addContainer(cid, ac);
 		containersProgNo++;
 
-		String ownership = user.getName() + ":" + new String(password);
+		String agentOwnership = username;
 
 		// Start the AMS
 		theAMS = new ams(this);
-		theAMS.setOwnership(ownership);
-		AgentPrincipal amsPrincipal = authority.createAgentPrincipal();
-		amsPrincipal.init(Agent.getAMS(), user);
+		theAMS.setOwnership(agentOwnership);
+		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(Agent.getAMS(), username);
 		IdentityCertificate amsIdentity = authority.createIdentityCertificate();
 		DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-		if (amsIdentity != null && amsDelegation != null) {
-			amsIdentity.setSubject(amsPrincipal);
-			authority.authenticate(amsIdentity, amsDelegation, password);
-			theAMS.setPrincipal(amsPrincipal, amsIdentity, amsDelegation);
-		}
+		amsIdentity.setSubject(amsPrincipal);
+		authority.authenticate(amsIdentity, amsDelegation, password);
+		theAMS.setPrincipal(amsIdentity, amsDelegation);
 		ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
 		theAMS.waitUntilStarted();
 
@@ -187,16 +182,13 @@ class MainContainerImpl implements Platform, AgentManager {
 
 		// Start the Default DF
 		defaultDF = new df();
-		defaultDF.setOwnership(ownership);
-		AgentPrincipal dfPrincipal = authority.createAgentPrincipal();
-		dfPrincipal.init(Agent.getDefaultDF(), user);
+		defaultDF.setOwnership(agentOwnership);
+		AgentPrincipal dfPrincipal = authority.createAgentPrincipal(Agent.getDefaultDF(), username);
 		IdentityCertificate dfIdentity = authority.createIdentityCertificate();
 		DelegationCertificate dfDelegation = authority.createDelegationCertificate();
-		if (dfIdentity != null && dfDelegation != null) {
-			dfIdentity.setSubject(dfPrincipal);
-			authority.authenticate(dfIdentity, dfDelegation, password);
-			defaultDF.setPrincipal(dfPrincipal, dfIdentity, dfDelegation);
-		}
+		dfIdentity.setSubject(dfPrincipal);
+		authority.authenticate(dfIdentity, dfDelegation, password);
+		defaultDF.setPrincipal(dfIdentity, dfDelegation);
 		ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
 		defaultDF.waitUntilStarted();
 		
@@ -394,20 +386,17 @@ class MainContainerImpl implements Platform, AgentManager {
 
   private void fireChangedContainerPrincipal(ContainerID cid, ContainerPrincipal from, ContainerPrincipal to) {
   	if (from == null) {
-  		UserPrincipal user = authority.createUserPrincipal();
-  		user.init(UserPrincipal.NONE);
-  		from = authority.createContainerPrincipal();
-  		from.init(cid, user);
+  		from = authority.createContainerPrincipal(cid, ContainerPrincipal.NONE);
   	}
-    PlatformEvent ev = new PlatformEvent(cid, from, to);
-    for(int i = 0; i < platformListeners.size(); i++) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_CONTAINER_PRINCIPAL, null, cid, from, to);
+    for (int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.changedContainerPrincipal(ev);
     }
   }
 
-  private void fireBornAgent(ContainerID cid, AID agentID) {
-    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid);
+  private void fireBornAgent(ContainerID cid, AID agentID, AgentPrincipal principal) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, principal);
 
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
@@ -443,20 +432,17 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 //__SECURITY__BEGIN
-  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
-  	if (oldPrincipal == null) {
-  		UserPrincipal user = authority.createUserPrincipal();
-  		user.init(UserPrincipal.NONE);
-  		oldPrincipal = authority.createAgentPrincipal();
-  		oldPrincipal.init(agentID, user);
-  	}
-    PlatformEvent ev = new PlatformEvent(agentID, cid, oldPrincipal, newPrincipal);
+	private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal from, AgentPrincipal to) {
+		if (from == null) {
+			from = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+		}
+		PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_AGENT_PRINCIPAL, agentID, cid, from, to);
 
-    for (int i = 0; i < platformListeners.size(); i++) {
-      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.changedAgentPrincipal(ev);
-    }
-  }
+		for (int i = 0; i < platformListeners.size(); i++) {
+			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+			l.changedAgentPrincipal(ev);
+		}
+	}
 //__SECURITY__END
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
@@ -494,21 +480,18 @@ class MainContainerImpl implements Platform, AgentManager {
     return platformID;
   }
 
-	public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
+	public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 		// Authenticate user
-		ContainerPrincipal principal = authority.createContainerPrincipal();
-		principal.init(cid, user);
+		ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
 		IdentityCertificate identity = authority.createIdentityCertificate();
 		DelegationCertificate delegation = authority.createDelegationCertificate();
-		if (identity != null && delegation != null) {
-			identity.setSubject(principal);
-			authority.authenticate(identity, delegation, passwd);
-		}
-		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[]{delegation});
-
+		identity.setSubject(principal);
+		authority.authenticate(identity, delegation, password);
+		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[] {delegation});
+		
 		// Set the container-principal
-		ac.changeContainerPrincipal(principal, identity, delegation);
-
+		ac.changeContainerPrincipal(identity, delegation);
+		
 		// Send all platform addresses to the new container
 		ContainerID[] containerNames = containers.names();
 		for(int i = 0; i < containerNames.length; i++) {
@@ -559,13 +542,17 @@ class MainContainerImpl implements Platform, AgentManager {
     return ac;
   }
 
-  public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException  {
+  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
+
+		// verify identity certificate
+		authority.verify(identity);
 
     AgentDescriptor desc = new AgentDescriptor();
     AgentContainer ac = containers.getContainer(cid);
     AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
     desc.setProxy(ap);
     desc.setContainerID(cid);
+		desc.setPrincipal((AgentPrincipal)identity.getSubject());
     AgentDescriptor old = platformAgents.put(name, desc);
 
     // If there's already an agent with name 'name' throw a name clash
@@ -584,8 +571,19 @@ class MainContainerImpl implements Platform, AgentManager {
     }
 
     // Notify listeners
-    fireBornAgent(cid, name);
+    fireBornAgent(cid, name, (AgentPrincipal)identity.getSubject());
 
+		// Delegate ams
+		if (delegation != null) {
+			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+			amsDelegation.setSubject(amsPrincipal);
+			for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); ) {
+				amsDelegation.addPermission(i.next());
+			}
+			authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
+			theAMS.setDelegation(name, amsDelegation);
+		}
   }
 
   public void deadAgent(AID name) throws IMTPException, NotFoundException {
@@ -620,19 +618,18 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 //__SECURITY__BEGIN
-	public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws IMTPException, NotFoundException {
+	public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
 		AgentDescriptor ad = platformAgents.get(name);
 		if (ad == null)
 			throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
-
+		
 		try {
-			//!!! attenzione se identity == null
 			authority.verify(identity);
-			if (identity != null && ! identity.getSubject().equals(to))
-				throw new AuthException("identity-subject doesn't match new agent principal");
-
+			
+			AgentPrincipal from = ad.getPrincipal();
+			AgentPrincipal to = (AgentPrincipal)identity.getSubject();
 			ContainerID cid = ad.getContainerID();
-
+			
 			// Notify containers
 			/* FIXME. This block of code creates a deadlock when launching
 			   the party example on a remote container.
@@ -642,18 +639,60 @@ class MainContainerImpl implements Platform, AgentManager {
 				// FIXME: If some container is temporarily disconnected it will not be
 				// notified. We should investigate the sideeffects
 				try {
-				    ac.changeAgentPrincipal(name, to, null, null);
+					ac.changedAgentPrincipal(name, to);
 				}
 				catch (IMTPException imtpe) {
-				    imtpe.printStackTrace();
+					imtpe.printStackTrace();
 				}
-				}
-
+			}
+			
 			// Notify listeners
 			fireChangedAgentPrincipal(cid, name, from, to); FIXME */
+			
+			AgentContainer[] allContainers = containers.containers();
+			for (int i = 0; i < allContainers.length; i++) {
+				AgentContainer ac = allContainers[i];
+				// FIXME: If some container is temporarily disconnected it will not be
+				// notified. We should investigate the sideeffects
+				try {
+					ac.changedAgentPrincipal(name, to);
+				}
+				catch (IMTPException imtpe) {
+					imtpe.printStackTrace();
+				}
+			}
+			
+			// Notify listeners
+			fireChangedAgentPrincipal(cid, name, from, to);
+    
+			// Delegate ams
+			if (delegation != null) {
+				AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+				DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+				amsDelegation.setSubject(amsPrincipal);
+				for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); ) {
+					amsDelegation.addPermission(i.next());
+				}
+				authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
+				theAMS.setDelegation(name, amsDelegation);
+			}		
 		}
 		catch (AuthException ae) {
 			ae.printStackTrace();
+		}
+	}
+	
+	public AgentPrincipal getAgentPrincipal(AID agentID) throws IMTPException, NotFoundException {
+		AgentPrincipal ap;
+		AgentDescriptor ad = platformAgents.get(agentID);
+
+		if (ad == null)
+			throw new NotFoundException("getPrincipal() failed to find " + agentID.getName());
+		else {
+			ad.lock();
+			ap = ad.getPrincipal();
+			ad.unlock();
+			return ap;
 		}
 	}
 //__SECURITY__END
@@ -701,63 +740,85 @@ class MainContainerImpl implements Platform, AgentManager {
     ad.unlock();
     return true;
   }
-
+  
   // These methods dispatch agent management operations to
   // appropriate Agent Container through a suitable IMTP.
 
-  public void kill(AID agentID, String password) throws NotFoundException, UnreachableException {
-    try {
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.killAgent(agentID);
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
+	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		try {
+			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null, null);
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).killAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+		}
+	}
 
-  public void suspend(AID agentID, String password) throws NotFoundException, UnreachableException {
-    try {
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.suspendAgent(agentID);
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
+	public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		try {
+			authority.checkAction(Authority.AGENT_SUSPEND, getAgentPrincipal(agentID), null, null);
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).suspendAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+		}
+	}
 
-  public void activate(AID agentID, String password) throws NotFoundException, UnreachableException {
-    try {
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.resumeAgent(agentID);
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
+	public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		try {
+			authority.checkAction(Authority.AGENT_RESUME, getAgentPrincipal(agentID), null, null);
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).resumeAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+		}
+	}
 
 //__SECURITY__BEGIN
-	public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException {
-		if (identity != null && delegation != null) {
-			try {
-	      AgentContainer ac = getContainerFromAgent(agentID);
-  	    ac.changeAgentPrincipal(agentID, principal, identity, delegation);
-    	}
-    	catch (IMTPException re) {
-      	throw new UnreachableException(re.getMessage());
-    	}
-    }
-    
-		if (delegation != null) {
-			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-			amsDelegation.setSubject(amsPrincipal);
-			for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); ) {
-				amsDelegation.addPermission(i.next());
-			}
-			authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
-			theAMS.setDelegation(agentID, amsDelegation);
-		}		
-  }
+	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
+		try {
+			authority.checkAction(Authority.AGENT_TAKE, getAgentPrincipal(agentID), null, null);
+
+			final AgentPrincipal principal = authority.createAgentPrincipal(agentID, username);
+			final IdentityCertificate identity = authority.createIdentityCertificate();
+			identity.setSubject(principal);
+			final DelegationCertificate delegation = authority.createDelegationCertificate();
+			authority.authenticate(identity, delegation, password);
+			
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, identity, delegation);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+		}
+	}
 //__SECURITY__END
 
   public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
@@ -765,7 +826,7 @@ class MainContainerImpl implements Platform, AgentManager {
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.waitAgent(agentID);
     }
-    catch(IMTPException re) {
+    catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -775,30 +836,42 @@ class MainContainerImpl implements Platform, AgentManager {
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.wakeAgent(agentID);
     }
-    catch(IMTPException re) {
+    catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException {
-    // Retrieve the container for the original agent
-    AgentContainer src = getContainerFromAgent(agentID);
+  public void move(final AID agentID, final Location where) throws NotFoundException, UnreachableException, AuthException {
     try {
-      src.moveAgent(agentID, where);
+			authority.checkAction(Authority.AGENT_MOVE, getAgentPrincipal(agentID), null, null);
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).moveAgent(agentID, where);
+	  			return null;
+				}
+			});
     }
-    catch(IMTPException re) {
+    catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
+    }
+    catch (Exception e) {
     }
   }
 
-  public void copy(AID agentID, Location where, String newAgentID, String password) throws NotFoundException, UnreachableException {
-    // Retrieve the container for the original agent
-    AgentContainer src = getContainerFromAgent(agentID);
+  public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
     try {
-      src.copyAgent(agentID, where, newAgentID);
+			authority.checkAction(Authority.AGENT_COPY, getAgentPrincipal(agentID), null, null);
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).copyAgent(agentID, where, newName);
+	  			return null;
+				}
+			});
     }
-    catch(IMTPException re) {
+    catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
+    }
+    catch (Exception e) {
     }
   }
 
@@ -947,31 +1020,41 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(String agentName, String className, String args[], ContainerID cid, String ownership, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, AuthException {
+  public void create(final String agentName, final String className, final String args[], final ContainerID cid, final String ownership, final IdentityCertificate identity, final DelegationCertificate delegation) throws UnreachableException, AuthException {
     try {
+      authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)identity.getSubject(), null, null);
+
       String containerName = cid.getName();
-      AgentContainer ac;
+      AgentContainer where;
       // If no name is given, the agent is started on the MainContainer itself
       if (containerName == null)
         cid.setName(MAIN_CONTAINER_NAME);
       try {
-				ac = containers.getContainer(cid);
+				where = containers.getContainer(cid);
       }
       catch (NotFoundException nfe) {
         try {
 	  			// If a wrong name is given, then again the agent starts on the MainContainer itself
-          ac = containers.getContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
+          where = containers.getContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
         }
         catch (NotFoundException nfe2) {
           throw new UnreachableException(nfe2.getMessage());
         }
       }
 
-      AID id = new AID(agentName, AID.ISLOCALNAME);
-      ac.createAgent(id, className, args, ownership, identity, delegation, AgentContainer.START);
+      final AID id = new AID(agentName, AID.ISLOCALNAME);
+      final AgentContainer ac = where;
+      authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+      	public Object run() throws IMTPException {
+      		ac.createAgent(id, className, args, ownership, identity, delegation, AgentContainer.START);
+      		return null;
+      	}
+      });
     }
-    catch(IMTPException re) {
+    catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
+    }
+    catch (Exception re) {
     }
   }
 
@@ -981,12 +1064,12 @@ class MainContainerImpl implements Platform, AgentManager {
     try {
       final ContainerID contID = cid;
       final AgentContainer ac = containers.getContainer(cid);
-      Thread auxThread = new Thread(new Runnable() {
+      final Thread auxThread = new Thread(new Runnable() {
 	 			public void run() {
 	   			try {
-	     			ac.exit();
+	     			 ac.exit();
 	   			}
-	   			catch(IMTPException imtp1) {
+	   			catch (IMTPException imtp1) {
 	     			System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
 	     			try {
 	     				removeContainer(contID);
@@ -998,10 +1081,17 @@ class MainContainerImpl implements Platform, AgentManager {
 	   			}
 	 			}
       });
-      auxThread.start();
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws NotFoundException {
+		      auxThread.start();
+	  			return null;
+				}
+			});
     }
-    catch(NotFoundException nfe) {
+    catch (NotFoundException nfe) {
       nfe.printStackTrace();
+    }
+    catch (Exception e) {
     }
   }
 

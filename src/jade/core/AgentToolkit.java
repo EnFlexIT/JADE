@@ -29,6 +29,7 @@ import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 //__SECURITY__END
 
 /**
@@ -47,7 +48,7 @@ interface AgentToolkit {
   void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
 //__SECURITY__BEGIN
-  void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity);
+  void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, IdentityCertificate identity, DelegationCertificate delegation);
   Authority getAuthority();
 //__SECURITY__END
   void setPlatformAddresses(AID id);

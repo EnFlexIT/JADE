@@ -28,8 +28,6 @@ import jade.core.ContainerID;
 
 public interface ContainerPrincipal extends JADEPrincipal {
 	
-	public void init(ContainerID containerID, UserPrincipal user);
-	public ContainerID getContainerID();
-	public UserPrincipal getUser();
+	public String getOwnership();
 
 }

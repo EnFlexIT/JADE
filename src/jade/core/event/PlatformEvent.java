@@ -157,17 +157,10 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   }
 
 //__SECURITY__BEGIN
-  public PlatformEvent(AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
+  public PlatformEvent(int id, AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
     super(eventSource);
-    myID = CHANGED_AGENT_PRINCIPAL;
+    myID = id;
     agent = aid;
-    oldPrincipal = from;
-    newPrincipal = to;
-  }
-
-  public PlatformEvent(ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
-    super(eventSource);
-    myID = CHANGED_CONTAINER_PRINCIPAL;
     oldPrincipal = from;
     newPrincipal = to;
   }

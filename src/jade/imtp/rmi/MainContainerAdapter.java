@@ -41,7 +41,6 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -85,9 +84,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException {
+  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
     try {
-      adaptee.bornAgent(name, cid);
+      adaptee.bornAgent(name, cid, identity, delegation);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -139,18 +138,27 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws NotFoundException, IMTPException {
+  public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, IMTPException {
     try {
-      adaptee.changedAgentPrincipal(name, from, to, identity);
+      adaptee.changedAgentPrincipal(name, identity, delegation);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
 
-  public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
+  public AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
     try {
-      return adaptee.addContainer(manager.getRMIStub(ac), cid, user, passwd);
+      return adaptee.getAgentPrincipal(name);
+    }
+    catch (RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
+  public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
+    try {
+      return adaptee.addContainer(manager.getRMIStub(ac), cid, username, password);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);

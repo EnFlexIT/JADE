@@ -206,7 +206,8 @@ public class rma extends ToolAgent {
 	    String container = cid.getName();
 	    AID agent = ba.getAgent();
 	    myGUI.addAgent(container, agent);
-	    if(agent.equals(getAID()))
+	    myGUI.modifyAgent(container, agent, ba.getState(), ba.getOwnership());
+	    if (agent.equals(getAID()))
 	      myContainerName = container;
 	  }
 	});

@@ -32,7 +32,6 @@ import jade.util.leap.LinkedList;
 
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
@@ -68,11 +67,11 @@ class MainContainerProxy implements Platform {
       adaptee = myProfile.getIMTPManager().getMain(true);
     }
 
-    public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
+    public void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
       localContainer = ac;
 
       // The Main Container initialization of a peripheral container is just adding it to the platform.
-      String name = adaptee.addContainer(ac, cid, user, passwd);
+      String name = adaptee.addContainer(ac, cid, username, password);
       cid.setName(name);
     }
 
@@ -114,8 +113,8 @@ class MainContainerProxy implements Platform {
       return adaptee.getProxy(id);
     }
 
-    public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException {
-      adaptee.bornAgent(name, cid);
+    public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
+      adaptee.bornAgent(name, cid, identity, delegation);
     }
 
     public String getPlatformName() throws IMTPException {
@@ -140,13 +139,17 @@ class MainContainerProxy implements Platform {
     }
 
 //__SECURITY__BEGIN
-    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws IMTPException, NotFoundException {
-      adaptee.changedAgentPrincipal(name, from, to, identity);
+    public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+      adaptee.changedAgentPrincipal(name, identity, delegation);
+    }
+    
+    public AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
+      return adaptee.getAgentPrincipal(name);
     }
 //__SECURITY__END
 
-    public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
-      return adaptee.addContainer(ac, cid, user, passwd);
+    public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
+      return adaptee.addContainer(ac, cid, username, password);
     }
 
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
@@ -248,7 +251,8 @@ class MainContainerProxy implements Platform {
 
       // Register again with the Main Container.
       ContainerID myID = (ContainerID) localContainer.here();
-      String name = adaptee.addContainer(localContainer, myID, null, null); //!!! Remote call
+      //!!! How to register again?
+      String name = adaptee.addContainer(localContainer, myID, null, null); // Remote call
       myID.setName(name);
 
       // Restore registration of local agents
@@ -259,13 +263,13 @@ class MainContainerProxy implements Platform {
       regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
       regMsg.setProtocol("fipa-request");
 
-      AID[] agentIDs = localContainer.getLocalAgents().keys();
-      for (int i = 0; i < agentIDs.length; i++) {
-				AID agentID = agentIDs[i];
+      Agent[] agents = localContainer.getLocalAgents().values();
+      for (int i = 0; i < agents.length; i++) {
+				AID agentID = agents[i].getAID();
 
 				// Register again the agent with the Main Container.
 				try {
-	  			adaptee.bornAgent(agentID, myID); // Remote call
+	  			adaptee.bornAgent(agentID, myID, agents[i].getIdentity(), agents[i].getDelegation()); // Remote call
 				}
 				catch (NameClashException nce) {
 	  			throw new NotFoundException("Agent name already in use: "+ nce.getMessage());

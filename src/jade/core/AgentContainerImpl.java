@@ -46,7 +46,6 @@ import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
-import jade.security.UserPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 //__SECURITY__END
@@ -102,9 +101,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private static String platformID;
   private ContainerID myID;
 
-  private UserPrincipal user = null;
-  private byte[] passwd = null;
-  private String ownership;
+  private ContainerPrincipal principal = null;
+  private String username = null;
+  private byte[] password = null;
   private IdentityCertificate identity;
   private DelegationCertificate delegation;
   private Authority authority;
@@ -130,31 +129,25 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // AgentContainer INTERFACE
   // /////////////////////////////////////////
   public void createAgent(AID agentID, String className, Object[] args, String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
-
     Agent agent = null;
     try {
       agent = (Agent)Class.forName(new String(className)).newInstance();
       agent.setArguments(args);
       // Set agent principal and certificates
       if (identity != null) {
-	      agent.setPrincipal((AgentPrincipal)identity.getSubject(), identity, delegation);
+	      agent.setPrincipal(identity, delegation);
 	    }
-	    else if (ownership != null) {
-  	  	AgentPrincipal principal = authority.createAgentPrincipal();
-    		principal.init(agentID, extractUser(ownership));
-      	agent.setPrincipal(principal, null, null);
-      }
       // Set agent ownership
       if (ownership != null)
 	      agent.setOwnership(ownership);
 	    else if (identity != null)
-      	agent.setOwnership(((AgentPrincipal)identity.getSubject()).getUser().getName());
+      	agent.setOwnership(((AgentPrincipal)identity.getSubject()).getOwnership());
     }
-    catch(ClassNotFoundException cnfe) {
+    catch (ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
   		throw new IMTPException("Exception in createAgent",cnfe); 
     }
-    catch( Exception e ){
+    catch (Exception e ){
       e.printStackTrace();
   		throw new IMTPException("Exception in createAgent",e); 
     }
@@ -180,37 +173,41 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return myMobilityManager.fetchClassFile(name);
   }
 
-  public void initAgent(AID agentID, Agent instance, boolean startIt) {
+	public void initAgent(AID agentID, Agent instance, boolean startIt) {
 
-    // Subscribe as a listener for the new agent
-    instance.setToolkit(this);
+		// Subscribe as a listener for the new agent
+		instance.setToolkit(this);
 
-    // put the agent in the local table and get the previous one, if any
-    Agent previous = localAgents.put(agentID, instance);
-    if (startIt) {
-      try {
-	myPlatform.bornAgent(agentID, myID);
-	myPlatform.changedAgentPrincipal(agentID, null, instance.getPrincipal(), instance.getIdentity());
-	instance.powerUp(agentID, myResourceManager);
-      }
-      catch (NameClashException nce) {
-	System.out.println("Agentname already in use:"+nce.getMessage());
-	localAgents.remove(agentID);
-	if (previous != null) {
-		localAgents.put(agentID,previous);
+		// put the agent in the local table and get the previous one, if any
+		Agent previous = localAgents.put(agentID, instance);
+		if (startIt) {
+			try {
+				myPlatform.bornAgent(agentID, myID, instance.getIdentity(), instance.getDelegation());
+				instance.powerUp(agentID, myResourceManager);
+			}
+			catch (NameClashException nce) {
+				System.out.println("Agentname already in use:"+nce.getMessage());
+				localAgents.remove(agentID);
+				if (previous != null) {
+					localAgents.put(agentID,previous);
+				}
+			}
+			catch (IMTPException re) {
+				System.out.println("Communication error while adding a new agent to the platform.");
+				re.printStackTrace();
+				localAgents.remove(agentID);
+			}
+			catch (NotFoundException nfe) {
+				System.out.println("This container does not appear to be registered with the main container.");
+				localAgents.remove(agentID);
+			}
+			catch (AuthException ae) {
+				System.out.println("Authorization or authentication error while adding a new agent to the platform.");
+				ae.printStackTrace();
+				localAgents.remove(agentID);
+			}
+		}
 	}
-      }
-      catch(IMTPException re) {
-	System.out.println("Communication error while adding a new agent to the platform.");
-	re.printStackTrace();
-	localAgents.remove(agentID);
-      }
-      catch(NotFoundException nfe) {
-	System.out.println("This container does not appear to be registered with the main container.");
-	localAgents.remove(agentID);
-      }
-    }
-  }
 
   public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
@@ -227,28 +224,48 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 //__SECURITY__BEGIN
-  public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
-    principals.put(agentID, principal);
-    Agent agent = localAgents.get(agentID);
-    if (agent != null && identity != null)
-	    agent.setPrincipal(principal, identity, delegation);
-  }
+	public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+		Agent agent = localAgents.get(agentID);
+		if (agent != null)
+			agent.setPrincipal(identity, delegation);
+	}
 
-  public void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
-    this.identity = identity;
-    this.delegation = delegation;
-  }
-  
-  public AgentPrincipal getAgentPrincipal(AID agentID) {
-  	AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
-  	if (principal == null) {
-  		UserPrincipal user = authority.createUserPrincipal();
-  		user.init(UserPrincipal.NONE);
-  		principal = authority.createAgentPrincipal();
-  		principal.init(agentID, user);
-  	}
-  	return principal;
-  }
+	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
+		principals.put(agentID, principal);
+	}
+
+	public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
+		this.identity = identity;
+		this.delegation = delegation;
+		if (identity.getSubject() == null) new Exception().printStackTrace();
+	}
+	
+	public AgentPrincipal getAgentPrincipal(final AID agentID) {
+		AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
+		if (principal == null) {
+			try {
+				principal = (AgentPrincipal)authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+					public Object run() throws IMTPException, NotFoundException {
+						return myPlatform.getAgentPrincipal(agentID);
+					}
+				});
+				principals.put(agentID, principal);
+			}
+			catch (IMTPException ie) {
+				//!!! Manage ie
+				ie.printStackTrace();
+			}
+			catch (NotFoundException ne) {
+				//!!! Manage ne
+				ne.printStackTrace();
+			}
+			catch (Exception e) {
+				// e should never be thrown
+				e.printStackTrace();
+			}
+		}
+		return principal;
+	}
 //__SECURITY__END
 
   public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
@@ -423,203 +440,177 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return authority;
   }
 
-	UserPrincipal extractUser(String ownership) {
-		UserPrincipal user = getAuthority().createUserPrincipal();
-		int dot2 = ownership.indexOf(':');
-		if (dot2 != -1) {
-			user.init(ownership.substring(0, dot2));
-		}
-		else {
-			user.init(ownership);
-		}
-		return user;
-	}
+	void joinPlatform() {
+		try {
+			// Create and initialize the IMTPManager
+			myIMTPManager = myProfile.getIMTPManager();
+			myIMTPManager.initialize(myProfile);
+			
+			// Make itself accessible from remote JVMs
+			myIMTPManager.remotize(this);
+			
+			// Get the Main
+			myPlatform = myProfile.getPlatform();
 
-	byte[] extractPassword(String ownership) {
-		byte[] word = null;
-		int dot2 = ownership.indexOf(':');
-		if (dot2 != -1) {
-			word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-		}
-		else {
-			word = new byte[] {};
-		}
-		return word;
-	}
-
-  void joinPlatform() {
-  	try {
-  		// Create and initialize the IMTPManager
-  		myIMTPManager = myProfile.getIMTPManager();
-  		myIMTPManager.initialize(myProfile);
-  		
-  		// Make itself accessible from remote JVMs
-  		myIMTPManager.remotize(this);
-  		
-  		// Get the Main
-      myPlatform = myProfile.getPlatform();
-
-		  // Create and init container-authority
-		  try {
-	  		String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
-	    	if (type != null) {
-	    		authority = (Authority)Class.forName(type).newInstance();
-		    	authority.setName("container-authority");
-		    	authority.init(myProfile, myPlatform);
+			// Create and init container-authority
+			try {
+				String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
+				if (type != null) {
+					authority = (Authority)Class.forName(type).newInstance();
+					authority.setName("container-authority");
+					authority.init(myProfile, myPlatform);
 				}
-	  	}
-	  	catch (Exception e1) {
-	  		e1.printStackTrace();
-	  	}
-	  	
-	  	try {
-	    	if (authority == null) {
-		    	authority = new jade.security.dummy.DummyAuthority();
-		    	authority.setName("container-authority");
-	  	  	authority.init(myProfile, myProfile.getPlatform());
-	  		}
-		  }
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			
+			try {
+				if (authority == null) {
+					authority = new jade.security.dummy.DummyAuthority();
+					authority.setName("container-authority");
+					authority.init(myProfile, myProfile.getPlatform());
+				}
+			}
 			catch (Exception e2) {
-	    	e2.printStackTrace();
-	  	}
-	  	
-      // This string will be used to build the GUID for every agent on
-      // this platform.
-      platformID = myPlatform.getPlatformName();
+				e2.printStackTrace();
+			}
+			
+			// This string will be used to build the GUID for every agent on
+			// this platform.
+			platformID = myPlatform.getPlatformName();
 
-      // Build the Agent IDs for the AMS and for the Default DF.
-      Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
+			// Build the Agent IDs for the AMS and for the Default DF.
+			Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
-      // Create the ResourceManager
-      myResourceManager = myProfile.getResourceManager();
-      
-      // Create the MessageManager
-      myMessageManager = new MessageManager();
-      myMessageManager.initialize(myProfile, this);
-      
-      // Create and initialize the NotificationManager
-      myNotificationManager = myProfile.getNotificationManager();
-      myNotificationManager.initialize(this, localAgents);
-      
-      // Create and initialize the MobilityManager.
-      myMobilityManager = myProfile.getMobilityManager();
-      myMobilityManager.initialize(myProfile, this, localAgents);
-      
-      // Create the ACC.
-      myACC = myProfile.getAcc();
+			// Create the ResourceManager
+			myResourceManager = myProfile.getResourceManager();
+			
+			// Create the MessageManager
+			myMessageManager = new MessageManager();
+			myMessageManager.initialize(myProfile, this);
+			
+			// Create and initialize the NotificationManager
+			myNotificationManager = myProfile.getNotificationManager();
+			myNotificationManager.initialize(this, localAgents);
+			
+			// Create and initialize the MobilityManager.
+			myMobilityManager = myProfile.getMobilityManager();
+			myMobilityManager.initialize(myProfile, this, localAgents);
+			
+			// Create the ACC.
+			myACC = myProfile.getAcc();
 
-      // Initialize the Container ID
-      TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-      myID = new ContainerID("No-Name", addr);
-      
-      // Acquire username and password
-      ownership = myProfile.getParameter("ownership");
-      if (ownership == null)
-        ownership = jade.security.JADEPrincipal.NONE;
-      user = extractUser(ownership);
-      passwd = extractPassword(ownership);
-      myProfile.setParameter("ownership", user.getName());
+			// Initialize the Container ID
+			TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
+			myID = new ContainerID("No-Name", addr);
+			
+			// Acquire username and password
+			String ownership = myProfile.getParameter("ownership");
+			if (ownership == null)
+				ownership = ContainerPrincipal.NONE;
+			password = Agent.extractPassword(ownership);
+			username = Agent.extractUsername(ownership);
+			myProfile.setParameter("ownership", username);
 
-      // Register to the platform. If myPlatform is the real MainContainerImpl
-      // this call also starts the AMS and DF
-      myPlatform.register(this, myID, user, passwd);
+			// Register to the platform. If myPlatform is the real MainContainerImpl
+			// this call also starts the AMS and DF
+			myPlatform.register(this, myID, username, password);
 
-      // Install MTPs and ACLCodecs. Must be done after registering with the Main
-      myACC.initialize(this, myProfile);
-    }
-    catch (IMTPException imtpe) {
-      System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
-      imtpe.printStackTrace();
-      Runtime.instance().endContainer();
-      return;
-    }
-    catch (AuthException ae) {
-      System.err.println("Authentication or authorization failure while contacting agent platform.");
-      ae.printStackTrace();
-      Runtime.instance().endContainer();
-      return;
-    }
-    catch (Exception e) {
-      System.err.println("Some problem occurred while contacting agent platform.");
-      e.printStackTrace();
-      Runtime.instance().endContainer();
-      return;
-    }
+			// Install MTPs and ACLCodecs. Must be done after registering with the Main
+			myACC.initialize(this, myProfile);
+		}
+		catch (IMTPException imtpe) {
+			System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
+			imtpe.printStackTrace();
+			Runtime.instance().endContainer();
+			return;
+		}
+		catch (AuthException ae) {
+			System.err.println("Authentication or authorization failure while contacting agent platform.");
+			ae.printStackTrace();
+			Runtime.instance().endContainer();
+			return;
+		}
+		catch (Exception e) {
+			System.err.println("Some problem occurred while contacting agent platform.");
+			e.printStackTrace();
+			Runtime.instance().endContainer();
+			return;
+		}
 
-    // Create and activate agents that must be launched at bootstrap
-    try {
+		// Create and activate agents that must be launched at bootstrap
+		try {
 			List l = myProfile.getSpecifiers(Profile.AGENTS);
-    	Iterator agentSpecifiers = l.iterator();
-    	while(agentSpecifiers.hasNext()) {
-	  Specifier s = (Specifier) agentSpecifiers.next();
-      
-	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+			Iterator agentSpecifiers = l.iterator();
+			while(agentSpecifiers.hasNext()) {
+				Specifier s = (Specifier) agentSpecifiers.next();
+					
+				AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+		
+				try {
+					String agentOwnership = username;
+					AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+					IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+					DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+					
+					try {
+						agentIdentity.setSubject(agentPrincipal);
+						authority.sign(agentIdentity, identity, new DelegationCertificate[] {delegation});
+						agentDelegation.setSubject(agentPrincipal);
+						agentDelegation.addPermissions(delegation.getPermissions());
+						authority.sign(agentDelegation, identity, new DelegationCertificate[] {delegation});
+						
+						createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, identity, delegation, NOSTART);
+					}
+					catch (IMTPException imtpe) {
+						// The call to createAgent() in this case is local --> no need to
+						// print the exception again. Just skip this agent
+						continue;
+					}
+					catch (AuthException ae) {
+						// The call to createAgent() in this case is local --> no need to
+						// print the exception again. Just skip this agent
+						continue;
+					}
+					myPlatform.bornAgent(agentID, myID, agentIdentity, agentDelegation);
+				}
+				catch (IMTPException imtpe1) {
+					imtpe1.printStackTrace();
+					localAgents.remove(agentID);
+				}
+				catch (NameClashException nce) {
+					System.out.println("Agent name already in use: " + nce.getMessage());
+					// FIXME: If we have two agents with the same name among the initial 
+					// agents, the second one replaces the first one, but then a 
+					// NameClashException is thrown --> both agents are removed even if
+					// the platform "believes" that the first on is alive.
+					localAgents.remove(agentID);
+				}
+				catch (NotFoundException nfe) {
+					System.out.println("This container does not appear to be registered with the main container.");
+					localAgents.remove(agentID);
+				}
+				catch (AuthException ae) {
+					System.out.println("Authorization or authentication error while adding a new agent to the platform.");
+					localAgents.remove(agentID);
+				}
+			}
 
-	  try {
-	    AgentPrincipal agentPrincipal = authority.createAgentPrincipal();
-   		agentPrincipal.init(agentID, user);
-	    IdentityCertificate agentIdentity = null;
-	    DelegationCertificate agentDelegation = null;
-	    
-	    try {
-	    	agentIdentity = authority.createIdentityCertificate();
-	    	agentDelegation = authority.createDelegationCertificate();
-	    	if (agentIdentity != null && agentDelegation != null) {
-	    		agentIdentity.setSubject(agentPrincipal);
-	    		authority.sign(agentIdentity, identity, new DelegationCertificate[] {delegation});
-	    		agentDelegation.setSubject(agentPrincipal);
-	    		for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); )
-	    			agentDelegation.addPermission(i.next());
-	    		authority.sign(agentDelegation, identity, new DelegationCertificate[] {delegation});
-	    	}
-	    	
-	    	createAgent(agentID, s.getClassName(), s.getArgs(), ownership, identity, delegation, NOSTART);
-	    }
-	    catch (IMTPException imtpe) {
-	      // The call to createAgent() in this case is local --> no need to
-	      // print the exception again. Just skip this agent
-	      continue;
-	    }
-	    catch (AuthException ae) {
-	      // The call to createAgent() in this case is local --> no need to
-	      // print the exception again. Just skip this agent
-	      continue;
-	    }
-	    myPlatform.bornAgent(agentID, myID);
-	    myPlatform.changedAgentPrincipal(agentID, null, agentPrincipal, agentIdentity);
-	  }
-	  catch(IMTPException imtpe1) {
-	    imtpe1.printStackTrace();
-	    localAgents.remove(agentID);
-	  }
-	  catch(NameClashException nce) {
-	    System.out.println("Agent name already in use: " + nce.getMessage());
-	    // FIXME: If we have two agents with the same name among the initial 
-	    // agents, the second one replaces the first one, but then a 
-	    // NameClashException is thrown --> both agents are removed even if
-	    // the platform "believes" that the first on is alive.
-	    localAgents.remove(agentID);
-	  }
-	  catch(NotFoundException nfe) {
-	    System.out.println("This container does not appear to be registered with the main container.");
-	    localAgents.remove(agentID);
-	  }
-    	}
-
-    	// Now activate all agents (this call starts their embedded threads)
-    	AID[] allLocalNames = localAgents.keys();
-    	for (int i = 0; i < allLocalNames.length; i++) {
-      	AID id = allLocalNames[i];
-      	Agent agent = localAgents.get(id);
-      	agent.powerUp(id, myResourceManager);
-    	}
-    }
-    catch (ProfileException pe) {
-    	System.out.println("Warning: error reading initial agents");
-    }
-    	
-    System.out.println("Agent container " + myID + " is ready.");
-  }
+			// Now activate all agents (this call starts their embedded threads)
+			AID[] allLocalNames = localAgents.keys();
+			for (int i = 0; i < allLocalNames.length; i++) {
+				AID id = allLocalNames[i];
+				Agent agent = localAgents.get(id);
+				agent.powerUp(id, myResourceManager);
+			}
+		}
+		catch (ProfileException pe) {
+			System.out.println("Warning: error reading initial agents");
+		}
+			
+		System.out.println("Agent container " + myID + " is ready.");
+	}
 
 
   public void shutDown() {
@@ -760,11 +751,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 //__SECURITY__BEGIN
-  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal, IdentityCertificate identity) {
+  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, IdentityCertificate identity, DelegationCertificate delegation) {
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
-      new Object[]{agentID, oldPrincipal, newPrincipal});
+      new Object[]{agentID, oldPrincipal, (AgentPrincipal)identity.getSubject()});
     try {
-      myPlatform.changedAgentPrincipal(agentID, oldPrincipal, newPrincipal, identity);
+      myPlatform.changedAgentPrincipal(agentID, identity, delegation);
     }
     catch (IMTPException re) {
       re.printStackTrace();

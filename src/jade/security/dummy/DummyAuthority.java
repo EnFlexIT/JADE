@@ -25,6 +25,8 @@ package jade.security.dummy;
 
 import jade.security.*;
 
+import jade.core.AID;
+import jade.core.ContainerID;
 import jade.core.MainContainer;
 import jade.core.Profile;
 
@@ -54,9 +56,13 @@ public class DummyAuthority implements Authority {
 	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
-	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException {
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException {
 	}
 	
+	public Object doPrivileged(jade.security.PrivilegedExceptionAction action) throws Exception {
+		return action.run();
+	}
+
 	public Object doAsPrivileged(jade.security.PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception {
 		return action.run();
 	}
@@ -64,16 +70,12 @@ public class DummyAuthority implements Authority {
 	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
-	public AgentPrincipal createAgentPrincipal(){
-		return new DummyPrincipal();
+	public AgentPrincipal createAgentPrincipal(AID aid, String ownership){
+		return new DummyPrincipal(aid, ownership);
 	}
 	
-	public ContainerPrincipal createContainerPrincipal() {
-		return new DummyPrincipal();
-	}
-	
-	public UserPrincipal createUserPrincipal() {
-		return new DummyPrincipal();
+	public ContainerPrincipal createContainerPrincipal(ContainerID cid, String ownership) {
+		return new DummyPrincipal(cid, ownership);
 	}
 	
 	public IdentityCertificate createIdentityCertificate() {

@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import jade.core.AID;
+import jade.core.ContainerID;
 import jade.core.MainContainer;
 import jade.core.Profile;
 
@@ -110,15 +112,15 @@ public interface Authority {
 
 	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException;
 	
+	public Object doPrivileged(PrivilegedExceptionAction action) throws Exception;
+	
 	public Object doAsPrivileged(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
 	
 	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
 	
-	public AgentPrincipal createAgentPrincipal();
+	public AgentPrincipal createAgentPrincipal(AID aid, String ownership);
 
-	public ContainerPrincipal createContainerPrincipal();
-	
-	public UserPrincipal createUserPrincipal();
+	public ContainerPrincipal createContainerPrincipal(ContainerID cid, String ownership);
 	
 	public IdentityCertificate createIdentityCertificate();
 
