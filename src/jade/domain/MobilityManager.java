@@ -31,8 +31,12 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 
+import jade.onto.Frame;
+import jade.onto.Ontology;
+import jade.onto.OntologyException;
 import jade.onto.Name;
 
 import jade.proto.FipaRequestResponderBehaviour;
@@ -185,8 +189,36 @@ class MobilityManager {
 
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)o;
-      System.out.println("Doing QUERY-PLATFORM-LOCATIONS action ...");
-      sendInform();
+      MobilityOntology.Location[] locations = theAMS.AMSGetPlatformLocations();
+      String content = new String();
+      for(int i = 0; i < locations.length; i++) {
+	try {
+	  Ontology mob = MobilityOntology.instance();
+	  Codec c = theAMS.lookupLanguage(SL0Codec.NAME);
+
+	  Frame f = mob.createFrame(locations[i], MobilityOntology.LOCATION);
+	  String s = c.encode(f, mob);
+	  content = content + s + "||"; // FIXME: Hand-made separator
+	}
+	catch(OntologyException oe) {
+	  oe.printStackTrace();
+	  sendFailure(oe.getMessage());
+	  return;
+	}
+      }
+
+      // Remove last separator
+      content = content.substring(0, content.length() - 2);
+
+      // Use ByteLengthEncoded format
+      content = "#" + content.length() + "\"" + content;
+
+      ACLMessage reply = getReply();
+      reply.setPerformative(ACLMessage.INFORM);
+      reply.setLanguage(SL0Codec.NAME);
+      reply.setOntology(MobilityOntology.NAME);
+      reply.setContent(content);
+      theAMS.send(reply);
     }
 
   }
@@ -201,6 +233,13 @@ class MobilityManager {
 
   public MobilityOntology.Location getLocation(String containerName) {
     return (MobilityOntology.Location)locations.get(new Name(containerName));
+  }
+
+  public MobilityOntology.Location[] getLocations() {
+    Object[] content = locations.values().toArray();
+    MobilityOntology.Location[] result = new MobilityOntology.Location[content.length];
+    System.arraycopy(content, 0, result, 0, result.length);
+    return result;
   }
 
 }
