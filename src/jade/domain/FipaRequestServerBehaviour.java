@@ -82,7 +82,7 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
 	  return;
 	}
 	else
-	  myAgent.addBehaviour(action.instance(reply, st));
+	  myAgent.addBehaviour(action.instance(msg, reply));
       }
       else
 	sendNotUnderstood(reply);
