@@ -1454,9 +1454,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if (o2aQueueSize > 0) 
 	o2aQueue = new ArrayList(o2aQueueSize);
     o2aLocks = new HashMap();
-  //#MIDP_EXCLUDE_BEGIN
     myToolkit = DummyToolkit.instance();
-  //#MIDP_EXCLUDE_END
   }
 	//#MIDP_EXCLUDE_END
 
