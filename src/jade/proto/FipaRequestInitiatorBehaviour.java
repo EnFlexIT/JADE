@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -23,6 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
+import java.util.Date;
 import jade.core.*;
 import jade.core.behaviours.*;
 
@@ -36,14 +38,28 @@ import jade.lang.acl.MessageTemplate;
   <code>fipa-request</code> interaction.
   @see jade.proto.FipaRequestResponderBehaviour
   
-  Javadoc documentation for the file
-  @author Giovanni Rimassa - Universita` di Parma
+  
+  @author Tiziana Trucco - CSELT S.p.A.
   @version $Date$ $Revision$
 */
-public abstract class FipaRequestInitiatorBehaviour extends SequentialBehaviour {
+public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
 
-  private ComplexBehaviour firstReceive;
-  private ComplexBehaviour secondReceive;
+	private final static int INITIAL_STATE = 0;
+	private final static int FIRSTANSWER_STATE = 1;
+	private final static int SECONDANSWER_STATE = 2;
+	
+	private ACLMessage reqMsg, firstAnswerMsg, secondAnswerMsg;
+	private MessageTemplate reqTemplate, firstReqTemplate, secondReqTemplate;
+	private int state = INITIAL_STATE;
+	
+	/**
+	I metodi handle  può cambiare per bloccare il protocolo in qualunque stato
+	
+	verificare che si parli dello stato aggiuntivo e handleothermessages
+	*/
+	protected boolean finished = false;
+  
+
 
   /**
    Public constructor for this behaviour. Creates a
@@ -84,170 +100,175 @@ public abstract class FipaRequestInitiatorBehaviour extends SequentialBehaviour 
   public FipaRequestInitiatorBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
     super(client);
 
-    // Set type and protocol for request
-    request.setPerformative(ACLMessage.REQUEST);
-    request.setProtocol("fipa-request");
-
-    String destName = request.getFirstDest();
-
-    // Create all necessary MessageTemplate objects
-    MessageTemplate FipaRequestTemplate = MessageTemplate.and(
-      MessageTemplate.MatchProtocol("fipa-request"),
-      MessageTemplate.MatchSource(destName));
-    String convID = request.getConversationId();
-    String replyWith = request.getReplyWith();
-    if(convID != null)
-      FipaRequestTemplate = MessageTemplate.and(
-        MessageTemplate.MatchConversationId(convID),
-	FipaRequestTemplate);
-    if(replyWith != null)
-      FipaRequestTemplate = MessageTemplate.and(
-        MessageTemplate.MatchReplyTo(replyWith),
-	FipaRequestTemplate);
-    FipaRequestTemplate = MessageTemplate.and(template, FipaRequestTemplate);
-
-    final MessageTemplate NotUnderstoodTemplate = MessageTemplate.and(
-      FipaRequestTemplate, MessageTemplate.MatchType("not-understood"));
-
-    final MessageTemplate RefuseTemplate = MessageTemplate.and(
-      FipaRequestTemplate, MessageTemplate.MatchType("refuse"));
-
-    final MessageTemplate AgreeTemplate = MessageTemplate.and(
-      FipaRequestTemplate, MessageTemplate.MatchType("agree"));
-
-    final MessageTemplate FailureTemplate = MessageTemplate.and(
-      FipaRequestTemplate, MessageTemplate.MatchType("failure"));
-
-    final MessageTemplate InformTemplate = MessageTemplate.and(
-      FipaRequestTemplate, MessageTemplate.MatchType("inform"));
-
-
-    firstReceive = NonDeterministicBehaviour.createWhenAny(client);
-    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
-
-      private boolean finished = false;
-      public void action() {
-	// Receive 'not-understood'
-	ACLMessage msg = myAgent.receive(NotUnderstoodTemplate);
-	if(msg != null) {
-	  handleNotUnderstood(msg);
-	  finished = true;
-	}
-	else
-	  block();
-      }
-
-      public boolean done() {
-	return finished;
-      }
-
-      public void reset() {
-	finished = false;
-      }
-
-    });
-    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
-
-      private boolean finished = false;
-      public void action() {
-	// Receive 'refuse'
-	ACLMessage msg = myAgent.receive(RefuseTemplate);
-	if(msg != null) {
-	  handleRefuse(msg);
-	  finished = true;
-	}
-	else 
-	  block();
-      }
-
-      public boolean done() {
-	return finished;
-      }
-
-      public void reset() {
-	finished = false;
-      }
-
-    });
-    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
-
-      private boolean finished = false;
-      public void action() {
-	// Receive 'agree'
-	ACLMessage msg = myAgent.receive(AgreeTemplate);
-	if(msg != null) {
-	  handleAgree(msg);
-	  // Add a second NonDeterministicBehaviour to the main behaviour
-	  FipaRequestInitiatorBehaviour.this.addSubBehaviour(secondReceive);
-	  finished = true;
-	}
-	else
-	  block();
-      }
-
-      public boolean done() {
-	return finished;
-      }
-
-      public void reset() {
-	if(finished)
-	  FipaRequestInitiatorBehaviour.this.removeSubBehaviour(secondReceive);
-	finished = false;
-      }
-
-    });
-
-    secondReceive = NonDeterministicBehaviour.createWhenAny(client);
-    secondReceive.addSubBehaviour(new SimpleBehaviour(client) {
-      private boolean finished = false;
-      public void action() {
-	// Receive 'failure'
-	ACLMessage msg = myAgent.receive(FailureTemplate);
-	if(msg != null) {
-	  handleFailure(msg);
-	  finished = true;
-	}
-	else 
-	  block();
-      }
-
-      public boolean done() {
-	return finished;
-      }
-
-      public void reset() {
-	finished = false;
-      }
-
-    });
-    secondReceive.addSubBehaviour(new SimpleBehaviour(client) {
-      private boolean finished = false;
-      public void action() {
-	// Receive 'inform'
-	ACLMessage msg = myAgent.receive(InformTemplate);
-	if(msg != null) {
-	  handleInform(msg);
-	  finished = true;
-	}
-	else
-	  block();
-      }
-
-      public boolean done() {
-	return finished;
-      }
-
-      public void reset() {
-	finished = false;
-      }
-
-    });
-
-
-    addSubBehaviour(new SenderBehaviour(client, request));
-    addSubBehaviour(firstReceive);      
+    // if request is null, clone throws an exception, we catch this exception
+    // and create an empty request message. 
+    try{
+    	reqMsg = (ACLMessage)request.clone();
+    }catch(Exception e){
+    	reqMsg = new ACLMessage(ACLMessage.REQUEST);
+    }
+    
+    reqTemplate = template;
 
   }
+  
+  /**
+  
+  */
+  public FipaRequestInitiatorBehaviour(Agent client, ACLMessage request){
+  	this(client,request, null);
+  
+  }
+  
+  /**
+  
+  */
+  public void reset(){
+  	finished = false;
+  	state = INITIAL_STATE; 
+  }
+    
+  public void reset(ACLMessage request){
+  
+  	// if request is null, clone throws an exception, we catch this exception
+    // and create an empty request message. 
+  	try{
+    	reqMsg = (ACLMessage)request.clone();
+    }catch(Exception e){
+    	reqMsg = new ACLMessage(ACLMessage.REQUEST);
+    }
+    reset();
+
+  }
+  
+  public void reset(ACLMessage request, MessageTemplate template){
+  
+  	reqTemplate = template;
+  	reset(request);
+  
+  }
+  
+  public boolean done(){
+  
+  	return finished;
+  }
+  
+
+  public void action(){
+ 
+  switch(state){ 
+    
+  	case INITIAL_STATE:{
+  		
+  		arrangeReqMsg();
+  		myAgent.send(reqMsg);
+  		arrangeReqTemplate();
+  		state = FIRSTANSWER_STATE;
+  		break;
+  	}
+  	case FIRSTANSWER_STATE:{
+  		
+  		//FIXME: in next version take care also of the timeout expressed in the reply-by.
+  		firstAnswerMsg = myAgent.receive(firstReqTemplate);
+  		if (firstAnswerMsg != null){
+  			switch (firstAnswerMsg.getPerformative()) {
+  				case ACLMessage.AGREE:{
+  					state = SECONDANSWER_STATE;
+  					handleAgree(firstAnswerMsg);
+  					break;
+  				}
+  				case ACLMessage.REFUSE:{		
+  					finished = true;
+  					handleRefuse(firstAnswerMsg);
+  					break;
+  				}
+  				case ACLMessage.NOT_UNDERSTOOD:{
+  					finished = true;	
+  					handleNotUnderstood(firstAnswerMsg);
+  					break;
+  				}
+  				case ACLMessage.INFORM:{
+  					// this new state has been added in Fipa99.
+  				  finished = true;
+  					handleAgree(firstAnswerMsg);
+  					handleInform(firstAnswerMsg);
+  					break;
+  				}
+  				default:{
+  					handleOtherMessages(firstAnswerMsg);
+  					break;
+  				}
+  			}
+  		
+  		}
+  		else
+  			block();
+  		break;
+  	}
+  	case SECONDANSWER_STATE:{
+  		
+  	//FIXME: in next version take care also of the timeout expressed in the reply-by.
+  		secondAnswerMsg = myAgent.receive(secondReqTemplate);
+  		if (secondAnswerMsg != null){
+  			switch (secondAnswerMsg.getPerformative()) {
+  			  			
+  				case ACLMessage.INFORM:{
+  					finished = true;	
+  					handleInform(secondAnswerMsg);
+  					break;
+  				}
+  				case ACLMessage.FAILURE:{
+  					finished = true;	
+  					handleFailure(secondAnswerMsg);
+  					break;
+  				}
+  				default:{
+  					handleOtherMessages(secondAnswerMsg);
+  					break;
+  				}
+  			}//switch
+  		} //if
+  		else
+  			block();
+  		break;
+
+  	}//case
+  }
+  }
+  
+  /*
+  poiche lavora su var private della classe no param. cosa fa....
+  */
+  private void arrangeReqMsg(){
+  
+    // Set type and protocol for request
+    reqMsg.setPerformative(ACLMessage.REQUEST);
+    reqMsg.setProtocol("fipa-request");
+		if (reqMsg.getReplyWith().length()<1)
+      	reqMsg.setReplyWith("Req"+(new Date()).getTime());
+    if (reqMsg.getConversationId().length()<1)
+	      reqMsg.setConversationId("Req"+(new Date()).getTime());
+
+  }
+  
+  /**
+  poiche lavora su var private della classe no param. cosa fa....
+  must be called after arrangereqMsg() otherwise the generated template is uncorret
+  */
+  private void arrangeReqTemplate(){
+  	
+  	  secondReqTemplate = MessageTemplate.MatchProtocol("fipa-request");
+  		if (reqTemplate != null)  		
+  			secondReqTemplate = MessageTemplate.and(reqTemplate, secondReqTemplate);
+ 			// converation-id and reply-with are forced to be present 
+  		// by the method arrageReqMsg. 
+      secondReqTemplate = MessageTemplate.and(MessageTemplate.MatchConversationId(reqMsg.getConversationId()),
+  																			secondReqTemplate);
+			firstReqTemplate = MessageTemplate.and(MessageTemplate.MatchReplyTo(reqMsg.getReplyWith()),
+  																			secondReqTemplate);
+
+  } 
+  
 
   /**
     Abstract method to handle <code>not-understood</code>
@@ -303,6 +324,13 @@ public abstract class FipaRequestInitiatorBehaviour extends SequentialBehaviour 
     template.
   */
   protected abstract void handleInform(ACLMessage reply);
+  
+  /**
+  di default manda solo un msg di warning su stderr ma specifiche implemtnazioni posso fare override
+  */
+  protected void handleOtherMessages(ACLMessage reply){
+  	System.err.println(myAgent.getLocalName() + " WARNING: not expected message received during fipa-request protocol, initiator role"); 
+  }
 
 
 }
