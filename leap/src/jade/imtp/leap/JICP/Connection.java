@@ -36,10 +36,6 @@
 package jade.imtp.leap.JICP;
 
 import java.io.IOException;
-//#MIDP_EXCLUDE_BEGIN
-import java.net.*;
-//#MIDP_EXCLUDE_END
-
 
 /**
    Abstract base class representing a generic connection that can be used
@@ -64,21 +60,6 @@ public abstract class Connection {
 	
   //#MIDP_EXCLUDE_BEGIN
   public abstract String getRemoteHost() throws Exception;
-  
-  /*public static String getLocalHost() throws Exception {
-  	String host = InetAddress.getLocalHost().getHostAddress(); 
-
-    if ("127.0.0.1".equals(host)) {
-      // Try with the name
-      host = InetAddress.getLocalHost().getHostName();
-
-      if ("localhost".equals(host)) {
-        throw new Exception("Can't retrieve local host");
-      } 
-    } 
-
-    return host;
-  }*/
   //#MIDP_EXCLUDE_END
 }
 
