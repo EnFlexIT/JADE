@@ -46,19 +46,14 @@ import javax.microedition.midlet.*;
  * The J2SE and PJAVA implementation simply extend 
  * java.util.Properties.
  * The MIDP implementation allows getting properties from
- * - the .jad file of the midlet
- * - the persistent storage mechanism of MIDP (RecordStore)
- * - an http server
- * - manually entered
- * 
- * load and store operations identify which source to use by
- * value of the "MIDlet-LEAP-Properties" key in the .jad file.
- * if this does not exist, or it can not be accessed,
- * the default recordstore with the name "LEAP" will be used.
+ * the .jad file of the midlet or from a properly formatted 
+ * RecordStore (see the <code>load()</code> and <code>store</code>
+ * methods.
  * 
  * @author Steffen Rusitschka - Siemens AG
  * @author Marc Schlichte - Siemens AG
  * @author Nicolas Lhuillier - Motorola
+ * @author Giovanni Caire - TILAB
  */
 //#MIDP_EXCLUDE_BEGIN
 public class Properties extends java.util.Properties implements Serializable {
@@ -73,7 +68,7 @@ public class Properties extends java.util.Properties implements Serializable {
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 public class Properties extends Hashtable {
-  private static final String SEPARATOR = "=";
+  private static final char SEPARATOR = '=';
   private static final String JAD = "jad";
   private static final String JAD_PREFIX = "MIDlet-LEAP-";
   private boolean             fromJad = false;
@@ -86,8 +81,9 @@ public class Properties extends Hashtable {
      The storage element is environment-dependent:
      In a J2SE or PJAVA environment it is a file named 
      <code>storage</code>.
-     In a MIDP environment it can be the JAD (if storage = "jad") or 
-     a RecordStore called <code>storage</code>.
+     In a MIDP environment it can be the JAD of the MIDlet 
+     (if <code>storage</code> = "jad") or a RecordStore called 
+     <code>storage</code>.
    */
   public void load(String storage) throws IOException {
   	clear();
@@ -172,149 +168,60 @@ public class Properties extends Hashtable {
   } 
   
   private void recordstoreLoad(String name) throws IOException {
-      RecordStore recordstore = null;
-
-      try {
-          if (recordstoreExists(name)) {
-              recordstore = RecordStore.openRecordStore(name, false);
-          } 
-          else {
-              throw new IOException("Persistent storage not existing.");
-          } 
-      } 
-      catch (Exception e) {
-          throw new IOException("Exception opening persistent storage.");
-      } 
-
-      // Get an Enumeration of the Records
-      RecordEnumeration re = null;
-
-      try {
-          re = recordstore.enumerateRecords((RecordFilter) null, 
-                                            (RecordComparator) null, false);
-      } 
-      catch (RecordStoreNotOpenException rsnoe) {
-          throw new IOException("Exception reading persistent storage.");
-      } 
-
-      // Parse content
-      while (re.hasNextElement()) {
-          try {
-              String record = 
-                  new String(recordstore.getRecord(re.nextRecordId()));
-
-              parseLine(record);
-          } 
-          catch (Exception e) {
-              throw new IOException("Exception reading persistent storage.");
-          } 
-      } 
-
-      // Close RecordStore
-      try {
-          recordstore.closeRecordStore();
-      } 
-      catch (Exception e) {
-          System.err.println("Exception closing persistent storage.");
-      } 
-  } 
-
-  // Utility method to determine if a RecordStore exists, based
-  // on its name.
-  private boolean recordstoreExists(String rsName) {
-      String[] stores = RecordStore.listRecordStores();
-
-      for (int s = 0; s < stores.length; s++) {
-          if (stores[s].equals(rsName)) {
-              return true;
-          } 
-      } 
-
-      return false;
-  } 
+  	RecordStore rs = null;
+  	try {
+      rs = RecordStore.openRecordStore(name, false);
+  	}
+  	catch (Exception e) {
+  		throw new IOException("Can't open recordstore "+name+". "+e);
+  	}
+  	
+  	try {
+      int size = rs.getNumRecords();
+      for (int i = 0; i < size; i++) {
+   			String line = new String(rs.getRecord(i+1));
+   			int j = line.indexOf(SEPARATOR);
+   			if (j >= 0) {
+   				// valid line 
+   				String k = line.substring(0, j).trim();
+   				if (j+1 < line.length()) {
+	   				String v = line.substring(j+1).trim();
+  	 				if (!k.equals("") && !v.equals("")) {
+   						put(k, v);
+   					}
+					}
+   			}
+      }
+      rs.closeRecordStore();
+  	}
+  	catch (Exception e) {
+  		throw new IOException("Error reading recordstore "+name+". "+e);
+  	}
+  }
 
   private void recordstoreStore(String name) throws IOException {
-      RecordStore recordstore = null;
-
-      // Reset RecordStore
-      try {
-          recordstoreReset(name);
-
-          recordstore = RecordStore.openRecordStore(name, true);
-      } 
-      catch (Exception e) {
-          throw new IOException("Exception accessing persistent storage.");
-      } 
-
-      // Store the data
-      Enumeration enum = keys();
-      boolean     exceptions = false;
-      int         recordID = 0;
-
-      try {
-          while (enum.hasMoreElements()) {
-              String key = (String) enum.nextElement();
-              String line = key + SEPARATOR + getProperty(key);
-              byte[] data = line.getBytes();
-
-              try {
-                  recordID = recordstore.addRecord(data, 0, data.length);
-              } 
-              catch (RecordStoreException rse) {
-                  exceptions = true;
-
-                  try {
-                      recordstore.deleteRecord(recordID);
-                  } 
-                  catch (Exception ex) {}
-              } 
-          } 
-      } 
-      catch (ClassCastException cce) {
-          throw new IOException("Non String Properties have been inserted. Aborting storage!");
-      } 
-
-      // Close the RecordStore
-      try {
-          recordstore.closeRecordStore();
-      } 
-      catch (Exception e) {
-          throw new IOException("Exception closing persistent storage.");
-      } 
-
-      if (exceptions) {
-          throw new IOException("Exception(s): some properties not saved.");
-      } 
-  } 
-
-  // Clear and reset the persistent storage.
-  private void recordstoreReset(String name) {
-      try {
-          if (recordstoreExists(name)) {
-              RecordStore.deleteRecordStore(name);
-          } 
-      } 
-      catch (Exception e) {}
-
-      return;
-  } 
-
-  // Parse a property file line, and add it in the Properties
-  // hashtable. The property files should
-  // be strings storing <code>key=value</code> pairs.
-  // This method does nothing if the string is null or begins
-  // with '#' (comment line) or if it does not contain the SEPARATOR.
-  // @param line The property string to parse.
-  private void parseLine(String line) {
-      int separator;
-
-      if ((line == null) || (line.startsWith("#")) 
-              || ((separator = line.indexOf(SEPARATOR)) == -1)) {
-          return;
-      } 
-
-      super.put(line.substring(0, separator), 
-                     line.substring(separator + 1));
+  	try {
+  		RecordStore.deleteRecordStore(name);
+  	}
+  	catch (Exception e) {
+  		// Do nothing 
+  	}
+  	
+  	try {
+  		RecordStore rs = RecordStore.openRecordStore(name, true);
+  		Enumeration keys = keys();
+  		while (keys.hasMoreElements()) {
+  			Object k = keys.nextElement();
+  			Object v = get(k);
+  			String line = k.toString()+SEPARATOR+v.toString();
+				byte[] bb = line.getBytes();
+				rs.addRecord(bb,0,bb.length);
+  		}
+  		rs.closeRecordStore();
+  	}
+  	catch (Exception e) {
+  		throw new IOException("Error writing recordstore "+name+". "+e);
+  	}
   } 
   #MIDP_INCLUDE_END*/
 }
