@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.10  1999/02/14 23:15:06  rimassa
+  Changed addBehaviour() method name to addSubBehaviour() to avoid
+  confusion with Agent.addBehaviour().
+
   Revision 1.9  1998/10/31 12:58:56  rimassa
   Made 'protected' the former 'private' inner class BehaviourList.
 
@@ -196,10 +200,9 @@ public abstract class ComplexBehaviour extends Behaviour {
 
   }
 
-  public void addBehaviour(Behaviour b) {
+  public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
-    //    b.setAgent(myAgent); // FIXME: Forcing the same agent in all behaviours tree ?
   }
 
   public void removeBehaviour(Behaviour b) {
