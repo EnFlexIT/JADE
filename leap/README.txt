@@ -31,7 +31,7 @@ installation. All the needed files will be created in the directory
 jade/add-ons/leap. 
 Refer to the LEAP User Guide for details
 
-USING JADE-S
+USING THE LEAP ADD-ON
 ============
 Detailed explaination of the LEAP add-on is provided in the 
 LEAP User Guide available at:
