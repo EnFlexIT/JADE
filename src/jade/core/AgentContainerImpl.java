@@ -112,12 +112,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Insert new agent into local agents table
       localAgents.put(agentName,agent);
 
-      desc.setName(agentName);
       desc.setDemux(myDispatcher);
-      desc.setAPState(Agent.AP_INITIATED);
 
       try {
-	myPlatform.bornAgent(desc); // RMI call
+	myPlatform.bornAgent(agentName, desc); // RMI call
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
