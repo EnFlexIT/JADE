@@ -157,7 +157,9 @@ public class DFService extends FIPAService {
 
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.REGISTER, dfd, null);
     ACLMessage reply = doFipaRequestClient(a,request);
-    
+    if (reply == null) {
+    	throw new FIPAException("Missing reply");
+    }
     return decodeDone(reply.getContent());
   }
 
@@ -190,7 +192,10 @@ public class DFService extends FIPAService {
     }
       
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.DEREGISTER, dfd, null);
-    doFipaRequestClient(a,request);
+    ACLMessage reply = doFipaRequestClient(a,request);
+    if (reply == null) {
+    	throw new FIPAException("Missing reply");
+    }
   }
 
   /**
@@ -259,6 +264,9 @@ public class DFService extends FIPAService {
     
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.MODIFY, dfd, null);
     ACLMessage reply = doFipaRequestClient(a,request);
+    if (reply == null) {
+    	throw new FIPAException("Missing reply");
+    }
     
     return decodeDone(reply.getContent());
   }
@@ -352,6 +360,9 @@ public class DFService extends FIPAService {
   	
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.SEARCH, dfd, constraints);
 	  ACLMessage inform = doFipaRequestClient(a,request);
+    if (inform == null) {
+    	throw new FIPAException("Missing reply");
+    }
 
 	  return decodeResult(inform.getContent());
   }
@@ -409,6 +420,9 @@ public class DFService extends FIPAService {
     ACLMessage subscribe = createSubscriptionMessage(a, dfName, dfd, constraints);
 
 		ACLMessage inform = doFipaRequestClient(a, subscribe, timeout);
+    if (inform == null) {
+    	throw new FIPAException("Missing reply");
+    }
 		
 		// Send the CANCEL message
 		ACLMessage cancel = createCancelMessage(a, dfName, subscribe);
