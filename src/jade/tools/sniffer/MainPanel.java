@@ -80,7 +80,7 @@ public class MainPanel extends JPanel {
  }
 
   public void adjustDividerLocation() {
-    pane.setDividerLocation(0.5);
+    pane.setDividerLocation(0.3);
   }
 
 } // End of MainPanel
