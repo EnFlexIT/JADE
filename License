@@ -1,0 +1,33 @@
+LICENSE AGREEMENT
+
+JADE, the Java Agent DEvelopment Framework, is Copyright (C) 1997 by CSELT S.p.A.
+
+By using and/or downloading the attached CSELT software, titled "JADE",
+which is an Agent Development Framework written in the Java language,
+you and/or your company (hereinafter "Licensee") are agreeing to be bound
+by the following licensing terms and conditions:
+
+1. this license allows the free usage of the software only for non-commercial 
+   uses. In particular, it can be used only within the scope of those projects
+   for which it has been requested. 
+   Licenses for the commercial use of JADE may be negotiated by 
+   contacting Fabio Bellifemine (bellifemine@cselt.it).
+
+2. CSELT makes no warranty, express or implied, as to the accuracy or 
+   utility of JADE. CSELT and its agents, officers and employees shall not
+   be liable for any loss, damage (including incidental, consequential and
+   special), injury or other casualty of whatsoever kind, or by whomsoever
+   caused, to the person or properfy of anyone, including the Licensee and
+   its Affiliates, arising out of or resulting from the license granted to
+   the Licensee herein, or the accuracy and validity of JADE.
+
+3. Neither CSELT, nor any of its employees, make any warranty, express or
+   implied, or assumes any legal liability of responsibility for the accuracy,
+   completeness, or usefulness of any information, apparatus, product, or
+   process disclosed, or represents that its use would not infringe privately
+   owned rights.
+
+4. The Licensee accepts and commits to
+- NOT TO DISCLOSE THE SOFTWARE, AND ANY SOFTWARE DETAIL, TO ANYONE ELSE;
+- NOT TO USE THE SOFTWARE OUTSIDE THE DECLARED PROJECT;
+- NOT TO REVERSE ENGINEER ANY MODULE OF THE SOFTWARE.
