@@ -48,6 +48,7 @@ import jade.domain.introspection.*;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -182,17 +183,25 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     if(closingDown)
       return;
 
-    AID id = ev.getAgent();
-    if(observedAgents.contains(id)) {
+    AID sender = ev.getSender();
+    AID receiver = ev.getReceiver();
+    if(observedAgents.contains(sender)) {
       ACLMessage msg = ev.getMessage();
 
       jade.domain.introspection.ACLMessage m = new jade.domain.introspection.ACLMessage();
-      m.setEnvelope(msg.getEnvelope());
+      // Note that we need to clone the Envelope otherwise we would 
+      // overwrite the acl representation (if any) previously set in the
+      // Envelope
+      Envelope env = msg.getEnvelope();
+      if (env != null) {
+	      m.setEnvelope((Envelope) msg.getEnvelope().clone());
+      }
       m.setAclRepresentation(StringACLCodec.NAME);
       m.setPayload(msg.toString());
 
       SentMessage sm = new SentMessage();
-      sm.setSender(id);
+      sm.setSender(sender);
+      sm.setReceiver(receiver);
       sm.setMessage(m);
 
       addBehaviour(new EventInformer(this, sm));
@@ -202,8 +211,9 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   public void postedMessage(MessageEvent ev) {
     if(closingDown)
       return;
-    AID id = ev.getAgent();
-    if(observedAgents.contains(id)) {
+    AID sender = ev.getSender();
+    AID receiver = ev.getReceiver();
+    if(observedAgents.contains(receiver)) {
       ACLMessage msg = ev.getMessage();
 
       jade.domain.introspection.ACLMessage m = new jade.domain.introspection.ACLMessage();
@@ -216,7 +226,8 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       m.setPayload(msg.toString());
 
       PostedMessage pm = new PostedMessage();
-      pm.setReceiver(id);
+      pm.setSender(sender);
+      pm.setReceiver(receiver);
       pm.setMessage(m);
 
       addBehaviour(new EventInformer(this, pm));
@@ -227,8 +238,9 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   public void receivedMessage(MessageEvent ev) {
     if(closingDown)
       return;
-    AID id = ev.getAgent();
-    if(observedAgents.contains(id)) {
+    AID sender = ev.getSender();
+    AID receiver = ev.getReceiver();
+    if(observedAgents.contains(receiver)) {
       ACLMessage msg = ev.getMessage();
 
       jade.domain.introspection.ACLMessage m = new jade.domain.introspection.ACLMessage();
@@ -241,7 +253,8 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       m.setPayload(msg.toString());
 
       ReceivedMessage rm = new ReceivedMessage();
-      rm.setReceiver(id);
+      rm.setSender(sender);
+      rm.setReceiver(receiver);
       rm.setMessage(m);
 
       addBehaviour(new EventInformer(this, rm));
@@ -325,7 +338,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       	if (ev.getBehaviourTo().equals(Behaviour.STATE_RUNNING) && ev.getBehaviour().isSimple()) {
       		// This event requires synchronous handling. As it may have already
       		// been processed by other listeners reset its processed status
-      		ev.resetProcessed();
+      		ev.reset();
 					addPendingEvent(ev, id);
       		addBehaviour(new SynchEventInformer(this, cs, ev));
 					try {
