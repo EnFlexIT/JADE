@@ -25,6 +25,11 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 
 public class UnexpectedAct extends NotUnderstoodException {
+
+  public UnexpectedAct() {
+    super("Unexpected communicative act");
+  }
+
 String s;
 public void set_0(String a){s=a;}
 public String get_0() {return s;}

@@ -26,6 +26,11 @@ package jade.domain.FIPAAgentManagement;
 
 public class UnsupportedValue extends NotUnderstoodException {
 String s;
+
+  public UnsupportedValue() {
+    super("Unsupported value");
+  }
+
 public void set_0(String a){s=a;}
 public String get_0() {return s;}
 

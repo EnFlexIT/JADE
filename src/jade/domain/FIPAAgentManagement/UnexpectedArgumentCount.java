@@ -26,5 +26,8 @@ package jade.domain.FIPAAgentManagement;
 
 public class UnexpectedArgumentCount extends RefuseException {
 
+  public UnexpectedArgumentCount() {
+    super("Wrong number of arguments");
+  }
 
 }
