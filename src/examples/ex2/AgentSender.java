@@ -1,30 +1,25 @@
-/*
-  $Log$
-  Revision 1.13  1999/09/02 15:01:45  rimassa
-  Handled new ParseException exception of ACLMessage.fromText().
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.12  1999/05/20 14:12:39  rimassa
-  Updated import clauses to reflect JADE package structure changes.
+GNU Lesser General Public License
 
-  Revision 1.11  1999/03/31 15:54:30  rimassa
-  Added correct handling of IOException.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.10  1999/03/30 13:35:15  rimassa
-  Changed some getName() calls to getLocalName().
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.9  1998/10/18 16:10:24  rimassa
-  Some code changes to avoid deprecated APIs.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
-   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
-     instead.
-   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
-     instead.
-
-  Revision 1.8  1998/10/04 18:00:19  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
 
 package examples.ex2;
 
@@ -37,6 +32,12 @@ import java.io.IOException;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Università di Parma
+@version  $Date$ $Revision$  
+*/
 
 
 // A simple agent that can send a custom message to another agent.
