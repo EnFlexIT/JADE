@@ -144,19 +144,19 @@ public abstract class ComplexBehaviour extends Behaviour {
   }
 
   // Subclasses implementation must return true when done
-  protected abstract boolean action();
+  protected abstract boolean bodyAction();
 
   protected void postAction() {
   }
 
-  public final void execute() {
+  public final void action() {
     if(starting) {
       preAction();
       subBehaviours.begin();
       starting = false;
     }
 
-    finished = action();
+    finished = bodyAction();
 
     if(finished) {
       postAction();

@@ -23,10 +23,10 @@ public class SequentialBehaviour extends ComplexBehaviour {
     super(a);
   }
 
-  protected boolean action() {
+  protected boolean bodyAction() {
     boolean result = false;
     Behaviour b = subBehaviours.getCurrent();
-    b.execute();
+    b.action();
     if (b.done()) {
       result = subBehaviours.next();
     }
