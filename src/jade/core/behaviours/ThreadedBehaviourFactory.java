@@ -35,7 +35,7 @@ import java.util.Enumeration;
    in dedicated Java Threads. In order to do that it is sufficient 
    to add to an agent a normal JADE Behaviour "wrapped" into 
    a "threaded behaviour" as returned by the <code>wrap()</code> method
-   as exemplified below.
+   of this class (see the example below).
    
 	 <pr><hr><blockquote><pre>
 	 ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
@@ -163,8 +163,14 @@ public class ThreadedBehaviourFactory {
 			return myBehaviour.getDataStore();
 		}
 		
+		// This is synchronized to avoid that, in case the wrapped behaviour
+		// is a SerialBehaviour we end up with the current child still blocked
+		// while the thread is restarted.
 		public synchronized void restart() {
-			myBehaviour.setRunnable(true);
+			myBehaviour.restart();
+		}
+		
+		private synchronized void go() {
 			restarted = true;
 			notifyAll();
 		}
@@ -176,18 +182,18 @@ public class ThreadedBehaviourFactory {
 					restarted = false;
 					myBehaviour.actionWrapper();
 					
-					// If the behaviour was restarted from outside during the action()
-					// method, give it another chance
-					if (restarted) {
-						myBehaviour.setRunnable(true);
-					}
-					
-					if (myBehaviour.done()) {
-						break;
-					}
-					else {
-						synchronized (this) {
-							while (!myBehaviour.isRunnable() && !restarted) {
+					synchronized (this) {
+						// If the behaviour was restarted from outside during the action()
+						// method, give it another chance
+						if (restarted) {
+							myBehaviour.setRunnable(true);
+						}
+						
+						if (myBehaviour.done()) {
+							break;
+						}
+						else {
+							if (!myBehaviour.isRunnable()) {
 								wait();
 							}
 						}
@@ -242,7 +248,7 @@ public class ThreadedBehaviourFactory {
 		
   	protected void handle(RunnableChangedEvent rce) {
   		if (rce.isRunnable()) {
-  			myChild.restart();
+  			myChild.go();
   		}
   	}
   	
