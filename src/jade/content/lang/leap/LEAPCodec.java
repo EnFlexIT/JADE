@@ -386,7 +386,7 @@ public class LEAPCodec extends ByteArrayCodec {
     		stream.writeByte(tag);
     		stream.writeUTF(s);
     		if (stringReferences.size() < 256) {
-    			stringReferences.add(s);
+    			stringReferences.addElement(s);
     		}
     	}
     }
@@ -399,7 +399,7 @@ public class LEAPCodec extends ByteArrayCodec {
     	else {
     		String s = stream.readUTF();
     		if (stringReferences.size() < 256) {
-    			stringReferences.add(s);
+    			stringReferences.addElement(s);
     		}
     		return s;
     	}
