@@ -427,6 +427,25 @@ public class Agent implements Runnable, Serializable {
     Runtime rt = Runtime.instance();
     theDispatcher = rt.getTimerDispatcher();
   }
+    
+    
+    /** Declared transient because the container changes in case
+     * of agent migration.
+     **/
+    private transient jade.wrapper.AgentContainer myContainer = null;
+
+   /**
+    * Return a controller for this agents container. 
+    * @return jade.wrapper.AgentContainer The proxy container for this agent.
+    */
+   public final jade.wrapper.AgentContainer getContainerController() {
+     if (myContainer == null) {  // first time called
+       myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit);
+     }
+     return myContainer;
+   }
+
+
 
   /**
   * This method must be overridden by programmers in order to pass 
