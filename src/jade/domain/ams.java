@@ -569,9 +569,17 @@ public class ams extends Agent implements AgentManager.Listener {
     void killContainerAction(KillContainer action,AID sender) throws Unauthorised, jade.domain.FIPAAgentManagement.InternalError{
 	try{
 	    //KillContainer kc = (KillContainer)a.get_1();
-	    ContainerID cid = action.getContainer();
-	    checkAction(Authority.CONTAINER_KILL, cid, sender);
+	    final ContainerID cid = action.getContainer();
+	    //checkAction(Authority.CONTAINER_KILL, cid, sender);
+
+	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
 	    myPlatform.killContainer(cid);
+			return null;
+		    }
+		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
+				(DelegationCertificate)delegations.get(sender.getName()) ));
+
 	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
 	    //sendReply(ACLMessage.INFORM, doneAction(a));
 	}
@@ -580,7 +588,11 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
         catch(NotFoundException nfe) {
             throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");   
-        }
+    }
+   		catch (Exception e) {
+			// should be never thrown
+			e.printStackTrace();
+	}
     }
 
     //create an agent.
@@ -627,7 +639,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	//sendReply(ACLMessage.AGREE, createAgreeContent(a));
 	
 	try {
-	    authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
 		    public Object run() throws UnreachableException, AuthException {
 			myPlatform.create(agentName, className, arguments, container, ownership, agentCerts);
 			return null;
@@ -668,14 +680,22 @@ public class ams extends Agent implements AgentManager.Listener {
 
  
     //kill an agent.
-    void killAgentAction(KillAgent action) throws jade.domain.FIPAAgentManagement.InternalError, NotRegistered, Unauthorised{
-	
+    void killAgentAction(KillAgent action,AID sender) throws jade.domain.FIPAAgentManagement.InternalError, NotRegistered, Unauthorised{
+
 	// Kill an agent
-      AID agentID = action.getAgent();
+      final AID agentID = action.getAgent();
       String password = action.getPassword();
 
       try {
+	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
         myPlatform.kill(agentID);
+			return null;
+		    }
+		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
+				(DelegationCertificate)delegations.get(sender.getName()) ));
+
+
 	//sendReply(ACLMessage.AGREE, createAgreeContent(a));
         //sendReply(ACLMessage.INFORM, doneAction(a));
       }
@@ -690,6 +710,11 @@ public class ams extends Agent implements AgentManager.Listener {
 	  au.printStackTrace();
 	  throw new Unauthorised();
       }
+   		catch (Exception e) {
+			// should be never thrown
+			e.printStackTrace();
+	  }
+
 
     }
 
@@ -1157,7 +1182,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		CertificateFolder actorCerts = new CertificateFolder(actorIdentity, actorDelegation);
 
 		try {
-			authority.checkAction(action, oldAgent, actorCerts);
+			getAuthority().checkAction(action, oldAgent, actorCerts);
 
 			if (action.equals(Authority.AMS_DEREGISTER))
 				return;
@@ -1224,10 +1249,16 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	// This one is called in response to a 'move-agent' action
-	void AMSMoveAgent(AID agent, Location where, AID sender) throws FIPAException, AuthException {
-		checkAction(Authority.AGENT_MOVE, agent, sender);
+	void AMSMoveAgent(final AID agent, final Location where, AID sender) throws FIPAException, AuthException {
+		//checkAction(Authority.AGENT_MOVE, agent, sender);
 		try {
+	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
 			myPlatform.move(agent, where);
+			return null;
+		    }
+		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
+				(DelegationCertificate)delegations.get(sender.getName()) ));
 		}
 		catch (UnreachableException ue) {
 			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -1235,19 +1266,42 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch (NotFoundException nfe) {
 			throw new NotRegistered();
 		}
+		catch (AuthException ae) {
+		    Unauthorised ue = new Unauthorised();
+		    throw ue;
+		}
+		catch (Exception e) {
+			// should be never thrown
+			e.printStackTrace();
+		}
+
 	}
 
 	// This one is called in response to a 'clone-agent' action
-	void AMSCloneAgent(AID agent, Location where, String newName, AID sender) throws FIPAException, AuthException {
-		checkAction(Authority.AGENT_CLONE, agent, sender);
+	void AMSCloneAgent(final AID agent, final Location where, final String newName, AID sender) throws FIPAException, AuthException {
+		//checkAction(Authority.AGENT_CLONE, agent, sender);
 		try {
+	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
 			myPlatform.copy(agent, where, newName);
+			return null;
+		    }
+		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
+				(DelegationCertificate)delegations.get(sender.getName()) ));
 		}
 		catch(UnreachableException ue) {
 			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
 		}
 		catch(NotFoundException nfe) {
 			throw new NotRegistered();
+		}
+		catch (AuthException ae) {
+		    Unauthorised ue = new Unauthorised();
+		    throw ue;
+		}
+  		catch (Exception e) {
+			// should be never thrown
+			e.printStackTrace();
 		}
 	}
 
