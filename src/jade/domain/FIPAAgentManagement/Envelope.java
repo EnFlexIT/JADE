@@ -37,8 +37,9 @@ import java.util.Date;
 import jade.util.leap.Properties;
 
 import jade.core.AID;
-
-public class Envelope implements jade.util.leap.Serializable {
+import jade.content.Concept;
+ 
+public class Envelope implements Concept, jade.util.leap.Serializable {
 
 	/**
   @serial

@@ -21,8 +21,10 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.domain.FIPAAgentManagement;
+
+import jade.content.Predicate;
+
 /** 
 * 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -30,7 +32,7 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class UnsupportedAct extends NotUnderstoodException {
+public class UnsupportedAct extends NotUnderstoodException implements Predicate {
 
   public UnsupportedAct() {
     super("(Unsupported-act unknown)");
@@ -44,7 +46,10 @@ public class UnsupportedAct extends NotUnderstoodException {
   @serial
   */
 String s;
-public void set_0(String a){s=a; setMessage("(Unsupported-act "+a+")");}
-public String get_0() {return s;}
+public void setAct(String a){s=a; setMessage("(Unsupported-act "+a+")");}
+public String getAct() {return s;}
+
+public void set_0(String a){setAct(a);}
+public String get_0() {return getAct();}
 
 }

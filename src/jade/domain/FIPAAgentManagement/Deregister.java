@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+import jade.content.*;
+
 /** 
 * This class implements the deregister action.
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -31,10 +33,17 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class Deregister {
-Object description;
+public class Deregister implements AgentAction {
 
-public void set_0(Object desc) {  description = desc;}
-public Object get_0() {return description;}
+
+	Object description;
+
+	public void set_0(Object desc) {  setDescription(desc);}
+	public Object get_0() {return getDescription();}
+	
+	// Added for new ontology support compatibility
+	
+	public void setDescription(Object desc) { description = desc; }
+	public Object getDescription() { return description; }
 
 }

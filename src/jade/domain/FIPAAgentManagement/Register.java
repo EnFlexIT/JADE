@@ -29,9 +29,19 @@ package jade.domain.FIPAAgentManagement;
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
+import jade.content.*;
 
-public class Register {
-Object description;
-public void set_0(Object desc) {  description = desc;}
-public Object get_0() {return description;}
+public class Register implements AgentAction {
+	
+	public static final String REGISTER_DESCRIPTION = "description";
+	
+	Object description;
+	
+	public void set_0(Object desc) { setDescription(desc);}
+	public Object get_0() {return getDescription();}
+	
+	// Adder for new ontology support compatibility
+	
+	public void setDescription(Object desc) { description = desc; }
+	public Object getDescription() { return description; }
 }

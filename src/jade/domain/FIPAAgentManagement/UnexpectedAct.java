@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+import jade.content.Predicate;
+
 /** 
 * 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -30,7 +32,7 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class UnexpectedAct extends NotUnderstoodException {
+public class UnexpectedAct extends NotUnderstoodException implements Predicate {
 
   public UnexpectedAct() {
     super("(Unexpected-act unknwon");
@@ -45,7 +47,9 @@ public UnexpectedAct(String act) {
   @serial
   */
 String s;
-public void set_0(String a){s=a;setMessage("(Unexpected-act "+a+")");}
-public String get_0() {return s;}
+public void setAct(String a){s=a;setMessage("(Unexpected-act "+a+")");}
+public String getAct() {return s;}
 
+public void set_0(String a){setAct(a);}
+public String get_0() {return getAct();}
 }

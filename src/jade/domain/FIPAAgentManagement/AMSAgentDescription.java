@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 
 import jade.core.AID;
+import jade.content.Concept;
 
 /**
 * This class implements a concept of the fipa-agent-management ontology
@@ -33,7 +34,7 @@ import jade.core.AID;
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-public class AMSAgentDescription {
+public class AMSAgentDescription implements Concept {
 
 public static final String INITIATED = "initiated";
 public static final String ACTIVE = "active";

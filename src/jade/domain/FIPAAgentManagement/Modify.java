@@ -30,9 +30,19 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class Modify {
-Object description;
-public void set_0(Object desc) {  description = desc;}
-public Object get_0() {return description;}
+import jade.content.*;
 
+public class Modify implements AgentAction {
+	
+	public static final String MODIFY_DESCRIPTION = "description";
+	
+	Object description;
+	
+	public void set_0(Object desc) {  setDescription(desc);}
+	public Object get_0() {return getDescription();}
+	
+	// Added for new ontology support compatibility
+	
+	public void setDescription(Object desc) { description = desc; }
+	public Object getDescription() { return description; } 
 }

@@ -47,7 +47,9 @@ public class UnsupportedFunction extends RefuseException implements Predicate {
   @serial
   */
 String s;
-public void set_0(String a){s=a;}
-public String get_0() {return s;}
+public void setFunction(String a){s=a;}
+public String getFunction() {return s;}
 
+public void set_0(String a){setFunction(a);}
+public String get_0() {return getFunction();}
 }

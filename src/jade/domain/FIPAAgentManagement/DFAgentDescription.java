@@ -24,8 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 
 import jade.util.leap.*;
-
 import jade.core.AID;
+import jade.content.Concept;
 
   /**
   *  Models a DF agent descriptor.  This class provides platform-level
@@ -46,9 +46,7 @@ import jade.core.AID;
   *  @version $Date$ $Revision$
   *
   */
-  public class DFAgentDescription {
-
-
+  public class DFAgentDescription implements Concept{
 
     private AID name;
     private List services = new ArrayList();

@@ -48,9 +48,14 @@ public class UnexpectedParameter extends RefuseException implements Predicate {
   @serial
   */
 String s1,s2;
-public void set_0(String a){s1=a;setMessage("(unexpected-parameter "+s1+" "+s2+")");}
-public String get_0() {return s1;}
-public void set_1(String a){s2=a;setMessage("(unexpected-parameter "+s1+" "+s2+")");}
-public String get_1() {return s2;}
+public void setObjectName(String a){s1=a;setMessage("(unexpected-parameter "+s1+" "+s2+")");}
+public String getObjectName() {return s1;}
+public void setParameterName(String a){s2=a;setMessage("(unexpected-parameter "+s1+" "+s2+")");}
+public String getParameterName() {return s2;}
+
+public void set_0(String a){setObjectName(a);}
+public String get_0() {return getObjectName();}
+public void set_1(String a){setParameterName(a);}
+public String get_1() {return getParameterName();}
 
 }

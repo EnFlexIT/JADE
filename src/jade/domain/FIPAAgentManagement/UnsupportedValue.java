@@ -47,7 +47,10 @@ public UnsupportedValue(String value) {
     s=value;
 }
 
-public void set_0(String a){s=a;setMessage("(Unsupported-value "+a+")"); }
-public String get_0() {return s;}
+public void setValue(String a){s=a;setMessage("(Unsupported-value "+a+")"); }
+public String getValue() {return s;}
+
+public void set_0(String a){setValue(a); }
+public String get_0() {return getValue();}
 
 }

@@ -30,6 +30,8 @@ import jade.util.leap.Iterator;
 import java.io.Writer;
 import java.io.IOException;
 
+import jade.content.*;
+
 /**
    Description of a message transport protocol.
    @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -37,7 +39,7 @@ import java.io.IOException;
    @version $Date$ $Revision$
 
  */
-public class MTPDescription {
+public class MTPDescription implements Concept {
 
   private String profile;
   private String name;
@@ -95,18 +97,17 @@ public class MTPDescription {
 	return str.toString();
     }
     
-/**
+	/**
      * @deprecated the <code>toString</code> method should be used instead
      * of this method.
      **/  
-  public void toText(Writer w) {
+  	public void toText(Writer w) {
       try {
-	  w.write(toString());
-	  w.flush();
+		  w.write(toString());
+	  	w.flush();
       } catch(IOException ioe) {
-	  ioe.printStackTrace();
+	  	ioe.printStackTrace();
       }
-}
-
+	}
 
 }

@@ -46,7 +46,10 @@ public UnrecognisedValue(String value) {
   @serial
   */
 String s;
-public void set_0(String a){s=a;}
-public String get_0() {return s;}
+public void setValue(String a){s=a;}
+public String getValue() {return s;}
+
+public void set_0(String a){setValue(a);}
+public String get_0() {return getValue();}
 
 }

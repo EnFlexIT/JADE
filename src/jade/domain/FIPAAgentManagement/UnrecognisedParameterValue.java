@@ -47,9 +47,14 @@ public class UnrecognisedParameterValue extends RefuseException implements Predi
   @serial
   */
 String s1,s2;
-public void set_0(String a){s1=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
-public String get_0() {return s1;}
-public void set_1(String a){s2=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
-public String get_1() {return s2;}
+public void setParameterName(String a){s1=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
+public String getParameterName() {return s1;}
+public void setParameterValue(String a){s2=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
+public String getParameterValue() {return s2;}
+
+public void set_0(String a){setParameterName(a);}
+public String get_0() {return getParameterName();}
+public void set_1(String a){setParameterValue(a);}
+public String get_1() {return getParameterValue();}
 
 }

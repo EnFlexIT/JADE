@@ -30,6 +30,8 @@ import jade.util.leap.Iterator;
 import java.io.Writer;
 import java.io.IOException;
 
+import jade.content.*;
+
 /**
    Description of the transport services available on an agent
    platform.
@@ -38,7 +40,7 @@ import java.io.IOException;
    @version $Date$ $Revision$
 
  */
-public class APTransportDescription {
+public class APTransportDescription implements Concept {
 
   private List mtps = new ArrayList(); 
 
@@ -79,13 +81,14 @@ public class APTransportDescription {
      * @deprecated the <code>toString</code> method should be used instead
      * of this method.
      **/
-public void toText(Writer w) {
-      try {
-	  w.write(toString());
-	  w.flush();
-      } catch(IOException ioe) {
-	  ioe.printStackTrace();
-      }
-}
+
+	public void toText(Writer w) {
+    	  try {
+	  		w.write(toString());
+	  		w.flush();
+      	} catch(IOException ioe) {
+	  		ioe.printStackTrace();
+      	}
+	}
 
 }

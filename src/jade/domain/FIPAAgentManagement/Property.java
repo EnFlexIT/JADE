@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 import jade.util.leap.*;
+import jade.content.Concept;
 
 /** 
  This class implements the property type, a pair of a name and value.
@@ -33,7 +34,7 @@ import jade.util.leap.*;
  @version $Date$ $Revision$
 */
 
-  public class Property {
+  public class Property implements Concept {
 
     private String name;
     private Object value;

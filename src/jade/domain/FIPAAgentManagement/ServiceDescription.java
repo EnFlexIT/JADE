@@ -21,10 +21,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package jade.domain.FIPAAgentManagement;
 import jade.util.leap.*;
+import jade.content.Concept;
 
 /** 
 * This class models a service data type.
@@ -41,11 +40,7 @@ import jade.util.leap.*;
 * @version $Date$ $Revision$
 * 
 */
-
-
-  public class ServiceDescription {
-
-
+  public class ServiceDescription implements Concept {
 
     private String name;
     private String type;

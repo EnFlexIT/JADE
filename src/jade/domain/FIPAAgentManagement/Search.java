@@ -23,17 +23,32 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+
+import jade.content.*;
+
 /** 
 * This class implements the search action (searching for agent description).
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-public class Search {
-Object description;
-SearchConstraints constraints;
-public void set_0(Object desc) {  description = desc;}
-public Object get_0() {return description;}
-public void set_1(SearchConstraints s) {constraints=s;}
-public SearchConstraints get_1() {return constraints;}
+public class Search implements AgentAction {
+	
+	Object description;
+	SearchConstraints constraints;
+
+	public void set_0(Object desc) { setDescription(desc); }
+	public Object get_0() {return getDescription();}
+
+	public void set_1(SearchConstraints s) { setConstraints(s); }
+	public SearchConstraints get_1() {return getConstraints();}
+
+	// Added for new ontology support compatibility
+
+	public void setDescription(Object desc) { description = desc; }
+	public Object getDescription() { return description; }
+	
+	public void setConstraints(SearchConstraints s) { constraints = s; }
+	public SearchConstraints getConstraints() { return constraints; }
+
 }

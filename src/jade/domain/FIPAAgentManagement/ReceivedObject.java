@@ -32,7 +32,9 @@ package jade.domain.FIPAAgentManagement;
 import jade.util.leap.Serializable;
 import java.util.Date;
 
-public class ReceivedObject implements Serializable {
+import jade.content.*;
+
+public class ReceivedObject implements Concept, Serializable {
 
   private String by;
   private String from;
@@ -45,15 +47,15 @@ public class ReceivedObject implements Serializable {
      * all the Strings to an empty string.
      **/
     public ReceivedObject() {
-	date = new Date();
-	by = new String();
-	from = new String();
-	id = new String();
-	via = new String();
-  
+		date = new Date();
+		by = new String();
+		from = new String();
+		id = new String();
+		via = new String();
     }
+
   public void setBy(String b) {
-    by = b;
+    	by = b;
   }
 
   public String getBy() {

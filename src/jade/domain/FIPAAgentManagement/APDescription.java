@@ -25,13 +25,16 @@ package jade.domain.FIPAAgentManagement;
 
 import java.io.Writer;
 import java.io.IOException;
+import jade.content.Concept;
+ 
 /**
    Agent platform description.
    @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class APDescription {
+ 
+public class APDescription implements Concept {
 
   private String name;
   private boolean dynamic;

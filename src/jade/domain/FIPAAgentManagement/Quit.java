@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 import jade.core.AID;
+
+import jade.content.*; 
+
 /** 
 * This class implements the quit action (termination of an agent).
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -31,10 +34,17 @@ import jade.core.AID;
 */
 
 
+public class Quit implements AgentAction {
+	
 
-public class Quit {
-AID aid;
-public void set_0(AID a){aid=a;}
-public AID get_0() {return aid;}
+	
+	AID aid;
+	
+	public void set_0(AID a){ setAgentIdentifier(a);}
+	public AID get_0() {return getAgentIdentifier();}
+	
+	// Added for new ontology support compatibility
+	public void setAgentIdentifier(AID a) { aid = a; }
+	public AID getAgentIdentifier() { return aid; }
 
 }
