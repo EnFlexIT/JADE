@@ -23,15 +23,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.util;
 
-//#MIDP_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
-
-import java.util.Vector;
 
 import jade.util.leap.Set;
 import jade.util.leap.Map;
 import jade.util.leap.Collection;
 import jade.util.leap.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
 
 
 /**
@@ -45,7 +44,7 @@ import jade.util.leap.HashMap;
 **/
 public class HashCache implements Map
 {
-	private Vector v; 
+	private List list; 
 	private Map ht;
 	private int cs;
 	/**
@@ -54,7 +53,7 @@ public class HashCache implements Map
 	**/
 	public HashCache(int cacheSize) 
 	{
-		v = new Vector(cacheSize);
+		list = new LinkedList();
 		ht = new HashMap(cacheSize);
 		cs = cacheSize;
 	}
@@ -69,7 +68,7 @@ public class HashCache implements Map
 	 * @return o the specified added object
 	 * element.
 	 */
-	public Object add(Object o) {
+	public synchronized Object add(Object o) {
 	    return put(o, o);
 	}
 
@@ -80,14 +79,14 @@ public class HashCache implements Map
 	 * @param value The value to store in the cache.
 	 * @return The value previously associated to the key, if any.
 	 */
-        public Object put(Object key, Object value) {
-	    if (v.size() >= cs) 
+        public synchronized Object put(Object key, Object value) {
+	    if (list.size() >= cs) 
 		{
 		    // remove the oldest (LRU-wise) element
-		    remove(v.elementAt(0));
+		    remove(list.get(0));
 		}
 	    ht.put(key, value);
-	    v.addElement(key);
+	    list.add(key);
 	    return key;
 	}
 
@@ -97,9 +96,9 @@ public class HashCache implements Map
 	 * @param o The key to be removed (together with its associated value.
 	 * @return The value associated to the given key, if any.
 	 */
-         public Object remove(Object key)
+         public synchronized Object remove(Object key)
          {
-	     v.removeElement(key);
+	     list.remove(key);
 	     return ht.remove(key);
 	 }
 
@@ -113,7 +112,7 @@ public class HashCache implements Map
 	 * otherwise false
 	 * 
 	 */
-	public boolean contains(Object o) 
+	public synchronized boolean contains(Object o) 
 	{
 		return ht.containsKey(o);
 	}
@@ -124,10 +123,10 @@ public class HashCache implements Map
 	 * policy becomes LRU instead of FIFO.
 	 * @param o The 
 	 */
-         public Object get(Object key)
+         public synchronized Object get(Object key)
          {
-	     if(v.removeElement(key)) {
-		 v.addElement(key);
+	     if(list.remove(key)) {
+		 list.add(key);
 	     }
 
 	     return ht.get(key);
@@ -137,9 +136,9 @@ public class HashCache implements Map
          * Clears the cache, removing all key-value pairs
 	 *
 	 */
-        public void clear() {
+        public synchronized void clear() {
 	     ht.clear();
-	     v.removeAllElements();
+	     list.clear();
 	}
 
 
@@ -147,23 +146,23 @@ public class HashCache implements Map
     // Remaining methods needed to implement jade.util.leap.Map are
     // simply delegated to the inner HashMap...
 
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
 	return ht.isEmpty();
     }
 
-    public Set keySet() {
+    public synchronized Set keySet() {
 	return ht.keySet();
     }
 
-    public Collection values() {
+    public synchronized Collection values() {
 	return ht.values();
     }
 
-    public boolean containsKey(Object key) {
+    public synchronized boolean containsKey(Object key) {
 	return ht.containsKey(key);
     }
 
-    public int size() {
+    public synchronized int size() {
 	return ht.size();
     }
 
