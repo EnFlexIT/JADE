@@ -1,5 +1,35 @@
 MAJOR CHANGES since JADE 2.4 ($Date$ $Name$)
 ==========================================================================
+GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
+- the queue of ACLMessages of an Agent is now set by default to unlimited size.
+  Each Agent, if it wishes so, must now set its queue size.
+  Furthermore, a warning is print on stderr when the message queue is full
+- added new class jade.domain.FIPANames with the list of constants defined
+  by FIPA
+- added a dialog box in the RMA GUI for managing all the platform MTPs (i.e.
+  installing and deinstalling MTPs)
+- the reception of the AGREE message is now optional in Fipa-Request initiator
+  protocol. In this way initiating the protocol with a not-existant agent,
+  or an agent with a wrong address, does not block for-ever the protocol
+  because it manages the FAILURE message received by the platform.
+- corbaloc and corbaname addresses are properly handled in the IIOP-MTP
+  implementation based on ORBacus, both as client and as server
+- corbaloc address is properly handled in the IIOP-MTP implementation
+  based on the Sun ORB, so far only as client side
+	
+BUG FIX
+- the ACLMessage class is now able to properly deal with a content encoded
+  as a Sequence of bytes
+- corrected th name of the HTTP-MTP
+- the DF did not set its addresses in its DFAgentDescrption provided
+  to the federated DF
+- Agent.getAID() did not set the list of platform addresses in the
+  returned AID
+- synchronization bug in the class ISO8601
+- the Sniffer did not properly distinguish between local and remote agents
+  that had the same nickName
+- MTPs of a crashed or unreachable container are now properly cleaned
+
 	
 MAJOR CHANGES in JADE 2.4 (25 Sep. 2001) 
 ==========================================================================
