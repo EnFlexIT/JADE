@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/08/10 15:41:14  rimassa
+  Added serialization support.
+
   Revision 1.3  1999/06/06 21:58:14  rimassa
   Changed handlers for 'failure' and 'receive' ACL messages, to show an
   error dialog box instead of simply printing an error message on
@@ -241,7 +244,7 @@ public class rma extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-  private AMSMainFrame myGUI = new AMSMainFrame(this);
+  private transient AMSMainFrame myGUI = new AMSMainFrame(this);
 
   private String myContainerName;
 
@@ -309,6 +312,16 @@ public class rma extends Agent {
     myGUI.disposeAsync();
   }
 
+  protected void beforeClone() {
+  }
+
+  protected void afterClone() {
+    // Add yourself to the RMA list
+    AMSSubscription.setSource(getLocalName());
+    send(AMSSubscription);    
+    myGUI = new AMSMainFrame(this);
+    myGUI.ShowCorrect();
+  }
 
   /**
    Callback method for platform management <em>GUI</em>.
