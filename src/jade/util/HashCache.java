@@ -26,7 +26,12 @@ package jade.util;
 //#MIDP_EXCLUDE_FILE
 
 import java.util.Vector;
-import java.util.Hashtable;
+
+import jade.util.leap.Set;
+import jade.util.leap.Map;
+import jade.util.leap.Collection;
+import jade.util.leap.HashMap;
+
 
 /**
  * This class is a cache with fixed dimension that can be set in the constructur.
@@ -37,10 +42,10 @@ import java.util.Hashtable;
  * @author Alessandro Chiarotto, Fabio Bellifemine - TILAB S.p.A.
  * @version $Date$ $Revision$
 **/
-public class HashCache 
+public class HashCache implements Map
 {
 	private Vector v; 
-	private Hashtable ht;
+	private Map ht;
 	private int cs;
 	/**
 	* Constructs a new, empty HashCache with the specified size.
@@ -49,11 +54,10 @@ public class HashCache
 	public HashCache(int cacheSize) 
 	{
 		v = new Vector(cacheSize);
-		ht = new Hashtable(cacheSize);
+		ht = new HashMap(cacheSize);
 		cs = cacheSize;
 	}
-	
-	
+
 	
 	 /**
 	 * Adds the specified element to this hashcache if it is not already
@@ -65,21 +69,40 @@ public class HashCache
 	 * element.
 	 */
 	public Object add(Object o) {
-		
-		
-		if (v.size() >= cs) 
-		{
-		 // remove the oldest element in the hashtable
-		 ht.remove(v.elementAt(0));
-		 // remove the oldest element in the vector
-		 v.removeElementAt(0);
-		}
-		//ht.put(o, null);
-		ht.put(o, new Object());
-		v.addElement(o);
-		return o;
+	    return put(o, o);
 	}
-	
+
+        /**
+	 * Adds a key-value pair to this cache
+	 * @param key The key with which the value can be retrieved in
+	 * the future.
+	 * @param value The value to store in the cache.
+	 * @return The value previously associated to the key, if any.
+	 */
+        public Object put(Object key, Object value) {
+	    if (v.size() >= cs) 
+		{
+		    // remove the oldest (LRU-wise) element
+		    remove(v.elementAt(0));
+		}
+	    ht.put(key, value);
+	    v.addElement(key);
+	    return key;
+	}
+
+        /**
+	 * Remove an existing key-value pair from the cache
+	 *
+	 * @param o The key to be removed (together with its associated value.
+	 * @return The value associated to the given key, if any.
+	 */
+         public Object remove(Object key)
+         {
+	     v.removeElement(key);
+	     return ht.remove(key);
+	 }
+
+
 	/**
 	 * Tests if the specified object is a key in this hashcache.
 	 * present.
@@ -93,5 +116,54 @@ public class HashCache
 	{
 		return ht.containsKey(o);
 	}
+
+        /**
+	 * Retrieves a cached element. The retrieved element is also
+	 * marked as the last used one, so that the cache replacement
+	 * policy becomes LRU instead of FIFO.
+	 * @param o The 
+	 */
+         public Object get(Object key)
+         {
+	     if(v.removeElement(key)) {
+		 v.addElement(key);
+	     }
+
+	     return ht.get(key);
+	 }
+
+        /**
+         * Clears the cache, removing all key-value pairs
+	 *
+	 */
+        public void clear() {
+	     ht.clear();
+	     v.clear();
+	}
+
+
+
+    // Remaining methods needed to implement jade.util.leap.Map are
+    // simply delegated to the inner HashMap...
+
+    public boolean isEmpty() {
+	return ht.isEmpty();
+    }
+
+    public Set keySet() {
+	return ht.keySet();
+    }
+
+    public Collection values() {
+	return ht.values();
+    }
+
+    public boolean containsKey(Object key) {
+	return ht.containsKey(key);
+    }
+
+    public int size() {
+	return ht.size();
+    }
 
 }
