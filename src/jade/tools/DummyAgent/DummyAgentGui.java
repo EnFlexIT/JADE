@@ -274,8 +274,8 @@ class DummyAgentGui extends JFrame implements ActionListener
 		      codec.decode(codec.encode(m));
 		      myAgent.send(m);
 		  } catch (ACLCodec.CodecException ce) {	
-		  	  System.out.println("Wrong ACL Message");
-			  // ce.printStackTrace();
+		  	  System.out.println("Wrong ACL Message " + m.toString());
+			    ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 						  }
 
@@ -371,7 +371,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
 				ACLMessage m = mi.getMessage();
 				ACLMessage reply = m.createReply();
-				reply.setSender(myAgent.getAID());
+				//reply.setSender(myAgent.getAID());
 				//currentMsgGui.setMsg(m.createReply());
 				currentMsgGui.setMsg(reply);
 			}
