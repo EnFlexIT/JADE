@@ -14,7 +14,7 @@ SNIFFER_OUTDIR = ../doc/sniffer/html/jdoc
 SNIFFER_FLAGS =  -d $(SNIFFER_OUTDIR) -author -windowtitle "JADE 1.2 Sniffer Reference"
 SNIFFER_PACKAGES = jade.tools.sniffer
 
-.PHONY: all clean api tools
+.PHONY: all clean api tools sniffer
 
 all: api tools
 
