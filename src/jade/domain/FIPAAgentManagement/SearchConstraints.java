@@ -50,7 +50,6 @@ private Long max_results = null;
      * with a FAILURE having received already the same search.
      **/
     public SearchConstraints () {
-        renewSearchId();
     }
     
     /** Regenerate the value of search_id as a globally unique identifier.
