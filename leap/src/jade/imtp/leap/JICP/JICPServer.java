@@ -74,6 +74,8 @@ public class JICPServer extends Thread
   private int            mediatorCnt = 1;
   private Hashtable      mediators = new Hashtable();
 	//#J2ME_EXCLUDE_BEGIN
+  public static final String ACCEPT_MEDIATORS = "jade_imtp_leap_JICP_JICPServer_acceptmediators";
+  private boolean acceptMediators = true;
   private Properties     leapProps = new Properties();
   private PDPContextManager  myPDPContextManager;
 	//#J2ME_EXCLUDE_END
@@ -144,33 +146,38 @@ public class JICPServer extends Thread
     	}
     } 
 	  	
-		//#J2ME_EXCLUDE_BEGIN
-		// Read the LEAP configuration properties
-		sb.setLength(idLength);
-		sb.append(LEAP_PROPERTY_FILE);
-    String fileName = p.getParameter(sb.toString(), LEAP_PROPERTY_FILE_DEFAULT); 
-		try {
-			leapProps.load(fileName);
-		}
-		catch (Exception e) {
-			myLogger.log(Logger.FINE, "Can't read LEAP property file "+fileName+". "+e);
-			// Ignore: no back end properties specified
-		}
-		
-		// Initialize the PDPContextManager if specified
-		String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
-		if (pdpContextManagerClass != null) {
+    //#J2ME_EXCLUDE_BEGIN
+    // Get the accept-mediators option
+    acceptMediators = p.getBooleanProperty(ACCEPT_MEDIATORS, true);
+    
+    if (acceptMediators) {
+			// Read the LEAP configuration properties
+			sb.setLength(idLength);
+			sb.append(LEAP_PROPERTY_FILE);
+	    String fileName = p.getParameter(sb.toString(), LEAP_PROPERTY_FILE_DEFAULT); 
 			try {
-				myLogger.log(Logger.INFO, "Loading PDPContextManager of class "+pdpContextManagerClass);
-				myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
-				myPDPContextManager.init(leapProps); 
-				myPDPContextManager.registerListener(this);
+				leapProps.load(fileName);
 			}
-			catch (Throwable t) {
-				t.printStackTrace();
-				myPDPContextManager = null;
+			catch (Exception e) {
+				myLogger.log(Logger.FINE, "Can't read LEAP property file "+fileName+". "+e);
+				// Ignore: no back end properties specified
 			}
-		}
+			
+			// Initialize the PDPContextManager if specified
+			String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
+			if (pdpContextManagerClass != null) {
+				try {
+					myLogger.log(Logger.INFO, "Loading PDPContextManager of class "+pdpContextManagerClass);
+					myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
+					myPDPContextManager.init(leapProps); 
+					myPDPContextManager.registerListener(this);
+				}
+				catch (Throwable t) {
+					t.printStackTrace();
+					myPDPContextManager = null;
+				}
+			}
+    }
 		//#J2ME_EXCLUDE_END
 		
 		// Create the ServerSocket
@@ -384,100 +391,112 @@ public class JICPServer extends Thread
 	          break;
 
 	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
-	          if(myLogger.isLoggable(Logger.INFO))
-	          	myLogger.log(Logger.INFO,"Received a CREATE_MEDIATOR request from "+ addr + ":" + port);
-
-	          // Starts a new Mediator and sends back its ID
-	          String s = new String(pkt.getData());
-	          Properties p = parseProperties(s);
-	          
-	          // If there is a PDPContextManager add the PDP context properties
-	          if (myPDPContextManager != null) {
-	          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr);
-	          	if (pdpContextInfo != null) {
-								myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
-		          	mergeProperties(p, pdpContextInfo);
-	          	}
-	          	else {
-	          		if(myLogger.isLoggable(Logger.WARNING))
-	          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request from non authorized address: "+addr);
-	          		reply = new JICPPacket("Not authorized", null);
-	          		break;
-	          	}
-	          }
-
-					  // Get mediator ID from the passed properties (if present)
-	          String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
-	          String msisdn = p.getProperty(PDPContextManager.MSISDN);
-					  if(id != null) {
-					  	if (msisdn != null && !msisdn.equals(id)) {
-					  		// Security attack: Someone is pretending to be someone other
-	          		if(myLogger.isLoggable(Logger.WARNING))
-	          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
-								reply = new JICPPacket("Not authorized", null);
-	          		break;
-					  	}	
-					  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
-					  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
-					  }
-					  else {
-					  	// Use the MSISDN (if present) 
-					  	id = msisdn;
-					  	if (id == null) {
-					      // Construct a default id using the string representation of the server's TCP endpoint
-					      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
-					  	}
-					  }
-					  
-					  // If last connection from the same device aborted, the old 
-					  // BackEnd may still exist as a zombie. In case ids are assigned
-					  // using the MSISDN the new name is equals to the old one.
-					  if (id.equals(msisdn)) {
-					  	JICPMediator old = (JICPMediator) mediators.get(id);
-
-					  	if (old != null) {
-					  		// This is a zombie mediator --> kill it
-	    					myLogger.log(Logger.INFO, "Replacing old mediator "+id);
-					  		old.kill();
-					  		// Be sure the zombie container has been removed
-					  		waitABit(1000);
-					  	}
-					  }
-
-	          // Start the mediator
-	          JICPMediator m = startMediator(id, p);
-		  			closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
-
-	          if(myLogger.isLoggable(Logger.FINE))
-					  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
-	          mediators.put(id, m);
-	          
-	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
-	          String replyMsg = id+'#'+addr.getHostAddress();
-	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
-	          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
+	        	if (acceptMediators) {
+		          if(myLogger.isLoggable(Logger.INFO))
+		          	myLogger.log(Logger.INFO,"Received a CREATE_MEDIATOR request from "+ addr + ":" + port);
+	
+		          // Starts a new Mediator and sends back its ID
+		          String s = new String(pkt.getData());
+		          Properties p = parseProperties(s);
+		          
+		          // If there is a PDPContextManager add the PDP context properties
+		          if (myPDPContextManager != null) {
+		          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr);
+		          	if (pdpContextInfo != null) {
+									myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
+			          	mergeProperties(p, pdpContextInfo);
+		          	}
+		          	else {
+		          		if(myLogger.isLoggable(Logger.WARNING))
+		          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request from non authorized address: "+addr);
+		          		reply = new JICPPacket("Not authorized", null);
+		          		break;
+		          	}
+		          }
+	
+						  // Get mediator ID from the passed properties (if present)
+		          String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
+		          String msisdn = p.getProperty(PDPContextManager.MSISDN);
+						  if(id != null) {
+						  	if (msisdn != null && !msisdn.equals(id)) {
+						  		// Security attack: Someone is pretending to be someone other
+		          		if(myLogger.isLoggable(Logger.WARNING))
+		          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
+									reply = new JICPPacket("Not authorized", null);
+		          		break;
+						  	}	
+						  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
+						  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
+						  }
+						  else {
+						  	// Use the MSISDN (if present) 
+						  	id = msisdn;
+						  	if (id == null) {
+						      // Construct a default id using the string representation of the server's TCP endpoint
+						      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+						  	}
+						  }
+						  
+						  // If last connection from the same device aborted, the old 
+						  // BackEnd may still exist as a zombie. In case ids are assigned
+						  // using the MSISDN the new name is equals to the old one.
+						  if (id.equals(msisdn)) {
+						  	JICPMediator old = (JICPMediator) mediators.get(id);
+	
+						  	if (old != null) {
+						  		// This is a zombie mediator --> kill it
+		    					myLogger.log(Logger.INFO, "Replacing old mediator "+id);
+						  		old.kill();
+						  		// Be sure the zombie container has been removed
+						  		waitABit(1000);
+						  	}
+						  }
+	
+		          // Start the mediator
+		          JICPMediator m = startMediator(id, p);
+			  			closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
+	
+		          if(myLogger.isLoggable(Logger.FINE))
+						  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
+		          mediators.put(id, m);
+		          
+		          // Create an ad-hoc reply including the assigned mediator-id and the IP address
+		          String replyMsg = id+'#'+addr.getHostAddress();
+		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
+		          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
+	        	}
+	        	else {
+        			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request received with accept-mediator option set to false. Address is: "+addr);
+							reply = new JICPPacket("Not authorized", null);
+	        	}
 	        	break;
 	
 	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
-	          // A mediated container is (re)connecting to its mediator
-	          recipientID = pkt.getRecipientID();
-	          
-	          // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN
-	          
-	          if(myLogger.isLoggable(Logger.INFO))
-	          	myLogger.log(Logger.INFO,"Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID);
-	          m = (JICPMediator) mediators.get(recipientID);
-	          if (m != null) {
-	          	// Don't close the connection, but pass it to the proper 
-	          	// mediator. 
-	          	closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
-		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
-	          }
-	          else {
+	        	if (acceptMediators) {
+		          // A mediated container is (re)connecting to its mediator
+		          recipientID = pkt.getRecipientID();
+		          
+		          // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN
+		          
 		          if(myLogger.isLoggable(Logger.INFO))
-		          	myLogger.log(Logger.INFO,"Mediator "+recipientID+" not found");
-	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
-	          }
+		          	myLogger.log(Logger.INFO,"Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID);
+		          JICPMediator m = (JICPMediator) mediators.get(recipientID);
+		          if (m != null) {
+		          	// Don't close the connection, but pass it to the proper 
+		          	// mediator. 
+		          	closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
+			          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
+		          }
+		          else {
+			          if(myLogger.isLoggable(Logger.INFO))
+			          	myLogger.log(Logger.INFO,"Mediator "+recipientID+" not found");
+		          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
+		          }
+	        	}
+	        	else {
+        			myLogger.log(Logger.WARNING,"CONNECT_MEDIATOR request received with accept-mediator option set to false. Address is: "+addr);
+							reply = new JICPPacket("Not authorized", null);
+	        	}
 	          break;
 			  		//#J2ME_EXCLUDE_END
 	          
