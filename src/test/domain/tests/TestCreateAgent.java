@@ -80,7 +80,7 @@ public class TestCreateAgent extends Test {
     					return false;
     				}
     				// Kill the target agent thus checking that it was actually there
-    				TestUtility.killTarget(myAgent, new AID(TARGET, AID.ISLOCALNAME));
+    				TestUtility.killAgent(myAgent, new AID(TARGET, AID.ISLOCALNAME));
     				return true;
     			}
     			catch (Exception e) {

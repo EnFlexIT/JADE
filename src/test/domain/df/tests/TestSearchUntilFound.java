@@ -165,7 +165,7 @@ public class TestSearchUntilFound extends Test {
   
   public void clean(Agent a) {
   	try {
-  		TestUtility.killTarget(a, r);
+  		TestUtility.killAgent(a, r);
   		
   		// Deregister all descriptions
   		DFAgentDescription dfd = new DFAgentDescription();

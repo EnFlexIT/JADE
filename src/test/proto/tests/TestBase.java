@@ -52,7 +52,7 @@ public abstract class TestBase extends Test {
   public void clean(Agent a) {
   	try {
   		for (int i = 0; i < responders.length; ++i) {
-  			TestUtility.killTarget(a, responders[i]);
+  			TestUtility.killAgent(a, responders[i]);
   		}
   	}
   	catch (Exception e) {

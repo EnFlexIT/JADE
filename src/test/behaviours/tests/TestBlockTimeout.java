@@ -144,8 +144,8 @@ public class TestBlockTimeout extends Test {
   	  for (int i = 0; i < nAgents; ++i) {
   	  	String senderName = new String("s"+i);
   	  	String receiverName = new String("r"+i);
-    		TestUtility.killTarget(a, new AID(senderName, AID.ISLOCALNAME)); 
-    		TestUtility.killTarget(a, new AID(receiverName, AID.ISLOCALNAME)); 
+    		TestUtility.killAgent(a, new AID(senderName, AID.ISLOCALNAME)); 
+    		TestUtility.killAgent(a, new AID(receiverName, AID.ISLOCALNAME)); 
   	  }
   	  
   	  // Kill the peripheral container

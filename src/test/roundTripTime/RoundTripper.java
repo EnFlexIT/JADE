@@ -35,6 +35,7 @@ public class RoundTripper extends Agent {
     static int THR_LOW = 0;
     private static int n_agenti = 0;
     private static int terminatedAgents = 0;
+    private static boolean resultPrinted = false;
     synchronized static void increaseNumAgents(int numCoppie) {
 	if (n_agenti == 0) {
 	    THR_UP = Math.round(THR_UP * numCoppie / 100.0f);
@@ -53,12 +54,13 @@ public class RoundTripper extends Agent {
 	tempi.add(new Double(avg));
     }
     
-    synchronized static void printResults() {
+    synchronized static double printResults() {
 	double totalTime = 0;
 	for (int i=0; i<tempi.size(); i++)
 	    totalTime += ((Double)tempi.elementAt(i)).doubleValue();
-	System.out.println("RTT=" + totalTime/( (double)tempi.size()) + " per " + numIterazioni ); 
-	System.exit(0);
+	    double rtt = totalTime/( (double)tempi.size());
+	System.out.println("RTT=" + rtt + " per " + numIterazioni ); 
+	return rtt;
     }
 
     synchronized static boolean startMeasuring() {
@@ -74,18 +76,22 @@ public class RoundTripper extends Agent {
     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
     String ior = "";
     int numCoppie = 0;
-
+		AID controller = null;
+		
     public void setup() {
-
-	String receiverName = (String)(getArguments()[0]);
-        numIterazioni = (new Long((String)(getArguments()[1]))).longValue();
-        ior = (String)getArguments()[2];
-	numCoppie = Integer.parseInt(((String)(getArguments()[3]))); 
+			Object[] args = getArguments();
+	String receiverName = (String)(args[0]);
+        numIterazioni = (new Long((String)(args[1]))).longValue();
+        ior = (String)args[2];
+	numCoppie = Integer.parseInt(((String)(args[3]))); 
 	receiver = new AID(receiverName, ((ior.length() > 9) ? AID.ISGUID : AID.ISLOCALNAME));
         if(ior.length() > 9){ //is GUID
             receiver.addAddresses(ior);
 	}
         msg.addReceiver(receiver);
+        if (args.length == 5) {
+        	controller = new AID((String) args[4], AID.ISLOCALNAME);
+        }
 	//System.out.println(receiver);
 
 	increaseNumAgents(numCoppie);
@@ -111,8 +117,21 @@ public class RoundTripper extends Agent {
 			    measuring=2;
 			    decreaseNumAgents();
 			    updateResults(tempoIniziale, tempoFinale, numIterazioni);
-			    if (stopTripping(numCoppie)) 
-				printResults();
+			    if (stopTripping(numCoppie)) {
+			    	if (!resultPrinted) {
+			    		resultPrinted = true;
+				    	double rtt = printResults();
+				    	if (controller != null) {
+				    		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+				    		msg.addReceiver(controller);
+			  	  		msg.setContent(String.valueOf(rtt));
+			    			myAgent.send(msg);
+			    		}
+			    		else {
+			    			System.exit(0);
+			    		}
+			    	}
+			    }
 			}
 			counter++;
 			break;

@@ -159,7 +159,7 @@ public class TestFederation extends Test {
   
   public void clean(Agent a) {
   	try {
-	  	TestUtility.killTarget(a, df1);
+	  	TestUtility.killAgent(a, df1);
 	  	DFAgentDescription  dfd = new DFAgentDescription();
 	  	dfd.setName(a.getAID());
 	  	DFService.deregister(a, dfd);

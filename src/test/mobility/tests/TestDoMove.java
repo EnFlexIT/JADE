@@ -82,7 +82,7 @@ public class TestDoMove extends Test {
 				myAgent.send(request);
 				// Give the mobile agent some time to move
 				try {
-					Thread.sleep(1500);
+					Thread.sleep(1000);
 				}
 				catch (InterruptedException ie) {
 					ie.printStackTrace();
@@ -108,7 +108,7 @@ public class TestDoMove extends Test {
   	  
   public void clean(Agent a) {
   	try {
-	  	TestUtility.killTarget(a, ma);
+	  	TestUtility.killAgent(a, ma);
   	}
   	catch (Exception e) {
   		e.printStackTrace();

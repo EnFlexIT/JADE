@@ -85,7 +85,7 @@ public class SLOperatorsTesterAgent extends TesterAgent {
 			
 			public void shutdown(Agent a) {
 				try {
-					TestUtility.killTarget(a, resp);
+					TestUtility.killAgent(a, resp);
 				}
 				catch (TestException te) {
 					te.printStackTrace();
