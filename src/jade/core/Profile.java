@@ -64,6 +64,18 @@ public abstract class Profile {
    */
   public static final String MAIN_PORT = "port";
 
+
+  /**
+
+  */
+  public static final String LOCAL_SERVICE_MANAGER_HOST = "smhost";
+
+  /**
+
+  */
+  public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
+
+
   public static final String MAINAUTH_CLASS = "main-auth";
   public static final String AUTHORITY_CLASS = "authority";
   public static final String POLICY_FILE = "java.security.policy";
@@ -159,7 +171,7 @@ public abstract class Profile {
 
     /**
      */
-    protected abstract Platform getPlatform() throws ProfileException;
+    protected abstract MainContainerImpl getMain() throws ProfileException;
     
     /**
      */
