@@ -6,12 +6,12 @@ public interface Ontology {
   /**
      Boolean constant for <it>Optional</it>.
    */
-  public static final boolean O = true;
+  static final boolean O = true;
 
   /**
      Boolean constant for <it>Mandatory</it>.
    */
-  public static final boolean M = false;
+  static final boolean M = false;
 
 
 
@@ -119,22 +119,6 @@ public interface Ontology {
   static final String typeNames[] = { "boolean", "byte", "char", "double",
 				      "float", "int", "long", "short",
 				      "String", "Binary", "Concept", "Action", "Predicate" };
-
-
-  /**
-     Integer constant fot <it>Concept</it>
-   */
-  public static final int CONCEPT = CONCEPT_TYPE;
-
-  /**
-     Integer constant for <it>Action</it>
-   */
-  public static final int ACTION = ACTION_TYPE;
-
-  /**
-     Integer constant for <it>Predicate</it>
-   */
-  public static final int PREDICATE = PREDICATE_TYPE;
 
 
   /**

@@ -42,15 +42,15 @@ class FrameSchema implements Cloneable, Serializable {
   }
 
   public boolean isConcept() {
-    return functorKind == Ontology.CONCEPT;
+    return functorKind == Ontology.CONCEPT_TYPE;
   }
 
   public boolean isAction() {
-    return functorKind == Ontology.ACTION;
+    return functorKind == Ontology.ACTION_TYPE;
   }
 
   public boolean isPredicate() {
-    return functorKind == Ontology.PREDICATE;
+    return functorKind == Ontology.PREDICATE_TYPE;
   }
 
   public void checkAgainst(Frame f) throws OntologyException {
