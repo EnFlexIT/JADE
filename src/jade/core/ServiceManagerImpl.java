@@ -619,7 +619,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     private void adjustContainerName(Node n, ContainerID cid) {
 
 	// Do nothing if a custom name is already supplied
-	if((cid != null) && !cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
+	if((cid != null) && !cid.getName().equals(AgentContainer.UNNAMED_CONTAINER_NAME)) {
 	    return;
 	}
 
@@ -627,17 +627,17 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	    // Use the Main-Container-<N> name schema
 	    if(mainNodeNo == 0) {
-		cid.setName(AgentManager.MAIN_CONTAINER_NAME);
+		cid.setName(AgentContainer.MAIN_CONTAINER_NAME);
 	    }
 	    else {
-		cid.setName(AgentManager.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
+		cid.setName(AgentContainer.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
 	    }
 	    try {
 		while(true) {
 		    // Try until a non-existing name is found...
 		    myMain.getContainerNode(cid);
 		    mainNodeNo++;
-		    cid.setName(AgentManager.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
+		    cid.setName(AgentContainer.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
 		}
 	    }
 	    catch(NotFoundException nfe) {
@@ -647,13 +647,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	else {
 
 	    // Use the Container-<M> name schema
-	    cid.setName(AgentManager.AUX_CONTAINER_NAME + '-' + nodeNo);
+	    cid.setName(AgentContainer.AUX_CONTAINER_NAME + '-' + nodeNo);
 	    try {
 		while(true) {
 		    // Try until a non-existing name is found...
 		    myMain.getContainerNode(cid);
 		    nodeNo++;
-		    cid.setName(AgentManager.AUX_CONTAINER_NAME + '-' + nodeNo);
+		    cid.setName(AgentContainer.AUX_CONTAINER_NAME + '-' + nodeNo);
 		}
 	    }
 	    catch(NotFoundException nfe) {

@@ -110,9 +110,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private JADEPrincipal ownerPrincipal;
   private Credentials ownerCredentials;
   
-  private Authority authority;
+  private Authority authority = new jade.security.dummy.DummyAuthority();
   private Map principals = new HashMap();
-  //private Map containerPrincipals = new HashMap();
 
   private AID theAMS;
   private AID theDefaultDF;
@@ -214,7 +213,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	ownerCredentials = c;
   }
   
-	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
+	/*public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
 		//#MIDP_EXCLUDE_BEGIN
 		Agent agent = localAgents.acquire(agentID);
 		if (agent != null)
@@ -222,7 +221,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			agent.setPrincipal(certs);
 		localAgents.release(agentID);
 		//#MIDP_EXCLUDE_END
-	}
+	}*/
 
 	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
 		principals.put(agentID, principal);
@@ -326,7 +325,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  authority = null;
 	  //e1.printStackTrace();
       }
-      */
       try {
 	  if (authority == null) {
 	      authority = new jade.security.dummy.DummyAuthority();
@@ -339,6 +337,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch (Exception e2) {
 	  e2.printStackTrace();
       }
+      */
           
       // This string will be used to build the GUID for every agent on
       // this platform.
@@ -353,34 +352,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
+      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
 
-      // Acquire username and password
-      //#MIDP_EXCLUDE_BEGIN
-
-      // the name for this container is got from the Profile, if exists
-      // "No-name" is needed because the NAME is mandatory in the Ontology
-      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, AgentManager.UNNAMED_CONTAINER_NAME), addr);
-      //String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
-      //password = Agent.extractPassword(ownership);
-      //username = Agent.extractUsername(ownership);
-      //#MIDP_EXCLUDE_END
-      /*#MIDP_INCLUDE_BEGIN
-	myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
-	//password = new byte[] {};
-	//username = ContainerPrincipal.NONE;
-	#MIDP_INCLUDE_END*/
-      //myProfile.setParameter(Profile.OWNER, username);
-
-      /* we do not have identity certificates any more 
-      // FIXME: Temporary Hack --- Start 
-      certs = new CertificateFolder();
-      IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
-      identity.setSubject(new jade.security.dummy.DummyPrincipal(myID, username));
-      certs.setIdentityCertificate(identity);
-      // FIXME: Temporary Hack --- End 
-      */
       myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), null, null);
-
   }
 
   protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
@@ -435,21 +409,28 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  //#MIDP_EXCLUDE_END
   }
 
-  protected void startAdditionalServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+  protected void startAdditionalServices() {
 	  // Start all the additional services mentioned in the profile
-          List l = myProfile.getSpecifiers(Profile.SERVICES);
-          Iterator serviceSpecifiers = l.iterator();
-          while(serviceSpecifiers.hasNext()) {
+  	try {
+	    List l = myProfile.getSpecifiers(Profile.SERVICES);
+	    Iterator serviceSpecifiers = l.iterator();
+	    while(serviceSpecifiers.hasNext()) {
+	    	Specifier s = null;
 	      try {
-		  Specifier s = (Specifier)serviceSpecifiers.next();
-		  String serviceClass = s.getClassName();
-		  startService(serviceClass);
+				  s = (Specifier) serviceSpecifiers.next();
+				  String serviceClass = s.getClassName();
+				  startService(serviceClass);
 	      }
 	      catch(ServiceException se) {
-		  se.printStackTrace();
+		  		System.out.println("Error starting service "+s.getClassName());
+				  se.printStackTrace();
 	      }
-	  }
-
+		  }
+  	}
+  	catch (ProfileException pe) {
+  		System.out.println("Error reading services from profile.");
+  		pe.printStackTrace();
+  	}
   }
 
   protected NodeDescriptor getNodeDescriptor() {
@@ -526,19 +507,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       }
       catch (IMTPException imtpe) {
-          Logger.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
+          Logger.println("Communication failure while joining agent platform: " + imtpe.getMessage());
           imtpe.printStackTrace();
           endContainer();
           return;
       }
       catch (AuthException ae) {
-          Logger.println("Authentication or authorization failure while contacting agent platform.");
+          Logger.println("Authentication or authorization failure while joining agent platform.");
           ae.printStackTrace();
           endContainer();
           return;
       }
       catch (Exception e) {
-          Logger.println("Some problem occurred while contacting agent platform.");
+          Logger.println("Some problem occurred while joining agent platform.");
           e.printStackTrace();
           endContainer();
           return;

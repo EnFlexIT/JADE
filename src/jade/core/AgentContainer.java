@@ -43,6 +43,10 @@ import jade.security.Credentials;
 */
 
 public interface AgentContainer {
+  static final String MAIN_CONTAINER_NAME = "Main-Container";
+  static final String AUX_CONTAINER_NAME = "Container";
+  static final String UNNAMED_CONTAINER_NAME = "No-Name";
+
 
     static final boolean CREATE_AND_START = true;
     static final boolean CREATE_ONLY = false;
