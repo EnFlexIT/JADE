@@ -1,3 +1,65 @@
+Changes in the snapshot of the 20/09/04
+==========================================================================
+GENERAL IMPROVEMENTS:
+- Integrated support for HTTPS in HTTP MTP (Credits to UAB)
+- Modified PerDayFileLogger to append at the end of the file when restarting the platform
+- Adjusted syntax of content of AMS FAILURE messages
+- Added method getFailedReceiver() in AMSService
+- Restructured the agent life cycle management mechanism, now handled by different LifeCycle objects
+- Added CallbackInvokator class to handle invokation of service specific agent callback methods 
+- jade.wrapper: Added ContainerController and fixed problems on platform listener registration
+- PersistentDeliveryService: improved logs.
+- Modified PlatformManagerImpl to accept services with null slices
+- New java.logging based logging mechanism introduced in jade.core
+- Modified behaviour loading mechanism to support IN and OUT parameter handling
+- FSMBehaviour: added callback method for state entrance
+- Filter: modified to handle service name.
+- CommandProcessor: made package-scoped
+- BaseService: modified to provide empty implementation for all Service methods.
+
+BUG FIXES:	
+- Fixed bug in ACLMessage when cloning the reply-to slot
+- Fixed bug in ThreadedBehaviourFactory related to interruptions in blockingReceived
+- Fixed bug in behaviour dynamic loading
+- FIXED logger overwriting bug in logging for J2se
+- Fixed bug LEAPCodec related to long message.
+
+
+DOCUMENTATION:
+- Fixed code include in an example of the JADE tutorial for beginners
+
+ADD-ONS:
+- LEAP
+  - modified HTTPBEDispatcher and HTTPFEDispatcher to properly handle msisdn information
+  - Modified HTTPClientConnection to properly handle HTTPProxy authentication
+  - Modified JICPServer to support one leap.properties file per peer
+  - Removed link from FontEndContainer to AgentState
+  - j2se.xml modified to copy logging images
+  - Added mechanism to support automatic connection drop-down between FE and BE and SMS-based restoration
+  - buildLEAP.properties, build.xml, midp.xml modified to properly handle classes that are dependent from the WMA
+  - Adjusted dotnet.xml and added .NET related preprocessor directives
+  - Logging: adjusted logging for pjava and midp. 
+  - AgentContainerImpl: modified to handle bootstrap agents in midp too.
+  - OutputViewer: added "tail" functionality
+  - Fixed bug LEAPFrameCodec related to long message.
+- Security
+  - Removed setting of security factory class which overwrites user configuration settings
+  - Modified GroupCertificate: Rest of the certificate can be more than just the subject
+  - Modified JADESecurityFactory to handle DelegationCertificate
+  - Permission filetr: Load rows into the checkerTable by a custom CheckerTableFiller
+  - Rearranged import statements in several security related classes
+  - Security services: improved logging
+  - CredentialsEngine: d/encoding now works also if the SDSINameImpl contained into a JADEPrincipalImpl is null.
+- Persistence
+  - Modified PersistenceHelper to make it uniform with other helpers
+  - Added Savable interface 
+  - Added example on persistence basic usage
+- TestSuite
+  - Modified code and added ant target for automatic test suite execution
+  - TestUtility. ';' substituted wit path.separator
+
+  
+
 MAJOR CHANGES in JADE 3.2 (26th July 2004)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
