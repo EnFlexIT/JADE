@@ -32,6 +32,8 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Iterator;
 
 import javax.swing.*;
@@ -67,9 +69,9 @@ class MainWindow extends JFrame {
   private String logojade = "images/logosmall.jpg";
 
   private List containerNames = new LinkedList();
-  private List addresses = new LinkedList();
+  private Map addresses = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 
-  
+
   public MainWindow (rma anRMA) {
     super(anRMA.getName() +" - JADE Remote Agent Management GUI");
     
@@ -202,7 +204,12 @@ class MainWindow extends JFrame {
   public void addAddress(final String address, final String where) {
     Runnable addIt = new Runnable() {
       public void run() {
-	addresses.add(address);
+	List addrs = (List)addresses.get(where);
+	if(addrs == null) {
+	  addrs = new LinkedList();
+	  addresses.put(where, addrs);
+	}
+	addrs.add(address);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -270,7 +277,10 @@ class MainWindow extends JFrame {
   public void removeAddress(final String address, final String where) {
     Runnable removeIt = new Runnable() {
       public void run() {
+	List addrs = (List)addresses.get(where);
 	addresses.remove(address);
+	if(addrs.isEmpty())
+	  addresses.remove(where);
       }
     };
     SwingUtilities.invokeLater(removeIt);
@@ -326,13 +336,15 @@ class MainWindow extends JFrame {
   }
 
   public boolean showUninstallMTPDialog(jade.domain.JADEAgentManagement.UninstallMTP umtp) {
-    if(addresses.isEmpty()) {
-      JOptionPane.showMessageDialog(this, "No MTPs are currently installed.",
+    String where = umtp.getContainer().getName();
+    List addrs = (List)addresses.get(where);
+    if(addrs == null) {
+      JOptionPane.showMessageDialog(this, "No MTPs are currently installed on this container.",
 				    "Error during MTP removal", JOptionPane.ERROR_MESSAGE);
       return false;
     }
 
-    Object[] names = addresses.toArray();
+    Object[] names = addrs.toArray();
     String address = (String)JOptionPane.showInputDialog(this, "Choose the MTP to remove.",
 							 "Remove an MTP", JOptionPane.INFORMATION_MESSAGE,
 							 null, names, names[0]);
