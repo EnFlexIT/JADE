@@ -24,15 +24,12 @@ Boston, MA  02111-1307, USA.
 package jade.security;
 
 /**
-	The <code>AuthException</code> is the base class for
-	exceptions thrown for unauthorized access or for authentication
-	failures.
 	
 	@author Giosuè Vitaglione - TILAB S.p.A.
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public class CertificateException extends AuthException {
+public class CertificateException extends Exception {
 
 	/**
 		Creates a new CertificateException
