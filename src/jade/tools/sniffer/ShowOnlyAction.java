@@ -70,10 +70,9 @@ public class ShowOnlyAction extends AgentAction {
   int index;
   index=nameAgent.indexOf("@");
    if (index != -1) return nameAgent.substring(0,index);
-    else {
-      System.out.println("The agent's name is not correct");
-      System.exit(-1);
-    return null;
+   else {
+     System.out.println("The agent's name is not correct");
+     return null;
    }
  }
 
