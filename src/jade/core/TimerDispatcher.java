@@ -139,7 +139,7 @@ public class TimerDispatcher implements Runnable {
     }
   }
 
-  static TimerDispatcher getTimerDispatcher() {
+  public static TimerDispatcher getTimerDispatcher() {
   	if (theDispatcher == null) {
   		theDispatcher = new TimerDispatcher();
   	}
