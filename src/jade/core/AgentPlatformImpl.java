@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.18  1998/11/03 00:30:25  rimassa
+  Added AMS notifications for new agents and dead agents.
+
   Revision 1.17  1998/11/02 01:58:23  rimassa
   Removed every reference to deleted MessageDispatcher class; now
   AgentContainer is directly responsible for message dispatching.
@@ -173,11 +176,22 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 	System.out.println("Replacing a dead agent ...");
       }
     }
+
   }
 
-  public void deadAgent(String name) throws RemoteException {
+  public void deadAgent(String name) throws RemoteException, NotFoundException {
     System.out.println("Dead agent " + name);
+
+    // Notify AMS
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(name.toLowerCase());
+    if(ad == null)
+      throw new NotFoundException("Failed to find " + name);
+    AgentContainer ac = ad.getContainer();
+    String containerName = "Container-" + new Integer(containers.indexOf(ac)).toString();
+    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
     platformAgents.remove(name.toLowerCase());
+
+    theAMS.postDeadAgent(containerName, amsd);
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
@@ -277,6 +291,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       amsd.setOwnership(ownership);
 
       ad.setDesc(amsd);
+
+      // Notify AMS
+      AgentContainer ac = ad.getContainer();
+      String containerName = "Container-" + new Integer(containers.indexOf(ac)).toString();
+      theAMS.postNewAgent(containerName, amsd);
     }
     catch(NotFoundException nfe) {
       nfe.printStackTrace();
