@@ -212,9 +212,7 @@ class MainWindow extends JFrame {
   public void addRemotePlatformFolder(){
   	Runnable addIt = new Runnable(){
   	public void run(){
-  		JPopupMenu menu = new JPopupMenu();
-  		JMenuItem tmp = menu.add((RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION));
-  		tmp.setIcon(null);
+  		PopupMenuPlatform menu = new PopupMenuPlatform(actPro);
   		tree.treeAgent.register("REMOTEPLATFORMS",menu, "images/folderblue.gif");
   		tree.treeAgent.addRemotePlatformsFolderNode();
   		
