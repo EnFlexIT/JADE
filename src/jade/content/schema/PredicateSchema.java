@@ -118,6 +118,19 @@ public class PredicateSchema extends ContentElementSchema {
       super.add(name, elementsSchema, cardMin, cardMax, aggType);
     } 
     	
+    /**
+     * Adds a super-schema to this schema. This allows defining 
+     * inheritance relationships between ontological predicates.
+     * It must be noted that a predicate always inherits from another 
+     * predicate --> A super-schema of a <code>PredicateSchema</code>
+     * must be a <code>PredicateSchema</code> too.
+     *
+     * @param superClassSchema The super-schema to be added.
+     */
+    public void addSuperSchema(PredicateSchema superClassSchema) {
+        super.addSuperSchema(superClassSchema);
+    } 
+
     /** 
        Add a <code>Facet</code> on a slot of this schema
        @param slotName the name of the slot the <code>Facet</code>
