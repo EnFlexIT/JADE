@@ -5,6 +5,8 @@
 package examples.ex2;
 
 import java.io.StringReader;
+import java.io.OutputStreamWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 
 import jade.core.*;
@@ -21,35 +23,26 @@ public class AgentSender extends Agent {
       public void action() {
         try {
           byte[] buffer = new byte[1024];
-          System.out.println("Enter a message:");
+          System.out.println(getName()+" Enter an ACL message:");
           int len = System.in.read(buffer);
           String content = new String(buffer,0,len-1);
 
-          System.out.println("Enter destination agent name:");
-          len = System.in.read(buffer);
-          String dest = new String(buffer,0,len-1);
+          ACLMessage msg = parse(new StringReader(content));
+	  msg.setSource(getName());
 
-          System.out.println("Sending message to " + dest);
+          send(msg);
 
+          System.out.println(getName()+" is waiting for reply..");
 
-          String text = new String("( request :sender " + myAgent.getName());
-          text = text + " :receiver " + dest + " :content ( " + content + " ) )";
-          System.out.println(text);
-          ACLMessage msg = myAgent.parse(new StringReader(text));
-
-          myAgent.send(msg);
-
-          System.out.println("Waiting for reply..");
-
-          ACLMessage reply = myAgent.blockingReceive();
-          System.out.println("Received from " + reply.getSource());
-          System.out.println(reply.getContent());
+          ACLMessage reply = blockingReceive();
+	  System.out.println(getName()+ " received the following ACLMessage: " );
+	  reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
         }
         catch(IOException ioe) {
           ioe.printStackTrace();
         }
 
-	//        myAgent.doDelete(); // Terminates the agent
+	//        doDelete(); // Terminates the agent
       }
 
     });
