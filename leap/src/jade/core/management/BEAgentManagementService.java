@@ -176,46 +176,57 @@ public class BEAgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
-	    BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) pendingImages.remove(agentID);
-	    if (image == null) {
-  		// The agent spontaneously born on the FrontEnd --> its image still has to be created
-  		image = myContainer.createAgentImage(agentID);
-  		// Create and set security information
-  		try {
-		    CertificateFolder certs = myContainer.createCertificateFolder(agentID);
-		    image.setPrincipal(certs);
-		    image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
-  		}
-  		catch (AuthException ae) {
-		    // Should never happen
-		    ae.printStackTrace();
-  		}
+	    // If an actual agent instance was passed as second
+	    // argument, then this agent has to be started within the
+	    // Back-End container.
+	    if((params.length > 2) && (params[1] instanceof Agent) && (params[2] instanceof Boolean))  {
+		Agent instance = (Agent)params[1];
+		boolean startIt = ((Boolean)params[2]).booleanValue();
+		createAgentOnBE(agentID, instance, startIt);
 	    }
+	    else {
 
-	    // Add the agent image to the table
-	    BackEndContainer.AgentImage previous = (BackEndContainer.AgentImage) myContainer.addAgentImage(agentID, image);
+		BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) pendingImages.remove(agentID);
+		if (image == null) {
+		    // The agent spontaneously born on the FrontEnd --> its image still has to be created
+		    image = myContainer.createAgentImage(agentID);
+		    // Create and set security information
+		    try {
+			CertificateFolder certs = myContainer.createCertificateFolder(agentID);
+			image.setPrincipal(certs);
+			image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
+		    }
+		    catch (AuthException ae) {
+			// Should never happen
+			ae.printStackTrace();
+		    }
+		}
 
-	    try {
+		// Add the agent image to the table
+		BackEndContainer.AgentImage previous = (BackEndContainer.AgentImage) myContainer.addAgentImage(agentID, image);
 
-		ContainerID cid = myContainer.getID();
-
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		try {
-		    mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+
+		    ContainerID cid = myContainer.getID();
+
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+		    try {
+			mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+		    }
+		    catch(IMTPException imtpe) {
+			mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
+			mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+		    }
 		}
-		catch(IMTPException imtpe) {
-		    mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
-		    mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+		catch (Exception e) {
+		    e.printStackTrace();
+		    // Roll back if necessary and throw an IMTPException
+		    myContainer.removeAgentImage(agentID);
+		    if (previous != null) {
+			myContainer.addAgentImage(agentID, previous);
+		    }
+		    throw new IMTPException("Error creating agent " + agentID.getLocalName() + ". ", e);
 		}
-	    }
-	    catch (Exception e) {
-		e.printStackTrace();
-		// Roll back if necessary and throw an IMTPException
-		myContainer.removeAgentImage(agentID);
-		if (previous != null) {
-		    myContainer.addAgentImage(agentID, previous);
-		}
-		throw new IMTPException("Error creating agent " + agentID.getLocalName() + ". ", e);
 	    }
 	}
 
@@ -294,6 +305,52 @@ public class BEAgentManagementService extends BaseService {
 		catch(ServiceException se) {
 		    se.printStackTrace();
 		}
+	    }
+	}
+
+	private void createAgentOnBE(AID target, Agent instance, boolean startIt) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+	    // Connect the new instance to the local container
+	    Agent old = myContainer.addLocalAgent(target, instance);
+
+	    try {
+
+		CertificateFolder agentCerts = instance.getCertificateFolder();
+		if(startIt) {
+
+		    // Notify the main container through its slice
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+
+		    try {
+			mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+			mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+		    }
+
+		    // Actually start the agent thread
+		    myContainer.powerUpLocalAgent(target, instance);
+		}
+	    }
+	    catch(NameClashException nce) {
+		myContainer.removeLocalAgent(target);
+		if(old != null) {
+		    myContainer.addLocalAgent(target, old);
+		}
+		throw nce;
+	    }
+	    catch(IMTPException imtpe) {
+		myContainer.removeLocalAgent(target);
+		throw imtpe;
+	    }
+	    catch(NotFoundException nfe) {
+		myContainer.removeLocalAgent(target);
+		throw nfe;
+	    }
+	    catch(AuthException ae) {
+		myContainer.removeLocalAgent(target);
+		throw ae;
 	    }
 	}
 
