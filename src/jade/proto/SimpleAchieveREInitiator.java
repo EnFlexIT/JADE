@@ -33,6 +33,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.util.leap.Iterator;
 import jade.core.Agent;
 import jade.core.AID;
+import jade.util.Logger;
 
 /**
  * This is  simple implementation of the AchieveREInitiator.
@@ -132,7 +133,8 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
     private boolean finished;
     private long timeout = -1;
     private long endingTime = 0;
-
+	
+	private Logger logger= Logger.getMyLogger(this.getClass().getName());
     /**
      * Construct for the class by creating a new empty DataStore
      * @see #SimpleAchieveREInitiator(Agent, ACLMessage, DataStore)
@@ -197,7 +199,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
 		request.clearAllReceiver();
 		request.addReceiver(r);
  		if(receivers.hasNext())
-		    System.out.println("WARNING: the message you are sending has more than one receivers. The message will be sent only to the first one !!");
+		    logger.log(Logger.WARNING,"The message you are sending has more than one receivers. The message will be sent only to the first one !!");
 		if(r.equals(myAgent.getAID())){
 		    //if myAgent is the receiver then modify the messageTemplate 
 		    //to avoid intercepting the request as it was a reply.
@@ -368,7 +370,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param agree the received agree message
      **/
     protected void handleAgree(ACLMessage msg){
-	//System.out.println("in HandleAgree: " + msg.toString());
+		logger.log(Logger.FINE,"in HandleAgree: " + msg.toString());
 
     }   
 
@@ -381,7 +383,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param refuse the received refuse message
      **/
     protected void handleRefuse(ACLMessage msg){
-	//	System.out.println("in HandleRefuse: " + msg.toString());
+		logger.log(Logger.FINE,"in HandleRefuse: " + msg.toString());
     }
 
     /**
@@ -393,7 +395,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param notUnderstood the received not-understood message
      **/
     protected void handleNotUnderstood(ACLMessage msg){
-	//System.out.println("in HandleNotUnderstood: " + msg.toString());
+	logger.log(Logger.FINE,"in HandleNotUnderstood: " + msg.toString());
     }
 
     /**
@@ -405,7 +407,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param inform the received inform message
      **/
     protected void handleInform(ACLMessage msg){
-	//System.out.println("in HandleInform: " + msg.toString());
+	logger.log(Logger.FINE,"in HandleInform: " + msg.toString());
     }
 
     /**
@@ -417,7 +419,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param failure the received failure message
      **/
     protected void handleFailure(ACLMessage msg){
-	//System.out.println("in HandleFailure: " + msg.toString());
+	logger.log(Logger.FINEST,"in HandleFailure: " + msg.toString());
     }
 
     /**
@@ -429,7 +431,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param msg the received message
      **/
     protected void handleOutOfSequence(ACLMessage msg){
-	//System.out.println("in HandleOutOfSequence: " + msg.toString());
+	logger.log(Logger.FINEST,"in HandleOutOfSequence: " + msg.toString());
     }
 
     /**
@@ -445,9 +447,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param responses the Vector of ACLMessage objects that have been received 
      **/
     protected void handleAllResponses(Vector msgs){
-	/*System.out.println(myAgent.getName() + "In HandleAllResponses method: ");
-	  for (int i = 0; i<msgs.size();i++)
-	System.out.println((ACLMessage)msgs.get(i));*/
+	logger.log(Logger.FINEST,myAgent.getName()+"in handleAllResponses: ");    
     }
 
     /**
@@ -462,11 +462,7 @@ public class SimpleAchieveREInitiator extends SimpleBehaviour{
      * @param resultNodifications the Vector of ACLMessage object received 
      **/
     protected void handleAllResultNotifications(Vector msgs){
-	
-	/*System.out.println(myAgent.getName()+ "in HandleAllResultNotification: ");
-	  for(int i =0;i<msgs.size();i++)
-	    System.out.println((ACLMessage)msgs.get(i));
-	*/
+	logger.log(Logger.FINEST,myAgent.getName()+ "in HandleAllResultNotification: ");
     }
 
     /**

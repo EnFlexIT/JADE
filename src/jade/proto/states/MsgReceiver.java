@@ -104,9 +104,6 @@ public class MsgReceiver extends SimpleBehaviour {
 		
 		ACLMessage msg = myAgent.receive(template);
 		if (msg != null) {
-			// DEBUG
-			//System.out.println("Agent "+myAgent.getName()+" has received message");
-			//System.out.println(msg);
 			
 			if (receivedMsgKey != null) {
 				getDataStore().put(receivedMsgKey, msg);
