@@ -70,13 +70,14 @@ import jade.mtp.MTPException;
    @version $Date$ $Revision$
 
 */
-public class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
+public class MainContainerImpl extends UnicastRemoteObject implements MainContainer, AgentManager {
 
-  private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
 
   // The two mandatory system agents.
   private ams theAMS;
   private df defaultDF;
+
+  private String platformID;
 
   private List platformListeners = new LinkedList();
   private List platformAddresses = new LinkedList();
@@ -84,177 +85,74 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
   private GADT platformAgents = new GADT();
 
   MainContainerImpl(Profile p) throws RemoteException {
-    super(p);
-    systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
-
     try {
-      // This string will be used to build the GUID for every agent on
-      // this platform.
       platformID = p.getParameter(Profile.PLATFORM_ID);
     }
     catch(ProfileException pe) {
-      pe.printStackTrace();
+      platformID = "localhost:1099/JADE_Default";
+    }
+  }
+
+  public void register(AgentContainerImpl ac, ContainerID cid) throws RemoteException {
+
+    // Add the calling container as the main container and set its name
+    containers.addContainer(MAIN_CONTAINER_NAME, ac);
+    containersProgNo++;
+    cid.setName(MAIN_CONTAINER_NAME);
+
+    // Start the AMS
+    theAMS = new ams(this);
+    ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
+    theAMS.waitUntilStarted();
+
+    // Notify the AMS about the main container existence
+    fireAddedContainer(cid);
+
+    // Start the Default DF
+    defaultDF = new df();
+    ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
+    defaultDF.waitUntilStarted();
+
+  }
+
+  public void deregister(AgentContainer ac) throws RemoteException {
+    // Deregister yourself as a container
+    containers.removeContainer(MAIN_CONTAINER_NAME);
+
+    // Kill every other container
+    AgentContainer[] allContainers = containers.containers();
+    for(int i = 0; i < allContainers.length; i++) {
+      AgentContainer target = allContainers[i];
+      try {
+	APKillContainer(target); // This call removes 'ac' from 'container' map and from the collection 'c'
+      }
+      catch(RemoteException re) {
+	System.out.println("Container is unreachable. Ignoring...");
+      }
+
     }
 
-  }
+    // Make sure all containers are succesfully removed from the table...
+    containers.waitUntilEmpty();
 
-  private void initAMS() {
+    // Stop the Default DF
+    Agent systemAgent = defaultDF;
+    systemAgent.doDelete();
+    systemAgent.join();
+    systemAgent.resetToolkit();
 
-    theAMS = new ams(this);
-
-    // Subscribe as a listener for the AMS agent
-    Agent a = theAMS;
-    a.setToolkit(this);
-
-    // Insert AMS into local agents table
-    localAgents.put(Agent.AMS, theAMS);
-
-    AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.AMS);
-    desc.setContainerID(myID);
-    desc.setProxy(rp);
-
-    platformAgents.put(Agent.AMS, desc);
-
-  }
-
-  private void initDF() {
-
-    defaultDF = new df();
-
-    // Subscribe as a listener for the DF agent
-    Agent a = defaultDF;
-    a.setToolkit(this);
-
-    // Insert DF into local agents table
-    localAgents.put(Agent.DEFAULT_DF, defaultDF);
-
-    AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.DEFAULT_DF);
-    desc.setContainerID(myID);
-    desc.setProxy(rp);
-
-    platformAgents.put(Agent.DEFAULT_DF, desc);
+    // Stop the AMS
+    systemAgent = theAMS;
+    systemAgent.doDelete();
+    systemAgent.join();
+    systemAgent.resetToolkit();
+    removeListener(theAMS);    
 
   }
 
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
-  public void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs, String[] ACLCodecs) {
-
-    // This string will be used as the transport address for the main container
-    platformRMI = pRMI;
-
-    try {
-      InetAddress netAddr = InetAddress.getLocalHost();
-      myID = new ContainerID(MAIN_CONTAINER_NAME, netAddr);
-    }
-    catch(UnknownHostException uhe) {
-      uhe.printStackTrace();
-    }
-
-    // Build the Agent IDs for the AMS and for the Default DF.
-    Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
-
-    initAMS();
-    initDF();
-
-    try {
-      myPlatform = (MainContainer)Naming.lookup(platformRMI);
-
-      theACC = myProfile.getAcc();
-      theACC.initialize(this, myProfile);
-    }
-    catch(Exception e) {
-      // Should never happen
-      e.printStackTrace();
-    }
-
-    try {
-
-      for(int i =0; i<ACLCodecs.length;i++){
-	String className = ACLCodecs[i];
-	installACLCodec(className);
-      }
-
-      theACC.initialize(this, myProfile);
-
-      containers.addContainer(MAIN_CONTAINER_NAME, this);
-      containersProgNo++;
-
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + MAIN_CONTAINER_NAME + ".txt"));
-
-      for(int i = 0; i < MTPs.length; i += 2) {
-
-				String className = MTPs[i];
-				String addressURL = MTPs[i+1];
-				if(addressURL.equals(""))
-	  			addressURL = null;
-				String s = installMTP(addressURL, className);
-
-				f.println(s);
-				System.out.println(s);
-      }
-
-      f.close();
-
-    }
-
-    catch(RemoteException re) {
-      // This should never happen...
-      re.printStackTrace();
-    }
-    catch (IOException io) {
-      io.printStackTrace();
-    }
-    catch(MTPException mtpe) {
-      mtpe.printStackTrace();
-      Runtime.instance().endContainer();
-    }catch(jade.lang.acl.ACLCodec.CodecException ce){
-    	ce.printStackTrace();
-    	Runtime.instance().endContainer();
-    }
-
-    // Notify platform listeners
-    fireAddedContainer(myID);
-
-    Agent a = theAMS;
-    a.powerUp(Agent.AMS, systemAgentsThreads);
-    a = defaultDF;
-    a.powerUp(Agent.DEFAULT_DF, systemAgentsThreads);
-
-    while(agentSpecifiers.hasNext()) 
-    {
-      Iterator i = ((List)agentSpecifiers.next()).iterator();
-    	String agentName =(String)i.next();
-    	String agentClass = (String)i.next();
-      List tmp = new ArrayList(); 
-    	for ( ; i.hasNext(); )	         
-    	  tmp.add((String)i.next());
-    	  
-      //verify is possible to use toArray() on tmp
-    	int size = tmp.size();
-      String arguments[] = new String[size];
-      Iterator it = tmp.iterator();
-      for(int n = 0; it.hasNext(); n++)
-        arguments[n] = (String)it.next();
-
- 
-    	AID agentID = new AID(agentName, AID.ISLOCALNAME);
-      try {
-	      createAgent(agentID, agentClass,arguments, START);
-      }
-      catch(RemoteException re) { // It should never happen
-	      re.printStackTrace();
-      }
-    }
-
-
-    System.out.println("Agent Platform ready to accept new containers...");
-
-
-  }
 
   AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
     AgentDescriptor ad = platformAgents.get(agentID);
@@ -372,9 +270,9 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
    }
   }
 
-    public String getPlatformName() throws RemoteException {
-	return platformID;
-    }
+  public String getPlatformName() throws RemoteException {
+    return platformID;
+  }
 
   public String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException {
 
@@ -389,15 +287,13 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
 	Iterator it = addresses.iterator();
 	while(it.hasNext()) {
 	  String a = (String)it.next();
-	  ac.updateRoutingTable(ADD_RT, a, cont);
+	  ac.updateRoutingTable(AgentContainer.ADD_RT, a, cont);
 	}
       }
       catch(NotFoundException nfe) {
 	nfe.printStackTrace();
       }
     }
-
-
 
     String name = AUX_CONTAINER_NAME + containersProgNo;
     cid.setName(name);
@@ -510,121 +406,6 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     return true;
   }
 
-  // This method overrides AgentContainerImpl.shutDown(); besides
-  // behaving like the normal AgentContainer version, it makes all
-  // other agent containers exit.
-  public void shutDown() {
-
-    // Close all MTP links to the outside world
-    List l = theACC.getLocalAddresses();
-    String[] addresses = (String[])l.toArray(new String[0]);
-    for(int i = 0; i < addresses.length; i++) {
-      try {
-	String addr = addresses[i];
-	uninstallMTP(addr);
-      }
-      catch(RemoteException re) {
-	// It should never happen
-	System.out.println("ERROR: Remote Exception thrown for a local call.");
-      }
-      catch(NotFoundException nfe) {
-	nfe.printStackTrace();
-      }
-      catch(MTPException mtpe) {
-	mtpe.printStackTrace();
-      }
-
-    }
-
-    // Close down the ACC
-    theACC.shutdown();
-
-    // Deregister yourself as a container
-    containers.removeContainer(MAIN_CONTAINER_NAME);
-
-    // Kill every other container
-    AgentContainer[] allContainers = containers.containers();
-    for(int i = 0; i < allContainers.length; i++) {
-      AgentContainer ac = allContainers[i];
-      try {
-	APKillContainer(ac); // This call removes 'ac' from 'container' map and from the collection 'c'
-      }
-      catch(RemoteException re) {
-	System.out.println("Container is unreachable. Ignoring...");
-      } 
-    }
-
-    // Kill all non-system agents
-    AID[] allLocalNames = localAgents.keys();
-    for(int i = 0; i < allLocalNames.length; i++) {
-      AID id = allLocalNames[i];
-      if(id.equals(Agent.AMS) || 
-	 id.equals(Agent.DEFAULT_DF))
-	  continue;
-
-      // Kill agent and wait for its termination
-      Agent a = localAgents.get(id);
-      if(a != null) {
-	a.doDelete();
-	a.join();
-      }
-      else // FIXME: Should not happen, but it does when there are sniffers around...
-	System.out.println("Zombie agent [" + id + "]");
-    }
-
-
-    // Kill system agents, at last
-
-    Agent systemAgent = defaultDF;
-    systemAgent.doDelete();
-    systemAgent.join();
-    systemAgent.resetToolkit();
-
-    systemAgent = theAMS;
-    systemAgent.doDelete();
-    systemAgent.join();
-    systemAgent.resetToolkit();
-    removeListener(theAMS);
-
-    try {
-      // Unexport the container, without waiting for pending calls to
-      // complete.
-      unexportObject(this, true);
-    }
-    catch(RemoteException re) {
-      re.printStackTrace();
-    }
-
-    // Destroy the (now empty) thread groups
-
-    try {
-      agentThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-	//System.out.println("Active threads in 'JADE-Agents' thread group:");
-	//agentThreads.list();
-    }
-    finally {
-      agentThreads = null;
-    }
-
-    try {
-      systemAgentsThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-	//System.out.println("Active threads in 'JADE-System-Agents' thread group:");
-	//systemAgentsThreads.list();
-    }
-    finally {
-      systemAgentsThreads = null;
-    }
-
-    // Notify the JADE Runtime that the container has terminated
-    // execution
-    Runtime.instance().endContainer();
-
-  }
-
   // These methods dispatch agent management operations to
   // appropriate Agent Container through RMI.
 
@@ -730,7 +511,7 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(ADD_RT, mtpAddress, target);
+	    ac.updateRoutingTable(AgentContainer.ADD_RT, mtpAddress, target);
 	}
 
       }
@@ -759,7 +540,7 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(DEL_RT, mtpAddress, target);
+	    ac.updateRoutingTable(AgentContainer.DEL_RT, mtpAddress, target);
 	}
 
       }
@@ -850,18 +631,22 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
       AgentContainer ac;
       // If no name is given, the agent is started on the MainContainer itself
       if(containerName == null)
-	ac = this; 
-      else {
-	try {
-	  ac = containers.getContainer(containerName);
-	}
-	catch(NotFoundException nfe) {
-	  // If a wrong name is given, then again the agent starts on the MainContainer itself
-	  ac = this;
-	}
+        containerName = MAIN_CONTAINER_NAME;
+      try {
+	ac = containers.getContainer(containerName);
       }
+      catch(NotFoundException nfe) {
+        try {
+	  // If a wrong name is given, then again the agent starts on the MainContainer itself
+          ac = containers.getContainer(MAIN_CONTAINER_NAME);
+        }
+        catch(NotFoundException nfe2) {
+          throw new UnreachableException(nfe2.getMessage());
+        }
+      }
+
       AID id = new AID(agentName, AID.ISLOCALNAME);
-      ac.createAgent(id, className, args,START); // RMI call
+      ac.createAgent(id, className, args, AgentContainer.START); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
@@ -952,6 +737,5 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
       throw new UnreachableException(re.getMessage());
     }
   }
-
 
 }
