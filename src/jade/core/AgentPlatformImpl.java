@@ -272,7 +272,6 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 	    target.ping(false); // Try a non blocking ping to check
 	  }
 	  catch(RemoteException re2) { // Object down
-	    System.out.println("ERROR: Container " + targetName + " is dead.");
 
 	    containers.remove(targetName);
 	    theAMS.postDeadContainer(targetName);
