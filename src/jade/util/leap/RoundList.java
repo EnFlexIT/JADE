@@ -27,7 +27,7 @@ package jade.util.leap;
 import jade.util.leap.LinkedList;
 import java.util.NoSuchElementException;
 
-//import java.io.*; // used only for debugging purposes
+import java.io.*; // used only for debugging purposes
 
 /**
  * Implementation of a RoundList with get/insert methods relative 
@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
  * @author Fabio Bellifemine - TILab 
  * @version $Date$ $Revision$
  **/
-public class RoundList {
+public class RoundList implements Serializable{
 	private int cur=-1;
 	private LinkedList l=new LinkedList();
 	
@@ -95,8 +95,15 @@ public class RoundList {
 		} 
 		l.remove(element);
 		if (l.size() == 0) {
+			// There was just 1 element and we removed it
 			cur=-1;
-		} else if (cur == l.size()) {
+		} 
+		else if (ind < cur) {
+			// Shift down the current element otherwise it is skipped
+			cur--;
+		}
+		else if (cur == l.size()) {
+			// The current element was the last one (but not the only one) and we removed it
 			cur=0;
 		}
 		return true;
@@ -119,6 +126,13 @@ public class RoundList {
 	**/
 	public int size() {
 		return l.size();
+	}
+		
+	/** Returns an Iterator over the elements in this list. 
+	* @return an Iterator over the elements in this list.
+	**/
+	public Iterator iterator() {
+		return l.iterator();
 	}
 		
 
@@ -145,7 +159,7 @@ public class RoundList {
 	
 	/**
 	* Just for Debugging this implementation.
-	**
+	**/
 	public static void main(String args[]) {
         RoundList r = new RoundList();
   
@@ -172,6 +186,6 @@ public class RoundList {
 		 }
 		}
     }
-    */
+    
 
 }
