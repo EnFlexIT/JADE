@@ -638,7 +638,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
 
-  public void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException  {
+  public void sniffOn(AID snifferName, Iterator toBeSniffed) throws UnreachableException  {
 
     Collection myContainersColl = containers.values();
     Iterator myContainers = myContainersColl.iterator();
@@ -646,7 +646,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     while (myContainers.hasNext()) {
       try {
 	AgentContainer ac = (AgentContainer)myContainers.next();
-	ac.enableSniffer(SnifferName, ToBeSniffed); // RMI call
+	ac.enableSniffer(snifferName, toBeSniffed); // RMI call
       }
       catch (RemoteException re) {
 	throw new UnreachableException(re.getMessage());
@@ -654,7 +654,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
-  public void sniffOff(String SnifferName, Map NotToBeSniffed) throws UnreachableException {
+  public void sniffOff(AID snifferName, Iterator notToBeSniffed) throws UnreachableException {
 
     Collection myContainersColl = containers.values();
     Iterator myContainers = myContainersColl.iterator();
@@ -662,7 +662,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     while (myContainers.hasNext()) {
       try {
 	AgentContainer ac = (AgentContainer)myContainers.next();
-	ac.disableSniffer(SnifferName, NotToBeSniffed); // RMI call
+	ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
       }
       catch (RemoteException re) {
 	throw new UnreachableException(re.getMessage());

@@ -313,7 +313,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     return correctName;
   }
 
-  public void enableSniffer(String SnifferName, Map ToBeSniffed) throws RemoteException {
+  public void enableSniffer(AID snifferName, Iterator toBeSniffed) throws RemoteException {
+    System.out.println("AgentContainerImpl::enableSniffer() called.");
     /* In the SniffedAgents hashmap the key is the agent name and the value is a list
        containing the sniffer names for that agent */
       /*
@@ -355,7 +356,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
 
-  public void disableSniffer(String SnifferName, Map NotToBeSniffed) throws RemoteException {
+  public void disableSniffer(AID snifferName, Iterator notToBeSniffed) throws RemoteException {
+    System.out.println("AgentContainerImpl::disableSniffer() called.");
     /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
        containing the sniffer names for that agent */
       /*

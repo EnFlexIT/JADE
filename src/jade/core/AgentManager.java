@@ -26,7 +26,7 @@ package jade.core;
 import java.net.InetAddress;
 
 import java.util.Set;
-import java.util.Map;
+import java.util.Iterator;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -74,8 +74,8 @@ public interface AgentManager {
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
   void wake(AID agentID, String password) throws NotFoundException, UnreachableException;
 
-  void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException;
-  void sniffOff(String SnifferName, Map ToBeSniffed) throws UnreachableException;
+  void sniffOn(AID snifferName, Iterator toBeSniffed) throws UnreachableException;
+  void sniffOff(AID snifferName, Iterator toBeSniffed) throws UnreachableException;
 
   void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
   void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
