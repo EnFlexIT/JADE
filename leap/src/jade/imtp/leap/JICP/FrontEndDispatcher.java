@@ -58,6 +58,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   private long totalDisconnectionTime = 0;
   private String owner;
   private String errorMsg;
+  private String backEndAddresses;
 
   /**
    * Constructor declaration
@@ -75,6 +76,9 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
    */
   public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {  	
   	try {
+
+	    backEndAddresses = (String)props.get(FrontEnd.REMOTE_BACK_END_ADDRESSES);
+
   		// Verbosity
 	  	try {
 	  		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
@@ -241,6 +245,9 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BackEndDispatcher");
     	appendProp(sb, "verbosity", String.valueOf(verbosity));
     	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
+	if(backEndAddresses != null) {
+	    appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, backEndAddresses);
+	}
     	if (owner != null) {
     		appendProp(sb, "owner", owner);
     	}
