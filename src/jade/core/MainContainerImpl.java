@@ -50,6 +50,7 @@ import jade.domain.df;
 
 import jade.lang.acl.ACLMessage;
 
+import jade.mtp.MTPException;
 
 class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
 
@@ -168,7 +169,9 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     catch (IOException io) {
       io.printStackTrace();
     }
-
+    catch(MTPException mtpe) {
+      mtpe.printStackTrace();
+    }
 
     // Notify platform listeners
     try {
@@ -457,6 +460,27 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   public void shutDown() {
 
     // Close all MTP links to the outside world
+    List l = theACC.getLocalAddresses();
+    String[] addresses = (String[])l.toArray(new String[0]);
+    for(int i = 0; i < addresses.length; i++) {
+      try {
+	String addr = addresses[i];
+	uninstallMTP(addr);
+      }
+      catch(RemoteException re) {
+	// It should never happen
+	System.out.println("ERROR: Remote Exception thrown for a local call.");
+      }
+      catch(NotFoundException nfe) {
+	nfe.printStackTrace();
+      }
+      catch(MTPException mtpe) {
+	mtpe.printStackTrace();
+      }
+
+    }
+
+    // Close down the ACC
     theACC.shutdown();
 
     // Deregister yourself as a container
@@ -652,11 +676,10 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   }
 
-  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException {
+  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException, MTPException {
     AgentContainer target = containers.getContainer(containerName);
     try {
-      String result = target.installMTP(address, className);
-      return result;
+      return target.installMTP(address, className);
     }
     catch(RemoteException re) {
       throw new UnreachableException("Container " + containerName + " is unreachable.");
@@ -664,8 +687,15 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   }
 
-  public void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException {
-    // FIXME: To be implemented
+  public void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException, MTPException {
+    AgentContainer target = containers.getContainer(containerName);
+    try {
+      target.uninstallMTP(address);
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException("Container " + containerName + " is unreachable.");
+    }
+
   }
 
 
