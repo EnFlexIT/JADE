@@ -1,6 +1,7 @@
 
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -561,13 +562,30 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setPerformative(int perf).
   */
   public String getType() {
+    return getPerformative(performative); 
+  }
+  
+  /**
+    Returns the string corresponding to the integer for the performative
+    @return the string corresponding to the integer for the performative; 
+    "NOT-UNDERSTOOD" if the integer is out of range.
+  */
+  public static String getPerformative(int perf){
     try {
-      return new String((String)performatives.elementAt(performative));
+      return new String((String)performatives.elementAt(perf));
     } catch (Exception e) {
       return new String((String)performatives.elementAt(NOT_UNDERSTOOD));
     }
   }
-
+    
+  /**
+    Returns the integer corresponding to the performative
+    @returns the integer corresponding to the performative; -1 otherwise
+  */
+  public static int getInteger(String perf)
+  {
+    return performatives.indexOf(perf.toUpperCase());
+    }
 
   /**
    * return the integer representing the performative of this object
