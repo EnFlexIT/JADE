@@ -89,7 +89,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     }
     
     public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException {
-      impl.deadMTP(mtpAddress, cid);
+      impl.newMTP(mtpAddress, cid);
     }
     
 }
