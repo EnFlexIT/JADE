@@ -264,7 +264,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 		catch (AuthException ae) {
 		    lastException = ae;
-		    notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()));
+		    notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
 		}
 	    }
 
@@ -1008,12 +1008,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			System.out.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
 		    }
 		}
-		notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
+		notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()), false);
 	    }
 	}
 	catch(NotFoundException nfe) {
 	    // The receiver does not exist --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()), false);
 	}
     }
 
@@ -1058,14 +1058,38 @@ public class MessagingService extends BaseService implements MessageManager.Chan
      * This method is used internally by the platform in order
      * to notify the sender of a message that a failure was reported by
      * the Message Transport Service.
-     * Package scoped as it can be called by the MessageManager
      */
-    public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
+    public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force) {
 
-	//if (the sender is not the AMS and the performative is not FAILURE)
-	if ( (msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
+	// If (the sender is not the AMS and the performative is not FAILURE)
+	if ( (msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinite loops
 	    return;
-	// else send back a failure message
+
+
+	if(!force) {
+
+	    // Leverage the Persistent Delivery Service if it is installed
+	    try {
+		persistentDeliveryService = myContainer.getServiceFinder().findService(PersistentDeliverySlice.NAME);
+		if(persistentDeliveryService != null) {
+
+		    // Create a suitable command and, if the undelivered message is stored, return
+		    GenericCommand cmd = new GenericCommand(PersistentDeliverySlice.STORE_UNDELIVERED_MESSAGE, PersistentDeliverySlice.NAME, null);
+		    cmd.addParam(msg);
+		    cmd.addParam(receiver);
+
+		    Boolean stored = (Boolean)persistentDeliveryService.submit(cmd);
+		    if(stored.equals(Boolean.TRUE)) {
+			return;
+		    }
+		}
+	    }
+	    catch(Exception e) {
+		e.printStackTrace();
+	    }
+	}
+
+	// Send back a failure message
 	final ACLMessage failure = msg.createReply();
 	failure.setPerformative(ACLMessage.FAILURE);
 	//System.err.println(failure.toString());
@@ -1198,11 +1222,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
     }
 
-		// The profile passed to this object
-		private Profile myProfile;
+    // The profile passed to this object
+    private Profile myProfile;
 
     // The concrete agent container, providing access to LADT, etc.
     private AgentContainer myContainer;
+
+    // A handle to the persistent delivery service
+    private Service persistentDeliveryService;
 
     // The local slice for this service
     private final ServiceComponent localSlice = new ServiceComponent();
