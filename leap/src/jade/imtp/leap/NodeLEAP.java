@@ -48,6 +48,9 @@ class NodeLEAP extends BaseNode {
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
 			try {
+			    if(terminating) {
+				throw new IMTPException("Dead node");
+			    }
 		    return serve(cmd);
 			}
 			catch(ServiceException se) {
