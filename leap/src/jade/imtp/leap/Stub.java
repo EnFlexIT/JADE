@@ -98,8 +98,6 @@ class Stub {
       // Check if it is one of the expected exceptions.
       String exceptionName = (String) result.getParamAt(0);
 
-      System.out.println("EXCEPTION in remote container: "+exceptionName);
-
       for (int i = 0; i < expectedExceptions.length; ++i) {
         // FIXME: This check does not work for extended exceptions
         if (exceptionName.equals(expectedExceptions[i])) {
@@ -110,7 +108,8 @@ class Stub {
       } 
 
       // The exception thrown is not among the expected exceptions -->
-      // Throw IMTPException
+      // Print a notification and throw IMTPException
+      System.out.println("EXCEPTION in remote container: "+exceptionName);
       throw new IMTPException(exceptionName+" occurred in remote container ["
                               +(String) result.getParamAt(1)+"]");
     } 

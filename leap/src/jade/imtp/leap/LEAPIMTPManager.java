@@ -50,8 +50,7 @@ public class LEAPIMTPManager implements IMTPManager {
 	/**
 	 * Profile keys for LEAP-IMTP specific parameters
 	 */
-	private static final String MAIN_URL = "main-url";
-	private static final String MAIN_PROTO_CLASS = "main-proto-class";
+	static final String MAIN_URL = "main-url";
   private static final String LOCAL_PORT = "local-port";
 	private static final String ICPS = "icps";
 	private static final String ROUTER_URL = "router-url";
@@ -65,8 +64,6 @@ public class LEAPIMTPManager implements IMTPManager {
    * The Profile holding the configuration for this IMTPManager
    */
   private Profile           theProfile = null;
-
-  private boolean           routerTASet = false;
 
   /**
    * Default constructor used to dynamically instantiate a new
@@ -137,7 +134,7 @@ public class LEAPIMTPManager implements IMTPManager {
 
     // Finally, if a URL for the default router is specified in the
     // Profile, set it in the CommandDispatcher
-    initDefaultRouter();
+    theDispatcher.setRouterAddress(theProfile.getParameter(ROUTER_URL, null));
   } 
 
   /**
@@ -187,39 +184,9 @@ public class LEAPIMTPManager implements IMTPManager {
 
   /**
    * Return a MainContainerStub to call remote methods on the Main container
-   */
+   */ 
   public MainContainer getMain(boolean reconnect) throws IMTPException {
-    TransportAddress mainTA = null;
-
-    try {
-      String mainURL = theProfile.getParameter(MAIN_URL, null);
-
-      // Try to translate the mainURL into a TransportAddress
-      // using a protocol supported by the local CommandDispatcher
-      try {
-        mainTA = theDispatcher.stringToAddr(mainURL);
-      } 
-      catch (DispatcherException de) {
-
-        // Failure --> A suitable protocol class must be explicitly
-        // indicated among the bootstrap properties
-        String            mainTPClass = theProfile.getParameter(MAIN_PROTO_CLASS, null);
-        TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
-
-        mainTA = tp.stringToAddr(mainURL);
-      } 
-
-      // If the router TA was not set --> use the mainTA by default
-      if (!routerTASet) {
-    		theDispatcher.setRouterAddress(mainTA);
-      }
-    } 
-    catch (Exception e) {
-      throw new IMTPException("Error getting Main Container address", e);
-    } 
-
-    // Create a stub to access the Main Container
-    return createMainContainerStub(mainTA);
+  	return theDispatcher.getMain(theProfile);
   } 
 
   /**
@@ -321,40 +288,5 @@ public class LEAPIMTPManager implements IMTPManager {
     return host;
   }
   
-  /**
-   * This method initializes the default router TransportAddress.
-   * If this is not specified or some errors occur, no exception
-   * is thrown (as it is optional)
-   */
-  private void initDefaultRouter() {
-    try {
-      String routerURL = theProfile.getParameter(ROUTER_URL, null);
-
-      if (routerURL != null) {
-        // The default router must be directly reachable -->
-        // Its URL can be converted into a TransportAddress by
-        // one of the ICP registered to the CommandDispatcher
-        TransportAddress routerTA = theDispatcher.stringToAddr(routerURL);
-    		theDispatcher.setRouterAddress(routerTA);
-    		routerTASet = true;
-      } 
-    } 
-    catch (Exception e) {
-      // Just print a warning: default (i.e. mainTA) will be used
-      System.out.println("Can't initialize router address");
-    } 
-  } 
-
-  /**
-   * 
-   */
-  private MainContainer createMainContainerStub(TransportAddress mainTA) {
-    MainContainerStub stub = new MainContainerStub();
-		stub.bind(theDispatcher);
-    stub.addTA(mainTA);
-
-    return stub;
-  } 
-
 }
 

@@ -37,9 +37,9 @@
 package jade.imtp.leap;
 
 import jade.core.AgentContainer;
+import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
 import jade.core.IMTPException;
-import jade.core.MainContainer;
 import jade.core.UnreachableException;
 import jade.core.Profile;
 import jade.mtp.TransportAddress;
@@ -62,6 +62,11 @@ import java.util.Hashtable;
  */
 class FullCommandDispatcher extends CommandDispatcher {
 
+	/**
+	   The MainContainer object (the real one or a stub of it) 
+	 */
+	private MainContainer theMain = null;
+	
   /**
    * This hashtable maps the IDs of the objects remotized by this
    * command dispatcher to the skeletons for these objects. It is used
@@ -121,6 +126,16 @@ class FullCommandDispatcher extends CommandDispatcher {
     // System.out.println("full command dispatcher initialized");
   }
 
+  /**
+   * Return a MainContainer object to call methods on the Main container
+   */
+  public MainContainer getMain(Profile p) throws IMTPException {
+  	if (theMain == null) {
+  		theMain = super.getMain(p);
+  	}
+  	return theMain;
+  }
+  
   /**
    * Adds (and activates) an ICP to this command dispatcher.
    * 
@@ -236,7 +251,18 @@ class FullCommandDispatcher extends CommandDispatcher {
    * skeleton.
    */
   public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
-    Integer id = new Integer(remoteObject instanceof MainContainer ? 0 : nextID++);
+  	Integer id = null;
+  	if (remoteObject instanceof MainContainer) {
+    	id = new Integer(0);
+    	name = "Main-Container";
+    	if (theMain != null) {
+    		System.out.println("WARNING: Replacing main in CommandDispatcher!!!");
+    	}
+    	theMain = (MainContainer) remoteObject;
+  	}
+  	else {
+    	id = new Integer(nextID++);
+  	}
     skeletons.put(id, skeleton);
     ids.put(remoteObject, id);
   } 
@@ -254,9 +280,8 @@ class FullCommandDispatcher extends CommandDispatcher {
     catch (NullPointerException npe) {
     } 
 
-    // if (ids.isEmpty() && selfShutdown) {
     if (ids.isEmpty()) {
-      System.out.println("CommandDispatcher shutting down");
+      //System.out.println("CommandDispatcher shutting down");
       shutDown();
     } 
   } 

@@ -37,6 +37,7 @@
 package jade.imtp.leap;
 
 import jade.core.AgentContainer;
+import jade.core.MainContainer;
 import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.ProfileException;
@@ -60,6 +61,8 @@ import jade.util.leap.List;
  * @version 1.0
  */
 class CommandDispatcher implements StubHelper, ICP.Listener {
+	private static final String COMMAND_DISPATCHER_CLASS = "dispatcher-class";
+	private static final String MAIN_PROTO_CLASS = "main-proto-class";
 	
   /**
    * The default name for new instances of the class
@@ -83,7 +86,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * The transport address of the default router. Commands that cannot
    * be dispatched directly will be sent to this address.
    */
-  protected TransportAddress         routerTA;
+  protected TransportAddress         routerTA = null;
 
   /**
    * The skeleton of the object remotized by this command dispatcher.
@@ -122,14 +125,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   protected String                   url;
 
   /**
-   * Boolean flag indicating if the shutdown operation of this
-   * CommandDispatcher should be self-initiated (when there are
-   * no more remote objects registered) or initiated from the
-   * outside
-   */
-  // protected static boolean           selfShutdown = false;
-
-  /**
    * Tries to create a new command dispatcher and returns whether the
    * creation was successful. The implementation of the command
    * dispatcher is determined by the specified profile. The profile
@@ -151,12 +146,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   public static final boolean create(Profile p) {
     
     String implementation = null;
-    // Set CommandDispatcher for MIDP
+    // Set CommandDispatcher class name
+    // Default is FullCommandDispatcher in J2SE and PJAVA, CommandDispatcher in MIDP
     if (p.getParameter(Profile.JVM, Profile.J2SE).equals(Profile.MIDP)) {
-        implementation = "jade.imtp.leap.CommandDispatcher";
+        implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.CommandDispatcher");
     }
     else {
-        implementation = p.getParameter("commandDispatcher", "jade.imtp.leap.FullCommandDispatcher");
+        implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.FullCommandDispatcher");
     }
     
     if (commandDispatcher == null) {
@@ -208,17 +204,65 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   }
 
   /**
+   * Return a MainContainerStub to call remote methods on the Main container
+   */
+  public MainContainer getMain(Profile p) throws IMTPException {
+    TransportAddress mainTA = null;
+
+    try {
+      String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
+
+      // Try to translate the mainURL into a TransportAddress
+      // using a protocol supported by this CommandDispatcher
+      try {
+        mainTA = stringToAddr(mainURL);
+      } 
+      catch (DispatcherException de) {
+
+        // Failure --> A suitable protocol class must be explicitly
+        // indicated in the profile
+        String            mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
+        TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
+
+        mainTA = tp.stringToAddr(mainURL);
+      } 
+
+      // If the router TA was not set --> use the mainTA as default
+      if (routerTA == null) {
+    		routerTA = mainTA;
+      }
+    } 
+    catch (Exception e) {
+      throw new IMTPException("Error getting Main Container address", e);
+    } 
+
+    // Create a stub to access the Main Container
+    return createMainContainerStub(mainTA);
+  } 
+
+  /**
    * Sets the transport address of the default router used for the
    * forwarding mechanism.
    * 
-   * @param ta the transport address of the new default router.
+   * @param url the URL of the default router.
    */
-  public void setRouterAddress(TransportAddress ta) {
-    if (routerTA != null && !routerTA.equals(ta)) {
-      System.out.println("WARNING : transport address of current router has been changed");
-    } 
-
-    routerTA = ta;
+  void setRouterAddress(String url) {
+    if (url != null) {
+      // The default router must be directly reachable -->
+      // Its URL can be converted into a TransportAddress by
+      // the ICP registered to this CommandDispatcher
+    	try {
+	      TransportAddress ta = stringToAddr(url);
+    		if (routerTA != null && !routerTA.equals(ta)) {
+      		System.out.println("WARNING : transport address of current router has been changed");
+    		} 
+    		routerTA = ta;
+    	}
+    	catch (Exception e) {
+	      // Just print a warning: default (i.e. main TA) will be used
+	      System.out.println("Can't initialize router address");
+    	}
+    }    		
   } 
 
   /**
@@ -349,9 +393,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     } 
 
     shutDown();
-    // if (selfShutdown) {
-    // shutDown();
-    // }
   } 
 
   /**
@@ -699,5 +740,14 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     } 
   } 
 
+  /**
+   */
+  private MainContainer createMainContainerStub(TransportAddress mainTA) {
+    MainContainerStub stub = new MainContainerStub();
+		stub.bind(this);
+    stub.addTA(mainTA);
+
+    return stub;
+  } 
 }
 
