@@ -343,7 +343,6 @@ public class Agent implements Runnable, Serializable
     if(b != null) {
       b.restart();
     }
-    //#MIDP_EXCLUDE_BEGIN
     else {
     	System.out.println("Warning: No mapping found for expired timer "+t.expirationTime());
     }
