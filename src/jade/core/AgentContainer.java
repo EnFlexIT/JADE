@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.11  1999/06/04 07:42:32  rimassa
+ * Made this previously public class package scoped.
+ *
  * Revision 1.10  1999/03/17 12:49:45  rimassa
  * Removed an obsolete method.
  *
@@ -31,7 +34,7 @@ import java.rmi.RemoteException;
 
 import jade.lang.acl.ACLMessage;
 
-public interface AgentContainer extends Remote {
+interface AgentContainer extends Remote {
 
   static final boolean NOSTART = false;
   static final boolean START = true;
