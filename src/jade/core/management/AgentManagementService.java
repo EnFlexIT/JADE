@@ -53,6 +53,11 @@ import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
+//#J2ME_EXCLUDE_BEGIN
+import java.io.IOException;
+//#J2ME_EXCLUDE_END
+
+
 /**
 
    The JADE service to manage the basic agent life cycle: creation,
@@ -62,10 +67,12 @@ import jade.security.JADESecurityException;
 
 */
 public class AgentManagementService extends BaseService {
+  static final String NAME = "jade.core.management.AgentManagement";
 
-    static final String NAME = "jade.core.management.AgentManagement";
-
-
+  /**
+     The path where to search agent jar files
+   */
+	public static final String AGENTS_PATH = "jade_AgentManagement_agentspath";
 
     private static final String[] OWNED_COMMANDS = new String[] {
         AgentManagementSlice.REQUEST_CREATE,
@@ -84,7 +91,13 @@ public class AgentManagementService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
-
+	
+	// Read profile parameters
+	agentsPath = p.getParameter(AGENTS_PATH, null);
+	// Be sure it ends with /
+	if (agentsPath != null && !agentsPath.endsWith("/")) {
+		agentsPath = agentsPath+'/';
+	}
     }
 
 
@@ -518,7 +531,23 @@ public class AgentManagementService extends BaseService {
 	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
 	    Agent agent = null;
 	    try {
+	  //#J2ME_EXCLUDE_BEGIN
+	  String jarName = className.replace('.', '_') + ".jar";
+	  if (agentsPath != null) {	  	
+		  jarName = agentsPath+jarName;
+	  }
+	  try { 
+		  JarClassLoader loader = new JarClassLoader(jarName);
+		  agent = (Agent) loader.loadClass(className).newInstance();
+	  } 
+	  catch (IOException ioe) {
+	  	// Should never happen
+	  	ioe.printStackTrace();
+	  }
+	  //#J2ME_EXCLUDE_END
+	  /*#J2ME_INCLUDE_BEGIN
 		agent = (Agent)Class.forName(new String(className)).newInstance();
+	  #J2ME_INCLUDE_END*/
 		agent.setArguments(arguments);
 
 		myContainer.initAgent(agentID, agent, owner, initialCredentials);
@@ -850,6 +879,8 @@ public class AgentManagementService extends BaseService {
     // The command sink, target side
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
+    private String agentsPath = null;
+    
     // Work-around for PJAVA compilation
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);
