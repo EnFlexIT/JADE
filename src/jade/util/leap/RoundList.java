@@ -24,12 +24,13 @@
 
 package jade.util.leap;
 
-//#MIDP_EXCLUDE_FILE
-
 import jade.util.leap.LinkedList;
+import jade.util.leap.Serializable;
 import java.util.NoSuchElementException;
 
+//#MIDP_EXCLUDE_BEGIN
 import java.io.*; // used only for debugging purposes
+//#MIDP_EXCLUDE_END
 
 /**
  * Implementation of a RoundList with get/insert methods relative 
@@ -164,7 +165,8 @@ public class RoundList implements Serializable{
 		return str.toString();
 	}
 
-
+	
+	//#MIDP_EXCLUDE_BEGIN
 	
 	/**
 	* Just for Debugging this implementation.
@@ -195,6 +197,7 @@ public class RoundList implements Serializable{
 		 }
 		}
     }
+	//#MIDP_EXCLUDE_END
     
 
 }
