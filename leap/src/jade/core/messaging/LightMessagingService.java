@@ -494,12 +494,12 @@ public class LightMessagingService extends BaseService implements MessageManager
             System.out.println("Bad address [" + address + "]: trying the next one...");
           }
         }
-        notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()), false);
+        notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
 	    }
     }
     catch(NotFoundException nfe) {
 	    // The receiver does not exist --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()), false);
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
     }
   }
 
@@ -520,7 +520,7 @@ public class LightMessagingService extends BaseService implements MessageManager
    * the Message Transport Service.
    * Package scoped as it can be called by the MessageManager
    */
-  public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie, boolean force) {
+  public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
 
     GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
     cmd.addParam(receiver);
