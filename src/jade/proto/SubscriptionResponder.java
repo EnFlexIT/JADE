@@ -34,18 +34,29 @@ import jade.util.leap.*;
 
 
 /**
+ * This is a single homogeneous and effective implementation of the responder role in 
+ * all the FIPA-Subscribe-like interaction protocols defined by FIPA,
+ * that is all those protocols 
+ * where the initiator sends a single "subscription" message
+ * and receive notifications each time a given condition becomes true. 
+ * <p>
+ * NOTE that this implementation is in an experimental state and the API will 
+ * possibly change in next versions also taking into account that the FIPA
+ * specifications related to subscribe-like protocols are not yet stable.
+ * <p>
+ * @see SubscriptionInitiator
  * @author Elisabetta Cortese - TILAB
  * @author Giovanni Caire - TILAB
  */
 public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 	
     /** 
-     * key to retrieve from the DataStore of the behaviour the ACLMessage 
-     *	object sent by the initiator.
+     *  key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object sent by the initiator as a subscription.
      **/
     public final String SUBSCRIPTION_KEY = "__subscription" + hashCode();
     /** 
-     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *  key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object sent as a response to the initiator.
      **/
     public final String RESPONSE_KEY = "__response" + hashCode();
@@ -96,12 +107,12 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     
     /**
      * Constructor.
-     * @param a is the reference to the Agent object
+     * @param a is the reference to the Agent performing this behaviour.
      * @param mt is the MessageTemplate that must be used to match
-     * the initiator message. Take care that 
+     * subscription messages sent by the initiators. Take care that 
      * if mt is null every message is consumed by this protocol.
-     * @param nl is the Notifier that must be used to notify when the 
-     * condition became true
+     * @param sm The <code>SubscriptionManager</code> object that manages
+     * subscriptions. 
      * @param store the DataStore for this protocol
      **/
     public SubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm, DataStore store) {
@@ -165,6 +176,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
 
 
     /**
+       Reset this behaviour
      */
     // FIXME: reset deve resettare anche le sottoscrizioni?
     public void reset() {
@@ -175,9 +187,10 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     }
 
     /**
-       This method allows to change the <code>MessageTemplate</code>
-       that defines what messages this FIPASubscribeResponder 
-       will react to and reset the protocol.
+       This method resets the protocol and allows to change the 
+       <code>MessageTemplate</code>
+       that defines what messages this SubscriptionResponder 
+       will react to.
      */
     public void reset(MessageTemplate mt) {
 			this.reset();
@@ -186,17 +199,20 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     
 
     /**   
-     * This method is called when the initiator's
+     * This method is called when a subscription
      * message is received that matches the message template
-     * passed in the constructor. 
-     * This default implementation return null which has
+     * specified in the constructor. 
+     * This default implementation registers the new subscription to the 
+     * <code>SubscriptionManager</code> object used by this responder and
+     * returns null which has
      * the effect of sending no reponse. Programmers should
-     * override the method in case they need to react to this event.
+     * override the method in case they need to react to this event in a different 
+     * way, e.g. by sending back an AGREE.
      * @param subscription the received message
      * @return the ACLMessage to be sent as a response (i.e. one of
-     * <code>agree, refuse, not-understood, inform</code>. <b>Remind</b> to
+     * <code>agree, refuse, not-understood</code>. <b>Remind</b> to
      * use the method createReply of the class ACLMessage in order
-     * to create a good reply message
+     * to create a good response message
      * @see jade.lang.acl.ACLMessage#createReply()
      **/
     protected ACLMessage prepareResponse(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
@@ -208,11 +224,11 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
        This method allows to register a user defined <code>Behaviour</code>
        in the PREPARE_RESPONSE state.
        This behaviour would override the homonymous method.
-       This method also set the 
+       This method also sets the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        It is responsibility of the registered behaviour to put the
-       response to be sent into the datastore at the <code>RESPONSE_KEY</code>
+       response to be sent back into the datastore at the <code>RESPONSE_KEY</code>
        key.
        @param b the Behaviour that will handle this state
     */
@@ -252,7 +268,20 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     }
     	
     /**
-       Inner interface SubscriptionManager
+       Inner interface SubscriptionManager.
+       <p>
+       A <code>SubscriptionResponder</code> only deals with enforcing and
+       controlling the sequence of messages in a subscription conversation, 
+       while it delegates the 
+       registration/deregistration of subscriptions and the creation of 
+       notifications when required to a <code>SubscriptionManager</code>
+       object that is passed as parameter in the constructor.
+       When a new subscription message arrives, the <code>SubscriptionResponder</code>
+       just calls the <code>register()</code> method of its 
+       <code>SubscriptionManager</code>. The user is expected to provide 
+       a class that implements the <code>register()</code> and 
+       <code>deregister()</code> methods appropriately.
+		   <p>
      */
     public static interface SubscriptionManager {
     	boolean register(Subscription s) throws RefuseException, NotUnderstoodException;
@@ -261,6 +290,13 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
 
     /**
        Inner calss Subscription
+       <p>
+       This class represents a subscription. When a notification has to 
+       be sent to a subscribed agent the notification message should not 
+       be directly sent to the subscribed agent, but should be passed to the
+       <code>Subscription</code> object representing the subscription of that 
+       agent by means of its <code>notify()</code> method. This automatically 
+       handles sequencing and protocol fields appropriately
      */
 		public static class Subscription {
 		
@@ -268,15 +304,34 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
 			private ACLMessage subscription;
 			private SubscriptionResponder myResponder;
 		
+			/**
+			   Construct a new <code>Subscription</code> object.
+			   @param r The <code>SubscriptionResponder</code> that received
+			   the subscription message corresponding to this 
+			   <code>Subscription</code>
+			   @param s The subscription message corresponding to this 
+			   <code>Subscription</code>
+			 */
 			public Subscription(SubscriptionResponder r, ACLMessage s){
 				myResponder = r;
 				subscription = s;
 			}
 			
+			/**
+			   @return the subscription message corresponding to this 
+			   <code>Subscription</code>
+			 */
 			public ACLMessage getMessage() {
 				return subscription;
 			}
 			
+			/** 
+			   This method allows sending back a notification message to the subscribed 
+			   agent associated to this <code>Subscription</code> object. The user 
+			   should call this method, instead of directly using the <code>send()</code>
+			   method of the <code>Agent</code> class, as it automatically 
+         handles sequencing and protocol fields appropriately.
+       */			   
 			public void notify(ACLMessage notification){
 				myResponder.addNotification(notification, subscription);
 			}

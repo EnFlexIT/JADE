@@ -38,48 +38,48 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Serializable;
 
 /**
- * This is a single homogeneous and effective implementation of
+ * This is a single homogeneous and effective implementation of the initiator role in 
  * all the FIPA-Subscribe-like interaction protocols defined by FIPA,
- * that is all those protocols where the initiator sends a single message
- * (i.e. it performs a single communicative act) within the scope
- * of an interaction protocol in order to verify if the RE (Rational
- * Effect) of the communicative act has been achieved or not.
+ * that is all those protocols 
+ * where the initiator sends a single "subscription" message
+ * and receive notifications each time a given condition becomes true. 
  * This implementation works both for 1:1 and 1:N conversation.
  * <p>
  * FIPA has already specified a number of these interaction protocols, like 
- * FIPA-Request, FIPA-query, FIPA-propose, FIPA-Request-When, FIPA-recruiting,
- * FIPA-brokering, FIPA-subscribe, that allows the initiator to verify if the 
- * expected rational effect of a single communicative act has been achieved. 
+ * FIPA-subscribe and FIPA-request-whenever.
  * <p>
- * The structure of these protocols is equal.
- * The initiator sends a message (in general it performs a communicative act).
+ * The structure of these protocols is always the same.
+ * The initiator sends a "subscription" message (in general it performs a communicative act).
  * <p>
- * The responder can then reply by sending a <code>not-understood</code>, or a
- * <code>refuse</code> to 
- * achieve the rational effect of the communicative act, or also 
- * an <code>agree</code> message to communicate the agreement to perform 
- * (possibly in the future) the communicative act.  This first category
- * of reply messages has been here identified as a response.
- * <p> The responder performs the action and, finally, must respond with an 
- * <code>inform</code> of the result of the action (eventually just that the 
- * action has been done) or with a <code>failure</code> if anything went wrong.
- * This second category of reply messages has been here identified as a
- * result notification.
+ * The responder can then reply by sending a <code>not-understood</code>, a
+ * <code>refuse</code> or
+ * an <code>agree</code> message to communicate that the subscription has been 
+ * agreed. This first category
+ * of reply messages has been here identified as a "response".
+ * <p> 
+ * Each time the condition refered within the subscription message becomes true,
+ * the responder sends proper "notification" messages to the initiator. 
  * <p> Notice that we have extended the protocol to make optional the 
- * transmission of the agree message. Infact, in most cases performing the 
- * action takes so short time that sending the agree message is just an 
- * useless and uneffective overhead; in such cases, the agree to perform the 
- * communicative act is subsumed by the reception of the following message in 
- * the protocol.
+ * transmission of the agree message. Infact, in some cases the subscription
+ * condition is already true when the responder receives the subscription message.
+ * In these cases clearly the agree message is immediately followed by the first
+ * notification message thus resulting in useless and uneffective overhead as 
+ * the agreement to the subscription is subsumed by the reception of the following
+ * message in the protocol.
+ * <p>
+ * This behaviour terminates if a) neither a response nor a notification has been 
+ * received before the timeout set by the <code>reply-by</code> of the
+ * subscription message has expired or b) all responders replied with REFUSE
+ * or NOT_UNDERSTOOD. Otherwise the behaviour will run forever.
+ * <p>
+ * NOTE that this implementation is in an experimental state and the API will 
+ * possibly change in next versions also taking into account that the FIPA
+ * specifications related to subscribe-like protocols are not yet stable.
  * <p>
  * Read carefully the section of the 
  * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
  * that describes
  * the usage of this class.
- * <p> <b>Known bugs:</b>
- * <i> The handler <code>handleAllResponses</code> is not called if the <code>
- * agree</code> message is skipped and the <code>inform</code> message
- * is received instead.
  * <br> One message for every receiver is sent instead of a single
  * message for all the receivers. </i>
  * @author Giovanni Caire - TILab
@@ -89,13 +89,13 @@ public class SubscriptionInitiator extends Initiator {
     // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
     //using the same data store the new values overrides the old one. 
     /** 
-     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *  key to retrieve from the DataStore of the behaviour the subscription ACLMessage 
      *	object passed in the constructor of the class.
      **/
     public final String SUBSCRIPTION_KEY = INITIATION_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the vector of
-     * ACLMessage objects that have been sent.
+     * subscription ACLMessage objects that have been sent.
      **/
     public final String ALL_SUBSCRIPTIONS_KEY = ALL_INITIATIONS_K;
     /** 
@@ -106,7 +106,7 @@ public class SubscriptionInitiator extends Initiator {
     public final String REPLY_KEY = REPLY_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the vector of
-     * ACLMessage objects that have been received as response.
+     * ACLMessage objects that have been received as responses.
      **/
     public final String ALL_RESPONSES_KEY = "__all-responses" + hashCode();
 
@@ -179,13 +179,17 @@ public class SubscriptionInitiator extends Initiator {
     }
 
     /**
+       This method is called internally by the framework and is not intended 
+       to be called by the user
      */    
     protected Vector prepareInitiations(ACLMessage initiation) {
     	return prepareSubscriptions(initiation);
     }
     
     /**
-       Create and initialize the Sessions and sends the initiation messages
+       Create and initialize the Sessions and sends the initiation messages.
+       This method is called internally by the framework and is not intended 
+       to be called by the user
      */    
     protected void sendInitiations(Vector initiations) {
 			long currentTime = System.currentTimeMillis();
@@ -234,7 +238,9 @@ public class SubscriptionInitiator extends Initiator {
     }
     
     /**
-       Check whether a reply is in-sequence and update the appropriate Session
+       Check whether a reply is in-sequence and update the appropriate Session.
+       This method is called internally by the framework and is not intended 
+       to be called by the user       
      */    
     protected boolean checkInSequence(ACLMessage reply) {
 			String inReplyTo = reply.getInReplyTo();
@@ -268,6 +274,8 @@ public class SubscriptionInitiator extends Initiator {
     }
     
     /**
+       This method is called internally by the framework and is not intended 
+       to be called by the user
      */
     protected void handlePositiveResponse(ACLMessage positiveResp) {
     	handleAgree(positiveResp);
@@ -275,7 +283,9 @@ public class SubscriptionInitiator extends Initiator {
     
     /**
        Check the status of the sessions after the reception of the last reply
-       or the expiration of the timeout
+       or the expiration of the timeout.
+       This method is called internally by the framework and is not intended 
+       to be called by the user       
      */    
     protected int checkSessions(ACLMessage reply) {
 			int ret = -1;
@@ -330,7 +340,7 @@ public class SubscriptionInitiator extends Initiator {
     }
     
     /**
-     * This method must return the vector of ACLMessage objects to be
+     * This method must return the vector of subscription ACLMessage objects to be
      * sent. It is called in the first state of this protocol.
      * This default implementation just returns the ACLMessage object
      * passed in the constructor. Programmers might prefer to override
@@ -435,7 +445,7 @@ public class SubscriptionInitiator extends Initiator {
        This method allows to register a user defined <code>Behaviour</code>
        in the PREPARE_SUBSCRIPTIONS state. 
        This behaviour would override the homonymous method.
-       This method also set the 
+       This method also sets the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        It is responsibility of the registered behaviour to put the
@@ -455,7 +465,7 @@ public class SubscriptionInitiator extends Initiator {
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_AGREE state.
        This behaviour would override the homonymous method.
-       This method also set the 
+       This method also sets the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        The registered behaviour can retrieve
@@ -472,7 +482,7 @@ public class SubscriptionInitiator extends Initiator {
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_ALL_RESPONSES state.
        This behaviour would override the homonymous method.
-       This method also set the 
+       This method also sets the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        The registered behaviour can retrieve
@@ -500,6 +510,8 @@ public class SubscriptionInitiator extends Initiator {
     
     /**
        Initialize the data store. 
+       This method is called internally by the framework and is not intended 
+       to be called by the user       
      **/
     protected void initializeDataStore(ACLMessage msg){
     	super.initializeDataStore(msg);
