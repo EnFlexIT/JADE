@@ -62,10 +62,10 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     public final String RESPONSE_KEY = "__response" + hashCode();
 
     // FSM states names
-    private static final String RECEIVE_SUBSCRIPTION = "Receive-subscription";
-    private static final String PREPARE_RESPONSE = "Prepare-response";
-    private static final String SEND_RESPONSE = "Send-response";
-    private static final String SEND_NOTIFICATIONS = "Send-notifications";
+    protected static final String RECEIVE_SUBSCRIPTION = "Receive-subscription";
+    protected static final String PREPARE_RESPONSE = "Prepare-response";
+    protected static final String SEND_RESPONSE = "Send-response";
+    protected static final String SEND_NOTIFICATIONS = "Send-notifications";
 
     // The MsgReceiver behaviour used to receive subscription messages
     private MsgReceiver msgRecBehaviour = null;
