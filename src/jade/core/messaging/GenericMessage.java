@@ -54,6 +54,7 @@ public class GenericMessage implements Serializable {
   private byte[] payload;
   private transient JADEPrincipal senderPrincipal;
   private transient Credentials senderCredentials;
+  private boolean isAMSFailure;
 
   public GenericMessage(){
   }
@@ -100,6 +101,14 @@ public class GenericMessage implements Serializable {
   Credentials getSenderCredentials() {
   	return senderCredentials;
   }
+
+  public boolean isAMSFailure() {
+    return isAMSFailure;
+  }
+
+  public void setAMSFailure(boolean b) {
+    isAMSFailure=b;
+  }
   
 	//#MIDP_EXCLUDE_BEGIN
   private void writeObject(ObjectOutputStream out) throws IOException {
@@ -121,4 +130,6 @@ public class GenericMessage implements Serializable {
   public String toString(){
     return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
   }
+
+
 }

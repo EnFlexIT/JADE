@@ -375,9 +375,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
       try {
           GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
           command.addParam(theAMS);
-          command.addParam(new GenericMessage(failure));
+          GenericMessage gm = new GenericMessage(failure);
+          gm.setAMSFailure(true);
+          command.addParam(gm);
           command.addParam((AID)(failure.getAllReceiver().next()));
           // FIXME: We should set the AMS principal and credentials
+          
           submit(command);
         }
         catch(ServiceException se) {
