@@ -32,6 +32,8 @@ import jade.util.leap.Iterator;
 import jade.util.leap.HashMap;
 import jade.util.leap.Set;
 
+import jade.util.Logger;
+
 import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
 
@@ -655,11 +657,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   myPlatform.bornAgent(agentID, myID, agentCerts);
               }
               catch (IMTPException imtpe1) {
+                  Logger.println("IMTP error: " + imtpe1.getMessage());
                   imtpe1.printStackTrace();
                   localAgents.remove(agentID);
               }
               catch (NameClashException nce) {
-                  System.out.println("Agent name already in use: " + nce.getMessage());
+                  Logger.println("Agent name already in use: " + nce.getMessage());
                   // FIXME: If we have two agents with the same name among the initial
                   // agents, the second one replaces the first one, but then a
                   // NameClashException is thrown --> both agents are removed even if
@@ -667,11 +670,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   localAgents.remove(agentID);
               }
               catch (NotFoundException nfe) {
-                  System.out.println("This container does not appear to be registered with the main container.");
+                  Logger.println("This container does not appear to be registered with the main container.");
                   localAgents.remove(agentID);
               }
               catch (AuthException ae) {
-                  System.out.println("Authorization or authentication error while adding a new agent to the platform.");
+                  Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
               }
           }
