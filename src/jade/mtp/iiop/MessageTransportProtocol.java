@@ -61,7 +61,7 @@ import jade.domain.FIPAAgentManagement.Property;
    specification for delivering ACL messages over the OMG IIOP
    transport protocol.
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class MessageTransportProtocol implements MTP {
@@ -213,7 +213,12 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public void activate(InChannel.Dispatcher disp, TransportAddress ta, Profile p) throws MTPException {
-    throw new MTPException("User supplied transport address not supported.");
+      //    throw new MTPException("User supplied transport address not supported.");
+
+      // Do not throw, but modify the supplied address instead.
+      IIOPAddress iia = (IIOPAddress)ta;
+      IIOPAddress generated = (IIOPAddress)activate(disp, p);
+      iia.initFromIOR(generated.getIOR());
   }
 
   public void deactivate(TransportAddress ta) throws MTPException {
@@ -522,7 +527,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	throw new MTPException("Invalid string prefix");
     }
 
-    private void initFromIOR(String s) throws MTPException {
+    void initFromIOR(String s) throws MTPException {
       parseIOR(s, FIPA_2000_TYPE_ID);
       anchor = "";
     }
