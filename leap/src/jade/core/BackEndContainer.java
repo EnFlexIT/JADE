@@ -131,6 +131,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 		/*#CUSTOMJ2SE_INCLUDE_BEGIN
 	  startService("ePresence.log.EPresenceLogService");
+	  startService("jade.core.messaging.PersistentDeliveryService");
 		#CUSTOMJ2SE_INCLUDE_END*/
       }
 
@@ -447,7 +448,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  handleEnd(ids[i]);
       }
 
-      agentImages.clear();
+      if (agentImages.size() > 0) {
+      	System.out.println("AAAAAAAAAAAAA");
+      }
+      //agentImages.clear();
 		
       super.shutDown();
   }
@@ -549,7 +553,22 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
     public AgentImage removeAgentImage(AID id) {
-	return (AgentImage)agentImages.remove(id);
+	AgentImage img = (AgentImage)agentImages.remove(id);
+	// If there are messages that were waiting to be delivered to the 
+	// real agent on the FrontEnd, notify failure to sender
+	List pendingMsg = ((jade.imtp.leap.FrontEndStub) myFrontEnd).getPendingMessages(id);
+	Iterator it = pendingMsg.iterator();
+	while (it.hasNext()) {
+		try {
+			ACLMessage msg = (ACLMessage) it.next();
+			handleSend(msg, msg.getSender());
+    }
+    catch (Exception e) {
+    	// This should never happen
+    	e.printStackTrace();
+    }
+	}
+	return img;
     }
 
     public AgentImage getAgentImage(AID id) {
