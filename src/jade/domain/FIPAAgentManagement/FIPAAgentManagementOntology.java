@@ -136,7 +136,7 @@ public class FIPAAgentManagementOntology {
     	theInstance.joinOntology(BasicOntologyManager.instance());
     	
 	theInstance.addRole(DFAGENTDESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O),
           new SlotDescriptor("services", Ontology.SET_SLOT, SERVICEDESCRIPTION, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -147,8 +147,8 @@ public class FIPAAgentManagementOntology {
 	   });
 
 	theInstance.addRole(SERVICEDESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("type", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("type", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("languages", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -168,9 +168,9 @@ public class FIPAAgentManagementOntology {
 	   });
 
 	theInstance.addRole(AMSAGENTDESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O),
 	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new AMSAgentDescription();}
 	     public Class getClassForRole() { return AMSAgentDescription.class; }
