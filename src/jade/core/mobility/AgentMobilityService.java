@@ -262,7 +262,7 @@ public class AgentMobilityService extends BaseService {
 	    AgentMobilitySlice dest = null;
 	    try {
 
-		// --- This code should go into the Security Service ---
+		/* --- This code should go into the Security Service ---
 
 		// Check for security permissions
 		// Note that CONTAINER_MOVE_TO will be checked on the destination container
@@ -272,6 +272,7 @@ public class AgentMobilityService extends BaseService {
 		log("Permissions for agent " + agentID + " OK", 2);
 
 		// --- End of code that should go into the Security Service ---
+		*/
 
 		// If the destination container is the same as this one, there is nothing to do
 		if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
@@ -430,7 +431,7 @@ public class AgentMobilityService extends BaseService {
 		    return;
 		}
 
-		// --- This code should go into the Security Service ---
+		/* --- This code should go into the Security Service ---
 
 		// Check for security permissions
 		// Note that CONTAINER_CLONE_TO will be checked on the destination container
@@ -439,6 +440,7 @@ public class AgentMobilityService extends BaseService {
 
 		log("Permissions for agent " + agentID + " OK", 2);
 		// --- End of code that should go into the Security Service ---
+		*/
 
 		AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
 		log("Destination container for agent " + agentID + " found", 2);
@@ -721,7 +723,7 @@ public class AgentMobilityService extends BaseService {
 		log("Agent " + agentID + " reconstructed", 2);         	
 
 
-		// --- This code should go into the Security Service ---
+		/* --- This code should go into the Security Service ---
 
 		// agent is about to be created on the destination Container, 
 		// let's check for permissions before
@@ -747,6 +749,7 @@ public class AgentMobilityService extends BaseService {
 		log("Permissions for agent " + agentID + " OK", 2);         	
 
 		// --- End of code that should go into the Security Service ---    
+		*/
 
 		//#MIDP_EXCLUDE_BEGIN
 		CertificateFolder agentCerts = instance.getCertificateFolder();
