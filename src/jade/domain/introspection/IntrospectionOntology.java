@@ -149,7 +149,6 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		cs.add(ENVELOPE_PAYLOADLENGTH, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 		cs.add(ENVELOPE_PAYLOADENCODING, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 		cs.add(ENVELOPE_DATE, (PrimitiveSchema)getSchema(BasicOntology.DATE), ObjectSchema.OPTIONAL);
-		cs.add(ENVELOPE_ENCRYPTED, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
 		cs.add(ENVELOPE_INTENDEDRECEIVER, (ConceptSchema)getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
 		cs.add(ENVELOPE_RECEIVED, (ConceptSchema)getSchema(RECEIVEDOBJECT), ObjectSchema.OPTIONAL);
 		

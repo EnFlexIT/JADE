@@ -125,7 +125,6 @@ public interface IntrospectionVocabulary {
   public static final String ENVELOPE_PAYLOADLENGTH = "payload-length";
   public static final String ENVELOPE_PAYLOADENCODING = "payload-encoding";
   public static final String ENVELOPE_DATE = "date";
-  public static final String ENVELOPE_ENCRYPTED = "encrypted";
   public static final String ENVELOPE_INTENDEDRECEIVER = "intended-receiver";
   public static final String ENVELOPE_RECEIVED = "received";
   
