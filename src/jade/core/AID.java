@@ -223,12 +223,6 @@ public class AID implements Cloneable, Comparable, Serializable {
     return name.toLowerCase().hashCode();
   }
 
-  // Package scoped method, to allow setting the agent GUID only
-  // within the jade.core package.
-  void setGUID(String g) {
-    name = g;
-  }
-
   String getLocalName() {
     int atPos = name.lastIndexOf('@');
     if(atPos == -1)
