@@ -119,9 +119,8 @@ public class RMIIMTPManager implements IMTPManager {
   /**
    */
   public void initialize(Profile p) throws IMTPException {
-    try {
       myProfile = p;
-      mainHost = myProfile.getParameter(Profile.MAIN_HOST);
+      mainHost = myProfile.getParameter(Profile.MAIN_HOST, null);
       if (mainHost == null) {
       	// Use the local host by default
       	try {
@@ -133,7 +132,7 @@ public class RMIIMTPManager implements IMTPManager {
       }
       
       mainPort = DEFAULT_RMI_PORT;
-      String mainPortStr = myProfile.getParameter(Profile.MAIN_PORT);
+      String mainPortStr = myProfile.getParameter(Profile.MAIN_PORT, null);
       if (mainPortStr != null) {
       	try {
       		mainPort = Integer.parseInt(mainPortStr);
@@ -144,10 +143,6 @@ public class RMIIMTPManager implements IMTPManager {
       }
       
       platformRMI = "rmi://" + mainHost + ":" + mainPort + "/JADE";
-    }
-    catch (ProfileException pe) {
-      throw new IMTPException("Can't get main host and port", pe);
-    }
   }
 
   /**

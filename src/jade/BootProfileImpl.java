@@ -275,12 +275,8 @@ public class BootProfileImpl extends ProfileImpl {
 	// of properties that were set in the code above
 	for (Enumeration e=argProp.keys(); e.hasMoreElements(); ) {
 	    String key = (String)e.nextElement();
-	    try {
-		if (getParameter(key) == null) 
-		    setParameter(key, argProp.get(key).toString());
-	    } catch (jade.core.ProfileException e2) {
-		e2.printStackTrace();
-	    }
+	    if (getParameter(key,null) == null) 
+		setParameter(key, argProp.get(key).toString());
 	}
         
         // The following is for debugging only. Probably should not document the "dumpProfile" attribute.

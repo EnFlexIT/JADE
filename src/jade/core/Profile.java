@@ -135,11 +135,11 @@ public abstract class Profile {
     /**
      * Retrieve a String value from the configuration properties.
      * If no parameter corresponding to the specified key is found,
-     * null is returned.
+     * return the provided default.
      * @param key The key identifying the parameter to be retrieved
      * among the configuration properties.
      */
-    public abstract String getParameter(String key) throws ProfileException;
+    public abstract String getParameter(String key, String aDefault);
 
     /**
      * Retrieve a list of Specifiers from the configuration properties.

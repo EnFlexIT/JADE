@@ -331,9 +331,8 @@ public class ProfileImpl extends Profile {
    */
   private void createMobilityManager() throws ProfileException {
      
-      String className = getParameter(MOBILITYMGRCLASSNAME);
-      if (className == null) // default is real mobility manager
-	  className = new String("jade.core.RealMobilityManager");
+      String className = getParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
+      // default is real mobility manager
    
     try {
       myMobilityManager = (MobilityManager) Class.forName(className).newInstance();
@@ -354,12 +353,12 @@ public class ProfileImpl extends Profile {
   /**
    * Retrieve a String value from the configuration properties.
    * If no parameter corresponding to the specified key is found,
-   * null is returned.
+   * return the provided default.
    * @param key The key identifying the parameter to be retrieved
    * among the configuration properties.
    */
-  public String getParameter(String key) throws ProfileException {
-    return props.getProperty(key);
+  public String getParameter(String key, String aDefault) {
+    return props.getProperty(key, aDefault);
   } 
 
   /**

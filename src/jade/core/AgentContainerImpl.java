@@ -489,7 +489,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           
           // Create and init container-authority
           try {
-              String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
+              String type = myProfile.getParameter(Profile.AUTHORITY_CLASS, null);
               if (type != null) {
                   authority = (Authority)Class.forName(type).newInstance();
                   authority.setName("container-authority");
@@ -542,9 +542,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           myID = new ContainerID("No-Name", addr);
 
           // Acquire username and password
-          String ownership = myProfile.getParameter(Profile.OWNER);
-          if (ownership == null)
-              ownership = ContainerPrincipal.NONE;
+          String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
           password = Agent.extractPassword(ownership);
           username = Agent.extractUsername(ownership);
           myProfile.setParameter(Profile.OWNER, username);

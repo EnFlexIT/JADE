@@ -97,11 +97,12 @@ class MainContainerImpl implements Platform, AgentManager {
   private GADT platformAgents = new GADT();
   
   private Authority authority;
-
+  private Profile myProfile;
 
 	MainContainerImpl(Profile p) throws ProfileException {
+	    myProfile = p;
 		myIMTPManager = p.getIMTPManager();
-		platformID = p.getParameter(Profile.PLATFORM_ID);
+		platformID = p.getParameter(Profile.PLATFORM_ID, null);
 		if (platformID == null || platformID.equals("")) {
 			try {
 				// Build the PlatformID using the local host and port
@@ -115,7 +116,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		}
 
 		try {
-			String type = p.getParameter(Profile.MAINAUTH_CLASS);
+			String type = p.getParameter(Profile.MAINAUTH_CLASS, null);
 			if (type != null) {
 				authority = (Authority)Class.forName(type).newInstance();
 				authority.setName("main-authority");
@@ -161,7 +162,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		String agentOwnership = username;
 
 		// Start the AMS
-		theAMS = new ams(this);
+		theAMS = new ams(this, myProfile);
 		theAMS.setOwnership(agentOwnership);
 		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), username);
 		CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);

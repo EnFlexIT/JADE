@@ -113,13 +113,7 @@ public class Runtime {
         Runtime.instance().setCloseVM(true);
         
       	// Start the platform
-        String isMain = null;
-        try {
-        	 isMain = p.getParameter(Profile.MAIN);
-        }
-        catch (ProfileException pe) {
-        	// do nothing
-        }
+	String isMain = p.getParameter(Profile.MAIN, null);
       	if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
         	createMainContainer(p);
       	}

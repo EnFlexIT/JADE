@@ -75,7 +75,7 @@ __J2ME_COMPATIBILITY__END*/
 		String tmp = null;
 		// RETRY_INTERVAL
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.retry-interval");
+			tmp = p.getParameter("jade.core.MessageManager.retry-interval", null);
 			retryInterval = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
@@ -84,7 +84,7 @@ __J2ME_COMPATIBILITY__END*/
 			
 		// RETRY_MAXIMUM
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.retry-maximum");
+			tmp = p.getParameter("jade.core.MessageManager.retry-maximum", null);
 			retryMaximum = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
@@ -94,7 +94,7 @@ __J2ME_COMPATIBILITY__END*/
 //__CLDC_UNSUPPORTED__BEGIN
 		// POOL_SIZE
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.pool-size");
+			tmp = p.getParameter("jade.core.MessageManager.pool-size", null);
 			poolSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {

@@ -92,6 +92,8 @@ import jade.security.AuthException;
 
 */
 public class ams extends Agent implements AgentManager.Listener {
+
+    Profile bootProfile = null;    
     
     //registration of an agent.
     void AMSRegisterAction(Action a, AMSAgentDescription amsd,AID sender,String ontology)throws AlreadyRegistered,AuthException,MissingParameter {
@@ -900,8 +902,10 @@ public class ams extends Agent implements AgentManager.Listener {
      code. Therefore, no other <em>AMS</em> agent can be created
      beyond the default one.
   */
-  public ams(AgentManager ap) {
+  public ams(AgentManager ap, Profile aBootProfile) {
 
+    bootProfile = aBootProfile;
+    
     // Fill Agent Platform Profile with data.
     theProfile.setDynamic(new Boolean(false));
     theProfile.setMobility(new Boolean(false));
@@ -1535,21 +1539,18 @@ public class ams extends Agent implements AgentManager.Listener {
   public void messageIn(MTPEvent ev) { System.out.println("Message In."); }
   public void messageOut(MTPEvent ev) { System.out.println("Message Out."); }
 
-
-
- private void writeAPDescription()
-  {
-  	 //Write the APDescription file.
-    try{
-    	FileWriter f = new FileWriter("APDescription.txt");
-	f.write(theProfile.toString());
-	//f.write(s, 0, s.length());
-	f.write('\n');
-	f.flush();
-    	f.close();
-    }catch(java.io.IOException ioe){ioe.printStackTrace();}
-
-
+  private void writeAPDescription() {
+    //Write the APDescription file.
+    try {
+      FileWriter f = new FileWriter("APDescription.txt");
+      f.write(theProfile.toString());
+      //f.write(s, 0, s.length());
+	  f.write('\n');
+	  f.flush();
+      f.close();
+    } catch(java.io.IOException ioe) {
+      ioe.printStackTrace();
+    }
   }
 
   private MTPDescription findMTPDescription(APTransportDescription mtps, String proto) {

@@ -54,11 +54,8 @@ class LightAcc implements acc {
      */
     public void initialize(AgentContainerImpl ac, Profile p) {
         try {
-        	String routerName = p.getParameter("accRouter");
-        	if (routerName == null) {
-        		// Use the main container by default
-        		routerName = "Main-Container";
-        	}
+        	String routerName = p.getParameter("accRouter", "Main-Container");
+		// Use the main container by default
         	ContainerID routerID = new ContainerID(routerName, null);
         	
           router = p.getPlatform().lookup(routerID);
