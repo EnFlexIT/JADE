@@ -31,6 +31,12 @@ import jade.domain.FIPAAgentManagement.*;
    @author Giovanni Caire - TILAB
  */
 public class TestDFHelper {
+	private static final String P_NAME_1 = "pname1";
+	private static final String P_VALUE_1 = "p value)1";
+	private static final String P_NAME_2 = "pname2";
+	private static final String P_VALUE_2 = "2pvalue";
+	private static final String P_NAME_3 = "pname3";
+	private static final String P_VALUE_3 = "pvalue\"3";
 	
 	public static DFAgentDescription getSampleDFD(AID id) {
 		DFAgentDescription dfd = new DFAgentDescription();
@@ -71,12 +77,12 @@ public class TestDFHelper {
 		sd.addProtocols("Test-protocol-2.1");
 		sd.addProtocols("Test-protocol-2.2");
 		Property p = new Property();
-		p.setName("pname1");
-		p.setValue("pvalue1");
+		p.setName(P_NAME_1);
+		p.setValue(P_VALUE_1);
 		sd.addProperties(p);
 		p = new Property();
-		p.setName("pname2");
-		p.setValue("pvalue 2");
+		p.setName(P_NAME_2);
+		p.setValue(P_VALUE_2);
 		sd.addProperties(p);
 		
 		return sd;
@@ -103,15 +109,15 @@ public class TestDFHelper {
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-2");
 		Property p = new Property();
-		p.setName("pname2");
-		p.setValue("pvalue 2");
+		p.setName(P_NAME_2);
+		p.setValue(P_VALUE_2);
 		sd.addProperties(p);
 		dfd.addServices(sd);
 		return dfd;
 	}
 	
 	/**
-	   Return a template that should not matche a DFD including SD1
+	   Return a template that should not match a DFD including SD1
 	 */
 	public static DFAgentDescription getSampleTemplate3() {
 		DFAgentDescription dfd = new DFAgentDescription();
@@ -132,8 +138,12 @@ public class TestDFHelper {
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-2");
 		Property p = new Property();
-		p.setName("pname3");
-		p.setValue("pvalue2");
+		p.setName(P_NAME_3);
+		p.setValue(P_VALUE_2);
+		sd.addProperties(p);
+		p = new Property();
+		p.setName(P_NAME_2);
+		p.setValue(P_VALUE_3);
 		sd.addProperties(p);
 		dfd.addServices(sd);
 		return dfd;
