@@ -40,8 +40,6 @@ import jade.domain.FIPAAgentManagement.Envelope;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
-//import jade.tools.ToolNotifier; // FIXME: This should not be imported
-
 
 /**
    This class is a concrete implementation of the JADE agent
@@ -88,9 +86,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // agents.
   private static String platformID;
   private ContainerID myID;
-
-  private List messageListeners;
-  private List agentListeners;
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
@@ -746,7 +741,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
 
- // Tells whether the given AID refers to an agent of this platform
+ 	// Tells whether the given AID refers to an agent of this platform
   // or not.
   private boolean livesHere(AID id) {
     String hap = id.getHap();
@@ -757,191 +752,4 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return localAgents;
   }
 
-  /*
-  private void restoreMainContainer() throws NotFoundException {
-    try {
-      myMain = lookup3(platformRMI);
-
-      // Register again with the Main Container.
-      String myName = myMain.addContainer(this, myID); // RMI call
-      myID.setName(myName);
-
-      ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
-      regMsg.setSender(Agent.getAMS());
-      regMsg.addReceiver(Agent.getAMS());
-      regMsg.setLanguage(jade.lang.sl.SL0Codec.NAME);
-      regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
-      regMsg.setProtocol("fipa-request");
-
-      // Restore Main Container state of agents and containers
-      AID[] agentIDs = localAgents.keys();
-      for(int i = 0; i < agentIDs.length; i++) {
-
-	AID agentID = agentIDs[i];
-
-	// Register again the agent with the Main Container.
-	RemoteContainerProxy rp = new RemoteContainerProxy(this, agentID);
-	try {
-	  myMain.bornAgent(agentID, rp, myID); // RMI call
-	}
-	catch(NameClashException nce) {
-	  throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
-	}
-
-	String content = "((action (agent-identifier :name " + Agent.getAMS().getName() + " ) (register (ams-agent-description :name (agent-identifier :name " + agentID.getName() + " ) :ownership JADE :state active ) ) ))";
-	// Register again the agent with the AMS
-	regMsg.setContent(content);
-	unicastPostMessage(regMsg, Agent.getAMS());
-
-      }
-
-      // Register again all MTPs with the Main Container
-      List localAddresses = theACC.getLocalAddresses();
-      for(int i = 0; i < localAddresses.size(); i++) {
-	myMain.newMTP((String)localAddresses.get(i), myID);
-      }
-
-    }
-    catch(IMTPException re) {
-      System.out.println("The Main Container is down again. Aborting this send operation.");
-      throw new NotFoundException("The Main Container is unreachable.");
-    }
-    catch(NotBoundException nbe) {
-      nbe.printStackTrace();
-      throw new NotFoundException("The Main Container is not bound with the RMI registry.");
-    }
-    catch(MalformedURLException murle) {
-      murle.printStackTrace();
-    }
-
-  }
-*/
-
-  /*private ToolNotifier findNotifier(AID observerName) {
-    if(messageListeners == null)
-      return null;
-    Iterator it = messageListeners.iterator();
-    while(it.hasNext()) {
-      Object obj = it.next();
-      if(obj instanceof ToolNotifier) {
-	ToolNotifier tn = (ToolNotifier)obj;
-	AID id = tn.getObserver();
-	if(id.equals(observerName))
-	  return tn;
-      }
-    }
-    return null;
-
-  }
-	
-
-  // This lock is used to synchronize operations on the message
-  // listeners list. Using lazy processing (the list is set to null
-  // when empty) the space overhead is reduced, even with this lock
-  // object (an empty LinkedList holds three null pointers).
-  private Object messageListenersLock = new Object();
-
-  private void addMessageListener(MessageListener l) {
-    synchronized(messageListenersLock) {
-      if(messageListeners == null)
-	messageListeners = new LinkedList();
-      messageListeners.add(l);
-    }
-  }
-
-  private void removeMessageListener(MessageListener l) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-	messageListeners.remove(l);
-	if(messageListeners.isEmpty())
-	  messageListeners = null;
-      }
-    }
-  }
-
-  private void fireSentMessage(ACLMessage msg, AID sender) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-	MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID);
-	for(int i = 0; i < messageListeners.size(); i++) {
-	  MessageListener l = (MessageListener)messageListeners.get(i);
-	  l.sentMessage(ev);
-	}
-      }
-    }
-  }
-
-  private void firePostedMessage(ACLMessage msg, AID receiver) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-	MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID);
-	for(int i = 0; i < messageListeners.size(); i++) {
-	  MessageListener l = (MessageListener)messageListeners.get(i);
-	  l.postedMessage(ev);
-	}
-      }
-    }
-  }
-
-  private void fireReceivedMessage(ACLMessage msg, AID receiver) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-	MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID);
-	for(int i = 0; i < messageListeners.size(); i++) {
-	  MessageListener l = (MessageListener)messageListeners.get(i);
-	  l.receivedMessage(ev);
-	}
-      }
-    }
-  }
-
-  private void fireRoutedMessage(ACLMessage msg, Channel from, Channel to) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-	MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID);
-	for(int i = 0; i < messageListeners.size(); i++) {
-	  MessageListener l = (MessageListener)messageListeners.get(i);
-	  l.routedMessage(ev);
-	}
-      }
-    }
-  }
-
-
-  // This lock is used to synchronize operations on the agent
-  // listeners list. Using lazy processing (the list is set to null
-  // when empty) the space overhead is reduced, even with this lock
-  // object (an empty LinkedList holds three null pointers).
-  private Object agentListenersLock = new Object();
-
-  private void addAgentListener(AgentListener l) {
-    synchronized(messageListenersLock) {
-      if(agentListeners == null)
-	agentListeners = new LinkedList();
-      agentListeners.add(l);
-    }
-  }
-
-  private void removeAgentListener(AgentListener l) {
-    synchronized(messageListenersLock) {
-      if(agentListeners != null) {
-	agentListeners.remove(l);
-	if(agentListeners.isEmpty())
-	  agentListeners = null;
-      }
-    }
-  }
-
-  private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
-    synchronized(messageListenersLock) {
-      if(agentListeners != null) {
-	AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID);
-	for(int i = 0; i < agentListeners.size(); i++) {
-	  AgentListener l = (AgentListener)agentListeners.get(i);
-	  l.changedAgentState(ev);
-	}
-      }
-    }
-  }
-	*/
 }

@@ -125,20 +125,17 @@ class TimerDispatcher implements Runnable {
   }
 
   public void stop() {
-
     synchronized(myThread) {
       if(Thread.currentThread().equals(myThread)) {
 				System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
       }
       else {
 				active = false;
-				myThread.interrupt();
-				//synchronized (this) {
-				// notifyAll();
-				//  }
+				synchronized (this) {
+					notifyAll();
+				}
 				try {
 	  			myThread.join();
-				myThread = null;
 				}
 				catch (InterruptedException ignore) {
 	  			// Do nothing

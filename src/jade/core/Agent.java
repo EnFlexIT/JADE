@@ -602,7 +602,7 @@ public class Agent implements Runnable, Serializable {
     ontologies.remove(new CaseInsensitiveString(ontologyName));
   }
 
-  // __BACKWARD_COMPATIBILITY__BEGIN
+  //__BACKWARD_COMPATIBILITY__BEGIN
   /**
      Builds a Java object out of an ACL message. This method uses the
      <code>:language</code> slot to select a content language and the
@@ -657,7 +657,7 @@ public class Agent implements Runnable, Serializable {
     l.fromList(content);
     fillContent2(msg, l);
   }
-  // __BACKWARD_COMPATIBILITY__END
+  //__BACKWARD_COMPATIBILITY__END
   	
 
   /**

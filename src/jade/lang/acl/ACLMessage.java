@@ -424,7 +424,7 @@ private int performative; // keeps the performative type of this object
   * @param s the object that will be used to set the content of the ACLMessage. 
   * @exception IOException if an I/O error occurs.
   */
-  public void setContentObject(Serializable s) throws IOException
+  public void setContentObject(java.io.Serializable s) throws IOException
   {
   	ByteArrayOutputStream c = new ByteArrayOutputStream();
   	ObjectOutputStream oos = new ObjectOutputStream(c);
@@ -487,12 +487,12 @@ private int performative; // keeps the performative type of this object
   * @return the object read from the content of this ACLMessage
   * @exception UnreadableException when an error occurs during the deconding.
   */
-  public Serializable getContentObject() throws UnreadableException
+  public java.io.Serializable getContentObject() throws UnreadableException
   {
   	
     try{
       ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(getContentBase64()));
-      Serializable s = (Serializable)oin.readObject();
+      java.io.Serializable s = (java.io.Serializable)oin.readObject();
       return s;
     }
     catch (java.lang.Error e) {

@@ -102,7 +102,7 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
   private boolean finished;
 
 
-// __BACKWARD_COMPATIBILITY__BEGIN
+//__BACKWARD_COMPATIBILITY__BEGIN
   /**
    * constructor of the behaviour.
    * @param a is the current agent. The public variable
@@ -126,7 +126,7 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
 	informerAgents.add((AID)responders.get(i));
       }
     }
-// __BACKWARD_COMPATIBILITY__END
+//__BACKWARD_COMPATIBILITY__END
 
   /**
    * constructor of the behaviour.

@@ -163,7 +163,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
   */
   private boolean hasBeenReset=false; // set to true in the method reset()
 
-  // __BACKWARD_COMPATIBILITY__BEGIN
+  //__BACKWARD_COMPATIBILITY__BEGIN
   /**
    * constructor of the behaviour.
    * @param a is the current agent. The protected variable 
@@ -195,7 +195,7 @@ public void reset(ACLMessage msg, java.util.List responders) {
 	l.fromList(responders);
   reset(msg, l);
 }
-// __BACKWARD_COMPATIBILITY__END
+//__BACKWARD_COMPATIBILITY__END
 
   /**
    * constructor of the behaviour.

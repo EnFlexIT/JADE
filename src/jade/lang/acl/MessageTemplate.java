@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
+import jade.util.leap.ArrayList;
 
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
@@ -322,6 +323,22 @@ public class MessageTemplate implements Serializable {
     return new MessageTemplate(msg, false);
   }
 
+  //__BACKWARD_COMPATIBILITY__BEGIN
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:receiver</code> slot.
+     @param values A <code>List</code> of Agent IDs against which the
+     value of the message slot will be matched.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
+  public static MessageTemplate MatchReceiver(java.util.List values) {
+    ArrayList l = new ArrayList();
+    l.fromList(values);
+    return MatchReceiver(l);
+  }
+  //__BACKWARD_COMPATIBILITY__END
+
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
@@ -377,6 +394,22 @@ public class MessageTemplate implements Serializable {
     msg.setInReplyTo(value);
     return new MessageTemplate(msg, false);
   }
+
+  //__BACKWARD_COMPATIBILITY__BEGIN
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:reply-to</code> slot.
+     @param values A <code>List</code> of Agent IDs against which the
+     value of the message slot will be matched.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
+  public static MessageTemplate MatchReplyTo(java.util.List values) {
+    ArrayList l = new ArrayList();
+    l.fromList(values);
+    return MatchReplyTo(l);
+  }
+  //__BACKWARD_COMPATIBILITY__END
 
   /**
      This <em>Factory Method</em> returns a message template that
