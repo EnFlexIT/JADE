@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/03/09 12:56:18  rimassa
+  Added code to hold container name inside an AgentDescriptor object.
+
   Revision 1.7  1998/11/02 01:56:20  rimassa
   Removed every reference to MessageDispatcher class; now an
   AgentDescriptor uses AgentContainer directly.
@@ -30,13 +33,15 @@ class AgentDescriptor implements Serializable {
 
   private AgentManagementOntology.AMSAgentDescriptor desc;
   private AgentContainer container;
+  private String containerName;
 
   public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
     desc = amsd;
   }
 
-  public void setContainer(AgentContainer ac) {
+  public void setContainer(AgentContainer ac, String cn) {
     container = ac;
+    containerName = cn;
   }
 
   public AgentManagementOntology.AMSAgentDescriptor getDesc() {
@@ -45,6 +50,10 @@ class AgentDescriptor implements Serializable {
 
   public AgentContainer getContainer() {
     return container;
+  }
+
+  public String getContainerName() {
+    return containerName;
   }
 
 }
