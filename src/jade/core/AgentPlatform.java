@@ -20,7 +20,7 @@ import java.rmi.RemoteException;
     (AgentContainer, AgentDescriptor)
 
 ************************************************************************/
-interface AgentPlatform extends Remote {
+public interface AgentPlatform extends AgentContainer {
   public void addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(AgentContainer ac) throws RemoteException;
 
