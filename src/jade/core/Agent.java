@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.36  1999/03/01 23:23:55  rimassa
+  Completed Javadoc comments for Agent class.
+  Changed addCommListener() and removeCommListener() methods from public
+  to package scoped.
+
   Revision 1.35  1999/03/01 13:09:53  rimassa
   Started to write Javadoc comments for Agent class.
 
@@ -294,7 +299,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      Method to query the agent local name.
-     @return a <code>String</code> containing the local agent name
+     @return A <code>String</code> containing the local agent name
      (e.g. <it>peter</it>).
   */
   public String getLocalName() {
@@ -304,7 +309,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      Method to query the agent complete name (<it><em>GUID</em></it>).
 
-     @return a <code>String</code> containing the complete agent name
+     @return A <code>String</code> containing the complete agent name
      (e.g. <it>peter@iiop://fipa.org:50/acc</it>).
   */
   public String getName() {
@@ -316,7 +321,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      the platform where the agent was created, and will never change
      during the whole lifetime of the agent.
 
-     @return a <code>String</code> containing the agent home address
+     @return A <code>String</code> containing the agent home address
      (e.g. <it>iiop://fipa.org:50/acc<it>).
   */
   public String getAddress() {
@@ -336,6 +341,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // State transition methods for Agent Platform Life-Cycle
 
+  // FIXME: Put guard code to check for thread/state precoditions
+
   /**
      Make a state transition from <it>initiated</it> to
      <it>active</it> within Agent Platform Life Cycle. This method is
@@ -346,7 +353,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @param platformAddress The home address of the agent.
      @param myGroup The <code>ThreadGroup</code> the agent will run within.
   */
-  public void doStart(String name, String platformAddress, ThreadGroup myGroup) { // Transition from Initiated to Active
+  public void doStart(String name, String platformAddress, ThreadGroup myGroup) {
 
     // Set this agent's name and address and start its embedded thread
     myName = new String(name);
@@ -357,22 +364,57 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  public void doMove() { // Transition from Active to Initiated
+  /**
+     Make a state transition from <it>active</it> to
+     <it>initiated</it> within Agent Platform Life Cycle. This method
+     is intended to support agent mobility and is called either by the
+     Agent Platform or by the agent itself to start migration process.
+     <it>This method is currently not implemented.</it>
+  */
+  public void doMove() {
     myAPState = AP_INITIATED;
     // FIXME: Should do something more
   }
 
-  public void doSuspend() { // Transition from Active to Suspended
+  /**
+     Make a state transition from <it>active</it> to
+     <it>suspended</it> within Agent Platform Life Cycle. This method
+     can be called from the Agent Platform or from the agent iself and
+     stops all agent activities. Incoming messages for a suspended
+     agent are buffered by the Agent Platform and are delivered as
+     soon as the agent resumes. Calling <code>doSuspend()</code> on a
+     suspended or waiting agent has no effect.
+     @see jade.core.Agent#doActivate()
+  */
+  public void doSuspend() {
     myAPState = AP_SUSPENDED;
     // FIXME: Should do something more
   }
 
-  public void doActivate() { // Transition from Suspended to Active
+  /**
+     Make a state transition from <it>suspended</it> to
+     <it>active</it> within Agent Platform Life Cycle. This method is
+     called from the Agent Platform and resumes agent
+     execution. Calling <code>doActivate()</code> when the agent is
+     not suspended has no effect.
+     @see jade.core.Agent#doSuspend()
+  */
+  public void doActivate() {
     myAPState = AP_ACTIVE;
     // FIXME: Should do something more
   }
 
-  public synchronized void doWait() { // Transition from Active to Waiting
+  /**
+     Make a state transition from <it>active</it> to <it>waiting</it>
+     within Agent Platform Life Cycle. This method can be called by
+     the Agent Platform or by the agent itself and causes the agent to
+     block, stopping all its activities until some event happens. A
+     waiting agent wakes up as soon as a message arrives or when
+     <code>doWake()</code> is called. Calling <code>doWait()</code> on
+     a suspended or waiting agent has no effect.
+     @see jade.core.Agent#doWake()
+  */
+  public synchronized void doWait() {
     int oldAPState = myAPState;
     myAPState = AP_WAITING;
     while(myAPState == AP_WAITING) {
@@ -389,7 +431,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  public synchronized void doWake() { // Transition from Waiting to Active
+  /**
+     Make a state transition from <it>waiting</it> to <it>active</it>
+     within Agent Platform Life Cycle. This method is called from
+     Agent Platform and resumes agent execution. Calling
+     <code>doWake()</code> when an agent is not waiting has no effect.
+     @see jade.core.Agent#doWait()
+  */
+  public synchronized void doWake() {
     myAPState = AP_ACTIVE;
     activateAllBehaviours();
     notify(); // Wakes up the embedded thread
@@ -397,12 +446,29 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // This method handles both the case when the agents decides to exit
   // and the case in which someone else kills him from outside.
-  public void doDelete() { // Transition to destroy the agent
+
+  /**
+     Make a state transition from <it>active</it>, <it>suspended</it>
+     or <it>waiting</it> to <it>deleted</it> state within Agent
+     Platform Life Cycle, thereby destroying the agent. This method
+     can be called either from the Agent Platform or from the agent
+     itself. Calling <code>doDelete()</code> on an already deleted
+     agent has no effect.
+  */
+  public void doDelete() {
     myAPState = AP_DELETED;
     if(!myThread.equals(Thread.currentThread()))
        myThread.interrupt();
   }
 
+  /**
+     This method is the main body of every agent. It can handle
+     automatically <em>AMS</em> registration and deregistration and
+     provides startup and cleanup hooks for application programmers to
+     put their specific code into.
+     @see jade.core.Agent#setup()
+     @see jade.core.Agent#takeDown()
+  */
   public final void run() {
 
     try{
@@ -433,8 +499,38 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
+  /**
+     This protected method is an empty placeholder for application
+     specific startup code. Agent developers can override it to
+     provide necessary behaviour. When this method is called the agent
+     has been already registered with the Agent Platform <em>AMS</em>
+     and is able to send and receive messages. However, the agent
+     execution model is still sequential and no behaviour scheduling
+     is active yet.
+
+     This method can be used for ordinary startup tasks such as
+     <em>DF</em> registration, but is essential to add at least a
+     <code>Behaviour</code> object to the agent, in order for it to be
+     able to do anything.
+     @see jade.core.Agent#addBehaviour(Behaviour b)
+     @see jade.core.Behaviour
+  */
   protected void setup() {}
 
+  /**
+     This protected method is an empty placeholder for application
+     specific cleanup code. Agent developers can override it to
+     provide necessary behaviour. When this method is called the agent
+     has not deregistered itself with the Agent Platform <em>AMS</em>
+     and is still able to exchange messages with other
+     agents. However, no behaviour scheduling is active anymore and
+     the Agent Platform Life Cycle state is already set to
+     <it>deleted</it>.
+
+     This method can be used for ordinary cleanup tasks such as
+     <em>DF</em> deregistration, but explicit removal of all agent
+     behaviours is not needed.
+  */
   protected void takeDown() {}
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
@@ -479,28 +575,77 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     notifyDestruction();
   }
 
+  /**
+     This method adds a new behaviour to the agent. This behaviour
+     will be executed concurrently with all the others, using a
+     cooperative round robin scheduling.  This method is typically
+     called from an agent <code>setup()</code> to fire off some
+     initial behaviour, but can also be used to spawn new behaviours
+     dynamically.
+     @param b The new behaviour to add to the agent.
+     @see jade.core.Agent#setup()
+     @see jade.core.Behaviour
+  */
   public void addBehaviour(Behaviour b) {
     myScheduler.add(b);
   }
 
+  /**
+     This method removes a given behaviour from the agent. This method
+     is called automatically when a top level behaviour terminates,
+     but can also be called from a behaviour to terminate itself or
+     some other behaviour.
+     @param b The behaviour to remove.
+     @see jade.core.Behaviour
+  */
   public void removeBehaviour(Behaviour b) {
     myScheduler.remove(b);
   }
 
 
-  // Event based message sending -- unicast
+  /**
+     Send an <em>ACL</em> message to another agent. This methods sends
+     a message to the agent specified in <code>:receiver</code>
+     message field (more than one agent can be specified as message
+     receiver).
+     @param msg An ACL message object containing the actual message to
+     send.
+     @see jade.lang.acl.ACLMessage
+  */
   public final void send(ACLMessage msg) {
     CommEvent event = new CommEvent(this, msg);
     broadcastEvent(event);
   }
 
-  // Event based message sending -- multicast
+  /**
+     Send an <em>ACL</em> message to the agent contained in a given
+     <code>AgentGroup</code>. This method allows simple message
+     multicast to be done. A similar result can be obtained putting
+     many agent names in <code>:receiver</code> message field; the
+     difference is that in that case every receiver agent can read all
+     other receivers' names, whereas this method hides multicasting to
+     receivers.
+     @param msg An ACL message object containing the actual message to
+     send.
+     @param g An agent group object holding all receivers names.
+     @see jade.lang.acl.ACLMessage
+     @see jade.core.AgentGroup
+  */
   public final void send(ACLMessage msg, AgentGroup g) {
     CommEvent event = new CommEvent(this, msg, g);
     broadcastEvent(event);
   }
 
-  // Non-blocking receive
+
+  /**
+     Receives an <em>ACL</em> message from the agent message
+     queue. This method is non-blocking and returns the first message
+     in the queue, if any. Therefore, polling and busy waiting is
+     required to wait for the next message sent using this method.
+     @return A new ACL message, or <code>null</code> if no message is
+     present.
+     @see jade.lang.acl.ACLMessage
+  */
   public final synchronized ACLMessage receive() {
     if(msgQueue.isEmpty()) {
       return null;
@@ -513,7 +658,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  // Non-blocking receive with pattern matching on messages
+  /**
+     Receives an <em>ACL</em> message matching a given template. This
+     method is non-blocking and returns the first matching message in
+     the queue, if any. Therefore, polling and busy waiting is
+     required to wait for a specific kind of message using this method.
+     @param pattern A message template to match received messages
+     against.
+     @return A new ACL message matching the given template, or
+     <code>null</code> if no such message is present.
+     @see jade.lang.acl.ACLMessage
+     @see jade.lang.acl.MessageTemplate
+  */
   public final synchronized ACLMessage receive(MessageTemplate pattern) {
     ACLMessage msg = null;
 
@@ -532,7 +688,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return msg;
   }
 
-  // Blocking receive
+  /**
+     Receives an <em>ACL</em> message from the agent message
+     queue. This method is blocking and suspends the whole agent until
+     a message is available in the queue. JADE provides a special
+     behaviour named <code>ReceiverBehaviour</code> to wait for a
+     message within a behaviour without suspending all the others and
+     without wasting CPU time doing busy waiting.
+     @return A new ACL message, blocking the agent until one is
+     available.
+     @see jade.lang.acl.ACLMessage
+     @see jade.core.ReceiverBehaviour
+  */
   public final synchronized ACLMessage blockingReceive() {
     ACLMessage msg = receive();
     while(msg == null) {
@@ -542,7 +709,22 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return msg;
   }
 
-  // Blocking receive with pattern matching on messages
+  /**
+     Receives an <em>ACL</em> message matching a given message
+     template. This method is blocking and suspends the whole agent
+     until a message is available in the queue. JADE provides a
+     special behaviour named <code>ReceiverBehaviour</code> to wait
+     for a specific kind of message within a behaviour without
+     suspending all the others and without wasting CPU time doing busy
+     waiting.
+     @param pattern A message template to match received messages
+     against.
+     @return A new ACL message matching the given template, blocking
+     until such a message is available.
+     @see jade.lang.acl.ACLMessage
+     @see jade.lang.acl.MessageTemplate
+     @see jade.core.ReceiverBehaviour
+  */
   public final synchronized ACLMessage blockingReceive(MessageTemplate pattern) {
     ACLMessage msg = receive(pattern);
     while(msg == null) {
@@ -552,7 +734,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return msg;
   }
 
-  // Put a received message back in message queue
+  /**
+     Puts a received <em>ACL</em> message back into the message
+     queue. This method can be used from an agent behaviour when it
+     realizes it read a message of interest for some other
+     behaviour. The message is put in front of the message queue, so
+     it will be the first returned by a <code>receive()</code> call.
+     @see jade.core.Agent#receive()
+  */
   public final synchronized void putBack(ACLMessage msg) {
     msgQueue.insertElementAt(msg,0);
   }
@@ -560,9 +749,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      @deprecated Builds an ACL message from a character stream. Now
-     ACLMessage class has this capabilities itself, through fromText()
-     method.
-     @see ACLMessage */
+     <code>ACLMessage</code> class has this capabilities itself,
+     through <code>fromText()</code> method.
+     @see jade.lang.acl.ACLMessage#fromText(Reader r)
+  */
   public ACLMessage parse(Reader text) {
     ACLMessage msg = null;
     try {
@@ -617,7 +807,27 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Register yourself with platform AMS
+
+  /**
+     Register this agent with Agent Platform <em>AMS</em>. While this
+     task can be accomplished with regular message passing according
+     to <em>FIPA</em> protocols, this method is meant to ease this
+     common duty. However, since <em>AMS</em> registration and
+     deregistration are automatic in JADE, this method should not be
+     used by application programmers.
+     Some parameters here are optional, and <code>null</code> can
+     safely be passed for them.
+     @param signature An optional signature string, used for security reasons.
+     @param APState The Agent Platform state of the agent; must be a
+     valid state value (typically, <code>Agent.AP_ACTIVE</code>
+     constant is passed).
+     @param delegateAgent An optional delegate agent name.
+     @param forwardAddress An optional forward address.
+     @param ownership An optional ownership string.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the AMS to indicate some error condition.
+  */
   public void registerWithAMS(String signature, int APState, String delegateAgent,
 			      String forwardAddress, String ownership) throws FIPAException {
 
@@ -648,13 +858,41 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Authenticate yourself with platform AMS
+  /**
+     Authenticate this agent with Agent Platform <em>AMS</em>. While this
+     task can be accomplished with regular message passing according
+     to <em>FIPA</em> protocols, this method is meant to ease this
+     common duty.
+     Some parameters here are optional, and <code>null</code> can
+     safely be passed for them.
+     @param signature An optional signature string, used for security reasons.
+     @param APState The Agent Platform state of the agent; must be a
+     valid state value (typically, <code>Agent.AP_ACTIVE</code>
+     constant is passed).
+     @param delegateAgent An optional delegate agent name.
+     @param forwardAddress An optional forward address.
+     @param ownership An optional ownership string.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the AMS to indicate some error condition.
+     <it>This method is currently not implemented.</it>
+  */
   public void authenticateWithAMS(String signature, int APState, String delegateAgent,
 				  String forwardAddress, String ownership) throws FIPAException {
     // FIXME: Not implemented
   }
 
-  // Deregister yourself with platform AMS
+  /**
+     Deregister this agent with Agent Platform <em>AMS</em>. While this
+     task can be accomplished with regular message passing according
+     to <em>FIPA</em> protocols, this method is meant to ease this
+     common duty. However, since <em>AMS</em> registration and
+     deregistration are automatic in JADE, this method should not be
+     used by application programmers.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the AMS to indicate some error condition.
+  */
   public void deregisterWithAMS() throws FIPAException {
 
     String replyString = myName + "-ams-deregistration-" + (new Date()).getTime();
@@ -680,7 +918,25 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Modify your registration with platform AMS
+  /**
+     Modifies the data about this agent kept by Agent Platform
+     <em>AMS</em>. While this task can be accomplished with regular
+     message passing according to <em>FIPA</em> protocols, this method
+     is meant to ease this common duty. Some parameters here are
+     optional, and <code>null</code> can safely be passed for them.
+     When a non null parameter is passed, it replaces the value
+     currently stored inside <em>AMS</em> agent.
+     @param signature An optional signature string, used for security reasons.
+     @param APState The Agent Platform state of the agent; must be a
+     valid state value (typically, <code>Agent.AP_ACTIVE</code>
+     constant is passed).
+     @param delegateAgent An optional delegate agent name.
+     @param forwardAddress An optional forward address.
+     @param ownership An optional ownership string.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the AMS to indicate some error condition.
+  */
   public void modifyAMSRegistration(String signature, int APState, String delegateAgent,
 				    String forwardAddress, String ownership) throws FIPAException {
 
@@ -711,6 +967,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
+  /**
+     This method uses Agent Platform <em>ACC</em> agent to forward an
+     ACL message. Calling this method is exactly the same as calling
+     <code>send()</code>, only slower, since the message is first sent
+     to the ACC using a <code>fipa-request</code> standard protocol,
+     and then bounced to actual destination agent.
+     @param msg The ACL message to send.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the ACC to indicate some error condition.
+     @see jade.core.Agent#send(ACLMessage msg)
+  */
   public void forwardWithACC(ACLMessage msg) throws FIPAException {
 
     String replyString = myName + "-acc-forward-" + (new Date()).getTime();
@@ -731,7 +999,19 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Register yourself with a DF
+  /**
+     Register this agent with a <em>DF</em> agent. While this task can
+     be accomplished with regular message passing according to
+     <em>FIPA</em> protocols, this method is meant to ease this common
+     duty.
+     @param dfName The GUID of the <em>DF</em> agent to register with.
+     @param dfd A <code>DFAgentDescriptor</code> object containing all
+     data necessary to the registration.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the DF to indicate some error condition.
+     @see jade.domain.AgentManagementOntology.DFAgentDescriptor
+   */
   public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-register-" + (new Date()).getTime();
@@ -753,7 +1033,19 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Deregister yourself with a DF
+  /**
+     Deregister this agent from a <em>DF</em> agent. While this task can
+     be accomplished with regular message passing according to
+     <em>FIPA</em> protocols, this method is meant to ease this common
+     duty.
+     @param dfName The GUID of the <em>DF</em> agent to deregister from.
+     @param dfd A <code>DFAgentDescriptor</code> object containing all
+     data necessary to the deregistration.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the DF to indicate some error condition.
+     @see jade.domain.AgentManagementOntology.DFAgentDescriptor
+  */
   public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-deregister-" + (new Date()).getTime();
@@ -775,7 +1067,21 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Modify registration data with a DF
+  /**
+     Modifies data about this agent contained within a <em>DF</em>
+     agent. While this task can be accomplished with regular message
+     passing according to <em>FIPA</em> protocols, this method is
+     meant to ease this common duty.
+     @param dfName The GUID of the <em>DF</em> agent holding the data
+     to be changed.
+     @param dfd A <code>DFAgentDescriptor</code> object containing all
+     new data values; every non null slot value replaces the
+     corresponding value held inside the <em>DF</em> agent.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the DF to indicate some error condition.
+     @see jade.domain.AgentManagementOntology.DFAgentDescriptor
+  */
   public void modifyDFData(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-modify-" + (new Date()).getTime();
@@ -797,8 +1103,36 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Search a DF for information
-
+  /**
+     Searches for data contained within a <em>DF</em> agent. While
+     this task can be accomplished with regular message passing
+     according to <em>FIPA</em> protocols, this method is meant to
+     ease this common duty. Nevertheless, a complete, powerful search
+     interface is provided; search constraints can be given and
+     recursive searches are possible. The only shortcoming is that
+     this method blocks the whole agent until the search terminates. A
+     special <code>SearchDFBehaviour</code> can be used to perform
+     <em>DF</em> searches without blocking.
+     @param dfName The GUID of the <em>DF</em> agent to start search from.
+     @param dfd A <code>DFAgentDescriptor</code> object containing
+     data to search for; this parameter is used as a template to match
+     data against.
+     @param constraints A <code>Vector</code> that must be filled with
+     all <code>Constraint</code> objects to apply to the current
+     search. This can be <code>null</code> if no search constraints
+     are required.
+     @return A <code>DFSearchResult</code> object containing all found
+     <code>DFAgentDescriptor</code> objects matching the given
+     descriptor, subject to given search constraints for search depth
+     and result size.
+     @exception FIPAException A suitable exception can be thrown when
+     a <code>refuse</code> or <code>failure</code> messages are
+     received from the DF to indicate some error condition.
+     @see jade.domain.AgentManagementOntology.DFAgentDescriptor
+     @see java.util.Vector
+     @see jade.domain.AgentManaementOntology.Constraint
+     @see jade.domain.AgentManagementOntology.DFSearchResult
+  */
   public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {
 
     String replyString = myName + "-df-search-" + (new Date()).getTime();
@@ -865,12 +1199,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Register a new listener
-  public final void addCommListener(CommListener l) {
+  final void addCommListener(CommListener l) {
     listeners.addElement(l);
   }
 
   // Remove a registered listener
-  public final void removeCommListener(CommListener l) {
+  final void removeCommListener(CommListener l) {
     listeners.removeElement(l);
   }
 
@@ -893,8 +1227,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  // Put an incoming message in agent's message queue and activate all
-  // blocking behaviours waiting for a message
+
+  /**
+     Put a received message into the agent message queue. The mesage
+     is put at the back end of the queue. This method is called by
+     JADE runtime system when a message arrives, but can also be used
+     by an agent, and is just the same as sending a message to oneself
+     (though slightly faster).
+     @param msg The ACL message to put in the queue.
+     @see jade.core.Agent#send(ACLMessage msg)
+  */
   public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
     doWake();
