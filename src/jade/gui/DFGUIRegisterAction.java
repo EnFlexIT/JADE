@@ -31,6 +31,7 @@ import javax.swing.*;
 
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.core.Agent;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -43,7 +44,7 @@ class DFGUIRegisterAction extends AbstractAction
 
 	public DFGUIRegisterAction(DFGUI gui)
 	{
-		super ("Register agent");
+		super ("Register new agent");
 		this.gui = gui;
 	}
 	
@@ -51,10 +52,10 @@ class DFGUIRegisterAction extends AbstractAction
 	{
 		//System.out.println("REGISTER NEW AGENT");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-		DFAgentDescription editedDfd = dlg.editDFD(null);
+		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,true);
 		if (editedDfd != null)
 		{
-			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
+			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getDescriptionOfThisDF().getName(), editedDfd);
 		}
 	}
 }

@@ -30,7 +30,7 @@ import javax.swing.*;
 
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-
+import jade.core.AID;
 /**
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
@@ -52,21 +52,23 @@ class DFGUIFederateAction extends AbstractAction
 	
 		gui.setTab("Federate");
 	
-		DFAgentDescription dfd = new DFAgentDescription();
 		DFAgentDescription editedDfd ;
-		dfd = gui.myAgent.getDescriptionOfThisDF();
-		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the full name of the DF with which federate");
-		String parent = insertDlg.editString("");
+		DFAgentDescription dfd = gui.myAgent.getDescriptionOfThisDF();
+		AIDGui insertDlg = new AIDGui();
+		insertDlg.setTitle("Insert the AID of the DF with which federate");
+		AID parent = insertDlg.ShowAIDGui(null,true,true); 
+		
 		if (parent != null)
 		{
 			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 			if(gui.isApplet())
 				{
-					dlg.viewDFD(dfd);
+					dlg.ShowDFDGui(dfd,false,false);
 				  editedDfd = dfd;
 				}
 			else
-			  editedDfd = dlg.editDFD(dfd);
+			//FIXME the AID should not be editable
+			  editedDfd = dlg.ShowDFDGui(dfd,true,true);
 		
 		  if (editedDfd != null)
 			  gui.myAgent.postFederateEvent((Object)gui, parent, editedDfd);

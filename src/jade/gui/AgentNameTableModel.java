@@ -32,6 +32,7 @@ import java.util.*;
 
 // Import required JADE classes
 import jade.domain.*;
+import jade.core.AID;
 
 /**
 @author Giovanni Caire Adriana Quinto - CSELT S.p.A.
@@ -50,15 +51,20 @@ class AgentNameTableModel extends AbstractTableModel
 	}
 
 	// ADD
-	public void add(String name)
+	public void add(AID name)
 	{
-		names.add((Object) name);
+		names.add(name);
+	}
+	//REMOVE
+	public void remove(AID name)
+	{
+		names.remove(name);
 	}
 	
 	// GETELEMENTAT
-	public String getElementAt(int index)
+	public AID getElementAt(int index)
 	{
-		return((String) names.get(index));
+		return((AID) names.get(index));
 	}
 
 	// CLEAR
@@ -80,7 +86,9 @@ class AgentNameTableModel extends AbstractTableModel
 
 	public Object getValueAt(int row, int column)
 	{
-		String value, completeName, localName, address;
+		return names.elementAt(row);
+		
+		/*String value, completeName, localName, address;
 		value = new String("");
 		completeName = (String) names.get(row);
     		int atPos = completeName.indexOf('@');
@@ -110,6 +118,6 @@ class AgentNameTableModel extends AbstractTableModel
 				value = new String(address);
 			break;
 		}
-		return ((Object) value);	
+		return ((Object) value);*/	
 	}
 }

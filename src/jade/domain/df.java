@@ -33,9 +33,9 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
-
 import java.util.StringTokenizer;
 import java.net.InetAddress;
+
 import java.io.*;
 
 import jade.core.*;
@@ -49,6 +49,8 @@ import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.MissingParameter;
+import jade.domain.FIPAAgentManagement.NotRegistered;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -62,19 +64,10 @@ import jade.proto.FipaRequestResponderBehaviour;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-// import jade.gui.DFGUI;
+import jade.gui.DFGUI;
 import jade.gui.GUI2DFCommunicatorInterface;
 
 import jade.proto.FipaRequestInitiatorBehaviour;
-
-class DFGUI { // <----------------------------------------------- STUB CLASS. JUST TO COMPILE THE DF WITHOUT GUI
-    public DFGUI(df p1, boolean p2) { }
-    public void refresh() { }
-    public void disposeAsync() { }
-    public void setVisible(boolean b) { }
-    public void showStatusMsg(String s) { }
-}            // <----------------------------------------------
-
 
 
 /**
@@ -211,7 +204,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       ResultPredicate r = new ResultPredicate();
       r.set_0(a);
       for (int i=0; i<l.size(); i++)
-	r.add_1(l.get(i));
+      	r.add_1(l.get(i));
       l.clear();
       l.add(r);
       fillContent(msg,l); 
@@ -272,7 +265,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	sendAgree();
   		
 	try {
-	  // Construct the reply, using the FIPAAgentManagementOntology singleton to build the sequence of
+	  // FIXME: Construct the reply, using the FIPAAgentManagementOntology singleton to build the sequence of
 	  // DFAgentDescription objects for the parents.
 	  throw new FIPAException("STUB CODE !!!");
 	}
@@ -309,9 +302,9 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	
     public void action()
       {
-	sendAgree();
+      	sendAgree();
 
-	// Create an 'inform' ACL message containing the DFAgentDescription object for this DF.
+	      // FIXME: Create an 'inform' ACL message containing the DFAgentDescription object for this DF.
 
       }
 
@@ -339,7 +332,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     }
 
     public void action() {
-      // Federate with the given DF
+      // FIXME: Federate with the given DF
     }
 
     public boolean done() {
@@ -353,7 +346,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   
 
   
-  //This behaviour allow the applet to required the df to deregister itself form a parent of the federation
+  //This behaviour allow the applet to required the df to deregister itself from a parent of the federation
   private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
 
@@ -369,7 +362,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	
   	public void action()
   	{
-	  // Deregister from the given DF;
+	  // FIXME:Deregister from the given DF;
   	}
   	
   	public boolean done()
@@ -380,26 +373,63 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	
   }//End DeregisterFromBehaviour
   
- 
-   // This private class extends the RequestDFActionBehaviour to make the search of agents with a DF. 
-    //  private class mySearchWithDFBehaviour extends RequestDFActionBehaviour {
-     
-    //  }
- 
- // This private class extends the RequestDFActionBehaviour to make the registration of an agent with a DF.
- // In particular it will be use to manage the federate action with a df.
- // The methos handle Inform has been override to update the parent and to refresh the gui if showed. 
-    // private class myRegisterWithDFBehaviour extends RequestDFActionBehaviour {
+  private class GUIRequestDFServiceBehaviour extends RequestFIPAServiceBehaviour
+  {
+    String actionName;
+    DFGUI gui;
+    AID receiverDF;
+    
+  	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUI gui) throws FIPAException
+  	{
+  		
+  		super(df.this,receiverDF,actionName,dfd,constraints);
+  		
+  		this.actionName = actionName;
+  		this.gui = gui;
+  		this.receiverDF = receiverDF;
+  	}
+  	
+  	protected void handleInform(ACLMessage msg)
+  	{
+  		super.handleInform(msg);
+  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH))
+  		{
+  			try{
+  				gui.showStatusMsg("Search request Processed. Ready for new request");
+  				gui.refreshLastSearchResults(getSearchResult());
+  			}catch (Exception e){
+  			e.printStackTrace();// should never happen
+  			}
+  		}
+  		else
+  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER))
+  		{
+  			try{
+  				gui.showStatusMsg("Federation request Processed. Ready for new request");
+  				parents.add(receiverDF);
+  				gui.addParent(receiverDF);
+  			}catch (Exception e){
+  			e.printStackTrace();// should never happen
+  			}
+  		}
+  		else
+  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+  		{
+  			try{
+  				gui.showStatusMsg("Deregister request Processed. Ready for new request");
+  				//this behaviour is never used to deregister an agent of this DF
+  				// but only to deregister a parent or an agent that was registered with
+  				// one of my parents or my children
+  				parents.remove(receiverDF); 
+  				gui.removeParent(receiverDF);
+  			}catch (Exception e){
+  			e.printStackTrace();// should never happen
+  			}
+  		}
 
-    // }
- 
- 
- // This private class extends the RequestDFActionBehavior in order to provide the deregistration 
- // of this df with another df.
-    // private class myDeregisterWithDFBehaviour extends RequestDFActionBehaviour {
-
-    // }
-
+  	}
+  }
+  
   private static int NUMBER_OF_AGENT_FOUND = 1000;
 
   /**
@@ -433,12 +463,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   */
   private DFAgentDescription thisDF = null;
   
-  // List to maintain the constraint for the search inserted by the user.
-  /**
-  @serial
-  */
-  private List searchConstraint = null;
-  
+ 
   
   /**
     This constructor creates a new <em>DF</em> agent. This can be used
@@ -462,9 +487,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour());
 
     // Behaviour to deal with the GUI
-    // FIXME. Fabio. This is only necessary because AgentManagementParser.jj
-    // parses also the action names. Asap AgentManagementParser.jj is
-    // fixed, we can register SHOWGUI with dispatcher
+    
     MessageTemplate mt1 = MessageTemplate.MatchOntology("jade-extensions");
     jadeExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt1);
     jadeExtensionDispatcher.registerFactory("SHOWGUI", new ShowGUIBehaviour());
@@ -490,7 +513,9 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     addBehaviour(dispatcher);
     addBehaviour(jadeExtensionDispatcher);
     setDescriptionOfThisDF(getDefaultDescription());
-    setConstraints();
+    //FIXMe just for debugging
+    showGui();
+    //setConstraints();
   }  // End of method setup()
 
 	/**
@@ -501,7 +526,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
    if (gui == null) 
   		{
 			gui = new DFGUI(df.this, false);
-			gui.refresh();
+			gui.refresh(PROVA.values().iterator(),parents.iterator(),children.iterator());
 			
 			gui.setVisible(true);
 			return true;
@@ -535,26 +560,109 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     }
   }
 
+  private boolean isADF(DFAgentDescription dfd) {
+  	try {
+  		return ((ServiceDescription)dfd.getAllServices().next()).getType().equalsIgnoreCase("fipa-df");
+  	} catch (Exception e) {
+  		return false;
+  	}
+  }
+  
+  /**
+  * checks that all the mandatory slots for a register/modify/deregister action
+  * are present.
+  * @param actionName is the name of the action (one of 
+  * <code>FIPAAgentManagementOntology.REGISTER</code>,
+  * <code>FIPAAgentManagementOntology.MODIFY</code>,
+  * <code>FIPAAgentManagementOntology.DEREGISTER</code>)
+  * @param dfd is the DFAgentDescription to be checked for
+  * @throws MissingParameter if one of the mandatory slots is missing
+  **/
+  private void checkMandatorySlots(String actionName, DFAgentDescription dfd) throws MissingParameter {
+  	try {
+  	  if (dfd.getName().getName().length() == 0)
+  		  throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+  	} catch (Exception e) {
+  		e.printStackTrace();
+  		throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+  	}
+  	if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+  	 for (Iterator i=dfd.getAllServices(); i.hasNext();) {
+  		ServiceDescription sd =(ServiceDescription)i.next();
+  		try {
+  		  if (sd.getName().length() == 0)
+  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+  	  } catch (Exception e) {
+  	  	e.printStackTrace();
+  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+  	  }
+  	  try {
+  		  if (sd.getType().length() == 0)
+  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+  	  } catch (Exception e) {
+  	  	e.printStackTrace();
+  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+  	  }
+  	 } //end of for
+  }
+  
+  
 private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
-  private void DFRegister(DFAgentDescription dfd) throws FIPAException {
+  
+private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFRegister() called.");
+    
+    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+    
     PROVA.put(dfd.getName(),dfd);
+    if (isADF(dfd)) {
+    	children.add(dfd.getName());
+    	try {
+    		gui.addChildren(dfd.getName());
+    	} catch (Exception ex) {}
+    }
+    try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
+    		        gui.addAgentDesc(dfd.getName());	
+    }catch(Exception ex){}
+    
   }
 
 
   private void DFDeregister(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFDeregister() called.");
-    PROVA.remove(dfd.getName());
+    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
+
+    if (PROVA.remove(dfd.getName()) == null)
+    	throw new NotRegistered();
+    if (children.remove(dfd.getName()))
+    	try {
+    		gui.removeChildren(dfd.getName());
+    	} catch (Exception e) {}
+    try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
+    	// this refresh must be here, otherwise the GUI is not synchornized with 
+    	// registration/deregistration made without using the GUI
+    		        gui.removeAgentDesc(dfd.getName());		
+						}catch(Exception e1){}	
+    
+
   }
 
   private void DFModify(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFModify() called.");
-    PROVA.put(dfd.getName(),dfd);
+    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+
+    if (PROVA.put(dfd.getName(),dfd) == null)
+    	throw new NotRegistered();
+    
+    
+
   }
 
   private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
     System.out.println("df::DFSearch() called.");
+
     return new ArrayList(PROVA.values());
+    
   }
 
   
@@ -568,20 +676,20 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 		public static final int MODIFY = 1003;
 		public static final int SEARCH = 1004;
 		public static final int FEDERATE = 1005;
-		public static final int SEARCH_WITH_CONSTRAINT = 1006;
-	
-		public String dfName;
-		public DFAgentDescription dfd;
-		public Vector constraints = null;
 
-		public DFGuiEvent(Object source, int type, String dfName, DFAgentDescription dfd)
+	
+		public AID dfName;
+		public DFAgentDescription dfd;
+		public SearchConstraints constraints = new SearchConstraints();
+
+		public DFGuiEvent(Object source, int type, AID dfName, DFAgentDescription dfd)
 		{
 			super(source, type);
 			this.dfName = dfName;
 			this.dfd =dfd;
 		}
 		
-		public DFGuiEvent(Object source, int type, String dfName, DFAgentDescription dfd, Vector constraints)
+		public DFGuiEvent(Object source, int type, AID dfName, DFAgentDescription dfd, SearchConstraints constraints)
 		{
 			super(source,type);
       this.dfName = dfName;
@@ -590,45 +698,42 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 		}
 	}
 		
-	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT DATA MODIFICATIONS 	
-	public void postRegisterEvent(Object source, String dfName, DFAgentDescription dfd)
+	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT DATA MODIFICATIONS 
+	// This methods are executed by the GUI Thread and their execution results into
+	// posting an event into the Agent Thread. Having received that event, the
+	// Agent thread executes the method onGuiEvent
+	public void postRegisterEvent(Object source, AID dfName, DFAgentDescription dfd)
 	{
 		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.REGISTER, dfName, dfd);
 		postGuiEvent(ev);
 	}
 	
-	public void postDeregisterEvent(Object source, String dfName, DFAgentDescription dfd)
+	public void postDeregisterEvent(Object source, AID dfName, DFAgentDescription dfd)
 	{
 		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.DEREGISTER, dfName, dfd);
 		postGuiEvent(ev);
 	}
 
-	public void postModifyEvent(Object source, String dfName, DFAgentDescription dfd)
+	public void postModifyEvent(Object source, AID dfName, DFAgentDescription dfd)
 	{
 		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.MODIFY, dfName, dfd);
 		postGuiEvent(ev);
 	}
 
-	public void postSearchEvent(Object source, String dfName, DFAgentDescription dfd)
+	public void postSearchEvent(Object source, AID dfName, DFAgentDescription dfd, SearchConstraints c)
 	{
-	 DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.SEARCH, dfName, dfd);
+	 DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.SEARCH, dfName, dfd, c);
 	 postGuiEvent(ev);
 	}	
 	
-	public void postFederateEvent(Object source, String dfName, DFAgentDescription dfd)
+	public void postFederateEvent(Object source, AID dfName, DFAgentDescription dfd)
 	{
 		DFGuiEvent ev = new DFGuiEvent(source,DFGuiEvent.FEDERATE, dfName, dfd);
 		postGuiEvent(ev);
 	
 	}
 	
-	public void postSearchWithConstraintEvent(Object source, String dfName, DFAgentDescription dfd, List constraint)
-	{
-	    /*
-		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.SEARCH_WITH_CONSTRAINT,dfName,dfd,constraint);
-		postGuiEvent(ev);
-	    */
-	}
+	
 	
 	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
@@ -649,38 +754,53 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 				break;
 			case DFGuiEvent.REGISTER:
 				e = (DFGuiEvent) ev;
-				if (e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				if (e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
 				{
 					// Register an agent with this DF
 						DFRegister(e.dfd);
+					
 				}
 				else 
 				{
-					// Register an agent with another DF. 
-					// The agent to be registered should be this DF --> FEDERATE
-				    //					addBehaviour(new myRegisterWithDFBehaviour(this,e.dfName, e.dfd));
+										// Register an agent with another DF. 
+				try
+		 		{
+		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  		 addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
+		 		}catch (FIPAException fe) {
+		 			fe.printStackTrace(); //it should never happen
+		 			} catch(Exception ex){} //Might happen if the gui has been closed
+		  	
+				
 				}
 				break;
 			case DFGuiEvent.DEREGISTER:
 				e = (DFGuiEvent) ev;
-				if(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				if(e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
 				{
 					// Deregister an agent with this DF
 					DFDeregister(e.dfd);
+					
 				}
 				else 
 				{
 					// Deregister an agent with another DF. 
-					// The agent to be deregistered should be this DF --> DEFEDERATE
-				    // addBehaviour(new myDeregisterWithDFBehaviour(this,e.dfName,e.dfd));  
+				try
+		 		{
+		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  		 addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.DEREGISTER,e.dfd,null,gui));
+		 		}catch (FIPAException fe) {
+		 			fe.printStackTrace(); //it should never happen
+		 			} catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
 			case DFGuiEvent.MODIFY:
 				e = (DFGuiEvent) ev;
-				if(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				if(e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
 				{
 					// Modify the description of an agent with this DF
 					DFModify(e.dfd);
+					
 				}
 				else 
 				{
@@ -691,83 +811,52 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 				break;
 		  case DFGuiEvent.SEARCH:
 		  	e = (DFGuiEvent) ev;
-		  	searchDFAgentDescriptor(e.dfd,e.dfName,null);	 
+		  	
+		  	if (gui != null)
+		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  	try{
+	  		  addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.SEARCH,e.dfd,e.constraints,gui));
+	  	  }catch(FIPAException fe){
+	  	   fe.printStackTrace();
+	  	  }
+		  	 
 		  	break;
 		 	case DFGuiEvent.FEDERATE:
 		 		e = (DFGuiEvent) ev;
-		 	  //registerWithDF(e.dfName, e.dfd);
-		 	  if (!(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())))
-		 	  	{
-		 	  		if(gui != null)
-		 	  			gui.showStatusMsg("Process your request & waiting for result.");
-					//		 	  		addBehaviour(new myRegisterWithDFBehaviour(this,e.dfName,e.dfd));
-		 	  	}
-		 	  else
-		 	  { 
-		 	  	if (gui != null)
+		 	
+		 		try
+		 		{
+		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  	   
+		  	   if(e.dfName.equals(getAID()) || e.dfName.equals(getLocalName()))
 		 	  		gui.showStatusMsg("Self Federation not allowed");
-		 	  	throw new FIPAException("Self Federation not allowed");
-		 	  }
+		  		else
+		  		addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
+		 		}catch (FIPAException fe) {
+		 			fe.printStackTrace(); //it should never happen
+		 			} catch(Exception ex){} //Might happen if the gui has been closed
+		  	  
+		  	
 		 		break;
-		 	case DFGuiEvent.SEARCH_WITH_CONSTRAINT:
-			    /*		 		e = (DFGuiEvent)ev;
-		 		searchConstraint = (Vector)(e.constraints).clone();
-		 		searchDFAgentDescriptor(e.dfd,e.dfName,searchConstraint);
-			    */
-		 		break;
+		 	
 		 
 			} // END of switch
 		} // END of try
 		catch(FIPAException fe) 
 		{
 			fe.printStackTrace();
+			//FIXME showErrorMsg
 		}
 	}
 
-	////////////////////////////////////////////////
-	// Methods used by the DF GUI to get the DF data
-	public Iterator getAllDFAgentDsc() 
-	{
-	  return new ArrayList().iterator();
-	}
-
+	
 	// This method returns the descriptor of an agent registered with the df.
-	public DFAgentDescription getDFAgentDsc(String name) throws FIPAException
+	public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException
 	{
-	  return new DFAgentDescription();
+	  return  (DFAgentDescription)PROVA.get(name);
 	}
 	
-	// returns the description of the agents result of the search. 
-	public DFAgentDescription getDFAgentSearchDsc(String name) throws FIPAException
-	{
-	    /*
-		DFAgentDescription out = null;
 	
-		Enumeration e = found.elements();
-		while (e.hasMoreElements())
-		{
-			 DFAgentDescription dfd = (DFAgentDescription) e.nextElement();
-			 if (dfd.getName().equalsIgnoreCase(name))
-			  out = dfd;	
-		}
-		if (out == null) throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
-	    */
-	    DFAgentDescription out = new DFAgentDescription();
-		return out;
-	}
-	//This method implements the search feature. 
-	
-	public void searchDFAgentDescriptor(DFAgentDescription dfd, String responder,Vector constraints)
-	{
-	    /*
-	  	gui.showStatusMsg("Process your request & waiting for result...");
-	  	try{
-	  		addBehaviour(new mySearchWithDFBehaviour(this,responder,dfd,constraints,null));
-	  	}catch(FIPAException fe){
-	  	  fe.printStackTrace();
-	  	}
-	    */
-	}
 	
 	/**
   * This method creates the DFAgent descriptor for this df used to federate with other df.
@@ -775,40 +864,28 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 	private DFAgentDescription getDefaultDescription()
 	{
 	  	DFAgentDescription out = new DFAgentDescription();
-		/*
-	  	//System.out.println("Initialization of the description of thisDF");
-			out.setName(getName());
-		  out.addAddress(getAddress());
-		  try{
-		  	out.setOwnership(InetAddress.getLocalHost().getHostName());
+	
+			out.setName(getAID());
+			out.addOntologies(FIPAAgentManagementOntology.NAME);
+			out.addLanguages(SL0Codec.NAME);
+			out.addProtocols("fipa-request");
+			ServiceDescription sd = new ServiceDescription();
+			sd.setName("df-service");
+			sd.setType("fipa-df");
+			sd.addOntologies(FIPAAgentManagementOntology.NAME);
+			sd.addLanguages(SL0Codec.NAME);
+			sd.addProtocols("fipa-request");
+      try{
+		  	sd.setOwnership(InetAddress.getLocalHost().getHostName());
 		  }catch (java.net.UnknownHostException uhe){
-		  	out.setOwnership("unknown");}
-		  out.setType("fipa-df");
-		  out.setDFState("active");
-		  out.setOntology("fipa-agent-management");
-		  //thisDF.setLanguage(SL0Codec.NAME); not exist method setLanguage() for dfd in Fipa97
-		  out.addInteractionProtocol("fipa-request");
-		  AgentManagementOntology.ServiceDescriptor sd = new 	AgentManagementOntology.ServiceDescriptor();
-	    sd.setType("fipa-df");
-	    sd.setName("federate-df");
-	    sd.setOntology("fipa-agent-management");
-		  out.addAgentService(sd);
-		*/
+		  	sd.setOwnership("unknown");}
+		  
+		  out.addServices(sd);
+		  
 		  return out;
 	}
 
-	//Method to know the parent of this df. DFs with which the current DF is federated.
-	public Iterator getParents()
-	{
-	  return parents.iterator();	
-	}
-
-	//Method to know the df registered with this df
-	public Iterator getChildren()
-	{
-	  return children.iterator();
-	}
-
+	
 	/*
 	* This method set the description of the df according to the DFAgentAgentDescription passed.
 	* The programmers can call this method to provide a different initialization of the description of the df they are implemented.
@@ -826,34 +903,20 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
 	    return thisDF;
 	}
 	
-	// This method is used to get the constraint manitained by the df to perform a search with constraint
-	public List getConstraints()
-	{
-	  return searchConstraint;
-	}
 	
 	/*
 	This method can be used to add a parent (a DF with which the this DF is federated). 
 	*/
-	public void addParent(String dfName)
+	public void addParent(AID dfName)
 	{
 	  parents.add(dfName);
 	}
 	
 	
-	//This method is called in the setup method to initialize the constraint vector for the search operation.
-	private void setConstraints()
-	{
-	    /*
-		AgentManagementOntology.Constraint c = new 	AgentManagementOntology.Constraint();
-		c.setName(	AgentManagementOntology.Constraint.DFDEPTH);
-		c.setFn(AgentManagementOntology.Constraint.MAX);
-		c.setArg(1);
-		searchConstraint = new Vector();
-		searchConstraint.add(c);
-	    */
-	}
 	
-	// Method for refresh the gui of an applet of the df.
-	public void postRefreshAppletGuiEvent(Object o){}
+	
+	
+	
+
+	
 }

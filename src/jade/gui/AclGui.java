@@ -320,14 +320,14 @@ public class AclGui extends JPanel
     		
     		if(command.equals("Set"))
     		{
-    		  newAIDSender = guiSender.ShowAIDGui(SenderAID,true);
+    		  newAIDSender = guiSender.ShowAIDGui(SenderAID,true,true);
     		  //the name can be different
     			if (newAIDSender != null)
     				sender.setText(newAIDSender.getName());
     		}
     		else
     		if(command.equals("View"))
-    			guiSender.ShowAIDGui(SenderAID, false);
+    			guiSender.ShowAIDGui(SenderAID, false,false);
     		
     	}
     });

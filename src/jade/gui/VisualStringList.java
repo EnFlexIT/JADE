@@ -70,7 +70,6 @@ public class VisualStringList extends JPanel
 	JMenuItem addItem;
 	JMenuItem removeItem;
 	
-	
 	static String VIEW_LABEL = "View";
 	static String EDIT_LABEL = "Edit";
 	static String ADD_LABEL = "Add";
@@ -87,6 +86,8 @@ public class VisualStringList extends JPanel
 	VisualStringList(Iterator content)
 	{
 	
+	
+		
 		listModel = new DefaultListModel();
 		try
 	  {
@@ -212,6 +213,8 @@ public class VisualStringList extends JPanel
 			editItem.setText(VIEW_LABEL);
 			
 	}
+	
+	
 	
 	/** 
 	* This method returns the string that will be shown on the panel.

@@ -32,7 +32,8 @@ import javax.swing.*;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
-
+import jade.core.AID;
+import jade.core.Agent;
 /**
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
@@ -51,9 +52,9 @@ class DFGUIDeregisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("DEREGISTER");
-		DFAgentDescription dfd = new DFAgentDescription ();
-	  String df =null;
-	  String name;
+		DFAgentDescription dfd;
+	  AID df =null;
+	  AID name;
 		int kind = gui.kindOfOperation();
 	  
 	  if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW)
@@ -62,18 +63,12 @@ class DFGUIDeregisterAction extends AbstractAction
 			name = gui.getSelectedAgentInTable();
 			if (name != null)
 			{
-				df = gui.myAgent.getLocalName();
-				try
-				{
-				dfd = gui.myAgent.getDFAgentDsc(name);
-				}catch (FIPAException fe)
-				{
-					System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
-					return;}
-			
+				df = gui.myAgent.getDescriptionOfThisDF().getName();			
+				dfd = new DFAgentDescription();
+				dfd.setName(name); 
 			}
 			else
-			return;
+			  return;
 		}
 		else
 		if (kind == DFGUI.PARENT_VIEW)
@@ -82,16 +77,22 @@ class DFGUIDeregisterAction extends AbstractAction
 
 			df = gui.getSelectedAgentInTable();
 			if (df != null)
-			{
-			    dfd = new DFAgentDescription ();
-		  	dfd.setName(gui.myAgent.getName());
-		  	
-			}
-			else return;
+			    dfd = gui.myAgent.getDescriptionOfThisDF();
+			else 
+			    return;
 		}
-		else 
-		{//kind == 1 Not possible Deregister not allowed from lastsearch 
-			return;
+		else // kind=LASTSEARCH_VIEW
+		{
+			name = gui.getSelectedAgentInTable();
+			if (name != null)
+			{
+				//FIXME I have to get the AID of df from DFGUI
+				df = gui.myAgent.getDescriptionOfThisDF().getName();			
+				dfd = new DFAgentDescription();
+				dfd.setName(name); 
+			}
+			else
+			  return;
 		}
 		gui.myAgent.postDeregisterEvent((Object) gui, df, dfd);
 	}

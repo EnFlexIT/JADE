@@ -32,7 +32,8 @@ import javax.swing.*;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
-
+import jade.core.Agent;
+import jade.core.AID;
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -55,7 +56,7 @@ class DFGUIModifyAction extends AbstractAction
 		if (i != -1)
 		{
 			DFAgentDescription dfd;
-			String name = gui.registeredModel.getElementAt(i);
+			AID name = gui.registeredModel.getElementAt(i);
 			try
 			{
 				dfd = gui.myAgent.getDFAgentDsc(name);
@@ -66,10 +67,16 @@ class DFGUIModifyAction extends AbstractAction
 				return;
 			}
 			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-			DFAgentDescription editedDfd = dlg.editDFD(dfd);
+			DFAgentDescription editedDfd = dlg.ShowDFDGui(dfd,true,true);
+			
 			if (editedDfd != null)
 			{
-			    gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
+			  if(!editedDfd.getName().equals(dfd.getName()))
+			     {
+			     	JOptionPane.showMessageDialog(null,"The agent name cannot be modified.","Error Message",JOptionPane.ERROR_MESSAGE);
+			     	return;
+			     }
+				gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getDescriptionOfThisDF().getName(), editedDfd);
 			}
 		}
 	}

@@ -32,7 +32,9 @@ import java.util.Enumeration;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
-
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+	
 /**
 @author Tiziana Trucco - CSELT S.p.A.
 @version $Date$ $Revision$
@@ -52,29 +54,27 @@ class DFGUISearchAction extends AbstractAction
 	{
 	
 		int kind = gui.kindOfOperation();
-		String df = gui.myAgent.getLocalName();
+		AID df; 
 		
-		if (kind == DFGUI.PARENT_VIEW) // search on parent
+		if ((kind == DFGUI.PARENT_VIEW) || (kind == DFGUI.CHILDREN_VIEW))// search on parent
 		   {
-		    String name = gui.getSelectedAgentInTable();
+		    AID name = gui.getSelectedAgentInTable();
 		    if (name != null)
 		    	df = name; //find the address of the parent-df
-		    	
+		    else	
+			    df = gui.myAgent.getDescriptionOfThisDF().getName();
 		   }	
-		else if (kind == DFGUI.CHILDREN_VIEW)
-			{
-				String name = gui.getSelectedAgentInTable();
-				if(name != null)
-					df = name;//find the adress of the child-df
-			}
+		else 
+		 	df = gui.myAgent.getDescriptionOfThisDF().getName();
+		
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 	
-		DFAgentDescription editedDfd = dlg.editDFD(null);
+		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,false); //checkMandatorySlots = false
 
 		//If no df is selected, the df of the platform is used. 
 		if (editedDfd != null)
 		{	
-			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd);
+			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd,new SearchConstraints());
 			gui.setTab("Search");
 		}
 	}

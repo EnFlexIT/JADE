@@ -32,12 +32,14 @@ import javax.swing.event.*;
 import javax.swing.table.*;
 
 import java.util.Iterator;
-
+import java.util.List;
+import java.util.HashMap;
 import java.applet.*;
 
 // Import required Jade classes
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.core.AID;
 
 /**
 * This class implements the GUI of the Directory Facilitator.
@@ -160,15 +162,13 @@ public class DFGUI extends JFrame
 	@serial
 	*/
 	DFGUIFederateAction         dfFedAction;
-	/**
-	@serial
-	*/
-  DFGUISearchWithConstraintAction   dfSearchConstraintAction; 
-  
+	
   /**
   @serial
   */
   boolean isGUIForApplet = false;  // this variable is used to discriminate if the gui is of an applet or not
+  
+  HashMap lastSearchResults;
   
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 
@@ -176,10 +176,12 @@ public class DFGUI extends JFrame
 		//////////////////////////
 		// Initialization
 		super();
+		lastSearchResults = new HashMap();
 		isGUIForApplet = isApplet;
     setSize(550,450);
-		setTitle("DF: " + a.getLocalName());
-		myAgent = a;
+		//setTitle("DF: " + a.getLocalName());
+		setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
+    myAgent = a;
     
 		/////////////////////////////////////
 		// Add main menu to the GUI window
@@ -202,14 +204,14 @@ public class DFGUI extends JFrame
 		dfDeregAction = new DFGUIDeregisterAction(this);
 		dfRegAction = new DFGUIRegisterAction(this);
 		dfSearchAction = new DFGUISearchAction(this); 
-		dfSearchConstraintAction = new DFGUISearchWithConstraintAction(this);
+	
 		
 		item = catalogueMenu.add(dfViewAction);
 		item = catalogueMenu.add(dfModifyAction);
 		item = catalogueMenu.add(dfDeregAction);
 		item = catalogueMenu.add(dfRegAction);
 		item = catalogueMenu.add(dfSearchAction);
-		item = catalogueMenu.add(dfSearchConstraintAction);
+
 		
 		jmb.add (catalogueMenu);
 		
@@ -572,16 +574,16 @@ public class DFGUI extends JFrame
 							break;
 							
 			case 1: //setSearch(true);
-						  setDeregister(false);
-						  setRegister(false);
-					    setModify(false);
-							setDFfed(false);
+						  setDeregister(true);
+						  setRegister(true);
+					    setModify(true);
+							setDFfed(true);
 							break;
 		
 		  case 2: //setSearch(true);
 							setDeregister(true);
-							setRegister(false);
-							setModify(false);
+							setRegister(true);
+							setModify(true);
               setDFfed(true);
 							break;		
 		}
@@ -634,9 +636,9 @@ public class DFGUI extends JFrame
 			
 	}
 	
-	public String getSelectedAgentInTable()
+	public AID getSelectedAgentInTable()
 	{
-		String out = null;
+		AID out = null;
 		int tab = tabbedPane.getSelectedIndex();
 		int row;
 		if (tab == 0)
@@ -703,51 +705,85 @@ public class DFGUI extends JFrame
 	
 	////////////////////////////////////
 	// Refresh the DF GUI 
-	public void refresh() 
+	public void refresh(Iterator AIDOfAllAgentRegistered,Iterator parents,Iterator children) 
 	{
 		registeredModel.clear();
-		Iterator registered = myAgent.getAllDFAgentDsc();
-		while (registered.hasNext())
-		{
-		    DFAgentDescription dfd = (DFAgentDescription)registered.next();
-		    registeredModel.add(dfd.getName());
-		}
+		for (; AIDOfAllAgentRegistered.hasNext(); )
+		    registeredModel.add((AID)AIDOfAllAgentRegistered.next());
 		registeredModel.fireTableDataChanged();
-		refreshFederation();
+	
+		parentModel.clear();
+		for (; parents.hasNext(); )
+			parentModel.add((AID)parents.next());
+		parentModel.fireTableDataChanged();
+		
+		childrenModel.clear();
+		for (; children.hasNext(); )
+			childrenModel.add((AID)children.next());
+		childrenModel.fireTableDataChanged();
 	}
+	
 
-	public void refreshLastSearch(Iterator it){
+	public void refreshLastSearchResults(List l){
+		
 		foundModel.clear();
+		lastSearchResults.clear();
+		
+		Iterator it = l.iterator();
 		while(it.hasNext()){
-		DFAgentDescription dfd = (DFAgentDescription) it.next();
-		foundModel.add(dfd.getName());
+			DFAgentDescription dfd = (DFAgentDescription) it.next();
+		  foundModel.add(dfd.getName());
+		  lastSearchResults.put(dfd.getName(),dfd);
 		}
 		foundModel.fireTableDataChanged();
 	}
 	
-	public void refreshFederation()
+	/**
+	* adds a new parent to parentModel
+	**/
+	public void addParent(AID parentName)
 	{
 	
-		parentModel.clear();
-		Iterator parent = myAgent.getParents();
-		while (parent.hasNext())
-		{
-		  parentModel.add((String)parent.next());
-		}
+		parentModel.add(parentName);
 		parentModel.fireTableDataChanged();
-		
-    childrenModel.clear();
-		Iterator children  = myAgent.getChildren();
-		while(children.hasNext())
-		{
-		  childrenModel.add((String)children.next());
-		}
-		childrenModel.fireTableDataChanged();
-		
-		
+	
 
 	}
 	
+	public void addChildren(AID childrenName)
+	{
+		childrenModel.add(childrenName);
+		childrenModel.fireTableDataChanged();
+	}
+	
+	public void addAgentDesc(AID name)
+	{
+		registeredModel.add(name);
+		registeredModel.fireTableDataChanged();
+	}
+	
+	public void removeAgentDesc(AID name)
+	{
+		registeredModel.remove(name);
+		registeredModel.fireTableDataChanged();
+	}
+
+ public void removeChildren(AID childrenName)
+	{
+		childrenModel.remove(childrenName);
+		childrenModel.fireTableDataChanged();
+	}
+	
+	public void removeParent(AID parentName)
+	{
+	
+		parentModel.remove(parentName);
+		parentModel.fireTableDataChanged();
+	
+
+	}
+	
+
 
 	
 	////////////////////////////////////
@@ -796,5 +832,13 @@ public class DFGUI extends JFrame
 	{
 		return isGUIForApplet;
 	} 
+	
+	
+	
+	public DFAgentDescription getDFAgentSearchDsc(AID name)
+	{	
+	  return (DFAgentDescription)lastSearchResults.get(name); 	
+	}
 
+	
 }

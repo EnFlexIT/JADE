@@ -31,6 +31,7 @@ import javax.swing.*;
 // Import required Jade classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
+import jade.core.AID;
 
 /**
 @author Giovanni Caire - CSELT S.p.A.
@@ -57,11 +58,14 @@ class DFGUIViewAction extends AbstractAction
 		
 		if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW || kind == DFGUI.LASTSEARCH_VIEW)
 	  {
-	  	String name = gui.getSelectedAgentInTable();
+	  	AID name = gui.getSelectedAgentInTable();
 	  	if (name != null)
 	      try{
 	      	if(kind == DFGUI.LASTSEARCH_VIEW)
-	      	  dfd = gui.myAgent.getDFAgentSearchDsc(name);
+	      	  { 
+	      	  	//
+	      	  	dfd = gui.getDFAgentSearchDsc(name);
+	      	  }
 	        else
 	  			  dfd = gui.myAgent.getDFAgentDsc(name);
 	  		}catch (FIPAException fe){
@@ -82,7 +86,7 @@ class DFGUIViewAction extends AbstractAction
 	    if(dfd != null && kind != -1)
 	    {
 	    	DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-	    	dlg.viewDFD(dfd);
+	    	dlg.ShowDFDGui(dfd,false,false);
 	    }
 	    
 		

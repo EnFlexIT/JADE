@@ -25,41 +25,38 @@ package jade.gui;
 
 import java.awt.Component;
 import java.util.Iterator;
-import jade.core.AID;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import javax.swing.JDialog;
 
 /**
-* This class extends the VisualStringList in order to show a list of AID (Agent-Identifer).
-* To show these items correctly, have been overridden the methods:
-* <code>getElementName</code> to return the name of the agent (shown in the list).
-* <code>editElement</code> to show the ADIGui when required.
-*
-* @see jade.gui.VisualStringList
-* @see jade.gui.AIDGui
+* 
 * @author Tiziana Trucco - CSELT S.p.A
 * @version $Date$ $Revision$
 */
-public class VisualAIDList extends VisualStringList
+
+public class VisualServicesList extends VisualStringList
 {
 	boolean checkSlots;
-	
-	VisualAIDList(Iterator content)
+	VisualServicesList(Iterator content)
 	{
 		super(content);
-		checkSlots = true;//the default behaviour is that all the mandatory slots are checked.	
+		checkSlots = true;
 	}
 	
 	protected String getElementName(Object el)
 	{
-		return (((AID)el).getName());
+		return (((ServiceDescription)el).getName());
 	}
 	
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		
-		AIDGui gui = new AIDGui();
- 		return gui.ShowAIDGui((AID)el,isEditable,checkSlots);
+		ServiceDscDlg gui = new ServiceDscDlg(new JDialog());
+ 		return gui.viewSD((ServiceDescription)el,isEditable, checkSlots);
  		
 	}
+	
+	
 	/**
 	This method is used to ensure that the mandatory fields would be corrected inserted. 
 	*/
@@ -67,5 +64,7 @@ public class VisualAIDList extends VisualStringList
 	{
 		this.checkSlots = checkMandatorySlots;
 	}
+
+	
 	
 }

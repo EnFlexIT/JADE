@@ -45,7 +45,7 @@ import jade.domain.FIPAAgentManagement.*;
  
  public class AIDGui extends JDialog{
  	
- 	private boolean editable;
+ 	private boolean editable, checkSlots;
  	private AID agentAID;
  	private JTextField nameText;
  	private VisualStringList addressListPanel;
@@ -58,16 +58,23 @@ import jade.domain.FIPAAgentManagement.*;
    super();
  	}
  	
- 
- 	public AID ShowAIDGui(AID agentIdentifier, boolean ed)
+ /**
+ This method shows an AID with a GUI.
+ @param agentIdentifier is the AID to be shown
+ @param editable is true when the AID can be edited
+ @param checkMandatorySlots is true when the returned AID must contain all the mandatory slots, as defined by FIPA specs
+ @return null if the user pushs the Cancel button, an AID otherwise
+ **/
+ 	public AID ShowAIDGui(AID agentIdentifier, boolean ed, boolean checkMandatorySlots)
  	{
  	  this.out = null;
  		this.editable = ed;
- 	
+ 	  this.checkSlots = checkMandatorySlots;
+ 	  
  		if(agentIdentifier == null)
  			this.agentAID =  new AID();
  		else
- 		this.agentAID = agentIdentifier;
+ 		  this.agentAID = agentIdentifier;
  		
  		
  		setTitle("AID");
@@ -112,6 +119,7 @@ import jade.domain.FIPAAgentManagement.*;
  	  resolverListPanel = new VisualAIDList(agentAID.getAllResolvers());
  	  resolverListPanel.setDimension(new Dimension(200,40));
  	  resolverListPanel.setEnabled(editable);
+ 	  resolverListPanel.setCheckMandatorySlots(checkMandatorySlots);
  	  resolversPanel.add(resolverListPanel);
  		mainPanel.add(resolversPanel); 
  		
@@ -142,13 +150,11 @@ import jade.domain.FIPAAgentManagement.*;
  						{
  							
  						  String name = (nameText.getText()).trim();
- 						
- 						  //name: if not null set the name to that inserted otherwise uses the old one
- 						  if(name.length() == 0) {
- 						    JOptionPane.showMessageDialog(null,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
- 						    return;
- 						  }
- 						  
+ 						  if (checkSlots) 
+ 						    if (name.length() == 0) {
+    		  				JOptionPane.showMessageDialog(null,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
+    		  				return;
+    		  			}				  
  						  out = new AID();						  
  						  out.setName(name);
  						  //addresses

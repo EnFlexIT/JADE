@@ -28,13 +28,14 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-
 import java.util.List;
 import java.util.Iterator;
+import java.util.Enumeration;
 
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.core.AID;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A
@@ -42,18 +43,20 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 */
 class DFAgentDscDlg extends JDialog 
 {
-	JTextField agentName;
-	//JComboBox  agentAddresses;
-	JTextField agentType;
-	//JTextField dfState;
-	JTextField ownership;
-	JTextField ontology;
-	JTextField language;
-	//JComboBox  protocols;
-	String[] states ={"active", "suspended","waiting"};
-	JComboBox dfState;
+	
 	Dialog     dlgParent;
-
+  DFAgentDescription dfdAgent;
+	DFAgentDescription out;
+	AID newAID = null;
+	boolean editable;
+	boolean checkSlots;
+	
+	private VisualStringList ontologiesListPanel;
+	private VisualStringList languagesListPanel;
+	private VisualStringList protocolsListPanel;
+	private VisualServicesList servicesListPanel;
+	private JTextField agentName;
+	
 	// CONSTRUCTORS
 	DFAgentDscDlg(Frame parent) 
 	{
@@ -67,779 +70,231 @@ class DFAgentDscDlg extends JDialog
 		dlgParent = (Dialog) this;
 	}
 
-	void viewDFD(DFAgentDescription dfd)
+	/**
+	* This method show a a giu for a DFAgentDescription.
+	* @param dfd the DFAgentDescrption to show
+	* @param ed true if the fields of the gui must be editable, false otherwise.
+	* @param checkMandatorySlots true to verify that a value is specified for all the mandatory fields, false otherwise.  
+	* @return a DFAgentDescription if the OK button is pressed, false if the Cancel button is pressed.
+	*/
+	
+	DFAgentDescription ShowDFDGui(DFAgentDescription dfd, boolean ed , boolean checkMandatorySlots)
 	{
 		setTitle("DF description");
 
+		this.out = null;
+		this.editable = ed;
+		this.checkSlots = checkMandatorySlots;
+	
+		if(dfd != null)
+		 {
+		 	dfdAgent = dfd;
+		 	newAID = dfd.getName();
+		 }
+		else
+		 dfdAgent = new DFAgentDescription();
+		 
 		JPanel p = new JPanel();
 		JPanel main = new JPanel();
-		JPanel main1 = new JPanel();
-		
+	
 		JLabel l;
 		JPanel bPane;
-	  JScrollPane lPane;
-		JButton bAdd, bModify, bRemove;
+		JButton AIDButton;
 		
-		main1.setLayout(new BoxLayout(main1, BoxLayout.X_AXIS));
 		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
 		
 		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		Border raised = BorderFactory.createRaisedBevelBorder();
+		main.setBorder(raised);
 		
-		// Agent name 
+		// Agent name
+		main.add(Box.createRigidArea(new Dimension(300,5)));
+
 		l = new JLabel("Agent-name:");
-		l.setPreferredSize(new Dimension(80,20));
+		l.setPreferredSize(new Dimension(80,26));
 		p.add(l);
 		p.add(Box.createHorizontalGlue());
 		agentName = new JTextField();
 		agentName.setEditable(false);
-		agentName.setPreferredSize(new Dimension (250, 20));
+		agentName.setPreferredSize(new Dimension (250, 26));
+		agentName.setMinimumSize(new Dimension(250,26));
+		agentName.setMaximumSize(new Dimension(250,26));
+		agentName.setBackground(Color.white);
+		AID aidtemp = dfdAgent.getName();
+    if (aidtemp == null)
+    	agentName.setText("");
+    else
+      agentName.setText(aidtemp.getName());
+    
+		AIDButton = new JButton(editable ? "Set":"View");
+		
+		AIDButton.addActionListener(new ActionListener(){
+    	public void actionPerformed(ActionEvent e)
+    	{
+    		String command = e.getActionCommand();
+    		AIDGui guiSender = new AIDGui();
+    	
+    		if(command.equals("View"))
+    			guiSender.ShowAIDGui(dfdAgent.getName(), false,false);
+    		else
+    		  if(command.equals("Set"))
+    		  	{
+    		  		
+    		  		newAID = guiSender.ShowAIDGui(dfdAgent.getName(),true,checkSlots);
+    		  		
+    		  		if (newAID != null)
+    		  			agentName.setText(newAID.getName());
+    		  	}
+    			
+    	}
+    });
+   
+	  p.add(AIDButton); 
 		p.add(agentName);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 		
-		// Agent addresses 
-		JPanel pAddress = new JPanel();
-		pAddress .setLayout(new BorderLayout());
-		DefaultListModel addressesListModel = new DefaultListModel();
-		JList addressesList = new JList(addressesListModel);
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(addressesList);
-		lPane.setPreferredSize( new Dimension ( 250, 100));
-		pAddress .add(lPane, BorderLayout.CENTER);
-	  pAddress .setBorder(BorderFactory.createTitledBorder("Agent-addresses"));
-		main.add(pAddress);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-		// Agent type 
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Agent-type:");
-		l.setPreferredSize(new Dimension(80,20));
-		p.add(l);
-		p.add(Box.createHorizontalGlue());
-		agentType= new JTextField();
-		agentType.setEditable(false);
-    p.add(agentType);
-    main.add(p);
-	  main.add(Box.createRigidArea(new Dimension (0,3)));
-	  
-    // Ownership 	
-    p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("Ownership:");
-    l.setPreferredSize(new Dimension(80,20));
-		p.add(l);	
-		p.add(Box.createHorizontalGlue());
-		ownership = new JTextField();
-		ownership.setEditable(false);
-		p.add(ownership);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-		// DF state 
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("DF-state:");
-    l.setPreferredSize(new Dimension(80,20));
-    p.add(l);
-	  p.add(Box.createHorizontalGlue());
-		//dfState = new JTextField();
-	  dfState = new JComboBox(states);
-	  
-		dfState.setEnabled(false);
-		p.add(dfState);
-		main.add(p);
-	  main.add(Box.createRigidArea(new Dimension (0,3)));
-
-	  // Ontology 
-	  p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("Ontology:");
-    l.setPreferredSize(new Dimension(80,20));
-	  p.add(l);	
-	  p.add(Box.createHorizontalGlue());
-		ontology = new JTextField();
-		ontology.setEditable(false);
-		p.add(ontology);
-		main.add(p);
+	  // Ontologies 
+	  JPanel pOntologies = new JPanel();
+	  pOntologies.setLayout(new BorderLayout());
+	  pOntologies .setBorder(BorderFactory.createTitledBorder("Ontologies"));
+		ontologiesListPanel = new VisualStringList(dfdAgent.getAllOntologies());
+		ontologiesListPanel.setDimension(new Dimension(400,45));
+		ontologiesListPanel.setEnabled(editable);
+		pOntologies.add(ontologiesListPanel);
+   	main.add(pOntologies);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 		
-		// Language
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Language:");
-		l.setPreferredSize(new Dimension(80,20));
-    p.add(l);
-    p.add(Box.createHorizontalGlue());
-		language = new JTextField();
-		language.setEditable(false);
-	  p.add(language);
-    main.add(p);
+		// Languages
+		JPanel pLanguages = new JPanel();
+		pLanguages.setLayout(new BorderLayout());
+		pLanguages .setBorder(BorderFactory.createTitledBorder("Languages"));
+    languagesListPanel = new VisualStringList(dfdAgent.getAllLanguages());
+		languagesListPanel.setDimension(new Dimension(400,45));
+		languagesListPanel.setEnabled(editable);
+		pLanguages.add(languagesListPanel);
+    main.add(pLanguages);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 		
 		// Interaction protocols 
 		JPanel pProtocols = new JPanel();
-		pProtocols .setLayout(new BorderLayout());
-		DefaultListModel protocolsListModel = new DefaultListModel();
-		JList protocolsList = new JList(protocolsListModel);
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(protocolsList);
-		pProtocols .add(lPane, BorderLayout.CENTER);
+		pProtocols .setLayout(new BorderLayout());	
 		pProtocols .setBorder(BorderFactory.createTitledBorder("Interaction-protocols"));
+	  protocolsListPanel = new VisualStringList(dfdAgent.getAllProtocols());
+		protocolsListPanel.setDimension(new Dimension(400,45));
+		protocolsListPanel.setEnabled(editable);
+		pProtocols.add(protocolsListPanel);
 		main.add(pProtocols);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    main1.add(main);
-    
-    
+   
     // Services list
-		JPanel p1 = new JPanel();
-		p1.setLayout(new BorderLayout());
-		final DefaultListModel servicesListModel = new DefaultListModel();
-		final JList servicesList = new JList(servicesListModel);
-		servicesList.setCellRenderer(new ServiceDscCellRenderer());
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(servicesList);
-		p1.setPreferredSize(new Dimension (300,400));
-		p1.add(lPane, BorderLayout.CENTER);
-    
-		// View Button
-		bPane = new JPanel();
-		JButton bView = new JButton("View");
-		bPane.add(bView);
-
-		MouseListener mouseListenerService = new MouseAdapter()
-		{
-     			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2)
-				{
-					int i = servicesList.getSelectedIndex();
-					if (i != -1)
-					{
-						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),false);
-					} 
-				}  
-			} 
- 		};
- 		servicesList.addMouseListener(mouseListenerService); 
-
-            bView.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("View"))
-								{
-									int i = servicesList.getSelectedIndex();
-									if (i != -1)
-									{
-										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),false);
-									} 
-								}
-							} 
-		                           } );
-		p1.add(bPane, BorderLayout.SOUTH);
-		p1.setBorder(BorderFactory.createTitledBorder("Agent services"));
-		main1.add(p1);
-
-    
-    getContentPane().add(main1,BorderLayout.NORTH);
+		JPanel pServices = new JPanel();
+		pServices.setBorder(BorderFactory.createTitledBorder("Agent services"));
+	  servicesListPanel = new VisualServicesList(dfdAgent.getAllServices());
+	  servicesListPanel.setDimension(new Dimension(400,45));
+	  servicesListPanel.setEnabled(editable);
+	  servicesListPanel.setCheckMandatorySlots(checkMandatorySlots);
+	  pServices.add(servicesListPanel);
+	  main.add(pServices);
+	      
+    getContentPane().add(main,BorderLayout.NORTH);
 			
-	
-		// INITIALIZATION
-		if (dfd != null)
-		{
-			agentName.setText(dfd.getName());
-			agentType.setText("STUB");
-			ownership.setText("STUB");
-			dfState.setSelectedItem("STUB");
-			ontology.setText("STUB");
-			/*
-			Enumeration temp;
-			temp = dfd.getAddresses();
-			while (temp.hasMoreElements())
-				addressesListModel.add(0, temp.nextElement());
-			temp = dfd.getInteractionProtocols();
-			while (temp.hasMoreElements())
-				protocolsListModel.add(0, temp.nextElement());
-			temp = dfd.getAgentServices();
-			while (temp.hasMoreElements())
-				servicesListModel.add(0, temp.nextElement());
-			*/
-		}
-
 		// OK BUTTON
 		bPane = new JPanel();
-		bPane.setLayout(new BoxLayout(bPane, BoxLayout.Y_AXIS));
+		bPane.setLayout(new BoxLayout(bPane, BoxLayout.X_AXIS));
 		JButton bOK = new JButton("OK");
 		bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									dispose();
-								}
-							} 
-		                           } );
+		{
+			public void actionPerformed(ActionEvent e)
+			{    
+				String param = (String) e.getActionCommand();
+				if (param.equals("OK"))
+					{ // the user pressed the OK button
+            if(editable)
+            { // if it is editable then I have to collect all data in the GUI and create a DFAgentDescription to return to the caller
+            	out = new DFAgentDescription();
+            	
+            	if(checkSlots)
+            		//AID
+            	  if (newAID == null) //newAID was set when the "Set" button was pressed
+            		{
+            			JOptionPane.showMessageDialog(null,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
+ 						      return;
+            	  }
+								// There is no need to check the slots of ServiceDescription because it is
+            	  // done already by ServiceDscDlg
+            	  	
+              out.setName(newAID);
+            	            		
+            	//Ontologies
+            	Enumeration onto = ontologiesListPanel.getContent();
+            	while(onto.hasMoreElements())
+            		out.addOntologies((String)onto.nextElement());
+            	
+            	//Protocols
+            	Enumeration proto = protocolsListPanel.getContent();
+            	while(proto.hasMoreElements())
+            		out.addProtocols((String)proto.nextElement());
+            		
+            	//Languages
+            	Enumeration lang = languagesListPanel.getContent();
+            	while(lang.hasMoreElements())
+            		out.addLanguages((String)lang.nextElement());
+            	
+            	//Services
+            	Enumeration serv = servicesListPanel.getContent();
+            	while(serv.hasMoreElements())
+            	  out.addServices((ServiceDescription)serv.nextElement());
+            	  	
+            }
+            else
+              out = dfdAgent; // if not editable returns the old dfd
+            
+						dispose();
+					}
+			} 
+		} );
 		
-	  bPane.add(Box.createRigidArea(new Dimension(0,20)));
-    bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
 		bPane.add(bOK);
-		bPane.add(Box.createRigidArea(new Dimension(0,10)));
-
-		getContentPane().add(bPane, BorderLayout.SOUTH);
+		
+		if(editable)
+		{
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener()
+			{
+			
+				public void actionPerformed(ActionEvent e)
+				{
+					String param = e.getActionCommand();
+					if(param.equals("Cancel"))
+					{
+						out = null;
+						dispose();
+					}
+				}
+			});
+			
+			bPane.add(cancelButton);
+		}
+		main.add(Box.createRigidArea(new Dimension(300,20)));
+		main.add(bPane);
+		main.add(Box.createRigidArea(new Dimension(300,20)));
+		getContentPane().add(main, BorderLayout.CENTER);
 
 		setModal(true);
 		setResizable(false);
 		setLocation(50, 50);
 		pack();
 		show();
+		
+		return out;
     
 	}
+	
+	
 
-	DFAgentDescription editDFD(DFAgentDescription dfd)
+	public static void main(String args[])
 	{
-		final IntRetValue ret = new IntRetValue();
-		ret.setValue(0);
-		
-		setTitle("DF description");
 
-		JPanel p = new JPanel();
-		JPanel main = new JPanel();
-		JPanel main1 = new JPanel();
-	  JLabel l;
-		JPanel bPane;
-	  JScrollPane lPane;
-		JButton bAdd, bModify, bRemove;
-
-		main1.setLayout(new BoxLayout(main1, BoxLayout.X_AXIS));
-		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-		
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		
-	  // Agent name 
-		l = new JLabel("Agent-name:");
-		l.setPreferredSize(new Dimension(80,20));
-		p.add(l);
-		p.add(Box.createHorizontalGlue());
-		agentName = new JTextField();
-		agentName.setPreferredSize(new Dimension (250, 20));
-	  if (dfd !=null)
-	  	if (!dfd.getName().equals(""))
-	  		agentName.setEditable(true);
-		p.add(agentName);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-	
-	  // Agent addresses 
-		JPanel pAddress = new JPanel();
-		pAddress .setLayout(new BorderLayout());
-		final DefaultListModel addressesListModel = new DefaultListModel();
-		final JList addressesList = new JList(addressesListModel);
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(addressesList);
-		lPane.setPreferredSize( new Dimension ( 250, 100));
-		pAddress .add(lPane, BorderLayout.CENTER);
-		// Buttons
-		bPane = new JPanel();
-		bAdd = new JButton("Add");
-		bModify = new JButton("Modify");
-		bRemove = new JButton("Remove");
-		bAdd.setPreferredSize(bRemove.getPreferredSize());
-		bModify.setPreferredSize(bRemove.getPreferredSize());
-		bPane.add(bAdd);
-		bPane.add(bModify);
-		bPane.add(bRemove);
-
-		MouseListener mouseListenerAddresses = new MouseAdapter()
-		{
-     			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2)
-				{
-					StringDlg dlg = new StringDlg(dlgParent, "Address:");
-					int i = addressesList.getSelectedIndex();
-					if (i != -1)
-					{
-						String editedString = dlg.editString((String) addressesListModel.getElementAt(i));
-						if (editedString != null && !editedString.equals(""))
-						addressesListModel.setElementAt((Object) editedString, i);
-					}
-				}  
-			} 
- 		};
- 		addressesList.addMouseListener(mouseListenerAddresses); 
-
-		KeyListener keyListenerAddresses = new KeyAdapter()
-		{
-			public void keyPressed(KeyEvent e)
-			{
-				int code = e.getKeyCode();
-				if (code == KeyEvent.VK_CANCEL || code == KeyEvent.VK_DELETE)
-				{
-					int i = addressesList.getSelectedIndex();
-					if (i != -1)
-					{
-						addressesListModel.removeElementAt(i);
-					}
-				}
-
-			}
-		}; 
- 		addressesList.addKeyListener(keyListenerAddresses); 
-
-		bAdd.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Add"))
-								{
-									StringDlg dlg = new StringDlg(dlgParent, "Address:");
-									String editedString = dlg.editString(null);
-									if (editedString != null && !editedString.equals(""))
-										addressesListModel.add(0, (Object) editedString);
-								}
-							} 
-		                           } );            
-            bModify.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Modify"))
-								{
-									StringDlg dlg = new StringDlg(dlgParent, "Address:");
-									int i = addressesList.getSelectedIndex();
-									if (i != -1)
-									{
-										String editedString = dlg.editString((String) addressesListModel.getElementAt(i));
-										if (editedString != null && !editedString.equals(""))
-											addressesListModel.setElementAt((Object) editedString, i);
-									}
-								}
-							} 
-		                           } );            
-            bRemove.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Remove"))
-								{
-									int i = addressesList.getSelectedIndex();
-									if (i != -1)
-									{
-										addressesListModel.removeElementAt(i);
-									}
-								}
-							} 
-		                           });
-
-		
-	  pAddress.add(bPane, BorderLayout.SOUTH);
-		pAddress .setBorder(BorderFactory.createTitledBorder("Agent-addresses"));
-		main.add(pAddress);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-		
-		// Agent type 
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Agent-type:");
-		l.setPreferredSize(new Dimension(80,20));
-		p.add(l);
-		p.add(Box.createHorizontalGlue());
-		agentType= new JTextField();
-    p.add(agentType);
-    main.add(p);
-	  main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    // Ownership 	
-    p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("Ownership:");
-    l.setPreferredSize(new Dimension(80,20));
-		p.add(l);	
-		p.add(Box.createHorizontalGlue());
-		ownership = new JTextField();
-		p.add(ownership);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-		// DF state 
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("DF-state:");
-    l.setPreferredSize(new Dimension(80,20));
-    p.add(l);
-	  p.add(Box.createHorizontalGlue());
-		dfState = new JComboBox(states);
-		p.add(dfState);
-		main.add(p);
-	  main.add(Box.createRigidArea(new Dimension (0,3)));
-
-	  // Ontology 
-	  p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    l = new JLabel("Ontology:");
-    l.setPreferredSize(new Dimension(80,20));
-	  p.add(l);	
-	  p.add(Box.createHorizontalGlue());
-		ontology = new JTextField();
-		p.add(ontology);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-		
-		// Language
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Language:");
-		l.setPreferredSize(new Dimension(80,20));
-    p.add(l);
-    p.add(Box.createHorizontalGlue());
-		language = new JTextField();
-	  p.add(language);
-    main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-		
-		// Interaction protocols 
-		JPanel pProtocols = new JPanel();
-		pProtocols .setLayout(new BorderLayout());
-		final DefaultListModel protocolsListModel = new DefaultListModel();
-		final JList protocolsList = new JList(protocolsListModel);
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(protocolsList);
-		pProtocols .add(lPane, BorderLayout.CENTER);
-		//Buttons
-		bPane = new JPanel();
-		bAdd = new JButton("Add");
-		bModify = new JButton("Modify");
-		bRemove = new JButton("Remove");
-		bAdd.setPreferredSize(bRemove.getPreferredSize());
-		bModify.setPreferredSize(bRemove.getPreferredSize());
-		bPane.add(bAdd);
-		bPane.add(bModify);
-		bPane.add(bRemove);
-
-		MouseListener mouseListenerProtocols = new MouseAdapter()
-		{
-     			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2)
-				{
-					StringDlg dlg = new StringDlg(dlgParent, "Interaction protocol:");
-					int i = protocolsList.getSelectedIndex();
-					if (i != -1)
-					{
-						String editedString = dlg.editString((String) protocolsListModel.getElementAt(i));
-						if (editedString != null && !editedString.equals(""))
-						protocolsListModel.setElementAt((Object) editedString, i);
-					}
-				}  
-			} 
- 		};
- 		protocolsList.addMouseListener(mouseListenerProtocols); 
-
-		KeyListener keyListenerProtocols = new KeyAdapter()
-		{
-			public void keyPressed(KeyEvent e)
-			{
-				int code = e.getKeyCode();
-				if (code == KeyEvent.VK_CANCEL || code == KeyEvent.VK_DELETE)
-				{
-					int i = protocolsList.getSelectedIndex();
-					if (i != -1)
-					{
-						protocolsListModel.removeElementAt(i);
-					}
-				}
-
-			}
-		}; 
- 		protocolsList.addKeyListener(keyListenerProtocols); 
-
-            bAdd.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Add"))
-								{
-									StringDlg dlg = new StringDlg(dlgParent, "Interaction protocol:");
-									String editedString = dlg.editString(null);
-									if (editedString != null && !editedString.equals(""))
-										protocolsListModel.add(0, (Object) editedString);
-								}
-							} 
-		                           } );            
-            bModify.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Modify"))
-								{
-									StringDlg dlg = new StringDlg(dlgParent, "Interaction protocol:");
-									int i = protocolsList.getSelectedIndex();
-									if (i != -1)
-									{
-										String editedString = dlg.editString((String) protocolsListModel.getElementAt(i));
-										if (editedString != null && !editedString.equals(""))
-											protocolsListModel.setElementAt((Object) editedString, i);
-									}
-								}
-							} 
-		                           } );            
-            bRemove.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Remove"))
-								{
-									int i = protocolsList.getSelectedIndex();
-									if (i != -1)
-									{
-										protocolsListModel.removeElementAt(i);
-									}
-								}
-							} 
-		                           } );            
-		pProtocols .add(bPane, BorderLayout.SOUTH);
-		pProtocols .setBorder(BorderFactory.createTitledBorder("Interaction-protocols"));
-		main.add(pProtocols);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    main1.add(main);
-
-    // Services list
-		JPanel p1 = new JPanel();
-		p1.setLayout(new BorderLayout());
-		final DefaultListModel servicesListModel = new DefaultListModel();
-		final JList servicesList = new JList(servicesListModel);
-		servicesList.setCellRenderer(new ServiceDscCellRenderer());
-		lPane = new JScrollPane();
-		lPane.getViewport().setView(servicesList);
-		p1.setPreferredSize(new Dimension (300,400));
-		p1.add(lPane, BorderLayout.CENTER);
-		//Buttons
-		bPane = new JPanel();
-		bAdd = new JButton("Add");
-		bModify = new JButton("Modify");
-		bRemove = new JButton("Remove");
-		bAdd.setPreferredSize(bRemove.getPreferredSize());
-		bModify.setPreferredSize(bRemove.getPreferredSize());
-		bPane.add(bAdd);
-            bPane.add(bModify);
-		bPane.add(bRemove);
-
-		MouseListener mouseListenerService = new MouseAdapter()
-		{
-     			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2)
-				{
-					int i = servicesList.getSelectedIndex();
-					if (i != -1)
-					{
-						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						ServiceDescription dsc = dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),true);
-					
-
-						if (dsc != null)
-						{	
-							servicesListModel.setElementAt((Object) dsc, i);
-						}
-					} 
-				}  
-			} 
- 		};
- 		servicesList.addMouseListener(mouseListenerService); 
-
-		KeyListener keyListenerService = new KeyAdapter()
-		{
-			public void keyPressed(KeyEvent e)
-			{
-				int code = e.getKeyCode();
-				if (code == KeyEvent.VK_CANCEL || code == KeyEvent.VK_DELETE)
-				{
-					int i = servicesList.getSelectedIndex();
-					if (i != -1)
-					{
-						servicesListModel.removeElementAt(i);
-					}
-				}
-
-			}
-		}; 
- 		servicesList.addKeyListener(keyListenerService); 
-
-            bAdd.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Add"))
-								{
-									ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-									ServiceDescription dsc = dlg.viewSD(null,true);
-									if (dsc != null)
-										servicesListModel.add(0, (Object) dsc);
-								}
-							} 
-		                           } );            
-            bModify.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Modify"))
-								{
-									int i = servicesList.getSelectedIndex();
-									if (i != -1)
-									{
-										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										ServiceDescription dsc = dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),true);
-										if (dsc != null)
-											servicesListModel.setElementAt((Object) dsc, i);
-									} 
-								}
-							} 
-		                           } );
-            bRemove.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Remove"))
-								{
-
-									int i = servicesList.getSelectedIndex();
-									if (i != -1)
-									{
-										servicesListModel.removeElementAt(i);
-									}
-								}
-							} 
-		                           } );
-		p1.add(bPane, BorderLayout.SOUTH);
-		p1.setBorder(BorderFactory.createTitledBorder("Agent services"));
-		main1.add(p1);
-
-		getContentPane().add(main1, BorderLayout.NORTH);
-	  
-		// INITIALIZATION
-		if (dfd != null)
-		{
-			agentName.setText(dfd.getName());
-			agentType.setText("STUB");
-			ownership.setText("STUB");
-			dfState.setSelectedItem("STUB");
-			ontology.setText("STUB");
-			/*
-			Enumeration temp;
-			temp = dfd.getAddresses();
-			while (temp.hasMoreElements())
-				addressesListModel.add(0, temp.nextElement());
-			temp = dfd.getInteractionProtocols();
-			while (temp.hasMoreElements())
-				protocolsListModel.add(0, temp.nextElement());
-			temp = dfd.getAgentServices();
-			while (temp.hasMoreElements())
-				servicesListModel.add(0, temp.nextElement());
-			*/
-		}
-
-		// OK AND CANCEL BUTTONS
-		bPane = new JPanel();
-		bPane.setLayout(new FlowLayout(FlowLayout.CENTER));
-	//	bPane.add(Box.createRigidArea(new Dimension(0,30)));
-		JButton bOK = new JButton("OK");
-	
-		JButton bCancel = new JButton("Cancel");
-	
-		bOK.setPreferredSize(bCancel.getPreferredSize());
-		bPane.add(bOK);
-		bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									ret.setValue(1);
-									dispose();
-								}
-							} 
-		                           } );
-		bPane.add(bCancel);
-		bCancel.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Cancel"))
-								{
-									ret.setValue(0);
-									dispose();
-								}
-							} 
-		                           } );
-		                           
-		bPane.add(Box.createRigidArea(new Dimension(0,70)));
-	                           
-		getContentPane().add(bPane, BorderLayout.SOUTH);
-				
-		setModal(true);
-		setResizable(false);
-		setLocation(50, 50);
-		pack();
-		show();
-		if (ret.getValue() == 1)
-		{	
-			DFAgentDescription editedDfd = new DFAgentDescription();
-		
-			editedDfd.setName(getSaveText(agentName));
-			/*
-			editedDfd.setDFState((String)dfState.getSelectedItem());
-			editedDfd.setOwnership(getSaveText(ownership));
-      editedDfd.setType(getSaveText(agentType));
-      editedDfd.setOntology(getSaveText(ontology));
-      // editedDfd.setLanguage(language.getText());
-		
-			Enumeration temp;
-			editedDfd.removeAddresses();
-			temp = addressesListModel.elements();
-			while (temp.hasMoreElements())
-				editedDfd.addAddress((String) temp.nextElement());
-			editedDfd.removeInteractionProtocols();
-			temp = protocolsListModel.elements();
-			while (temp.hasMoreElements())
-				editedDfd.addInteractionProtocol((String) temp.nextElement());
-			editedDfd.removeAgentServices();
-			temp = servicesListModel.elements();
-			while (temp.hasMoreElements())
-				editedDfd.addAgentService((ServiceDescription) temp.nextElement()); 
-			*/
-			return(editedDfd);
- 		}
-		return(null);		
-	}
-
-	//Returns a String corresponding to the textfield if not empty, null otherwise
-	private String getSaveText(JTextField field){
-	
-		try {
-			String out = field.getText();
-			return (out.length() == 0 ? null : out); 
-		}catch(Exception e){
-		return null;
-		}
-	
 	}
 }

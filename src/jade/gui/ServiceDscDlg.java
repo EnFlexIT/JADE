@@ -27,9 +27,13 @@ package jade.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Enumeration;
 
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAAgentManagement.Property;
 
 /**
 @author Giovanni Caire - Adriana Quinto- CSELT S.p.A.
@@ -38,13 +42,13 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 class ServiceDscDlg extends JDialog 
 {
-	JTextField txtString;
-	JTextField cpString;
-	JTextField fpString;
-	JTextField nameString;
-	JTextField npString;
-	JTextField ontologyString;
-	JTextField typeString;
+	JTextField txtName,txtType,txtOwner;
+	VisualStringList ontologiesListPanel,protocolsListPanel,languagesListPanel;
+	VisualPropertiesList propertiesListPanel;
+	ServiceDescription serviceDesc;
+	ServiceDescription out;
+	boolean editable;
+	boolean checkSlots;
 	
 	// CONSTRUCTORS
 	ServiceDscDlg(Frame parent) 
@@ -57,13 +61,26 @@ class ServiceDscDlg extends JDialog
 		super(parent);
 	}
 
-	ServiceDescription viewSD(ServiceDescription dsc, boolean editable)
+	/**
+	This method shows the gui to display a ServiceDescription.
+	@param dsc the dsc to show
+	@param ed true if the gui must be editable, false otherwise
+	@param checkMandatorySlots true to force the check of the mandatory slots, false otherwise
+	@return a ServiceDescription if the Ok button is pressed, false otherwise.
+	*/
+	ServiceDescription viewSD(ServiceDescription dsc, boolean ed, boolean checkMandatorySlots)
 	{
-		final IntRetValue  ret = new IntRetValue();
-		ret.setValue(0);
-		
+	  
 		setTitle("Service");
+		out = null;
+		editable = ed;
+		checkSlots = checkMandatorySlots;
 		
+		if(dsc != null)
+		  serviceDesc = dsc;
+		else
+	  	serviceDesc = new ServiceDescription();
+	
 		JPanel main = new JPanel();
 		main.setLayout(new BoxLayout(main,BoxLayout.Y_AXIS));
 		
@@ -76,193 +93,207 @@ class ServiceDscDlg extends JDialog
 		l.setPreferredSize(new Dimension(130,20));
 		p.add(l);
 		p.add(Box.createHorizontalGlue());
-		JTextField txtName = new JTextField();
-	
+		txtName = new JTextField();
 		txtName.setPreferredSize(new Dimension(200,20));
+		txtName.setText(serviceDesc.getName());
+		txtName.setEditable(editable);
 		p.add(txtName);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
-		
+	
     //Type
 		p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Type");
 		l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
+		p.add(l);
 		p.add(Box.createHorizontalGlue());
-		JTextField txtType = new JTextField();
-		
+		txtType = new JTextField();
 		txtType.setPreferredSize(new Dimension (200,20));
+		txtType.setText(serviceDesc.getType());
+		txtType.setEditable(editable);
 		p.add(txtType);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		//Ontology
+		//Ownership
 		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
- 		l = new JLabel("Ontology");
- 		l.setPreferredSize(new Dimension(130,20));
- 		p.add(l);
+		p.setLayout(new BoxLayout(p,BoxLayout.X_AXIS));
+		l = new JLabel("Ownership");
+		l.setPreferredSize(new Dimension(130,20));
+		p.add(l);
 		p.add(Box.createHorizontalGlue());
-		JTextField txtOntology = new JTextField();
-	
-	  txtOntology.setPreferredSize(new Dimension (200,20));
-	  p.add(txtOntology);
+	  txtOwner = new JTextField();
+		txtOwner.setPreferredSize(new Dimension(200,20));
+		txtOwner.setText(serviceDesc.getOwnership());
+		txtOwner.setEditable(editable);
+		p.add(txtOwner);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    //Fixed Props
+	 		
+		//Languages
 		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Fixed Props.");	
-		l.setPreferredSize(new Dimension(130,20));
-		p.add(l);
-		JTextField txtFixedProps = new JTextField();
-	
-		txtFixedProps.setPreferredSize(new Dimension (200,20));
-	  p.add(txtFixedProps);
+		p.setLayout(new BorderLayout());
+	  p.setBorder(BorderFactory.createTitledBorder("Languages"));	
+	  languagesListPanel = new VisualStringList(serviceDesc.getAllLanguages());
+	  languagesListPanel.setDimension(new Dimension(350,40));
+		languagesListPanel.setEnabled(editable);
+		p.add(languagesListPanel);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		//Negotiable Props.
+
+		//Ontologies
 		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Negotiable Props.");	
-		l.setPreferredSize(new Dimension(130,20));
-		p.add(l);
-		JTextField txtNegProps = new JTextField();
-	
-	  txtNegProps.setPreferredSize(new Dimension (200,20));
-	  p.add(txtNegProps);
+		p.setLayout(new BorderLayout());
+	  p.setBorder(BorderFactory.createTitledBorder("Ontologies"));	
+	  ontologiesListPanel = new VisualStringList(serviceDesc.getAllOntologies());
+	  ontologiesListPanel.setDimension(new Dimension(350,40));
+		ontologiesListPanel.setEnabled(editable);
+		p.add(ontologiesListPanel);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-
-	  //Communication Props.
+   	//Protocols.
 		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Communication Props.");	
-		l.setPreferredSize(new Dimension(130,20));
-	  p.add(l);
-		JTextField txtCommProps = new JTextField();
-	
-		txtCommProps.setPreferredSize(new Dimension (200,20));
-		p.add(txtCommProps);
+		p.setLayout(new BorderLayout());
+		p.setBorder(BorderFactory.createTitledBorder("Protocols"));
+		protocolsListPanel = new VisualStringList(serviceDesc.getAllProtocols());
+		protocolsListPanel.setDimension(new Dimension(350,40));
+		protocolsListPanel.setEnabled(editable);
+		p.add(protocolsListPanel);
 		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
+	
 
-
-		if (dsc != null) 
+		//Properties
+		p = new JPanel();
+		p.setLayout(new BorderLayout());
+		p.setBorder(BorderFactory.createTitledBorder("Properties"));
+		Iterator temp = serviceDesc.getAllProperties();
+		Properties props = new Properties();
+		while(temp.hasNext())
 		{
-			txtName.setText(dsc.getName());
-			/*
-			txtType.setText(dsc.getType());
-			txtOntology.setText(dsc.getOntology());
-			txtFixedProps.setText(dsc.getFixedProps());
-			txtNegProps.setText(dsc.getNegotiableProps());
-			txtCommProps.setText(dsc.getCommunicationProps());
-			*/
+			Property singleProp = (Property)temp.next();
+			props.setProperty(singleProp.getName(),(String)singleProp.getValue());
 		}
-		
-		//getContentPane().add(p, BorderLayout.CENTER);
-		getContentPane().add(main, BorderLayout.NORTH);
-
+    propertiesListPanel = new VisualPropertiesList(props);
+    propertiesListPanel.setDimension(new Dimension(350,40));
+    propertiesListPanel.setEnabled(editable);
+    p.add(propertiesListPanel);
+    main.add(p);
+	
+		//Button Panel
 		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		JButton bOK = new JButton("OK");
 		
-		if (editable == false) //not editable
-		{	
-			txtName.setEditable(false);
-      txtType.setEditable(false);
-      txtOntology.setEditable(false);
-      txtFixedProps.setEditable(false);
-      txtNegProps.setEditable(false);
-      txtCommProps.setEditable(false);
-      p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-      JButton bOK = new JButton("OK");
-      p.add(Box.createRigidArea(new Dimension(0,25)));
-      bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
-      p.add(bOK);
-      bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									dispose();
-								}
-							} 
-		                           } );
-		  getContentPane().add(p, BorderLayout.SOUTH);	
+		bOK.addActionListener( new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{    
+				String param = (String) e.getActionCommand();
+				if (param.equals("OK"))
+				{
+					if(editable)
+					{
+					
+						if(checkSlots)
+						{	
+						   
+							if(getSaveText(txtName) == null)
+							{
+								JOptionPane.showMessageDialog(null,"The name must not be empty !","Error Message", JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+						
+				
+							if(getSaveText(txtType) == null)
+							{
+								JOptionPane.showMessageDialog(null,"The type must not be empty !","Error Message",JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+						}
+						
+							out = new ServiceDescription();
+							out.setName(getSaveText(txtName));
+							out.setType(getSaveText(txtType));
+						
+					    out.setOwnership(getSaveText(txtOwner));
+					    
+					    Enumeration lang = languagesListPanel.getContent();
+					    while(lang.hasMoreElements())
+            		out.addLanguages((String)lang.nextElement());
+
+					    Enumeration onto = ontologiesListPanel.getContent();
+					    while(onto.hasMoreElements())
+            		out.addOntologies((String)onto.nextElement());
+            	
+            	//Protocols
+            	Enumeration proto = protocolsListPanel.getContent();
+            	while(proto.hasMoreElements())
+            		out.addProtocols((String)proto.nextElement());
+            	
+            	Properties ps = propertiesListPanel.getContentProperties();	
+            	Enumeration keys = ps.propertyNames();
+            	while(keys.hasMoreElements())
+            	{
+            		Property tp = new Property();
+            		String key = (String)keys.nextElement();
+            		tp.setName(key);
+            		tp.setValue(ps.getProperty(key));
+            		out.addProperties(tp);
+            	}
+
+					}
+					else
+							out = serviceDesc;			
+			
+					dispose();
+				}
+			} 
+		} );
+
+		p.add(bOK);
 		
+		if(editable)
+		{
+			//CancelButton
+			JButton bCancel = new JButton("Cancel");
+			p.add(bCancel);
+			bCancel.addActionListener( new ActionListener()
+		  {
+		  	public void actionPerformed(ActionEvent e)
+			  {    
+			  	String param = (String) e.getActionCommand();
+					if (param.equals("Cancel"))
+					{
+						out = null;
+						dispose();
+					}
+			  } 
+		  });
+		  p.add(bCancel);
 		}
-		else // editable
-	  {
-	  	p.setLayout(new FlowLayout(FlowLayout.CENTER));
-	  	JButton bOK = new JButton("OK");
-	  	JButton bCancel = new JButton("Cancel");
-	  	bOK.setPreferredSize(bCancel.getPreferredSize());
-	  	p.add(bOK);
-	  	p.add(bCancel);
-	  	p.add(Box.createRigidArea(new Dimension(0,60)));
-	  	bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									ret.setValue(1);
-									dispose();
-								}
-							} 
-		                           } );
-		  bCancel.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Cancel"))
-								{
-									ret.setValue(0);
-									dispose();
-								}
-							} 
-		                           } );
-		  getContentPane().add(p, BorderLayout.SOUTH);
-	  }
+		main.add(p);
+		
+		getContentPane().add(main, BorderLayout.CENTER);
+		
 		setModal(true);
 		setResizable(false);
 		setLocation(100, 100);
 		pack();
 		show();
-	 
-		if (ret.getValue() == 1)
-		{	
-			ServiceDescription editedDsc = new ServiceDescription(); 	  
-		 			
-	  	editedDsc.setName(getSaveText(txtName));
-		/*
-			editedDsc.setType(getSaveText(txtType));
-			editedDsc.setOntology(getSaveText(txtOntology));
-			editedDsc.setFixedProps(getSaveText(txtFixedProps));
-			editedDsc.setNegotiableProps(getSaveText(txtNegProps));
-			editedDsc.setCommunicationProps(getSaveText(txtCommProps)); 
-		*/
-			return(editedDsc);
- 		}
-		return(null);		
+		
+		return out;		
 			
 	}
 
-	
-	
 	/*
 	Return the string relative to service description fields if not empty, null otherwise
 	*/
 	private String getSaveText(JTextField field){
 	try{
-		String out = field.getText();
+		String out = field.getText().trim();
 		return (out.length() == 0 ? null : out);
 	}catch( Exception e){
 	return null;
