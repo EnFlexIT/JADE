@@ -66,7 +66,7 @@ public class TreeIconRenderer extends JLabel implements TreeCellRenderer {
      AgentTree.Node data= (AgentTree.Node) value;
      if (data!=null) {
        setToolTipText(data.getToolTipText());
-       setIcon(data.getIcon());
+       setIcon(data.getIcon(data.getType()));
        setText(data.getName());
      }
       else {

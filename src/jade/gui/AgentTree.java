@@ -34,6 +34,12 @@ import javax.swing.tree.MutableTreeNode;
 import java.util.Enumeration;
 import java.awt.event.MouseListener;
 import java.awt.event.*;
+import javax.swing.ImageIcon;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.Image;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
    
@@ -46,18 +52,7 @@ public class AgentTree extends JPanel {
 	*/
   public JTree tree;
   static protected  Icon[] icons;
-  /**
-  @serial
-  */
-  private DescriptionNode desNode;
-
-  static {
-       icons = new Icon[4];
-       icons[0]=GuiProperties.getIcon("TreeData.SuspendedIcon");
-       icons[1]=GuiProperties.getIcon("TreeData.RunningIcon");
-       icons[2]=GuiProperties.getIcon("TreeData.FolderIcon");
-       icons[3]=GuiProperties.getIcon("TreeData.FolderIcon1");
-   }
+  private Map mapDescriptor;
 
 
    // This class is abstract and represents the general node
@@ -72,26 +67,29 @@ public class AgentTree extends JPanel {
    @serial
    */
    protected String name;
-   /**
-   @serial
-   */
-   protected int idIcon;
+   protected boolean chgeIcon=false;
 
-   public Node(int idIcon,String name) {
-      this.idIcon = idIcon;
-      this.name = name;
+   public Node(String name) {
+     this.name = name;
     }
 
-   public Icon getIcon() {
-    return icons[idIcon];
+   public Icon getIcon(String typeAgent) {
+      Image image = getToolkit().getImage(getClass().getResource(getIconAgent(typeAgent)));
+    if (chgeIcon) {
+        ImageFilter colorfilter = new MyFilterImage();
+        Image imageFiltered=createImage(new FilteredImageSource(image.getSource(),colorfilter));
+        return new ImageIcon(imageFiltered);
+    }
+   else return new ImageIcon(image);
+
    }
 
    public String getName(){
     return name;
    }
 
-   public void changeIcon(int idI) {
-    idIcon=idI;
+   public void changeIcon(boolean chI) {
+      chgeIcon=chI;
    }
 
    public abstract String getType();
@@ -114,8 +112,8 @@ public class AgentTree extends JPanel {
    */
    private String addressAgent;
 
-   public AgentNode(int idIcon,String name) {
-     super(idIcon,name);
+   public AgentNode(String name) {
+     super(name);
     }
 
     public void address(String address) {
@@ -157,12 +155,12 @@ public class AgentTree extends JPanel {
   */
   String typeContainer;
 
-  public ContainerNode(int idIcon,String name) {
-     super(idIcon,name);
+  public ContainerNode(String name) {
+     super(name);
    }
 
   public void setAddress(InetAddress addr) {
-   addressmachine = addr; 
+   addressmachine = addr;
   }
 
   public void setType(String type) {
@@ -184,8 +182,9 @@ public class AgentTree extends JPanel {
 
  public class SuperContainer extends Node {
 
-  public SuperContainer(int idIcon,String name) {
-   super(idIcon,name);
+  public SuperContainer(String name) {
+   super(name);
+   register("SUPERCONTAINER",new JPopupMenu(),"images/TreeRoot.gif");
   }
 
   public String getToolTipText() {
@@ -193,7 +192,7 @@ public class AgentTree extends JPanel {
   }
 
   public String getType(){
-   return "";
+   return "SUPERCONTAINER";
   }
 
   public void setType(String noType) {}
@@ -204,9 +203,10 @@ public class AgentTree extends JPanel {
   TreeSelectionModel selModel;
   TreeIconRenderer treeR;
 
+  mapDescriptor=new HashMap();
   tree=new JTree();
   tree.setFont(f);
-  tree.setModel(new AgentTreeModel(new SuperContainer(3,"JADE")));
+  tree.setModel(new AgentTreeModel(new SuperContainer("JADE")));
   tree.setLargeModel(false);
   selModel = tree.getSelectionModel();
   selModel.setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -216,8 +216,6 @@ public class AgentTree extends JPanel {
   tree.setCellRenderer(treeR);
   tree.setRowHeight(0);
 
-  desNode=new DescriptionNode();
-
   }
 
   public void listenerTree(TreeSelectionListener  panel) {
@@ -226,18 +224,18 @@ public class AgentTree extends JPanel {
 
   public AgentTree.Node createNewNode(String name,int i) {
     switch(i) {
-     case 0: return new AgentTree.ContainerNode(2,name);
-     case 1 : return new AgentTree.AgentNode(1,name);
+     case 0: return new AgentTree.ContainerNode(name);
+     case 1: return new AgentTree.AgentNode(name);
     }
    return null;
  }
 
   public void addContainerNode(ContainerNode node,String typeContainer, InetAddress addr) {
-    node.setAddress(addr);
     AgentTreeModel model = getModel();
     MutableTreeNode root = (MutableTreeNode)model.getRoot();
-    model.insertNodeInto(node, root, root.getChildCount());
     node.setType(typeContainer);
+    model.insertNodeInto(node, root, root.getChildCount());
+    node.setAddress(addr);
     return;
   }
 
@@ -309,12 +307,21 @@ public class AgentTree extends JPanel {
       }
   }
 
-  public void setParameter(String key, JPopupMenu popmenu) {
-   if (!desNode.existsKey(key))
-           desNode.addElementMap(key,popmenu);
+  public void register(String key, JPopupMenu popmenu, String pathImage) {
+   if (!mapDescriptor.containsKey(key)){
+            NodeDescriptor nDescriptor=new NodeDescriptor(popmenu,pathImage);
+            mapDescriptor.put(key,nDescriptor);
+   }
   }
 
  public JPopupMenu getPopupMenu(String key) {
-     return desNode.getPopupMenuMap(key);
- }    
+   NodeDescriptor nDescriptor=(NodeDescriptor) mapDescriptor.get(key);
+   return nDescriptor.getPopupMenu();
+   }
+
+ protected String getIconAgent(String key) {
+   NodeDescriptor nDescriptor=(NodeDescriptor) mapDescriptor.get(key);
+   return nDescriptor.getPathImage();
+ }
+
 } // End Of AgentTree;
