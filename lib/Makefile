@@ -52,10 +52,6 @@ UTILS_CLASSES = jade/util/leap/ArrayList*.class jade/util/leap/Comparable.class 
 UTILS_PACKAGES =
 UTILS_LIBNAME = utils.jar
 
-TOOLS_CLASSES =
-TOOLS_PACKAGES = jade/gui jade/tools
-TOOLS_LIBNAME = tools.jar
-
 IMTPRMI_CLASSES =
 IMTPRMI_PACKAGES = jade/imtp/rmi
 IMTPRMI_LIBNAME = imtp_rmi.jar
@@ -72,12 +68,16 @@ JADE_LIBNAME = jade.jar
 JADETOOLS_LIBNAME = jadeTools.jar
 BASE64_LIBNAME = Base64.jar
 
+JADETOOLS_CLASSES =
+JADETOOLS_PACKAGES = jade/tools jade/gui
+
 all:
 	@echo Making library ...
 
 #	Higher level modules, for backward compatibility
 	cd $(CLSDIR);										\
-	$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(LIBDIR)/$(JADETOOLS_LIBNAME) Notice.txt;	\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(JADETOOLS_LIBNAME) $(JADETOOLS_CLASSES) $(JADETOOLS_PACKAGES);	\
+	rm -rf $(JADETOOLS_CLASSES) $(JADETOOLS_PACKAGES);						\
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES) $(IIOP_PACKAGES); 		\
 	rm -rf $(IIOP_CLASSES) $(IIOP_PACKAGES); 						\
 	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) jade;			\
@@ -94,8 +94,6 @@ all:
 	rm -rf $(KERNELJ2SE_CLASSES) $(KERNELJ2SE_PACKAGES); 								\
 	$(AR) $(ARFLAGS) $(MODULEDIR)/$(UTILS_LIBNAME) $(UTILS_CLASSES) $(UTILS_PACKAGES); 				\
 	rm -rf $(UTILS_CLASSES) $(UTILS_PACKAGES); 									\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(TOOLS_LIBNAME) $(TOOLS_CLASSES) $(TOOLS_PACKAGES); 				\
-	rm -rf $(TOOLS_CLASSES); $(TOOLS_PACKAGES); 									\
 	$(AR) $(ARFLAGS) $(MODULEDIR)/$(IMTPRMI_LIBNAME) $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 			\
 	rm -rf $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 									\
 	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELSHARE_LIBNAME) $(KERNELSHARE_CLASSES) $(KERNELSHARE_PACKAGES); 		\
@@ -114,7 +112,6 @@ clean:
 	rm -f $(MODULEDIR)/$(MAINCONTAINER_LIBNAME)
 	rm -f $(MODULEDIR)/$(KERNELJ2SE_LIBNAME)
 	rm -f $(MODULEDIR)/$(UTILS_LIBNAME)
-	rm -f $(MODULEDIR)/$(TOOLS_LIBNAME)
 	rm -f $(MODULEDIR)/$(IMTPRMI_LIBNAME)
 	rm -f $(MODULEDIR)/$(KERNELSHARE_LIBNAME)
 
@@ -132,7 +129,12 @@ batch:
 	echo '@REM Not distributed for this version $(AR) $(ARFLAGS) ..\lib\$(LIBAPPLETNAME) jade\core\AgentGroup.class jade\core\IIOPAddress*.class jade\core\IIOPFormatException.class jade\domain\AgentManagementOntology*.class jade\domain\AgentManagementParser*.class jade\domain\*Exception.class jade\domain\ASCII_CharStream.class jade\domain\Token*.class jade\gui\AboutJadeAction*.class jade\gui\AgentNameTableModel.class jade\gui\ConstraintDlg*.class jade\gui\DFAgentDscDlg*.class jade\gui\DFGUI*.class jade\gui\GUI2DFCommunicatorInterface.class jade\gui\IntRetValue.class jade\gui\ServiceDsc*.class jade\gui\StringDlg*.class jade\gui\TreeHelp*.class jade\gui\GuiEvent.class jade\gui\images jade\gui\help\*.html jade\lang\acl\*.class jade\onto\*.class jade\tools\applet\*.class ' >> $(BATCH_LIB)
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(subst /,\,..\lib\$(JADETOOLS_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
+	#echo '$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(subst /,\,..\lib\$(JADETOOLS_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
+	echo '$(AR) $(ARFLAGS) ..\lib\$(JADETOOLS_LIBNAME) $(subst /,\,$(JADETOOLS_CLASSES)) $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(JADETOOLS_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win 95/98	
+	echo >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(IIOP_LIBNAME)) $(subst /,\,$(IIOP_CLASSES)) $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)
 	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
@@ -169,12 +171,6 @@ batch:
 	echo 'del $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(TOOLS_LIBNAME)) $(subst /,\,$(TOOLS_CLASSES)) $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(TOOLS_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(IMTPRMI_LIBNAME)) $(subst /,\,$(IMTPRMI_CLASSES)) $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)
