@@ -39,7 +39,7 @@ package jade.imtp.leap.JICP;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
-import java.net.Socket;
+import java.net.*;
 
 /**
  * @author Giovanni Caire - Telecom Italia LAB S.p.A.
@@ -61,16 +61,21 @@ public interface JICPMediator {
    * entity.
    * This is called by the JICPServer this Mediator is attached to
    * as soon as the mediated entity (re)connects.
-   * @param c the connection to the mediated container
+   * @param c the connection to the mediated entity
+   * @param addr the address of the mediated entity
+   * @param port the local port used by the mediated entity
    */
-  JICPPacket handleIncomingConnection(Connection c);
+  JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port);
   
   /**
    * Passes to this JICPMediator a JICP packet.
    * This is called by the JICPServer this Mediator is attached to
    * when a JICPPacket is received having the recipient-ID field
    * set to the ID of this JICPMediator.
+   * @param p the JICPPacket
+   * @param addr the address of the mediated entity
+   * @param port the local port used by the mediated entity
    */
-  JICPPacket handleJICPPacket(JICPPacket p) throws ICPException; 
+  JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException; 
 }
 

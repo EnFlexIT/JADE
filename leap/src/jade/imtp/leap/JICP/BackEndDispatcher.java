@@ -156,7 +156,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
      are delivered through a separate channel. 
      @see AsymFrontEndDispatcher#deliver(JICPPacket)
    */
-  public JICPPacket handleJICPPacket(JICPPacket p) throws ICPException {
+  public JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException {
   	servePacket(p);
   	// No response is returned as the actual response will go back
   	// through the permanent connection
@@ -197,7 +197,10 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   //////////////////////////////////////////
   // Dispatcher interface implementation
   //////////////////////////////////////////
-	public byte[] dispatch(byte[] payload) throws ICPException {
+	public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+  	// FIXME: Dispatching order is not guaranteed if this method
+  	// is called after the device reconnects, but before flushing has
+  	// started
   	JICPPacket p = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, payload);
   	JICPPacket r = deliverCommand(p);
   	updateTransmitted(p.getLength());
@@ -270,7 +273,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
    * attached to as soon as the FrontEnd container (re)connects.
    * @param c the connection to the FrontEnd container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port) {
    	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.

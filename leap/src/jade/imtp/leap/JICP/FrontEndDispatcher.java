@@ -122,7 +122,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	      // Use default
 	    } 
 			log("Max disconnection time is "+maxDisconnectionTime, 2);
-			 	
+			 				
 			// Create the BackEnd stub and the FrontEnd skeleton
 			myStub = new BackEndStub(this);
 			mySkel = new FrontEndSkel(fe);
@@ -142,19 +142,6 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   	}
   } 
 
-  //////////////////////////////////////////////
-  // Dispatcher interface implementation
-  //////////////////////////////////////////////
-  
-  /**
-   * Deliver a serialized command to the BackEnd 
-   */
-  public byte[] dispatch(byte[] payload) throws ICPException {
-  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, payload);
-  	pkt = deliverCommand(pkt);
-    return pkt.getData();
-  } 
-
   /**
      Mutual exclusion with handleConnectionReady/Error()
    */
@@ -170,6 +157,22 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
       catch (InterruptedException ie) {
       } 
     } 
+  } 
+
+  //////////////////////////////////////////////
+  // Dispatcher interface implementation
+  //////////////////////////////////////////////
+  
+  /**
+   * Deliver a serialized command to the BackEnd 
+   */
+  public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+  	// FIXME: Dispatching order is not guaranteed if this method
+  	// is called after the device reconnects, but before flushing has
+  	// started
+  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, payload);
+  	pkt = deliverCommand(pkt);
+    return pkt.getData();
   } 
 
   ////////////////////////////
@@ -233,25 +236,22 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     }
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request and
-    	// specify the proper Mediator class to instantiate
-    	StringBuffer sb = new StringBuffer(JICPProtocol.MEDIATOR_CLASS_KEY);
-    	sb.append('=');
-    	sb.append("jade.imtp.leap.JICP.BackEndDispatcher;");
-    	sb.append(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
-    	sb.append('=');
-    	sb.append(maxDisconnectionTime);
-    	sb.append(";verbosity=");
-    	sb.append(verbosity);
+    	// specify the proper Mediator class to instantiate and other parameters
+    	StringBuffer sb = new StringBuffer();
+    	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BackEndDispatcher");
+    	appendProp(sb, "verbosity", String.valueOf(verbosity));
+    	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
     	if (owner != null) {
-    		sb.append(";owner=");
-    		sb.append(owner);
+    		appendProp(sb, "owner", owner);
     	}
     	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
     }    	
     pkt.writeTo(out);
 
+  	log("Packet sent. Read response", 2);
     // Read the response
     pkt = JICPPacket.readFrom(inp);
+  	log("Response read", 2);
     if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();
@@ -264,6 +264,13 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 		}
 		setConnection(c);
   } 
+
+  private void appendProp(StringBuffer sb, String key, String val) {
+  	sb.append(key);
+  	sb.append('=');
+  	sb.append(val);
+  	sb.append(';');
+  }
   
   /**
      The connection is up --> Notify threads hang in 
@@ -272,6 +279,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
    */
 	protected synchronized void handleConnectionReady() {
 		notifyAll();
+		Thread.yield();
 		if (mediatorAlive) {
 			// We have just re-connected --> flush pending commands
 			myStub.flush();
