@@ -38,6 +38,11 @@ import jade.security.Authority;
 import jade.security.dummy.DummyAuthority;
 import jade.security.SecurityFactory;
 import jade.security.JADEAuthority;
+import jade.security.JADEPrincipal;
+import jade.security.JADEAccessController;
+import java.security.Permission;
+import jade.security.Credentials;
+import jade.security.PrivilegedExceptionAction;
 
 
 
@@ -49,7 +54,7 @@ import jade.security.JADEAuthority;
 */
 public class DummySecurityFactory extends SecurityFactory {
 
-public static Authority newAuthority(){
+  public static Authority newAuthority(){
     Authority a = null;
     try {
 		a = (Authority) Class.forName("jade.security.dummy.DummyAuthority").newInstance();
@@ -59,11 +64,32 @@ public static Authority newAuthority(){
     catch(IllegalAccessException e) { e.printStackTrace(); }
 
     return a;
-}
+  }
 
   public JADEAuthority newJADEAuthority() {
     return null; //new DummyJADEAutority();
   }
 
+  public JADEPrincipal newJADEPrincipal(SDSIName sdsiname) {
+    return new DummyPrincipal();
+  }
+
+  public JADEPrincipal newJADEPrincipal(String name, SDSIName sdsiname1) {
+    return new DummyPrincipal(name);
+  }
+
+  public JADEAccessController newJADEAccessController(
+      String name, JADEAuthority authority, String policy) {
+    return new JADEAccessController() {
+      public void checkAction( JADEPrincipal requester, Permission p,
+                               JADEPrincipal target, Credentials credentials) {
+      }
+
+      public Object doAsPrivileged( PrivilegedExceptionAction action,
+                                    Credentials certs) {
+        return null;
+      }
+    };
+  }
 
 } // end SecurityFactory

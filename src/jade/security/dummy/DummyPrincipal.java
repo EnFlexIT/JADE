@@ -71,8 +71,19 @@ public class DummyPrincipal implements AgentPrincipal, ContainerPrincipal, jade.
                   public byte[] getEncoded()  { return new byte[] {}; }
                   public String getFormat() { return " "; }
                   public String[] getLocalNames() { return new String[] {"."}; }
-                  };
+                  public String getLastLocalName() { return ""; }
+    };
         }
-         
-	
+
+  public byte[] getEncoded() {
+    return toString().getBytes();
+  }
+
+  public boolean equals(Object object) {
+    return false;
+  }
+
+  public int hashCode() {
+    return 0;
+  }
 }
