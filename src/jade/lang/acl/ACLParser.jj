@@ -93,6 +93,28 @@ public class ACLParser {
     return Message();
   }
 
+  private String trimQuotes(String s) throws ParseException {
+    s = s.trim();
+    if(s.startsWith("\"") && (s.endsWith("\"")))
+      s = s.substring(1, s.length() - 1);
+    System.out.println("trimQuote="+s);	
+    return unescape(s);
+  }
+
+  private String unescape(String s) throws ParseException {
+    StringBuffer result = new StringBuffer(s.length());
+    for( int i=0; i<s.length()-1; i++)
+      if( s.charAt(i) == '\\' && s.charAt(i+1) == '\"' )
+	{
+	  result.append("\"");
+	  i++;
+	}
+      else
+	result.append(s.charAt(i));
+    result.append(s.charAt(s.length()-1));	
+    return result.toString();
+  }
+
 }
 
 PARSER_END(ACLParser)
@@ -120,7 +142,7 @@ void MessageParameter() :
 | <RECEIVER>        {msg.clearAllReceiver();}
         <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addReceiver(aid);})* <RBRACE2> 
         { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <CONTENT>         s=Expression()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <CONTENT>         s=Content()			{ System.out.println("Content="+s); msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_BY>        s=DateTimeToken()		{ msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <IN_REPLY_TO>     s=Expression()			{ msg.setInReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
@@ -133,6 +155,14 @@ void MessageParameter() :
 | <PROTOCOL>        s=Word()				{ msg.setProtocol(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONVERSATION_ID> s=Expression()			{ msg.setConversationId(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | t=<USERDEFINEDPARAM> s=Expression()			{ msg.addUserDefinedParameter(t.image,s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+}
+
+String Content():
+
+{ Token t; String s;}
+{
+  s = Stringa() { return s; }
+| t = <WORD> { return t.image; }
 }
 
 AID AgentIdentifier():
@@ -181,7 +211,7 @@ String Word():
 
 
 String Stringa():
-{ String s;}
+{ String s; }
 { 
   s=StringLiteral()			{return s;}
 | s=ByteLengthEncodedString() 	{return s;}
@@ -191,7 +221,7 @@ String Stringa():
 String StringLiteral():
 { Token t; }
 { 
-  t=<STRINGLITERAL>			{return t.image;}
+  t=<STRINGLITERAL>			{return trimQuotes(t.image);}
 }
 
 
