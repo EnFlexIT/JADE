@@ -233,28 +233,32 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
 
-  // called from MainContainerImpl when creating AMS and DF
-  public void initAgent( AID agentID, Agent instance )
+  /**
+     called from MainContainerImpl when creating AMS and DF
+   */
+  void initAgent( AID agentID, Agent instance )
      throws NameClashException, IMTPException, NotFoundException, AuthException {
    // the action is requester on behalf of the container's owner
-   initAgent (agentID, instance, ownerPrincipal, ownerCredentials);
+   initAgent (agentID, instance, myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials());
    }
 
 
   /**
      Issue an INFORM_CREATED vertical command.
+     Note that the Principal and Credentials if any are those of the
+     owner of the newly born agent. The SecurityService, if active, 
+     creates the Principal and credentials of the agent and sets them. 
    */
    public void initAgent(
         AID agentID, Agent instance, 
-        JADEPrincipal principal, Credentials creds)
+        JADEPrincipal ownerPrincipal, Credentials ownerCredentials)
       throws NameClashException, IMTPException, NotFoundException, AuthException {
 
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
-      cmd.addParam("none"); // Dummy ownership
-      cmd.setPrincipal( principal );
-      cmd.setCredentials( creds );
+      cmd.addParam( ownerPrincipal );
+      cmd.addParam( ownerCredentials );
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
