@@ -25,9 +25,8 @@ package jade.lang.acl;
 
 import java.io.Writer;
 import java.io.IOException;
+import java.util.Date;
 import jade.util.leap.Serializable;
-
-import java.lang.reflect.Method;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
@@ -55,28 +54,27 @@ import jade.core.CaseInsensitiveString;
    @see jade.core.Agent#receive(MessageTemplate mt)
    
    @author Giovanni Rimassa - Universita` di Parma
+   @author Tiziana Trucco - Telecom Italia Lab S.p.A.
    @version $Date$ $Revision$
 
 */
 public class MessageTemplate implements Serializable {
 
-  // Names of the various fields of an ACL messages.
-  // Used to build the names of get()/set() methods.
-  private static final String[] stringFields = { "Content",
-						 "ConversationId",
-						 "Encoding",
-						 "InReplyTo",
-						 "Language",
-						 "Ontology",
-						 "Protocol",
-						 "ReplyBy",
-						 "ReplyWith",
-  };
-
-  private static final String[] listFields = { 
-    "Receiver",
-    "ReplyTo"
-  };
+    // Names of the various fields of an ACL messages.
+    private static final int CONVERSATION_ID = 0;
+    private static final int ENCODING = 1;
+    private static final int IN_REPLY_TO = 2;
+    private static final int LANGUAGE = 3;
+    private static final int ONTOLOGY = 4;
+    private static final int PROTOCOL = 5;
+    private static final int REPLY_BY = 6;    
+    private static final int REPLY_WITH = 7;
+    private static final int RECEIVER = 9;
+    private static final int REPLY_TO = 10;
+    private static final int PERFORMATIVE = 11;
+    private static final int CONTENT = 12;
+    private static final int SENDER = 13;
+    private static final int REPLY_BY_DATE = 14;
 
   /**
   This interface must be overriden in order to define an application 
@@ -105,6 +103,10 @@ public class MessageTemplate implements Serializable {
       return op1.match(msg) && op2.match(msg);
     }
 
+      public String toString(){
+	  return op1.toString()+  " AND " + op2.toString();
+      }
+
   } // End of AndExpression class
 
   private static class OrExpression implements MatchExpression{
@@ -120,7 +122,10 @@ public class MessageTemplate implements Serializable {
     public boolean match(ACLMessage msg) {
       return op1.match(msg) || op2.match(msg);
     }
-
+      //only for debug
+      public String toString(){
+	  return op1.toString()+  " OR " + op2.toString();
+      }
 
   } // End of OrExpression class
 
@@ -134,169 +139,308 @@ public class MessageTemplate implements Serializable {
     public boolean match(ACLMessage msg) {
       return ! op.match(msg);
     }
-
+      //only for debug
+      public String toString(){
+	  return  "NOT " + op.toString();
+      }
   } // End of NotExpression class
 
+ 
   private static class Literal implements MatchExpression{
 
-    private class WildCardedMessage {
-      private boolean hasPerformative;
-      private ACLMessage myMessage;
+      Object matchValue;
+      int perfValue;
+      int slotName;
 
-      public WildCardedMessage(ACLMessage msg, boolean b) {
-	myMessage = msg;
-	hasPerformative = b;
+      //Literal for all the string value to match: language, ontology,encoding...
+      Literal(String matchValue, int slotName) {
+	  this.matchValue = matchValue;
+	  this.slotName = slotName;
       }
 
-      public boolean matchPerformative() {
-	return hasPerformative;
+      //Literal for the sender value
+      Literal(AID matchValue){
+	  this.matchValue = matchValue;
+	  this.slotName = SENDER;
       }
 
-      public ACLMessage getMsg() {
-	return myMessage;
+      //Literal for the receiver and replyTo slot.
+      Literal(AID[] matchValue, int slotName){
+	  this.matchValue = matchValue;
+	  this.slotName = slotName;
       }
 
-    }
-
-    private WildCardedMessage template;
-
-    public Literal(ACLMessage msg, boolean wildcardOnPerformative) {
-      template = new WildCardedMessage((ACLMessage)msg.clone(), wildcardOnPerformative);
-    }
-
-    public boolean match(ACLMessage msg) {
-      Class ACLMessageClass = msg.getClass();
-
-      ACLMessage templMessage = template.getMsg();
-
-      if(template.matchPerformative()) {
-	int perf1 = templMessage.getPerformative();
-	int perf2 = msg.getPerformative();
-	if(perf1 != perf2)
-	  return false;
+      //Literal for the performative slot
+      Literal(int matchValue){
+	  this.perfValue = matchValue;
+	  this.slotName = PERFORMATIVE;
+      }
+      
+      //literal for the reply_by_date slot.
+      Literal(Date matchValue){
+	  this.matchValue=matchValue;
+	  this.slotName = REPLY_BY_DATE;
       }
 
-      try {
-	// Match String slots
-	for(int i = 0; i < stringFields.length; i++) {
+      public boolean match(ACLMessage msg) {
+	  switch(slotName){
 
-	  String name = stringFields[i];
-	  Method getValue = ACLMessageClass.getMethod("get" + name, new Class[] { });
+	  case(CONVERSATION_ID):
+	       return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getConversationId());
+	  case(ENCODING):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getEncoding());
+	  case(IN_REPLY_TO):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getInReplyTo());
+	  case(LANGUAGE ):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getLanguage());
+	  case(ONTOLOGY):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getOntology());
+	  case(PROTOCOL):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getProtocol());
+	      //  case(REPLY_BY):
+	      // return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyBy());
+	  case (REPLY_BY_DATE):
+	      return ((Date)matchValue).equals(msg.getReplyByDate());
+	  case(REPLY_WITH):
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyWith());
+	  case(RECEIVER):
+	      if(matchValue != null){
+		  AID[] receivers = (AID[])matchValue;
+		  for(int i =0; i<receivers.length; i++){
+		      AID recToMatch = receivers[i];
+		      Iterator rec = msg.getAllReceiver();
+		      boolean found = false;
+		      while(rec.hasNext()){
+			  if(recToMatch.equals((AID)rec.next())){
+			      found = true;
+			      break; //out of the inner loop
+			  }
+		      }//end while
+		      if (found == false)
+			  return false;
+		  }//end for
+		  return true;
+	      }else
+		  return false;
 
-	  // This means: s1 = templMessage.get<value>();
-	  String s1 = (String)getValue.invoke(templMessage, new Object[] { });
+	  case(REPLY_TO):
+	      if(matchValue != null){
+		  AID[] receivers = (AID[])matchValue;
+		  for(int i =0; i<receivers.length; i++){
+		      AID recToMatch = receivers[i];
+		      Iterator rec = msg.getAllReplyTo();
+		      boolean found = false;
+		      while(rec.hasNext()){
+			  if(recToMatch.equals((AID)rec.next())){
+			      found = true;
+			      break; //out of the inner loop
+			  }
+		      }//end while
+		      if (found == false)
+			  return false;
+		  }//end for
+		  return true;
+	      }else
+		  return false;
+	  case(PERFORMATIVE):
+	      return (perfValue == msg.getPerformative());
+	  case(CONTENT)://FIXME: verificare il caso in cui il contenuto e'in byte.
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getContent());
+	  case(SENDER):
+	      if(matchValue != null)
+		  return ((AID)matchValue).equals(msg.getSender());
+	      else
+		  return false;
 
-	  // This means: s2 = msg.get<value>();
-	  String s2 = (String)getValue.invoke(msg, new Object[] { });
-
-	  if(s1 != null)
-	    if((s1.length() > 0) && (!CaseInsensitiveString.equalsIgnoreCase(s1, s2)))
-	      return false;
-	}
-
-	// Match 'sender' slot
-	AID id1 = templMessage.getSender();
-	AID id2 = msg.getSender();
-	if(id1 != null)
-	  if(!id1.equals(id2))
-	    return false;
-
-	// Match List slots
-	for(int i = 0; i < listFields.length; i++) {
-	  String name = listFields[i];
-	  Method getValues = ACLMessageClass.getMethod("getAll" + name, new Class[] { });
-
-	  // This means: it1 = templMessage.getAll<name>();
-	  Iterator it1 = (Iterator)getValues.invoke(templMessage, new Object[] { });
-	  while(it1.hasNext()) {
-	    Object templateListElement = it1.next();
-
-	    // This means: it2 = templMessage.getAll<name>();
-	    Iterator it2 = (Iterator)getValues.invoke(msg, new Object[] { });
-	    boolean found = false;
-	    while(it2.hasNext()) {
-	      if(templateListElement.equals(it2.next())) {
-		found = true;
-		break; // Out of the inner while loop
-	      }
-	    }
-	    // If an element of the template list is not found within
-	    // the message list, the message does not match.
-	    if(found == false)
-	      return false;
+	  default:return false;
 	  }
+      }
+      //only for debug purpose.
+      public String toString(){
 
+	  switch(slotName){
+
+	  case(CONVERSATION_ID):
+	       return  "(ConversationId: " + (String)matchValue + ")";
+	  case(ENCODING):
+	      return  "( Encoding: " +(String)matchValue + " )";
+	  case(IN_REPLY_TO):
+	      return  "( InReplyTo: " + (String)matchValue + " )";
+	  case(LANGUAGE ):
+	      return  "( Language: " + (String)matchValue +  " )";
+	  case(ONTOLOGY):
+	      return  "( Ontology: " + (String)matchValue + " )";
+	  case(PROTOCOL):
+	      return  "( Protocol: " + (String)matchValue+  " )";
+	      // case(REPLY_BY):
+	      // return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyBy());
+	  case(REPLY_BY_DATE):
+	      return  "( ReplyByDate: "+ (Date)matchValue + " )";
+	  case(REPLY_WITH):
+	      return  "( ReplyWith: " + (String)matchValue + " )"; 
+	  case(RECEIVER): 
+	      if(matchValue != null){
+		  AID[] receivers = (AID[])matchValue;
+		  String output =  "( Receivers: "; 
+		  for(int i =0; i<receivers.length; i++){
+		      AID recToMatch = receivers[i];
+		      output += recToMatch.toString();
+		  }
+		  return output +  ")" ;}
+	      else
+		  return  "(Receivers: null)"; 
+	  case(REPLY_TO): //FIXME: da finire.
+	      if(matchValue != null){
+		  AID[] receivers = (AID[])matchValue;
+		  String output =  "( ReplyTo: "; 
+		  for(int i =0; i<receivers.length; i++){
+		      AID recToMatch = receivers[i];
+		      output += recToMatch.toString();
+		  }
+		  return output + " )" ;
+	      }else
+		  return  "(ReplyTo: null)" ;
+	  case(PERFORMATIVE):
+	      return  "( Perfomative: " + ACLMessage.getPerformative(perfValue) + " )" ;
+	  case(CONTENT):
+	      return  "( Content: " + (String)matchValue + ")";
+	  case(SENDER):
+	      if(matchValue != null)
+		  return  "( Sender AID: " +  ((AID)matchValue).toString()+ ")" ;
+	      else
+		  return  "(Sender AID: null)" ;
+
+	  default:return  "No slot. This casa should never occur !!!" ;
+	  }
+	      
+      }
+  } // End of Literal class
+    
+
+    private static class MatchAllLiteral implements MatchExpression{
+	//use this literal for a MessageTemplate who matches all ACLMessages
+	MatchAllLiteral(){
 	}
 
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-	return false;
-      }
+	public boolean match(ACLMessage msg){
+	    return true;
+	}
 
-      return true;
+	public String toString(){
+	    return  "Match ALL Template";     
+	}
+    }//end class MatchAllLiteral
 
-    }
+    private static class CustomMsgLiteral implements MatchExpression{
 
-  } // End of Literal class
+	//use this literal for a messageTemplate matching the values of a given ACLMessage.
+	ACLMessage messageToMatch;
+	boolean matchPerformative;
+
+	CustomMsgLiteral(ACLMessage msg,boolean matchPerformative){
+	    messageToMatch = msg;
+	    this.matchPerformative = matchPerformative;
+	}
+	
+	public boolean match(ACLMessage msg){
+	    
+	    if(matchPerformative && (messageToMatch.getPerformative() != msg.getPerformative()))
+		return false; 
+	    if(messageToMatch.hasByteSequenceContent()) {
+		if (!messageToMatch.getByteSequenceContent().equals(msg.getByteSequenceContent()))
+		    return false;
+		else if(!match(messageToMatch.getContent(),msg.getContent()))
+		    return false;
+	    }
+	    if(!match(messageToMatch.getConversationId(),msg.getConversationId()))
+		return false;
+	    if(!match(messageToMatch.getEncoding(),msg.getEncoding()))
+		return false;
+	    if(!match(messageToMatch.getInReplyTo(),msg.getInReplyTo()))
+		return false;
+	    if(!match(messageToMatch.getLanguage(),msg.getLanguage()))
+		return false;
+	    if(!match(messageToMatch.getOntology(),msg.getOntology()))
+		return false;
+	    if(!match(messageToMatch.getProtocol(),msg.getProtocol()))
+		return false;
+	    if(!match(messageToMatch.getReplyWith(),msg.getReplyWith()))
+		return false;
+	    if(!match(messageToMatch.getReplyByDate(),msg.getReplyByDate()))
+		return false;
+	    //receiver
+	    Iterator it1 = messageToMatch.getAllReceiver();
+	    while(it1.hasNext()){
+		boolean found = false;
+		AID rec = (AID)it1.next();
+		Iterator it2 = msg.getAllReceiver();
+		while(it2.hasNext()){
+		    if(rec.equals((AID)it2.next())){
+			found = true;
+			break;
+		    }    
+		}//end while
+		if(found == false)
+		    return false; //when a receiver of the template is not into the receivers of the ACLMessage.
+	    }//end while
+	    
+	    //replyTo
+	    Iterator it3 = messageToMatch.getAllReceiver();
+	    while(it3.hasNext()){
+		boolean found = false;
+		AID rec = (AID)it3.next();
+		Iterator it2 = msg.getAllReceiver();
+		while(it2.hasNext()){
+		    if(rec.equals((AID)it2.next())){
+			found = true;
+			break;
+		    }    
+		}//end while
+		if(found == false)
+		    return false; //when a receiver of the template is not into the receivers of the ACLMessage.
+	    }//end while
+
+	    //sender
+	    if((messageToMatch.getSender() != null) &&!(messageToMatch.getSender().equals(msg.getSender())))
+		return false;
+		
+		return true;
+	}
+
+	private boolean match(String template, String actualValue){
+	    if(template == null)
+		return true;
+	    else
+		return CaseInsensitiveString.equalsIgnoreCase(template,actualValue);
+	}
+
+	private boolean match(Date template,Date actualValue){
+	    if(template == null)
+		return true;
+	    else
+		return template.equals(actualValue);
+	}
+
+	//only for debug purpose.
+	public String toString(){
+	    String output = (matchPerformative ?  "match the performative "  : "no match on performative "   );
+	    return (output + messageToMatch.toString());
+	}
+
+    }//end class CustomMsgLiteral
 
   /**
   @serial
   */
   private MatchExpression toMatch;
 
-  // Creates an ACL message with all fields set to the special,
-  // out-of-band wildcard value.
-  private static ACLMessage allWildCard() {
-    ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
-
-    try {
-      for(int i = 0; i < stringFields.length; i++) {
-
-	Class ACLMessageClass = ACLMessage.class;
-	String name = stringFields[i];
-
-	// This means: msg.set<name>(param)
-	Method setValue = ACLMessageClass.getMethod("set" + name, new Class[] { String.class });
-	setValue.invoke(msg, new Object[] { null });
-
-	msg.setSender(null); // The 'sender' slot is different, because it is of AID type.
-      }
-
-      for(int i = 0; i < listFields.length; i++) {
-
-	Class ACLMessageClass = ACLMessage.class;
-	String name = listFields[i];
-
-	// This means: msg.clearAll<name>(param)
-	Method clearValue = ACLMessageClass.getMethod("clearAll" + name, new Class[] { });
-	clearValue.invoke(msg, new Object[] { });
-
-	msg.setSender(null); // The 'sender' slot is different, because it is of AID type.
-      }
-
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-    }
-
-    return msg;
-  }
-
-  
-  
+   
   /** Public constructor to use when the user needs to define 
   an application specific pattern.	 
   */
 
   public MessageTemplate(MatchExpression e) {
     toMatch = e;
-  }
-
-  // Private constructor: use static factory methods to create message
-  // templates.
-  private MessageTemplate(ACLMessage msg, boolean matchPerformative) {
-    toMatch = new Literal((ACLMessage)msg.clone(), matchPerformative);
   }
 
 
@@ -306,9 +450,10 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> matching any given
      value.
   */
-  public static MessageTemplate MatchAll() {
-    return new MessageTemplate(allWildCard(), false);
-  }
+   
+    public static MessageTemplate MatchAll() {
+      return new MessageTemplate(new MatchAllLiteral());
+      }
 
   /**
      This <em>Factory Method</em> returns a message template that
@@ -318,9 +463,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchSender(AID value) {
-    ACLMessage msg = allWildCard();
-    msg.setSender(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value));
   }
 
   //__JADE_ONLY__BEGIN
@@ -353,12 +496,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchReceiver(AID[] values) {
-    ACLMessage msg = allWildCard();
-    msg.clearAllReceiver();
-    if (values != null) 
-	for (int i=0; i<values.length; i++)
-	    msg.addReceiver(values[i]);
-    return new MessageTemplate(msg, false);
+       return new MessageTemplate(new Literal(values,RECEIVER));
   }
 
   /**
@@ -369,9 +507,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchContent(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setContent(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value,CONTENT));
   }
 
   /**
@@ -382,9 +518,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchReplyWith(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setReplyWith(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value, REPLY_WITH));
   }
 
   /**
@@ -395,9 +529,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchInReplyTo(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setInReplyTo(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value,IN_REPLY_TO));
   }
 
   //__JADE_ONLY__BEGIN
@@ -430,12 +562,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchReplyTo(AID[] values) {
-    ACLMessage msg = allWildCard();
-    msg.clearAllReplyTo();
-    if (values != null) 
-	for (int i=0; i<values.length; i++)
-	    msg.addReplyTo(values[i]);
-    return new MessageTemplate(msg, false);
+      return new MessageTemplate(new Literal(values,REPLY_TO));
   }
 
   /**
@@ -446,9 +573,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchLanguage(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setLanguage(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value,LANGUAGE));
   }
 
   /**
@@ -459,9 +584,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchEncoding(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setEncoding(value);
-    return new MessageTemplate(msg, false);
+    return new MessageTemplate(new Literal(value,ENCODING));
   }
 
   /**
@@ -472,9 +595,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchOntology(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setOntology(value);
-    return new MessageTemplate(msg, false);
+      return new MessageTemplate(new Literal(value,ONTOLOGY));
   }
 
   /**
@@ -483,137 +604,147 @@ public class MessageTemplate implements Serializable {
      @param value The value the message slot will be matched against.
      @return A new <code>MessageTemplate</code> matching the given
      value.
+     @see jade.lang.acl.MessageTemplate#MatchReplyByDate(Date)
+     @deprecated use the method <code> MatchReplyByDate</code>
   */
   public static MessageTemplate MatchReplyBy(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setReplyBy(value);
-    return new MessageTemplate(msg, false);
+      return new MessageTemplate(new Literal(value,REPLY_BY));
   }
 
-  /**
-     This <em>Factory Method</em> returns a message template that
-     matches any message with a given <code>:protocol</code> slot.
-     @param value The value the message slot will be matched against.
-     @return A new <code>MessageTemplate</code> matching the given
-     value.
-  */
-  public static MessageTemplate MatchProtocol(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setProtocol(value);
-    return new MessageTemplate(msg, false);
-  }
+    /**
+       This <em>Factory Method</em> returns a message template that
+       matches any message with a given <code>:reply-by</code> slot.
+       @param value The <code>Date</code> the message slot will be matched against.
+       @return A new <code>MessageTemplate</code> matching the given
+       value.
+    **/
+    public static MessageTemplate MatchReplyByDate(Date value){
+	return new MessageTemplate(new Literal(value));
+    }
 
-  /**
-     This <em>Factory Method</em> returns a message template that
-     matches any message with a given <code>:conversation-id</code> slot.
-     @param value The value the message slot will be matched against.
-     @return A new <code>MessageTemplate</code> matching the given
-     value.
-  */
-  public static MessageTemplate MatchConversationId(String value) {
-    ACLMessage msg = allWildCard();
-    msg.setConversationId(value);
-    return new MessageTemplate(msg, false);
-  }
+    /**
+       This <em>Factory Method</em> returns a message template that
+       matches any message with a given <code>:protocol</code> slot.
+       @param value The value the message slot will be matched against.
+       @return A new <code>MessageTemplate</code> matching the given
+       value.
+    */
+    public static MessageTemplate MatchProtocol(String value) {
+	return new MessageTemplate(new Literal(value, PROTOCOL));
+    }
+    
+    /**
+       This <em>Factory Method</em> returns a message template that
+       matches any message with a given <code>:conversation-id</code> slot.
+       @param value The value the message slot will be matched against.
+       @return A new <code>MessageTemplate</code> matching the given
+       value.
+    */
+    public static MessageTemplate MatchConversationId(String value) {
+	return new MessageTemplate(new Literal(value,CONVERSATION_ID));
+    }
+    
+    /**
+       This <em>Factory Method</em> returns a message template that
+       matches any message with a given performative.
+       @param value The value the message slot will be matched against.
+       @return A new <code>MessageTenplate</code>matching the given
+       value.
+    */
+    public static MessageTemplate MatchPerformative(int value){
+	return new MessageTemplate(new Literal(value));
+    }
+    
+    /**
+       This <em>Factory Method</em> returns a message template that
+       matches ACL messages against a given one, passed as
+       parameter. The following algorithm is used:
+       When the given <code>ACLMessage</code> has a non
+       <code>null</code> slot, subsequent messages must have the same
+       slot value in that slot to have a match.
+       When the given <code>ACLMessage</code> has a <code>null</code>
+       slot, subsequent messages can have any value for that slot and
+       still match the template.
+       In short, a <code>null</code> value for a slot means <em>don't
+       care</em>.
+       @param msg The <code>ACLMessage</code> used to build a custom
+       message template.
+       @param matchPerformative a <code>bool</code> value. When
+       <code>true</code>, the performative of the <code>msg</code> will
+       be considered as a part of the template (i.e. the message
+       template will match only ACL messages with the same performativa
+       as <code>msg</code>).
+       When <false>, the performative of <code>msg</code> is ignored and
+       the resulting message template will not consider it when matching
+       messages.
+       @return A new <code>MessageTemplate</code>, matching the given
+       message according to the above algorithm.
+    */
+    
+    public static MessageTemplate MatchCustom(ACLMessage msg, boolean matchPerformative) {
+	ACLMessage message = (ACLMessage)msg.clone();
+	return new MessageTemplate(new CustomMsgLiteral(message, matchPerformative));
+    }
 
-  /**
-     This <em>Factory Method</em> returns a message template that
-     matches any message with a given performative.
-     @param value The value the message slot will be matched against.
-     @return A new <code>MessageTenplate</code>matching the given
-     value.
-  */
-  public static MessageTemplate MatchPerformative(int value){
-    ACLMessage msg = allWildCard();
-    msg.setPerformative(value);  	
-    return new MessageTemplate(msg,true);
-  }
-
-  /**
-     This <em>Factory Method</em> returns a message template that
-     matches ACL messages against a given one, passed as
-     parameter. The following algorithm is used:
-     When the given <code>ACLMessage</code> has a non
-     <code>null</code> slot, subsequent messages must have the same
-     slot value in that slot to have a match.
-     When the given <code>ACLMessage</code> has a <code>null</code>
-     slot, subsequent messages can have any value for that slot and
-     still match the template.
-     In short, a <code>null</code> value for a slot means <em>don't
-     care</em>.
-     @param msg The <code>ACLMessage</code> used to build a custom
-     message template.
-     @param matchPerformative a <code>bool</code> value. When
-     <code>true</code>, the performative of the <code>msg</code> will
-     be considered as a part of the template (i.e. the message
-     template will match only ACL messages with the same performativa
-     as <code>msg</code>).
-     When <false>, the performative of <code>msg</code> is ignored and
-     the resulting message template will not consider it when matching
-     messages.
-     @return A new <code>MessageTemplate</code>, matching the given
-     message according to the above algorithm.
-  */
-  public static MessageTemplate MatchCustom(ACLMessage msg, boolean matchPerformative) {
-    ACLMessage message = (ACLMessage)msg.clone();
-    return new MessageTemplate(message, matchPerformative);
-  }
-
-  /**
-     Logical <b>and</b> between two <code>MessageTemplate</code>
-     objects. This method creates a new message template that is
-     matched by those ACL messages matching <b><em>both</b></em>
-     message templates given as operands.
-     @param op1 The first <em>and</em> operand.
-     @param op2 The second <em>and</em> operand.
-     @return A new <code>MessageTemplate</code> object.
-     @see jade.lang.acl.MessageTemplate#or(MessageTemplate op1, MessageTemplate op2)
-  */
-  public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) {
-    AndExpression e = new AndExpression(op1.toMatch, op2.toMatch);
-    MessageTemplate result = new MessageTemplate(e);
-    return result;
-  }
-
-  /**
-     Logical <b>or</b> between two <code>MessageTemplate</code>
-     objects. This method creates a new message template that is
-     matched by those ACL messages matching <b><em>any</b></em> of the
-     two message templates given as operands.
-     @param op1 The first <em>or</em> operand.
-     @param op2 The second <em>or</em> operand.
-     @return A new <code>MessageTemplate</code> object.
-     @see jade.lang.acl.MessageTemplate#and(MessageTemplate op1, MessageTemplate op2)
-  */
-  public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
-    OrExpression e = new OrExpression(op1.toMatch, op2.toMatch);
-    MessageTemplate result = new MessageTemplate(e);
-    return result;
-  }
-
-  /**
-     Logical <b>not</b> of a <code>MessageTemplate</code> object. This
-     method creates a new message template that is matched by those
-     ACL messages <b><em>not</em></b> matching the message template
-     given as operand.
-     @param op The <em>not</em> operand.
-     @return A new <code>MessageTemplate</code> object.
-  */
-  public static MessageTemplate not(MessageTemplate op) {
-    NotExpression e = new NotExpression(op.toMatch);
-    MessageTemplate result = new MessageTemplate(e);
-    return result;
-  }
-
-  /**
-     Matches an ACL message against this <code>MessageTemplate</code>
-     object.
-     @param msg The <code>ACLMessage</code> to check for matching.
-     @return <code>true</code> if the ACL message matches this
-     template, <code>false</code> otherwise.
-  */
-  public boolean match(ACLMessage msg) {
-    return toMatch.match(msg);
-  }
-
+    /**
+       Logical <b>and</b> between two <code>MessageTemplate</code>
+       objects. This method creates a new message template that is
+       matched by those ACL messages matching <b><em>both</b></em>
+       message templates given as operands.
+       @param op1 The first <em>and</em> operand.
+       @param op2 The second <em>and</em> operand.
+       @return A new <code>MessageTemplate</code> object.
+       @see jade.lang.acl.MessageTemplate#or(MessageTemplate op1, MessageTemplate op2)
+    */
+    public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) {
+	AndExpression e = new AndExpression(op1.toMatch, op2.toMatch);
+	MessageTemplate result = new MessageTemplate(e);
+	return result;
+    }
+    
+    /**
+       Logical <b>or</b> between two <code>MessageTemplate</code>
+       objects. This method creates a new message template that is
+       matched by those ACL messages matching <b><em>any</b></em> of the
+       two message templates given as operands.
+       @param op1 The first <em>or</em> operand.
+       @param op2 The second <em>or</em> operand.
+       @return A new <code>MessageTemplate</code> object.
+       @see jade.lang.acl.MessageTemplate#and(MessageTemplate op1, MessageTemplate op2)
+    */
+    public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
+	OrExpression e = new OrExpression(op1.toMatch, op2.toMatch);
+	MessageTemplate result = new MessageTemplate(e);
+	return result;
+    }
+    
+    /**
+       Logical <b>not</b> of a <code>MessageTemplate</code> object. This
+       method creates a new message template that is matched by those
+       ACL messages <b><em>not</em></b> matching the message template
+       given as operand.
+       @param op The <em>not</em> operand.
+       @return A new <code>MessageTemplate</code> object.
+    */
+    public static MessageTemplate not(MessageTemplate op) {
+	NotExpression e = new NotExpression(op.toMatch);
+	MessageTemplate result = new MessageTemplate(e);
+	return result;
+    }
+    
+    /**
+       Matches an ACL message against this <code>MessageTemplate</code>
+       object.
+       @param msg The <code>ACLMessage</code> to check for matching.
+       @return <code>true</code> if the ACL message matches this
+       template, <code>false</code> otherwise.
+    */
+    public boolean match(ACLMessage msg) {
+	return toMatch.match(msg);
+    }
+    
+    //only for debug
+    public String toString(){
+	return toMatch.toString();
+    }
 }
