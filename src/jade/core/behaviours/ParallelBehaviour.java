@@ -61,6 +61,12 @@ public class ParallelBehaviour extends CompositeBehaviour {
   private Hashtable blockedChildren = new Hashtable(); 
   private BehaviourList terminatedChildren = new BehaviourList();
 
+    /**
+       Construct a <code>ParallelBehaviour</code> without setting the
+       owner agent, and using the default termination condition
+       (i.e. the parallel behaviour terminates as soon as all its
+       children behaviours terminate.
+    */
     public ParallelBehaviour() {
 	whenToStop = WHEN_ALL;
     }
@@ -171,7 +177,14 @@ public class ParallelBehaviour extends CompositeBehaviour {
       	// the list of sub-behaviours
       	Behaviour b = subBehaviours.getCurrent();
 		subBehaviours.removeElement(b);
+		b.setParent(null);
 		terminatedChildren.addElement(b);
+
+		//#MIDP_EXCLUDE_BEGIN
+		persistentSubBehaviours.remove(b);
+		persistentTerminatedChildren.add(b);
+		//#MIDP_EXCLUDE_END
+
     }
 
     if (!evalCondition()) {
@@ -213,13 +226,18 @@ public class ParallelBehaviour extends CompositeBehaviour {
   */
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
+
+    //#MIDP_EXCLUDE_BEGIN
+    persistentSubBehaviours.add(b);
+    //#MIDP_EXCLUDE_END
+
     b.setParent(this);
     b.setAgent(myAgent);
 	
 	if (b.isRunnable()) {
 		// If all previous children were blocked (this Parallel Behaviour 
 		// was blocked too), restart this ParallelBehaviour and notify 
-		// upwords
+		// upwards
 		if (!isRunnable()) {
 	  		myEvent.init(true, NOTIFY_UP);
 	  		super.handle(myEvent);
@@ -240,6 +258,10 @@ public class ParallelBehaviour extends CompositeBehaviour {
   */
   public void removeSubBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
+    //#MIDP_EXCLUDE_BEGIN
+    persistentSubBehaviours.remove(b);
+    //#MIDP_EXCLUDE_END
+
     if(rc) {
       b.setParent(null);
     }
@@ -252,7 +274,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
 	}
 	else {
 		// If some children still exist and they are all blocked, 
-		// block this ParallelBehaviour and notify upwords
+		// block this ParallelBehaviour and notify upwards
 		if ((!subBehaviours.isEmpty()) && 
 			(blockedChildren.size() == subBehaviours.size()) ) {
 	  		myEvent.init(false, NOTIFY_UP);
@@ -276,7 +298,13 @@ public class ParallelBehaviour extends CompositeBehaviour {
     // Restore all terminated sub-behaviours
     while(b != null) {
       terminatedChildren.removeElement(b);
+      b.setParent(this);
       subBehaviours.addElement(b);
+      //#MIDP_EXCLUDE_BEGIN
+      persistentTerminatedChildren.remove(b);
+      persistentSubBehaviours.add(b);
+      //#MIDP_EXCLUDE_END
+
       b = terminatedChildren.next();
     }
     
@@ -285,6 +313,8 @@ public class ParallelBehaviour extends CompositeBehaviour {
     super.reset();
 
   }
+
+    //#APIDOC_EXCLUDE_BEGIN
 
   /**
      Handle block/restart notifications. A
@@ -301,7 +331,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
       
       if (b == this) {
       	// If the event is from this behaviour, set the new 
-      	// runnable state and notify upwords.
+      	// runnable state and notify upwards.
       	super.handle(rce);
       }
       else {
@@ -312,7 +342,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
 			Object rc = blockedChildren.remove(b);
 			
 			// Only if all children were blocked (this ParallelBehaviour was
-			// blocked too), restart this ParallelBehaviour and notify upwords
+			// blocked too), restart this ParallelBehaviour and notify upwards
 			if( (rc != null) && !isRunnable() ) {
 	  			myEvent.init(true, NOTIFY_UP);
 	  			super.handle(myEvent);
@@ -327,17 +357,17 @@ public class ParallelBehaviour extends CompositeBehaviour {
 			Object rc = blockedChildren.put(b, b);
 			
 			// Only if, with the addition of this child all sub-behaviours 
-			// are now blocked, block this ParallelBehaviour and notify upwords
+			// are now blocked, block this ParallelBehaviour and notify upwards
 			if ( (rc != null) && (blockedChildren.size() == subBehaviours.size()) ) {
 	  			myEvent.init(false, NOTIFY_UP);
 	  			super.handle(myEvent);
 			}
     	}
-      } // END of upwords notification from children
+      } // END of upwards notification from children
       
-    } // END of upwords notification
+    } // END of upwards notification
     else {
-      // Downwords notification	(from parent)
+      // Downwards notification	(from parent)
       boolean r = rce.isRunnable();
 	  
       // Set the new runnable state
@@ -360,8 +390,10 @@ public class ParallelBehaviour extends CompositeBehaviour {
 			blockedChildren.put(b, b);
   	  	}
   	  }
-    }  // END of downwords notification
+    }  // END of downwards notification
   }
+
+    //#APIDOC_EXCLUDE_END
 
   private boolean evalCondition() {
 
@@ -384,25 +416,22 @@ public class ParallelBehaviour extends CompositeBehaviour {
 
     //#MIDP_EXCLUDE_BEGIN
 
+    private java.util.Set persistentSubBehaviours = new java.util.HashSet();
+
+
     // For persistence service
     private java.util.Set getSubBehaviours() {
-
-	/***
-	java.util.Set result = new java.util.HashSet();
-	Iterator it = subBehaviours.iterator();
-	while(it.hasNext()) {
-	    result.add(it.next());
-	}
-
-	return result;
-	***/
-	return java.util.Collections.EMPTY_SET;
+	return persistentSubBehaviours;
     }
 
     // For persistence service
     private void setSubBehaviours(java.util.Set behaviours) {
-	/***
+
+	// Reset children containers
 	subBehaviours.clear();
+	blockedChildren.clear();
+
+	// Copy children from the given set
 	java.util.Iterator it = behaviours.iterator();
 	while(it.hasNext()) {
 	    Behaviour b = (Behaviour)it.next();
@@ -414,10 +443,30 @@ public class ParallelBehaviour extends CompositeBehaviour {
 	}
 
 	// The internal iterator position is not saved, but it
-	// restarts at the beginning.
+	// restarts at the beginning...
 	subBehaviours.begin();
+
+	persistentSubBehaviours = behaviours;
+    }
+
+    // For persistence service
+    private java.util.Set persistentTerminatedChildren = new java.util.HashSet();
+
+    // For persistence service
+    private java.util.Set getTerminatedChildren() {
+	return persistentTerminatedChildren;
+    }
+
+    private void setTerminatedChildren(java.util.Set behaviours) {
+
 	terminatedChildren.clear();
-	***/
+	java.util.Iterator it = behaviours.iterator();
+	while(it.hasNext()) {
+	    Behaviour b = (Behaviour)it.next();
+	    terminatedChildren.addElement(b);
+	}
+
+	persistentTerminatedChildren = behaviours;
     }
 
     // For persistence service
@@ -429,7 +478,6 @@ public class ParallelBehaviour extends CompositeBehaviour {
     private void setWhenToStop(int when) {
 	whenToStop = when;
     }
-
 
   //#MIDP_EXCLUDE_END
    

@@ -50,8 +50,9 @@ import java.util.Enumeration;
  * they would conflict!
  * 
  * @author  Federico Bergenti
- * @author  Giovanni Caire - TILAB
  * @author  Giovanni Rimassa - Universita' di Parma
+ * @author  Giovanni Caire - TILAB
+ * 
  * @version 1.0, 22/11/00
  * 
  */
@@ -68,13 +69,10 @@ public class ProfileImpl extends Profile {
 
   private static final String IMTP = "imtp";
   private static final String LOCAL_PORT = "local-port";
-  public static final int DEFAULT_PORT = 1099;
 
-    /**
-       This constant is the key of the property whose value is the class name of
-       the mobility manager.
-     **/
-  public static final String MOBILITYMGRCLASSNAME = "mobility";
+  //#APIDOC_EXCLUDE_BEGIN
+  public static final int DEFAULT_PORT = 1099;
+  //#APIDOC_EXCLUDE_END
 
   //#ALL_EXCLUDE_BEGIN
   private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.rmi.RMIIMTPManager";
@@ -95,6 +93,13 @@ public class ProfileImpl extends Profile {
   private IMTPManager     myIMTPManager = null;
   private ResourceManager myResourceManager = null;
 
+  /**
+     Creates a Profile implementation using the given properties to
+     configure the platform startup process.
+
+     @param aProp The names and values of the configuration properties
+     to use.
+  */
   public ProfileImpl(Properties aProp) {
     props = aProp;
     init();
@@ -259,12 +264,13 @@ public class ProfileImpl extends Profile {
 
   }
 
-
-    public void updatePlatformID() {
+    //#APIDOC_EXCLUDE_BEGIN
+    protected void updatePlatformID() {
 	String h = props.getProperty(MAIN_HOST);
 	String p = props.getProperty(MAIN_PORT);
 	props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
     }
+    //#APIDOC_EXCLUDE_END
 
     /**
      * Return the underlying properties collection.
@@ -296,6 +302,7 @@ public class ProfileImpl extends Profile {
       //#MIDP_EXCLUDE_END
   } 
 
+    //#APIDOC_EXCLUDE_BEGIN
 
     /**
        Access the platform service manager.
@@ -427,6 +434,8 @@ public class ProfileImpl extends Profile {
     }
     //#J2ME_EXCLUDE_END
 
+
+    //#APIDOC_EXCLUDE_END
 
 
     //#MIDP_EXCLUDE_BEGIN
@@ -577,6 +586,14 @@ public class ProfileImpl extends Profile {
     }
   }
 
+    /**
+       Creates a string representation of this profile. The returned
+       string has the format
+       <p><code>(profile name1=value1 name2=value2 ... )</code></p>
+
+       @return A string containing a readable representation of this
+       profile object.
+    */
     public String toString() {
 	StringBuffer str = new StringBuffer("(Profile");
 	String[] properties = propsToStringArray();

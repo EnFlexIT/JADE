@@ -42,6 +42,8 @@ import jade.core.Agent;
 public abstract class Behaviour implements Serializable {
   private static final long     serialVersionUID = 3487495895819001L;
 
+    //#APIDOC_EXCLUDE_BEGIN
+
   /**
      A constant for child-to-parent notifications.
      @serial
@@ -53,6 +55,8 @@ public abstract class Behaviour implements Serializable {
      @serial
    */
   protected static final int NOTIFY_DOWN = 1;
+
+    //#APIDOC_EXCLUDE_END
 
   /**
      A constant identifying the runnable state.
@@ -71,6 +75,9 @@ public abstract class Behaviour implements Serializable {
      @serial
    */
   public static final String STATE_RUNNING = "RUNNING";
+
+
+    //#APIDOC_EXCLUDE_BEGIN
   
   /**
      Event class for notifying blocked and restarted behaviours.
@@ -141,6 +148,10 @@ public abstract class Behaviour implements Serializable {
 
   } // End of RunnableChangedEvent class
 
+
+    //#APIDOC_EXCLUDE_END
+
+
   private String myName;
   
   private boolean startFlag = true;
@@ -163,11 +174,15 @@ public abstract class Behaviour implements Serializable {
    */
   private boolean runnableState = true;
   
+    //#APIDOC_EXCLUDE_BEGIN
+
   /**
      This event object will be re-used for every state change
      notification.
    */
   protected RunnableChangedEvent myEvent = new RunnableChangedEvent();
+
+    //#APIDOC_EXCLUDE_END
 
 	//#CUSTOM_EXCLUDE_BEGIN
   /**
@@ -220,10 +235,20 @@ public abstract class Behaviour implements Serializable {
     myAgent = a;
   }
 
+  /**
+     Give a name to this behaviour object.
+     @param name The name to give to this behaviour.
+  */
   public final void setBehaviourName(String name) {
   	myName = name;
   }
   
+  /**
+     Retrieve the name of this behaviour object. If no explicit name
+     was set, a default one is given, based on the behaviour class
+     name.
+     @return The name of this behaviour.
+  */
   public final String getBehaviourName() {
   	return myName;
   }
@@ -283,7 +308,9 @@ public abstract class Behaviour implements Serializable {
   */
   public void onStart() {
   }
-  
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   /** 
      This method is called internally by the JADE framework 
      and should not be called by the user.
@@ -305,6 +332,9 @@ public abstract class Behaviour implements Serializable {
 		}
   	//#MIDP_EXCLUDE_END
   }
+
+    //#APIDOC_EXCLUDE_END
+
   
   /**
      Restores behaviour initial state. This method must be implemented
@@ -322,6 +352,7 @@ public abstract class Behaviour implements Serializable {
 	restart();
   }
 
+    //#APIDOC_EXCLUDE_BEGIN
   /**
      Handler for block/restart events. This method handles
      notification by copying its runnable state and then by simply
@@ -341,6 +372,7 @@ public abstract class Behaviour implements Serializable {
     }
   	//#CUSTOM_EXCLUDE_END
   }
+    //#APIDOC_EXCLUDE_END
 
   /**
      Returns the root for this <code>Behaviour</code> object. That is,
@@ -450,7 +482,7 @@ public abstract class Behaviour implements Serializable {
   }
 
     // For persistence service
-    protected Agent getAgent() {
+    private Agent getAgent() {
 	return myAgent;
     }
 

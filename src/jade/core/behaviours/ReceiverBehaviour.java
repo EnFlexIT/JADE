@@ -43,7 +43,7 @@ import jade.lang.acl.MessageTemplate;
    @see jade.lang.acl.ACLMessage
  
    
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
 
  */
@@ -208,7 +208,7 @@ public final class ReceiverBehaviour extends Behaviour {
 
   /**
      Receive any ACL message, waiting at most <code>millis</code>
-     milliseconds (infinite time if <code>millis<1</code>).
+     milliseconds (infinite time if <code>millis < 1</code>).
      When calling this constructor, a suitable <code>Handle</code>
      must be created and passed to it. When this behaviour ends, some
      other behaviour will try to get the ACL message out of the
@@ -246,6 +246,19 @@ public final class ReceiverBehaviour extends Behaviour {
     this(a, h, millis, null);
   }
 
+  /**
+     Receive any ACL message matching the given template, witing at
+     most <code>millis</code> milliseconds (infinite time if
+     <code>millis < 1</code>. When calling this constructor, a
+     suitable <code>Handle</code> must be created and passed to it.
+     @param a The agent this behaviour belongs to.
+     @param h An <em>Handle</em> representing the message to receive.
+     @param millis The maximum amount of time to wait for the message,
+     in milliseconds.
+     @param mt A Message template to match incoming messages against, null to
+     indicate no template and receive any message that arrives.
+     @see jade.core.behaviours.ReceiverBehaviour#ReceiverBehaviour(Agent a, Handle h, long millis)
+  */
   public ReceiverBehaviour(Agent a, Handle h, long millis, MessageTemplate mt) {
     super(a);
     future = (MessageFuture)h;

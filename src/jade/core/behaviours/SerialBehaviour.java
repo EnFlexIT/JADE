@@ -35,15 +35,27 @@ import jade.core.Agent;
    @author Giovanni Caire - Telecom Italia Lab
 */
 public abstract class SerialBehaviour extends CompositeBehaviour {
-	
-	protected SerialBehaviour() {
-		super();
-	}
-	
-	protected SerialBehaviour(Agent a) {
-		super(a);
-	}
-	
+
+    /**
+       Create a new <code>SerialBehaviour</code> object, without
+       setting the owner agent.
+    */
+    protected SerialBehaviour() {
+	super();
+    }
+
+    /**
+       Create a new <code>SerialBehaviour</code> object and set the
+       owner agent.
+       @param a The agent owning this behaviour.
+    */
+    protected SerialBehaviour(Agent a) {
+	super(a);
+    }
+
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   /**
      Handle block/restart notifications. A
      <code>SerialBehaviour</code> is blocked <em>only</em> when
@@ -82,6 +94,9 @@ public abstract class SerialBehaviour extends CompositeBehaviour {
 	  }
     }  	
   }
+
+    //#APIDOC_EXCLUDE_END
+
 }
 
 
