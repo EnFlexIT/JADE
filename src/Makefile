@@ -36,7 +36,8 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/proto/FipaQueryInitiatorBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/tools/rma/rma.java \
-		jade/tools/DummyAgent/DummyAgent.java
+		jade/tools/DummyAgent/DummyAgent.java \
+		jade/tools/SocketProxyAgent/SocketProxyAgent.java
 
 STUBDIR     =	.
 IDLSTUBS    =   _FIPA_Agent_97Stub.java \
