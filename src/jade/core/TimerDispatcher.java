@@ -61,7 +61,7 @@ public class TimerDispatcher implements Runnable {
   	}
     // If this is the first timer, wake up the dispatcher thread
     if(timers.first() == t) {
-      notify();
+      notifyAll();
     }
     return t;
   }
@@ -77,59 +77,40 @@ public class TimerDispatcher implements Runnable {
   private synchronized Timer firstTimer() {
     return (Timer)timers.first();
   }
-
+  
   public void run() {
-    // Server loop, demultiplexing between timer dispatching and timer
-    // addition/removal.
-
     try {
-      // Used as a flag. The dispatcher must recheck the timer list
-      // whenever the last timer was expired.
-      boolean checkAgain = false;
-
-      long timeToWait = 0;
-      Timer t = null;
-      synchronized(this) {
-				while(active) {
-	  			checkAgain = false;
-	  			// If no timers are armed, wait until one is added.
-	  			if(emptySet()) {
-	    			timeToWait = 0;
-	  			}
-	  			// Otherwise...
-	  			else {
-	    			t = firstTimer();
-	    			// If t was expired, calling this function executes the
-	    			// time-out action; then the timer is removed and the need
-	    			// for further inspections of the timer list is flagged (in
-	    			// fact while the timeout action is executed other timers 
-	    			// may have expired).
-	    			if(t.isExpired()) {
-	      			remove(t);
-	      			checkAgain = true;
+    	while (active) {
+	    	Timer t = null;
+    		synchronized(this) {
+    			while (active) {
+	    			long timeToWait = 0;
+	    			if (!timers.isEmpty()) {
+	    				t = (Timer) timers.first();
+	    				if (t.isExpired()) {
+    						timers.remove(t);
+	    					break;
+	    				}
+	    				else {
+		      			timeToWait = t.expirationTime() - System.currentTimeMillis();
+		      			if(timeToWait <= 0) {
+		      				// Avoid wait(0), that means 'for ever'
+									timeToWait = 1;
+		      			}
+	    				}
 	    			}
-	    			else {
-	      			// The first timer is still armed --> we have to wait until  
-	    				// its expiration time.
-	      			timeToWait = t.expirationTime() - System.currentTimeMillis();
-	      			if(timeToWait <= 0) // Avoid wait(0), that means 'for ever'
-								timeToWait = 1;
-	    			}
-	  			}	  			
-	  			
-	  			if(!checkAgain) {
 	    			wait(timeToWait);
-	  			}
-	  			
-				}  // END of while
-				
-      }  // END of synchronized
-      
+    			}
+    		}
+    		// This check just avoids NullPointerException on termination
+    		if (active) {
+	    		t.fire();
+    		}
+    	} 
     }
     catch(InterruptedException ie) {
       // Do nothing, but just return, since this is a shutdown.
     }
-    // System.out.println("Timer Dispatcher shutting down ...");
   }
 
   void start() {

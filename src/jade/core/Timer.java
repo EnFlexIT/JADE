@@ -35,13 +35,13 @@ be used by application developers.
 public class Timer implements Comparable {
 
   private long expireTimeMillis;
-  private boolean expired;
+  private boolean fired;
   private TimerListener owner;
 
   public Timer(long when, TimerListener tl) {
     expireTimeMillis = when;
     owner = tl;
-    expired = false;
+    fired = false;
   }
 
   public int compareTo(Object o) {
@@ -62,14 +62,14 @@ public class Timer implements Comparable {
   // Called by the TimerDispatcher
 
   boolean isExpired() {
-
-    boolean oldExpired = expired;
-    expired |= (expireTimeMillis < System.currentTimeMillis());
-    // Edge triggered action
-    if(!oldExpired && expired)
-      owner.doTimeOut(this);
-
-    return expired;
+    return expireTimeMillis < System.currentTimeMillis();
+  }
+  
+  void fire() {
+  	if (!fired) {
+  		fired = true;
+	  	owner.doTimeOut(this);
+  	}
   }
 
   long expirationTime() {
