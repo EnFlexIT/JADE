@@ -428,10 +428,14 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       default:
 	throw new MTPException("Invalid endianness specifier");
       }
-      // Read 'string type_id' field
-      String typeID = codecStrategy.readString();
-      if(!typeID.equalsIgnoreCase(TYPE_ID))
-	throw new MTPException("Invalid type ID" + typeID);
+      try {
+	  // Read 'string type_id' field
+	  String typeID = codecStrategy.readString();
+	  if(!typeID.equalsIgnoreCase(TYPE_ID))
+	      throw new MTPException("Invalid type ID" + typeID);
+      } catch (Exception e) { // all exceptions are converted into MTPException
+	  throw new MTPException("Invalid type ID");
+      }
 
       // Read 'sequence<TaggedProfile> profiles' field
       // Read sequence length
@@ -460,8 +464,12 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	  if(versionMajor != 1)
 	    throw new MTPException("IIOP version not supported");
 
-	  // Read 'string host' field
-	  host = profileBodyCodec.readString();
+	  try {
+	      // Read 'string host' field
+	      host = profileBodyCodec.readString();
+	  } catch (Exception e) {
+	      throw new MTPException("Invalid host string");
+	  }
 
 	  // Read 'unsigned short port' field
 	  port = profileBodyCodec.readShort();
@@ -599,11 +607,11 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	return result;
       }
 
-      public String readString() {
-	int strLen = readLong(); // This includes '\0' terminator
-	String result = new String(readBuffer, readIndex, strLen - 1);
-	readIndex += strLen;
-	return result;
+      public String readString() { 
+	  int strLen = readLong(); // This includes '\0' terminator
+	  String result = new String(readBuffer, readIndex, strLen - 1);
+	  readIndex += strLen;
+	  return result;
       }
 
       // These depend on endianness, so are deferred to subclasses
