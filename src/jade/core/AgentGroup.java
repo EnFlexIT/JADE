@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1999/10/08 08:26:34  rimassa
+  Added an explanatory comments for a behaviour change (case
+  sensitiveness).
+
   Revision 1.12  1999/10/06 14:49:03  rimassa
   Removed a couple of 'toLowerCase()' calls, to preserve case in agent
   names when inserted and extracted into and from an AgentGroup.
@@ -66,8 +70,8 @@ public class AgentGroup implements Cloneable, Serializable {
   }
 
   /**
-     Removes an agent from this group.
-     @param name The agent name to remove from this group.
+     Removes an agent from this group. 
+     @param name The agent name (case-sensitive) to remove from this group.
    */
   public void removeMember(String name) {
      memberNames.removeElement(name);
