@@ -47,7 +47,11 @@ class ACCProxy implements AgentProxy {
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
-    myACC.prepareEnvelope(msg, receiver);
+    //FIXME CPU usage might be reduced if the method addAddressesToLocalAgents
+  	// was called only for messages sent out of the platform.
+  	// Now it is called for all messages.
+  	myACC.addAddressesToLocalAgents(msg);
+  	myACC.prepareEnvelope(msg, receiver);
     Envelope env = msg.getEnvelope();
     byte[] payload = myACC.encodeMessage(msg);
 

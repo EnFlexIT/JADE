@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
@@ -57,6 +58,7 @@ class acc implements MTP.Dispatcher {
 
   private Map messageEncodings = new HashMap();
   private Map MTPs = new HashMap();
+  private ArrayList externalAddresses = new ArrayList(); // list of the external input addresses
   private AgentContainerImpl myContainer;
   private MainContainer main;
 
@@ -67,6 +69,67 @@ class acc implements MTP.Dispatcher {
     main = mc;
   }
 
+  /**
+  @ return true is the passed address is one of the addresses of this platform, false otherwise
+  **/
+  boolean isAPlatformAddress(String address) {
+  	System.err.println("isAPlatformAddress "+address);
+  	for (Iterator i=externalAddresses.iterator(); i.hasNext(); )
+  		System.err.println("contains "+i.next().toString());
+  		String tmp = address.toLowerCase();
+  		if (tmp.startsWith("ior"))
+  			tmp = "iiop://"+tmp;
+  	return externalAddresses.contains(tmp);
+  }
+  /*
+  * This method is called by ACCProxy before preparing the Envelope of an outgoing message.
+  * It checks for all the AIDs present in the message and adds the addresses, if not present
+  **/
+  void addAddressesToLocalAgents(ACLMessage msg) {
+  	String platformId = '@' + myContainer.getPlatformID();
+    AID aid = msg.getSender();
+	  // if aid is null, then there is nothing to do
+    if (aid != null) {
+    	if(!aid.getName().endsWith(platformId)) // the sender is always local
+         aid.setName(aid.getName().concat(platformId));
+
+  	  // if has no address set, then adds the addresses of this platform
+  	  if (!aid.getAllAddresses().hasNext()) 
+  	  	for (Iterator i=externalAddresses.iterator(); i.hasNext(); )
+  		    aid.addAddresses(((String)i.next()).toUpperCase());	
+  	  
+  	  /* if has no resolver set, then add the local AMS
+  	  resolvers are optional in FIPA2000
+  	  if (!aid.getAllResolvers().hasNext()) {
+  	  }*/
+    } 
+    msg.setSender(aid);
+    for (Iterator i=msg.getAllReceiver(); i.hasNext(); ) {
+    	aid = (AID)i.next();
+    	if (!aid.getAllAddresses().hasNext()) { 
+    		// if the AID has no addresses, then it is local
+  	  	// add local addresses
+    		for (Iterator it=externalAddresses.iterator(); it.hasNext(); )
+  		    aid.addAddresses((String)it.next());	
+  		  // make the name a guid
+        if(!aid.getName().endsWith(platformId)) 
+         aid.setName(aid.getName().concat(platformId));
+    	}
+    }
+    for (Iterator i=msg.getAllReplyTo(); i.hasNext(); ) {
+    	aid = (AID)i.next();
+      if (!aid.getAllAddresses().hasNext()) { 
+    		// if the AID has no addresses, then it is local
+  	  	// add local addresses
+    		for (Iterator it=externalAddresses.iterator(); it.hasNext(); )
+  		    aid.addAddresses((String)it.next());	
+  		  // make the name a guid
+        if(!aid.getName().endsWith(platformId)) 
+         aid.setName(aid.getName().concat(platformId));
+    	}
+    }
+  }
+  
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
     Envelope env = msg.getEnvelope();
     if(env == null) {
@@ -139,7 +202,6 @@ class acc implements MTP.Dispatcher {
     if(colonPos == -1)
       throw new MTP.MTPException("Missing protocol delimiter", null);
     String proto = address.substring(0, colonPos);
-
     MTP outGoing = (MTP)MTPs.get(proto.toLowerCase());
     if(outGoing != null) {
       TransportAddress ta = outGoing.strToAddr(address);
@@ -169,7 +231,12 @@ class acc implements MTP.Dispatcher {
 
   public TransportAddress addMTP(MTP proto) throws MTP.MTPException {
     MTPs.put(proto.getName().toLowerCase(), proto);
-    return proto.activate(this);
+    //iiop and ior are both valid protocol names for iiop 
+    if (proto.getName().equalsIgnoreCase("iiop"))
+    	MTPs.put("ior", proto);
+    TransportAddress ta = proto.activate(this);
+    externalAddresses.add(proto.getName().toLowerCase()+"://"+proto.addrToStr(ta).toLowerCase());
+    return ta;
   }
 
   public void shutdown() {
@@ -199,16 +266,17 @@ class acc implements MTP.Dispatcher {
       AID sender = msg.getSender();
       Iterator itSender = sender.getAllAddresses();
       if(!itSender.hasNext())
-	msg.setSender(env.getFrom());
+	       msg.setSender(env.getFrom());
 
       Iterator it = env.getAllIntendedReceiver();
       // If no 'intended-receiver' is present, use the 'to' slot (but
       // this should not happen).
       if(!it.hasNext())
-	it = env.getAllTo();
+  	    it = env.getAllTo();
       while(it.hasNext()) {
-	AID receiver = (AID)it.next();
-	myContainer.unicastPostMessage(msg, receiver);
+	      AID receiver = (AID)it.next();
+	      System.err.println("dispatchMessage receiver = "+receiver.toString());
+	      myContainer.unicastPostMessage(msg, receiver);
       }
 
     }

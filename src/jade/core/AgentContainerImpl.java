@@ -787,6 +787,11 @@ private List getSniffer(AID id, java.util.Map theMap) {
   }
 
 
+  String getPlatformID()
+  {
+  	return platformID;
+  }
+  
   // FIXME: Temporary hack (this should be private)
   void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
@@ -836,14 +841,14 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
   private AgentProxy getFreshProxy(AID id) throws NotFoundException {
     AgentProxy result = null;
-
-    if(livesHere(id)) { // the receiver agent lives in this platform...
+  if(livesHere(id)) { // the receiver agent lives in this platform...
       // Look first in local agents
       Agent a = localAgents.get(id);
       if(a != null) {
 	result = new LocalProxy(localAgents, id);
       }
       else { // Agent is not local
+      
 	// Maybe it's registered with this AP on some other container...
         try {
 	  result = myPlatform.getProxy(id); // RMI call
@@ -855,6 +860,15 @@ private List getSniffer(AID id, java.util.Map theMap) {
       }
     }
     else { // It lives outside: then it's a job for the ACC...
+    
+    	// if the agent apparently does not live here, but it has the same address
+    	// of this platform, then maybe the GUID must be updated by concatenating the hap
+    	for (Iterator i=id.getAllAddresses(); i.hasNext(); )
+    	  if (theACC.isAPlatformAddress((String)i.next())) {
+    	  	id.setName(id.getName()+'@'+platformID);
+    	  	return getFreshProxy(id);
+    	  }
+    	// else the agent has no local addresses, then it is surely remote
       result = theACC.getProxy(id);
     }
 
