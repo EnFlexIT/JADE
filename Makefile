@@ -45,6 +45,7 @@ export LIBDIR
 export LIBNAME
 export LIBTOOLSNAME
 export LIBBASE64NAME
+export LIBAPPLETNAME
 export EXAMPLESDIR
 export DEMODIR
 export MAKE
