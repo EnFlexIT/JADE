@@ -42,7 +42,7 @@ options {
   DEBUG_TOKEN_MANAGER = false;
   ERROR_REPORTING = true;
   JAVA_UNICODE_ESCAPE = false;
-  UNICODE_INPUT = false;
+  UNICODE_INPUT = true;
   IGNORE_CASE = true;
   USER_TOKEN_MANAGER = false;
   USER_CHAR_STREAM = false;

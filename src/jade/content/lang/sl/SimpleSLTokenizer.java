@@ -166,7 +166,7 @@ public class SimpleSLTokenizer {
 		}
 		for( int i=0; i< s.length(); i++) {
 			char c = s.charAt(i);
-	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 ) {
+	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 || c >= 0x80 ) {
 				return false;
 			}
 		}		
