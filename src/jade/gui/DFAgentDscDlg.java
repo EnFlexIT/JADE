@@ -259,11 +259,10 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
                pLeaseTime.setSize(400, 45);
                pLeaseTime.setBorder(BorderFactory.createTitledBorder("Lease Time"));
                java.util.Date dleasetime = dfdAgent.getLeaseTime();
-               DFAgentDescription defaultDesc = new  DFAgentDescription();
-               if(dfdAgent.getLeaseTime().equals(defaultDesc.getLeaseTime())) {
+               if(dleasetime == null) {
                     textFieldLeaseTime = new JTextField("unlimited");
                } else {
-                    textFieldLeaseTime = new JTextField(dfdAgent.getLeaseTime().toString());
+                    textFieldLeaseTime = new JTextField(dleasetime.toString());
                }
                textFieldLeaseTime.setPreferredSize(new Dimension(335,26));
                textFieldLeaseTime.setMinimumSize(new Dimension(335,26));
