@@ -38,6 +38,11 @@ public class Channel {
   private String protocol;
   private String address;
 
+  public Channel(String n, String p, String a) {
+    name = n;
+    protocol = p;
+    address = a;
+  }
 
   public void setName(String n) {
     name = n;
