@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.11  1999/02/25 08:41:36  rimassa
+  Added code to remember RMA's container name and an exit() method to
+  close 'this' container.
+  Changed direct access to 'myName' and 'myAddress' with suitable
+  accessor calls.
+
   Revision 1.10  1999/02/15 11:46:52  rimassa
   Changed a line of code to correctly use Agent.getName().
 
@@ -124,6 +130,10 @@ public class rma extends Agent {
 	    container = ev3.getContainerName();
 	    amsd = ev3.getAgentDescriptor();
 	    myGUI.addAgent(container, amsd.getName(), amsd.getAddress(), "fipa-agent");
+	    String name = amsd.getName();
+	    if(name.equalsIgnoreCase(getName())) {
+	      myContainerName = new String(container);
+	    }
 	    break;
 	  case AgentManagementOntology.AMSEvent.DEADAGENT:
 	    AgentManagementOntology.AMSAgentEvent ev4 = (AgentManagementOntology.AMSAgentEvent)amse;
@@ -153,16 +163,18 @@ public class rma extends Agent {
 
   private AMSMainFrame myGUI = new AMSMainFrame(this);
 
+  private String myContainerName;
+
   public void setup() {
 
     // Fill ACL messages fields
 
-    AMSSubscription.setSource(myName);
+    AMSSubscription.setSource(getLocalName());
     AMSSubscription.setDest("AMS");
     AMSSubscription.setLanguage("SL");
     AMSSubscription.setOntology("jade-agent-management");
     AMSSubscription.setReplyWith("RMA-subscription");
-    AMSSubscription.setConversationId(myName+'@'+myAddress);
+    AMSSubscription.setConversationId(getLocalName());
 
     // Please inform me whenever container list changes and send me
     // the difference between old and new container lists, complete
@@ -170,28 +182,28 @@ public class rma extends Agent {
     String content = "iota ?x ( :container-list-delta ?x )";
     AMSSubscription.setContent(content);
 
-    AMSCancellation.setSource(myName);
+    AMSCancellation.setSource(getLocalName());
     AMSCancellation.setDest("AMS");
     AMSCancellation.setLanguage("SL");
     AMSCancellation.setOntology("jade-agent-management");
     AMSCancellation.setReplyWith("RMA-cancellation");
-    AMSCancellation.setConversationId(getName());
+    AMSCancellation.setConversationId(getLocalName());
 
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
-    killContainerMsg.setSource(myName);
+    killContainerMsg.setSource(getLocalName());
     killContainerMsg.setDest("AMS");
     killContainerMsg.setProtocol("fipa-request");
     killContainerMsg.setOntology("fipa-agent-management");
     killContainerMsg.setLanguage("SL0");
 
-    killAgentMsg.setSource(myName);
+    killAgentMsg.setSource(getLocalName());
     killAgentMsg.setDest("AMS");
     killAgentMsg.setProtocol("fipa-request");
     killAgentMsg.setOntology("fipa-agent-management");
     killAgentMsg.setLanguage("SL0");
 
-    newAgentMsg.setSource(myName);
+    newAgentMsg.setSource(getLocalName());
     newAgentMsg.setDest("AMS");
     newAgentMsg.setProtocol("fipa-request");
     newAgentMsg.setOntology("fipa-agent-management");
@@ -226,10 +238,10 @@ public class rma extends Agent {
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
     if(agentName.indexOf('@') < 0)
-      agentName = agentName.concat('@' + myAddress);
+      agentName = agentName.concat('@' + getAddress());
 
     if(containerName.equals(""))
-      containerName = "MainContainer";
+      containerName = "Container-0";
 
     amsd.setName(agentName);
 
@@ -272,6 +284,10 @@ public class rma extends Agent {
 
     // FIXME: Should do a complete 'fipa-request' protocol
 
+  }
+
+  public void exit() {
+    killContainer(myContainerName);
   }
 
   public void shutDownPlatform() {
