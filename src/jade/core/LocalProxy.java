@@ -33,24 +33,20 @@ import jade.lang.acl.ACLMessage;
 
 class LocalProxy implements AgentProxy {
 
-  private LADT agents;
+  private AgentContainerImpl container;
   private AID receiverID;
 
-  public LocalProxy(LADT a, AID id) {
-    agents = a;
+  public LocalProxy(AgentContainerImpl ac, AID id) {
+    container = ac;
     receiverID = id;
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
-
-    synchronized(agents) {
-      Agent receiver = agents.get(receiverID);
-
-      if(receiver == null) {
-	throw new NotFoundException("DispatchMessage failed to find " + receiverID.getLocalName());
-      }
-
-      receiver.postMessage(msg);
+    try {
+      container.dispatch(msg, receiverID);
+    }
+    catch(IMTPException imtpe) {
+	throw new NotFoundException("Communication problem: " + imtpe.getMessage());
     }
 
   }
