@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.41  2000/01/21 14:36:00  rimassaJade
+  Removed a race condition on Agent Platform data structures (GADT and
+  container list); now iterators aren't used anymore.
+
   Revision 1.40  1999/11/09 16:48:38  rimassaJade
   Fixed a protocol problem with action 'sniff-on' and 'sniff-off'.
 
@@ -423,10 +427,9 @@ public class ams extends Agent {
 	String newRMA = current.getSource();
 
 	// Send back the whole container list.
-	Set s = myPlatform.containerNames();
-	Iterator i = s.iterator();
-	while(i.hasNext()) {
-	  String containerName = (String)i.next();
+	String[] names = myPlatform.containerNames();
+	for(int i = 0; i < names.length; i++) {
+	  String containerName = names[i];
 	  AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
 	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
 	  ev.setContainerName(containerName);
@@ -441,11 +444,10 @@ public class ams extends Agent {
 	}
 
 	// Send all agent names, along with their container name.
-	s = myPlatform.agentNames();
-	i = s.iterator();
-	while(i.hasNext()) {
+	names = myPlatform.agentNames();
+	for(int i = 0; i < names.length; i++) {
           try {
-	    String agentName = (String)i.next();
+	    String agentName = names[i];
 	    String containerName = myPlatform.getContainerName(agentName);
 	    String agentAddress = myPlatform.getAddress(agentName); // FIXME: Need to use AMSAgDesc directly
 	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
