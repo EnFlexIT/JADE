@@ -31,27 +31,35 @@ import jade.content.Predicate;
 import jade.lang.acl.ACLMessage;
 
 /**
-This class represents a generic FIPAException, i.e. one of NotUnderstood,Failure,Refuse, as defined in <code>jade.domain.FIPAAgentManagement</code>.
-It has two constructors, one based on an ACLMessage, and the second based
-on its content, i.e. the exception message.
-@author Giovanni Rimassa - Universita` di Parma
+This class represents a generic FIPAException, i.e. one of
+NotUnderstood,Failure,Refuse, as defined in
+<code>jade.domain.FIPAAgentManagement</code>.  It has two
+constructors, one based on an ACLMessage, and the second based on its
+content, i.e. the exception message.
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 
 public class FIPAException extends Exception implements Predicate {
 
-	/**
+    //#APIDOC_EXCLUDE_BEGIN
+
+    /**
   @serial
   */
   protected ACLMessage msg; // can be accessed by subclasses
+
+    //#APIDOC_EXCLUDE_END
+
+
   /**
   @serial
   */
   private String content;
 
   /**
-   * constructs a generic FIPAException. The ACLMessage performative is
-   * defaulted to not-understood.
+   * Constructs a generic <code>FIPAException</code>. The ACL message
+   * performative is defaulted to <code>not-understood</code>.
    * @param message is the content of the ACLMessage
   **/
   public FIPAException(String message) {
@@ -60,7 +68,9 @@ public class FIPAException extends Exception implements Predicate {
   }
 
   /**
-   * @param message is the ACLMessage representing this exception
+   * Constructs a <code>FIPAException</code> from the given ACL
+   * message.
+   * @param message is the ACL message representing this exception
    **/
   public FIPAException(ACLMessage message) {
     this(message.getContent());
@@ -68,6 +78,8 @@ public class FIPAException extends Exception implements Predicate {
   }
 
   /**
+   * Retrieve the ACL message whose content is represented by this
+   * exception.
    * @return the ACLMessage representing this exception
    **/
   public ACLMessage getACLMessage() {
@@ -79,7 +91,7 @@ public class FIPAException extends Exception implements Predicate {
   }
 
   /**
-   * set the content of the ACLMessage representing this exception
+   * Set the content of the ACL message representing this exception
    * @param message is the content
    **/
   protected void setMessage(String message) {
@@ -89,11 +101,14 @@ public class FIPAException extends Exception implements Predicate {
   }
 
   /**
-   * get the content of the ACLMessage representing this exception
+   * Get the content of the ACL message representing this exception
+   * @return A string representing the message content that describes
+   * this FIPA exception.
    **/
   public String getMessage() {
     return content;
   }
+
 }
 
 

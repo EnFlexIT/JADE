@@ -163,8 +163,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   
   // Configuration parameter keys
   private static final String VERBOSITY = "jade_domain_df_verbosity";
-	private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
-	private static final String MAX_RESULTS = "jade_domain_df_maxresult";
+  private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
+  private static final String MAX_RESULTS = "jade_domain_df_maxresult";
   private static final String DB_DRIVER = "jade_domain_df_db-driver";
   private static final String DB_URL = "jade_domain_df_db-url";
   private static final String DB_USERNAME = "jade_domain_df_db-username";
@@ -184,9 +184,18 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private Date maxLeaseTime = null;
   private int verbosity = 0; 
 
-	private KB agentDescriptions = null;
-	private KBSubscriptionManager subManager = null;	
+  private KB agentDescriptions = null;
+  private KBSubscriptionManager subManager = null;	
   
+    /**
+       Default constructor. This constructor does nothing; however,
+       applications can create their own DF agents using regular
+       platform management commands. Moreover, customized versions of
+       a Directory Facilitator agent can be built subclassing this
+       class and exploiting its protected interface.
+    */
+    public df() {
+    }
 
   /**
     This method starts all behaviours needed by <em>DF</em> agent to
@@ -909,6 +918,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		addBehaviour(b);
   }
    
+
+    //#APIDOC_EXCLUDE_BEGIN
   
   ///////////////////////////////////////////////////////////
 	// GUI Management: DFGUIAdapter interface implementation
@@ -1089,8 +1100,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		}
 	}
 
+    //#APIDOC_EXCLUDE_END
+
 	/**
-	This method returns the descriptor of an agent registered with the df.
+	This method returns the descriptor of an agent registered with the DF.
 	*/
 	public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException
 	{
