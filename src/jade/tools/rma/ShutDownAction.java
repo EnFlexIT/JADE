@@ -28,7 +28,9 @@ package jade.tools.rma;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-class ShutDownAction extends FixedAction{
+ import javax.swing.JOptionPane;
+
+ class ShutDownAction extends FixedAction{
 
   private rma myRMA;
 
@@ -38,6 +40,13 @@ class ShutDownAction extends FixedAction{
   }
 
   public void doAction() {
+   
+  	int n = JOptionPane.showConfirmDialog(
+                            null,"Are you really sure to shut down JADE?",
+                            "Shut Down JADE",
+                            JOptionPane.YES_NO_OPTION);
+                            
+    if (n == JOptionPane.YES_OPTION)
      myRMA.shutDownPlatform();
   }
 
