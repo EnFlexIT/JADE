@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/03/14 17:47:21  rimassa
+  Fixed a bug: a getName() call should have been getLocalName() instead.
+
   Revision 1.4  1999/03/10 06:56:20  rimassa
   Changed superclass name from 'FipaRequestClientBehaviour' to
   'FipaRequestInitiatorBehaviour'.
@@ -52,7 +55,7 @@ public class SearchDFBehaviour extends FipaRequestInitiatorBehaviour {
     AgentManagementOntology o = AgentManagementOntology.instance();
     if((dfName == null)||(sender == null))
       throw o.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
-    if(!sender.equalsIgnoreCase(a.getName()))
+    if(!sender.equalsIgnoreCase(a.getLocalName()))
       throw o.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
     msg.setLanguage("SL0");
