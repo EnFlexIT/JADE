@@ -34,6 +34,7 @@ import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 
@@ -78,6 +79,13 @@ public class LightMessagingService extends BaseService implements MessageManager
 
     public static final String MAIN_SLICE = "Main-Container";
 
+    private static final String[] OWNED_COMMANDS = new String[] {
+	MessagingSlice.SEND_MESSAGE,
+	MessagingSlice.INSTALL_MTP,
+	MessagingSlice.UNINSTALL_MTP,
+	MessagingSlice.SET_PLATFORM_ADDRESSES
+    };
+
     public LightMessagingService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
 
@@ -113,7 +121,20 @@ public class LightMessagingService extends BaseService implements MessageManager
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return localSlice;
+	if(direction == Filter.OUTGOING) {
+	    return localSlice;
+	}
+	else {
+	    return null;
+	}
+    }
+
+    public Sink getCommandSink(boolean side) {
+	return null; 
+    }
+
+    public String[] getOwnedCommands() {
+	return OWNED_COMMANDS;
     }
 
     /**
