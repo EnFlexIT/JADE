@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.42  1999/03/29 10:37:04  rimassa
+  Added a public doStart() method to start agents from within others.
+  Changed doSuspend() and doActivate() methods to buffer the agent state
+  when suspending it and to restore it back on activation.
+
   Revision 1.41  1999/03/25 16:49:28  rimassa
   Added message queue management operations.
 
@@ -362,6 +367,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // agent suspension and termination from outside world.
   private volatile int myAPState;
 
+  // Temporary buffer for agent suspension
+  private int myBufferedState = AP_MIN;
+
   private int myDomainState;
   private Vector blockedBehaviours = new Vector();
 
@@ -456,15 +464,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      Make a state transition from <em>initiated</em> to
-     <em>active</em> within Agent Platform Life Cycle. This method is
-     called automatically by JADE on agent startup and should not be
+     <em>active</em> within Agent Platform Life Cycle. Agents are
+     started automatically by JADE on agent creation and should not be
      used by application developers, unless creating some kind of
      agent factory. This method starts the embedded thread of the agent.
      @param name The local name of the agent.
-     @param platformAddress The home address of the agent.
-     @param myGroup The <code>ThreadGroup</code> the agent will run within.
   */
-  public void doStart(String name, String platformAddress, ThreadGroup myGroup) {
+  public void doStart(String name) {
+    AgentContainerImpl thisContainer = jade.Boot.getContainer();
+    try {
+      thisContainer.createAgent(name, this, AgentContainer.START);
+    }
+    catch(java.rmi.RemoteException jrre) {
+      jrre.printStackTrace();
+    }
+
+  }
+
+  void doStart(String name, String platformAddress, ThreadGroup myGroup) {
 
     // Set this agent's name and address and start its embedded thread
       if(myAPState == AP_INITIATED) {
@@ -473,6 +490,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	myAddress = new String(platformAddress);
 	myThread = new Thread(myGroup, this);    
 	myThread.setName(myName);
+	myThread.setPriority(myGroup.getMaxPriority());
 	myThread.start();
       }
   }
@@ -490,19 +508,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   /**
-     Make a state transition from <em>active</em> to
-     <em>suspended</em> within Agent Platform Life Cycle. This method
-     can be called from the Agent Platform or from the agent iself and
-     stops all agent activities. Incoming messages for a suspended
-     agent are buffered by the Agent Platform and are delivered as
-     soon as the agent resumes. Calling <code>doSuspend()</code> on a
-     suspended or waiting agent has no effect.
+     Make a state transition from <em>active</em> or <em>waiting</em>
+     to <em>suspended</em> within Agent Platform Life Cycle; the
+     original agent state is saved and will be restored by a
+     <code>doActivate()</code> call. This method can be called from
+     the Agent Platform or from the agent iself and stops all agent
+     activities. Incoming messages for a suspended agent are buffered
+     by the Agent Platform and are delivered as soon as the agent
+     resumes. Calling <code>doSuspend()</code> on a suspended agent
+     has no effect.
      @see jade.core.Agent#doActivate()
   */
   public void doSuspend() {
     synchronized(stateLock) {
-      if(myAPState == AP_ACTIVE)
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+	myBufferedState = myAPState;
 	myAPState = AP_SUSPENDED;
+      }
+      System.out.println("old: " + myBufferedState + " new: " + myAPState);
     }
     if(myAPState == AP_SUSPENDED) {
       if(myThread.equals(Thread.currentThread())) {
@@ -513,22 +536,29 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      Make a state transition from <em>suspended</em> to
-     <em>active</em> within Agent Platform Life Cycle. This method is
-     called from the Agent Platform and resumes agent
-     execution. Calling <code>doActivate()</code> when the agent is
-     not suspended has no effect.
+     <em>active</em> or <em>waiting</em> (whichever state the agent
+     was in when <code>doSuspend()</code> was called) within Agent
+     Platform Life Cycle. This method is called from the Agent
+     Platform and resumes agent execution. Calling
+     <code>doActivate()</code> when the agent is not suspended has no
+     effect.
      @see jade.core.Agent#doSuspend()
   */
   public void doActivate() {
     synchronized(stateLock) {
-    if(myAPState == AP_SUSPENDED)
-      myAPState = AP_ACTIVE;
+      if(myAPState == AP_SUSPENDED) {
+	myAPState = myBufferedState;
+      }
+      System.out.println("old: " + myBufferedState + " new: " + myAPState);
     }
-    if(myAPState == AP_ACTIVE) {
+    if((myAPState != AP_SUSPENDED)&&(myBufferedState != AP_MIN)) {
+      activateAllBehaviours();
       synchronized(suspendLock) {
+	myBufferedState = AP_MIN;
 	suspendLock.notify();
       }
     }
+    System.out.println("old: " + myBufferedState + " new: " + myAPState);
   }
 
   /**
@@ -1389,12 +1419,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   private void activateAllBehaviours() {
-    // Put all blocked behaviours back in ready queue
-    while(!blockedBehaviours.isEmpty()) {
-      Behaviour b = (Behaviour)blockedBehaviours.lastElement();
-      blockedBehaviours.removeElementAt(blockedBehaviours.size() - 1);
-      b.restart();
-      myScheduler.add(b);
+    // Put all blocked behaviours back in ready queue,
+    // atomically with respect to the Scheduler object
+    synchronized(myScheduler) {
+      while(!blockedBehaviours.isEmpty()) {
+	Behaviour b = (Behaviour)blockedBehaviours.lastElement();
+	blockedBehaviours.removeElementAt(blockedBehaviours.size() - 1);
+	b.restart();
+	myScheduler.add(b);
+      }
     }
   }
 
