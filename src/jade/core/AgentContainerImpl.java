@@ -157,7 +157,20 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     // Get ACL message from the event.
     ACLMessage msg = event.getMessage();
-    String receiverName = msg.getDest(); // FIXME: Will be 'msg.getValue(":dest");'
+
+    if(event.isMulticast()) {
+      AgentGroup group = event.getRecipients();
+      while(group.hasMoreMembers()) {
+	msg.setDest(group.getNextMember());
+	unicastPostMessage(msg);
+      }
+    }
+    else
+      unicastPostMessage(msg);
+  }
+
+  private void unicastPostMessage(ACLMessage msg) {
+    String receiverName = msg.getDest();
 
     // Look up in local agents.
     Agent receiver = (Agent)localAgents.get(receiverName);
