@@ -180,4 +180,6 @@ This example shows some methods an agent can use to receive a message.
                                 and ontologies. All the other files in the directory
                                 are the JAva classes that implement the different
                                 entities belonging to this sample ontology.
+- TestAgent		allows to test ACLMessages whose content language
+			is FIPA-SL0 and whose ontology is FIPA-Agent-Management.
 
