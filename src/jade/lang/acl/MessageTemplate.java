@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.11  1998/10/18 16:03:40  rimassa
+  Modified code to avoid using deprecated ACLMessage constructor.
+  Removed dump() method, now a toText() method is provided to print a
+  MessageTemplate on any stream.
+
   Revision 1.10  1998/10/04 18:02:11  rimassa
   Added a 'Log:' field to every source file.
 
@@ -7,6 +12,8 @@
 
 package jade.lang.acl;
 
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 
@@ -70,7 +77,7 @@ public class MessageTemplate {
   // Creates an ACL message with all fields set to the special,
   // out-of-band wildcard value.
   private static ACLMessage allWildCard() {
-    ACLMessage msg = new ACLMessage();
+    ACLMessage msg = new ACLMessage(wildCard);
 
     Class ACLMessageClass = msg.getClass();
 
@@ -196,10 +203,15 @@ public class MessageTemplate {
     return new MessageTemplate(msg);
   }
 
+  // Reads a MessageTemplate from a Reader
+  public static void fromText(Reader r) {
+    MessageTemplate mt = new MessageTemplate();
+    mt.template = ACLMessage.fromText(r);
+  }
 
-  // Dumps a MessageTemplate
-  public void dump() {
-    template.dump();
+  // Dumps a MessageTemplate to a Writer
+  public void toText(Writer w) {
+    template.toText(w);
   }
 
   // Boolean operation on message templates.
