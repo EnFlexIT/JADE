@@ -38,6 +38,8 @@ import java.util.Vector;
  * @author LEAP
  */
 public class Specifier {
+	public static final String NULL_SPECIFIER_LIST = "null";
+	
     private String   name = null;
     private String   className = null;
     private Object[] args = null;
@@ -140,7 +142,7 @@ public class Specifier {
   public static Vector parseSpecifierList(String specsLine) throws Exception {
     Vector specs = new Vector();
     
-    if (specsLine != null && !specsLine.equals("")) {
+    if (specsLine != null && !specsLine.equals("") && !specsLine.equals(NULL_SPECIFIER_LIST)) {
 	    // Copy the string with the specifiers into an array of char
   	  char[] specsChars = new char[specsLine.length()];
 
