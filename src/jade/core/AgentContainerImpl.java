@@ -667,7 +667,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return myID;
   }
 
-    public void handleSend(ACLMessage msg, AID sender) throws AuthException {
+    public void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
       Envelope env = msg.getEnvelope();
       // Small hack to enables the delivering of messages even if there is 
       // no receiver in the ACL message, only in the envelope
@@ -690,23 +690,24 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
         cmd.addParam(receiver);
         Object lastException = myCommandProcessor.processOutgoing(cmd);
 
-        if((lastException != null) && (lastException instanceof AuthException)) {
+        /*if((lastException != null) && (lastException instanceof AuthException)) {
           throw (AuthException)lastException;
-        }
+        }*/
       }
 
     }
 
     //#MIDP_EXCLUDE_BEGIN
-    public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
+    public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
 
-	AgentPrincipal target = getAgentPrincipal(msg.getSender());
+	/*AgentPrincipal target = getAgentPrincipal(msg.getSender());
 
 	// --- This code could go into a Security Service, intercepting the agent creation...
 
 	authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
 
 	// --- End of Security code
+	*/
 
 	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, null);
 	cmd.addParam(msg);
@@ -718,7 +719,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
+  public void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/ {
 
 	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_RECEIVED, jade.core.event.NotificationSlice.NAME, null);
 	cmd.addParam(msg);

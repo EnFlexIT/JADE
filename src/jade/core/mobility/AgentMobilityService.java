@@ -751,13 +751,14 @@ public class AgentMobilityService extends BaseService {
 		// --- End of code that should go into the Security Service ---    
 		*/
 
+	  CertificateFolder agentCerts = null;
 		//#MIDP_EXCLUDE_BEGIN
-		CertificateFolder agentCerts = instance.getCertificateFolder();
+		//CertificateFolder agentCerts = instance.getCertificateFolder();
 		//#MIDP_EXCLUDE_END
 
-		/*#MIDP_INCLUDE_BEGIN
+		/*# MIDP_INCLUDE_BEGIN
 		  CertificateFolder agentCerts = new CertificateFolder();
-		  #MIDP_INCLUDE_END*/
+		  # MIDP_INCLUDE_END*/
 
 		if(isCloned) {
 		    // Notify the main slice that a new agent is born

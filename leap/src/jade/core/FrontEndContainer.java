@@ -304,7 +304,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	// FIXME: This should call myBackEnd.suspendedAgent()/resumedAgent()
   }
   
-  public final void handleSend(ACLMessage msg, AID sender) throws AuthException {
+  public final void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
 		Iterator it = msg.getAllIntendedReceiver();
 		// If some receiver is local --> directly post the message
 		int remoteCnt = 0;
@@ -360,10 +360,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
   }
 
-  public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
+  public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
   }
   
-  public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
+  public void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/ {
   }
   
   public void handleBehaviourAdded(AID agentID, Behaviour b) {

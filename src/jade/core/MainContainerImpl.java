@@ -267,15 +267,15 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
 	ContainerID cid = ac.getID();
 	ContainerPrincipal cp = containers.getPrincipal(cid);
-	String agentOwnership = cp.getOwnership();
+	//String agentOwnership = cp.getOwnership();
 
 	// Start the AMS
 	theAMS = new ams(this);
-	theAMS.setOwnership(agentOwnership);
-	AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), agentOwnership);
+	//theAMS.setOwnership(agentOwnership);
+	//AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), agentOwnership);
 	//	CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
-	CertificateFolder amsCerts = authority.authenticate(amsPrincipal, new byte[] {}); // FIXME: Temporary Hack 
-	theAMS.setPrincipal(amsCerts);
+	//CertificateFolder amsCerts = authority.authenticate(amsPrincipal, new byte[] {}); // FIXME: Temporary Hack 
+	//theAMS.setPrincipal(amsCerts);
 
 	// Notify the AMS about the main container existence
 	fireAddedContainer(cid);
@@ -283,11 +283,11 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// Start the Default DF
 	defaultDF = new df();
-	defaultDF.setOwnership(agentOwnership);
-	AgentPrincipal dfPrincipal = authority.createAgentPrincipal(ac.getDefaultDF(), agentOwnership);
+	//defaultDF.setOwnership(agentOwnership);
+	//AgentPrincipal dfPrincipal = authority.createAgentPrincipal(ac.getDefaultDF(), agentOwnership);
 	//	CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
-	CertificateFolder dfCerts = authority.authenticate(dfPrincipal, new byte[] {}); // FIXME: Temporary Hack
-	defaultDF.setPrincipal(dfCerts);
+	//CertificateFolder dfCerts = authority.authenticate(dfPrincipal, new byte[] {}); // FIXME: Temporary Hack
+	//defaultDF.setPrincipal(dfCerts);
 
 	if(startThem) {
 	    startSystemAgents(ac);
@@ -1161,9 +1161,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  				activate(agentID);
 	  			}
 	  			if (newOwnership != null && newOwnership != oldDsc.getOwnership()) {
-						byte[] password = Agent.extractPassword(newOwnership);
+						/*byte[] password = Agent.extractPassword(newOwnership);
 						String username = Agent.extractUsername(newOwnership);
-						take(agentID, username, password);
+						take(agentID, username, password);*/
 	  			}
 	  		}
 	  		return;
@@ -1300,7 +1300,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Return the delegation certificate to be used by the AMS to executed
      actions on behalf of (requested by) a given agent
    */
-  public CertificateFolder getAMSDelegation(AID agentID) {
+  /*public CertificateFolder getAMSDelegation(AID agentID) {
     AgentDescriptor ad = platformAgents.acquire(agentID);
     if (ad == null) {
     	// Create a CertificateFolder with no delegated permissions
@@ -1320,7 +1320,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     CertificateFolder cf = ad.getAMSDelegation();
     platformAgents.release(agentID);
     return cf;
-  }
+  }*/
 
   public void addServiceManagerAddress(String smAddr) {
       GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_ADDED, jade.core.replication.AddressNotificationSlice.NAME, null);
@@ -1367,7 +1367,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
     ***/
 
-  private CertificateFolder prepareAMSDelegation(CertificateFolder certs) throws AuthException {
+  /*private CertificateFolder prepareAMSDelegation(CertificateFolder certs) throws AuthException {
     AgentPrincipal amsPrincipal = theAMS.getPrincipal();
     DelegationCertificate amsDelegation = authority.createDelegationCertificate();
     amsDelegation.setSubject(amsPrincipal);
@@ -1376,7 +1376,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
     authority.sign(amsDelegation, certs);
     return new CertificateFolder(theAMS.getCertificateFolder().getIdentityCertificate(), amsDelegation);
-  }
+  }*/
 
 	public AgentPrincipal getPrincipal(AID agentID) {
 		AgentPrincipal ap;

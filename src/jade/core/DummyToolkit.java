@@ -64,9 +64,9 @@ final class DummyToolkit implements AgentToolkit {
 
     //FIXME should we here throw an InternalError also?
     public void handleEnd(AID agentID) {}
-    public void handleSend(ACLMessage msg, AID sender) throws AuthException {}
-    public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {}
-    public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {}
+    public void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {}
+    public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {}
+    public void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/ {}
     public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {}
     public void handleBehaviourAdded(AID agentID, Behaviour b) {}
     public void handleBehaviourRemoved(AID agentID, Behaviour b) {}

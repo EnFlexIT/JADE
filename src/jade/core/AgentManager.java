@@ -83,7 +83,7 @@ public interface AgentManager {
   
   ContainerID getContainerID(AID agentID) throws NotFoundException;
   AMSAgentDescription getAMSDescription(AID agentID) throws NotFoundException;
-  CertificateFolder getAMSDelegation(AID agentID);
+  //CertificateFolder getAMSDelegation(AID agentID);
   
   Authority getAuthority();
   

@@ -44,15 +44,15 @@ interface AgentToolkit {
   void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
-  void handleSend(ACLMessage msg, AID sender) throws AuthException;
+  void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/;
 
   //#MIDP_EXCLUDE_BEGIN
-  void handlePosted(AID agentID, ACLMessage msg) throws AuthException;
-  void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
+  void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/;
+  void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/;
   void handleBehaviourAdded(AID agentID, Behaviour b);
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
-  void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
+  //void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
 
   ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
   Authority getAuthority();

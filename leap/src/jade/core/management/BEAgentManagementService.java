@@ -190,7 +190,7 @@ public class BEAgentManagementService extends BaseService {
 		if (image == null) {
 		    // The agent spontaneously born on the FrontEnd --> its image still has to be created
 		    image = myContainer.createAgentImage(agentID);
-		    // Create and set security information
+		    /* Create and set security information
 		    try {
 			CertificateFolder certs = myContainer.createCertificateFolder(agentID);
 			image.setPrincipal(certs);
@@ -199,7 +199,7 @@ public class BEAgentManagementService extends BaseService {
 		    catch (AuthException ae) {
 			// Should never happen
 			ae.printStackTrace();
-		    }
+		    }*/
 		}
 
 		// Add the agent image to the table
@@ -211,11 +211,11 @@ public class BEAgentManagementService extends BaseService {
 
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		    try {
-			mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+			mainSlice.bornAgent(agentID, cid, null /*image.getCertificateFolder()*/);
 		    }
 		    catch(IMTPException imtpe) {
 			mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
-			mainSlice.bornAgent(agentID, cid, image.getCertificateFolder());
+			mainSlice.bornAgent(agentID, cid, null /*image.getCertificateFolder()*/);
 		    }
 		}
 		catch (Exception e) {
@@ -313,7 +313,8 @@ public class BEAgentManagementService extends BaseService {
 
 	    try {
 
-		CertificateFolder agentCerts = instance.getCertificateFolder();
+		CertificateFolder agentCerts = null;
+		//CertificateFolder agentCerts = instance.getCertificateFolder();
 		if(startIt) {
 
 		    // Notify the main container through its slice
@@ -460,7 +461,7 @@ public class BEAgentManagementService extends BaseService {
 	private void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
 
 	    BackEndContainer.AgentImage image = myContainer.createAgentImage(agentID);
-	    // Set security information 
+	    /* Set security information 
 	    if (certs != null) {
 		image.setPrincipal(certs);
 	    }
@@ -469,7 +470,7 @@ public class BEAgentManagementService extends BaseService {
 	    }
 	    else if (certs.getIdentityCertificate() != null) {
 		image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
-	    }
+	    }*/
 
 	    // Store the image so that it can be retrieved when the new agent starts
 	    BackEndContainer.AgentImage previous = (BackEndContainer.AgentImage) pendingImages.put(agentID, image);

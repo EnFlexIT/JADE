@@ -305,15 +305,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	void killAgentAction(KillAgent ka, AID requester) throws FIPAException {
   	final AID agentID = ka.getAgent();
 		log("Agent "+requester+" requesting Kill-agent "+agentID, 2);
-	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 
     try {
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws UnreachableException, AuthException, NotFoundException {
         	myPlatform.kill(agentID);
-					return null;
-		    }
-			}, requesterCredentials); 
+					//return null;
+		    //}
+			//}, requesterCredentials); 
 
     }
 		catch(AuthException ae) {
@@ -339,15 +339,15 @@ public class ams extends Agent implements AgentManager.Listener {
 		final ContainerID where = (ContainerID) dsc.getDestination();
 		final String newName = ca.getNewName();
 		log("Agent "+requester+" requesting Clone-agent "+agentID+" on container "+where, 2);
-	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
 					myPlatform.copy(agentID, where, newName);
-					return null;
-		    }
-			}, requesterCredentials);
+					//return null;
+		    //}
+			//}, requesterCredentials);
 		}
 		catch(AuthException ae) {
 			log("Agent "+requester.getName()+" does not have permission to perform action CloneAgent", 0);
@@ -374,15 +374,15 @@ public class ams extends Agent implements AgentManager.Listener {
 		final AID agentID = dsc.getName();
 		final ContainerID where = (ContainerID) dsc.getDestination();
 		log("Agent "+requester+" requesting Move-agent "+agentID+" on container "+where, 2);
-	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws UnreachableException, AuthException, NotFoundException {
 					myPlatform.move(agentID, where);
-					return null;
-		    }
-			}, requesterCredentials);
+					//return null;
+		    //}
+			//}, requesterCredentials);
 		}
 		catch(AuthException ae) {
 			log("Agent "+requester.getName()+" does not have permission to perform action MoveAgent", 0);
@@ -401,14 +401,14 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 	
 	// KILL CONTAINER
-	void killContainerAction(final KillContainer kc, AID requester) throws FIPAException {
+	void killContainerAction(final KillContainer kc, final AID requester) throws FIPAException {
     final ContainerID cid = kc.getContainer();
 		log("Agent "+requester+" requesting Kill-container "+cid, 2);
-    CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+    //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
-    try {
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws Exception /*throws AuthException, NotFoundException*/ {
+    //try {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws Exception /*throws AuthException, NotFoundException*/ {
 
 			Thread auxThread = new Thread() {
 			    public void run() {
@@ -416,7 +416,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				    myPlatform.killContainer(cid);
 				}
 				catch(AuthException ae) {
-				    log("Agent does not have permission to perform action Kill-container: " + ae, 0);
+				    log("Agent "+requester.getName()+" does not have permission to perform action Kill-container: " + ae, 0);
 				    // Send failure notification to the requester if any
 				    sendFailureNotification(kc, cid, new Unauthorised());
 				}
@@ -428,31 +428,24 @@ public class ams extends Agent implements AgentManager.Listener {
 			};
 
 			auxThread.start();
-			return null;
-		    }
-		}, requesterCredentials);
-    }
-    /*catch(AuthException ae) {
-	log("Agent "+requester.getName()+" does not have permission to perform action KillContainer", 0);
-	throw new Unauthorised();
-    }
-    catch(NotFoundException nfe) {
-    	throw new InternalError("Container not found. "+nfe.getMessage());   
-    }*/
-    catch(Exception e) {
-			e.printStackTrace();
-    	throw new InternalError("Unexpected exception. "+e.getMessage());   
-    }
+			//return null;
+		    //}
+		//}, requesterCredentials);
+    //}
+    //catch(Exception e) {
+		//	e.printStackTrace();
+    //	throw new InternalError("Unexpected exception. "+e.getMessage());   
+    //}
 	}
 
 	// SHUTDOWN PLATFORM
-	void shutdownPlatformAction(ShutdownPlatform sp, AID requester) throws FIPAException {
+	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester) throws FIPAException {
 	    log("Agent "+requester+" requesting Shutdown-platform ", 2);
-	    CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+	    //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
-	    try{
-		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-			public Object run() throws AuthException, NotFoundException {
+	    //try{
+		//getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+			//public Object run() throws AuthException, NotFoundException {
 
 			    Thread auxThread = new Thread() {
 			        public void run() {
@@ -460,17 +453,17 @@ public class ams extends Agent implements AgentManager.Listener {
 					myPlatform.shutdownPlatform();
 				    }
 				    catch(AuthException ae) {
-					log("Agent does not have permission to perform action Shutdown-Platform: " + ae, 0);
+					log("Agent "+requester.getName()+" does not have permission to perform action Shutdown-Platform: " + ae, 0);
 				    }
 				}
 			    };
 
 			    auxThread.start();
-			    return null;
-			}
-		    }, requesterCredentials);
-	    }
-	    catch(AuthException ae) {
+			    //return null;
+			//}
+		    //}, requesterCredentials);
+	    //}
+	    /*catch(AuthException ae) {
 		log("Agent "+requester.getName()+" does not have permission to perform action Shutdown-Platform", 0);
 		throw new Unauthorised();
 	    }
@@ -480,7 +473,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	    catch(Exception e) {
 		e.printStackTrace();
 		throw new InternalError("Unexpected exception. "+e.getMessage());   
-	    }
+	    }*/
 	}
 	
 	// INSTALL MTP
@@ -637,15 +630,15 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
     
-  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws AlreadyRegistered, AuthException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws AlreadyRegistered, AuthException {
 	    		myPlatform.amsRegister(amsd);
-					return null;
-		    }
-			}, requesterCredentials);
+					//return null;
+		    //}
+			//}, requesterCredentials);
 		}
 		catch(AlreadyRegistered ar) {
 			throw ar;
@@ -670,15 +663,15 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
     
-  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws NotRegistered, AuthException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws NotRegistered, AuthException {
 	    		myPlatform.amsDeregister(amsd);
-					return null;
-		    }
-			}, requesterCredentials);
+					//return null;
+		    //}
+			//}, requesterCredentials);
 		}
 		catch(NotRegistered nr) {
 			throw nr;
@@ -704,15 +697,15 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
     
-  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws NotRegistered, NotFoundException, UnreachableException, AuthException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws NotRegistered, NotFoundException, UnreachableException, AuthException {
 	    		myPlatform.amsModify(amsd);
-					return null;
-		    }
-			}, requesterCredentials);
+					//return null;
+		    //}
+			//}, requesterCredentials);
 		}
 		catch(NotRegistered nr) {
 			throw nr;

@@ -232,28 +232,28 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
   	}
   	
-	try {
+	//try {
 
 	    // An AuthException will be thrown if the sender does not have
 	    // - the permission to send a message on behalf of msg.getSender()
 	    // - the permission to send a message to one of the receivers
-	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws AuthException {
+	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    //public Object run() throws AuthException {
 			handleSend(msg, id);
-			return null;
-		    }
-		}, image.getCertificateFolder());
-	}
-	catch (AuthException e) {
+			//return null;
+		    //}
+		//}, image.getCertificateFolder());
+	//}
+	//catch (AuthException e) {
 	    // FIXME: This will probably disappear as all the AuthExecptions
 	    // should be handled within the "unicastPostMessage loop" inside
 	    // handleSend()
-	    System.out.println("AuthException: "+e.getMessage() );
-	} 
-	catch (Exception e) {
+	    //System.out.println("AuthException: "+e.getMessage() );
+	//} 
+	//catch (Exception e) {
 	    // Should never happen
-	    e.printStackTrace();
-	}
+	    //e.printStackTrace();
+	//}
     }
 
     public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
@@ -319,7 +319,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	      // FIXME: The right way to do things should be i) check permission
 	      // ii) call messageIn() iii) notify listeners. On the other hand 
 	      // handlePosted() currently does i) and iii). 
-	      try {
+	      /*try {
 				  final ACLMessage msgFinal = msg;
 				  final AID receiverIDFinal = receiverID;
 		
@@ -340,12 +340,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	      catch (Exception e) {
 				  // Should never happen
 				  e.printStackTrace();
-	      }
+	      }*/
 	      try {
 				  // Forward the message to the FrontEnd
 		
 				  if(isMaster()) {
 			      myFrontEnd.messageIn(msg, receiverID.getLocalName());
+			      handlePosted(receiverID, msg);
 			      return true;
 				  }
 				  else {
@@ -482,7 +483,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
     /**
-     */
+     *
     private void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
 
 	// If the message was sent by an agent living on the FrontEnd, the
@@ -532,7 +533,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    // should be never thrown
 	    e.printStackTrace();
 	}
-    }
+    }*/
 
     private String[] parseAddressList(String toParse) {
 

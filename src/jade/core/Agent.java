@@ -56,11 +56,11 @@ import jade.util.leap.HashMap;
 import java.util.Vector;
 
 import jade.security.Authority;
-import jade.security.AgentPrincipal;
+/*import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.CertificateFolder;
-import jade.security.PrivilegedExceptionAction;
+import jade.security.PrivilegedExceptionAction;*/
 //#MIDP_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -549,7 +549,7 @@ public class Agent implements Runnable, Serializable
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object suspendLock = new Object(); // Used for agent suspension
   //#MIDP_EXCLUDE_BEGIN
-  private transient Object principalLock = new Object(); // Used to make principal transitions atomic
+  //private transient Object principalLock = new Object(); // Used to make principal transitions atomic
   //#MIDP_EXCLUDE_END
 
   private transient Thread myThread;
@@ -586,9 +586,9 @@ public class Agent implements Runnable, Serializable
 
   //#MIDP_EXCLUDE_BEGIN
   //private Authority authority;
-  private String ownership = jade.security.JADEPrincipal.NONE;
-  private AgentPrincipal principal = null;
-  private CertificateFolder certs = new CertificateFolder();
+  //private String ownership = jade.security.JADEPrincipal.NONE;
+  //private AgentPrincipal principal = null;
+  //private CertificateFolder certs = new CertificateFolder();
   //#MIDP_EXCLUDE_END
   
   /**
@@ -817,9 +817,9 @@ public class Agent implements Runnable, Serializable
     //#APIDOC_EXCLUDE_BEGIN
 
 	//#MIDP_EXCLUDE_BEGIN
-  public Authority getAuthority() {
+  /*public Authority getAuthority() {
     return myToolkit.getAuthority();
-  }
+  }*/
 	//#MIDP_EXCLUDE_END
 
     //#APIDOC_EXCLUDE_END
@@ -908,9 +908,10 @@ public class Agent implements Runnable, Serializable
   }
 //#CUSTOM_EXCLUDE_END
 
-  //#APIDOC_EXCLUDE_BEGIN
 
+  /*
   //#MIDP_EXCLUDE_BEGIN
+  //#APIDOC_EXCLUDE_BEGIN
 	public void setOwnership(String ownership) {
 	  this.ownership = ownership;
 	}
@@ -961,6 +962,7 @@ public class Agent implements Runnable, Serializable
 		getAuthority().doAsPrivileged(action, getCertificateFolder());
 	}
   //#MIDP_EXCLUDE_END
+  */
 
   private void changeStateTo(int state) {
       synchronized (stateLock) {
@@ -1917,7 +1919,7 @@ public class Agent implements Runnable, Serializable
     msgQueue = new MessageQueue(msgQueueMaxSize);
     stateLock = new Object();
     suspendLock = new Object();
-    principalLock = new Object();
+    //principalLock = new Object();
     pendingTimers = new AssociationTB();
     theDispatcher = TimerDispatcher.getTimerDispatcher();
     // restore O2AQueue
@@ -2220,7 +2222,8 @@ public class Agent implements Runnable, Serializable
 				msg.setSender(myAID);
 			}
 		//#MIDP_EXCLUDE_BEGIN
-		try {
+		notifySend(msg);
+		/*try {
 			doPrivileged(new jade.security.PrivilegedExceptionAction() {
 				public Object run() throws AuthException {
 					notifySend(msg);
@@ -2233,14 +2236,15 @@ public class Agent implements Runnable, Serializable
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
-		} 
+		}*/ 
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
-    try {
-      myToolkit.handleSend(msg, myAID);
-    } 
-    catch (AuthException ae) {
-    } 
+		myToolkit.handleSend(msg, myAID);
+    //try {
+    //  myToolkit.handleSend(msg, myAID);
+    //} 
+    //catch (AuthException ae) {
+    //} 
 		#MIDP_INCLUDE_END*/
 	}
 	/**
@@ -2273,7 +2277,7 @@ public class Agent implements Runnable, Serializable
 			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
 				final ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
-					try {
+					//try {
 						//messages.remove(); 
 						msgQueue.remove(cursor);
 						//#MIDP_EXCLUDE_BEGIN
@@ -2282,11 +2286,11 @@ public class Agent implements Runnable, Serializable
 						currentMessage = cursor;
 						msg = cursor;
 						break; // Exit while loop
-					}
-					catch (Exception e) {
-							e.printStackTrace();
+					//}
+					//catch (Exception e) {
+					//		e.printStackTrace();
 						// Continue loop, discard message
-					}
+					//}
 				}
 			}
 		}
@@ -2465,18 +2469,18 @@ public class Agent implements Runnable, Serializable
 
   //#MIDP_EXCLUDE_BEGIN
   // Notify toolkit that a message was posted in the message queue
-  private void notifyPosted(ACLMessage msg) throws AuthException {
+  private void notifyPosted(ACLMessage msg) /*throws AuthException*/ {
     myToolkit.handlePosted(myAID, msg);
   }
 
   // Notify toolkit that a message was extracted from the message
   // queue
-  private void notifyReceived(ACLMessage msg) throws AuthException {
+  private void notifyReceived(ACLMessage msg) /*throws AuthException*/ {
     myToolkit.handleReceived(myAID, msg);
   }
 
   // Notify toolkit of the need to send a message
-  private void notifySend(ACLMessage msg) throws AuthException {
+  private void notifySend(ACLMessage msg) /*throws AuthException*/ {
   	myToolkit.handleSend(msg, myAID);
   }
 
@@ -2599,9 +2603,9 @@ public class Agent implements Runnable, Serializable
   }
   
   // Notify toolkit that the current agent has changed its principal
-  private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
+  /*private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
     myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
-  }
+  }*/
   //#MIDP_EXCLUDE_END
 
   private void activateAllBehaviours() {
@@ -2621,7 +2625,8 @@ public class Agent implements Runnable, Serializable
 		synchronized (msgQueue) {
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN
-				try {
+				notifyPosted(msg);
+				/*try {
 					doPrivileged(new PrivilegedExceptionAction() {
 						public Object run() throws AuthException {
 							// notification appens first so, if an exception
@@ -2638,11 +2643,9 @@ public class Agent implements Runnable, Serializable
 				}
 				catch (Exception e) {
 					e.printStackTrace();
-				}
+				}*/
 				//#MIDP_EXCLUDE_END
-				/*#MIDP_INCLUDE_BEGIN
 				msgQueue.addLast(msg);
-				#MIDP_INCLUDE_END*/
 				doWake();
 				messageCounter++;
 			}

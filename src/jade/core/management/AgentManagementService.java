@@ -225,11 +225,12 @@ public class AgentManagementService extends BaseService {
 		throw new NotFoundException("Start-Agent failed to find " + target);
 
 
+			CertificateFolder agentCerts = null;
 	    //#MIDP_EXCLUDE_BEGIN
-	    CertificateFolder agentCerts = instance.getCertificateFolder();
+	    //CertificateFolder agentCerts = instance.getCertificateFolder();
 	    //#MIDP_EXCLUDE_END
 
-	    /*#MIDP_INCLUDE_BEGIN
+	    /* # MIDP_INCLUDE_BEGIN
 	      CertificateFolder agentCerts = new CertificateFolder();
 
 	      Authority authority = myContainer.getAuthority();
@@ -241,7 +242,7 @@ public class AgentManagementService extends BaseService {
 	      authority.sign(identity, agentCerts);
 	      agentCerts.setIdentityCertificate(identity);
 	      }
-	      #MIDP_INCLUDE_END*/
+	      # MIDP_INCLUDE_END*/
 
 	    // Notify the main container through its slice
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
@@ -877,12 +878,13 @@ public class AgentManagementService extends BaseService {
 
 	try {
 
+	    CertificateFolder agentCerts = null;
           //TOFIX:  --- the following needs to be replaced ----
 	    //#MIDP_EXCLUDE_BEGIN
-	    CertificateFolder agentCerts = instance.getCertificateFolder();
+	    //CertificateFolder agentCerts = instance.getCertificateFolder();
 	    //#MIDP_EXCLUDE_END
 
-	    /*#MIDP_INCLUDE_BEGIN
+	    /*# MIDP_INCLUDE_BEGIN
 	    CertificateFolder agentCerts = new CertificateFolder();
 
 	    Authority authority = myContainer.getAuthority();
@@ -894,7 +896,7 @@ public class AgentManagementService extends BaseService {
 		authority.sign(identity, agentCerts);
 		agentCerts.setIdentityCertificate(identity);
 	    }
-	    #MIDP_INCLUDE_END*/
+	    # MIDP_INCLUDE_END*/
 
 	    if(startIt) {
 
