@@ -9,8 +9,6 @@
 	<property name="unverified" value="${midp-root}/unverified"/>
 	<property name="midp-title" value="${title} v${version} for MIDP"/>
 
-        <!--Filtered src directory property--> 
-        <property name="filtered.src" location="${midp-root}/filtered/src"/>    
 
 	<!-- INIT -->
 	<target name="do-init"  
@@ -24,8 +22,18 @@
 	</target>
 
 	
+	<!-- SETUP SMS -->
+	<target name="do-setup-sms" depends="do-init" if="wma-classes"
+	        description="Copy the files that require the WMA to be compiled">
+	  <copy todir="${src}">
+			<fileset dir="${leap-src}">
+				<include name="**/jade/imtp/leap/sms/*"/>
+			</fileset>
+		</copy>
+	</target>
+	
 	<!-- SETUP -->
-	<target name="do-setup" depends="do-init"
+	<target name="do-setup" depends="do-setup-sms"
 	        description="Setup the build environment">
 	  <!-- 1) Copy JADE sources -->
 	  <copy todir="${src}">

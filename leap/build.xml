@@ -105,17 +105,29 @@
 	        description="Set time stamp">
 	  <tstamp/>
 	  
-    <condition property="boot-midp-classes" 
+    <condition property="boot-midp-classes-tmp" 
                value="${j2me-wtk-home}/lib/midpapi.zip">
        <available file="${j2me-wtk-home}/lib/midpapi.zip"/>
     </condition>
-    <condition property="boot-midp-classes" 
+    <condition property="boot-midp-classes-tmp" 
                value="${j2me-wtk-home}/lib/midpapi10.jar${path.separator}${j2me-wtk-home}/lib/cldcapi10.jar">
        <equals arg1="${midp-version}" arg2="1.0" trim="true" />
     </condition>
-    <condition property="boot-midp-classes" 
+    <condition property="boot-midp-classes-tmp" 
                value="${j2me-wtk-home}/lib/midpapi20.jar${path.separator}${j2me-wtk-home}/lib/cldcapi11.jar">
        <equals arg1="${midp-version}" arg2="2.0" trim="true" />
+    </condition>
+    
+    <!-- Add the WMA classes to the bootclasspath if present -->
+    <condition property="boot-midp-classes" 
+               value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
+       <isset property="${wma-classes}" />
+    </condition>
+    <condition property="boot-midp-classes" 
+               value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
+    	<not>
+      	<isset property="${wma-classes}" />
+      </not>
     </condition>
     
 		<mkdir dir="${tmp}"/>
