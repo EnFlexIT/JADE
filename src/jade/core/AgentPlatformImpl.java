@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.45  2000/01/21 14:39:23  rimassaJade
+  Changed containerNames() and agentNames() signature and implementation
+  to reflect changes made in AgentManager interface. This should have
+  removed a race condition between the Agent Platform and the AMS.
+
   Revision 1.44  1999/11/08 15:19:41  rimassaJade
   Added sniffOn() and sniffOff() methods to control message sniffing.
 
@@ -672,13 +677,19 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
 
   // This is used by AMS to obtain the set of all the Agent Containers of the platform.
-  public Set containerNames() {
-    return containers.keySet();
+  public String[] containerNames() {
+    Object[] objs = containers.keySet().toArray();
+    String[] names = new String[objs.length];
+    System.arraycopy(objs, 0, names, 0, names.length);
+    return names;
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
-  public Set agentNames() {
-    return platformAgents.keySet();
+  public String[] agentNames() {
+    Object[] objs = platformAgents.keySet().toArray();
+    String[] names = new String[objs.length];
+    System.arraycopy(objs, 0, names, 0, names.length);
+    return names;
   }
 
   // This maps the name of an agent to the name of the Agent Container the agent lives in.
