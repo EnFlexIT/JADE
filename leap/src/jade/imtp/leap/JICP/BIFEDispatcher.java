@@ -222,19 +222,25 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	if (terminator != myInputManager) {
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd.
-  		if (outConnection != null) {
-	    	myLogger.log(Logger.INFO, "Sending termination notification");
-	  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
-	  		try {
-	  			writePacket(pkt, outConnection);
-		    	myLogger.log(Logger.FINE, "Done.");
+  		JICPPacket terminationPacket = null;
+  		try {
+	  		if (connectionDropped) {
+			  	outConnection = openConnection(mediatorTA, RESPONSE_TIMEOUT);
+			  	terminationPacket = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.TERMINATED_INFO, mediatorTA.getFile(), new byte[]{OUT});
 	  		}
-	  		catch (Exception e) {
-	  			// When the BackEnd receives the termination notification,
-	  			// it just closes the connection --> we always have this
-	  			// exception
-		    	myLogger.log(Logger.INFO, "BackEnd closed");
+	  		else {
+		  		terminationPacket = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	  		}
+	  			
+	  		if (outConnection != null) {
+		    	myLogger.log(Logger.INFO, "Sending termination notification");
+	  			writePacket(terminationPacket, outConnection);
+	  		}
+  		}
+  		catch (Exception e) {
+  			// When the BackEnd receives the termination notification,
+  			// it just closes the connection --> we always have this
+  			// exception
   		}
   	} 		
   }
