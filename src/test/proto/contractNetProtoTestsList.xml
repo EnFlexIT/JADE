@@ -46,4 +46,15 @@
 			</HowWorkTest>
 			<WhenTestPass> The test pass when Ping agent answers correctly... </WhenTestPass>
 		</Test>		
+		<Test name="Initiator nested in responder" skip="false">
+			<TestClassName>test.proto.tests.contractNet.TestInitiatorNestedInResponder</TestClassName>
+			<WhatTest>Test registering an inner ContractNetInitiator as a state of a ContractNetResponder.
+			</WhatTest>
+			<HowWorkTest>A utility agent is started running a ContractNetResponder with a ContractNetInitiator registered in its HANDLE_CFP state.
+			The tester agent executes a ContractNetInitator and, in parallel, a ContractNetResponder that will reply to the nested initiator executed by the utility agent.
+			All responders reply with a PROPOSE and then with an INFORM.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if all protocols are successfully completed as expected.
+			</WhenTestPass>
+		</Test>		
 	</TestsList>
