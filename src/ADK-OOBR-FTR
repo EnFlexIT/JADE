@@ -1,30 +1,14 @@
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Agent.java
-Agent@= AP_ACTIVE@public static final int AP_ACTIVE =
-Agent@= AP_DELETED@public static final int AP_DELETED =
-Agent@= AP_INITIATED@public static final int AP_INITIATED =
-Agent@= AP_MAX@public static final int AP_MAX =
-Agent@= AP_MIN@public static final int AP_MIN =
-Agent@= AP_SUSPENDED@public static final int AP_SUSPENDED =
-Agent@= AP_WAITING@public static final int AP_WAITING =
+/home/Giovanni/DEVEL/JADE/src/jade/core/Agent.java
 Agent@+ Agent@public Agent() {
-Agent@= D_ACTIVE@public static final int D_ACTIVE =
-Agent@= D_MAX@public static final int D_MAX =
-Agent@= D_MIN@public static final int D_MIN =
-Agent@= D_RETIRED@public static final int D_RETIRED =
-Agent@= D_SUSPENDED@public static final int D_SUSPENDED =
-Agent@= D_UNKNOWN@public static final int D_UNKNOWN =
 Agent@- FipaRequestMessage@private ACLMessage FipaRequestMessage(String dest, String replyString) {
 Agent@- activateAllBehaviours@private void activateAllBehaviours() {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
 Agent@- authenticateWithAMS@public void authenticateWithAMS(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
-Agent@= blockedBehaviours@private Vector blockedBehaviours =
 Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive(MessageTemplate pattern) {
 Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive() {
 Agent@- broadcastEvent@private void broadcastEvent(CommEvent event) {
-Agent@= currentBehaviour@protected Behaviour currentBehaviour;
-Agent@= currentMessage@protected ACLMessage currentMessage;
 Agent@- deregisterWithAMS@public void deregisterWithAMS() throws FIPAException {
 Agent@- deregisterWithDF@public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
 Agent@- destroy@private void destroy() {
@@ -38,18 +22,9 @@ Agent@- doWait@public synchronized void doWait() {
 Agent@- doWake@public synchronized void doWake() {
 Agent@- forwardWithACC@public void forwardWithACC(ACLMessage msg) {
 Agent@- getName@public String getName() {
-Agent@= listeners@protected Vector listeners =
 Agent@- mainLoop@private void mainLoop() {
 Agent@- modifyAMSRegistration@public void modifyAMSRegistration(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
 Agent@- modifyDFRegistration@public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-Agent@= msgQueue@protected Vector msgQueue =
-Agent@= myAPState@private int myAPState;
-Agent@= myAddress@protected String myAddress =
-Agent@= myDomainState@private int myDomainState;
-Agent@= myName@protected String myName =
-Agent@= myParser@protected ACLParser myParser =
-Agent@= myScheduler@protected Scheduler myScheduler;
-Agent@= myThread@protected Thread myThread;
 Agent@- parse@public ACLMessage parse(Reader text) {
 Agent@- postMessage@public final synchronized void postMessage (ACLMessage msg) {
 Agent@- putBack@public final synchronized void putBack(ACLMessage msg) {
@@ -65,54 +40,49 @@ Agent@- send@public final void send(ACLMessage msg, AgentGroup g) {
 Agent@- send@public final void send(ACLMessage msg) {
 Agent@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java
-AgentPlatform@= addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
-AgentPlatform@= bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
-AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException;
-AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
-AgentPlatform@= removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatform.java
+AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
+AgentPlatform@> bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
+AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
+AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
+AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Behaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/Behaviour.java
 Behaviour@+ Behaviour@public Behaviour(Agent a) {
 Behaviour@+ Behaviour@public Behaviour() {
-Behaviour@= NOTIFY_DOWN@protected final int NOTIFY_DOWN =
-Behaviour@= NOTIFY_UP@protected final int NOTIFY_UP =
-Behaviour@- RunnableChangedEvent@protected class RunnableChangedEvent {
 Behaviour@> action@public abstract void action();
 Behaviour@- block@public void block() {
 Behaviour@> done@public abstract boolean done();
+Behaviour@- getSource@public Behaviour getSource() {
 Behaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+Behaviour@- init@public void init(boolean b, int d) {
 Behaviour@- isRunnable@boolean isRunnable() {
-Behaviour@= myAgent@protected Agent myAgent;
-Behaviour@= myEvent@protected RunnableChangedEvent myEvent =
-Behaviour@= parent@protected ComplexBehaviour parent;
+Behaviour@- isRunnable@public boolean isRunnable() {
+Behaviour@- isUpwards@public boolean isUpwards() {
 Behaviour@- restart@public void restart() {
-Behaviour@= runnableState@private boolean runnableState =
 Behaviour@- setParent@final void setParent(ComplexBehaviour cb) {
 Behaviour@- setRunnable@void setRunnable(boolean runnable) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommBroadcaster.java
-CommBroadcaster@= addCommListener@void addCommListener (CommListener l);
-CommBroadcaster@= removeCommListener@void removeCommListener(CommListener event);
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommBroadcaster.java
+CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
+CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommEvent.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message, AgentGroup group) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@- getMessage@public ACLMessage getMessage() {
 CommEvent@- getRecipients@public AgentGroup getRecipients() {
 CommEvent@- isMulticast@public boolean isMulticast() {
-CommEvent@= message@private ACLMessage message;
-CommEvent@= recipients@private AgentGroup recipients;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommListener.java
-CommListener@= CommHandle@void CommHandle( CommEvent event );
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommListener.java
+CommListener@> CommHandle@void CommHandle( CommEvent event );
 
-/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcher.java
-MessageDispatcher@= dispatch@void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
-MessageDispatcher@= getContainer@AgentContainer getContainer() throws RemoteException;
-MessageDispatcher@= ping@void ping() throws RemoteException;
+/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcher.java
+MessageDispatcher@> dispatch@void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+MessageDispatcher@> getContainer@AgentContainer getContainer() throws RemoteException;
+MessageDispatcher@> ping@void ping() throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ams.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ams.java
 ams@- AMSBehaviour@protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
 ams@- AMSBehaviour@protected AMSBehaviour(String name) {
 ams@- AuthBehaviour@public AuthBehaviour(ACLMessage request, ACLMessage reply) {
@@ -127,17 +97,10 @@ ams@- action@public void action() {
 ams@+ ams@public ams(AgentPlatformImpl ap, String name) {
 ams@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
 ams@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
-ams@= dispatcher@private FipaRequestServerBehaviour dispatcher;
 ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 ams@- instance@public Behaviour instance(ACLMessage msg, ACLMessage reply) {
 ams@- instance@public Behaviour instance(ACLMessage msg, ACLMessage reply) {
-ams@= myAction@private AgentManagementOntology.AMSAction myAction;
-ams@= myActionName@private String myActionName;
-ams@= myOntology@protected AgentManagementOntology myOntology;
-ams@= myPlatform@private AgentPlatformImpl myPlatform;
-ams@= myReply@private ACLMessage myReply;
-ams@= myRequest@private ACLMessage myRequest;
 ams@- processArgs@protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
 ams@- processArgs@protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
 ams@- processArgs@protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
@@ -151,7 +114,7 @@ ams@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
 ams@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 ams@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/df.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/df.java
 df@- DFBehaviour@protected DFBehaviour(String name, ACLMessage request, ACLMessage reply) {
 df@- DFBehaviour@protected DFBehaviour(String name) {
 df@- DFDeregister@protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
@@ -170,18 +133,11 @@ df@- action@public void action() {
 df@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
 df@- checkAttributeList@private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
 df@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
-df@= descriptors@private Hashtable descriptors =
 df@+ df@public df() {
-df@= dispatcher@private FipaRequestServerBehaviour dispatcher;
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
-df@= myAction@private AgentManagementOntology.DFAction myAction;
-df@= myActionName@private String myActionName;
-df@= myOntology@private AgentManagementOntology myOntology;
-df@= myReply@private ACLMessage myReply;
-df@= myRequest@private ACLMessage myRequest;
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
@@ -194,10 +150,10 @@ df@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
 df@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 df@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java
-Parser@= parse@public void parse(Reader textSource);
+/home/Giovanni/DEVEL/JADE/src/jade/lang/Parser.java
+Parser@> parse@public void parse(Reader textSource);
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Message.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/Message.java
 MessageImpl@+ MessageImpl@public MessageImpl() {
 MessageImpl@= acceptProposalKind@private static final Object acceptProposalKind =
 MessageImpl@= agreeKind@private static final Object agreeKind =
@@ -227,7 +183,7 @@ MessageImpl@= requestWhenKind@private static final Object requestWhenKind =
 MessageImpl@= requestWheneverKind@private static final Object requestWheneverKind =
 MessageImpl@= subscribeKind@private static final Object subscribeKind =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/grammar.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/grammar.java
 MessageParameter@= value@public String value();
 senderParam@- value@public String value() {
 receiverParam@- value@public String value() {
@@ -241,103 +197,67 @@ ontologyParam@- value@public String value() {
 protocolParam@- value@public String value() {
 conversationIdParam@- value@public String value() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentDescriptor.java
-AgentDescriptor@= demux@private MessageDispatcher demux;
-AgentDescriptor@= desc@private AgentManagementOntology.AMSAgentDescriptor desc;
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
 AgentDescriptor@- getDesc@public AgentManagementOntology.AMSAgentDescriptor getDesc() {
 AgentDescriptor@- setDemux@public void setDemux(MessageDispatcher md) {
 AgentDescriptor@- setDesc@public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/NotFoundException.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/StartContainer.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/jade/core/StartPlatform.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 StartPlatform@- usage@private static void usage() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl() throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
-AgentContainerImpl@= MAP_LOAD_FACTOR@private static final float MAP_LOAD_FACTOR =
-AgentContainerImpl@= MAP_SIZE@private static final int MAP_SIZE =
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- invalidateCacheEntry@public void invalidateCacheEntry(String key) throws RemoteException {
 AgentContainerImpl@- joinPlatform@public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
-AgentContainerImpl@= localAgents@protected Hashtable localAgents =
 AgentContainerImpl@- lookup3@private AgentPlatform lookup3(String URL) throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
-AgentContainerImpl@= myDispatcher@protected MessageDispatcherImpl myDispatcher;
-AgentContainerImpl@= myPlatform@private AgentPlatform myPlatform;
-AgentContainerImpl@= platformAddress@protected String platformAddress;
 AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
-AgentContainerImpl@= remoteAgentsCache@private Hashtable remoteAgentsCache =
 AgentContainerImpl@- shutDown@public void shutDown() {
 AgentContainerImpl@- unicastPostMessage@private void unicastPostMessage(ACLMessage msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@- AMSChangeData@public void AMSChangeData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData(String agentName) {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData() {
 AgentPlatformImpl@- AMSNewData@public void AMSNewData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException, AgentAlreadyRegisteredException {
 AgentPlatformImpl@- AMSRemoveData@public void AMSRemoveData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
-AgentPlatformImpl@= GLOBALMAP_LOAD_FACTOR@private static final float GLOBALMAP_LOAD_FACTOR =
-AgentPlatformImpl@= GLOBALMAP_SIZE@private static final int GLOBALMAP_SIZE =
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
-AgentPlatformImpl@= containers@private Vector containers =
 AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException {
-AgentPlatformImpl@= defaultDF@private df defaultDF;
 AgentPlatformImpl@- initACC@private void initACC() {
 AgentPlatformImpl@- initAMS@private void initAMS() {
 AgentPlatformImpl@- initDF@private void initDF() {
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-AgentPlatformImpl@= platformAgents@private Hashtable platformAgents =
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
-AgentPlatformImpl@= theACC@private acc theACC;
-AgentPlatformImpl@= theAMS@private ams theAMS;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(AgentContainer ac, Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@- getContainer@public AgentContainer getContainer() throws RemoteException {
-MessageDispatcherImpl@= localAgents@private Hashtable localAgents;
-MessageDispatcherImpl@= owner@private AgentContainer owner;
-MessageDispatcherImpl@= parser@private ACLParser parser =
 MessageDispatcherImpl@- ping@public void ping() throws RemoteException {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
 ACLMessage@+ ACLMessage@public ACLMessage(String type) {
 ACLMessage@+ ACLMessage@public ACLMessage() {
-ACLMessage@= CONTENT@private static final String CONTENT =
-ACLMessage@= CONVERSATION_ID@private static final String CONVERSATION_ID =
-ACLMessage@= DEST@private static final String DEST =
-ACLMessage@= ENVELOPE@private static final String ENVELOPE =
-ACLMessage@= IN_REPLY_TO@private static final String IN_REPLY_TO =
-ACLMessage@= LANGUAGE@private static final String LANGUAGE =
-ACLMessage@= ONTOLOGY@private static final String ONTOLOGY =
-ACLMessage@= PROTOCOL@private static final String PROTOCOL =
-ACLMessage@= REPLY_BY@private static final String REPLY_BY =
-ACLMessage@= REPLY_WITH@private static final String REPLY_WITH =
-ACLMessage@= SOURCE@private static final String SOURCE =
 ACLMessage@- clone@public synchronized Object clone() {
-ACLMessage@= content@private String content;
-ACLMessage@= conversation_id@private String conversation_id;
-ACLMessage@= counter@private static int counter =
-ACLMessage@= dest@private String dest;
 ACLMessage@- dump@public void dump() {
-ACLMessage@= envelope@private String envelope;
 ACLMessage@- fromText@public static ACLMessage fromText(Reader r) {
 ACLMessage@- getContent@public String getContent() {
 ACLMessage@- getConversationId@public String getConversationId() {
 ACLMessage@- getDest@public String getDest() {
 ACLMessage@- getEnvelope@public String getEnvelope() {
 ACLMessage@- getLanguage@public String getLanguage() {
-ACLMessage@- getMessage@public byte[] getMessage() {
 ACLMessage@- getOntology@public String getOntology() {
 ACLMessage@- getProtocol@public String getProtocol() {
 ACLMessage@- getReplyBy@public String getReplyBy() {
@@ -345,13 +265,17 @@ ACLMessage@- getReplyTo@public String getReplyTo() {
 ACLMessage@- getReplyWith@public String getReplyWith() {
 ACLMessage@- getSource@public String getSource() {
 ACLMessage@- getType@public String getType() {
-ACLMessage@= in_reply_to@private String in_reply_to;
-ACLMessage@= language@private String language;
-ACLMessage@= msgType@private String msgType;
-ACLMessage@= ontology@private String ontology;
-ACLMessage@= protocol@private String protocol;
-ACLMessage@= reply_by@private String reply_by;
-ACLMessage@= reply_with@private String reply_with;
+ACLMessage@- if@if (this.conversation_id != null) {
+ACLMessage@- if@if (this.protocol != null) {
+ACLMessage@- if@if (this.reply_by != null) {
+ACLMessage@- if@if (this.ontology != null) {
+ACLMessage@- if@if (this.language != null) {
+ACLMessage@- if@if (this.envelope != null) {
+ACLMessage@- if@if (this.in_reply_to != null) {
+ACLMessage@- if@if (this.reply_with != null) {
+ACLMessage@- if@if (this.content != null) {
+ACLMessage@- if@if (this.dest != null) {
+ACLMessage@- if@if (this.source != null) {
 ACLMessage@- reset@public void reset() {
 ACLMessage@- setContent@public void setContent( String content ) {
 ACLMessage@- setConversationId@public void setConversationId( String str ) {
@@ -365,10 +289,9 @@ ACLMessage@- setReplyTo@public void setReplyTo( String reply ) {
 ACLMessage@- setReplyWith@public void setReplyWith( String reply ) {
 ACLMessage@- setSource@public void setSource( String source ) {
 ACLMessage@- setType@public void setType( String type ) {
-ACLMessage@= source@private String source;
 ACLMessage@- toText@public void toText(Writer w) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
 Agent@- activate@public void activate(String name) {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
@@ -382,25 +305,25 @@ Agent@- schedule@public void schedule() {
 Agent@- send@protected final void send(String msg) {
 Agent@- send@protected final void send(ACLMessage msg) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentContainerImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
 AgentDescriptor@- getName@public String getName() {
 AgentDescriptor@- set@public void set(String s, MessageDispatcher md) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatform.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@> bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
 AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
 AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatformImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
@@ -408,74 +331,77 @@ AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteEx
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Behaviour.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/Behaviour.java
 Behaviour@> execute@public void execute();
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommBroadcaster.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
 CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommEvent.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, String command) {
 CommEvent@- getCommand@public String getCommand() {
 CommEvent@- getMessage@public ACLMessage getMessage() {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommListener.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommListener.java
 CommListener@> CommHandle@void CommHandle( CommEvent event );
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcher.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcher.java
 MessageDispatcher@> dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException;
 MessageDispatcher@> dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcherImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/NotFoundException.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartContainer.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartPlatform.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
-ComplexBehaviour@- BehaviourList@private class BehaviourList {
+/home/Giovanni/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
+ComplexBehaviour@- BehaviourList@public BehaviourList() {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
 ComplexBehaviour@- action@public final void action() {
 ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
+ComplexBehaviour@- addElement@public void addElement(Behaviour b) {
+ComplexBehaviour@- begin@public void begin() {
 ComplexBehaviour@> bodyAction@protected abstract boolean bodyAction();
 ComplexBehaviour@- done@public boolean done() {
-ComplexBehaviour@= finished@private boolean finished =
+ComplexBehaviour@- end@public void end() {
+ComplexBehaviour@- getCurrent@public Behaviour getCurrent() {
 ComplexBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+ComplexBehaviour@- isEmpty@public boolean isEmpty() {
+ComplexBehaviour@- next@public boolean next() {
+ComplexBehaviour@- popCurrent@public void popCurrent() {
 ComplexBehaviour@- postAction@protected void postAction() {
 ComplexBehaviour@- preAction@protected void preAction() {
+ComplexBehaviour@- pushCurrent@public void pushCurrent() {
 ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+ComplexBehaviour@- removeElement@public boolean removeElement(Behaviour b) {
 ComplexBehaviour@- restart@public void restart() {
-ComplexBehaviour@= starting@private boolean starting =
-ComplexBehaviour@= subBehaviours@protected BehaviourList subBehaviours =
+ComplexBehaviour@- size@public int size() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Scheduler.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/Scheduler.java
 Scheduler@+ Scheduler@public Scheduler(Agent a) {
 Scheduler@- add@public synchronized void add(Behaviour b) {
-Scheduler@= behaviours@protected Vector behaviours =
-Scheduler@= currentIndex@private int currentIndex;
 Scheduler@+ finalize@protected void finalize() {
-Scheduler@= idleBehaviour@private static Behaviour idleBehaviour =
-Scheduler@= owner@private Agent owner;
 Scheduler@- remove@public synchronized void remove(Behaviour b) {
 Scheduler@- schedule@public synchronized Behaviour schedule() {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
 ACLParser@+ ACLParser@public ACLParser(ACLParserTokenManager tm) {
 ACLParser@+ ACLParser@public ACLParser(java.io.Reader stream) {
 ACLParser@+ ACLParser@public ACLParser(java.io.InputStream stream) {
@@ -521,7 +447,7 @@ ACLParser@= msg@ACLMessage msg =
 ACLParser@- parse@public ACLMessage parse(Reader text) throws ParseException {
 ACLParser@= token_source@public ACLParserTokenManager token_source;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParserTokenManager.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParserTokenManager.java
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream, int lexState) {
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream) {
 ACLParserTokenManager@- ReInit@public void ReInit(ASCII_CharStream stream, int lexState) {
@@ -585,7 +511,7 @@ ACLParserTokenManager@= jjtoToken@static final long[] jjtoToken =
 ACLParserTokenManager@= lengthOfMatch@int lengthOfMatch;
 ACLParserTokenManager@= lexStateNames@public static final String[] lexStateNames =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ASCII_CharStream.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ASCII_CharStream.java
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn) {
@@ -626,7 +552,7 @@ ASCII_CharStream@- readChar@public final char readChar() throws java.io.IOExcept
 ASCII_CharStream@= staticFlag@public static final boolean staticFlag =
 ASCII_CharStream@= tokenBegin@int tokenBegin;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ParseException.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ParseException.java
 ParseException@+ ParseException@public ParseException(String message) {
 ParseException@+ ParseException@public ParseException() {
 ParseException@+ ParseException@public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal, String[] tokenImageVal ) {
@@ -638,7 +564,7 @@ ParseException@- getMessage@public String getMessage() {
 ParseException@= specialConstructor@protected boolean specialConstructor;
 ParseException@= tokenImage@public String[] tokenImage;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Token.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/Token.java
 Token@= image@public String image;
 Token@= kind@public int kind;
 Token@- newToken@public static final Token newToken(int ofKind) {
@@ -646,7 +572,7 @@ Token@= next@public Token next;
 Token@= specialToken@public Token specialToken;
 Token@- toString@public final String toString() {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/TokenMgrError.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/TokenMgrError.java
 TokenMgrError@= INVALID_LEXICAL_STATE@static final int INVALID_LEXICAL_STATE =
 TokenMgrError@= LEXICAL_ERROR@static final int LEXICAL_ERROR =
 TokenMgrError@= LOOP_DETECTED@static final int LOOP_DETECTED =
@@ -659,13 +585,12 @@ TokenMgrError@- addEscapes@protected static final String addEscapes(String str) 
 TokenMgrError@= errorCode@int errorCode;
 TokenMgrError@- getMessage@public String getMessage() {
 
-/home/rimassa/DEVEL/JADE/src/jade/Boot.java
+/home/Giovanni/DEVEL/JADE/src/jade/Boot.java
 Boot@+ Boot@private Boot() {
-Boot@= SEPARATOR@private static final String SEPARATOR =
 Boot@- main@public static void main(String args[]) {
 Boot@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/MessageTemplate.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/MessageTemplate.java
 MessageTemplate@- MatchAll@public static MessageTemplate MatchAll() {
 MessageTemplate@- MatchContent@public static MessageTemplate MatchContent(String value) {
 MessageTemplate@- MatchConversationId@public static MessageTemplate MatchConversationId(String value) {
@@ -683,41 +608,28 @@ MessageTemplate@+ MessageTemplate@private MessageTemplate(ACLMessage msg) {
 MessageTemplate@+ MessageTemplate@private MessageTemplate() {
 MessageTemplate@- allWildCard@private static ACLMessage allWildCard() {
 MessageTemplate@- and@public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
-MessageTemplate@= fieldNames@private static final String[] fieldNames =
 MessageTemplate@- fromText@public static void fromText(Reader r) {
 MessageTemplate@- match@public boolean match(ACLMessage msg) {
 MessageTemplate@- or@public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
-MessageTemplate@= template@private ACLMessage template;
 MessageTemplate@- toText@public void toText(Writer w) {
-MessageTemplate@= wildCard@private static final String wildCard =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Protocol.java
 Protocol@+ Protocol@public Protocol(CommunicativeAction start) {
-Protocol@= START_NAME@private static final String START_NAME =
 Protocol@- addCA@public void addCA(CommunicativeAction ca, String name) {
 Protocol@- getCA@public CommunicativeAction getCA(String name) {
 Protocol@- getStart@public CommunicativeAction getStart() {
-Protocol@= initiatorRole@static final int initiatorRole =
-Protocol@= myElements@protected Hashtable myElements;
-Protocol@= responderRole@static final int responderRole =
-Protocol@= startingPoint@protected CommunicativeAction startingPoint;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentGroup.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentGroup.java
 AgentGroup@- addMember@public void addMember(String name) {
 AgentGroup@- getNextMember@public String getNextMember() {
 AgentGroup@- hasMoreMembers@public boolean hasMoreMembers() {
-AgentGroup@= iterator@private Enumeration iterator =
-AgentGroup@= memberNames@private Vector memberNames =
 AgentGroup@- removeMember@public void removeMember(String name) {
 AgentGroup@- resetCursor@public void resetCursor() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(Agent a, int endCondition) {
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(int endCondition) {
-NonDeterministicBehaviour@= WHEN_ALL@private static final int WHEN_ALL =
-NonDeterministicBehaviour@= WHEN_ANY@private static final int WHEN_ANY =
 NonDeterministicBehaviour@- block@public void block() {
-NonDeterministicBehaviour@= blockedChildren@private Hashtable blockedChildren =
 NonDeterministicBehaviour@- bodyAction@protected boolean bodyAction() {
 NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll(Agent a) {
 NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll() {
@@ -727,146 +639,110 @@ NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour 
 NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour createWhenN(int howMany) {
 NonDeterministicBehaviour@- evalCondition@private boolean evalCondition() {
 NonDeterministicBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
-NonDeterministicBehaviour@= terminatedSubBehaviours@private int terminatedSubBehaviours;
-NonDeterministicBehaviour@= whenToStop@private int whenToStop;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour(Agent a) {
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour() {
 SequentialBehaviour@- bodyAction@protected boolean bodyAction() {
 SequentialBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
 CommunicativeAction@+ CommunicativeAction@public CommunicativeAction(ACLMessage msg, Protocol p) {
 CommunicativeAction@- addAnswer@public void addAnswer(CommunicativeAction ca) {
-CommunicativeAction@= allowedAnswers@private Vector allowedAnswers =
 CommunicativeAction@- getAnswers@public Enumeration getAnswers() {
 CommunicativeAction@- getMessage@public ACLMessage getMessage() {
 CommunicativeAction@- getRole@public int getRole() {
 CommunicativeAction@- makeInitiator@public void makeInitiator() {
 CommunicativeAction@- makeResponder@public void makeResponder() {
-CommunicativeAction@= myMessage@private ACLMessage myMessage;
-CommunicativeAction@= myName@private String myName;
-CommunicativeAction@= myProtocol@private Protocol myProtocol;
-CommunicativeAction@= myRole@private int myRole;
 CommunicativeAction@- setName@void setName(String name) {
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Standard.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Standard.java
 Standard@+ Standard@private Standard() {
 Standard@- getProtocol@public static Protocol getProtocol(String name) {
 Standard@- initProtocols@private static void initProtocols() {
-Standard@= mutex@private static Object mutex =
-Standard@= stdProtocols@private static Hashtable stdProtocols =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/MessageHandler.java
-MessageHandler@= handle@public void handle(ACLMessage msg, Interaction i);
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageHandler.java
+MessageHandler@> handle@public void handle(ACLMessage msg, Interaction i);
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/MessageSelector.java
-MessageSelector@= select@public void select(MessageGroup answers, Interaction i);
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageSelector.java
+MessageSelector@> select@public void select(MessageGroup answers, Interaction i);
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Interaction.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Interaction.java
 Interaction@+ Interaction@private Interaction(Protocol p, int role) {
 Interaction@- addPeer@public void addPeer(String name) {
 Interaction@- attachHandler@public void attachHandler(String CA, MessageHandler handler) {
 Interaction@- attachSelector@public void attachSelector(String CA, MessageSelector selector) {
-Interaction@= conversationId@String conversationId;
 Interaction@- createInitiator@public static Interaction createInitiator(Protocol p, AgentGroup peers, String convId) {
 Interaction@- createResponder@public static Interaction createResponder(Protocol p) {
-Interaction@= currentState@private Hashtable currentState =
-Interaction@= handlers@private Hashtable handlers =
 Interaction@- isInitiator@public boolean isInitiator() {
-Interaction@= myPeers@AgentGroup myPeers;
-Interaction@= myProtocol@Protocol myProtocol;
-Interaction@= myRole@int myRole;
 Interaction@- removePeer@public void removePeer(String name) {
-Interaction@= selectors@private Hashtable selectors =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
 ProtocolDrivenBehaviour@+ ProtocolDrivenBehaviour@public ProtocolDrivenBehaviour(Agent a, Interaction i) {
 ProtocolDrivenBehaviour@- action@public void action() {
-ProtocolDrivenBehaviour@= currentBehaviours@private NonDeterministicBehaviour currentBehaviours;
 ProtocolDrivenBehaviour@- done@public boolean done() {
-ProtocolDrivenBehaviour@= finished@private boolean finished =
-ProtocolDrivenBehaviour@= myAgent@private Agent myAgent;
-ProtocolDrivenBehaviour@= myInteraction@private Interaction myInteraction;
-ProtocolDrivenBehaviour@= starting@private boolean starting =
 ProtocolDrivenBehaviour@- startupAsInitiator@private void startupAsInitiator() {
 ProtocolDrivenBehaviour@- startupAsResponder@private void startupAsResponder() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent1.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent1.java
 Agent1@- Behaviour1@public Behaviour1(String ID) {
 Agent1@- action@public void action() {
-Agent1@= counter@private int counter;
-Agent1@= myID@private String myID;
 Agent1@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent2.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent2.java
 Agent2@- Behaviour2@public Behaviour2(Agent a) {
 Agent2@- action@public void action() {
 Agent2@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent3.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent3.java
 Agent3@- Behaviour3Step@public Behaviour3Step(Agent a, String code) {
 Agent3@- action@public void action() {
-Agent3@= myCode@private String myCode;
 Agent3@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent4.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent4.java
 Agent4@- Behaviour4Step@public Behaviour4Step(Agent a, String code, int i) {
 Agent4@- action@public void action() {
 Agent4@- done@public boolean done() {
-Agent4@= executionTimes@private int executionTimes;
-Agent4@= finished@private boolean finished =
-Agent4@= myCode@private String myCode;
 Agent4@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
 AgentBroadcaster@- BehaviourElement@public BehaviourElement(String source, String dest, String content) {
 AgentBroadcaster@- action@public void action() {
 AgentBroadcaster@- appendMessage@public synchronized void appendMessage(ACLMessage msg) {
 AgentBroadcaster@- done@public boolean done() {
 AgentBroadcaster@- dumpMessage@public void dumpMessage() {
-AgentBroadcaster@= messages@private Vector messages =
-AgentBroadcaster@= msgSent@private boolean msgSent =
-AgentBroadcaster@= myMessage@private ACLMessage myMessage;
-AgentBroadcaster@= replyReceived@private boolean replyReceived =
 AgentBroadcaster@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentReceiver.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentReceiver.java
 AgentReceiver@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentSender.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentSender.java
 AgentSender@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex3/AgentMessageFilter.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentMessageFilter.java
 AgentMessageFilter@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex3/AgentThread.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentThread.java
 AgentThread@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex4/AgentRequester.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentRequester.java
 AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour() {
-AgentRequester@- Receiver@private static class Receiver {
+AgentRequester@- Receiver@private Receiver() {
 AgentRequester@> action@public abstract void action();
 AgentRequester@- agreed@public boolean agreed() {
-AgentRequester@= convCounter@private int convCounter =
-AgentRequester@= convID@private String convID;
 AgentRequester@- done@public boolean done() {
 AgentRequester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-AgentRequester@= finished@protected boolean finished =
 AgentRequester@- getConvID@public String getConvID() {
 AgentRequester@- getPeer@public String getPeer() {
 AgentRequester@- handleFailure@public void handleFailure(ACLMessage msg) {
 AgentRequester@- handleInform@public void handleInform(ACLMessage msg) {
-AgentRequester@= howManyRequests@private int howManyRequests;
-AgentRequester@= myPeer@private String myPeer;
 AgentRequester@- newConvID@private String newConvID() {
+AgentRequester@- receive@public static final ACLMessage receive(AgentRequester a, String messageType) {
 AgentRequester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
-AgentRequester@= receivedAgree@private boolean receivedAgree =
 AgentRequester@- sendRequest@public void sendRequest() {
 AgentRequester@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex4/AgentResponder.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentResponder.java
 AgentResponder@- MultipleBehaviour@public MultipleBehaviour() {
 AgentResponder@- ResponderBehaviour@public ResponderBehaviour(ACLMessage msg) {
 AgentResponder@- SendBehaviour@public SendBehaviour(ACLMessage msg) {
@@ -874,14 +750,9 @@ AgentResponder@- action@public void action() {
 AgentResponder@- action@public void action() {
 AgentResponder@- action@public void action() {
 AgentResponder@- done@public boolean done() {
-AgentResponder@= finished@private boolean finished =
-AgentResponder@= message@private ACLMessage message;
-AgentResponder@= myConvId@private String myConvId;
-AgentResponder@= myPeer@private String myPeer;
-AgentResponder@= pattern@MessageTemplate pattern;
 AgentResponder@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/amsTester.java
+/home/Giovanni/DEVEL/JADE/src/examples/amsTester.java
 amsTester@- ReceiveBehaviour@protected ReceiveBehaviour(amsTester a) {
 Receiver@+ Receiver@private Receiver() {
 amsTester@- agreed@public boolean agreed() {
@@ -904,116 +775,96 @@ amsTester@= receivedAgree@private boolean receivedAgree =
 amsTester@- sendRequest@public void sendRequest() {
 amsTester@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ACCUnavailableException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ACCUnavailableException.java
 ACCUnavailableException@+ ACCUnavailableException@public ACCUnavailableException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AMSOverloadedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AMSOverloadedException.java
 AMSOverloadedException@+ AMSOverloadedException@public AMSOverloadedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentAlreadyRegisteredException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentAlreadyRegisteredException.java
 AgentAlreadyRegisteredException@+ AgentAlreadyRegisteredException@public AgentAlreadyRegisteredException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentNotRegisteredException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentNotRegisteredException.java
 AgentNotRegisteredException@+ AgentNotRegisteredException@public AgentNotRegisteredException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/FIPAException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FIPAException.java
 FIPAException@+ FIPAException@public FIPAException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnableToDeregisterException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnableToDeregisterException.java
 UnableToDeregisterException@+ UnableToDeregisterException@public UnableToDeregisterException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeException.java
 UnrecognizedAttributeException@+ UnrecognizedAttributeException@public UnrecognizedAttributeException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeValueException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeValueException.java
 UnrecognizedAttributeValueException@+ UnrecognizedAttributeValueException@public UnrecognizedAttributeValueException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/acc.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/acc.java
 acc@- ACCBehaviour@protected ACCBehaviour(ACLMessage request, ACLMessage reply) {
 acc@- ACCBehaviour@protected ACCBehaviour() {
 acc@+ acc@public acc(AgentPlatformImpl ap) {
 acc@- action@public void action() {
-acc@= dispatcher@private FipaRequestServerBehaviour dispatcher;
 acc@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
-acc@= myAction@private AgentManagementOntology.ACCAction myAction;
-acc@= myActionName@private final String myActionName =
-acc@= myOntology@private AgentManagementOntology myOntology;
-acc@= myPlatform@private AgentPlatformImpl myPlatform;
-acc@= myReply@private ACLMessage myReply;
-acc@= myRequest@private ACLMessage myRequest;
 acc@- sendAgree@protected void sendAgree(ACLMessage msg) {
 acc@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
 acc@- sendInform@protected void sendInform(ACLMessage msg) {
 acc@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 acc@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
-AgentManagementOntology@= ADDRESS@static final String ADDRESS =
-AgentManagementOntology@= AMSMandatoryAttributes@private static final boolean AMSMandatoryAttributes[][] =
-AgentManagementOntology@- APLifeCycle@public static class APLifeCycle {
-AgentManagementOntology@= APSTATE@static final String APSTATE =
-AgentManagementOntology@= APState@private int APState;
-AgentManagementOntology@= ARGNAME@static final String ARGNAME =
-AgentManagementOntology@= ARGNAME@static final String ARGNAME =
-AgentManagementOntology@= ARGNAME@static final String ARGNAME =
-AgentManagementOntology@= AUTHENTICATE@public static final String AUTHENTICATE =
-AgentManagementOntology@- Action@public static interface Action {
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
+AgentManagementOntology@- APLifeCycle@private APLifeCycle() {
 AgentManagementOntology@+ AgentManagementOntology@private AgentManagementOntology() {
-AgentManagementOntology@- Constraint@public static class Constraint {
-AgentManagementOntology@= DELEGATE@static final String DELEGATE =
-AgentManagementOntology@= DEREGISTER@public static final String DEREGISTER =
-AgentManagementOntology@= DEREGISTERAGENT@public static final String DEREGISTERAGENT =
-AgentManagementOntology@- DFAgentDescriptor@public static class DFAgentDescriptor {
-AgentManagementOntology@= DFMandatoryAttributes@private static final boolean DFMandatoryAttributes[][] =
-AgentManagementOntology@- DomainLifeCycle@public static class DomainLifeCycle {
-AgentManagementOntology@- Exception@public static class Exception {
-AgentManagementOntology@= FORWARD@public static final String FORWARD =
-AgentManagementOntology@= FORWARD@static final String FORWARD =
-AgentManagementOntology@= MODIFY@public static final String MODIFY =
-AgentManagementOntology@= MODIFYAGENT@public static final String MODIFYAGENT =
-AgentManagementOntology@= NAME@static final String NAME =
-AgentManagementOntology@= OWNERSHIP@static final String OWNERSHIP =
-AgentManagementOntology@- PlatformProfile@public static class PlatformProfile {
-AgentManagementOntology@= REGISTER@public static final String REGISTER =
-AgentManagementOntology@= REGISTERAGENT@public static final String REGISTERAGENT =
-AgentManagementOntology@= SEARCH@public static final String SEARCH =
-AgentManagementOntology@= SIGNATURE@static final String SIGNATURE =
-AgentManagementOntology@- ServiceDescriptor@public static class ServiceDescriptor {
-AgentManagementOntology@- ServiceTypes@public static class ServiceTypes {
-AgentManagementOntology@= actions@private static Hashtable actions =
-AgentManagementOntology@= actions@private static Hashtable actions =
-AgentManagementOntology@= actions@private static Hashtable actions =
+AgentManagementOntology@- DomainLifeCycle@private DomainLifeCycle() {
+AgentManagementOntology@- Exception@private Exception() {
+AgentManagementOntology@- PlatformProfile@private PlatformProfile() {
+AgentManagementOntology@- ServiceTypes@private ServiceTypes() {
+AgentManagementOntology@- addAddress@public void addAddress(String a) {
 AgentManagementOntology@- addConstraint@public void addConstraint(Constraint c) {
-AgentManagementOntology@= address@private String address;
-AgentManagementOntology@= arg@private ACLMessage arg;
-AgentManagementOntology@= arg@private DFAgentDescriptor arg;
-AgentManagementOntology@= arg@private AMSAgentDescriptor arg;
-AgentManagementOntology@= constraints@private Vector constraints =
-AgentManagementOntology@= delegateAgentName@private String delegateAgentName;
-AgentManagementOntology@= forwardAddress@private String forwardAddress;
+AgentManagementOntology@- addInteractionProtocol@public void addInteractionProtocol(String ip) {
+AgentManagementOntology@- addService@public void addService(ServiceDescriptor sd) {
 AgentManagementOntology@- fromText@public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
 AgentManagementOntology@- fromText@public static DFAction fromText(Reader r) throws ParseException, TokenMgrError {
 AgentManagementOntology@- fromText@public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static DFAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
 AgentManagementOntology@- fromText@public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
 AgentManagementOntology@- getAPState@public String getAPState() {
 AgentManagementOntology@- getAPStateByCode@public String getAPStateByCode(int code) throws FIPAException {
 AgentManagementOntology@- getAPStateByName@public int getAPStateByName(String name) throws FIPAException {
 AgentManagementOntology@- getAddress@public String getAddress() {
+AgentManagementOntology@- getAddresses@public Enumeration getAddresses() {
+AgentManagementOntology@- getAgentServices@public Enumeration getAgentServices() {
 AgentManagementOntology@- getArg@public ACLMessage getArg() {
 AgentManagementOntology@- getArg@public DFAgentDescriptor getArg() {
 AgentManagementOntology@- getArg@public AMSAgentDescriptor getArg() {
+AgentManagementOntology@- getArg@public int getArg() {
+AgentManagementOntology@- getCommunicationProps@public String getCommunicationProps() {
 AgentManagementOntology@- getConstraints@public Enumeration getConstraints() {
+AgentManagementOntology@- getDFState@String getDFState() {
 AgentManagementOntology@- getDelegateAgentName@public String getDelegateAgentName() {
 AgentManagementOntology@- getDomainStateByName@public int getDomainStateByName(String name) throws FIPAException {
 AgentManagementOntology@- getDomainStatebyCode@public String getDomainStatebyCode(int code) throws FIPAException {
 AgentManagementOntology@- getException@public FIPAException getException(String message) {
+AgentManagementOntology@- getFixedProps@public String getFixedProps() {
+AgentManagementOntology@- getFn@public String getFn() {
 AgentManagementOntology@- getForwardAddress@public String getForwardAddress() {
+AgentManagementOntology@- getInteractionProtocols@public Enumeration getInteractionProtocols() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@> getName@public String getName();
 AgentManagementOntology@- getName@public String getName() {
 AgentManagementOntology@- getName@public String getName() {
 AgentManagementOntology@- getName@public String getName() {
 AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getNegotiableProps@public String getNegotiableProps() {
+AgentManagementOntology@- getOntology@public String getOntology() {
+AgentManagementOntology@- getOntology@public String getOntology() {
+AgentManagementOntology@- getOwnership@public String getOwnership() {
 AgentManagementOntology@- getOwnership@public String getOwnership() {
 AgentManagementOntology@- getSignature@public String getSignature() {
+AgentManagementOntology@- getType@public String getType() {
+AgentManagementOntology@- getType@public String getType() {
 AgentManagementOntology@- instance@public static final AgentManagementOntology instance() {
 AgentManagementOntology@- isMandatoryForAMS@public boolean isMandatoryForAMS(String actionName, String attributeName) {
 AgentManagementOntology@- isMandatoryForDF@public boolean isMandatoryForDF(String actionName, String attributeName) {
@@ -1022,37 +873,48 @@ AgentManagementOntology@- isValidDFADKeyword@public boolean isValidDFADKeyword(S
 AgentManagementOntology@- isValidException@public boolean isValidException(String message) {
 AgentManagementOntology@- isValidPPKeyword@public boolean isValidPPKeyword(String keyword) {
 AgentManagementOntology@- isValidSDKeyword@public boolean isValidSDKeyword(String keyword) {
-AgentManagementOntology@= keywords@private static Hashtable keywords =
-AgentManagementOntology@= lock@private static Object lock =
-AgentManagementOntology@= name@private String name;
-AgentManagementOntology@= name@private String name;
-AgentManagementOntology@= name@private String name;
-AgentManagementOntology@= name@private String name;
-AgentManagementOntology@= ownership@private String ownership;
-AgentManagementOntology@= parser@private static AgentManagementParser parser =
+AgentManagementOntology@- removeAddresses@public void removeAddresses() {
+AgentManagementOntology@- removeAgentServices@public void removeAgentServices() {
 AgentManagementOntology@- removeConstraints@public void removeConstraints() {
+AgentManagementOntology@- removeInteractionProtocols@public void removeInteractionProtocols() {
 AgentManagementOntology@- setAPState@public void setAPState(int AP) throws IllegalArgumentException {
 AgentManagementOntology@- setAddress@public void setAddress(String a) {
 AgentManagementOntology@- setArg@public void setArg(ACLMessage msg) {
 AgentManagementOntology@- setArg@public void setArg(DFAgentDescriptor dfd) {
 AgentManagementOntology@- setArg@public void setArg(AMSAgentDescriptor amsd) {
+AgentManagementOntology@- setArg@public void setArg(int i) {
+AgentManagementOntology@- setCommunicationProps@public void setCommunicationProps(String cp) {
+AgentManagementOntology@- setDFState@public void setDFState(String dfs) {
 AgentManagementOntology@- setDelegateAgentName@public void setDelegateAgentName(String d) {
+AgentManagementOntology@- setFixedProps@public void setFixedProps(String fp) {
+AgentManagementOntology@- setFn@public void setFn(String s) {
 AgentManagementOntology@- setForwardAddress@public void setForwardAddress(String f) {
 AgentManagementOntology@- setName@public void setName(String s) {
 AgentManagementOntology@- setName@public void setName(String s) {
 AgentManagementOntology@- setName@public void setName(String s) {
+AgentManagementOntology@> setName@public void setName(String name);
+AgentManagementOntology@- setName@public void setName(String s) {
 AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setNegotiableProps@public void setNegotiableProps(String np) {
+AgentManagementOntology@- setOntology@public void setOntology(String o) {
+AgentManagementOntology@- setOntology@public void setOntology(String o) {
+AgentManagementOntology@- setOwnership@public void setOwnership(String o) {
 AgentManagementOntology@- setOwnership@public void setOwnership(String o) {
 AgentManagementOntology@- setSignature@public void setSignature(String s) {
-AgentManagementOntology@= signature@private String signature;
-AgentManagementOntology@= singleton@private static AgentManagementOntology singleton =
+AgentManagementOntology@- setType@public void setType(String t) {
+AgentManagementOntology@- setType@public void setType(String t) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@> toText@public void toText(Writer w);
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParserConstants.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParserConstants.java
 ACLParserConstants@= CONTENT@int CONTENT =
 ACLParserConstants@= CONTENTSTATE@int CONTENTSTATE =
 ACLParserConstants@= CONVERSATION_ID@int CONVERSATION_ID =
@@ -1084,86 +946,68 @@ ACLParserConstants@= STRINGLITERAL@int STRINGLITERAL =
 ACLParserConstants@= WORD@int WORD =
 ACLParserConstants@= tokenImage@String[] tokenImage =
 
-/home/rimassa/DEVEL/JADE/src/examples/ex5/amsTester.java
-amsTester@= APState@private String APState =
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/amsTester.java
 amsTester@- ReceiveBehaviour@protected ReceiveBehaviour() {
-amsTester@- Receiver@private static class Receiver {
+amsTester@- Receiver@private Receiver() {
 amsTester@> action@public abstract void action();
-amsTester@= address@private String address =
-amsTester@= agentName@private String agentName =
 amsTester@- agreed@public boolean agreed() {
-amsTester@= convCounter@private int convCounter =
-amsTester@= convID@private String convID;
-amsTester@= delegateAgent@private String delegateAgent =
 amsTester@- done@public boolean done() {
 amsTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-amsTester@= finished@protected boolean finished =
-amsTester@= forwardAddress@private String forwardAddress =
 amsTester@- getAction@public String getAction() {
 amsTester@- getConvID@public String getConvID() {
 amsTester@- handleFailure@public void handleFailure(ACLMessage msg) {
 amsTester@- handleInform@public void handleInform(ACLMessage msg) {
-amsTester@= myAction@private String myAction;
 amsTester@- newConvID@private String newConvID() {
+amsTester@- receive@public static final ACLMessage receive(amsTester a, String messageType) {
 amsTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
-amsTester@= receivedAgree@private boolean receivedAgree =
 amsTester@- sendRequest@public void sendRequest() {
 amsTester@- setup@protected void setup() {
-amsTester@= signature@private String signature =
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/DFOverloadedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/DFOverloadedException.java
 DFOverloadedException@+ DFOverloadedException@public DFOverloadedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/InconsistencyException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/InconsistencyException.java
 InconsistencyException@+ InconsistencyException@public InconsistencyException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/NoCommunicationMeansException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/NoCommunicationMeansException.java
 NoCommunicationMeansException@+ NoCommunicationMeansException@public NoCommunicationMeansException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnauthorisedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnauthorisedException.java
 UnauthorisedException@+ UnauthorisedException@public UnauthorisedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
 UnwillingToPerformException@+ UnwillingToPerformException@public UnwillingToPerformException() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex5/dfTester.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/dfTester.java
 dfTester@- ReceiveBehaviour@protected ReceiveBehaviour() {
-dfTester@- Receiver@private static class Receiver {
+dfTester@- Receiver@private Receiver() {
 dfTester@> action@public abstract void action();
 dfTester@- agreed@public boolean agreed() {
-dfTester@= constraints@private String constraints;
-dfTester@= convCounter@private int convCounter =
-dfTester@= convID@private String convID;
 dfTester@- done@public boolean done() {
 dfTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-dfTester@= finished@protected boolean finished =
 dfTester@- getConvID@public String getConvID() {
 dfTester@- handleFailure@public void handleFailure(ACLMessage msg) {
 dfTester@- handleInform@public void handleInform(ACLMessage msg) {
-dfTester@= myAction@private AgentManagementOntology.DFSearchAction myAction =
 dfTester@- newConvID@private String newConvID() {
+dfTester@- receive@public static final ACLMessage receive(dfTester a, String messageType) {
 dfTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
-dfTester@= receivedAgree@private boolean receivedAgree =
 dfTester@- sendRequest@public void sendRequest() {
 dfTester@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
-BehaviourPrototype@= instance@public Behaviour instance(ACLMessage request, ACLMessage reply);
+/home/Giovanni/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
+BehaviourPrototype@> instance@public Behaviour instance(ACLMessage request, ACLMessage reply);
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/DFAgentDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/DFAgentDescriptor.java
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
 FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a, MessageTemplate match) {
 FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a) {
 FipaRequestServerBehaviour@- action@public void action() {
-FipaRequestServerBehaviour@= actions@private Hashtable actions;
-FipaRequestServerBehaviour@= myAgent@private Agent myAgent;
 FipaRequestServerBehaviour@- registerPrototype@public void registerPrototype(String actionName, BehaviourPrototype bp) {
-FipaRequestServerBehaviour@= requestTemplate@private MessageTemplate requestTemplate;
 FipaRequestServerBehaviour@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
 FipaRequestServerBehaviour@- unregisterPrototype@public void unregisterPrototype(String actionName) {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ServiceDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ServiceDescriptor.java
 ServiceDescriptor@= communicationProperties@private String communicationProperties;
 ServiceDescriptor@= fixedProperties@private String fixedProperties;
 ServiceDescriptor@- getCommunicationProps@public String getCommunicationProps() {
@@ -1183,7 +1027,7 @@ ServiceDescriptor@- setOntology@public void setOntology(String o) {
 ServiceDescriptor@- setType@public void setType(String t) {
 ServiceDescriptor@= type@private String type;
 
-/home/rimassa/DEVEL/JADE/src/examples/example.java
+/home/Giovanni/DEVEL/JADE/src/examples/example.java
 example@- ReceiverBehaviour@public ReceiverBehaviour(ACLMessage msg) {
 example@- SenderBehaviour@public SenderBehaviour(String text) {
 example@- action@public void action() {
@@ -1198,61 +1042,49 @@ example@= myPeer@private String myPeer;
 example@= result@private ACLMessage result;
 example@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
 CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour(Agent a) {
 CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour() {
 CyclicBehaviour@- done@public final boolean done() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
 OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour(Agent a) {
 OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour() {
 OneShotBehaviour@- done@public final boolean done() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
 ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg) {
 ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
 ReceiverBehaviour@- action@public void action() {
 ReceiverBehaviour@- done@public boolean done() {
-ReceiverBehaviour@= finished@private boolean finished;
-ReceiverBehaviour@= myAgent@Agent myAgent;
-ReceiverBehaviour@= result@private ACLMessage result;
-ReceiverBehaviour@= template@private MessageTemplate template;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SenderBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SenderBehaviour.java
 SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg) {
 SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
 SenderBehaviour@- action@public void action() {
-SenderBehaviour@= message@private ACLMessage message;
-SenderBehaviour@= myAgent@private Agent myAgent;
-SenderBehaviour@= receivers@private AgentGroup receivers;
 
-/home/rimassa/DEVEL/JADE/src/examples/jess/JessAgent.java
+/home/Giovanni/DEVEL/JADE/src/examples/jess/JessAgent.java
 JessAgent@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/jess/JessBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/examples/jess/JessBehaviour.java
 JessBehaviour@+ JessBehaviour@public JessBehaviour(Agent agent, String jessFile, int maxJessPasses){
 JessBehaviour@- JessString@public String JessString(ACLMessage msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSAbstractAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSAbstractAction.java
 AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction (String IconPath,String ActionName) {
 AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction(String IconKey,String ActionName, Vector listeners) {
-AMSAbstractAction@= ActionName@protected String ActionName =
 AMSAbstractAction@- AddListener@public synchronized static void AddListener(Object current) {
 AMSAbstractAction@- getActionName@public String getActionName () {
 AMSAbstractAction@- getAllListeners@public synchronized static Vector getAllListeners() {
 AMSAbstractAction@- getFirst@public synchronized static Object getFirst() {
 AMSAbstractAction@- getLast@public synchronized static Object getLast() {
-AMSAbstractAction@= img@protected Icon img;
-AMSAbstractAction@= listeners@protected static Vector listeners;
-AMSAbstractAction@= parent@protected Component parent;
 AMSAbstractAction@- removeAllListeners@public synchronized static void removeAllListeners() {
 AMSAbstractAction@- removeListener@public synchronized static void removeListener (Object current) {
 AMSAbstractAction@- setIcon@public synchronized void setIcon (Icon i) {
 AMSAbstractAction@- setListeners@public synchronized static void setListeners(Object[] listenersP) {
 AMSAbstractAction@- setTree@public static void setTree (AMSTree treeP) {
-AMSAbstractAction@= tree@protected static AMSTree tree;
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSMainFrame.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSMainFrame.java
 AMSMainFrame@+ AMSMainFrame@public AMSMainFrame () {
 AMSMainFrame@- ShowCorrect@public void ShowCorrect() {
 AMSMainFrame@- main@public static void main (String[] argv) {
@@ -1262,37 +1094,21 @@ AMSMainFrame@- setUI2Motif@public void setUI2Motif() {
 AMSMainFrame@- setUI2Multi@public void setUI2Multi() {
 AMSMainFrame@- setUI2Windows@public void setUI2Windows() {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSMenu.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSMenu.java
 AMSMenu@+ AMSMenu@public AMSMenu () {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSPopupMenu.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSPopupMenu.java
 AMSPopupMenu@+ AMSPopupMenu@public AMSPopupMenu (PopupMenuListener parent) {
-AMSPopupMenu@= ActionsMenu@private JMenu ActionsMenu;
-AMSPopupMenu@= NewAgent@protected StartNewAgentAction NewAgent =
-AMSPopupMenu@= NewAgentPlatform@protected AddAgentPlatformAction NewAgentPlatform =
-AMSPopupMenu@= act@protected AMSAbstractAction act;
-AMSPopupMenu@= custom@protected CustomAction custom =
-AMSPopupMenu@= kill@protected KillAction kill =
-AMSPopupMenu@= parent@PopupMenuListener parent;
-AMSPopupMenu@= ping@protected PingAction ping =
-AMSPopupMenu@= properties@protected getPropertiesAction properties =
-AMSPopupMenu@= resume@protected ResumeAction resume =
 AMSPopupMenu@- setMenu@public boolean setMenu(int Level) {
-AMSPopupMenu@= sniffer@protected SnifferAction sniffer =
-AMSPopupMenu@= start@protected StartAction start =
-AMSPopupMenu@= suspend@protected SuspendAction suspend =
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSTable.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTable.java
 AMSTable@+ AMSTable@public AMSTable() {
 AMSTable@- getModel@public AMSTableModel getModel() {
 AMSTable@- getPreferredSize@public Dimension getPreferredSize() {
-AMSTable@= model@private AMSTableModel model;
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSTableModel.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTableModel.java
 AMSTableModel@+ AMSTableModel@public AMSTableModel(Vector agents) {
 AMSTableModel@+ AMSTableModel@public AMSTableModel () {
-AMSTableModel@= ColNumber@protected static int ColNumber =
-AMSTableModel@= agents@protected Vector agents;
 AMSTableModel@- getColumnClass@public Class getColumnClass(int columnIndex) {
 AMSTableModel@- getColumnCount@public int getColumnCount() {
 AMSTableModel@- getColumnName@public String getColumnName(int columnIndex) {
@@ -1302,15 +1118,12 @@ AMSTableModel@- isCellEditable@public boolean isCellEditable(int rowIndex, int c
 AMSTableModel@- setAgents@public void setAgents(Vector agents) {
 AMSTableModel@- setValueAt@public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSToolBar.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSToolBar.java
 AMSToolBar@+ AMSToolBar@public AMSToolBar (AMSTree treeP) {
-AMSToolBar@= ShowChoice@protected JComboBox ShowChoice =
 AMSToolBar@- actionPerformed@public void actionPerformed (ActionEvent evt) {
 AMSToolBar@- addAction@private void addAction(AMSAbstractAction act) {
-AMSToolBar@= tree@protected AMSTree tree;
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSTree.java
-AMSTree@= AMSFirstNode@private DefaultMutableTreeNode AMSFirstNode;
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTree.java
 AMSTree@+ AMSTree@public AMSTree() {
 AMSTree@- actionPerformed@public void actionPerformed (ActionEvent e){
 AMSTree@- createNewNode@public DefaultMutableTreeNode createNewNode(String name,int level) {
@@ -1319,168 +1132,110 @@ AMSTree@- getModel@public AMSTreeModel getModel() {
 AMSTree@- getPathAsString@private String getPathAsString (TreePath Tpath) {
 AMSTree@- getPreferredSize@public Dimension getPreferredSize() {
 AMSTree@- getSelectedNode@protected DefaultMutableTreeNode getSelectedNode() {
-AMSTree@= i@private static int i =
-AMSTree@= pan@private JSplitPane pan;
-AMSTree@= pane@private JSplitPane pane;
-AMSTree@= popup@private AMSPopupMenu popup;
 AMSTree@- popupMenuCanceled@public void popupMenuCanceled(PopupMenuEvent e){
 AMSTree@- popupMenuWillBecomeInvisible@public void popupMenuWillBecomeInvisible(PopupMenuEvent e){
 AMSTree@- popupMenuWillBecomeVisible@public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-AMSTree@= scroll@private JScrollPane scroll;
-AMSTree@= selArea@private JTextArea selArea;
-AMSTree@= table@private TablePanel table;
-AMSTree@= tree@private JTree tree;
 AMSTree@- valueChanged@public void valueChanged(TreeSelectionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AMSTreeModel.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTreeModel.java
 AMSTreeModel@+ AMSTreeModel@public AMSTreeModel () {
 AMSTreeModel@- fireValueChanged@protected void fireValueChanged(TreePath path,int[] ind,Object[] children) {
 AMSTreeModel@- getRoot@public Object getRoot() {
-AMSTreeModel@= root@protected static TreeData root =
 AMSTreeModel@- valueForPathChanged@public void valueForPathChanged(TreePath path, Object newValue) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/AddAgentPlatformAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AddAgentPlatformAction.java
 AddAgentPlatformAction@+ AddAgentPlatformAction@public AddAgentPlatformAction() {
 AddAgentPlatformAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/CustomAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/CustomAction.java
 CustomAction@+ CustomAction@public CustomAction() {
 CustomAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/ExitAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ExitAction.java
 ExitAction@+ ExitAction@public ExitAction () {
 ExitAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/GuiProperties.java
-GuiProperties@= ImagePath@public static final String ImagePath =
-GuiProperties@= MyDefaults@protected static UIDefaults MyDefaults;
-GuiProperties@= foo@protected static GuiProperties foo =
+/home/Giovanni/DEVEL/JADE/src/jade/gui/GuiProperties.java
 GuiProperties@- getIcon@public static final Icon getIcon(String key) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/KillAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/KillAction.java
 KillAction@+ KillAction@public KillAction() {
 KillAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/OpenScriptFileAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/OpenScriptFileAction.java
 OpenScriptFileAction@+ OpenScriptFileAction@public OpenScriptFileAction () {
 OpenScriptFileAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/PingAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/PingAction.java
 PingAction@+ PingAction@public PingAction() {
 PingAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/PopupMouser.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/PopupMouser.java
 PopupMouser@+ PopupMouser@public PopupMouser(JPopupMenu p) {
 PopupMouser@- mousePressed@public void mousePressed(MouseEvent e) {
 PopupMouser@- mouseReleased@public void mouseReleased(MouseEvent e) {
-PopupMouser@= popup@JPopupMenu popup;
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/ReloadAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ReloadAction.java
 ReloadAction@+ ReloadAction@public ReloadAction() {
 ReloadAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/RemoveAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/RemoveAction.java
 RemoveAction@+ RemoveAction@public RemoveAction () {
 RemoveAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/ResumeAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ResumeAction.java
 ResumeAction@+ ResumeAction@public ResumeAction() {
 ResumeAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/SnifferAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/SnifferAction.java
 SnifferAction@+ SnifferAction@public SnifferAction() {
 SnifferAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/StartAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartAction.java
 StartAction@+ StartAction@public StartAction() {
 StartAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/StartDialog.java
-StartDialog@= CANCEL_BUTTON@protected static int CANCEL_BUTTON =
-StartDialog@= CancelButton@protected static JButton CancelButton =
-StartDialog@= HostL@protected static JLabel HostL=
-StartDialog@= HostToolTip@protected static String HostToolTip =
-StartDialog@= NameL@protected static JLabel NameL=
-StartDialog@= NameToolTip@protected static String NameToolTip =
-StartDialog@= OKButton@protected static JButton OKButton =
-StartDialog@= OK_BUTTON@protected static int OK_BUTTON =
-StartDialog@= PortL@protected static JLabel PortL=
-StartDialog@= PortToolTip@protected static String PortToolTip =
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartDialog.java
 StartDialog@+ StartDialog@protected StartDialog (String ClassName) {
 StartDialog@- actionPerformed@public void actionPerformed (ActionEvent evt) {
-StartDialog@= choice@protected static int choice =
-StartDialog@= frame@protected static JFrame frame =
 StartDialog@- getClassName@public static String getClassName () {
 StartDialog@- getHost@public static String getHost() {
 StartDialog@- getPort@public static String getPort () {
 StartDialog@- getPreferredSize@public Dimension getPreferredSize () {
-StartDialog@= host@protected static JTextField host;
-StartDialog@= name@protected static JTextField name;
-StartDialog@= port@protected static JTextField port;
-StartDialog@= result@protected static String result =
 StartDialog@- setClassName@public static void setClassName(String nameP) {
 StartDialog@- setHost@public static void setHost(String hostP) {
 StartDialog@- setPort@public static void setPort(String portP) {
 StartDialog@- showStartDialog@public static int showStartDialog(String ClassName) {
 StartDialog@- showStartNewDialog@public static int showStartNewDialog () {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/StartNewAgentAction.java
-StartException@= ErrorMessage@public static final String ErrorMessage =
-StartException@= ErrorPaneTitle@public static final String ErrorPaneTitle =
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartNewAgentAction.java
 StartException@+ StartException@public StartException() {
 StartNewAgentAction@+ StartNewAgentAction@public StartNewAgentAction() {
 StartNewAgentAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 StartException@- handle@public static final void handle () {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/SuspendAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/SuspendAction.java
 SuspendAction@+ SuspendAction@public SuspendAction() {
 SuspendAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/TablePanel.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TablePanel.java
 TablePanel@+ TablePanel@public TablePanel() {
 ColumnLayout@- addLayoutComponent@public void addLayoutComponent(String s, Component c) {
-TablePanel@= controlPanel@JPanel controlPanel;
 TablePanel@- createTable@public JScrollPane createTable() {
-TablePanel@= data@Object[][] data =
-TablePanel@= dataModel@TableModel dataModel;
 ColumnLayout@- layoutContainer@public void layoutContainer(Container c) {
 TablePanel@- loadIcon@private ImageIcon loadIcon(String name, String description) {
 TablePanel@- loadImageIcon@public ImageIcon loadImageIcon(String filename, String description) {
-TablePanel@= mainPanel@JPanel mainPanel;
 ColumnLayout@- minimumLayoutSize@public Dimension minimumLayoutSize(Container c) {
-TablePanel@= names@final String[] names =
-TablePanel@= origin@Dimension origin =
 ColumnLayout@- preferredLayoutSize@public Dimension preferredLayoutSize(Container c) {
 ColumnLayout@- removeLayoutComponent@public void removeLayoutComponent(Component c) {
-TablePanel@= resizeModeButtons@JComponent resizeModeButtons;
-TablePanel@= scrollpane@JScrollPane scrollpane;
-TablePanel@= selectionModeButtons@JComponent selectionModeButtons;
 TablePanel@- setData@public void setData (Vector dat) {
-TablePanel@= tableAggregate@JScrollPane tableAggregate;
-TablePanel@= tableView@JTable tableView;
-ColumnLayout@= xInset@int xInset =
-ColumnLayout@= yGap@int yGap =
-ColumnLayout@= yInset@int yInset =
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/TreeData.java
-TreeData@= AGENT@public static final int AGENT =
-TreeData@= AGENT_PLATFORM@public static final int AGENT_PLATFORM =
-TreeData@= AddSeparator@public static final String AddSeparator =
-TreeData@= CONTAINER@public static final int CONTAINER =
-TreeData@= ContainerToolTip@protected static String ContainerToolTip =
-TreeData@= Level@protected int Level =
-TreeData@= LevelsNames@protected static String[] LevelsNames;
-TreeData@= RUNNING@public static final int RUNNING =
-TreeData@= SUPER_NODE@public static final int SUPER_NODE =
-TreeData@= SUSPENDED@public static final int SUSPENDED =
-TreeData@= SuperNodeToolTip@protected static String SuperNodeToolTip =
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TreeData.java
 TreeData@+ TreeData@public TreeData(String t) {
 TreeData@+ TreeData@public TreeData(String t,int LevelP) {
 TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String typeP) {
 TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String typeP,int LevelP) {
 TreeData@- addAddress@public void addAddress(String newAdd) {
-TreeData@= addresses@protected String[] addresses ;
-TreeData@= currentState@protected int currentState =
 TreeData@- getAddressesAsString@public String getAddressesAsString() {
 TreeData@- getChildCount@public int getChildCount() {
 TreeData@- getIcon@public Icon getIcon() {
@@ -1489,44 +1244,32 @@ TreeData@- getName@public String getName () {
 TreeData@- getStateName@public String getStateName () {
 TreeData@- getToolTipText@public String getToolTipText () {
 TreeData@- getType@public String getType() {
-TreeData@= hasLoaded@protected boolean hasLoaded =
-TreeData@= icons@protected static Icon[] icons;
 TreeData@- isLeaf@public boolean isLeaf() {
 TreeData@- loadChildren@protected void loadChildren() {
-TreeData@= name@protected String name =
 TreeData@- setAddresses@public void setAddresses (String[] aP) {
 TreeData@- setLevel@public boolean setLevel (int LevelP) {
 TreeData@- setName@public void setName(String nameP) {
 TreeData@- setState@public boolean setState (int state) {
 TreeData@- setType@public void setType (String r) {
-TreeData@= statesNames@protected static String[] statesNames;
 TreeData@- toString@public String toString() {
 TreeData@- transState@public void transState() {
-TreeData@= type@protected String type =
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/TreeIconRenderer.java
-TreeIconRenderer@= ShowType@protected static int ShowType =
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TreeIconRenderer.java
 TreeIconRenderer@+ TreeIconRenderer@public TreeIconRenderer() {
-TreeIconRenderer@= WHITE_PAGES@public static final int WHITE_PAGES =
-TreeIconRenderer@= YELLOW_PAGES@public static final int YELLOW_PAGES =
-TreeIconRenderer@= data@data =
-TreeIconRenderer@= data@TreeData data=
-TreeIconRenderer@- else @else {
-TreeIconRenderer@- else @else {
 TreeIconRenderer@- getShowType@public static int getShowType () {
 TreeIconRenderer@- if@if(data != null) {
 TreeIconRenderer@- if@if(selected) {
+TreeIconRenderer@> setIcon@setIcon(null);
 TreeIconRenderer@- setShowType@public static void setShowType (int TypeP) {
-TreeIconRenderer@= this@return this;
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/WindowCloser.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/WindowCloser.java
 WindowCloser@- windowClosing@public void windowClosing(WindowEvent e) {
 
-/home/rimassa/DEVEL/JADE/src/jade/gui/getPropertiesAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/gui/getPropertiesAction.java
 getPropertiesAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
 getPropertiesAction@+ getPropertiesAction@public getPropertiesAction() {
 
-/home/rimassa/DEVEL/JADE/src/examples/jess/BasicJessBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/examples/jess/BasicJessBehaviour.java
 BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile, int maxJessPasses){
 BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile){
 BasicJessBehaviour@- JessSend@public JessSend(Agent a){
@@ -1534,15 +1277,10 @@ BasicJessBehaviour@> JessString@public abstract String JessString(ACLMessage msg
 BasicJessBehaviour@- action@public void action() {
 BasicJessBehaviour@- assert@void assert(String fact) {
 BasicJessBehaviour@- call@public Value call(ValueVector vv, Context context) throws ReteException {
-BasicJessBehaviour@= executedPasses@int executedPasses=
 BasicJessBehaviour@- findFactByID@private ValueVector findFactByID(Rete r, int id) throws ReteException {
-BasicJessBehaviour@= jess@Rete jess;
-BasicJessBehaviour@= m_maxJessPasses@int m_maxJessPasses =
-BasicJessBehaviour@= myAgent@Agent myAgent;
-BasicJessBehaviour@= my_agent@Agent my_agent;
 BasicJessBehaviour@- name@public String name() {
 
-/home/rimassa/DEVEL/JADE/src/examples/jess/BasicJessBehaviour.crippled.java
+/home/Giovanni/DEVEL/JADE/src/examples/jess/BasicJessBehaviour.crippled.java
 BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile, int maxJessPasses){
 BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile){
 BasicJessBehaviour@> JessString@public abstract String JessString(ACLMessage msg);
@@ -1553,8 +1291,82 @@ BasicJessBehaviour@= jess@Rete jess;
 BasicJessBehaviour@= m_maxJessPasses@int m_maxJessPasses =
 BasicJessBehaviour@= myAgent@Agent myAgent;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainer.java
-AgentContainer@= invalidateCacheEntry@void invalidateCacheEntry(String key) throws RemoteException;
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainer.java
+AgentContainer@> invalidateCacheEntry@void invalidateCacheEntry(String key) throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/NameClashException.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/NameClashException.java
 NameClashException@+ NameClashException@NameClashException(String msg) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ASCII_CharStream.java
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@- BeginToken@public final char BeginToken() throws java.io.IOException {
+ASCII_CharStream@- Done@public void Done() {
+ASCII_CharStream@- ExpandBuff@private final void ExpandBuff(boolean wrapAround) {
+ASCII_CharStream@- FillBuff@private final void FillBuff() throws java.io.IOException {
+ASCII_CharStream@- GetImage@public final String GetImage() {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.InputStream dstream, int startline, int startcolumn) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.Reader dstream, int startline, int startcolumn) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.Reader dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@> System.arraycopy@System.arraycopy(buffer, 0, ret, len - bufpos - 1, bufpos + 1);
+ASCII_CharStream@> System.arraycopy@System.arraycopy(buffer, bufpos - len + 1, ret, 0, len);
+ASCII_CharStream@- UpdateLineColumn@private final void UpdateLineColumn(char c) {
+ASCII_CharStream@- adjustBeginLineColumn@public void adjustBeginLineColumn(int newLine, int newCol) {
+ASCII_CharStream@- backup@public final void backup(int amount) {
+ASCII_CharStream@- getBeginColumn@public final int getBeginColumn() {
+ASCII_CharStream@- getBeginLine@public final int getBeginLine() {
+ASCII_CharStream@- getColumn@public final int getColumn() {
+ASCII_CharStream@- getEndColumn@public final int getEndColumn() {
+ASCII_CharStream@- getEndLine@public final int getEndLine() {
+ASCII_CharStream@- getLine@public final int getLine() {
+ASCII_CharStream@- readChar@public final char readChar() throws java.io.IOException {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentManagementParser.java
+AgentManagementParser@- ACCAction@final public AgentManagementOntology.ACCAction ACCAction() throws ParseException {
+AgentManagementParser@- ACCActionBody@final public AgentManagementOntology.ACCAction ACCActionBody() throws ParseException {
+AgentManagementParser@- ACCObj@final public String ACCObj() throws ParseException {
+AgentManagementParser@- ACLMessage@final public String ACLMessage() throws ParseException {
+AgentManagementParser@- ACLMessageBody@final public String ACLMessageBody() throws ParseException {
+AgentManagementParser@- AMSAction@final public AgentManagementOntology.AMSAction AMSAction() throws ParseException {
+AgentManagementParser@- AMSActionBody@final public AgentManagementOntology.AMSAction AMSActionBody() throws ParseException {
+AgentManagementParser@- AMS_Description@final public AgentManagementOntology.AMSAgentDescriptor AMS_Description() throws ParseException {
+AgentManagementParser@- Action@final public AgentManagementOntology.Action Action() throws ParseException {
+AgentManagementParser@+ AgentManagementParser@public AgentManagementParser(AgentManagementParserTokenManager tm) {
+AgentManagementParser@+ AgentManagementParser@public AgentManagementParser(java.io.Reader stream) {
+AgentManagementParser@+ AgentManagementParser@public AgentManagementParser(java.io.InputStream stream) {
+AgentManagementParser@- AgentName@final public String AgentName() throws ParseException {
+AgentManagementParser@- CommAddress@final public String CommAddress() throws ParseException {
+AgentManagementParser@- Constraint@final public void Constraint(AgentManagementOntology.DFSearchAction a) throws ParseException {
+AgentManagementParser@- DFAction@final public AgentManagementOntology.DFAction DFAction() throws ParseException {
+AgentManagementParser@- DFActionBody@final public AgentManagementOntology.DFAction DFActionBody() throws ParseException {
+AgentManagementParser@- DFSearchBody@final public AgentManagementOntology.DFSearchAction DFSearchBody() throws ParseException {
+AgentManagementParser@- DF_description@final public AgentManagementOntology.DFAgentDescriptor DF_description() throws ParseException {
+AgentManagementParser@- DNSName@final public String DNSName() throws ParseException {
+AgentManagementParser@- FIPA_AMS_description@final public void FIPA_AMS_description(AgentManagementOntology.AMSAgentDescriptor amsd) throws ParseException {
+AgentManagementParser@- FIPA_DF_description@final public void FIPA_DF_description(AgentManagementOntology.DFAgentDescriptor dfd) throws ParseException {
+AgentManagementParser@- FIPA_Service_Desc@final public AgentManagementOntology.ServiceDescriptor FIPA_Service_Desc() throws ParseException {
+AgentManagementParser@- FIPA_Service_Desc_Item@final public void FIPA_Service_Desc_Item(AgentManagementOntology.ServiceDescriptor sd) throws ParseException {
+AgentManagementParser@- IPAddress@final public String IPAddress() throws ParseException {
+AgentManagementParser@- ReInit@public void ReInit(AgentManagementParserTokenManager tm) {
+AgentManagementParser@- ReInit@public void ReInit(java.io.Reader stream) {
+AgentManagementParser@- ReInit@public void ReInit(java.io.InputStream stream) {
+AgentManagementParser@- SL1Term@final public String SL1Term() throws ParseException {
+AgentManagementParser@- create@public static AgentManagementParser create() {
+AgentManagementParser@- disable_tracing@final public void disable_tracing() {
+AgentManagementParser@- enable_tracing@final public void enable_tracing() {
+AgentManagementParser@- generateParseException@final public ParseException generateParseException() {
+AgentManagementParser@- getNextToken@final public Token getNextToken() {
+AgentManagementParser@- getToken@final public Token getToken(int index) {
+AgentManagementParser@- jj_consume_token@final private Token jj_consume_token(int kind) throws ParseException {
+AgentManagementParser@- jj_ntk@final private int jj_ntk() {
+AgentManagementParser@- main@public static void main(String args[]) throws ParseException {
+AgentManagementParser@- parseACCAction@public AgentManagementOntology.ACCAction parseACCAction(Reader r) throws ParseException {
+AgentManagementParser@- parseAMSAction@public AgentManagementOntology.AMSAction parseAMSAction(Reader r) throws ParseException {
+AgentManagementParser@- parseAMSDescriptor@public AgentManagementOntology.AMSAgentDescriptor parseAMSDescriptor(Reader r) throws ParseException {
+AgentManagementParser@- parseAction@public AgentManagementOntology.Action parseAction(Reader r) throws ParseException {
+AgentManagementParser@- parseDFAction@public AgentManagementOntology.DFAction parseDFAction(Reader r) throws ParseException {
+AgentManagementParser@- parseDFDescriptor@public AgentManagementOntology.DFAgentDescriptor parseDFDescriptor(Reader r) throws ParseException {
+AgentManagementParser@- parseServiceDescriptor@public AgentManagementOntology.ServiceDescriptor parseServiceDescriptor(Reader r) throws ParseException {
