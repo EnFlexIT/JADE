@@ -182,8 +182,8 @@ public class ProfileImpl extends Profile {
       props = new Properties();
       String source = jade.core.Agent.midlet.getAppProperty("MIDlet-LEAP-Properties");
       if (source == null) {
-      	// Note that "LEAP" is the RecordStore used by default by the LEAPConfigMIDlet 
-      	source = "LEAP";
+      	// Use the JAD by default 
+      	source = "jad";
 			}
       props.load(source);
     } 

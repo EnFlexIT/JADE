@@ -150,6 +150,10 @@ public class MicroBoot extends MIDlet implements Runnable {
     
     try {
     	String source = getAppProperty("MIDlet-LEAP-Properties");
+      if (source == null) {
+      	// Use the JAD by default 
+      	source = "jad";
+			}
     	Properties props = new Properties();
     	props.load(source);
 
