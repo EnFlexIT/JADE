@@ -12,6 +12,12 @@
  * @author Fabio Bellifemine - CSELT S.p.A.
  *
  * $Log$
+ * Revision 1.6  1999/03/09 13:49:52  rimassa
+ * Commented oud some debugging printouts.
+ *
+ * Revision 1.12  1999/02/25 17:26:05  bellifemine
+ * Versione 0.975 inviata da Giovanni il 25/2/99 + FipaContractNetResponderBehaviour.java mio
+ *
  * Revision 1.5  1999/02/04 13:09:04  rimassa
  * Fixed a bug and tested with Jess 4.3 .
  *
@@ -103,7 +109,7 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
 
       vv=context.expandFact(findFactByID(context.engine(),vv.get(1).intValue())); 
-      System.err.println("vv.get(0)="+vv.get(0).toString());
+      //      System.err.println("vv.get(0)="+vv.get(0).toString());
       if (! vv.get(0).toString().equalsIgnoreCase("ACLMessage"))
 	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
 
@@ -128,10 +134,11 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 	msg.setLanguage(vv.get(11).stringValue());
       if (vv.get(12).stringValue() != "nil")
 	msg.setOntology(vv.get(12).stringValue());      
-      if (vv.get(13).stringValue() != "nil")
+      if (vv.get(13).stringValue() != "nil") 
 	msg.setContent(vv.get(13).stringValue());
-      // msg.dump();
-      msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+
+      //msg.dump();
+      //msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       my_agent.send(msg);
 
       return Funcall.TRUE();
