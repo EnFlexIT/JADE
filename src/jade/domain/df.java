@@ -50,6 +50,13 @@ import jade.domain.JADEAgentManagement.*;
 import jade.domain.KBManagement.*;
 import jade.domain.DFGUIManagement.*;
 import jade.domain.DFGUIManagement.GetDescription; // Explicitly imported to avoid conflict with FIPA management ontology
+//#PJAVA_EXCLUDE_BEGIN
+import jade.domain.introspection.AMSSubscriber;
+import jade.domain.introspection.AMSSubscriber.EventHandler;
+import jade.domain.introspection.Event;
+import jade.domain.introspection.IntrospectionVocabulary;
+import jade.domain.introspection.DeadAgent;
+//#PJAVA_EXCLUDE_END
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -83,6 +90,12 @@ import jade.content.abs.*;
 	either as command line options or within a properties file (to be passed to 
 	the DF as an argument).
 	<ul>
+	<li>
+	<code>jade_domain_df_autocleanup</code> If set to <code>true</code>, 
+	indicates that the DF will
+	automatically clean up registrations as soon as an agent terminates.
+	The default is <code>false</code>
+	</li>
 	<li>
 	<code>jade_domain_df_maxleasetime</code> Indicates the maximum lease
 	time (in millisecond) that the DF will grant for agent description registrations (defaults
@@ -162,9 +175,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private DFJadeAgentManagementBehaviour jadeRequestResponder;
   private DFAppletManagementBehaviour appletRequestResponder;
   private SubscriptionResponder dfSubscriptionResponder;
+  //#PJAVA_EXCLUDE_BEGIN
+  private AMSSubscriber amsSubscriber;
+  //#PJAVA_EXCLUDE_END
   
   // Configuration parameter keys
   private static final String VERBOSITY = "jade_domain_df_verbosity";
+  private static final String AUTOCLEANUP = "jade_domain_df_autocleanup";
   private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
   private static final String MAX_RESULTS = "jade_domain_df_maxresult";
   private static final String DB_DRIVER = "jade_domain_df_db-driver";
@@ -214,6 +231,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		// Values in a property file override those in the profile if
 		// both are specified.
 		String sVerbosity = getProperty(VERBOSITY, null);
+		String sAutocleanup = getProperty(AUTOCLEANUP, null);
 		String sMaxLeaseTime = getProperty(MAX_LEASE_TIME, null);
 		String sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
 		String dbUrl = getProperty(DB_URL, null);
@@ -298,7 +316,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		if(logger.isLoggable(Logger.CONFIG)){
 			logger.log(Logger.CONFIG,"- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"));
 			logger.log(Logger.CONFIG,"- Max search result = "+maxResultLimit);
-			}
+		}
 		//#PJAVA_EXCLUDE_END
 		/*#PJAVA_INCLUDE_BEGIN
 		agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
@@ -401,6 +419,39 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Prepare the default description of this DF (used for federations) 
 		myDescription = getDefaultDescription();
+		 
+		//#PJAVA_EXCLUDE_BEGIN
+		boolean autocleanup = false;
+		try {
+			autocleanup = Boolean.valueOf(sAutocleanup).booleanValue();
+		}
+		catch (Exception e) {e.printStackTrace();}
+		if (autocleanup) {
+			logger.log(Logger.CONFIG,"Autocleanup activated");
+			// Finally add the behyaviour that listens for AMS notifications 
+			// about dead agents.
+			amsSubscriber = new AMSSubscriber() {
+			  protected void installHandlers(java.util.Map handlersTable) {
+	        handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
+	          public void handle(Event ev) {
+	          	try {
+						    DeadAgent da = (DeadAgent)ev;
+						    AID id = da.getAgent();
+						    DFAgentDescription dfd = new DFAgentDescription();
+						    dfd.setName(id);
+								DFDeregister(dfd);
+	          	}
+	          	catch (Exception e) {
+	          		// Just do nothing
+	          	}
+	          }
+	        });
+	
+			  }
+			};
+			addBehaviour(amsSubscriber);
+		}
+		//#PJAVA_EXCLUDE_END
   }  // End of method setup()
 
   /**
@@ -408,7 +459,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
     cleanup operations during agent shutdown.
   */
   protected void takeDown() {
-
+  	//#PJAVA_EXCLUDE_BEGIN
+		if (amsSubscriber != null) {
+			// Unsubscribe from the AMS
+			send(amsSubscriber.getCancel());
+		}
+  	//#PJAVA_EXCLUDE_END
+			
     if(gui != null) {
 			gui.disposeAsync();
     }
