@@ -40,7 +40,7 @@ import jade.security.AuthException;
    @author Giovanni Rimassa - FRAMeTech s.r.l
 
  */
-interface ServiceManagerRMI extends Remote {
+public interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
     String getPlatformName() throws RemoteException;
