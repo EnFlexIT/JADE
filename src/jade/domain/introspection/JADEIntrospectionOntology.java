@@ -223,7 +223,7 @@ public class JADEIntrospectionOntology {
 	theInstance.addRole(ACLMESSAGE, new SlotDescriptor[] {
 	  new SlotDescriptor("envelope", Ontology.FRAME_SLOT, ENVELOPE, Ontology.O),
 	  new SlotDescriptor("acl-representation", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("payload", Ontology.PRIMITIVE_SLOT, Ontology.BINARY_TYPE, Ontology.O)
+	  new SlotDescriptor("payload", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, ACLMessage.class);
 
 	theInstance.addRole(ENVELOPE, new SlotDescriptor[] {
