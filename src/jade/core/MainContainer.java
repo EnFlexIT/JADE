@@ -24,6 +24,13 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 
+import jade.mtp.MTPDescriptor;
+
+import jade.security.CertificateFolder;
+import jade.security.AuthException;
+
+import jade.util.leap.List;
+
 /**
    @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
@@ -31,20 +38,25 @@ package jade.core;
 
 public interface MainContainer {
 
-    /***
-    String getPlatformName() throws IMTPException;
+    String getPlatformName();
 
-    //    String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException;
-    //    void removeContainer(ContainerID cid) throws IMTPException;
+    void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void deadAgent(AID name) throws IMTPException, NotFoundException;
+    void suspendedAgent(AID name) throws IMTPException, NotFoundException;
+    void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
-//__SECURITY__BEGIN
-    void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException;
-    AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException;
-    //ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException;
-    JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException;
-    byte[] getPublicKey() throws IMTPException;
-//__SECURITY__END
+    void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
+    void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
 
-    ***/
+    ContainerID[] containerIDs();
+    AID[] agentNames();
+    List containerMTPs(ContainerID cid) throws NotFoundException;
+    List containerAgents(ContainerID cid) throws NotFoundException;
+    ContainerID getContainerID(AID agentID) throws NotFoundException;
+    Node getContainerNode(ContainerID cid) throws NotFoundException;
+
+    void lockEntryForAgent(AID agentID);
+    void updateEntryForAgent(AID agentID, Location srcID, Location destID) throws IMTPException, NotFoundException;
+    void unlockEntryForAgent(AID agentID);
 
 }

@@ -85,7 +85,7 @@ import jade.security.PrivilegedExceptionAction;
    @version $Date$ $Revision$
 
 */
-public class MainContainerImpl implements Platform, AgentManager {
+class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
     static final String MAIN_CONTAINER_NAME = "Main-Container";
     static final String AUX_CONTAINER_NAME = "Container-";
@@ -857,7 +857,7 @@ public class MainContainerImpl implements Platform, AgentManager {
    */
   public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
 
-      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingService.INSTALL_MTP, jade.core.messaging.MessagingService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.INSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, "");
       cmd.addParam(address);
       cmd.addParam(cid);
       cmd.addParam(className);
@@ -897,7 +897,7 @@ public class MainContainerImpl implements Platform, AgentManager {
    */
   public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
 
-      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingService.UNINSTALL_MTP, jade.core.messaging.MessagingService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.UNINSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, "");
       cmd.addParam(address);
       cmd.addParam(cid);
 
