@@ -301,7 +301,7 @@ public class BootProfileImpl extends ProfileImpl {
             profileProp.setProperty(Profile.USERAUTH_KEY, value);
         }  
 
-        value = argProp.getProperty(NAME_KEY);
+        value = argProp.getProperty(MTP_KEY);
         if (value != null) {
             setSpecifiers(Profile.MTPS, parseSpecifiers(value));
         }
