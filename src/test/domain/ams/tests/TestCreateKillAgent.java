@@ -109,7 +109,7 @@ public class TestCreateKillAgent extends Test {
   	b = new OneShotBehaviour(a) {			
   		public void action() {
   			try {
-  				target = TestUtility.createAgent(myAgent, "target", Replier.class.getName(), null, null, jc.getContainerName());
+  				target = TestUtility.createAgent(myAgent, "target", Replier.class.getName(), null);
 	  			l.log("Creation of another agent with the same name erroneously suceeded.");
   				((SequentialBehaviour) parent).skipNext();
   			}

@@ -67,4 +67,14 @@
 			</WhenTestPass> 
 		</Test>				
 		
+		<Test name="Notification failure to sender" skip="false">
+			<TestClassName>test.domain.ams.tests.TestNotificationFailureToSender</TestClassName>
+			<WhatTest>Test the "notification failure to sender" mechanism.
+			</WhatTest>
+			<HowWorkTest>In this test we send a message to a number of agents that do not exist. Some of them look like local agents while others look like living on remote platforms and have a fake address or no address at all.
+	    </HowWorkTest>
+			<WhenTestPass>The test passes if we receive from the AMS one FAILURE message for each addressed agent.
+			</WhenTestPass> 
+		</Test>				
+		
 	</TestsList>

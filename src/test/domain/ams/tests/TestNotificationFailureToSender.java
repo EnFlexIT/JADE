@@ -30,22 +30,28 @@ import jade.domain.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.proto.AchieveREInitiator;
+import jade.content.lang.sl.SL0Vocabulary;
+import jade.content.lang.sl.SimpleSLTokenizer;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import test.common.*;
 
 /**
-   Test the notification failure to sender mechanism.
+   Test the "notification failure to sender" mechanism.
+   More in details in this test we send a message to a number 
+   of agents that do not exist. Some of them look like local agents
+   while others look like living on remote platforms and have fake
+   or no address.
    @author Giovanni Caire - TILAB
  */
 public class TestNotificationFailureToSender extends Test {
 	
-  private int ret;
-  private Logger l = Logger.getLogger();
   private String[] receivers = new String[] {"r1", "r2", "r3", "l1", "l2", "l3"};
   private String[] fakeAddresses = new String[] {"IOR:000", "http://fake"};
+	private Expectation exp;
 	
-  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
-  	final DataStore store = ds;
-  	final String key = resultKey;
+  public Behaviour load(Agent a) throws TestException {
   	
 		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 		for (int i = 0; i < receivers.length; ++i) {
@@ -66,51 +72,52 @@ public class TestNotificationFailureToSender extends Test {
 		}
 				
 		Behaviour b1 = new AchieveREInitiator(a, request) {
-			private boolean aborted = false;
-			private Expectation exp = new Expectation(receivers);
 			
+			public void onStart() {
+				exp = new Expectation(receivers);
+				super.onStart();
+			}
+
 			protected void handleFailure(ACLMessage failure) {
 				if (myAgent.getAMS().equals(failure.getSender())) {
-					AID id = getIntendedReceiver(failure.getContent());
-					if (id != null) {
+					try {
+						AID id = getIntendedReceiver(failure.getContent());
 						String name = id.getName();
 						if (!name.startsWith("r")) {
 							name = id.getLocalName();
 						}
 						if (exp.received(name)) {
-							l.log("FAILURE message for agent "+id.getName()+" already received.");
-							aborted = true;
+							log("FAILURE message for agent "+id.getName()+" received as expected.");
 						}
 						else {
-							l.log("FAILURE message for agent "+id.getName()+" received as expected.");
+							failed("FAILURE message for agent "+id.getName()+" already received.");
 						}
 					}
-					else {
-						l.log("Error extracting agent name from FAILURE message ["+failure.getContent()+"]");
-						aborted = true;
+					catch (Exception e) {
+						failed("Error extracting agent name from FAILURE message ["+failure.getContent()+"]");
+						e.printStackTrace();
 					}
 				}
 				else {
-					l.log("Unexpected FAILURE message received from agent "+failure.getSender());
-					aborted = true;
+					failed("Unexpected FAILURE message received from agent "+failure.getSender());
 				}
 			}
 			
   		public int onEnd() {
-  			if (exp.isCompleted() && (!aborted)) {
-	  			store.put(key, new Integer(Test.TEST_PASSED));
+  			if (exp.isCompleted()) {
+  				passed("All FAILURE messages received as expected.");
+  				return 1;
   			}
   			else {
-	  			store.put(key, new Integer(Test.TEST_FAILED));
+  				failed("Only "+exp.size()+" FAILURE messages received while "+exp.expectedSize()+" where expected.");
+  				return -1;
   			}
-  			return 0;
   		}	
   	};
   		
   	Behaviour b2 = new WakerBehaviour(a, 10000) {
   		protected void handleElapsedTimeout() {
-  			l.log("Timeout expired.");
-	  		store.put(key, new Integer(Test.TEST_FAILED));
+				failed("Timeout expired: only "+exp.size()+" FAILURE messages received while "+exp.expectedSize()+" where expected.");
   		}
   	};
   	
@@ -120,17 +127,73 @@ public class TestNotificationFailureToSender extends Test {
   	return pb;
   }
   
-  private AID getIntendedReceiver(String content) {
-  	try {
-	  	int start = content.indexOf("MTS-error");
-	  	start = content.indexOf(":name", start);
-	  	int end = content.indexOf(":addresses", start);
-	  	String name = content.substring(start+5, end).trim();
-	  	return new AID(name, AID.ISGUID);
-  	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  		return null;
-  	}
+  private AID getIntendedReceiver(String content) throws Exception {
+  	int start = content.indexOf("MTS-error");
+  	SimpleSLTokenizer parser = new SimpleSLTokenizer(content.substring(start+9));
+  	parser.consumeChar('(');
+  	return parseAID(parser);
+  }
+  
+  /**
+     The parser content has the form:
+     agent-identifier ......) <possibly something else>
+   */
+  private static AID parseAID(SimpleSLTokenizer parser) throws Exception {
+  	AID id = new AID("", AID.ISGUID); // Dummy temporary name
+ 		// Skip "agent-identifier"
+		parser.getElement();
+		while (parser.nextToken().startsWith(":")) {
+			String slotName = parser.getElement();
+			// Name
+			if (slotName.equals(SL0Vocabulary.AID_NAME)) {
+				id.setName(parser.getElement());
+			}
+			// Addresses
+			else if (slotName.equals(SL0Vocabulary.AID_ADDRESSES)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addAddresses((String) it.next());
+				}
+			}
+			// Resolvers
+			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addResolvers((AID) it.next());
+				}
+			}
+		}
+		parser.consumeChar(')');
+		return id;
+  }
+  
+  /**
+     The parser content has the form:
+     (sequence <val> <val> ......) <possibly something else>
+     or 
+     (set <val> <val> ......) <possibly something else>
+   */
+  private static List parseAggregate(SimpleSLTokenizer parser) throws Exception {
+  	List l = new ArrayList();
+		// Skip first (
+  	parser.consumeChar('(');
+  	// Skip "sequence" or "set" (no matter)
+		parser.getElement();
+		String next = parser.nextToken();
+		while (!next.startsWith(")")) {
+			if (!next.startsWith("(")) {
+				l.add(parser.getElement());
+			}
+			else {
+				parser.consumeChar('(');
+				next = parser.nextToken();
+				if (next.equals(SL0Vocabulary.AID)) {
+					l.add(parseAID(parser));
+				}
+			}
+			next = parser.nextToken();
+		}
+		parser.consumeChar(')');
+		return l;
   }
 }
