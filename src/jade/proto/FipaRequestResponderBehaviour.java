@@ -33,7 +33,7 @@ import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
 
-import jade.onto.*
+import jade.onto.*;
 import jade.onto.basic.Action;
 
 import jade.lang.acl.*;
