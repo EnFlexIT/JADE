@@ -7,6 +7,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import fipa.lang.acl.*;
+
 /***********************************************************************************
 
   Name: AgentContainerImpl
@@ -86,7 +88,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       System.out.println("new agent: " + agentName + " : " + agentClass);
 
       try {
-	agent = (Agent)Class.forName(new String(agentClass.toLowerCase())).newInstance();
+	agent = (Agent)Class.forName(new String(agentClass)).newInstance();
+      }
+      catch(ClassNotFoundException cnfe) {
+	System.err.println("Class " + agentClass + "for agent " + agentName + " was not found.");
+	continue;
       }
       catch( Exception e ){
 	e.printStackTrace();
@@ -108,7 +114,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     Enumeration nameList = localAgents.keys();
     String currentName = null;
     while(nameList.hasMoreElements()) {
-      currentName = nameList.nextElement();
+      currentName = (String)nameList.nextElement();
       agent = (Agent)localAgents.get(currentName);
       agent.activate(currentName); // FIXME: Check with FIPA specs for agent lifecycle
     } 
@@ -123,7 +129,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     try {
       // Remove all agents
       while(agentNames.hasMoreElements())
-	myPlatform.deadAgent(agentNames.nextElement()); // RMI call
+	myPlatform.deadAgent((String)agentNames.nextElement()); // RMI call
       // Deregister itself as a container
       myPlatform.removeContainer(this); // RMI call
     }
@@ -141,8 +147,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // Look up in local agents.
     Agent receiver = (Agent)localAgents.get(receiverName);
 
-    if(agent != null)
-      agent.postMessage(msg);
+    if(receiver != null)
+      receiver.postMessage(msg);
     else
       // Search failed; look up in remote agents.
       postRemote(msg, receiverName);
@@ -159,7 +165,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       if(desc == null) { // Cache miss :-( . Ask agent platform and update agent cache
 	desc = myPlatform.lookup(receiverName); // RMI call
-	remoteAgentsCache.put(desc);  // FIXME: The cache grows indefinitely ...
+	remoteAgentsCache.put(receiverName,desc);  // FIXME: The cache grows indefinitely ...
       }
       MessageDispatcher md = desc.getDemux();
       md.dispatch(msg); // RMI call
