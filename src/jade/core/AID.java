@@ -47,17 +47,19 @@ public class AID implements Comparable, Serializable {
   /**
   @serial
   */
-  private String name = new String();
+  private String name = new String(); 
+  
+    private static final int EXPECTED_ADDRESSES_SIZE = 1;
+    private static final int EXPECTED_RESOLVERS_SIZE = 0;
+  /**
+  @serial
+  */
+  private List addresses = new ArrayList(EXPECTED_ADDRESSES_SIZE);
   
   /**
   @serial
   */
-  private List addresses = new ArrayList();
-  
-  /**
-  @serial
-  */
-  private List resolvers = new ArrayList();
+  private List resolvers = new ArrayList(EXPECTED_RESOLVERS_SIZE);
   
   /**
   @serial
@@ -139,7 +141,7 @@ public class AID implements Comparable, Serializable {
   */
   public void setLocalName(String n){
     name = n.trim();
-    if ((name != null) && (!name.toLowerCase().endsWith(atHAP.toLowerCase()))) 
+    if (!name.toLowerCase().endsWith(atHAP.toLowerCase()))
 	name = name.concat(atHAP); 
   }
 
@@ -309,21 +311,6 @@ public class AID implements Comparable, Serializable {
 	return s.toString();
     }
 
-  /**
-   * This method is called from ACLMessage in order to create
-   * the String encoding of an ACLMessage.
-   * @deprecated replaced by the method toString
-   *
-  public void toText(Writer w) {
-  try {
-      w.write(toString());
-      w.flush();
-  } catch(IOException ioe) {
-    ioe.printStackTrace();
-  }
-  }*/
-
-
 
   /**
   * Clone the AID object.
@@ -346,18 +333,7 @@ public class AID implements Comparable, Serializable {
 
         return result;
     } 
-  /*public synchronized Object clone() {
-    AID result;
-    try {
-      result = (AID)super.clone();
-    }
-    catch(CloneNotSupportedException cnse) {
-      result = new AID();
-      // throw new InternalError(); // This should never happen
-    }
-    return result;
-  }
-	*/
+
 	
   /**
     Equality operation. This method compares an <code>AID</code> object with
