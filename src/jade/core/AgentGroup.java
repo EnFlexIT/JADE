@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.12  1999/10/06 14:49:03  rimassa
+  Removed a couple of 'toLowerCase()' calls, to preserve case in agent
+  names when inserted and extracted into and from an AgentGroup.
+
   Revision 1.11  1999/04/08 12:00:51  rimassa
   Changed clone() method to correctly implement a deep copy.
 
@@ -58,7 +62,7 @@ public class AgentGroup implements Cloneable, Serializable {
      @param name The agent name to add to this group.
    */
   public void addMember(String name) {
-    memberNames.addElement(name.toLowerCase());
+    memberNames.addElement(name);
   }
 
   /**
@@ -66,7 +70,7 @@ public class AgentGroup implements Cloneable, Serializable {
      @param name The agent name to remove from this group.
    */
   public void removeMember(String name) {
-     memberNames.removeElement(name.toLowerCase());
+     memberNames.removeElement(name);
   }
 
   /**
