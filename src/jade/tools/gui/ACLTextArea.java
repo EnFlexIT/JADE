@@ -935,7 +935,7 @@ public class ACLTextArea extends JComponent {
     String content = "";
 
     try {
-      Method sn = msg.getClass().getMethod(methodName, null);
+      Method sn = msg.getClass().getMethod(methodName, (Class[]) null);
       content = (String)sn.invoke(msg, new Object[]{});
     }
     catch (Exception ex) {

@@ -58,7 +58,7 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
     String methodName = "get" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = theObj.getClass().getMethod(methodName, null);
+      Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
       setText(res != null ? res.toString() : "");
     }
@@ -91,7 +91,7 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
     String methodName = "get" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = theObj.getClass().getMethod(methodName, null);
+      Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
       setText(res != null ? res.toString() : "");
     }

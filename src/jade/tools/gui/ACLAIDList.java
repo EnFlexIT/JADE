@@ -92,7 +92,7 @@ public class ACLAIDList extends JPanel {
     this.fieldName = fieldName;
     String methodName = "getAll" + fieldName;
     try {
-      Method sn = itsObj.getClass().getMethod(methodName, null);
+      Method sn = itsObj.getClass().getMethod(methodName, (Class[]) null);
       Iterator itor = (Iterator)sn.invoke(itsObj, new Object[]{});
       while (itor.hasNext()) {
         AID theAID = (AID)itor.next();
@@ -121,7 +121,7 @@ public class ACLAIDList extends JPanel {
     this.fieldName = fieldName;
     String methodName = "getAll" + fieldName;
     try {
-      Method sn = aid.getClass().getMethod(methodName, null);
+      Method sn = aid.getClass().getMethod(methodName, (Class[]) null);
       Iterator itor = (Iterator)sn.invoke(aid, new Object[]{});
       while (itor.hasNext()) {
         AID theAID = (AID)itor.next();

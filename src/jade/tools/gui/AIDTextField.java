@@ -57,7 +57,7 @@ public class AIDTextField extends JTextField implements Observer {
     this.fieldName = fieldName;
     String methodName = "get" + fieldName;
     try {
-      Method sn = itsAid.getClass().getMethod(methodName, null);
+      Method sn = itsAid.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(itsAid, new Object[]{});
       setText(res != null ? res.toString() : "");
     }
@@ -88,7 +88,7 @@ public class AIDTextField extends JTextField implements Observer {
     String methodName = "get" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = itsAid.getClass().getMethod(methodName, null);
+      Method sn = itsAid.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(itsAid, new Object[]{});
       setText(res != null ? res.toString() : "");
     }
