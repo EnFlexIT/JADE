@@ -1818,38 +1818,48 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // Register a new listener
   public final void addCommListener(CommListener l) {
-    listeners.add(l);
+    synchronized(listeners) {
+      listeners.add(l);
+    }
   }
 
   // Remove a registered listener
   public final void removeCommListener(CommListener l) {
-    listeners.remove(l);
+    synchronized(listeners) {
+      listeners.remove(l);
+    }
   }
 
   // Notify listeners of the destruction of the current agent
   private void notifyDestruction() {
-    Iterator i = listeners.iterator();
-    while(i.hasNext()) {
-      CommListener l = (CommListener)i.next();
-      l.endSource(myName);
+    synchronized(listeners) {
+      Iterator i = listeners.iterator();
+      while(i.hasNext()) {
+	CommListener l = (CommListener)i.next();
+	l.endSource(myName);
+      }
     }
   }
 
   // Notify listeners of the need to move the current agent
   private void notifyMove() {
-    Iterator i = listeners.iterator();
-    while(i.hasNext()) {
-      CommListener l = (CommListener)i.next();
-      l.moveSource(myName, myDestination);
+    synchronized(listeners) {
+      Iterator i = listeners.iterator();
+      while(i.hasNext()) {
+	CommListener l = (CommListener)i.next();
+	l.moveSource(myName, myDestination);
+      }
     }
   }
 
   // Notify listeners of the need to copy the current agent
   private void notifyCopy() {
-    Iterator i = listeners.iterator();
-    while(i.hasNext()) {
-      CommListener l = (CommListener)i.next();
-      l.copySource(myName, myDestination, myNewName);
+    synchronized(listeners) {
+      Iterator i = listeners.iterator();
+      while(i.hasNext()) {
+	CommListener l = (CommListener)i.next();
+	l.copySource(myName, myDestination, myNewName);
+      }
     }
   }
 
