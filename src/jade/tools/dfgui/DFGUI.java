@@ -325,8 +325,8 @@ to set the agent with which the gui interacts.
 		aboutB.setIcon(aboutImg);
 		aboutB.setToolTipText("About DF");
 		
-		bar.addSeparator(new Dimension(140,30));
-		
+		bar.addSeparator(); //new Dimension(120,30));
+		bar.add(javax.swing.Box.createHorizontalGlue());
 		JadeLogoButton logo = new JadeLogoButton();
 		bar.add(logo);
 

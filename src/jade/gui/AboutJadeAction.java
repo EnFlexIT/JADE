@@ -77,7 +77,7 @@ public class AboutJadeAction extends AbstractAction
  	/**
  	@serial
  	*/
-	String logocselt = "images/LogoCselt.gif";
+	String logocselt = "images/logotelecomlab.jpg";
 	
 	public AboutJadeAction(JFrame gui)
 	{
@@ -186,7 +186,7 @@ public class AboutJadeAction extends AbstractAction
 	  gridbag.setConstraints(label,c);
 	  theCont.add(label);
 
-	  label = new JLabel("Copyright (C) 2000 CSELT S.p.A.");
+	  label = new JLabel("Copyright (C) 2000 CSELT S.p.A.; 2003 TILAB");
 	  label.setForeground(dark_blue);
 		c.gridx = 0;
 	  c.gridy = 7;
@@ -200,7 +200,7 @@ public class AboutJadeAction extends AbstractAction
 	  gridbag.setConstraints(label,c);
 		theCont.add(label);
 					
-	  label = new JLabel("http://jade.cselt.it/");
+	  label = new JLabel("http://jade.tilab.com/");
 	  label.setForeground(dark_blue);
 	  c.gridx = 0;
 		c.gridy = 9;

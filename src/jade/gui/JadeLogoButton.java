@@ -44,7 +44,7 @@ package jade.gui;
 	
 	public class JadeLogoButton extends JButton
 	{
-		private static String logojade ="images/logosmall.jpg";
+		private static String logojade ="images/jadelogo.jpg";
 
 	    /**
 	       Default constructor.
