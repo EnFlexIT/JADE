@@ -27,36 +27,35 @@ package jade.gui;
 
 import java.awt.Component;
 import java.util.Iterator;
-import jade.domain.FIPAAgentManagement.APTransportDescription;
-import jade.domain.FIPAAgentManagement.MTPDescription;
+import jade.domain.FIPAAgentManagement.APService;
 import javax.swing.JDialog;
 import java.awt.Dialog;
 
 /**
-* This class extends the VisualStringList in order to show a list of APTransportProfile
+* This class extends the VisualStringList in order to show a list of APService
 * @see jade.gui.VisualStringList
-* @see jade.domain.FIPAAgentManagement.ServiceDescription
+* @see jade.domain.FIPAAgentManagement.APService
 * @author Tiziana Trucco - CSELT S.p.A
 * @version $Date$ $Revision$
 */
 
-public class VisualAPTransportProfileList extends VisualStringList
+public class VisualAPServiceList extends VisualStringList
 {
 	
-	VisualAPTransportProfileList(Iterator content, Component owner)
+	VisualAPServiceList(Iterator content, Component owner)
 	{
 		super(content,owner);
 	}
 	
 	protected String getElementName(Object el)
 	{
-		return (((MTPDescription)el).getMtpName());
+		return (((APService)el).getName());
 	}
 	
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		
-		MTPDescriptionPanel.viewMTPDescriptionDialog((MTPDescription)el,(Dialog)owner,"MTP Description");
+		APServicePanel.viewAPServiceDialog((APService)el,(Dialog)owner,"APService Description");
  		return null;
 	}
 	

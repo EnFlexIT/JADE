@@ -32,7 +32,7 @@ import javax.swing.*;
 import java.util.Iterator;
 
 // Import required JADE classes
-import jade.domain.FIPAAgentManagement.MTPDescription;
+import jade.domain.FIPAAgentManagement.APService;
 import jade.domain.FIPAAgentManagement.Property;
 
 /**
@@ -41,21 +41,21 @@ To show a MTPDescription.
 @version $Date$ $Revision$
 */
 
-public class MTPDescriptionPanel extends JPanel 
+public class APServicePanel extends JPanel 
 {
 	/** @serial*/
 	
 	JTextField name_Field;
 	/** @serial*/
-	JTextField profile_Field;
+	JTextField type_Field;
 	
 	VisualStringList address_List;
 	
 	// CONSTRUCTORS
 	/**
-	Create a panel to show an MTPDescription.
+	Create a panel to show an APService.
 	*/
-	MTPDescriptionPanel(Dialog parent) 
+	APServicePanel(Dialog parent) 
 	{
 		super();
 				
@@ -73,7 +73,7 @@ public class MTPDescriptionPanel extends JPanel
 		gridBag.setConstraints(label,c);
 		add(label);
 	
-		label = new JLabel("Profile: ");
+		label = new JLabel("Type: ");
 		c.ipady = 0;
 		c.gridx = 0;
 		c.gridy = 1;
@@ -90,13 +90,13 @@ public class MTPDescriptionPanel extends JPanel
     gridBag.setConstraints(name_Field,c);
 		add(name_Field);
 
-		profile_Field = new JTextField();
-		profile_Field.setEditable(false);
-		profile_Field.setBackground(java.awt.Color.white);
+		type_Field = new JTextField();
+		type_Field.setEditable(false);
+		type_Field.setBackground(java.awt.Color.white);
 		c.gridx = 1;
 		c.gridy = 1;
-    gridBag.setConstraints(profile_Field,c);
-    add(profile_Field);
+    gridBag.setConstraints(type_Field,c);
+    add(type_Field);
   
     JPanel addressPanel = new JPanel();
     addressPanel.setLayout(new BoxLayout(addressPanel,BoxLayout.Y_AXIS));
@@ -122,25 +122,25 @@ public class MTPDescriptionPanel extends JPanel
 	/**
 	Set the field of the gui.
 	*/
-	private void setMTPDescription(MTPDescription mtp){
+	private void setAPService(APService ap){
 	
-		if(mtp != null)
+		if(ap != null)
 		{
-			name_Field.setText(mtp.getMtpName());
-			profile_Field.setText(mtp.getProfile());
-			address_List.resetContent(mtp.getAllAddresses());
+			name_Field.setText(ap.getName());
+			type_Field.setText(ap.getType());
+			address_List.resetContent(ap.getAllAddresses());
 		}
 	}
 
 	/**
 	To show a MTPDescription in A JDialog.
 	*/
-	public static void viewMTPDescriptionDialog(MTPDescription mtp,Dialog parent,String title){
+	public static void viewAPServiceDialog(APService ap,Dialog parent,String title){
 	
 		final JDialog tempDlg = new JDialog(parent, title, true);
   
-		MTPDescriptionPanel MTP_Panel = new MTPDescriptionPanel(parent);
-		MTP_Panel.setMTPDescription(mtp);
+		APServicePanel MTP_Panel = new APServicePanel(parent);
+		MTP_Panel.setAPService(ap);
 
 		JButton okButton = new JButton("OK");
 		JPanel buttonPanel = new JPanel();
