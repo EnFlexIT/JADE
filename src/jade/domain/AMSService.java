@@ -74,7 +74,7 @@ import jade.content.onto.OntologyException;
  * @author Fabio Bellifemine - CSELT S.p.A.
   @version $Date$ $Revision$ 
  **/
-public class AMSService extends FIPAServiceCommunicator {
+public class AMSService extends FIPAService {
 
   private static Codec c = new SLCodec();
   private static Ontology o = FIPAManagementOntology.getInstance();

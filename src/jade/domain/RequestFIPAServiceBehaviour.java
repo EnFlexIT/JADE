@@ -117,7 +117,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
    public RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription, SearchConstraints constraints) throws FIPAException {
        //super(a, new ACLMessage(ACLMessage.REQUEST), mt);
        super(a,new ACLMessage(ACLMessage.REQUEST));
-       ACLMessage msg = FIPAServiceCommunicator.createRequestMessage(a,receiver);
+       ACLMessage msg = FIPAService.createRequestMessage(a,receiver);
      Action act = new Action();
      act.setActor(receiver);
      if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.REGISTER)) {

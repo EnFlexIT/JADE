@@ -49,7 +49,7 @@ import java.util.Date;
  * @author Fabio Bellifemine - CSELT S.p.A.
  * @version $Date$ $Revision$  
  **/
-public class FIPAServiceCommunicator {
+public class FIPAService {
 
   /**
    * create a REQUEST message with the following slots:

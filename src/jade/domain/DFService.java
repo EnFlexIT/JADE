@@ -87,7 +87,7 @@ addBehaviour(b);
    @version $Date$ $Revision$ 
  * 
  **/
-public class DFService extends FIPAServiceCommunicator {
+public class DFService extends FIPAService {
 	private static final long OFFSET = 10000; // 10 sec
 	private static final String SPACE_COLON = " :";
 	private static final String SPACE_BRACKET = " (";
