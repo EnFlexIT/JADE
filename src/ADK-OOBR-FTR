@@ -14,11 +14,14 @@ Agent@= D_MIN@public static final int D_MIN =
 Agent@= D_RETIRED@public static final int D_RETIRED =
 Agent@= D_SUSPENDED@public static final int D_SUSPENDED =
 Agent@= D_UNKNOWN@public static final int D_UNKNOWN =
+Agent@- activateAllBehaviours@private void activateAllBehaviours() {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
+Agent@= blockedBehaviours@private Vector blockedBehaviours =
 Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive(MessageTemplate pattern) {
 Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive() {
 Agent@- broadcastEvent@private void broadcastEvent(CommEvent event) {
+Agent@= currentBehaviour@protected Behaviour currentBehaviour;
 Agent@= currentMessage@protected ACLMessage currentMessage;
 Agent@- destroy@private void destroy() {
 Agent@- doActivate@public void doActivate() {
@@ -60,8 +63,23 @@ AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws Re
 AgentPlatform@= removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
 /home/rimassa/DEVEL/JADE/src/jade/core/Behaviour.java
-Behaviour@= done@public boolean done();
-Behaviour@= execute@public void execute();
+Behaviour@+ Behaviour@public Behaviour(Agent a) {
+Behaviour@+ Behaviour@public Behaviour() {
+Behaviour@= NOTIFY_DOWN@protected final int NOTIFY_DOWN =
+Behaviour@= NOTIFY_UP@protected final int NOTIFY_UP =
+Behaviour@- RunnableChangedEvent@protected class RunnableChangedEvent {
+Behaviour@- block@public void block() {
+Behaviour@> done@public abstract boolean done();
+Behaviour@> execute@public abstract void execute();
+Behaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+Behaviour@- isRunnable@boolean isRunnable() {
+Behaviour@= myAgent@protected Agent myAgent;
+Behaviour@= myEvent@protected RunnableChangedEvent myEvent =
+Behaviour@= parent@protected ComplexBehaviour parent;
+Behaviour@- restart@public void restart() {
+Behaviour@= runnableState@private boolean runnableState =
+Behaviour@- setParent@final void setParent(ComplexBehaviour cb) {
+Behaviour@- setRunnable@void setRunnable(boolean runnable) {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@= addCommListener@void addCommListener (CommListener l);
@@ -441,10 +459,11 @@ ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
 ComplexBehaviour@- done@public boolean done() {
 ComplexBehaviour@- execute@public final void execute() {
 ComplexBehaviour@= finished@private boolean finished =
-ComplexBehaviour@= myAgent@protected Agent myAgent;
+ComplexBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
 ComplexBehaviour@- postAction@protected void postAction() {
 ComplexBehaviour@- preAction@protected void preAction() {
 ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+ComplexBehaviour@- restart@public void restart() {
 ComplexBehaviour@= starting@private boolean starting =
 ComplexBehaviour@= subBehaviours@protected BehaviourList subBehaviours =
 
@@ -452,10 +471,7 @@ ComplexBehaviour@= subBehaviours@protected BehaviourList subBehaviours =
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
 SimpleBehaviour@> action@protected abstract void action();
-SimpleBehaviour@- done@public boolean done() {
 SimpleBehaviour@- execute@public final void execute() {
-SimpleBehaviour@= finished@protected boolean finished =
-SimpleBehaviour@= myAgent@protected Agent myAgent;
 
 /home/rimassa/DEVEL/JADE/src/jade/core/Scheduler.java
 Scheduler@+ Scheduler@public Scheduler(Agent a) {
@@ -465,7 +481,7 @@ Scheduler@= currentIndex@private int currentIndex;
 Scheduler@+ finalize@protected void finalize() {
 Scheduler@= idleBehaviour@private static Behaviour idleBehaviour =
 Scheduler@= owner@private Agent owner;
-Scheduler@- remove@public void remove(Behaviour b) {
+Scheduler@- remove@public synchronized void remove(Behaviour b) {
 Scheduler@- schedule@public synchronized Behaviour schedule() {
 
 /home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
@@ -709,6 +725,8 @@ NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministic
 NonDeterministicBehaviour@= WHEN_ALL@private static final int WHEN_ALL =
 NonDeterministicBehaviour@= WHEN_ANY@private static final int WHEN_ANY =
 NonDeterministicBehaviour@- action@protected boolean action() {
+NonDeterministicBehaviour@- block@public void block() {
+NonDeterministicBehaviour@= blockedChildren@private Hashtable blockedChildren =
 NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll(Agent a) {
 NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll() {
 NonDeterministicBehaviour@- createWhenAny@public static NonDeterministicBehaviour createWhenAny(Agent a) {
@@ -716,13 +734,15 @@ NonDeterministicBehaviour@- createWhenAny@public static NonDeterministicBehaviou
 NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour createWhenN(Agent a, int howMany) {
 NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour createWhenN(int howMany) {
 NonDeterministicBehaviour@- evalCondition@private boolean evalCondition() {
-NonDeterministicBehaviour@= terminatedSubBehaviours@private int terminatedSubBehaviours =
+NonDeterministicBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+NonDeterministicBehaviour@= terminatedSubBehaviours@private int terminatedSubBehaviours;
 NonDeterministicBehaviour@= whenToStop@private int whenToStop;
 
 /home/rimassa/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour(Agent a) {
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour() {
 SequentialBehaviour@- action@protected boolean action() {
+SequentialBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
 CommunicativeAction@+ CommunicativeAction@public CommunicativeAction(ACLMessage msg, Protocol p) {
@@ -771,9 +791,9 @@ Interaction@= selectors@private Hashtable selectors =
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
 ProtocolDrivenBehaviour@+ ProtocolDrivenBehaviour@public ProtocolDrivenBehaviour(Agent a, Interaction i) {
+ProtocolDrivenBehaviour@- action@public void action() {
 ProtocolDrivenBehaviour@= currentBehaviours@private NonDeterministicBehaviour currentBehaviours;
 ProtocolDrivenBehaviour@- done@public boolean done() {
-ProtocolDrivenBehaviour@- execute@public void execute() {
 ProtocolDrivenBehaviour@= finished@private boolean finished =
 ProtocolDrivenBehaviour@= myAgent@private Agent myAgent;
 ProtocolDrivenBehaviour@= myInteraction@private Interaction myInteraction;
@@ -783,9 +803,8 @@ ProtocolDrivenBehaviour@- startupAsResponder@private void startupAsResponder() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex1/Agent1.java
 Agent1@- Behaviour1@public Behaviour1(String ID) {
+Agent1@- action@public void action() {
 Agent1@= counter@private int counter;
-Agent1@- done@public boolean done() {
-Agent1@- execute@public void execute() {
 Agent1@= myID@private String myID;
 Agent1@- setup@protected void setup() {
 
@@ -802,20 +821,19 @@ Agent3@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex1/Agent4.java
 Agent4@- Behaviour4Step@public Behaviour4Step(Agent a, String code, int i) {
+Agent4@- action@public void action() {
 Agent4@- done@public boolean done() {
-Agent4@- execute@public void execute() {
 Agent4@= executionTimes@private int executionTimes;
 Agent4@= finished@private boolean finished =
-Agent4@= myAgent@private Agent myAgent;
 Agent4@= myCode@private String myCode;
 Agent4@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
 AgentBroadcaster@- BehaviourElement@public BehaviourElement(AgentBroadcaster a, String source, String dest, String content) {
+AgentBroadcaster@- action@public void action() {
 AgentBroadcaster@- appendMessage@public synchronized void appendMessage(ACLMessage msg) {
 AgentBroadcaster@- done@public boolean done() {
 AgentBroadcaster@- dumpMessage@public void dumpMessage() {
-AgentBroadcaster@- execute@public void execute() {
 AgentBroadcaster@= messages@private Vector messages =
 AgentBroadcaster@= msgSent@private boolean msgSent =
 AgentBroadcaster@= myAgent@private AgentBroadcaster myAgent;
@@ -838,12 +856,12 @@ AgentThread@- setup@protected void setup() {
 /home/rimassa/DEVEL/JADE/src/examples/ex4/AgentRequester.java
 AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour(AgentRequester a) {
 Receiver@+ Receiver@private Receiver() {
+AgentRequester@> action@public abstract void action();
 AgentRequester@- agreed@public boolean agreed() {
 AgentRequester@= convCounter@private int convCounter =
 AgentRequester@= convID@private String convID;
 AgentRequester@- done@public boolean done() {
 AgentRequester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-AgentRequester@> execute@public abstract void execute();
 AgentRequester@= finished@protected boolean finished =
 AgentRequester@- getConvID@public String getConvID() {
 AgentRequester@- getPeer@public String getPeer() {
@@ -864,10 +882,9 @@ AgentResponder@- MultipleBehaviour@public MultipleBehaviour(AgentResponder a) {
 AgentResponder@- ResponderBehaviour@public ResponderBehaviour(AgentResponder a, ACLMessage msg) {
 AgentResponder@- SendBehaviour@public SendBehaviour(AgentResponder a, ACLMessage msg) {
 AgentResponder@- action@public void action() {
+AgentResponder@- action@public void action() {
+AgentResponder@- action@public void action() {
 AgentResponder@- done@public boolean done() {
-AgentResponder@- done@public boolean done() {
-AgentResponder@- execute@public void execute() {
-AgentResponder@- execute@public void execute() {
 AgentResponder@= finished@private boolean finished =
 AgentResponder@= message@private ACLMessage message;
 AgentResponder@= myAgent@private AgentResponder myAgent;
@@ -925,8 +942,8 @@ UnrecognizedAttributeException@+ UnrecognizedAttributeException@public Unrecogni
 UnrecognizedAttributeValueException@+ UnrecognizedAttributeValueException@public UnrecognizedAttributeValueException() {
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/acc.java
+acc@- action@public void action() {
 acc@- done@public boolean done() {
-acc@- execute@public void execute() {
 acc@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
@@ -995,6 +1012,7 @@ ACLParserConstants@= tokenImage@String[] tokenImage =
 amsTester@= APState@private String APState =
 amsTester@- ReceiveBehaviour@protected ReceiveBehaviour(amsTester a) {
 Receiver@+ Receiver@private Receiver() {
+amsTester@> action@public abstract void action();
 amsTester@= address@private String address =
 amsTester@= agentName@private String agentName =
 amsTester@- agreed@public boolean agreed() {
@@ -1003,7 +1021,6 @@ amsTester@= convID@private String convID;
 amsTester@= delegateAgent@private String delegateAgent =
 amsTester@- done@public boolean done() {
 amsTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-amsTester@> execute@public abstract void execute();
 amsTester@= finished@protected boolean finished =
 amsTester@= forwardAddress@private String forwardAddress =
 amsTester@- getAction@public String getAction() {
@@ -1039,13 +1056,13 @@ UnwillingToPerformException@+ UnwillingToPerformException@public UnwillingToPerf
 dfTester@= DFState@private String DFState =
 dfTester@- ReceiveBehaviour@protected ReceiveBehaviour(dfTester a) {
 Receiver@+ Receiver@private Receiver() {
+dfTester@> action@public abstract void action();
 dfTester@= address@private String address =
 dfTester@- agreed@public boolean agreed() {
 dfTester@= convCounter@private int convCounter =
 dfTester@= convID@private String convID;
 dfTester@- done@public boolean done() {
 dfTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
-dfTester@> execute@public abstract void execute();
 dfTester@= finished@protected boolean finished =
 dfTester@- getAction@public String getAction() {
 dfTester@- getConvID@public String getConvID() {
@@ -1098,9 +1115,8 @@ DFAgentDescriptor@= type@private String type;
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
 FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a) {
+FipaRequestServerBehaviour@- action@public void action() {
 FipaRequestServerBehaviour@= actions@private Hashtable actions;
-FipaRequestServerBehaviour@- done@public boolean done() {
-FipaRequestServerBehaviour@- execute@public void execute() {
 FipaRequestServerBehaviour@= myAgent@private Agent myAgent;
 FipaRequestServerBehaviour@- registerPrototype@public void registerPrototype(String actionName, BehaviourPrototype bp) {
 FipaRequestServerBehaviour@= requestTemplate@private MessageTemplate requestTemplate;
@@ -1120,3 +1136,46 @@ ServiceDescriptor@- setDescription@public void setDescription(String d) {
 ServiceDescriptor@- setOntology@public void setOntology(String o) {
 ServiceDescriptor@- setType@public void setType(String t) {
 ServiceDescriptor@= type@private String type;
+
+/home/rimassa/DEVEL/JADE/src/examples/example.java
+example@- ReceiverBehaviour@public ReceiverBehaviour(ACLMessage msg) {
+example@- SenderBehaviour@public SenderBehaviour(String text) {
+example@- action@public void action() {
+example@- action@public void action() {
+example@- done@public boolean done() {
+example@- execute@public void execute() {
+example@= finished@private boolean finished;
+example@= message@private ACLMessage message;
+example@= myMessage1@ACLMessage myMessage1 =
+example@= myMessage2@ACLMessage myMessage2 =
+example@= myPeer@private String myPeer;
+example@= result@private ACLMessage result;
+example@- setup@protected void setup() {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
+CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour(Agent a) {
+CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour() {
+CyclicBehaviour@- done@public final boolean done() {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
+OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour(Agent a) {
+OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour() {
+OneShotBehaviour@- done@public final boolean done() {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
+ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg) {
+ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
+ReceiverBehaviour@- done@public boolean done() {
+ReceiverBehaviour@- execute@public void execute() {
+ReceiverBehaviour@= finished@private boolean finished;
+ReceiverBehaviour@= myAgent@Agent myAgent;
+ReceiverBehaviour@= result@private ACLMessage result;
+ReceiverBehaviour@= template@private MessageTemplate template;
+
+/home/rimassa/DEVEL/JADE/src/jade/core/SenderBehaviour.java
+SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg) {
+SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
+SenderBehaviour@- action@public void action() {
+SenderBehaviour@= message@private ACLMessage message;
+SenderBehaviour@= myAgent@private Agent myAgent;
+SenderBehaviour@= receivers@private AgentGroup receivers;
