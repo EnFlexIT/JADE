@@ -32,6 +32,7 @@ import java.util.HashMap;
 import jade.core.AID;
 import jade.core.AgentState;
 import jade.core.BehaviourID;
+import jade.core.ContainerID;
 import jade.core.Channel;
 import jade.core.event.*;
 
@@ -80,7 +81,7 @@ public class JADEIntrospectionOntology {
   public static final String RECEIVEDMESSAGE = "received-message";
   public static final String POSTEDMESSAGE = "posted-message";
   public static final String ROUTEDMESSAGE = "routed-message";
-  public static final String LOCATION = "location";
+  public static final String CONTAINERID = "container-ID";
   public static final String AGENTSTATE = "agent-state";
   public static final String BEHAVIOURID = "behaviour-ID";
   public static final String ACLMESSAGE = "acl-message";
@@ -123,41 +124,41 @@ public class JADEIntrospectionOntology {
 	theInstance.addRole(EVENTRECORD, new SlotDescriptor[] {
 	  new SlotDescriptor("what", Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M),
 	  new SlotDescriptor("when", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, LOCATION, Ontology.O)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
 	}, EventRecord.class);
 
 	theInstance.addRole(ADDEDCONTAINER, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, LOCATION, Ontology.M),
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
 	}, AddedContainer.class); 
 
 	theInstance.addRole(REMOVEDCONTAINER, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, LOCATION, Ontology.M)
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M)
 	}, RemovedContainer.class); 
 
 	theInstance.addRole(ADDEDMTP, new SlotDescriptor[] {
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, LOCATION, Ontology.M)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M)
 	}, AddedMTP.class);
 
 	theInstance.addRole(REMOVEDMTP, new SlotDescriptor[] {
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, LOCATION, Ontology.M)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M)
 	}, RemovedMTP.class);
 
 	theInstance.addRole(BORNAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, LOCATION, Ontology.O)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
 	}, BornAgent.class); 
 
 	theInstance.addRole(DEADAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("where", Ontology.FRAME_SLOT, LOCATION, Ontology.O)
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
 	}, DeadAgent.class); 
 
 	theInstance.addRole(MOVEDAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("from", Ontology.FRAME_SLOT, LOCATION, Ontology.M),
-	  new SlotDescriptor("to", Ontology.FRAME_SLOT, LOCATION, Ontology.M)
+	  new SlotDescriptor("from", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
+	  new SlotDescriptor("to", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M)
 	}, MovedAgent.class);
 
 	theInstance.addRole(CHANGEDAGENTSTATE, new SlotDescriptor[] {
@@ -204,10 +205,10 @@ public class JADEIntrospectionOntology {
 	  new SlotDescriptor("message", Ontology.FRAME_SLOT, ACLMESSAGE, Ontology.M)
 	}, RoutedMessage.class);
 
-	theInstance.addRole(LOCATION, new SlotDescriptor[] {
+	theInstance.addRole(CONTAINERID, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("host", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, Location.class);
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, ContainerID.class);
 
 	theInstance.addRole(AGENTSTATE, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
@@ -235,8 +236,8 @@ public class JADEIntrospectionOntology {
 	  new SlotDescriptor("date", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
 	  new SlotDescriptor("encrypted", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("intended-receiver", Ontology.SEQUENCE_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
-	  new SlotDescriptor("received", Ontology.FRAME_SLOT, RECEIVEDOBJECT, Ontology.O),
-	  new SlotDescriptor("transport-behaviour", Ontology.PRIMITIVE_SLOT, Ontology.BINARY_TYPE, Ontology.O)
+	  new SlotDescriptor("received", Ontology.FRAME_SLOT, RECEIVEDOBJECT, Ontology.O)
+	  // new SlotDescriptor("transport-behaviour", Ontology.PRIMITIVE_SLOT, Ontology.BINARY_TYPE, Ontology.O)
 	}, Envelope.class);
 
 	theInstance.addRole(RECEIVEDOBJECT, new SlotDescriptor[] {
