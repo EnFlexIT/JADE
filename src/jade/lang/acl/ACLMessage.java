@@ -23,9 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.lang.acl;
 
+//#MIDP_EXCLUDE_BEGIN
 import java.io.Reader;
 import java.io.Writer;
-import jade.util.leap.Serializable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.ByteArrayOutputStream;
@@ -34,14 +34,16 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ClassNotFoundException;
+//#MIDP_EXCLUDE_END
 
 import java.util.Date;
+import java.util.Enumeration;
+
+import jade.util.leap.Serializable;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
-
 import jade.util.leap.Properties;
-import java.util.Enumeration;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -67,8 +69,12 @@ import jade.domain.FIPAAgentManagement.Envelope;
  * @version $Date$ $Revision$
  * @see <a href=http://www.fipa.org/specs/fipa00061/XC00061D.html>FIPA Spec</a>
  */
- 
+//#MIDP_EXCLUDE_BEGIN 
 public class ACLMessage implements Cloneable, Serializable {
+//#MIDP_EXCLUDE_END 
+/*#MIDP_INCLUDE_BEGIN 
+public class ACLMessage implements Serializable {
+#MIDP_INCLUDE_END*/ 
 	// Explicitly set for compatibility between standard and micro version
 	private static final long serialVersionUID=3945353187608998130L;
 
@@ -407,7 +413,7 @@ private int performative; // keeps the performative type of this object
   }
 
 
-
+	//#MIDP_EXCLUDE_BEGIN
   /**
   * This method sets the content of this ACLMessage to a Java object.
   * It is not FIPA compliant so its usage is not encouraged.
@@ -467,6 +473,7 @@ private int performative; // keeps the performative type of this object
     }
 
   }
+	//#MIDP_EXCLUDE_END
 
   /**
      Writes the <code>:reply-with</code> slot. <em><b>Warning:</b> no
@@ -534,6 +541,7 @@ private int performative; // keeps the performative type of this object
   }
 
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
@@ -557,6 +565,7 @@ private int performative; // keeps the performative type of this object
       reply_byInMillisec = 0; 
     }
   }	
+  //#MIDP_EXCLUDE_END
 
   /**
      Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
@@ -771,6 +780,7 @@ private int performative; // keeps the performative type of this object
       return null;
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Reads <code>:reply-by</code> slot.
      @return The value of <code>:reply-by</code>slot, as a string.
@@ -785,6 +795,7 @@ private int performative; // keeps the performative type of this object
       else
 	  return null;
   }
+  //#MIDP_EXCLUDE_END
 
   /**
      Reads <code>:reply-by</code> slot.
@@ -892,8 +903,10 @@ private int performative; // keeps the performative type of this object
     Iterator it = dests.iterator();
     while(it.hasNext())
       messageEnvelope.addTo((AID)it.next());
+    //#MIDP_EXCLUDE_BEGIN
     messageEnvelope.setAclRepresentation(StringACLCodec.NAME);
-    messageEnvelope.setDate(new Date());
+    //#MIDP_EXCLUDE_END
+		messageEnvelope.setDate(new Date());
   }
 
   /**
@@ -906,6 +919,7 @@ private int performative; // keeps the performative type of this object
     return messageEnvelope;
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Writes an ACL message object on a stream as a character
      string. This method allows to write a string representation of an
@@ -924,11 +938,25 @@ private int performative; // keeps the performative type of this object
   }
 
   /**
+     Convert an ACL message to its string representation. This method
+     writes a representation of this <code>ACLMessage</code> into a
+     character string.
+     If the content is a bytesequence, then it is automatically converted
+     into Base64 encoding. 
+     @return A <code>String</code> representing this message.
+  */
+  public String toString(){
+      return StringACLCodec.toString(this);
+  }
+  //#MIDP_EXCLUDE_END
+
+  /**
      Clone an <code>ACLMessage</code> object.
      @return A copy of this <code>ACLMessage</code> object. The copy
      must be casted back to <code>ACLMessage</code> type before being
      used.
   */
+  //#MIDP_EXCLUDE_BEGIN
   public synchronized Object clone() {
 
     ACLMessage result;
@@ -946,19 +974,34 @@ private int performative; // keeps the performative type of this object
 
     return result;
   }
+  //#MIDP_EXCLUDE_END
+  /*#MIDP_INCLUDE_BEGIN
+  public synchronized Object clone() {
+    ACLMessage result = new ACLMessage(NOT_UNDERSTOOD);
+    result.performative = performative;
+    result.source = source;
+    result.content = content;
+    result.byteSequenceContent = byteSequenceContent;
+    result.reply_with = reply_with;
+    result.in_reply_to = in_reply_to;
+    result.encoding = encoding;
+    result.language = language;
+    result.ontology = ontology;
+    result.reply_byInMillisec = reply_byInMillisec;
+    result.protocol = protocol;
+    result.conversation_id = conversation_id;
+    result.userDefProps = userDefProps;
 
-  /**
-     Convert an ACL message to its string representation. This method
-     writes a representation of this <code>ACLMessage</code> into a
-     character string.
-     If the content is a bytesequence, then it is automatically converted
-     into Base64 encoding. 
-     @return A <code>String</code> representing this message.
-  */
-  public String toString(){
-      return StringACLCodec.toString(this);
-  }
+    if(messageEnvelope != null) {
+	  	result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
+    }
 
+    result.dests = (ArrayList) dests.clone();
+    result.reply_to = (ArrayList) reply_to.clone();
+
+    return result;
+  } 
+  #MIDP_INCLUDE_END*/
 
  /**
   * Resets all the message slots.
