@@ -71,7 +71,6 @@ class MainContainerProxy implements Platform {
     // The Main Container initialization of a peripheral container is just adding it to the platform.
     String name = adaptee.addContainer(ac, cid, username, passwd);
     cid.setName(name);
-    Runtime.instance().gc("Register");
   } 
 
   /**
@@ -102,14 +101,12 @@ class MainContainerProxy implements Platform {
    */
   public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
     adaptee.bornAgent(name, cid, certs);
-    Runtime.instance().gc("Born agent");
   } 
 
   /**
    */
   public String getPlatformName() throws IMTPException {
     String name = adaptee.getPlatformName();
-    Runtime.instance().gc("Get platform name");
     return name;
   } 
 
@@ -123,21 +120,18 @@ class MainContainerProxy implements Platform {
    */
   public void deadAgent(AID name) throws IMTPException, NotFoundException {
     adaptee.deadAgent(name);
-    Runtime.instance().gc("Dead agent");
   } 
 
   /**
    */
   public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
     adaptee.suspendedAgent(name);
-    Runtime.instance().gc("Suspend agent");
   } 
 
   /**
    */
   public void resumedAgent(AID name) throws IMTPException, NotFoundException {
     adaptee.resumedAgent(name);
-    Runtime.instance().gc("Resume agent");
   } 
 
   // __SECURITY__BEGIN
@@ -189,7 +183,6 @@ class MainContainerProxy implements Platform {
    */
   public void removeContainer(ContainerID cid) throws IMTPException {
     adaptee.removeContainer(cid);
-    Runtime.instance().gc("Remove container");
   } 
 
 
@@ -223,7 +216,6 @@ class MainContainerProxy implements Platform {
         // dispatch attempts.
         try {
           proxy = adaptee.getProxy(receiverID);    // Remote call
-    			Runtime.instance().gc("Get proxy");
         } 
         catch (IMTPException imtpe) {
           /*
@@ -244,7 +236,6 @@ class MainContainerProxy implements Platform {
 
         try {
           proxy.dispatch(msg);
-    			Runtime.instance().gc("Dispatch");
 
           // cachedProxies.put(receiverID, proxy);
           ok = true;

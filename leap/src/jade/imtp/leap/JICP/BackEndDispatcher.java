@@ -172,9 +172,8 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 
   /**
      Make this BackEndDispatcher terminate.
-     In this implementation self is always false.
    */
-  public void shutdown(boolean self) {
+  public void shutdown() {
     log("Initiate BackEndDispatcher shutdown", 2);
 
     // Deregister from the JICPServer
@@ -184,7 +183,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     }
 
     // Enable EndPoint shutdown
-    super.shutdown(self);
+    super.shutdown();
   } 
 
   //////////////////////////////////////////

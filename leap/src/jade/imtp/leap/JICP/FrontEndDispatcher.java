@@ -48,7 +48,7 @@ import java.io.*;
  */
 public class FrontEndDispatcher extends EndPoint implements FEConnectionManager, Dispatcher {
 
-  private Thread            terminator = null;
+  //private Thread            terminator = null;
 
   private MicroSkeleton mySkel = null;
   private BackEndStub myStub = null;
@@ -150,14 +150,14 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   /**
    * Shut down this FrontEndDispatcher.
    * This is called when the local FrontEnd container is exiting.
-   */
+   *
   public void shutdown(boolean self) {
     terminator = Thread.currentThread();
     // If the termination is "self-initiated" the underlying EndPoint
     // must notify its peer
   	super.shutdown(self);
     log("Shutdown initiated. Terminator thread is "+terminator, 2);
-  } 
+  } */
 
   //////////////////////////////////////////////
   // Dispatcher interface implementation
@@ -198,10 +198,10 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     // If this is the Thread that is shutting down this FrontEndDispatcher
     // (i.e. the Thread that has previously called the shutdown() method)
     // --> notify the Mediator
-    if (Thread.currentThread().equals(terminator)) {
+    /*if (Thread.currentThread().equals(terminator)) {
       log("Activate Mediator shutdown (after the current command has been served)");
     	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), rspData);
-    }
+    }*/
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
   }
   

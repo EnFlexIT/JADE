@@ -176,6 +176,13 @@ class JICPPacket {
   } 
 
   /**
+   * Set the TERMINATED_INFO flag in the dataInfo.
+   */
+  void setTerminatedInfo() {
+    dataInfo |= JICPProtocol.TERMINATED_INFO;
+  } 
+
+  /**
    * @return The actual data included in the packet, as a byte array.
    */
   byte[] getData() {

@@ -68,6 +68,7 @@ public class ProfileImpl extends Profile {
   private ResourceManager     myResourceManager = null;
   private MobilityManager     myMobilityManager = null;
   private NotificationManager myNotificationManager = null;
+	//#MIDP_EXCLUDE_END
 
   /**
    * Create an empty Profile object
@@ -96,6 +97,7 @@ public class ProfileImpl extends Profile {
   	init();
   }
   
+	//#MIDP_EXCLUDE_BEGIN
   /**
    * This constructor creates a default Profile for launching a 
    * platform (main = true).
@@ -137,6 +139,7 @@ public class ProfileImpl extends Profile {
    	
    	init();
   }
+  //#MIDP_EXCLUDE_END
 
   private void init() throws ProfileException {
   	// Set jvm parameter if not set
@@ -147,8 +150,13 @@ public class ProfileImpl extends Profile {
   		/*#PJAVA_INCLUDE_BEGIN
   		props.setProperty(JVM, PJAVA);
   		#PJAVA_INCLUDE_END*/
+  		/*#MIDP_INCLUDE_BEGIN
+  		props.setProperty(JVM, MIDP);
+  		props.setProperty(MAIN, "false");
+  		#MIDP_INCLUDE_END*/
   	}
   	
+  	//#MIDP_EXCLUDE_BEGIN
     // Set agents as a list to handle the "gui" option
     List   l = getSpecifiers(AGENTS);
     String isGui = props.getProperty("gui");
@@ -173,34 +181,9 @@ public class ProfileImpl extends Profile {
       }
     }
     //#PJAVA_EXCLUDE_END
+  	//#MIDP_EXCLUDE_END
   }
-	//#MIDP_EXCLUDE_END
   
-	/*#MIDP_INCLUDE_BEGIN
-  public ProfileImpl() throws ProfileException {
-    try {
-      props = new Properties();
-      String source = jade.core.Agent.midlet.getAppProperty("MIDlet-LEAP-Properties");
-      if (source == null) {
-      	// Use the JAD by default 
-      	source = "jad";
-			}
-      props.load(source);
-    } 
-    catch (IOException ioe) {
-      throw new ProfileException("Can't load properties: "+ioe.getMessage());
-    } 
-
-  	// Set jvm parameter if not set
-  	if (props.getProperty(JVM) == null) {
-  		props.setProperty(JVM, MIDP);
-  	}  
-  	
-  	// Set main parameter to false as we can't have a main container in MIDP
-  	props.setProperty(MAIN, "false");
-  }
-	#MIDP_INCLUDE_END*/
-	
   /**
    */
   protected Platform getPlatform() throws ProfileException {

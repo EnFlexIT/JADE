@@ -71,8 +71,6 @@ class Stub {
    */
   protected Stub(int id) {
     this();
-
-    //remoteID = theDispatcher.getID(obj);
     remoteID = id;
   }
 

@@ -694,7 +694,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         // This call interrupts the listening thread of this peer
         // and waits for its completion.
         icp.deactivate();
-
+				icp = null;
         // DEBUG
         // System.out.println("ICP deactivated.");
       } 

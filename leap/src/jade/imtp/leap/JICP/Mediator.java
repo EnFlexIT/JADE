@@ -66,8 +66,6 @@ public class Mediator extends EndPoint implements JICPMediator {
   private Connection        conn;
   private boolean           newConnectionReady = false;
 
-  static int                verbosity = 2;
-
   /**
    * Constructor declaration
    */
@@ -96,10 +94,8 @@ public class Mediator extends EndPoint implements JICPMediator {
   
   /**
      Make this Mediator terminate.
-     In this implementation self is true only when the Mediator
-     is killed by the JICPServer it is attached to.
    */
-  public void shutdown(boolean self) {
+  public void shutdown() {
     log("Initiate Mediator shutdown");
 
     // Deregister from the JICPServer
@@ -108,8 +104,8 @@ public class Mediator extends EndPoint implements JICPMediator {
 	    myID = null;
     }
 
-    // If shutdown mode is NORMAL, un-block threads hang in PING
-    // FIXME: If shutdown mode is != NORMAL we should force the thread hanging
+    // Un-block threads hang in PING
+    // FIXME: If shutdown is abnormal we should force the thread hanging
     // on the pingLock to return with an exception in order to make the Main 
     // container clean its tables.
 	  synchronized (pingLock) {
@@ -117,7 +113,7 @@ public class Mediator extends EndPoint implements JICPMediator {
     }
 
     // Enable EndPoint shutdown
-    super.shutdown(self);
+    super.shutdown();
   } 
 
   /**
@@ -125,8 +121,7 @@ public class Mediator extends EndPoint implements JICPMediator {
      to
    */
   public void kill() {
-  	// Self initiated shutdown
-  	super.shutdown(true);
+  	shutdown();
   }
   
   ///////////////////////////////////////////////
@@ -265,7 +260,8 @@ public class Mediator extends EndPoint implements JICPMediator {
   }
   
 	protected void handleConnectionError() {
-		shutdown(false);
+		// If the connection cannot be re-established, exit
+		shutdown();
 	}	
 	
   /**

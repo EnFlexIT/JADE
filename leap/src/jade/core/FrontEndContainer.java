@@ -97,11 +97,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
 		}
 		catch (IMTPException imtpe) {
+		  Logger.println("IMTP error. "+imtpe);
 			imtpe.printStackTrace();
 			MicroRuntime.handleTermination();
 			return;
 		}
 		catch (Exception e) {
+		  Logger.println("Unexpected error. "+e);
 			e.printStackTrace();
 			MicroRuntime.handleTermination();
 			return;
@@ -135,6 +137,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 			}
 		}
 		catch (Exception e1) {
+		  Logger.println("Exception parsing agent specifiers. "+e1);
 			e1.printStackTrace();
 		}
 	}
@@ -155,9 +158,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 			Agent a = (Agent) localAgents.get(name);
 			a.powerUp(id, new Thread(a));
 			//#NODEBUG_EXCLUDE_BEGIN
-    	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-			rt.gc();
-      System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
+    	//java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+			//rt.gc();
+      //System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
 			//#NODEBUG_EXCLUDE_END
   	}
   	catch (Exception e) {
@@ -257,7 +260,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
-	  	myConnectionManager.shutdown(self);
+	  	myConnectionManager.shutdown();
 	    
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination();
@@ -293,7 +296,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
   	  }
     }
     catch(IMTPException re) {
-      re.printStackTrace();
+		  Logger.println(re.toString());
     }
   }
   
@@ -321,13 +324,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 			}
 			catch (IMTPException imtpe) {
 				// FIXME: notify failure to sender
-				imtpe.printStackTrace();
+		  	Logger.println(imtpe.toString());
 			}
 			catch (NotFoundException nfe) {
 				// Note that "NotFound" here is referred to the sender and
 				// indicates an inconsistency between the FrontEnd and the BackEnd
 				// FIXME: recover the inconsistency
-				nfe.printStackTrace();
+		  	Logger.println(nfe.toString());
 			}
 		}
   }

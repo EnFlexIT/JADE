@@ -52,7 +52,7 @@ import java.io.*;
  */
 public class JICPBMPeer extends EndPoint implements ICP {
 
-  private Thread            terminator = null;
+  //private Thread            terminator = null;
 
   private ICP.Listener      cmdListener;
 
@@ -140,7 +140,8 @@ public class JICPBMPeer extends EndPoint implements ICP {
     // Wait for the embedded Thread to create/connect to the Mediator
     waitUntilConnected();
 		log("Peer activation OK ");
-
+		verbosity = 3;
+		
     return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);
   } 
 
@@ -149,9 +150,9 @@ public class JICPBMPeer extends EndPoint implements ICP {
    * This is called when the local container is exiting.
    */
   public void deactivate() throws ICPException {
-    terminator = Thread.currentThread();
-  	shutdown(false);
-    log("Shutdown initiated. Terminator thread is "+terminator);
+    //terminator = Thread.currentThread();
+  	shutdown();
+    //log("Shutdown initiated. Terminator thread is "+terminator);
   } 
 
   /**
@@ -263,10 +264,10 @@ public class JICPBMPeer extends EndPoint implements ICP {
     // If this is the Thread that is shutting down this JICPBMPeer
     // (i.e. the Thread that has previously called the deactivate() method)
     // --> notify the Mediator
-    if (Thread.currentThread().equals(terminator)) {
+    /*if (Thread.currentThread().equals(terminator)) {
       log("Activate Mediator shutdown (after the current command has been served)");
     	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), rspData);
-    }
+    }*/
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
   }
   

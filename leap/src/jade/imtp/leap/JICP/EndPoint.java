@@ -51,6 +51,7 @@ public abstract class EndPoint extends Thread {
   private Object     connectionLock = new Object(); // We can't synchronize on the connection itself as it may be null
   private DataInputStream  inp;
   private DataOutputStream out;
+  private Thread terminator;
   
 	private int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
@@ -79,25 +80,23 @@ public abstract class EndPoint extends Thread {
   }
   
   /**
-     @param self Indicate whether this shutdown was self-initiated or 
-     activated as a result of a command issued by the remote peer. 
-     In the first case we must send an explicit termination notification
-     to the remote EndPoint to let it know we are exiting,
-     In the latter case, on the other hand, the termination notification 
-     must be appended to the response (that otherwise would be lost) to
-     the command that activated the shutdown. It is the responsibility 
-     of this EndPoint implementation (that is in charge of preparing the
-     response) to do that.
+     Make this EndPoint terminate
 	 */     
-  public void shutdown(boolean self) {
+  public void shutdown() {
   	active = false;
   	// Note that waking up OutgoingHandlers waiting for a response
-  	// is necessary as the main thread can exit smoothly as soon as 
+  	// is necessary as the main thread may exit smoothly as soon as 
   	// we set active to false.
   	wakeupOutgoings();
-  	if (self) {
-  		// Send a JICPPacket with the TERMINATED_INFO set
-  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), null);
+  	
+  	// If this is a self-initiated shut down, we must explicitly
+  	// notify the peer. Otherwise the TERMINATED_INFO will be appended 
+  	// to the response to the command that activated the shutdown.
+  	// Note that in any case TERMINATED_INFO is set within the push() 
+  	// method.
+  	terminator = Thread.currentThread();
+  	if ((terminator != this) && !(terminator instanceof IncomingHandler)) {
+  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO), null);
   		log("Pushing termination notification");
   		push((byte) 0, pkt);
   	} 		
@@ -146,7 +145,7 @@ public abstract class EndPoint extends Thread {
 	          	log("Peer termination notification received", 2);
           		// The remote EndPoint has terminated spontaneously -->
           		// close the connection, notify the local peer and exit
-          		shutdown(false);
+          		shutdown();
           		resetConnection();
           		handlePeerExited();
           	}
@@ -169,7 +168,7 @@ public abstract class EndPoint extends Thread {
           		// The remote EndPoint has terminated as a consequence
           		// of a command issued by the local peer --> 
           		// just close the connection and exit
-          		shutdown(false);
+          		shutdown();
           		resetConnection();
           	}
         	}	
@@ -195,6 +194,9 @@ public abstract class EndPoint extends Thread {
   	synchronized (connectionLock) {
   		if (connected) {
   			try {
+  				if (Thread.currentThread() == terminator) {
+  					pkt.setTerminatedInfo();
+  				}
 			    // Write the session id and the packet
 			    out.writeByte(id);
 				  return pkt.writeTo(out);
@@ -304,6 +306,7 @@ public abstract class EndPoint extends Thread {
   private class OutgoingHandler {
     private JICPPacket rsp = null;
     private boolean rspReceived = false;
+    private int oldPktCnt;
 
     /**
      * Constructor declaration
@@ -319,6 +322,7 @@ public abstract class EndPoint extends Thread {
 	    log("Start serving outgoing command. OUT-SID="+myId);
   	
   		// Push the command
+	    oldPktCnt = pktCnt;
 	    int size = push(myId, cmd);
     	if (size == -1) {  	
     		// We are disconnected --> Deregister and throw an Exception
@@ -345,9 +349,8 @@ public abstract class EndPoint extends Thread {
     private synchronized final void waitForResponse(long timeout) throws ICPException {
       while (!rspReceived) {
         try {
-        	int oldCnt = pktCnt;
           wait(timeout);
-          if (pktCnt == oldCnt) {
+          if (pktCnt == oldPktCnt) {
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down

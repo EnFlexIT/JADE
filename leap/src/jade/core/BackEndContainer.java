@@ -414,7 +414,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   			}
   		}
   		agentImages.clear();  		
-  		myConnectionManager.shutdown(false);
+  		myConnectionManager.shutdown();
   	}
     shutDown();
 	}
