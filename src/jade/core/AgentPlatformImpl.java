@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.16  1998/10/31 16:33:36  rimassa
+  Changed AMSKillAgent() prototype, since now it accept also a password
+  String (ignored for now).
+  Fixed a tiny bug in AMSKillAgent(): 'agentName' was to be
+  'simpleName'.
+
   Revision 1.15  1998/10/26 00:00:30  rimassa
   Added some methods for AMS to use in platform administration. When the
   AMS wants to create or kill an agent it relies on methods such as
@@ -209,9 +215,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   // This one is called in response to a 'kill-agent' action
-  public void AMSKillAgent(String agentName) throws NoCommunicationMeansException {
+  public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
     if(ad == null)
       throw new NoCommunicationMeansException();
     try {
