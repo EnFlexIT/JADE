@@ -27,7 +27,7 @@ package jade.core;
 import java.rmi.*;
 import java.rmi.registry.*;
 
-import java.util.Vector;
+import java.util.List;
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -54,17 +54,16 @@ public class Starter {
   /**
      Starts up a suitable JADE runtime system, according to its
      parameters.
-
      @param isPlatform <code>true</code> if <code>-platform</code> is
      given on the command line, <code>false</code> otherwise.
-     @param platformRMI An <em>URL</em> for the platform <em>RMI</em>
-     address, built from JADE default settings and command line
+     @param platformID An <em>globally unique ID</em> for the
+     platform, built from JADE default settings and command line
      parameters.
-     @param agents A <code>Vector</code> containing names and classes
+     @param agents A <code>List</code> containing names and classes
      of the agents to fire up during JADE startup.
      @param args Command line arguments, used by CORBA ORB.
-   */
-  public static void startUp(boolean isPlatform, String platformRMI, Vector agents, String args[]) {
+  */
+  public static void startUp(boolean isPlatform, String platformID, List agents, String args[]) {
 
     try{
 
@@ -73,6 +72,8 @@ public class Starter {
 
 	// Create an embedded RMI Registry within the platform and
 	// bind the Agent Platform to it
+
+	String platformRMI = "rmi://" + platformID;
 
 	int colonPos = platformRMI.lastIndexOf(':');
 	int slashPos = platformRMI.indexOf('/', colonPos + 1);
@@ -87,7 +88,7 @@ public class Starter {
       else {
 	theContainer = new AgentContainerImpl(args);
       }
-      theContainer.joinPlatform(platformRMI, agents);
+      theContainer.joinPlatform(platformID, agents);
 
     }
     catch(RemoteException re) {
