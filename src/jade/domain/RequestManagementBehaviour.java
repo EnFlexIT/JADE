@@ -25,6 +25,9 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
+//#APIDOC_EXCLUDE_FILE
+
+
 import jade.core.Agent;
 import jade.core.CaseInsensitiveString;
 
@@ -55,7 +58,7 @@ import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
    action.
    @author Giovanni Caire - Tilab
 */
-abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
+public abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	private ACLMessage notification;
 
   protected RequestManagementBehaviour(Agent a, MessageTemplate mt){
