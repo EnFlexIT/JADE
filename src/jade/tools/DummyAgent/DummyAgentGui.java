@@ -269,7 +269,17 @@ class DummyAgentGui extends JFrame implements ActionListener
 		{
 			ACLMessage m = currentMsgGui.getMsg();
 			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
-			myAgent.send(m);
+		  StringACLCodec codec = new StringACLCodec();
+		  try {
+		  	codec.decode(codec.encode(m));
+		  	myAgent.send(m);
+		  } catch (ACLCodec.CodecException ce) {	
+		  	  System.out.println("Wrong ACL Message");
+					ce.printStackTrace();
+		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
+						  }
+
+			
 		}
 		// OPEN
 		else if (command.equals("Open"))
@@ -288,8 +298,14 @@ class DummyAgentGui extends JFrame implements ActionListener
 					StringACLCodec codec = new StringACLCodec(new FileReader(fileName),null);
 					currentMsgGui.setMsg(codec.decode());
 				}
-				catch(FileNotFoundException e1) { System.out.println("File Not Found: " + fileName); }
-				catch (ACLCodec.CodecException e2) { System.out.println("Bad ACL Message in file: " +fileName);
+				catch(FileNotFoundException e1) {
+						JOptionPane.showMessageDialog(null,"File not found: "+ fileName + e1.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
+					System.out.println("File Not Found: " + fileName); }
+				catch (ACLCodec.CodecException e2) {
+					System.out.println("Wrong ACL Message in file: " +fileName);
+					e2.printStackTrace(); 
+					JOptionPane.showMessageDialog(null,"Wrong ACL Message in file: "+ fileName +"\n"+ e2.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
+				
 			}
 			} 
 		}
