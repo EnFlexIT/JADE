@@ -106,7 +106,7 @@ public class ProfileImpl extends Profile {
 	 * <br> if isMain is true, then the profile is configured to launch
    * a main-container on the localhost, 
    * RMI internal Message Transport Protocol, port number 1099,
-   * iiop MTP.
+   * HTTP MTP.
 	 * <br> if isMain is false, then the profile is configured to launch
    * a remote container on the localhost, connecting to the main-container
 	 * on the localhost through 
@@ -279,7 +279,7 @@ public class ProfileImpl extends Profile {
 
 
     // If this is a Main Container and the '-nomtp' option is not
-    // given, activate the default IIOP MTP (unless some MTPs have
+    // given, activate the default HTTP MTP (unless some MTPs have
     // been directly provided).
     if(isMain() && !getBooleanProperty("nomtp", false) && (props.getProperty(MTPS) == null)) {
 	Specifier s = new Specifier();
