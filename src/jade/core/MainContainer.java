@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.net.InetAddress;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -35,18 +34,18 @@ import java.rmi.RemoteException;
 
 interface MainContainer extends AgentContainer {
 
-  String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException;
-  void removeContainer(String name) throws RemoteException;
+  String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException;
+  void removeContainer(ContainerID cid) throws RemoteException;
 
-  AgentContainer lookup(String name) throws RemoteException, NotFoundException;
+  AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException;
 
-  void bornAgent(AID name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
+  void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException;
   void deadAgent(AID name) throws RemoteException, NotFoundException;
 
-  void newMTP(String mtpAddress, String containerName) throws RemoteException;
-  void deadMTP(String mtpAddress, String containerName) throws RemoteException;
+  void newMTP(String mtpAddress, ContainerID cid) throws RemoteException;
+  void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException;
 
-  boolean transferIdentity(AID agentID, String src, String dest) throws RemoteException, NotFoundException;
+  boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException;
 
   RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
 
