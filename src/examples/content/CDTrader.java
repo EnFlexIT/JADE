@@ -36,7 +36,6 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
-//import jade.content.acl.*;
 import jade.content.lang.*;
 import jade.content.lang.leap.*;
 
@@ -146,9 +145,8 @@ public class CDTrader extends Agent {
 			public void action() {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 				if (msg != null) {
-					System.out.println("\nBUYER: Information received from SELLER");
-					// DEBUG
-					//System.out.println(msg);
+					System.out.println("\nBUYER: Information received from SELLER. Message is");
+					System.out.println(msg);
 	    		try {
 						ContentElement ce = manager.extractContent(msg);
 						if (ce instanceof Owns) {
@@ -277,7 +275,8 @@ public class CDTrader extends Agent {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.QUERY_REF));
 				if (msg != null) {
 	    		try {
-						System.out.println("\nSELLER: Received query from BUYER");
+						System.out.println("\nSELLER: Received query from BUYER. Message is");
+						System.out.println(msg);
 						// The content of a QUERY_REF is certainly an abstract descriptor
 						// representing an IRE
 						AbsIRE ire = (AbsIRE) manager.extractAbsContent(msg);
@@ -415,7 +414,8 @@ public class CDTrader extends Agent {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 				if (msg != null) {
 	    		try {
-						System.out.println("\nSELLER: Received request from BUYER");
+						System.out.println("\nSELLER: Received request from BUYER. Message is");
+						System.out.println(msg);
 						ContentElement ce = manager.extractContent(msg);
 						Sell sell = null;
 						AgentAction toNotify = null;

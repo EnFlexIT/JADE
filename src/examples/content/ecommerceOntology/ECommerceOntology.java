@@ -49,7 +49,7 @@ public class ECommerceOntology extends Ontology {
   public static final String CREDIT_CARD_EXPIRATION_DATE = "expirationdate";
   
   public static final String OWNS = "OWNS";
-  public static final String OWNS_OWNER = "owner";
+  public static final String OWNS_OWNER = "Owner";
   public static final String OWNS_ITEM = "item";
   
   public static final String SELL = "SELL";
