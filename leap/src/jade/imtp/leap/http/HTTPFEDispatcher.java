@@ -406,7 +406,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 			is = hc.getInputStream();
 	  	//#MIDP_EXCLUDE_END
 			/*#MIDP_INCLUDE_BEGIN
-			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, true);
+			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
 			hc.setRequestMethod(HttpConnection.POST);
 	    os = hc.openOutputStream();
 			status = 1;			
