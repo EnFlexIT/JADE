@@ -38,7 +38,7 @@ import jade.util.leap.LinkedList;
 public class Runtime {
 
   private static Runtime theInstance;
-
+  
   static {
     theInstance = new Runtime();
   }
@@ -46,8 +46,8 @@ public class Runtime {
   private ThreadGroup criticalThreads;
   private TimerDispatcher theDispatcher;
   private int activeContainers = 0;
-  private boolean closeVM = false;
   private Object lock = new Object();
+  private LinkedList terminators = new LinkedList();
 
   // Private constructor to forbid instantiation outside the class.
   private Runtime() {
@@ -129,10 +129,25 @@ public class Runtime {
   }
 
 
+  /**
+     Allwos setting a <code>Runnable</code> that is executed when
+     the last container in this JVM is terminated.
+   */
+  public void invokeOnTermination(Runnable r) {
+    terminators.addFirst(r);
+  }
+
   // Called by jade.Boot to make the VM terminate when all the
   // containers are closed.
   public void setCloseVM(boolean flag) {
-    closeVM = flag;
+  	if (flag) {
+	    terminators.addLast(new Runnable() {
+  	  	public void run() {
+    			System.out.println("Exiting now!");
+    			System.exit(0);
+ 	   		}
+    	} );
+  	}
   }
 
   // Called by a starting up container.
@@ -162,18 +177,18 @@ public class Runtime {
   void endContainer() {
     --activeContainers;
     if(activeContainers == 0) {
-    	// If this JVM must be closed --> span another Thread that 
-    	// asynchronously does it
-      if(closeVM) {
-      	Thread t = new Thread(new Runnable() {
-      		public void run() {
-      			System.out.println("Exiting now!");
-						System.exit(0);
+    	// Start a new Thread that calls all terminators one after 
+    	// the other
+     	Thread t = new Thread(new Runnable() {
+      	public void run() {
+      		for (int i = 0; i < terminators.size(); ++i) {
+      			Runnable r = (Runnable) terminators.get(i);
+      			r.run();
       		}
-      	} );
-      	t.setDaemon(false);
-      	t.start();
-      }
+      	}
+      } );
+      t.setDaemon(false);
+      t.start();
       
       // Terminate the TimerDispatcher and release its resources
     	theDispatcher.stop();
