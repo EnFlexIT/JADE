@@ -43,7 +43,7 @@ import jade.content.Concept;
  tables use this class to record agent names and addresses.
  */
 //public class AID extends Concept implements Cloneable, Comparable, Serializable {
-public class AID extends Concept implements Comparable, Serializable {
+public class AID implements Comparable, Serializable {
   
   /**
   @serial
