@@ -128,13 +128,13 @@ class TablePanel extends JPanel {
     for(int i=0;i<numPaths;i++) {
        relCur= paths[i].getPath();
          for (int j=0;j<relCur.length;j++) {
-            if (j==3) {
-              current = (AgentTree.AgentNode)relCur[j];
-              data[i][0] = current.getName();
-              data[i][1] = current.getAddress();
-              data[i][2] = current.getState();
-              data[i][3] = current.getOwnership();
-              //data[i][2] = current.getType();
+	     if(relCur[j] instanceof AgentTree.AgentNode) {
+		 current = (AgentTree.AgentNode)relCur[j];
+		 data[i][0] = current.getName();
+		 data[i][1] = current.getAddress();
+		 data[i][2] = current.getState();
+		 data[i][3] = current.getOwnership();
+		 //data[i][2] = current.getType();
             }
          }
       }
