@@ -214,7 +214,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     public ServiceManagerStub getServiceManagerStub(String addr) throws IMTPException {
 
-
 	// Try to translate the address into a TransportAddress
 	// using a protocol supported by this CommandDispatcher
 	try {
@@ -228,6 +227,28 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	    throw new IMTPException("Invalid address for a Service Manager", de);
 	}
 	
+    }
+
+    public void addAddressToStub(Stub target, String toAdd) {
+	try {
+	    System.out.println("--- Adding address <" + toAdd + "> ---");
+	    TransportAddress ta = stringToAddr(toAdd);
+	    target.addTA(ta);
+	}
+	catch(DispatcherException de) {
+	    de.printStackTrace();
+	}
+    }
+
+    public void removeAddressFromStub(Stub target, String toRemove) {
+	try {
+	    System.out.println("--- Removing address <" + toRemove + "> ---");
+	    TransportAddress ta = stringToAddr(toRemove);
+	    target.removeTA(ta);
+	}
+	catch(DispatcherException de) {
+	    de.printStackTrace();
+	}
     }
 
   /**
