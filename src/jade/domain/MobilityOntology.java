@@ -30,6 +30,8 @@ import java.util.ArrayList;
 
 import jade.lang.Codec;
 
+import jade.core.AID;
+
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
@@ -144,8 +146,7 @@ public class MobilityOntology {
     	theInstance.joinOntology(BasicOntologyManager.instance());
 
   		theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("destination", Ontology.FRAME_SLOT, LOCATION, Ontology.M),
 	  new SlotDescriptor("agent-profile", Ontology.FRAME_SLOT, MOBILE_AGENT_PROFILE, Ontology.O),
 	  new SlotDescriptor("agent-version", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -226,7 +227,7 @@ public class MobilityOntology {
 	   });
 
 	theInstance.addRole(WHERE_IS, new SlotDescriptor[] {
-	    new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	    new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER , Ontology.M)
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new WhereIsAgentAction(); }
 	     public Class getClassForRole() { return WhereIsAgentAction.class; }
@@ -252,27 +253,18 @@ public class MobilityOntology {
   */
   public static class MobileAgentDescription {
 
-    private String name;
-    private String address;
+    private AID name;
     private Location destination;
     private MobileAgentProfile agentProfile;
     private String agentVersion;
     private String signature;
 
-    public void setName(String n) {
-      name = n;
+    public void setName(AID id) {
+      name = id;
     }
 
-    public String getName() {
+    public AID getName() {
       return name;
-    }
-
-    public void setAddress(String a) {
-      address = a;
-    }
-
-    public String getAddress() {
-      return address;
     }
 
     public void setDestination(Location d) {
@@ -630,14 +622,14 @@ public class MobilityOntology {
   */
   public static class WhereIsAgentAction {
 
-    private String agentName;
+    private AID agentName;
     private String actor;
 
-    public void set_0(String n) {
-      agentName = n;
+    public void set_0(AID id) {
+      agentName = id;
     }
 
-    public String get_0() {
+    public AID get_0() {
       return agentName;
     }
 
