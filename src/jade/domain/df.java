@@ -1,5 +1,16 @@
 /*
   $Log$
+  Revision 1.14  1998/12/08 00:21:09  rimassa
+  Removed handmade parsing of message content. Now updated fromText()
+  method from DFAction and DFSearchAction classes is used.
+  Moved DFSearch() method from df class to SrchBehaviour inner
+  class. Now DFSearch() performs a complete pattern matching among
+  DFAgentDescriptor objects, ensures search constraints feasibility and
+  can even spawn other behaviours for recursive searches.
+  Added RecursiveSearchBehaviour inner class to support concurrently
+  active recursive searches (when ':df-depth' search constraint is given
+  and it is greater than 1).
+
   Revision 1.13  1998/11/30 00:24:34  rimassa
   Finished basic support for 'search' action: still missing search
   constraint management.
@@ -36,6 +47,7 @@ import java.io.OutputStreamWriter;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 import java.util.NoSuchElementException;
 
 import jade.core.*;
@@ -97,19 +109,16 @@ public class df extends Agent {
 
       String content = myRequest.getContent();
 
-      // Remove 'action df' from content string
-      content = content.substring(content.indexOf("df") + 2); // FIXME: DF could crash for a bad msg
-
       // Obtain a DF action from message content
       try {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	pe.printStackTrace();
+	// pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
       catch(TokenMgrError tme) {
-	tme.printStackTrace();
+	// tme.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
@@ -291,20 +300,271 @@ public class df extends Agent {
       AgentManagementOntology.DFSearchAction dfsa = (AgentManagementOntology.DFSearchAction)dfa;
 
       Enumeration constraints = dfsa.getConstraints();
-      AgentManagementOntology.DFSearchResult dfdList = DFSearch(dfd, constraints);
+      DFSearch(dfd, constraints, myReply);
+
+    }
+
+    private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd,
+			  Enumeration constraints, ACLMessage myReply) throws FIPAException {
+
+      AgentManagementOntology.DFSearchResult matchesFound = new AgentManagementOntology.DFSearchResult();
+
+      // Final search depth, set such that search constraints are satisfied
+      int dfDepth = -1;
+
+      // Minimum search depth, according to constraints
+      int dfDepthMin = -1;
+
+      // Maximum search depth, according to constraints
+      int dfDepthMax = -1;
+
+      // Exact search depth, according to constrtaints
+      int dfDepthExactly = -1;
+
+      // Final response length, set such that search constraints are satisfied
+      int respReq = -1;
+
+      // Minimum response length, according to constraints
+      int respReqMin = -1;
+
+      // Maximum response length, according to constraints
+      int respReqMax = -1;
+
+      // Exact response length, according to constrtaints
+      int respReqExactly = -1;
+
+      /***********************************************************
+       *
+       *    Algorithm for search constraint processing:
+       *
+       *   for each constraint kind (':df-depth' or ':resp-req'),
+       *   the following combination is the only correct one:
+       *
+       *    - Min N Max M Exactly P, N > 0 and M > 0 and P > 0 and N <= P <= M
+       *
+       *   Multiple clauses can be present, as long as they all are equivalent
+       *   to some form of the combination above. For example:
+       *
+       *    - No constraint at all (using a default value)
+       *    - Min 5 Min 10 (result is 10)
+       *    - Max 5 Max 10 (result is 5)
+       *    - Max 3 Exactly 2 (result is 2)
+       *    - Min 4 Max 6 Exactly 5 (result is 5)
+       *    - Min 2 Max 8 (result is 5, somewhat arbitrarily)
+       *
+       *  When some other constraint combination is detected an 
+       *  'inconsistency' exception is reised.
+       *  ========================================================
+       *
+       *  The following code scans the constraint list, keeping
+       *  running values for 'Min', 'Exactly' and 'Max' constraint
+       *  both for ':df-depth' and ':resp-req', raising an exception
+       *  when an inconsistency occurs. Finally, if everything is OK,
+       *  a couple of variables is set to the chosen value.
+       *  In the code, '-1' is used as an out-of-band value.
+       *
+       ***********************************************************/
+
+      while(constraints.hasMoreElements()) {
+	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)constraints.nextElement();
+	String name = c.getName();
+	String fn = c.getFn();
+	int arg = c.getArg();
+
+	if(arg <= 0)
+	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+
+	if(name.equalsIgnoreCase(AgentManagementOntology.Constraint.DFDEPTH)) {
+	  if(fn.equalsIgnoreCase(AgentManagementOntology.Constraint.MIN)) {
+	    // If 'Exactly' clause is already present and with a smaller value, it is an error
+	    if((dfDepthExactly != -1) && (dfDepthExactly < arg))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    dfDepthMin = Math.max(arg, dfDepthMin); // The larger 'Min' arg is the strongest clause
+	    if((dfDepthMax != -1) && (dfDepthMax < dfDepthMin)) // Must be 'Min' <= 'Max' when both are set
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	  }
+	  else if(fn.equalsIgnoreCase(AgentManagementOntology.Constraint.EXACTLY)) {
+	    // If 'Min' or 'Max' clauses are present, it must be Min <= Exactly <= Max, or it is an error
+	    if(((dfDepthMin != -1) && (dfDepthMin > arg)) || ((dfDepthMax != -1) && (dfDepthMax < arg)))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    if((dfDepthExactly != -1) && (dfDepthExactly != arg)) // There must be a sole value for 'Exactly'
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    dfDepthExactly = arg;
+	  }
+	  else { // Max
+	    // If 'Exactly' clause is already present and with a greater value, it is an error
+	    if((dfDepthExactly != -1) && (dfDepthExactly > arg))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    if(dfDepthMax != -1)
+	      dfDepthMax = Math.min(arg, dfDepthMax); // The smaller 'Max' arg is the strongest clause
+	    else
+	      dfDepthMax = arg;
+	    if((dfDepthMin != -1) && (dfDepthMin > dfDepthMax)) // Must be 'Min' <= 'Max' when both are set
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	  }
+	}
+	else { // :resp-req
+	  if(fn.equalsIgnoreCase(AgentManagementOntology.Constraint.MIN)) {
+	    // If 'Exactly' clause is already present and with a smaller value, it is an error
+	    if((respReqExactly != -1) && (respReqExactly < arg))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    respReqMin = Math.max(arg, respReqMin); // The larger 'Min' arg is the strongest clause
+	    if((respReqMax != -1) && (respReqMax < respReqMin)) // Must be 'Min' <= 'Max' when both are set
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	  }
+	  else if(fn.equalsIgnoreCase(AgentManagementOntology.Constraint.EXACTLY)) {
+	    // If 'Min' or 'Max' clauses are present, it must be Min <= Exactly <= Max, or it is an error
+	    if(((respReqMin != -1) && (respReqMin > arg)) || ((respReqMax != -1) && (respReqMax < arg)))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    if((respReqExactly != -1) && (respReqExactly != arg)) // There must be a sole value for 'Exactly'
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    respReqExactly = arg;
+	  }
+	  else { // Max
+	    // If 'Exactly' clause is already present and with a greater value, it is an error
+	    if((respReqExactly != -1) && (respReqExactly > arg))
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	    if(respReqMax != -1)
+	      respReqMax = Math.min(arg, respReqMax); // The smaller 'Max' arg is the strongest clause
+	    else
+	      respReqMax = arg;
+	    if((respReqMin != -1) && (respReqMin > respReqMax)) // Must be 'Min' <= 'Max' when both are set
+	      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+	  }
+	}
+      }
+
+      // Now, calculate dfDepth from dfDepthMin, dfDepthExactly and dfDepthMax
+      if(dfDepthExactly != -1)
+	dfDepth = dfDepthExactly;
+      else {
+	if(dfDepthMin != -1) {
+	  if(dfDepthMax != -1)
+	    dfDepth = (dfDepthMin + dfDepthMax) / 2;
+	  else
+	    dfDepth = dfDepthMin;
+	}
+	else {
+	  if(dfDepthMax != -1)
+	    dfDepth = dfDepthMax;
+	  else // No constraints
+	    dfDepth = 1;
+	}
+      }
+
+      // Now, calculate respReq from respReqMin, respReqExactly and respReqMax
+      if(respReqExactly != -1)
+	respReq = respReqExactly;
+      else {
+	if(respReqMin != -1) {
+	  if(respReqMax != -1)
+	    respReq = (respReqMin + respReqMax) / 2;
+	  else
+	    respReq = respReqMin;
+	}
+	else {
+	  if(respReqMax != -1)
+	    respReq = respReqMax;
+	  else // No constraints
+	    respReq = 1;
+	}
+      }
+
+      Enumeration e = descriptors.elements();
+
+      while(e.hasMoreElements()) {
+	Object obj = e.nextElement();
+	AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
+	if(match(dfd, current)) {
+	  matchesFound.put(current.getName(), current);
+	}
+
+      }
 
       sendAgree(myReply);
 
-      StringWriter text = new StringWriter();
-      dfdList.toText(text);
-      String content = text.toString();
+      if(dfDepth == 1) {
 
-      myReply.setContent(content);
-      myReply.setType("inform");
-      send(myReply);
+	StringWriter text = new StringWriter();
+	matchesFound.toText(text);
+	String content = text.toString();
+
+	myReply.setContent(content);
+	myReply.setType("inform");
+	send(myReply);
+
+      }
+      else {
+	addBehaviour(new RecursiveSearchBehaviour(dfd, myReply, matchesFound, dfDepth - 1));
+      }
+
     }
 
+
   } // End of SrchBehaviour class
+
+  private class RecursiveSearchBehaviour extends SequentialBehaviour {
+
+    ACLMessage reply;
+    AgentManagementOntology.DFSearchResult result;
+
+    RecursiveSearchBehaviour(AgentManagementOntology.DFAgentDescriptor dfd, ACLMessage msg,
+			     AgentManagementOntology.DFSearchResult res, int dfDepth) {
+
+      reply = msg;
+      result = res;
+
+      ComplexBehaviour searchThemAll = NonDeterministicBehaviour.createWhenAll(df.this);
+
+      Vector constraints = new Vector();
+      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
+      c.setFn(AgentManagementOntology.Constraint.EXACTLY);
+      c.setArg(dfDepth);
+      constraints.addElement(c);
+
+      String convID = getName() + "-recursive-search-" + dfDepth;
+      ACLMessage request = new ACLMessage("request");
+      request.setConversationId(convID);
+      request.setSource(getName());
+
+      Enumeration e = subDFs.keys();
+      while(e.hasMoreElements()) {
+	String subDF = (String)e.nextElement();
+	ACLMessage copy = (ACLMessage)request.clone();
+	copy.setDest(subDF);
+	try {
+	  searchThemAll.addBehaviour(new SearchDFBehaviour(df.this, copy, dfd, constraints, result));
+	}
+	catch(FIPAException fe) {
+	  fe.printStackTrace();
+	}
+      }
+
+      addBehaviour(searchThemAll);
+
+      addBehaviour(new OneShotBehaviour(df.this) {
+
+	public void action() {
+	  StringWriter text = new StringWriter();
+	  try {
+	    result.toText(text);
+	    String content = text.toString();
+	    reply.setContent(content);
+	    reply.setType("inform");
+	    send(reply);
+	  }
+	  catch(FIPAException fe) {
+	    fe.printStackTrace();
+	  }
+
+	}
+      });
+
+    }
+
+  } // End of RecursiveSearchBehaviour
+
 
   private AgentManagementOntology myOntology;
   private FipaRequestServerBehaviour dispatcher;
@@ -404,26 +664,6 @@ public class df extends Agent {
     s = dfd.getDFState();
     if(s != null)
       toChange.setDFState(s);
-
-  }
-
-  private AgentManagementOntology.DFSearchResult DFSearch(AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
-
-    AgentManagementOntology.DFSearchResult matchesFound = new AgentManagementOntology.DFSearchResult();
-    Enumeration e = descriptors.elements();
-
-    while(e.hasMoreElements()) {
-      Object obj = e.nextElement();
-      AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
-      if(match(dfd, current)) {
-	matchesFound.put(current.getName(), current);
-      }
-
-    }
-
-    // FIXME: Must consider search constraints
-
-    return matchesFound;
 
   }
 
