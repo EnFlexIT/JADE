@@ -13,7 +13,8 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  inprocess/InProcessTest.java \
           jsp/Snooper.java jsp/Client.java jsp/Buffer.java PingAgent/PingAgent.java MessageTemplate/WaitAgent.java \
 	  thanksAgent/ThanksAgent.java \
-	  content/Sender.java content/Receiver.java
+	  content/Sender.java content/Receiver.java \
+          party/HostAgent.java
 
 all: 
 	@echo Making test examples

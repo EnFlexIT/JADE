@@ -340,3 +340,22 @@ This agent implements the following functionality:
  - It will send a message to them of greeting 
  - It will listen if there is some answer 
  - To the agents who answer it will thank to them to answer. 
+
+'party' subdirectory (example kindly provided by Ian Dickinson, HP Bristol)
+==========================================================================
+Agent representing the host for a party, to which a user-controlled number of 
+guests is invited.  The sequence is as follows: 
+the user selects a number guests to attend the party from 0 to 1000, using the
+slider on the UI.  When the party starts, the host creates N guest agents, 
+each of which registers with the DF, and sends the host a message to say that 
+they have arrived.  When all the guests have arrived, the party starts.  
+The host selects one guest at random, and tells them a rumour.
+The host then selects two other guests at random, and introduces them to each 
+other.  The party then proceeds as follows: each guest that is introduced to 
+someone asks the host to introduce them to another guest (at random).  
+If a guest has someone introduce themselves, and the guest knows
+the rumour, they tell the other guest.  When a guest hears the rumour for the 
+first time, they notify the host.  
+When all the guests have heard the rumour, the party ends and the guests leave.
+The following command line allows to start the party: 
+java jade.Boot -gui host:examples.party.HostAgent()
