@@ -48,7 +48,6 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.Codec;
 import jade.lang.acl.*;
 
-//import jade.onto.Name;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
