@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/03/30 13:35:15  rimassa
+  Changed some getName() calls to getLocalName().
+
   Revision 1.9  1998/10/18 16:10:24  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -35,19 +38,19 @@ public class AgentSender extends Agent {
       public void action() {
         try {
           byte[] buffer = new byte[1024];
-          System.out.println(getName()+" Enter an ACL message:");
+          System.out.println(getLocalName()+" Enter an ACL message:");
           int len = System.in.read(buffer);
           String content = new String(buffer,0,len-1);
 
           ACLMessage msg = ACLMessage.fromText(new StringReader(content));
-	  msg.setSource(getName());
+	  msg.setSource(getLocalName());
 
           send(msg);
 
-          System.out.println(getName() + " is waiting for reply..");
+          System.out.println(getLocalName() + " is waiting for reply..");
 
           ACLMessage reply = blockingReceive();
-	  System.out.println(getName()+ " received the following ACLMessage: " );
+	  System.out.println(getLocalName()+ " received the following ACLMessage: " );
 	  reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
         }
         catch(IOException ioe) {
