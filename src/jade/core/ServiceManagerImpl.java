@@ -440,6 +440,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	System.out.println("Removing node <" + desc.getName() + "> from the platform");
 
+	// Remove the node as a remote container
+	myMain.removeRemoteContainer(desc);
+
 	// Remove all the slices corresponding to the removed node
 	Object[] allServices = services.values().toArray();
 	for(int i = 0; i < allServices.length; i++) {
@@ -447,9 +450,6 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    //	    System.out.println("Removing slice for node <" + desc.getName() + "> from service " + e.getService().getName());
 	    e.removeSlice(desc.getName());
 	}
-
-	// Remove the node as a remote container
-	myMain.removeRemoteContainer(desc);
 
 	if(propagate) {
 	    // Tell all the other service managers about the removed node
