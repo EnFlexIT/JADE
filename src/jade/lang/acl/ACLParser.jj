@@ -93,6 +93,17 @@ public class ACLParser {
     return Message();
   }
 
+  public AID parseAID(Reader text) throws ParseException {
+    if(text != null) {
+      ReInit(text);
+    }
+
+    token_source.SwitchTo(AIDSTATE);
+    AID result = AgentIdentifier();
+    token_source.SwitchTo(DEFAULT);
+    return result;
+  }
+
   private String trimQuotes(String s) throws ParseException {
     s = s.trim();
     if(s.startsWith("\"") && (s.endsWith("\"")))
