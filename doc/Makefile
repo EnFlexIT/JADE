@@ -16,7 +16,8 @@ DOC_OUTDIR = $(DOCDIR)/api
 DOC_WINTITLE = "$(PACKAGE) $(VERSION) API Reference"
 TMPSRCDIR = $(DOCDIR)/__tmp
 
-API_FILES1 = 	jade/core/behaviours/package.html \
+API_FILES1 = 	jade/Boot.java \
+		jade/core/behaviours/package.html \
 		jade/core/behaviours/DataStore.java \
 		jade/core/behaviours/Behaviour.java \
 		jade/core/behaviours/CompositeBehaviour.java \
@@ -424,7 +425,7 @@ API_FILES10 =	jade/content/acl/Inform.java \
 API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FILES5) \
 		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
 
-API_PACKAGES = 	jade.core jade.core.behaviours jade.core.event jade.lang jade.lang.acl jade.lang.sl jade.domain \
+API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang jade.lang.acl jade.lang.sl jade.domain \
 		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic \
 		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
 		jade.domain.introspection jade.content jade.content.abs jade.content.acl jade.content.lang \

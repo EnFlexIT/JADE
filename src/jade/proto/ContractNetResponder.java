@@ -90,7 +90,7 @@ import java.util.Date;
 * that describes
 * the usage of this class.
 * @see jade.proto.ContractNetInitiator
-* @see jade.proto.AchieveREresponder
+* @see jade.proto.AchieveREResponder
 * 
 * @author Fabio Bellifemine - TILAB
 * @author Giovanni Caire - TILAB
