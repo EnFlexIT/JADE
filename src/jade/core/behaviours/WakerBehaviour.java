@@ -53,7 +53,7 @@ import java.util.*;
  */
 public abstract class WakerBehaviour extends SimpleBehaviour {
 
-private static final long MINIMUM_TIMEOUT = 10000; // 1 second
+  //private static final long MINIMUM_TIMEOUT = 10000; // 1 second
 
 /**
 @serial
@@ -99,9 +99,9 @@ public void action() {
   case 0: {
     // in this state the behaviour blocks itself
     blockTime = wakeupTime - System.currentTimeMillis();
-    if (blockTime < MINIMUM_TIMEOUT)
-      blockTime = MINIMUM_TIMEOUT;
-    block(blockTime);
+    if (blockTime > 0) // MINIMUM_TIMEOUT)
+      //blockTime = MINIMUM_TIMEOUT;
+      block(blockTime);
     state++;
     break;
   }
