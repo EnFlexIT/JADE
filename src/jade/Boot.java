@@ -51,6 +51,7 @@ public class Boot {
      * This static method parses the command line arguments and stores
      * all the information into the passed BootArgument object.
      **/
+
     private static void parseCommandLine(BootArguments ba, String args[]) {
 	int n = 0;
 	String fileName = null;
