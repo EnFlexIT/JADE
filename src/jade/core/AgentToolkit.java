@@ -54,7 +54,7 @@ interface AgentToolkit {
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
   void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException;
-  void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException;
+  void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException, NameClashException;
 
   Authority getAuthority();
   //#MIDP_EXCLUDE_END
