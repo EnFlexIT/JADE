@@ -28,6 +28,12 @@ package jade.util;
 import javax.microedition.rms.RecordStore;
 #MIDP_INCLUDE_END*/
 
+//#MIDP_EXCLUDE_BEGIN
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+//#MIDP_EXCLUDE_END
+
 /**
    This class provides a uniform way to produce logging printouts
    in a device dependent way. More in details if you are running 
@@ -40,7 +46,7 @@ import javax.microedition.rms.RecordStore;
    means of the <code>jade.util.leap.OutputViewer</code> MIDlet 
    included in the LEAP add-on.
  */
-public class Logger{
+public class Logger {
 
 	/*#MIDP_INCLUDE_BEGIN
 	private static final String OUTPUT = "OUTPUT";
@@ -76,6 +82,59 @@ public class Logger{
 		}
 		#MIDP_INCLUDE_END*/
 	}
+	
+	//#MIDP_EXCLUDE_BEGIN
+	private int verbosity;
+	private String id = null;
+	private boolean printThread;
+	private StringBuffer sb = new StringBuffer();
+	private DateFormat formatter = null;
+	
+	public Logger(String id, int verbosity, String timeFormat, boolean printThread) {
+		this.id = id;
+		this.verbosity = verbosity;
+		this.printThread = printThread;
+		if (timeFormat != null) {
+			formatter = new SimpleDateFormat(timeFormat);
+		}
+	}
+	
+	public void log(String msg, int level) {
+		if (verbosity >= level) {
+			// Time
+			if (formatter != null) {
+				sb.append(formatter.format(new Date()));
+			}
+			else {
+				sb.append(System.currentTimeMillis());
+			}
+			sb.append(' ');
+			
+			// Level
+			sb.append("[LVL-");
+			sb.append(level);
+			sb.append(']');
+			
+			// ID
+			sb.append('[');
+			sb.append(id);
+			sb.append(']');
+		
+			// Thread
+			if (printThread) {
+				sb.append('[');
+				sb.append(Thread.currentThread().getName());
+				sb.append("] ");
+			}
+			
+			// Message
+			sb.append(msg);
+			
+			println(sb.toString());
+			sb.setLength(0);
+		}
+	}
+	//#MIDP_EXCLUDE_END
 }
 
     
