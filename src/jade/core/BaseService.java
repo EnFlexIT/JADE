@@ -51,6 +51,27 @@ public abstract class BaseService implements Service {
 
 	slices = new HashMap();
 	aliases = new HashMap();
+	
+	//#MIDP_EXCLUDE_BEGIN
+	int verbosity = 0;
+	try {
+		String className = getClass().getName();
+		String tmp = className.replace('.', '_');
+		String verbosityKey = tmp+"_verbosity";
+		String verbosityFormatKey = tmp+"_verbosity_format";
+		verbosity = Integer.parseInt(p.getParameter(verbosityKey, null));
+		if (verbosity > 0) {
+			int index = className.lastIndexOf('.');
+			String name = (index < 0 ? className : className.substring(index+1));
+			myLogger = new jade.util.Logger(name, verbosity, null, p.getParameter(verbosityFormatKey, "%t [%i] %m"));
+		}
+		
+		log("Initialized", 1);
+	}
+	catch (Exception e) {
+		// Ignore and keep default: no logs
+	}
+	//#MIDP_EXCLUDE_END	
     }
 
     // Package scoped method to receive the Command Processor from the
@@ -214,4 +235,13 @@ public abstract class BaseService implements Service {
     private Map slices;
     private Map aliases;
 
+    //#MIDP_EXCLUDE_BEGIN
+    protected jade.util.Logger myLogger;
+    
+    protected void log(String msg, int level) {
+    	if (myLogger != null) {
+    		myLogger.log(msg, level);
+    	}
+    }
+    //#MIDP_EXCLUDE_END
 }

@@ -114,19 +114,6 @@ public class AgentMobilityService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
-	
-	int verbosity = 0;
-	try {
-		verbosity = Integer.parseInt(p.getParameter(VERBOSITY_KEY, null));
-	}
-	catch (Exception e) {
-		// Ignore and keep default (0)
-	}
-	if (verbosity > 0) {
-		myLogger = new Logger("Mobility-service", verbosity, null, p.getParameter(VERBOSITY_FORMAT_KEY, "%t [%i] %m"));
-	}
-	
-	log("Initialized", 1);
     }
 
     public String getName() {
@@ -995,13 +982,6 @@ public class AgentMobilityService extends BaseService {
         } 
     }    // END of inner class Deserializer
 
-
-    private void log(String s, int level) {
-	if (myLogger != null) {
-		myLogger.log(s, level);
-	}
-    }
-
     // This Map holds the mapping between a container and the class loader
     // that can retrieve agent classes from this container.
     private final Map loaders = new HashMap();
@@ -1013,13 +993,6 @@ public class AgentMobilityService extends BaseService {
     // The concrete agent container, providing access to LADT, etc.
     private AgentContainer myContainer;
 
-    // The ResourceManager of the local container
-    //private ResourceManager myResourceManager;
-    
-    private static final String VERBOSITY_KEY = "jade_core_mobility_AgentMobilityService_verbosity";
-    private static final String VERBOSITY_FORMAT_KEY = "jade_core_mobility_AgentMobilityService_verbosity_format";
-		private Logger myLogger;
-		
     // The local slice for this service
     private final ServiceComponent localSlice = new ServiceComponent();
 
