@@ -97,7 +97,7 @@ public class OutgoingEncodingFilter extends Filter {
       //DEBUG
       //System.out.println(gmsg);
 
-      // checks if the agent is on the same container or not
+      // check if the agent is on the same container or not
       synchronized (myAgentContainer){
         if (myAgentContainer.acquireLocalAgent(receiver)!=null){
           // local container
