@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.20  1999/07/02 12:02:53  rimassa
+  Touched this file fot release 1.0
+
   Revision 1.19  1999/06/04 07:41:05  rimassa
   Removed any direct relation with AgentContainer and AgentPLatform
   classes. Now class jade.core.Starter is used instead.
@@ -58,6 +61,7 @@
 */
 
 package jade;
+
 
 
 import java.net.InetAddress;
