@@ -22,6 +22,9 @@ package jade.wrapper;
 
 /**
  * Defines the interface to all concrete implementations of state representation.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  * @author Kevin A. Minder, David Bell, Dick Cowan : Hewlett-Packard
  */
 public interface State {

@@ -28,6 +28,9 @@ import java.util.EventObject;
 
 /**
  * Defines those methods which are permitted on a platform.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  * @author David Bell, Dick Cowan: Hewlett-Packard
  */
 public interface PlatformController

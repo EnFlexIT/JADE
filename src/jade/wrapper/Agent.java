@@ -34,14 +34,17 @@ import jade.core.Location;
    not be instantiated by applications. Instead, use the
    <code>createAgent()</code> method in class
    <code>AgentContainer</code>.
-   @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
+   @see jade.wrapper.AgentContainer#createNewAgent(String, String, Object[])
    @author Giovanni Rimassa - Universita' di Parma
  */
 public class Agent implements AgentController {
 
   /**
      Constant representing an asynchronous rendez-vous policy.
-     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
+     @see jade.wrapper.Agent#putO2AObject(Object, boolean)
    */
   public static final boolean ASYNC = false;
 
@@ -58,9 +61,9 @@ public class Agent implements AgentController {
      Default constructor. This should not be called by applications,
      but the method <code>AgentContainer.createAgent()</code> should
      be used instead.
-
-     @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
-     @param a A real JADE agent, that will be wrapped by this proxy.
+     @param id The <code>AID</code> of the agent to be wrapped by this proxy.
+     @param a The real JADE agent, that will be wrapped by this proxy.
+     @see jade.wrapper.AgentContainer#createNewAgent(String, String, Object[]) 
    */
   public Agent(AID id, jade.core.Agent a) {
     agentID = id;
@@ -121,13 +124,6 @@ public class Agent implements AgentController {
     adaptee.doActivate();
   }
 
-    /**
-     * @see #kill
-     * @deprecated this method is here for backward compatibility, use kill instead
-     **
-    public void delete() throws StaleProxyException {
-	kill();
-    }*/
   /**
      Triggers a state transition from <b>ACTIVE</b> to
      <b>DELETED</b>. This call also stops the internal agent thread

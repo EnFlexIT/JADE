@@ -35,7 +35,7 @@ import java.lang.reflect.*;
 
 /**
  * Backward Compatible reflective introspector. This Introspector 
- * uses Java Reflection to translate java object to/from abstract
+ * uses Java Reflection to translate java objects to/from abstract
  * descriptors as the <code>ReflectiveIntrospector</code> does, but 
  * it assumes the accessors methods for aggregate slots to be in the 
  * "old JADE style" i.e.
@@ -45,7 +45,10 @@ import java.lang.reflect.*;
  * <ul>
  *  	<li> <code>Iterator getAllXXX()</code>
  *  	<li> <code>void addXXX(T t)</code>
- * </ul>
+ * </ul> 
+ * <br>
+ * <b>NOT available in MIDP</b>
+ * <br>
  * @author Giovanni Caire - TILAB
  */
 public class BCReflectiveIntrospector extends ReflectiveIntrospector {

@@ -26,7 +26,9 @@ package jade.wrapper;
 import java.util.EventObject;
 
 /**
-   
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
 */
 public interface PlatformEvent {
 

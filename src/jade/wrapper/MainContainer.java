@@ -33,6 +33,9 @@ import jade.core.AgentContainerImpl;
    This class must not be instantiated by applications. Instead, use
    the <code>createMainContainer()</code> method in class
    <code>Runtime</code>.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
    @see jade.core.Runtime#createMainContainer(Profile p)
 
    @author Giovanni Rimassa - Universita` di Parma

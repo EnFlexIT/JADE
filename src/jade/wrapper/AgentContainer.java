@@ -45,6 +45,9 @@ import java.util.Enumeration;
    This class must not be instantiated by applications. Instead, use
    the <code>createContainer()</code> method in class
    <code>Runtime</code>.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
    @see jade.core.Runtime#createAgentContainer(Profile)
 
    @author Giovanni Rimassa - Universita' di Parma

@@ -23,6 +23,9 @@ package jade.wrapper;
 
 /**
  * Defines those methods which are permitted to control a JADE agent.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  * @author David Bell, Dick Cowan: Hewlett-Packard
  */
 public interface AgentController

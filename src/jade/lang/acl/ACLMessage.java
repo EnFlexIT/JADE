@@ -777,7 +777,6 @@ private int performative; // keeps the performative type of this object
   /**
      Reads <code>:reply-by</code> slot.
      @return The value of <code>:reply-by</code>slot, as a string.
-     @see jade.lang.acl.ACLMessage#setReplyBy(String).
      @see jade.lang.acl.ACLMessage#getReplyByDate().
      @deprecated Since the value of this slot is a Date by definition, then
      the <code>getReplyByDate</code> should be used that returns a Date

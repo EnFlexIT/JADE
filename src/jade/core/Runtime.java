@@ -94,6 +94,9 @@ public class Runtime {
   /**
      Creates a new agent container in the current JVM, providing
      access through a proxy object.  
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
      @param p the profile containing boostrap and configuration
      data for this container
      @return A proxy object, through which services can be requested
@@ -119,6 +122,9 @@ public class Runtime {
   /**
      Creates a new main container in the current JVM, providing
      access through a proxy object.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param p the profile containing boostrap and configuration
      data for this container
      @return A proxy object, through which services can be requested
@@ -269,6 +275,7 @@ public class Runtime {
   //#APIDOC_EXCLUDE_END
 
 
+  //#APIDOC_EXCLUDE_BEGIN
   /**
    * Return a String with copyright Notice, Name and Version of this version of JADE
    */
@@ -292,6 +299,7 @@ public class Runtime {
     date = date.trim();
     return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
   }
+  //#APIDOC_EXCLUDE_END
 }
    
  

@@ -25,6 +25,9 @@ import jade.util.leap.Comparable;
 
 /**
  * Provides an abstract base class for implementations of state.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  * @author David Bell, Dick Cowan: Hewlett-Packard
  */
 public abstract class StateBase implements State, Comparable, Serializable {

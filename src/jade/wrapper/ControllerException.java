@@ -24,6 +24,9 @@ package jade.wrapper;
 /**
  * This exception class is thrown when an operation fails on any
  * of the agent controller methods.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  */
 public class ControllerException extends Exception {
 

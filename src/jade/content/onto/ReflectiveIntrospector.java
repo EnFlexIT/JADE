@@ -35,9 +35,12 @@ import java.lang.reflect.*;
 import jade.core.CaseInsensitiveString;
 
 /**
-   The default introspector for user defined ontologies. This
-   introspector is higly based on Java reflection and is therefore
-   not available when working in a MIDP environment.
+   The default introspector for user defined ontologies that uses 
+   Java Reflection to translate java objects to/from abstract
+   descriptors.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
    @author Federico Bergenti - Universita` di Parma
    @author Giovanni Caire - TILAB
  */

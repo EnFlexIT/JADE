@@ -85,7 +85,11 @@ import javax.microedition.midlet.*;
    @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
-public class Agent implements Runnable, Serializable, TimerListener {
+public class Agent implements Runnable, Serializable 
+	//#APIDOC_EXCLUDE_BEGIN
+	, TimerListener 
+	//#APIDOC_EXCLUDE_END
+	{
   private static final long     serialVersionUID = 3487495895819000L;
 	
   // This inner class is used to force agent termination when a signal
@@ -502,6 +506,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
    /**
     * Return a controller for this agents container. 
+    * <br>
+    * <b>NOT available in MIDP</b>
+    * <br>
     * @return jade.wrapper.AgentContainer The proxy container for this agent.
     */
    public final jade.wrapper.AgentContainer getContainerController() {
@@ -868,6 +875,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      <em>transit</em> within Agent Platform Life Cycle. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a migration process.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param destination The <code>Location</code> to migrate to.
   */
   public void doMove(Location destination) {
@@ -890,6 +900,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      <em>copy</em> within Agent Platform Life Cycle. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a clonation process.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param destination The <code>Location</code> where the copy agent will start.
      @param newName The name that will be given to the copy agent.
   */
@@ -1107,6 +1120,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      record a snapshot of the agent state on a file or to send it
      through a network connection. Of course, the whole agent must
      be serializable in order to be written successfully.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param s The stream this agent will be sent to. The stream is
      <em>not</em> closed on exit.
      @exception IOException Thrown if some I/O error occurs during
@@ -1124,6 +1140,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      it under its former name. This method can realize some sort of
      mobility through time, where an agent is saved, then destroyed
      and then restarted from the saved copy.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param s The stream the agent will be read from. The stream is
      <em>not</em> closed on exit.
      @exception IOException Thrown if some I/O error occurs during
@@ -1148,6 +1167,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      through streams, where an agent is saved, then an exact copy of
      it is restarted as a completely separated agent, with the same
      state but with different identity and address.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param s The stream the agent will be read from. The stream is
      <em>not</em> closed on exit.
      @param agentName The name of the new agent, copy of the saved
@@ -1174,6 +1196,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      must contain the saved state of <b>the same agent</b> that it is
      trying to restore itself; that is, <em>both</em> the Java object
      <em>and</em> the agent name must be the same.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param s The input stream the agent state will be read from.
      @exception IOException Thrown if some I/O error occurs during
      stream reading.
@@ -1186,6 +1211,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   /**
      This method should not be used by application code. Use the
      same-named method of <code>jade.wrapper.Agent</code> instead.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
    */
   public void putO2AObject(Object o, boolean blocking) throws InterruptedException {
@@ -1229,6 +1257,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      If the retrieved object was originally inserted by an external
      component using a blocking call, that call will return during the
      execution of this method.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @return the first object in the queue, or <code>null</code> if
      the queue is empty.
      @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
@@ -1263,6 +1294,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
      This method declares this agent attitude towards object-to-agent
      communication, that is, whether the agent accepts to communicate
      with other non-JADE components living within the same JVM.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @param enabled Tells whether Java objects inserted with
      <code>putO2AObject()</code> will be accepted.
      @param queueSize If the object-to-agent communication is enabled,
@@ -1442,6 +1476,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     Actions to perform before moving. This empty placeholder method can be
     overridden by user defined agents to execute some actions just before
     leaving an agent container for a migration.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
   */
   protected void beforeMove() {}
 
@@ -1449,6 +1486,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     Actions to perform after moving. This empty placeholder method can be
     overridden by user defined agents to execute some actions just after
     arriving to the destination agent container for a migration.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
   */
   protected void afterMove() {}
 
@@ -1456,6 +1496,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     Actions to perform before cloning. This empty placeholder method can be
     overridden by user defined agents to execute some actions just before
     copying an agent to another agent container.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
   */
   protected void beforeClone() {}
 
@@ -1463,6 +1506,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     Actions to perform after cloning. This empty placeholder method can be
     overridden by user defined agents to execute some actions just after
     creating an agent copy to the destination agent container.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
   */
   protected void afterClone() {}
 	//#MIDP_EXCLUDE_END
@@ -1842,14 +1888,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
   /**
      Receives an <b>ACL</b> message from the agent message
      queue. This method is blocking and suspends the whole agent until
-     a message is available in the queue. JADE provides a special
-     behaviour named <code>ReceiverBehaviour</code> to wait for a
-     message within a behaviour without suspending all the others and
-     without wasting CPU time doing busy waiting.
+     a message is available in the queue. 
      @return A new ACL message, blocking the agent until one is
      available.
+     @see jade.core.Agent#receive()
      @see jade.lang.acl.ACLMessage
-     @see jade.core.behaviours.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive() {
     ACLMessage msg = null;
@@ -1880,18 +1923,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
   /**
      Receives an <b>ACL</b> message matching a given message
      template. This method is blocking and suspends the whole agent
-     until a message is available in the queue. JADE provides a
-     special behaviour named <code>ReceiverBehaviour</code> to wait
-     for a specific kind of message within a behaviour without
-     suspending all the others and without wasting CPU time doing busy
-     waiting.
+     until a message is available in the queue. 
      @param pattern A message template to match received messages
      against.
      @return A new ACL message matching the given template, blocking
      until such a message is available.
+     @see jade.core.Agent#receive(MessageTemplate)
      @see jade.lang.acl.ACLMessage
      @see jade.lang.acl.MessageTemplate
-     @see jade.core.behaviours.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
     ACLMessage msg = null;

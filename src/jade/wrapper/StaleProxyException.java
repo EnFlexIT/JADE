@@ -26,6 +26,9 @@ package jade.wrapper;
 /**
  This exception class is thrown when an attempt to use a stale
  (i.e. outdated) wrapper object is made.
+ <br>
+ <b>NOT available in MIDP</b>
+ <br>
  */
 public class StaleProxyException extends ControllerException {
 

@@ -24,6 +24,9 @@ import java.io.Serializable;
 
 /**
  * Provides a concrete implementation of the State interface for agent platforms.
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
  * @author David Bell, Dick Cowan: Hewlett-Packard
  */
 public class PlatformState extends StateBase {
