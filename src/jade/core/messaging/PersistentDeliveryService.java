@@ -71,6 +71,44 @@ import jade.util.Logger;
 
 */
 public class PersistentDeliveryService extends BaseService {
+  /**
+     This constant is the name of the property whose value contains
+     the name of the application-specific class that will be used by the
+     PersistentDeliveryService on the local container as a filter for 
+     undelivered ACL messages
+  */
+  public static final String PERSISTENT_DELIVERY_FILTER = "persistent-delivery-filter";
+
+  /**
+     This constant is the name of the property whose value contains an
+     integer representing how often (in milliseconds) the 
+     PersistentDeliveryService will try to
+     send again previously undelivered ACL messages which have been
+     buffered.
+  */
+  public static final String PERSISTENT_DELIVERY_SENDFAILUREPERIOD = "persistent-delivery-sendfailureperiod";
+
+  /**
+     This constant is the name of the property whose value contains
+     the storage method used to persist undelivered ACL messages by
+     the PersistentDeliveryService on the local container.
+     The supported values for this parameter are:
+     <ul>
+     <li><b>file</b> - A directory tree on the local filesystem is used.</li>
+     </ul>
+     If this property is not specified undelivered ACL messages are
+     kept in memory and not persisted at all.
+  */
+  public static final String PERSISTENT_DELIVERY_STORAGEMETHOD = "persistent-delivery-storagemethod";
+
+  /**
+     This constant is the name of the property whose value contains
+     the root of the directory tree that is used to persist
+     undelivered ACL messages when the <i>file</i> storage
+     method is selected.
+  */
+  public static final String PERSISTENT_DELIVERY_BASEDIR = "persistent-delivery-basedir";
+
 
 	static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
 
@@ -604,7 +642,7 @@ public class PersistentDeliveryService extends BaseService {
     public void boot(Profile myProfile) throws ServiceException {
 	try {
 	    // Load the supplied class to filter messages if any
-	    String className = myProfile.getParameter(Profile.PERSISTENT_DELIVERY_FILTER, null);
+	    String className = myProfile.getParameter(PERSISTENT_DELIVERY_FILTER, null);
 	    if(className != null) {
 				Class c = Class.forName(className);
 				messageFilter = (PersistentDeliveryFilter)c.newInstance();

@@ -176,7 +176,7 @@ class PersistentDeliveryManager {
 
     try {
       // Choose the persistent storage method
-      String storageClass = p.getParameter(Profile.PERSISTENT_DELIVERY_STORAGEMETHOD,DEFAULT_STORAGE);
+      String storageClass = p.getParameter(PersistentDeliveryService.PERSISTENT_DELIVERY_STORAGEMETHOD,DEFAULT_STORAGE);
       storage = (MessageStorage)Class.forName(storageClass).newInstance();
       storage.init(p);
       
@@ -217,7 +217,7 @@ class PersistentDeliveryManager {
     }
 
     sendFailurePeriod = DEFAULT_SENDFAILUREPERIOD;
-    String s = p.getParameter(Profile.PERSISTENT_DELIVERY_SENDFAILUREPERIOD, null);
+    String s = p.getParameter(PersistentDeliveryService.PERSISTENT_DELIVERY_SENDFAILUREPERIOD, null);
     if(s != null) {
 	    try {
         sendFailurePeriod = Long.parseLong(s);

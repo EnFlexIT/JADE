@@ -55,7 +55,7 @@ class FileMessageStorage implements MessageStorage {
 
   public void init(Profile p) {
     // Retrieve the base directory from the profile
-    String s = p.getParameter(Profile.PERSISTENT_DELIVERY_BASEDIR, null);
+    String s = p.getParameter(PersistentDeliveryService.PERSISTENT_DELIVERY_BASEDIR, null);
     if(s == null) {
 	    s = "." + File.separator + "PersistentDeliveryStore";
     }
