@@ -69,6 +69,9 @@ ant dist - to create the distribution files
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
+    <copy todir="${build}/jade/tools/logging/images">
+      <fileset dir="${src}/jade/tools/logging/images"/>
+    </copy>
     <copy todir="${build}/jade/tools/sniffer/images">
       <fileset dir="${src}/jade/tools/sniffer/images"/>
     </copy>
