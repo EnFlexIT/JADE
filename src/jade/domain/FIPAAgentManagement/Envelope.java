@@ -207,6 +207,10 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 
     /**
        Set the <code>payload-encoding</code> slot of this object.
+       This slot can be used to specify a different charset than 
+       the standard one (US-ASCII) in order for instance to support
+       accentuated characters in the content slot of the ACL message
+       (e.g. setPayloadEncoding("UTF-8")).
        @param e The string for the payload encoding.
     */
     public void setPayloadEncoding(String e) {

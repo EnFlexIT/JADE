@@ -34,6 +34,8 @@ package jade.lang.acl;
  */
 public interface ACLCodec {
 
+  public static final String DEFAULT_CHARSET = "US-ASCII";
+
   /**
     This exception is thrown when some problem occurs in the concrete parsing
     subsystem accessed through this interface. If an exception is thrown by the
@@ -82,20 +84,22 @@ public interface ACLCodec {
      Encodes an <code>ACLMessage</code> object into a byte sequence,
      according to the specific message representation.
      @param msg The ACL message to encode.
+     @param charset Charset encoding to use (e.g. US_ASCII, UTF-8, etc)
      @return a byte array, containing the encoded message.
   */
-  byte[] encode(ACLMessage msg);
+  byte[] encode(ACLMessage msg, String charset);
 
   /**
      Recovers an <code>ACLMessage</code> object back from raw data,
      using the specific message representation to interpret the byte
      sequence.
      @param data The byte sequence containing the encoded message.
+     @param charset Charset encoding to use (e.g. US_ASCII, UTF-8, etc)
      @return A new <code>ACLMessage</code> object, built from the raw
      data.
      @exception CodecException If some kind of syntax error occurs.
    */
-  ACLMessage decode(byte[] data) throws CodecException;
+  ACLMessage decode(byte[] data, String charset) throws CodecException;
 
   /**
      Query the name of the message representation handled by this

@@ -50,9 +50,10 @@ public class LEAPACLCodec implements ACLCodec{
    * Encodes an <code>ACLMessage</code> object into a byte sequence,
    * according to the specific message representation.
    * @param msg The ACL message to encode.
+   * @param charset This parameter is not taken into account
    * @return a byte array, containing the encoded message.
    */
-  public byte[] encode(ACLMessage msg){
+  public byte[] encode(ACLMessage msg, String charset){
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(baos);
     try{
@@ -71,11 +72,12 @@ public class LEAPACLCodec implements ACLCodec{
    * using the specific message representation to interpret the byte
    * sequence.
    * @param data The byte sequence containing the encoded message.
+   * @param charset This parameter is not taken into account
    * @return A new <code>ACLMessage</code> object, built from the raw
    * data.
    * @exception CodecException If some kind of syntax error occurs.
    */
-  public ACLMessage decode(byte[] data) throws CodecException{
+  public ACLMessage decode(byte[] data, String charset) throws CodecException{
     DataInputStream din = new DataInputStream(new ByteArrayInputStream(data));
     try{
       return deserializeACL(din);

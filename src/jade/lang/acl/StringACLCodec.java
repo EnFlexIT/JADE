@@ -36,19 +36,20 @@ import java.util.Date;
 import starlight.util.Base64;
 
 /**
-  This class implements the FIPA String codec for ACLMessages.
-  Notice that it is not possible to convey 
-  a sequence of bytes over a StringACLCodec because the bytes with
-  the 8th bit ON cannot properly converted into a char.
- @author Fabio Bellifemine - CSELT S.p.A.
- @version $Date$ $Revision$
+ * This class implements the FIPA String codec for ACLMessages.
+ * Notice that it is not possible to convey 
+ * a sequence of bytes over a StringACLCodec because the bytes with
+ * the 8th bit ON cannot properly converted into a char.
+ * @author Fabio Bellifemine - CSELT S.p.A.
+ * @author Nicolas Lhuillier - Motorola
+ * @version $Date$ $Revision$
  **/
 public class StringACLCodec implements ACLCodec {
-
-    /**
-       String constant for the name of the ACL representation managed
-       by this ACL codec.
-    */
+  
+  /**
+     String constant for the name of the ACL representation managed
+     by this ACL codec.
+  */
   public static final String NAME = jade.domain.FIPANames.ACLCodec.STRING; 
 
     /** Key of the user-defined parameter used to signal the automatic JADE
@@ -299,9 +300,9 @@ public class StringACLCodec implements ACLCodec {
    * of the encoding slot.
    * @see ACLCodec#encode(ACLMessage msg)
    */
-  public byte[] encode(ACLMessage msg) {
+  public byte[] encode(ACLMessage msg, String charset) {
     try {
-	return toString(msg).getBytes("US-ASCII");
+      return toString(msg).getBytes(charset);
     }
     catch(IOException ioe) {
       ioe.printStackTrace();
@@ -312,9 +313,9 @@ public class StringACLCodec implements ACLCodec {
   /**
    * @see ACLCodec#decode(byte[] data)
    */
-  public ACLMessage decode(byte[] data) throws ACLCodec.CodecException {
+  public ACLMessage decode(byte[] data, String charset) throws ACLCodec.CodecException {
     try {
-      ACLMessage msg = ACLParser.create().parse(new InputStreamReader(new ByteArrayInputStream(data)));
+      ACLMessage msg = ACLParser.create().parse(new InputStreamReader(new ByteArrayInputStream(data),charset));
       checkBase64Encoding(msg);
       return msg;
     } catch (jade.lang.acl.TokenMgrError e1) {

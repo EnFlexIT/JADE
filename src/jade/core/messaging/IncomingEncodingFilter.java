@@ -41,12 +41,13 @@ import jade.lang.acl.LEAPACLCodec;
  * Class that filters incoming commands related to encoding of ACL messages.
  *
  * @author Jerome Picault - Motorola Labs
+ * @author Nicolas Lhuillier - Motorola Labs
  * @version $Date$ $Revision$
  */
 public class IncomingEncodingFilter extends Filter {
 
   private Map messageEncodings;
-
+  
   public IncomingEncodingFilter(Map m){
     messageEncodings = m;
     setPreferredPosition(50);
@@ -145,13 +146,18 @@ public class IncomingEncodingFilter extends Filter {
       // no envelope means inter-container communication; use LEAP codec
       enc = LEAPACLCodec.NAME.toLowerCase();
     }
-    if(enc != null) { // A Codec was selected
+    if (enc != null) { // A Codec was selected
 	    ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
-	    if(codec!=null) {
+	    if (codec != null) {
     		// Supported Codec
-    		// FIXME: should verifY that the receivers supports this Codec
-    		return codec.decode(payload);
-	    } else {
+    		String charset;
+        if ((env == null) ||
+            ((charset = env.getPayloadEncoding()) == null)) {
+          charset = ACLCodec.DEFAULT_CHARSET;
+        }
+        return codec.decode(payload,charset);
+	    } 
+      else {
     		// Unsupported Codec
     		//FIXME: find the best according to the supported, the MTP (and the receivers Codec)
     		throw new MessagingService.UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");

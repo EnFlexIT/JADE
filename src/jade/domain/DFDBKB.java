@@ -32,6 +32,7 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.KBManagement.*;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 import jade.proto.SubscriptionResponder;
 
@@ -833,7 +834,7 @@ class DFDBKB extends DBKB {
      					i = 10;
      			}
 		   		byte[] aclB = aclS.getBytes();
-				ACLMessage aclSub = conv.decode(aclB);
+				ACLMessage aclSub = conv.decode(aclB,ACLCodec.DEFAULT_CHARSET);
 				
 				//SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
 				vRis.add(sr.createSubscription(aclSub));			
@@ -875,7 +876,7 @@ class DFDBKB extends DBKB {
 		   		aclS = replace(aclS, "''", "'");
 		   		byte[] aclB = aclS.getBytes();
 
-				ACLMessage aclSub = conv.decode(aclB);
+				ACLMessage aclSub = conv.decode(aclB,ACLCodec.DEFAULT_CHARSET);
 				//SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
 				vRis.add(sr.createSubscription(aclSub));			
       		}

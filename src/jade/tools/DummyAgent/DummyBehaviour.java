@@ -35,6 +35,7 @@ import java.util.*;
 import jade.core.*;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.*;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -93,7 +94,13 @@ class DummyBehaviour extends SimpleBehaviour
 			agent.getGui().queuedMsgListModel.add(0, (Object) new MsgIndication(msg, MsgIndication.INCOMING, new Date()));
 			StringACLCodec codec = new StringACLCodec();
 		  try {
-		  	codec.decode(codec.encode(msg));
+		  	String charset;
+        Envelope e;
+        if (((e = msg.getEnvelope()) == null) ||
+            ((charset = e.getPayloadEncoding()) == null)) {
+          charset = ACLCodec.DEFAULT_CHARSET;
+        }
+        codec.decode(codec.encode(msg,charset),charset);
 		  } catch (ACLCodec.CodecException ce) {
 					System.out.println("Received a wrong ACL Message");
 					ce.printStackTrace();

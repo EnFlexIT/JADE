@@ -28,6 +28,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 
+import jade.domain.FIPAAgentManagement.Envelope;
+
 import jade.domain.introspection.SentMessage;
 import jade.domain.introspection.PostedMessage;
 import jade.domain.introspection.ReceivedMessage;
@@ -48,11 +50,17 @@ public class TableUpdater implements Runnable {
     try {
       modelFrom = null;
       modelTo = wnd.getOutProcessedModel();
-
-      String s = sm.getMessage().getPayload();
+      String charset; 
+      Envelope e;
+      jade.domain.introspection.ACLMessage m = sm.getMessage();
+      if (((e = m.getEnvelope()) == null) ||
+          ((charset = e.getPayloadEncoding()) == null)) {
+        charset = ACLCodec.DEFAULT_CHARSET;
+      }
+      String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes());
-      msg.setEnvelope(sm.getMessage().getEnvelope());
+      msg = codec.decode(s.getBytes(),charset);
+      msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();
@@ -63,11 +71,17 @@ public class TableUpdater implements Runnable {
     try {
       modelFrom = null;
       modelTo = wnd.getInPendingModel();
-
-      String s = pm.getMessage().getPayload();
+      String charset; 
+      Envelope e;
+      jade.domain.introspection.ACLMessage m = pm.getMessage();
+      if (((e = m.getEnvelope()) == null) ||
+          ((charset = e.getPayloadEncoding()) == null)) {
+        charset = ACLCodec.DEFAULT_CHARSET;
+      }
+      String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes());
-      msg.setEnvelope(pm.getMessage().getEnvelope());
+      msg = codec.decode(s.getBytes(),charset);
+      msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();
@@ -78,11 +92,17 @@ public class TableUpdater implements Runnable {
     try {
       modelFrom = wnd.getInPendingModel();
       modelTo = wnd.getInProcessedModel();
-
-      String s = rm.getMessage().getPayload();
+      String charset; 
+      Envelope e;
+      jade.domain.introspection.ACLMessage m = rm.getMessage();
+      if (((e = m.getEnvelope()) == null) ||
+          ((charset = e.getPayloadEncoding()) == null)) {
+        charset = ACLCodec.DEFAULT_CHARSET;
+      }
+      String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes());
-      msg.setEnvelope(rm.getMessage().getEnvelope());
+      msg = codec.decode(s.getBytes(),charset);
+      msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();

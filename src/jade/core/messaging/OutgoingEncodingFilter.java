@@ -48,10 +48,11 @@ import jade.util.leap.Map;
  * Class that filters outgoing commands related to the encoding of ACL messages
  *
  * @author Jerome Picault - Motorola Labs
+ * @author Nicolas Lhuillier - Motorola Labs
  * @version $Date$ $Revision$
  */
 public class OutgoingEncodingFilter extends Filter {
-
+  
   private Map messageEncodings;
   private AgentContainer myAgentContainer;
 
@@ -205,18 +206,21 @@ public class OutgoingEncodingFilter extends Filter {
     // handleSend() method
     env.clearAllIntendedReceiver();
     env.addIntendedReceiver(receiver);
-
-    String comments = env.getComments();
-    if(comments == null)
-	    env.setComments("");
-
+    
     Long payloadLength = env.getPayloadLength();
     if(payloadLength == null)
 	    env.setPayloadLength(new Long(-1));
-
-    String payloadEncoding = env.getPayloadEncoding();
-    if(payloadEncoding == null)
-	    env.setPayloadEncoding("");
+    
+    /*
+      Moved to IIOP MessageTransportProtocol class
+      String comments = env.getComments();
+      if(comments == null)
+      env.setComments("");
+      
+      String payloadEncoding = env.getPayloadEncoding();
+      if(payloadEncoding == null)
+      env.setPayloadEncoding("");
+    */
   }
 
   /**
@@ -235,8 +239,13 @@ public class OutgoingEncodingFilter extends Filter {
 	    ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
 	    if(codec!=null) {
     		// Supported Codec
-    		// FIXME: should verifY that the recevivers supports this Codec
-    		return codec.encode(msg);
+    		// FIXME: should verifY that the receivers supports this Codec
+    		String charset;  
+        if ((env == null) ||
+            ((charset = env.getPayloadEncoding()) == null)) {
+          charset = ACLCodec.DEFAULT_CHARSET;
+        }
+        return codec.encode(msg,charset);
 	    }
 	    else {
     		// Unsupported Codec

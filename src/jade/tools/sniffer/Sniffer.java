@@ -207,10 +207,15 @@ public class Sniffer extends ToolAgent {
 	  } else return;
 
 	  ACLCodec codec = new StringACLCodec();
-	  ACLMessage tmp = codec.decode(content.getBytes());
+    String charset;  
+    if ((env == null) ||
+        ((charset = env.getPayloadEncoding()) == null)) {
+      charset = ACLCodec.DEFAULT_CHARSET;
+    }
+	  ACLMessage tmp = codec.decode(content.getBytes(),charset);
 	  tmp.setEnvelope(env);
 	  Message msg = new Message(tmp);
-
+    
 	  // If this is a 'posted-message' event and the sender is
 	  // currently under sniff, then the message was already
 	  // displayed when the 'sent-message' event occurred. In that

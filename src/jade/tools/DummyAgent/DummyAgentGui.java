@@ -38,6 +38,7 @@ import java.io.*;
 import jade.core.*;
 import jade.lang.acl.*;
 import jade.gui.*;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -164,19 +165,25 @@ class DummyAgentGui extends JFrame
 
 	  currentMsgMenu.add (item = new JMenuItem ("Send"));
 		Action sendAction = new AbstractAction("Send", sendImg){
-			public void actionPerformed(ActionEvent e)
-			{
+			public void actionPerformed(ActionEvent e) {
 			  ACLMessage m = currentMsgGui.getMsg();
 			  queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
 		    StringACLCodec codec = new StringACLCodec();
 		    try {
-		      codec.decode(codec.encode(m));
-		      myAgent.send(m);
-		    } catch (ACLCodec.CodecException ce) {	
+          String charset;  
+          Envelope env;
+          if (((env = m.getEnvelope()) == null) ||
+              ((charset = env.getPayloadEncoding()) == null)) {
+                charset = ACLCodec.DEFAULT_CHARSET;
+              }
+          codec.decode(codec.encode(m,charset),charset);
+          myAgent.send(m);
+		    } 
+        catch (ACLCodec.CodecException ce) {	
 		  	  System.out.println("Wrong ACL Message " + m.toString());
 			    ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
-						  }
+        }
 			}
 		};
 		
@@ -196,10 +203,10 @@ class DummyAgentGui extends JFrame
 				  currentDir = chooser.getCurrentDirectory();
 				  String fileName = chooser.getSelectedFile().getAbsolutePath();
 
-				try
-				{
-					StringACLCodec codec = new StringACLCodec(new FileReader(fileName),null);
-					currentMsgGui.setMsg(codec.decode());
+				try {
+          // Note the save/read functionality uses default US-ASCII charset
+          StringACLCodec codec = new StringACLCodec(new FileReader(fileName),null);
+          currentMsgGui.setMsg(codec.decode());
 				}
 				catch(FileNotFoundException e1) {
 						JOptionPane.showMessageDialog(null,"File not found: "+ fileName + e1.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
@@ -228,14 +235,13 @@ class DummyAgentGui extends JFrame
 			  	currentDir = chooser.getCurrentDirectory();
 			  	String fileName = chooser.getSelectedFile().getAbsolutePath();
 
-				  try
-			  	{
+				  try {
 				    FileWriter f = new FileWriter(fileName);
+            // Note the save/read functionality uses default US-ASCII charset
 					  StringACLCodec codec = new StringACLCodec(null,f);
 				  	ACLMessage ACLmsg = currentMsgGui.getMsg();
 				  	codec.write(ACLmsg);
-					f.close();
-					
+            f.close();
 				  }
 				  catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
 				  catch(IOException e4) { System.out.println("IO Exception"); }

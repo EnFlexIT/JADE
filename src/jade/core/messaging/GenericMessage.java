@@ -44,7 +44,7 @@ import java.io.IOException;
  * @version $Date$ $Revision$
  * 
  */
-public class GenericMessage implements Serializable{
+public class GenericMessage implements Serializable {
 
   private transient ACLMessage msg;
   private Envelope env;
@@ -81,7 +81,7 @@ public class GenericMessage implements Serializable{
   private void writeObject(ObjectOutputStream out) throws IOException {
   	// Updates the payload if not present, before serialising
     if (payload==null){
-      payload = (new LEAPACLCodec()).encode(msg);
+      payload = (new LEAPACLCodec()).encode(msg, null);
     }
     out.defaultWriteObject();
   }
