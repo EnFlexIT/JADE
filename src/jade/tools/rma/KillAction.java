@@ -24,13 +24,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
+import jade.core.AID;
 import jade.gui.AgentTree;
 
   class KillAction extends GenericAction {
 
   private rma myRMA;
 
-  public KillAction(String label, rma anRMA,ActionProcessor actPro) {
+  public KillAction(String label, rma anRMA, ActionProcessor actPro) {
     super ("KillActionIcon", label,actPro);
     myRMA = anRMA;
   }
@@ -38,7 +39,9 @@ import jade.gui.AgentTree;
   public void doAction(AgentTree.AgentNode node ) {
    if (node!=null) {
      String toKill = node.getName();
-     //     myRMA.killAgent(toKill);
+     AID id = new AID();
+     id.setName(toKill);
+     myRMA.killAgent(id);
    }
  }
 
@@ -50,5 +53,3 @@ import jade.gui.AgentTree;
   }
 
  } //End of KillAction
-
-
