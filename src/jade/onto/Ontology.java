@@ -43,7 +43,7 @@ import java.util.List;
    <li><i> For every <code>TermDescriptor</code> object of the
    array, of type <code>SET_TERM</code> or <code>SEQUENCE_TERM</code>
    and named <code>XXX</code>, with elements of type <code>T</code>, the
-   class must have four accessible methods, with the following
+   class must have two accessible methods, with the following
    signature:</i>
      <ul>
      <li> <code>Iterator getAllXXX()</code>
@@ -93,8 +93,6 @@ import java.util.List;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-//     <li> <code>boolean removeXXX(T t)</code>
-//     <li> <code>void clearAllXXX()</code>
 
 public interface Ontology {
 
@@ -110,80 +108,93 @@ public interface Ontology {
 
 
 
-  // Constants for the various term types.
+  // Constants for the various term types. 
 
   /**
      Constant for <code>boolean</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
-   */
-  static final short BOOLEAN_TYPE = 0;
+*/
+  static final String BOOLEAN_TYPE = "java.lang.Boolean";
 
   /**
      Constant for <code>byte</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
-   */
-  static final short BYTE_TYPE = 1;
+     */
+  static final String BYTE_TYPE = "java.lang.Byte";
 
   /**
      Constant for <code>char</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short CHARACTER_TYPE = 2;
+  static final String CHARACTER_TYPE = "java.lang.Character";
 
   /**
      Constant for <code>double</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short DOUBLE_TYPE = 3;
+  static final String DOUBLE_TYPE = "java.lang.Double";
 
   /**
      Constant for <code>float</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short FLOAT_TYPE = 4;
+  static final String FLOAT_TYPE = "java.lang.Float";
 
   /**
      Constant for <code>int</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short INTEGER_TYPE = 5;
+  static final String INTEGER_TYPE = "java.lang.Integer";
 
   /**
      Constant for <code>long</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short LONG_TYPE = 6;
+  static final String LONG_TYPE = "java.lang.Long";
 
   /**
      Constant for <code>short</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short SHORT_TYPE = 7;
+  static final String SHORT_TYPE = "java.lang.Short";
 
   /**
      Constant for <code>String</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short STRING_TYPE = 8;
+  static final String STRING_TYPE = "java.lang.String";
 
   /**
      Constant for <code>byte[]</code> type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short BINARY_TYPE = 9;
+  static final String BINARY_TYPE = "java.lang.Byte[]";
 
   /**
      Constant for <code>java.util.Date</code> 
      type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short DATE_TYPE = 10;
+  static final String DATE_TYPE = "java.util.Date";
 
   /**
      Constant for any type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short ANY_TYPE = 11;
+  static final String ANY_TYPE = "java.lang.Object";
+
+
+  /** Symbolic constant identifying a frame representing an action **/ 
+  public static String NAME_OF_ACTION_FRAME = "action";
+  /** Symbolic constant identifying a slot representing an actor **/ 
+  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
+  /** Symbolic constant identifying a slot representing an action **/ 
+  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
+  /** Symbolic constant identifying a frame representing a set **/ 
+  public static String NAME_OF_SET_FRAME = "set";
+  /** Symbolic constant identifying a frame representing a sequence **/ 
+  public static String NAME_OF_SEQUENCE_FRAME = "sequence";
+
 
   /**
      Constant for <code>Frame</code> type in a
@@ -226,18 +237,10 @@ public interface Ontology {
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
   */
-  static final short ANY_TERM = ANY_TYPE;
+  static final short ANY_TERM = 16;
 
 
-  /**
-     String array of names of the various types allowed for elements
-     of ontological elements. It can be indexed using the constants in
-     the Ontology interface.
-  */
-  static final String typeNames[] = { "boolean", "byte", "char", "double",
-				      "float", "int", "long", "short",
-				      "String", "Binary", "Date", "any", "Concept", "Set", "Sequence", "Constant" };
-  // Warning AND FIXME. TermDescriptor.hasPrimitiveElement depends on this array of Strings
+  
 
   /**
     Adds a new concept role to the ontology, defined by the structure

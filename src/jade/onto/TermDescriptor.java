@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.onto;
+import java.util.*;
 
 /**
   Descriptor class for the slots of ontological concepts. Instances of this
@@ -43,13 +44,13 @@ public class TermDescriptor {
     Build the descriptor for a named slot of a complex type. This constructor
     can be used to describe a named slot, whose type is one among
     <code>Ontology.FRAME_TERM , Ontology.SET_TERM, Ontology.SEQUENCE_TERM,
-    Ontology.CONSTANT_TERM</code>. 
+    Ontology.CONSTANT_TERM, Ontology.ANY_TERM</code>. 
     @param n The name of the described slot.
     @param t A symbolic constant to identify the type of the slot (i.e. 
     one value between <code>
     Ontology.FRAME_TERM , Ontology.SET_TERM, Ontology.SEQUENCE_TERM,
     Ontology.CONSTANT_TERM, Ontology.ANY_TERM</code>. )
-    @param tn The name of the type of the values allowed for this slot, (i.e.
+    @param vt The name of the type of the values allowed for this slot, (i.e.
     one value between <code> Ontology.STRING_TYPE, Ontology.XXX_TYPE </code>,
     or, in case of a FRAME_TERM, the name of the role played by this slot 
     in the
@@ -57,10 +58,10 @@ public class TermDescriptor {
     @param o One of <code>Ontology.M</code> (for mandatory slots) and
     <code>Ontology.O</code> (for optional slots).
   */
-  public TermDescriptor(String n, int t, String tn, boolean o) {
+  public TermDescriptor(String n, int t, String vt, boolean o) {
     myName = new Name(n);
     type = t;
-    typeName = tn;
+    typeName = vt;
     optionality = o;
   }
 
@@ -68,23 +69,13 @@ public class TermDescriptor {
 
   /**
     Build the descriptor for an unnamed slot. 
-    @see TermDescriptor(String n, int t, String tn, boolean o)
+    @see TermDescriptor(String n, int t, String vt, boolean o)
   */
-  public TermDescriptor(int t, String tn, boolean o) {
-    this("",t,tn,o);
+  public TermDescriptor(int t, String vt, boolean o) {
+    this("",t,vt,o);
   }
 
 
-  // FIXME. Probably can be removed. It is just used because STRING_TYPE, ...
-  // are int instead of String
-public TermDescriptor(int t, int tn, boolean o) {
-  this("",t,Ontology.typeNames[tn],o);
-}
-  // FIXME. Probably can be removed. It is just used because STRING_TYPE, ...
-  // are int instead of String
-public TermDescriptor(String n, int t, int tn, boolean o) {
-  this(n,t,Ontology.typeNames[tn],o);
-}
 
   /**
     Get the name of a slot.
@@ -105,23 +96,41 @@ public TermDescriptor(String n, int t, int tn, boolean o) {
   }
 
   /**
-    Get the name of the type of a slot.
-    @return The name of the type of the slot described by this object, as set
+    Get the name of the type of the values of this slot.
+    @return The name of the type of the values for this slot described by this object, as set
     by the constructor. For primitive types, the name of the type is returned
-    (e.g. <code>int</code> or <code>String</code>); for complex types, the name
+    (e.g. <code>java.lang.Integer</code> or <code>java.lang.String</code>); for complex types, the name
     of the specific concept is returned.
   */
-  public String getTypeName() {
+  public String getValueType() {
     return typeName;
   }
 
-  //FIXME. Must be improved because it depends on Ontology.typeNames
-public boolean hasPrimitiveTypeElements() {
-  for (int i=0; i<Ontology.typeNames.length-4; i++)  //eliminates Concept,set,sequence, constant
-    if (Ontology.typeNames[i].equalsIgnoreCase(typeName))
-      return true;
-  return false;
+  /**
+   * @return true if the values of this slot assumes primitive types (e.g. Integer, String, ...)
+   */
+public boolean hasPrimitiveTypeValues() {
+  return primitiveTypes.contains(typeName);
 }
+
+  /** static List of primitive types */
+  static final List primitiveTypes = new ArrayList(12);
+  static { 
+    primitiveTypes.add(Ontology.BOOLEAN_TYPE);
+    primitiveTypes.add(Ontology.BYTE_TYPE);
+    primitiveTypes.add(Ontology.CHARACTER_TYPE);
+    primitiveTypes.add(Ontology.DOUBLE_TYPE);
+    primitiveTypes.add(Ontology.FLOAT_TYPE);
+    primitiveTypes.add(Ontology.INTEGER_TYPE);
+    primitiveTypes.add(Ontology.LONG_TYPE);
+    primitiveTypes.add(Ontology.SHORT_TYPE);
+    primitiveTypes.add(Ontology.STRING_TYPE);
+    primitiveTypes.add(Ontology.BINARY_TYPE);
+    primitiveTypes.add(Ontology.DATE_TYPE);
+    primitiveTypes.add(Ontology.ANY_TYPE);
+  }
+
+
 
   /**
     Tells whether a slot is optional.
@@ -152,15 +161,22 @@ public boolean hasPrimitiveTypeElements() {
     return (type == Ontology.SET_TERM) || (type == Ontology.SEQUENCE_TERM);
   }
 
+  /**
+   * Tells whethet the slot is a CONSTANT_TERM
+   */
+public boolean isConstant() {
+  return (type == Ontology.CONSTANT_TERM);
+}
+
   void setName(String n) {
     myName = new Name(n);
   }
 
   /**
-   * return a String representation of the object, just for debug purposes
+   * return a String representation of the object, just for debugging purposes
    **/
 public String toString() {
-return myName.toString()+" of type "+type+" and typeName "+typeName+" and optionality "+optionality;
+return myName.toString()+" of type "+type+" and type of values "+typeName+" and optionality "+optionality;
 }
 }
 

@@ -38,37 +38,8 @@ import java.util.*;
 */
 public final class DefaultOntology implements Ontology {
 
-  private static final List primitiveTypes = new ArrayList(12);
-
-  static { 
-    primitiveTypes.add(BOOLEAN_TYPE, Boolean.class);
-    primitiveTypes.add(BYTE_TYPE, Byte.class);
-    primitiveTypes.add(CHARACTER_TYPE, Character.class);
-    primitiveTypes.add(DOUBLE_TYPE, Double.class);
-    primitiveTypes.add(FLOAT_TYPE, Float.class);
-    primitiveTypes.add(INTEGER_TYPE, Integer.class);
-    primitiveTypes.add(LONG_TYPE, Long.class);
-    primitiveTypes.add(SHORT_TYPE, Short.class);
-    primitiveTypes.add(STRING_TYPE, String.class);
-    primitiveTypes.add(BINARY_TYPE, Byte[].class);
-    primitiveTypes.add(DATE_TYPE, java.util.Date.class);
-    primitiveTypes.add(ANY_TYPE, Object.class);
-  }
 
 
-  /** Symbolic constant identifying a frame representing an action **/ 
-  public static String NAME_OF_ACTION_FRAME = "action";
-  /** Symbolic constant identifying a slot representing an actor **/ 
-  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
-  /** Symbolic constant identifying a slot representing an action **/ 
-  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
-  /** Symbolic constant identifying a frame representing a set **/ 
-  public static String NAME_OF_SET_FRAME = "set";
-  /** Symbolic constant identifying a frame representing a sequence **/ 
-  public static String NAME_OF_SEQUENCE_FRAME = "sequence";
-
-  // Special slot, all actions must have it.
-  private static final TermDescriptor actorSlot = new TermDescriptor(NAME_OF_ACTOR_SLOT, ANY_TERM, ANY_TYPE, M);
 
   private Map schemas;
   private Map factories;
@@ -227,7 +198,7 @@ public final class DefaultOntology implements Ontology {
 	    throw new OntologyException("The given object has a 'null' value for the mandatory term " + desc.getName());
 
 	  if(desc.isConcept() || desc.isSet())// Recursive check for subobjects
-	    check(value, desc.getTypeName());
+	    check(value, desc.getValueType());
 
 	}
 	catch(InvocationTargetException ite) {
@@ -427,7 +398,7 @@ public final class DefaultOntology implements Ontology {
 	// and some class C is registered for that role,
 	// then the implementation type must be a supertype of C.
 	if(desc.isConcept() || desc.isSet()) {
-	  RoleFactory rf = lookupFactory(desc.getTypeName());
+	  RoleFactory rf = lookupFactory(desc.getValueType());
 	  if(rf != null) {
 	    Class roleType = rf.getClassForRole();
 	    if(!implType.isAssignableFrom(roleType))
@@ -435,13 +406,13 @@ public final class DefaultOntology implements Ontology {
 	  }
 	}
 	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
-	  int typeIndex=0;
-	  for (int i=0; i<Ontology.typeNames.length; i++)
-	    if (Ontology.typeNames[i].equalsIgnoreCase(desc.getTypeName()))
-	      typeIndex = i;
-	  Class primitive = (Class)primitiveTypes.get(typeIndex);
-	  if(!implType.isAssignableFrom(primitive))
-	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	  try {
+	    Class primitive = Class.forName(desc.getValueType()); 
+	    if(!implType.isAssignableFrom(primitive))
+	      throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	  } catch (Exception e) {
+	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " must be a subtype of " + implType + " class.");
+	  }
 	}
       }
       catch(SecurityException se) {
@@ -486,7 +457,7 @@ public final class DefaultOntology implements Ontology {
 	}
 	else if (desc.isSet()) {
 	  Frame set = (Frame)slotValue;//this is the frame representing the set
-	  if (desc.hasPrimitiveTypeElements())
+	  if (desc.hasPrimitiveTypeValues())
 	    for (int i=0; i<set.size(); i++) // add all the elements of the set
 	      setMethod.invoke(concept, new Object[]{set.getSlot(i)}); 
 	  else // convert the elements into an object and then add
@@ -548,24 +519,24 @@ public final class DefaultOntology implements Ontology {
 	  else if (desc.isConcept()) { 
 	    // For complex terms, do a name lookup and 
 	    //call createFrame() recursively
-	    String roleName = desc.getTypeName();
-	    if (roleName.equalsIgnoreCase(Ontology.typeNames[Ontology.ANY_TYPE]))
+	    String roleName = desc.getValueType();
+	    if (roleName.equalsIgnoreCase(Ontology.ANY_TYPE))
 	      roleName = getRoleName(value.getClass());
 	    f.putSlot(slotName, createFrame(value, roleName));
 	  }
 	  else if (desc.isSet()) {
 	    Frame setFrame;
 	    if (desc.getType() == Ontology.SET_TERM)
-	      setFrame = new Frame(NAME_OF_SET_FRAME); 
+	      setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
 	    else
-	      setFrame = new Frame(NAME_OF_SEQUENCE_FRAME); 
+	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
 	    Iterator i = (Iterator)value;
-	    if (desc.hasPrimitiveTypeElements())
+	    if (desc.hasPrimitiveTypeValues())
 	      while (i.hasNext()) 
 		setFrame.putSlot(i.next());
 	    else 
 	      while (i.hasNext()) 
-		setFrame.putSlot(createFrame(i.next(), desc.getTypeName()));
+		setFrame.putSlot(createFrame(i.next(), desc.getValueType()));
 	    f.putSlot(slotName,setFrame);
 	  }
 	} //if (value==null) else
@@ -595,7 +566,7 @@ public final class DefaultOntology implements Ontology {
     factories.put(new Name(roleName), rf);
   }
 
-  //FIXME Needs a better implemenation.
+
   /** @return the roleName of the passed object as registered in this ontology
    * @throws OntologyException if no role is found for this object
   **/

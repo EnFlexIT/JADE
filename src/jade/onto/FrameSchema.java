@@ -68,6 +68,15 @@ class FrameSchema implements Cloneable, Serializable {
   }
 
 
+private boolean isGoodConstantType(String required, Object current) {
+  try { 
+    return (Class.forName(required).isInstance(current));
+  } catch (Exception e) {
+    e.printStackTrace();
+    return false;
+  }
+}
+
 
   public void checkAgainst(Frame f) throws OntologyException {
     for(int i = 0; i < terms.size(); i++) {
@@ -75,65 +84,13 @@ class FrameSchema implements Cloneable, Serializable {
       String name = td.getName();
       if(!td.isOptional()) {
 	Object o = f.getSlot(name);
-	switch(td.getType()) {
-	case Ontology.BOOLEAN_TYPE: {
-	  if(!(o instanceof Boolean))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BOOLEAN_TYPE]); 
-	  break;
-	}
-	case Ontology.BYTE_TYPE: {
-	  if(!(o instanceof Byte))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BYTE_TYPE]); 
-	  break;
-	}
-	case Ontology.CHARACTER_TYPE: {
-	  if(!(o instanceof Character))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CHARACTER_TYPE]); 
-	  break;
-	}
-	case Ontology.DOUBLE_TYPE: {
-	  if(!(o instanceof Double))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.DOUBLE_TYPE]); 
-	  break;
-	}
-	case Ontology.FLOAT_TYPE: {
-	  if(!(o instanceof Float))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.FLOAT_TYPE]); 
-	  break;
-	}
-	case Ontology.INTEGER_TYPE: {
-	  if(!(o instanceof Integer))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.INTEGER_TYPE]); 
-	  break;
-	}
-	case Ontology.LONG_TYPE: {
-	  if(!(o instanceof Long))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.LONG_TYPE]); 
-	  break;
-	}
-	case Ontology.SHORT_TYPE: {
-	  if(!(o instanceof Short))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.SHORT_TYPE]); 
-	  break;
-	}
-	case Ontology.STRING_TYPE: {
-	  if(!(o instanceof String))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.STRING_TYPE]); 
-	  break;
-	}
-	case Ontology.BINARY_TYPE: {
-	  if(!(o instanceof Byte[]))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BINARY_TYPE]); 
-	  break;
-	}
-	case Ontology.FRAME_TERM: {
+	if (td.isConstant()) {
+	  if (!isGoodConstantType(td.getValueType(),o))
+	    throw new WrongTermTypeException(f.getName(), name, td.getValueType()); 
+	} else {
 	  if(!(o instanceof Frame))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.FRAME_TERM]); 
+	    throw new WrongTermTypeException(f.getName(), name, "Frame"); 
 	  myOntology.check((Frame)o);
-	  break;
-	}
-	default:
-	  throw new InternalError("Non existent term type");
 	}
 
       } // End of 'if slot is not optional'
