@@ -775,14 +775,14 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   /** it is called also by Agent.java **/
   public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSDeregister() called");
-    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
     if (PROVA.remove(amsd.getName()) == null)
     	throw new NotRegistered();
   }
 
   private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSModify() called");
-    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
     if (PROVA.put(amsd.getName(),amsd) == null)
     	throw new NotRegistered();
   }
