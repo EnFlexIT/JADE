@@ -454,7 +454,7 @@ public class FSMBehaviour extends SerialBehaviour {
       }
 
       void addTransition(Transition t) {
-	  String key1 = t.getFrom();
+	  String key1 = t.getFromState();
 
 	  TransitionsFromState tfs = null;
   		
@@ -575,19 +575,19 @@ public class FSMBehaviour extends SerialBehaviour {
 	  fsm = f;
       }
 
-      public String getFrom() {
+      public String getFromState() {
 	  return src;
       }
 
-      public void setFrom(String f) {
+      public void setFromState(String f) {
 	  src = f;
       }
 
-      public String getTo() {
+      public String getToState() {
 	  return dest;
       }
 
-      public void setTo(String t) {
+      public void setToState(String t) {
 	  dest = t;
       }
 
@@ -744,7 +744,7 @@ public class FSMBehaviour extends SerialBehaviour {
     // For persistence service
     private void setTransitions(java.util.Set transitions) {
 
-	if(persistentTransitions != transitions) {
+	if(!persistentTransitions.equals(transitions)) {
 
 	    // Refill the transition table, if needed
 	    theTransitionTable.clear();
@@ -754,17 +754,12 @@ public class FSMBehaviour extends SerialBehaviour {
 		Transition t = (Transition)it.next();
 		theTransitionTable.addTransition(t);
 	    }
-
-	    persistentTransitions = transitions;
-	}
-	else {
-	    System.out.println("--- Self-assignment: nothing to do ---");
 	}
 
+	persistentTransitions = transitions;
     }
 
   //#MIDP_EXCLUDE_END
-
 
 
 }
