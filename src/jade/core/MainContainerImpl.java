@@ -83,13 +83,19 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
-  MainContainerImpl( String pID ) throws RemoteException {
-    super();
+  MainContainerImpl(Profile p) throws RemoteException {
+    super(p);
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
 
-    // This string will be used to build the GUID for every agent on
-    // this platform.
-    platformID = pID;
+    try {
+      // This string will be used to build the GUID for every agent on
+      // this platform.
+      platformID = p.getParameter(Profile.PLATFORM_ID);
+    }
+    catch(ProfileException pe) {
+      pe.printStackTrace();
+    }
+
   }
 
   private void initAMS() {
@@ -156,22 +162,26 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
 
     try {
       myPlatform = (MainContainer)Naming.lookup(platformRMI);
+
+      theACC = myProfile.getAcc();
+      theACC.initialize(this, myProfile);
     }
     catch(Exception e) {
       // Should never happen
       e.printStackTrace();
     }
 
-    theACC = new acc(this, platformID);
-		try{
-    
-			for(int i =0; i<ACLCodecs.length;i++){
-				String className = ACLCodecs[i];
-				installACLCodec(className);
-			}
+    try {
 
-    containers.addContainer(MAIN_CONTAINER_NAME, this);
-    containersProgNo++;
+      for(int i =0; i<ACLCodecs.length;i++){
+	String className = ACLCodecs[i];
+	installACLCodec(className);
+      }
+
+      theACC.initialize(this, myProfile);
+
+      containers.addContainer(MAIN_CONTAINER_NAME, this);
+      containersProgNo++;
 
       PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + MAIN_CONTAINER_NAME + ".txt"));
 
