@@ -23,8 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.util;
 
+//__CLDC_UNSUPPORTED__BEGIN
 import java.io.PrintStream;
 import java.io.PrintWriter;
+//__CLDC_UNSUPPORTED__END
 
 /**
 
@@ -53,11 +55,12 @@ public abstract class WrapperException extends Exception {
 
   public String getMessage() {
     if((nested != null)) {
-      message = message + " [nested message is: " + nested.getMessage() + "]";
+      return message + " [nested message is: " + nested.getMessage() + "]";
     }
     return message;
   }
 
+//__CLDC_UNSUPPORTED__BEGIN
   public void printStackTrace() {
     printStackTrace(System.err);
   }
@@ -74,6 +77,7 @@ public abstract class WrapperException extends Exception {
       nested.printStackTrace(s);
     }
   }
+//__CLDC_UNSUPPORTED__END
 
   /**
      Reads the exception wrapped by this object.
