@@ -55,7 +55,22 @@ import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
 
-class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
+
+/**
+   This class is a concrete implementation of the JADE main container,
+   providing runtime support to JADE agents, and the special, front
+   end container where the AMS and the Default DF can run.
+   This class cannot be instantiated from applications. Instead, the
+   <code>Runtime.createMainContainer(Profile p)</code> method must be
+   called.
+
+   @see Runtime#createMainContainer(Profile p);
+
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
+*/
+public class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
 
   private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
 
@@ -68,7 +83,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
-  public MainContainerImpl( String pID ) throws RemoteException {
+  MainContainerImpl( String pID ) throws RemoteException {
     super();
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
 
