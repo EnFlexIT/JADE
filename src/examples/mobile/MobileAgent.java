@@ -183,6 +183,24 @@ protected void afterClone() {
      addBehaviour(new GetAvailableLocationsBehaviour(this));
    }
 
+  protected void afterLoad() {
+      super.afterLoad();
+
+      afterClone();
+  }
+
+  protected void beforeFreeze() {
+      super.beforeFreeze();
+      beforeMove();
+  }
+
+  protected void afterThaw() {
+      super.afterThaw();
+      afterMove();
+  }
+
+
+
 	/////////////////////////////////
 	// GUI HANDLING
 		
