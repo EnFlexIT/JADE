@@ -227,13 +227,13 @@ public final class DefaultOntology implements Ontology {
 			}
 			catch(InvocationTargetException ite) {
 	  		String msg = ite.getTargetException().getMessage();
-	  		throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
+	  		throw new OntologyException("Internal error: the reflected method "+m+" threw an exception.\nMessage was " + msg);
 			}
 			catch(IllegalAccessException iae) {
-	  		throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+	  		throw new OntologyException("Internal error: the required method "+m+" is not accessible [" + iae.getMessage() + "]");
 			}
 			catch(SecurityException se) {
-	  		throw new OntologyException("Wrong class: some required method is not accessible."); 
+	  		throw new OntologyException("Wrong class: some required method is not accessible:"+m); 
 			}
     }
   }
@@ -722,13 +722,13 @@ public final class DefaultOntology implements Ontology {
       }
       catch(InvocationTargetException ite) {
 				String msg = ite.getTargetException().getMessage();
-				throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
+				throw new OntologyException("Internal error: the reflected method "+getMethod+" threw an exception.\nMessage was " + msg);
       }
       catch(IllegalAccessException iae) {
-				throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+				throw new OntologyException("Internal error: the required method "+getMethod+" is not accessible [" + iae.getMessage() + "]");
       }
       catch(SecurityException se) {
-				throw new OntologyException("Wrong class: some required method is not accessible."); 
+				throw new OntologyException("Wrong class: the required method "+getMethod+" is not accessible."); 
       }
 
     }
