@@ -1,5 +1,5 @@
 echo modify the following line and set the default compiler and JVM to be 1.2
-set PATH=c:\jdk1.2.2\bin;c:\javacc2.0\bin;c:\winnt\system32
+set PATH=c:\myprograms\jdk1.2.2\bin;c:\myprograms\javacc\bin;c:\winnt\system32
 echo modify the following lines to set your JESS classpath
 set JESS51=c:\myprograms\jess51
 set JESS60=c:\myprograms\jess60a6\jess.jar
@@ -23,7 +23,7 @@ echo
 
 set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%
 
-REM goto :SKIPCOMPILATION
+goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
 CALL makejade
@@ -33,6 +33,7 @@ CALL makelib
 pause 
 CALL makeexamples
 pause
+goto :SKIPADDONS
 echo remember to generate the batch files to compile the add-ons.
 pause
 echo start compiling the BEFipaMessage add-ons
@@ -55,6 +56,7 @@ cd ..\ORBAcusMTP
 set PATH=%PATH%;%ORBACUSJIDLPATH%
 CALL makeORBacusMTP
 pause
+:SKIPADDONS
 set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%;%JESS51%
 CALL makejessexample
 pause
@@ -62,11 +64,12 @@ set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%;%JESS60%
 CALL makejadejessprotegeexample
 pause
 echo compile the Test code
+:SKIPCOMPILATION
 cd src\test
-javac -d %JADECLASSES% -classpath %JADECLASSES% TestAgent.java jsp\TestDanielExample.java
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java
 pause
 
-:SKIPCOMPILATION
+
 
 echo Starting the Agent Platform
 START java -cp %CLASSPATH% jade.Boot -gui
@@ -157,7 +160,10 @@ cd ..\jade\src\test
 
 echo Running the behaviours test FIXME (per Giovanni Caire)
 
-echo Running the content test FIXME (per Federico Bergenti)
+echo Running the content test 
+pause Please SHUTDOWN any platform running
+echo starting one sender and one receiver.
+java -cp %CLASSPATH% jade.Boot sender:Sender receiver:Receiver
 
 echo Testing the orbacus add-on
 pause Please SHUTDOWN any platform running
