@@ -51,7 +51,7 @@ package jade.gui;
 			setIcon(jadeicon);
     	Border raisedbevel = BorderFactory.createRaisedBevelBorder();
     	setBorder(raisedbevel);
-    
+      setToolTipText("Go to JADE Home Page"); 
       addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
