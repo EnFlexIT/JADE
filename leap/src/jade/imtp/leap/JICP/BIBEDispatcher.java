@@ -69,8 +69,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private int inpCnt = 0;
   private boolean active = true;
 
-  private InpConnectionHolder  inpHolder = new InpConnectionHolder();
-  private OutConnectionHolder  outHolder = new OutConnectionHolder();
+  protected InpConnectionHolder  inpHolder = new InpConnectionHolder();
+  protected OutConnectionHolder  outHolder = new OutConnectionHolder();
 
   private MicroSkeleton mySkel = null;
   private FrontEndStub myStub = null;
@@ -352,7 +352,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     }
 
 		active = false;
-		inpHolder.resetConnection();
+		inpHolder.resetConnection(true);
 		outHolder.resetConnection();
   } 
 
@@ -402,7 +402,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 	  	catch (IOException ioe) {
 	  		// Can't reach the FrontEnd. 
 	  		myLogger.log("IOException IC["+status+"]"+ioe, 2);
-	  		inpHolder.resetConnection();
+	  		inpHolder.resetConnection(false);
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
   	}
@@ -414,8 +414,10 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   //////////////////////////////////////////////////
   // The embedded Thread handling outgoing commands
   //////////////////////////////////////////////////
+  private JICPPacket lastResponse;
+  
   public void run() {
-  	JICPPacket lastResponse = null;
+  	lastResponse = null;
   	int status = 0;
   	
 		myLogger.log("BIBEDispatcher thread started", 2);
@@ -427,40 +429,13 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 					if (outConnection != null) {
 						JICPPacket pkt = readPacket(outConnection);
 						status = 1;
-						
-			    	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
-			    		// Keep-alive packet
-			    		myLogger.log("Keep-alive received", 4);
-						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
-			    	}
-			    	else {
-			    		// Outgoing command
-				    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-				    		// PEER TERMINATION NOTIFICATION
-				    		// The remote FrontEnd has terminated spontaneously -->
-				    		// Terminate and notify up.
-				    		handlePeerExited("Peer termination notification received");
-				    		break;
-				    	}
-		  				byte sid = pkt.getSessionID();
-		  				if (sid == lastSid) {
-		  					myLogger.log("Duplicated command from FE "+sid, 2);
-		  					pkt = lastResponse;
-		  				}
-		  				else {
-			      		myLogger.log("Command from FE received "+sid, 3);
-								byte[] rspData = mySkel.handleCommand(pkt.getData());
-			      		myLogger.log("Command from FE served "+ sid, 3);
-							  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
-							  pkt.setSessionID(sid);
-							  lastSid = sid;
-							  lastResponse = pkt;
-		  				}
-			    	}
-	  				status = 2;
-	  				
-	  				outConnection.writePacket(pkt);
-	  				status = 3;
+						pkt = handlePacket(pkt);
+						if (pkt != null) {
+		  				status = 2;
+		  				
+		  				outConnection.writePacket(pkt);
+		  				status = 3;
+						}
 					}
 					else {
 				    handlePeerExited("Max disconnection timeout expired");
@@ -477,6 +452,41 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     myLogger.log("BIBEDispatcher Thread terminated", 1);
   }
 
+  protected JICPPacket handlePacket(JICPPacket pkt) {
+  	JICPPacket reply = null;
+  	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+  		// Keep-alive packet
+  		myLogger.log("Keep-alive received", 4);
+		  reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
+  	}
+  	else {
+  		// Outgoing command
+    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+    		// PEER TERMINATION NOTIFICATION
+    		// The remote FrontEnd has terminated spontaneously -->
+    		// Terminate and notify up.
+    		handlePeerExited("Peer termination notification received");
+    		return null;
+    	}
+			byte sid = pkt.getSessionID();
+			if (sid == lastSid) {
+				myLogger.log("Duplicated command from FE "+sid, 2);
+				reply = lastResponse;
+			}
+			else {
+    		myLogger.log("Command from FE received "+sid, 3);
+				byte[] rspData = mySkel.handleCommand(pkt.getData());
+    		myLogger.log("Command from FE served "+ sid, 3);
+			  reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
+			  reply.setSessionID(sid);
+			  lastSid = sid;
+			  lastResponse = reply;
+			}
+  	}
+  	return reply;
+  }
+  	
+  	
   private byte getReconnectInfo() {
   	byte info = JICPProtocol.DEFAULT_INFO;
 		// If the inpConnection is null request the FrontEnd to reconnect
@@ -502,7 +512,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
      Inner class InpConnectionHolder.
      Wrapper for the connection used to deliver commands to the FrontEnd
    */
-  private class InpConnectionHolder {
+  protected class InpConnectionHolder {
   	private Connection myConnection;
   	private boolean connectionRefreshed;
   	private boolean waitingForFlush = false;
@@ -532,8 +542,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   		return myConnection;
   	}
   	
-  	private synchronized void resetConnection() {
-  		if (!connectionRefreshed) {
+  	public synchronized void resetConnection(boolean force) {
+  		if (!connectionRefreshed || force) {
 	  		if (myConnection != null) {
 	  			close(myConnection);
 	  		}
@@ -552,7 +562,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 			  		Thread.sleep(timeout);
 			  		// WatchDog expired --> close the connection
 			  		myLogger.log("Response timeout expired", 2);
-			  		resetConnection();
+			  		resetConnection(false);
 		  		}
 		  		catch (InterruptedException ie) {
 		  			// Watch dog removed. Just do nothing
@@ -575,7 +585,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
      Inner class OutConnectionHolder
      Wrapper for the connection used to receive commands from the FrontEnd
    */
-  private class OutConnectionHolder {
+  protected class OutConnectionHolder {
   	private Connection myConnection;
   	private boolean connectionRefreshed;
   	
@@ -605,7 +615,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   		return myConnection;
   	}
   	
-  	private synchronized void resetConnection() {
+  	public synchronized void resetConnection() {
   		if (!connectionRefreshed) {
 	  		if (myConnection != null) {
   				close(myConnection);

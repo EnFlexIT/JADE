@@ -50,11 +50,13 @@ import java.util.Enumeration;
  * @author Giovanni Caire - TILAB
  */
 public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
-	private static final byte INP = (byte) 1;
-	private static final byte OUT = (byte) 0;
+	protected static final byte INP = (byte) 1;
+	protected static final byte OUT = (byte) 0;
 	
 	private static final String OWNER = "owner";
 	private static final String MSISDN = "msisdn";
+	
+	protected String myMediatorClass = "jade.imtp.leap.JICP.BIBEDispatcher";
 	
   private MicroSkeleton mySkel = null;
   private BackEndStub myStub = null;
@@ -68,14 +70,14 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   private Timer kaTimer;
   private Properties props;
 
-  private Connection outConnection;
-  private InputManager myInputManager;
+  protected Connection outConnection;
+  protected InputManager myInputManager;
   private ConnectionListener myConnectionListener;
   
   private boolean active = true;
   private boolean waitingForFlush = false;
-  private boolean refreshingInput = false;
-  private boolean refreshingOutput = false;
+  protected boolean refreshingInput = false;
+  protected boolean refreshingOutput = false;
   private byte lastSid = 0x0f;
   private int outCnt = 0;
   private Thread terminator;
@@ -207,7 +209,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
    */
   private JICPConnection createBackEnd() throws IMTPException {
     StringBuffer sb = new StringBuffer();
-    appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BIBEDispatcher");
+    appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, myMediatorClass);
     appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
     appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
     if(myMediatorID != null) {
@@ -425,7 +427,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   /**
      Close the current InputManager (if any) and start a new one
    */
-  private synchronized void refreshInp() {
+  protected synchronized void refreshInp() {
   	// Avoid 2 refresh at the same time
   	if (!refreshingInput && active) {
 	  	// Close the current InputManager	
@@ -447,7 +449,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      Close the current outConnection (if any) and starts a new thread
      that asynchronously tries to restore it.
    */
-  private synchronized void refreshOut() {
+  protected synchronized void refreshOut() {
   	// Avoid having two refreshing processes at the same time
   	if (!refreshingOutput) {
 	  	// Close the outConnection
@@ -541,7 +543,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
 
-	private synchronized void handleReconnection(Connection c, byte type) {
+	protected synchronized void handleReconnection(Connection c, byte type) {
 		boolean transition = false;
 		if (type == INP) {
 			myInputManager.setConnection(c);
@@ -628,7 +630,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   }
   
   
-  private void writePacket(JICPPacket pkt, Connection c) throws IOException {
+  protected void writePacket(JICPPacket pkt, Connection c) throws IOException {
   	c.writePacket(pkt);
   	if (Thread.currentThread() == terminator) {
   		myInputManager.close();
@@ -661,7 +663,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   }
   
   // Mutual exclusion with dispatch()
-  private synchronized void sendKeepAlive() {
+  protected synchronized void sendKeepAlive() {
 		// Send a keep-alive packet to the BackEnd
 		if (outConnection != null) {
 			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
@@ -682,7 +684,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	
   /**
    */
-  void log(String s, int level) {
+  protected void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
       Logger logger = Logger.getMyLogger(this.getClass().getName());

@@ -54,13 +54,13 @@ import jade.util.Logger;
 public class JICPConnection extends Connection {
 
 	//#MIDP_EXCLUDE_BEGIN
-  private Socket       sc;
+  protected Socket       sc;
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
-  private StreamConnection sc;
+  protected StreamConnection sc;
 	#MIDP_INCLUDE_END*/
-  private InputStream  is;
-  private OutputStream os;
+  protected InputStream  is;
+  protected OutputStream os;
 
   protected JICPConnection() {
   }
@@ -134,7 +134,7 @@ public class JICPConnection extends Connection {
   
   /**
    */
-  private OutputStream getOutputStream() throws IOException {
+  protected OutputStream getOutputStream() throws IOException {
   	return new ByteArrayOutputStream() {
 	  	private OutputStream realOs = null;
 	  	
