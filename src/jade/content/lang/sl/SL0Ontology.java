@@ -27,18 +27,19 @@ package jade.content.lang.sl;
 import jade.content.*;
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.core.CaseInsensitiveString;
 
 /**
- * Ontology containing schemas for the SL language operators.
+ * Ontology containing schemas for the SL0 language operators.
  * see jade.content.Ontology
  * @author Giovanni Caire - TILAB
  */
-class SLOntology extends SL2Ontology implements SLVocabulary {
+class SL0Ontology extends Ontology implements SL0Vocabulary {
 	// NAME
-  public static final String ONTOLOGY_NAME = "SL-ONTOLOGY";
+  public static final String ONTOLOGY_NAME = "SL0-ONTOLOGY";
 	
   // The singleton instance of this ontology
-	private static Ontology theInstance = new SLOntology(ONTOLOGY_NAME, SL2Ontology.getInstance());
+	private static Ontology theInstance = new SL0Ontology(ONTOLOGY_NAME, BasicOntology.getInstance());
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -47,8 +48,40 @@ class SLOntology extends SL2Ontology implements SLVocabulary {
   /**
    * Constructor
    */
-  protected SLOntology(String name, Ontology base) {
-  	super(name, base);
+  protected SL0Ontology(String name, Ontology base) {
+  	super(name, base, null);
 	}
 
+	boolean isUnaryLogicalOp(String symbol) {
+		// There are no logical operators in SL0
+		return false;
+	}
+	
+	boolean isBinaryLogicalOp(String symbol) {
+		// There are no logical operators in SL0
+		return false;
+	}
+	
+	boolean isQuantifier(String symbol) {
+		// There are no quantifiers in SL0
+		return false;
+	}
+	
+	boolean isModalOp(String symbol) {
+		// There are no modal operators in SL0
+		return false;
+	}
+	
+	boolean isActionOp(String symbol) {
+		return CaseInsensitiveString.equalsIgnoreCase(DONE, symbol); 
+	}
+	
+	boolean isBinaryTermOp(String symbol) {
+		return (CaseInsensitiveString.equalsIgnoreCase(EQUALS, symbol) || 
+			CaseInsensitiveString.equalsIgnoreCase(RESULT, symbol));
+	}
+	
+	boolean isSLFunctionWithoutSlotNames(String symbol) {
+		return CaseInsensitiveString.equalsIgnoreCase(ACTION, symbol); 
+	}
 }

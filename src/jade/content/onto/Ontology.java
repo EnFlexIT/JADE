@@ -163,12 +163,16 @@ public class Ontology {
 		protected static Class absConceptClass = null;
 		protected static Class absPredicateClass = null;
 		protected static Class absAgentActionClass = null;
+		protected static Class absVariableClass = null;
+		protected static Class absIREClass = null;
 		static {
 			try {
 				absObjectClass = Class.forName("jade.content.abs.AbsObject");
 				absConceptClass = Class.forName("jade.content.abs.AbsConcept");
 				absPredicateClass = Class.forName("jade.content.abs.AbsPredicate");
 				absAgentActionClass = Class.forName("jade.content.abs.AbsAgentAction");
+				absVariableClass = Class.forName("jade.content.abs.AbsVariable");
+				absIREClass = Class.forName("jade.content.abs.AbsIRE");
 			}
 			catch (Exception e) {
 				// Should never happen

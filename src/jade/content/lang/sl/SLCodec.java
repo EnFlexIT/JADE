@@ -50,7 +50,20 @@ import java.io.InputStreamReader; // only for debugging purposes in the main
  */
 public class SLCodec extends StringCodec {
 
+    /*FIXME JUST FOR COMPILING THIS CLASS
+    private interface SL0Ontology {
+	boolean isUnaryLogicalOp(String symbol);
+	boolean isBinaryLogicalOp(String symbol);
+	boolean isQuantifier(String symbol);
+	boolean isModalOp(String symbol);
+	boolean isActionOp(String symbol);
+	boolean isBinaryTermOp(String symbol);
+	boolean isSLFunctionSymbol(String symbol);
+    }*/ 
+
     private SLParser parser;
+    private SL0Ontology slOnto; // ontology of the content language
+    private Ontology domainOnto = null; // application ontology
 
     /**
      * Construct a Codec object for the full SL-language (FIPA-SL).
@@ -68,11 +81,11 @@ public class SLCodec extends StringCodec {
 	       (slType==1 ? FIPANames.ContentLanguage.FIPA_SL1 :
 		(slType==2 ? FIPANames.ContentLanguage.FIPA_SL2 :
 		 FIPANames.ContentLanguage.FIPA_SL ))));
-	if ((slType < 0) || (slType > 2)) {
+	if ((slType < 0) || (slType > 2)) // if outside range, set to full SL
 	    slType = 3;
-	    vectorOfPredefinedFunctionals = FullSLFunctionals;
-	} else
-	    vectorOfPredefinedFunctionals = SL0Functionals;
+	slOnto = (SL0Ontology) (slType == 0 ? SL0Ontology.getInstance() : 
+		(slType == 1 ? SL1Ontology.getInstance() :
+		(slType == 2 ? SL2Ontology.getInstance() : SLOntology.getInstance())));
 	parser = new SLParser(new StringReader(""));
 	parser.setSLType(slType); 
     }
@@ -96,6 +109,7 @@ public class SLCodec extends StringCodec {
      * @throws CodecException
      */
     public String encode(Ontology ontology, AbsContentElement content) throws CodecException {
+	domainOnto = ontology;
 	StringBuffer str = new StringBuffer("(");
 	if (content instanceof AbsContentElementList) {
 	    for (Iterator i=((AbsContentElementList)content).iterator(); i.hasNext(); ) {
@@ -177,45 +191,89 @@ public class SLCodec extends StringCodec {
     }
 
 
-    /**
-     * this method is used by all the toString methods and it exploits
-     * the common AbsObject implementation
-     * @param encodeSlotNames if true and the name of the slot does not
-     * start with <code>Codec.UNNAMEDPREFIX</code>, then the slotName is
-     * also encoded, otherwise it is skipped.
-     **/
-    private String encode(AbsObject val, boolean encodeSlotNames) throws CodecException {
-	StringBuffer str = new StringBuffer("(");
-	str.append(encode(val.getTypeName()));
-	String[] slotNames = val.getNames();
-	// check if there is a slot name that starts With Codec.UNNAMEDPREFIX
-	// FIXME. This can be improved because it might lower performance!
-	if (encodeSlotNames && (slotNames != null)) {
-	    for (int i=0; i<slotNames.length; i++)
-		if (slotNames[i].startsWith(UNNAMEDPREFIX)) {
-		    encodeSlotNames = false;
-		    break;
-		}
-	}
-	if (slotNames != null) 
-	    for (int i=0; i<slotNames.length; i++) {
-		if (encodeSlotNames) {
-		    str.append(" :");
-		    str.append(encode(slotNames[i]));
-		}
-		str.append(" ");
-		str.append(toString(val.getAbsObject(slotNames[i])));
-	    }
-	str.append(")");
-	return str.toString();
-    }
-
 
     private String toString(AbsPredicate val) throws CodecException {
-	if (val.getCount() > 0)
-	    return encode(val, false);
-	else
-	    return encode(val.getTypeName()); // a proposition does not require parenthesis
+	String propositionSymbol = val.getTypeName();
+	if (val.getCount() > 0) { // predicate with arguments
+	    //FIXME chiedere i nomi degli slot alla ontologia domainOnto
+	    // per preservare l órdine degli slot
+	    String[] slotNames = val.getNames();
+	    StringBuffer str = new StringBuffer("(");
+	    if (slOnto.isUnaryLogicalOp(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[0])));
+		} catch (Exception e) {
+		    throw new CodecException("A UnaryLogicalOp requires a formula argument",e);
+		}
+	    } else if (slOnto.isBinaryLogicalOp(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[0])));
+		    str.append(" ");
+		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
+		} catch (Exception e) {
+		    throw new CodecException("A BinaryLogicalOp requires 2 formula arguments",e);
+		}
+	    } else if (slOnto.isQuantifier(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsVariable)val.getAbsObject(slotNames[0]))); //FIXME. The hypothesis is tha the first slot is the variable
+		    str.append(" ");
+		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
+		} catch (Exception e) {
+		    throw new CodecException("A Quantifier requires a variable and a formula arguments",e);
+		}
+	    } else if (slOnto.isModalOp(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsConcept)val.getAbsObject(slotNames[0])));
+		    str.append(" ");
+		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
+		} catch (Exception e) {
+		    throw new CodecException("A ModalOp requires a concept and a formula arguments",e);
+		}
+	    } else if (slOnto.isActionOp(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[0]))); //FIXME check it is an action expression
+		    if (slotNames.length > 1) {
+			str.append(" ");
+			str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
+		    }
+		} catch (Exception e) {
+		    throw new CodecException("An ActionOp requires an actionexpression and (optionally) a formula arguments",e);
+		}
+	    } else if (slOnto.isBinaryTermOp(propositionSymbol)) {
+		str.append(propositionSymbol);
+		str.append(" ");
+		try {
+		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[0])));
+		    str.append(" ");
+		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[1])));
+		} catch (Exception e) {
+		    throw new CodecException("A BinaryTermOp requires 2 term arguments",e);
+		}
+	    } else {
+		str.append(encode(propositionSymbol));
+		try {
+		    for (int i=0; i<slotNames.length; i++) {
+			str.append(" ");
+			str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+		    }
+		} catch (Exception e) {
+		    throw new CodecException("A Predicate requires only term arguments",e);
+		}
+	    }
+	    str.append(")");
+	    return str.toString();
+	} else
+	    return encode(propositionSymbol); // proposition symbol 
     }
 
     private String toString(AbsIRE val) throws CodecException {
@@ -230,49 +288,38 @@ public class SLCodec extends StringCodec {
 	    return "?"+encode(var.substring(1));
     }
 
-    /** Constant needed to create an <code>AbsIRE(SLCodec.IOTA)</code> **/
-    public final static String IOTA = "IOTA";
-    // these 2 constants, set and sequence, are also used by SLParser.jj
-    final static String SET = "set";
-    final static String SEQUENCE = "sequence";
-    /** Vector of all the functionals which have been pre-defined by FIPA
-     * and whose slots should not be encoded */
-    private Vector vectorOfPredefinedFunctionals;
-    private static Vector SL0Functionals = new Vector(5); 
-    private static Vector FullSLFunctionals = new Vector(17); 
-    static {
-	SL0Functionals.addElement(SET); 
-	SL0Functionals.addElement(SEQUENCE);
-	SL0Functionals.addElement("action");
-	SL0Functionals.addElement("|");
-	SL0Functionals.addElement(";");
-	FullSLFunctionals.addElement(SL0Functionals.elementAt(0));
-	FullSLFunctionals.addElement(SL0Functionals.elementAt(1));
- 	FullSLFunctionals.addElement(SL0Functionals.elementAt(2));
-  FullSLFunctionals.addElement(SL0Functionals.elementAt(3));
-	FullSLFunctionals.addElement("cons");
-	FullSLFunctionals.addElement("first");
-	FullSLFunctionals.addElement("rest");
-	FullSLFunctionals.addElement("nth");
-	FullSLFunctionals.addElement("append");
-	FullSLFunctionals.addElement("union");
-	FullSLFunctionals.addElement("intersection");
-	FullSLFunctionals.addElement("difference");
-	FullSLFunctionals.addElement("+");
-	FullSLFunctionals.addElement("-");
-	FullSLFunctionals.addElement("/");
-	FullSLFunctionals.addElement("%");
-    }
-
-    /* if this is one of the FIPA-defined functionals, i.e. "+","-",...
-     * case do not add the slotName
-     */
-    private boolean requiresSlotNames(String conceptName) {
-	return !vectorOfPredefinedFunctionals.contains(conceptName.toLowerCase());
-    }
 
     private String toString(AbsConcept val) throws CodecException {
-	return encode(val, requiresSlotNames(val.getTypeName()));
+	String functionSymbol = val.getTypeName();
+	StringBuffer str = new StringBuffer("(");
+	String[] slotNames = val.getNames();
+	if (slOnto.isSLFunctionWithoutSlotNames(functionSymbol)) { //functionSymbol Term*
+	    str.append(functionSymbol);
+	    try {
+		for (int i=0; i<slotNames.length; i++) {
+		    str.append(" ");
+		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+		}
+	    } catch (Exception e) {
+		throw new CodecException("A FunctionalOperator requires 1 or 2 Term arguments",e);
+	    }
+	} else { //functionSymbol Parameter*
+	    str.append(encode(functionSymbol));
+	    try {
+		if (slotNames != null) 
+		    for (int i=0; i<slotNames.length; i++) {
+			str.append(" :");
+			str.append(encode(slotNames[i]));
+			str.append(" ");
+			str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+		    }
+	    } catch (Exception e) {
+		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
+	    }
+	}
+
+	str.append(")");
+	return str.toString();
     }
 
 
@@ -367,7 +414,7 @@ public class SLCodec extends StringCodec {
 		//AbsContentElement result = codec.decode(str.getBytes("US-ASCII"));
 		AbsContentElement result = codec.decode(str);
 		System.out.println("DUMP OF THE DECODE OUTPUT:");
-		result.dump();
+		System.out.println(result);
 		System.out.println("\n\n");
 		System.out.println("AFTER ENCODE:");
 		//System.out.println(new String(codec.encode(result),"US-ASCII"));

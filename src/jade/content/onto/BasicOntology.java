@@ -31,6 +31,7 @@ import jade.content.OntoAID;
 import jade.content.OntoACLMessage;
 import jade.content.ContentElementList;
 import jade.content.onto.basic.*;
+import jade.content.lang.sl.SL0Vocabulary;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
@@ -38,13 +39,15 @@ import jade.util.leap.*;
 import java.util.Date;
 
 /**
- * Ontology containing basic concepts.
- *
- * see jade.content.Ontology
- *
+ * Ontology containing
+ * - Primitive types
+ * - content element list
+ * - Basic concept ACL_MESSAGE
+ * - SL0 elements (AID, SL0 operators and TRUE and FALSE propositions).
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
-public class BasicOntology extends Ontology {
+public class BasicOntology extends Ontology implements SL0Vocabulary {
 	// The singleton instance of this ontology
   private static final BasicOntology theInstance = new BasicOntology();
   static {
@@ -59,19 +62,10 @@ public class BasicOntology extends Ontology {
   public static final String         DATE = "BO_Date";
   public static final String         BYTE_SEQUENCE = "BO_Byte-sequence";
     
-  // Aggregate types names
-  public static final String         SEQUENCE = "sequence";
-  public static final String         SET = "set";
-    
   // Content element list 
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
-  
-  // Generic concepts: AID and ACLMessage
-  public static final String         AID = "agent-identifier";
-  public static final String         AID_NAME = "name";
-  public static final String         AID_ADDRESSES = "addresses";
-  public static final String         AID_RESOLVERS = "resolvers";
 
+  // Generic concept ACL Message
   public static final String         ACLMSG = "acl-message";
   public static final String         ACLMSG_PERFORMATIVE = "performative";
   public static final String         ACLMSG_SENDER = "sender";
@@ -87,25 +81,6 @@ public class BasicOntology extends Ontology {
   public static final String         ACLMSG_CONTENT = "content";
   public static final String         ACLMSG_BYTE_SEQUENCE_CONTENT = "bs-content";
   public static final String         ACLMSG_ENCODING = "encoding";
-  
-  // Generic propositions: TRUE_PROP (i.e. the proposition that is true under whatever condition) 
-  public static final String         TRUE_PROPOSITION = "TRUE";
-  
-  // Useful operators 
-  public static final String         DONE = "DONE";
-  public static final String         DONE_ACTION = "action";
-    
-  public static final String         RESULT = "RESULT";
-  public static final String         RESULT_ACTION = "action";
-  public static final String         RESULT_ITEMS = "items";
-    
-  public static final String         EQUALS = "EQUALS";
-  public static final String         EQUALS_LEFT = "Left";
-  public static final String         EQUALS_RIGHT = "Right";
-  
-  public static final String         ACTION = "ACTION";
-  public static final String         ACTION_ACTOR = "Actor";
-  public static final String         ACTION_ACTION = "Action";
   
   /**
    * Constructor
@@ -165,12 +140,23 @@ public class BasicOntology extends Ontology {
       PredicateSchema truePropSchema = new PredicateSchema(TRUE_PROPOSITION);
       add(truePropSchema);
 
+      // FALSE_PROPOSITION schema
+      PredicateSchema falsePropSchema = new PredicateSchema(FALSE_PROPOSITION);
+      add(falsePropSchema);
+
+      // ACTION Schema
+      AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
+      actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
+      actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
+      add(actionSchema);
+      
       // DONE Schema
       PredicateSchema doneSchema = new PredicateSchema(DONE);
-      doneSchema.add(DONE_ACTION, AgentActionSchema.getBaseSchema());
+      doneSchema.add(DONE_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+      doneSchema.add(DONE_CONDITION, (PredicateSchema) PredicateSchema.getBaseSchema(), ObjectSchema.OPTIONAL);
       add(doneSchema); 
       
-      // EQUALS Schema
+      // RESULT Schema
       PredicateSchema resultSchema = new PredicateSchema(RESULT);
       resultSchema.add(RESULT_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
       resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
@@ -181,12 +167,6 @@ public class BasicOntology extends Ontology {
       equalsSchema.add(EQUALS_LEFT, TermSchema.getBaseSchema());
       equalsSchema.add(EQUALS_RIGHT, TermSchema.getBaseSchema());
       add(equalsSchema); 
-
-      // ACTION Schema
-      AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
-      actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
-      actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
-      add(actionSchema); 
     } 
     catch (OntologyException oe) {
       oe.printStackTrace();

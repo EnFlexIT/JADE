@@ -22,39 +22,20 @@
  * Boston, MA  02111-1307, USA.
  * **************************************************************
  */
-package jade.content.onto.basic;
+package jade.content.lang.sl;
 
-import jade.content.*;
-import jade.content.abs.*;
-import jade.content.onto.*;
-
-public class Done implements Predicate {
-	private Concept action;
-	private Predicate condition;
-	
-	public Done() {
-		action = null;
-		action = null;
-	}
-	
-	public Done(Concept a) {
-		setAction(a);
-	}
-	
-	public Concept getAction() {
-		return action;
-	}
-	
-	public void setAction(Concept a) {
-		action = a;
-	}	
-	
-	public Predicate getCondition() {
-		return condition;
-	}
-	
-	public void setCondition(Predicate c) {
-		condition = c;
-	}	
-	
+/**
+ * @author Giovanni Caire - TILAB
+ */
+public interface SL1Vocabulary extends SL0Vocabulary {
+  public static final String         AND = "and";
+  public static final String         AND_LEFT = "left";
+  public static final String         AND_RIGHT = "right";
+  
+  public static final String         OR = "or";
+  public static final String         OR_LEFT = "left";
+  public static final String         OR_RIGHT = "right";
+  
+  public static final String         NOT = "not";
+  public static final String         NOT_WHAT = "what";
 }

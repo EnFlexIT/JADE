@@ -235,7 +235,7 @@ AbsVariable Variable():
 { AbsVariable val=null; Token v;}
 {
   v=<VARIABLE>
-  {val = new AbsVariable(); val.setName(v.image); return val;}
+  {val = new AbsVariable(); val.setName(v.image.substring(1)); return val;}
 }
 
 
@@ -296,7 +296,7 @@ AbsConcept FunctionalTerm_NoBrace() :
         }
     }	
   | s=String() {
-      if ( (SLCodec.SET.equalsIgnoreCase(s)) || (SLCodec.SEQUENCE.equalsIgnoreCase(s))) 
+      if ( (SL0Vocabulary.SET.equalsIgnoreCase(s)) || (SL0Vocabulary.SEQUENCE.equalsIgnoreCase(s))) 
          val = new AbsAggregate(s);  
       else 
          val = new AbsConcept(s);}
