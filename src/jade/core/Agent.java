@@ -49,7 +49,9 @@ import jade.lang.Codec;
 import jade.lang.acl.*;
 
 import jade.onto.Name;
+import jade.onto.Frame;
 import jade.onto.Ontology;
+import jade.onto.OntologyException;
 
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
@@ -392,6 +394,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     languages.put(new Name(languageName), translator);
   }
 
+
+  /**
+     Looks a content language up into the supported languages table.
+     @param languageName The name of the desired content language.
+     @return The translator for the given language, or
+     <code>null</code> if no translator was found.
+   */
+  public Codec lookupLanguage(String languageName) {
+    return (Codec)languages.get(languageName);
+  }
+
   /**
      Removes a Content Language from the agent capabilities.
      @param languageName The name of the language to remove.
@@ -419,6 +432,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   /**
+     Looks an ontology up into the supported ontologies table.
+     @param ontologyName The name of the desired ontology.
+     @return The given ontology, or <code>null</code> if no such named
+     ontology was found.
+   */
+  public Ontology lookupOntology(String ontologyName) {
+    return (Ontology)ontologies.get(ontologyName);
+  }
+
+  /**
      Removes an Ontology from the agent capabilities.
      @param ontologyName The name of the ontology to remove.
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
@@ -426,6 +449,42 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public void deregisterOntology(String ontologyName) {
     ontologies.remove(new Name(ontologyName));
   }
+
+  /**
+     Builds a Java object out of an ACL message. This method uses the
+     <code>:language</code> slot to select a content language and the
+     <code>:ontology</code> slot to select an ontology. Then the
+     <code>:content</code> slot is interpreted according to the chosen
+     language and ontology, to build an object of a user defined class.
+     @param msg The ACL message from which a suitable Java object will
+     be built.
+     @return A new Java object representing the message content in the
+     given content language and ontology.
+     @exception jade.domain.FIPAException If some problem related to
+     the content language or to the ontology is detected.
+     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
+     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
+   */
+  public Object buildFrom(ACLMessage msg) throws FIPAException {
+    Codec c = lookupLanguage(msg.getLanguage());
+    if(c == null)
+      throw new FIPAException("Unknown Content Language");
+    Ontology o = lookupOntology(msg.getOntology());
+    if(o == null)
+      throw new FIPAException("Unknown Ontology");
+    try {
+      Frame f = c.decode(msg.getContent(), o);
+      return o.createObject(f);
+    }
+    catch(Codec.CodecException cce) {
+      throw new FIPAException("Codec error: " + cce.getMessage());
+    }
+    catch(OntologyException oe) {
+      throw new FIPAException("Ontology error: " + oe.getMessage());
+    }
+
+  }
+
 
   // This is used by the agent container to wait for agent termination
   void join() {
@@ -750,7 +809,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      original one.
      @exception IOException Thrown if some I/O error occurs during
      stream reading.
-     @see jade.core.Agent#write(Outputstream s)
+     @see jade.core.Agent#write(OutputStream s)
   */
   public static void read(InputStream s, String agentName) throws IOException {
     try {
@@ -775,7 +834,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      stream reading.
      <em>Note: This method is currently not implemented</em>
   */
-  public void restore(InputStream s) {
+  public void restore(InputStream s) throws IOException {
     // FIXME: Not implemented
   }
 
