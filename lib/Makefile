@@ -20,6 +20,7 @@ all:
 clean:
 	rm -f $(LIBDIR)/$(LIBTOOLSNAME)
 	rm -f $(LIBDIR)/$(LIBNAME)
+	rm -f $(LIBDIR)/$(LIBBASE64NAME)
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
