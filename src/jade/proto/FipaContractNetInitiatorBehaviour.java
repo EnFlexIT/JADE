@@ -103,7 +103,7 @@ import java.util.Date;
 * 
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
-* @deprecated
+* @deprecated the class <code>ContractNetInitiator</code> must be used instead
 */
 public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour {
     

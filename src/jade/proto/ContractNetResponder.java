@@ -47,17 +47,54 @@ import java.util.Date;
 * <code>fipa-contract-net</code> interaction protocol from the point
 * of view of a responder to a call for proposal (<code>cfp</code>)
 * message.<p>
-* The use mode is like <code> AchieveREResponder<code>-<code> AchieveREInitiator<code>
-*
-*
+* The API of this class is similar and homogeneous to the 
+* <code>AchieveREResponder</code>. 
+* <p>
+* Read also the introduction to
+* <a href="ContractNetInitiator.html">ContractNetInitiator</a>
+* for a description of the protocol.
+* <p>
+* When a message arrives
+* that matches the message template passed to the constructor,
+* the callback method <code>prepareResponse</code> is executed
+* that must return the wished response, for instance the <code>PROPOSE</code>
+* reply message. Any other type of returned communicative act 
+* is sent and then closes the
+* protocol.
+* <p>
+* Then, if the initiator accepted the proposal, i.e. if 
+* an <code>ACCEPT-PROPOSAL</code> message was received, the callback
+* method <code>prepareResultNotification</code> would be executed that
+* must return the message with the result notification, i.e. 
+* <code>INFORM</code> or <code>FAILURE</code>.
+* <br>
+* In alternative, if the initiator rejected the proposal, i.e. if 
+* an <code>REJECT-PROPOSAL</code> message was received, the callback
+* method <code>handleRejectProposal</code> would be executed and
+* the protocol terminated. 
+* <p>
+* If a message were received, with the same value of this 
+* <code>conversation-id</code>, but that does not comply with the FIPA 
+* protocol, than the method <code>handleOutOfSequence</code> would be called.
+* <p>
+* This class can be extended by the programmer by overriding all the needed
+* handle methods or, in alternative, appropriate behaviours can be
+* registered for each handle via the <code>registerHandle</code>-type
+* of methods. This last case is more difficult to use and proper
+* care must be taken to properly use the <code>DataStore</code> of the
+* <code>Behaviour</code> as a shared memory mechanism with the
+* registered behaviour.
+* <p>
+* Read carefully the section of the 
+* <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
+* that describes
+* the usage of this class.
 * @see jade.proto.ContractNetInitiator;
 * @see jade.proto.AchieveREresponder;
-* @see jade.proto.AchieveREInitiator;
-* @see jade.proto.FipaContractNetResponderBehaviour
 * 
 * @author Fabio Bellifemine - TILAB
 * @author Giovanni Caire - TILAB
-* @author Marco Monticone
+* @author Marco Monticone - TILAB
 * @version $Date$ $Revision$
 */
 
@@ -78,18 +115,20 @@ public class ContractNetResponder extends FSMBehaviour {
 // Data store keys
  /** 
  * key to retrieve from the DataStore of the behaviour the ACLMessage 
- *	object sent by the initiator.
+ *	object received by the initiator.
  **/
 public final String CFP_KEY = "__CFP_key" + hashCode();
 
 /** 
  * key to retrieve from the DataStore of the behaviour the ACLMessage 
- *	object sent as a propose to the initiator.
+ *	object sent as a response to the initiator CFP.
  **/
 public final String PROPOSE_KEY = "__Propose" + hashCode();
 
-
-             
+/** 
+ * key to retrieve from the DataStore of the behaviour the ACLMessage 
+ *	object sent as an ACCEPT/REJECT PROPOSAL response to the initiator CFP.
+ **/             
 public final String PROPOSE_ACCEPTANCE_KEY = "___propose_acceptance"+hashCode();
   /** 
    * key to retrieve from the DataStore of the behaviour the ACLMessage 
@@ -110,12 +149,15 @@ public ContractNetResponder(Agent a,MessageTemplate mt){
 }
 
 /**
- * Constructor.
+ * Constructor of the behaviour.
  * @param a is the reference to the Agent object
  * @param mt is the MessageTemplate that must be used to match
  * the initiator message. Take care that 
  * if mt is null every message is consumed by this protocol.
- * @param store the DataStore for this protocol
+ * The best practice is to have a MessageTemplate that matches
+ * the protocol slot; the static method <code>createMessageTemplate</code>
+ * might be usefull. 
+ * @param store the DataStore for this protocol behaviour
  **/
 public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
 	super(a);
@@ -261,34 +303,40 @@ public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
 
 
 /**   
-* This method is called after the <code>reject-propose</code> has been received or a time out occurred
+* This method is called after the <code>reject-propose</code> has been received
+* or the timeout expires, as expressed by the <code>reply-by</code> value of
+* the <code>PROPOSE</code> reply.
 * This default implementation do nothing.
 * Programmers should override the method in case they need to react to this event.
-* After this state the responder was resetted. 
+* After the execution of this method this responder behaviour is 
+* automatically resetted. 
 * @param cfp the received message
 * @param propose the previously sent propose message
-* @param rejectProposa the received reject-propose message, if time out occurred this param is null
+* @param rejectProposal the received reject-propose message, 
+* null if the timeout expired
 **/
 protected void handleRejectProposal(ACLMessage cfp,ACLMessage propose,ACLMessage rejectProposal){
 }
 
 /**   
-* This method is called after message that not respect the fipa-contract-net protocol (i.e.
-* a message with the correct in-reply-to field set but with performative different 
-* to <code>reject-propose</code> or <code>accept-propose</code>
+* This callback method is called after a message arrives
+* that does not respect the 
+* protocol (i.e.
+* a message with the correct in-reply-to field but with a unexpected
+* performative).
 * This default implementation do nothing.
 * Programmers should override the method in case they need to react to this event.
-* After this state the responder was resetted. 
+* After the execution of this method this responder behaviour is reset. 
 * @param cfp the received message
 * @param propose the previously sent propose message
-* @param  outOfSequence the received message that not respect the fipa-contract-net protocol
+* @param  outOfSequence the received message that does not respect the protocol
 **/
 protected void handleOutOfSequence(ACLMessage cfp,ACLMessage propose,ACLMessage outOfSequenceMsg){
 }
 
 
 /**   
-* This method is called after the acceptance has been sent
+* This callback method is called after the acceptance has been sent
 * and only if the response was an <code>accept-propose</code> message. 
 * This default implementation return null which has
 * the effect of sending no result notification. Programmers should
@@ -299,7 +347,7 @@ protected void handleOutOfSequence(ACLMessage cfp,ACLMessage propose,ACLMessage 
 * @return the ACLMessage to be sent as a result notification (i.e. one of
 * <code>inform, failure</code>. <b>Remind</b> to
 * use the method createReply of the class ACLMessage in order
-* to create a good reply message
+* to create a valid reply message
 * @see jade.lang.acl.ACLMessage#createReply()
 **/
 protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose,ACLMessage accept ) throws FailureException {
@@ -314,7 +362,8 @@ protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propos
    This behaviour would override the homonymous method.
    This method also set the  data store of the registered <code>Behaviour</code> to the
    DataStore of this current behaviour.
-   The registered behaviour can found the send and received message in the datastore 
+   The registered behaviour can find the sent and receivet messages 
+   within the datastore 
    at the keys: <code>CFP_KEY</code>, <code>PROPOSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
    @param b the Behaviour that will handle this state
   **/
@@ -337,6 +386,7 @@ public void registerHandleRejectProposal(Behaviour b){
 public void registerPrepareResponse(Behaviour b) {
 	registerDSState(b, PREPARE_PROPOSE_STATE);
 }
+
  /**
    This method allows to register a user defined <code>Behaviour</code>
    in the PREPARE_RESULT_NOTIFICATION state.
@@ -370,7 +420,7 @@ public void registerHandleOutOfSequnece(Behaviour b) {
  /**
   *  This static method can be used 
   *  to set the proper message Template (based on the interaction protocol 
-  *  and the performative)   into the constructor of this behaviour.
+  *  and the performative) to be passed to the constructor of this behaviour.
   *  @see FIPAProtocolNames 
   **/
     public static MessageTemplate createMessageTemplate(String iprotocol){
@@ -394,9 +444,9 @@ public void registerHandleOutOfSequnece(Behaviour b) {
      * override the method in case they need to react to this event.
      * @param request the received message
      * @return the ACLMessage to be sent as a response (i.e. one of
-     * <code>agree, refuse, not-understood, inform</code>. <b>Remind</b> to
-     * use the method createReply of the class ACLMessage in order
-     * to create a good reply message
+     * <code>PROPOSE, refuse, not-understood</code>. <b>Remind</b> to
+     * use the method <code>createReply</code> of the class ACLMessage in order
+     * to create a valid reply message
      * @see jade.lang.acl.ACLMessage#createReply()
      **/
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
@@ -407,6 +457,7 @@ public void registerHandleOutOfSequnece(Behaviour b) {
     
     
   /**
+   * Reset the behaviour.
    */
   public void reset() {
 		super.reset();
@@ -418,8 +469,9 @@ public void registerHandleOutOfSequnece(Behaviour b) {
   }
     
   /**
-   * This method allows to change the <code>MessageTemplate</code>
-   * that defines what messages this ContractNetResponder will react to and reset the protocol.
+   * This method reset the behaviour and 
+   * allows to change the <code>MessageTemplate</code>
+   * that defines what messages this ContractNetResponder will react to. 
    **/
   public void reset(MessageTemplate mt) {
 		this.reset();

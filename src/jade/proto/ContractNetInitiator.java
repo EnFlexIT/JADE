@@ -37,10 +37,97 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 /**
+ * This class implements the Fipa-Contract-Net interaction protocol
+ * with an API similar and homogeneous to <code>AchieveREInitiator</code>.
+ * <br>
+ * This implementation works both for 1:1 and 1:N conversation and, of course,
+ * implements the role of the initiator of the protocol.
+ * <p>
+ * The following is a brief description of the protocol. The programmer
+ * should however refer to the 
+ * <a href=http://www.fipa.org/specs/fipa00061/XC00061D.html>FIPA Spec</a>
+ * for a complete description.
+ * <p>
+ * The initiator solicits proposals from other agents by sending
+ * a <code>CFP</code> message that specifies the action to be performed
+ * and, if needed, conditions upon its execution. The implementation of
+ * the callback method <code>prepareCfps</code> must return the vector of
+ * messages to be sent (eventually a single message with multiple receivers).
+ * <p>
+ * The responders can then reply by sending a <code>PROPOSE</code> message
+ * including the preconditions that they set out for the action, for instance
+ * the price or the time. 
+ * Alternatively, responders may send a <code>REFUSE</code>, to refuse
+ * the proposal or, eventually, a <code>NOT-UNDERSTOOD</code> to communicate
+ * communication problems.
+ * This first category of reply messages has been here identified as a 
+ * response and can be handled via the <code>handleAllResponses</code>
+ * callback method.
+ * Specific handle callback methods for each type of communicative act are also
+ * available when the programmer wishes to handle them separately:
+ * <code>handleRefuse, handlePropose, handleNotUnderstood</code>.
+ * <p> 
+ * The initiator can evaluate all the received proposals
+ * and make its choice of which agent proposals will be accepted and
+ * which will be rejected. 
+ * This class provides two ways for this evaluation. It can be done
+ * progressively each time a new <code>PROPOSE</code> message is
+ * received and a new call to the <code>handlePropose</code> callback 
+ * method is executed
+ * or,
+ * in alternative, it can be done just once when all the <code>PROPOSE</code>
+ * messages have been collected (or the <code>reply-by</code> deadline has
+ * elapsed) and a single call to the 
+ * <code>handleAllResponses</code> callback method is executed. 
+ * In both cases, the second parameter of the method, i.e. the Vector
+ * <code>acceptances</code>, must be filled with the appropriate
+ * <code>ACCEPT/REJECT-PROPOSAL</code> messages.
+ * Notice that, for the first case, the method <code>skipNextResponses</code>
+ * has been provided that, if called by the programmer
+ * when waiting for <code>PROPOSE</code>
+ * messages, allows to skip to the next state and ignore all the 
+ * responses and proposals that have not yet been received.
+ * <p>
+ * Once the responders whose proposal has been accepted (i.e. those that have
+ * received a <code>ACCEPT-PROPOSAL</code> message) have completed
+ * the task, they can, finally, 
+ * respond with an 
+ * <code>INFORM</code> of the result of the action (eventually just that the 
+ * action has been done) or with a <code>FAILURE</code> if anything went wrong.
+ * This second category of reply messages has been here identified as a
+ * result notification and can be handled via the 
+ * <code>handleAllResultNotification</code> callback method.
+ * Again, specific handle callback
+ * methods for each type of communicative act are also
+ * available when the programmer wishes to handle them separately:
+ * <code>handleRefuse, handleInform</code>.
+ * <p>
+ * If a message were received, with the same value of this 
+ * <code>conversation-id</code>, but that does not comply with the FIPA 
+ * protocol, than the method <code>handleOutOfSequence</code> would be called.
+ * <p>
+ * This class can be extended by the programmer by overriding all the needed
+ * handle methods or, in alternative, appropriate behaviours can be
+ * registered for each handle via the <code>registerHandle</code>-type
+ * of methods. This last case is more difficult to use and proper
+ * care must be taken to properly use the <code>DataStore</code> of the
+ * <code>Behaviour</code> as a shared memory mechanism with the
+ * registered behaviour.
+ * <p>
+ * Read carefully the section of the 
+ * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
+ * that describes
+ * the usage of this class.
+
  * @author Giovanni Caire - TILab
  * @author Fabio Bellifemine - TILab
  * @author Tiziana Trucco - TILab
+ * @author Marco Monticone - TILab
  * @version $Date$ $Revision$
+ * @since JADE2.5
+ * @see ContractNetResponder
+ * @see AchieveREInitiator
+ * @see <a href=http://www.fipa.org/specs/fipa00029/XC00029F.html>FIPA Spec</a>
  **/
 public class ContractNetInitiator extends FSMBehaviour {
 	
@@ -121,11 +208,11 @@ public class ContractNetInitiator extends FSMBehaviour {
   
   private ACLMessage cfp;
 	
-	String conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
-	MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
+	String conversationID = null; 
+	MessageTemplate mt = null; 
     
   /**
-   * Construct for the class by creating a new empty DataStore
+   * Constructor for the class that creates a new empty DataStore
    * @see #ContractNetInitiator(Agent, ACLMessage, DataStore)
    **/
   public ContractNetInitiator(Agent a, ACLMessage cfp){
@@ -139,7 +226,7 @@ public class ContractNetInitiator extends FSMBehaviour {
    * Notice that the default implementation of the 
    * <code>prepareCfps</code>
    * method returns
-   * an array including that message only.
+   * an array composed of that message only.
    * @param s The <code>DataStore</code> that will be used by this 
    * <code>ContractNetInitiator</code>
    */
@@ -217,7 +304,12 @@ public class ContractNetInitiator extends FSMBehaviour {
 			    	// set the conversation-id. A single conv-id for all the messages in
 			    	// this protocol must be used, such that the right MessageTemplate
 			    	// can be later created.
-			    	msg.setConversationId(conversationID);
+					    if (msg.getConversationId() == null) 
+						conversationID = "C"+hashCode()+"_"+System.currentTimeMillis();
+					    else
+						conversationID = msg.getConversationId();
+					    mt = MessageTemplate.MatchConversationId(conversationID);
+					    msg.setConversationId(conversationID);
 
 			    	// Each message can have more than one receiver --> clone the message
 			    	// to avoid ConcurrentModificationException on the list of receivers
@@ -442,7 +534,9 @@ public class ContractNetInitiator extends FSMBehaviour {
    * this method in order to return a vector of CFP objects for 1:N conversations
    * or also to prepare the messages during the execution of the behaviour.
    * @param cfp the ACLMessage object passed in the constructor
-   * @return a Vector of ACLMessage objects
+   * @return a Vector of ACLMessage objects. The value of the slot
+   * <code>reply-with</code> is ignored and regenerated automatically
+   * by this class.
    **/    
   protected Vector prepareCfps(ACLMessage cfp) {
 		Vector v = new Vector(1);
@@ -458,7 +552,8 @@ public class ContractNetInitiator extends FSMBehaviour {
    * wish to override the method in case they need to react to this event.
    * @param propose the received propose message
    * @param acceptances the list of ACCEPT/REJECT_PROPOSAL to be sent back.
-   * This list can be filled step by step redefining this method or at once
+   * This list can be filled step by step redefining this method, or
+   * it can be filled at once
    * redefining the handleAllResponses method.
    **/
   protected void handlePropose(ACLMessage propose, Vector acceptances) {
@@ -533,7 +628,7 @@ public class ContractNetInitiator extends FSMBehaviour {
    * by analysing all the messages in just one call.
    * @param responses the Vector of ACLMessage objects that have been received 
    * @param acceptances the list of ACCEPT/REJECT_PROPOSAL to be sent back.
-   * This list can be filled at once redefining this method or step by step 
+   * This list can be filled at once redefining this method, or step by step 
    * redefining the handlePropose method.
    **/
   protected void handleAllResponses(Vector responses, Vector acceptances) {
@@ -557,7 +652,7 @@ public class ContractNetInitiator extends FSMBehaviour {
     
     
   /**
-     This method allows to register a user defined <code>Behaviour</code>
+     This method allows to register a user-defined <code>Behaviour</code>
      in the PREPARE_CFPS state. 
      This behaviour would override the homonymous method.
      This method also set the 
@@ -746,8 +841,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 		this.cfp = cfp;
 		step = 1;
 		skipNextRespFlag = false;
-  	conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
-		mt = MessageTemplate.MatchConversationId(conversationID);
   }
 
   /** 

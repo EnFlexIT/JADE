@@ -82,6 +82,7 @@ import java.io.*;
 * </ul>
 * @see jade.proto.FipaContractNetInitiatorBehaviour
 *
+* @deprecated the class <code>ContractNetResponder</code> must be used instead
 * 
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
