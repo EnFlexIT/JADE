@@ -106,9 +106,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 	  messaging.init(this, myProfile);
 
-	  // Create the back-end replication service
+	  /* Create the back-end replication service
 	  jade.core.replication.BEReplicationService beReplication = new jade.core.replication.BEReplicationService();
-	  beReplication.init(this, myProfile);
+	  beReplication.init(this, myProfile);*/
 
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
 	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
