@@ -53,8 +53,8 @@ a search action the default search constraints are used. <br>
   The second constructor is specific for a search action and it allows
 to specify additional search constraints.
   
-  @see jade.domain.DFServiceCommunicator
-  @see jade.domain.AMSServiceCommunicator
+  @see jade.domain.DFService
+  @see jade.domain.AMSService
   
   @author Fabio Bellifemine (CSELT S.p.A.)
   @version $Date$ $Revision$

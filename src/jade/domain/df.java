@@ -1356,7 +1356,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     while(it.hasNext()) {
       AID parentName = (AID)it.next();
       try {
-        DFServiceCommunicator.deregister(this, parentName, dfd);
+        DFService.deregister(this, parentName, dfd);
       }
       catch(FIPAException fe) {
         fe.printStackTrace();

@@ -46,7 +46,7 @@ import java.util.Date;
 
 /**
  * This class provides a set of basic and static methods to perform the FIPA Agent Management actions.
- * However, developers should use <code>DFServiceCommunicator</code> and <code>AMSServiceCommunicator</code>
+ * However, developers should use <code>DFService</code> and <code>AMSService</code>
  * which provide specialized methods to communicate with the DF and the AMS.
  * @author Fabio Bellifemine - CSELT S.p.A.
  * @version $Date$ $Revision$  
