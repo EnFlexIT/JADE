@@ -99,7 +99,7 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	}
   	// KILL AGENT (asynchronous notification to requester)
   	else if (action instanceof KillAgent) {
-  		theAMS.killAgentAction((KillAgent) action, request.getSender());
+  		theAMS.killAgentAction((KillAgent) action, request.getSender(), requesterPrincipal, requesterCredentials);
   		asynchNotificationKey = ((KillAgent) action).getAgent();
   	}
   	// CLONE AGENT (asynchronous notification to requester)

@@ -243,24 +243,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	    }
 		};
 		auxThread.start();
-
-
 	}
 	
 	// KILL AGENT
-	void killAgentAction(KillAgent ka, AID requester) throws FIPAException {
+	void killAgentAction(KillAgent ka, AID requester, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws FIPAException {
   	final AID agentID = ka.getAgent();
 		logger.log(Logger.FINE,"Agent "+requester+" requesting Kill-agent "+agentID);
-	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 
     try {
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws UnreachableException, AuthException, NotFoundException {
-        	myPlatform.kill(agentID);
-					//return null;
-		    //}
-			//}, requesterCredentials); 
-
+    	myPlatform.kill(agentID, requesterPrincipal, requesterCredentials);
     }
 		catch(AuthException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action KillAgent");
@@ -1122,7 +1113,7 @@ public class ams extends Agent implements AgentManager.Listener {
   	logger.log(Logger.CONFIG,ev.toString());
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
-    String ownership = JADEPrincipal.NONE; //((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
+    String ownership = ev.getNewOwnership();
 
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);
@@ -1254,8 +1245,8 @@ public class ams extends Agent implements AgentManager.Listener {
     ChangedAgentOwnership cao = new ChangedAgentOwnership();
     cao.setAgent(name);
     cao.setWhere(cid);
-    cao.setFrom( JADEPrincipal.NONE ); //((JADEPrincipal)ev.getOldPrincipal()).getOwnership() );
-    cao.setTo( JADEPrincipal.NONE ); //((JADEPrincipal)ev.getNewPrincipal()).getOwnership() );
+    cao.setFrom(ev.getOldOwnership());
+    cao.setTo(ev.getNewOwnership());
 
     EventRecord er = new EventRecord(cao, here());
     er.setWhen(ev.getTime());
