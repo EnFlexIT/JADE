@@ -81,7 +81,7 @@ protected void setup() {
 
       Person p = new Person("JADE", "CSELT", new Date(), 2);
       msg.setContentObject(p);
-     
+    
       send(msg);
       System.out.println(getLocalName()+" sent a message to "+reader);
   } catch (IOException e ) {

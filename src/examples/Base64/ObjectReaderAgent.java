@@ -72,14 +72,10 @@ protected void setup() {
       ACLMessage msg = blockingReceive(); 
   
       Person p = (Person)msg.getContentObject();
-
       System.out.println(getLocalName()+ " read Java Object " + p.getClass().getName() + p.toString());
       
-    } catch (IOException e1 ) {
-      System.err.println(getLocalName()+" catched exception "+e1.getMessage());
-    } catch (ClassNotFoundException e2) {
-    System.err.println(getLocalName()+" catched exception "+e2.getMessage());
-    } catch(UnreadableException e3){System.err.println(getLocalName()+ " catched exception "+e3.getMessage());
+    } catch(UnreadableException e3){
+    	  System.err.println(getLocalName()+ " catched exception "+e3.getMessage());
     }
   }
 }
