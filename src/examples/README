@@ -3,7 +3,7 @@ README file for JADE $Name$ - Example programs.
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
 examples, you must set CLASSPATH environment variable to contain the
-file jade.jar and the current directory ('.').
+file jade.jar, jadeTools.jar and Base64.jar and the current directory ('.').
 Then change to 'src' directory and refer to the various example agents
 with a fully qualified package name; all example agent classes belong
 to subpackages of 'examples' package: for example, class Agent1 in
@@ -174,3 +174,23 @@ loop. In this loop, it waits for the next incoming message, and dumps all
 the Java objects into the message.
 - ObjectWriterAgent: the agent searches in the DF for an ObjectReaderAgent,
 and than sends a message with some Java objects.
+
+
+jess subdirectory
+=================
+JessAgent is a sample agent that allows the programmer to avoid writing any 
+line of Java code. He can implement everything in CLIPS by using JESS.
+The code IS just the file JadeAgent.clp.
+Every time an ACL message arrives, a new fact is asserted in JESS.
+A function allows to send messages.
+In order to compile this example, JESS is needed. It has been already tested
+with JESS 4.3
+
+ex_mobile subdirectory
+======================
+This is a simple mobile agent.
+Send the message 
+(REQUEST :content (move Container-1))
+and the agent moves to Container-1, send again
+(REQUEST :content (move Front-End))
+and it moves to Front-End.
