@@ -45,10 +45,12 @@ import jade.mtp.MTPException;
 public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentContainerRMI {
 
     private AgentContainer impl;
+    private RMIIMTPManager manager;
 
     /** Creates new AgentContainerRMIImpl */
-    public AgentContainerRMIImpl(AgentContainer ac) throws RemoteException {
+    public AgentContainerRMIImpl(AgentContainer ac, RMIIMTPManager mgr) throws RemoteException {
       impl = ac;
+      manager = mgr;
     }
 
     public byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException, IMTPException {
@@ -96,7 +98,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
     }
     
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {
-      impl.createAgent(agentID, serializedInstance, new AgentContainerAdapter(classSite), startIt);
+      impl.createAgent(agentID, serializedInstance, new AgentContainerAdapter(classSite, manager), startIt);
     }
 
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {
@@ -108,9 +110,10 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
     }
 
     public void updateRoutingTable(int op, String address, AgentContainerRMI ac) throws RemoteException, IMTPException {
-      impl.updateRoutingTable(op, address, new AgentContainerAdapter(ac));
+      AgentContainer cont = manager.getAdapter(ac);
+      impl.updateRoutingTable(op, address, cont);
     }
-    
+
     public void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException, IMTPException {
       impl.postTransferResult(agentID, result, messages);
     }

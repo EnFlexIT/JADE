@@ -28,7 +28,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-//import jade.core.MainContainerImpl;
+import jade.core.AgentContainer;
 import jade.core.MainContainer;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
@@ -41,19 +41,20 @@ import jade.core.RemoteProxy;
  */
 public class MainContainerRMIImpl extends UnicastRemoteObject implements MainContainerRMI {
 
-    //private MainContainerImpl impl;
     private MainContainer impl;
+    private RMIIMTPManager manager;
 
     /** Creates new MainContainerRMIImpl */
-    //public MainContainerRMIImpl(MainContainerImpl mc) throws RemoteException {
-    public MainContainerRMIImpl(MainContainer mc) throws RemoteException {
+    public MainContainerRMIImpl(MainContainer mc, RMIIMTPManager mgr) throws RemoteException {
       impl = mc;
+      manager = mgr;
     }
 
     public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException {
-      return impl.lookup(cid).getAdapter().adaptee;
+      AgentContainer ac = impl.lookup(cid);
+      return manager.getRMIStub(ac);
     }
-    
+
     public void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException {
       impl.deadMTP(mtpAddress, cid);
     }
@@ -71,6 +72,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     }
     
     public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException, IMTPException {
+      manager.adopt(rp); // This needs to be restored by hand, since it must not be serialized...
       impl.bornAgent(name, rp, cid);
     }
     
@@ -79,9 +81,10 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     }
     
     public String addContainer(AgentContainerRMI ac, ContainerID cid) throws RemoteException, IMTPException {
-      return impl.addContainer(new AgentContainerAdapter(ac), cid);
+      AgentContainer cont = manager.getAdapter(ac);
+      return impl.addContainer(cont, cid);
     }
-    
+
     public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
       impl.deadAgent(name);
     }

@@ -46,10 +46,12 @@ import jade.mtp.MTPException;
 public class MainContainerAdapter implements MainContainer, Serializable {
 
   private MainContainerRMI adaptee;
+  private RMIIMTPManager manager;
 
   /** Creates new MainContainerAdapter */
-  public MainContainerAdapter(MainContainerRMI mc) {
+  public MainContainerAdapter(MainContainerRMI mc, RMIIMTPManager mgr) {
     adaptee = mc;
+    manager = mgr;
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
@@ -67,7 +69,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
 
   public RemoteProxy getProxy(AID id) throws IMTPException, NotFoundException {
     try {
-      return adaptee.getProxy(id);
+      RemoteProxy rp = adaptee.getProxy(id);
+      manager.adopt(rp); // This needs to be restored by hand, since it must not be serialized...
+      return rp;
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -94,7 +98,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
 
   public AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException {
     try {
-      return new AgentContainerAdapter(adaptee.lookup(cid));
+      return new AgentContainerAdapter(adaptee.lookup(cid), manager);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -112,7 +116,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
 
   public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
     try {
-      return adaptee.addContainer(ac.getAdapter().adaptee, cid); // FIXME: Temporary hack
+      return adaptee.addContainer(manager.getRMIStub(ac), cid);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
