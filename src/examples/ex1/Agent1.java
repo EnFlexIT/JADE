@@ -10,7 +10,7 @@ import jade.core.*;
 public class Agent1 extends Agent {
 
 
-  class Behaviour1 implements Behaviour {
+  class Behaviour1 extends CyclicBehaviour {
 
     private int counter;
     private String myID;
@@ -20,7 +20,7 @@ public class Agent1 extends Agent {
       myID = ID;
     }
 
-    public void execute() {
+    public void action() {
 
       System.out.println("I'm " + myID + " :");
       System.out.println("Running " + counter + " times. ");
@@ -33,9 +33,6 @@ public class Agent1 extends Agent {
       }
     }
 
-    public boolean done() {
-      return false;
-    }
 
   }
 

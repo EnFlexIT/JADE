@@ -17,7 +17,7 @@ public class AgentBroadcaster extends Agent {
 
   private Vector messages = new Vector();
 
-  private class BehaviourElement implements Behaviour {
+  private class BehaviourElement extends SimpleBehaviour {
 
     private AgentBroadcaster myAgent;
     private ACLMessage myMessage;
@@ -33,7 +33,7 @@ public class AgentBroadcaster extends Agent {
       myMessage.setDest(dest);
     }
 
-    public void execute() {
+    public void action() {
       if(msgSent == false) {
 	System.out.println("Sending to " + myMessage.getDest());
 	myAgent.send(myMessage);

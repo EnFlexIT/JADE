@@ -15,7 +15,7 @@ public class AgentThread extends Agent {
 
   protected void setup() {
 
-    addBehaviour(new SimpleBehaviour(this) {
+    addBehaviour(new OneShotBehaviour(this) {
 
       protected void action() {
 	try {
@@ -31,24 +31,24 @@ public class AgentThread extends Agent {
 	  System.out.println("Sending message to " + dest);
 
 
-	  String text = new String("( request :sender " + myAgent.getName());
+	  String text = new String("( request :sender " + getName());
 	  text = text + " :receiver " + dest + " :content ( " + content + " ) )";
 	  System.out.println(text);
-	  ACLMessage msg = myAgent.parse(new StringReader(text));
+	  ACLMessage msg = parse(new StringReader(text));
 
 
-	  myAgent.send(msg);
-	  myAgent.send(msg);
-	  myAgent.send(msg);
+	  send(msg);
+	  send(msg);
+	  send(msg);
 
 	  msg.setReplyWith("alt.agents.fipa");
 
-	  myAgent.send(msg);
+	  send(msg);
 
 	  System.out.println("Waiting for reply..");
 
 	  MessageTemplate mt = MessageTemplate.MatchReplyTo("alt.agents.fipa");
-	  ACLMessage reply = myAgent.blockingReceive(mt);
+	  ACLMessage reply = blockingReceive(mt);
 	  System.out.println("Received from " + reply.getSource());
 	  System.out.println(reply.getContent());
 	}
@@ -56,7 +56,7 @@ public class AgentThread extends Agent {
 	  ioe.printStackTrace();
 	}
 
-	myAgent.doDelete(); // Terminates the agent
+	doDelete(); // Terminates the agent
       }
 
     });

@@ -12,7 +12,7 @@ public class AgentReceiver extends Agent {
 
   protected void setup() {
 
-    addBehaviour(new SimpleBehaviour(this) {
+    addBehaviour(new CyclicBehaviour(this) {
 
       protected void action() {
 	System.out.println("Now receiving (blocking style)...");
@@ -26,10 +26,6 @@ public class AgentReceiver extends Agent {
 	reply.setDest(source);
 	reply.setContent("Thank you for calling, " + source);
 	myAgent.send(reply);
-      }
-
-      public boolean done() {
-	return false;
       }
 
     });

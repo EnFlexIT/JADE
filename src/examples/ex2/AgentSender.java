@@ -16,7 +16,7 @@ public class AgentSender extends Agent {
 
   protected void setup() {
 
-    addBehaviour(new SimpleBehaviour(this) {
+    addBehaviour(new OneShotBehaviour(this) {
 
       protected void action() {
 	try {

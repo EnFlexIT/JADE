@@ -10,7 +10,7 @@ import jade.core.*;
 // An example of recursive aggregation of complex agent behaviours.
 public class Agent3 extends Agent {
 
-  class Behaviour3Step extends SimpleBehaviour {
+  class Behaviour3Step extends OneShotBehaviour {
 
     private String myCode;
 
@@ -20,8 +20,8 @@ public class Agent3 extends Agent {
     }
 
     public void action() {
-      System.out.println("Agent " + myAgent.getName() + ": Step " + myCode);
-    } 
+      System.out.println("Agent " + getName() + ": Step " + myCode);
+    }
 
 }
 
@@ -40,7 +40,8 @@ public class Agent3 extends Agent {
 
     myBehaviour2_2.addBehaviour(new Behaviour3Step(this,"2.2.1"));
     myBehaviour2_2.addBehaviour(new Behaviour3Step(this,"2.2.2"));
-    myBehaviour2_2.addBehaviour(new Behaviour3Step(this,"2.2.3"));
+    Behaviour b = new Behaviour3Step(this,"2.2.3");
+    myBehaviour2_2.addBehaviour(b);
 
     myBehaviour1.addBehaviour(new Behaviour3Step(this,"1.1"));
     myBehaviour1.addBehaviour(new Behaviour3Step(this,"1.2"));
@@ -48,6 +49,7 @@ public class Agent3 extends Agent {
 
     myBehaviour2.addBehaviour(myBehaviour2_1);
     myBehaviour2.addBehaviour(myBehaviour2_2);
+
     myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.3"));
     myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.4"));
     myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.5"));

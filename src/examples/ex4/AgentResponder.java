@@ -13,10 +13,10 @@ public class AgentResponder extends Agent {
 
 
   // This behaviour plays responder's role in a fipa-request conversation
-  private class ResponderBehaviour implements Behaviour {
+  private class ResponderBehaviour extends SimpleBehaviour {
 
     // A simple behaviour to send an ACL message to an agent
-    private class SendBehaviour extends SimpleBehaviour {
+    private class SendBehaviour extends OneShotBehaviour {
 
       private ACLMessage message;
 
@@ -45,7 +45,7 @@ public class AgentResponder extends Agent {
       myConvId = msg.getConversationId();
     }
 
-    public void execute() {
+    public void action() {
 
       // This agent answers 'not-understood' with 20% probability,
       // 'refuse' with 30% probability and 'agree' with 50%
@@ -116,7 +116,7 @@ public class AgentResponder extends Agent {
 
   // This behaviour continously receives 'request' messages and then
   // spawns a ResponderBehaviour to handle them.
-  private class MultipleBehaviour implements Behaviour {
+  private class MultipleBehaviour extends CyclicBehaviour {
 
     private AgentResponder myAgent;
     MessageTemplate pattern;
@@ -131,7 +131,7 @@ public class AgentResponder extends Agent {
 
     }
 
-    public void execute() {
+    public void action() {
 
       ACLMessage request = myAgent.receive(pattern);
 
@@ -141,12 +141,11 @@ public class AgentResponder extends Agent {
 	myAgent.addBehaviour(new ResponderBehaviour(myAgent, request));
       }
 
+      // Uncomment the following two lines and no CPU time will be wasted
+      //      else
+      //      block();
     }
 
-    // Cyclic behaviour
-    public boolean done() {
-      return false;
-    }
 
   }
 

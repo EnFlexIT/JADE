@@ -11,14 +11,14 @@ import jade.lang.acl.*;
 // A test on Message Templates ...
 public class Agent2 extends Agent {
 
-  class Behaviour2 extends SimpleBehaviour {
+  class Behaviour2 extends OneShotBehaviour {
 
     public Behaviour2(Agent a) {
       super(a);
     }
 
     protected void action() {
-      System.out.println(myAgent.getName() + ": executing...");
+      System.out.println(getName() + ": executing...");
       MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
       MessageTemplate mt2 = MessageTemplate.MatchOntology("fipa-agent-management");
       MessageTemplate mtAnd = MessageTemplate.and(mt1, mt2);

@@ -9,21 +9,20 @@ import jade.core.*;
 // More examples on Complex Behaviours, featuring NonDeterministic Behaviours.
 public class Agent4 extends Agent {
 
-  class Behaviour4Step implements Behaviour {
+  class Behaviour4Step extends SimpleBehaviour {
 
-    private Agent myAgent;
     private String myCode;
     private int executionTimes;
     private boolean finished = false;
 
     public Behaviour4Step(Agent a, String code, int i) {
-      myAgent = a;
+      super(a);
       myCode = code;
       executionTimes = i;
     }
 
-    public void execute() {
-      System.out.println("Agent " + myAgent.getName() + ": Step " + myCode);
+    public void action() {
+      System.out.println("Agent " + getName() + ": Step " + myCode);
       --executionTimes;
       if(executionTimes<=0)
 	finished = true;
@@ -64,6 +63,11 @@ public class Agent4 extends Agent {
 
     addBehaviour(myBehaviour1);
     addBehaviour(myBehaviour2);
+
+    System.out.println("Blocking ...");
+    myBehaviour2_2.block();
+    System.out.println("Restarting ...");
+    myBehaviour2_2.restart();
 
   }
 
