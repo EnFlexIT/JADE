@@ -54,26 +54,31 @@ import java.util.Vector;
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
 public class PlatformManagerImpl implements PlatformManager {
+	
     private IMTPManager myIMTPManager;
     private CommandProcessor myCommandProcessor;
 
     // FIXME: The association between MainContainer and PlatformManagerImpl need be clarified...
     private MainContainerImpl myMain;
 
+    private Map nodes;
     private Map services;
     private Map replicas;
+    private Map monitors;
 
     private String localAddr;
     private String platformID;
 
-    // These variables hold two progressive numbers just used to name new nodes.
-    // By convention, nodes with a local copy of the Service Manager are called
-    // Main-Container-<N>, whereas nodes without their own Service Manager are
+    // These variables hold progressive numbers just used to name new nodes.
+    // By convention, nodes hosting containers with a local copy of the Platform Manager are called
+    // Main-Container-<N>, hosting containers whereas nodes without their own Platform Manager are
     // called Container-<M>.
+    // Nodes not hosting containers are called Node-<K>
+    private int containerNo = 1;
+    private int mainContainerNo = 0;
     private int nodeNo = 1;
-    private int mainNodeNo = 0;
 
-    private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
+    private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 		/**
 		   Private class ServiceEntry.
@@ -197,8 +202,11 @@ public class PlatformManagerImpl implements PlatformManager {
 			myCommandProcessor = p.getCommandProcessor();
 			myIMTPManager = p.getIMTPManager();
 			myMain = new MainContainerImpl(p, this);
+			
+			nodes = new HashMap();
 			services = new HashMap();
 			replicas = new HashMap();
+			monitors = new HashMap();
 
 			platformID = p.getParameter(Profile.PLATFORM_ID, null);
 			if (platformID == null || platformID.equals("")) {
@@ -253,11 +261,8 @@ public class PlatformManagerImpl implements PlatformManager {
     private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
     	Node node = dsc.getNode();
 
-			// Adjust node name
-			ContainerID cid = dsc.getContainer();
-			adjustContainerName(node, cid);
-			node.setName(cid.getName());
-			dsc.setName(cid.getName());
+			// If the node hosts a Container, adjust node name
+    	adjustName(dsc, node);
 
 			// Issue a NEW_NODE vertical command
 			if (!propagated) {
@@ -277,21 +282,40 @@ public class PlatformManagerImpl implements PlatformManager {
 
 			// Add the new node
 			if (isLocalNode(node)) {
-				// Add the node as a local agent container and activate the new container with the IMTP manager
-				myMain.addLocalContainer(dsc);
+				// If this is the local node it surely host a container (the main). Remove it
+				myMain.addLocalContainer(dsc.getContainer());
 			}
 			else {
 		    if (myLogger.isLoggable(Logger.INFO)) {
 	        myLogger.log(Logger.INFO,"Adding node <" + dsc.getName() + "> to the platform");
 		    }
 
-				// Add the node as a remote agent container
-				myMain.addRemoteContainer(dsc);
+				// If the node hosts a container add it as a remote container
+		    if (dsc.getContainer() != null) {
+					myMain.addRemoteContainer(dsc.getContainer());
+		    }
+		    
 				if (!propagated) {
-			    monitor(node);
+					// Start monitoring
+					boolean needMonitor = true;
+					Node parent = dsc.getParentNode();
+					if (parent != null) {
+						// This is a child node --> Do not monitor it directly (unless the perent does not exist)
+						NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
+						if (failureMonitor != null) {
+							failureMonitor.addChild(node);
+							needMonitor = false;
+						}
+					}
+					if (needMonitor) {
+				    monitor(node);
+					}
 				}
 			}
-
+	
+			// Add the node to the global node list
+			nodes.put(dsc.getName(), dsc);
+			
 			// Add all service slices
 			// Do not broadcast since this information is already conveied when broadcasting the add-node event
 			for (int i = 0; i < nodeServices.size(); ++i) {
@@ -331,7 +355,8 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
     private void localRemoveNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
-			Node node = dsc.getNode();
+			dsc = adjustDescriptor(dsc);
+    	Node node = dsc.getNode();
 
 			// Remove all the slices corresponding to the removed node
 			// Avoid concurrent modification exception
@@ -343,18 +368,34 @@ public class PlatformManagerImpl implements PlatformManager {
 
 			// Remove the node
 			if(isLocalNode(node)) {
-				// As a local container
+				// If it is the local node it surely hosts a container (the main). Remove it
 				myMain.removeLocalContainer(dsc.getContainer());
 			}
 			else {
-				// As a remote container
 	      if (myLogger.isLoggable(Logger.INFO)) {
           myLogger.log(Logger.INFO,"Removing node <" + dsc.getName() + "> from the platform");
 	      }
 
-				myMain.removeRemoteContainer(dsc);
+				// If the node hosted a container remove it as a remote container
+		    if (dsc.getContainer() != null) {
+					myMain.removeRemoteContainer(dsc.getContainer());
+		    }
 			}
 
+			// Remove the node from the global node list
+			nodes.remove(dsc.getName());
+
+			// Stop monitoring (this has no effect if we were not monitoring the dead node)
+			Node parent = dsc.getParentNode();
+			if (parent != null) {
+				// If the dead node had a parent, notify the failure-monitor monitoring the parent
+				NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
+				if (failureMonitor != null) {
+					failureMonitor.removeChild(node);
+				}
+			}
+			monitors.remove(node.getName());
+			
 			// Issue a DEAD_NODE vertical command
 			if (!propagated) {
 				GenericCommand gCmd = new GenericCommand(Service.DEAD_NODE, null, null);
@@ -474,19 +515,14 @@ public class PlatformManagerImpl implements PlatformManager {
 	        }
 				}
 
-				try {
-					Node node = myMain.getContainerNode(new ContainerID(sliceKey, null));
-					if (isLocalNode(node)) {
-						// The service slice was removed on this node
-				    // Deregister the service-specific behaviour (if any) within the AMS
-				    Behaviour b = e.getService().getAMSBehaviour();
-				    if(b != null) {
-							myMain.uninstallAMSBehaviour(b);
-				    }
-					}
-				}
-				catch (NotFoundException nfe) {
-					// Just do nothing
+				NodeDescriptor dsc = getDescriptor(sliceKey);
+				if (dsc != null && isLocalNode(dsc.getNode())) {
+					// The service slice was removed on this node
+			    // Deregister the service-specific behaviour (if any) within the AMS
+			    Behaviour b = e.getService().getAMSBehaviour();
+			    if(b != null) {
+						myMain.uninstallAMSBehaviour(b);
+			    }
 				}
 
 				if (!propagated) {
@@ -598,26 +634,24 @@ public class PlatformManagerImpl implements PlatformManager {
     	replicas.remove(address);
 
     	if (!propagated) {
-    		// Check all non-main nodes and adopt them if they were attached to the
+    		// Check all non-child and non-main nodes and adopt them if they were attached to the
     		// dead PlatformManager
-				ContainerID[] allContainers = myMain.containerIDs();
-				for(int i = 0; i < allContainers.length; i++) {
-			    ContainerID targetID = allContainers[i];
-		    	Node n = null;
-			    try {
-			    	n = myMain.getContainerNode(targetID);
+    		Object[] allNodes = nodes.values().toArray();
+				for(int i = 0; i < allNodes.length; i++) {
+					NodeDescriptor dsc = (NodeDescriptor) allNodes[i];
+					if (dsc.getParentNode() == null) {
+			    	Node n = dsc.getNode();
 						if(!n.hasPlatformManager()) {
-							n.platformManagerDead(address, getLocalAddress());
+							try {
+								n.platformManagerDead(address, getLocalAddress());
+							}
+					    catch(IMTPException imtpe) {
+					    	// The node daid while no one was monitoring it
+					    	removeTerminatedNode(n);
+					    }
 						}
 			    }
-			    catch(NotFoundException nfe) {
-						// Just ignore it
-			    }
-			    catch(IMTPException imtpe) {
-			    	// The node daid while no one was monitoring it
-			    	removeTerminatedNode(n);
-			    }
-				}
+				}    		
 
 		    // Issue a DEAD_REPLICA command
 				GenericCommand gCmd = new GenericCommand(Service.DEAD_REPLICA, null, null);
@@ -645,8 +679,13 @@ public class PlatformManagerImpl implements PlatformManager {
     	}
     }
 
-   	public void adopt(Node n) throws IMTPException {
-   		monitor(n);
+   	public void adopt(Node n, Node[] children) throws IMTPException {
+   		NodeFailureMonitor failureMonitor = monitor(n);
+   		if (children != null) {
+   			for (int i = 0; i < children.length; ++i) {
+   				failureMonitor.addChild(children[i]);
+   			}
+   		}
    	}
 
    	public void ping() throws IMTPException {
@@ -683,6 +722,21 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
 
+    //////////////////////////////////////////////////////////////
+    // Package-scoped methods called by the MainContainer only
+    //////////////////////////////////////////////////////////////
+    NodeDescriptor getDescriptor(String name) {
+    	return (NodeDescriptor) nodes.get(name);
+    }
+    
+    /**
+       Kill all auxiliary nodes not holding any container
+     */
+    void shutdown() {
+    	// FIXME: to be implemented
+    }
+
+
     //////////////////////////////////
     // Private methods
     //////////////////////////////////
@@ -697,23 +751,27 @@ public class PlatformManagerImpl implements PlatformManager {
     	}
     }
 
+    private NodeDescriptor adjustDescriptor(NodeDescriptor dsc) {
+			NodeDescriptor originalDsc = (NodeDescriptor) nodes.get(dsc.getName());
+			if (originalDsc != null) {
+				ContainerID cid = originalDsc.getContainer();
+				if (cid != null) {
+					dsc = new NodeDescriptor(cid, dsc.getNode());
+				}
+				dsc.setParentNode(originalDsc.getParentNode());
+			}
+			return dsc;
+    }
+    
     private List getAllNodesInfo() {
     	// Get all node descriptors and build the list of NodeInfo
-    	ContainerID[] ids = myMain.containerIDs();
-    	List infos = new ArrayList(ids.length);
-    	for (int i = 0; i < ids.length; ++i) {
-    		try {
-	    		Node n = myMain.getContainerNode(ids[i]);
-			    NodeDescriptor nodeDsc = new NodeDescriptor(ids[i], n);
-			    nodeDsc.setOwnerPrincipal(myMain.getPrincipal(ids[i]));
-			    nodeDsc.setOwnerCredentials(myMain.getCredentials(ids[i]));
-			    infos.add(new NodeInfo(nodeDsc));
-    		}
-    		catch (NotFoundException nfe) {
-    			// Just ignore it
-    		}
+    	Object[] allNodes = nodes.values().toArray();
+    	List infos = new ArrayList(allNodes.length);
+    	for (int i = 0; i < allNodes.length; ++i) {
+		    NodeDescriptor nodeDsc = (NodeDescriptor) allNodes[i];
+		    infos.add(new NodeInfo(nodeDsc));
     	}
-
+    	
     	// Build the map of services for each node
 			Map nodeServices = new HashMap();
 			// Avoid concurrent modification exception
@@ -746,59 +804,59 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
 
+
+    private void adjustName(NodeDescriptor dsc, Node node) {
+			ContainerID cid = dsc.getContainer();
+			if (cid != null) {
+				// If the node hosts a container, use the container naming convention
+				adjustContainerName(node, cid);
+				node.setName(cid.getName());
+				dsc.setName(cid.getName());
+			}
+			else {
+				// Otherwise use the node naming convention unless a custom name is specified
+				if (node.getName() == null || node.getName().equals(NO_NAME)) {
+					String name = null;
+					NodeDescriptor old = null;
+					do {
+						name = AUX_NODE_NAME+'-'+nodeNo;
+						nodeNo++;
+						old = (NodeDescriptor) nodes.get(name);
+					} while (old != null);
+					node.setName(name);
+				}
+				dsc.setName(node.getName());
+			}
+    }
+    
     private void adjustContainerName(Node n, ContainerID cid) {
-
-	// Do nothing if a custom name is already supplied
-	if((cid != null) && !cid.getName().equals(AgentContainer.UNNAMED_CONTAINER_NAME)) {
-	    return;
-	}
-
-	if(n.hasPlatformManager()) {
-
-	    // Use the Main-Container-<N> name schema
-	    if(mainNodeNo == 0) {
-		cid.setName(AgentContainer.MAIN_CONTAINER_NAME);
-	    }
-	    else {
-		cid.setName(AgentContainer.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
-	    }
-	    try {
-		while(true) {
-		    // Try until a non-existing name is found...
-		    myMain.getContainerNode(cid);
-		    mainNodeNo++;
-		    cid.setName(AgentContainer.MAIN_CONTAINER_NAME + '-' + mainNodeNo);
-		}
-	    }
-	    catch(NotFoundException nfe) {
-		// There is no such named container, so the name is OK.
-	    }
-	}
-	else {
-
-	    // Use the Container-<M> name schema
-	    cid.setName(AgentContainer.AUX_CONTAINER_NAME + '-' + nodeNo);
-	    try {
-		while(true) {
-		    // Try until a non-existing name is found...
-		    myMain.getContainerNode(cid);
-		    nodeNo++;
-		    cid.setName(AgentContainer.AUX_CONTAINER_NAME + '-' + nodeNo);
-		}
-	    }
-	    catch(NotFoundException nfe) {
-		// There is no such named container, so the name is OK.
-	    }
-	}
+			if (cid.getName() == null || cid.getName().equals(NO_NAME)) {
+				String name = null;
+				NodeDescriptor old = null;
+				if(n.hasPlatformManager()) {
+			    // Use the Main-Container-<N> name schema
+					do {
+						name = AgentContainer.MAIN_CONTAINER_NAME + (mainContainerNo == 0 ? "" : "-" + mainContainerNo);
+						mainContainerNo++;
+						old = (NodeDescriptor) nodes.get(name);
+					} while (old != null);
+				}
+				else {
+					do {
+						name = AgentContainer.AUX_CONTAINER_NAME + '-' + containerNo;
+						containerNo++;
+						old = (NodeDescriptor) nodes.get(name);
+					} while (old != null);
+				}
+				cid.setName(name);
+			}
     }
 
 
-    private void monitor(Node target) {
+    private NodeFailureMonitor monitor(Node target) {
 
 	// Set up a failure monitor using the blocking ping...
 	NodeFailureMonitor failureMonitor = new NodeFailureMonitor(target, new NodeEventListener() {
-
-		// FIXME: Should notify all the interested service slices...
 
 		public void nodeAdded(Node n) {
 	    if (myLogger.isLoggable(Logger.INFO)) {
@@ -824,10 +882,14 @@ public class PlatformManagerImpl implements PlatformManager {
 
 	    });
 
+	    monitors.put(target.getName(), failureMonitor);
+	    
 	// Start a new node failure monitor
 	Thread t = new Thread(failureMonitor);
 	t.setName(target.getName()+"-failure-monitor");
 	t.start();
+	
+	return failureMonitor;
     }
 
 

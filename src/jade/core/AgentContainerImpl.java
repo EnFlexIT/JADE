@@ -79,7 +79,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   protected Profile myProfile;
 
   // The Command Processor through which all the vertical commands in this container will pass
-  private CommandProcessor myCommandProcessor;
+  protected CommandProcessor myCommandProcessor;
 
   //#MIDP_EXCLUDE_BEGIN
   // The agent platform this container belongs to
@@ -309,7 +309,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
+      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, PlatformManager.NO_NAME), addr);
     	myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode());
   }
 

@@ -44,7 +44,7 @@ public abstract class BaseNode implements Node, Serializable {
     public BaseNode(String name, boolean hasPM) {
 	myName = name;
 	hasLocalPM = hasPM;
-	localSlices = new HashMap();
+	localSlices = new HashMap(5);
     }
 
     public void setName(String name) {

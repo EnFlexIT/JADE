@@ -67,6 +67,8 @@ import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
+import jade.util.Logger;
+
 /**
    This class is a concrete implementation of the JADE main container,
    providing runtime support to JADE agents, and the special, front
@@ -89,7 +91,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     private ContainerID localContainerID;
     private IMTPManager myIMTPManager;
-    private PlatformManager myPlatformManager;
+    private PlatformManagerImpl myPlatformManager;
 
     // FIXME: Temporary Hack
     private CommandProcessor myCommandProcessor;
@@ -102,8 +104,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private GADT platformAgents = new GADT();
   
     private Profile myProfile;
+    
+    private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
-    public MainContainerImpl(Profile p, PlatformManager pm) throws ProfileException {
+    public MainContainerImpl(Profile p, PlatformManagerImpl pm) throws ProfileException {
 	myProfile = p;
 	myIMTPManager = p.getIMTPManager();
 	myCommandProcessor = p.getCommandProcessor();
@@ -114,16 +118,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     	return myPlatformManager;
     }
     
-    public void addLocalContainer(NodeDescriptor desc) throws IMTPException, JADESecurityException {
-
-	Node node = desc.getNode();
-	ContainerID cid = desc.getContainer();
-	containers.addContainer(cid, node, desc.getOwnerPrincipal(), desc.getOwnerCredentials()); // GVFIXME
- 	localContainerID = cid;
-
+    void addLocalContainer(ContainerID cid) {
+			containers.addContainer(cid);
+		 	localContainerID = cid;
     }
 
-    public void removeLocalContainer(ContainerID cid) throws IMTPException {
+    void removeLocalContainer(ContainerID cid) {
 
 	// Stop the Default DF
 	Agent systemAgent = defaultDF;
@@ -140,38 +140,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     }
 
-    public void addRemoteContainer(NodeDescriptor desc) throws JADESecurityException {
+    void addRemoteContainer(ContainerID cid) {
+			containers.addContainer(cid);
 
-	Node node = desc.getNode();
-	ContainerID cid = desc.getContainer();
-	containers.addContainer(cid, node, null, null); // GVFIXME
-	ContainerID[] allContainers = containers.names();
-
-	// Notify listeners
-	fireAddedContainer(cid);
-
+			// Notify listeners
+			fireAddedContainer(cid);
     }
 
-    public void removeRemoteContainer(NodeDescriptor desc) {
-	Node toRemove = desc.getNode();
-
-	// Find the container ID corresponding to the given node
-	ContainerID[] cids = containers.names();
-	for(int i = 0; i < cids.length; i++) {
-	    try {
-		Node n = containers.getContainerNode(cids[i]);
-		if(toRemove.getName().equals(n.getName())) {
-		    removeRemoteContainer(cids[i]);
-		    return;
-		}
-	    }
-	    catch(NotFoundException nfe) {
-		// Just ignore it: some other container was removed in the meanwhile...
-	    }
-	}
-    }
-
-    private void removeRemoteContainer(ContainerID cid) {
+    void removeRemoteContainer(ContainerID cid) {
 
 	// Eradicate all MTPs installed on the dead container (this
 	// requires that the container is still present in the
@@ -208,8 +184,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     // Start the AMS and the Default DF
     void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, JADESecurityException {
 	ContainerID cid = ac.getID();
-	JADEPrincipal cp = containers.getPrincipal(cid);
-	Credentials cr = containers.getCredentials(cid);
+	NodeDescriptor dsc = getDescriptor(cid.getName());
+	JADEPrincipal cp = dsc.getOwnerPrincipal();
+	Credentials cr = dsc.getOwnerCredentials();
 
 	try {
 	    theAMS.resetEvents(true);
@@ -449,13 +426,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
 
-  /**
-     Return the principal of an agent
-   *
-    public JADEPrincipal getAgentPrincipal(AID agentID) throws IMTPException, NotFoundException {
-	return new DummyPrincipal(agentID, JADEPrincipal.NONE ); //getPrincipal(agentID);
-    }*/
-
   //////////////////////////////////////////////////////////////////////
   // AgentManager interface implementation.
   // These methods are called by the AMS to execute the actions that can 
@@ -518,8 +488,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  else if (ret instanceof NameClashException) {
 			      throw (NameClashException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 			  else if (ret instanceof JADESecurityException) {
 			      throw (JADESecurityException)ret;
@@ -549,8 +519,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof JADESecurityException) {
 	      throw (JADESecurityException)ret;
@@ -577,8 +547,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof JADESecurityException) {
 	      throw (JADESecurityException)ret;
@@ -605,8 +575,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof JADESecurityException) {
 	      throw (JADESecurityException)ret;
@@ -634,8 +604,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -659,8 +629,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -679,8 +649,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	ContainerID from = getContainerID(agentID);
 	ContainerID to = (ContainerID)where;
 		
-	// Check whether the destination exists
-	containers.getContainerNode(to);
+	// Just check whether the destination exists
+	getDescriptor(to.getName());
 
 	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_MOVE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
@@ -691,8 +661,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  if(ret instanceof NotFoundException) {
 	      throw (NotFoundException)ret;
 	  }
-	  else if (ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if (ret instanceof JADESecurityException) {
 	      throw (JADESecurityException)ret;
@@ -715,8 +685,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	ContainerID from = getContainerID(agentID);
 	ContainerID to = (ContainerID)where;
 		
-	// Check whether the destination exists
-	containers.getContainerNode(to);
+	// Just check whether the destination exists
+	getDescriptor(to.getName());
 
 	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_CLONE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
@@ -731,8 +701,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if(ret instanceof NameClashException) {
 	      throw (NameClashException)ret;
 	  }
-	  else if(ret instanceof UnreachableException) {
-	      throw (UnreachableException)ret;
+	  else if (ret instanceof IMTPException) {
+	      throw new UnreachableException("", (IMTPException) ret);
 	  }
 	  else if(ret instanceof JADESecurityException) {
 	      throw (JADESecurityException)ret;
@@ -750,7 +720,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /** 
 	Kill a given container
     */
-    public void killContainer(ContainerID cid) throws NotFoundException, JADESecurityException {
+    public void killContainer(ContainerID cid, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException {
 			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 			cmd.addParam(cid);
 			Object ret = myCommandProcessor.processOutgoing(cmd);
@@ -761,11 +731,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  else if (ret instanceof JADESecurityException) {
 			      throw (JADESecurityException)ret;
 			  }
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
+			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
 				  	// a RuntimeException that will result in a FAILURE message sent
 				  	// back to the requester
-			      throw new RuntimeException(((Throwable) ret).getMessage());
+			      throw new RuntimeException(ret.toString());
 			  }
 		  }
 
@@ -774,63 +747,143 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Shut down the whole platform
     **/
-    public void shutdownPlatform() throws JADESecurityException {
+    public void shutdownPlatform(JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
 
-	// First kill all peripheral containers
+    	if (myLogger.isLoggable(Logger.FINE)) {
+    		myLogger.log(Logger.FINE, "Shutting down agent platform.");
+    	}
+    	
+  // FIXME: Here we probably need issue a KILL_PLATFORM VCommand for security check.
+  // In facts, even if the requester does not have the permission to kill the whole platform
+  // auxiliary nodes are killed in any case
+  
+	// First kill all containers held by child nodes 
+  int cnt = 0;
 	ContainerID[] allContainers = containers.names();
 	for(int i = 0; i < allContainers.length; i++) {
 	    ContainerID targetID = allContainers[i];
-	    try {
-				if(!getContainerNode(targetID).hasPlatformManager()) {
-				    killContainer(targetID);
-				    containers.waitForRemoval(targetID);
-				}
-	    }
-	    catch(JADESecurityException ae) {
-				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
-	    }
-	    catch(NotFoundException nfe) {
-				// Ignore the exception as we are removing a non-existing container
-        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
-	    }
+    	NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
+    	if (dsc != null) {
+	    	if (dsc.getParentNode() != null) {
+	    		shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
+					cnt++;
+	    	}
+    	}
+    	else {
+    		// A zombie container. Just remove it from the container table
+    		removeRemoteContainer(targetID);
+    	}
 	}
 
-	// Then kill all other main containers
+    	if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
+    		myLogger.log(Logger.FINER, "Containers on child nodes shutdown completed.");
+    	}
+    	
+	// Then kill all remaining peripheral containers  
+  cnt = 0;
 	allContainers = containers.names();
 	for(int i = 0; i < allContainers.length; i++) {
 	    ContainerID targetID = allContainers[i];
-	    try {
-				if(!targetID.equals(localContainerID)) {
-				    killContainer(targetID);
-				    containers.waitForRemoval(targetID);
-				}
-	    }
-	    catch(JADESecurityException ae) {
-				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
-	    }
-	    catch(NotFoundException nfe) {
-				// Ignore the exception as we are removing a non-existing container
-        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
-	    }
+    	NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
+    	if (dsc != null) {
+	    	if (!dsc.getNode().hasPlatformManager()) {
+	    		shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
+					cnt++;
+	    	}
+    	}
+    	else {
+    		// A zombie container. Just remove it from the container table
+    		removeRemoteContainer(targetID);
+    	}
 	}
 	
+    	if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
+    		myLogger.log(Logger.FINER, "Peripheral containers shutdown completed.");
+    	}
+    	
+	// Then kill all auxiliary nodes not holding containers 
+	myPlatformManager.shutdown();
+	
+	// Then kill all other main containers
+	cnt = 0;
+	allContainers = containers.names();
+	for(int i = 0; i < allContainers.length; i++) {
+	    ContainerID targetID = allContainers[i];
+			if(!targetID.equals(localContainerID)) {
+				shutdownContainer(targetID, "Main Container", requesterPrincipal, requesterCredentials);
+				cnt++;
+			}
+	}
+	
+    	if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
+    		myLogger.log(Logger.FINER, "Backup Main Containers shutdown completed.");
+    	}
+    	
 	// Finally, kill the local container
 	try {
-	    killContainer(localContainerID);
+    	if (myLogger.isLoggable(Logger.FINEST)) {
+    		myLogger.log(Logger.FINEST, "Killing local node "+localContainerID.getName());
+    	}
+	    killContainer(localContainerID, requesterPrincipal, requesterCredentials);
 
 	    // Make sure all containers are succesfully removed from the table...
-	    containers.waitUntilEmpty();
-
+	    boolean removed = containers.waitUntilEmpty(5000);
+    	if (removed) {
+		    if (myLogger.isLoggable(Logger.FINEST)) {
+	    		myLogger.log(Logger.FINEST, "Local node shutdown completed.");
+	    	}
+    	}
 	}
-	catch(JADESecurityException ae) {
-	    System.out.println("Cannot kill container " + localContainerID.getName() + ": Permission Denied.");
-	}
-	catch(NotFoundException nfe) {
-	    // Should never happen
-	    nfe.printStackTrace();
-	}
+  catch(NotFoundException nfe) {
+		// Ignore the exception as we are removing a non-existing container
+    myLogger.log(Logger.FINE, "Container " + localContainerID.getName() + " does not exist. Ignoring...");
+  }
+  catch(UnreachableException ue) {
+		myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unreachable.");
+  }
+  catch(JADESecurityException se) {
+  	// Let it through
+  	throw se;
+  }
+  catch(Throwable t) {
+		myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unexpected error. "+t);
+  }
     }
 
+	private void shutdownContainer(ContainerID targetID, String type, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
+  	try {
+	  	if (myLogger.isLoggable(Logger.FINEST)) {
+	  		myLogger.log(Logger.FINEST, "Killing "+type+" "+targetID.getName());
+	  	}
+			killContainer(targetID, requesterPrincipal, requesterCredentials);
+			boolean removed = containers.waitForRemoval(targetID, 5000);
+			if (removed) {
+	    	if (myLogger.isLoggable(Logger.FINEST)) {
+	    		myLogger.log(Logger.FINEST, type+" "+targetID.getName()+" shutdown completed");
+	    	}
+	    	return;
+			}
+    }
+    catch(NotFoundException nfe) {
+			// Ignore the exception as we are removing a non-existing container
+      myLogger.log(Logger.FINE, "Container " + targetID.getName() + " does not exist. Ignoring...");
+    }
+    catch(UnreachableException ue) {
+			myLogger.log(Logger.WARNING, "Cannot kill container " + targetID.getName() + ": Unreachable.");
+    }
+    catch(JADESecurityException se) {
+    	// Let it through
+    	throw se;
+    }
+    catch(Throwable t) {
+			myLogger.log(Logger.WARNING, "Cannot kill container " + targetID.getName() + ": Unexpected error. "+t);
+    }
+    
+    // If we get here either killContainer() threw an exception or the container did not terminate.
+		// Just remove it from the container table
+		removeRemoteContainer(targetID);
+	}
+	
   /** 
      Install a new MTP on a given container
    */
@@ -846,8 +899,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 	      else if (ret instanceof MTPException) {
 		  		throw (MTPException)ret;
@@ -892,8 +945,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 	      else if (ret instanceof MTPException) {
 		  		throw (MTPException)ret;
@@ -928,8 +981,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
@@ -954,8 +1007,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
@@ -979,8 +1032,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
@@ -1004,8 +1057,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof UnreachableException) {
-			      throw (UnreachableException)ret;
+			  else if (ret instanceof IMTPException) {
+			      throw new UnreachableException("", (IMTPException) ret);
 			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
@@ -1226,7 +1279,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Return the node a container is deployed at
   */
   public Node getContainerNode(ContainerID cid) throws NotFoundException {
-      return containers.getContainerNode(cid);
+    NodeDescriptor dsc = getDescriptor(cid.getName());
+  	return dsc.getNode();
   }
 
   /**
@@ -1256,27 +1310,17 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
 	
-  JADEPrincipal getPrincipal(ContainerID cid) {
-	 	JADEPrincipal cp = null;
-	 	try {
-			return containers.getPrincipal(cid);
-	 	}
-	 	catch (NotFoundException nfe) {
-	 		// FIXME: Should we create an "empty" Principal
-	 		return null;
-	 	}
-  }
 
-  Credentials getCredentials(ContainerID cid) {
-	 	try {
-			return containers.getCredentials(cid);
-	 	}
-	 	catch (NotFoundException nfe) {
-	 		// FIXME: Should we create "empty" Credentials
-	 		return null;
-	 	}
+  private NodeDescriptor getDescriptor(String name) throws NotFoundException {
+  	NodeDescriptor dsc = myPlatformManager.getDescriptor(name);
+  	if (dsc == null) {
+			throw new NotFoundException("Node  " + name + " not found.");
+  	}
+  	else {
+  		return dsc;
+  	}
   }
-
+  	
   private boolean match(AMSAgentDescription templateDesc, AMSAgentDescription factDesc) {
 		try {
 		  String o1 = templateDesc.getOwnership();

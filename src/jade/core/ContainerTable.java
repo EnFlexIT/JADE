@@ -33,31 +33,19 @@ import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
-import jade.security.JADEPrincipal;
-import jade.security.Credentials;
-
+import jade.util.Logger;
 
 class ContainerTable {
 
   // Initial size of containers hash table
   private static final int CONTAINERS_SIZE = 10;
 
+  private Logger myLogger = Logger.getMyLogger(getClass().getName());
+  
   private static class Entry {
-    private Node node;
     private List mtps = new LinkedList();
-    private JADEPrincipal principal;
-    private Credentials credentials;
 
-    public Entry(Node n) {
-      node = n;
-      principal = null;
-      credentials = null;
-    }
-
-    public Entry(Node n, JADEPrincipal cp, Credentials cr) {
-      node = n;
-      principal = cp;
-      credentials = cr;
+    public Entry() {
     }
 
     public void addMTP(MTPDescriptor mtp) {
@@ -66,26 +54,6 @@ class ContainerTable {
 
     public void removeMTP(MTPDescriptor mtp) {
       mtps.remove(mtp);
-    }
-
-    public void setPrincipal(JADEPrincipal cp) {
-      principal = cp;
-    }
-
-    public JADEPrincipal getPrincipal() {
-      return principal;
-    }
-
-    public void setCredentials(Credentials cr) {
-      credentials = cr;
-    }
-
-    public Credentials getCredentials() {
-      return credentials;
-    }
-
-    public Node getNode() {
-      return node;
     }
 
     public List getMTPs() {
@@ -97,8 +65,8 @@ class ContainerTable {
 
   private Map entries = new HashMap(CONTAINERS_SIZE);
 
-  public synchronized void addContainer(ContainerID cid, Node n, JADEPrincipal cp, Credentials cr) {
-    Entry e = new Entry(n, cp, cr);
+  public synchronized void addContainer(ContainerID cid) {
+    Entry e = new Entry();
     entries.put(cid, e);
   }
 
@@ -123,41 +91,6 @@ class ContainerTable {
     l.remove(mtp);
   }
 
-  public synchronized Node getContainerNode(ContainerID cid) throws NotFoundException {
-    Entry e = (Entry)entries.get(cid);
-    if(e == null)
-      throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    return e.getNode();
-  }
-
-  public synchronized void setPrincipal(ContainerID cid, JADEPrincipal cp) throws NotFoundException {
-    Entry e = (Entry)entries.get(cid);
-    if(e == null)
-      throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    e.setPrincipal(cp);
-  }
-
-  public synchronized JADEPrincipal getPrincipal(ContainerID cid) throws NotFoundException {
-    Entry e = (Entry)entries.get(cid);
-    if(e == null)
-      throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    return e.getPrincipal();
-  }
-
-  public synchronized void setCredentials(ContainerID cid, Credentials cr) throws NotFoundException {
-    Entry e = (Entry)entries.get(cid);
-    if(e == null)
-      throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    e.setCredentials(cr);
-  }
-
-  public synchronized Credentials getCredentials(ContainerID cid) throws NotFoundException {
-    Entry e = (Entry)entries.get(cid);
-    if(e == null)
-      throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    return e.getCredentials();
-  }
-
   public synchronized List getMTPs(ContainerID cid) throws NotFoundException {
     Entry e = (Entry)entries.get(cid);
     if(e == null)
@@ -167,17 +100,6 @@ class ContainerTable {
 
   public int size() {
     return entries.size();
-  }
-
-  public synchronized Node[] containers() {
-    Node[] result = new Node[entries.size()];
-    Iterator it = entries.values().iterator();
-    int i = 0;
-    while(it.hasNext()) {
-      Entry e = (Entry)it.next();
-      result[i++] = e.getNode();
-    }
-    return result;
   }
 
   public synchronized ContainerID[] names() {
@@ -190,26 +112,38 @@ class ContainerTable {
     return result;
   }
 
-  synchronized void waitForRemoval(ContainerID cid) {
-      while(entries.containsKey(cid)) {
-	  try {
-	      wait();
-	  }
-	  catch(InterruptedException ie) {
-	      // Do nothing...
-	  }
-      }
+  synchronized boolean waitForRemoval(ContainerID cid, long timeout) {
+  	try {
+	    while(entries.containsKey(cid)) {
+	      wait(timeout);
+	      if (entries.containsKey(cid)) {
+	      	myLogger.log(Logger.WARNING, "Container "+cid.getName()+" did not terminate when requested to do so.");
+	      	return false;
+	      }
+		  }
+  	}
+  	catch (InterruptedException ie) {
+    	myLogger.log(Logger.WARNING, "Interrupted while waiting for container "+cid.getName()+" termination");
+    	return false;
+  	}
+  	return true;
   }
 
-  synchronized void waitUntilEmpty() {
-    while(!entries.isEmpty()) {
-      try {
-        wait();
-      }
-      catch(InterruptedException ie) {
-        // Do nothing...
-      }
-    }
+  synchronized boolean waitUntilEmpty(long timeout) {
+  	try {
+	    while(!entries.isEmpty()) {
+	      wait(timeout);
+	      if (!entries.isEmpty()) {
+	      	myLogger.log(Logger.WARNING, "Some entries still present in container table");
+	      	return false;
+	      }
+		  }
+  	}
+  	catch (InterruptedException ie) {
+    	myLogger.log(Logger.WARNING, "Interrupted while waiting for container table to be empty");
+    	return false;
+  	}
+  	return true;  	
   }
 
 }
