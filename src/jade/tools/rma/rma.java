@@ -533,4 +533,8 @@ public class rma extends Agent {
     killContainer(AgentManager.MAIN_CONTAINER_NAME);
   }
 
+  public MainWindow getRMAGui()
+  {
+  	return myGUI;
+  }
 }

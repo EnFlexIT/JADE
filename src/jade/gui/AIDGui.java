@@ -29,6 +29,8 @@ import java.awt.Dimension;
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.Component;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -76,12 +78,26 @@ import jade.domain.FIPAAgentManagement.*;
   */
   private AID out;
  	
- 	public AIDGui()
+  /**
+  @serial
+  */
+  private Component parentGUI;
+  
+  /**
+  @serial
+  */
+  private AIDGui thisGUI;
+  
+ 	public AIDGui(Component owner)
  	{
    super();	
    setTitle("AID");
+   parentGUI = owner;
+   thisGUI = this;
  	}
+
  	
+
  /**
  This method shows an AID with a GUI.
  @param agentIdentifier is the AID to be shown
@@ -126,7 +142,7 @@ import jade.domain.FIPAAgentManagement.*;
  		JPanel addressesPanel = new JPanel();
  		addressesPanel.setLayout(new BorderLayout());
 		addressesPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
-    addressListPanel = new VisualStringList(agentAID.getAllAddresses());
+    addressListPanel = new VisualStringList(agentAID.getAllAddresses(),parentGUI);
     addressListPanel.setDimension(new Dimension(200,40));
     addressListPanel.setEnabled(editable);
  		addressesPanel.add(addressListPanel);
@@ -137,7 +153,7 @@ import jade.domain.FIPAAgentManagement.*;
  		JPanel resolversPanel = new JPanel();
  		resolversPanel.setLayout(new BorderLayout());
  		resolversPanel.setBorder(BorderFactory.createTitledBorder("Resolvers"));
- 	  resolverListPanel = new VisualAIDList(agentAID.getAllResolvers());
+ 	  resolverListPanel = new VisualAIDList(agentAID.getAllResolvers(),parentGUI);
  	  resolverListPanel.setDimension(new Dimension(200,40));
  	  resolverListPanel.setEnabled(editable);
  	  resolverListPanel.setCheckMandatorySlots(checkMandatorySlots);
@@ -149,7 +165,7 @@ import jade.domain.FIPAAgentManagement.*;
  		JPanel propertiesPanel = new JPanel();
  	  propertiesPanel.setLayout(new BorderLayout());
  		propertiesPanel.setBorder(BorderFactory.createTitledBorder("Properties"));
- 		propertiesListPanel = new VisualPropertiesList(agentAID.getAllUserDefinedSlot());
+ 		propertiesListPanel = new VisualPropertiesList(agentAID.getAllUserDefinedSlot(),parentGUI);
  		propertiesListPanel.setDimension(new Dimension(200,40));
  		propertiesListPanel.setEnabled(editable);
  		propertiesPanel.add(propertiesListPanel);
@@ -173,7 +189,7 @@ import jade.domain.FIPAAgentManagement.*;
  						  String name = (nameText.getText()).trim();
  						  if (checkSlots) 
  						    if (name.length() == 0) {
-    		  				JOptionPane.showMessageDialog(null,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
+    		  				JOptionPane.showMessageDialog(thisGUI,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
     		  				return;
     		  			}				  
  						  out = new AID();						  
@@ -239,16 +255,8 @@ import jade.domain.FIPAAgentManagement.*;
  	
  	private void ShowCorrect() 
  	 {
-    pack();
-    //setSize(300, 300);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int centerX = (int)screenSize.getWidth() / 2;
-    int centerY = (int)screenSize.getHeight() / 2;
-    Dimension sizePanel = getSize();
-    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
-    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
-    setLocation(centerX - x, centerY - y);
-    
+    pack(); 
+    setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);
     setVisible(true);
     toFront();
  	 }

@@ -29,7 +29,7 @@ import java.awt.event.*;
 import java.awt.Toolkit;
 import java.awt.BorderLayout;
 import java.awt.Color;
-
+import java.awt.Component;
 
 /**
 This class provides a gui for the user defined property. 
@@ -57,10 +57,17 @@ public class UserPropertyGui extends JDialog
     */
     SingleProperty out;
  		
- 		UserPropertyGui()
+    UserPropertyGui thisGui;
+    Component parentGUI;
+    
+ 
+ 		UserPropertyGui(Component owner)
  		{
  			super();
+ 			thisGui = this;
+ 			parentGUI = owner;
  		}
+
  		/**
  		* To show a given property. 
  		* The boolean parameter permits to edit the fields or not.
@@ -131,7 +138,7 @@ public class UserPropertyGui extends JDialog
 								  out = new SingleProperty(name,value);
 								else 
 								{
-									JOptionPane.showMessageDialog(null,"Must have non-empty fields !","Error Message",JOptionPane.ERROR_MESSAGE);
+									JOptionPane.showMessageDialog(thisGui,"Must have non-empty fields !","Error Message",JOptionPane.ERROR_MESSAGE);
 									return;
 								}
 							}	
@@ -176,15 +183,7 @@ public class UserPropertyGui extends JDialog
  		private void ShowCorrect() 
  		{
  			pack();
-      //setSize(300, 300);
-      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      int centerX = (int)screenSize.getWidth() / 2;
-      int centerY = (int)screenSize.getHeight() / 2;
-      Dimension sizePanel = getSize();
-      int x = (new Double(sizePanel.getWidth())).intValue() / 2;
-      int y = (new Double(sizePanel.getHeight())).intValue() / 2;
-      setLocation(centerX - x, centerY - y);
-    
+      setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);    
       setVisible(true);
       toFront();
  	 }

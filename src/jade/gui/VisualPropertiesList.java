@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Enumeration;
 import java.util.ArrayList;
+import java.awt.Dialog;
 
 /**
 * This class extends the VisualStringList in order to show a list of user defined property.
@@ -50,9 +51,9 @@ public class VisualPropertiesList extends VisualStringList
   */
   private Properties userDefinedSlots;
 	
-	VisualPropertiesList(Properties content)
+	VisualPropertiesList(Properties content, Component owner)
 	{
-		super(new ArrayList().iterator());
+		super(new ArrayList().iterator(),owner);
 		
 		this.userDefinedSlots = content;
 		
@@ -76,7 +77,7 @@ public class VisualPropertiesList extends VisualStringList
 			p = new SingleProperty("", "");
 		else 
 			p = new SingleProperty((String)el,userDefinedSlots.getProperty((String)el));
-		UserPropertyGui gui = new UserPropertyGui();
+		UserPropertyGui gui = new UserPropertyGui(owner);
 		p = gui.ShowProperty(p,isEditable);
 
 		if(p != null)

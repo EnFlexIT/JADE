@@ -192,14 +192,12 @@ public class ConstraintDlg extends JDialog
 	private void ShowCorrect() 
  	 {
     pack();
-    //setSize(300, 300);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int centerX = (int)screenSize.getWidth() / 2;
-    int centerY = (int)screenSize.getHeight() / 2;
-    Dimension sizePanel = getSize();
-    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
-    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
-    setLocation(centerX - x, centerY - y);
+    
+    try{
+    	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+    	setLocation(x>0 ? x:0,y>0 ? y:0);
+    }catch(Exception e){}
     
     setVisible(true);
     toFront();

@@ -107,6 +107,8 @@ import jade.BootException;
   */
   Properties outProp = null;
  
+  BootGUI thisBootGui;
+  
 	//This class create a JPanel for a single property
  	class singlePanel extends JPanel
  	{
@@ -215,6 +217,7 @@ import jade.BootException;
  	public BootGUI()
  	{
  		super();
+ 		thisBootGui = this;
  	}
  	
  	 	
@@ -398,7 +401,7 @@ import jade.BootException;
  	   	  		if(different || fileOpened == null)
  	   	  		{
  	   	  		  Object[] options = {"Yes", "No"};
-      				int val = JOptionPane.showOptionDialog(null,"Would you save this configuration ?", "MESSAGE", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE, null, options,options[0]);
+      				int val = JOptionPane.showOptionDialog(thisBootGui,"Would you save this configuration ?", "MESSAGE", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE, null, options,options[0]);
       				
       			
       				if(val == JOptionPane.YES_OPTION)
@@ -469,10 +472,9 @@ import jade.BootException;
  	  		String param = (String)e.getActionCommand();
  	  		if(param.equals("Help"))
  	  			{
- 	  				TreeHelp help = new TreeHelp("Boot Help", "help/BOOTGUI.html");
+ 	  				TreeHelp help = new TreeHelp(thisBootGui,"Boot Help", "help/BOOTGUI.html");
 	         // must insert the listener for the close action
-	         help.pack();
-	         help.setSize(500,500);
+	        
 	         help.setVisible(true);
 	         help.requestFocus();
  	  			}

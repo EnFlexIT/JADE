@@ -165,7 +165,7 @@ public class DFAgentDscDlg extends JDialog
     	public void actionPerformed(ActionEvent e)
     	{
     		String command = e.getActionCommand();
-    		AIDGui guiSender = new AIDGui();
+    		AIDGui guiSender = new AIDGui(dlgParent);
     	
     		if(command.equals("View"))
     			guiSender.ShowAIDGui(dfdAgent.getName(), false,false);
@@ -176,7 +176,10 @@ public class DFAgentDscDlg extends JDialog
     		  		newAID = guiSender.ShowAIDGui(dfdAgent.getName(),true,checkSlots);
     		  		
     		  		if (newAID != null)
+    		  		{	
     		  			agentName.setText(newAID.getName());
+    		  			dfdAgent.setName(newAID);
+    		  		}
     		  	}
     			
     	}
@@ -191,7 +194,7 @@ public class DFAgentDscDlg extends JDialog
 	  JPanel pOntologies = new JPanel();
 	  pOntologies.setLayout(new BorderLayout());
 	  pOntologies .setBorder(BorderFactory.createTitledBorder("Ontologies"));
-		ontologiesListPanel = new VisualStringList(dfdAgent.getAllOntologies());
+		ontologiesListPanel = new VisualStringList(dfdAgent.getAllOntologies(),dlgParent);
 		ontologiesListPanel.setDimension(new Dimension(400,45));
 		ontologiesListPanel.setEnabled(editable);
 		pOntologies.add(ontologiesListPanel);
@@ -202,7 +205,7 @@ public class DFAgentDscDlg extends JDialog
 		JPanel pLanguages = new JPanel();
 		pLanguages.setLayout(new BorderLayout());
 		pLanguages .setBorder(BorderFactory.createTitledBorder("Languages"));
-    languagesListPanel = new VisualStringList(dfdAgent.getAllLanguages());
+    languagesListPanel = new VisualStringList(dfdAgent.getAllLanguages(),dlgParent);
 		languagesListPanel.setDimension(new Dimension(400,45));
 		languagesListPanel.setEnabled(editable);
 		pLanguages.add(languagesListPanel);
@@ -213,7 +216,7 @@ public class DFAgentDscDlg extends JDialog
 		JPanel pProtocols = new JPanel();
 		pProtocols .setLayout(new BorderLayout());	
 		pProtocols .setBorder(BorderFactory.createTitledBorder("Interaction-protocols"));
-	  protocolsListPanel = new VisualStringList(dfdAgent.getAllProtocols());
+	  protocolsListPanel = new VisualStringList(dfdAgent.getAllProtocols(),dlgParent);
 		protocolsListPanel.setDimension(new Dimension(400,45));
 		protocolsListPanel.setEnabled(editable);
 		pProtocols.add(protocolsListPanel);
@@ -223,7 +226,7 @@ public class DFAgentDscDlg extends JDialog
     // Services list
 		JPanel pServices = new JPanel();
 		pServices.setBorder(BorderFactory.createTitledBorder("Agent services"));
-	  servicesListPanel = new VisualServicesList(dfdAgent.getAllServices());
+	  servicesListPanel = new VisualServicesList(dfdAgent.getAllServices(),dlgParent);
 	  servicesListPanel.setDimension(new Dimension(400,45));
 	  servicesListPanel.setEnabled(editable);
 	  servicesListPanel.setCheckMandatorySlots(checkMandatorySlots);
@@ -251,7 +254,7 @@ public class DFAgentDscDlg extends JDialog
             		//AID
             	  if (newAID == null) //newAID was set when the "Set" button was pressed
             		{
-            			JOptionPane.showMessageDialog(null,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
+            			JOptionPane.showMessageDialog(dlgParent,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
  						      return;
             	  }
 								// There is no need to check the slots of ServiceDescription because it is
@@ -316,9 +319,7 @@ public class DFAgentDscDlg extends JDialog
 
 		setModal(true);
 		setResizable(false);
-		//setLocation(50, 50);
-		//pack();
-		//show();
+	
 		ShowCorrect();
 		return out;
     
@@ -327,15 +328,13 @@ public class DFAgentDscDlg extends JDialog
 	private void ShowCorrect() 
  	 {
     pack();
-    //setSize(300, 300);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int centerX = (int)screenSize.getWidth() / 2;
-    int centerY = (int)screenSize.getHeight() / 2;
-    Dimension sizePanel = getSize();
-    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
-    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
-    setLocation(centerX - x, centerY - y);
-    
+   
+    try{
+    	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+    	setLocation(x>0 ? x:0,y>0 ? y:0);
+    }catch(Exception e){}
+
     setVisible(true);
     toFront();
  	 }

@@ -68,18 +68,40 @@ public class TreeHelp extends JDialog {
 	  */
     private String lineStyle = "Angled"; 
 
-    public TreeHelp(String title, String url) {
-        //super(title);
-        super();
-        setTitle(title);
+    public TreeHelp(Frame owner, String title, String url) {
+  
+        super(owner,title);
+        //setTitle(title);
         // added for reply to window closing
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 disposeAsync();
             }
         });
+        setHTMLText(url);
+        	
 
+    }
+    
+    public TreeHelp(Dialog owner, String title, String url) {
+  
+        super(owner,title);
+        //setTitle(title);
+        // added for reply to window closing
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                disposeAsync();
+            }
+        });
         
+       
+        setHTMLText(url);
+        	
+    }
+    
+
+    private void setHTMLText(String url)
+    {
         JPanel main = new JPanel();
         
         main.setLayout(new BorderLayout());
@@ -98,7 +120,12 @@ public class TreeHelp extends JDialog {
         }
     
         main.add(htmlView, BorderLayout.CENTER);
-        //Add the split pane to this frame.
+        setSize(500,500);
+        try{
+        	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
+        	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2;
+          setLocation( x>0 ? x:0, y>0 ? y:0);
+        }catch(Exception e){}
         getContentPane().add(main, BorderLayout.CENTER);
         
     }

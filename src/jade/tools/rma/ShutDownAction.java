@@ -42,7 +42,7 @@ package jade.tools.rma;
   public void doAction() {
    
   	int n = JOptionPane.showConfirmDialog(
-                            null,"Are you really sure to shut down JADE?",
+                            myRMA.getRMAGui(),"Are you really sure to shut down JADE?",
                             "Shut Down JADE",
                             JOptionPane.YES_NO_OPTION);
                             

@@ -43,7 +43,7 @@ import javax.swing.JOptionPane;
   public void doAction() {
   	
   	int n = JOptionPane.showConfirmDialog(
-                            null,"Are you really sure to exit ?",
+                            myRMA.getRMAGui(),"Are you really sure to exit ?",
                             "Exit this container",
                             JOptionPane.YES_NO_OPTION);
     if (n == JOptionPane.YES_OPTION) 

@@ -109,7 +109,7 @@ class DummyAgentGui extends JFrame
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		// Add the current message editing fields (an AclGui) to the WEST part of the border layout manager
-		currentMsgGui = new AclGui();
+		currentMsgGui = new AclGui(this);
 		//currentMsgGui.setBorder(new TitledBorder("Current message"));
 		ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 		

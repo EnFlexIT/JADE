@@ -39,9 +39,10 @@ class StringDlg extends JDialog
 	String     hint;
 	JTextField txtString;
   String out;
-  
-	// CONSTRUCTORS
-	StringDlg(Frame parent, String hint) 
+  Component parentGUI;
+	
+  // CONSTRUCTORS
+	/*StringDlg(Frame parent, String hint) 
 	{
 		super(parent);
 		this.hint = new String(hint);
@@ -53,8 +54,16 @@ class StringDlg extends JDialog
 		super(parent);
 		this.hint = new String(hint);
 		this.out = null;
+	}*/
+	
+	StringDlg(Component parent,String hint) 
+	{
+		super();
+		parentGUI = parent;
+		this.hint = new String(hint);
+		this.out = null;
 	}
-
+	
 	String editString(String value)
 	{
 		setTitle("Edit");
@@ -113,9 +122,7 @@ class StringDlg extends JDialog
 
 		setModal(true);
 		setResizable(false);
-		//setLocation(100, 100);
-		//pack();
-		//show();
+	
 		ShowCorrect();
 
 	
@@ -163,9 +170,7 @@ class StringDlg extends JDialog
 
 		setModal(true);
 		setResizable(false);
-		//setLocation(100, 100);
-		//pack();
-		//show();
+	
 		ShowCorrect();
 	
 	}
@@ -173,15 +178,8 @@ class StringDlg extends JDialog
 	private void ShowCorrect() 
  	 {
     pack();
-    //setSize(300, 300);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    int centerX = (int)screenSize.getWidth() / 2;
-    int centerY = (int)screenSize.getHeight() / 2;
-    Dimension sizePanel = getSize();
-    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
-    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
-    setLocation(centerX - x, centerY - y);
     
+    setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);
     setVisible(true);
     toFront();
  	 }

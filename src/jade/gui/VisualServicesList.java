@@ -27,6 +27,7 @@ import java.awt.Component;
 import java.util.Iterator;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import javax.swing.JDialog;
+import java.awt.Dialog;
 
 /**
 * This class extends the VisualStringList in order to show a list of services
@@ -43,9 +44,9 @@ public class VisualServicesList extends VisualStringList
   @serial
   */
   boolean checkSlots;
-	VisualServicesList(Iterator content)
+	VisualServicesList(Iterator content, Component owner)
 	{
-		super(content);
+		super(content,owner);
 		checkSlots = true;
 	}
 	
@@ -57,7 +58,7 @@ public class VisualServicesList extends VisualStringList
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		
-		ServiceDscDlg gui = new ServiceDscDlg(new JDialog());
+		ServiceDscDlg gui = new ServiceDscDlg((Dialog)owner);
  		return gui.viewSD((ServiceDescription)el,isEditable, checkSlots);
  		
 	}

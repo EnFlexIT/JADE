@@ -156,7 +156,7 @@ public class ServiceDscDlg extends JDialog
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
 	  p.setBorder(BorderFactory.createTitledBorder("Languages"));	
-	  languagesListPanel = new VisualStringList(serviceDesc.getAllLanguages());
+	  languagesListPanel = new VisualStringList(serviceDesc.getAllLanguages(),getOwner());
 	  languagesListPanel.setDimension(new Dimension(350,40));
 		languagesListPanel.setEnabled(editable);
 		p.add(languagesListPanel);
@@ -168,7 +168,7 @@ public class ServiceDscDlg extends JDialog
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
 	  p.setBorder(BorderFactory.createTitledBorder("Ontologies"));	
-	  ontologiesListPanel = new VisualStringList(serviceDesc.getAllOntologies());
+	  ontologiesListPanel = new VisualStringList(serviceDesc.getAllOntologies(),getOwner());
 	  ontologiesListPanel.setDimension(new Dimension(350,40));
 		ontologiesListPanel.setEnabled(editable);
 		p.add(ontologiesListPanel);
@@ -179,7 +179,7 @@ public class ServiceDscDlg extends JDialog
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
 		p.setBorder(BorderFactory.createTitledBorder("Protocols"));
-		protocolsListPanel = new VisualStringList(serviceDesc.getAllProtocols());
+		protocolsListPanel = new VisualStringList(serviceDesc.getAllProtocols(),getOwner());
 		protocolsListPanel.setDimension(new Dimension(350,40));
 		protocolsListPanel.setEnabled(editable);
 		p.add(protocolsListPanel);
@@ -197,7 +197,7 @@ public class ServiceDscDlg extends JDialog
 			Property singleProp = (Property)temp.next();
 			props.setProperty(singleProp.getName(),(String)singleProp.getValue());
 		}
-    propertiesListPanel = new VisualPropertiesList(props);
+    propertiesListPanel = new VisualPropertiesList(props,getOwner());
     propertiesListPanel.setDimension(new Dimension(350,40));
     propertiesListPanel.setEnabled(editable);
     p.add(propertiesListPanel);
@@ -298,11 +298,16 @@ public class ServiceDscDlg extends JDialog
 		main.add(p);
 		
 		getContentPane().add(main, BorderLayout.CENTER);
-		
+		pack();
 		setModal(true);
 		setResizable(false);
-		setLocation(100, 100);
-		pack();
+		
+	  try{
+    	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+    	setLocation(x>0 ? x:0,y>0 ? y:0);
+    }catch(Exception e){}
+
 		show();
 		
 		return out;		

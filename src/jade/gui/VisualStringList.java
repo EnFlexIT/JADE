@@ -107,9 +107,10 @@ public class VisualStringList extends JPanel
 	*
 	*/
 	
-	VisualStringList(Iterator content)
+	VisualStringList(Iterator content,Component ownerGui)
 	{
 	
+		owner = ownerGui;
 		listModel = new DefaultListModel();
 		try
 	  {
@@ -285,15 +286,15 @@ public class VisualStringList extends JPanel
 		
 		if(isEditable)
 		{
-			//StringDlg dlgString = new StringDlg((Dialog)owner,"Insert a new value:");
-			StringDlg dlgString = new StringDlg(new JDialog(),"Insert a new value:");
+
+			StringDlg dlgString = new StringDlg(owner,"Insert a new value:");
       out = dlgString.editString((String)el);
       
 		}
 		else
 		{
-      //StringDlg dlgString = new StringDlg((Dialog)owner,"Value:");
-			StringDlg dlgString = new StringDlg(new JDialog(),"Value:");
+
+			StringDlg dlgString = new StringDlg(owner,"Value:");
       dlgString.viewString((String)el);
       
 		}

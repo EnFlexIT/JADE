@@ -26,7 +26,7 @@ package jade.gui;
 import java.awt.Component;
 import java.util.Iterator;
 import jade.core.AID;
-
+import java.awt.Dialog;
 /**
 * This class extends the VisualStringList in order to show a list of AID (Agent-Identifer).
 * To show these items correctly, have been overridden the methods:
@@ -45,9 +45,9 @@ public class VisualAIDList extends VisualStringList
   */
   boolean checkSlots;
 	
-	VisualAIDList(Iterator content)
+	VisualAIDList(Iterator content,Component owner)
 	{
-		super(content);
+		super(content,owner);
 		checkSlots = true;//the default behaviour is that all the mandatory slots are checked.	
 	}
 	
@@ -59,7 +59,7 @@ public class VisualAIDList extends VisualStringList
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		
-		AIDGui gui = new AIDGui();
+		AIDGui gui = new AIDGui(owner);
  		return gui.ShowAIDGui((AID)el,isEditable,checkSlots);
  		
 	}

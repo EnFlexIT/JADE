@@ -107,6 +107,9 @@ public class AclGui extends JPanel
 	// Controls for ACL message parameter editing
 	static String ADD_NEW_RECEIVER = "Insert receiver"; 
 	
+	//the owner  of the panel.
+	private Component ownerGui;
+	
 	/**
   @serial
   */
@@ -375,11 +378,6 @@ public class AclGui extends JPanel
   */
 	private JTextField id;
 
-
-
-
-
-
 	private class AclMessagePanel extends JPanel
 	{
 	  AclMessagePanel()
@@ -393,12 +391,9 @@ public class AclGui extends JPanel
 	
 		for (i = 0;i < N_FIPA_PROTOCOLS; ++i)
 			fipaProtocolArrayList.add((Object) fipaProtocols[i]);
-
-		//firstPaintFlag = true;
-		//guiEnabledFlag = true;
-		//minDim = new Dimension();
+		
 		aclPanel = new JPanel();
-		//aclPanel.setBackground(Color.lightGray); 
+
 		aclPanel.setLayout(lm);
 		
 		formatGrid(20,   // N of rows 
@@ -434,7 +429,7 @@ public class AclGui extends JPanel
     	public void actionPerformed(ActionEvent e)
     	{
     		String command = e.getActionCommand();
-    		AIDGui guiSender = new AIDGui();
+    		AIDGui guiSender = new AIDGui(ownerGui);
     		
     		if(command.equals("Set"))
     		{
@@ -460,7 +455,7 @@ public class AclGui extends JPanel
 		// Receiver (line # 1)
     l = new JLabel("Receivers:");
     put(aclPanel,l,0,1,1,1,false);
-    receiverListPanel = new VisualAIDList(new ArrayList().iterator());
+    receiverListPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
     receiverListPanel.setDimension(new Dimension(205,37));
  	  put(aclPanel,receiverListPanel,1,1,2,1,false);
 
@@ -468,7 +463,7 @@ public class AclGui extends JPanel
 		//Reply-to (line #2)
 		l = new JLabel("Reply-to:");
 		put(aclPanel,l, 0, 2, 1, 1,false);
-		replyToListPanel = new VisualAIDList(new ArrayList().iterator());
+		replyToListPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
 		replyToListPanel.setDimension(new Dimension(205,37));
 		put(aclPanel,replyToListPanel,1,2,2,1,false);
 			
@@ -666,7 +661,7 @@ public class AclGui extends JPanel
 		//Properties (line #17)
 		l = new JLabel("User Properties:");
 		put(aclPanel,l, 0, 17, 1, 1, false);
-	  propertiesListPanel = new VisualPropertiesList(new Properties());
+	  propertiesListPanel = new VisualPropertiesList(new Properties(),ownerGui);
 	  propertiesListPanel.setDimension(new Dimension(205,37));
 	  put(aclPanel,propertiesListPanel,1,17,2,1,false);
 		
@@ -708,7 +703,7 @@ public class AclGui extends JPanel
 		// To  (line # 0)
 		l = new JLabel("To:");
 		put(aclPanel,l, 0, 0, 1, 1, false); 
-		toPanel = new VisualAIDList(new ArrayList().iterator());
+		toPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
     toPanel.setDimension(new Dimension(205,37)); 	
     put(aclPanel,toPanel, 1, 0, 2, 1, false);	
 	
@@ -725,7 +720,7 @@ public class AclGui extends JPanel
     fromButton.addActionListener(new ActionListener(){
       public void actionPerformed(ActionEvent e){
         String command = e.getActionCommand();
-        AIDGui guiFrom = new AIDGui();
+        AIDGui guiFrom = new AIDGui(ownerGui);
         if(command.equals("Set"))
         {
         	AID fromToView = fromAID;
@@ -823,7 +818,7 @@ public class AclGui extends JPanel
 		//encrypted (line #11)
 		l = new JLabel("Encrypted:");
 		put(aclPanel,l, 0, 11, 1, 1,false);
-		encryptedPanel = new VisualStringList(new ArrayList().iterator());
+		encryptedPanel = new VisualStringList(new ArrayList().iterator(),ownerGui);
 		encryptedPanel.setDimension(new Dimension(205,37));
 		put(aclPanel,encryptedPanel,1,11,2,1,false);
 			
@@ -831,7 +826,7 @@ public class AclGui extends JPanel
 		//intendedReceiver (line //12)
 		l = new JLabel("Intended Receiver:");
 		put(aclPanel,l,0,12,1,1,false);
-		intendedReceiverPanel = new VisualAIDList(new ArrayList().iterator());
+		intendedReceiverPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
 		intendedReceiverPanel.setDimension(new Dimension(205,37));
 		put(aclPanel,intendedReceiverPanel, 1, 12,2,1,false);
 		
@@ -978,21 +973,21 @@ public class AclGui extends JPanel
 		@see jade.lang.acl.ACLMessage#ACLMessage(String type)
 	*/
 
-	public AclGui()
+	public AclGui(Component owner)
 	{	
 		
 		firstPaintFlag = true;
 		guiEnabledFlag = true;
 		minDim = new Dimension();
-
+    ownerGui = owner;
+    
 		JTabbedPane tabbed = new JTabbedPane();
 		AclMessagePanel aclPane = new AclMessagePanel();
 		EnvelopePanel envelope = new EnvelopePanel();
 		tabbed.addTab("ACLMessage",aclPane);
 		tabbed.addTab("Envelope",envelope);
 		//to enable the textfields if needed.
-		updateEnabled();
-		
+		updateEnabled();	
 		add(tabbed);
 	}
 	////////////////////
@@ -1498,7 +1493,7 @@ public class AclGui extends JPanel
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
   
-		AclGui aclPanel = new AclGui();
+		AclGui aclPanel = new AclGui(parent);
 		//aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
 		aclPanel.setEnabled(false);
 		aclPanel.setMsg(msg);
@@ -1547,7 +1542,7 @@ public class AclGui extends JPanel
 	public static ACLMessage editMsgInDialog(ACLMessage msg, Frame parent)
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
-		final AclGui  aclPanel = new AclGui();
+		final AclGui  aclPanel = new AclGui(parent);
 		aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
 		aclPanel.setSenderEnabled(true);
 		aclPanel.setMsg(msg);
@@ -1585,11 +1580,16 @@ public class AclGui extends JPanel
 		
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
+		
 		if (parent != null)
-			tempAclDlg.setLocation( parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2,
-			                        parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
-		tempAclDlg.show();
-
+			{
+				int x = parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2;
+				int y = parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2;
+				tempAclDlg.setLocation(x > 0 ? x :0, y>0 ? y :0);
+			}
+			
+	  tempAclDlg.show();
+     
 		ACLMessage m = null;
 		if (editedMsg != null)
 			m = (ACLMessage) editedMsg.clone();
