@@ -85,8 +85,8 @@
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${classes}"
-		       debug="${javac.debug}"
-		       optimize="${javac.optimize}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
 		       target="1.1"
 		       deprecation="off"/>
 		<!-- Ensure the images for the tools are also copied -->
@@ -110,6 +110,9 @@
 		</copy>
 		<copy todir="${classes}/jade/tools/rma/images">
 		    <fileset dir="${src}/jade/tools/rma/images" includes="*.gif *.jpg"/>
+		</copy>
+		<copy todir="${classes}/jade/tools/logging/images">
+		    <fileset dir="${src}/jade/tools/logging/images" includes="*.gif *.jpg"/>
 		</copy>
 		<copy todir="${classes}/jade/gui/images">
 		    <fileset dir="${src}/jade/gui/images" includes="*.gif *.jpg"/>
