@@ -11,10 +11,11 @@ according to FIPA standard specifications.
 LICENSE
 =======
 
-THE SOFTWARE CAN BE USED ONLY FOR THE FACTS PROJECT. 
+THE SOFTWARE CAN BE USED ONLY FOR THE PROJECTS THAT HAVE BEEN NEGOTIATED
+WITH CSELT. 
 YOU HAVE ALREADY AGREED TO SIGN AN AGREEMENT WITH CSELT WHERE YOU COMMIT TO: 
 - NOT TO DISCLOSE THE SOFTWARE, AND ANY SOFTWARE DETAIL, TO ANYONE ELSE;
-- NOT TO USE THE SOFTWARE OUTSIDE THE FACTS PROJECT;
+- NOT TO USE THE SOFTWARE OUTSIDE THE DECLARED PROJECT;
 - NOT TO REVERSE ENGINEER ANY MODULE OF THE SOFTWARE.
 
 I'm sending the software to you before the agreement 
@@ -32,36 +33,22 @@ SYSTEM REQUIREMENTS
 
 To build the framework a complete Java programming environment is
 needed. At least a Java Development Kit version 1.2 is required. 
-Besides, JavaCC 0.8pre1 is
-needed to generate Java code from grammar description files.
+
 
 
 INSTALLATION AND TEST
 ==============================
 
 After uncompressing the archive, you will have a directory tree
-starting with JADE; from that directory, you can type
-
-- make clean            To remove compiled classes, HTML docs and the like.
-
-- make src              To compile source code and create RMI stubs and skeletons.
-
-- make lib              To create a compressed file in 'lib' directory, containing all compiled classes.
-
-- make doc              To create HTML documentation for the framework in 'doc' directory.
-
-- make examples         To build example programs.
-
-- make all              Performs 'make lib' and 'make examples'
-
+starting with JADE.
 
 After compiling, one can run the example programs in 'src/examples'
 subdirectory; remember to set CLASSPATH environment variable to
-include the file jade.zip in 'lib' directory and the current directory,
+include the file jade.jar in 'lib' directory and the current directory,
 then change to 'src' directory.
 
 Be careful to set a suitable CLASSPATH (i.e. including both the
-jade.zip file with compiled classes and the current directory)
+jade.jar file with compiled classes and the current directory)
 otherwise you will get a 'ClassNotFoundException' during
 'Naming.bind()' operation.
 
@@ -106,74 +93,6 @@ mechanisms) can be found in test subdirectory. Please refer to the
 'README' file in 'src/examples' directory to get some explanations of
 each example program behaviour:
 
-NEW FEATURES
-============
-
-Version 0.99b3:
-
-- Timeout support on message receive, both agent-level and
-  behaviour-level. Now a timeout version of blockingReceive() is
-  available, and a new constructor has been added to ReceiverBehaviour
-  class to support timeout. Moreover, a block() version with timeout
-  has been added to Behaviour class.
-
-- AgentReceiver example program in directory src/examples/ex2 was
-  modified and now times out every 10 seconds if no message is
-  received.
-
-- A new example program, AgentTimeout, was added to directory
-  src/examples/ex2 to show new ReceiverBehaviour support for timeouts.
-
-
-Version 0.99b2:
-
- - Moved all behaviours in a separate package. Now they are in
-   jade.core.behaviours package. User application must be updated to
-   either 'import jade.core.behaviours.*' or the individual behaviours
-   they use.
-
- - Moved RMA agent in a different package; now the Remote Management
-   Agent has class named jade.tools.rma.rma . It can still be started
-   with '-gui' command line option.
-
- - Multiple RMAs can be started on the same platform; they can be
-   given any name and still perform their functions.
-
- - When requesting AMS actions via an RMA, if a 'refuse' or a
-   'failure' message is received, a suitable error dialog pops out,
-   allowing to view the ACL message.
-
- - Fixed a bug in RMA graphical user interface, which sometimes caused
-   a deadlock on platform startup.
-
- - When an ACL message has an empty ':sender' slot, JADE puts the
-   sender agent name in it automatically.
-
- - Added a new tool agent: jade.tools.DummyAgent.DummyAgent, allowing
-   ACL messages manipulations through a GUI. This agent can be either
-   started from an RMA or directly, since is an ordinary agent.
-
-
-Version 0.99b1:
-
- - Javadoc-generated HTML documentation for all JADE public classes.
-
- - jade.domain.FipaRequestClientBehaviour has been replaced by
-   jade.proto.FipaRequestInitiatorBehaviour and a new
-   FipaRequestResponderBehaviour has been added in jade.proto package.
-
- - ACL messages now can have many agent names in ':receiver' slot. This
-   required making some changes to ACLMessage interface. Please see
-   HTML documentation for ACLMessage class.
-
- - Agents can be suspended and resumed by the GUI or they can suspend
-   themselves; user should not suspend neither the AMS nor the RMA,
-   since they obviously wouldn't be able to resume then back.
-
- - Now an agent can create another agent and starting it up with
-   Agent.doStart(String name).
-
-
 BUGS
 ====
 
@@ -188,19 +107,10 @@ BUGS
      willing to run multiple RMA agents on the same JADE platform,
      each one of them must live in a separate agent container.
 
-  3) On Windows 95, sometimes the DummyAgent message list locks up
-     when the first message is sent, the sent message is not shown and
-     the list does not accept selections by the user. To unlock it,
-     just send again the same message; then the previous message is
-     displayed, too, and the list starts its normal operations.
-
-  4) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
+  3) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
      unavailable" appears during platform shutdown, but then the
      process completes without any problems.
 
-  5) When an agent or a container is killed, an exception can arise
-     when Swing tries to remove the item from the container/agent
-     tree.
 
 
 TODO
@@ -220,8 +130,8 @@ e-mail: bellifemine@cselt.it
 
 EXAMPLE
 =======
-#first of all set the CLASSPATH to include also jade.zip and the current directory
-# (WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.zip
+#first of all set the CLASSPATH to include also jade.jar and the current directory
+# (WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar
 
 java jade.Boot -name facts -platform -host kim.cselt.it 
         # start the platform on another shell on the same host
