@@ -659,7 +659,7 @@ public final class DefaultOntology implements Ontology {
       	throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]. For role "+roleName+" and slot "+slotName,iare);	
       }
       catch(ClassCastException iacce) {
-      	throw new OntologyException("Possibly a primitive value has been used instead of a Frame slot",iacce);
+      	throw new OntologyException("Possibly a primitive value has been used instead of a Frame slot. RoleName="+roleName+" SlotName="+slotName,iacce);
       }
       
     } // END of LOOP on slots
