@@ -33,6 +33,7 @@ import jade.content.schema.ObjectSchema;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.Serializable;
+import jade.util.Logger;
 import jade.core.CaseInsensitiveString;
 
 /**
@@ -151,6 +152,8 @@ public class Ontology implements Serializable {
     private Hashtable    elements = new Hashtable(); // Maps type-names to schemas
     private Hashtable    classes  = new Hashtable(); // Maps type-names to java classes
     private Hashtable    schemas  = new Hashtable(); // Maps java classes to schemas
+    
+    private Logger logger = Logger.getMyLogger(this.getClass().getName());
     
     // This is required for compatibility with CLDC MIDP where XXX.class 
     // is not supported 
@@ -287,10 +290,10 @@ public class Ontology implements Serializable {
       ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
 
       if (ret == null) {
-        //DEBUG System.out.println("Ontology "+getName()+". Schema for "+name+" not found");
+        logger.log(Logger.WARNING,"Ontology "+getName()+". Schema for "+name+" not found");
         for (int i = 0; i < base.length; ++i) {
           if (base[i] == null) {
-            System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
+            logger.log(Logger.WARNING,"Base ontology # "+i+" for ontology "+getName()+" is null");
           }
           ret = base[i].getSchema(name);
           if (ret != null) {
@@ -405,10 +408,10 @@ public class Ontology implements Serializable {
     protected Object toObject(AbsObject abs, String lcType, Ontology globalOnto) 
     			throws UnknownSchemaException, UngroundedException, OntologyException {
       
-    	//DEBUG System.out.println("Ontology "+getName()+". Abs is: "+abs);
+    	logger.log(Logger.CONFIG,"Ontology "+getName()+". Abs is: "+abs);
       // Retrieve the schema
       ObjectSchema schema = (ObjectSchema) elements.get(lcType);
-      //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
+      logger.log(Logger.CONFIG,"Ontology "+getName()+". Schema is: "+schema);
       if (schema != null) {
             
         // Retrieve the java class
