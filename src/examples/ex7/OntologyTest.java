@@ -57,6 +57,19 @@ public class OntologyTest {
 
   public static class Person implements OntologicalPerson {
 
+    public static class Factory implements RoleFactory {
+
+      public Object create() {
+	return new Person();
+      }
+
+      public Class getClassForRole() {
+	// Return an abstract interface as the class for 'Person' role
+	return OntologicalPerson.class;
+      }
+
+    }
+
     private String name;
     private String surname;
     private int age;
@@ -227,7 +240,7 @@ public class OntologyTest {
 	oe.printStackTrace();
       }
 
-      System.out.print("Checking user frame... ");
+      System.out.print("Checking address frame... ");
       try {
 	withFrames.check(address);
 	System.out.println("PASSED");
@@ -249,28 +262,26 @@ public class OntologyTest {
     Ontology withClasses = new DefaultOntology();
     try {
 
-      withClasses.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
-	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
-	    });
-
       withClasses.addFrame("User", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("NAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("SURNAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
 	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, "Address", Ontology.M)
-	      });
+	      }, new Person.Factory());
 
-      withClasses.addClass("User", OntologicalPerson.class); // <-- Using an abstract interface !!!
-      withClasses.addClass("Address", PlainAddress.class);
+      withClasses.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
+	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
+	    },
+			   new RoleFactory() { // In-line, anonymous factory
+				 public Object create() { return new PlainAddress(); }
+				 public Class getClassForRole() { return PlainAddress.class; }
+			       });
 
       System.out.println("Building an ontological object from a Frame...");
 
-      Person p = new Person(); // Implementation-specific initialization.
-
-      // Now get information from frame and write it into the (already created) Java object
-      Person pWithPlainAddr = (Person)withClasses.initObject(user, p);
+      Person pWithPlainAddr = (Person)withClasses.createObject(user);
       System.out.println();
       System.out.println();
       pWithPlainAddr.dump();
@@ -293,11 +304,13 @@ public class OntologyTest {
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("EMAIL", Ontology.STRING_TYPE, Ontology.M)
-	    });
+	    },
+			   new RoleFactory() { // In-line, anonymous factory
+				 public Object create() { return new FullAddress(); }
+				 public Class getClassForRole() { return FullAddress.class; }
+			       });
 
-      withClasses.addClass("Address", FullAddress.class);
-
-      Person pWithFullAddr = (Person)withClasses.initObject(user, new Person(new FullAddress()));
+      Person pWithFullAddr = (Person)withClasses.createObject(user);
       System.out.println();
       System.out.println();
       pWithFullAddr.dump();
