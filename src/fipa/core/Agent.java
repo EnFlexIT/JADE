@@ -76,7 +76,7 @@ public class Agent implements Runnable, CommBroadcaster { // FIXME: Should be ab
 
   public final void run() {
 
-    local_startup();
+    localStartup();
 
     System.out.println(myName + ": initializing...");
 
