@@ -49,15 +49,6 @@ public class TestFIPAManagementOntology_DF extends Test {
   	return "Test FIPAManagementOntology-DF";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests actions in the FIPAManagementOntology related to the DF\n");
-  	sb.append("More in details there is an agent that\n");
-  	sb.append("- registers with the DF\n");
-  	sb.append("- searches the DF (he should find himself)\n");
-  	sb.append("- deregisters with the DF\n");
-  	sb.append("- searches again the DF (he shouldn't find any agent)");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;

@@ -42,10 +42,6 @@ public class TestSlotOrder extends Test{
   	return "Slot-order";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a predicate where slots values have been set in a mixed order");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

@@ -41,12 +41,7 @@ public class TestCardinality extends Test{
   public String getName() {
   	return "Cardinality";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content with an aggregate including a wrong number of elements");
-  	sb.append("\n");
-  	sb.append("NOTE: This also tests adding a facet in a class for a slot defined in a superclass");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

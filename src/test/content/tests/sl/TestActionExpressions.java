@@ -46,11 +46,6 @@ public class TestActionExpressions extends Test{
   	return "Test-action-expressions";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including the | (ACTION_ALTERNATIVE) and ; (ACTION_SEQUENCE) operators\n");
-  	sb.append("The tested content looks like: (; (action (agent-identifier ...) (SELL...)) (| (action (agent-identifier ...) (SELL ...)) (action (agent-identifier ...) (SELL ...))))");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

@@ -43,11 +43,6 @@ public class TestQuantifiers extends Test{
   	return "Test-quantifiers";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including the EXISTS and FORALL operators\n");
-  	sb.append("The content tested looks like: (forall ?x (exists ?y (CLOSE ?x ?y) ) )");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

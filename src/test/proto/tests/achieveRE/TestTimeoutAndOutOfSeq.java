@@ -56,20 +56,6 @@ public class TestTimeoutAndOutOfSeq extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder does not reply or reply with a wrong message");
-  	sb.append("\nMore in details there will be 5 responders");
-  	sb.append("\nResponder-0 replies with AGREE and INFORM)");
-  	sb.append("\nResponder-0 replies with FAILURE)");
-  	sb.append("\nResponder-2 replies with REFUSE");
-  	sb.append("\nResponder-3 replies with REQUEST (an out of sequence message)");
-  	sb.append("\nResponder-4 does not reply at all");
-  	sb.append("\nNOTES:");
-  	sb.append("\n- This test also checks that the handleAllResponses handler is properly called");
-  	sb.append("\n- This test will take ~ 10 sec as the timeout must expire");
-  	sb.append("\n- All handlers are defined overriding methods");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));

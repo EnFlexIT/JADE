@@ -37,12 +37,7 @@ public class TestContentElementList extends Test{
   public String getName() {
   	return "Content-element-list";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content composed of more than one content element, i.e. a content element list");
-  	sb.append("\n");
-  	sb.append("NOTE: This also tests the usage of the BasicOntology Action element"); 
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

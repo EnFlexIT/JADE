@@ -44,10 +44,7 @@ public class TestUnknownSchema extends Test{
   public String getName() {
   	return "Unknown-schema";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content that is a Predicate of an unknown type");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

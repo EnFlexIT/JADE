@@ -40,10 +40,6 @@ public class TestAggregateAsConcept extends Test{
   public String getName() {
   	return "Aggregate-as-concept";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content with an aggregate where a concept is required");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

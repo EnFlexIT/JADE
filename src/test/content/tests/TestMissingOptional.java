@@ -36,10 +36,6 @@ public class TestMissingOptional extends Test{
   public String getName() {
   	return "Missing-optional-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with a missing optional attribute");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

@@ -58,15 +58,6 @@ public class TestMixedNResp2Rounds extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("See \""+TestMixedNResp.TEST_NAME+"\", but performs the test 2 times.\n");
-  	sb.append("This is achieved by registering a new ContractNetInitiator in the HANDLE_ALL_RESULT_NOTIFICAIONS state.\n");
-  	sb.append("In this way we test\n"); 
-  	sb.append("a) The repetitive behaviour of the responders\n");
-  	sb.append("b) Registering a composite behaviour as a state of the protocol\n");
-  	sb.append("NOTES: This test will take about 40 sec.");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));

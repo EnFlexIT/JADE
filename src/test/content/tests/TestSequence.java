@@ -38,10 +38,7 @@ public class TestSequence extends Test{
   public String getName() {
   	return "Sequence-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an aggregate attribute of type SEQUENCE");
-  	return sb.toString();
-  }
+
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

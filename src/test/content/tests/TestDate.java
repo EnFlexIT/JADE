@@ -37,12 +37,7 @@ public class TestDate extends Test{
   public String getName() {
   	return "Date-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type Date");
-  	sb.append("\n");
-  	sb.append("NOTE: This test uses the same content as the Long-attribute test");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

@@ -40,10 +40,7 @@ public class TestAction2 extends Test{
   public String getName() {
   	return "BasicOntology.ACTION-with-Concept";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests sending a Concept that represents an action but is not an AgentAction within a BasicOntology.ACTION");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

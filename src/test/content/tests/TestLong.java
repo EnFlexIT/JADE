@@ -37,12 +37,7 @@ public class TestLong extends Test{
   public String getName() {
   	return "Long-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type long");
-  	sb.append("\n");
-  	sb.append("NOTE: This test uses the same content as the Date-attribute test");
-  	return sb.toString();
-  }
+ 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

@@ -54,17 +54,7 @@ public class TestMissingAgree extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder directly replies with the result notification (INFORM or FAILURE) and no AGREE message is sent");
-  	sb.append("\nMore in details there will be three responders");
-  	sb.append("\nResponder-0 behaves normally (i.e. AGREE, INFORM)");
-  	sb.append("\nResponder-1 replies with INFORM");
-  	sb.append("\nResponder-2 replies with FAILURE");
-  	sb.append("\nThis test also checks that the handleAllResponses handler is properly called");
-  	sb.append("\nAll handlers are defined overriding methods");
-  	return sb.toString();
-  }
-  
+ 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));
  

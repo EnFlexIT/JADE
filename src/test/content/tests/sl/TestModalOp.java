@@ -45,11 +45,6 @@ public class TestModalOp extends Test{
   	return "Test-modal-operators";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including the B, U and I operators\n");
-  	sb.append("The content tested looks like: (U (agent-identifier ...) (B (agent-identifier ...) (I (agent-identifier ...) (TEST_EXISTS ...))))");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

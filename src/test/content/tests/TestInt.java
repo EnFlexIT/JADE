@@ -38,10 +38,6 @@ public class TestInt extends Test{
   	return "Int-attribute";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type int");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

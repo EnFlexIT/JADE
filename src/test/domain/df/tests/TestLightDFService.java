@@ -40,15 +40,6 @@ public class TestLightDFService extends Test {
   	return "Test LightDFService";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests accessing the DF agent by means of the LightDFService utility class\n");
-  	sb.append("More in details there is an agent that\n");
-  	sb.append("- registers with the DF\n");
-  	sb.append("- searches the DF (he should find himself)\n");
-  	sb.append("- deregisters with the DF\n");
-  	sb.append("- searches again the DF (he shouldn't find any agent)");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;

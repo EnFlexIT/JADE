@@ -43,11 +43,6 @@ public class TestLogicalOp extends Test{
   	return "Test-Logical-operators";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including the AND, OR and NOT operators\n");
-  	sb.append("The content tested looks like: (not (or (TEST_EXISTS ...) (and (TEST_EXISTS ...) (TEST_EXISTS ...) ) ) )");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

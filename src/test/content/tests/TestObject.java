@@ -40,10 +40,6 @@ public class TestObject extends Test{
   public String getName() {
   	return "Generic-object-slot";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content where a slot must be a generic object");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

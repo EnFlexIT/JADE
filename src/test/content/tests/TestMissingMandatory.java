@@ -37,10 +37,6 @@ public class TestMissingMandatory extends Test{
   public String getName() {
   	return "Missing-mandatory-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with a missing mandatory attribute");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

@@ -55,11 +55,6 @@ public class TestRegisterHandleInform extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the registration of a composite behaviour in the HANDLE_INFORM state");
-  	sb.append("\nThere will be three responders behaving normally (i.e. AGREE INFORM) so that the registered state is visited three times");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));

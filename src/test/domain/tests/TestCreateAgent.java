@@ -44,10 +44,7 @@ public class TestCreateAgent extends Test {
   public String getName() {
   	return "CreateAgent";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the CreateAgent action");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

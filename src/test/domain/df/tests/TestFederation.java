@@ -48,17 +48,6 @@ public class TestFederation extends Test {
   	return "Test Federation";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests DF federation and recursive search on federated DFs\n");
-  	sb.append("More in details this test behaves as follows:\n");
-  	sb.append("Load phase\n");
-  	sb.append("- Create another DF agent called DF1\n");
-  	sb.append("- Register a DFD on DF1\n");
-  	sb.append("Actual Test\n");
-  	sb.append("- Request DF1 to federate with the default DF\n");
-  	sb.append("- Searches the default DF specifying maxDepth ==1 (he should find 1 agent)");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;

@@ -37,12 +37,7 @@ public class TestByteSeq extends Test{
   public String getName() {
   	return "Byte-sequence-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type byte-sequence");
-  	sb.append("\n");
-  	sb.append("NOTE: When using the SL language this test is PASSED if the above operation fails"); 
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

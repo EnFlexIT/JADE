@@ -53,19 +53,6 @@ public class TestDFSubscription extends Test {
   	return "Test DF Subscription";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the subscription service supported by the JADE DF.\n");
-  	sb.append("More in details this test behaves as follows\n");
-  	sb.append("Load phase\n");
-  	sb.append("- registers a DFD with the DF\n");
-  	sb.append("Actual Test\n");
-  	sb.append("- subscribes to the DF (should immediately get back a notification)\n");
-  	sb.append("- After 5 sec registers 2nd DFD (matching) with the DF (should get back another notification\n");
-  	sb.append("- After 10 sec registers 3rd DFD (not matching) with the DF (should not get back anything\n");
-  	sb.append("- After 15 sec modifies 2nd DFD (still matching) with the DF (should get back another notification\n");
-  	sb.append("- After 20 sec modifies 3rd DFD (now matching) with the DF (should get back another notification\n");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;

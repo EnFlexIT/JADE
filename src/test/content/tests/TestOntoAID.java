@@ -35,10 +35,7 @@ public class TestOntoAID extends Test{
   public String getName() {
   	return "OntoAID-as-Concept";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Test the usage of an OntoAID where a Concept is required");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

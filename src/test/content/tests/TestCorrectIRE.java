@@ -36,10 +36,6 @@ public class TestCorrectIRE extends Test{
   public String getName() {
   	return "Correct-IRE";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content that is a correct IRE");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {

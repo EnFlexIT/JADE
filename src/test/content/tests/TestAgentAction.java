@@ -39,12 +39,7 @@ public class TestAgentAction extends Test{
   public String getName() {
   	return "AgentAction-as-content";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests sending an AgentAction as a content");
-  	sb.append("\n");
-  	sb.append("NOTE: When using the SL language this test is PASSED if the above operation fails"); 
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

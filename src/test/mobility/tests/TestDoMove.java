@@ -46,13 +46,6 @@ public class TestDoMove extends Test {
   	return "Test doMove()";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the mobility proactively initiated by an agent by means of a call to the doMove() method\n");
-  	sb.append("This test requests an example.mobile.MobileAgent to move to another container and then\n");
-  	sb.append("checks it has actually moved by asking its current location\n");
-  	sb.append("This process is repeated 4 times (including moving to the local container)\n");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;

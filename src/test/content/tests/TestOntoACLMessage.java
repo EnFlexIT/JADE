@@ -40,11 +40,6 @@ public class TestOntoACLMessage extends Test{
   	return "OntoACLMessage-as-AgentAction";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Test the usage of an OntoACLMessage where an AgentAction is required");
-  	return sb.toString();
-  }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

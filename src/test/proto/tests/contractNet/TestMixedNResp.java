@@ -58,22 +58,6 @@ public class TestMixedNResp extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a mixed flow of messages with N responder behaving differently");
-  	sb.append("\n- Resp0 reacts with NOT_UNDERSTOOD");
-  	sb.append("\n- Resp1 reacts with REFUSE");
-  	sb.append("\n- Resp2 reacts with INFORM");
-  	sb.append("\n- Resp3 reacts with REQUEST");
-  	sb.append("\n- Resp4 does not react at all");
-  	sb.append("\n- Resp5 reacts with PROPOSE and then INFORM");
-  	sb.append("\n- Resp6 reacts with PROPOSE and then FAILURE");
-  	sb.append("\n- Resp7 reacts with PROPOSE and then REQUEST");
-  	sb.append("\n- Resp8 reacts with PROPOSE and then nothing");
-  	sb.append("\n- Resp9 does not exist");
-  	sb.append("\nNOTES: All handlers are defined overriding methods.");
-  	sb.append("\nThis test will take about 20 sec.");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));

@@ -45,18 +45,7 @@ public class TestSearchUntilFound extends Test {
   	return "Test searchUntilFound()";
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the searchUntilFound() method of the DFService class\n");
-  	sb.append("More in details \n");
-  	sb.append("- register DFD1 with the DF\n");
-  	sb.append("- launch another agent that will register a DFD2 after 5 sec and DFD12 after other 10 sec.\n");
-  	sb.append("- call searchUntilFound(template1 matching DFD1) (this should immediately return DFD1)\n");
-  	sb.append("- call searchUntilFound(template2 matching DFD2) (this should return DFD2 as soos as the other agent registers DFD2)\n");
-  	sb.append("- call searchUntilFound(template3 not matching, timeout == 5 sec) (this should return null when the timeout expires)\n");
-  	sb.append("- wait some time to check that no further notifications are received from the DF\n");
-  	return sb.toString();
-  }
-  
+ 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;
   	final String key = resultKey;

@@ -50,11 +50,6 @@ public class TestNormal1Resp extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the normal flow of messages with a single responder");
-  	sb.append("\nAll handlers are defined overriding methods");
-  	return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));

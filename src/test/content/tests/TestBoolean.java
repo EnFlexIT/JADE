@@ -39,11 +39,7 @@ public class TestBoolean extends Test{
   public String getName() {
   	return "Boolean-attribute";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type Boolean");
-  	sb.append("\n");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

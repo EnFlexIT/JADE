@@ -40,10 +40,6 @@ public class TestTypedAggregate extends Test{
   public String getName() {
   	return "Wrong-type-in-typed-aggregate";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a typed aggregate containing an element of a wrong type");
-  	return sb.toString();
-  }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

@@ -54,17 +54,6 @@ public class TestMissingNotification extends TestBase {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder replies with an AGREE, but then does not send any notification");
-  	sb.append("\nMore in details there will be three responders");
-  	sb.append("\nResponder-0 behaves normally (i.e. AGREE, INFORM)");
-  	sb.append("\nResponder-1 replies with AGREE, but does not send any INFORM/FAILURE");
-  	sb.append("\nResponder-2 does not reply at all");
-  	sb.append("\nThe protocol in this case would stick. Therefore a waker behaviour is added in the handleAllResponses() method");
-  	sb.append("\nthat will stop the protocol after a while");
-   	sb.append("\nThis test will take ~ 20 sec.");
- 		return sb.toString();
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));
