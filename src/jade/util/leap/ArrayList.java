@@ -185,7 +185,7 @@ public class ArrayList implements List, Serializable {
     /**
      * Method declaration
      * 
-     * @return
+     * @return java.lang.Object
      * 
      */
     public Object clone() {
@@ -195,7 +195,7 @@ public class ArrayList implements List, Serializable {
     /**
      * Method declaration
      * 
-     * @return
+     * @return java.util.List
      * 
      */
     public java.util.List toList() {
