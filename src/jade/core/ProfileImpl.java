@@ -333,6 +333,14 @@ public class ProfileImpl extends Profile {
    */
   public String getParameter(String key, String aDefault) {
     String v = props.getProperty(key);
+    if (v==null) {
+       String dottedKey = key.replace('_', '.');
+       v = props.getProperty( dottedKey );
+    }
+    if (v==null) {
+       String underscoredKey = key.replace('.', '_');
+       v = props.getProperty( underscoredKey );
+    }
     return (v != null ? v.trim() : aDefault);
   }
 
