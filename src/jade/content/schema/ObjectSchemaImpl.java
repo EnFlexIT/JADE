@@ -536,7 +536,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 		} else {
 				if (superSchemas!=null) {
     				for (int i = 0; i < superSchemas.size() && temp==null; i++) {
-    					temp = ((ObjectSchema)superSchemas.get(i)).getFacets(slotName);
+    					temp = ((ObjectSchema)superSchemas.elementAt(i)).getFacets(slotName);
     				}
     			}
     	}
