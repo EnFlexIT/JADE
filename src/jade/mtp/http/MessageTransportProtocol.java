@@ -77,7 +77,7 @@ public class MessageTransportProtocol implements MTP {
   private boolean keepAlive  = false;
   private boolean useProxy   = false;
   private boolean useOutPort = false;
-	private boolean useHttps   = false;
+  private boolean useHttps   = false;
 
   private String[] protocols = {"http", "https"};
   private String FIPA_NAME = "fipa.mts.mtp.http.std";
@@ -232,10 +232,10 @@ public class MessageTransportProtocol implements MTP {
       
       timeout = Integer.parseInt(p.getParameter(PREFIX+"timeout",TIMEOUT));
 
-			try{
-					HTTPSocketFactory.getInstance().configure(p, hta);
+      try{
+        HTTPSocketFactory.getInstance().configure(p, hta);
       } catch(Exception e){
-					throw new MTPException("Error configuring Socket Factory", e);
+        throw new MTPException("Error configuring Socket Factory", e);
       }
       /*
         System.out.println("Parameters set:");
@@ -365,11 +365,12 @@ public class MessageTransportProtocol implements MTP {
         //HTTPAddress is new or cached missed;
         // Open a new connection
         Socket client = null;
+        HTTPSocketFactory sfac = HTTPSocketFactory.getInstance();
         if (useOutPort) {
-          client = new Socket(url.getHost(),url.getPortNo(),InetAddress.getLocalHost(),outPort);
+          client = sfac.createSocket(url.getHost(),url.getPortNo(),InetAddress.getLocalHost(),outPort);
         }
         else {
-          client = new Socket(url.getHost(),url.getPortNo());
+          client = sfac.createSocket(url.getHost(),url.getPortNo());
         }
         
         // Create a new KA object
