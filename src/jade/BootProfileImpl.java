@@ -77,6 +77,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String NOMTP_KEY = "nomtp";
     public static final String IMTP_KEY = "imtp";
     public static final String NAME_KEY = "name";
+    public static final String LOGIN_KEY = "auth";
     public static final String OWNER_KEY = "owner";
     //public static final String PASSWD_KEY = "jade.security.passwd";
     //public static final String POLICY_KEY = "java.security.policy";
@@ -295,7 +296,12 @@ public class BootProfileImpl extends ProfileImpl {
             profileProp.setProperty(Profile.PLATFORM_ID, value);
         }  
 
-        value = argProp.getProperty(MTP_KEY);
+        value = argProp.getProperty(LOGIN_KEY);
+        if (value != null) {
+            profileProp.setProperty(Profile.USERAUTH_KEY, value);
+        }  
+
+        value = argProp.getProperty(NAME_KEY);
         if (value != null) {
             setSpecifiers(Profile.MTPS, parseSpecifiers(value));
         }
