@@ -544,7 +544,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     public void action() {
 
-      synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid concurentmodificationexception
+      synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid ConcurrentModificationException
 
 	// Look into the event buffer
 	Iterator it = eventQueue.iterator();
@@ -573,13 +573,17 @@ public class ams extends Agent implements AgentManager.Listener {
 	    toolNotification.addReceiver(tool);
 	  }
 
+	  // Schedule the message send for later, when the critical
+	  // section ends and this Behaviour yields the CPU...
+	  addBehaviour(new SenderBehaviour(ams.this, (ACLMessage)toolNotification.clone()));
 
-	  send(toolNotification);
 	  it.remove();
 	}
-      }
+
+      } // End of synchronized block
 
       block();
+
     }
 
   } // End of NotifyToolsBehaviour class
