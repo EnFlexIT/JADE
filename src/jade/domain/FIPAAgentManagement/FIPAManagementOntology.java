@@ -163,7 +163,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs = (ConceptSchema)getSchema(SEARCHCONSTRAINTS);
 	  	cs.add(SEARCHCONSTRAINTS_MAX_DEPTH, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 	  	cs.add(SEARCHCONSTRAINTS_MAX_RESULTS, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
-	  	cs.add(SEARCHCONSTRAINTS_SEARCH_ID, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+	  	cs.add(SEARCHCONSTRAINTS_SEARCH_ID, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 	  
 	  	cs = (ConceptSchema)getSchema(AMSAGENTDESCRIPTION);
 	  	cs.add(AMSAGENTDESCRIPTION_NAME, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
