@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.20  1999/03/15 15:24:26  rimassa
+  Removed call to deprecated ACLMessage.setDest() method.
+
   Revision 1.19  1999/03/14 17:51:15  rimassa
   Changed df class to take advantage of new
   FipaRequestResponderBehaviour class.
@@ -316,7 +319,6 @@ public class df extends Agent {
        ***********************************************************/
 
 
-
       while(constraints.hasMoreElements()) {
 	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)constraints.nextElement();
 	String name = c.getName();
@@ -486,7 +488,8 @@ public class df extends Agent {
       while(e.hasMoreElements()) {
 	String subDF = (String)e.nextElement();
 	ACLMessage copy = (ACLMessage)request.clone();
-	copy.setDest(subDF);
+	copy.removeAllDests();
+	copy.addDest(subDF);
 	try {
 	  searchThemAll.addSubBehaviour(new SearchDFBehaviour(df.this, copy, dfd, constraints, result));
 	}
@@ -567,7 +570,7 @@ public class df extends Agent {
         if(!eventQueue.isEmpty()) {
 	  try {
 	    RegEvent re = (RegEvent)eventQueue.remove(0);
-	    if(re.dfName.equalsIgnoreCase(getLocalName())) {
+	    if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
 	      // Register with yourself directly, avoiding deadlock
 	      DFRegister(re.dfd);
 	    }
