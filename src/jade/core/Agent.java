@@ -5,6 +5,7 @@
 package jade.core;
 
 import java.io.Reader;
+import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -268,50 +269,21 @@ public class Agent implements Runnable, CommBroadcaster {
     return msg;
   }
 
-
-  // Register yourself with platform AMS
-  public void registerWithAMS(String signature, int APState, String delegateAgent,
-			      String forwardAddress, String ownership) throws FIPAException {
-
-    String replyString = myName + "-ams-registration";
-
+  private ACLMessage FipaRequestMessage(String dest, String replyString) {
     ACLMessage request = new ACLMessage();
 
     request.setType("request");
     request.setSource(myName);
-    request.setDest("ams");
+    request.setDest(dest);
     request.setLanguage("SL0");
     request.setOntology("fipa-agent-management");
     request.setProtocol("fipa-request");
     request.setReplyWith(replyString);
 
-    AgentManagementOntology o = AgentManagementOntology.instance();
+    return request;
+  }
 
-    String APStateName = o.getAPStateByCode(APState);
-
-    // Put mandatory attributes in content string
-    String content = "( action ams ( register-agent " +
-      "( :ams-description " +
-      "( :agent-name " + myName + "@" + myAddress + " )" +
-      "( :address " + myAddress + " )" +
-      "( :ap-state " + APStateName + " )";
-
-    // Add optional attributes if presents
-    if(signature != null)
-      content = content.concat("( :signature " + signature + " )");
-
-    if(delegateAgent != null)
-      content = content.concat("( :delegate-agent-name " + delegateAgent + " )");
-
-    if(forwardAddress != null)
-      content = content.concat("( :forward-address " + forwardAddress + " )");
-
-    if(ownership != null)
-      content = content.concat("( :ownership " + forwardAddress + " )");
-
-    content = content.concat(") ) )");
-
-    request.setContent(content);
+  private void doFipaRequestClient(ACLMessage request, String replyString) {
 
     send(request);
 
@@ -323,19 +295,161 @@ public class Agent implements Runnable, CommBroadcaster {
       reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
       if(!reply.getType().equalsIgnoreCase("inform")) {
-	System.out.println("AMS registration failed for " + myName + "!!!");
-	doDelete();
+	System.out.println(replyString + " failed for " + myName + "!!!");
       }
 
     }
     else {
-      System.out.println("AMS registration refused !!!");
-      doDelete();
+      System.out.println(replyString + " refused for " + myName + "!!!");
     }
 
   }
 
-  
+
+  // Register yourself with platform AMS
+  public void registerWithAMS(String signature, int APState, String delegateAgent,
+			      String forwardAddress, String ownership) throws FIPAException {
+				
+    String replyString = myName + "-ams-registration";
+    ACLMessage request = FipaRequestMessage("ams", replyString);
+    AgentManagementOntology o = AgentManagementOntology.instance();
+
+    // Build an AMS action object for the request
+
+    AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    amsd.setName(myName + "@" + myAddress);
+    amsd.setAddress(myAddress);
+    amsd.setAPState(APState);
+    amsd.setDelegateAgentName(delegateAgent);
+    amsd.setForwardAddress(forwardAddress);
+    amsd.setOwnership(ownership);
+
+    a.setName(AgentManagementOntology.AMSAction.REGISTERAGENT);
+    a.setArg(amsd);
+
+    // Convert it to a String and write it in content field of the request
+
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action ams " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
+
+  }
+
+  // Authenticate yourself with platform AMS
+  public void authenticateWithAMS(String signature, int APState, String delegateAgent,
+				  String forwardAddress, String ownership) throws FIPAException {
+
+  }
+
+  // Deregister yourself with platform AMS
+  public void deregisterWithAMS() throws FIPAException {
+
+    String replyString = myName + "-ams-deregistration";
+
+    // Get a semi-complete request message
+    ACLMessage request = FipaRequestMessage("ams", replyString);
+    
+
+    // Build an AMS action object for the request
+
+    AgentManagementOntology o = AgentManagementOntology.instance();
+    AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    amsd.setName(myName + "@" + myAddress);
+    a.setName(AgentManagementOntology.AMSAction.DEREGISTERAGENT);
+    a.setArg(amsd);
+
+
+    // Convert it to a String and write it in content field of the request
+
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action ams " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
+
+  }
+
+  // Modify your registration with platform AMS
+  public void modifyAMSRegistration(String signature, int APState, String delegateAgent,
+				    String forwardAddress, String ownership) throws FIPAException {
+
+    String replyString = myName + "-ams-modify";
+    ACLMessage request = FipaRequestMessage("ams", replyString);
+    AgentManagementOntology o = AgentManagementOntology.instance();
+
+    // Build an AMS action object for the request
+
+    AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    amsd.setName(myName + "@" + myAddress);
+    amsd.setAddress(myAddress);
+    amsd.setAPState(APState);
+    amsd.setDelegateAgentName(delegateAgent);
+    amsd.setForwardAddress(forwardAddress);
+    amsd.setOwnership(ownership);
+
+    a.setName(AgentManagementOntology.AMSAction.MODIFYAGENT);
+    a.setArg(amsd);
+
+    // Convert it to a String and write it in content field of the request
+
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action ams " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
+
+  }
+
+  public void forwardWithACC(ACLMessage msg) {
+
+    String replyString = myName + "-acc-forward";
+    ACLMessage request = FipaRequestMessage("acc", replyString);
+    AgentManagementOntology o = AgentManagementOntology.instance();
+
+
+    // Build an ACC action object for the request
+
+    AgentManagementOntology.ACCAction a = new AgentManagementOntology.ACCAction();
+    a.setName(AgentManagementOntology.ACCAction.FORWARD);
+    a.setArg(msg);
+
+    // Convert it to a String and write it in content field of the request
+
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action acc " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
+
+  }
+
+  // Register yourself with a DF
+  public void registerWithDF() {
+  }
+
+  // Deregister yourself with a DF
+  public void deregisterWithDF() {
+  }
+
+  // Modify registration data with a DF
+  public void modifyDFRegistration() {
+  }
+
+  // Search a DF for information
+  public void searchDF() {
+  }
 
 
   // Event handling methods
