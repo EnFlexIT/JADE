@@ -838,11 +838,15 @@ public class ams extends Agent {
       if(signature != null)
 	toChange.setSignature(signature);
       String delegateAgentName = amsd.getDelegateAgentName();
-      if(delegateAgentName != null)
+      if(delegateAgentName != null) {
 	toChange.setDelegateAgentName(delegateAgentName);
+	myPlatform.setDelegateAgent(agentName, delegateAgentName);
+      }
+
       String forwardAddress = amsd.getForwardAddress();
       if(forwardAddress != null)
 	toChange.setAddress(forwardAddress);
+
       String ownership = amsd.getOwnership();
       if(ownership != null)
 	toChange.setOwnership(ownership);
