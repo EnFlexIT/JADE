@@ -464,7 +464,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
-  public Object buildFrom(ACLMessage msg) throws FIPAException {
+  public Object extractContent(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
     if(c == null)
       throw new FIPAException("Unknown Content Language");
