@@ -32,7 +32,6 @@ import javax.swing.*;
 import jade.domain.AgentManagementOntology;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - Adriana Quinto- CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -62,56 +61,93 @@ class ServiceDscDlg extends JDialog
 	{
 		setTitle("Service");
 		
+		JPanel main = new JPanel();
+		main.setLayout(new BoxLayout(main,BoxLayout.Y_AXIS));
+		
 		JPanel p = new JPanel();
-		LayoutFacilitator lf = new LayoutFacilitator(p);
-		lf.formatGrid(6,  // 6 rows
-		              2,  // 2 columns
-		              5,  // 5 pixels as left, right, top and bottom border
-		              5,
-		              5,
-		              5,
-		              2,  // 2 pixels betweens rows and columns 
-		              2); 
-		lf.setGridColumnWidth(0, 150);
-		lf.setGridColumnWidth(1, 200);
-
 		JLabel l;
-
+		
+		//Name	
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Name");
-		lf.put(l, 0, 0, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtName = new JTextField();
 		txtName.setEditable(false);
-		lf.put(txtName, 1, 0, 1, 1, false);
-
+		txtName.setPreferredSize(new Dimension(200,20));
+		p.add(txtName);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+    //Type
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Type");
-		lf.put(l, 0, 1, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtType = new JTextField();
 		txtType.setEditable(false);
-		lf.put(txtType, 1, 1, 1, 1, false);
+		txtType.setPreferredSize(new Dimension (200,20));
+		p.add(txtType);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		l = new JLabel("Ontology");
-		lf.put(l, 0, 2, 1, 1, false);
+		//Ontology
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+ 		l = new JLabel("Ontology");
+ 		l.setPreferredSize(new Dimension(130,20));
+ 		p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtOntology = new JTextField();
 		txtOntology.setEditable(false);
-		lf.put(txtOntology, 1, 2, 1, 1, false);
+	  txtOntology.setPreferredSize(new Dimension (200,20));
+	  p.add(txtOntology);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		l = new JLabel("Fixed Props.");
-		lf.put(l, 0, 3, 1, 1, false);
+    //Fixed Props
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		l = new JLabel("Fixed Props.");	
+		l.setPreferredSize(new Dimension(130,20));
+		p.add(l);
 		JTextField txtFixedProps = new JTextField();
 		txtFixedProps.setEditable(false);
-		lf.put(txtFixedProps, 1, 3, 1, 1, false);
+		txtFixedProps.setPreferredSize(new Dimension (200,20));
+	  p.add(txtFixedProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		l = new JLabel("Negotiable Props.");
-		lf.put(l, 0, 4, 1, 1, false);
+		//Negotiable Props.
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		l = new JLabel("Negotiable Props.");	
+		l.setPreferredSize(new Dimension(130,20));
+		p.add(l);
 		JTextField txtNegProps = new JTextField();
 		txtNegProps.setEditable(false);
-		lf.put(txtNegProps, 1, 4, 1, 1, false);
+	  txtNegProps.setPreferredSize(new Dimension (200,20));
+	  p.add(txtNegProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		l = new JLabel("Communication Props.");
-		lf.put(l, 0, 5, 1, 1, false);
+
+	  //Communication Props.
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		l = new JLabel("Communication Props.");	
+		l.setPreferredSize(new Dimension(130,20));
+	  p.add(l);
 		JTextField txtCommProps = new JTextField();
 		txtCommProps.setEditable(false);
-		lf.put(txtCommProps, 1, 5, 1, 1, false);
+		txtCommProps.setPreferredSize(new Dimension (200,20));
+		p.add(txtCommProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+
 
 		if (dsc != null) 
 		{
@@ -121,13 +157,19 @@ class ServiceDscDlg extends JDialog
 			txtFixedProps.setText(dsc.getFixedProps());
 			txtNegProps.setText(dsc.getNegotiableProps());
 			txtCommProps.setText(dsc.getCommunicationProps());
+			
 		}
 		
-		getContentPane().add(p, BorderLayout.CENTER);
+		//getContentPane().add(p, BorderLayout.CENTER);
+		getContentPane().add(main, BorderLayout.NORTH);
 
 		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 		JButton bOK = new JButton("OK");
+		p.add(Box.createRigidArea(new Dimension(0,25)));
+		bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
 		p.add(bOK);
+
 		bOK.addActionListener( new ActionListener()
 		                           {
 						   	public void actionPerformed(ActionEvent e)
@@ -155,8 +197,11 @@ class ServiceDscDlg extends JDialog
 
 		setTitle("Service");
 		
+		JPanel main = new JPanel();
+		main.setLayout(new BoxLayout (main, BoxLayout.Y_AXIS));
 		JPanel p = new JPanel();
-		LayoutFacilitator lf = new LayoutFacilitator(p);
+		
+		/*LayoutFacilitator lf = new LayoutFacilitator(p);
 		lf.formatGrid(6,  // 6 rows
 		              2,  // 2 columns
 		              5,  // 5 pixels as left, right, top and bottom border
@@ -166,40 +211,89 @@ class ServiceDscDlg extends JDialog
 		              2,  // 2 pixels betweens rows and columns 
 		              2); 
 		lf.setGridColumnWidth(0, 150);
-		lf.setGridColumnWidth(1, 200);
+		lf.setGridColumnWidth(1, 200);*/
 
 		JLabel l;
-
+    
+		//Name
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS)); 
 		l = new JLabel("Name");
-		lf.put(l, 0, 0, 1, 1, false);
-		JTextField txtName = new JTextField();
-		lf.put(txtName, 1, 0, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
+    JTextField txtName = new JTextField();	
+		txtName.setPreferredSize(new Dimension(200,20));
+		p.add(txtName);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
+    //Type
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Type");
-		lf.put(l, 0, 1, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtType = new JTextField();
-		lf.put(txtType, 1, 1, 1, 1, false);
+		txtType.setPreferredSize(new Dimension (200,20));
+		p.add(txtType);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
+    //Ontology
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Ontology");
-		lf.put(l, 0, 2, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtOntology = new JTextField();
-		lf.put(txtOntology, 1, 2, 1, 1, false);
+		txtOntology.setPreferredSize(new Dimension (200,20));
+		p.add(txtOntology);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
+		//Fixed Props
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Fixed Props.");
-		lf.put(l, 0, 3, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+		p.add(Box.createHorizontalGlue());
 		JTextField txtFixedProps = new JTextField();
-		lf.put(txtFixedProps, 1, 3, 1, 1, false);
+	  txtFixedProps.setPreferredSize(new Dimension (200,20));
+		p.add(txtFixedProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
+
+		//Negotiable props
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Negotiable Props.");
-		lf.put(l, 0, 4, 1, 1, false);
+	  l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+    p.add(Box.createHorizontalGlue());
 		JTextField txtNegProps = new JTextField();
-		lf.put(txtNegProps, 1, 4, 1, 1, false);
+	  txtNegProps.setPreferredSize(new Dimension (200,20));
+		p.add(txtNegProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
+
+	  //Communication Props
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Communication Props.");
-		lf.put(l, 0, 5, 1, 1, false);
+		l.setPreferredSize(new Dimension(130,20));
+    p.add(l);
+    p.add(Box.createHorizontalGlue());
 		JTextField txtCommProps = new JTextField();
-		lf.put(txtCommProps, 1, 5, 1, 1, false);
-
+	  txtCommProps.setPreferredSize(new Dimension (200,20));
+		p.add(txtCommProps);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,10)));
+		
 		if (dsc != null) 
 		{
 			txtName.setText(dsc.getName());
@@ -208,16 +302,20 @@ class ServiceDscDlg extends JDialog
 			txtFixedProps.setText(dsc.getFixedProps());
 			txtNegProps.setText(dsc.getNegotiableProps());
 			txtCommProps.setText(dsc.getCommunicationProps());
+		
 		}
 		
-		getContentPane().add(p, BorderLayout.CENTER);
+		getContentPane().add(main, BorderLayout.NORTH);
 
 		p = new JPanel();
+		p.setLayout(new FlowLayout(FlowLayout.CENTER));
+    
 		JButton bOK = new JButton("OK");
 		JButton bCancel = new JButton("Cancel");
 		bOK.setPreferredSize(bCancel.getPreferredSize());
 		p.add(bOK);
 		p.add(bCancel);
+		p.add(Box.createRigidArea(new Dimension(0,60)));
 		bOK.addActionListener( new ActionListener()
 		                           {
 						   	public void actionPerformed(ActionEvent e)
@@ -252,16 +350,31 @@ class ServiceDscDlg extends JDialog
 
 		if (ret.getValue() == 1)
 		{	
-			AgentManagementOntology.ServiceDescriptor editedDsc = new AgentManagementOntology.ServiceDescriptor(); 
-			editedDsc.setName(txtName.getText());
-			editedDsc.setType(txtType.getText());
-			editedDsc.setOntology(txtOntology.getText());
-			editedDsc.setFixedProps(txtFixedProps.getText());
-			editedDsc.setNegotiableProps(txtNegProps.getText());
-			editedDsc.setCommunicationProps(txtCommProps.getText());
+			AgentManagementOntology.ServiceDescriptor editedDsc = new AgentManagementOntology.ServiceDescriptor(); 	  
+		 			
+	  	editedDsc.setName(getSaveText(txtName));
+			editedDsc.setType(getSaveText(txtType));
+			editedDsc.setOntology(getSaveText(txtOntology));
+			editedDsc.setFixedProps(getSaveText(txtFixedProps));
+			editedDsc.setNegotiableProps(getSaveText(txtNegProps));
+			editedDsc.setCommunicationProps(getSaveText(txtCommProps)); 
+		
 			return(editedDsc);
  		}
 		return(null);		
+	}
+	
+	/*
+	return the string relative to service description fields if not empty, null otherwise
+	*/
+	private String getSaveText(JTextField field){
+	try{
+		String out = field.getText();
+		return (out.length() == 0 ? null : out);
+	}catch( Exception e){
+	return null;
+	}
+	
 	}
 
 }
