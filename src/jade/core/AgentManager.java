@@ -77,6 +77,9 @@ public interface AgentManager {
   void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
   void sniffOff(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
 
+  void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
+  void debugOff(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
+
   void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
   void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
