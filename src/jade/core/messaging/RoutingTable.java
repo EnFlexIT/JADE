@@ -57,8 +57,8 @@ class RoutingTable {
   // RMI to forward the deliver() operation
   private static class OutViaSlice implements OutPort {
 
-    private String sliceName;
-    private MessagingSlice slice;
+    private final String sliceName;
+    private final MessagingSlice slice;
 
     public OutViaSlice(String sn, MessagingSlice ms) {
 	sliceName = sn;
@@ -95,8 +95,8 @@ class RoutingTable {
   // the message into an MTP payload.
   private static class OutViaMTP implements OutPort {
 
-    private MessagingService myService;
-    private OutChannel myChannel;
+    private final MessagingService myService;
+    private final OutChannel myChannel;
 
     public OutViaMTP(MessagingService ms, OutChannel proto) {
       myService = ms;
@@ -135,8 +135,8 @@ class RoutingTable {
 
   private static class OutPortList {
 
-    private List local = new ArrayList();
-    private List remote = new ArrayList();
+    private final List local = new ArrayList();
+    private final List remote = new ArrayList();
 
     public void add(OutPort port, boolean location) {
       if(location == LOCAL) {
@@ -174,10 +174,11 @@ class RoutingTable {
   } // End of OutPortList class
 
 
-  private Map inPorts = new HashMap();
-  private Map outPorts = new HashMap();
-  private List platformAddresses = new ArrayList();
-  private MessagingService myService;
+  private final Map inPorts = new HashMap();
+  private final Map outPorts = new HashMap();
+    private static final int EXPECTED_PLATFORMADDRESSES_SIZE = 2;
+  private final List platformAddresses = new ArrayList(EXPECTED_PLATFORMADDRESSES_SIZE);
+  private final MessagingService myService;
 
   public RoutingTable(MessagingService ms) {
     myService = ms;

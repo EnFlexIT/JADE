@@ -101,11 +101,11 @@ public class GenericCommand implements HorizontalCommand, VerticalCommand  {
 	return returnValue;
     }
 
-    private String myName;
-    private String myService;
-    private String myInteraction;
+    private final String myName;
+    private final String myService;
+    private final String myInteraction;
 
-    private List params;
+    private final List params;
     private Object returnValue;
 
 }

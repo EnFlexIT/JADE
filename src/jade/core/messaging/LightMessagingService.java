@@ -82,7 +82,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	myContainer = ac;
 
 	// Initialize its own ID
-	String platformID = myContainer.getPlatformID();
+	// String platformID = myContainer.getPlatformID();
 
 	myMessageManager = new MessageManager();
 	myMessageManager.initialize(p, this);
@@ -435,7 +435,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 		    public Object run() {
 			try {
 			    // FIXME: Having a custom code path for send failure notifications would be better...
-			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, "");
+			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
 			    cmd.addParam(failure);
 			    cmd.addParam(theAMS);
 			    handleSendMessage(cmd);
@@ -465,7 +465,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 
 	// Set the sender unless already set
 	try {
-	    if (msg.getSender().getName().length() < 1)
+	    if (msg.getSender() == null) 
 		msg.setSender(sender);
 	}
 	catch (NullPointerException e) {
@@ -542,12 +542,12 @@ public class LightMessagingService extends BaseService implements MessageManager
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainer myContainer;
+    private final AgentContainer myContainer;
 
     // The local slice for this service
-    private ServiceComponent localSlice;
+    private final ServiceComponent localSlice;
 
     // The component managing asynchronous message delivery and retries
-    private MessageManager myMessageManager;
+    private final MessageManager myMessageManager;
 
 }

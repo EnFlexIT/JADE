@@ -21,12 +21,12 @@ import jade.core.messaging.MessageManager.PendingMsg;
 
 class OutBox {
 	private int verbosity = 2;
-	// The massages to be delivered organized as an hadshtable that maps
+	// The massages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
-	private Hashtable messagesByReceiver = new Hashtable();
+	private final Hashtable messagesByReceiver = new Hashtable(); 
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
-	private RoundList messagesByOrder = new RoundList();
+	private final RoundList messagesByOrder = new RoundList();
 	
 	/**
 	 * Add a message to the tail of the Box of messages for the indicated 
@@ -128,19 +128,20 @@ class OutBox {
 		}
 	}
 	
+
 	/**
 	 * This class represents a Box of messages to be delivered to 
 	 * a single receiver
 	 */
 	private class Box {
-		private AID receiver;
+		private final AID receiver;
 		private boolean busy;
-		private List messages;
+		private final List messages;
 		
 		public Box(AID r){
 			receiver = r;
 			busy = false;
-			messages = new LinkedList();
+			messages = new LinkedList(); 
 		}
 		
 		private AID getReceiver() {

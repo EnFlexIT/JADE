@@ -231,8 +231,8 @@ class MessageManager implements TimerListener {
 	   Inner class PendingMsg
 	 */
 	public static class PendingMsg {
-		private ACLMessage msg;
-		private AID receiverID;
+		private final ACLMessage msg;
+		private final AID receiverID;
 		private long deadline;
 		
 		public PendingMsg(ACLMessage msg, AID receiverID, long deadline) {

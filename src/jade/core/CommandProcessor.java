@@ -90,7 +90,7 @@ public class CommandProcessor {
     }
 
 
-    private List filters;
+    private final List filters;
 
 
     // Array representation of the filter chain, cached to allow concurrent iteration.

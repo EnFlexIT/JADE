@@ -634,7 +634,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
       // --- End of code that should go into the Security Service ---
 
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_CREATE, jade.core.management.AgentManagementService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_CREATE, jade.core.management.AgentManagementService.NAME, null);
 
       cmd.addParam(name);
       cmd.addParam(className);
@@ -675,7 +675,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_KILL, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_KILL, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 
 	myCommandProcessor.process(cmd);
@@ -693,7 +693,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED));
 
@@ -712,7 +712,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
@@ -724,7 +724,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
        Put an agent in the WAITING state wherever it is
     */
     public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING));
 
@@ -735,7 +735,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
        Wake-up an agent wherever it is
     */
     public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
@@ -763,7 +763,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_MOVE, jade.core.mobility.AgentMobilityService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_MOVE, jade.core.mobility.AgentMobilityService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 
@@ -791,7 +791,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_CLONE, jade.core.mobility.AgentMobilityService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_CLONE, jade.core.mobility.AgentMobilityService.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 	cmd.addParam(newName);
@@ -835,7 +835,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 		    public Object run() {
 			Thread auxThread = new Thread() {
 				public void run() {
-				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.KILL_CONTAINER, jade.core.management.AgentManagementService.NAME, "");
+				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.KILL_CONTAINER, jade.core.management.AgentManagementService.NAME, null);
 				    cmd.addParam(cid);
 				    myCommandProcessor.process(cmd);
 				}
@@ -857,7 +857,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
    */
   public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
 
-      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.INSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.INSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(address);
       cmd.addParam(cid);
       cmd.addParam(className);
@@ -897,7 +897,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
    */
   public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
 
-      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.UNINSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.UNINSTALL_MTP, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(address);
       cmd.addParam(cid);
 
@@ -938,7 +938,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Activate sniffing on a given agent
   */
   public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_ON, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_ON, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(snifferName);
       cmd.addParam(toBeSniffed);
 
@@ -958,7 +958,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Deactivate sniffing on a given agent
   */
   public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_OFF, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_OFF, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(snifferName);
       cmd.addParam(notToBeSniffed);
 
@@ -977,7 +977,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Activate debugging on a given agent
   */
   public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_ON, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_ON, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(debuggerName);
       cmd.addParam(toBeDebugged);
 
@@ -996,7 +996,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Deactivate debugging on a given agent
   */
   public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_OFF, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_OFF, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(debuggerName);
       cmd.addParam(notToBeDebugged);
 

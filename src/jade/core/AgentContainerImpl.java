@@ -169,7 +169,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_CREATED, jade.core.management.AgentManagementService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_CREATED, jade.core.management.AgentManagementService.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
       cmd.addParam(new Boolean(startIt));
@@ -559,7 +559,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     public void handleSend(ACLMessage msg, AID sender) throws AuthException {
 
-	GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
 	cmd.addParam(msg);
 	cmd.addParam(sender);
 	Object lastException = myCommandProcessor.process(cmd);
@@ -581,7 +581,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	// --- End of Security code
 
-	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, null);
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
@@ -593,7 +593,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_BEGIN
   public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
 
-	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_RECEIVED, jade.core.event.NotificationSlice.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_RECEIVED, jade.core.event.NotificationSlice.NAME, null);
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
@@ -604,7 +604,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleBehaviourAdded(AID agentID, Behaviour b) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(b);
 
@@ -614,7 +614,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleBehaviourRemoved(AID agentID, Behaviour b) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(b);
 
@@ -624,7 +624,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_CHANGED_BEHAVIOUR_STATE, jade.core.event.NotificationSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_CHANGED_BEHAVIOUR_STATE, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(b);
       cmd.addParam(from);
@@ -657,7 +657,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED, jade.core.management.AgentManagementService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED, jade.core.management.AgentManagementService.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(from);
       cmd.addParam(to);
@@ -676,14 +676,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleEnd(AID agentID) {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_KILLED, jade.core.management.AgentManagementService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_KILLED, jade.core.management.AgentManagementService.NAME, null);
       cmd.addParam(agentID);
       myCommandProcessor.process(cmd);
   }
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleMove(AID agentID, Location where) throws AuthException, NotFoundException, IMTPException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_MOVED, jade.core.mobility.AgentMobilityService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_MOVED, jade.core.mobility.AgentMobilityService.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
       myCommandProcessor.process(cmd);
@@ -692,7 +692,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleClone(AID agentID, Location where, String newName) throws AuthException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_CLONED, jade.core.mobility.AgentMobilityService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_CLONED, jade.core.mobility.AgentMobilityService.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
       cmd.addParam(newName);
@@ -701,7 +701,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   public void setPlatformAddresses(AID id) {
-      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(id);
       myCommandProcessor.process(cmd);
   }
@@ -722,7 +722,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
     private void startAgent(AID agentID) {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_START, jade.core.management.AgentManagementService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_START, jade.core.management.AgentManagementService.NAME, null);
 	cmd.addParam(agentID);
 
 	myCommandProcessor.process(cmd);

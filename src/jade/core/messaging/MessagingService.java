@@ -788,7 +788,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    public Object run() {
 			try {
 			    // FIXME: Having a custom code path to send failure notifications would be better...
-			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, "");
+			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
 			    cmd.addParam(failure);
 			    cmd.addParam(theAMS);
 			    handleSendMessage(cmd);
@@ -992,22 +992,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainer myContainer;
+    private final AgentContainer myContainer;
 
     // The local slice for this service
-    private ServiceComponent localSlice;
+    private final ServiceComponent localSlice;
 
     // The cached AID -> MessagingSlice associations
-    private Map cachedSlices;
+    private final Map cachedSlices;
 
+    private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
     // The table of the locally installed ACL message encodings
-    private Map messageEncodings = new HashMap();
+    private final Map messageEncodings = new HashMap(EXPECTED_ACLENCODINGS_SIZE);
 
     // The platform ID, to be used in inter-platform dispatching
-    private String accID;
+    private final String accID;
 
     // The component managing asynchronous message delivery and retries
-    private MessageManager myMessageManager;
+    private final MessageManager myMessageManager;
 
 
 }
