@@ -64,7 +64,6 @@ import jade.util.Logger;
  * @version 1.0
  */
 class CommandDispatcher implements StubHelper, ICP.Listener {
-	private static final String COMMAND_DISPATCHER_CLASS = "dispatcher-class";
 	private static final String MAIN_PROTO_CLASS = "main-proto-class";
 	
   /**
@@ -139,52 +138,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   private PlatformManager thePlatformManager = null;
 
 
-	private Logger myLogger;
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());;
 	
-  /**
-   * Tries to create a new command dispatcher and returns whether the
-   * creation was successful. The implementation of the command
-   * dispatcher is determined by the specified profile. The profile
-   * must contain a parameter with the key <tt>"commandDispatcher"</tt>
-   * and a value containing the fully qualified class name of the
-   * desired command dispatcher.
-   * 
-   * <p>When the profile contains no argument with key
-   * <tt>"commandDispatcher"</tt> the class
-   * {@link FullCommandDispatcher jade.imtp.leap.FullCommandDispatcher}
-   * will be used per default.</p>
-   * 
-   * @param p a profile determining the implementation of the command
-   * dispatcher.
-   * @return <tt>true</tt>, if a command dispatcher of the desired
-   * class is created or already exists, otherwise
-   * <tt>false</tt>.
-   */
-  public static final boolean create(Profile p) {
-    
-    String implementation = null;
-    // Set CommandDispatcher class name
-    implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.CommandDispatcher");
-    
-    if (commandDispatcher == null) {
-      try {
-        commandDispatcher = (CommandDispatcher) Class.forName(implementation).newInstance();
-
-        // DEBUG
-        // System.out.println("Using command dispatcher '" + implementation + "'");
-
-        return true;
-      } 
-      catch (Exception e) {
-        Logger.println("Instantiation of class "+implementation+" failed ["+e+"].");
-      } 
-
-      return false;
-    } 
-    else {
-      return commandDispatcher.getClass().getName().equals(implementation);
-    } 
-  } 
 
   /**
    * Returns a reference to the singleton instance of the command
@@ -195,6 +150,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * dispatcher or <tt>null</tt>, if no such instance exists.
    */
   public static final CommandDispatcher getDispatcher() {
+    if (commandDispatcher == null) {
+    	commandDispatcher = new CommandDispatcher();
+    } 
     return commandDispatcher;
   } 
 
@@ -205,13 +163,12 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * existence of a singleton instance of the command dispatcher will
    * be guaranteed.
    */
-  public CommandDispatcher() {
+  private CommandDispatcher() {
     // Set a temporary name. Will be substituted as soon as the first
     // container attached to this CommandDispatcher will receive a
     // unique name from the main.
     name = DEFAULT_NAME;
     nextID = 1;
-  	myLogger = Logger.getMyLogger(getClass().getName());
   }
 
     synchronized PlatformManager getPlatformManagerProxy(Profile p) throws IMTPException {
