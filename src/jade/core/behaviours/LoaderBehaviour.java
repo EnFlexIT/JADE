@@ -45,6 +45,16 @@ import java.io.*;
 /**
    This behaviour serves behaviour-loading requests
    according to the Behaviour-loading ontology.
+   When an agent runs an instance of this behaviour it becomes able
+   to load and execute completely new behaviours i.e. behaviours
+   whose code is not included in the classpath of the JVM where the 
+   agent lives.
+   Loading behaviour requests must have the <code>ACLMessage.REQUEST</code>
+   performative and must use the BehaviourLoading ontology and the
+   LEAP language.
+   @see jade.domain.mobility.LoadBehaviour
+   @see jade.domain.mobility.BehaviourLoadingOntology
+   @see jade.content.lang.leap.LEAPCodec
    @author Giovanni Caire - TILAB
  */
 public class LoaderBehaviour extends Behaviour {

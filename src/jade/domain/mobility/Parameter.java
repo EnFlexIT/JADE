@@ -31,6 +31,7 @@ import jade.util.leap.List;
 /**
    This concept represents a parameter to be passed to a <code>Behaviour</code>
    in the dynamic loading procedure.
+   @see LoadBehaviour
    @see jade.core.behaviours.LoaderBehaviour
    @author Giovanni Caire - TILAB
  */
@@ -46,18 +47,34 @@ public class Parameter implements Concept {
 		this.value = value;
 	}
 	
+	/**
+	   Sets the name of this parameter. This will be used as
+	   the key in the dinamically loaded behaviour <code>DataStore</code>
+	   for the parameter value
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 	
+	/**
+	   @return the name of this parameter.
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	   Sets the value of this parameter. The BehaviourLoading
+	   ontology extends the SerializableOntology and therefore 
+	   whatever <code>Serializable</code> object can be used. 
+	 */
 	public void setValue(Object value) {
 		this.value = value;
 	}
 	
+	/**
+	   @return the value of this parameter.
+	 */
 	public Object getValue() {
 		return value;
 	}
