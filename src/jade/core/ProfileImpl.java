@@ -571,12 +571,12 @@ public class ProfileImpl extends Profile {
   }
 
   private void createResourceManager() throws ProfileException {
-  	//#ALL_EXCLUDE_BEGIN
+  	//#J2ME_EXCLUDE_BEGIN
     String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
-  	//#ALL_EXCLUDE_END
-  	/*#ALL_INCLUDE_BEGIN
+  	//#J2ME_EXCLUDE_END
+  	/*#J2ME_INCLUDE_BEGIN
     String className = getParameter(RESOURCE, "jade.core.LightResourceManager");
-  	#ALL_INCLUDE_END*/
+  	#J2ME_INCLUDE_END*/
 
     try {
       myResourceManager = (ResourceManager) Class.forName(className).newInstance();
