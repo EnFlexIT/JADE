@@ -37,8 +37,11 @@ import jade.core.CaseInsensitiveString;
 import java.util.Date;
 import java.util.Vector;
 import java.io.StringReader;
+
+//__CLDC_UNSUPPORTED__BEGIN
 import java.io.BufferedReader; // only for debugging purposes in the main
 import java.io.InputStreamReader; // only for debugging purposes in the main
+//__CLDC_UNSUPPORTED__END
 
 /**  
  * The codec class for the <b><i>FIPA-SL</i>n</b> languages. This class
@@ -236,9 +239,10 @@ public class SLCodec extends StringCodec {
 		str.append(" ");
 		try {
 		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[0]))); //FIXME check it is an action expression
-		    if (slotNames.length > 1) { // Second argument is optional
+		    AbsPredicate ap = (AbsPredicate)val.getAbsObject(slotNames[1]);
+		    if (ap != null) { // Second argument is optional
 			str.append(" ");
-			str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
+			str.append(toString(ap));
 		    }
 		} catch (RuntimeException e) {
 		    throw new CodecException("An ActionOp requires an actionexpression and (optionally) a formula arguments",e);
@@ -281,8 +285,6 @@ public class SLCodec extends StringCodec {
 	else
 	    return "?"+encode(var.substring(1));
     }
-
-		private boolean encodeByOrder = false;
     
     private String toString(AbsConcept val) throws CodecException {
 	String functionSymbol = val.getTypeName();
@@ -293,38 +295,26 @@ public class SLCodec extends StringCodec {
 			// The form is: functionSymbol Term*
 			str.append(functionSymbol);
 	    try {
-	    	// The ACTION operator requires a particular encoding as the term that
-	    	// indicates the actual action to be performed should be encoded by order
-	    	if (functionSymbol.equals(SL0Vocabulary.ACTION)) {
-	    		// actor
-		    	str.append(" ");
-		    	str.append(toString((AbsConcept)val.getAbsObject(slotNames[0])));
-		    	// action
-		    	str.append(" ");
-		    	encodeByOrder = true; 
-		    	str.append(toString((AbsTerm)val.getAbsObject(slotNames[1])));
-	    	}
-	    	else {	
-	    		encodeSlotsByOrder(val, slotNames, str);
-	    	}
+	    	encodeSlotsByOrder(val, slotNames, str);
 	    } catch (RuntimeException e) {
 		throw new CodecException("A FunctionalOperator requires 1 or 2 Term arguments",e);
 	    }
-	} else if (encodeByOrder) {
-			// A term in the ontology used to indicate an action within the ACTION 
-			// operator. The form is: functionSymbol Term*
-			encodeByOrder = false;
-	    str.append(encode(functionSymbol));
-	    try {
-	    	encodeSlotsByOrder(val, slotNames, str);
-	    } catch (RuntimeException e) {
-		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
-	    }
 	} else { 
-			// A generic term in the ontology. The form is: functionSymbol Parameter*
+			// A generic term in the ontology. The form can be both 
+			// functionSymbol Parameter* or functionSymbol Term*. Get the 
+			// preferred way from the ontology.
 	    str.append(encode(functionSymbol));
 	    try {
-	    	encodeSlotsByName(val, slotNames, str);
+	    	// FIXME: To improve performances the two operations that imply
+	    	// retrieving a schema from the ontology (getting slot names and
+	    	// getting the preferred encoding type) should be carried out at 
+	    	// the same time.
+	    	if (getEncodingByOrder(val)) {
+	    		encodeSlotsByOrder(val, slotNames, str);
+	    	}
+	    	else {
+	    		encodeSlotsByName(val, slotNames, str);
+	    	}
 	    } catch (RuntimeException e) {
 		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
 	    }
@@ -439,7 +429,6 @@ public class SLCodec extends StringCodec {
 	}
     }
 
-
     /**
      * @return the ontology containing the schemas of the operator
      * defined in this language
@@ -472,6 +461,20 @@ public class SLCodec extends StringCodec {
 			return slotNames;
 		}
     
+		private boolean getEncodingByOrder(AbsObject abs) throws CodecException {
+			if (domainOnto != null) {
+    		String type = abs.getTypeName();
+				try {
+					ObjectSchema s = domainOnto.getSchema(type);
+					return s.getEncodingByOrder();
+				}
+				catch (Exception e) {
+					// Just ignore it
+				}
+			}
+			return false;
+		}
+		
     /**
      * Encode the slots of an abstract descriptor by order, i.e. 
      * without writing the slot names. Also take into account that, in
