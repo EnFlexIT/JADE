@@ -77,4 +77,14 @@
 			</WhenTestPass> 
 		</Test>				
 		
+		<Test name="Get failed receiver" skip="false">
+			<TestClassName>test.domain.ams.tests.TestFailedReceiver</TestClassName>
+			<WhatTest>Test the getFailedReceiver() method of the AMSService class.
+			</WhatTest>
+			<HowWorkTest>A message is sent to a non-existing agent, the AMS FAILURE is received and the AMSService.getFailedReceiver() method is applied to it.	    
+			</HowWorkTest>
+			<WhenTestPass>The the passes if the returned value is actually the receiver AID.
+			</WhenTestPass> 
+		</Test>				
+		
 	</TestsList>
