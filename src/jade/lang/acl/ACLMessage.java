@@ -34,6 +34,12 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.13  1999/03/07 22:56:47  rimassa
+ Deprecated getMessage() method.
+ Added support for more agent names in ':receiver' slot. Now methods
+ getDest() and setDest() are deprecated and addDest(), removeDest(),
+ getDests() and removeAllDests() methods have been added.
+
  Revision 1.12  1999/02/22 09:25:18  rimassa
  Added support for ISO 8601 time format using a custom new class for
  all format conversions.
@@ -86,7 +92,10 @@ import java.io.Serializable;
 import java.io.IOException;
 import java.io.StringWriter;
 
+import java.util.Enumeration;
 import java.util.Date;
+
+import jade.core.AgentGroup;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
@@ -110,7 +119,7 @@ public class ACLMessage implements Cloneable, Serializable {
   private static final String CONVERSATION_ID = new String(" :conversation-id ");
 
   private String        source;
-  private String        dest;
+  private AgentGroup    dests = new AgentGroup();
   private String        msgType;
   private String        content;
   private String        reply_with;
@@ -127,8 +136,8 @@ public class ACLMessage implements Cloneable, Serializable {
      @deprecated Since every ACL Message must have a message type, you
      should use the new constructor which gets a message type as a
      parameter.  To avoid problems, now this constructor silently sets
-     the message type to "not-understood".
-     @see #ACLMessage(String type)
+     the message type to <code>not-understood</code>.
+     @see jade.lang.acl.ACLMessage#ACLMessage(String type)
   */
   public ACLMessage() {
     msgType = "not-understood";
@@ -153,7 +162,7 @@ public class ACLMessage implements Cloneable, Serializable {
     return msg;
   }
 
-/**
+  /**
  * <em>set</em> methods to set the actual values of parameters.
  * NOTICE: correctness of actual value of parameters is not checked
  */
@@ -162,9 +171,33 @@ public class ACLMessage implements Cloneable, Serializable {
       this.source = new String(source);
   }
 
+  /**
+  @deprecated Now <code>ACLMessage</code> class supports multiple
+  receivers, so <code>addDest()</code>, <code>removeDest()</code> and
+  <code> getDests()</code> should be used. Currently, this
+  method removes all previous receivers and inserts the one
+  given.
+  @see jade.lang.acl.ACLMessage#addDest()
+  @see jade.lang.ACLMessage#removeDest()
+  @see jade.lang.acl.ACLMessage#getDests()
+  */
   public void setDest( String dest ) {
-    if (dest != null)
-      this.dest = new String(dest);
+    if (dest != null) {
+      dests = new AgentGroup();
+      dests.addMember(new String(dest));
+    }
+  }
+
+  public void addDest(String dest) {
+    dests.addMember(new String(dest));
+  }
+
+  public void removeDest(String dest) {
+    dests.removeMember(new String(dest));
+  }
+
+  public void removeAllDests() {
+    dests.reset();
   }
 
   public void setType( String type ) {
@@ -232,10 +265,23 @@ public class ACLMessage implements Cloneable, Serializable {
   }
 
  /**
- * <em>get</em> methods to read the actual values of parameters.
+  @deprecated Now <code>ACLMessage</code> class supports multiple
+  receivers, so <code>addDest()</code>, <code>removeDest()</code> and
+  <code> getDests()</code> should be used.
+  @see jade.lang.acl.ACLMessage#addDest()
+  @see jade.lang.ACLMessage#removeDest()
+  @see jade.lang.acl.ACLMessage#getDests() 
  */
   public String getDest() {
+    Enumeration e = dests.getMembers();
+    String dest = null;
+    if(e.hasMoreElements())
+      dest = (String)e.nextElement();
     return dest;
+  }
+
+  public AgentGroup getDests() {
+    return (AgentGroup)dests.clone();
   }
 
   public String getSource() {
@@ -289,17 +335,17 @@ public class ACLMessage implements Cloneable, Serializable {
   }
  
  /**
- * this method returns the message in a sequence of byte format.
+ * @deprecated Users should never use this method and it will soon go away.
  */
  public byte[] getMessage() {
 
     byte message[];
     int  msgLength=0;
-    
+    String dest = getDest();
     if (this.source != null) 
        msgLength = msgLength + this.SOURCE.length() + this.source.length();
-    if (this.dest != null) 
-       msgLength = msgLength + this.DEST.length() + this.dest.length();
+    if (dest != null) 
+       msgLength = msgLength + this.DEST.length() + dest.length();
     if (this.content != null) 
        msgLength = msgLength + this.CONTENT.length() + this.content.length();
     if (this.reply_with != null) 
@@ -334,11 +380,11 @@ public class ACLMessage implements Cloneable, Serializable {
        for (i=0; i<this.source.length(); i++) 
           message[pos++] = (byte)this.source.charAt(i);
     }
-    if (this.dest != null) { 
+    if (dest != null) { 
        for (i=0; i<this.DEST.length(); i++) 
           message[pos++] = (byte)this.DEST.charAt(i);
-       for (i=0; i<this.dest.length(); i++) 
-          message[pos++] = (byte)this.dest.charAt(i);
+       for (i=0; i<dest.length(); i++) 
+          message[pos++] = (byte)dest.charAt(i);
     }
     if (this.content != null) { 
        for (i=0; i<this.CONTENT.length(); i++) 
@@ -408,14 +454,16 @@ public class ACLMessage implements Cloneable, Serializable {
      @deprecated This method dumps the message on System.out, so it's
      not suitable for use with GUIs or streams. Now fromText()/toText()
      methods allow reading and writing an ACL message on any stream;
-     besides they are inverse of each other.
+     besides they are inverse of each other. Besides, this method will corrupt
+     the ACL message object when more than one receiver is present.
      @see #toText(Writer w)
   */
   public void dump() {
-    counter++;	
+    counter++;
+    String dest = getDest();
     System.out.println( counter + ") " + msgType.toUpperCase());
     if (source != null)          System.out.println("   " + SOURCE + source);
-    if (dest!= null)             System.out.println("   " + DEST + dest);
+    if (dest != null)             System.out.println("   " + DEST + dest);
     if (content != null)         System.out.println("   " + CONTENT + content);
     if (reply_with != null)      System.out.println("   " + REPLY_WITH + reply_with);
     if (in_reply_to != null)     System.out.println("   " + IN_REPLY_TO + in_reply_to);
@@ -434,8 +482,11 @@ public class ACLMessage implements Cloneable, Serializable {
       w.write(msgType + "\n");
       if(source != null)
 	w.write(SOURCE + " " + source + "\n");
-      if(dest != null)
-	w.write(DEST + " " + dest + "\n");
+      Enumeration e = dests.getMembers();
+      if(e.hasMoreElements()) 
+	w.write(DEST + "\n");
+      while(e.hasMoreElements())
+	w.write((String)e.nextElement() + "\n");
       if(content != null)
 	w.write(CONTENT + " " + content + "\n");
       if(reply_with != null)
@@ -487,7 +538,7 @@ public class ACLMessage implements Cloneable, Serializable {
  */
  public void reset() {
   source=null;
-  dest=null;
+  dests=new AgentGroup();
   msgType=null;
   content=null;
   reply_with=null;
