@@ -83,7 +83,6 @@ public class MainReplicationService extends BaseService {
     private static final boolean INCLUDE_MYSELF = true;
 
     private static final String[] OWNED_COMMANDS = new String[] {
-	MainReplicationSlice.DUMMY_VERTICAL
     };
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
@@ -93,10 +92,6 @@ public class MainReplicationService extends BaseService {
 
 	// Create a local slice
 	localSlice = new ServiceComponent(p);
-
-	// Create the command sinks
-	sourceSink = new CommandSourceSink();
-	targetSink = new CommandTargetSink();
 
 	// Create the command filters
 	outFilter = new CommandOutgoingFilter();
@@ -131,12 +126,7 @@ public class MainReplicationService extends BaseService {
     }
 
     public Sink getCommandSink(boolean side) {
-	if(side == Sink.COMMAND_SOURCE) {
-	    return sourceSink;
-	}
-	else {
-	    return targetSink;
-	}
+	return null;
     }
 
     public String[] getOwnedCommands() {
@@ -189,63 +179,46 @@ public class MainReplicationService extends BaseService {
     }
 
 
-    // This inner class handles the messaging commands on the command
-    // issuer side, turning them into horizontal commands and
-    // forwarding them to remote slices when necessary.
-    private class CommandSourceSink implements Sink {
-
-	public void consume(VerticalCommand cmd) {
-	    try {
-		String name = cmd.getName();
-		if(name.equals(MainReplicationSlice.DUMMY_VERTICAL)) {
-		    handleDummyVertical(cmd);
-		}
-	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable.", imtpe));
-	    }
-	    catch(ServiceException se) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable.", se));
-	    }
-	}
-
-	private void handleDummyVertical(VerticalCommand cmd) throws IMTPException, ServiceException {
-	    System.out.println("-- Consuming vertical command (Source Side) --");
-	}
-
-    } // End of CommandSourceSink inner class
-
-
-    private class CommandTargetSink implements Sink {
-
-	public void consume(VerticalCommand cmd) {
-	    try {
-		String name = cmd.getName();
-		if(name.equals(MainReplicationSlice.DUMMY_VERTICAL)) {
-		    handleDummyVertical(cmd);
-		}
-	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable.", imtpe));
-	    }
-	    catch(ServiceException se) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable.", se));
-	    }
-	}
-
-	private void handleDummyVertical(VerticalCommand cmd) throws IMTPException, ServiceException {
-	    System.out.println("-- Consuming vertical command (Target Side) --");
-	}
-
-    } // End of CommandTargetSink class
-
-
     private class CommandOutgoingFilter implements Filter {
 
 	public void accept(VerticalCommand cmd) {
-	    String name = cmd.getName();
-	    if(name.equals(jade.core.management.AgentManagementSlice.REQUEST_CREATE)) {
+
+	    try {
+		String name = cmd.getName();
+
+		if(name.equals(jade.core.event.NotificationSlice.ADD_TOOL)) {
+		    handleNewTool(cmd);
+		}
+		else if(name.equals(jade.core.event.NotificationSlice.REMOVE_TOOL)) {
+		    handleDeadTool(cmd);
+		}
 	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(imtpe);
+	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(se);
+	    }
+	}
+
+	private void handleNewTool(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_NEWTOOL, MainReplicationSlice.NAME, null);
+	    hCmd.addParam(tool);
+
+	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+	}
+
+	private void handleDeadTool(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_DEADTOOL, MainReplicationSlice.NAME, null);
+	    hCmd.addParam(tool);
+
+	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
 	}
 
 	public void setBlocking(boolean newState) {
@@ -263,7 +236,6 @@ public class MainReplicationService extends BaseService {
 	public boolean isSkipping() {
 	    return false; // Blocking and Skipping not implemented
 	}
-
 
     } // End of CommandOutgoingFilter class
 
@@ -404,27 +376,6 @@ public class MainReplicationService extends BaseService {
 	    myMain = (MainContainerImpl)myContainer.getMain();
 	    myServiceManager = myContainer.getServiceManager();
 
-	    /***
-	    try {
-
-		NodeDescriptor desc = new NodeDescriptor(myContainer.getID(), getLocalNode(), ContainerPrincipal.NONE, new byte[0]);
-		myMain = new MainContainerImpl(p);
-		myMain.addLocalContainer(desc);
-		myMain.initSystemAgents(myContainer, false);
-	    }
-	    catch(ProfileException pe) {
-		pe.printStackTrace();
-	    }
-	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
-	    }
-	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
-	    }
-	    catch(AuthException ae) {
-		ae.printStackTrace();
-	    }
-	    ***/
 	}
 
 	private void attachTo(int label, MainReplicationSlice slice) throws IMTPException, ServiceException {
@@ -523,6 +474,14 @@ public class MainReplicationService extends BaseService {
 		    ContainerID cid = (ContainerID)params[1];
 		    deadMTP(mtp, cid);
 		}
+		else if(cmdName.equals(MainReplicationSlice.H_NEWTOOL)) {
+		    AID tool = (AID)params[0];
+		    newTool(tool);
+		}
+		else if(cmdName.equals(MainReplicationSlice.H_DEADTOOL)) {
+		    AID tool = (AID)params[0];
+		    deadTool(tool);
+		}
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
@@ -583,6 +542,12 @@ public class MainReplicationService extends BaseService {
 			// It should never happen...
 			nfe.printStackTrace();
 		    }
+		}
+
+		// Send the tool list...
+		AID[] tools = myMain.agentTools();
+		for(int i = 0; i < tools.length; i++) {
+		    slice.newTool(tools[i]);
 		}
 
 	    }
@@ -679,6 +644,14 @@ public class MainReplicationService extends BaseService {
 	    myMain.deadMTP(mtp, cid);
 	}
 
+	private void newTool(AID tool) throws IMTPException {
+	    myMain.toolAdded(tool);
+	}
+
+	private void deadTool(AID tool) throws IMTPException {
+	    myMain.toolRemoved(tool);
+	}
+
 	public void dumpReplicas() {
 	    try {
 		System.out.println("--- " + getLocalNode().getName() + "[" + myLabel + "] ---");
@@ -771,9 +744,6 @@ public class MainReplicationService extends BaseService {
     private AgentContainer myContainer;
 
     private ServiceComponent localSlice;
-
-    private Sink sourceSink;
-    private Sink targetSink;
 
     private Filter outFilter;
     private Filter inFilter;
