@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.31  1999/03/17 13:04:56  rimassa
+  Many changes to support new proxy based design. Now platform agent
+  table is indexed by the complete agent GUID and not just the local
+  agent name. So even foreign or mobile agents can now register
+  themselves with the platform.
+
   Revision 1.30  1999/03/15 15:25:39  rimassa
   Changed priority for system agents.
 
@@ -196,6 +202,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     super(args);
     myName = MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY);
+    initIIOP();
     initAMS();
     initACC();
     initDF();
@@ -212,9 +219,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put(AMS_NAME, theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this, myName);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    desc.setContainerName(myName);
+    desc.setProxy(rp);
 
-    platformAgents.put(AMS_NAME, desc);
+    String amsName = AMS_NAME + '@' + platformAddress;
+    platformAgents.put(amsName.toLowerCase(), desc);
 
   }
 
@@ -228,9 +238,16 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put(ACC_NAME, theACC);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this, myName);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    desc.setContainerName(myName);
+    desc.setProxy(rp);
 
-    platformAgents.put(ACC_NAME, desc);
+    String accName = ACC_NAME + '@' + platformAddress;
+    platformAgents.put(accName.toLowerCase(), desc);
+
+  }
+
+  private void initIIOP() {
 
     // Setup CORBA server
     frontEndACC = new InComingIIOP();
@@ -270,9 +287,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put(DEFAULT_DF_NAME, defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this, myName);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    desc.setContainerName(myName);
+    desc.setProxy(rp);
 
-    platformAgents.put(DEFAULT_DF_NAME, desc);
+    String defaultDfName = DEFAULT_DF_NAME + '@' + platformAddress;
+    platformAgents.put(defaultDfName.toLowerCase(), desc);
 
   }
 
@@ -311,9 +331,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   AgentContainer getContainerFromAgent(String agentName) throws NotFoundException {
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
-    if(ad == null)
+    if(ad == null) {
       throw new NotFoundException("Agent " + agentName + " not found in getContainerFromAgent()");
-    AgentContainer ac = ad.getContainer();
+    }
+    String name = ad.getContainerName();
+    AgentContainer ac = (AgentContainer)containers.get(name);
     return ac;
   }
 
@@ -341,20 +363,23 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     theAMS.postDeadContainer(name);
   }
 
-  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
+  public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException {
+    AgentDescriptor desc = new AgentDescriptor();
+    desc.setProxy(rp);
+    desc.setContainerName(containerName);
     java.lang.Object old = platformAgents.put(name.toLowerCase(), desc);
 
     // If there's already an agent with name 'name' throw a name clash
     // exception unless the old agent's container is dead.
     if(old != null) {
       AgentDescriptor ad = (AgentDescriptor)old;
-      AgentContainer ac = ad.getContainer();
+      RemoteProxy oldProxy = ad.getProxy();
       try {
-	ac.ping(); // Make sure container is alive, then raise a name clash exception
+	oldProxy.ping(); // Make sure agent is reachable, then raise a name clash exception
 	platformAgents.put(name.toLowerCase(), ad);
 	throw new NameClashException("Agent " + name + " already present in the platform ");
       }
-      catch(RemoteException re) {
+      catch(UnreachableException ue) {
 	System.out.println("Replacing a dead agent ...");
       }
     }
@@ -366,26 +391,29 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
     String containerName = ad.getContainerName();
-    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
+    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getAMSDesc();
     platformAgents.remove(name.toLowerCase());
 
     // Notify AMS
     theAMS.postDeadAgent(containerName, amsd);
   }
 
-  public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+  public RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException {
+
+    RemoteProxy rp;
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName + '@' + agentAddress);
+
     if(ad == null)
-      throw new NotFoundException("Lookup failed to find " + agentName);
+      throw new NotFoundException("getProxy() failed to find " + agentName);
     else {
-      AgentContainer ac = ad.getContainer();
+      rp = ad.getProxy();
       try {
-	ac.ping(); // RMI call
+	rp.ping();
       }
-      catch(RemoteException re) {
+      catch(UnreachableException ue) {
 	throw new NotFoundException("Container for " + agentName + " is unreachable");
       }
-      return ad;
+      return rp;
     }
   }
 
@@ -447,7 +475,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void APKillAgent(String name) throws NoCommunicationMeansException {
     try {
       AgentContainer ac = getContainerFromAgent(name);
-      ac.killAgent(name); // RMI call
+      String simpleName = name.substring(0,name.indexOf('@'));
+      ac.killAgent(simpleName); // RMI call
     }
     catch(NotFoundException nfe) {
       throw new NoCommunicationMeansException();
@@ -473,7 +502,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void APSuspendAgent(String name) throws NoCommunicationMeansException {
     try {
       AgentContainer ac = getContainerFromAgent(name);
-      ac.suspendAgent(name); // RMI call
+      String simpleName = name.substring(0,name.indexOf('@'));
+      ac.suspendAgent(simpleName); // RMI call
     }
     catch(NotFoundException nfe) {
       throw new NoCommunicationMeansException();
@@ -486,7 +516,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void APActivateAgent(String name) throws NoCommunicationMeansException {
     try {
       AgentContainer ac = getContainerFromAgent(name);
-      ac.resumeAgent(name); // RMI call
+      String simpleName = name.substring(0,name.indexOf('@'));
+      ac.resumeAgent(simpleName); // RMI call
     }
     catch(NotFoundException nfe) {
       throw new NoCommunicationMeansException();
@@ -499,7 +530,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void APWaitAgent(String name) throws NoCommunicationMeansException {
     try {
       AgentContainer ac = getContainerFromAgent(name);
-      ac.waitAgent(name); // RMI call
+      String simpleName = name.substring(0,name.indexOf('@'));
+      ac.waitAgent(simpleName); // RMI call
     }
     catch(NotFoundException nfe) {
       throw new NoCommunicationMeansException();
@@ -512,7 +544,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void APWakeAgent(String name) throws NoCommunicationMeansException {
     try {
       AgentContainer ac = getContainerFromAgent(name);
-      ac.wakeAgent(name); // RMI call
+      String simpleName = name.substring(0,name.indexOf('@'));
+      ac.wakeAgent(simpleName); // RMI call
     }
     catch(NotFoundException nfe) {
       throw new NoCommunicationMeansException();
@@ -600,8 +633,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   // This one is called in response to a 'kill-agent' action
   public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
-    String simpleName = agentName.substring(0,agentName.indexOf('@'));
-    APKillAgent(simpleName);
+    APKillAgent(agentName);
   }
 
   // This one is called in response to a 'register-agent' action
@@ -610,14 +642,16 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     throws FIPAException, AgentAlreadyRegisteredException {
 
     try {
-      // Extract the agent name from the beginning to the '@'
-      // FIXME: Platform crash on missing '@'
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
-      if(ad == null)
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+      if(ad == null) {// FIXME: Should accept foreign agents
+	Enumeration e = platformAgents.keys();
+	while(e.hasMoreElements()) {
+	  String s = (String)e.nextElement();
+	  System.out.println(s);
+	}
 	throw new NotFoundException("AMSNewData failed to find " + agentName);
-
-      if(ad.getDesc() != null) {
+      }
+      if(ad.getAMSDesc() != null) {
 	throw new AgentAlreadyRegisteredException();
       }
 
@@ -634,7 +668,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       amsd.setForwardAddress(forwardAddress);
       amsd.setOwnership(ownership);
 
-      ad.setDesc(amsd);
+      ad.setAMSDesc(amsd);
 
       // Notify AMS
       String containerName = ad.getContainerName();
@@ -652,13 +686,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     throws FIPAException {
 
     try {
-      // Extract the agent name from the beginning to the '@'
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
       if(ad == null)
 	throw new NotFoundException("AMSChangeData ailed to find " + agentName);
 
-      AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
+      AgentManagementOntology.AMSAgentDescriptor amsd = ad.getAMSDesc();
       
       if(address != null)
 	amsd.setAddress(address);
@@ -676,16 +708,16 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 	int oldState = o.getAPStateByName(amsd.getAPState());
 	switch(state) {
 	case Agent.AP_SUSPENDED:
-	  APSuspendAgent(simpleName);
+	  APSuspendAgent(agentName);
 	  break;
 	case Agent.AP_WAITING:
-	  APWaitAgent(simpleName);
+	  APWaitAgent(agentName);
 	  break;
 	case Agent.AP_ACTIVE:
 	  if(oldState == Agent.AP_WAITING)
-	    APWakeAgent(simpleName);
+	    APWakeAgent(agentName);
 	  else
-	    APActivateAgent(simpleName);
+	    APActivateAgent(agentName);
 	}
 
 	amsd.setAPState(state);
@@ -703,13 +735,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void AMSRemoveData(String agentName, String address, String signature, String APState,
 			    String delegateAgentName, String forwardAddress, String ownership)
     throws FIPAException {
-    // Extract the agent name from the beginning to the '@'
-    agentName = agentName.substring(0,agentName.indexOf('@'));
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     if(ad == null) {
       throw new jade.domain.UnableToDeregisterException();
     }
-    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
+    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getAMSDesc();
     amsd.setAPState(Agent.AP_DELETED);
   }
 
@@ -717,16 +747,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     Enumeration descriptors = platformAgents.elements();
     while(descriptors.hasMoreElements()) {
       AgentDescriptor desc = (AgentDescriptor)descriptors.nextElement();
-      AgentManagementOntology.AMSAgentDescriptor amsd = desc.getDesc();
+      AgentManagementOntology.AMSAgentDescriptor amsd = desc.getAMSDesc();
       amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     }
   }
 
   public void AMSDumpData(String agentName) {
-    // Extract the agent name from the beginning to the '@'
-    agentName = agentName.substring(0,agentName.indexOf('@'));
     AgentDescriptor desc = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
-    AgentManagementOntology.AMSAgentDescriptor amsd = desc.getDesc();
+    AgentManagementOntology.AMSAgentDescriptor amsd = desc.getAMSDesc();
     amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
