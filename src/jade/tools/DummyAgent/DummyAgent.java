@@ -345,7 +345,6 @@ public class DummyAgent extends Agent implements ActionListener
 		}
 		else if (command == "Exit")
 		{
-			System.out.println(agentName + ": bye!");
 			agentWnd.dispose();
 			doDelete();
 		}
