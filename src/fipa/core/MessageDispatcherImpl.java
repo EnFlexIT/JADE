@@ -1,3 +1,7 @@
+/*
+  $Id$
+*/
+
 package fipa.core;
 
 import java.rmi.*;
@@ -19,7 +23,7 @@ class MessageDispatcherImpl extends UnicastRemoteObject implements MessageDispat
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
     System.out.println(" Dispatching ...");
     String receiverName = msg.getDest(); // FIXME: Will be 'msg.getValue(":dest");'
-    Agent receiver = localAgents.get(receiverName);
+    Agent receiver = (Agent)localAgents.get(receiverName);
 
     if(receiver == null) 
       throw new NotFoundException("Message Dispatcher failed to find " + receiverName);
