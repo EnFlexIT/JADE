@@ -433,4 +433,41 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     }
     //#APIDOC_EXCLUDE_END
 
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+
+    // For persistence service
+    private void setTo(ArrayList al) {
+	to = al;
+    }
+
+    // For persistence service
+    private ArrayList getTo() {
+	return to;
+    }
+
+    // For persistence service
+    private void setIntendedReceivers(ArrayList al) {
+	intendedReceiver = al;
+    }
+
+    // For persistence service
+    private ArrayList getIntendedReceivers() {
+	return intendedReceiver;
+    }
+
+    // For persistence service
+    private void setProperties(ArrayList al) {
+	properties = al;
+    }
+
+    // For persistence service
+    private ArrayList getProperties() {
+	return properties;
+    }
+
+    //#MIDP_EXCLUDE_END
+
 }
