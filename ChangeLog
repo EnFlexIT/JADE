@@ -1,19 +1,30 @@
-MAJOR CHANGES in JADE Snapshot (13 November 2003)
+MAJOR CHANGES in JADE 3.1 (16 December 2003)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
+- New service-based kernel based on a Distributed Composition Filter pattern
+- Added support for replication of the main container
+- Added '-smhost' and '-smport' command line options, to locally install 
+  a Service Manager (for main containers only)
+- Added '-smaddrs' command line option, to specify a list of Service 
+  Manager addresses to use for fault tolerance (for peripheral containers 
+  only)
+- Added -services command-line option and management of configurable
+  service startup.
+- Added the 'shutdown-platform' action to the 'jade-management' ontology
+- Modified the semantics of 'kill-container' action. Now, it never kills 
+  the whole platform (POSSIBLE BACKWARD INCOMPATIBILITY)
 - Added support for application specific message persistency through the 
 	PersistentDeliveryService
 - Added support for FIPA Propose interaction protocol
-- Modified the jade.util.Logger class to accept user defined log formats 
-- Improved some exception reporting
-- Added method submit() in the Service interface for cross service command
-	submission
-- Added support for a service filter to stop a command.
-- Added command line options to select the port where RMI objects are to
-  be exported (-smhost, -smport, -nodehost, -nodeport).
-
-- LEAP add-on:
+- Added 2phase-commit interaction protocol
+	
+ADD-ONS:
+- Added new highly efficient and scalable HTTP MTP (Joan Ametller and 
+	Sergi Robles from University of Barcelona)
+- Added new add-on: MTP implementation based on JMS (Edward Curry)
+- LEAP ADD-ON for running JADE agents on cell phones and PDAs:
 	- Modified default BackEnd-FrontEnd communication using two sockets
+  - big improvement of performance in read/write operations on the sockets
 	- Added support for keep-alive packets between FrontEnd and BackEnd
 	- Added support for user-defined handling of disconnections on a split
 	container through the ConnectionListener interface
@@ -21,117 +32,36 @@ GENERAL IMPROVEMENTS:
 	by a BackEnd container whose FrontEnd is disconnected when the destination 
 	agent dies
 	- Added ANT target to minimize a midp application
-	- Improved support for BackEnd replication
 	- Hardly improved communication performances between different containers 
 	in the same JVM
 	- Simplified configuration when multiple ICPs have to be installed
 	- Changed name of BackEnd containers so that it appears clearly that they
 	are split containers
-	
+	- Fixed a profile incoherence between the 'port' and 'local-port' 
+	options on a Main Container node.
+	- Removed limitation of packet size to 64K
+  - Modified to optimize container shutdown.
+  - Modified to support http as transport protocol
+  - Improved exception reporting
+  - Removed deadlock on flushing	
+- Added link to JADEX add-on (version 0.9 - 19th September 2003, Lars Braubach, Alexander Pokahr)
+- misc add-on:
+  - JADEPlatformTest: Modified to probe for the new ServiceManagerRMI 
+  interface in the RMI Registry.
+  - DynamicFSMBehaviour is now capable of reading the FSM 
+    definition directly from an ACLMessage.
+- benchmark add-on: added parallel mode and more configuration files
+- Added new add-on: RDFCodec compliant to FIPA specs
+
 BUG FIXES:
 - User defined parameters are now correctly handled by the Sniffer
 -	Fixed a bug in message delivery due to cached slices.
 - Fixed a bug in management of relative times in WakerBehaviour 
 - Removed bug when calling accept() on a dead node (now it throws an Exception).
-
-- LEAP add-on:
-	- Fixed a profile incoherence between the 'port' and 'local-port' 
-	options on a Main Container node.
-	- Fixed bug in agent termination notification during split container
-	shutdown
-	- Removed limitation of packet size to 64K
-	
-DOCUMENTATION:
-- Added section on fault tolerance and Main Container replication in the 
-	JADE Administrator's guide.
-- Added section on the Persistent delivery service in the JADE
-	Administrator's guide.
-- Added section on the FIPA Propose interaction protocol in the JADE 
-	Programmer's guide
-- Added documentation of replicating a BackEnd container in the LEAP user 
-	guide
-
-	
-MAJOR CHANGES in JADE Snapshot (22 September 2003)
-==========================================================================
-GENERAL IMPROVEMENTS:
-- Added JADEX add-on (version 0.9 - 19th September 2003, Lars Braubach, Alexander Pokahr)
-- Added 2phase-commit interaction protocol
-- Added option for redirecting output to "per-day-files"
-- Added -services command-line option and management of configurable
-  service startup.
-- LEAP add-on:
-  - Added code to manage a set of replicas of a back end container.
-  - Optimized the creation of Command objects.
-  - new ant tool capable of handling user-defined directives
-  - Added classes for producing logs
-- misc add-on:
-  - JADEPlatformTest: Modified to probe for the new ServiceManagerRMI 
-    interface in the RMI Registry.
-
-BUG FIXES:
-- LEAP add-on:
-  - Fixed a number of problems with back end startup and shutdown. 
-  - Added code to manage a set of replicas of a back end container.
-  - Fixed bug reading long packets
-  - Added synchronization while writing on the record store
-- Fixed bug on usage of a single MessageManager shared among multiple 
-  Messaging Services
-- Corrected synchronization bug on localAgents
-
-DOCUMENTATION:
-- Added a link to JADE Primer
-
-MAJOR CHANGES in JADE Snapshot (4 September 2003)
-==========================================================================
-GENERAL IMPROVEMENTS:
-- new service-based kernel based on a Distributed Composition Filter pattern
-- Added support for replication of the main container
-- Added '-smhost' and '-smport' command line options, to locally install 
-  a Service Manager (for main containers only)
-- Added '-smaddrs' command line option, to specify a list of Service 
-  Manager addresses to use for fault tolerance (for peripheral containers 
-  only)
-- Added the 'shutdown-platform' action to the 'jade-management' ontology
-- Modified the semantics of 'kill-container' action. Now, it never kills 
-  the whole platform (POSSIBLE BACKWARD INCOMPATIBILITY)
-- jade.content: improved efficiency of LEAPCodec
-- Introspector tool: a list of agents to introspect can be now passed as
-  argument on the command line (Karl-Heinz Krempels)
-- ACC returns a failure msg to sender when msg is bouncing
-- The content of notifyFailureToSender() includes now the intended receiver that failed
-- LEAP IMTP and J2ME containers:
-  - Modified to optimize container shutdown.
-  - Adjusted synchronizations on local agents table
-  - Modified to support failure notification after a certain period
-  - Modified to support http as transport protocol
-  - Improved exception reporting
-  - Removed deadlock on flushing
-- jade.domain.RequestManagementBehaviour: the AGREE message is not sent anymore
-- added user-defined properties in the envelope
-- benchmark add-on: added parallel mode and more configuration files
-- Added new add-on: MTP implementation based on JMS (Edward Curry)
-- Added new add-on: RDFCodec compliant to FIPA specs
-- misc add-on: DynamicFSMBehaviour is now capable of reading the FSM 
-  definition directly from an ACLMessage.
-- DF: improved the DF Applet (possible backward incompatibility), fixed bug
-  in recursive search
-- Made lighter the ACLMessage class by avoiding cloning where possible
-	
-DOCUMENTATION:
-- Added JADEApplets tutorial
-- administratorsguide: Added the description of how to pass arguments to the 
-  sniffer and to the introspector (Karl-Heinz Krempels)
-- JADE4Beginners: Added a JADE-JBuilder tutorial and made a few small changes 
-  to the 4 older ones (David Grimshaw)
-- Added new add-on & Tutorial on how to use JADE from Servlet (Fabien Gandon)
-- Args&Props.html: Fixed a bug in the tutorial (setArguments is final!) [Dick Cowan]
-
-BUG FIXES:
 - jade.content 
   - Modified usage of CaseInsensitiveString to take into account different 
     Hashtable implementations.
-  - Fixed bug in management of mandator empty aggregates
+  - Fixed bug in management of mandatory empty aggregates
   - Fixed bug related to facets defined upon an inherited slot.
 - Correctly handled the 'create an agent with an already existing name' use 
   case. In case of a name clash the AMS answers with an 'already-registered' 
@@ -145,22 +75,6 @@ BUG FIXES:
 - StringACLCodec: did not parse/encode properly some words with strange symbols
 - SearchConstraints: Fixed bug in renewSearchId due to 
   System.currentTimeMillis() limited precision
-
-OTHERS:
-- added method isMandatory() in jade.content.schema.ObjectSchema
-- Changed calls to Vector.add() in addElement() for MIDP compatibility
-- jade.domain.DFDBKB.java Increased the default size values of the fields in 
-  some tables (Andriy Panchenko)
-- changed MAIN_PROTO constant in Profile.java
-- Added the jade.core.Profile parameter to the method activate() of the MTPs
-
-
-
-
-
-MAJOR CHANGES in JADE Snapshot (11 April 2003) since JADE3.0b1
-==========================================================================
-BUG FIXES:
 - jade.domain.ams. (bug reported by Vardan Gyurjyan):
   if the AMS was requested to create an agent on a not-existing container, 
   then it created the agent on the main-container.
@@ -181,14 +95,57 @@ BUG FIXES:
   report of Christian Loos)
 - jade.tools.Sniffer:
   Fixed a nullpointer exception when no arguments were passed via the in-process     interface.
-- MIDP add-on: 
-  - FrontEndContainer: 
-    - set the message sender also in local dispatching
-    - modified to deliver messages asynchronously
-  - added AsymFEDispatcher.java
-  - big improvement of performance in read/write operations on the sockets
 - XMLCodec add-on: fixed bug related to the managing of multiple inheritance
 
+
+OTHERS:
+- Added method submit() in the Service interface for cross service command
+	submission
+- Added support for a service filter to stop a command.
+- Modified the jade.util.Logger class to accept user defined log formats 
+- Improved some exception reporting
+- Added option for redirecting output to "per-day-files"
+- jade.content: improved efficiency of LEAPCodec
+- Introspector tool: a list of agents to introspect can be now passed as
+  argument on the command line (Karl-Heinz Krempels)
+- ACC returns a failure msg to sender when msg is bouncing
+- The content of notifyFailureToSender() includes now the intended receiver that failed
+- jade.domain.RequestManagementBehaviour: the AGREE message is not sent anymore
+- added user-defined properties in the envelope
+- DF: improved the DF Applet (possible backward incompatibility), fixed bug
+  in recursive search
+- Made lighter the ACLMessage class by avoiding cloning where possible
+- added method isMandatory() in jade.content.schema.ObjectSchema
+- Changed calls to Vector.add() in addElement() for MIDP compatibility
+- jade.domain.DFDBKB.java Increased the default size values of the fields in 
+  some tables (Andriy Panchenko)
+- changed MAIN_PROTO constant in Profile.java
+- Added the jade.core.Profile parameter to the method activate() of the MTPs
+
+	
+DOCUMENTATION:
+- Added the official "JADE-programming Tutorial for Beginners"
+- Added section on fault tolerance and Main Container replication in the 
+	JADE Administrator's guide.
+- Added section on the Persistent delivery service in the JADE
+	Administrator's guide.
+- Added section on the FIPA Propose interaction protocol in the JADE 
+	Programmer's guide
+- Added documentation of replicating a BackEnd container in the LEAP user 
+	guide
+- Added a link to "JADE Primer" (J. Vaucher and A. Ncho - Université de Montréal)
+- Added a link to "Basic aspects of JADE programming" (Owen Cliffe - University of Bath)
+- Added JADEApplets tutorial
+- administratorsguide: Added the description of how to pass arguments to the 
+  sniffer and to the introspector (Karl-Heinz Krempels)
+- JADE4Beginners: Added a JADE-JBuilder tutorial and made a few small changes 
+  to the 4 older ones (David Grimshaw)
+- Added new add-on & Tutorial on how to use JADE from Servlet (Fabien Gandon)
+- Args&Props.html: Fixed a bug in the tutorial (setArguments is final!) [Dick Cowan]
+- Several examples reviewed and more examples added.	
+	
+	
+	
 MAJOR CHANGES in JADE 3.0b1 (19 March 2003)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
