@@ -64,7 +64,17 @@ public interface Introspector {
      * @throws OntologyException If some error occurs during the translation
      */
     Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
-    				throws UngroundedException, UnknownSchemaException, OntologyException;
+    	throws UngroundedException, UnknownSchemaException, OntologyException;
     				
+    /**
+       Check the structure of a java class associated to an ontological element 
+       to ensure that translations to/from abstract descriptors and java objects
+       (instances of that class) can be accomplished by this introspector.
+       @param schema The schema of the ontological element
+       @param javaClass The java class associated to the ontologcal element
+       @throws OntologyException if the java class does not have the correct 
+       structure
+     */
+    void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException;
 }
 

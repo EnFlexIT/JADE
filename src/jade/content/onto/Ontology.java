@@ -226,7 +226,9 @@ public class Ontology {
         if (schema.getTypeName() == null) {
             throw new OntologyException("Invalid schema identifier");
         } 
-
+        
+        introspector.checkClass(schema, javaClass);
+        
         CaseInsensitiveString s = new CaseInsensitiveString(schema.getTypeName());
         elements.put(s, schema);
 

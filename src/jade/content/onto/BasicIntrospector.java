@@ -80,6 +80,9 @@ class BasicIntrospector implements Introspector {
             if (obj instanceof Date) {
                 return AbsPrimitive.wrap((Date) obj);
             } 
+            if (obj instanceof byte[]) {
+                return AbsPrimitive.wrap((byte[]) obj);
+            } 
 
 
             if (obj instanceof List) {
@@ -227,4 +230,10 @@ class BasicIntrospector implements Introspector {
             throw new OntologyException("Schema and Java class do not match", t);
         } 
     } 
+
+    /**
+       This method will never be called 
+     */
+    public void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException {
+    }
 }
