@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
+import javax.swing.JOptionPane;
+
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -39,8 +41,13 @@ package jade.tools.rma;
   }
 
   public void doAction() {
-    myRMA.exit();
+  	
+  	int n = JOptionPane.showConfirmDialog(
+                            null,"Are you really sure to exit ?",
+                            "Exit this container",
+                            JOptionPane.YES_NO_OPTION);
+    if (n == JOptionPane.YES_OPTION) 
+    	myRMA.exit();
   }
 
 } //End of ExitAction
-
