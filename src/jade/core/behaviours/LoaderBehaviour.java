@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.behaviours;
 
 //#MIDP_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -226,7 +227,7 @@ public class LoaderBehaviour extends Behaviour {
 	}
 	
 	private Behaviour load(String className, Hashtable classes) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		ClassLoader loader = new HashClassLoader(classes);
+		ClassLoader loader = new HashClassLoader(classes, getClass().getClassLoader());
 		
 		Class c = loader.loadClass(className);
 		return (Behaviour) c.newInstance();
@@ -247,8 +248,13 @@ public class LoaderBehaviour extends Behaviour {
 	private class HashClassLoader extends ClassLoader {
 		private Hashtable classes;
 		
-		public HashClassLoader(Hashtable ht) {
+		public HashClassLoader(Hashtable ht, ClassLoader parent) {
+			//#PJAVA_EXCLUDE_BEGIN
+			super(parent);
+			//#PJAVA_EXCLUDE_END
+			/*#PJAVA_INCLUDE_BEGIN
 			super();
+			#PJAVA_INCLUDE_END*/
 			classes = ht;
 		}
 			
@@ -256,6 +262,7 @@ public class LoaderBehaviour extends Behaviour {
 	    String fileName = name.replace('.', '/') + ".class";
     	byte[] code = (byte[]) classes.get(fileName);
     	if (code != null) {
+    		System.out.println("Definig class "+name+". code is "+code.length);
 		  	return defineClass(name, code, 0, code.length);
     	}
     	else {
