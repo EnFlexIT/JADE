@@ -41,15 +41,21 @@ import jade.util.leap.HashMap;
  **/
 public abstract class HandlerSelector extends FSMBehaviour {
 	private Map handlers = new HashMap();
-        private Object accessKey;
+        private Object accesKey;
 	
         // FSM states names
-	public static final String SELECT = "Select";
-	public static final String HANDLE = "Handle";
-	public static final String DUMMY = "Dummy";
+	private static final String SELECT = "Select";
+	private static final String HANDLE = "Handle";
+	private static final String DUMMY = "Dummy";
 	
 	// States exit values
+    /** Value returned by <code>onEnd</code> method if
+     * an handler was found mapped to the key 
+     **/
 	public static final int SELECTION_OK = 1;
+    /** Value returned by <code>onEnd</code> method if
+     * no handler was found mapped to the key 
+     **/
 	public static final int SELECTION_NOK = 0;
 	
 
@@ -66,7 +72,7 @@ public abstract class HandlerSelector extends FSMBehaviour {
 		super(a);
 		
 		setDataStore(s);
-		this.accessKey = accessKey;
+		this.accesKey = accessKey;
 
 		Behaviour b = null;
 		// Create and register the states that make up the FSM
@@ -76,7 +82,7 @@ public abstract class HandlerSelector extends FSMBehaviour {
 			
 			public void action() {
 				ret = SELECTION_NOK;
-				Object key = getSelectionKey(s.get(accessKey));
+				Object key = getSelectionKey(getDataStore().get(accesKey));
 				if (key != null) {
 					Behaviour b1 = (Behaviour) handlers.get(key);
 					if (b1 != null) {
