@@ -185,14 +185,14 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     agent.doWake();
   }
 
-  public void moveAgent(String agentName, String where) throws RemoteException, NotFoundException {
+  public void moveAgent(String agentName, Location where) throws RemoteException, NotFoundException {
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if(agent==null)
       throw new NotFoundException("MoveAgent failed to find " + agentName);
     agent.doMove(where);
   }
 
-  public void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException {
+  public void copyAgent(String agentName, Location where, String newName) throws RemoteException, NotFoundException {
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if(agent == null)
       throw new NotFoundException("CopyAgent failed to find " + agentName);
@@ -238,7 +238,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
     else {
       String agentAddress = name.substring(atPos+1,name.length());
-      // System.out.println("Address: "+agentAddress);
+      // System.out.println("Address: " + agentAddress);
       if (agentAddress.equalsIgnoreCase(platformAddress)) {
 	correctName = name.substring(0,atPos).toLowerCase();
       }
@@ -363,7 +363,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
      // Retrieve agent platform from RMI registry and register as agent container
     try {
       myPlatform = lookup3(platformRMI);
-      myName = myPlatform.addContainer(this); // RMI call
+      InetAddress netAddr = InetAddress.getLocalHost();
+      myName = myPlatform.addContainer(this, netAddr); // RMI call
       platformAddress = myPlatform.getAddress(); // RMI call
     }
     catch(RemoteException re) {
@@ -597,16 +598,22 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     }
   }
 
-  public void moveSource(String name, String where) {
+  public void moveSource(String name, Location where) {
     try {
+      // Mutual exclusion with dispatch() method
       synchronized(localAgents) {
-	AgentContainer ac = myPlatform.lookup(where);
+        String proto = where.getProtocol();
+	if(!proto.equalsIgnoreCase("JADE-IPMT"))
+	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
+
+	String destName = where.getName();
+	AgentContainer ac = myPlatform.lookup(destName);
 	Agent a = (Agent)localAgents.get(name.toLowerCase());
 	if(a == null)
 	  throw new NotFoundException("Internal error: moveSource() called with a wrong name !!!");
 
 	// Handle special 'running to stand still' case
-	if(where.equalsIgnoreCase(myName)) {
+	if(where.getName().equalsIgnoreCase(myName)) {
 	  a.doExecute();
 	  return;
 	}
@@ -614,7 +621,7 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	ac.createAgent(name, a, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
-	boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
+	boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, destName);
 	Vector messages = new Vector();
 	if(transferResult == TRANSFER_COMMIT) {
 
@@ -645,9 +652,12 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     }
   }
 
-  public void copySource(String name, String where, String newName) {
+  public void copySource(String name, Location where, String newName) {
     try {
-      AgentContainer ac = myPlatform.lookup(where);
+      String proto = where.getProtocol();
+      if(!proto.equalsIgnoreCase("JADE-IPMT"))
+	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
+      AgentContainer ac = myPlatform.lookup(where.getName());
       Agent a = (Agent)localAgents.get(name.toLowerCase());
       if(a == null)
 	throw new NotFoundException("Internal error: copySource() called with a wrong name !!!");
