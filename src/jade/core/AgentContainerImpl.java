@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1998/10/15 18:03:51  Giovanni
+  Fixed an horrible bug: a chunk of code was moved from outside a for
+  loop to inside the loop !!! This resulted in platform misbehaviour
+  whenever more than one agent was started on a container.
+
   Revision 1.13  1998/10/14 21:32:06  Giovanni
   Moved a piece of code inside a try { ... } block; now when a new agent
   has a name clashing with a previous one and a NameClashException is
@@ -150,15 +155,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
       try {
 	myPlatform.bornAgent(agentName, desc); // RMI call
-
-	// Now activate all agents (this call starts their embedded threads)
-	Enumeration nameList = localAgents.keys();
-	String currentName = null;
-	while(nameList.hasMoreElements()) {
-	  currentName = (String)nameList.nextElement();
-	  agent = (Agent)localAgents.get(currentName.toLowerCase());
-	  agent.doStart(currentName, platformAddress);
-	}
       }
       catch(NameClashException nce) {
 	System.out.println("Agent name already in use");
@@ -171,6 +167,14 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       }
     }
 
+    // Now activate all agents (this call starts their embedded threads)
+    Enumeration nameList = localAgents.keys();
+    String currentName = null;
+    while(nameList.hasMoreElements()) {
+      currentName = (String)nameList.nextElement();
+      agent = (Agent)localAgents.get(currentName.toLowerCase());
+      agent.doStart(currentName, platformAddress);
+    }
   }
 
   public void shutDown() {
