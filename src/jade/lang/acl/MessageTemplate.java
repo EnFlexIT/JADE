@@ -23,15 +23,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.lang.acl;
 
-import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
 import java.io.Serializable;
 
 import java.lang.reflect.Method;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
+
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
    A pattern for matching incoming ACL messages. This class allows to
@@ -52,15 +54,16 @@ public class MessageTemplate implements Serializable {
   // Used to build the names of get()/set() methods.
   private static final String[] fieldNames = { "Content",
 					       "ConversationId",
-					       "Dest",
-					       "Envelope",
+					       "Encoding",
+					       "InReplyTo",
 					       "Language",
 					       "Ontology",
 					       "Protocol",
+					       "Receiver",
 					       "ReplyBy",
 					       "ReplyTo",
 					       "ReplyWith",
-					       "Source"
+					       "Sender"
   };
 
   private static interface MatchExpression {
@@ -209,10 +212,10 @@ public class MessageTemplate implements Serializable {
 	  getValue = ACLMessageClass.getMethod("get"+name, noClass);
 
 	  // This means: s1 = templMessage.get<value>();
-	  s1 = (String)getValue.invoke(templMessage, noParams);
+	  s1 = (String)getValue.invoke(templMessage, noParams); // FIXME: Need to handle also List slots
 
 	  // This means: s2 = msg.get<value>();
-	  s2 = (String)getValue.invoke(msg, noParams);
+	  s2 = (String)getValue.invoke(msg, noParams); // FIXME: Need to handle also List slots
 
 	  if((!(s1.equalsIgnoreCase(wildCard))&&(!s1.equalsIgnoreCase(s2)))) {
 	    result = false;
@@ -251,7 +254,7 @@ public class MessageTemplate implements Serializable {
       catch(IOException ioe) {
 	ioe.printStackTrace();
       }
-      
+
     }
 
   } // End of Literal class
@@ -324,23 +327,26 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchSource(String value) {
+  public static MessageTemplate MatchSender(AID value) {
     ACLMessage msg = allWildCard();
-    msg.setSource(value);
+    msg.setSender(value);
     return new MessageTemplate(msg, false);
   }
 
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
-     @param value The value the message slot will be matched against.
+     @param values A <code>List</code> of Agent IDs against which the
+     value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchDest(String value) {
+  public static MessageTemplate MatchReceiver(List values) {
     ACLMessage msg = allWildCard();
-    msg.removeAllDests();
-    msg.addDest(value);
+    msg.clearAllReceiver();
+    Iterator it = values.iterator();
+    while(it.hasNext())
+      msg.addReceiver((AID)it.next());
     return new MessageTemplate(msg, false);
   }
 
@@ -377,22 +383,26 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchReplyTo(String value) {
+  public static MessageTemplate MatchInReplyTo(String value) {
     ACLMessage msg = allWildCard();
-    msg.setReplyTo(value);
+    msg.setInReplyTo(value);
     return new MessageTemplate(msg, false);
   }
 
   /**
      This <em>Factory Method</em> returns a message template that
-     matches any message with a given <code>:envelope</code> slot.
-     @param value The value the message slot will be matched against.
+     matches any message with a given <code>:reply-to</code> slot.
+     @param values A <code>List</code> of Agent IDs against which the
+     value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchEnvelope(String value) {
+  public static MessageTemplate MatchReplyTo(List values) {
     ACLMessage msg = allWildCard();
-    msg.setEnvelope(value);
+    msg.clearAllReplyTo();
+    Iterator it = values.iterator();
+    while(it.hasNext())
+      msg.addReplyTo((AID)it.next());
     return new MessageTemplate(msg, false);
   }
 
@@ -406,6 +416,19 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchLanguage(String value) {
     ACLMessage msg = allWildCard();
     msg.setLanguage(value);
+    return new MessageTemplate(msg, false);
+  }
+
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:encoding</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
+  public static MessageTemplate MatchEncoding(String value) {
+    ACLMessage msg = allWildCard();
+    msg.setEncoding(value);
     return new MessageTemplate(msg, false);
   }
 
@@ -462,34 +485,16 @@ public class MessageTemplate implements Serializable {
   }
 
   /**
-     @deprecated This <em>Factory Method</em> returns a message template that
-     matches any message with a given message type.Use <code>matchPerformative</code>
-     instead.
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given performative.
      @param value The value the message slot will be matched against.
-     @return A new <code>MessageTemplate</code> matching the given
+     @return A new <code>MessageTenplate</code>matching the given
      value.
-     @see jade.lang.acl.MessageTemplate#MatchPerformative(int value)
-     @see jade.lang.acl.ACLMessage
-
   */
-  public static MessageTemplate MatchType(String value) {
+  public static MessageTemplate MatchPerformative(int value){
     ACLMessage msg = allWildCard();
-    msg.setType(value);
-    return new MessageTemplate(msg, true);
-  }
-
-  
- /**
- 		 This <em>Factory Method</em> returns a message template that
- 		 matches any message with a given performative.
- 		 @param value The value the message slot will be matched against.
- 		 @return A new <code>MessageTenplate</code>matching the given
- 		 value.
- */
-	public static MessageTemplate MatchPerformative(int value){
-  	ACLMessage msg = allWildCard();
-  	msg.setPerformative(value);  	
-  	return new MessageTemplate(msg,true);
+    msg.setPerformative(value);  	
+    return new MessageTemplate(msg,true);
   }
 
   /**
@@ -506,7 +511,6 @@ public class MessageTemplate implements Serializable {
      care</em>.
      @param msg The <code>ACLMessage</code> used to build a custom
      message template.
-
      @param matchPerformative a <code>bool</code> value. When
      <code>true</code>, the performative of the <code>msg</code> will
      be considered as a part of the template (i.e. the message
@@ -561,33 +565,6 @@ public class MessageTemplate implements Serializable {
     }
 
     return new MessageTemplate(message, matchPerformative);
-  }
-
-  /**
-     Reads a <code>MessageTemplate</code> from a character stream.
-     @param r A readable character stream containing a string
-     representation of a message template.
-     @return A new <code>MessageTemplate</code> object.
-     @exception ParseException Thrown when the string format is incorrect.
-  */
-  public static MessageTemplate fromText(Reader r) throws ParseException {
-    Literal l = new Literal(ACLMessage.fromText(r), true);
-    return new MessageTemplate(l);
-  }
-
-  /**
-     Dumps a <code>MessageTemplate</code> to a character stream.
-     @param w A writable character stream that will hold a string
-     representation of this <code>MessageTemplate</code> object.
-  */
-  public void toText(Writer w) {
-    try {
-      toMatch.toText(w);
-      w.flush();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
   }
 
   /**
