@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.20  1999/02/03 10:29:08  rimassa
+  Made 'protected' some former 'private' variables to allow compilation
+  with jdk 1.2. Used correct accessor methods in subclasses and
+  performed some minor changes.
+  Added a new 'missing-attribute' exception.
+
   Revision 1.19  1998/12/07 23:57:31  rimassa
   Changed toText() method of all the inner classes representing Actions;
   now the complete action representation is written, included the prefix
@@ -67,6 +73,7 @@ package jade.domain;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 
 import java.util.Enumeration;
@@ -206,6 +213,11 @@ public class AgentManagementOntology {
 
     }
 
+    public String toString() {
+      StringWriter text = new StringWriter();
+      toText(text);
+      return text.toString();
+    }
   } // End of ServiceDescriptor class
 
 
@@ -676,9 +688,9 @@ public class AgentManagementOntology {
     static final String ARGNAME = ":ams-description";
 
     private static Hashtable actions = new Hashtable(7, 1.0f);
-    private String name;
-    private String actor;
-    private AMSAgentDescriptor arg;
+    protected String name;
+    protected String actor;
+    protected AMSAgentDescriptor arg;
 
 
     public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
@@ -905,7 +917,7 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
-	w.write("(" + eventNames[kind] + " " + containerName + " )\n");
+	w.write("(" + eventNames[getKind()] + " " + containerName + " )\n");
 	w.flush();
       }
       catch(IOException ioe) {
@@ -930,8 +942,8 @@ public class AgentManagementOntology {
     public void toText(Writer w) {
       try {
 	w.write("( ");
-	w.write(eventNames[kind] + " ( :agent-properties ");
-	w.write(" ( :container " + containerName + " ) ");
+	w.write(eventNames[getKind()] + " ( :agent-properties ");
+	w.write(" ( :container " + getContainerName() + " ) ");
 	w.write(" ) ");
 	w.write("( " + AMSAction.ARGNAME + " ");
 	agentDescriptor.toText(w);
@@ -1219,6 +1231,7 @@ public class AgentManagementOntology {
 
     // These String constants are the names of all
     // 'fipa-management-exception' objects.
+    static final String MISSINGATTRIBUTE = "missing-attribute";
     static final String UNRECOGNIZEDVALUE = "unrecognised-attribute-value";
     static final String UNRECOGNIZEDATTR = "unrecognised-attribute";
     static final String UNWILLING = "unwilling-to-perform";
@@ -1235,7 +1248,7 @@ public class AgentManagementOntology {
 
     // Mapping of messages in 'fipa-man-ams-exception'
     // objects to Java exception objects
-    private static Hashtable JavaExceptions = new Hashtable(13, 1.0f);
+    private static Hashtable JavaExceptions = new Hashtable(14, 1.0f);
 
     // Utility class; can't be instantiated
     private Exception() {
@@ -1295,6 +1308,7 @@ public class AgentManagementOntology {
 
     // Fill in exception message -> Java Exception mapping
 
+    Exception.JavaExceptions.put(Exception.MISSINGATTRIBUTE, new MissingAttributeException());
     Exception.JavaExceptions.put(Exception.UNRECOGNIZEDVALUE, new UnrecognizedAttributeValueException());
     Exception.JavaExceptions.put(Exception.UNRECOGNIZEDATTR, new UnrecognizedAttributeException());
     Exception.JavaExceptions.put(Exception.UNWILLING, new UnwillingToPerformException());
@@ -1451,11 +1465,11 @@ public class AgentManagementOntology {
       fe = parser.parseFIPAException(r, this);
     }
     catch(ParseException pe) {
-      pe.printStackTrace();
+      // pe.printStackTrace();
       fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
     }
     catch(TokenMgrError tme) {
-      tme.printStackTrace();
+      // tme.printStackTrace();
       fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
     }
     return fe;
