@@ -329,8 +329,10 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     // Private helper method, common to one-shot and batch service activation
     private void installServiceLocally(String name, Service svc) throws IMTPException {
 	// Install the service filter
-	Filter f = svc.getCommandFilter();
-	myCommandProcessor.addFilter(f);
+	Filter f = svc.getCommandFilter(Filter.OUTGOING);
+	myCommandProcessor.addFilter(f, Filter.OUTGOING);
+
+	// FIXME: Should also register the incoming filters annd the sink
 
 	// Export the local slice so that it can be reached through the network
 	Service.Slice localSlice = svc.getLocalSlice();
@@ -350,8 +352,10 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	myIMTPManager.unexportSlice(name, svc.getLocalSlice());
 
 	// Uninstall the service filter
-	Filter f = svc.getCommandFilter();
-	myCommandProcessor.removeFilter(f);
+	Filter f = svc.getCommandFilter(Filter.OUTGOING);
+	myCommandProcessor.removeFilter(f, Filter.OUTGOING);
+
+	// FIXME: Should also remove incoming filters and sink
     }
 
 
