@@ -45,7 +45,7 @@ import jade.util.leap.Properties;
    @author Giovanni Caire - TILAB
  */
 public class Config extends MIDlet implements CommandListener {
-	private static final String CONFIG_RS = "config";
+	private static final String CONFIG_RS = "conf";
 	
   private static final Command setCommand = new Command("Set", Command.SCREEN, 0);
   private static final Command saveCommand = new Command("Save", Command.SCREEN, 1);
