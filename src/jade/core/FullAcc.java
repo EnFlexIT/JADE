@@ -24,12 +24,10 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import java.util.Date;
-//import java.util.Map;
-//import java.util.HashMap;
+
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
-import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -43,6 +41,7 @@ import jade.mtp.InChannel;
 import jade.mtp.OutChannel;
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -63,7 +62,6 @@ class FullAcc implements acc, InChannel.Dispatcher {
   private Map messageEncodings = new HashMap();
   private RoutingTable routes = new RoutingTable(this);
 
-  private List localAddresses = new ArrayList();
   private AgentContainerImpl myContainer;
   private String accID;
 
@@ -114,9 +112,9 @@ class FullAcc implements acc, InChannel.Dispatcher {
 	  				addressURL = null;
 					}
 				}
-				String s = myContainer.installMTP(addressURL, className);
-				f.println(s);
-				System.out.println(s);
+				MTPDescriptor mtp = myContainer.installMTP(addressURL, className);
+				f.println(mtp.getAddress());
+				System.out.println(mtp.getAddress());
       }
 
       f.close();      
@@ -307,25 +305,24 @@ class FullAcc implements acc, InChannel.Dispatcher {
       throw new MTPException("No suitable route found for address " + address + ".");
   }
 
-  public String addMTP(String mtpClassName, String address) throws MTPException { 
-  	try {
-  		// Create the MTP
+  public MTPDescriptor addMTP(String mtpClassName, String address) throws MTPException { 
+    try {
+      // Create the MTP
       Class c = Class.forName(mtpClassName);
       MTP proto = (MTP)c.newInstance();
       
-    	if(address == null) { 
-    		// Let the MTP choose the address
-      	TransportAddress ta = proto.activate(this);
-      	address = proto.addrToStr(ta);
-    	}
-    	else { 
-    		// Convert the given string into a TransportAddress object and use it
-      	TransportAddress ta = proto.strToAddr(address);
-      	proto.activate(this, ta);
-    	}
+      if(address == null) { 
+	// Let the MTP choose the address
+	TransportAddress ta = proto.activate(this);
+	address = proto.addrToStr(ta);
+      }
+      else { 
+	// Convert the given string into a TransportAddress object and use it
+	TransportAddress ta = proto.strToAddr(address);
+	proto.activate(this, ta);
+      }
       routes.addLocalMTP(address, proto);
-      localAddresses.add(address); // FIXME: This is for the temporary fault-tolerance support
-      return address;
+      return new MTPDescriptor(proto.getName(), address, proto.getSupportedProtocols());
     }
     catch(ClassNotFoundException cnfe) {
       throw new MTPException("ERROR: The class " + mtpClassName + " for the " + address  + " MTP was not found");
@@ -338,49 +335,27 @@ class FullAcc implements acc, InChannel.Dispatcher {
     }
   }
 
-  public void removeMTP(String address) throws MTPException {
+  public MTPDescriptor removeMTP(String address) throws MTPException {
     MTP proto = routes.removeLocalMTP(address);
     if(proto != null) {
       TransportAddress ta = proto.strToAddr(address);
       proto.deactivate(ta);
+      return new MTPDescriptor(proto.getName(), address, proto.getSupportedProtocols());
     }
-    localAddresses.remove(address); // FIXME: This is for temporary fault-tolerance support
+    else
+      throw new MTPException("No such address was found on this container: " + address);
   }
 
-  // FIXME: This info will be cached within the agent platform Smart
-  // Proxy (handling caching and reconnection). Then this method won't
-  // be needed anymore.
-  public List getLocalAddresses() {
-    return localAddresses;
+  public void addRoute(MTPDescriptor mtp, AgentContainer ac) {
+    routes.addRemoteMTP(mtp, ac);
   }
 
-  public void addRoute(String address, AgentContainer ac) {
-    routes.addRemoteMTP(address, ac);
-  }
-
-  public void removeRoute(String address, AgentContainer ac) {
-    routes.removeRemoteMTP(address, ac);
+  public void removeRoute(MTPDescriptor mtp, AgentContainer ac) {
+    routes.removeRemoteMTP(mtp, ac);
   }
 
   public void shutdown() {
-    // Close all MTP links to the outside world
-    Object[] addresses = localAddresses.toArray();
-    for(int i = 0; i < addresses.length; i++) {
-      try {
-				String addr = (String) addresses[i];
-				myContainer.uninstallMTP(addr);
-      }
-      catch(IMTPException imtpe) {
-				// It should never happen as this is a local call
-      	imtpe.printStackTrace();
-      }
-      catch(NotFoundException nfe) {
-				nfe.printStackTrace();
-      }
-      catch(MTPException mtpe) {
-				mtpe.printStackTrace();
-      }
-    }
+    // FIXME: Close all MTP links to the outside world
   }
 
   public void dispatchMessage(Envelope env, byte[] payload) {
