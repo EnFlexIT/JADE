@@ -23,19 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-/*import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
-
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-
-import java.lang.reflect.*;
-*/
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -88,13 +75,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // Agents cache, indexed by agent name
   private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
 
-  // ClassLoader table, used for agent mobility
-  //private Map loaders = new HashMap();
-
-  // This Map holds the mapping between an agent that arrived on this
-  // container and the container where its classes can be retrieved
-  //private Map sites = new HashMap();
-
   // The Profile defining the configuration of this Container
   private Profile myProfile;
   
@@ -125,28 +105,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
-  // FIXME: Temporary hack
-  //private jade.imtp.rmi.AgentContainerAdapter myAdapter;
-  //public jade.imtp.rmi.AgentContainerAdapter getAdapter() {
-  //  return myAdapter;
-  //}
-  
-  // Package scoped constructor, so that only the Runtime and Starter
-  // classes can actually create a new Agent Container.
+  // Package scoped constructor, so that only the Runtime  
+  // class can actually create a new Agent Container.
   AgentContainerImpl(Profile p) {
 
     // Set up attributes for agents thread group
     //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
-    
-    // FIXME: Temporary hack
-    //try {
-    //  myAdapter = new jade.imtp.rmi.AgentContainerAdapter(new jade.imtp.rmi.AgentContainerRMIImpl(this));
-    //}
-    //catch(Exception e) {
-    //  e.printStackTrace();
-    //}
-
   }
 
 
@@ -171,66 +136,16 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
+  	// Delegate the operation to the MobilityManager
   	myMobilityManager.createAgent(agentID, serializedInstance, classSite, startIt);
   }
-/*
-    final AgentContainer ac = classSite;
-
-    class Deserializer extends ObjectInputStream {
-
-      public Deserializer(InputStream inner) throws IOException {
-	super(inner);
-      }
-
-      protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
-	ClassLoader cl = (ClassLoader)loaders.get(ac);
-	if(cl == null) {
-	  cl = new JADEClassLoader(ac);
-	  loaders.put(ac, cl);
-	}
-	return(cl.loadClass(v.getName()));
-      }
-
-    }
-
-    try {
-      ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance));
-
-      Agent instance = (Agent)in.readObject();
-      // Store the container where the classes for this agent can be
-      // retrieved
-      sites.put(instance, classSite);
-      initAgent(agentID, instance, startIt);
-
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-    catch(ClassNotFoundException cnfe) {
-      cnfe.printStackTrace();
-    }
-  }
-*/
-
+  
   // Accepts the fully qualified class name as parameter and searches
   // the class file in the classpath
   public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+  	// Delegate the operation to the MobilityManager
   	return myMobilityManager.fetchClassFile(name);
   }
-/*  
-    name = name.replace( '.' , '/') + ".class";
-    InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
-    if (classStream == null) 
-      throw new ClassNotFoundException();
-    try {
-      byte[] bytes = new byte[classStream.available()];
-      classStream.read(bytes);
-      return(bytes);
-    } catch (IOException ioe) {
-	throw new ClassNotFoundException();
-    }
-  }
-*/
 
   public void initAgent(AID agentID, Agent instance, boolean startIt) {
 
@@ -288,26 +203,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
+  	// Delegate the operation to the MobilityManager
   	myMobilityManager.moveAgent(agentID, where);
   }
-/*
-  	Agent agent = localAgents.get(agentID);
-    if(agent==null)
-      throw new NotFoundException("MoveAgent failed to find " + agentID);
-    agent.doMove(where);
-  }
-*/
 
   public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
+  	// Delegate the operation to the MobilityManager
   	myMobilityManager.copyAgent(agentID, where, newName);
   }
-/*  
-  	Agent agent = localAgents.get(agentID);
-    if(agent == null)
-      throw new NotFoundException("CopyAgent failed to find " + agentID);
-    agent.doClone(where, newName);
-  }
-*/
 
   public void killAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
@@ -321,25 +224,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
+  	// Delegate the operation to the MobilityManager
 		myMobilityManager.handleTransferResult(agentID, result, messages);
   }
-/*  
-  	synchronized(localAgents) {
-      Agent agent = localAgents.get(agentID);
-      if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
-	throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
-      }
-      if(result == TRANSFER_ABORT)
-	localAgents.remove(agentID);
-      else {
-	// Insert received messages at the start of the queue
-	for(int i = messages.size(); i > 0; i--)
-	  agent.putBack((ACLMessage)messages.get(i - 1));
-	agent.powerUp(agentID, ResourceManager.USER_AGENTS);
-      }
-    }
-  }
-*/
 
   /**
     @param snifferName The Agent ID of the sniffer to send messages to.
@@ -756,124 +643,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleMove(AID agentID, Location where) {
+  	// Delegate the operation to the MobilityManager
     myMobilityManager.handleMove(agentID, where);
   }
-/*
-    // Mutual exclusion with dispatch() method
-    synchronized(localAgents) {
-      try {
-        String proto = where.getProtocol();
-	if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
-	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
-
-	AgentContainer ac = myMain.lookup((ContainerID)where);
-	Agent a = localAgents.get(agentID);
-	if(a == null)
-	  throw new NotFoundException("Internal error: handleMove() called with a wrong name !!!");
-
-	// Handle special 'running to stand still' case
-	if(where.getName().equalsIgnoreCase(myID.getName())) {
-	  a.doExecute();
-	  return;
-	}
-
-	ByteArrayOutputStream out = new ByteArrayOutputStream();
-	try {
-	  ObjectOutputStream encoder = new ObjectOutputStream(out);
-	  encoder.writeObject(a);
-	}
-	catch(IOException ioe) {
-	  ioe.printStackTrace();
-	}
-
-	byte[] bytes = out.toByteArray();
-    // Gets the container where the agent classes can be retrieved
-    AgentContainer classSite = (AgentContainer) sites.get(a);
-    if (classSite == null) {    // The agent was born on this container
-      classSite = this;
-    } 
-	ac.createAgent(agentID, bytes, classSite, NOSTART);
-
-	// Perform an atomic transaction for agent identity transfer
-	boolean transferResult = myMain.transferIdentity(agentID, myID, (ContainerID)where);
-	List messages = new ArrayList();
-	if(transferResult == TRANSFER_COMMIT) {
-
-	  // Send received messages to the destination container
-	  Iterator i = a.messages();
-	  while(i.hasNext())
-	    messages.add(i.next());
-	  ac.postTransferResult(agentID, transferResult, messages);
-
-	  // From now on, messages will be routed to the new agent
-	  a.doGone();
-	  localAgents.remove(agentID);
-	  cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
-      sites.remove(a);
-	}
-	else {
-	  a.doExecute();
-	  ac.postTransferResult(agentID, transferResult, messages);
-	}
-      }
-      catch(IMTPException re) {
-	re.printStackTrace();
-	// FIXME: Complete undo on exception
-	Agent a = localAgents.get(agentID);
-	if(a != null)
-	  a.doDelete();
-      }
-      catch(NotFoundException nfe) {
-	nfe.printStackTrace();
-	// FIXME: Complete undo on exception
-	Agent a = localAgents.get(agentID);
-	if(a != null)
-	  a.doDelete();
-      }
-    }
-  }
-*/
 
   public void handleClone(AID agentID, Location where, String newName) {
+  	// Delegate the operation to the MobilityManager
   	myMobilityManager.handleClone(agentID, where, newName);
   }
-/*  
-    try {
-      String proto = where.getProtocol();
-      if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
-	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
-      AgentContainer ac = myMain.lookup((ContainerID)where);
-      Agent a = localAgents.get(agentID);
-      if(a == null)
-	throw new NotFoundException("Internal error: handleCopy() called with a wrong name !!!");
 
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      try {
-	ObjectOutputStream encoder = new ObjectOutputStream(out);
-	encoder.writeObject(a);
-      }
-      catch(IOException ioe) {
-	ioe.printStackTrace();
-      }
-
-      AID newID = new AID(newName, AID.ISLOCALNAME);
-      byte[] bytes = out.toByteArray();
-      // Gets the container where the agent classes can be retrieved
-      AgentContainer classSite = (AgentContainer) sites.get(a);
-      if (classSite == null) {    // The agent was born on this container
-        classSite = this;
-      } 
-      ac.createAgent(newID, bytes, classSite, START);
-
-    }
-    catch(IMTPException re) {
-      re.printStackTrace();
-    }
-    catch(NotFoundException nfe) {
-      nfe.printStackTrace();
-    }
-  }
-*/
   // Private methods
 
     /**
