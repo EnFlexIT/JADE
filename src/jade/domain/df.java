@@ -4,8 +4,10 @@
 
 package jade.domain;
 
+import java.io.StringReader;
+
+import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
 
 import jade.core.*;
@@ -27,111 +29,77 @@ public class df extends Agent {
   private abstract class DFBehaviour extends OneShotBehaviour implements BehaviourPrototype {
 
     // This String will be set by subclasses
+    private AgentManagementOntology.DFAction myAction;
+
     private String myActionName;
-
+    private ACLMessage myRequest;
     private ACLMessage myReply;
-    private StringTokenizer myTokenizer;
-    private DFDescriptionParser myParser = DFDescriptionParser.create();
 
-    protected AgentManagementOntology myOntology;
-
-    // These variables are set by crackMessage() method to the
-    // attribute values of message content
-    private String agentName;
-    private String agentServices;
-    private String agentType;
-    private String interactionProtocols;
-    private String ontology;
-    private String address;
-    private String ownership;
-    private String DFState;
-
-    protected DFBehaviour(String actionName) {
+    protected DFBehaviour(String name) {
       super(df.this);
-      myActionName = actionName;
+      myActionName = name;
+      myRequest = null;
       myReply = null;
-      myTokenizer = null;
-      myOntology = AgentManagementOntology.instance();
     }
 
-    protected DFBehaviour(String actionName, ACLMessage msg, StringTokenizer st) {
+    protected DFBehaviour(String name, ACLMessage request, ACLMessage reply) {
       super(df.this);
-      myActionName = actionName;
-      myReply = msg;
-      myTokenizer = st;
-      myOntology = AgentManagementOntology.instance();
+      myActionName = name;
+      myRequest = request;
+      myReply = reply;
     }
 
     // This method throws a FIPAException if the attribute is
     // mandatory for the current DF action but it is a null object
     // reference
     private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
-      if(myOntology.isMandatoryForDF(myActionName, attributeName) && (attributeValue == null))
+      if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (attributeValue == null))
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+    }
+
+    private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
+      if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (!attributeValue.hasMoreElements()))
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
     }
 
     // This method parses the message content and puts
-    // 'fipa-df-agent-description' attribute values in instance
+    // 'FIPA-DF-agent-description' attribute values in instance
     // variables. If some error is found a FIPA exception is thrown
     private void crackMessage() throws FIPAException, NoSuchElementException {
 
-      Hashtable attributes = new Hashtable();
+      String content = myRequest.getContent();
 
-      while(myTokenizer.hasMoreTokens()) {
+      // Remove 'action df' from content string
+      content = content.substring(content.indexOf("df") + 2); // FIXME: DF could crash for a bad msg
 
-	String name = myTokenizer.nextToken();
-
-	// Make sure that keyword is defined in
-	// 'fipa-man-ams-agent-description'
-	if(!myOntology.isValidDFADKeyword(name))
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
-
-	String value = myTokenizer.nextToken();
-
-	Object old = attributes.put(name, value);
-	// Check if attribute exists already. If so, raise an
-	// exception
-	if(old != null)
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+      // Obtain an DF action from message content
+      try {
+	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
-
+      catch(ParseException pe) {
+	//      pe.printStackTrace();
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+      }
 
       // Finally, assign each attribute value to an instance variable,
       // making sure mandatory attributes for the current DF action
       // are non-null
+      AgentManagementOntology.DFAgentDescriptor dfd = myAction.getArg();
 
-      agentName = (String)attributes.get(AgentManagementOntology.DFAgentDescription.NAME);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.NAME, agentName);
-
-      agentServices = (String)attributes.get(AgentManagementOntology.DFAgentDescription.SERVICES);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.SERVICES, agentServices);
-
-      agentType = (String)attributes.get(AgentManagementOntology.DFAgentDescription.TYPE);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.TYPE, agentType);
-
-      interactionProtocols = (String)attributes.get(AgentManagementOntology.DFAgentDescription.PROTOCOLS);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.PROTOCOLS, interactionProtocols);
-
-      ontology = (String)attributes.get(AgentManagementOntology.DFAgentDescription.ONTOLOGY);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.ONTOLOGY, ontology);
-
-      address = (String)attributes.get(AgentManagementOntology.DFAgentDescription.ADDRESS);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.ADDRESS, address);
-
-      ownership = (String)attributes.get(AgentManagementOntology.DFAgentDescription.OWNERSHIP);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.OWNERSHIP, ownership);
-
-      DFState = (String)attributes.get(AgentManagementOntology.DFAgentDescription.DFSTATE);
-      checkAttribute(AgentManagementOntology.DFAgentDescription.DFSTATE, DFState);
+      checkAttribute(AgentManagementOntology.DFAgentDescriptor.NAME, dfd.getName());
+      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.SERVICES, dfd.getAgentServices());
+      checkAttribute(AgentManagementOntology.DFAgentDescriptor.TYPE, dfd.getType());
+      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.PROTOCOLS, dfd.getInteractionProtocols());
+      checkAttribute(AgentManagementOntology.DFAgentDescriptor.ONTOLOGY, dfd.getOntology());
+      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.ADDRESS, dfd.getAddresses());
+      checkAttribute(AgentManagementOntology.DFAgentDescriptor.OWNERSHIP, dfd.getOwnership());
+      checkAttribute(AgentManagementOntology.DFAgentDescriptor.DFSTATE, dfd.getDFState());
 
     }
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processAttributes(String agentName, String agentServices,
-					      String agentType, String interactionProtocols,
-					      String ontology, String address,
-					      String ownership, String DFState);
+    protected abstract void processArgs(AgentManagementOntology.DFAgentDescriptor dfd);
 
     public void action() {
 
@@ -150,7 +118,7 @@ public class df extends Agent {
       }
 
       // Do real action, deferred to subclasses
-      processAttributes(agentName, agentServices, agentType, interactionProtocols, ontology, address, ownership, DFState);
+      processArgs(myAction.getArg());
 
     }
 
@@ -207,23 +175,20 @@ public class df extends Agent {
   private class RegBehaviour extends DFBehaviour {
 
     public RegBehaviour() {
-      super(AgentManagementOntology.DFActions.REGISTER);
+      super(AgentManagementOntology.DFAction.REGISTER);
     }
 
-    public RegBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.DFActions.REGISTER);
+    public RegBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.DFAction.REGISTER, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new RegBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new RegBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String agentServices,
-				     String agentType, String interactionProtocols,
-				     String ontology, String address,
-				     String ownership, String DFState) {
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
       try {
-	DFRegister(agentName, agentServices, agentType, interactionProtocols, ontology, address, ownership, DFState);
+	DFRegister(dfd);
       }
       catch(Exception e) {
 	e.printStackTrace();
@@ -239,23 +204,20 @@ public class df extends Agent {
   private class DeregBehaviour extends DFBehaviour {
 
     public DeregBehaviour() {
-      super(AgentManagementOntology.DFActions.DEREGISTER);
+      super(AgentManagementOntology.DFAction.DEREGISTER);
     }
 
-    public DeregBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.DFActions.DEREGISTER);
+    public DeregBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.DFAction.DEREGISTER, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new DeregBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new DeregBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String agentServices,
-				     String agentType, String interactionProtocols,
-				     String ontology, String address,
-				     String ownership, String DFState) {
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
       try {
-	DFDeregister(agentName, agentServices, agentType, interactionProtocols, ontology, address, ownership, DFState);
+	DFDeregister(dfd);
       }
       catch(Exception e) {
 	e.printStackTrace();
@@ -271,23 +233,20 @@ public class df extends Agent {
   private class ModBehaviour extends DFBehaviour {
 
     public ModBehaviour() {
-      super(AgentManagementOntology.DFActions.MODIFY);
+      super(AgentManagementOntology.DFAction.MODIFY);
     }
 
-    public ModBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.DFActions.MODIFY);
+    public ModBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.DFAction.MODIFY, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new ModBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new ModBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String agentServices,
-				     String agentType, String interactionProtocols,
-				     String ontology, String address,
-				     String ownership, String DFState) {
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
       try {
-	DFModify(agentName, agentServices, agentType, interactionProtocols, ontology, address, ownership, DFState);
+	DFModify(dfd);
       }
       catch(Exception e) {
 	e.printStackTrace();
@@ -303,23 +262,20 @@ public class df extends Agent {
   private class SrchBehaviour extends DFBehaviour {
 
     public SrchBehaviour() {
-      super(AgentManagementOntology.DFActions.SEARCH);
+      super(AgentManagementOntology.DFAction.SEARCH);
     }
 
-    public SrchBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.DFActions.SEARCH);
+    public SrchBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.DFAction.SEARCH, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new SrchBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new SrchBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String agentServices,
-				     String agentType, String interactionProtocols,
-				     String ontology, String address,
-				     String ownership, String DFState) {
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
       try {
-	DFSearch(agentName, agentServices, agentType, interactionProtocols, ontology, address, ownership, DFState);
+	DFSearch(dfd);
       }
       catch(Exception e) {
 	e.printStackTrace();
@@ -332,10 +288,14 @@ public class df extends Agent {
 
   }
 
-
+  private AgentManagementOntology myOntology;
   private FipaRequestServerBehaviour dispatcher;
+  private Hashtable descriptors;
 
   public df() {
+
+    myOntology = AgentManagementOntology.instance();
+
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
@@ -344,10 +304,10 @@ public class df extends Agent {
     // Associate each DF action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerPrototype(AgentManagementOntology.DFActions.REGISTER, new RegBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFActions.DEREGISTER, new DeregBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFActions.MODIFY, new ModBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFActions.SEARCH, new SrchBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.DFAction.REGISTER, new RegBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.DFAction.DEREGISTER, new DeregBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.DFAction.MODIFY, new ModBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
 
   }
 
@@ -357,28 +317,66 @@ public class df extends Agent {
     addBehaviour(dispatcher);
   }
 
-  private void DFRegister(String agentName, String agentServices,
-			  String agentType, String interactionProtocols,
-			  String ontology, String address,
-			  String ownership, String DFState) {
+  private void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+    if(descriptors.containsKey(dfd.getName()))
+      /*throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG)*/;
+
+    descriptors.put(dfd.getName(), dfd);
   }
 
-  private void DFDeregister(String agentName, String agentServices,
-			    String agentType, String interactionProtocols,
-			    String ontology, String address,
-			    String ownership, String DFState) {
+  private void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+    Object o = descriptors.remove(dfd.getName());
+    AgentManagementOntology.DFAgentDescriptor toRemove = (AgentManagementOntology.DFAgentDescriptor)o;
+    if(toRemove == null)
+      /*throw myOntology.getException(AgentManagementOntology.Exception.UNABLETODEREG)*/;
   }
 
-  private void DFModify(String agentName, String agentServices,
-			String agentType, String interactionProtocols,
-			String ontology, String address,
-			String ownership, String DFState) {
+  private void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+    Object o = descriptors.get(dfd.getName());
+    if(o == null)
+      /*throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY)*/;
+
+    AgentManagementOntology.DFAgentDescriptor toChange = (AgentManagementOntology.DFAgentDescriptor)o;
+
+    Enumeration e = dfd.getAddresses();
+    if(e.hasMoreElements())
+      toChange.removeAddresses();
+    while(e.hasMoreElements())
+      toChange.addAddress((String)e.nextElement());
+
+    e = dfd.getAgentServices();
+    if(e.hasMoreElements())
+      toChange.removeAgentServices();
+    while(e.hasMoreElements())
+      toChange.addService((AgentManagementOntology.ServiceDescriptor)e.nextElement());
+
+    String s = dfd.getType();
+    if(s != null)
+      toChange.setType(s);
+
+    e = dfd.getInteractionProtocols();
+    if(e.hasMoreElements())
+      toChange.removeInteractionProtocols();
+    while(e.hasMoreElements())
+      toChange.addInteractionProtocol((String)e.nextElement());
+
+    s = dfd.getOntology();
+    if(s != null)
+      toChange.setOntology(s);
+
+    s = dfd.getOwnership();
+    if(s != null)
+      toChange.setOwnership(s);
+
+    s = dfd.getDFState();
+    if(s != null)
+      toChange.setDFState(s);
+    
   }
 
-  private void DFSearch(String agentName, String agentServices,
-			String agentType, String interactionProtocols,
-			String ontology, String address,
-			String ownership, String DFState) {
+  private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    // FIXME: To be implemented
   }
 
 }
