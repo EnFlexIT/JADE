@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.22  1999/09/03 10:42:05  rimassa
+ Added support for serialized Java objects within message content,
+ using a Base64 codec.
+
  Revision 1.21  1999/09/02 15:02:50  rimassa
  Removed obsolete getMessage() method.
  Avoided null values for message slots.
@@ -127,13 +131,19 @@ import java.util.Date;
 
 import jade.core.AgentGroup;
 
+import starlight.util.Base64;
+
 /**
  * The class ACLMessage implements an ACL message compliant to the <b>FIPA 97</b> specs.
  * All parameters are couples <em>keyword: value</em>.
  * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
- * the methods <em>get</em>. Notice that the <em>get</em> methods never
- * return null, rather they return an empty String.
+ * the methods <em>get</em>. <p>
+ * Notice that the <em>get</em> methods never
+ * return null, rather they return an empty String. <p>
+ * The methods <code> setContentBase64() </code> and 
+ * <code> getContentBase64() </code> allow to send
+ * serialized Java objects over the content of an ACLMessage.
 
  @author Fabio Bellifemine - CSELT
  @version $Date$ $Revision$
@@ -278,16 +288,108 @@ public class ACLMessage implements Cloneable, Serializable {
   }
 
   /**
-     Writes the <code>:content</code> slot. <em><b>Warning:</b> no
-     checks are made to validate the slot value.</em>
-     @param content The new value for the slot.
-     @see jade.lang.acl.ACLMessage#getContent()
-  */
+   * Writes the <code>:content</code> slot. <em><b>Warning:</b> no
+   * checks are made to validate the slot value.</em> <p>
+   * In order to transport serialized Java objects,
+   * or arbitrary sequence of bytes (i.e. something different from 
+   * a Java <code>String</code>) over an ACL message, it is suggested to use
+   * the method <code>ACLMessage.setContentBase64()</code> instead. 
+   * @param content The new value for the slot.
+   * @see jade.lang.acl.ACLMessage#getContent()
+   * @see jade.lang.acl.ACLMessage#setContentBase64(byte[])
+   */
   public void setContent( String content ) {
     if (content != null)
       this.content = new StringBuffer(content);
     else
       this.content = new StringBuffer();
+  }
+
+
+
+
+
+  /**
+   * This method sets the current content of this ACLmessage to
+   * the passed sequence of bytes. 
+   * Base64 encoding is applied. <p>
+   * This method should be used to write serialized Java objects over the 
+   * content of an ACL Message to override the limitations of the Strings. <p>
+   * For example, to write Java objects into the content: <br>
+   * <PRE>
+   *    ACLMessage msg;
+   *    ByteArrayOutputStream c = new ByteArrayOutputStream();
+   *    ObjectOutputStream oos = new ObjectOutputStream(c);
+   *    oos.writeInt(1234); 
+   *    oos.writeObject("Today"); 
+   *    oos.writeObject(new Date()); 
+   *    oos.flush();
+   *    msg.setContentBase64(c.toByteArray());
+   *
+   * </PRE>   
+   * See also examples.ex7
+   * @see jade.lang.acl.ACLMessage#getContentBase64()
+   * @see jade.lang.acl.ACLMessage#getContent()
+   * @see java.io.ObjectOutputStream#writeObject(Object)
+   * @param bytes is the the sequence of bytes to be appended to the content of this message
+   */
+  public void setContentBase64(byte[] bytes) {
+    try {
+      content = new StringBuffer().append(Base64.encode(bytes));
+    }
+    catch(java.lang.NoClassDefFoundError jlncdfe) {
+      System.err.println("\n\t===== E R R O R !!! =======\n");
+      System.err.println("Missing support for Base64 conversions");
+      System.err.println("Please refer to the documentation for details.");
+      System.err.println("=============================================\n\n");
+      System.err.println("");
+      try {
+	Thread.currentThread().sleep(3000);
+      }
+      catch(InterruptedException ie) {
+      }
+
+      content = new StringBuffer();
+    }
+  }
+
+
+  /**
+   * This method returns the content of this ACLmessage
+   * after decoding according to Base64.
+   * For example to read Java objects from the content 
+   * (when they have been written by using the setContentBase64() method,: <br>
+   * <PRE>
+   *    ACLMessage msg;
+   *    ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(msg.getContentBase64()));;
+   *
+   *    int i = oin.readInt();
+   *    String today = (String)oin.readObject();
+   *    Date date = (Date)oin.readObject();
+   *
+   * </PRE>   
+   * @see jade.lang.acl.ACLMessage#setContentBase64(byte[])
+   * @see jade.lang.acl.ACLMessage#getContent()
+   * @see java.io.ObjectInputStream#readObject()
+   */
+  public byte[] getContentBase64() {
+    try {
+      char[] cc = new char[content.length()];
+      content.getChars(0,content.length(),cc,0);
+      return Base64.decode(cc);
+    }
+    catch(java.lang.NoClassDefFoundError jlncdfe) {
+      System.err.println("\t\t===== E R R O R !!! =======\n");
+      System.err.println("Missing support for Base64 conversions");
+      System.err.println("Please refer to the documentation for details.");
+      System.err.println("=============================================\n\n");
+      try {
+	Thread.currentThread().sleep(3000);
+      }
+      catch(InterruptedException ie) {
+      }
+      return new byte[0];
+    }
   }
 
   /**
@@ -464,9 +566,15 @@ public class ACLMessage implements Cloneable, Serializable {
   }
 
   /**
-     Reads <code>:content</code> slot.
-     @return The value of <code>:content</code>slot.
-     @see jade.lang.acl.ACLMessage#setContent(String).
+   * Reads <code>:content</code> slot. <p>
+   * It is sometimes useful to transport serialized Java objects,
+   * or arbitrary sequence of bytes (i.e. something different from 
+   * a Java <code>String</code>) over an ACL message. See
+   * getContentbase64(). 
+   * @return The value of <code>:content</code> slot.
+   * @see jade.lang.acl.ACLMessage#setContent(String).
+   * @see jade.lang.acl.ACLMessage#getContentBase64().
+   * @see java.io.ObjectInputStream
   */
   public String getContent() {
     return new String(content);
@@ -571,20 +679,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void dump() {
     counter++;
-    String dest = getDest();
-    System.out.println( counter + ") " + new String(msgType).toUpperCase());
-    if (source.length() > 0)          System.out.println("   " + SOURCE + source);
-    if (dest.length() > 0)            System.out.println("   " + DEST + dest);
-    if (content.length() > 0)         System.out.println("   " + CONTENT + content);
-    if (reply_with.length() > 0)      System.out.println("   " + REPLY_WITH + reply_with);
-    if (in_reply_to.length() > 0)     System.out.println("   " + IN_REPLY_TO + in_reply_to);
-    if (envelope.length() > 0)        System.out.println("   " + ENVELOPE + envelope);
-    if (language.length() > 0)        System.out.println("   " + LANGUAGE + language);
-    if (ontology.length() > 0)        System.out.println("   " + ONTOLOGY + ontology);
-    if (reply_by.length() > 0)        System.out.println("   " + REPLY_BY + reply_by);
-    if (protocol.length() > 0)        System.out.println("   " + PROTOCOL + protocol);
-    if (conversation_id.length() > 0) System.out.println("   " + CONVERSATION_ID + conversation_id);
-    System.out.println();
+    System.out.println("\n"+counter+")"+toString()+"\n");
   }
 
   /**
