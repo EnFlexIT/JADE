@@ -1,22 +1,19 @@
 /*
   $Id$
-  */
+*/
 
 package jade.core;
 
-public abstract class SimpleBehaviour implements Behaviour {
+// This abstract class models atomic behaviours that cannot be interrupted
+public abstract class SimpleBehaviour extends Behaviour {
 
-  protected Agent myAgent;
-  protected boolean finished = false;
 
   public SimpleBehaviour() {
-    myAgent = null;
-    finished = false;
+    super();
   }
 
   public SimpleBehaviour(Agent a) {
-    myAgent = a;
-    finished = false;
+    super(a);
   }    
 
   // This method must be implemented by subclasses
@@ -24,11 +21,15 @@ public abstract class SimpleBehaviour implements Behaviour {
 
   public final void execute() {
     action();
-    finished = true;
   }
 
-  public boolean done() {
-    return finished;
+  /*
+  final void setRunnable(boolean runnable) {
+    // No-op
   }
 
+  final boolean isRunnable() {
+    return true;
+  }
+  */
 }
