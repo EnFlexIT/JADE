@@ -33,6 +33,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 import java.net.InetAddress;
 import java.io.*;
 
@@ -99,13 +100,13 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       	try {
       		myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       	}catch(ParseException pe) {
-      		// pe.printStackTrace();
-      		// System.out.println("DF ParseException with: " + content);
+      		//pe.printStackTrace();
+      		//System.out.println("DF ParseException with: " + content);
       		throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       	}
       	catch(TokenMgrError tme) {
-      		// tme.printStackTrace();
-      		// System.out.println("DF TokenMgrError with: " + content);
+      		//tme.printStackTrace();
+      		//System.out.println("DF TokenMgrError with: " + content);
       		throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       	}
 
@@ -113,9 +114,11 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       	processAction(myAction);
       
       }catch(FIPAException fe) {
+      	
       	sendRefuse(fe.getMessage());
       }
-       catch(NoSuchElementException nsee) {
+       catch(NoSuchElementException nsee) {	
+       
        	sendRefuse(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
@@ -430,6 +433,325 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       }
   } // End of ShowGUIBehaviour class
 
+  //This behaviour will be use to respond to request from the applet to know the parent with which  this df is federated.
+  private class GetParentsBehaviour extends FipaRequestResponderBehaviour.Action implements FipaRequestResponderBehaviour.Factory
+  {
+  	protected GetParentsBehaviour()
+  	{
+  		super(df.this);
+  	}
+  	
+  	public FipaRequestResponderBehaviour.Action create()
+  	{
+  		return new GetParentsBehaviour();
+  	}
+  	public void action ()
+  	{
+  		sendAgree();
+  		
+  		//Construct the reply
+  		AgentManagementOntology.DFSearchResult out = new AgentManagementOntology.DFSearchResult();
+  		Enumeration p = parents.getMembers();
+      while(p.hasMoreElements())
+      {
+      	AgentManagementOntology.DFAgentDescriptor dfd= new AgentManagementOntology.DFAgentDescriptor();
+      	String name = (String)p.nextElement();
+      	dfd.setName(name);
+      	out.put(name,dfd);
+      }
+  		
+      try{
+      	StringWriter text = new StringWriter();
+  		  out.toText(text);
+  		  ACLMessage req = getRequest();
+  		  ACLMessage inform = req.createReply();
+  		  //inform.setSource(myAgent.getName());
+  		  inform.setPerformative(ACLMessage.INFORM);
+  		  //no information about the action inserted in the content otherwise parser exception
+  		  String content = "(result "  + text.toString() + ")";
+  		  inform.setContent(content);
+  		  send(inform);
+      }catch(FIPAException e){
+      	sendFailure("Impossible to provide the needed information");
+      }
+  	}
+  	public boolean done()
+  	{
+  		return true;
+  	}
+  	public void reset()
+  	{
+  		
+  	}
+  	
+  }
+  
+  //This Behaviour returns the description of this df used  to federate with another df 
+  //It is used to reply to a request from the applet 
+  private class GetDescriptionOfThisDFBehaviour extends FipaRequestResponderBehaviour.Action implements FipaRequestResponderBehaviour.Factory
+  {
+  	protected GetDescriptionOfThisDFBehaviour()
+  	{
+  		super(df.this);
+  	}
+  	
+  	public FipaRequestResponderBehaviour.Action create()
+  	{
+  		return new GetDescriptionOfThisDFBehaviour();
+
+  	}
+  	
+  	public void action()
+  	{ 
+  		
+  		sendAgree();
+  		ACLMessage req = getRequest();
+  		ACLMessage inform = req.createReply();
+  		inform.setPerformative(ACLMessage.INFORM);
+  		//inform.setSource(myAgent.getName());
+  		StringWriter text = new StringWriter();
+  	  thisDF.toText(text);	
+  		String content = "(:df-description " + text.toString() + ")";
+  		inform.setContent(content);
+  		send(inform);
+  	}
+  	
+  	public boolean done()
+  	{
+  		return true;
+  	}
+  	public void reset()
+  	{
+  		
+  	}
+
+  }//End GetDescriptionOfThisDFBehaviour
+  
+  // This behaviour allows the federation of this df with another df required by the APPLET
+  private class FederateWithBehaviour extends FipaRequestResponderBehaviour.Action implements FipaRequestResponderBehaviour.Factory 
+  {
+  	private class mySequentialBehaviour extends SequentialBehaviour
+    {
+  	  String parentAgentName = null;
+  	  ACLMessage request;
+      String token = "FEDERATE_WITH";
+  	
+  	
+  	//This behaviour send the agree message to the dfproxy for the request of a federation
+  	private class FirstStep extends SimpleBehaviour
+  	{
+  	  boolean finished = false;
+  		
+  		FirstStep(Agent a,ACLMessage msg)
+  		{
+  			super(a);
+  			request = (ACLMessage)msg.clone();
+  		}
+  		
+  		public void action()
+  		{
+  			ACLMessage reply = request.createReply();
+  			reply.setPerformative(ACLMessage.AGREE);
+  			//reply.setSource(myAgent.getName());
+  			send(reply);
+        finished = true;
+  		}
+  		
+  		public boolean done()
+  		{
+  			return finished;
+  		}
+  	}
+  	
+  	// this behaviour send the reply to the dfdproxy: inform if the federation occur failure otherwise
+  	private class ThirdStep extends SimpleBehaviour
+  	{
+  		private boolean finished = false;
+  		private myRegisterWithDFBehaviour previousStep;
+  		
+  		ThirdStep(myRegisterWithDFBehaviour b)
+  		{
+  			super(df.this);
+  			previousStep = b;
+  		}
+  		
+  		public void action()
+  		{
+  			ACLMessage reply = request.createReply();
+  			//reply.setSource(myAgent.getName());
+  			if(previousStep.correctly == true)
+  			{
+  				reply.setPerformative(ACLMessage.INFORM);
+  			  reply.setContent("( done ( " + token + " ) )");
+  			  }
+  			else
+  			{
+  			  reply.setPerformative(ACLMessage.FAILURE);
+  			  reply.setContent("( ( action " + myAgent.getLocalName() + " " + token + " ) " + "federation not possible" + ")");
+  			}
+  			send(reply);
+  			finished = true;
+  		}
+  		
+  		public boolean done()
+  		{
+  			return finished;
+  		}
+  	}
+  	
+  	mySequentialBehaviour(ACLMessage msg)
+  	{
+  		addSubBehaviour(new FirstStep(df.this,msg));
+  		
+  		//parse the content to find the name of the parent
+  	  StringTokenizer st = new StringTokenizer(msg.getContent()," \t\n\r()",false);
+	    while (!token.equalsIgnoreCase(st.nextToken())) {}
+      parentAgentName = st.nextToken();
+      
+  		try
+  		{ 
+  		  myRegisterWithDFBehaviour secondStep = new myRegisterWithDFBehaviour(df.this,parentAgentName,thisDF);
+  		  addSubBehaviour(secondStep);
+  		  addSubBehaviour(new ThirdStep(secondStep));
+  		}catch(FIPAException e){
+  		 System.err.println(e.getMessage());
+  		}
+  		
+  	}
+  } //End mySequentialBehaviour
+
+  	protected FederateWithBehaviour()
+  	{
+  		super(df.this);
+  	}
+  	
+  	public FipaRequestResponderBehaviour.Action create()
+  	{
+  		return new FederateWithBehaviour();
+  	}
+  	
+  	public void action()
+  	{
+     
+  		addBehaviour(new mySequentialBehaviour(getRequest()));
+  	}
+  	
+  	public boolean done()
+  	{
+  		return true;
+  	}
+  	
+  	public void reset(){}
+  }
+  
+
+  
+  //This behaviour allow the applet to required the df to deregister itself form a parent of the federation
+  private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.Action implements FipaRequestResponderBehaviour.Factory
+  {
+ 	 private class mySequentialBehaviourForDereg extends SequentialBehaviour 
+  	{
+  	  String parentAgentName = null;
+  	  ACLMessage request;
+  	  String token = "DEREGISTER_FROM";
+  	  
+  	  private class FirstStep extends SimpleBehaviour
+  	  {
+  	  	boolean finished = false;
+  	  	FirstStep(Agent a,ACLMessage m)
+  	  	{
+  	  		super(a);
+  	  		request=(ACLMessage)m.clone();
+  	  	}
+  	  	
+  	  	public void action()
+  	  	{
+  	  		ACLMessage reply = request.createReply();
+  	  		reply.setPerformative(ACLMessage.AGREE);
+  	  		send(reply);
+  	  		finished = true;
+  	  	}
+  	  	public boolean done()
+  	  	{
+  	  		return finished;
+  	  	}
+  	  	
+  	  }
+  	  
+  	  private class ThirdStep extends SimpleBehaviour
+  	  {
+  	  	private boolean finished = false;
+  	  	private myDeregisterWithDFBehaviour previousStep;
+  	  	
+  	  	ThirdStep(myDeregisterWithDFBehaviour b)
+  	  	{
+  	  		super(df.this);
+  	  		previousStep = b;
+  	  	}
+  	  	
+  	  	public void action()
+  	  	{
+  	  		ACLMessage reply = request.createReply();
+  	  		if(previousStep.correctly == true)
+  	  		{
+  	  			reply.setPerformative(ACLMessage.INFORM);
+  	  			reply.setContent("(done ( "+token+" ) )");
+  	  		}
+  	  		else
+  	  		{
+  	  			reply.setPerformative(ACLMessage.FAILURE);
+  	  			reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token+ " ) " + "deregister not possible "+ ")");
+  	  		}
+  	  		send(reply);
+  	  		finished = true;
+  	  	}
+  	  	
+  	  	public boolean done()
+  	  	{
+  	  		return finished;
+  	  	}
+  	  }
+  	  
+  	  mySequentialBehaviourForDereg(ACLMessage msg)
+  	  {
+  	  	addSubBehaviour(new FirstStep(df.this, msg));
+  	  	
+  	  	StringTokenizer st = new StringTokenizer(msg.getContent(), " \t\n\r()", false);
+  	  	while(!token.equalsIgnoreCase(st.nextToken())){}
+  	  	parentAgentName = st.nextToken();
+  	  	try
+  	  	{
+  	  		myDeregisterWithDFBehaviour secondStep = new 	myDeregisterWithDFBehaviour(df.this,parentAgentName, thisDF);
+  	  		addSubBehaviour(secondStep);
+  	  		addSubBehaviour(new ThirdStep(secondStep));
+  	  	}catch(FIPAException e){System.err.println(e.getMessage());}
+  	  }
+  	}//End mySequentialBehaviourForDereg
+  	
+  	protected DeregisterFromBehaviour()
+  	{
+  		super(df.this);
+  	}
+  	
+  	public FipaRequestResponderBehaviour.Action create()
+  	{
+  		return new DeregisterFromBehaviour();
+  	}
+  	
+  	public void action()
+  	{
+  		addBehaviour(new mySequentialBehaviourForDereg(getRequest()));
+  	}
+  	
+  	public boolean done()
+  	{
+  		return true;
+  	}
+  	public void reset(){}
+  	
+  }//End DeregisterFromBehaviour
+  
+ 
 
   private class RecursiveSearchBehaviour extends SequentialBehaviour {
 
@@ -532,18 +854,22 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
  // In particular it will be use to manage the federate action with a df.
  // The methos handle Inform has been override to update the parent and to refresh the gui if showed.
  
- private class myRegisterWithDFBehaviour extends RequestDFActionBehaviour
+ private class myRegisterWithDFBehaviour extends RequestDFActionBehaviour 
  {
- 	String dfName; 
- 	myRegisterWithDFBehaviour(Agent a, String dfName,AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException
+ 	 String dfName;
+ 	 boolean correctly = false; // used to verify if the protocol finish correctly
+ 	 
+ 	 myRegisterWithDFBehaviour(Agent a, String dfName,AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException
  	 {
- 	 	super(a, dfName,AgentManagementOntology.DFAction.REGISTER,dfd);
- 	 	this.dfName = dfName;
+ 	 	 super(a, dfName,AgentManagementOntology.DFAction.REGISTER,dfd);
+ 	 	 this.dfName = dfName;
+ 	 
  	 }
  	 
  	 protected void handleInform(ACLMessage msg)
  	 {
  	 
+ 	 	correctly = true; 
  	 	parents.addMember(dfName); //remember the parents
  	  //refresh the gui
  	 	if(gui != null)
@@ -555,17 +881,22 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
  	 }
  	 protected void handleRefuse(ACLMessage msg)
  	 {
-    if (gui != null)
+ 	 	if (gui != null)
     	gui.showStatusMsg("Request refused.");
  	 }
+ 	 
+ 	 
  	
  }
+ 
+ 
  // This private class extends the RequestDFActionBehavior in order to provide the deregistration 
  // of this df with another df.
- private class myDeregisterWithDFBehaviour extends RequestDFActionBehaviour
+ private class myDeregisterWithDFBehaviour extends RequestDFActionBehaviour 
  {
  	String dfName;
- 	
+ 	boolean correctly = false; // used to verify if the protocol finish correctly
+
  	myDeregisterWithDFBehaviour(Agent a,String dfName,AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException
  	{
  		super(a, dfName,AgentManagementOntology.DFAction.DEREGISTER,dfd);
@@ -573,7 +904,9 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
  	}
  	 protected void handleInform(ACLMessage reply)
  	 {
+ 	 	correctly = true;
  	 	parents.removeMember(dfName);
+ 	 	
  	 	if(gui != null)
  	 		{
  	 			gui.refreshFederation();
@@ -585,12 +918,14 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
  	 	if (gui != null)
  	 		gui.showStatusMsg("Request refused.");
  	 }
+   
  }
  
   private static int NUMBER_OF_AGENT_FOUND = 1000;
   private AgentManagementOntology myOntology;
   private FipaRequestResponderBehaviour dispatcher;
-  private FipaRequestResponderBehaviour guiActivator;
+  private FipaRequestResponderBehaviour jadeExtensionDispatcher;
+  
   private Hashtable descriptors = new Hashtable();
   private AgentManagementOntology.DFSearchResult found;
   	
@@ -635,8 +970,13 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     // parses also the action names. Asap AgentManagementParser.jj is
     // fixed, we can register SHOWGUI with dispatcher
     MessageTemplate mt1 = MessageTemplate.MatchOntology("jade-extensions");
-    guiActivator = new FipaRequestResponderBehaviour(this, mt1);
-    guiActivator.registerFactory("SHOWGUI", new ShowGUIBehaviour());
+    jadeExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt1);
+    jadeExtensionDispatcher.registerFactory("SHOWGUI", new ShowGUIBehaviour());
+    // The following three actions are used only by the DFApplet	
+    jadeExtensionDispatcher.registerFactory("GETPARENTS", new GetParentsBehaviour()); 
+    jadeExtensionDispatcher.registerFactory("FEDERATE_WITH", new FederateWithBehaviour());
+    jadeExtensionDispatcher.registerFactory("DEREGISTER_FROM", new DeregisterFromBehaviour());
+    jadeExtensionDispatcher.registerFactory("GETDEFAULTDESCRIPTION", new GetDescriptionOfThisDFBehaviour()); 
   }
 
   /**
@@ -647,7 +987,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     
     // Add a message dispatcher behaviour
     addBehaviour(dispatcher);
-    addBehaviour(guiActivator);
+    addBehaviour(jadeExtensionDispatcher);
     setDescriptionOfThisDF(getDefaultDescription());
     setConstraints();
   }  // End of method setup()
@@ -659,7 +999,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   public boolean showGui() {
    if (gui == null) 
   		{
-			gui = new DFGUI((GUI2DFCommunicatorInterface) (df.this));
+			gui = new DFGUI((GUI2DFCommunicatorInterface)df.this, false,null);
 			gui.refresh();
 			
 			gui.setVisible(true);
@@ -1183,7 +1523,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		while (e.hasMoreElements())
 		{
 			 AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) e.nextElement();
-			 if (dfd.getName() == name)
+			 if (dfd.getName().equalsIgnoreCase(name))
 			  out = dfd;	
 		}
 		if (out == null) throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
@@ -1283,4 +1623,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		searchConstraint = new Vector();
 		searchConstraint.add(c);
 	}
+	
+	// Method for refresh the gui of an applet of the df.
+	public void postRefreshAppletGuiEvent(Object o){}
 }
