@@ -389,6 +389,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     String actionName;
     DFGUI gui;
     AID receiverDF;
+    DFAgentDescription dfd;
     
   	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUI gui) throws FIPAException
   	{
@@ -398,6 +399,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		this.actionName = actionName;
   		this.gui = gui;
   		this.receiverDF = receiverDF;
+  		this.dfd = dfd;
   	}
   	
   	protected void handleInform(ACLMessage msg)
@@ -407,7 +409,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		{
   			try{
   				gui.showStatusMsg("Search request Processed. Ready for new request");
-  				gui.refreshLastSearchResults(getSearchResult());
+  				gui.refreshLastSearchResults(getSearchResult(),msg.getSender());
   			}catch (Exception e){
   			e.printStackTrace();// should never happen
   			}
@@ -416,9 +418,14 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER))
   		{
   			try{
-  				gui.showStatusMsg("Federation request Processed. Ready for new request");
-  				parents.add(receiverDF);
-  				gui.addParent(receiverDF);
+  				gui.showStatusMsg("Request Processed. Ready for new request");
+  				
+  				if(dfd.getName().equals(df.this.getAID()))
+  				{ //if what I register is  myself then I have federated with a parent
+  					parents.add(receiverDF);
+  				  gui.addParent(receiverDF);
+  				  //dscDFParentMap(receiverDF,)
+  				}
   			}catch (Exception e){
   			e.printStackTrace();// should never happen
   			}
@@ -427,12 +434,20 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
   		{
   			try{
-  				gui.showStatusMsg("Deregister request Processed. Ready for new request");
-  				//this behaviour is never used to deregister an agent of this DF
-  				// but only to deregister a parent or an agent that was registered with
-  				// one of my parents or my children
-  				parents.remove(receiverDF); 
-  				gui.removeParent(receiverDF);
+			  gui.showStatusMsg("Deregister request Processed. Ready for new request");
+			  //this behaviour is never used to deregister an agent of this DF
+			  // but only to deregister a parent or an agent that was registered with
+			  // one of my parents or my children
+  			  if(dfd.getName().equals(df.this.getAID()))
+			    { 
+			      //I deregister myself from a parent
+			      parents.remove(receiverDF); 
+			      gui.removeParent(receiverDF);
+			    }
+  			  else
+			    {
+			      gui.removeSearchResult(dfd.getName());
+			    }
   			}catch (Exception e){
   			e.printStackTrace();// should never happen
   			}
@@ -462,6 +477,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   */
 
   private List parents = new ArrayList();
+  private HashMap dscDFParentMap = new HashMap(); //corrispondence parent --> dfd description of the df used to federate.
   /**
 
   @serial
@@ -625,7 +641,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
 
-    if (PROVA.containsKey(dfd.getName())
+    if (PROVA.containsKey(dfd.getName()))
 	throw new AlreadyRegistered();
     PROVA.put(dfd.getName(),dfd);
     if (isADF(dfd)) {
@@ -646,20 +662,19 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
 
     if (PROVA.remove(dfd.getName()) == null)
-    	throw new NotRegistered();
+      throw new NotRegistered();
     if (children.remove(dfd.getName()))
-    	try {
-    		gui.removeChildren(dfd.getName());
-    	} catch (Exception e) {}
+      try {
+      gui.removeChildren(dfd.getName());
+    } catch (Exception e) {}
     try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-    	// this refresh must be here, otherwise the GUI is not synchornized with 
-    	// registration/deregistration made without using the GUI
-    		        gui.removeAgentDesc(dfd.getName());		
-						}catch(Exception e1){}	
-    
-
+      // this refresh must be here, otherwise the GUI is not synchornized with 
+      // registration/deregistration made without using the GUI
+      gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+      gui.showStatusMsg("Deregistration of agent : " + dfd.getName().getName() +" done.");
+    }catch(Exception e1){}	
   }
-
+    
   private void DFModify(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFModify() called.");
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
@@ -775,16 +790,14 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				}
 				else 
 				{
-										// Register an agent with another DF. 
-				try
-		 		{
-		  	   gui.showStatusMsg("Process your request & waiting for result...");
-		  		 addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
-		 		}catch (FIPAException fe) {
-		 			fe.printStackTrace(); //it should never happen
-		 			} catch(Exception ex){} //Might happen if the gui has been closed
-		  	
-				
+				  // Register an agent with another DF. 
+				  try
+				    {
+				      gui.showStatusMsg("Process your request & waiting for result...");
+				      addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
+				    }catch (FIPAException fe) {
+				      fe.printStackTrace(); //it should never happen
+				    } catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
 			case DFGuiEvent.DEREGISTER:
