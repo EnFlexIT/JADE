@@ -216,6 +216,9 @@ public class SubscriptionInitiator extends Initiator {
 						sessions.put(sessionKey, new Session());
 						adjustReplyTemplate(toSend);
 						myAgent.send(toSend);
+						// Store the subscription message actually sent. It can 
+						// be useful to retrieve it to create the CANCEL message
+						getDataStore().put(r, toSend);
 						cnt++;
 			    }
 			  
