@@ -41,7 +41,7 @@ public class Person
 public Person() { }
 
 public Person(String userName){
-  this(userName, new AID(userName), new AID("unkwnown"));
+  this(userName, new AID(userName, AID.ISLOCALNAME), new AID("unkwnown", AID.ISLOCALNAME));
 }
 
 public Person(String userName, AID agentName,  AID dfName) {
