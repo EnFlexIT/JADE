@@ -132,11 +132,14 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 		throw uf;
 	    }
 
-	    //if everything is OK returns an AGREE message.
-	    ACLMessage agree = request.createReply();
-	    agree.setPerformative(ACLMessage.AGREE);
-	    agree.setContent(createAgreeContent(SLAction,request.getLanguage(),request.getOntology()));
-	    return agree;
+	    //if everything is OK we could return an AGREE message, but
+	    //it would be useless as an INFORM or FAILURE will immediately
+	    //follow --> return null.
+	    return null;
+	    //ACLMessage agree = request.createReply();
+	    //agree.setPerformative(ACLMessage.AGREE);
+	    //agree.setContent(createAgreeContent(SLAction,request.getLanguage(),request.getOntology()));
+	    //return agree;
 
 	}catch(RefuseException re){ // catch and rethrow the unsupportedFunction and unauthorized exceptions
 	    throw re;
