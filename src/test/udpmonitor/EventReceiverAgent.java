@@ -17,8 +17,8 @@ import jade.lang.acl.ACLMessage;
  */
 public class EventReceiverAgent extends Agent {
 
-  private static int value;
-  private static String request;
+	// Map a type of event (e.g. ADDED_CONTAINER) to the number of events 
+	// of that type stored as an Integer object.
   private static Map evMap = new HashMap();
   private static Object lock = new Object();
   
@@ -27,11 +27,13 @@ public class EventReceiverAgent extends Agent {
    * @param evName Name/Type of an event
    */
   public static synchronized int getEventCnt(String evName) {
-    if (evMap.containsKey(evName)) {
-      return ((Integer)evMap.get(evName)).intValue();
-    } else {
-      return 0;
-    }
+  	Integer ii = (Integer) evMap.get(evName);
+  	if (ii != null) {
+  		return ii.intValue();
+  	}
+  	else {
+  		return 0;
+  	}
   }
 
   /**
@@ -70,15 +72,15 @@ public class EventReceiverAgent extends Agent {
   
   // stores a new event in an internal map
   private static synchronized void storeEvent(String evName) {
-    Object obj = evMap.get(evName);
-    if (obj == null) {
+    Integer ii = (Integer) evMap.get(evName);
+    if (ii == null) {
       evMap.put(evName, new Integer(1));
-    } else {
-      int oldVal = ((Integer)obj).intValue();
-      evMap.put(evName, new Integer(oldVal+1));
+    } 
+    else {
+      evMap.put(evName, new Integer(ii.intValue()+1));
     }
-   
-    // wait for new events
+
+    // Notify threads blocked in waitForEvent()
     synchronized(lock) {
       lock.notifyAll();
     }
@@ -89,8 +91,13 @@ public class EventReceiverAgent extends Agent {
 
       public void action() {
         // wait for new ACL messages including events
-        ACLMessage msgIn = blockingReceive();
-        storeEvent(msgIn.getContent());
+        ACLMessage msgIn = myAgent.receive();
+        if (msgIn != null) {
+	        storeEvent(msgIn.getContent());
+        }
+        else {
+        	block();
+        }
       }
     }
     );
