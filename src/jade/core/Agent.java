@@ -2198,7 +2198,7 @@ public class Agent implements Runnable, Serializable
 	
 
   // all the agent's service helper
-private Hashtable helpersTable = new Hashtable();
+private transient Hashtable helpersTable;
 
 //#APIDOC_EXCLUDE_BEGIN
 
@@ -2208,6 +2208,9 @@ private Hashtable helpersTable = new Hashtable();
   */
   public ServiceHelper getHelper( String serviceName ) throws ServiceException {
 
+  	if (helpersTable == null) {
+  		helpersTable = new Hashtable();
+  	}
           ServiceHelper se = null;
           try {
           // is the helper already into the agent's helpersTable ?
