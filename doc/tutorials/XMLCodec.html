@@ -1,0 +1,259 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>How to use the XML support with JADE</title>
+</head>
+
+<body>
+<style><!--
+.Normal
+	{font-size:12.0pt;
+	font-family:"Times New Roman";}
+.MsoBodyText
+	{text-align:justify;
+	font-size:10.0pt;
+	font-family:"Courier New";}
+--></style>
+<h1><span lang="EN-GB">How to use the XML support with JADE</span></h1>
+
+<p><i><span lang="EN-GB">Author: Filippo Quarta</span><span lang="EN-GB"></i><nb>(Telecom Italia Lab)</span></p>
+
+<p><i><span lang="EN-GB">Date: March 10, 2003 </span><span lang="EN-GB"></span></i></p>
+
+<p><i><span lang="EN-GB">Java platform: </span><span lang="IT"></i><a href="http://java.sun.com/j2se/1.3/"><i><span lang="EN-GB"></i></a><a
+href="http://java.sun.com/j2se/1.3/"><i>Sun JDK 1.2 Windows</i></a><a
+href="http://java.sun.com/j2se/1.3/"><i></span></i></a><a
+href="http://java.sun.com/j2se/1.3/"><i></span></i></a><a
+href="http://java.sun.com/j2se/1.3/"><i><span lang="IT"></i></a><i> </span><span lang="EN-GB"></span></i></p>
+
+<p><i><span lang="IT"></i><a href="http://jade.cselt.it/"><i><span lang="FR"></i></a><a
+href="http://jade.cselt.it/"><i>JADE</i></a><a
+href="http://jade.cselt.it/"><i></span></i></a><a
+href="http://jade.cselt.it/"><i></span></i></a><a
+href="http://jade.cselt.it/"><i><span lang="FR"></i></a><i> version 3.0</span></i></p>
+
+<p><i><span lang="FR">Java API for XML Processing (e.g. </span><span lang="IT"></i><a
+href="http://xml.apache.org/xerces-j/index.html" target="new"><i><span lang="FR"></i></a><a
+href="http://java.sun.com/xml/jaxp/index.html">http://java.sun.com/xml/jaxp/index.html</a><a
+href="http://xml.apache.org/xerces-j/index.html" target="new"></span></a><a
+href="http://xml.apache.org/xerces-j/index.html" target="new"></span></a><a
+href="http://xml.apache.org/xerces-j/index.html" target="new"><span lang="FR"></a>)</span></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
+">This tutorial describes how to
+install and use the XML support with JADE; the XML support
+permits to use a concrete syntax, for ACLmessage content, based
+on XML/XML Schema. The XMLCodec.java class implements the Codec
+interface of JADE (jade.content.lang.Codec) and allows converting
+back and forth between arrays of byte in XML format and
+AbsContentElement (abstract descriptor of the message content).
+Since XMLCodec package uses the package jade.content and its
+sub-packages, it requires JADE 3.0.</span><span lang="EN-GB"></span></p>
+
+<h2><span lang="EN-GB">Installation.</span></h2>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
+">In order to install XML
+support&nbsp;the following steps must be performed:</span></p>
+
+<ul type="disc">
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">The XMLCodec must be
+        downloaded from the </span><span lang="IT" style="font-size:11.0pt;"><a href="http://jade.cselt.it/"
+        target="new"><span lang="EN-GB"></a><a href="http://jade.cselt.it/"
+        target="new">JADE</a><a href="http://jade.cselt.it/"
+        target="new"></span></a><a href="http://jade.cselt.it/"
+        target="new"></span></a><a href="http://jade.cselt.it/"
+        target="new"><span lang="EN-GB" style="font-size:11.0pt;
+     "></a> download page. </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">After downloading you
+        must unzip the XMLCodec package under the root of the
+        jade distribution tree. You should end having a hierarchy
+        like jade/add-ons/XMLCodec. </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">A </span><span lang="IT" style="font-size:11.0pt;"><a
+        href="http://www.megginson.com/SAX/" target="new"><span lang="EN-GB"></a><a
+        href="http://www.megginson.com/SAX/" target="new">SAX</a><a
+        href="http://www.megginson.com/SAX/" target="new"></span></a><a
+        href="http://www.megginson.com/SAX/" target="new"></span></a><a
+        href="http://www.megginson.com/SAX/" target="new"><span lang="EN-GB" style="font-size:11.0pt;"></a>
+        parser (e.g. </span><span lang="IT" style="font-size:11.0pt;
+     "><a
+        href="http://xml.apache.org/xerces-j/index.html"
+        target="new"><span lang="EN-GB"></a><a
+        href="http://java.sun.com/xml/jaxp/index.html">http://java.sun.com/xml/jaxp/index.html</a><a
+        href="http://xml.apache.org/xerces-j/index.html"
+        target="new"></span></a><a
+        href="http://xml.apache.org/xerces-j/index.html"
+        target="new"></span></a><a
+        href="http://xml.apache.org/xerces-j/index.html"
+        target="new"><span lang="EN-GB" style="font-size:11.0pt;"></a>) must be downloaded and installed into
+        the system. </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">The xml parser jar file
+        must be added to the CLASSPATH or specified in the
+        -classpath argument when starting the virtual machine </span></li>
+</ul>
+
+<h2><span lang="EN-GB">Compiling</span></h2>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
+">The default JADE Makefile rules
+don't take the XMLCodec into account. For handling the
+compilation process of the XMLCodec you have to use the
+'build.xml' ant-file located in the XMLCodec directory. The
+following rules are available:</span></p>
+
+<ul type="disc">
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant - compiles the
+        XMLCodec classes </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant lib - creates the
+        XMLCodec.jar archive in the lib directory </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant clean - removes the
+        compiled classes and the XMLCodec.jar archive </span></li>
+    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant examples &#150;
+        compiles the example classes</span><span lang="EN-GB" style="font-size:11.0pt;"></span></li>
+</ul>
+
+<h2><span lang="EN-GB">Configuration and Usage</span></h2>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
+">The current configuration uses
+Xerces as the default SAX parser. So if you don't want to make
+any changes you just have to download Xerces from the link
+provided above and make sure it is added to the classpath when
+starting (either by including it into the $CLASSPATH environment
+variable - %CLASSPATH% under windows or by specifing it on the
+command line). </span></p>
+
+<p><span lang="EN-GB" style="font-size:11.0pt;">Here is an example of how you would start the platform to use
+the xml content language support:</span></p>
+
+<p><code><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">java -classpath
+./lib/jade.jar:./lib/iiop.jar:./add-ons/XMLCodec/lib/XMLCodec.jar
+jade.Boot </span><span lang="EN-GB" style="font-size:11.0pt;"></code>( for Unix )</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;"> <br>
+</span><span lang="EN-GB" style="font-size:11.0pt;">or</span><span lang="EN-GB" style="font-size:11.0pt;
+font-family:&quot;Courier New&quot;;"><br>
+</span><code><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">java -classpath
+.\lib\jade.jar;.\lib\iiop.jar;.\add-ons\XMLCodec\lib\XMLCodec.jar
+jade.Boot</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
+"></code> </span><span lang="EN-GB" style="font-size:11.0pt;
+">( for Windows )</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
+"></span></p>
+
+<p><span lang="EN-GB" style="font-size:11.0pt;">If you want to use another xml parser you have to specify in
+the command line the system property <em>org.xml.sax.parser<span style="font-style:normal">.</span></span></em></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">When an agent wants to send an XML
+encoded message, it must register the language with the </span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">registerLanguage()
+</span><span lang="EN-GB" style="font-size:11.0pt;">method of the </span><span lang="EN-GB" style="font-size:11.0pt;
+font-family:&quot;Courier New&quot;;">ContentManager</span><span lang="EN-GB" style="font-size:11.0pt;"> class. For example (assuming </span><span lang="EN-GB" style="font-size:
+11.0pt;font-family:&quot;Courier New&quot;;">manager</span><span lang="EN-GB" style="font-size:11.0pt;">
+is the </span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
+">ContentManager</span><span lang="EN-GB" style="font-size:11.0pt;">):</span></p>
+
+<p align="center" style="text-align:center"><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
+">manager.registerLanguage(new
+XMLCodec());</span></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">Moreover it is recommended to set
+the language of the message. For example (assuming ACLmsg is the
+ACL message):</span></p>
+
+<p style="text-align:justify"><span>&nbsp;&nbsp; </span></p>
+
+<p align="center" style="text-align:center"><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
+">ACLmsg.setLanguage(XMLCodec.NAME);</span><span lang="EN-GB" style="font-size:11.0pt;"></span></p>
+
+<p style="text-align:justify"><span>&nbsp;&nbsp;&nbsp; </span></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">Using XMLCodec, the messages are
+arrays of byte in XML format; the tags used are those defined in
+the subsequent XML schema.</span></p>
+
+<p style="text-align:justify">&lt;?xml
+version=&quot;1.0&quot;?&gt;<br>
+&lt;xsd:schema
+xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt; <br>
+<br>
+&lt;xsd:complexType name=&quot;Content&quot;
+abstract=&quot;true&quot;&gt;<br>
+&lt;/xsd:complexType&gt;<br>
+<br>
+&lt;xsd:complexType name=&quot;Predicate&quot;
+abstract=&quot;true&quot;&gt;<br>
+&lt;xsd:complexContent&gt;<br>
+&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
+&lt;/xsd:extension&gt;<br>
+&lt;/xsd:complexContent&gt;<br>
+&lt;/xsd:complexType&gt;<br>
+<br>
+&lt;xsd:complexType name=&quot;Action&quot;
+abstract=&quot;true&quot;&gt;<br>
+&lt;xsd:complexContent&gt;<br>
+&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
+&lt;/xsd:extension&gt;<br>
+&lt;/xsd:complexContent&gt;<br>
+&lt;/xsd:complexType&gt;<br>
+<br>
+&lt;xsd:complexType name=&quot;Concept&quot;
+abstract=&quot;true&quot;&gt;<br>
+&lt;xsd:complexContent&gt;<br>
+&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
+&lt;/xsd:extension&gt;<br>
+&lt;/xsd:complexContent&gt;<br>
+&lt;/xsd:complexType&gt;<br>
+<br>
+&lt;xsd:element name=&quot;CONTENT_ELEMENT&quot;
+type=&quot;Content&quot;/&gt;<br>
+&lt;/xsd:schema&gt;<br>
+</p>
+
+<h2><span lang="EN-GB">Examples</span></h2>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">After setting properly the
+CLASSPATH, execute the following command to start Sender and
+Receiver agents: </span></p>
+
+<p align="left" class="MsoBodyText" style="text-align:left"><code><span lang="EN-GB" style="font-size:11.0pt;">java
+jade.Boot </span><span lang="EN-GB" style="font-size:11.0pt;"></code>receiver:examples.xmlcontent.Receiver
+sender:examples.xmlcontent.Sender</span></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">To see the messages XML format,
+execute the following command:</span></p>
+
+<p align="left" class="MsoBodyText" style="text-align:left"><code><span lang="EN-GB" style="font-size:11.0pt;">java
+jade.Boot &#150;gui</span><span lang="EN-GB" style="font-size:11.0pt;"></span></code></p>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">after, utilize the gui to run
+receiver and sender agents; utilize the sniffer agent to see the
+messages.</span></p>
+<span lang="IT">
+<hr>
+</span>
+<p align="center" style="text-align:center"><span lang="IT"><a
+href="http://jade.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;
+font-family:Arial;"></a><a href="http://jade.cselt.it/">JADE</a><a
+href="http://jade.cselt.it/"></span></a><a href="http://jade.cselt.it/"></span></a><a
+href="http://jade.cselt.it/"><span lang="EN-GB"></a> is a trademark of </span><span lang="IT"><a
+href="http://www.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a href="http://www.cselt.it/">CSELT</a><a
+href="http://www.cselt.it/"></span></a><a href="http://www.cselt.it/"></span></a><a
+href="http://www.cselt.it/"><span lang="EN-GB"></a>. </span><span lang="IT"><a href="http://jade.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a
+href="http://jade.cselt.it/">JADE</a><a
+href="http://jade.cselt.it/"></span></a><a href="http://jade.cselt.it/"></span></a><a
+href="http://jade.cselt.it/"><span lang="EN-GB"></a> has been developed jointly by </span><span lang="IT"><a
+href="http://www.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a href="http://www.cselt.it/">CSELT</a><a
+href="http://www.cselt.it/"></span></a><a href="http://www.cselt.it/"></span></a><a
+href="http://www.cselt.it/"><span lang="EN-GB"></a> and the </span><span lang="IT"><a
+href="http://www.ce.unipr.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a
+href="http://www.ce.unipr.it/">Computer Engineering Group</a><a
+href="http://www.ce.unipr.it/"></span></a><a
+href="http://www.ce.unipr.it/"></span></a><a
+href="http://www.ce.unipr.it/"><span lang="EN-GB"></a> of the </span><span lang="IT"><a
+href="http://www.unipr.it/"><span lang="EN-GB" style="font-size:10.0pt;
+font-family:Arial;"></a><a href="http://www.unipr.it/">University
+of Parma</a><a href="http://www.unipr.it/"></span></a><a
+href="http://www.unipr.it/"></span></a><a href="http://www.unipr.it/"><span lang="EN-GB"></a><a
+href="http://www.unipr.it/"></span></a></p>
+</body>
+</html>
