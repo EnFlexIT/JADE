@@ -164,10 +164,10 @@ void MessageParameter() :
 
 String Content():
 
-{ Token t; String s;}
+{ String s;}
 {
   s = Stringa() { return s; }
-| t = <WORD> { return trimQuotes(t.image); } 
+| s = Word()    { return s; } 
 }
 
 AID AgentIdentifier():
@@ -176,9 +176,9 @@ AID AgentIdentifier():
 {
 <LBRACE2> <AID> 
  (
-    (<NAME> t=<WORD> { cur.setName(t.image); token_source.SwitchTo(AIDSTATE);})
+    (<NAME> s=Word() { cur.setName(s); token_source.SwitchTo(AIDSTATE);})
   | (<ADDRESSES> <LBRACE2> <SEQUENCE> {token_source.SwitchTo(CONTENTSTATE);} 
-       (t=<WORD> {cur.addAddresses(t.image);} )* <RBRACE> 
+       (s=Word() {cur.addAddresses(s);} )* <RBRACE> 
        {token_source.SwitchTo(AIDSTATE);})
   | (<RESOLVERS> <LBRACE2> <SEQUENCE> 
        (aid=AgentIdentifier() {cur.addResolvers(aid);})* <RBRACE2> 
@@ -211,7 +211,7 @@ String Expression():
 String Word():
 { Token t; }
 { 
-  t=<WORD>	{ return t.image; }
+  t=<WORD>	{ return trimQuotes(t.image); }
 }
 
 

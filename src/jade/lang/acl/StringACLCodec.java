@@ -176,6 +176,14 @@ public class StringACLCodec implements ACLCodec {
     return result.toString();
   }
 
+  /** 
+   * Take a java String and quote it to form a legal FIPA ACL string.
+   * Add quotation marks to the beginning/end and escape any 
+   * quotation marks inside the string.
+   */
+		static private String quotedString(String str) {
+				return "\"" + escape(str) + "\"";
+		}
 
     /**
      * If a user-defined parameter contain a blank char inside, then it is skipped for FIPA-compatibility
@@ -301,19 +309,41 @@ public class StringACLCodec implements ACLCodec {
   }
 
     /**
-     * append to the passed StringBuffer the slot name and value.
+     * append to the passed StringBuffer the slot name and value separated
+		 * by a blank char and followed by a newline.
      * If the value contains a blank, then it is quoted.
      * if the value is null or its length is zero, the method does nothing.
      **/
-    static private void appendACLExpression(StringBuffer str, String slotName, String slotValue) {
-	if (slotValue != null) {
-	    //slotValue = slotValue.trim();
-	    if (slotValue.length() > 0) {
-		if (slotValue.indexOf(' ') != -1) // contains a blank inside
-		    if ((slotValue.charAt(0)!='"') || (slotValue.charAt(slotValue.length()-1)!='"'))
-			slotValue='"' +escape(slotValue) + '"';
-		str.append(slotName + " " + slotValue + "\n");
-	    }
-	}
+    static public void appendACLExpression(StringBuffer str, String slotName, String slotValue) {
+				if ((slotValue != null) && (slotValue.length() > 0) ) {
+						slotValue = (isAWord(slotValue)?slotValue:quotedString(slotValue));
+						str.append(slotName + " " + slotValue + "\n");
+				}
+		}
+
+
+		private static final String illegalFirstChar = "#0123456789-";
+    /**
+     * Test if the given string is a legal word using the FIPA ACL spec.
+     * In addition to FIPA's restrictions, place the additional restriction 
+     * that a Word can not contain a '\"', that would confuse the parser at
+     * the other end.
+     */
+    static private boolean isAWord( String s) {
+				// This should permit strings of length 0 to be encoded.
+				if( s==null || s.length()==0 )
+						return false; // words must have at least one character
+				if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 )
+						return false;
+				
+				for( int i=0; i< s.length(); i++) {
+						char c = s.charAt(i);
+						if( c == '"' || c == '(' || 
+								c == ')' || c <= 0x20 )
+								return false;
+				}
+				return true;
     }
+
 }
+
