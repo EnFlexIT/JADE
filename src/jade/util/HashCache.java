@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.util;
 
-//#J2ME_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
 import java.util.Vector;
 import java.util.Hashtable;
@@ -72,11 +72,11 @@ public class HashCache
 		 // remove the oldest element in the hashtable
 		 ht.remove(v.elementAt(0));
 		 // remove the oldest element in the vector
-		 v.remove(0);
+		 v.removeElementAt(0);
 		}
 		//ht.put(o, null);
 		ht.put(o, new Object());
-		v.add(o);
+		v.addElement(o);
 		return o;
 	}
 	
