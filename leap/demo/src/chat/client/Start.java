@@ -124,7 +124,8 @@ public class Start extends MicroBoot implements CommandListener {
   	super.startApp();
   	
     form = new Form("Enter nickname:");
-    tf = new TextField(null, null, 16, TextField.ANY);
+    Display.getDisplay(Agent.midlet).setCurrent(form);    
+    tf = new TextField(null, null, 32, TextField.ANY);
     form.append(tf);
     si = new StringItem(null, null);
     form.append(si);
@@ -132,7 +133,6 @@ public class Start extends MicroBoot implements CommandListener {
     form.addCommand(okCommand);
     form.addCommand(cancelCommand);
     form.setCommandListener(this);
-    Display.getDisplay(Agent.midlet).setCurrent(form);    
   }
 
   public void commandAction(Command c, Displayable d) {
