@@ -34,7 +34,6 @@ import java.util.Enumeration;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.*;
 import jade.domain.FIPAException;
-import jade.content.ContentManager;
 
 import jade.security.AuthException;
 
@@ -2073,18 +2072,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 	}
 
-	private ContentManager theContentManager = null;
+	//#CUSTOM_EXCLUDE_BEGIN
+	private jade.content.ContentManager theContentManager = null;
 
 	/**
 	* Retrieves the agent's content manager 
 	* @return The content manager.
 	*/
-	public ContentManager getContentManager() {
+	public jade.content.ContentManager getContentManager() {
 		if (theContentManager == null) {
-			theContentManager = new ContentManager();
+			theContentManager = new jade.content.ContentManager();
 		}
 		return theContentManager;
 	} 
+	//#CUSTOM_EXCLUDE_END
 	
 	/**
 	   Retrieve a configuration property set in the <code>Profile</code>
