@@ -31,7 +31,7 @@ import java.io.*;
 
 /**
 Javadoc documentation for the file
-@author Fabio Bellifemine 
+@author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
