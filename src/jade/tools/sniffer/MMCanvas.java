@@ -54,7 +54,8 @@ import jade.lang.acl.ACLMessage;
    <Br>
    <a href="mailto:a_soracchi@libero.it"> Andrea Soracchi(e-mail) </a>
    @version $Date$ $Revision$
-   @version $Date$ Modiefied by RR Kessler and ML Griss
+   @version $Date$ Modified by RR Kessler and ML Griss
+   @version $Date$ Mofified by ML Griss - 3 line folding
  */
 
  /**
@@ -153,27 +154,46 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
        if (nameWidth < Agent.bRet) {
            g.drawString(agent.agentName,x+(Agent.bRet-nameWidth)/2,Agent.yRet+(Agent.hRet/2) + (fm.getAscent()/2));
        } else {
-           // Need to chop the string up into at most 2 pieces, truncating the rest.
+           // Need to chop the string up into at most 2 or 3 pieces, truncating the rest.
            int len = agent.agentName.length();
            String part1;
            String part2;
+           String part3;
+
            if (nameWidth < Agent.bRet * 2) {
                // Ok, it is not quite twice as big, so cut in half
                part1 = agent.agentName.substring(0, len/2);
-               part2 = agent.agentName.substring(len/2+1);
+               part2 = agent.agentName.substring(len/2);
+               g.drawString(part1, x+(Agent.bRet-fm.stringWidth(part1))/2,Agent.yRet+(Agent.hRet/2) - (int)(fm.getAscent() * 0.2));
+               g.drawString(part2, x+(Agent.bRet-fm.stringWidth(part2))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.9));
+
+           } else if (nameWidth < Agent.bRet * 3) {
+               // Ok, it is not quite thrice as big, so cut in three
+               part1 = agent.agentName.substring(0, len/3);
+               part2 = agent.agentName.substring(len/3, 2*len/3);
+               part3 = agent.agentName.substring(2*len/3);
+               g.drawString(part1, x+(Agent.bRet-fm.stringWidth(part1))/2,Agent.yRet+(Agent.hRet/2) - (int)(fm.getAscent() * 0.65));
+               g.drawString(part2, x+(Agent.bRet-fm.stringWidth(part2))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.3));
+               g.drawString(part3, x+(Agent.bRet-fm.stringWidth(part3))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.95));
+
            } else {
                // This is rounded down the size of each char.
                int approxCharWidth = nameWidth / agent.agentName.length();
                int charCount = Agent.bRet / approxCharWidth;
-               part1 = agent.agentName.substring(0, charCount-1);
-               if (agent.agentName.length() < (charCount * 2) - 1) {
+               part1 = agent.agentName.substring(0, charCount);
+               if (agent.agentName.length() < (charCount * 2) ) {
                    part2 = agent.agentName.substring(charCount);
+                   part3 = "";
                } else {
-                   part2 = agent.agentName.substring(charCount, (charCount * 2)-1);
+                   part2 = agent.agentName.substring(charCount, (charCount * 2));
+                   part3 = agent.agentName.substring(charCount*2, (charCount * 3));
+                   
                }
+               g.drawString(part1, x+(Agent.bRet-fm.stringWidth(part1))/2,Agent.yRet+(Agent.hRet/2) - (int)(fm.getAscent() * 0.65));
+               g.drawString(part2, x+(Agent.bRet-fm.stringWidth(part2))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.3));
+               g.drawString(part3, x+(Agent.bRet-fm.stringWidth(part3))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.95));
+  
            }
-           g.drawString(part1, x+(Agent.bRet-fm.stringWidth(part1))/2,Agent.yRet+(Agent.hRet/2) - (int)(fm.getAscent() * 0.2));
-           g.drawString(part2, x+(Agent.bRet-fm.stringWidth(part2))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.9));
        }
      }
 
