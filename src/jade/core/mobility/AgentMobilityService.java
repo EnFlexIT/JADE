@@ -302,7 +302,7 @@ public class AgentMobilityService extends BaseService {
 
 		// Store the container where the classes for this agent can be
 		// retrieved
-		sites.put(instance, classSite);
+		sites.put(instance, classSiteName);
 
 		// Connect the new instance to the local container
 		Agent old = myContainer.addLocalAgent(agentID, instance);
@@ -614,14 +614,20 @@ public class AgentMobilityService extends BaseService {
 	  log("Agent " + agentID + " correctly serialized", 2);
 
 	  // Gets the container where the agent classes can be retrieved
-	  AgentMobilitySlice classSite = (AgentMobilitySlice)sites.get(a);
-	  if (classSite == null) {
+	  String classSiteName = (String)sites.get(a);
+	  AgentMobilitySlice classSite;
+	  if (classSiteName == null) {
 	      // The agent was born on this container
+	      classSiteName = getLocalNode().getName();
 	      classSite = localSlice;
+	  }
+	  else {
+	      // Perform a slice lookup...
+	      classSite = (AgentMobilitySlice)getSlice(classSiteName);
 	  }
 
 	  // Create the agent on the destination container
-	  dest.createAgent(agentID, bytes, myContainer.here().getName(), MIGRATION, CREATE_ONLY);
+	  dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
 	  transferState = 2;
 	  log("Agent " + agentID + " correctly created on destination container", 1);
 
@@ -748,16 +754,21 @@ public class AgentMobilityService extends BaseService {
 	    byte[] bytes = out.toByteArray();
 
 	    // Gets the container where the agent classes can be retrieved
-	    AgentMobilitySlice classSite = (AgentMobilitySlice)sites.get(a);
-	    if (classSite == null) {
-        	// The agent was born on this container
+	    String classSiteName = (String)sites.get(a);
+	    AgentMobilitySlice classSite;
+	    if (classSiteName == null) {
+		// The agent was born on this container
+		classSiteName = getLocalNode().getName();
 		classSite = localSlice;
+	    }
+	    else {
+		// Perform a slice lookup...
+		classSite = (AgentMobilitySlice)getSlice(classSiteName);
 	    }
 
 	    // Create the agent on the destination container with the new AID
 	    AID newID = new AID(newName, AID.ISLOCALNAME);
-	    dest.createAgent(newID, bytes, myContainer.here().getName(), CLONING, CREATE_AND_START);
-
+	    dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
 	}
     	catch (IOException ioe) {
 	    // Error in agent serialization
