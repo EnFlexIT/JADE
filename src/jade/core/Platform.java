@@ -25,7 +25,7 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 
-import jade.security.JADESecurityException;
+import jade.security.AuthException;
 import jade.security.UserPrincipal;
 
 /**
@@ -43,7 +43,7 @@ import jade.security.UserPrincipal;
  */
 interface Platform extends MainContainer {
 
-	void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException;
+	void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException;
 
   void deregister(AgentContainer ac) throws IMTPException;
 

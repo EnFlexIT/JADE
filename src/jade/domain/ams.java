@@ -70,9 +70,12 @@ import jade.mtp.MTPException;
 import jade.proto.FipaRequestResponderBehaviour;
 
 //__SECURITY__BEGIN
+import jade.security.Authority;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-import jade.security.JADESecurityException;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
+import jade.security.AuthException;
 //__SECURITY__END
 
 /**
@@ -156,7 +159,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processAction(Action a) throws FIPAException, JADESecurityException;
+    protected abstract void processAction(Action a) throws FIPAException, AuthException;
 
     public void action() {
       Action a = null;
@@ -171,7 +174,7 @@ public class ams extends Agent implements AgentManager.Listener {
         String ontoName = getRequest().getOntology();
         sendReply((fe instanceof FailureException?ACLMessage.FAILURE:ACLMessage.REFUSE),createExceptionalMsgContent(a, ontoName, fe));
 	    }
-      catch (JADESecurityException se) {
+      catch (AuthException se) {
         sendReply(ACLMessage.REFUSE, "(" + se.getMessage() + ")");
       }
     }
@@ -224,7 +227,7 @@ public class ams extends Agent implements AgentManager.Listener {
       return new RegBehaviour(msg);
     }
 
-    protected void processAction(Action a) throws FIPAException, JADESecurityException {
+    protected void processAction(Action a) throws FIPAException, AuthException {
       Register r = (Register)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)r.get_0();
 
@@ -296,7 +299,7 @@ public class ams extends Agent implements AgentManager.Listener {
       return new ModBehaviour(msg);
     }
 
-    protected void processAction(Action a) throws FIPAException, JADESecurityException {
+    protected void processAction(Action a) throws FIPAException, AuthException {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
@@ -633,7 +636,7 @@ public class ams extends Agent implements AgentManager.Listener {
       return new CreateBehaviour(msg);
     }
 
-    protected void processAction(Action a) throws FIPAException, JADESecurityException {
+    protected void processAction(Action a) throws FIPAException, AuthException {
       CreateAgent ca = (CreateAgent)a.get_1();
 
       String agentName = ca.getAgentName();
@@ -651,7 +654,7 @@ public class ams extends Agent implements AgentManager.Listener {
       sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
       try {
-	myPlatform.create(agentName, className, arguments, container, jade.security.Principal.NONE); //!!!
+	myPlatform.create(agentName, className, arguments, container, jade.security.BasicPrincipal.NONE); //!!!
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.
@@ -1104,32 +1107,38 @@ public class ams extends Agent implements AgentManager.Listener {
     };
 
   /** it is called also by Agent.java **/
-  public void AMSRegister(AMSAgentDescription amsd) throws FIPAException, JADESecurityException {
+  public void AMSRegister(AMSAgentDescription amsd) throws FIPAException, AuthException {
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
-    String[] addresses = myPlatform.platformAddresses();
     AID id = amsd.getName();
+    String[] addresses = myPlatform.platformAddresses();
     for(int i = 0; i < addresses.length; i++)
       id.addAddresses(addresses[i]);
 
+
     try {
-      String ownership = amsd.getOwnership();
-      UserPrincipal user = null;
-      byte[] word = null;
-      int dot2 = ownership.indexOf(':');
-      if (dot2 != -1) {
-        user = new UserPrincipal(ownership.substring(0, dot2));
-        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+      Object old = agentDescriptions.deregister(id);
+      if (old != null) {
+        throw new AlreadyRegistered();
       }
       else {
-        user = new UserPrincipal(ownership);
-        word = new byte[] {};
-      }
+        String ownership = amsd.getOwnership();
+        UserPrincipal user = null;
+        byte[] word = null;
+        int dot2 = ownership.indexOf(':');
+        if (dot2 != -1) {
+          user = new UserPrincipal(ownership.substring(0, dot2));
+          word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+        }
+        else {
+          user = new UserPrincipal(ownership);
+          word = new byte[] {};
+        }
 
-      Object old = agentDescriptions.register(amsd.getName(), amsd);
-      if(old != null)
-        throw new AlreadyRegistered();
-      else
-        myPlatform.changeAgentPrincipal(amsd.getName(), user, word);
+        myPlatform.changeAgentPrincipal(id, user, word);
+        
+        amsd.setOwnership(user.getName());
+        agentDescriptions.register(id, amsd);
+      }
     }
     catch (NotFoundException nfe) {
       nfe.printStackTrace();
@@ -1148,7 +1157,7 @@ public class ams extends Agent implements AgentManager.Listener {
     // System.out.println(amsd.getName().getName()+ " deregistered from AMS" );
   }
 
-  private void AMSModify(AMSAgentDescription amsd) throws FIPAException, JADESecurityException {
+  private void AMSModify(AMSAgentDescription amsd) throws FIPAException, AuthException {
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
     AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
     if (old == null)

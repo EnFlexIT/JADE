@@ -23,69 +23,32 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import jade.core.Profile;
+
+
 /**
-	The <code>Authority</code> class is an abstract class which represents
-	the authorities of the platform. It has methods for signing certificates
-	and for verifying their validity.
+	The <code>Authority</code> interface represents the authorities
+	of the platform. It has methods for signing certificates and for
+	verifying their validity.
 	
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public abstract class Authority {
-	
-	static Authority theAuthority;
-	
-	String name;
-	
-	/**
-		Sets the default authority for a Java Virtual Machine. This
-		can be read with <code>getAuthority()</code>.
-		@param auth The default authority.
-	*/
-	public static void setAuthority(Authority auth) throws AuthorizationException {
-		if (theAuthority != null) throw new AuthorizationException("Default authority is already defined");
-		theAuthority = auth;
-	}
-	
-	/**
-		Returns the default authority, as set with <code>setAuthority(Authority)</code>.
-		@return The default authority.
-	*/
-	public static Authority getAuthority() {
-		return theAuthority;
-	}
-	
-	/**
-		Creates a new Authority.
-	*/
-	public Authority() {
-	}
-	
-	/**
-		Creates a new Authority.
-		@param name The name of the authority.
-	*/
-	public Authority(String name) {
-		this.name = name;
-	}
+public interface Authority {
 	
 	/**
 		Set the name of the authority.
 		@param name The name of the authority.
 	*/
-	public void setName(String name) {
-		this.name = name;
-	}
+	public void setName(String name);
 	
 	/**
 		Returns the name of the authority.
 		@return the name of the authority.
 	*/
-	public String getName() {
-		return name;
-	}
+	public String getName();
 	
-	public abstract void init(Object[] args) throws JADESecurityException;
+	public void init(Profile profile) throws AuthException;
 	
 	/**
 		Checks the validity of a given certificate.
@@ -95,7 +58,9 @@ public abstract class Authority {
 		@throws AuthenticationException if the certificate is not
 			integer or is out of its validity period.
 	*/
-	public abstract void verify(JADECertificate cert) throws JADESecurityException;
+	public void verify(IdentityCertificate cert) throws AuthException;
+	
+	public void verify(DelegationCertificate cert) throws AuthException;
 	
 	/**
 		Signs a new certificate. The certificates presented with the
@@ -110,12 +75,18 @@ public abstract class Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public abstract void sign(JADECertificate cert, JADESubject subject) throws JADESecurityException;
+	public void sign(IdentityCertificate cert, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
 
-	public abstract JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException;
+	public void sign(DelegationCertificate cert, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+
+	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException;
 	
-	public abstract Object doAs(JADESubject subject, PrivilegedAction action) throws JADESecurityException;
+	public Object doAs(PrivilegedAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
 	
-	public abstract void checkPermission(PermissionHolder permission) throws JADESecurityException;
+	public void checkPermission(String type, String name, String actions) throws AuthException;
+	
+	public IdentityCertificate createIdentityCertificate();
+
+	public DelegationCertificate createDelegationCertificate();
 	
 }

@@ -33,9 +33,9 @@ import jade.util.leap.LinkedList;
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-import jade.security.JADESecurityException;
-import jade.security.JADECertificate;
-import jade.security.JADESubject;
+import jade.security.AuthException;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 //__SECURITY__END
 
 /**
@@ -67,7 +67,7 @@ class MainContainerProxy implements Platform {
       adaptee = myProfile.getIMTPManager().getMain(true);
     }
 
-    public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
+    public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
       localContainer = ac;
 
       // The Main Container initialization of a peripheral container is just adding it to the platform.
@@ -144,7 +144,7 @@ class MainContainerProxy implements Platform {
     }
 //__SECURITY__END
 
-    public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
+    public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
       return adaptee.addContainer(ac, cid, user, passwd);
     }
 
@@ -286,13 +286,13 @@ class MainContainerProxy implements Platform {
     catch(ProfileException pe) {
       throw new NotFoundException("Profile error trying to reconnect to the Main container: "+pe.getMessage());
     }
-    catch(JADESecurityException se) {
+    catch(AuthException se) {
       se.printStackTrace();
     }
   }
   
-  public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException {
-    return adaptee.sign(certificate, subject);
+  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
+    return adaptee.sign(certificate, identity, delegations);
   }
 
 }

@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import jade.core.Profile;
+
+
 /**
 	The <code>Authority</code> class is an abstract class which represents
 	the authorities of the platform. It has methods for signing certificates
@@ -31,20 +34,28 @@ package jade.security;
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public class DummyAuthority extends Authority {
+public class DummyAuthority implements Authority {
 
   int serial = 1;
-  byte[] key = null;
+  String name = null;
   
-  public DummyAuthority() {
-    super();
-  }
-  
-  public DummyAuthority(String name) {
-    super(name);
-  }
-  
-  public void init(Object[] args) {
+	/**
+		Set the name of the authority.
+		@param name The name of the authority.
+	*/
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	/**
+		Returns the name of the authority.
+		@return the name of the authority.
+	*/
+	public String getName() {
+		return name;
+	}
+	
+  public void init(Profile profile) {
   }
     
 	/**
@@ -55,7 +66,10 @@ public class DummyAuthority extends Authority {
 		@throws AuthenticationException if the certificate is not
 			integer or is out of its validity period.
 	*/
-	public void verify(JADECertificate cert) throws AuthenticationException {
+	public void verify(IdentityCertificate cert) throws AuthException {
+	}
+		
+	public void verify(DelegationCertificate cert) throws AuthException {
 	}
 		
 	/**
@@ -71,29 +85,28 @@ public class DummyAuthority extends Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(JADECertificate certificate, JADESubject subject) throws JADESecurityException {
+	public void sign(IdentityCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
-	public JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException {
-	  IdentityCertificate identity = new IdentityCertificate();
-	  identity.init(user, 0, 0);
-	  identity.issue(new Principal(name), key, serial++);
-	  identity.sign(null);
-	  
-	  DelegationCertificate delegation = new DelegationCertificate();
-	  delegation.init(user, 0, 0);
-	  delegation.issue(new Principal(name), key, serial++);
-	  //delegation.addPermission(...);
-	  delegation.sign(null);
-
-	  return new JADESubject(identity, new DelegationCertificate[] {delegation});
+	public void sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
+	}
+	
+	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException {
 	}
 
-	public Object doAs(JADESubject subject, PrivilegedAction action) throws JADESecurityException {
+	public Object doAs(PrivilegedAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	  return action.run();
 	}
 	
-	public void checkPermission(PermissionHolder permission) throws JADESecurityException {
+	public void checkPermission(String type, String name, String actions) throws AuthException {
+	}
+	
+	public IdentityCertificate createIdentityCertificate() {
+	  return null;
+	}
+
+	public DelegationCertificate createDelegationCertificate() {
+	  return null;
 	}
 	
 }

@@ -25,13 +25,13 @@ package jade.security;
 
 /**
 	The <code>AuthorizationException</code> is a subclass of
-	JADESecurityException. Exceptions of this class are thrown
+	AuthException. Exceptions of this class are thrown
 	for unauthorized access.
 	
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public class AuthorizationException extends JADESecurityException {
+public class AuthorizationException extends AuthException {
 
 	/**
 		Creates a new AuthorizationException.

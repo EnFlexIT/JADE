@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop
+JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -23,34 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import java.util.Date;
 
-/**
-
-  This is the base class of all JADE Principals.
-
-  @author Michele Tomaiuolo - Universita` di Parma
-  @version $Date$ $Revision$
-*/
-public class Principal implements java.io.Serializable {
-
-  public static final String NONE = "none";
-  protected String name;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 
-  public Principal() {
-    this(NONE);
-  }
-
-  public Principal(String name) {
-    this.name = name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getName() {
-    return name;
+public class DelegationCertificateImpl extends BasicCertificateImpl implements DelegationCertificate {
+	
+	public DelegationCertificateImpl() {
   }
 
 }

@@ -23,33 +23,23 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import java.util.Date;
 
-public class DelegationCertificate extends JADECertificate implements java.io.Serializable {
-  ArrayList permissions = new ArrayList();
-  
-  public DelegationCertificate() {
-  }
-  
-  public DelegationCertificate(DelegationCertificate delegation) {
-    super(delegation);
-    for (int i = 0; i < delegation.permissions.size(); i++)
-      permissions.add(delegation.permissions.get(i));
-  }
 
-  public void addPermissionHolder(PermissionHolder p) {
-		permissions.add(p);
-  }
-
-	public Iterator getAllPermissionHolders() {
-		return permissions.iterator();
-	}
-
-	public String toString() {
-		StringBuffer str = new StringBuffer(super.toString());
-		for (int i = 0; i < permissions.size(); i++)
-		  str.append(permissions.get(i).toString()).append("\n");
-		return str.toString();
-	}
+public interface DelegationCertificate {
+	
+	public void setSubject(BasicPrincipal subject);
+	public BasicPrincipal getSubject();
+	public void setNotBefore(Date notBefore);
+	public Date getNotBefore();
+	public void setNotAfter(Date notAfter);
+	public Date getNotAfter();
+	
+	public String encode();
+	public void decode(String encoded);
+	
+	public void addPermission(Object permission);
+	public Iterator getPermissions();
+	
 }

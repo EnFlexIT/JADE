@@ -62,6 +62,7 @@ import jade.domain.FIPAException;
 import jade.content.ContentManager;
 
 //__SECURITY__BEGIN
+import jade.security.Authority;
 import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
@@ -433,7 +434,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private volatile int myAPState;
   
 //__SECURITY__BEGIN
-  private String ownership = jade.security.Principal.NONE;
+  private Authority authority;
+  private String ownership = jade.security.BasicPrincipal.NONE;
   private AgentPrincipal principal = new AgentPrincipal();
   private IdentityCertificate identity = null;
   private DelegationCertificate delegation = null;
@@ -607,6 +609,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
    */
   public Location here() {
     return myToolkit.here();
+  }
+  
+  public Authority getAuthority() {
+    return myToolkit.getAuthority();
   }
 
   static void initReservedAIDs(AID amsID, AID defaultDfID) {
@@ -934,13 +940,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	}
 
 	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
-    synchronized(principalLock) {
-      this.identity = identity;
-      this.delegation = delegation;
-      AgentPrincipal old = principal;
-      principal = (AgentPrincipal)identity.getSubject();
-      if (getState() != AP_INITIATED)
-        notifyChangedAgentPrincipal(old, principal);
+    if (identity != null && delegation != null) {
+      synchronized(principalLock) {
+        this.identity = identity;
+        this.delegation = delegation;
+        AgentPrincipal old = principal;
+        principal = (AgentPrincipal)identity.getSubject();
+        if (getState() != AP_INITIATED)
+          notifyChangedAgentPrincipal(old, principal);
+      }
     }
   }
 

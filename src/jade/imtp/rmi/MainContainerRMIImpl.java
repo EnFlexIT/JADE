@@ -37,11 +37,11 @@ import jade.core.AgentProxy;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.JADESecurityException;
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-import jade.security.JADECertificate;
-import jade.security.JADESubject;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -87,7 +87,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.removeContainer(cid);
     }
     
-    public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, JADESecurityException {
+    public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, AuthException {
       AgentContainer cont = manager.getAdapter(ac);
       return impl.addContainer(cont, cid, user, passwd);
     }
@@ -112,7 +112,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.newMTP(mtp, cid);
     }
     
-    public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws RemoteException, IMTPException, JADESecurityException {
-      return impl.sign(certificate, subject);
+    public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
+      return impl.sign(certificate, identity, delegations);
     }
 }

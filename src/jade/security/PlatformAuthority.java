@@ -23,19 +23,26 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import jade.core.Profile;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
+
+import java.util.Enumeration;
 import java.util.Vector;
+
+import java.security.*;
+
 
 /**
 	The <code>Authority</code> class is an abstract class which represents
 	the authorities of the platform. It has methods for signing certificates
 	and for verifying their validity.
-	
+	b 
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public class PlatformAuthority extends Authority {
+public class PlatformAuthority extends ContainerAuthority {
 
   class UserEntry {
     String usr;
@@ -44,17 +51,21 @@ public class PlatformAuthority extends Authority {
   
   String passwdFile;
   Vector users = null;
-  int serial = 1;
-  byte[] key = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 };
-  
-  public void init (Object[] args) {
-    if (args != null && args.length > 0 && args[0] instanceof String) {
-      passwdFile = (String)args[0];
-      readPasswdFile();
+	
+  public void init(Profile profile) {
+  	if (profile != null) {
+  		try {
+      	passwdFile = ((jade.BootProfileImpl)profile).getArgProperties().getProperty("jade.security.passwd");
+	      parsePasswdFile();
+      }
+      catch (Exception e) { e.printStackTrace(); }
     }
+    
+    System.out.println("" + getPermissions(new UserPrincipal("all.users.tomamic")));
   }
   
-  public void readPasswdFile() {
+  public void parsePasswdFile() {
+  	System.out.println("parsing passwd file " + passwdFile);
     if (passwdFile == null) return;
     users = new Vector();
     try {
@@ -64,7 +75,7 @@ public class PlatformAuthority extends Authority {
         line = line.trim();
         if (line.length() > 0) {
           UserEntry entry = new UserEntry();
-          int sep = line.indexOf(":");
+          int sep = line.indexOf(':');
           if (sep != -1) {
             entry.usr = line.substring(0, sep);
             entry.key = line.substring(sep + 1, line.length());
@@ -73,7 +84,7 @@ public class PlatformAuthority extends Authority {
             entry.usr = line;
             entry.key = null;
           }
-          System.out.println("usr = " + entry.usr + "; key = " + entry.key + ";");
+          System.out.println("username=" + entry.usr + "; password=" + entry.key + ";");
           users.addElement(entry);
         }
         line = file.readLine();
@@ -82,42 +93,24 @@ public class PlatformAuthority extends Authority {
     catch(Exception e) { e.printStackTrace(); }
   }
   
-	/**
-		Checks the validity of a given certificate.
-		The period of validity is tested, as well as the integrity
-		(verified using the carried signature as proof).
-		@param cert The certificate to verify.
-		@throws AuthenticationException if the certificate is not
-			integer or is out of its validity period.
-	*/
-	public void verify(JADECertificate cert) throws AuthenticationException {
-	}
-		
-	/**
-		Signs a new certificate. The certificates presented with the
-		<code>subj</code> param are verified and the permissions to
-		certify are matched against the possessed ones.
-		The period of validity is tested, as well as the integrity
-		(verified using the carried signature as proof).
-		@param cert The certificate to sign.
-		@param subj The subject containing the initial certificates.
-		@throws AuthorizationException if the permissions are not owned
-			or delegation modes are violated.
-		@throws AuthenticationException if the certificates have some
-			inconsistence or are out of validity.
-	*/
-	public void sign(JADECertificate certificate, JADESubject subject) throws JADESecurityException {
-	}
-	
-	public JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException {
-	  System.out.println(user.getName());
-	  System.out.println(new String(passwd));
-    IdentityCertificate cert = null;
+	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException {
+	  BasicPrincipal principal = identity.getSubject();
+	  if (principal instanceof AgentPrincipal)
+	    principal = ((AgentPrincipal)principal).getUser();
+
+	  UserPrincipal user = null;
+	  if (principal instanceof UserPrincipal)
+	  	user = (UserPrincipal)principal;
+	  else
+	  	return;
+
+	  System.out.println("authenticating user");
+	  System.out.println("username=" + user.getName() + ";");
+	  System.out.println("password=" + new String(passwd) + ";");
 	  String name = user.getName();
-	  if (users == null) {
-	    return null;
-	  }
-	  else for (int i = 0; i < users.size() && cert == null; i++) {
+	  if (users == null)
+	      return;
+	  else for (int i = 0; i < users.size(); i++) {
 	    UserEntry entry = (UserEntry)users.elementAt(i);
 	    if (entry.usr.equals(name)) {
 	      if (passwd.length != entry.key.length())
@@ -126,23 +119,71 @@ public class PlatformAuthority extends Authority {
 	        if (entry.key.charAt(j) != passwd[j])
   	        throw new AuthenticationException("Wrong password");
 	      }
+
 	      // ok: user found + exact password
-	      cert = new IdentityCertificate();
-	      cert.init(user, 0, 0);
-	      cert.issue(new Principal(this.name), key, serial++);
-	      byte[] signature = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
-	      cert.sign(signature);
-	      return new JADESubject(cert, new DelegationCertificate[] {});
+	      // add permissions here
+				PermissionCollection perms = getPermissions(user);
+				for (Enumeration e = perms.elements(); e.hasMoreElements();) {
+					Permission p = (Permission)e.nextElement();
+					delegation.addPermission(p);
+				}
+
+	      return;
 	    }
 	  }
 	  throw new AuthenticationException("Unknown user");
 	}
+	
+	private PermissionCollection getPermissions(UserPrincipal user) {
+		Policy policy = Policy.getPolicy();
+		CodeSource source = new CodeSource(null, null);
+		
+		ProtectionDomain nullDomain = new ProtectionDomain(
+				source, null, null, null);
+		PermissionCollection nullPerms = policy.getPermissions(nullDomain);
+		
+		Permissions perms = new Permissions();
 
-	public Object doAs(JADESubject subject, PrivilegedAction action) throws JADESecurityException {
-	  return action.run();
+		while (user != null) {
+			ProtectionDomain userDomain = new ProtectionDomain(
+					source, null, getClass().getClassLoader(), new java.security.Principal[] {user});
+			PermissionCollection userPerms = policy.getPermissions(userDomain);
+
+			for (Enumeration e = userPerms.elements(); e.hasMoreElements();) {
+				Permission p = (Permission)e.nextElement();
+				if (p instanceof UnresolvedPermission) {
+					p = resolve((UnresolvedPermission)p);
+				}
+				if (!nullPerms.implies(p))
+					perms.add(p);
+			}
+			user = user.getParentUser();
+		}
+
+		return perms;
 	}
 	
-	public void checkPermission(PermissionHolder permission) throws JADESecurityException {
+	private Permission resolve(UnresolvedPermission up) {
+		String str = up.toString();
+		int blank0 = str.indexOf(' ');
+		int blank1 = str.indexOf(' ', blank0 + 1);
+		int blank2 = str.indexOf(' ', blank1 + 1);
+		int blank3 = str.indexOf(' ', blank2 + 1);
+		if (blank3 < 0) blank3 = str.length() - 1;
+		String type = str.substring(blank0 + 1, blank1);
+		String name = str.substring(blank1 + 1, blank2);
+		String actions = str.substring(blank2 + 1, blank3);
+		
+		System.out.println("resolving " + up);
+		System.out.println("type=" + type + ";");
+		System.out.println("name=" + name + ";");
+		System.out.println("actions=" + actions + ";");
+		
+		Permission resolved = null;
+		try {
+			resolved = (Permission)Class.forName(type).getConstructor(new Class[] {String.class, String.class}).newInstance(new Object[] {name, actions});
+		}
+		catch (Exception e) { e.printStackTrace(); }
+		return resolved;
 	}
-
 }

@@ -23,19 +23,21 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.util.Date;
+/**
+	The <code>AuthException</code> is the base class for
+	exceptions thrown for unauthorized access or for authentication
+	failures.
+	
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
+public class AuthException extends Exception {
 
-
-public interface IdentityCertificate {
-	
-	public void setSubject(BasicPrincipal subject);
-	public BasicPrincipal getSubject();
-	public void setNotBefore(Date notBefore);
-	public Date getNotBefore();
-	public void setNotAfter(Date notAfter);
-	public Date getNotAfter();
-	
-	public String encode();
-	public void decode(String encoded);
-	
+	/**
+		Creates a new AuthException.
+		@param msg The message of the exception.
+	*/
+	public AuthException(String msg) {
+		super(msg);
+	}
 }

@@ -1,0 +1,17 @@
+// solo i seguenti file sono indispensabili
+
+AuthException.java
+PrivilegedAction.java       // rimuovere extends java.security.PrivilegedAction
+BasicPrincipal.java         // rimuovere implements java.security.Principal
+UserPrincipal.java
+AgentPrincipal.java
+IdentityCertificate.java
+DelegationCertificate.java
+Authority.java
+DummyAuthority.java
+
+
+// compilazione minima
+
+del classes\jade\security\*.class
+javac -d classes src\jade\security\PrivilegedAction.java src\jade\security\AuthException.java src\jade\security\BasicPrincipal.java src\jade\security\UserPrincipal.java src\jade\security\AgentPrincipal.java src\jade\security\IdentityCertificate.java src\jade\security\DelegationCertificate.java src\jade\security\Authority.java src\jade\security\DummyAuthority.java

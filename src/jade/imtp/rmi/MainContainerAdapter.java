@@ -39,11 +39,11 @@ import jade.core.IMTPException;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.JADESecurityException;
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-import jade.security.JADECertificate;
-import jade.security.JADESubject;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -147,7 +147,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
+  public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
     try {
       return adaptee.addContainer(manager.getRMIStub(ac), cid, user, passwd);
     }
@@ -201,9 +201,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     return adaptee;
   }
 
-  public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException {
+  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
     try {
-      return adaptee.sign(certificate, subject);
+      return adaptee.sign(certificate, identity, delegations);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

@@ -23,21 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-/**
-	The <code>JADESecurityException</code> is the base class for
-	exceptions thrown for unauthorized access or for authentication
-	failures.
-	
-	@author Michele Tomaiuolo - Universita` di Parma
-	@version $Date$ $Revision$
-*/
-public class JADESecurityException extends Exception {
+import java.util.Date;
 
-	/**
-		Creates a new JADESecurityException.
-		@param msg The message of the exception.
-	*/
-	public JADESecurityException(String msg) {
-		super(msg);
-	}
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+
+
+public class IdentityCertificateImpl extends BasicCertificateImpl implements IdentityCertificate {
+	
+	public IdentityCertificateImpl() {
+  }
+
 }

@@ -37,7 +37,7 @@ import jade.mtp.MTPDescriptor;
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-import jade.security.JADESecurityException;
+import jade.security.AuthException;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 //__SECURITY__END
@@ -72,7 +72,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   ContainerID getContainerID(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership) throws UnreachableException, JADESecurityException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership) throws UnreachableException, AuthException;
 
   void killContainer(ContainerID cid);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
@@ -81,7 +81,8 @@ public interface AgentManager {
   void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
 
 //__SECURITY__BEGIN
-  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException;
+  //void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException
+  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthException;
 //__SECURITY__END
 
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;

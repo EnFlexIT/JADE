@@ -27,27 +27,60 @@ import jade.util.leap.Serializable;
 
 
 /**
-  This class represents principals associated to users.
+
+  This is the base class of all JADE Principals.
 
   @author Michele Tomaiuolo - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class UserPrincipal extends BasicPrincipal implements Serializable {
+public class BasicPrincipal implements Serializable
+//__JADE_ONLY__BEGIN
+		, java.security.Principal
+//__JADE_ONLY__END
+		{
 
-  public UserPrincipal() {
-    super();
+  public static final String NONE = "none";
+  protected String name;
+
+
+  public BasicPrincipal() {
+    this(NONE);
   }
 
-  public UserPrincipal(String name) {
-    super(name);
+  public BasicPrincipal(String name) {
+    this.name = name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
   }
   
-  public UserPrincipal getParentUser() {
-    String parentName = getParentName();
-    if (parentName != null)
-      return new UserPrincipal(parentName);
+  public String getParentName() {
+    int dot = name.lastIndexOf('.');
+    if (dot != -1)
+      return name.substring(0, dot);
     else
       return null;
-	}
+  }
+  
+  public String getShortName() {
+    int dot = name.lastIndexOf('.');
+    if (dot != -1)
+      return name.substring(dot + 1, name.length());
+    else
+      return name;
+  }
+  
+  public BasicPrincipal getParent() {
+    String parentName = getParentName();
+    if (parentName != null)
+      return new BasicPrincipal(parentName);
+    else
+      return null;
+  }
 
 }

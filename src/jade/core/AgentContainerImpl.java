@@ -42,12 +42,11 @@ import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
 //__SECURITY__BEGIN
-import jade.security.JADESecurityException;
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.UserPrincipal;
-import jade.security.JADESubject;
 import jade.security.Authority;
 //__SECURITY__END
 
@@ -105,7 +104,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private UserPrincipal user = null;
   private byte[] passwd = null;
   private String ownership;
-  private JADESubject subject;
+  private IdentityCertificate identity;
+  private DelegationCertificate delegation;
+  private Authority authority;
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
@@ -218,7 +219,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
-    subject = new JADESubject(identity, new DelegationCertificate[] {delegation});
+    this.identity = identity;
+    this.delegation = delegation;
   }
 //__SECURITY__END
 
@@ -447,6 +449,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   void routeIn(ACLMessage msg, AID receiver) {
     unicastPostMessage(msg, receiver);
   }
+  
+  public Authority getAuthority() {
+    return authority;
+  }
 
   void joinPlatform() {
   	try {
@@ -491,7 +497,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       
       ownership = System.getProperty("jade.security.ownership");
       if (ownership == null)
-        ownership = jade.security.Principal.NONE;
+        ownership = jade.security.BasicPrincipal.NONE;
 
       int dot2 = ownership.indexOf(':');
       if (dot2 != -1) {
@@ -516,7 +522,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       Runtime.instance().endContainer();
       return;
     }
-    catch (JADESecurityException se) {
+    catch (AuthException se) {
       se.printStackTrace();
       Runtime.instance().endContainer();
       return;
@@ -530,13 +536,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  // create and init container-authority
 	  try {
-	    Authority authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
+	    authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
 	    authority.setName("container-authority");
-	    authority.init(new Object[] {myPlatform});
-  	  Authority.setAuthority(authority);
+	    authority.init(myProfile);
 	  }
-	  catch (Exception e) {
-	    e.printStackTrace();
+	  catch (Exception e1) {
+	    System.out.println("ContainerAuthority not found");
+		  try {
+		    authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
+	  	  authority.setName("container-authority");
+	    	authority.init(myProfile);
+	  	}
+	  	catch (Exception e2) {
+	    	e2.printStackTrace();
+	  	}
 	  }
 
     // Create and activate agents that must be launched at bootstrap
@@ -547,18 +560,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  Specifier s = (Specifier) agentSpecifiers.next();
       
 	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
-	  Authority authority = Authority.getAuthority();
 
 	  try {
-	    
-	    IdentityCertificate identity = new IdentityCertificate();
-	    identity.init(new AgentPrincipal(user, agentID), 0, 0);
-	    authority.sign(identity, subject);
-	    
-	    DelegationCertificate delegation = new DelegationCertificate();
-	    delegation.init(new AgentPrincipal(user, agentID), 0, 0);
-	    //!!! delegation.addPermission(...);
-	    authority.sign(delegation, subject);
 	    
 	    try {
 	      createAgent(agentID, s.getClassName(), s.getArgs(), ownership, NOSTART);
@@ -584,10 +587,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  }
 	  catch(NotFoundException nfe) {
 	    System.out.println("This container does not appear to be registered with the main container.");
-	    localAgents.remove(agentID);
-	  }
-	  catch(JADESecurityException se) {
-	    se.printStackTrace();
 	    localAgents.remove(agentID);
 	  }
     	}
