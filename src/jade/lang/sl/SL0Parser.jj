@@ -235,7 +235,7 @@ String String() :
 { Token t;}
 {
   t=<WORD>		{return t.image;}
-| t=<STRING_LITERAL>	{return t.image;}
+| t=<STRING_LITERAL>	{return (t.image.equalsIgnoreCase("\"action\"")?"action":t.image);} // the opposite has been done in SL0Encoder in order to avoid conflict with the token "action"
 }
 
 Object Number():

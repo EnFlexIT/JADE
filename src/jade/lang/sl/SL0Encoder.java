@@ -90,16 +90,32 @@ class SL0Encoder {
 			else {
 	  		// If the stringified slot value is a String of words or is the empty string then quote it.
 	  		String stringifiedValue = slotValue.toString();
-	  		if (stringifiedValue.indexOf(" ") > -1 || stringifiedValue.equals("")) 
-	    		w.write("\""+stringifiedValue+"\"");
-	  		else
-					w.write(stringifiedValue);
+	  		if (mustBeQuoted(stringifiedValue))
+			  w.write("\""+stringifiedValue+"\"");
+			else
+			  w.write(stringifiedValue);
 			}
 			w.write(" ");
 		}
     w.write(")");
   }
 
+  private boolean mustBeQuoted(String s) {
+    s.trim();
+    if ((s.charAt(0) == '\"') && (s.charAt(s.length()-1) == '\"'))
+      return false;
+    else if (s.indexOf(" ") > -1 || s.equals("") || isAToken(s))
+      return true;
+    else
+      return false;
+  }
+
+  /**
+    If this is a token of the language, then it must be quoted. 
+    **/
+  private boolean isAToken(String str) {
+    return str.equalsIgnoreCase(SL0Codec.NAME_OF_ACTION_FRAME);  
+  }
 
    private boolean isFrame(Object f) {
      return (f.getClass()==Frame.class);
