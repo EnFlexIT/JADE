@@ -66,7 +66,6 @@ public class TimeChooser implements ActionListener
 		Calendar cal;
 
 		dlg = new JDialog(parent, "Edit time");
-		dlg.getContentPane().setLayout(new BoxLayout(dlg.getContentPane(), BoxLayout.Y_AXIS));
 
 /*
 // THIS PART IS RELATED TO THE EDITING OF RELATIVE TIMES (NOT YET IMPLEMENTED)
@@ -92,7 +91,7 @@ public class TimeChooser implements ActionListener
 			cal.setTime(date);
 
 		JPanel timePanel = new JPanel();
-		timePanel.setLayout(new GridLayout(0,3));
+		timePanel.setLayout(new GridLayout(2,3));
 		((GridLayout) (timePanel.getLayout())).setHgap(5);
 		
 		year = new JTextField(4);
@@ -100,13 +99,13 @@ public class TimeChooser implements ActionListener
 		addTimeUnitLine(timePanel, cal.get(Calendar.YEAR), year, "Year:");
 		month = new JTextField(4);
 		month.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.MONTH), month, "Month:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.MONTH)+1, month, "Month:");
 		day = new JTextField(4);
 		day.setEditable(false);
 		addTimeUnitLine(timePanel, cal.get(Calendar.DATE), day, "Day:");
 		hour = new JTextField(4);
 		hour.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.HOUR), hour, "Hour:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.HOUR_OF_DAY), hour, "Hour:");
 		min = new JTextField(4);
 		min.setEditable(false);
 		addTimeUnitLine(timePanel, cal.get(Calendar.MINUTE), min, "Min:");
@@ -115,9 +114,8 @@ public class TimeChooser implements ActionListener
 		addTimeUnitLine(timePanel, cal.get(Calendar.SECOND), sec, "Sec:");
 
 		timePanel.setBorder(new TitledBorder("Time"));
-		dlg.getContentPane().add(timePanel);
+		dlg.getContentPane().add(timePanel, BorderLayout.CENTER);
 
-		dlg.getContentPane().add(Box.createVerticalStrut(5));
 
 		// Buttons to set/reset the edited time
 		JPanel buttonPanel = new JPanel();
@@ -133,7 +131,7 @@ public class TimeChooser implements ActionListener
 		buttonPanel.add(resetButton);
 		buttonPanel.add(cancelButton);
 
-		dlg.getContentPane().add(buttonPanel);
+		dlg.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
 		// Display the dialog window
 		dlg.setModal(true);
@@ -224,7 +222,7 @@ public class TimeChooser implements ActionListener
 			I = new Integer(sec.getText());
 			int ss = I.intValue();
 
-			Calendar cal = new GregorianCalendar(YY,MM,DD,hh,mm,ss);
+			Calendar cal = new GregorianCalendar(YY,MM-1,DD,hh,mm,ss);
 			date = cal.getTime();
 
 			retVal = OK;
@@ -301,18 +299,13 @@ public class TimeChooser implements ActionListener
 									} );
 
 		B1.setMargin(new Insets(2,4,2,4));
-		B1.setAlignmentX((float) 1);
 		B2.setMargin(new Insets(2,4,2,4));
-		B2.setAlignmentX((float) 1);
 		Dimension d = new Dimension();
 		d.height = B1.getPreferredSize().height;
 		d.width = (new JLabel("XXXXX")).getPreferredSize().width;
 		l.setPreferredSize(d);
-		l.setMaximumSize(d);
 		l.setAlignmentX((float) 1);
-		timeUnitEdit.setPreferredSize(d);
-		timeUnitEdit.setMaximumSize(d);
-		timeUnitEdit.setAlignmentX((float) 1);
+		timeUnitEdit.setPreferredSize(new Dimension(50, d.height));
 
 		up.add(l);
 		up.add(B1);
