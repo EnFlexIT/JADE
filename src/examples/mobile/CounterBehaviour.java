@@ -58,7 +58,7 @@ class CounterBehaviour extends SimpleBehaviour
 			((MobileAgent) myAgent).cnt++;
 		}
 		
-		// Block the behaviour for 1 second
+		// Block the behaviour for 2 seconds
 		
 		block(2000);
 
