@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/10/30 18:26:53  rimassa
+  Added an implementation of reset() method that simply resets the
+  embedded ACL message.
+
   Revision 1.5  1998/10/10 19:14:34  rimassa
   Fixed some compilation errors. Now the class compiles and runs.
 
@@ -94,6 +98,11 @@ public final class ReceiverBehaviour extends Behaviour {
 
   public boolean done() {
     return finished;
+  }
+
+  public void reset() {
+    if(result != null)
+      result.reset();
   }
 
 } // End of ReceiverBehaviour class
