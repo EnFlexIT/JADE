@@ -150,6 +150,11 @@ public abstract class Behaviour implements Serializable {
   */
   protected CompositeBehaviour parent;
 
+  /** 
+     The private data store of this Behaviour
+   */
+  private DataStore myStore;
+  
   final void setParent(CompositeBehaviour cb) {
     parent = cb;
   }
@@ -369,4 +374,23 @@ public abstract class Behaviour implements Serializable {
     myAgent = a;
   }
 
+  /**
+     Return the private data store of this <code>Behaviour</code>
+     @return The private data store of this <code>Behaviour</code>
+   */
+  public DataStore getDataStore() {
+  	if (myStore == null) {
+  		myStore =  new DataStore();
+  	}
+  	return myStore;
+  }
+  
+  /**
+     Set the private data store of this <code>Behaviour</code>
+     @param ds the <code>DataStore</code> that this <code>Behaviour</code>
+     will use as its private data store
+   */
+  public void setDataStore(DataStore ds) {
+  	myStore = ds;
+  }
 }
