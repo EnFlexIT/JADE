@@ -68,7 +68,7 @@ class PersistentDeliveryManager {
     private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
 
     // How often to send enqueued messages
-    private static final long DEFAULT_DELIVERPERIOD = 60*1000; // One minute
+    private static final long DEFAULT_DELIVERPERIOD = 10*1000; // 10 sec
 
     private class DeliveryItem {
 
