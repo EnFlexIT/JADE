@@ -86,7 +86,15 @@ public void action(){
  public int onEnd() {
 	 return ret;
  }
-
+ 
+	public void setMsgKey(String msgKey) {
+		this.msgKey = msgKey;
+	}
+ 
+	public void setReplyKey(String replyKey) {
+	  this.replyKey = replyKey;
+	}
+ 
 	/**
      Adjust all protocol fields and receivers in a reply to a given
      message.
