@@ -368,6 +368,16 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					      id = "BE-"+localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
 					  	}
 					  }
+					  
+					  if (id.equals(msisdn)) {
+					  	JICPMediator old = (JICPMediator) mediators.get(id);
+					  	if (old != null) {
+					  		// This is a zombie mediator --> kill it
+					  		old.kill();
+					  		// Be sure the zombie container has been removed
+					  		waitABit(100);
+					  	}
+					  }
 
 	          myLogger.log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
@@ -440,8 +450,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	        }
 	      	break;
 	      case 2:
-	      	myLogger.log("Communication error writing return packet to "+addr+":"+port, 1);
-        	e.printStackTrace();
+	      	myLogger.log("Communication error writing return packet to "+addr+":"+port+" ["+e.toString()+"]", 1);
 	      	break;
 	      case 3:
 	      	// This is a re-used connection waiting for the next incoming packet
@@ -504,6 +513,14 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		else {
 			throw new ICPException("No JICPMediator class specified.");
 		}
+  }
+  
+  private void waitABit(long t) {
+  	try {
+  		Thread.sleep(t);
+  	}
+  	catch (InterruptedException ie) {
+  	}
   }
 }
 
