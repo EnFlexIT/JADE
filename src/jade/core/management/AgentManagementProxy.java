@@ -51,7 +51,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(className);
 	    cmd.addParam(arguments);
@@ -87,7 +87,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void killAgent(AID agentID) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_KILLAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_KILLAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
 
 	    Node n = getNode();
@@ -111,7 +111,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_CHANGEAGENTSTATE, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_CHANGEAGENTSTATE, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(new Integer(newState));
 
@@ -136,7 +136,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 	    cmd.addParam(cid);
 	    cmd.addParam(certs);
@@ -168,7 +168,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void deadAgent(AID name) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_DEADAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_DEADAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 
 	    Node n = getNode();
@@ -192,7 +192,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_SUSPENDEDAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_SUSPENDEDAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 
 	    Node n = getNode();
@@ -216,7 +216,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void resumedAgent(AID name) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_RESUMEDAGENT, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_RESUMEDAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 
 	    Node n = getNode();
@@ -240,7 +240,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 
     public void exitContainer() throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_EXITCONTAINER, AgentManagementService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_EXITCONTAINER, AgentManagementSlice.NAME, null);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

@@ -47,6 +47,103 @@ import jade.security.AuthException;
 */
 public interface AgentManagementSlice extends Service.Slice {
 
+    /**
+       The name of this service.
+    */
+    static final String NAME = "jade.core.management.AgentManagement";
+
+    /**
+       This command name represents the <code>create-agent</code>
+       action. The target agent identifier in this command is set to
+       <code>null</code>, because no agent exists yet.
+       This command object represents only the <i>first half</i> of
+       the complete agent creation process. Even if this command is
+       accepted by the kernel, there is no guarantee that the
+       requested creation will ever happen. Only when the
+       <code>InformCreated</code> command is issued can one assume
+       that the agent creation has taken place.
+    */
+    static final String REQUEST_CREATE = "Request-Create";
+
+    /**
+       This command name represents the <code>start-agent</code>
+       action. The target agent identifier in this command has already
+       been created, but its internal thread was not started at
+       creation time.
+    */
+    static final String REQUEST_START = "Request-Start";
+
+    /**
+       This command name represents the <code>kill-agent</code>
+       action.
+       This command object represents only the <i>first half</i> of
+       the complete agent destruction process. Even if this command is
+       accepted by the kernel, there is no guarantee that the
+       requested destruction will ever happen. Only when the
+       <code>InformKilled</code> command is issued can one assume that
+       the agent destruction has taken place.
+    */
+    static final String REQUEST_KILL = "Request-Kill";
+
+    /**
+       This command name represents all agent management actions requesting
+       a change in the life cycle state of their target agent
+       (suspend, resume, etc.).
+       This command object represents only the <i>first half</i> of
+       the complete agent state change process. Even if this command
+       is accepted by the kernel, there is no guarantee that the
+       requested state change will ever happen. Only when the
+       <code>InformStateChanged</code> command is issued can one
+       assume that the state change has taken place.
+    */
+    static final String REQUEST_STATE_CHANGE = "Request-State-Change";
+
+    /**
+       This command is issued by an agent that has just been created,
+       and causes JADE runtime to actually start up the agent thread.
+       The agent creation can be the outcome of a previously issued
+       <code>RequestCreate</code> command. In that case, this command
+       represents only the <i>second half</i> of the complete agent
+       creation process.
+    */
+    static final String INFORM_CREATED = "Inform-Created";
+
+    /**
+       This command is issued by an agent that has just been destroyed
+       and whose thread is terminating.
+       The agent destruction can either be an autonomous move of the
+       agent or the outcome of a previously issued
+       <code>RequestKill</code> command. In the second case, this
+       command represents only the <i>second half</i> of the complete
+       agent destruction process.
+
+    */
+    static final String INFORM_KILLED = "Inform-Killed";
+
+    /**
+       This command is issued by an agent that has just changed its
+       life-cycle state.
+       The agent state change can either be an autonomous move of the
+       agent or the outcome of a previously issued
+       <code>RequestStateChange</code> command. In that case, this
+       command represents only the <i>second half</i> of the complete
+       agent state tansition process.
+    */
+    static final String INFORM_STATE_CHANGED = "Inform-State-Changed";
+
+    /**
+       This command name represents the <code>kill-container</code>
+       action.
+    */
+    static final String KILL_CONTAINER = "Kill-Container";
+
+
+    static final String MAIN_SLICE = "Main-Container";
+
+    static final boolean CREATE_AND_START = true;
+    static final boolean CREATE_ONLY = false;
+
+
     // Constants for the names of horizontal commands associated to methods
     static final String H_CREATEAGENT = "1";
     static final String H_KILLAGENT = "2";

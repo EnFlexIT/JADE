@@ -62,108 +62,6 @@ import jade.security.AuthException;
 */
 public class AgentManagementService extends BaseService {
 
-    /**
-       The name of this service.
-    */
-    public static final String NAME = "jade.core.management.AgentManagement";
-
-    /**
-       This command name represents the <code>create-agent</code>
-       action. The target agent identifier in this command is set to
-       <code>null</code>, because no agent exists yet.
-       This command object represents only the <i>first half</i> of
-       the complete agent creation process. Even if this command is
-       accepted by the kernel, there is no guarantee that the
-       requested creation will ever happen. Only when the
-       <code>InformCreated</code> command is issued can one assume
-       that the agent creation has taken place.
-    */
-    public static final String REQUEST_CREATE = "Request-Create";
-
-    /**
-       This command name represents the <code>start-agent</code>
-       action. The target agent identifier in this command has already
-       been created, but its internal thread was not started at
-       creation time.
-    */
-    public static final String REQUEST_START = "Request-Start";
-
-    /**
-       This command name represents the <code>kill-agent</code>
-       action.
-       This command object represents only the <i>first half</i> of
-       the complete agent destruction process. Even if this command is
-       accepted by the kernel, there is no guarantee that the
-       requested destruction will ever happen. Only when the
-       <code>InformKilled</code> command is issued can one assume that
-       the agent destruction has taken place.
-    */
-    public static final String REQUEST_KILL = "Request-Kill";
-
-    /**
-       This command name represents all agent management actions requesting
-       a change in the life cycle state of their target agent
-       (suspend, resume, etc.).
-       This command object represents only the <i>first half</i> of
-       the complete agent state change process. Even if this command
-       is accepted by the kernel, there is no guarantee that the
-       requested state change will ever happen. Only when the
-       <code>InformStateChanged</code> command is issued can one
-       assume that the state change has taken place.
-    */
-    public static final String REQUEST_STATE_CHANGE = "Request-State-Change";
-
-
-    // private AgentState myNewState;
-
-    /**
-       This command is issued by an agent that has just been created,
-       and causes JADE runtime to actually start up the agent thread.
-       The agent creation can be the outcome of a previously issued
-       <code>RequestCreate</code> command. In that case, this command
-       represents only the <i>second half</i> of the complete agent
-       creation process.
-    */
-    public static final String INFORM_CREATED = "Inform-Created";
-
-
-
-    /**
-       This command is issued by an agent that has just been destroyed
-       and whose thread is terminating.
-       The agent destruction can either be an autonomous move of the
-       agent or the outcome of a previously issued
-       <code>RequestKill</code> command. In the second case, this
-       command represents only the <i>second half</i> of the complete
-       agent destruction process.
-
-    */
-    public static final String INFORM_KILLED = "Inform-Killed";
-
-    /**
-       This command is issued by an agent that has just changed its
-       life-cycle state.
-       The agent state change can either be an autonomous move of the
-       agent or the outcome of a previously issued
-       <code>RequestStateChange</code> command. In that case, this
-       command represents only the <i>second half</i> of the complete
-       agent state tansition process.
-    */
-    public static final String INFORM_STATE_CHANGED = "Inform-State-Changed";
-
-
-    /**
-       This command name represents the <code>kill-container</code>
-       action.
-    */
-    public static final String KILL_CONTAINER = "Kill-Container";
-
-
-    //    public static final String MAIN_SLICE = "Main-Slice";
-    public static final String MAIN_SLICE = "Main-Container";
-
-    public static final boolean CREATE_AND_START = true;
-    public static final boolean CREATE_ONLY = false;
 
     public AgentManagementService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
@@ -177,12 +75,12 @@ public class AgentManagementService extends BaseService {
 
 
     public String getName() {
-	return NAME;
+	return AgentManagementSlice.NAME;
     }
 
     public Class getHorizontalInterface() {
 	try {
-	    return Class.forName(NAME + "Slice");
+	    return Class.forName(AgentManagementSlice.NAME + "Slice");
 	}
 	catch(ClassNotFoundException cnfe) {
 	    return null;
@@ -492,7 +390,7 @@ public class AgentManagementService extends BaseService {
 	if(impl != null) {
 	    AID agentID = new AID(name, AID.ISLOCALNAME);
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    targetSlice.createAgent(agentID, className, args, ownership, certs, CREATE_AND_START);
+	    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
 	}
 	else {
 	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -529,7 +427,7 @@ public class AgentManagementService extends BaseService {
 	#MIDP_INCLUDE_END*/
 
 	// Notify the main container through its slice
-	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
 	mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
 
 	// Actually start the agent thread
@@ -600,7 +498,7 @@ public class AgentManagementService extends BaseService {
 	myContainer.removeLocalAgent(target);
 
 	// Notify the main container through its slice
-	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
 	mainSlice.deadAgent(target);
     }
 
@@ -614,7 +512,7 @@ public class AgentManagementService extends BaseService {
 	if (to.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
 	    try {
 		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
 		mainSlice.suspendedAgent(target);
 	    }
 	    catch(IMTPException re) {
@@ -630,7 +528,7 @@ public class AgentManagementService extends BaseService {
 	else if (from.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
 	    try {
 		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
 		mainSlice.resumedAgent(target);
 	    }
 	    catch(IMTPException re) {
@@ -684,7 +582,7 @@ public class AgentManagementService extends BaseService {
 	    if(startIt) {
 
 		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
 		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
 
 		// Actually start the agent thread

@@ -634,7 +634,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
       // --- End of code that should go into the Security Service ---
 
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_CREATE, jade.core.management.AgentManagementService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_CREATE, jade.core.management.AgentManagementSlice.NAME, null);
 
       cmd.addParam(name);
       cmd.addParam(className);
@@ -675,7 +675,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_KILL, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_KILL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 
 	myCommandProcessor.process(cmd);
@@ -693,7 +693,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED));
 
@@ -712,7 +712,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
@@ -724,7 +724,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
        Put an agent in the WAITING state wherever it is
     */
     public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING));
 
@@ -735,7 +735,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
        Wake-up an agent wherever it is
     */
     public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
@@ -835,7 +835,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 		    public Object run() {
 			Thread auxThread = new Thread() {
 				public void run() {
-				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.KILL_CONTAINER, jade.core.management.AgentManagementService.NAME, null);
+				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 				    cmd.addParam(cid);
 				    myCommandProcessor.process(cmd);
 				}

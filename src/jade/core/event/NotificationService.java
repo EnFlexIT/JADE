@@ -143,7 +143,7 @@ public class NotificationService extends BaseService {
 		else if(name.equals(NOTIFY_RECEIVED)) {
 		    handleNotifyReceived(cmd);
 		}
-		else if(name.equals(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED)) {
+		else if(name.equals(jade.core.management.AgentManagementSlice.INFORM_STATE_CHANGED)) {
 		    handleNotifyChangedAgentState(cmd);
 		}
 		else if(name.equals(NOTIFY_CHANGED_AGENT_PRINCIPAL)) {

@@ -169,7 +169,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_CREATED, jade.core.management.AgentManagementService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
       cmd.addParam(new Boolean(startIt));
@@ -657,7 +657,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED, jade.core.management.AgentManagementService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_STATE_CHANGED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(from);
       cmd.addParam(to);
@@ -676,7 +676,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleEnd(AID agentID) {
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_KILLED, jade.core.management.AgentManagementService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       myCommandProcessor.process(cmd);
   }
@@ -722,7 +722,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
     private void startAgent(AID agentID) {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.REQUEST_START, jade.core.management.AgentManagementService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_START, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 
 	myCommandProcessor.process(cmd);
