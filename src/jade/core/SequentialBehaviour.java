@@ -6,14 +6,12 @@ package jade.core;
 
 /**************************************************************
 
-  Name: MessageTemplate
+  Name: SequentialBehaviour
 
   Responsibility and Collaborations:
 
-  + Represents set of ACL messages
-
-  + Performs a pattern matching against a given ACL message
-    (ACLMessage)
+  + It is a ComplexBehaviour that executes its sub-behaviours
+    sequentially, and it terminates when all sub-behaviours are done.
 
 ****************************************************************/
 public class SequentialBehaviour extends ComplexBehaviour {

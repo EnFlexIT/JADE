@@ -35,6 +35,9 @@ public abstract class ComplexBehaviour implements Behaviour {
     Node last = null;
     Node current = null;
 
+    // Node counter
+    int length = 0;
+
     public BehaviourList() {
     }
 
@@ -52,6 +55,7 @@ public abstract class ComplexBehaviour implements Behaviour {
       last = n;
       if(first == null)
 	first = n;
+      ++length;
     }
 
     public final synchronized boolean removeElement(Behaviour b) {
@@ -76,6 +80,7 @@ public abstract class ComplexBehaviour implements Behaviour {
 	  if(i == last)
 	    last = old;
 	}
+	--length;
 	return true;
       }
     }
@@ -101,6 +106,10 @@ public abstract class ComplexBehaviour implements Behaviour {
       }
 
       return current == null;
+    }
+
+    public int size() {
+      return length;
     }
 
   }
