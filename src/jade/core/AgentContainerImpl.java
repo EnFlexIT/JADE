@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.io.ByteArrayInputStream;
+/*import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +35,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 
 import java.lang.reflect.*;
-
+*/
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -95,18 +95,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // container and the container where its classes can be retrieved
   //private Map sites = new HashMap();
 
-  // The agent platform this container belongs to
-  private MainContainer myMain;
-
-  // The Agent Communication Channel, managing the external MTPs.
-  private acc theACC;
-
   // The Profile defining the configuration of this Container
   private Profile myProfile;
   
+  // The agent platform this container belongs to
+  private MainContainer myMain;
+
   // The IMTP manager, used to access IMTP-dependent functionalities
   private IMTPManager myIMTPManager;
   
+  // The Agent Communication Channel, managing the external MTPs.
+  private acc myACC;
+
   // The Object this container delegates all operations related to
   // agent mobility
   private MobilityManager myMobilityManager;
@@ -457,7 +457,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try{
       Class c = Class.forName(className);
       ACLCodec codec = (ACLCodec)c.newInstance(); 
-      theACC.addACLCodec(codec);
+      myACC.addACLCodec(codec);
       System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className +"\n");
       // FIXME: notify the AMS of the new Codec to update the APDescritption.
     }
@@ -477,7 +477,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
-      TransportAddress ta = theACC.addMTP(proto, address);
+      TransportAddress ta = myACC.addMTP(proto, address);
       String result = proto.addrToStr(ta);
       myMain.newMTP(result, myID);
       return result;
@@ -494,24 +494,24 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
-    theACC.removeMTP(address);
+    myACC.removeMTP(address);
     myMain.deadMTP(address, myID);
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
     switch(op) {
     case ADD_RT:
-      theACC.addRoute(address, ac);
+      myACC.addRoute(address, ac);
       break;
     case DEL_RT:
-      theACC.removeRoute(address, ac);
+      myACC.removeRoute(address, ac);
       break;
     }
 
   }
 
   public void routeOut(ACLMessage msg, AID receiver, String address) throws IMTPException, MTPException {
-    theACC.forwardMessage(msg, receiver, address);
+    myACC.forwardMessage(msg, receiver, address);
   }
 
 
@@ -521,9 +521,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   void joinPlatform() {
   	try {
+  		// Create and initialize the IMTPManager
   		myIMTPManager = myProfile.getIMTPManager();
   		myIMTPManager.initialize(myProfile);
   		myIMTPManager.remotize(this);
+  		
+  		// Get the Main
       myMain = myProfile.getMain();
 
       // This string will be used to build the GUID for every agent on
@@ -533,10 +536,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
-      // Set up the ACC.
-      theACC = myProfile.getAcc();
+      // Create the ACC.
+      myACC = myProfile.getAcc();
 
-      // Initialize the Container ID
+      // Create and initialize the MobilityManager.
+      myMobilityManager = myProfile.getMobilityManager();
+      myMobilityManager.initialize(myProfile, this, localAgents);
+      
+      // Initialize the Container ID and register to the platform
       // FIXME: ContainerID should be modified so that to take
       // a list of addresses
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
@@ -544,7 +551,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       myMain.register(this, myID);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
-      theACC.initialize(this, myProfile);
+      myACC.initialize(this, myProfile);
       
     }
     catch(IMTPException re) {
@@ -603,7 +610,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void shutDown() {
 
     // Close down the ACC
-    theACC.shutdown();
+    myACC.shutdown();
 
     // Remove all agents
     Agent[] allLocalAgents = localAgents.values();
@@ -1013,7 +1020,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
     }
     else { // It lives outside: then it's a job for the ACC...
-      result = theACC.getProxy(id);
+      result = myACC.getProxy(id);
     }
 
     return result;
