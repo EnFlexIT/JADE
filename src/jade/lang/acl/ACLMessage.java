@@ -270,7 +270,7 @@ private int performative; // keeps the performative type of this object
      @param type The new value for the slot.
      @see jade.lang.acl.ACLMessage#setPerformative(int perf)
   */
-  public void setType( String type ) {
+  public void setType(String type) {
     if (type != null)
       performative = performatives.indexOf(type.toUpperCase());
     else
@@ -559,9 +559,13 @@ private int performative; // keeps the performative type of this object
   }
 
   /**
+     @deprecated Now suitable symbolic constants are to be used to
+     represent ACL performatives. <code>getPerformative()</code>
+     method should be used instead of this one.
      Reads message type.
      @return The value of the message type..
-     @see jade.lang.acl.ACLMessage#setPerformative(int perf).
+     @see jade.lang.acl.ACLMessage#getPerformative().
+
   */
   public String getType() {
     return getPerformative(performative); 
@@ -724,7 +728,7 @@ private int performative; // keeps the performative type of this object
   public void toText(Writer w) {
     try {
       w.write("(");
-      w.write(getType() + "\n");
+      w.write(getPerformative(getPerformative()) + "\n");
       if(source.length() > 0)
 	w.write(SOURCE + " " + source + "\n");
       Enumeration e = dests.getMembers();
