@@ -30,24 +30,15 @@ import java.io.Serializable;
  * @author Giovanni Caire - Telecom Italia Lab
  * @version $Date$ $Revision$
  */
-class BehaviourList implements Serializable {
-  	private List theList = new ArrayList();
+class BehaviourList extends LinkedList implements Serializable {
   	private int current = 0;
-  	
-  	public int size() {
-  		return theList.size();
-  	}
-  	
-  	public boolean isEmpty() {
-  		return theList.isEmpty();
-  	}
   	
   	/** 
   	 * Add a Behaviour to the tail of the list. This does not require
   	 * adjusting the current index
   	 */
   	public void addElement(Behaviour b) {
-  		theList.add(b);
+  		add(b);
   	}
   	
     /** 
@@ -60,36 +51,45 @@ class BehaviourList implements Serializable {
      * must be set to 0
      */
   	public boolean removeElement(Behaviour b) {
-  		int index = theList.indexOf(b);
+  		int index = indexOf(b);
     	if(index != -1) {
-      		theList.remove(b);
+      		remove(b);
       		if (index < current) {
 				--current;
       		}
-      		else if (index == current && current == theList.size()) {
+      		else if (index == current && current == size()) {
       			current = 0;
       		}
     	}
     	return index != -1;
   	}
   	
+  	/**
+  	   Get the current behaviour
+  	*/
   	public Behaviour getCurrent() {
   		Behaviour b = null;
   		try {
-  			b = (Behaviour) theList.get(current);
+  			b = (Behaviour) get(current);
   		}
   		catch (IndexOutOfBoundsException ioobe) {
-  			// Just do nothing
+  			// Just do nothing. Null will be returned
   		}
   		return b;
   	}
-  		
+
+  	/**
+  	   Set the current index to the beginning of the list
+  	*/
   	public void begin() {
   		current = 0;
   	}
-  	
+
+  	/**
+  	   Check whether the current behaviour is the last in the list
+  	*/
   	public boolean currentIsLast() {
-  		return (current == (theList.size() - 1));
+  		return (current == (size() - 1));
   	}
   	
   	/** 
@@ -106,9 +106,6 @@ class BehaviourList implements Serializable {
   		return getCurrent();
   	}
   	
-  	public Collection values() {
-  		return theList;
-  	}
 }
   
  

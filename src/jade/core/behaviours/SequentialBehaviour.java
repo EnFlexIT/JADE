@@ -58,6 +58,10 @@ public class SequentialBehaviour extends CompositeBehaviour {
     super(a);
   }
 
+  /**
+     Prepare the first child for execution
+     @see jade.core.behaviours.CompositeBehaviour#scheduleFirst
+  */
   protected void scheduleFirst() {
   	// Schedule the first child
   	subBehaviours.begin();
@@ -75,29 +79,43 @@ public class SequentialBehaviour extends CompositeBehaviour {
     }
   }
   
+  /**
+     Check whether this <code>SequentialBehaviour</code> must terminate.
+     @return true when the last child has terminated. false otherwise
+     @see jade.core.behaviours.CompositeBehaviour#checkTermination
+  */
   protected boolean checkTermination(boolean currentDone, int currentResult) {
   	return (currentDone && subBehaviours.currentIsLast());
   }
 
+  /** 
+     Get the current child
+     @see jade.core.behaviours.CompositeBehaviour#getCurrent
+  */
   protected Behaviour getCurrent() {
   	return subBehaviours.getCurrent();
   }
   
+  /**
+     Return a Collection view of the children of 
+     this <code>SequentialBehaviour</code> 
+     @see jade.core.behaviours.CompositeBehaviour#getChildren
+  */
   protected Collection getChildren() {
-	return subBehaviours.values();
+	return subBehaviours;
   }
   	
   /** 
-   * Add a sub behaviour to this SequentialBehaviour
-   */
+     Add a sub behaviour to this <code>SequentialBehaviour</code>
+  */
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
   }
   
   /** 
-   * Remove a sub behaviour from this SequentialBehaviour
-   */
+     Remove a sub behaviour from this <code>SequentialBehaviour</code>
+  */
   public void removeSubBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
     if(rc) {

@@ -28,30 +28,29 @@ import jade.core.Agent;
 
 /**
    An abstract superclass for behaviours composed by many parts. This
-   class holds inside a list of <b><em>children behaviours</em></b>,
-   to which elements can be aded or emoved dynamically.
+   class holds inside a number of <b><em>children behaviours</em></b>.
    When a <code>CompositeBehaviour</code> receives it execution quantum
    from the agent scheduler, it executes one of its children according
    to some policy. This class must be extended to provide the actual
    scheduling policy to apply when running children behaviours.
    @see jade.core.behaviours.SequentialBehaviour
    @see jade.core.behaviours.ParallelBehaviour
+   @see jade.core.behaviours.FSMBehaviour
 
    
    @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
 
  */
 public abstract class CompositeBehaviour extends Behaviour {
 
-  // This variables mark the states when no child-behaviour has been run
-  // yet and when all child-behaviours have been run.
   /**
-  @serial
+    This variable marks the state when no child-behaviour has been run yet.
   */
   private boolean starting = true;
   /**
-  @serial
+    This variable marks the state when all child-behaviours have been run.
   */
   private boolean finished = false;
   
@@ -76,60 +75,14 @@ public abstract class CompositeBehaviour extends Behaviour {
   } 
 
   /**
-     This method is just an empty placeholders for subclasses. It is
-     executed just once before starting children
-     scheduling. Therefore, it acts as a prolog to the composite
-     action represented by this <code>CompositeBehaviour</code>.
+     Executes this <code>CompositeBehaviour</code>. This method 
+     executes children according to the scheduling policy 
+     defined by concrete subclasses that implements 
+     the <code>scheduleFirst()</code> and <code>scheduleNext()</code>
+     methods.
   */
-  protected void preAction() {
-  }
-
-  /**
-     Abstract policy method for children execution. Different
-     subclasses will implement this method to run children according
-     to some policy (sequentially, round robin, priority based, ...).
-     This abstract method is the policy routine to be used by
-     subclasses to schedule children behaviours. This method must be
-     used by application programmer only to create new kinds of
-     <code>CompositeBehaviour</code> with custom children scheduling. In
-     this case, the method must return <code>true</code> when the
-     composite behaviour has ended and <code>false</code>
-     otherwise. Typically, the value returned will be some function of
-     all termination statuses of children behaviours.
-     @return <code>true</code> when done, <code>false</code> when
-     children behaviours still need to be run.
-     @see jade.core.behaviours.SequentialBehaviour
-     @see jade.core.behaviours.ParallelBehaviour 
-  protected abstract boolean bodyAction();
-  */
-
-  /**
-     This method is just an empty placeholder for subclasses. It is
-     invoked just once after children scheduling has ended. Therefore,
-     it acts as an epilog for the composite task represented by this
-     <code>CompositeBehaviour</code>. Overriding this method,
-     application programmers can build <em>fork()/join()</em>
-     execution structures.
-     An useful idiom can be used to implement composite cyclic
-     behaviours (e.g. a behaviour that continuously follows a specific
-     interaction protocol): puttng a <code>reset()</code> call into
-     <code>postAction()</code> method makes a complex behaviour
-     restart as soon as it terminates, thereby turning it into a
-     cyclic composite behaviour.
-   */
-  protected void postAction() {
-  }
-
-  /**
-     Executes this <code>CompositeBehaviour</code>. This method starts
-     by executing <code>preAction()</code>; then
-     <code>bodyAction()</code> is called once per scheduling turn
-     until it returns <code>true</code>. Eventually,
-     <code>postAction()</code> is called.
-   */
   public final void action() {
 	if(starting) {
-    	//preAction();
       	scheduleFirst();
     	starting = false;
     }
@@ -172,9 +125,6 @@ public abstract class CompositeBehaviour extends Behaviour {
     	finished = true;
     }
     	
-    //if(finished) {
-    //	postAction();
-    //}
   }
 
   /**
@@ -193,12 +143,25 @@ public abstract class CompositeBehaviour extends Behaviour {
   
   /**
    * This method schedules the next child to be executed
-   * @return true if no more children have to be run (i.e. this
-   * CompositeBehaviour is terminating). false otherwise.
+   * @param currentDone a flag indicating whether the just executed
+   * child has completed or not.
+   * @param currentResult the termination value (as returned by
+   * <code>onEnd()</code>) of the just executed child in the case this
+   * child has completed (otherwise this parameter is meaningless)
    */
   protected abstract void scheduleNext(boolean currentDone, int currentResult);
   
   /**
+   * This methods is called after the execution of each child
+   * in order to check whether the <code>CompositeBehaviour</code>
+   * should terminate.
+   * @param currentDone a flag indicating whether the just executed
+   * child has completed or not.
+   * @param currentResult the termination value (as returned by
+   * <code>onEnd()</code>) of the just executed child in the case this
+   * child has completed (otherwise this parameter is meaningless)
+   * @return true if the <code>CompositeBehaviour</code>
+   * should terminate. false otherwise.
    */
   protected abstract boolean checkTermination(boolean currentDone, int currentResult);
   
@@ -209,14 +172,14 @@ public abstract class CompositeBehaviour extends Behaviour {
   protected abstract Behaviour getCurrent();
   
   /**
-   * This method returns the children of 
-   * this CompositeBehaviour seen as a Collection
+   * This method returns a Collection view of the children of 
+   * this <code>CompositeBehaviour</code> 
    */
   protected abstract Collection getChildren();
 
   /**
      Blocks this behaviour. When <code>block()</code> is called 
-     all its children behaviours are notified too.
+     all its children are notified too.
   */
   public void block() {
     // Notify upwards
@@ -229,7 +192,7 @@ public abstract class CompositeBehaviour extends Behaviour {
   
   /**
      Restarts this behaviour. When <code>restart()</code> is called 
-     all its children behaviours are notified too.
+     all its children are notified too.
   */
   public void restart() {
     // Notify upwards
@@ -258,12 +221,44 @@ public abstract class CompositeBehaviour extends Behaviour {
     super.reset();
   }
 
+  /**
+     Overrides the <code>onStart()</code> method in the 
+     <code>Behaviour</code> class by simply calling the 
+     <code>preAction()</code> method for backward compatibility.
+     @see jade.core.behaviours.Behaviour#onStart()
+  */
   public void onStart() {
   	preAction();
   }
   
+  /**
+     Overrides the <code>onEnd()</code> method in the 
+     <code>Behaviour</code> class by simply calling the 
+     <code>postAction()</code> method for backward compatibility.
+     @see jade.core.behaviours.Behaviour#onEnd()
+  */
   public int onEnd() {
   	postAction();
   	return 0;
   }
+  
+  /**
+     @deprecated Use <code>onStart()</code> instead.
+     This method is just an empty placeholders for subclasses. It is
+     executed just once before starting children
+     scheduling. Therefore, it acts as a prolog to the composite
+     task represented by this <code>CompositeBehaviour</code>.
+  */
+  protected void preAction() {
+  }
+
+  /**
+     @deprecated Use <code>onEnd()</code> instead.
+     This method is just an empty placeholder for subclasses. It is
+     invoked just once after this behaviour has ended. Therefore,
+     it acts as an epilog for the composite task represented by this
+     <code>CompositeBehaviour</code>. 
+  */
+  protected void postAction() {
+  }  
 }

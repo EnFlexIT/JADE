@@ -28,15 +28,12 @@ import java.util.*;
 import jade.core.Agent;
 
 /**
-   Composite behaviour with non deterministic children scheduling.
+   Composite behaviour with concurrent children scheduling.
    It is a <code>CompositeBehaviour</code> that executes its children
-   behaviours non deterministically, and it terminates when a
-   particular condition on its sub-behaviours is met. Static
-   <em><b>Factory Methods</b></em> are provided to get a
-   <code>ParallelBehaviour</code> that ends when all its
-   sub-behaviours are done, when any sub-behaviour terminates or when
-   <em>N</em> sub-behaviours have finished.
-
+   behaviours concurrently, and it terminates when a
+   particular condition on its sub-behaviours is met i.e. when 
+   all children are done, <em>N</em> children are done or any 
+   child is done.
    
    @author Giovanni Rimassa - Universita` di Parma
    @author Giovanni Caire - Telecom Italia Lab
@@ -45,40 +42,80 @@ import jade.core.Agent;
 */
 public class ParallelBehaviour extends CompositeBehaviour {
 
+  /** 
+     Predefined constant to be used in the constructor to create
+     a <code>ParallelBehaviour</code> that terminates when all its
+     children are done.
+  */
   public static final int WHEN_ALL = 0;
+  /** 
+     Predefined constant to be used in the constructor to create
+     a <code>ParallelBehaviour</code> that terminates when any of
+     its child is done.
+  */
   public static final int WHEN_ANY = 1;
 
-  /**
-  @serial
-  */
   private int whenToStop;
   private BehaviourList subBehaviours = new BehaviourList();
-  /**
-  @serial
-  */
   private Hashtable blockedChildren = new Hashtable(); 
-  /**
-  @serial
-  */
   private BehaviourList terminatedChildren = new BehaviourList();
-
 
  
   /**
-   * Constructor
+     Construct a <code>ParallelBehaviour</code> without setting the 
+     owner agent.
+     @param endCondition this value defines the termination condition
+     for this <code>ParallelBehaviour</code>. Use 
+     <ol>
+     <li>
+     <code>WHEN_ALL</code> to terminate this <code>ParallelBehaviour</code> 
+     when all its children are done. 
+     </li>
+     <li>
+     <code>WHEN_ANY</code> to terminate this <code>ParallelBehaviour</code> 
+     when any of its child is done.
+     </li>
+     <li>
+     a positive <code>int</code> value n to terminate this 
+     <code>ParallelBehaviour</code> when n of its children are done.
+     </li>
+     </ol>
    */
   public ParallelBehaviour(int endCondition) {
     whenToStop = endCondition;
   }
 
   /**
-   * Constructor
+     Construct a <code>ParallelBehaviour</code> setting the 
+     owner agent.
+     @param a the agent this <code>ParallelBehaviour</code> 
+     belongs to.
+     @param endCondition this value defines the termination condition
+     for this <code>ParallelBehaviour</code>. Use 
+     <ol>
+     <li>
+     <code>WHEN_ALL</code> to terminate this <code>ParallelBehaviour</code> 
+     when all its children are done. 
+     </li>
+     <li>
+     <code>WHEN_ANY</code> to terminate this <code>ParallelBehaviour</code> 
+     when any of its child is done.
+     </li>
+     <li>
+     a positive <code>int</code> value n to terminate this 
+     <code>ParallelBehaviour</code> when n of its children are done.
+     </li>
+     </ol>
    */
   public ParallelBehaviour(Agent a, int endCondition) {
     super(a);
     whenToStop = endCondition;
   }
 
+  /**
+     Prepare the first child for execution
+     @see jade.core.behaviours.CompositeBehaviour#scheduleFirst
+  */
   protected void scheduleFirst() {
   	// Schedule the first child
   	subBehaviours.begin();
@@ -120,6 +157,10 @@ public class ParallelBehaviour extends CompositeBehaviour {
   	}
   }
 
+  /**
+     Check whether this <code>ParallelBehaviour</code> must terminate.
+     @see jade.core.behaviours.CompositeBehaviour#checkTermination
+  */
   protected boolean checkTermination(boolean currentDone, int currentResult) {
     if(currentDone) {
     	// If the current child is terminated --> remove it from
@@ -146,17 +187,26 @@ public class ParallelBehaviour extends CompositeBehaviour {
     }
   }
   
+  /** 
+     Get the current child
+     @see jade.core.behaviours.CompositeBehaviour#getCurrent
+  */
   protected Behaviour getCurrent() {
   	return subBehaviours.getCurrent();
   }
   
+  /**
+     Return a Collection view of the children of 
+     this <code>ParallelBehaviour</code> 
+     @see jade.core.behaviours.CompositeBehaviour#getChildren
+  */
   protected Collection getChildren() {
-	return subBehaviours.values();
+	return subBehaviours;
   }
   	
   /** 
-   * Add a sub behaviour to this ParallelBehaviour
-   */
+     Add a sub behaviour to this <code>ParallelBehaviour</code>
+  */
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
@@ -168,6 +218,8 @@ public class ParallelBehaviour extends CompositeBehaviour {
 		if (!isRunnable()) {
 	  		myEvent.init(true, NOTIFY_UP);
 	  		super.handle(myEvent);
+    		if(myAgent != null)
+     			myAgent.notifyRestarted(this);
 	  		// Also reset the currentExecuted flag so that a runnable
 	  		// child will be scheduled for execution
 	  		currentExecuted = true;
@@ -179,8 +231,8 @@ public class ParallelBehaviour extends CompositeBehaviour {
   }
   
   /** 
-   * Remove a sub behaviour from this ParallelBehaviour
-   */
+     Remove a sub behaviour from this <code>ParallelBehaviour</code>
+  */
   public void removeSubBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
     if(rc) {

@@ -29,6 +29,7 @@ import java.util.Iterator;
 import jade.core.Agent;
 
 /**
+   @deprecated Use <code>ParallelBehaviour</code> instead.
    Composite behaviour with non deterministic children scheduling.
    It is a <code>ComplexBehaviour</code> that executes its children
    behaviours non deterministically, and it terminates when a

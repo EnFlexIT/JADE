@@ -121,9 +121,6 @@ public abstract class Behaviour implements Serializable {
 
   } // End of RunnableChangedEvent class
 
-  /**
-  @serial
-  */
   private boolean runnableState = true;
   
   private boolean startFlag = true;
@@ -138,21 +135,18 @@ public abstract class Behaviour implements Serializable {
      available. Of course, remind to use the appropriate constructor,
      i.e. the one that accepts an agent object as argument; otherwise,
      this variable is set to <code>null</code>.
-     @serial
   */
   protected Agent myAgent;
 
   /**
      This event object will be re-used for every state change
      notification.
-     @serial
    */
   protected RunnableChangedEvent myEvent = new RunnableChangedEvent();
 
   /**
      Back pointer to the enclosing Behaviour (if present).
      @see jade.core.behaviours.CompositeBehaviour
-     @serial
   */
   protected CompositeBehaviour parent;
 
@@ -200,14 +194,42 @@ public abstract class Behaviour implements Serializable {
   */
   public abstract boolean done();
 
+  /**
+     This method is just an empty placeholder for subclasses. It is
+     invoked just once after this behaviour has ended. Therefore,
+     it acts as an epilog for the task represented by this
+     <code>Behaviour</code>.
+     <br>
+     Note that <code>onEnd</code> is called after the behaviour has been
+     removed from the pool of behaviours to be executed by an agent. 
+     Therefore calling
+     <code>reset()</code> is not sufficient to cyclically repeat the task
+     represented by this <code>Behaviour</code>. In order to achieve that, 
+     this <code>Behaviour</code> must be added again to the agent 
+     (using <code>myAgent.addBehaviour(this)</code>). The same applies to
+     in the case of a <code>Behaviour</code> that is a child of a 
+     <code>ParallelBehaviour</code>.
+     @return an integer code representing the termination value of
+     the behaviour.
+  */
   public int onEnd() {
   	return 0;
   }
   
+  /**
+     This method is just an empty placeholders for subclasses. It is
+     executed just once before starting behaviour execution. 
+     Therefore, it acts as a prolog to the task
+     represented by this <code>Behaviour</code>.
+  */
   public void onStart() {
   }
   
-  public void actionWrapper() {
+  /** 
+     This method is called internally by the JADE framework 
+     and should not be called by the user.
+  */
+  public final void actionWrapper() {
   	if (startFlag) {
   		onStart();
   		startFlag = false;

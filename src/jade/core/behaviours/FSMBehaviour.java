@@ -28,24 +28,20 @@ import java.io.Serializable;
 import jade.core.Agent;
 
 /**
-   An abstract superclass for behaviours composed by many parts. This
-   class holds inside a list of <b><em>children behaviours</em></b>,
-   to which elements can be aded or emoved dynamically.
-   When a <code>CompositeBehaviour</code> receives it execution quantum
-   from the agent scheduler, it executes one of its children according
-   to some policy. This class must be extended to provide the actual
-   scheduling policy to apply when running children behaviours.
+   Composite behaviour with Finite State Machine based children scheduling. 
+   It is a <code>CompositeBehaviour</code> that executes its children 
+   behaviours according to a FSM defined by the user. More specifically 
+   each child represents a state in the FSM.
+   The class provides methods to register states (sub-behaviours) and 
+   transitions that defines how sub-behaviours will be scheduled.
    @see jade.core.behaviours.SequentialBehaviour
    @see jade.core.behaviours.ParallelBehaviour
-
    
    @author Giovanni Caire - CSELT
    @version $Date$ $Revision$
 
  */
 public class FSMBehaviour extends CompositeBehaviour {
-
-  public static final int DEFAULT_EVENT = 0;
   
   private Map states = new HashMap();
   private Behaviour current = null;
@@ -71,29 +67,72 @@ public class FSMBehaviour extends CompositeBehaviour {
     super(a);
   } 
 
+  /** 
+     Register a <code>Behaviour</code> as a state of this 
+     <code>FSMBehaviour</code>. When the FSM reaches this state
+     the registered <code>Behaviour</code> will be executed.
+     @param state The <code>Behaviour</code> representing the state
+     @param name The name identifying the state.
+  */
   public void registerState(Behaviour state, String name) {
   	state.setParent(this);
   	states.put(name, state);
   }
   
+  /** 
+     Register a <code>Behaviour</code> as the initial state of this 
+     <code>FSMBehaviour</code>. 
+     @param state The <code>Behaviour</code> representing the state
+     @param name The name identifying the state.
+  */
   public void registerFirstState(Behaviour state, String name) {
   	registerState(state, name);
   	firstName = name;
   }
   
+  /** 
+     Register a <code>Behaviour</code> as a final state of this 
+     <code>FSMBehaviour</code>. When the FSM reaches this state
+     the registered <code>Behaviour</code> will be executed and, 
+     when completed, the <code>FSMBehaviour</code> will terminate too. 
+     @param state The <code>Behaviour</code> representing the state
+     @param name The name identifying the state.
+  */
   public void registerLastState(Behaviour state, String name) {
   	registerState(state, name);
   	lastStates.add(name);
   }
 
+  /** 
+     Register a transition in the FSM defining the policy for
+     children scheduling of this <code>FSMBehaviour</code>.
+     @param s1 The name of the state this transition starts from
+     @param s2 The name of the state this transition leads to
+     @param event The termination event that fires this transition
+     as returned by the <code>onEnd()</code> method of the 
+     <code>Behaviour</code> representing state s1.
+     @see jade.core.behaviours.Behaviour#onEnd()
+  */
   public void registerTransition(String s1, String s2, int event) {
   	theTransitionTable.addTransition(s1, s2, event);
   }
   	
+  /** 
+     Register a default transition in the FSM defining the policy for
+     children scheduling of this <code>FSMBehaviour</code>.
+     This transition will be fired when state s1 terminates with 
+     an event that is not explicitly associated to any transition. 
+     @param s1 The name of the state this transition starts from
+     @param s2 The name of the state this transition leads to
+  */
   public void registerDefaultTransition(String s1, String s2) {
     theTransitionTable.addDefaultTransition(s1, s2);
   }
   	
+  /** 
+     @return the <code>Behaviour</code> representing the state whose
+     name is name.
+  */
   public Behaviour getState(String name) {
   	Behaviour b = null;
   	if (name != null) {
@@ -102,6 +141,10 @@ public class FSMBehaviour extends CompositeBehaviour {
   	return b;
   }
   
+  /** 
+     @return the name of the state represented by <code>Behaviour</code>
+     state.
+  */
   public String getName(Behaviour state) {
   	Iterator it = states.keySet().iterator();
   	while (it.hasNext()) {
@@ -114,11 +157,30 @@ public class FSMBehaviour extends CompositeBehaviour {
   	return null;
   }
   
+  /**
+     Prepare the first child for execution. The first child is the 
+     <code>Behaviour</code> registered as the first state of this
+     <code>FSMBehaviour</code>
+     @see jade.core.behaviours.CompositeBehaviour#scheduleFirst
+  */
   protected void scheduleFirst() {
   	currentName = firstName;
   	current = getState(currentName);
   }
   
+  /**
+     This method schedules the next child to be executed. It checks 
+     whether the current child is completed and, in this case, fires
+     a suitable transition (according to the termination event of 
+     the current child) and schedules the child representing the 
+     new state.
+     @param currentDone a flag indicating whether the just executed
+     child has completed or not.
+     @param currentResult the termination value (as returned by
+     <code>onEnd()</code>) of the just executed child in the case this
+     child has completed (otherwise this parameter is meaningless)
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
+  */
   protected void scheduleNext(boolean currentDone, int currentResult) {
   	if (currentDone) {
   		try {
@@ -136,14 +198,29 @@ public class FSMBehaviour extends CompositeBehaviour {
   	}
   }
   
+  /**
+     Check whether this <code>FSMBehaviour</code> must terminate.
+     @return true when the last child has terminated and it 
+     represents a final state. false otherwise
+     @see jade.core.behaviours.CompositeBehaviour#checkTermination
+  */
   protected boolean checkTermination(boolean currentDone, int currentResult) { 
   	return (currentDone && lastStates.contains(currentName));
   }  		
   
+  /** 
+     Get the current child
+     @see jade.core.behaviours.CompositeBehaviour#getCurrent
+  */
   protected Behaviour getCurrent() {
   	return current;
   }
   
+  /**
+     Return a Collection view of the children of 
+     this <code>SequentialBehaviour</code> 
+     @see jade.core.behaviours.CompositeBehaviour#getChildren
+  */
   protected Collection getChildren() {
   	return states.values();
   }
