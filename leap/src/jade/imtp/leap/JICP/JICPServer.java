@@ -58,7 +58,8 @@ import java.util.StringTokenizer;
  * @author Steffen Rusitschka - Siemens
  */
 public class JICPServer extends Thread implements PDPContextManager.Listener {
-	private static final String LEAP_PROPERTIES_FILE = "leap.properties";
+	public static final String LEAP_PROPERTY_FILE = "leap-property-file";
+	private static final String LEAP_PROPERTY_FILE_DEFAULT = "leap.properties";
 	private static final String PDP_CONTEXT_MANAGER_CLASS = "pdp-context-manager";
 	
 	private static final int LISTENING = 0;
@@ -142,10 +143,12 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
     } 
 	  	
 		// Read the LEAP configuration properties
+    String fileName = p.getParameter(LEAP_PROPERTY_FILE, LEAP_PROPERTY_FILE_DEFAULT); 
 		try {
-			leapProps.load(LEAP_PROPERTIES_FILE);
+			leapProps.load(fileName);
 		}
 		catch (Exception e) {
+			myLogger.log(Logger.FINE, "Can't read LEAP property file "+fileName+". "+e);
 			// Ignore: no back end properties specified
 		}
 		
@@ -410,7 +413,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  		// Security attack: Someone is pretending to be someone other
 	          		if(myLogger.isLoggable(Logger.WARNING))
 	          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
-		reply = new JICPPacket("Not authorized", null);
+								reply = new JICPPacket("Not authorized", null);
 	          		break;
 					  	}	
 					  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
@@ -431,9 +434,6 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  if (id.equals(msisdn)) {
 					  	JICPMediator old = (JICPMediator) mediators.get(id);
 
-	    				if(myLogger.isLoggable(Logger.INFO))
-	    					myLogger.log(Logger.INFO,"Killing old mediator "+id);
-
 					  	if (old != null) {
 					  		// This is a zombie mediator --> kill it
 	    					myLogger.log(Logger.INFO, "Replacing old mediator "+id);
@@ -449,13 +449,15 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, pkt, addr, port);
-				  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
+
+	          if(myLogger.isLoggable(Logger.FINE))
+					  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
 	          mediators.put(id, m);
 	          
 	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
 	          String replyMsg = id+'#'+addr.getHostAddress();
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
-	        	closeConnection = false;
+	          closeConnection = false;
 	        	break;
 	
 	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
@@ -475,6 +477,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          }
 	          else {
+		          if(myLogger.isLoggable(Logger.INFO))
+		          	myLogger.log(Logger.INFO,"Mediator "+recipientID+" not found");
 	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
 	          }
 	          break;
