@@ -35,26 +35,10 @@
 	  <!-- 2) Copy LEAP sources -->
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
-				<exclude name="**/parsers/**"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 				<exclude name="**/jade/util/leap/**"/>
 				<exclude name="**/jade/core/MainContainerProxy.java"/>
-			
-				<!--
-				<include name="**/jade/Boot.java"/>
-				<include name="**/jade/core/ProfileImpl.java"/>
-				<include name="**/jade/imtp/**"/>
-				
-				<include name="**/jade/MicroBoot.java"/>
-				<include name="**/jade/core/MicroRuntime.java"/>
-				<include name="**/jade/core/BackEnd.java"/>
-				<include name="**/jade/core/BackEndContainer.java"/>
-				<include name="**/jade/core/BEConnectionManager.java"/>
-				<include name="**/jade/core/FrontEnd.java"/>
-				<include name="**/jade/core/FrontEndContainer.java"/>
-				<include name="**/jade/core/FEConnectionManager.java"/>
-				-->
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->

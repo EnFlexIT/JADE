@@ -61,7 +61,6 @@
 	  <!-- 2) Copy LEAP sources -->
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
-				<exclude name="**/parsers/**"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 			</fileset>
