@@ -25,6 +25,8 @@ package jade.domain;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import jade.core.behaviours.Behaviour;
 
@@ -179,7 +181,9 @@ class MobilityManager {
       reply.setPerformative(ACLMessage.INFORM);
       reply.setLanguage(SL0Codec.NAME);
       reply.setOntology(MobilityOntology.NAME);
-      theAMS.fillContent(reply, where, MobilityOntology.LOCATION);
+      List l = new ArrayList(1);
+      l.add(where);
+      theAMS.fillContent(reply, l);
       theAMS.send(reply);
     }
 
@@ -189,35 +193,15 @@ class MobilityManager {
 
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)o;
-      MobilityOntology.Location[] locations = theAMS.AMSGetPlatformLocations();
-      String content = new String();
-      for(int i = 0; i < locations.length; i++) {
-	try {
-	  Ontology mob = MobilityOntology.instance();
-	  Codec c = theAMS.lookupLanguage(SL0Codec.NAME);
-
-	  Frame f = mob.createFrame(locations[i], MobilityOntology.LOCATION);
-	  String s = c.encode(f, mob);
-	  content = content + s + "||"; // FIXME: Hand-made separator
-	}
-	catch(OntologyException oe) {
-	  oe.printStackTrace();
-	  sendFailure(oe.getMessage());
-	  return;
-	}
-      }
-
-      // Remove last separator
-      content = content.substring(0, content.length() - 2);
-
-      // Use ByteLengthEncoded format
-      content = "#" + content.length() + "\"" + content;
+      MobilityOntology.PlatformLocations locations = theAMS.AMSGetPlatformLocations();
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
       reply.setLanguage(SL0Codec.NAME);
       reply.setOntology(MobilityOntology.NAME);
-      reply.setContent(content);
+      List l = new ArrayList(1);
+      l.add(locations);
+      theAMS.fillContent(reply, l);
       theAMS.send(reply);
     }
 
@@ -235,10 +219,11 @@ class MobilityManager {
     return (MobilityOntology.Location)locations.get(new Name(containerName));
   }
 
-  public MobilityOntology.Location[] getLocations() {
-    Object[] content = locations.values().toArray();
-    MobilityOntology.Location[] result = new MobilityOntology.Location[content.length];
-    System.arraycopy(content, 0, result, 0, result.length);
+  public MobilityOntology.PlatformLocations getLocations() {
+    MobilityOntology.PlatformLocations result = new MobilityOntology.PlatformLocations();
+
+    // Fill it in using the locations list
+
     return result;
   }
 
