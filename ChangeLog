@@ -1,76 +1,42 @@
-Changes in the snapshot of the 23/11/04
+MAJOR CHANGES in JADE 3.3 (2nd March 2005)  
 ==========================================================================
-GENERAL IMPROVEMENTS:
+GENERAL IMPROVEMENTS:	
+- Added jade_core_messaging_MessagingService_attachplatforminfo to attach 
+	version and date information to the envelope of messages sent to remote platforms
+- Added JADEGateway and GatewayAgent class to easyly interface a Servlet with a 
+	JADE based system
+- Added method shutdown() in Service interface for Service cleanup uperations
+- Added UDP based node monitoring mechanism to support scalability on the number 
+	of containers and temporary disconnections
+- DF
+	- Several optimizations in the search mechanism
+	- Fixed support for other DB that MS Access.
+	- Added easy configuration to use HSQLDB through the jade_domain_df_db-default
+	- Added support for customized DFKBFactory objects
+	- Added jade_domain_df_db-cleantables option to reset DFDB tables at startup 
+- AgentContainerImpl class modified to send back a FAILURE message to the sender 
+	when an ACLMessage is blocked by a filter before reaching the messaging source sink
+- AID class modified to properly handle numeric agent local names also in MIDP
+- Several minor modifications to support compilation with JDK1.5
+- Added class jade.util.AccessControlList to manage black and white lists.
 - TickerBehaviour,WakerBehaviour: Made uniform. Added method onWake() 
-- keep the MessageManager queue size under control
+- MessageManager:
+	- Modified to keep the size of its queue under control
+	- Corrected parameter names for pool size and max queue size	
 - ContaineTable: Added timeout in waitUntilEmpty()
 - Improved threaded behaviour interruption mechanism
-
-ADD-ONS:
-- LEAP
-  - Fixed bug on BEManager re-creation
-  - modified JICPMediator interface 
-  - Added mutual SSL authentication
-  - Changed PDPContextManager interface
-
-DOCUMENTATION:
-- Added links to 2 new tutorials: FIPA specifications and slides on Programming with JADE
-- Added new tutorial on how to setup an SSL-based mutual authenticated connection between JADE containers
-
-BUG FIXES:
-- Fixed bug about containers with the same name
-- ACLMessage: Fixed bug # 42: Null content object caused ACLMessage.getContentObject to throw NullPointerException
-- Fixed deadlock bug reported by Pavel Vrba (19/11/2004) between restartLater and notifyRestarted
-
-
-
-Changes in the snapshot of the 07/10/04
-==========================================================================
-BUG FIXES:
-- LEAPFrameCodec and LEAPCodec: fixed bug in encoding Strings of length 1
-- Sniffer and ToolNotifier: fixed bug in dealing with messages with
-  multiple receivers
-
-
-	
-Changes in the snapshot of the 28/09/04
-==========================================================================
-GENERAL IMPROVEMENTS:
 - HashCache is now synchronized and uses a LinkedList instead of a Vector
-- StringACLCodec 
 - Scalability improvements:
   - added support for child nodes that are monitored by a parent
     node instead of the main-container
   - Now the platform accepts nodes with no container
-- changed the log levels of some classes
-
-ADD-ONS:
-- RDFCodec: fixed bug in URI (Spanoudakis Nikos). It creates a backward incompatibility
-  as content encoded by the new RDF codec cannot be decoded by old RDFCodec
-
-BUG FIXES:
-- Principal and Credentials in the message shutdownPlatform and killContainer
-  were not properly managed by the security add-on
-- PersistentDeliveryService: messages were not properly restored
-- MessageManager: avoided deliverer crash
-- jade.core.Agent: fixed bug in putO2AObject synch (Christian Pocher)
-- LEAP-IMTP: did not manage properly a keep-alive time < 0
-
-
-
-
-
-Changes in the snapshot of the 20/09/04
-==========================================================================
-GENERAL IMPROVEMENTS:
+- Improved the log levels of several classes
 - Integrated support for HTTPS in HTTP MTP (Credits to UAB)
-- Modified PerDayFileLogger to append at the end of the file when restarting the platform
 - Adjusted syntax of content of AMS FAILURE messages
-- Added method getFailedReceiver() in AMSService
+- Added method getFailedReceiver() in AMSService to parse AMS FAILURE messages
 - Restructured the agent life cycle management mechanism, now handled by different LifeCycle objects
 - Added CallbackInvokator class to handle invokation of service specific agent callback methods 
-- jade.wrapper: Added ContainerController and fixed problems on platform listener registration
-- PersistentDeliveryService: improved logs.
+- Package jade.wrapper: Added ContainerController interface and fixed problems on platform listener registration
 - Modified PlatformManagerImpl to accept services with null slices
 - New java.logging based logging mechanism introduced in jade.core
 - Modified behaviour loading mechanism to support IN and OUT parameter handling
@@ -78,8 +44,82 @@ GENERAL IMPROVEMENTS:
 - Filter: modified to handle service name.
 - CommandProcessor: made package-scoped
 - BaseService: modified to provide empty implementation for all Service methods.
+	
+ADD-ONS:
+	- WSIG
+		- Created new add-on for Web Services integration. By means of this add-on 
+		an agent can register its services to the DF and these services are 
+		automatically made available to remote programs as if they were Web Services.
+		Similarly, by registering a Web Service in the UDDI registry provided by 
+		the WSIG add-on, this Web Service is made available to agents as if it 
+		was another agent.
+	- LEAP
+		- Modified PJAVA version of the jade.util.Logger class to support redirection of logs to file
+		- Length of String content of ACLMessages written into 4 bytes to support long messages
+		- Improved handling of agent startup errors due to name clashes
+		- ConnectionListener interface modified to handle all events with a single method (Back.
+		- JICPClient: Added check on null response from server
+		- Added jade.imtp.leap.nio package and BEManagementService and NIOBEDispatcher to manage BackEnds using java.nio
+	  - Fixed bug on BEManager re-creation
+	  - modified JICPMediator interface 
+	  - Added mutual SSL authentication
+	  - Changed PDPContextManager interface
+	  - modified HTTPBEDispatcher and HTTPFEDispatcher to properly handle msisdn information
+	  - Modified HTTPClientConnection to properly handle HTTPProxy authentication
+	  - Modified JICPServer to support one leap.properties file per peer
+	  - j2se.xml modified to copy logging images
+	  - Added mechanism to support automatic connection drop-down between FE and BE and SMS-based restoration
+	  - buildLEAP.properties, build.xml, midp.xml modified to properly handle classes that are dependent from the WMA
+	  - Adjusted dotnet.xml and added .NET related preprocessor directives
+	  - AgentContainerImpl: modified to handle bootstrap agents in midp too.
+	  - OutputViewer: added "tail" functionality
+	  - Fixed bug in LEAPFrameCodec related to long message.
+	- TAGLIB
+		- Fixed compilation problems in the examples (Daniel Le Berre)
+	- RDFCodec: fixed bug in URI (Spanoudakis Nikos). It creates a backward incompatibility
+	  as content encoded by the new RDF codec cannot be decoded by old RDFCodec
+	- Security
+	  - Removed setting of security factory class which overwrites user configuration settings
+	  - Modified GroupCertificate: Rest of the certificate can be more than just the subject
+	  - Modified JADESecurityFactory to handle DelegationCertificate
+	  - Permission filter: Load rows into the checkerTable by a custom CheckerTableFiller
+	  - Security services: improved logging
+	  - CredentialsEngine: d/encoding now works also if the SDSINameImpl contained into a JADEPrincipalImpl is null.
+	- Persistence
+	  - Modified PersistenceHelper to make it uniform with other helpers
+	  - Added Savable interface 
+	  - Added example on persistence basic usage
+	- TestSuite
+	  - Modified code and added ant target for automatic test suite execution
+	  - TestUtility. ';' substituted wit path.separator
+	
+DOCUMENTATION:
+- Several improvements in API documentation
+- Tutorial on Ontologies and Content Languages improved thanks to comments and contributions from David Cabanillas
+- Added links to 2 new tutorials: FIPA specifications and slides on Programming with JADE
+- Added new tutorial on how to setup an SSL-based mutual authenticated connection between JADE containers
+- Fixed code include in an example of the JADE tutorial for beginners
 
-BUG FIXES:	
+BUG FIXES:
+- Fixed bug in jade.util.Logger initialization: some logging printouts were lost
+- Fixed bug on launching a backup main container on a different host with respect to the master main
+- Fixed bug on TBPair removal: memory leaks removed (Bug ID 36 reported by "anonymous" and later by Owen Cliff)
+- Fixed bug in ObjectSchema.getFacets()
+- Fixed bug on EOF detection in SocketProxyAgent (by Andrei Marculescu)
+- Fixed bug reported by Alex Moore: notification of a terminating agent was given to method bornAgent instead of deadAgent.
+- Fixed bug reported by Christian Poecher:in synchronous O2ACommunication,  Agent#getO2AObject() does not unblock the putters thread.
+- Fixed bug about containers with the same name
+- ACLMessage: Fixed bug # 42: Null content object caused ACLMessage.getContentObject to throw NullPointerException
+- Fixed deadlock bug reported by Pavel Vrba (19/11/2004) between restartLater and notifyRestarted
+- LEAPFrameCodec and LEAPCodec: fixed bug in encoding Strings of length 1
+- Sniffer and ToolNotifier: fixed bug in dealing with messages with
+  multiple receivers
+- Principal and Credentials in the message shutdownPlatform and killContainer
+  were not properly managed by the security add-on
+- PersistentDeliveryService: messages were not properly restored
+- MessageManager: avoided deliverer crash
+- jade.core.Agent: fixed bug in putO2AObject synch (Christian Poecher)
+- LEAP-IMTP: did not manage properly a keep-alive time < 0
 - Fixed bug in ACLMessage when cloning the reply-to slot
 - Fixed bug in ThreadedBehaviourFactory related to interruptions in blockingReceived
 - Fixed bug in behaviour dynamic loading
@@ -87,49 +127,21 @@ BUG FIXES:
 - Fixed bug LEAPCodec related to long message.
 
 
-DOCUMENTATION:
-- Fixed code include in an example of the JADE tutorial for beginners
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- The ConnectionListener interface has been modified in a backward incompatible way:
+	instead of one method per event there is now a single method to handle all possible events.
 
-ADD-ONS:
-- LEAP
-  - modified HTTPBEDispatcher and HTTPFEDispatcher to properly handle msisdn information
-  - Modified HTTPClientConnection to properly handle HTTPProxy authentication
-  - Modified JICPServer to support one leap.properties file per peer
-  - Removed link from FontEndContainer to AgentState
-  - j2se.xml modified to copy logging images
-  - Added mechanism to support automatic connection drop-down between FE and BE and SMS-based restoration
-  - buildLEAP.properties, build.xml, midp.xml modified to properly handle classes that are dependent from the WMA
-  - Adjusted dotnet.xml and added .NET related preprocessor directives
-  - Logging: adjusted logging for pjava and midp. 
-  - AgentContainerImpl: modified to handle bootstrap agents in midp too.
-  - OutputViewer: added "tail" functionality
-  - Fixed bug LEAPFrameCodec related to long message.
-- Security
-  - Removed setting of security factory class which overwrites user configuration settings
-  - Modified GroupCertificate: Rest of the certificate can be more than just the subject
-  - Modified JADESecurityFactory to handle DelegationCertificate
-  - Permission filetr: Load rows into the checkerTable by a custom CheckerTableFiller
-  - Rearranged import statements in several security related classes
-  - Security services: improved logging
-  - CredentialsEngine: d/encoding now works also if the SDSINameImpl contained into a JADEPrincipalImpl is null.
-- Persistence
-  - Modified PersistenceHelper to make it uniform with other helpers
-  - Added Savable interface 
-  - Added example on persistence basic usage
-- TestSuite
-  - Modified code and added ant target for automatic test suite execution
-  - TestUtility. ';' substituted wit path.separator
 
-  
-
+	
 MAJOR CHANGES in JADE 3.2 (26th July 2004)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
 - Added the new security add-on. It is compatible with the service-oriented kernel of JADE and it
-  includes 4 security-related services: Security-, Permission-, Signature- and Encryption- service.
-  It also provides support for RMI over SSL.
+  includes 4 security-related services: Security-, Permission-, Signature- and Encryption- service
+	.
+  It also provides support for RMI ov er SSL.
 Behaviours:
-- added ThreadedBehaviourFactory that allows executing a behaviour in a dedicated thread
+- added ThreadedBehaviourFactory that allows executing a behaviour in-          a dedicated thread
 - FSMBehaviour: Added method to handle FSM inconsistencies
 Logging:
 - Reimplemented the logging support based upon java.util.logging
@@ -1353,3 +1365,4 @@ MAJOR CHANGES FROM JADE 0.71+ TO JADE 0.79+ (September 30, 1998)
 - implemented new Behaviours, like OneShotBehaviour, CyclicBehaviour;
 - unified method name: the execute() method of the behaviours is now always called action(); 
 - included an example, which is a ready-to-use agent, of Jess-based agent.
+
