@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1998/10/31 16:41:02  rimassa
+  Added some grammar productions to support 'kill-agent' AMS action.
+
   Revision 1.9  1998/10/26 22:36:23  Giovanni
   Added some grammar productions to support property lists in AMS action
   'create-agent'.
@@ -218,7 +221,18 @@ AgentManagementOntology.KillAgentAction KillAgentBody() :
   {
     kaa.setName(t.image);
   }
+  ( "(" KillAgentArg(kaa) ")" ) +
   { return kaa; }
+}
+
+void KillAgentArg(AgentManagementOntology.KillAgentAction kaa) :
+{
+  String s;
+  Token t;
+}
+{
+    ( <AGENT_NAME> s = AgentName() { kaa.setAgentName(s); } )
+  | ( <PASSWORD> t = <WORD> { kaa.setPassword(t.image); } )
 }
 
 AgentManagementOntology.DFAction DFActionBody() :
@@ -603,6 +617,7 @@ TOKEN:
 | <AGENT_CODE : ":agent-code">
 | <AGENT_PROPERTIES : ":agent-properties">
 | <KILL_AGENT : "kill-agent">
+| <PASSWORD : ":password">
 | <FORWARD : "forward">
 | <AGENT_NAME : ":agent-name">
 | <AGENT_ADDRESS : ":agent-address">
