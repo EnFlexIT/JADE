@@ -139,11 +139,8 @@ class MessageManager {
 						myLogger.log(Logger.FINEST, "Message served.");
 					}
 	    	}
-	    	catch (UnreachableException ue) {
-	    		myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". Agent unreachable");
-				  ch.notifyFailureToSender(msg, receiverID, new InternalError("\"Agent unreachable\""));
-				}
 	    	catch (Throwable t) {
+	    		// A MessageManager deliverer thread must never die
 	    		myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". "+t);
 				  ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
 				}
