@@ -192,3 +192,8 @@ This example shows some methods an agent can use to receive a message.
 - TestAgent		allows to test ACLMessages whose content language
 			is FIPA-SL0 and whose ontology is FIPA-Agent-Management.
 
+
+'jsp' subdirectory
+==================
+This is an example of integration of JADE and JSP kindly provided by Daniel
+Le Berre. Look at the tutorial in the documentation.
