@@ -31,19 +31,44 @@ import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.proto.states.MsgReceiver;
 
+/**
+ *
+ * This is a single homogeneous and effective implementation of
+ * all the FIPA-Request-like interaction protocols defined by FIPA,
+ * that is all those protocols where the initiator sends a single message
+ * (i.e. it performs a single communicative act) within the scope
+ * of an interaction protocol in order to verify if the RE (Rational
+ * Effect) of the communicative act has been achieved or not.
+ * @see AchieveREInitiator
+ * @author Giovanni Caire - TILab
+ * @author Fabio Bellifemine - TILab
+ * @author Tiziana Trucco - TILab
+ * @version $Date$ $Revision$
+ **/
 public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolNames {
 	
-    // Private data store keys
+    /** 
+     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object sent by the initiator.
+     **/
     public final String REQUEST_KEY = "__request" + hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object sent as a response to the initiator.
+     **/
     public final String RESPONSE_KEY = "__response" + hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object sent as a result notification to the initiator.
+     **/
     public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode();
 
     // FSM states names
-    public static final String RECEIVE_REQUEST = "Receive-request";
-    public static final String PREPARE_RESPONSE = "Prepare-response";
-    public static final String SEND_RESPONSE = "Send-response";
-    public static final String PREPARE_RESULT_NOTIFICATION = "Prepare-result-notification";
-    public static final String SEND_RESULT_NOTIFICATION = "Send-result-notification";
+    private static final String RECEIVE_REQUEST = "Receive-request";
+    private static final String PREPARE_RESPONSE = "Prepare-response";
+    private static final String SEND_RESPONSE = "Send-response";
+    private static final String PREPARE_RESULT_NOTIFICATION = "Prepare-result-notification";
+    private static final String SEND_RESULT_NOTIFICATION = "Send-result-notification";
 	
 
     // The MsgReceiver behaviour used to receive request messages
@@ -51,7 +76,8 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 	
     /**
        This static method can be used 
-       to set the proper message Template (based on the interaction protocol and the performative)
+       to set the proper message Template (based on the interaction protocol 
+       and the performative)
        into the constructor of this behaviour.
        @see FIPAProtocolNames.FIPA_REQUEST_PROTOCOL
        @see FIPAProtocolNames.FIPA_QUERY_PROTOCOL
@@ -67,12 +93,21 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 		return MessageTemplate.MatchProtocol(iprotocol);
     }
 
+    /**
+     * Constructor of the behaviour that creates a new empty DataStore
+     * @see AchieveREResponder(Agent a, MessageTemplate mt, DataStore store) 
+     **/
     public AchieveREResponder(Agent a, MessageTemplate mt){
 	this(a,mt, new DataStore());
     }
 
     /**
-       if mt is null every message is consumed by this protocol.
+     * Constructor.
+     * @param a is the reference to the Agent object
+     * @param mt is the MessageTemplate that must be used to match
+     * the initiator message. Take care that 
+     * if mt is null every message is consumed by this protocol.
+     * @param store the DataStore for this protocol
      **/
     public AchieveREResponder(Agent a, MessageTemplate mt, DataStore store) {
 	super(a);
@@ -202,16 +237,39 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
     }
     
 
-    /**
-       ricordare di suggerire di usare il createReply.
+    /**   
+     * This method is called when the initiator's
+     * message is received that matches the message template
+     * passed in the constructor. 
+     * This default implementation return null which has
+     * the effect of sending no reponse. Programmers should
+     * override the method in case they need to react to this event.
+     * @param request the received message
+     * @return the ACLMessage to be sent as a response (i.e. one of
+     * <code>agree, refuse, not-understood, inform</code>. <b>Remind</b> to
+     * use the method createReply of the class ACLMessage in order
+     * to create a good reply message
+     * @see jade.lang.acl.ACLMessage#createReply()
      **/
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
 	System.out.println("prepareResponse() method not re-defined");
 	return null;
     }
     
-    /**
-       ricordare di suggerire di usare il createReply.
+    /**   
+     * This method is called after the response has been sent
+     * and only if the response was an <code>agree</code> message. 
+     * This default implementation return null which has
+     * the effect of sending no result notification. Programmers should
+     * override the method in case they need to react to this event.
+     * @param request the received message
+     * @param response the previously sent response message
+     * @return the ACLMessage to be sent as a result notification (i.e. one of
+     * <code>inform, failure</code>. <b>Remind</b> to
+     * use the method createReply of the class ACLMessage in order
+     * to create a good reply message
+     * @see jade.lang.acl.ACLMessage#createReply()
+     * @see #prepareResponse(ACLMessage)
      **/
     protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
 	System.out.println("prepareResultNotification() method not re-defined");
@@ -222,23 +280,36 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the PREPARE_RESPONSE state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestResponder
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       It is responsibility of the registered behaviour to put the
+       response to be sent into the datastore at the <code>RESPONSE_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerPrepareResponse(Behaviour b) {
 	registerState(b, PREPARE_RESPONSE);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the PREPARE_RESULT_NOTIFICATION state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestResponder
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       It is responsibility of the registered behaviour to put the
+       result notification message to be sent into the datastore at the 
+       <code>RESULT_NOTIFICATION_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerPrepareResultNotification(Behaviour b) {
 	registerState(b, PREPARE_RESULT_NOTIFICATION);
+	b.setDataStore(getDataStore());
     }
 }
 	

@@ -30,14 +30,85 @@ import jade.proto.states.MsgReceiver;
 import jade.util.leap.*;
 import java.util.Date;
 
+/**
+ * This is a single homogeneous and effective implementation of
+ * all the FIPA-Request-like interaction protocols defined by FIPA,
+ * that is all those protocols where the initiator sends a single message
+ * (i.e. it performs a single communicative act) within the scope
+ * of an interaction protocol in order to verify if the RE (Rational
+ * Effect) of the communicative act has been achieved or not.
+ * This implementation works both for 1:1 and 1:N conversation.
+ * <p>
+ * FIPA has already specified a number of these interaction protocols, like 
+ * FIPA-Request, FIPA-query, FIPA-propose, FIPA-Request-When, FIPA-recruiting,
+ * FIPA-brokering, FIPA-subscribe, that allows the initiator to verify if the 
+ * expected rational effect of a single communicative act has been achieved. 
+ * <p>
+ * The structure of these protocols is equal.
+ * The initiator sends a message (in general it performs a communicative act).
+ * <p>
+ * The responder can then reply by sending a <code>not-understood</code>, or a
+ * <code>refuse</code> to 
+ * achieve the rational effect of the communicative act, or also 
+ * an <code>agree</code> message to communicate the agreement to perform 
+ * (possibly in the future) the communicative act.  This first category
+ * of reply messages has been here identified as a response.
+ * <p> The responder performs the action and, finally, must respond with an 
+ * <code>inform</code> of the result of the action (eventually just that the 
+ * action has been done) or with a <code>failure</code> if anything went wrong.
+ * This second category of reply messages has been here identified as a
+ * result notification.
+ * <p> Notice that we have extended the protocol to make optional the 
+ * transmission of the agree message. Infact, in most cases performing the 
+ * action takes so short time that sending the agree message is just an 
+ * useless and uneffective overhead; in such cases, the agree to perform the 
+ * communicative act is subsumed by the reception of the following message in 
+ * the protocol.
+ * <p>
+ * Read carefully the section of the 
+ * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
+ * that describes
+ * the usage of this class.
+ * <p> <b>Known bugs:</b>
+ * <i> The handler <code>handleAllResponses</code> is not called if the <code>
+ * agree</code> message is skipped and the <code>inform</code> message
+ * is received instead.
+ * <br> One message for every receiver is sent instead of a single
+ * message for all the receivers. </i>
+ * @author Giovanni Caire - TILab
+ * @author Fabio Bellifemine - TILab
+ * @author Tiziana Trucco - TILab
+ * @version $Date$ $Revision$
+ **/
 public class AchieveREInitiator extends FSMBehaviour {
 	
     // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
     //using the same data store the new values overrides the old one. 
+    /** 
+     * key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object passed in the constructor of the class.
+     **/
     public final String REQUEST_KEY = "__request" + hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the list of
+     * ACLMessage objects that have been sent.
+     **/
     public final String ALL_REQUESTS_KEY = "__all-requests" +hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the last
+     * ACLMessage object that has been received (null if the timeout
+     * expired). 
+     **/
     public final String REPLY_KEY = "__reply" + hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the list of
+     * ACLMessage objects that have been received as response.
+     **/
     public final String ALL_RESPONSES_KEY = "__all-responses" + hashCode();
+    /** 
+     * key to retrieve from the DataStore of the behaviour the list of
+     * ACLMessage objects that have been received as result notifications.
+     **/
     public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
     // FSM states names
@@ -81,19 +152,25 @@ public class AchieveREInitiator extends FSMBehaviour {
 	final String conversationID = "C"+Integer.toString(hashCode());
 	final MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
     
-	public AchieveREInitiator(Agent a, ACLMessage msg){
+    /**
+     * Construct for the class by creating a new empty DataStore
+     * @see #AchieveREInitiator(Agent, ACLMessage, DataStore)
+     **/
+    public AchieveREInitiator(Agent a, ACLMessage msg){
 	this(a,msg,new DataStore());
     }
 
     /**
-       Constructs a <code>AchieveREInitiator</code> behaviour
-       @param a The agent performing the protocol
-       @param msg The message used to initiate the protocol.
-       The default implementation of the prepareMessage() method returns
-       a <code>List</code> including that message only.
-       @param s The <code>DataStore</code> that will be used by this 
-       <code>AchieveREInitiator</code>
-	 */
+     * Constructs a <code>AchieveREInitiator</code> behaviour
+     * @param a The agent performing the protocol
+     * @param msg The message that must be used to initiate the protocol.
+     * Notice that the default implementation of the 
+     * <code>prepareMessage</code>
+     * method returns
+     * a <code>List</code> including that message only.
+     * @param s The <code>DataStore</code> that will be used by this 
+     * <code>AchieveREInitiator</code>
+     */
     public AchieveREInitiator(Agent a, ACLMessage msg, DataStore store) {
 	super(a);
 		
@@ -418,7 +495,17 @@ public class AchieveREInitiator extends FSMBehaviour {
 	    };
 	registerLastState(b, DUMMY_FINAL);
     }
-    
+
+    /**
+     * This method must return the list of ACLMessage objects to be
+     * sent. It is called in the first state of this protocol.
+     * This default implementation just return the ACLMessage object
+     * passed in the constructor. Programmers might prefer to override
+     * this method in order to return a list of objects for 1:N conversations
+     * or also to prepare the messages during the execution of the behaviour.
+     * @param request the ACLMessage object passed in the constructor
+     * @return a List of ACLMessage objects
+     **/    
     protected List prepareRequests(ACLMessage request) {
 	List l = new ArrayList();
 	if (request != null) {
@@ -427,126 +514,265 @@ public class AchieveREInitiator extends FSMBehaviour {
 	return l;
     }
     
+    /**
+     * This method is called every time an <code>agree</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param agree the received agree message
+     **/
     protected void handleAgree(ACLMessage agree) {
     }
-    
+
+    /**
+     * This method is called every time a <code>refuse</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param refuse the received refuse message
+     **/
     protected void handleRefuse(ACLMessage refuse) {
     }
-    
+
+    /**
+     * This method is called every time a <code>not-understood</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param notUnderstood the received not-understood message
+     **/
     protected void handleNotUnderstood(ACLMessage notUnderstood) {
     }
     
+    /**
+     * This method is called every time a <code>inform</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param inform the received inform message
+     **/
     protected void handleInform(ACLMessage inform) {
     }
     
+    /**
+     * This method is called every time a <code>failure</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param failure the received failure message
+     **/
     protected void handleFailure(ACLMessage failure) {
     }
     
+    /**
+     * This method is called every time a 
+     * message is received, which is out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param msg the received message
+     **/
     protected void handleOutOfSequence(ACLMessage msg) {
     }
     
+    /**
+     * This method is called when all the responses have been
+     * collected or when the timeout is expired.
+     * The used timeout is the minimum value of the slot <code>replyBy</code> 
+     * of all the sent messages. 
+     * By response message we intend here all the <code>agree, not-understood,
+     * refuse</code> received messages, which are not
+     * not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event
+     * by analysing all the messages in just one call.
+     * @param responses the List of ACLMessage object received 
+     **/
     protected void handleAllResponses(List responses) {
     }
     
+    /**
+     * This method is called when all the result notification messages 
+     * have been
+     * collected. 
+     * By result notification message we intend here all the <code>inform, 
+     * failure</code> received messages, which are not
+     * not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event
+     * by analysing all the messages in just one call.
+     * @param resultNodifications the List of ACLMessage object received 
+     **/
     protected void handleAllResultNotifications(List resultNotifications) {
     }
     
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
-       in the PREPARE_REQUESTS state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       in the PREPARE_REQUESTS state. 
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       It is responsibility of the registered behaviour to put the
+       List of ACLMessage objects to be sent 
+       into the datastore at the <code>ALL_REQUESTS_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerPrepareRequests(Behaviour b) {
 	registerState(b, PREPARE_REQUESTS);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_AGREE state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>agree</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleAgree(Behaviour b) {
 	registerState(b, HANDLE_AGREE);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_REFUSE state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>refuse</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleRefuse(Behaviour b) {
 	registerState(b, HANDLE_REFUSE);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_NOT_UNDERSTOOD state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>not-understood</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleNotUnderstood(Behaviour b) {
 	registerState(b, HANDLE_NOT_UNDERSTOOD);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_INFORM state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>inform</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleInform(Behaviour b) {
 	registerState(b, HANDLE_INFORM);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_FAILURE state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>failure</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleFailure(Behaviour b) {
 	registerState(b, HANDLE_FAILURE);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_ALL_RESPONSES state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the List of ACLMessage objects, received as a response,
+       from the datastore at the <code>ALL_RESPONSES_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleAllResponses(Behaviour b) {
 	registerState(b, HANDLE_ALL_RESPONSES);
+	b.setDataStore(getDataStore());
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_ALL_RESULT_NOTIFICATIONS state.
-       It is the responsibility of the user to ensure that the private
-       data store of the registerd <code>Behaviour</code> is the same
-       as that used by the whole FIPARequestInitiator
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the List of ACLMessage objects, received as a result notification,
+       from the datastore at the <code>ALL_RESULT_NOTIFICATIONS_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
     */
     public void registerHandleAllResultNotifications(Behaviour b) {
 	registerState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
+	b.setDataStore(getDataStore());
     }
     
-    //FIXME: definire un registerhandler anche per OutOfSequence
-    //FIXME: bisognerebbe richiamare l 'handleAgree anche quando non si riceve prima dell' handleInform. 
- 
+    //FIXME: define a registerhandler also for OutOfSequence state
+    //FIXME: call handleAgree and handleAllResponses also when
+    // the INFORM/FAILURE is received before or by skipping the AGREE 
+    /**
+     * reset this behaviour by putting a null ACLMessage as message
+     * to be sent
+     **/
     public void reset(){
 	reset(null);
     }
 
+    /**
+     * reset this behaviour
+     * @param msg is the ACLMessage to be sent
+     **/
     public void reset(ACLMessage msg){
 	super.reset();
 	rec.reset(null,-1, getDataStore(),REPLY_KEY);

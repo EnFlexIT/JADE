@@ -23,6 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
+/**
+ * This interface provides a set of constants for the names of the protocols
+ * already defined by FIPA.
+ * @author Tiziana Trucco - TILab
+ * @version $Date$ $Revision$
+ **/
 public interface FIPAProtocolNames{
 
     public static final String FIPA_REQUEST = "fipa-request";

@@ -28,7 +28,14 @@ import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 /**
-mette null in datastore se è scaduto in timeout.
+ * This behaviour is a simple implementation of a message receiver.
+ * It puts into the given key of the given datastore the received message
+ * according to the given message template and timeout. All these
+ * data must be passed in the constructor.
+ * If the timeout expires before any message arrives, the behaviour
+ * terminates and put null into the datastore.
+ * @author Tiziana Trucco - TILab
+ * @version $Date$ $Revision$
  **/
 public class MsgReceiver extends SimpleBehaviour {
 
@@ -41,11 +48,23 @@ public class MsgReceiver extends SimpleBehaviour {
     private boolean expired;
     private int ret;
 	
-	public MsgReceiver(Agent a, MessageTemplate mt, long timeout, DataStore s, Object msgKey) {
+    /**
+     *  Constructor.
+     * @param a a reference to the Agent
+     * @param mt the MessageTemplate of the message to be received, if null
+     * the first received message is returned by this behaviour
+     * @param deadline a timeout for waiting until a message arrives. It must
+     * be expressed as an absolute time, as it would be returned by
+     * <code>System.currentTimeMillisec()</code>
+     * @param s the dataStore for this bheaviour
+     * @param msgKey the key where the beahviour must put the received
+     * message into the DataStore.
+     **/
+	public MsgReceiver(Agent a, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 		super(a);
 		setDataStore(s);
 		template = mt;
-		deadline = timeout;
+		this.deadline = deadline;
 		receivedMsgKey = msgKey;
 		received = false;
 		expired = false;
@@ -94,6 +113,10 @@ public class MsgReceiver extends SimpleBehaviour {
 		return received || expired;
 	}
 	
+    /**
+     * @return the performative if a message is arrived
+     * @return TIMEOUT_EXPIRED if the timeout expired
+     **/
 	public int onEnd() {
 		received =false;
 		expired =false;
@@ -108,7 +131,10 @@ public class MsgReceiver extends SimpleBehaviour {
 	expired = false;
     }
 
-
+    /**
+     * This method allows to modify the values of the parameters passed in 
+     * the constructor.
+     **/
     public void set(MessageTemplate mt, long timeout, DataStore s, Object msgKey) {
 	setDataStore(s);
 	template=mt;
