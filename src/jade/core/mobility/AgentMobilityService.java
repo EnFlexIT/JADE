@@ -281,16 +281,21 @@ public class AgentMobilityService extends BaseService {
 
 		// --- End of code that should go into the Security Service ---
 
-		dest = (AgentMobilitySlice)getSlice(where.getName());
-
-		log("Destination container for agent " + agentID + " found", 2);
-		transferState = 1;
 		// If the destination container is the same as this one, there is nothing to do
 		if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
 		    myContainer.abortMigration(a);
 		    return;
 		}
 
+		dest = (AgentMobilitySlice)getSlice(where.getName());
+		if (dest == null) {
+			System.out.println("Destination does not exist or does not support mobility");
+			myContainer.abortMigration(a);
+			return;
+		}
+		log("Destination container for agent " + agentID + " found", 2);
+		transferState = 1;
+		
 		// Serialize the agent
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ObjectOutputStream encoder = new ObjectOutputStream(out);
