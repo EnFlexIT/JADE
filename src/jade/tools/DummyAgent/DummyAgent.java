@@ -69,49 +69,34 @@ public static void main(String args[]) {
 	}
 
   protected void beforeMove() {
-      super.beforeMove();
-
       disposeGUI();
   }
 
   protected void afterMove() {
-      super.afterMove();
-
       restoreGUI();
   }
 
   protected void afterClone() {
-      super.afterClone();
-
       restoreGUI();
   }
 
-  protected void afterLoad() {
-      super.afterLoad();
-
+  public void afterLoad() {
       restoreGUI();
   }
 
-  protected void beforeFreeze() {
-      super.beforeFreeze();
+  public void beforeFreeze() {
       disposeGUI();
   }
 
-  protected void afterThaw() {
-      super.afterThaw();
-
+  public void afterThaw() {
       restoreGUI();
   }
 
-  protected void beforeReload() {
-      super.beforeReload();
-
+  public void beforeReload() {
       disposeGUI();
   }
 
-  protected void afterReload() {
-      super.afterReload();
-
+  public void afterReload() {
       restoreGUI();
   }
 
