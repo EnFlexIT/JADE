@@ -201,7 +201,7 @@ public class StringACLCodec implements ACLCodec {
 	str.append(")\n");
       }
       if (msg.hasByteSequenceContent()) {
-	  str.append(":X-"BASE64ENCODING_KEY + " " + BASE64ENCODING_VALUE + "\n");
+	  str.append(":X-"+ BASE64ENCODING_KEY + " " + BASE64ENCODING_VALUE + "\n");
 	  try {
 	      String b64 = new String(Base64.encode(msg.getByteSequenceContent()));
 	      str.append(CONTENT + " \"" + b64 + "\" \n");
