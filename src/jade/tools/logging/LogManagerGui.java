@@ -225,9 +225,6 @@ public class LogManagerGui extends javax.swing.JFrame {
 			Object result = null;
 			String theLevel = null;
 			String setLevel = null;			
-			String handler = null;
-			String temp = null;
-			boolean fhExists = false;
 			
 			Logger theLogger = logManager.getLogger(logManager.getLogger((((LogElem)loggers.elementAt(row)).getLogger()).toString()).getName());
 			Level level = theLogger.getLevel();
@@ -242,31 +239,23 @@ public class LogManagerGui extends javax.swing.JFrame {
 			//Handle the log on the file specified by the user 			
 			String fileHandler = ((LogElem)loggers.elementAt(row)).getFileName();
 			
-			handler = logManager.getProperty("handlers");
+			String handler = logManager.getProperty("handlers");
+			// if handler==null, then set it to empty string
+			handler = (handler == null ? "" : handler);
+			// here we are sure that handler is never null
 
-			String tmp = handler;
-			while(tmp.indexOf(",")>0){
-				String token = tmp.substring(0,handler.indexOf(","));		
-				tmp = tmp.substring(tmp.indexOf(",")+1);
-				if (token.equals("java.util.logging.FileHandler"))
-					fhExists =true;
-				}
-				if (tmp.equals("java.util.logging.FileHandler"))
-					fhExists =true;
-			
+			boolean fhExists = (handler.indexOf("java.util.logging.FileHandler") > -1);
 			
 			Handler[] handlers = theLogger.getHandlers();
 			
 			//add the file handler specified by the user
 			for (int i=0;i<handlers.length;i++){
-				temp = handlers[i].toString();
+				String temp = handlers[i].toString();
 				if (!fhExists){
-					if( handler !=null)
-						handler = handler+", "+temp.substring(0,temp.indexOf("@"));
-					else 
-						handler = temp.substring(0,temp.indexOf("@"));
-					}
+            String userHandler = (temp.indexOf('@') < 0 ? temp : temp.substring(0, temp.indexOf('@')));
+						handler = ( handler.length() > 0 ? handler+", "+userHandler : userHandler);
 				}
+			}
 
 			switch (column){
 				case 0:result = ((LogElem)loggers.elementAt(row)).getLogger();	break;	
