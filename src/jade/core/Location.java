@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.util.leap.Serializable;
+import jade.content.Concept;
 
 /**
   
@@ -34,7 +35,7 @@ import jade.util.leap.Serializable;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-public interface Location extends Serializable {
+public interface Location extends Serializable, Concept {
 
   /**
     Read a unique ID for the location.
