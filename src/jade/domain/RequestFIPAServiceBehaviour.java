@@ -244,7 +244,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
 	    //the timeout has expired: no replies received.
 	    lastMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 	else
-	    lastMsg = (ACLMessage)((ACLMessage)reply.get(0)).clone();
+	    lastMsg = (ACLMessage)((ACLMessage)reply.elementAt(0)).clone();
     }
 
     // This exception object records last outcome. When it is
