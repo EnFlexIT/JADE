@@ -53,4 +53,6 @@ interface AgentToolkit {
   Authority getAuthority();
 //__SECURITY__END
   void setPlatformAddresses(AID id);
+  AID getAMS();
+  AID getDefaultDF();
 }
