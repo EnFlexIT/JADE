@@ -157,7 +157,7 @@ df@- DFBehaviour@protected DFBehaviour(String name) {
 df@- DFDeregister@protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 df@- DFModify@protected void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 df@- DFRegister@protected void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-df@- DFSearch@private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd) {
+df@- DFSearch@private void DFSearch(AgentManagementOntology.DFSearchAction dfsa, AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
 df@- DeregBehaviour@public DeregBehaviour(ACLMessage request, ACLMessage reply) {
 df@- DeregBehaviour@public DeregBehaviour() {
 df@- ModBehaviour@public ModBehaviour(ACLMessage request, ACLMessage reply) {
@@ -182,11 +182,11 @@ df@= myActionName@private String myActionName;
 df@= myOntology@private AgentManagementOntology myOntology;
 df@= myReply@private ACLMessage myReply;
 df@= myRequest@private ACLMessage myRequest;
-df@- processArgs@protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-df@- processArgs@protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-df@- processArgs@protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-df@- processArgs@protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-df@> processArgs@protected abstract void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException;
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@> processAction@protected abstract void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException;
 df@- sendAgree@protected void sendAgree(ACLMessage msg) {
 df@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
 df@- sendInform@protected void sendInform(ACLMessage msg) {
@@ -269,6 +269,7 @@ AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- invalidateCacheEntry@public void invalidateCacheEntry(String key) throws RemoteException {
 AgentContainerImpl@- joinPlatform@public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
 AgentContainerImpl@= localAgents@protected Hashtable localAgents =
+AgentContainerImpl@- lookup3@private AgentPlatform lookup3(String URL) throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
 AgentContainerImpl@= myDispatcher@protected MessageDispatcherImpl myDispatcher;
 AgentContainerImpl@= myPlatform@private AgentPlatform myPlatform;
 AgentContainerImpl@= platformAddress@protected String platformAddress;
@@ -310,6 +311,7 @@ MessageDispatcherImpl@= parser@private ACLParser parser =
 MessageDispatcherImpl@- ping@public void ping() throws RemoteException {
 
 /home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
+ACLMessage@+ ACLMessage@public ACLMessage(String type) {
 ACLMessage@+ ACLMessage@public ACLMessage() {
 ACLMessage@= CONTENT@private static final String CONTENT =
 ACLMessage@= CONVERSATION_ID@private static final String CONVERSATION_ID =
@@ -329,6 +331,7 @@ ACLMessage@= counter@private static int counter =
 ACLMessage@= dest@private String dest;
 ACLMessage@- dump@public void dump() {
 ACLMessage@= envelope@private String envelope;
+ACLMessage@- fromText@public static ACLMessage fromText(Reader r) {
 ACLMessage@- getContent@public String getContent() {
 ACLMessage@- getConversationId@public String getConversationId() {
 ACLMessage@- getDest@public String getDest() {
@@ -680,11 +683,12 @@ MessageTemplate@+ MessageTemplate@private MessageTemplate(ACLMessage msg) {
 MessageTemplate@+ MessageTemplate@private MessageTemplate() {
 MessageTemplate@- allWildCard@private static ACLMessage allWildCard() {
 MessageTemplate@- and@public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
-MessageTemplate@- dump@public void dump() {
 MessageTemplate@= fieldNames@private static final String[] fieldNames =
+MessageTemplate@- fromText@public static void fromText(Reader r) {
 MessageTemplate@- match@public boolean match(ACLMessage msg) {
 MessageTemplate@- or@public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
 MessageTemplate@= template@private ACLMessage template;
+MessageTemplate@- toText@public void toText(Writer w) {
 MessageTemplate@= wildCard@private static final String wildCard =
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java
@@ -1127,6 +1131,7 @@ dfTester@- ReceiveBehaviour@protected ReceiveBehaviour() {
 dfTester@- Receiver@private static class Receiver {
 dfTester@> action@public abstract void action();
 dfTester@- agreed@public boolean agreed() {
+dfTester@= constraints@private String constraints;
 dfTester@= convCounter@private int convCounter =
 dfTester@= convID@private String convID;
 dfTester@- done@public boolean done() {
@@ -1135,7 +1140,7 @@ dfTester@= finished@protected boolean finished =
 dfTester@- getConvID@public String getConvID() {
 dfTester@- handleFailure@public void handleFailure(ACLMessage msg) {
 dfTester@- handleInform@public void handleInform(ACLMessage msg) {
-dfTester@= myAction@private AgentManagementOntology.DFAction myAction =
+dfTester@= myAction@private AgentManagementOntology.DFSearchAction myAction =
 dfTester@- newConvID@private String newConvID() {
 dfTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
 dfTester@= receivedAgree@private boolean receivedAgree =
