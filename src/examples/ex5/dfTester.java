@@ -11,46 +11,45 @@ import java.io.*;
 
 import jade.core.*;
 import jade.lang.acl.*;
-
-
-class DFReceiver {
-
-  // Utility class with private constructor -- do not instantiate.
-  private DFReceiver() {
-  }
-
-  public static final ACLMessage receive(dfTester a, String messageType) {
-
-    // Receive <messageType> message from peer
-
-    MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
-    MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
-    MessageTemplate mt3 = MessageTemplate.MatchSource("df");
-    MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
-
-    MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-    MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
-
-    MessageTemplate mt = MessageTemplate.and(mt12, mt34);
-
-    ACLMessage msg = a.receive(mt);
-
-    return msg;
-
-  }
-
-} // End of DFReceiver
+import jade.domain.AgentManagementOntology;
 
 
 public class dfTester extends Agent {
 
+  private static class Receiver {
+
+    // Utility class with private constructor -- do not instantiate.
+    private Receiver() {
+    }
+
+    public static final ACLMessage receive(dfTester a, String messageType) {
+
+      // Receive <messageType> message from peer
+
+      MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
+      MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
+      MessageTemplate mt3 = MessageTemplate.MatchSource("df");
+      MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
+
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+      MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
+
+      MessageTemplate mt = MessageTemplate.and(mt12, mt34);
+
+      ACLMessage msg = a.receive(mt);
+
+      return msg;
+
+    }
+
+  } // End of Receiver class
+
+
   // Used to generate conversation IDs.
   private int convCounter = 0;
 
-  // Name of the action the DF will be required to perform
-  private String myAction;
-
   // Values for the various parameters of the request to DF agent
+  /*
   private String name = null;
   private String address = null;
   private String services = null;
@@ -59,21 +58,22 @@ public class dfTester extends Agent {
   private String ontology = null;
   private String ownership = null;
   private String DFState = null;
-
+  */
 
   // Holds the current conversation ID.
   private String convID;
 
   private boolean receivedAgree = false;
 
+  // Holds a Java object representation of DF action to perform
+  private AgentManagementOntology.DFAction myAction = new AgentManagementOntology.DFAction();
+
 
   private abstract class ReceiveBehaviour extends SimpleBehaviour {
 
     protected boolean finished = false;
-    protected dfTester myAgent;
 
-    protected ReceiveBehaviour(dfTester a) {
-      myAgent = a;
+    protected ReceiveBehaviour() {
     }
 
     public abstract void action();
@@ -82,7 +82,7 @@ public class dfTester extends Agent {
       return finished;
     }
     
-  } // End of ReceiveBehaviour
+  } // End of ReceiveBehaviour class
 
 
   protected void setup() {
@@ -93,41 +93,50 @@ public class dfTester extends Agent {
     try {
       System.out.println("Enter DF agent action to perform:");
       len = System.in.read(buffer);
-      myAction = new String(buffer,0,len-1);
+      AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+      myAction.setName(new String(buffer,0,len-1));
+      myAction.setArg(dfd);
 
       System.out.println("Enter values for parameters (ENTER leaves them blank)");
 
       System.out.print(":agent-name ");
       len = System.in.read(buffer);
-      name = new String(buffer,0,len-1);
+      dfd.setName(new String(buffer,0,len-1));
 
       System.out.print(":agent-address ");
       len = System.in.read(buffer);
-      address = new String(buffer,0,len-1);
-
-      System.out.print(":agent-services ");
-      len = System.in.read(buffer);
-      services = new String(buffer,0,len-1);
+      dfd.addAddress(new String(buffer,0,len-1));
 
       System.out.print(":agent-type ");
       len = System.in.read(buffer);
-      type = new String(buffer,0,len-1);
+      dfd.setType(new String(buffer,0,len-1));
 
       System.out.print(":interaction-protocols ");
       len = System.in.read(buffer);
-      interactionProtocols = new String(buffer,0,len-1);
+      dfd.addInteractionProtocol(new String(buffer,0,len-1));
 
       System.out.print(":ontology ");
       len = System.in.read(buffer);
-      ontology = new String(buffer,0,len-1);
+      dfd.setOntology(new String(buffer,0,len-1));
 
       System.out.print(":ownership ");
       len = System.in.read(buffer);
-      ownership = new String(buffer,0,len-1);
+      dfd.setOwnership(new String(buffer,0,len-1));
 
       System.out.print(":df-state ");
       len = System.in.read(buffer);
-      DFState = new String(buffer,0,len-1);
+      dfd.setDFState(new String(buffer,0,len-1));
+
+      System.out.print(":agent-services ");
+      len = System.in.read(buffer);
+      String servicesText = new String(buffer,0,len-1);
+      try {
+	AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
+	dfd.addService(sd);
+      }
+      catch(jade.domain.ParseException jdpe) {
+	jdpe.printStackTrace();
+      }
 
       System.out.println("");
 
@@ -144,48 +153,45 @@ public class dfTester extends Agent {
       public void action() {
 
 	// Send a 'request' message to peer
-        dfTester a = (dfTester)myAgent;
-
 	System.out.println("Sending 'request' message to DF");
-
-	a.sendRequest();
+	sendRequest();
 
       }
     });
 
     ComplexBehaviour receive1stReply = NonDeterministicBehaviour.createWhenAny(this);
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = DFReceiver.receive(myAgent,"not-understood");
+	ACLMessage msg = Receiver.receive(dfTester.this,"not-understood");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = DFReceiver.receive(myAgent,"refuse");
+	ACLMessage msg = Receiver.receive(dfTester.this,"refuse");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = DFReceiver.receive(myAgent,"agree");
+	ACLMessage msg = Receiver.receive(dfTester.this, "agree");
 	if(msg != null)
-	  myAgent.receiveAgree(msg);
+	  receiveAgree(msg);
 	finished = (msg != null);
       }
 
@@ -197,37 +203,36 @@ public class dfTester extends Agent {
     // If agree is received, also receive inform or failure messages.
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
-      protected void action() {
-	dfTester a = (dfTester)myAgent;
-	if(a.agreed()) {
+      public void action() {
+	if(agreed()) {
 	  
-	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(a);
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(dfTester.this);
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = DFReceiver.receive(myAgent,"failure");
+	      ACLMessage msg = Receiver.receive(dfTester.this, "failure");
 	      if(msg != null)
-		myAgent.handleFailure(msg);
+		handleFailure(msg);
 	      finished = (msg != null);
 	    }
 
 	  });
 
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = DFReceiver.receive(myAgent,"inform");
+	      ACLMessage msg = Receiver.receive(dfTester.this, "inform");
 	      if(msg != null)
-		myAgent.handleInform(msg);
+		handleInform(msg);
 	      finished = (msg != null);
 	    }
 
 	  });
 
 	  // Schedules next behaviour for execution
-	  myAgent.addBehaviour(receiveAfterAgree);
+	  addBehaviour(receiveAfterAgree);
 	}
 
 	else
@@ -240,10 +245,6 @@ public class dfTester extends Agent {
 
   } // End of setup()
 
-
-  public String getAction() {
-    return myAction;
-  }
 
   public boolean agreed() {
     return receivedAgree;
@@ -265,6 +266,23 @@ public class dfTester extends Agent {
 
     convID = newConvID();
 
+    ACLMessage toSend = new ACLMessage();
+
+    toSend.setType("request");
+    toSend.setSource(myName);
+    toSend.setDest("df");
+    toSend.setProtocol("fipa-request");
+    toSend.setOntology("fipa-agent-management");
+    toSend.setLanguage("SL0");
+    toSend.setConversationId(convID);
+
+    StringWriter w = new StringWriter();
+    myAction.toText(w);
+    toSend.setContent("( action df " + w + " )");
+
+    toSend.dump();
+
+    /*
     String text = "( request " +
       "    :sender " + myName +
       "    :receiver df" +
@@ -294,8 +312,8 @@ public class dfTester extends Agent {
       " ) )" +
       "    :conversation-id " + convID +
       ")";
-
-    ACLMessage toSend = parse(new StringReader(text));
+    */
+ 
     send(toSend);
 
     System.out.println("[Agent.sendRequest()]\tRequest sent");
