@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.65  1999/08/31 17:19:49  rimassa
+  Added complete support for agent migration.
+
   Revision 1.64  1999/08/27 15:40:55  rimassa
   Implemented doMove() state transition.
 
@@ -764,9 +767,22 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      new location.
   */
   void doExecute() {
-    myAPState = myBufferedState;
-    myBufferedState = AP_MIN;
-    activateAllBehaviours();
+    synchronized(stateLock) {
+      myAPState = myBufferedState;
+      myBufferedState = AP_MIN;
+      activateAllBehaviours();
+    }
+  }
+
+  /**
+     Make a state transition from <em>transit</em> to <em>gone</em>
+     state. This state is only used to label the original copy of a
+     mobile agent which migrated somewhere.
+  */
+  void doGone() {
+    synchronized(stateLock) {
+      myAPState = AP_GONE;
+    }
   }
 
   /**
@@ -1031,11 +1047,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       // Do Nothing, since this is a killAgent from outside
     }
     finally {
-      if(myAPState == AP_DELETED) {
-      takeDown();
-      destroy();
-      }
-      else {
+      switch(myAPState) {
+      case AP_DELETED:
+	takeDown();
+	destroy();
+	break;
+      case AP_GONE:
+	break;
+      default:
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
       }
@@ -1141,8 +1160,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	  break;
 	case AP_TRANSIT:
 	  notifyMove();
-	  beforeMove();
-	  return;
+	  if(myAPState == AP_GONE) {
+	    beforeMove();
+	    return;
+	  }
+	  break;
 	case AP_COPY:
 	  beforeClone();
 	  notifyCopy();

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.45  1999/08/31 17:21:43  rimassa
+  Added complete support for agent migration.
+
   Revision 1.44  1999/08/27 15:43:04  rimassa
   Implemented moveAgent() method to forward action to the agent itself.
   Put in some locking mechanisms to support transactional agent
@@ -272,20 +275,20 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // Insert new agent into local agents table
     localAgents.put(agentName.toLowerCase(), instance);
 
-    try {
-      myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
-    }
-    catch(NameClashException nce) {
-      System.out.println("Agent name already in use");
-      localAgents.remove(agentName.toLowerCase());
-    }
-    catch(RemoteException re) {
-      System.out.println("Communication error while adding a new agent to the platform.");
-      re.printStackTrace();
-    }
-
-    if(startIt)
+    if(startIt) {
+      try {
+	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
+      }
+      catch(NameClashException nce) {
+	System.out.println("Agent name already in use");
+	localAgents.remove(agentName.toLowerCase());
+      }
+      catch(RemoteException re) {
+	System.out.println("Communication error while adding a new agent to the platform.");
+	re.printStackTrace();
+      }
       instance.powerUp(agentName, platformAddress, agentThreads);
+    }
   }
 
   public void suspendAgent(String agentName) throws RemoteException, NotFoundException {
@@ -342,6 +345,17 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     System.exit(0);
   }
 
+  public void postTransferResult(String agentName, boolean result) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
+      throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
+    }
+    if(result == TRANSFER_ABORT)
+      localAgents.remove(agentName.toLowerCase());
+    else
+      agent.powerUp(agentName, platformAddress, agentThreads);
+  }
+
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException {
     String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
@@ -367,7 +381,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	}
       }
       if(receiver.getState() == Agent.AP_GONE) {
-	System.out.println("ARGH!!! in AgentContainer.dispatch()");
 	throw new TransientException("Agent " + receiverName + " is dead.");
       }
       receiver.postMessage(msg);
@@ -530,7 +543,40 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void moveSource(String name, String where) {
+    try {
+      AgentContainer ac = myPlatform.lookup(where);
+      Agent a = (Agent)localAgents.get(name.toLowerCase());
+      if(a == null)
+	throw new NotFoundException("Internal error: moveSource() called with a wrong name !!!");
 
+      // Handle special 'running to stand still' case
+      if(where.equalsIgnoreCase(myName)) {
+	a.doExecute();
+	return;
+      }
+
+      ac.createAgent(name, a, NOSTART);
+
+      // Start an atomic transaction for agent identity transfer
+      boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
+      if(transferResult == TRANSFER_COMMIT) {
+	localAgents.remove(name.toLowerCase());
+	cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
+	a.doGone();
+      }
+      else
+	a.doExecute();
+
+      ac.postTransferResult(name, transferResult);
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
+      // FIXME: Complete undo on exception
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+      // FIXME: Complete undo on exception
+    }
   }
 
   public void copySource(String name, String where, String newName) {
