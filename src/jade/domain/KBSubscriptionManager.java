@@ -63,7 +63,7 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
   }
         
     public boolean register(SubscriptionResponder.Subscription sub) throws RefuseException, NotUnderstoodException{
-        
+      
     DFAgentDescription dfdTemplate = null;
     SearchConstraints constraints = null;
     AbsIRE absIota = null;

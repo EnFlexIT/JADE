@@ -40,7 +40,7 @@ import jade.domain.KBManagement.*;
  * @author Elisabetta Cortese - TILab
  *
  */
-class DFMemKB extends MemKB{
+public class DFMemKB extends MemKB{
 
   boolean entriesToDelete = false; // gets true if there's at least one entry to delete for the method clean
   

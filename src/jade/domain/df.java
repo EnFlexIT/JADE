@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-//#MIDP_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
 import java.util.Vector;
 import java.util.Date;
@@ -70,6 +70,7 @@ import jade.content.lang.sl.*;
 import jade.content.onto.basic.*;
 
 /**
+  <p>
   Standard <em>Directory Facilitator</em> agent. This class implements
   <em><b>FIPA</b></em> <em>DF</em> agent. <b>JADE</b> applications
   cannot use this class directly, but interact with it through
@@ -82,44 +83,103 @@ import jade.content.onto.basic.*;
 	A DF agent accepts a number of optional configuration parameters that can be set
 	either as command line options or within a properties file (to be passed to 
 	the DF as an argument).
-	<ul>
-	<li>
-	<code>jade_domain_df_autocleanup</code> If set to <code>true</code>, 
-	indicates that the DF will
-	automatically clean up registrations as soon as an agent terminates.
-	The default is <code>false</code>
-	</li>
-	<li>
-	<code>jade_domain_df_maxleasetime</code> Indicates the maximum lease
-	time (in millisecond) that the DF will grant for agent description registrations (defaults
-	to infinite).
-	</li>
-	<li>
-	<code>jade_domain_df_maxresult</code> Indicates the maximum number of items found
-	in a search operation that the DF will return to the requester (defaults 
-	to 100).
-	</li>
-	<li>
-	<code>jade_domain_df_db-url</code> Indicates the JDBC URL of the database
-	the DF will store its catalogue into. If this parameter is not specified 
-	the DF will keep its catalogue in memory.
-	</li>
-	<li>
-	<code>jade_domain_df_db-driver</code> Indicates the JDBC driver to be used
-	to access the DF database (defaults to the ODBC-JDBC bridge). This parameter 
-	is ignored if <code>jade_domain_df_db-url</code> is not set.
-	</li>
-	<li>
-	<code>jade_domain_df_db-username</code>, <code>jade_domain_df_db-password</code>
-	Indicate the username and password to be used to access the DF database 
-	(default to null). These parameters are ignored if 
-	<code>jade_domain_df_db-url</code> is not set.
-	</li>
-	</ul>
+  </p>
+	<table border="1" cellspacing="0">
+	 <tr>
+	   <th>Parameter</th>
+	   <th>Description</th>
+  </tr>
+  <tr>
+	  <td>
+      <code>jade_domain_df_autocleanup</code>
+    </td> 
+	  <td> 
+      If set to <code>true</code>, indicates that the DF will automatically 
+      clean up registrations as soon as an agent terminates. The default is <code>false</code>
+    </td>
+	</tr>
+	<tr>
+	  <td>
+      <code>jade_domain_df_maxleasetime</code>
+    </td>
+    <td>
+     Indicates the maximum lease time (in millisecond) that the DF will grant for agent 
+     description registrations (defaults to infinite).
+    </td>
+	</tr>
+	<tr>
+	  <td>
+      <code>jade_domain_df_maxresult</code>
+    </td>
+    <td>
+     Indicates the maximum number of items found in a search operation that the DF 
+     will return to the requester (defaults to 100).
+    </td>
+	</tr>
+  <tr>
+    <td>
+      <code>jade_domain_df_db-default</code>
+    </td>
+    <td>
+      If set to <code>true</code>, indicates that the DF will store its catalogue into an internal HSQL database, 
+      running within the same VM. (The HSQL jar files have to added to the Java CLASSPATH)
+    </td>
+  </tr>
+	<tr>
+	  <td>
+      <code>jade_domain_df_db-url</code>
+    </td>
+    <td>
+     Indicates the JDBC URL of the database the DF will store its catalogue into. 
+     This parameter is ignored if <code>jade_domain_df_db-default</code> is set. If neither this parameter nor 
+     <code>jade_domain_df_db-default</code> is specified the DF will keep its catalogue in memory.
+    </td>
+	</tr>
+	<tr>
+	  <td>
+      <code>jade_domain_df_db-driver</code>
+    </td>
+    <td>
+     Indicates the JDBC driver to be used to access the DF database (defaults to the ODBC-JDBC bridge). This parameter 
+     is ignored if <code>jade_domain_df_db-url</code> is not set or <code>jade_domain_df_db-default</code> is set.
+    </td>
+	</tr>
+	<tr>
+	  <td>
+      <code>jade_domain_df_db-username</code>,
+       <code>jade_domain_df_db-password</code>
+    </td>
+    <td>
+      Indicate the username and password to be used to access the DF database (default to null). 
+      These parameters are ignored if <code>jade_domain_df_db-url</code> is not set or 
+      <code>jade_domain_df_db-default</code> is set.
+    </td>
+	</tr>
+    <td>
+      <code>jade_domain_df_db-cleantables</code>
+    </td> 
+    <td>
+      If set to <code>true</code>, indicates that the DF will clean the content of all pre-existing database tables,
+      used by the DF. This parameter is ignored if the catalogue is not stored in a database.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <code>jade_domain_df_kb-factory</code>
+    </td>
+    <td>
+      Indicates the name of the factory class that
+      should be used to create the knowledge base objects for the DF. The class has to be
+      a sub class of jade.domain.DFKBFactory.
+    </td>
+  </tr>
+	</table>
+  
+  <p>
 	For instance the following command line will launch a JADE main container
 	with a DF that will store its catalogue into a database accessible at 
 	URL jdbc:odbc:dfdb and that will keep agent registrations for 1 hour at most.
-	<p>
+	
 	<code>
 	java jade.Boot -gui -jade_domain_df_db-url jdbc:odbc:dfdb -jade_domain_df_maxleasetime 3600000
 	</code>
@@ -136,6 +196,7 @@ import jade.content.onto.basic.*;
   @author Tiziana Trucco - TILAB S.p.A.
   @author Elisabetta Cortese - TILAB S.p.A.
   @author Giovanni Caire - TILAB
+  @author Roland Mungenast - Profactor
   @version $Date$ $Revision$
 */
 public class df extends GuiAgent implements DFGUIAdapter {
@@ -181,8 +242,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private static final String DB_URL = "jade_domain_df_db-url";
   private static final String DB_USERNAME = "jade_domain_df_db-username";
   private static final String DB_PASSWORD = "jade_domain_df_db-password";
-  private static final String KB_FACTORY = "jade_domain_df_kb_factory";
-  private static final String HSQLDB = "jade_domain_df_db-default";
+  private static final String KB_FACTORY = "jade_domain_df_kb-factory";
+  private static final String DB_DEFAULT = "jade_domain_df_db-default";
+  private static final String CLEANTABLES = "jade_domain_df_db-cleantables";
 
   // Limit of searchConstraints.maxresult
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
@@ -235,8 +297,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		String dbUsername = getProperty(DB_USERNAME, null);
 		String dbPassword = getProperty(DB_PASSWORD, null);
 		String kbFactClass = getProperty(KB_FACTORY, null);
-		String hsqldb = getProperty(HSQLDB, null);
-		DFKBFactory kbFactory = new DFKBFactory();
+		String sDBDefault = getProperty(DB_DEFAULT, null);
+    String sCleanTables = getProperty(CLEANTABLES, null);
+		DFKBFactory kbFactory = new DFKBFactory(); // set default factory
 		
 		Object[] args = this.getArguments();
 		if(args != null && args.length > 0) {
@@ -251,7 +314,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				dbUsername = p.getProperty(DB_USERNAME, dbUsername);
 				dbPassword = p.getProperty(DB_PASSWORD, dbPassword);
 				kbFactClass = p.getProperty(KB_FACTORY, kbFactClass);
-				hsqldb = p.getProperty(HSQLDB, hsqldb);
+				sDBDefault = p.getProperty(DB_DEFAULT, sDBDefault);
 			}
 			catch (Exception e) {
 				if(logger.isLoggable(Logger.SEVERE))
@@ -299,8 +362,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
       try {
        c = Class.forName(kbFactClass);
        Object o = c.newInstance();
-       if (o instanceof DFKBFactory) {
+ 
+       if (o != null && o instanceof DFKBFactory) {
          kbFactory = (DFKBFactory)o;
+         if(logger.isLoggable(Logger.INFO))
+           logger.log(Logger.INFO,"Using class " + c.getName() + " as KB factory for the DF.");
        } else {
          if(logger.isLoggable(Logger.SEVERE))
           logger.log(Logger.SEVERE,"The class " + c.getName() + " is not a valid class factory for the DF.");
@@ -308,7 +374,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
        
       } catch (Exception e) {
         if(logger.isLoggable(Logger.SEVERE))
-          logger.log(Logger.SEVERE,"Error loading class " + c.getName(), e);
+          logger.log(Logger.SEVERE,"Error loading class " + kbFactClass, e);
       }
       
       if(logger.isLoggable(Logger.CONFIG)){
@@ -318,13 +384,33 @@ public class df extends GuiAgent implements DFGUIAdapter {
     
     // persistent KB
     
-    if (Boolean.valueOf(hsqldb).booleanValue()) {
+    boolean cleanTables = false;
+    if (sCleanTables != null) {
+      try {
+        cleanTables = Boolean.valueOf(sCleanTables).booleanValue();
+      } catch (Exception e) {
+        if(logger.isLoggable(Logger.WARNING))
+          logger.log(Logger.WARNING,"Parsing error for parameter " + CLEANTABLES, e);
+      }
+    }
+    
+    boolean dbDefault = false;
+    if (sDBDefault != null) {
+      try {
+        dbDefault = Boolean.valueOf(sDBDefault).booleanValue();
+      } catch (Exception e) {
+        if(logger.isLoggable(Logger.WARNING))
+          logger.log(Logger.WARNING,"Parsing error for parameter " + DB_DEFAULT, e);
+      }
+    }
+    
+    if (dbDefault) {
       if(logger.isLoggable(Logger.CONFIG)){
         logger.log(Logger.CONFIG,"- Type = persistent");
          logger.log(Logger.CONFIG,"- Using internal HSQL database");
       }
       try {
-        agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, null, null, null, null);
+        agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, null, null, null, null, cleanTables);
       }
       catch (Exception e) {
         if(logger.isLoggable(Logger.SEVERE))
@@ -333,6 +419,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
     
     if (agentDescriptions == null && dbUrl != null) {
+     
 			if(logger.isLoggable(Logger.CONFIG)){
 				logger.log(Logger.CONFIG,"- Type = persistent");
 				logger.log(Logger.CONFIG,"- DB url = "+dbUrl);
@@ -341,7 +428,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				logger.log(Logger.CONFIG,"- DB password = "+dbPassword);
 			}
 			try {
-	  			agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
+	  			agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword, cleanTables);
 			}
 			catch (Exception e) {
 				if(logger.isLoggable(Logger.SEVERE))
@@ -352,7 +439,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     
     // volatile KB
     
-    	if (agentDescriptions == null) {
+    if (agentDescriptions == null){
       if(logger.isLoggable(Logger.CONFIG))
         logger.log(Logger.CONFIG,"- Type = volatile");
 			agentDescriptions = kbFactory.getDFMemKB(maxResultLimit);
@@ -473,7 +560,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		catch (Exception e) {e.printStackTrace();}
 		if (autocleanup) {
 			logger.log(Logger.CONFIG,"Autocleanup activated");
-			// Finally add the behyaviour that listens for AMS notifications 
+			// Finally add the behaviour that listens for AMS notifications 
 			// about dead agents.
 			amsSubscriber = new AMSSubscriber() {
 			  protected void installHandlers(java.util.Map handlersTable) {

@@ -31,15 +31,21 @@ import jade.domain.KBManagement.MemKB;
 
 /**
  * The <code>DFKBFactory</code> class creates 
- * knowledge base objects used by the DF
+ * knowledge base objects used by the DF. 
  * 
+ * <p>
+ * To run JADE with your own knowledge base implementation a new 
+ * sub class of <code>DFKBFactory</code>, overriding the appropriate method(s), 
+ * has to be implemented and specified by the command line parameter 
+ * <code>-jade_domain_df_kb-factory</code>.
+ * </p>
  * @author Roland Mungenast - Profactor
+ * @since JADE 3.3
  */
 public class DFKBFactory {
   
-  
   /**
-   * Returns the memory based knowledge base for the DF
+   * Returns the memory based knowledge base which will be used by the DF
    * @param maxResultLimit internal limit for the maximum number of search results
    */
   protected MemKB getDFMemKB(int maxResultLimit) {
@@ -47,19 +53,20 @@ public class DFKBFactory {
   }
   
   /**
-   * Returns the database based knowledge base for the DF
-   * @param maxResultLimit internal limit for the maximum number of search results
+   * Returns the database based knowledge base which will be used by the DF
+   * @param maxResultLimit JADE internal limit for the maximum number of search results
    * @param driver database driver
    * @param url database url
    * @param user user for the database access
    * @param passwd password for the database access
+   * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
    * @throws SQLException if the database cannot be initialized
    */
-  protected DBKB getDFDBKB(int maxResultLimit, String driver, String url, String user, String passwd) throws SQLException {
+  protected DBKB getDFDBKB(int maxResultLimit, String driver, String url, String user, String passwd, boolean cleanTables) throws SQLException {
     if (url == null)
-      return new DFHSQLKB(maxResultLimit);
+      return new DFHSQLKB(maxResultLimit, cleanTables);
     else
-      return new DFDBKB(maxResultLimit, driver, url, user, "");
+      return new DFDBKB(maxResultLimit, driver, url, user, passwd, cleanTables);
   }
 }
 
