@@ -69,12 +69,12 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     private CommandProcessor myCommandProcessor;
 
-    private Map agentImages = new HashMap();
+    private Map agentImages = new HashMap(1);
     private boolean refreshPlatformInfo = true;
 
     private String[] replicasAddresses;
 
-    private Map principals = new HashMap();
+    private Map principals = new HashMap(1);
 
     // The original properties passed to this container when it was created
     private Properties creationProperties;
@@ -93,7 +93,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
     	
     public BackEndContainer(Properties props, BEConnectionManager cm) throws ProfileException {
-			super(new ProfileImpl(adjustProperties(props)));
+			// Do not call the parent constructor to avoid creating a big LADT
+    	myProfile = new ProfileImpl(adjustProperties(props));
+    	localAgents = new LADT(1);
+    	
 			creationProperties = props;
 			myConnectionManager = cm;
     }
@@ -598,7 +601,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     public List removePendingMessages(MessageTemplate template, boolean notifyFailure) {
 			List pendingMsg = ((jade.imtp.leap.FrontEndStub) myFrontEnd).removePendingMessages(template);
     	if (pendingMsg.size() > 0) {
-				myLogger.log(Logger.FINE, "Flushing "+pendingMsg.size()+" pending messages.");
+				myLogger.log(Logger.INFO, "Removed "+pendingMsg.size()+" pending messages from BackEnd queue.");
     	}
 			if (notifyFailure) {
 				Iterator it = pendingMsg.iterator();
