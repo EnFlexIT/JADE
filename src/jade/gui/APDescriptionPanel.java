@@ -35,8 +35,7 @@ import java.util.Iterator;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import jade.domain.FIPAAgentManagement.APDescription;
-import jade.domain.FIPAAgentManagement.APTransportDescription;
-import jade.domain.FIPAAgentManagement.MTPDescription;
+import jade.domain.FIPAAgentManagement.APService;
 import javax.swing.JCheckBox;
 import java.awt.Frame;
 import javax.swing.JDialog;
@@ -54,10 +53,8 @@ import java.awt.Component;
 public class APDescriptionPanel extends JPanel
 {
 	private JTextField platformName_Field;
-	private VisualAPTransportProfileList MTPs_List;
-  private JCheckBox dynamic;
-	private JCheckBox mobility;
-
+	private VisualAPServiceList MTPs_List;
+  
 	
 	/** 
 	creates a panel ho show an APDescription.
@@ -92,18 +89,6 @@ public class APDescriptionPanel extends JPanel
 		gridBag.setConstraints(label,c);
 		add(label);
 		
-		label = new JLabel("Dynamic: ");
-    c.gridx = 0;
-		c.gridy = 2;
-    gridBag.setConstraints(label,c);
-    add(label);
-
-    label = new JLabel("Mobility: ");
-		c.gridx = 0;
-		c.gridy = 3;
-		gridBag.setConstraints(label,c);
-		add(label);
-
 		platformName_Field = new JTextField();
 		platformName_Field.setEditable(false);
 		platformName_Field.setBackground(java.awt.Color.white);
@@ -114,25 +99,12 @@ public class APDescriptionPanel extends JPanel
 		add(platformName_Field);
 		
    
-		dynamic = new JCheckBox();
-		dynamic.setEnabled(false);
-		c.gridx = 1;
-		c.gridy = 2;
-    gridBag.setConstraints(dynamic,c);
-    add(dynamic);
   
-		mobility = new JCheckBox();
-		mobility.setEnabled(false);
-    c.gridx = 1;
-		c.gridy = 3;
-    gridBag.setConstraints(mobility,c);
-    add(mobility);
-   
     JPanel profilePanel = new JPanel();
     profilePanel.setLayout(new BoxLayout(profilePanel,BoxLayout.Y_AXIS));
-    profilePanel.setBorder(BorderFactory.createTitledBorder("AP Transport Profile"));
+    profilePanel.setBorder(BorderFactory.createTitledBorder("AP Services"));
 
-    MTPs_List = new VisualAPTransportProfileList((new java.util.ArrayList()).iterator(), owner);
+    MTPs_List = new VisualAPServiceList((new java.util.ArrayList()).iterator(), owner);
 		c.gridx = 0;
 		c.gridy = 4;
 		c.gridwidth = 2;
@@ -153,10 +125,8 @@ public class APDescriptionPanel extends JPanel
 		
 		try{
 			platformName_Field.setText(desc.getName());
-			dynamic.setSelected(desc.getDynamic().booleanValue());
-		  mobility.setSelected(desc.getMobility().booleanValue());
-		  
-		  MTPs_List.resetContent(desc.getTransportProfile().getAllAvailableMtps());
+				  
+		  MTPs_List.resetContent(desc.getAllAPServices());
 		  
 		}catch(Exception e){e.printStackTrace();}
 	   
