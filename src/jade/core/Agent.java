@@ -789,7 +789,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 	//#MIDP_EXCLUDE_BEGIN
-  AgentState getAgentState() {
+  public AgentState getAgentState() {
     return STATES[getState()];
   }
   
@@ -1989,8 +1989,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   	}
   }
   
-  // Package scooped as it is called by the RealNotificationManager
-  void setGenerateBehaviourEvents(boolean b) {
+  // Package scoped as it is called by the RealNotificationManager
+  public void setGenerateBehaviourEvents(boolean b) {
   	generateBehaviourEvents = b;
   }
   
