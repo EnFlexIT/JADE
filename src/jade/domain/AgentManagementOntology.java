@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.25  1999/06/09 12:54:46  rimassa
+  Added missing synchronization on parsing methods.
+
   Revision 1.24  1999/06/04 07:48:52  rimassa
   Added two String constants to PlatformProfile inner class.
 
@@ -179,7 +182,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseServiceDescriptor(r);
+      }
     }
 
     public void setName(String n) {
@@ -303,7 +308,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseAMSDescriptor(r);
+      }
     }
 
     // Modifiers
@@ -456,7 +463,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static DFAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseDFDescriptor(r);
+      }
     }
 
     public void setName(String n) {
@@ -668,6 +677,7 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static DFSearchResult fromText(Reader r) throws ParseException {
+      synchronized(parserLock) {
       AgentManagementOntology o = AgentManagementOntology.instance();
       DFSearchResult dfsr;
       try {
@@ -684,6 +694,7 @@ public class AgentManagementOntology {
 	throw tme;
       }
       return dfsr;
+      }
     }
 
     public void setException(FIPAException fe) {
@@ -798,7 +809,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseAMSAction(r);
+      }
     }
 
     public AMSAction() {
@@ -1032,7 +1045,9 @@ public class AgentManagementOntology {
     private int kind;
 
     public static AMSEvent fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseAMSEvent(r);
+      }
     }
 
     public abstract void toText(Writer w);
@@ -1154,7 +1169,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static DFAction fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseDFAction(r);
+      }
     }
 
     public void setName(String s) {
@@ -1291,7 +1308,9 @@ public class AgentManagementOntology {
        initialized from stream data.
      */
     public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
       return AgentManagementOntology.parser.parseACCAction(r);
+      }
     }
 
     public void setName(String s) {
@@ -1472,6 +1491,7 @@ public class AgentManagementOntology {
 
   // A parser to convert strings describing 'fipa-agent-management' objects into Java objects
   private static AgentManagementParser parser = AgentManagementParser.create();
+  private static Object parserLock = new Object(); 
 
   // Private constructor: instantiate only through instance() method.
   private AgentManagementOntology() {
@@ -1682,6 +1702,7 @@ public class AgentManagementOntology {
      representation was contained in the given stream.
   */
   public FIPAException getException(Reader r) {
+      synchronized(parserLock) {
     FIPAException fe = null;
     try {
       fe = parser.parseFIPAException(r, this);
@@ -1695,6 +1716,7 @@ public class AgentManagementOntology {
       fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
     }
     return fe;
+      }
   }
 
   /**
