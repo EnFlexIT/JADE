@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+
+import jade.content.Predicate;
+
 /** 
 * 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -30,7 +33,7 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class InternalError extends FailureException {
+public class InternalError extends FailureException implements Predicate {
 
   public InternalError(String msg) {
     super("(internal-error "+msg+")");

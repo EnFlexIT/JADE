@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+
+import jade.content.Predicate;
+
 /** 
 * 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -30,7 +33,7 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-public class UnsupportedValue extends NotUnderstoodException {
+public class UnsupportedValue extends NotUnderstoodException implements Predicate {
 /**
   @serial
   */
