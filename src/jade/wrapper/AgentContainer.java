@@ -23,387 +23,55 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import jade.wrapper.PlatformController.Listener;
-import jade.core.AID;
-import jade.core.NotFoundException;
-import jade.core.IMTPException;
-import jade.core.AgentManager;
-
-import jade.core.event.*;
-
-import jade.mtp.MTPException;
-
-import java.util.Vector;
-import java.util.Enumeration;
-import jade.security.JADEPrincipal;
-import jade.security.Credentials;
-import jade.util.Logger;
-
 /**
-   This class is a Proxy class, allowing access to a JADE agent
-   container. Invoking methods on instances of this class, it is
-   possible to request services from <it>in-process</it> agent
-   containers.
-   This class must not be instantiated by applications. Instead, use
-   the <code>createContainer()</code> method in class
-   <code>Runtime</code>.
-   <br>
-   <b>NOT available in MIDP</b>
-   <br>
-   @see jade.core.Runtime#createAgentContainer(Profile)
+   This class is maintained for backward compatibility only. 
+   It is not depracated since, for backward compatibility 
+   reasons, it is used internally by the framework.
+   Use <code>jade.wrapper.ContainerController</code> instead.
 
-   @author Giovanni Rimassa - Universita' di Parma
-
+   @author Giovanni Caire - TILAB
  */
-public class AgentContainer implements PlatformController {
-
-  private jade.core.AgentContainer myImpl;
-  private ContainerProxy myProxy;
-  private String myPlatformName;
-  private State platformState = PlatformState.PLATFORM_STATE_VOID;
-  private ListenerManager myListenerManager = new ListenerManager();
-	
-  private static Logger logger = Logger.getMyLogger(AgentContainer.class.getName());	
-	
-  /**
-     This constructor requires a concrete
-     implementation of a JADE agent container, which cannot be
-     instantiated by applications, so it cannot be meaningfully called
-     from application code. The proper way to create an agent
-     container from an application is to call the
-     <code>Runtime.createContainer()</code> method.
-     @see jade.core.Runtime#createAgentContainer(Profile)
-     @param impl A concrete implementation of a JADE agent container.
-     @param platformName the name of the platform
-   */
-  public AgentContainer(ContainerProxy cp, jade.core.AgentContainer impl, String platformName) {
-    myProxy = cp;
-  	myImpl = impl;
-    myPlatformName = platformName;
-    platformState = PlatformState.PLATFORM_STATE_READY;
+public class AgentContainer extends ContainerController implements PlatformController {
+  
+	public AgentContainer(ContainerProxy cp, jade.core.AgentContainer impl, String platformName) {
+  	super(cp, impl, platformName);
   }
-
-
-  /**
-   * Get agent proxy to local agent given its name.
-   * @param localAgentName The short local name of the desired agent.
-   * @throws ControllerException If any probelms occur obtaining this proxy.
-   */
-  public AgentController getAgent(String localAgentName) throws ControllerException {
-    if(myImpl == null || myProxy == null) {
-      throw new StaleProxyException();
-    }
-      
-    AID agentID = new AID(localAgentName, AID.ISLOCALNAME);
-		
-    // Check that the agent exists
-    jade.core.Agent instance = myImpl.acquireLocalAgent(agentID);
-    if (instance == null) {
-      throw new ControllerException("Agent " + localAgentName + " not found.");
-    } 
-    myImpl.releaseLocalAgent(agentID);
-    return new AgentController(agentID, myProxy, myImpl);
+  
+  public String getName() {
+  	return getPlatformName();
   }
-
-
-
-
-  /**
-     Creates a new JADE agent, running within this container, 
-     @param nickname A platform-unique nickname for the newly created
-     agent. The agent will be given a FIPA compliant agent identifier
-     using the nickname and the ID of the platform it is running on.
-     @param className The fully qualified name of the class that
-     implements the agent.
-     @param args An object array, containing initialization parameters
-     to pass to the new agent. 
-     @return A proxy object, allowing to call state-transition forcing
-     methods on the real agent instance.*/
-  public AgentController createNewAgent(String nickname, String className, Object[] args) throws StaleProxyException {
-    if(myImpl == null || myProxy == null) {
-      throw new StaleProxyException();
-  	}
-     
-    AID agentID = new AID(nickname, AID.ISLOCALNAME);
-    
-  	try {
-  		myProxy.createAgent(agentID, className, args);
-  		return new AgentController(agentID, myProxy, myImpl);
-  	}
-  	catch (Throwable t) {
-  		throw new StaleProxyException(t);
-  	}
-    /*try {
-      jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
-      a.setArguments(args);
-      AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      myImpl.initAgent(agentID, a, null, null);
-
-      Agent result = new Agent(agentID, myImpl);
-      return result;
-    }
-    catch(Exception e) {
-      throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
-    }*/
-  }
-
-    // HP Patch begin ----------------------------------------------------------------------------------
-    /**
-     * Add an Agent to this container. Typically Agent would be some class extending
-     * Agent which was instantiated and configured.
-     * @param nickname A platform-unique nickname for the newly created agent.
-     * The agent will be given a FIPA compliant agent identifier using the nickname and
-     * the ID of the platform it is running on.
-     * @param anAgent The agent to be added to this agent container.
-     * @return An AgentController, allowing to call state-transition forcing methods on the real agent instance.
-     */
-    public AgentController acceptNewAgent(String nickname, jade.core.Agent anAgent) throws StaleProxyException {
-	    if (myImpl == null || myProxy == null) {
-	      throw new StaleProxyException();
-	    }
-	      
-      AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      // FIXME: This method skip the security checks!
-      try {
-          myImpl.initAgent(agentID, anAgent, (JADEPrincipal)null, (Credentials)null);
-      }
-      catch(Exception e) {
-          throw new StaleProxyException(e);
-      }
-      return new AgentController(agentID, myProxy, myImpl);
-    }
-    // HP Patch end ------------------------------------------------------------------------------------
-
-
-  /**
-     Shuts down this container, terminating all the agents running within it.
-   */
-  public void kill() throws StaleProxyException {
-    if (myImpl == null || myProxy == null) {
-      throw new StaleProxyException();
-    }
-    
-    try {
-    	myProxy.killContainer();
-	    // release resources of this object
-    	myProxy = null;
-	    myImpl = null;
-	    myPlatformName = null;
-	    platformState = PlatformState.PLATFORM_STATE_KILLED;
-	    myListenerManager = null;
-    }
-  	catch (Throwable t) {
-  		throw new StaleProxyException(t);
-  	}
-    /*myImpl.shutDown();
-    // release resources of this object
-    myImpl = null;
-    myPlatformName = null;
-    platformState = PlatformState.PLATFORM_STATE_KILLED;
-    myListenerManager = null;*/
-  }
-
-
-
-  /**
-     Installs a new message transport protocol, that will run within
-     this container.
-
-     @param address The transport address exported by the new MTP, in
-     string format.
-     @param className The fully qualified name of the Java class that
-     implements the transport protocol.
-     @exception MTPException If something goes wrong during transport
-     protocol activation.
-   */
-  public void installMTP(String address, String className) throws MTPException, StaleProxyException {
-    if (myImpl == null || myProxy == null) {
-      throw new StaleProxyException();
-    }
-    
-    try {
-    	myProxy.installMTP(address, className);
-    }
-  	catch (Throwable t) {
-  		throw new StaleProxyException(t);
-  	}
-    /*try {
-	throw new IMTPException("Temporary Hack");
-	//      myImpl.installMTP(address, className);
-    }
-    catch(IMTPException imtpe) { // It should never happen...
-      throw new InternalError("Remote exception on a local call.");
-    }*/
-  }
-
-  /**
-     Removes a message transport protocol, previously running within this
-     container.
-
-     @param address The transport address exported by the new MTP, in
-     string format.
-     @exception MTPException If something goes wrong during transport
-     protocol activation.
-     @exception NotFoundException If no protocol with the given
-     address is currently installed on this container.
-   */
-  public void uninstallMTP(String address) throws MTPException, NotFoundException, StaleProxyException {
-    if (myImpl == null || myProxy == null) {
-      throw new StaleProxyException();
-    }
-    
-    try {
-    	myProxy.uninstallMTP(address);
-    }
-  	catch (Throwable t) {
-  		throw new StaleProxyException(t);
-  	}
-    /*try {
-	throw new IMTPException("Temporary Hack");
-	//      myImpl.uninstallMTP(address);
-    }
-    catch(IMTPException imtpe) { // It should never happen...
-      throw new InternalError("Remote exception on a local call.");
-    }*/
-  }
-
-  /**
-   * return the name (i.e. the HAP) of this platform
-   * @deprecated Use getPlatfromName instead.
-   **/
-  public String getName() { return myPlatformName; }
-    
-  /**
-   * Retrieve the name of the wrapped platform.
-   * @return the name (i.e. the HAP) of this platform.
-   * @see jade.wrapper.AgentContainer#getContainerName()
-   **/
-  public String getPlatformName() {
-    return myPlatformName;
-  }
-
-  /**
-   * Retrieve the name of the wrapped container.
-   * @return the name of this platform container.
-   * @see jade.wrapper.AgentContainer#getPlatformName()
-   **/
-  public String getContainerName() throws ControllerException {
-    if(myImpl == null) {
-      throw new ControllerException("Stale proxy.");
-    }
-    return myImpl.here().getName();
-  }
-
-  public void start() throws ControllerException { 
+  
+  public void start() throws ControllerException {
   }
 
   public void suspend() throws ControllerException {
-		throw new ControllerException("Not_Yet_Implemented");
+  	initPlatformController();
+  	myPlatformController.suspend();
   }
 
   public void resume() throws ControllerException {
-		throw new ControllerException("Not_Yet_Implemented");
+  	initPlatformController();
+  	myPlatformController.resume();
+  }
+  
+  public State getState() {
+  	try {
+	  	initPlatformController();
+	  	return myPlatformController.getState();
+  	}
+  	catch (Exception e) {
+  		return PlatformState.PLATFORM_STATE_KILLED;
+  	}
   }
 
-  public State getState() { return platformState; }
+  public void addPlatformListener(Listener aListener) throws ControllerException {
+  	initPlatformController();
+  	myPlatformController.addPlatformListener(aListener);
+  }
+
+  public void removePlatformListener(Listener aListener) throws ControllerException {
+  	initPlatformController();
+  	myPlatformController.addPlatformListener(aListener);
+  }
   
-  public synchronized void addPlatformListener(Listener aListener) throws ControllerException {
-  	//#ALL_EXCLUDE_BEGIN
-  	if (myListenerManager.addListener(aListener) == 1) {
-  		//myImpl.addPlatformListener(myListenerManager);
-  	}
-  	//#ALL_EXCLUDE_END
-  }
-  public synchronized void removePlatformListener(Listener aListener) throws ControllerException {
-  	//#ALL_EXCLUDE_BEGIN
-  	if (myListenerManager.removeListener(aListener) == 0) {
-  		//myImpl.removePlatformListener(myListenerManager);
-  	}
-  	//#ALL_EXCLUDE_END
-  }
-    
-  class ListenerManager implements AgentManager.Listener {
-    private Vector listeners = new Vector();
-    
-  	public int addListener(Listener l) {
-  		listeners.addElement(l);
-  		return listeners.size();
-  	}
-  	
-  	public int removeListener(Listener l) {
-  		listeners.removeElement(l);
-  		return listeners.size();
-  	}
-  	
- 		public void addedMTP(MTPEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Added MTP");
-  	} 
-  	public void removedMTP(MTPEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Removed MTP");
-  	} 
-  	public void messageIn(MTPEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Message IN");
-  	} 
-  	public void messageOut(MTPEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Message OUT");
-  	} 
-  	public void addedContainer(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Added container");
-  	} 
-  	public void removedContainer(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Removed container");
-  	} 
-  	public void bornAgent(jade.core.event.PlatformEvent ev) {
-  		Enumeration e = listeners.elements();
-  		while (e.hasMoreElements()) {
-  			Listener l = (Listener) e.nextElement();
-  			ev.setSource(AgentContainer.this);
-  			l.bornAgent(ev);
-  		}
-  	} 
-  	public void deadAgent(jade.core.event.PlatformEvent ev) {
-  		Enumeration e = listeners.elements();
-  		while (e.hasMoreElements()) {
-  			Listener l = (Listener) e.nextElement();
-  			ev.setSource(AgentContainer.this);
-  			l.deadAgent(ev);
-  		}
-  	}
-  	public void movedAgent(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Moved agent");
-  	} 
-  	public void suspendedAgent(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Suspended agent");
-  	} 
-  	public void resumedAgent(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Resumed agent");
-  	} 
-        public void frozenAgent(jade.core.event.PlatformEvent ev) {
-	                if(logger.isLoggable(Logger.CONFIG))
-	                	logger.log(Logger.CONFIG,"Frozen agent");
-	}
-        public void thawedAgent(jade.core.event.PlatformEvent ev) {
-	                if(logger.isLoggable(Logger.CONFIG))
-	                	logger.log(Logger.CONFIG,"Thawed agent");
-	}
-//__SECURITY__BEGIN  
-  	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Changed agent principal");
-  	} 
-  	public void changedContainerPrincipal(jade.core.event.PlatformEvent ev) {
- 			if(logger.isLoggable(Logger.CONFIG))
- 				logger.log(Logger.CONFIG,"Changed container principal");
-  	} 
-//__SECURITY__END 
-  }
 }
