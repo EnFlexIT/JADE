@@ -48,7 +48,7 @@ import jade.domain.JADEAgentManagement.*;
 /**
    This class represents the ontology used for JADE mobility. There is
    only a single instance of this class.
-   @see jade.domain.MobilityOntology#instance()
+   @see jade.domain.MobilityOntology#getInstance()
  */
 public class MobilityOntology extends Ontology implements MobilityVocabulary {
 
