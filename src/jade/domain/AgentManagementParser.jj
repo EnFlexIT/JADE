@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/10/23 21:42:14  Giovanni
+  Added grammar productions and actions to process ACL messages embedded
+  in 'forward' ACC actions.
+
   Revision 1.6  1998/10/04 18:01:22  rimassa
   Added a 'Log:' field to every source file.
 
@@ -21,6 +25,7 @@ PARSER_BEGIN(AgentManagementParser)
 
 package jade.domain;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -192,15 +197,19 @@ AgentManagementOntology.ACCAction ACCActionBody() :
   AgentManagementOntology.ACCAction a = new AgentManagementOntology.ACCAction();
   ACLMessage msg = null;
   Token t;
+  String s;
 }
 {
-  t = <FORWARD>
+  t = <FORWARD> s = ACLMessage()
   {
     a.setName(t.image);
 
     ACLParser p = ACLParser.create();
     try {
-      msg = p.parse(myReader);
+      System.out.println("***");
+      System.out.println(s);
+      System.out.println("***");
+      msg = p.parse(new StringReader(s));
     }
     catch(jade.lang.acl.ParseException jlape) {
       jlape.printStackTrace();
@@ -209,6 +218,44 @@ AgentManagementOntology.ACCAction ACCActionBody() :
 
     a.setArg(msg);
     return a;
+  }
+}
+
+String ACLMessage() :
+{
+  String s;
+}
+{
+  "("
+  { token_source.SwitchTo(ACL_BODYSTATE); }
+  s = ACLMessageBody()
+  { token_source.SwitchTo(DEFAULT); }
+  ")"
+  {
+    return "(" + s + ")";
+  }
+}
+
+String ACLMessageBody() :
+{
+  String s = new String();
+  String s2;
+}
+{
+  {
+    Token t;
+  }
+  (
+    (
+     (t = <STRING_LITERAL> | t = <BLE_STRING> | t = <REMAINDER>) { s = s + t.image; }
+    )
+    |
+    (
+     "(" s2 = ACLMessageBody() ")" { s = s + "(" + s2 + ")"; }
+    )
+  )*
+  {
+    return s;
   }
 }
 
@@ -463,7 +510,7 @@ String SL1Term() :
 
 // JavaCC lexical productions
 
-<*>
+<DEFAULT>
 SKIP :
 {
   " "
@@ -515,9 +562,27 @@ TOKEN:
 }
 
 <COMM_PROTOCOLSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<COMM_PROTOCOLSTATE>
 TOKEN:
 {
   <COMM_PROTOCOL : ["A"-"Z", "a"-"z"](["A"-"Z", "a"-"z", "0"-"9", "_"])*> : DEFAULT
+}
+
+<APStateSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
 }
 
 <APStateSTATE>
@@ -527,10 +592,55 @@ TOKEN:
 }
 
 <DfLifeCycleState>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DfLifeCycleState>
 TOKEN:
 {
   <DfLifecycleState : "active" | "suspended" | "retired"> : DEFAULT
 }
+
+<ACL_BODYSTATE>
+TOKEN:
+{
+  <STRING_LITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\"">
+| <BLE_STRING: "#" <INT> "\"" >
+    {
+      String tmp = matchedToken.image.substring(1, matchedToken.image.length() - 1);
+      int numBytes = Integer.parseInt(tmp);
+      if (numBytes < 0) 
+	throw new TokenMgrError("ERROR: PrefixByteLengthEncodedString with length < 0", TokenMgrError.STATIC_LEXER_ERROR);
+      char[] bytes = new char[numBytes];
+      int i = 0; 
+ 	
+      while (numBytes-- > 0) 
+	try {
+	  bytes[i++] = input_stream.readChar(); 
+	}
+        catch (IOException e) {
+	  System.out.println("IOException during PREFIXBYTELENGTHENCODEDSTRING");
+	  throw new TokenMgrError(true, curLexState, input_stream.getEndLine(), input_stream.getEndColumn(),input_stream.GetImage(), curChar, TokenMgrError.LEXICAL_ERROR);
+	}
+      // If you want, you can add bytes to matchedToken.image here.
+      matchedToken.image = new String(bytes);
+    }
+| <REMAINDER: (~["(", "#", "\"", ")" ])* >
+| <INT : ["0"-"9"](["0"-"9"])*>
+
+}
+
+
+
+
+
+
+
 
 
 
