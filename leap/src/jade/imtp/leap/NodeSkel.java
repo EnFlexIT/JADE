@@ -65,9 +65,10 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	case Command.PING_NODE_BLOCKING:
 	case Command.PING_NODE_NONBLOCKING: {
 	    Boolean hang = (Boolean)command.getParamAt(0);
-	    ping(hang.booleanValue());
+	    Boolean result = new Boolean(ping(hang.booleanValue()));
 
 	    resp = new Command(Command.OK);
+	    resp.addParam(result);
 
 	    break;
 	} 
@@ -75,6 +76,15 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	case Command.EXIT_NODE: {
 
 	    exit();
+
+	    resp = new Command(Command.OK);
+
+	    break;
+	} 
+
+	case Command.INTERRUPT_NODE: {
+
+	    interrupt();
 
 	    resp = new Command(Command.OK);
 
@@ -111,15 +121,21 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	}
     }
 
-    public void ping(boolean hang) throws IMTPException {
+    public boolean ping(boolean hang) throws IMTPException {
       if(hang) {
 	  waitTermination();
       }
+      return terminating;
     }
 
     public void exit() throws IMTPException {
-      // Unblock threads hung in ping() method (this will deregister the container)
-      notifyTermination();
+	// Unblock threads hung in ping() method (this will deregister the container)
+	terminating = true;
+	notifyTermination();
+    }
+
+    public void interrupt() throws IMTPException {
+	notifyTermination();
     }
 
     private void waitTermination() {
@@ -144,6 +160,6 @@ class NodeSkel extends Skeleton implements NodeLEAP {
     // This monitor is used to hang a remote ping() call in order to
     // detect node failures.
     private Object terminationLock = new Object();
-
+    private boolean terminating = false;
 
 }

@@ -74,13 +74,18 @@ class NodeAdapter extends BaseNode {
 	return super.getSlice(serviceName);
     }
 
-    public void ping(boolean hang) throws IMTPException {
-	adaptee.ping(hang);
+    public boolean ping(boolean hang) throws IMTPException {
+	return adaptee.ping(hang);
     }
 
     public void exit() throws IMTPException {
 	adaptee.exit();
     }
+
+    public void interrupt() throws IMTPException {
+	adaptee.interrupt();
+    }
+
 
     // Package scoped, used only for node serialization
     NodeLEAP getAdaptee() {

@@ -58,9 +58,11 @@ interface NodeLEAP {
        returns immediately; when <code>true</code>, the method blocks
        and will return only when unblocked from the remote end
        (through regular return or exception.
+       @return If the node is terminating, <code>true</code> is
+       returned, and <code>false</code> otherwise.
        @throws IMTPException If a network problem occurs.
     */
-    void ping(boolean hang) throws IMTPException;
+    boolean ping(boolean hang) throws IMTPException;
 
     /**
        Shut down this node.
@@ -68,5 +70,11 @@ interface NodeLEAP {
        @throws IMTPException If a network problem occurs.
     */
     void exit() throws IMTPException;
+
+    /**
+       Release blocked ping() calls on this node.
+       @throws RemoteException If a network problem occurs.       
+    */
+    void interrupt() throws IMTPException;
 
 }

@@ -69,7 +69,7 @@ class NodeStub extends Stub implements NodeLEAP {
 	}
     }
 
-    public void ping(boolean hang) throws IMTPException {
+    public boolean ping(boolean hang) throws IMTPException {
 	Command cmd;
 	if(hang) {
 	    cmd = new Command(Command.PING_NODE_BLOCKING, remoteID);
@@ -82,6 +82,9 @@ class NodeStub extends Stub implements NodeLEAP {
 	try {
 	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 	    checkResult(result, new String[] { });
+
+	    Boolean b = (Boolean)result.getParamAt(0);
+	    return b.booleanValue();
 	}
 	catch (DispatcherException de) {
 	    throw new IMTPException(DISP_ERROR_MSG, de);
@@ -106,5 +109,19 @@ class NodeStub extends Stub implements NodeLEAP {
 	}
     }
 
+    public void interrupt() throws IMTPException {
+	Command cmd = new Command(Command.INTERRUPT_NODE, remoteID);
+
+	try {
+	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+	    checkResult(result, new String[] { });
+	}
+	catch (DispatcherException de) {
+	    throw new IMTPException(DISP_ERROR_MSG, de);
+	}
+	catch (UnreachableException ue) {
+	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+	}
+    }
 
 }
