@@ -56,12 +56,13 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Date;
 import java.util.Vector;
+import java.util.NoSuchElementException;
 
 import starlight.util.Base64;
 
 
 /**
- * <code>DFHSQLKB</code> realizes a knowledge base used by the DF which stores its content
+ * This class implements a knowledge base used by the DF which stores its content
  * in an external database. 
  * 
  * @author Elisabetta Cortese - TILab
@@ -571,13 +572,17 @@ public class DFDBKB extends DBKB {
 
     // Addresses
     Iterator iter = aid.getAllAddresses();
-    while( iter.hasNext()){
-      stm_insAgentAddress.setString(1, getGUID());
-      stm_insAgentAddress.setString(2, name);
-      stm_insAgentAddress.setString(3, (String)iter.next());
-      stm_insAgentAddress.addBatch();
+    if (iter.hasNext()) {
+	    stm_insAgentAddress.clearBatch();
+	    while( iter.hasNext()){
+	      stm_insAgentAddress.setString(1, getGUID());
+	      stm_insAgentAddress.setString(2, name);
+	      stm_insAgentAddress.setString(3, (String)iter.next());
+	      stm_insAgentAddress.addBatch();
+	    }
+	    stm_insAgentAddress.executeBatch();
     }
-    stm_insAgentAddress.executeBatch();
+    
     
     // User defined slots
     Properties props = aid.getAllUserDefinedSlot();
@@ -634,6 +639,11 @@ public class DFDBKB extends DBKB {
       stm_insServiceOntology.clearBatch();
       stm_insServiceLanguage.clearBatch();
       stm_insServiceProperty.clearBatch();
+      
+      boolean executeProtocolsBatch = false;
+      boolean executeOntologiesBatch = false;
+      boolean executeLanguagesBatch = false;
+      boolean executePropertiesBatch = false;
     
       while(iter.hasNext()){
         ServiceDescription service = (ServiceDescription)iter.next();
@@ -652,6 +662,7 @@ public class DFDBKB extends DBKB {
           stm_insServiceProtocol.setString(1, serviceId);
           stm_insServiceProtocol.setString(2, (String)iterS.next());
           stm_insServiceProtocol.addBatch();
+          executeProtocolsBatch = true;
         }
 
         // Service - Ontologies
@@ -660,6 +671,7 @@ public class DFDBKB extends DBKB {
           stm_insServiceOntology.setString(1, serviceId);
           stm_insServiceOntology.setString(2, (String)iterS.next());
           stm_insServiceOntology.addBatch();
+          executeOntologiesBatch = true;
         }
       
         // Service - Languages
@@ -668,6 +680,7 @@ public class DFDBKB extends DBKB {
           stm_insServiceLanguage.setString(1, serviceId);
           stm_insServiceLanguage.setString(2, (String)iterS.next());
           stm_insServiceLanguage.addBatch();
+          executeLanguagesBatch = true;
         }
       
         // Service - Properties
@@ -688,7 +701,7 @@ public class DFDBKB extends DBKB {
             stm_insServiceProperty.setString(3, valueStr);
             stm_insServiceProperty.setString(4, hashStr);
             stm_insServiceProperty.addBatch();
-            
+            executePropertiesBatch = true;            
           } catch (Exception e) {
             if(logger.isLoggable(Logger.SEVERE))
               logger.log(Logger.SEVERE,"Cannot serialize property '" + prop.getName() + 
@@ -697,10 +710,18 @@ public class DFDBKB extends DBKB {
         }
       }
       stm_insService.executeBatch();
-      stm_insServiceProtocol.executeBatch();
-      stm_insServiceOntology.executeBatch();
-      stm_insServiceLanguage.executeBatch();
-      stm_insServiceProperty.executeBatch();
+      if (executeProtocolsBatch) {
+	      stm_insServiceProtocol.executeBatch();
+      }
+      if (executeOntologiesBatch) {
+	      stm_insServiceOntology.executeBatch();
+      }
+      if (executeLanguagesBatch) {
+	      stm_insServiceLanguage.executeBatch();
+      }
+      if (executePropertiesBatch) {
+	      stm_insServiceProperty.executeBatch();
+      }
     }
   }
   
@@ -769,7 +790,6 @@ public class DFDBKB extends DBKB {
           stm_insProtocol.setString(1, descrId);
           stm_insProtocol.setString(2, (String)iter.next());
           stm_insProtocol.addBatch();
-          stm_insService.executeBatch();
         }
         stm_insProtocol.executeBatch();
       }
@@ -872,6 +892,88 @@ public class DFDBKB extends DBKB {
   
 		return dfds;
 	}
+	
+	/**
+	 */
+	public KBIterator iterator(Object template) {
+    String select = null;
+    ResultSet rs = null;
+    Statement s = null;
+    
+		try {
+		  select = createSelect((DFAgentDescription) template);
+      
+      s = conn.createStatement();
+      rs = s.executeQuery(select);
+      
+      return new DFDBKBIterator(s, rs);
+		} 
+		catch(SQLException se){
+			logger.log(Logger.SEVERE, "Error accessing DB: "+select, se);
+			se.printStackTrace();
+		  closeResultSet(rs);
+			closeStatement(s);
+    }
+		catch(Exception e) {
+	    logger.log(Logger.SEVERE, "Error creating SQL SELECT statement.", e);
+			e.printStackTrace();
+    }
+    
+    // Return an empty iterator
+    return new DFDBKBIterator();
+	}
+
+	
+	/**
+	   Inner class DFDBKBIterator
+	 */
+	private class DFDBKBIterator implements KBIterator {
+    private Statement s = null;
+    private ResultSet rs = null;
+    private boolean hasMoreElements = false;
+    
+		public DFDBKBIterator() {
+		}
+		
+		public DFDBKBIterator(Statement s, ResultSet rs) throws SQLException {
+			this.s = s;
+			this.rs = rs;
+			if (rs != null) {
+				// Move to the first row
+				hasMoreElements = rs.next();
+			}
+		}
+		
+  	public boolean hasNext() {
+			return hasMoreElements;
+  	}
+  	
+  	public Object next() {
+  		if (hasMoreElements) {
+	  		try {
+	    		String name = rs.getString("aid");
+					DFAgentDescription dfd = getDFD(name);
+					hasMoreElements = rs.next();
+					return dfd;
+	  		}
+	  		catch (SQLException sqle) {
+					hasMoreElements = false;
+		  		throw new NoSuchElementException("DB Error. "+sqle.getMessage());
+	  		}
+  		}
+  		throw new NoSuchElementException("");
+  	}
+  	
+  	public void remove() {
+  		// Not implemented
+  	}
+    	
+  	public void close() {
+		  closeResultSet(rs);
+			closeStatement(s);
+  	}
+	} // END of inner class DFDBKBIterator
+	
 	
 	/**
 	 * Reconstructs an AID object corresponding to the given AID name
@@ -1070,7 +1172,8 @@ public class DFDBKB extends DBKB {
     stm_selServiceId.setString(1, descrId);
     rs = stm_selServiceId.executeQuery();
     
-    while (rs.next()) {;
+    boolean executeBatch = false;
+    while (rs.next()) {
       String serviceId = rs.getString("id");
     
       stm_delServiceLanguage.setString(1, serviceId);
@@ -1087,14 +1190,18 @@ public class DFDBKB extends DBKB {
   
       stm_delService.setString(1, descrId);
       stm_delService.addBatch();
+      
+      executeBatch = true;
     }
     rs.close();
 
-    stm_delServiceLanguage.executeBatch();
-    stm_delServiceOntology.executeBatch();
-    stm_delServiceProtocol.executeBatch();
-    stm_delServiceProperty.executeBatch();
-    stm_delService.executeBatch();
+    if (executeBatch) {
+	    stm_delServiceLanguage.executeBatch();
+	    stm_delServiceOntology.executeBatch();
+	    stm_delServiceProtocol.executeBatch();
+	    stm_delServiceProperty.executeBatch();
+	    stm_delService.executeBatch();
+    }
   }
   
   
