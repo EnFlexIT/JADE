@@ -52,9 +52,9 @@ import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
 import jade.security.Authority;
-import jade.security.CertificateFolder;
-import jade.security.AgentPrincipal;
-import jade.security.IdentityCertificate;
+import jade.security.Credentials;
+import jade.security.JADEPrincipal;
+//import jade.security.IdentityCertificate;
 import jade.security.AuthException;
 
 import jade.util.leap.Map;
@@ -68,6 +68,7 @@ import jade.util.leap.Iterator;
    Back-End Container.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
+   @author Jerome Picault - Motorola Labs
 
 */
 public class BEAgentManagementService extends BaseService {
@@ -92,7 +93,6 @@ public class BEAgentManagementService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = (BackEndContainer)ac;
-
     }
 
 
@@ -313,7 +313,7 @@ public class BEAgentManagementService extends BaseService {
 
 	    try {
 
-		CertificateFolder agentCerts = null;
+	    Credentials creds = null;
 		//CertificateFolder agentCerts = instance.getCertificateFolder();
 		if(startIt) {
 
@@ -321,16 +321,16 @@ public class BEAgentManagementService extends BaseService {
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 		    try {
-			mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+			mainSlice.bornAgent(target, myContainer.getID(), creds);
 		    }
 		    catch(IMTPException imtpe) {
 			// Try to get a newer slice and repeat...
 			mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-			mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+			mainSlice.bornAgent(target, myContainer.getID(), creds);
 		    }
 
 		    // Actually start the agent thread
-		    myContainer.powerUpLocalAgent(target, instance);
+		    myContainer.powerUpLocalAgent(target);
 		}
 	    }
 	    catch(NameClashException nce) {
@@ -402,15 +402,14 @@ public class BEAgentManagementService extends BaseService {
 
 	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
 
-	    Object[] params = cmd.getParams();
-	    AID agentID = (AID)params[0];
-	    String className = (String)params[1];
-	    Object[] arguments = (Object[])params[2];
-	    String ownership = (String)params[3];
-	    CertificateFolder certs = (CertificateFolder)params[4];
-	    boolean startIt = ((Boolean)params[5]).booleanValue();
-
-	    createAgent(agentID, className, arguments, ownership, certs, startIt);
+    Object[] params = cmd.getParams();
+    for (int i=0;i<params.length;i++) System.out.println(params[i]);
+    AID agentID = (AID)params[0];
+    String className = (String)params[1];
+    String[]args = (String[])params[2];
+    JADEPrincipal owner = (JADEPrincipal) params[3];
+    Credentials initialCredentials = (Credentials) params[4];
+    createAgent(agentID, className, args, owner, initialCredentials);
 	}
 
 	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
@@ -458,7 +457,7 @@ public class BEAgentManagementService extends BaseService {
 	   method. This image is stored in the pendingImages map for later 
 	   retrieval (see bornAgent()).
 	*/
-	private void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
+	private void createAgent(AID agentID, String className, Object[] args, JADEPrincipal ownership, Credentials creds) throws IMTPException {
 
 	    BackEndContainer.AgentImage image = myContainer.createAgentImage(agentID);
 	    /* Set security information 
@@ -602,19 +601,17 @@ public class BEAgentManagementService extends BaseService {
 
 		if(cmdName.equals(AgentManagementSlice.H_CREATEAGENT)) {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.REQUEST_CREATE, AgentManagementSlice.NAME, null);
-		    AID agentID = (AID)params[0];
+      for (int i=0;i<params.length;i++) System.out.println(params[i]);
+        AID agentID = (AID)params[0];
 		    String className = (String)params[1];
 		    Object[] arguments = (Object[])params[2];
 		    String ownership = (String)params[3];
-		    CertificateFolder certs = (CertificateFolder)params[4];
-		    Boolean startIt = (Boolean)params[5];
+		    Credentials certs = (Credentials)params[4];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(className);
 		    gCmd.addParam(arguments);
 		    gCmd.addParam(ownership);
 		    gCmd.addParam(certs);
-		    gCmd.addParam(startIt);
-
 		    result = gCmd;
 		}
 		else if(cmdName.equals(AgentManagementSlice.H_KILLAGENT)) {
@@ -637,10 +634,10 @@ public class BEAgentManagementService extends BaseService {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_CREATED, AgentManagementSlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    CertificateFolder certs = (CertificateFolder)params[2];
+		    Credentials creds = (Credentials)params[2];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(cid);
-		    gCmd.addParam(certs);
+		    gCmd.addParam(creds);
 
 		    result = gCmd;
 		}
