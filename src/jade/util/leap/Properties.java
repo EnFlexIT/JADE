@@ -95,7 +95,13 @@ public class Properties extends Hashtable {
       in.close();
     }
     catch(IOException ioe) {
-      super.load(ClassLoader.getSystemResource(storage).openStream()); // Search the classpath
+    	// Search the classpath
+    	InputStream in = ClassLoader.getSystemResourceAsStream(storage);
+    	if (in == null) {
+    		throw new IOException("Cannot find file "+storage);
+    	}
+    	super.load(in); 
+      in.close();
     }
     //#MIDP_EXCLUDE_END
     /*#MIDP_INCLUDE_BEGIN
