@@ -236,21 +236,21 @@ public class ProfileImpl extends Profile {
   /**
    */
   protected Platform getPlatform() throws ProfileException {
+      //#MIDP_EXCLUDE_BEGIN
     if (myPlatform == null) {
-	  	//#MIDP_EXCLUDE_BEGIN
+
       createPlatform();
-	  	//#MIDP_EXCLUDE_END
-	  	/*#MIDP_INCLUDE_BEGIN
-      try {
-        myPlatform = new MainContainerProxy(this);
-      } 
-      catch (IMTPException imtpe) {
-        throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
-      } 
-	  	#MIDP_INCLUDE_END*/
+
     }
 
     return myPlatform;
+
+    //#MIDP_EXCLUDE_END
+
+    /*#MIDP_INCLUDE_BEGIN
+      return null;
+      #MIDP_INCLUDE_END*/
+    
   }
 
   /**
@@ -353,19 +353,10 @@ public class ProfileImpl extends Profile {
 
   //#MIDP_EXCLUDE_BEGIN
   private void createPlatform() throws ProfileException {
-    try {
       if (CaseInsensitiveString.equalsIgnoreCase("true", getParameter(MAIN, "true"))) {
-        // The real Main
-        myPlatform = new MainContainerImpl(this);
+	  // The real Main
+	  myPlatform = new MainContainerImpl(this);
       }
-      else {
-        // A proxy to the Main
-        myPlatform = new MainContainerProxy(this);
-      }
-    }
-    catch (IMTPException imtpe) {
-      throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
-    }
   }
   //#MIDP_EXCLUDE_END
 

@@ -387,8 +387,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  //#J2ME_EXCLUDE_END
 
 
-          // If myPlatform is the real MainContainerImpl this call starts the AMS and DF, otherwise it does nothing
-	  myPlatform.startSystemAgents(this);
+	  if(myPlatform != null) {
+	      myPlatform.startSystemAgents(this);
+	  }
 
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
@@ -512,10 +513,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
 
-      myPlatform.removeLocalContainer();
+	if(myPlatform != null) {
+	    myPlatform.removeLocalContainer();
+	}
 
-      myIMTPManager.unexportServiceManager(myServiceManager);
-      myIMTPManager.disconnect(myID);
+	myIMTPManager.unexportServiceManager(myServiceManager);
+	myIMTPManager.disconnect(myID);
 
     }
     catch(IMTPException imtpe) {

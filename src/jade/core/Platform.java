@@ -28,16 +28,6 @@ import jade.lang.acl.ACLMessage;
 import jade.security.AuthException;
 
 /**
-   This interface represent the whole platform as seen by a 
-   <code>Container</code>.
-   It provides methods that allows a <code>Container</code> to
-   register/deregister to the platform, dispatch a message to an 
-   <code>Agent</code> living somewhere in the platform and notify
-   the platform that an agent has born/died/moved or that an MTP
-   has been installed/removed.
-   @see MainContainer
-   @see MainContainerImpl
-   @see MainContainerProxy
    @author Giovanni Caire - TILAB
  */
 interface Platform {

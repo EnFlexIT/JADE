@@ -361,21 +361,13 @@ public class ProfileImpl extends Profile {
    * @see
    */
   private void createPlatform() throws ProfileException {
-  	try {
-	    String isMain = props.getProperty(MAIN);
-  	  if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
-	      // The real Main
-	      myPlatform = new MainContainerImpl(this);
-	      // HP myPlatform = theMainContainer = new MainContainerImpl(this);
-    	} 
-    	else {
-	    // A proxy to the Main
-	    myPlatform = new MainContainerProxy(this);
-    	}
-  	}
-  	catch (IMTPException imtpe) {
-  		throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
-  	}
+
+      String isMain = props.getProperty(MAIN);
+      if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+	  // The real Main
+	  myPlatform = new MainContainerImpl(this);
+	  // HP myPlatform = theMainContainer = new MainContainerImpl(this);
+      }
   } 
 
   /**
