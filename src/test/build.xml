@@ -71,8 +71,8 @@
         __________________________________________________ -->
   <target name="lib" depends="compile" 
           description="Create a jar file including all Jade tests and the necessary examples">
-		<delete file="lib/jadeTestSuite.jar" quiet="true"/>
-		<jar jarfile="lib/jadeTestSuite.jar">
+  	<delete file="src/test/jadeTestSuite.jar" quiet="true"/>
+		<jar jarfile="src/test/jadeTestSuite.jar">
 			<fileset dir="classes">
 				<include name="**/test/**"/>
 				<include name="**/examples/mobile/**"/>
