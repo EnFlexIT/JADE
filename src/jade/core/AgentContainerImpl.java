@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.26  1999/02/16 08:06:32  rimassa
+  Caught CORBA System Exception to trap inter-platform communications
+  problems.
+
   Revision 1.25  1999/02/14 23:08:16  rimassa
   Changed AgentGroup handling to comply with new version of that class.
 
@@ -216,8 +220,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentName);
-    // FIXME: When an Agent is about to die and it is
-    // still deregistering with the AMS, avoid killing him again
     agent.doDelete();
   }
 
@@ -472,6 +474,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(IIOPFormatException iiopfe) {
       iiopfe.printStackTrace();
+    }
+    catch(org.omg.CORBA.SystemException oocse) {
+      System.out.println("Communication error while contacting foreign agent platform");
+      oocse.printStackTrace();
     }
   }
 
