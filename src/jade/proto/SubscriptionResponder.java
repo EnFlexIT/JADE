@@ -246,8 +246,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      * This method is called when a CANCEL
      * message is received for a previous subscription. 
      * The default implementation retrieves the <code>Subscription</code>
-     * object the received cancel message refers to and deregisters it from 
-     * <code>SubscriptionManager</code> used by this responder. Then it and
+     * object the received cancel message refers to and deregisters it from the 
+     * <code>SubscriptionManager</code> used by this responder. Then it
      * returns null which has the effect of sending no reponse. 
      * Programmers in general do not need
      * to override this method, but just implement the <code>deregister()</code>
@@ -261,9 +261,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      * <code>inform</code> and <code>failure</code>. 
      */
     protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
-    	String convId = cancel.getConversationId();
-    	if (convId != null) {
-    		Subscription s = (Subscription) subscriptions.get(convId);
+    	Subscription s = getSubscription(cancel);
+    	if (s == null) {
     		mySubscriptionManager.deregister(s);
     	}
     	return null;
@@ -308,11 +307,30 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
     }
     
     /**
-       Utility method to correctly create a Subscription object managed
-       by this <code>SubscriptionResponder</code>
+       Utility method to correctly create a new <code>Subscription</code> object 
+       managed by this <code>SubscriptionResponder</code>
      */
     public Subscription createSubscription(ACLMessage subsMsg) {
-    	return new Subscription(this, subsMsg);
+    	Subscription s = new Subscription(this, subsMsg);
+    	String convId = subsMsg.getConversationId();
+    	if (convId != null) {
+    		subscriptions.put(convId, s);
+    	}
+    	return s;
+    }
+    
+    /**
+       Utility method to correctly retrieve the 
+       <code>Subscription</code> object that is related to the conversation
+       message <code>msg</code> belongs to.
+     */
+    public Subscription getSubscription(ACLMessage msg) {
+    	Subscription s = null;
+    	String convId = msg.getConversationId();
+    	if (convId != null) {
+    		s = (Subscription) subscriptions.get(convId);
+    	}
+    	return s;
     }
     
     /**
@@ -446,7 +464,23 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
          handles sequencing and protocol fields appropriately.
        */			   
 			public void notify(ACLMessage notification){
+				
 				myResponder.addNotification(notification, subscription);
+			}
+			
+			/** 
+			   This method should be called after a <code>Subscription</code> object
+			   has been deregistered (typically from within the <code>deregister()</code>
+			   method of the <code>SubscriptionManager</code>) and allows the 
+			   <code>SubscriptionResponder</code> to release the resources allocated
+			   for this subscription.
+			   Not calling this method may have unexpected and undesirable side effects.
+       */			   
+			public void close(){
+	    	String convId = subscription.getConversationId();
+	    	if (convId != null) {
+	    		myResponder.subscriptions.remove(convId);
+	    	}
 			}
 		} // END of inner class Subscription
 
