@@ -23,8 +23,6 @@ import jade.lang.acl.ACLMessage;
  */
 public class AMSEventListenerAgent extends Agent {
 
-  private Object lock = new Object();
-  private String newEvent;
   private AID receiverAID;
   
   protected void setup() {
@@ -39,11 +37,10 @@ public class AMSEventListenerAgent extends Agent {
       class Handler implements EventHandler {
 
         public void handle(Event ev) {
-          // save type of fired event and initiate its forwarding
-          newEvent = ev.getName();
-          synchronized (lock) {
-            lock.notify();
-          }
+          ACLMessage msgOut = new ACLMessage(ACLMessage.INFORM);
+          msgOut.addReceiver(receiverAID);
+          msgOut.setContent(ev.getName());
+          send(msgOut);
         }
       }
       
@@ -54,22 +51,7 @@ public class AMSEventListenerAgent extends Agent {
         handlersTable.put(IntrospectionOntology.REMOVEDCONTAINER, h);        
       }
       
-    });
-    
-    addBehaviour(new CyclicBehaviour() {
-
-      public void action() {
-        
-        // forward new event
-        if (newEvent != null) {
-          ACLMessage msgOut = new ACLMessage(ACLMessage.INFORM);
-          msgOut.addReceiver(receiverAID);
-          msgOut.setContent(newEvent);
-          send(msgOut);
-          newEvent = null;
-          }
-        }
-    });
+    });    
   }
 }
 
