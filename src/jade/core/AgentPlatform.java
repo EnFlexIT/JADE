@@ -24,7 +24,7 @@ public interface AgentPlatform extends AgentContainer {
   public void addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(AgentContainer ac) throws RemoteException;
 
-  public void bornAgent(AgentDescriptor desc) throws RemoteException;
+  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException;
   public void deadAgent(String name) throws RemoteException;
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
