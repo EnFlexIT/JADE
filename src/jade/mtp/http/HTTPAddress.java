@@ -57,15 +57,21 @@ public class HTTPAddress implements TransportAddress {
     url = new URL(addr);
   }
   
-  HTTPAddress(String addr, int port) throws MalformedURLException {
-    url = new URL("http",addr,port,"/acc");
+  HTTPAddress(String addr, int port, boolean https) 
+    throws MalformedURLException {
+      if(https){
+        url = new URL("https",addr,port,"/acc");
+      }else{
+        url = new URL("http",addr,port,"/acc");
+      }
   }
   
-  /** Check if HTTP addresses are equivalent (same port, same host) */
+  /** Check if HTTP addresses are equivalent (same port, same host, same proto) */
   public boolean equals(HTTPAddress a) {
     try {
       if ((getPort().equals(a.getPort())) &&
-          (InetAddress.getByName(url.getHost()).equals(InetAddress.getByName(a.getHost())))) {
+          (InetAddress.getByName(url.getHost()).equals(InetAddress.getByName(a.getHost()))) &&
+          (getProto().equals(a.getProto()))) {
         return true;
       }
     }

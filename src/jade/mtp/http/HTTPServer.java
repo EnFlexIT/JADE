@@ -86,12 +86,14 @@ public class HTTPServer extends Thread {
     }
     timeout = t;
     try {
-	    server = new ServerSocket(port);
+				//server = new ServerSocket(port);
+			server = HTTPSocketFactory.getInstance().createServerSocket(port);
     }
     catch (IOException ioe) {
     	if (changePortIfBusy) {
     		// The specified port is busy. Let the system find a free one
-    		server = new ServerSocket(0);
+    		//server = new ServerSocket(0);
+				server = HTTPSocketFactory.getInstance().createServerSocket(0);
         if(logger.isLoggable(Logger.WARNING))
         	logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
     	}

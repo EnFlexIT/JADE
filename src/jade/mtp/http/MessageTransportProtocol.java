@@ -77,8 +77,9 @@ public class MessageTransportProtocol implements MTP {
   private boolean keepAlive  = false;
   private boolean useProxy   = false;
   private boolean useOutPort = false;
-  
-  private String[] protocols = {"http"};
+	private boolean useHttps   = false;
+
+  private String[] protocols = {"http", "https"};
   private String FIPA_NAME = "fipa.mts.mtp.http.std";
   private Hashtable addr2srv = new Hashtable();
   
@@ -194,7 +195,7 @@ public class MessageTransportProtocol implements MTP {
             port = IN_PORT;
             changePortIfBusy = true;
           }
-          hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port);
+          hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port, useHttps);
 				}
 		    catch( UnknownHostException ukhexc ) {
 		      throw new MTPException("Cannot activate MTP on default address: Unknown Host");
@@ -231,6 +232,11 @@ public class MessageTransportProtocol implements MTP {
       
       timeout = Integer.parseInt(p.getParameter(PREFIX+"timeout",TIMEOUT));
 
+			try{
+					HTTPSocketFactory.getInstance().configure(p, hta);
+      } catch(Exception e){
+					throw new MTPException("Error configuring Socket Factory", e);
+      }
       /*
         System.out.println("Parameters set:");
         System.out.println("- KA "+numKA);
@@ -255,7 +261,7 @@ public class MessageTransportProtocol implements MTP {
       HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy); 
       int actualPort = srv.getLocalPort();
       if (actualPort != port) {
-	      hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort);
+	      hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort, useHttps);
       }	
       //Save the reference to HTTPServer
       addr2srv.put(hta.toString(),srv);
@@ -301,7 +307,7 @@ public class MessageTransportProtocol implements MTP {
 	    synchronized(lock) {
         HTTPAddress host = new HTTPAddress(addr);
         if (useProxy) {
-          url = new HTTPAddress(proxyHost,proxyPort);
+						url = new HTTPAddress(proxyHost,proxyPort,false); //false=>do_not_use HTTPS with the proxy
         }
         else {
           url = host;
