@@ -76,7 +76,7 @@ public class Command {
     public static final int PING_NODE_NONBLOCKING = 10;
     public static final int EXIT_NODE = 11;
     public static final int INTERRUPT_NODE = 12;
-    public static final int SERVICE_MANAGER_PING = 13;
+    public static final int SERVICE_MANAGER_ADOPT = 13;
     public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
     public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
 
