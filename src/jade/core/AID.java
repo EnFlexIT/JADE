@@ -47,7 +47,7 @@ public class AID implements Comparable, Serializable {
   /**
   @serial
   */
-  private String name = new String(); 
+  private String name; 
   
     private static final int EXPECTED_ADDRESSES_SIZE = 1;
     private static final int EXPECTED_RESOLVERS_SIZE = 0;
@@ -102,9 +102,6 @@ public class AID implements Comparable, Serializable {
      * is concatenated to the name, separated by  "@".
      **/
     public AID(String name, boolean isGUID) {
-	// initialize the static variable atHAP, if not yet initialized
-	if (atHAP == null)
-	    atHAP = "@"+getPlatformID();
 	if (isGUID)
 	    setName(name);
 	else
@@ -140,6 +137,14 @@ public class AID implements Comparable, Serializable {
   * The passed parameter must be a local name. 
   */
   public void setLocalName(String n){
+		// initialize the static variable atHAP, if not yet initialized
+		if (atHAP == null) {
+			String hap = getPlatformID();
+			if (hap == null) {
+				throw new RuntimeException("Can't set local-names since the platform ID is unknown");
+			}
+	    atHAP = "@"+hap;
+		}
     name = n.trim();
     if (!name.toLowerCase().endsWith(atHAP.toLowerCase()))
 	name = name.concat(atHAP); 
