@@ -53,22 +53,27 @@ public abstract class EndPoint extends Thread {
   private OutputStream out;
   private Thread terminator;
   
-	private int pktCnt = 0;
+	protected int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
   
   // The following variables are protected as they can be set by
-  // extending classes
+  // subclasses
   protected int verbosity = 1;
-  protected long respTimeout = 20000; // 20 sec
+  protected long respTimeout = 30000; // 30 sec
   protected int packetSize = 1024;  	
 
   /**
-   * Constructor declaration
+     Constructor declaration
    */
   public EndPoint() {
   	super();
   }
 
+  /**
+     Deliver a JICPPacket carrying a command to the remote
+     EndPoint and get back another JICPPacket carrying the
+     response
+   */
   public JICPPacket deliverCommand(JICPPacket cmd) throws ICPException {
   	OutgoingHandler h = new OutgoingHandler();
   	JICPPacket rsp = h.handle(cmd);
@@ -102,21 +107,57 @@ public abstract class EndPoint extends Thread {
   	} 		
   }
   
+  /**
+     @return <code>true</code> if the connection to the remote
+     EndPoint is currently up.
+   */
   public final boolean isConnected() {
   	return connected;
   }
   
+  /** 
+     Set up the connection to the remote EndPoint. 
+     Subclasses are expected to implement this method
+   */   
   protected abstract void setup() throws ICPException;
-	protected abstract JICPPacket handleCommand(JICPPacket cmd) throws Exception;
+
+  /** 
+     Handle a JICPPacket carrying a command received from the
+     remote EndPoint.
+     Subclasses are expected to implement this method.
+     @return the JICPPacket carrying the response to be sent back
+   */   
+  protected abstract JICPPacket handleCommand(JICPPacket cmd) throws Exception;
+  
+  /** 
+     This method is called as soon as (and each time) the 
+     connection to the remote EndPoint becomes up.
+     The default implementation of this method does nothing, but 
+     subclasses may redefine it to react to this event as needed.
+   */
 	protected void handleConnectionReady() {
 	}
+	
+  /** 
+     This method is called when there is no way to (re)establish
+     the connection to the remote EndPoint.
+     The default implementation of this method does nothing, but 
+     subclasses may redefine it to react to this event as needed.
+   */
 	protected void handleConnectionError() {
 	}
+	
+  /** 
+     This method is called when the remote EndPoint exits
+     spontaneously.
+     The default implementation of this method does nothing, but 
+     subclasses may redefine it to react to this event as needed.
+   */
 	protected void handlePeerExited() {
 	}
 
   /**
-   * Thread entry point
+   * EndPoint thread entry point
    */
   public final void run() {
     while (active) {
@@ -140,10 +181,10 @@ public abstract class EndPoint extends Thread {
           JICPPacket pkt = JICPPacket.readFrom(inp);
           servePacket(pkt);          
         } 
-        catch (Exception e) {
+        catch (Throwable t) {
           if (active) {
             // Error reading from socket. The connection is no longer valid.
-            log("Exception reading from connection: "+e, 1);
+            log("Exception reading from connection: "+t, 1);
           } 
           log("Wakeing up outgoings", 2);
           wakeupOutgoings();
@@ -157,13 +198,19 @@ public abstract class EndPoint extends Thread {
   } 
   
   /**
-     The following code is isolated in a separate protected method to
-     make it possible to re-use it
+     Serve an incoming packet:
+     - If it is a COMMAND an IncomingHandler is created to 
+     handle it.
+     - If it is a RESPONSE or an ERROR it is passed to the 
+     OutgoingHandler that is waiting for it.
+     - Otherwise (likely it is a KEEP_ALIVE) only the incoming
+     packet counter is incremented.
    */
   protected void servePacket(JICPPacket pkt) {
     byte id = pkt.getSessionID();
+    byte type = pkt.getType();
     pktCnt = (pktCnt+1) & 0x0fff;
-  	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+  	if (type == JICPProtocol.COMMAND_TYPE) {
     	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
       	log("Peer termination notification received", 2);
     		// The remote EndPoint has terminated spontaneously -->
@@ -180,7 +227,7 @@ public abstract class EndPoint extends Thread {
       	h.start();
     	}
   	}
-  	else {
+  	else if (type == JICPProtocol.RESPONSE_TYPE || type == JICPProtocol.ERROR_TYPE) {
     	log("Response received. OUT-SID="+id, 3);
     	
     	// Dispatch the response  to the OutgoingHandler that is waiting for it
@@ -204,9 +251,12 @@ public abstract class EndPoint extends Thread {
   }
 
   /**
+     Push a packet with the given session ID to the remote EndPoint. 
+     This is protected so that it can be directly called by 
+     subclasses e.g. to send a KEEP_ALIVE packet.
      Mutual exclusion with setConnection() and resetConnection()
    */
-  private int push(byte id, JICPPacket pkt) {
+  protected int push(byte id, JICPPacket pkt) {
   	synchronized (connectionLock) {
   		if (connected) {
   			try {
@@ -222,6 +272,7 @@ public abstract class EndPoint extends Thread {
 		    catch (IOException ioe) {
 	        // The connection is down! Reset it so that the EndPoint thread
 	      	// detects the disconnection and handles it properly.
+		    	log("Exception delivering packet. "+ioe.toString(), 2);
   				resetConnection();
 		    }
   		}
@@ -238,17 +289,22 @@ public abstract class EndPoint extends Thread {
   }
 
   /**
+     Reset the connection to the remote EndPoint
      Mutual exclusion with setConnection() and push()
    */
   protected final void resetConnection() {
   	synchronized (connectionLock) {
   		if (connected) {
 			 	try {
+			 		synchronized (inp) {
+			 			inp.notifyAll();
+			 		}
 			    inp.close();
 			    out.close();
 			    theConnection.close();
 			  } 
 			  catch (Exception e) {
+			  	log("Exception resetting the connection "+e.toString(), 2);
 			  }
 			  theConnection = null;
 		  	inp = null;
@@ -259,6 +315,8 @@ public abstract class EndPoint extends Thread {
   }
     	
   /**
+     Set <code>c</code> to be the connection to the remote
+     EndPoint.
      Mutual exclusion with resetConnection() and push()
    */
   protected final void setConnection(Connection c) throws IOException {
@@ -375,13 +433,8 @@ public abstract class EndPoint extends Thread {
     private synchronized final void waitForResponse(long timeout) throws ICPException {
       while (!rspReceived) {
       	try {
-      		long before = System.currentTimeMillis();
           wait(timeout);
           if (pktCnt == oldPktCnt) {
-          	long after = System.currentTimeMillis();
-          	if (after-before < timeout) {
-          		log("WARNING: exiting from wait with no response received and timeout not yet expired: "+String.valueOf(after-before), 0);
-          	}
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down
