@@ -1,3 +1,12 @@
+Changes in the snapshot of the 07/10/04
+==========================================================================
+BUG FIXES:
+- LEAPFrameCodec and LEAPCodec: fixed bug in encoding Strings of length 1
+- Sniffer and ToolNotifier: fixed bug in dealing with messages with
+  multiple receivers
+
+
+	
 Changes in the snapshot of the 28/09/04
 ==========================================================================
 GENERAL IMPROVEMENTS:
