@@ -552,10 +552,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-<<<<<<< Agent.java
-=======
-
->>>>>>> 1.88
   /**
     Fills the <code>:content</code> slot of an ACL message with the string
     representation of a t-uple of user defined ontological objects. Each 
@@ -592,12 +588,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       List l = new ArrayList();
       Frame f;
       for (int i=0; i<content.size(); i++) {
-<<<<<<< Agent.java
-	// FIXME: Get the role name from the class
-	f = o.createFrame(content.get(i), "roleName"); 
-=======
 	f = o.createFrame(content.get(i), o.getRoleName(content.get(i).getClass()));
->>>>>>> 1.88
 	l.add(f);
       }
       String s = c.encode(l, o);
