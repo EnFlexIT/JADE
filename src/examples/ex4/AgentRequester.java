@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.7  1998/10/31 12:57:09  rimassa
+  Modified example to turn AgentRequester in an endless 'fipa-request'
+  client; now the main behaviour (a SequentialBehaviour) calls its new
+  reset() method from its postAction(), so it restarts automatically.
+
   Revision 1.6  1998/10/18 16:10:33  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -82,7 +87,11 @@ public class AgentRequester extends Agent {
     public boolean done() {
       return finished;
     }
-    
+
+    public void reset() {
+      finished = false;
+    }
+
   } // End of ReceiveBehaviour
 
 
@@ -101,7 +110,13 @@ public class AgentRequester extends Agent {
     }
 
 
-    ComplexBehaviour mainBehaviour = new SequentialBehaviour(this);
+    ComplexBehaviour mainBehaviour = new SequentialBehaviour(this) {
+
+      protected void postAction() {
+	reset();
+      }
+
+    };
 
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
@@ -109,6 +124,7 @@ public class AgentRequester extends Agent {
 
 	// Send a 'request' message to peer
 	System.out.println("Sending 'request' message to: " + getPeer());
+	receivedAgree = false;
 	sendRequest();
 
       }
@@ -158,10 +174,12 @@ public class AgentRequester extends Agent {
     // If agree is received, also receive inform or failure messages.
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
+      ComplexBehaviour receiveAfterAgree;
+
       public void action() {
 	if(agreed()) {
 	  
-	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(AgentRequester.this);
+	  receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(AgentRequester.this);
 	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
@@ -192,6 +210,13 @@ public class AgentRequester extends Agent {
 
 	else
 	  System.out.println("Protocol ended.");
+      }
+
+      public void reset() {
+	if(agreed()) {
+	  receiveAfterAgree.reset();
+	  removeBehaviour(receiveAfterAgree);
+	}
       }
 
     });
