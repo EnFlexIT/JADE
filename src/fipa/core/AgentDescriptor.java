@@ -20,7 +20,7 @@ class AgentDescriptor implements Serializable {
   // Current address
   // Current life cycle state
 
-  public AgentDescriptor(String s, MessageDispatcher md) {
+  public void set(String s, MessageDispatcher md) {
     name = s;
     demux = md;
   }
