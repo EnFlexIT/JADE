@@ -76,4 +76,10 @@
 			<Description> This item includes tests that measure the performances of the message transport mechanism for different types of communication (intra-container, inter-container, inter-platform...) </Description>
 			<TestsListRif>test/roundTripTime/roundTripTimeTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="JADE running on wireless devices" skip="true">
+			<ClassName>test.leap.LEAPTesterAgent</ClassName>
+			<Description> This item includes tests validating the execution of JADE containers and agents on MIDP devices.
+			The execution of this group of tests requires the user to i) load the testleap.jar file on the MIDP device used for the tests and ii) manualy start JADE containers on it when requested. </Description>
+			<TestsListRif>test/leap/LEAPTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>
