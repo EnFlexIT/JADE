@@ -51,12 +51,12 @@ public class TestBasicPersistentDelivery extends Test {
   		}
   	} );
   	
-		// Step 2: Start the forwarder and ping agent
+		// Step 2: Start the forwarder
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
   		public void action() {
   			try {
 					log("2) Starting Forwarder agent...");
-					forwarder = TestUtility.createAgent(myAgent, FORWARDER_NAME, "test.persDelivery.tests.TestBasicPersistentDelivery$ForwarderAgent", new String[]{myAgent.getLocalName(), PING_NAME}, null, jc.getContainerName());
+					forwarder = TestUtility.createAgent(myAgent, FORWARDER_NAME, "test.persDelivery.tests.ForwarderAgent", new String[]{myAgent.getLocalName(), PING_NAME}, null, jc.getContainerName());
 					log("Forwarder agent correctly started");
   			}
   			catch (Exception e) {
@@ -158,50 +158,6 @@ public class TestBasicPersistentDelivery extends Test {
   		e.printStackTrace();
   	}
   }  	
-  
-  /**
-     Inner class ForwarderAgent
-   */
-  public static class ForwarderAgent extends Agent {
-  	AID tester = null;
-  	AID receiver = null;
-  	
-  	protected void setup() {
-  		Object[] args = getArguments();
-  		if (args != null && args.length > 1) {
-  			tester = new AID((String) args[0], AID.ISLOCALNAME);
-  			receiver = new AID((String) args[1], AID.ISLOCALNAME);
-  			
-	  		addBehaviour(new CyclicBehaviour(this) {
-	  			public void action() {
-	  				ACLMessage msg = myAgent.receive();
-	  				if (msg != null) {
-	  					if (msg.getSender().equals(tester)) {
-	  						// Forward the message to the receiver;
-	  						msg.setSender(myAgent.getAID());
-	  						msg.clearAllReceiver();
-	  						msg.addReceiver(receiver);
-	  						myAgent.send(msg);
-	  					}
-	  					else {
-	  						// Forward the message to the tester
-	  						msg.setSender(myAgent.getAID());
-	  						msg.clearAllReceiver();
-	  						msg.addReceiver(tester);
-	  						myAgent.send(msg);
-	  					}
-	  				}
-	  				else {
-	  					block();
-	  				}
-	  			}
-	  		} );
-  		}
-  		else {
-  			System.out.println("No tester/receiver name specified");
-  		}
-  	}
-  } // END of inner class ForwarderAgent
   
   /**
      Inner class PingAgent
