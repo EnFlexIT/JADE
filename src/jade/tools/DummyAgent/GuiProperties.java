@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/05/24 21:27:13  rimassa
+  Removed Ctrl-M to the end of the lines.
+
   Revision 1.1  1999/05/24 21:20:17  rimassa
   Added new DummyAgent tool agent.
 
