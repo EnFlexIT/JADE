@@ -22,7 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-//#ALL_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
 package jade.security;
 

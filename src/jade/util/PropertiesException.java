@@ -21,7 +21,7 @@
 
 package jade.util;
 
-//#J2ME_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
 /**
  * Property related exception.

@@ -21,7 +21,7 @@
 
 package jade.util;
 
-//#J2ME_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
 // DO NOT ADD ANY IMPORTS FOR CLASSES NOT DEFINED IN J2ME CLDC!
 import java.util.Enumeration;
