@@ -159,7 +159,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
       // Force the BackEndContainer to terminate. This will also
       // cause this BackEndDispatcher to terminate and deregister 
       // from the JICPServer
-      myContainer.exit();
+      myContainer.shutDown();
   }
   
   /**

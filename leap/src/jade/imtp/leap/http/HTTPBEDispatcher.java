@@ -140,8 +140,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
    */
   public void kill() {
       // Force the BackEndContainer to terminate. This will also
-      // cause this HTTPBEDispatcher to terminate 
-      myContainer.exit();
+      // cause this HTTPBEDispatcher to terminate and deregister 
+      // from the JICPServer
+      myContainer.shutDown();
   }
   
   /**
