@@ -29,8 +29,8 @@ import java.lang.Boolean;
    
    This class defines the necessary information for the configuration properties of JADE.
    For every property some information are necessary to show the correctly:
-   the name, the type (integer, boolean or string), the default Value, the value read by file,
-   the value read from command line, the string to shoe as tooltip in the gui at start up and a
+   the name, the type (integer, boolean or string), the default Value, ,
+   the string to show as tooltip in the gui at start up and a
    boolean to indicate if the property is mandatory or not.
       
    @author Tiziana Trucco - CSELT S.p.A.
@@ -47,8 +47,7 @@ import java.lang.Boolean;
  	String name;
  	String type;
  	String defaultValue;
-	String fileValue;
-  String commandlineValue;
+	
 	String toolTip;
 	boolean mandatory;
  	
@@ -63,8 +62,7 @@ import java.lang.Boolean;
  		this.defaultValue=null;
  		this.toolTip =null;
  		this.mandatory=false;
- 		this.fileValue = null; 
- 		this.commandlineValue = null;
+ 		
 	
   } 
   /**
@@ -82,8 +80,7 @@ import java.lang.Boolean;
  		this.defaultValue=def;
  		this.toolTip =desc;
  		this.mandatory=mand;
- 		this.fileValue = null; 
- 		this.commandlineValue = null;
+ 		
  		
  	}
  	
@@ -109,21 +106,7 @@ import java.lang.Boolean;
  	{
  		return this.defaultValue;
  	}
- 	/**
- 	Returns the value read for the property from a file.
- 	*/
- 	public String getFileValue()
- 	{
- 		return this.fileValue;
- 	}
  	
- 	/*
- 	Returns the value read from command line for the property.
- 	*/
- 	public String getCommandLineValue()
- 	{
- 		return this.commandlineValue;
- 	}
  	/*
  	Returns the description of the property. 
  	*/
@@ -147,15 +130,7 @@ import java.lang.Boolean;
   	this.name = value;
   }
   
-  /*
- 	To set the value read from file of the property.
- 	*/
-
- 	public void setFileValue(String value)
- 	{
- 		this.fileValue = value;
- 	}
- 	
+	
  	/*
  	To set the default value of the property.
  	*/
@@ -165,12 +140,6 @@ import java.lang.Boolean;
  		this.defaultValue = value;
  	}
  	
- 	/*
- 	To set the value read from command line for the property.
- 	*/
- 	public void setCommandLineValue(String value)
- 	{
- 		this.commandlineValue = value;
- 	}
+ 
  }
  

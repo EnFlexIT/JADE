@@ -53,7 +53,7 @@ import java.net.UnknownHostException;
 import jade.PropertyType;
 import jade.Boot;
 import jade.BootException;
-
+import jade.BootArguments;
 /**
    
    This class create the gui for the jade configuration
@@ -74,10 +74,7 @@ import jade.BootException;
   @serial
   */
   List propertiesVector; 
-  /**
-  @serial
-  */
-  boolean modified;
+
   /**
   @serial
   */
@@ -109,6 +106,8 @@ import jade.BootException;
  
   BootGUI thisBootGui;
   
+  BootArguments bootArguments;
+  
 	//This class create a JPanel for a single property
  	class singlePanel extends JPanel
  	{
@@ -136,18 +135,10 @@ import jade.BootException;
  			JTextField valueText;
  			
  			// if the property has a command line value than it is used
- 			// otherwise is used the default value
- 			String commandValue = property.getCommandLineValue();
- 		
- 			String defaultValue = property.getDefaultValue();
- 			String value = defaultValue;
+ 			// otherwise is used the default value		
  			
- 			if(commandValue != null)
- 			  { 
- 			  	value = commandValue;
- 			  	modified = true;
- 			  }
- 		
+ 			String value = property.getDefaultValue();
+ 			
  			if(type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE))
  			{
  				 valueBox = new JCheckBox();
@@ -221,10 +212,15 @@ import jade.BootException;
  	}
  	
  	 	
- 	public Properties ShowBootGUI(List properties)
+ 	/**
+ 		This method shows the configuration properties stored in a BootArgument object.
+ 		To  be showed the arguments have to be stored in an arrayList using the PropertyType structore.
+ 	*/
+ 	public BootArguments ShowBootGUI(BootArguments arg)
  	 {
+ 	 	bootArguments = arg;
  	 	
- 	 	this.propertiesVector = properties;
+ 	 	this.propertiesVector = arg.getPropertyTypeVector();
    
  	 	setTitle("JADE Configuration");
  	 	
@@ -239,7 +235,8 @@ import jade.BootException;
  	 	
  	  propertyPanel.setLayout(new BoxLayout(propertyPanel, BoxLayout.Y_AXIS));
  	  
- 	  Iterator prop = properties.iterator();
+
+ 	  Iterator prop = propertiesVector.iterator();
  	  
  	  while(prop.hasNext())
  	  {
@@ -262,8 +259,8 @@ import jade.BootException;
 		statusField.setMaximumSize(new Dimension(200,50));
 		statusField.setMinimumSize(new Dimension(200,50));
 		
-		if(modified)
-			statusField.setText("Warning: default parameter overriden by \ncommand line ones");
+		//if(modified)
+	  // statusField.setText("Warning: default parameter overriden by \ncommand line ones");
 		statusPanel.add(statusField, BorderLayout.CENTER);
 
  	  
@@ -326,11 +323,16 @@ import jade.BootException;
  	   	if(param.equals("Save File"))
  	   	  {
  	   	  	Properties propToSave = extractPropertiesFromGui();
+ 	   	  	
  	   	  	//propToSave.list(System.out);
  	   	  	
  	   	  	try
  	   	  	{
- 	   	  		Boot.checkProperties(propToSave);
+ 	   	  		bootArguments.setProperties(propToSave); //from properties to bootArguments...
+ 	   	  		propToSave = bootArguments.toProperties();
+ 	   	  		
+ 	   	  		//propToSave.list(System.out);
+ 	   	  		
  	   	  	 	JFileChooser chooser = new JFileChooser();
  	   	  	  chooser.setFileFilter(new myFileFilter());
  	   	  	 	
@@ -387,11 +389,14 @@ import jade.BootException;
  	   		
  	   	  try
  	   	  {
- 	   	  		Boot.checkProperties(propToSave);
+ 	   	  		bootArguments.setProperties(propToSave);
+ 	   	  		propToSave = bootArguments.toProperties();
  	   	  		boolean different = false;
  	   	  		 	   	  		
  	   	  		if(fileOpened !=null)
  	   	  		{
+ 	   	  			
+ 	   	  			
  	   	  			// compares the properties from gui with those in the file
  	   	  			Properties p = readPropertiesFromFile(fileOpened);
  	   	  			//p.list(System.out);
@@ -496,7 +501,7 @@ import jade.BootException;
  	  
  	  ShowCorrect();
  	  
- 	  return outProp;
+ 	  return bootArguments;
  	 }
  	 
  	
@@ -514,7 +519,8 @@ import jade.BootException;
 		  PropertyType prop = (PropertyType)it.next();
 		  String name = prop.getName();
 		  String type = prop.getType();
- 	 	  String defaultVal = prop.getDefaultValue();
+ 	 	  //String defaultVal = prop.getDefaultValue();
+ 	 	  String defaultVal = "";
  	 	  boolean found = false;
  	 	  for(int i = 0; i<size && !found; i++)
  	 		{
@@ -551,6 +557,10 @@ import jade.BootException;
  	 				}
  	 		}
  	 	}
+ 	 	
+ 	 	//System.out.println("extract from GUI: ");
+ 	 	//out.list(System.out);
+ 	 	
  	 	return out;
  	 	
  	 }
@@ -590,10 +600,8 @@ import jade.BootException;
  	 		PropertyType prop = (PropertyType)it.next();
  	 		String name = prop.getName();
  	 		String type = prop.getType();
- 	 	  String fileValue = prop.getFileValue();
+ 	 	  String fileValue = prop.getDefaultValue();
  	 	  
- 	 	  //if no corresponding fileValue then using default value
- 	 	  fileValue = (fileValue != null ? fileValue : prop.getDefaultValue());
  	 	  boolean found = false;
  	 	  
  	 	
@@ -671,8 +679,7 @@ import jade.BootException;
   	  	if(pt.getName().equalsIgnoreCase(name))
   	  		{
 			    found = true;
-			    pt.setCommandLineValue(null);
-			    pt.setFileValue(p.getProperty(name));
+					pt.setDefaultValue(p.getProperty(name));
   	  		}
   	  }
       it = propertiesVector.iterator(); 

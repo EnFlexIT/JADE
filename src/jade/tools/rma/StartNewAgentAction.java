@@ -27,7 +27,7 @@ package jade.tools.rma;
 
 import java.awt.Frame;
 import jade.gui.AgentTree;
-import jade.Boot;
+import jade.BootArguments;
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.ArrayList;
@@ -68,11 +68,11 @@ class StartNewAgentAction extends ContainerAction {
       {
       	  String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
       	  //not remove '"'and '\'
-      	  ArrayList al = Boot.T2(agentSpecifier,true);
+      	  ArrayList al = BootArguments.T2(agentSpecifier,true);
       	  
       	  ArrayList argList = new ArrayList();
       	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
-        	for (Iterator it = Boot.getCommandLineAgentSpecifiers(al); it.hasNext();)
+        	for (Iterator it = BootArguments.getCommandLineAgentSpecifiers(al); it.hasNext();)
           {
     	      List l1 = (List)it.next();
           	//System.out.println("Agent Name: "+ l1.get(0));

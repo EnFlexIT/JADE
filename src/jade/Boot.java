@@ -47,13 +47,96 @@ import jade.gui.BootGUI;
  */
 public class Boot {
 
- 
-  // This separates agent name from agent class on the command line
-	private static final String SEPARATOR = ":";
-	//This separates the single arguments in a list of arguments
-	private static final String ARGUMENT_SEPARATOR = ";";
-  //Default port used to start the platform
-  private static String platformPort = "1099";
+    /**
+     * This static method parses the command line arguments and stores
+     * all the information into the passed BootArgument object.
+     **/
+    private static void parseCommandLine(BootArguments ba, String args[]) {
+	int n = 0;
+	String fileName = null;
+	boolean endCommand = false;
+			
+	while( n < args.length && !endCommand) {
+	    if(args[n].equalsIgnoreCase("-conf")) {
+      		if(++n == args.length) 
+		    ba.startConfGUI = true;
+		else {
+		    String tmp = args[n];
+		    if (tmp.startsWith("-") || (isAgentName(tmp))) { // needed otherwise not possible to used -conf followed by a list of agent specifiers (it would be read as a file name) 
+			ba.startConfGUI = true;
+		        n--;
+		    } else 
+			ba.confFileName = tmp;
+		}
+	    } else if(args[n].equalsIgnoreCase("-host")) {
+      		if(++n  == args.length) 
+		    ba.printUsageInfo = true;
+		else
+		    ba.hostName=args[n];
+	    } else if(args[n].equalsIgnoreCase("-port")) {
+      		if(++n  == args.length) 
+		    ba.printUsageInfo = true;
+		else
+		    try {
+			ba.portNo = Integer.parseInt(args[n]);
+		    } catch (NumberFormatException nfe) {
+			ba.printUsageInfo = true;
+		    }
+	    }  else if(args[n].equalsIgnoreCase("-container")) {
+		ba.isContainer = true;
+	    } else if(args[n].equalsIgnoreCase("-gui")) {
+		ba.startRMAGUI=true;
+	    } else if(args[n].equalsIgnoreCase("-version") || args[n].equalsIgnoreCase("-v")) {
+		ba.printVersionInfo=true;
+	    } else if(args[n].equalsIgnoreCase("-help") || args[n].equalsIgnoreCase("-h")) {
+		ba.printUsageInfo = true;
+	    } else if(args[n].equalsIgnoreCase("-nomtp")) {
+		ba.noMTP = true;
+	    } else if(args[n].equalsIgnoreCase("-mtp")) { 
+      		if(++n  == args.length) 
+		    ba.printUsageInfo = true;
+		else
+		    try {
+			ba.MTPs=BootArguments.parseArgumentList(args[n],true); 
+		    } catch (BootException be) {
+			be.printStackTrace();
+			ba.printUsageInfo = true;
+		    }
+	    } else if(args[n].equalsIgnoreCase("-aclcodec")) {
+      		if(++n  == args.length) 
+		    ba.printUsageInfo = true;
+		else
+		    try {
+			ba.aclCodecs=BootArguments.parseArgumentList(args[n],false); 
+		    } catch (BootException be) {
+			be.printStackTrace();
+			ba.printUsageInfo = true;
+		    }
+	    } else if(isAgentName(args[n])) 
+		endCommand = true; //no more options on the command line
+	    n++;  // go to the next argument
+	} // end of while
+
+	// all options, but the list of Agents, have been parsed
+	if(endCommand) { // parse the list of agents, now
+	    --n; // go to the previous argument
+	    //FIXME. CAN BE IMPROVED!
+	    String[] ag = new String[(args.length-n)];
+	    for(int i = n; i<args.length; i++)
+		ag[i-n] = args[i];
+	    //T1 -->Translate the string[] to a string
+	    String agentString = BootArguments.T1(ag);
+	    //Translate the string inserted into an ArrayList.
+	    ArrayList agentArray = BootArguments.T2(agentString,false);
+	    for (Iterator agentSpecifiers = BootArguments.getCommandLineAgentSpecifiers(agentArray); agentSpecifiers.hasNext(); ) {
+				List i = ((List)agentSpecifiers.next());
+				ba.agents.add(i);
+	    }
+	}
+	
+    }
+
+
   
   // Private constructor to forbid instantiation
   private Boot() {
@@ -111,219 +194,121 @@ public class Boot {
    */
   public static void main(String args[]) {
 
+  	String platformName = "JADE";
+  	
     System.out.println(getCopyrightNotice());
-  
-    //This two properties will not be shown in the gui for configuration so they will not be added to the list of properties to show.
-    PropertyType withConfProp = new PropertyType("conf",PropertyType.BOOLEAN_TYPE,"false","Not to show in the gui", false);
-    PropertyType fromFileProp = new PropertyType("file", PropertyType.BOOLEAN_TYPE,"false","Not to show in the gui", false); 
-   
-    // This list stores all the properties used to start JADE.When new
-    // properties need to be added then they must be added to this
-    // vector (see the method getCommandLineOptions()).
-    // The PropertyType provide a constructor to initialize a property with 
-    // its name,type, default value, meaning. 
-    // The last value states if the property is mandatory or not.
-    List propertyVector = new ArrayList();
-   
-    String platformName = "JADE";
-    
-    boolean isPlatform = false;
-    boolean hasGUI = false;
-    boolean isContainer = false;
-    
-    Properties p = new Properties();
-    
-    List agents = new ArrayList();
-    // read all command-line options and returns the index of the first agent specifier
-    // FIXME it is supposed that all agent-specifiers are at the end, so other -option after an agent-specifer will not be recognized correctly...
-    int index = getCommandLineOptions(args,withConfProp,fromFileProp, propertyVector);
-    
-    String tmp = withConfProp.getCommandLineValue();
-    // set to true if to start jade with default properties. 
-    boolean withConf = (tmp == null ? new Boolean(withConfProp.getDefaultValue()).booleanValue() : new  Boolean(tmp).booleanValue());
-    tmp = fromFileProp.getCommandLineValue();
-    // set to true if to start jade using values from a file.
-    boolean fromFile = (tmp == null ? new Boolean(fromFileProp.getDefaultValue()).booleanValue() : new  Boolean(tmp).booleanValue());
 
-	  //This property maintains all the agent-specifiers inserted or by commandline or by the gui
-	  PropertyType AgentToStartProperty = new PropertyType("agents",PropertyType.STRING_TYPE, "","Agents to launch", false);
+    // create an object that contains all the arguments to their default value
+    BootArguments ba = new BootArguments();
     
-	  if(index >= 0)
-     {
-     	// by command line some agent-specifiers have been inserted.
-     	// construct an array of string that must be translate before eventually shown in the gui of configuration.
-	     String[] ag = new String[(args.length-index)];
-	     int in = 0;
-	     for(int i = index; i<args.length; i++)
-	     	{
-	     		ag[in] = args[i];
-	     	  in++;
-	     	}
-	     //T1 -->Translate the string[] to a string
-	     AgentToStartProperty.setCommandLineValue(T1(ag));
-	    } 
-	      
-	  //add the agent property Type to the vector of the prop to show.   
-	  propertyVector.add(AgentToStartProperty);
-	 
-    if (withConf)
-    {
-      //in this case the gui for the configuration properties is shown.
-      //the gui returns the properties after making the needed checking. 
-      BootGUI guiForConf = new BootGUI();      
-      p = guiForConf.ShowBootGUI(propertyVector);
-    
+    // parses the command line and stores the passed arguments in ba
+    parseCommandLine(ba, args);
+
+    if (ba.printVersionInfo) {
+    	System.out.println(getCopyrightNotice());
+			return;
+    } 
+    if (ba.printUsageInfo) {
+    	usage();
+			return;
     }
-    else
-    if(fromFile)
-    {
-      System.out.println("WARNING: Any additional command line option has been ignored and overloaded by the configuration file");
-    	p = new Properties();
-
-      Iterator it = propertyVector.iterator();
-      while(it.hasNext())
-      {
-      	PropertyType pt = (PropertyType)it.next();
-      	String fileValue = pt.getFileValue();
-      	p.put(pt.getName(),fileValue !=null ? fileValue : pt.getDefaultValue());
-      }
-
+    if (ba.startConfGUI) {
+			//in this case the gui for the configuration properties is shown.
+			//the gui returns the properties after making the needed checking. 
+			BootGUI guiForConf = new BootGUI();      
+			ba = guiForConf.ShowBootGUI(ba); 
+    } else if (ba.confFileName != null) {
     	try{
-      	checkProperties(p);
-      }catch(BootException be){
-      	System.out.println(be.getMessage());
-      }
-
-    }
-    else
-    {	 
-      // the command line are translated to properties
-      p = new Properties();
-      
-      Iterator it = propertyVector.iterator();
-      while(it.hasNext())
-      {
-      	PropertyType pt = (PropertyType)it.next();
-      	String commandValue = pt.getCommandLineValue();
-      	p.put(pt.getName(),commandValue != null ? commandValue : pt.getDefaultValue());
-      }
-       
-      // check if the command line is correct.
-      try{
-       checkProperties(p);	  
-      }catch(BootException be){
-      	System.out.println(be.getMessage());
-      }
-      
-    }
-         
-    isPlatform = !((Boolean.valueOf(p.getProperty("container"))).booleanValue());
-    hasGUI = (Boolean.valueOf(p.getProperty("gui"))).booleanValue();
-    
-    String agentNames = p.getProperty("agents");
-    String output = "Agent " + (isPlatform ? "platform on " : "container connecting to ") + "host " + p.getProperty("host")  + " on port "+p.getProperty("port")+(hasGUI ? " launching the RMA gui" : "")+"\n";
-    output = output + (agentNames.length() > 0 ? " launching the following list of agents: " + agentNames : "");
-    System.out.println(output);
-     
-    // If '-gui' option is given, add 'RMA:jade.domain.rma' to
-    // startup agents, making sure that the RMA starts before all
-    // other agents.
-  
-    if(hasGUI) {
-    	List rma = new ArrayList();
-      rma.add(0, "RMA");
-      rma.add(1, "jade.tools.rma.rma");
-      agents.add(rma);
+    		Properties p = loadPropertiesFromFile(ba.confFileName);
+				ba.setProperties(p); //set the bootArguments variables and make a first check on these values.
+    	}catch(FileNotFoundException fne){
+    		System.out.println("FILE Not Found");
+    		System.exit(0);
+    	}catch(IOException ioe){
+    		//FIXME
+    		System.out.println("IOException");
+    		ioe.printStackTrace();
+    		System.exit(0);
+    	}catch(BootException be){
+    		be.printStackTrace();
+    		System.exit(0);
+    	}
     }
     
-    String agentString = p.getProperty("agents");
+    try{
+    	//System.out.println("Configuration values: " +ba.toString());
+    	ba.check(); // to verify the correctness of the values inserted.
+   		
+    	ArrayList agents = new ArrayList();
+    	//-gui option given --> start the RMA (it must be the first agent !!!)
+    	if(ba.startRMAGUI)
+    	{
+    		List rma = new ArrayList();
+    		rma.add(0,"RMA");
+    		rma.add(1,"jade.tools.rma.rma");
+    		ba.agents.add(0,rma);
+    	}	
+    	
+    	boolean isPlatform = !(ba.isContainer);
     
-    //Translate the string inserted into an ArrayList.
-    ArrayList agentArray = T2(agentString,false);
-        
-    for (Iterator agentSpecifiers = getCommandLineAgentSpecifiers(agentArray); agentSpecifiers.hasNext(); ) 
-    {
-      List i = ((List)agentSpecifiers.next());
-      agents.add(i);
-    }
-
-    // Translate the value of the 'mtp' property into an array of Strings
-    String mtpList = p.getProperty("mtp");
-    try {
-      List l = parseArgumentList(mtpList,true);
-
-      String[] containerMTPs = new String[l.size()];
-      for(int i = 0; i < l.size(); i++) {
-	String s = (String)l.get(i);
-	containerMTPs[i] = s;
-      }
-    
-      // For the Main Container, if no '-nomtp' option is given, a
+    	// For the Main Container, if no '-nomtp' option is given, a
       // single IIOP MTP is installed, using the Sun JDK 1.2 ORB and
       // with a default address.
-      String noMTP = p.getProperty("nomtp");
-      if(isPlatform && noMTP.equals("false") && (containerMTPs.length == 0)) {
-	containerMTPs = new String[] { "jade.mtp.iiop.MessageTransportProtocol", "" };
+      
+    	int MTPargs = 0;
+    	if(ba.MTPs != null)
+    		MTPargs = ba.MTPs.length;
+    		
+      if(isPlatform && (!ba.noMTP) && MTPargs == 0) {
+				ba.MTPs = new String[] { "jade.mtp.iiop.MessageTransportProtocol", "" };
       }
 
-      //Translate the value of the "aclcodec" property into an array of Strings
-      String aclCodecList = p.getProperty("aclcodec");
-      List ls = parseArgumentList(aclCodecList,false);
-      String[] ACLCodecs = new String[ls.size()];
-      for(int i = 0;i<ls.size(); i++){
-      	String s = (String)ls.get(i);
-      	ACLCodecs[i] = s;
-      }
       
-      // Build a unique ID for this platform, using host name, port and
+    	// Build a unique ID for this platform, using host name, port and
       // object name for the main container, taken from default values
       // and command line options.
-      String platformID = p.getProperty("host") + ":" + p.getProperty("port") + "/" + platformName;
+      String platformID = ba.hostName + ":" + ba.portNo + "/" + platformName;
 
-      // Configure Java runtime system to put the selected host address in RMI messages
+    	// Configure Java runtime system to put the selected host address in RMI messages
       try {
-	String localHost;
-	if(isPlatform) {
-	  localHost = p.getProperty("host");
-	}
-	else {
-	  // FIXME: It should be possible to set the local host also
-	  // on a non-main container.
-	  localHost = InetAddress.getLocalHost().getHostAddress();
-	}
-	System.getProperties().put("java.rmi.server.hostname", localHost);
-
+			String localHost;
+			if(isPlatform) {
+	  		localHost = ba.hostName;
+			}
+			else {
+	  		// FIXME: It should be possible to set the local host also
+	  		// on a non-main container.
+	  		localHost = InetAddress.getLocalHost().getHostAddress();
+			}
+			System.getProperties().put("java.rmi.server.hostname", localHost);
       }
       catch(java.net.UnknownHostException jnue) {
-	jnue.printStackTrace();
+				jnue.printStackTrace();
       }
 
-  
-      // Start a new JADE runtime system, passing along suitable
+     	// Start a new JADE runtime system, passing along suitable
       // information extracted from command line arguments.
-      jade.core.Starter.startUp(isPlatform, platformID, agents.iterator(), containerMTPs, ACLCodecs);
+      
+      jade.core.Starter.startUp(isPlatform, platformID, ba.agents.iterator(), (ba.MTPs == null ? new String[0]:ba.MTPs), (ba.aclCodecs == null ? new String[0]:ba.aclCodecs) );
 
+    }catch(BootException be){
+    	be.printStackTrace();
+    	System.exit(0);
     }
-    catch(BootException be) {
-      System.out.println(be.getMessage());
-    }
-
+   
   }
 
   // verify if a string can be an used to start an agent (name + class).  
   // The string must be of the type agentName:xxx.xxx a string of type agentName: is not considered valid.
-  private static int isAgentName(String name)
-  {
-  	int separatorPos = name.indexOf(SEPARATOR);
- 
-  	if ((separatorPos > 0) && (separatorPos < (name.length() - 1)))
-  	 return separatorPos;
-  	else
-  	return -1;
-  }
+  private static boolean isAgentName(String name) {
+  	int separatorPos = name.indexOf(BootArguments.SEPARATOR);
+   	return ((separatorPos > 0) && (separatorPos < (name.length() - 1)) 
+   		&& (name.charAt(separatorPos+1) != '/') && (name.charAt(separatorPos+1) != '\\'));
+   		// the last two conditions allow to use -conf c:\temp\p.conf
+    }
   
   
-  private static void usage(){
+  public static void usage(){
     System.out.println("Usage: java jade.Boot [options] [agent specifiers]");
     System.out.println("");
     System.out.println("where options are:");
@@ -335,15 +320,15 @@ public class Boot {
     System.out.println("  -conf\t\t\tShows the gui to set the configuration properties to start JADE.");
     System.out.println("  -conf <file name>\tStarts JADE using the configuration properties read in the specified file.");	
     System.out.println("  -version\t\tIf specified, current JADE version number and build date is printed.");
-    System.out.println("  -mtp\t\t\tSpecifies a list of external Message Transport Protocols to be activated.");
+    System.out.println("  -mtp\t\t\tSpecifies a list, separated by ';', of external Message Transport Protocols to be activated.");
     System.out.println("  \t\t\tBy default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers.");
     System.out.println("  -nomtp\t\tHas precedence over -mtp and overrides it.");
     System.out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
-    System.out.println("  -aclcodec\t\tSpecifies a list of ACLCodec to use. By default the string codec is used.");
+    System.out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
     System.out.println("  -help\t\t\tPrints out usage informations.");
     System.out.println("");
     System.out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");
-    System.out.println(SEPARATOR + "\"");
+    System.out.println(BootArguments.SEPARATOR + "\"");
     System.out.println("");
     System.out.println("Take care that the specified agent name represents only the local name of the agent."); 
     System.out.println("Its guid (globally unique identifier) is instead assigned by the AMS after concatenating");
@@ -365,428 +350,16 @@ public class Boot {
     System.exit(0);
   }
 
-  //Reads the properties from file then update the vector of properties.
-  
-  static void loadPropertiesFromFile(String fileName, List prop) throws FileNotFoundException, IOException
+ 
+  static Properties loadPropertiesFromFile(String fileName) throws FileNotFoundException, IOException
   {
-  	Properties p = new Properties();
-  	FileInputStream in = new FileInputStream(fileName);
-  	p.load(in);
-  	in.close();
   	
-  	// update the properties in the vector of properties
-  	Iterator it = prop.iterator();
-  	
-  	while(it.hasNext())
-  	{
-  		PropertyType pt = (PropertyType)it.next();
-  		String name = pt.getName();
-  		pt.setFileValue(p.getProperty(name));
-  	}
+  		Properties p = new Properties();
+  		FileInputStream in = new FileInputStream(fileName);
+  		p.load(in);
+  		in.close();
+   		return p;
   	
   }
-  
-  /**
-  This method verifies the configuration properties and eventually correct them.
-  If both the properties "platform" and "container" are set to true the a platform will 
-  be launched an and exception will be thrown.
-  If the user wants to start a platform the host must be the local host so 
-  if a different name is speficied it will be corrected and an exception will be thrown.  
-  */
-  public static void checkProperties(Properties p) throws BootException
-  {
-  
-    String container = p.getProperty("container");
-    boolean isContainer = (Boolean.valueOf(container)).booleanValue();	
-
-  	String port = p.getProperty("port");
-  	int portNumber = -1;
-  	try{
-  		portNumber = Integer.parseInt(port);
-  	}catch(Exception e){}
-  	if(portNumber <= 0)
-  		{
-  			//set property to default port.
-  			p.remove("port");
-  			p.put("port", platformPort);
-  			throw new BootException("WARNING: Port number must be a number > 0.");
-  		}
-
-	// Remove the MTP list if '-nomtp' is specified
-	String noMTP = p.getProperty("nomtp");
-	if(noMTP.equals("true"))
-	  p.setProperty("mtp", "");
-  }
-
-  /**
-  parses the command line to find the -option and returns the index of the first agent specifiers 
-  or -1 if no agent-specifers are inserted.
-  */
-   private static int getCommandLineOptions(String args[], PropertyType withConf, PropertyType fromFile, List propertyVector)
-   {
-   	  int n = 0;
-   	  String fileName = null;
-   	  boolean endCommand = false;
-   	  String platformHost = null;
-   	  	  
-   	  try {
-      platformHost= InetAddress.getLocalHost().getHostName();      
-      }
-      catch(UnknownHostException uhe) {
-        System.out.print("Unknown host exception in getLocalHost(): ");
-        System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
-        System.exit(1);
-      }
-
-      PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name of the main-container", false);
-      PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "Select to launch the RMA Gui", false);
-      PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,platformPort, "Port Number of the main-container", false);
-      PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "Select to launch an agent-container",false);
-      PropertyType MTPProperty = new PropertyType("mtp", PropertyType.STRING_TYPE, "", "List of MTPs to activate", false);
-      PropertyType NoMTPProperty = new PropertyType("nomtp", PropertyType.BOOLEAN_TYPE, "false", "Disable all external MTPs on this container", false);
-      PropertyType ACLCodecProperty = new PropertyType("aclcodec", PropertyType.STRING_TYPE,"","List of ACLCodec to install",false);
-      
-      //update the propertyVector with all the -option 
-      propertyVector.add(HostProperty);
-      propertyVector.add(PortProperty);
-      propertyVector.add(GuiProperty);
-      propertyVector.add(ContainerProperty);
-      propertyVector.add(MTPProperty);
-      propertyVector.add(NoMTPProperty);
-			propertyVector.add(ACLCodecProperty);
-			
-      while( n < args.length && !endCommand)
-      {
-      	
-      	if(args[n].equals("-conf"))
-      	{
-      	
-      		if(++n == args.length)
-      			{	
-      				withConf.setCommandLineValue("true");
-      				continue;
-      			}
-      			
-      		String tmp = args[n];
-      		if (tmp.startsWith("-") || (isAgentName(tmp) > -1)) // needed otherwise not possible to used -conf followed by a list of agent specifiers (it would be read as a file name)
-      		{
-      			  // In this case the gui for configuration parameters will be initialized with default or command line values.
-      				withConf.setCommandLineValue("true");
-      				continue;
-      			}
-      		else
-      		{
-      			//Reading properties from file
-      			fileName = tmp;
-      			try{
-      				loadPropertiesFromFile(fileName, propertyVector);
-      				fromFile.setCommandLineValue("true");
-      			}catch (FileNotFoundException fe)
-      			{
-      				Object[] options = {"Yes", "No"};
-      				int val = JOptionPane.showOptionDialog(null,"WARNING: file "+fileName +" not found.\n" + "Using command line or default properties.", "WARNING MESSAGE", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE, null, options,options[0]);
-      				
-      				fileName = null;
-      				//FILE Not found --> EXIT
-      				if(val == JOptionPane.NO_OPTION)
-      					System.exit(0);
-      					
-      			}catch(IOException ioe)
-      			{
-      				JOptionPane.showMessageDialog(null,"WARNING: IO Exception\n" + "Using default configuration values.", "WARNING MESSAGE",JOptionPane.WARNING_MESSAGE);
-      			}
-      			
-      		}
-      			
-      	}
-      	else
-      	if(args[n].equals("-host")) {
-      		if(++n  == args.length) usage();
-      		  HostProperty.setCommandLineValue(args[n]);
-      		
-      	}
-      	else if(args[n].equals("-port")) {
-      		if(++n  == args.length) usage();
-      		PortProperty.setCommandLineValue(args[n]);
-      	}
-      
-	else if(args[n].equals("-container")){
-	        ContainerProperty.setCommandLineValue("true");
-	}
-	else if(args[n].equals("-gui")) {
-	      	GuiProperty.setCommandLineValue("true");
-	}
-	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	    System.out.println(getCopyrightNotice());
-	    System.exit(0);
-	}
-	else if(args[n].equals("-help") || args[n].equals("-h")) {
-	      	usage();
-	}
-	else if(args[n].equals("-nomtp")) {
-	    NoMTPProperty.setCommandLineValue("true");
-	}
-	else if(args[n].equals("-mtp")) {
-	    if(++n  == args.length) usage();
-	    MTPProperty.setCommandLineValue(args[n]);
-	}
-	else if(args[n].equals("-aclcodec")){
-		if(++n == args.length) usage();
-		ACLCodecProperty.setCommandLineValue(args[n]);
-	}
-	else
-	  if(isAgentName(args[n])>-1)
-	    endCommand = true; //no more command line
-	          
-	n++;
-      }
-
-      
-      if(endCommand)
-      	return --n;
-      else
-        return -1; //no agent specifiers.	
-   }
-  
-   	/**
-		@param args is a string of agent specifiers of the type "name:class(arguments)"
-		**/
-
-	public static Iterator getCommandLineAgentSpecifiers(ArrayList args) { //0
-			ArrayList all = new ArrayList();
-		  int i = 0;
-			while (i<args.size()) { //1
-				String cur = (String)args.get(i);
-			  
-				// search for the agent name
-				int index1 = cur.indexOf(':');
-        if (index1 > 0 && (index1 <(cur.length()-1))) { //2
-        	// in every cycle we generate a new object CommandLineAgentSpecifier
-				  List as = new ArrayList();
-      	  //agent name exists, colon exists, and is followed by the class name
-      		as.add(cur.substring(0,index1));
-      	
-      	  // set the agent class
-          int index2 = cur.indexOf('(',index1);
-          if (index2 < 0) 
-        	  // no arguments to this agent
-        	  as.add(cur.substring(index1+1,cur.length()));
-	        else { //3
-	      	  as.add(cur.substring(index1+1,index2));
-
-	      	  // having removed agentName,':',agentClass, and '(', 
-	      	  // what remains is the firstArgument of the Agent 
-	      	  // search for all the arguments up to the closed parenthesis
-	      	  String nextArg = cur.substring(index2+1); //from the '(' to the end
-        		while (! getAgentArgument(nextArg,as)) { //4
-        		  i++;
-        			if (i >= args.size()) { //5
-        				System.err.println("Missing closed bracket to delimit agent arguments. The system cannot be launched");
-        				usage();
-        				System.exit(0);		
-        			} //5
-        			nextArg = (String)args.get(i);
-        		} // 4 
-	        } // 3
-	        all.add(as);
-        } //2 
-        i++;
-			} //1
-      return all.iterator();
-	} // 0 
-
-  
-	//parser a string og arguments of the type property1(arg1);property2(arg2);property3
-	//if  the property can have arguments set arguments to true, false otherwise
-  private static List parseArgumentList(String argList, boolean arguments) throws BootException {
-
-    // Cursor on the given string: marks the parser position
-    int cursor = 0;
-    List out = new ArrayList();
-    while(cursor < argList.length()) {
-      int commaPos = argList.indexOf(ARGUMENT_SEPARATOR, cursor);
-      if(commaPos == -1)
-      	commaPos = argList.length();
-      	
-      String arg = argList.substring(cursor,commaPos);
-      
-      int openBracketPos = arg.indexOf('(');
-      int closedBracketPos = arg.indexOf(')');
-
-      // No brackets: use default address.
-      if((openBracketPos == -1)&&(closedBracketPos == -1)) {
-      	String className = arg;
-				out.add(className); // Put MTP class name into the list
-				if (arguments)
-					out.add("");  // with an empty URL as the address
-      }
-      else {
-				// An open bracket, then something, then a closed bracket:
-        // the class name is before the open bracket, and the
-        // address URL is between brackets.
-				if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
-	  				String className = arg.substring(0, openBracketPos);
-	  				String par = arg.substring(openBracketPos + 1, closedBracketPos);
-	  				out.add(className);
-	  				if (arguments)
-	  					out.add(par);
-	  				System.out.println("className: " + className + " par: " + par);	
-				}
-				else
-	  			throw new BootException("Ill-formed MTP specifier: mismatched parentheses.");
-      }
-      cursor = commaPos + 1;
-    }
-    return out;
-  }
-
-	/**
-	@param arg is the argument passed on the command line
-	@param as is the List where arguments must be added
-	@return true if this was the last argument, i.e. it found a closed bracket
-	**/
-  private static boolean getAgentArgument(String arg, List as) {
-  
-  boolean isLastArg = false;
-  String  realArg;
-  // if the last char is a closed parenthesis, then this is the last argument
-  if (arg.endsWith(")"))
-     {
-     	if(arg.endsWith("\\)"))
-     	  {
-     	  	isLastArg = false;
-     	  	realArg = arg; 
-     	  } 
-     	else {
-     	  	isLastArg = true;
-     	  	realArg = arg.substring(0,arg.length()-1); //remove last parenthesis
-     	  }
-     } 
-   else {
-   	isLastArg = false;
-   	realArg = arg;
-   }
-     		
-  if (realArg.length() > 0) {
-  	// replace the escaped closed parenthesis with a simple parenthesis
-  	as.add(replace(realArg,"\\)", ")"));     	  
-  }
-  return isLastArg;
-}
-
-
-private static String replace(String arg, String oldStr, String newStr)
-{
-	int index = arg.indexOf(oldStr);
-	String tmp = arg;
-	while (index >= 0) {
-    tmp = tmp.substring(0, index) + newStr + tmp.substring(index + oldStr.length());
-    index = tmp.indexOf(oldStr);
-	}
-	return tmp;
-}
-
- public static String escapequote(String s) {
-  int ind = s.indexOf("\"");
-  int offset=0;
-  StringBuffer buf=new StringBuffer(s);
-  while (ind >= 0) {
-    buf.insert(ind+offset,'\\');
-    offset++;
-    ind = s.indexOf("\"",ind+1);
-  }
-  return buf.toString();
-}
-
-public static String T1(String args[]){
-  String tmp = new String();
-  for (int i=0; i<args.length; i++) { 
-    String t1=escapequote(args[i]);
-    if (t1.indexOf(' ')>0)
-      tmp = tmp + "\"" + t1 + "\" ";
-    else
-      tmp = tmp + t1 + " ";
-  }
-  return tmp;
-}
-
-public static final int BETWEENTOKENS = 0;
-public static final int WORDTOKEN = 1;
-public static final int STRINGTOKEN = 2;
-public static final int ESCAPE = 3;
-
-/**
-@param keepquote when true no char is removed, apart from blanks between tokens.
-when false, quote chars are removed and also escaped quotes become just quotes.
-**/
-public static ArrayList T2(String s1, boolean keepquote){
-  ArrayList l = new ArrayList();
-  int state=BETWEENTOKENS;
-  Stack returnState = new Stack();
-  StringBuffer token = new StringBuffer();
-  int i;
-  for (i=0; i<s1.length(); i++) {
-    char ch = s1.charAt(i);
-    switch (state) {
-    case BETWEENTOKENS:
-      if (ch != ' ') {
-	if (ch == '"') {
-	  state = STRINGTOKEN;
-	  if (keepquote)
-	  	token.append(ch);
-	  returnState.push(new Integer(BETWEENTOKENS));
-	} else if (ch == '\\') {
-	  state = ESCAPE;
-	  returnState.push(new Integer(BETWEENTOKENS));
-	} else {
-	  token.append(ch);
-	  state = WORDTOKEN;
-	} 
-      } else if (token.length() > 0) {
-	l.add(token.toString());
-	token = new StringBuffer();
-      }
-      break;
-    case WORDTOKEN:
-      if (ch == ' ') {
-	state = BETWEENTOKENS;
-	l.add(token.toString());
-	token = new StringBuffer();
-      } 
-      else if (ch =='"') {
-        state = STRINGTOKEN;
-        if (keepquote)
-	  	     token.append(ch);	
-	returnState.push(new Integer(WORDTOKEN));
-      } else if (ch == '\\') {
-	state = ESCAPE;
-	returnState.push(new Integer(WORDTOKEN));
-      } else
-	token.append(ch);
-      break;
-    case STRINGTOKEN:
-      if (ch == '"') { 
-      	if (keepquote)
-	  	token.append(ch);
-	state = ((Integer)returnState.pop()).intValue();
-      } else if (ch == '\\') {
-	state = ESCAPE;
-	returnState.push(new Integer(STRINGTOKEN));
-      } else
-	token.append(ch);
-      break;
-    case ESCAPE:
-      if ((ch != '"') || (keepquote))
-	token.append('\\');
-      token.append(ch);
-      state = ((Integer)returnState.pop()).intValue();
-      break;
-    }
-  }
-  if (token.length() > 0) 
-    l.add(token.toString());
-  return l;
-}
-
 
 }
