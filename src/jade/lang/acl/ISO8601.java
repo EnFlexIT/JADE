@@ -88,7 +88,7 @@ public class ISO8601 {
 		Integer.parseInt(dateTimeToken.substring(4, 6)) - 1);
 	cal.set(Calendar.DATE, 
 		Integer.parseInt(dateTimeToken.substring(6, 8)));
-	cal.set(Calendar.HOUR, 
+	cal.set(Calendar.HOUR_OF_DAY, 
 		Integer.parseInt(dateTimeToken.substring(9, 11)));
 	cal.set(Calendar.MINUTE, 
 		Integer.parseInt(dateTimeToken.substring(11, 13))); 
@@ -96,7 +96,6 @@ public class ISO8601 {
 		Integer.parseInt(dateTimeToken.substring(13, 15)));
 	cal.set(Calendar.MILLISECOND, 
 		Integer.parseInt(dateTimeToken.substring(15, 18)));
-	cal.set(Calendar.AM_PM, Calendar.AM);
     }
 
     private static String formatlocalDate(Date d) {
@@ -119,7 +118,7 @@ public class ISO8601 {
         formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MONTH) + 1, 2));
         formatedDate.append(zeroPaddingNumber(cal.get(Calendar.DATE), 2));
         formatedDate.append(t); 
-        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.HOUR), 2));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.HOUR_OF_DAY), 2));
         formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MINUTE), 2));
         formatedDate.append(zeroPaddingNumber(cal.get(Calendar.SECOND), 2));
         formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MILLISECOND), 3));
