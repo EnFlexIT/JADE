@@ -1,27 +1,26 @@
-/*
-  $Log$
-  Revision 1.2  1999/06/22 13:14:36  rimassa
-  Removed a redundant private instance variable.
 
-  Revision 1.1  1999/05/20 13:43:17  rimassa
-  Moved all behaviour classes in their own subpackage.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.6  1999/04/06 00:09:44  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+GNU Lesser General Public License
 
-  Revision 1.5  1999/02/25 08:31:06  rimassa
-  Changed a getName() to getLocalName() call.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.4  1998/10/10 19:17:13  rimassa
-  Fixed some compilation errors.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.3  1998/10/05 20:15:02  Giovanni
-  Made 'final' SenderBehaviour class.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.2  1998/10/04 18:01:15  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
 
 package jade.core.behaviours;
 
@@ -37,7 +36,8 @@ import jade.lang.acl.ACLMessage;
    @see jade.core.behaviours.ReceiverBehaviour
    @see jade.core.Agent#send(ACLMessage msg)
    @see jade.lang.acl.ACLMessage
-
+   
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

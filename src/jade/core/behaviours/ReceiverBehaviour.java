@@ -1,39 +1,24 @@
-/*
-  $Log$
-  Revision 1.3  1999/06/30 10:36:45  rimassa
-  Fixed a bug which was causing a NullPointerException when a
-  ReceiverBehaviour without a timeout was reset.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.2  1999/06/16 00:20:40  rimassa
-  Added a comprehensive support for timeouts on message reception.
+GNU Lesser General Public License
 
-  Revision 1.1  1999/05/20 13:43:17  rimassa
-  Moved all behaviour classes in their own subpackage.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.9  1999/04/06 00:09:43  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.8  1999/03/09 13:02:41  rimassa
-  Made a change to correctly receive ACL messages with more than a
-  single receiver.
-
-  Revision 1.7  1998/12/01 23:36:50  rimassa
-  Fixed a wrong implementation of reset() method.
-
-  Revision 1.6  1998/10/30 18:26:53  rimassa
-  Added an implementation of reset() method that simply resets the
-  embedded ACL message.
-
-  Revision 1.5  1998/10/10 19:14:34  rimassa
-  Fixed some compilation errors. Now the class compiles and runs.
-
-  Revision 1.4  1998/10/05 20:16:04  Giovanni
-  Made 'final' ReceiverBehaviour class.
-
-  Revision 1.3  1998/10/04 18:01:13  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core.behaviours;
 
@@ -54,7 +39,8 @@ import jade.lang.acl.MessageTemplate;
    @see jade.core.behaviours.SenderBehaviour
    @see jade.core.Agent#receive()
    @see jade.lang.acl.ACLMessage
-
+ 
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

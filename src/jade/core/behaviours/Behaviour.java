@@ -1,38 +1,24 @@
-/*
-  $Log$
-  Revision 1.6  1999/07/26 15:35:15  rimassa
-  Made class serializable.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.5  1999/06/16 00:19:11  rimassa
-  Added a root() method to retrieve the root behaviour (i.e. the one
-  directly scheduled by the agent) for a given behaviour object.
+GNU Lesser General Public License
 
-  Revision 1.4  1999/06/15 14:32:25  rimassa
-  Added support for timeouts in block() and restart() methods.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.3  1999/06/10 14:18:16  rimassa
-  Corrected two wrong cross-references in Javadoc comments.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.2  1999/06/09 16:13:57  rimassa
-  Added a block() method with timeout.
-
-  Revision 1.1  1999/05/20 13:43:16  rimassa
-  Moved all behaviour classes in their own subpackage.
-
-  Revision 1.8  1999/04/06 00:09:35  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.7  1999/02/16 08:07:07  rimassa
-  Removed a fixed FIXME.
-
-  Revision 1.6  1998/10/30 18:18:48  rimassa
-  Added an abstract reset() method to restore a Behaviour's initial
-  state.
-
-  Revision 1.5  1998/10/04 18:01:02  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core.behaviours;
 
@@ -46,7 +32,8 @@ import jade.core.Agent;
    with special synchronization needs; this is because event based
    notification used for blocking and restarting behaviours is
    directly accessible at this level.
-
+   
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

@@ -1,15 +1,24 @@
-/*
-  $Log$
-  Revision 1.1  1999/05/20 13:43:17  rimassa
-  Moved all behaviour classes in their own subpackage.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.3  1999/04/06 00:09:42  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+GNU Lesser General Public License
 
-  Revision 1.2  1998/10/04 18:01:12  rimassa
-  Added a 'Log:' field to every source file.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-*/
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core.behaviours;
 
@@ -19,7 +28,8 @@ import jade.core.Agent;
    Atomic behaviour that executes just once. This abstract class can
    be extended by application programmers to create behaviours for
    operations that need to be done just one time.
-
+   
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

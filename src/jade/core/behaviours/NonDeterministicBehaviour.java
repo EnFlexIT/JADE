@@ -1,27 +1,24 @@
-/*
-  $Log$
-  Revision 1.1  1999/05/20 13:43:16  rimassa
-  Moved all behaviour classes in their own subpackage.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.8  1999/04/06 00:09:41  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+GNU Lesser General Public License
 
-  Revision 1.7  1998/12/07 23:52:59  rimassa
-  Changed bodyAction() method to return if this Behaviour has no
-  children. Now an empty NonDeterministicBehaviour created with WHEN_ANY
-  option never ends, whereas an empty NonDeterministicBehaviour created
-  with WHEN_ALL option ends immediately.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.6  1998/10/31 12:54:14  rimassa
-  Added an implementation of reset() method and modified class code to
-  support it. Now a NonDeterministicBehaviour object has a list of
-  terminated children instead of a simple counter; this allows to put
-  sub-behaviours back from the terminated list to the active list.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.5  1998/10/04 18:01:10  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core.behaviours;
 
@@ -39,6 +36,7 @@ import jade.core.Agent;
    sub-behaviours are done, when any sub-behaviour terminates or when
    <em>N</em> sub-behaviours have finished.
 
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

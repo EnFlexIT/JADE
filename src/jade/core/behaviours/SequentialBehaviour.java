@@ -1,20 +1,25 @@
-/*
-  $Log$
-  Revision 1.1  1999/05/20 13:43:17  rimassa
-  Moved all behaviour classes in their own subpackage.
 
-  Revision 1.7  1999/04/06 00:09:45  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.6  1998/12/07 23:54:37  rimassa
-  Changed bodyAction() method to handle the case when a
-  SequentialBehaviour has no children. Now an empty SequentialBehaviour
-  ends immediately.
+GNU Lesser General Public License
 
-  Revision 1.5  1998/10/04 18:01:16  rimassa
-  Added a 'Log:' field to every source file.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-*/
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core.behaviours;
 
@@ -24,7 +29,8 @@ import jade.core.Agent;
    Composite behaviour with sequential children scheduling. It is a
    <code>ComplexBehaviour</code> that executes its children behaviours
    in sequential order, and terminates when its last child has ended.
-
+   
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 
