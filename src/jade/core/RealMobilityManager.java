@@ -41,6 +41,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.DataInputStream;
 import java.util.StringTokenizer;
 import java.util.zip.*;
 import java.net.URL;
@@ -98,7 +99,6 @@ class RealMobilityManager implements MobilityManager {
         protected Class resolveClass(ObjectStreamClass v) 
         	throws IOException, ClassNotFoundException {
             JADEClassLoader cl = (JADEClassLoader) loaders.get(ac);
-
             if (cl == null) {
                 cl = new JADEClassLoader(ac, verbosity);
                 loaders.put(ac, cl);
@@ -150,8 +150,9 @@ class RealMobilityManager implements MobilityManager {
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
                             AgentContainer classSite, boolean startIt) throws Exception {
-        log("Incoming agent "+agentID, 1);         	
-        // Reconstruct the serialized agent
+        log("Incoming agent "+agentID, 1);        
+      
+      	// Reconstruct the serialized agent
         ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSite);
         Agent             instance = (Agent) in.readObject();
         log("Agent "+agentID+" reconstructed", 2);         	
@@ -242,13 +243,14 @@ class RealMobilityManager implements MobilityManager {
         	log("Class "+name+" not found", 4);
 	        throw new ClassNotFoundException(name);
         } 
-				log("Class "+name+" found", 4);
 				try {
 					if (length == -1) {
 						length = (int) classStream.available();
 					}
           byte[] bytes = new byte[length];
-          classStream.read(bytes);
+					log("Class "+name+" fetched. Length is "+length, 4);
+		      DataInputStream dis = new DataInputStream(classStream);
+		      dis.readFully(bytes);
           return (bytes);
         } 
         catch (IOException ioe) {
