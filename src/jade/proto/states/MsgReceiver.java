@@ -90,7 +90,7 @@ public class MsgReceiver extends SimpleBehaviour {
 			ret = msg.getPerformative();
 		}
 		else {
-			if (deadline > 0) {
+			if (deadline >= 0) {
 				// If a timeout was set, then check if it is expired
 				long blockTime = deadline - System.currentTimeMillis();
 				if(blockTime <=0){
@@ -124,9 +124,9 @@ public class MsgReceiver extends SimpleBehaviour {
 	}
 	
 
-    public void reset(MessageTemplate mt, long timeout, DataStore s, Object msgKey) {
+    public void reset(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 	super.reset();
-	set(mt, timeout, s, msgKey);
+	set(mt, deadline, s, msgKey);
 	received = false;
 	expired = false;
     }
@@ -135,11 +135,18 @@ public class MsgReceiver extends SimpleBehaviour {
      * This method allows to modify the values of the parameters passed in 
      * the constructor.
      **/
-    public void set(MessageTemplate mt, long timeout, DataStore s, Object msgKey) {
+    public void set(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 	setDataStore(s);
 	template=mt;
-	deadline = timeout;
+	this.deadline = deadline;
 	receivedMsgKey = msgKey;
+    }
+	
+    /**
+     * This method allows modifying the timeout
+     **/
+    public void setDeadline(long deadline) {
+	this.deadline = deadline;
     }
 	
 }
