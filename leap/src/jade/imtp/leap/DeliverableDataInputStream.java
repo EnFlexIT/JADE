@@ -157,8 +157,6 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeDummyCertificate();
                 case Serializer.DUMMYPRINCIPAL_ID:
                     return deserializeDummyPrincipal();
-                case Serializer.DUMMYCREDENTIALS_ID:
-                    return deserializeDummyCredentials();
 								case Serializer.THROWABLE_ID:
 								    return deserializeThrowable();
 								case Serializer.PROPERTY_ID:
@@ -604,16 +602,15 @@ class DeliverableDataInputStream extends DataInputStream {
 	    ContainerID cid = null;
 	    boolean present = readBoolean();
 	    if(present) {
-		cid = deserializeContainerID();
+				cid = deserializeContainerID();
 	    }
 
 	    if(cid != null) {
-		return new NodeDescriptor(cid, node, principal, creds);
+				return new NodeDescriptor(cid, node, principal, creds);
 	    }
 	    else {
-		return new NodeDescriptor(name, node);
+	    	return new NodeDescriptor(name, node);
 	    }
-
 	}
 	catch(IOException ioe) {
 	    throw new LEAPSerializationException("Error deserializing NodeDescriptor");
@@ -843,11 +840,6 @@ class DeliverableDataInputStream extends DataInputStream {
     private DummyPrincipal deserializeDummyPrincipal() throws LEAPSerializationException {
         String name = readString();
         return new DummyPrincipal(name);  
-    }
-
-    private DummyCredentials deserializeDummyCredentials() throws LEAPSerializationException {
-      // FIXME: DO NOTHING
-      return new DummyCredentials();
     }
 
     private Throwable deserializeThrowable() throws LEAPSerializationException {

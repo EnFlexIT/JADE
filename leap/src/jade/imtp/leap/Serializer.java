@@ -70,7 +70,6 @@ interface Serializer {
     static final byte HTTPADDRESS_ID = 23;
     static final byte DUMMYCERTIFICATE_ID = 24;
     static final byte DUMMYPRINCIPAL_ID = 25;
-    static final byte DUMMYCREDENTIALS_ID = 26;
     static final byte NODESTUB_ID = 27;
     static final byte HORIZONTALCOMMAND_ID = 28;
     static final byte THROWABLE_ID = 29;

@@ -221,10 +221,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
           writeByte(Serializer.DUMMYPRINCIPAL_ID);
           serializeDummyPrincipal((DummyPrincipal) o);
         }
-        else if (o instanceof DummyCredentials) {          // CertificateFolder
-          writeByte(Serializer.DUMMYCREDENTIALS_ID);
-          serializeDummyCredentials((DummyCredentials) o);
-        }
         else if(o instanceof Throwable) {                   // Throwable
           writeByte(Serializer.THROWABLE_ID);
           serializeThrowable((Throwable) o);
@@ -946,13 +942,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
   }
 
     
-  /**
-   */
-  private void serializeDummyCredentials(DummyCredentials creds)
-    throws LEAPSerializationException {
-    // FIXME: DO NOTHING
-  }
-
   private void serializeThrowable(Throwable t) throws LEAPSerializationException {
     writeString(t.getClass().getName());
     writeString(t.getMessage());
