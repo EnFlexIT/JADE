@@ -40,6 +40,7 @@ import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 
@@ -101,6 +102,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     public static final String MAIN_SLICE = "Main-Container";
 
+    private static final String[] OWNED_COMMANDS = new String[] {
+	MessagingSlice.SEND_MESSAGE,
+	MessagingSlice.INSTALL_MTP,
+	MessagingSlice.UNINSTALL_MTP,
+	MessagingSlice.SET_PLATFORM_ADDRESSES
+    };
 
     public MessagingService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
@@ -116,6 +123,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	// Create a local slice
 	localSlice = new ServiceComponent();
+
+	// Create the two command sinks for this service
+	senderSink = new CommandSourceSink();
+	receiverSink = new CommandTargetSink();
 
     }
 
@@ -137,18 +148,171 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return localSlice;
+	return null;
     }
 
-    /**
-       Inner mix-in class for this service: this class receives
-       commands through its <code>Filter</code> interface and serves
-       them, coordinating with remote parts of this service through
-       the <code>Slice</code> interface (that extends the
-       <code>Service.Slice</code> interface).
-    */
-    private class ServiceComponent implements Filter, MessagingSlice {
+    public Sink getCommandSink(boolean side) {
+	if(side == Sink.COMMAND_SOURCE) {
+	    return senderSink;
+	}
+	else {
+	    return receiverSink;
+	}
+    }
 
+    public String[] getOwnedCommands() {
+	return OWNED_COMMANDS;
+    }
+
+    // This inner class handles the messaging commands on the command
+    // issuer side, turning them into horizontal commands and
+    // forwarding them to remote slices when necessary.
+    private class CommandSourceSink implements Sink {
+
+	// Implementation of the Sink interface
+
+	public void consume(VerticalCommand cmd) {
+
+	    try {
+		String name = cmd.getName();
+		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
+		    handleSendMessage(cmd);
+		}
+		if(name.equals(MessagingSlice.INSTALL_MTP)) {
+		    Object result = handleInstallMTP(cmd);
+		    cmd.setReturnValue(result);
+		}
+		else if(name.equals(MessagingSlice.UNINSTALL_MTP)) {
+		    handleUninstallMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
+		    handleSetPlatformAddresses(cmd);
+		}
+	    }
+	    catch(AuthException ae) {
+		cmd.setReturnValue(ae);
+	    }
+	    catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
+	    }
+	    catch(NotFoundException nfe) {
+		nfe.printStackTrace();
+	    }
+	    catch(ServiceException se) {
+		se.printStackTrace();
+	    }
+	    catch(MTPException mtpe) {
+		mtpe.printStackTrace();
+	    }
+	}
+
+	// Vertical command handler methods
+
+	public void handleSendMessage(VerticalCommand cmd) throws AuthException {
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID sender = (AID)params[1];
+
+	    // Set the sender unless already set
+	    try {
+		if (msg.getSender().getName().length() < 1)
+		    msg.setSender(sender);
+	    }
+	    catch (NullPointerException e) {
+		msg.setSender(sender);
+	    }
+
+
+	    // --- This code could go into a Security Service, intercepting the message sending...
+
+	    AgentPrincipal target1 = myContainer.getAgentPrincipal(msg.getSender());
+
+	    Authority authority = myContainer.getAuthority();
+	    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
+
+	    // --- End of security code		
+
+
+	    AuthException lastException = null;
+
+	    // 26-Mar-2001. The receivers set into the Envelope of the message, 
+	    // if present, must have precedence over those set into the ACLMessage.
+	    // If no :intended-receiver parameter is present in the Envelope, 
+	    // then the :to parameter
+	    // is used to generate :intended-receiver field. 
+	    //
+	    // create an Iterator with all the receivers to which the message must be 
+	    // delivered
+	    Iterator it = msg.getAllIntendedReceiver();
+
+	    while (it.hasNext()) {
+		AID dest = (AID)it.next();
+		try {
+		    AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
+		    authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
+		    ACLMessage copy = (ACLMessage)msg.clone();
+
+		    boolean found = myContainer.postMessageToLocalAgent(copy, dest);
+		    if(!found) {
+			myMessageManager.deliver(copy, dest, MessagingService.this);
+		    }
+		}
+		catch (AuthException ae) {
+		    lastException = ae;
+		    notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()));
+		}
+	    }
+
+	    if(lastException != null)
+		throw lastException;
+	}
+
+	private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
+	    Object[] params = cmd.getParams();
+	    String address = (String)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+	    String className = (String)params[2];
+
+	    MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
+	    return targetSlice.installMTP(address, className);
+	}
+
+	private void handleUninstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
+	    Object[] params = cmd.getParams();
+	    String address = (String)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+
+	    MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
+	    targetSlice.uninstallMTP(address);
+	}
+
+	private void handleSetPlatformAddresses(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    id.clearAllAddresses();
+	    addPlatformAddresses(id);
+	}
+
+    } // End of CommandSourceSink class
+
+
+    private class CommandTargetSink implements Sink {
+
+	public void consume(VerticalCommand vCmd) {
+	    System.out.println("--- Consuming command <" + vCmd.getName() + "> ---");
+	}
+
+    } // End of CommandTargetSink class
+
+
+    /**
+       Inner class for this service: this class receives commands from
+       service <code>Sink</code> and serves them, coordinating with
+       remote parts of this service through the <code>Slice</code>
+       interface (that extends the <code>Service.Slice</code>
+       interface).
+    */
+    private class ServiceComponent implements MessagingSlice {
 
 	public Iterator getAddresses() {
 	    return routes.getAddresses();
@@ -226,60 +390,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 
-	// Implementation of the Filter interface
-
-	public void accept(VerticalCommand cmd) { // FIXME: Should set the exception somehow...
-
-	    try {
-		String name = cmd.getName();
-		if(name.equals(SEND_MESSAGE)) {
-		    handleSendMessage(cmd);
-		}
-		if(name.equals(INSTALL_MTP)) {
-		    Object result = handleInstallMTP(cmd);
-		    cmd.setReturnValue(result);
-		}
-		else if(name.equals(UNINSTALL_MTP)) {
-		    handleUninstallMTP(cmd);
-		}
-		else if(name.equals(SET_PLATFORM_ADDRESSES)) {
-		    handleSetPlatformAddresses(cmd);
-		}
-	    }
-	    catch(AuthException ae) {
-		cmd.setReturnValue(ae);
-	    }
-	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
-	    }
-	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
-	    }
-	    catch(ServiceException se) {
-		se.printStackTrace();
-	    }
-	    catch(MTPException mtpe) {
-		mtpe.printStackTrace();
-	    }
-	}
-
-	public void setBlocking(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-    	public boolean isBlocking() {
-	    return false; // Blocking and Skipping not implemented
-	}
-
-	public void setSkipping(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-	public boolean isSkipping() {
-	    return false; // Blocking and Skipping not implemented
-	}
-
-
 	// Implementation of the Service.Slice interface
 
 	public Service getService() {
@@ -296,6 +406,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	public VerticalCommand serve(HorizontalCommand cmd) {
+	    VerticalCommand result = null;
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -305,6 +416,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    AID receiverID = (AID)params[1];
 
 		    dispatchLocally(msg, receiverID);
+		    result = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
 		}
 		else if(cmdName.equals(H_ROUTEOUT)) {
 		    ACLMessage msg = (ACLMessage)params[0];
@@ -358,12 +470,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		cmd.setReturnValue(t);
 	    }
 	    finally {
-		if(cmd instanceof VerticalCommand) {
-		    return (VerticalCommand)cmd;
-		}
-		else {
-		    return null;
-		}
+		return result;
 	    }
 	}
 
@@ -805,7 +912,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
 			    cmd.addParam(failure);
 			    cmd.addParam(theAMS);
-			    handleSendMessage(cmd);
+			    senderSink.handleSendMessage(cmd);
 			} catch (AuthException ae) {
 			    // it does not have permission to notify the failure 
 			    // it never happens if the policy file gives 
@@ -821,94 +928,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
     }
 
-
-    // Vertical command handler methods
-
-
-    private void handleSendMessage(VerticalCommand cmd) throws AuthException {
-	Object[] params = cmd.getParams();
-	ACLMessage msg = (ACLMessage)params[0];
-	AID sender = (AID)params[1];
-
-	// Set the sender unless already set
-	try {
-	    if (msg.getSender().getName().length() < 1)
-		msg.setSender(sender);
-	}
-	catch (NullPointerException e) {
-	    msg.setSender(sender);
-	}
-
-
-	// --- This code could go into a Security Service, intercepting the message sending...
-
-	AgentPrincipal target1 = myContainer.getAgentPrincipal(msg.getSender());
-
-	Authority authority = myContainer.getAuthority();
-	authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
-
-	// --- End of security code		
-
-
-	AuthException lastException = null;
-
-	// 26-Mar-2001. The receivers set into the Envelope of the message, 
-	// if present, must have precedence over those set into the ACLMessage.
-	// If no :intended-receiver parameter is present in the Envelope, 
-	// then the :to parameter
-	// is used to generate :intended-receiver field. 
-	//
-	// create an Iterator with all the receivers to which the message must be 
-	// delivered
-	Iterator it = msg.getAllIntendedReceiver();
-
-	while (it.hasNext()) {
-	    AID dest = (AID)it.next();
-	    try {
-		AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-		authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
-		ACLMessage copy = (ACLMessage)msg.clone();
-
-		boolean found = myContainer.postMessageToLocalAgent(copy, dest);
-		if(!found) {
-		    myMessageManager.deliver(copy, dest, this);
-		}
-	    }
-	    catch (AuthException ae) {
-		lastException = ae;
-		notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()));
-	    }
-	}
-
-	if(lastException != null)
-	    throw lastException;
-    }
-
-    private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
-	Object[] params = cmd.getParams();
-	String address = (String)params[0];
-	ContainerID cid = (ContainerID)params[1];
-	String className = (String)params[2];
-
-	MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-	return targetSlice.installMTP(address, className);
-    }
-
-    private void handleUninstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
-	Object[] params = cmd.getParams();
-	String address = (String)params[0];
-	ContainerID cid = (ContainerID)params[1];
-
-	MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-	targetSlice.uninstallMTP(address);
-    }
-
-    private void handleSetPlatformAddresses(VerticalCommand cmd) {
-	Object[] params = cmd.getParams();
-	AID id = (AID)params[0];
-  	id.clearAllAddresses();
-  	addPlatformAddresses(id);
-    }
 
 
 
@@ -1010,6 +1029,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // The local slice for this service
     private final ServiceComponent localSlice;
+
+    // The command sink, source side
+    private final CommandSourceSink senderSink;
+
+    // The command sink, target side
+    private final CommandTargetSink receiverSink;
 
     // The cached AID -> MessagingSlice associations
     private final Map cachedSlices;
