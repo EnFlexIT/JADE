@@ -308,18 +308,18 @@ public class AgentContainer implements PlatformController {
   public State getState() { return platformState; }
   
   public synchronized void addPlatformListener(Listener aListener) throws ControllerException {
-//__JADE_ONLY__BEGIN  
+  	//#ALL_EXCLUDE_BEGIN
   	if (myListenerManager.addListener(aListener) == 1) {
   		myImpl.addPlatformListener(myListenerManager);
   	}
-//__JADE_ONLY__END  
+  	//#ALL_EXCLUDE_END
   }
   public synchronized void removePlatformListener(Listener aListener) throws ControllerException {
-//__JADE_ONLY__BEGIN  
+  	//#ALL_EXCLUDE_BEGIN
   	if (myListenerManager.removeListener(aListener) == 0) {
   		myImpl.removePlatformListener(myListenerManager);
   	}
-//__JADE_ONLY__END  
+  	//#ALL_EXCLUDE_END
   }
     
   class ListenerManager implements AgentManager.Listener {
