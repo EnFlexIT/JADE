@@ -40,10 +40,10 @@ public interface MainContainer {
 
     String getPlatformName();
 
-    void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws IMTPException, NameClashException, NotFoundException, AuthException;
-    void deadAgent(AID name) throws IMTPException, NotFoundException;
-    void suspendedAgent(AID name) throws IMTPException, NotFoundException;
-    void resumedAgent(AID name) throws IMTPException, NotFoundException;
+    void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException;
+    void deadAgent(AID name) throws NotFoundException;
+    void suspendedAgent(AID name) throws NotFoundException;
+    void resumedAgent(AID name) throws NotFoundException;
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
