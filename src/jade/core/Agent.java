@@ -298,19 +298,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public static final int AP_MAX = 10;    // Hand-made type checking
 
   //#MIDP_EXCLUDE_BEGIN  
-  private static final AgentState[] STATES = new AgentState[] { 
-    new AgentState("Illegal MIN state"),
-    new AgentState("Initiated"),
-    new AgentState("Active"),
-    new AgentState("Idle"),
-    new AgentState("Suspended"),
-    new AgentState("Waiting"),
-    new AgentState("Deleted"),
-    new AgentState("Transit"),
-    new AgentState("Copy"),
-    new AgentState("Gone"),
-    new AgentState("Illegal MAX state")
-  };
 
   /**
      These constants represent the various Domain Life Cycle states
@@ -435,6 +422,16 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   private boolean terminating = false;
   
+  // For persistence service
+  private void setTerminating(boolean b) {
+      terminating = b;
+  }
+
+  // For persistence service
+  private boolean getTerminating() {
+      return terminating;
+  }
+
   //#MIDP_EXCLUDE_BEGIN
   /** 
      When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
@@ -464,7 +461,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
      Default constructor.
   */
   public Agent() {
-    setState(AP_INITIATED);
+    changeStateTo(AP_INITIATED);
     myScheduler = new Scheduler(this);
     theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
@@ -473,13 +470,25 @@ public class Agent implements Runnable, Serializable, TimerListener {
   /**
      Constructor to be used by special "agents" that will never powerUp.
    */
- 	Agent(AID id) {
+    Agent(AID id) {
     myName = id.getLocalName();
     myHap = id.getHap();
     myAID = id;
- 	}
- 		
-    
+    }
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
     
     /** Declared transient because the container changes in case
      * of agent migration.
@@ -557,6 +566,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public final AID getAID() {
     return myAID;
   }
+
+  // For persistence service
+  private void setAID(AID id) {
+      myAID = id;
+  }
+
   /**
      This method adds a new platform address to the AID of this Agent.
      It is called by the container when a new MTP is activated
@@ -746,19 +761,19 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	}
   //#MIDP_EXCLUDE_END
 
-  private void setState(int state) {
-  	synchronized (stateLock) {
-  		if (state != myAPState) {
+  private void changeStateTo(int state) {
+      synchronized (stateLock) {
+	  if (state != myAPState) {
 	      int oldState = myAPState;
-	      myAPState = state;
-	  		//#MIDP_EXCLUDE_BEGIN
+	      setState(state);
+	      //#MIDP_EXCLUDE_BEGIN
 	      notifyChangedAgentState(oldState, myAPState);
-			  //#MIDP_EXCLUDE_END
-			  /*#MIDP_INCLUDE_BEGIN
-	    	//myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
-			  #MIDP_INCLUDE_END*/
-  		}
-    }
+	      //#MIDP_EXCLUDE_END
+	      /*#MIDP_INCLUDE_BEGIN
+	      //myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
+	      #MIDP_INCLUDE_END*/
+	  }
+      }
   }
 
   /**
@@ -774,10 +789,16 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return state;
   }
 
+  // For persistence service
+  private void setState(int state) {
+      myAPState = state;
+  }
+
 	//#MIDP_EXCLUDE_BEGIN
   public AgentState getAgentState() {
-    return STATES[getState()];
+    return AgentState.getInstance(getState());
   }
+
   
   /**
      This is only called by the RealNotificationManager to provide the Introspector
@@ -793,7 +814,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
      the RealMobilityManager to transfer messages in the queue
    */
   MessageQueue getMessageQueue() {
-  	return msgQueue;
+      return msgQueue;
+  }
+
+  // For persistence service
+  private void setMessageQueue(MessageQueue mq) {
+      msgQueue = mq;
   }
 
   // State transition methods for Agent Platform Life-Cycle
@@ -825,7 +851,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(stateLock) {
       if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
-	setState(AP_TRANSIT);
+	changeStateTo(AP_TRANSIT);
 	myDestination = destination;
 
 	// Real action will be executed in the embedded thread
@@ -848,7 +874,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(stateLock) {
       if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
-	setState(AP_COPY);
+	changeStateTo(AP_COPY);
 	myDestination = destination;
 	myNewName = newName;
 
@@ -875,7 +901,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       if(myBufferedState == AP_IDLE)
 	myBufferedState = AP_ACTIVE;
 
-      setState(myBufferedState);
+      changeStateTo(myBufferedState);
       myBufferedState = AP_MIN;
       activateAllBehaviours();
     }
@@ -888,7 +914,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   void doGone() {
     synchronized(stateLock) {
-      setState(AP_GONE);
+      changeStateTo(AP_GONE);
     }
   }
   //#MIDP_EXCLUDE_END
@@ -909,7 +935,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(stateLock) {
       if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
-	setState(AP_SUSPENDED);
+	changeStateTo(AP_SUSPENDED);
       }
     }
     if(myAPState == AP_SUSPENDED) {
@@ -941,7 +967,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void doActivate() {
     synchronized(stateLock) {
       if(myAPState == AP_SUSPENDED) {
-	setState(myBufferedState);
+	changeStateTo(myBufferedState);
       }
     }
     if(myAPState != AP_SUSPENDED) {
@@ -984,7 +1010,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void doWait(long millis) {
     synchronized(stateLock) {
       if(myAPState == AP_ACTIVE)
-	setState(AP_WAITING);
+	changeStateTo(AP_WAITING);
     }
     if(myAPState == AP_WAITING) {
       if(myThread.equals(Thread.currentThread())) {
@@ -1003,7 +1029,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void doWake() {
     synchronized(stateLock) {
       if((myAPState == AP_WAITING) || (myAPState == AP_IDLE)) {
-	setState(AP_ACTIVE);
+	changeStateTo(AP_ACTIVE);
       }
     }
     if(myAPState == AP_ACTIVE) {
@@ -1028,7 +1054,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void doDelete() {
     synchronized(stateLock) {
       if(myAPState != AP_DELETED && !terminating) {
-	setState(AP_DELETED);
+	changeStateTo(AP_DELETED);
 	if((myThread != null) && !myThread.equals(Thread.currentThread()))
           interruptThread();
       }
@@ -1042,13 +1068,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
     		// We have been suspended from the outside just before entering this method
     		throw new InterruptedException();
     	}
-			setState(AP_IDLE);
+			changeStateTo(AP_IDLE);
     }
     // No need for synchronized block since this is only called by the 
     // scheduler itself in the synchronized schedule() method
     waitOn(myScheduler, 0);
     synchronized(stateLock) {
-			setState(AP_ACTIVE);
+			changeStateTo(AP_ACTIVE);
     }
   }
 
@@ -1262,7 +1288,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     try {
       switch(myAPState) {
       case AP_INITIATED:
-				setState(AP_ACTIVE);
+				changeStateTo(AP_ACTIVE);
 				// No 'break' statement - fall through
       case AP_ACTIVE:
         notifyStarted();
@@ -1312,10 +1338,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
       case AP_DELETED:
       	terminating = true;
 	int savedState = getState();
-	setState(AP_ACTIVE);
+	changeStateTo(AP_ACTIVE);
 	takeDown();
 	destroy();
-	setState(savedState);
+	changeStateTo(savedState);
 	break;
       case AP_GONE:
 	break;
@@ -1324,10 +1350,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
 	savedState = getState();
-	setState(AP_ACTIVE);
+	changeStateTo(AP_ACTIVE);
 	takeDown();
 	destroy();
-	setState(savedState);
+	changeStateTo(savedState);
       }
 			//#MIDP_EXCLUDE_END
 			/*#MIDP_INCLUDE_BEGIN
@@ -1339,10 +1365,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
       terminating = true;
 
       int savedState = getState();
-      setState(AP_ACTIVE);
+      changeStateTo(AP_ACTIVE);
       takeDown();
       destroy();
-      setState(savedState);
+      changeStateTo(savedState);
 			#MIDP_INCLUDE_END*/
     }
 
@@ -1482,7 +1508,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		notifyMove();
 	  } catch (Exception e) {
 	  	// something went wrong
-	  	setState(myBufferedState);
+	  	changeStateTo(myBufferedState);
 			myDestination = null;
 			if (e instanceof AuthException) {
 				// Will be catched together with all other AuthException-s
@@ -1503,7 +1529,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  notifyCopy();
 	  } catch (Exception e) {
 	  	// something went wrong
-	  	setState(myBufferedState);
+	  	changeStateTo(myBufferedState);
 			myDestination = null;
 			if (e instanceof AuthException) {
 				// Will be catched together with all other AuthException-s
@@ -1612,7 +1638,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    timeToWait -= elapsedTime;
 
 	    if(timeToWait <= 0)
-	    setState(AP_ACTIVE);
+	    changeStateTo(AP_ACTIVE);
 	  }
 
 	}
@@ -1645,7 +1671,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  case AP_TRANSIT:
 	  case AP_COPY:
 	    // Undo the previous clone or move request
-	    setState(AP_SUSPENDED);
+	    changeStateTo(AP_SUSPENDED);
 	  //#MIDP_EXCLUDE_END
 	  }
 	}
@@ -2007,15 +2033,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
   	}
   }
   
-  // Package scoped as it is called by the RealNotificationManager
   public void setGenerateBehaviourEvents(boolean b) {
   	generateBehaviourEvents = b;
   }
+
+  // For persistence service
+  private boolean getGenerateBehaviourEvents() {
+      return generateBehaviourEvents;
+  }
+
   
   // Notify toolkit that the current agent has changed its state
   private void notifyChangedAgentState(int oldState, int newState) {
-    AgentState from = STATES[oldState];
-    AgentState to = STATES[newState];
+    AgentState from = AgentState.getInstance(oldState);
+    AgentState to = AgentState.getInstance(newState);
     myToolkit.handleChangedAgentState(myAID, from, to);
   }
   
@@ -2197,5 +2228,25 @@ private Hashtable serviceExecutors = new Hashtable();
 			}
     } 
   	#MIDP_INCLUDE_END*/
-  } 
+  }
+
+    //#J2ME_EXCLUDE_BEGIN
+
+    // For persistence service -- Hibernate needs java.util collections
+    private java.util.Set getBehaviours() {
+	Behaviour[] behaviours = myScheduler.getBehaviours();
+	java.util.Set result = new java.util.HashSet();
+	result.addAll(java.util.Arrays.asList(behaviours));
+
+	return result;
+    }
+
+    // For persistence service -- Hibernate needs java.util collections
+    private void setBehaviours(java.util.Set behaviours) {
+	Behaviour[] arr = new Behaviour[behaviours.size()];
+	myScheduler.setBehaviours((Behaviour[])behaviours.toArray(arr));
+    }
+
+    //#J2ME_EXCLUDE_END
+
 }
