@@ -40,6 +40,7 @@ import jade.core.Agent;
 
 */
 public abstract class Behaviour implements Serializable {
+  private static final long     serialVersionUID = 3487495895819001L;
 
   /**
      A constant for child-to-parent notifications.
@@ -79,6 +80,7 @@ public abstract class Behaviour implements Serializable {
      children (<em>downward notification</em>).
   */
   protected class RunnableChangedEvent implements Serializable {
+  	private static final long     serialVersionUID = 3487495895819002L;
     /**
     @serial
     */

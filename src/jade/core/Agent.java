@@ -87,7 +87,8 @@ import javax.microedition.midlet.*;
    @version $Date$ $Revision$
  */
 public class Agent implements Runnable, Serializable, TimerListener {
-
+  private static final long     serialVersionUID = 3487495895819000L;
+	
   // This inner class is used to force agent termination when a signal
   // from the outside is received
   private class AgentDeathError extends Error {
