@@ -223,7 +223,7 @@ public class rma extends ToolAgent {
       	    ContainerID cid = sa.getWhere();
       	    String container = cid.getName();
       	    AID agent = sa.getAgent();
-      	    myGUI.modifyAgent(container, agent, "Suspended", null);
+      	    myGUI.modifyAgent(container, agent, AMSAgentDescription.SUSPENDED, null);
 	        }
         });
 
@@ -233,7 +233,7 @@ public class rma extends ToolAgent {
       	    ContainerID cid = ra.getWhere();
       	    String container = cid.getName();
       	    AID agent = ra.getAgent();
-      	    myGUI.modifyAgent(container, agent, "Running", null);
+      	    myGUI.modifyAgent(container, agent, AMSAgentDescription.ACTIVE, null);
 	        }
         });
 
