@@ -324,12 +324,6 @@ public class AbsPrimitive implements AbsTerm {
         return value;
     } 
 
-    /**
-       @deprecated Use <code>toString()</code> instead
-     */
-    /*protected void dump(int indent, PrintStream ps) {
-    	ps.println(toString());
-    } */
 
     /**
      * @return The name of the type of the object held by this
@@ -371,12 +365,6 @@ public class AbsPrimitive implements AbsTerm {
     	return 0;
     }
     
-    /**
-       @deprecated Use <code>toString()</code> instead
-     */
-    /*public void dump() {
-      dump(0, System.out);
-    }*/
     
     public String toString() {
     	return value.toString();
