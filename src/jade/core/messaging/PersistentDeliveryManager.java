@@ -64,9 +64,6 @@ class PersistentDeliveryManager {
   // How often to check for expired deliveries
   private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
 
-  // How often to send enqueued messages
-  private static final long DEFAULT_DELIVERPERIOD = 10*1000; // 10 sec
-
   // Default storage class
   private static final String DEFAULT_STORAGE = "jade.core.messaging.PersistentDeliveryManager$DummyStorage";
 
@@ -229,9 +226,6 @@ class PersistentDeliveryManager {
         // Do nothing: the default value will be used...
 	    }
     }
-
-    deliverPeriod = DEFAULT_DELIVERPERIOD;
-
   }
 
   public void storeMessage(String storeName, GenericMessage msg, AID receiver) throws IOException {
@@ -298,14 +292,15 @@ class PersistentDeliveryManager {
   }
 
   private void retry(DeliveryItem item) {
-    myMessageManager.deliver(item.getMessage(), item.getReceiver(), item.getChannel());
-    // Also remove the message from the storage
+    // Remove the message from the storage
     try {
       storage.delete(item.getStoreName(), item.getReceiver());
     }
     catch(IOException ioe) {
       ioe.printStackTrace();
     }
+    // Deliver it
+    myMessageManager.deliver(item.getMessage(), item.getReceiver(), item.getChannel());
   }
 
 
@@ -314,10 +309,6 @@ class PersistentDeliveryManager {
 
   // The actual channel over which messages will be sent
   private MessageManager.Channel deliveryChannel;
-
-  // How often multiple ACL messages for the same recipient will be
-  // delivered (this parameter acts as a bandwidth limiter)
-  private long deliverPeriod;
 
   // How often pending messages due date will be checked (the
   // message will be sent out if expired)
