@@ -303,8 +303,10 @@ public class SLCodec extends StringCodec {
 	    return ISO8601.toString((Date)v);
 	else if (v instanceof Number)
 		  return v.toString();
-  else
-	    return encode(v.toString());
+  else if (v instanceof byte[])
+  	throw new CodecException("SL_does_not_allow_encoding_sequencesOfBytes");
+  else	
+	  return encode(v.toString());
     }
 
     private String toString(AbsObject val) throws CodecException {

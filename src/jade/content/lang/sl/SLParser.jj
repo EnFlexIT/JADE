@@ -83,6 +83,23 @@ class SLParser {
      }
 
 
+     /**
+     * When an ActionExpression is parsed, if it is an AbsConcept then
+     * it must be casted upto an AbsAgentAction. 
+     **/
+     private AbsTerm toAbsAgentAction(AbsTerm t) {
+     	if ((t instanceof AbsConcept) && (!(t instanceof AbsAgentAction))) {
+     		AbsAgentAction act = new AbsAgentAction(t.getTypeName());
+     		String[] slotNames = t.getNames();
+     		if (slotNames != null) {
+     			for (int i=0; i<slotNames.length; i++)
+     				act.set(slotNames[i], (AbsTerm) t.getAbsObject(slotNames[i]));
+     		}
+     		return act;
+     	} else
+     		return t;
+     }
+     
   /**
    * By default an object of this type implements a Full SLParser.
    * This method allows to change this default.
@@ -323,10 +340,10 @@ AbsAgentAction ActionExpression_NoBrace() :
        try {
 	   String slotNames[] = curOntology.getSchema(t.image).getNames();
 	   val.set(slotNames[0], term1);
-	   val.set(slotNames[1], term2);
+	   val.set(slotNames[1], toAbsAgentAction(term2));
         } catch (Exception e) {
            val.set(Codec.UNNAMEDPREFIX+"0", term1);
-           val.set(Codec.UNNAMEDPREFIX+"1", term2);
+           val.set(Codec.UNNAMEDPREFIX+"1", toAbsAgentAction(term2));
         }
      }
   | t=<ACTIONOPLL> {if (slType<2) throw new ParseException("NotFullSL_ActionOperatorExpression_NotParsable");} term1=ActionExpression() term2=ActionExpression()
@@ -334,10 +351,10 @@ AbsAgentAction ActionExpression_NoBrace() :
        try {
 	   String slotNames[] = curOntology.getSchema(t.image).getNames();
 	   val.set(slotNames[0], term1);
-	   val.set(slotNames[1], term2);
+	   val.set(slotNames[1], toAbsAgentAction(term2));
         } catch (Exception e) {
            val.set(Codec.UNNAMEDPREFIX+"0", term1);
-           val.set(Codec.UNNAMEDPREFIX+"1", term2);
+           val.set(Codec.UNNAMEDPREFIX+"1", toAbsAgentAction(term2));
         }
      }
  )
