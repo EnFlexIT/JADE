@@ -47,6 +47,14 @@ public interface MTP {
     /**
        Constructor for exception class.
        @param msg A message detailing the cause of the exception.
+     */
+    public MTPException(String msg) {
+      this(msg, null);
+    }
+
+    /**
+       Constructor for exception class.
+       @param msg A message detailing the cause of the exception.
        @param t The exception wrapped by this object.
      */
     public MTPException(String msg, Throwable t) {
@@ -93,13 +101,13 @@ public interface MTP {
      close is listening to.
      @exception MTPException Thrown if some MTP cleanup error occurs.
    */
-  void deactivate(TransportAddress ta);
+  void deactivate(TransportAddress ta) throws MTPException;
 
   /**
      Deactivates all the MTP handlers.
      @exception MTPException Thrown if some MTP cleanup error occurs.
    */
-  void deactivate();
+  void deactivate() throws MTPException;
 
   /**
      Delivers to the specified address an ACL message, encoded in some
