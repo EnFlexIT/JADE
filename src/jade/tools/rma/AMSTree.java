@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/06 21:55:15  rimassa
+  Removed a debugging printout.
+
   Revision 1.2  1999/06/06 17:51:31  rimassa
   Some look&feel changes: now the three-pane window uses continuous
   repaint when moving pane separators, and a better initial position for
@@ -105,7 +108,6 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
 
   public void adjustDividerLocation() {
     int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
-    System.out.println("rootSize = " + rootSize);
     pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
   }
 
