@@ -337,7 +337,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	    
 	  	myId = cnt++;
-	    log("IM-"+myId+" started", 1);
+	    log("IM-"+myId+" started", 2);
 	  	
 	  	int status = 0;
 			connect(INP);
@@ -380,7 +380,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				}
   		}
   		
-	    log("IM-"+myId+" terminated", 1);
+	    log("IM-"+myId+" terminated", 2);
 	  }
 	  
 	  private void close() {
