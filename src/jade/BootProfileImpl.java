@@ -120,18 +120,18 @@ public class BootProfileImpl extends ProfileImpl {
         String value = null;
         boolean flag = false;
         
-        // Configure Java runtime system to put the selected host address in RMI messages
+        // Configure Java runtime system to put the selected host address in RMI messages (e.g. a fully qualified name instead of a local name)
 
   	    boolean isMain = !fetchAndVerifyBoolean(CONTAINER_KEY);
   	                
         try {
 
-            if (!isMain) {
+            if (isMain) { //this is a main, then set the RMI Server to the value passed in the -host option or to the IP no
                 value = argProp.getProperty(HOST_KEY);
                 if (value == null) { 
 		            value = InetAddress.getLocalHost().getHostAddress();
 		        }
-            } else {
+            } else { // this is a container, then set the RMI Server to the IP no. of the container
                 value = InetAddress.getLocalHost().getHostAddress();
             }
             System.getProperties().put("java.rmi.server.hostname", value);
