@@ -26,7 +26,6 @@ package jade.content.schema;
 
 import jade.content.abs.*;
 import jade.content.onto.*;
-import jade.content.schema.facets.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -99,17 +98,7 @@ public class ConceptSchema extends TermSchema {
      * values
      */
     public void add(String name, TermSchema elementsSchema, int cardMin, int cardMax) {
-      int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
-    	try {
-	      super.add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
-     		// Add proper facets
-    		addFacet(name, new TypedAggregateFacet(elementsSchema));
-    		addFacet(name, new CardinalityFacet(cardMin, cardMax));
-   	}
-    	catch (OntologyException oe) {
-    		// Should never happen
-    		oe.printStackTrace();
-    	}
+    	super.add(name, elementsSchema, cardMin, cardMax);
     } 
 
     /**
@@ -124,6 +113,18 @@ public class ConceptSchema extends TermSchema {
     public void addSuperSchema(ConceptSchema superClassSchema) {
         super.addSuperSchema(superClassSchema);
     } 
+
+    /** 
+       Add a <code>Facet</code> on a slot of this schema
+       @param slotName the name of the slot the <code>Facet</code>
+       must be added to.
+       @param f the <code>Facet</code> to be added.
+       @throws OntologyException if slotName does not identify
+       a valid slot in this schema
+     */
+		public void addFacet(String slotName, Facet f) throws OntologyException {
+			super.addFacet(slotName, f);
+		}
 
     /**
      * Creates an Abstract descriptor to hold a concept of

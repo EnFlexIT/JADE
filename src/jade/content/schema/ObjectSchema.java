@@ -29,6 +29,7 @@ import jade.content.abs.*;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
+import jade.content.schema.facets.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -92,7 +93,6 @@ public class ObjectSchema {
 
     /**
      * Add a slot to the schema.
-     *
      * @param name The name of the slot.
      * @param slotSchema The schema defining the type of the slot.
      * @param optionality The optionality, i.e., <code>OPTIONAL</code> 
@@ -103,19 +103,47 @@ public class ObjectSchema {
     } 
 
   	/**
-     * Add a mandatory attribute to the schema.
-     *
-     * @param name name of the attribute.
-     * @param slotSchema schema of the attribute.
+     * Add a mandatory slot to the schema.
+     * @param name name of the slot.
+     * @param slotSchema schema of the slot.
      */
     protected void add(String name, ObjectSchema slotSchema) {
         add(name, slotSchema, MANDATORY);
     } 
 
     /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema. 
+     * Adding such a slot is equivalent to add a slot
+     * of type Aggregate and then to add proper facets (constraints)
+     * to check that the type of the elements in the aggregate are
+     * compatible with <code>elementsSchema</code> and that the 
+     * aggregate contains at least <code>cardMin</code> elements and
+     * at most <code>cardMax</code> elements.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     */
+    protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax) {
+      int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
+    	try {
+    		add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
+     		// Add proper facets
+    		addFacet(name, new TypedAggregateFacet(elementsSchema));
+    		addFacet(name, new CardinalityFacet(cardMin, cardMax));
+    	}
+    	catch (OntologyException oe) {
+    		// Should never happen
+    		oe.printStackTrace();
+    	}
+    } 
+
+    /**
      * Add a super schema tho this schema, i.e. this schema will
      * inherit all characteristics from the super schema
-     *
      * @param superSchema the super schema.
      */
     protected void addSuperSchema(ObjectSchema superSchema) {
@@ -130,7 +158,7 @@ public class ObjectSchema {
        @throws OntologyException if slotName does not identify
        a valid slot in this schema
      */
-		public void addFacet(String slotName, Facet f) throws OntologyException {
+		protected void addFacet(String slotName, Facet f) throws OntologyException {
 			slotName = slotName.toUpperCase();
 			if (containsSlot(slotName)) {
 				Vector v = (Vector) facets.get(slotName);
@@ -149,7 +177,6 @@ public class ObjectSchema {
 		
     /**
      * Retrieves the name of the type of this schema.
-     *
      * @return the name of the type of this schema.
      */
     public String getTypeName() {

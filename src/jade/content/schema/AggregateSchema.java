@@ -115,4 +115,16 @@ public class AggregateSchema extends TermSchema {
   			return false;
   		}
   	}
+  	
+  	// FIXME: This is redefined to make different types of aggregate
+  	// (e.g. SET and SEQUENCE) compatible as the framework is currently
+  	// only able to deal with SEQUENCE.
+    public boolean equals(Object o) {
+    	if (o != null) {
+	    	return getClass().getName().equals(o.getClass().getName());
+    	}
+    	else {
+    		return false;
+    	}
+    }
 }
