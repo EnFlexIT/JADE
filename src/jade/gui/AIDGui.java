@@ -55,7 +55,8 @@ import jade.domain.FIPAAgentManagement.*;
  	
  	public AIDGui()
  	{
-   super();
+   super();	
+   setTitle("AID");
  	}
  	
  /**
@@ -76,9 +77,6 @@ import jade.domain.FIPAAgentManagement.*;
  		else
  		  this.agentAID = agentIdentifier;
  		
- 		
- 		setTitle("AID");
- 	
  		JLabel label;
  
  		JPanel mainPanel = new JPanel();
