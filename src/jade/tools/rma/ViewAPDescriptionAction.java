@@ -50,4 +50,4 @@ class ViewAPDescriptionAction extends PlatformAction {
     	}
   }
 
-} // End of ViewAPDescriptionAction
+} 

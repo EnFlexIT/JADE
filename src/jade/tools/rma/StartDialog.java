@@ -161,4 +161,4 @@ class StartDialog extends JDialog implements ActionListener{
     container.setText(containerP);
   }
 
-} // End of class StartDialog
+} 

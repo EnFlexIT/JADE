@@ -87,4 +87,4 @@ public class PanelCanvas extends JPanel {
    add(canvMess,gbc);
  }
 
-} // End of class PanelCanvas
+} 

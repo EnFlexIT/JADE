@@ -42,4 +42,4 @@ package jade.tools.rma;
     myRMA.exit();
   }
 
-} //End of ExitAction
+}

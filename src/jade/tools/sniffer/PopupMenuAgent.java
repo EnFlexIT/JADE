@@ -56,4 +56,4 @@ public class PopupMenuAgent extends JPopupMenu{
    tmp.setIcon(null);
  }
 
-} // End of class PopupMenuAgent
+} 

@@ -79,6 +79,4 @@ public class PopMouserMessage extends MouseAdapter {
  }
 
 
-  } // End of class PopMouserMessage
-
-
+  } 

@@ -44,7 +44,4 @@ abstract class FixedAction extends SnifferAction{
   
 public abstract void doAction();
 
-} // End of FixedAction
-
-
-
+} 

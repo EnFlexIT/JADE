@@ -48,4 +48,4 @@ class RegisterRemoteAgentAction extends AgentAction {
     	}
   }
 
-} // End of RegisterRemoteAgentAction
+} 

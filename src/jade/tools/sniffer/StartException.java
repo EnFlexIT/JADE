@@ -51,7 +51,6 @@ class StartException extends Exception {
       JOptionPane.showMessageDialog(new JFrame(),ErrorMessage,ErrorPaneTitle,JOptionPane.ERROR_MESSAGE);
     }
 
-} // End of StartException
-
+} 
 
 

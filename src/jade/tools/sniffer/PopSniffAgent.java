@@ -63,4 +63,4 @@ private MMCanvas canvAgent;
      sniffedAgent.clear();
    }
 
-} // End of class PopSniffAgent
+} 

@@ -48,4 +48,4 @@ class RefreshAMSAgentAction extends PlatformAction {
     	}
   }
 
-} // End of RefreshAMSAgentAction
+} 

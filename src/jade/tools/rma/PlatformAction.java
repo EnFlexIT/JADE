@@ -40,4 +40,4 @@ abstract class PlatformAction extends RMAAction{
 
   public abstract void doAction(AgentTree.Node node);
 
-} // End of PlatformAction
+} 

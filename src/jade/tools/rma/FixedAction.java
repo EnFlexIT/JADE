@@ -36,4 +36,4 @@ abstract class FixedAction extends RMAAction{
   }
   public abstract void doAction();
 
-} // End of FixedAction
+} 

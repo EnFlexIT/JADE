@@ -50,5 +50,5 @@ class SnifferAction extends ContainerAction {
     progressiveNumber++;
   }
 
-} // End of SnifferAction
+} 
 

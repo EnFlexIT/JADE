@@ -83,5 +83,5 @@ class PopupMouser extends MouseAdapter
     else return false;
   }
 
-} // End of PopupMouser
+} 
 

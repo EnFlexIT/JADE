@@ -48,4 +48,4 @@ class RefreshAPDescriptionAction extends PlatformAction {
     	}
   }
 
-} // End of RefreshAPDescriptionAction
+} 

@@ -74,4 +74,4 @@ public class WriteLogFileAction extends FixedAction implements Serializable{
      }
   }
 
-} // End of class WriteLogFileAction
+} 

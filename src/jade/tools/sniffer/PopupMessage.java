@@ -59,4 +59,4 @@ public class PopupMessage extends JPopupMenu {
    viewMessage.setMessage(mess);
   }
 
-} // End of class PopupMessage
+} 

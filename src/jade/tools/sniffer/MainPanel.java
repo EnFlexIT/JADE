@@ -89,4 +89,4 @@ public class MainPanel extends JPanel {
     pane.setDividerLocation(0.3);
   }
 
-} // End of MainPanel
+} 

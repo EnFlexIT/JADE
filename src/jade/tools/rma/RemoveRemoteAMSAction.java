@@ -48,4 +48,4 @@ class RemoveRemoteAMSAction extends PlatformAction {
     	}
   }
 
-} // End of RemoveRemoteAMSAction
+} 

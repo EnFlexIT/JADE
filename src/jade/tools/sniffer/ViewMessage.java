@@ -57,4 +57,4 @@ public class ViewMessage extends AbstractPopup{
   message=mess;
  }
 
- } //End of class ViewMessage
+ } 

@@ -43,6 +43,6 @@ class UninstallMTPAction extends ContainerAction {
     myRMA.uninstallMTP(containerName);
   }
 
-} // End of UninstallMTPAction
+} 
 
 

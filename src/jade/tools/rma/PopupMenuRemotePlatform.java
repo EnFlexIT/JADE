@@ -46,4 +46,4 @@ class PopupMenuRemotePlatform extends JPopupMenu{
    tmp.setIcon(null);
      }
 
-} // End of PopupMenuRemotePlatform
+}

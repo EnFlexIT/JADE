@@ -111,4 +111,4 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     messageNumber=n;
   }
 
-} // End of class Message
+} 

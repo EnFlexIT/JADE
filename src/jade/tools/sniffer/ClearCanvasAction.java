@@ -55,4 +55,4 @@ public class ClearCanvasAction extends FixedAction{
     mainPanel.textArea.setText("                                                                 No Message");
   }
 
-} // End of class ClearCanvasAction
+} 

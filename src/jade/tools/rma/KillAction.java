@@ -52,4 +52,4 @@ import jade.gui.AgentTree;
    }
   }
 
- } //End of KillAction
+ } 

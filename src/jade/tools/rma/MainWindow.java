@@ -432,4 +432,4 @@ class MainWindow extends JFrame {
     setUI("metal.MetalLookAndFeel");
   }
 
-} // End of MainWindow
+} 

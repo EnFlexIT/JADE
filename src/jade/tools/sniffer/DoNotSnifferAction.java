@@ -77,4 +77,4 @@ public class DoNotSnifferAction extends AgentAction {
    }
  }
 
-} // End of class DoNotSnifferAction
+} 

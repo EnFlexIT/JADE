@@ -45,4 +45,4 @@ final class ProgramCloser extends WindowAdapter{
 		win.setVisible(false);
 		win.disposeAsync();
 	}
-} // end of class ProgramCloser
+} 

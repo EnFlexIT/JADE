@@ -82,4 +82,4 @@ public class MainMenu extends JMenuBar{
    add(menu);
   }
 
-} // End of class MainMenu
+} 

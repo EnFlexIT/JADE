@@ -50,5 +50,5 @@ class CloseRMAAction extends FixedAction {
    myRMA.doDelete();
   }
   
-} // End of CloseRMAAction
+} 
 

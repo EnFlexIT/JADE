@@ -102,5 +102,4 @@ class TreePanel extends JPanel implements TreeSelectionListener {
     return new Dimension(200, 200);
   }
 
-} // End of AgentTreeModel
-
+} 

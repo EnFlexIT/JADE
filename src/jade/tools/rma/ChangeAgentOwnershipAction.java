@@ -63,5 +63,5 @@ class ChangeAgentOwnershipAction extends AgentAction {
     }
   }
 
-} // End of ChangeAgentOwnershipAction
+} 
 

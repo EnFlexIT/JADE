@@ -44,13 +44,5 @@ class InstallMTPAction extends ContainerAction {
     myRMA.installMTP(containerName);
   }
 
-} // End of InstallMTPAction
-
-
-
-
-
-
-
-
+} 
 

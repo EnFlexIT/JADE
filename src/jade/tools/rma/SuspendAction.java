@@ -54,5 +54,4 @@ class SuspendAction extends AgentAction {
 
   }
 
-} // End of SuspendAction
-
+} 

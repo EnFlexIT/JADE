@@ -62,4 +62,4 @@ public class PopNoSniffAgent extends AbstractPopup {
    noSniffAgent.clear();
  }
 
-} // End of class PopNoSniffAgent
+}

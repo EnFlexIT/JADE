@@ -54,4 +54,4 @@ class PopupMenuContainer extends JPopupMenu{
    tmp.setIcon(null);
  }
 
-} // End of PopupMenuContainer
+} 

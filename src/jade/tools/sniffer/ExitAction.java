@@ -54,4 +54,4 @@ public ExitAction(ActionProcessor actpro,Sniffer mySniffer) {
   mySniffer.doDelete();
  }
 
-} // End of class ExitAction
+} 

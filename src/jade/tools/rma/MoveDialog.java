@@ -166,4 +166,4 @@ class MoveDialog extends JDialog implements ActionListener{
     container.setText(containerP);
   }
 
-} // End of class StartDialog
+}

@@ -43,4 +43,4 @@ class ManageMTPsAction extends FixedAction {
     myWnd.showManageMTPsDialog();
   }
 
-} // End of ManageMTPsAction
+}

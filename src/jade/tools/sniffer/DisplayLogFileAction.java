@@ -76,4 +76,4 @@ public class DisplayLogFileAction extends FixedAction {
      }
    }
 
-} // End of DisplayLogFileAction;
+} 

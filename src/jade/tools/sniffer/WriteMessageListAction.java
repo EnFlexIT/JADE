@@ -78,4 +78,4 @@ private MainPanel mainPanel;
      }
  }
 
-} // End of class writeMessageListAction
+} 

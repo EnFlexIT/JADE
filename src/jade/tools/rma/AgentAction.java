@@ -40,4 +40,4 @@ import jade.gui.AgentTree;
 
   public abstract void doAction(AgentTree.AgentNode node);
 
-} // End of AgentAction
+} 

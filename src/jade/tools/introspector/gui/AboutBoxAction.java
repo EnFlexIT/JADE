@@ -210,6 +210,4 @@ private class MouseClick implements MouseListener
 }	
 
 
-} //End of AboutBoxAction class
-
- 
+} 

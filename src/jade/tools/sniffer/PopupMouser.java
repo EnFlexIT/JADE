@@ -102,5 +102,4 @@ package jade.tools.sniffer;
    }
 
  } // End of sameTypeNode
-
-} // End of class PopupMouser
+}

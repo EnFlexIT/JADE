@@ -722,4 +722,4 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
     return aName;
   }
 
-} // end of class MMCanvas
+} 
