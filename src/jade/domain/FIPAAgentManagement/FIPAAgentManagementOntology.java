@@ -150,8 +150,8 @@ public class FIPAAgentManagementOntology {
 	  new TermDescriptor("name", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
           new TermDescriptor("services", Ontology.SET_TERM, SERVICEDESCRIPTION, Ontology.O),
 	  new TermDescriptor("protocols", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("ontology", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("language", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O)
+	  new TermDescriptor("ontologies", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("languages", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new DFAgentDescription(); }
 	     public Class getClassForRole() { return DFAgentDescription.class; }
@@ -160,9 +160,9 @@ public class FIPAAgentManagementOntology {
 	theInstance.addFrame(SERVICEDESCRIPTION, new TermDescriptor[] {
 	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("type", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("ontology", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("language", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("protocol", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("ontologies", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("languages", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("protocols", Ontology.SET_TERM, Ontology.STRING_TYPE, Ontology.O),
 	  new TermDescriptor("ownership", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O),
 	  new TermDescriptor("properties", Ontology.SET_TERM, PROPERTY, Ontology.O)
 	}, new RoleFactory() {

@@ -1,5 +1,29 @@
 (REQUEST
  :language FIPA-SL0
+ :ontology fipa-agent-management
+ :content ((action (Agent-Identifier :name x@001122)
+            (SEARCH
+             (Df-agent-description
+             :name (Agent-Identifier :name x@ior:002233))
+             (search-constraints )
+            )))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+(FAILURE
+ :language FIPA-SL0
+ :ontology fipa-agent-management
+ :content ( already-registered
+            not-registered
+            (internal-error "Nothing was possibile")
+ )
+ :X-comment "a bit of failure exceptions are here. Notice that a number is not a String and therefore you must quote it."
+)
+
+
+(REQUEST
+ :language FIPA-SL0
  :ontology jade-mobility-ontology
  :content ((action (Agent-Identifier :name x@001122)
             (query-platform-locations)))
@@ -283,7 +307,7 @@
                (Service-Description
                 :name Service1
                 :type TestType
-                :ontology (set O1 O2 O3)
+                :ontologies (set O1 O2 O3)
                 :protocols (set P1 P2 P3)
                 :ownership CSELT
                 :properties (set (Property :name X1 :value V1) 
@@ -294,8 +318,8 @@
           			 (Property :name X7 :value (Dummy :name x))
                                  (Property :name X2 :value V2) )))
              :protocols (set FIPA-Request FIPA-Contract-Net)
-             :ontology (set FIPA-Agent-Management Trading)
-             :language (set FIPA-SL0)
+             :ontologies (set FIPA-Agent-Management Trading)
+             :languages (set FIPA-SL0)
           ))))
  :X-comment "Request to register a Description with the DF"
 )
