@@ -645,11 +645,11 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
     while (myContainers.hasNext()) {
       try {
-				AgentContainer ac = (AgentContainer)myContainers.next(); 
-				ac.enableSniffer(snifferName, toBeSniffed); // RMI call
+	AgentContainer ac = (AgentContainer)myContainers.next(); 
+	ac.enableSniffer(snifferName, toBeSniffed); // RMI call
       }
       catch (RemoteException re) {
-				throw new UnreachableException(re.getMessage());
+	throw new UnreachableException(re.getMessage());
       } 
     }
   }
@@ -661,11 +661,11 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
     while (myContainers.hasNext()) {
       try {
-				AgentContainer ac = (AgentContainer)myContainers.next();
-				ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
+	AgentContainer ac = (AgentContainer)myContainers.next();
+	ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
       }
       catch (RemoteException re) {
-				throw new UnreachableException(re.getMessage());
+	throw new UnreachableException(re.getMessage());
       }
     }
   }
