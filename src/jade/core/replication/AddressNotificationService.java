@@ -103,35 +103,47 @@ public class AddressNotificationService extends BaseService {
 
     public void boot(Profile p) throws ServiceException {
 
-	// Retrieve the address list from the competent Service Manager...
-	AddressNotificationSlice mainSlice = (AddressNotificationSlice)getSlice(MAIN_SLICE);
-
-	String[] addresses;
 	try {
-	    addresses = mainSlice.getServiceManagerAddresses();
+
+	    // Get the Service Manager address list, if this node isn't hosting one itself...
+	    Node n = getLocalNode();
+	    if(!n.hasServiceManager()) {
+
+		// Retrieve the address list from the competent Service Manager...
+		AddressNotificationSlice mainSlice = (AddressNotificationSlice)getSlice(MAIN_SLICE);
+
+		String[] addresses;
+		try {
+		    addresses = mainSlice.getServiceManagerAddresses();
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (AddressNotificationSlice)getFreshSlice(MAIN_SLICE);
+
+		    try {
+			addresses = mainSlice.getServiceManagerAddresses();
+		    }
+		    catch(IMTPException imtpe2) {
+			throw new ServiceException("Could not retrieve Service Manager address list");
+		    }
+
+		}
+
+		for(int i = 0; i < addresses.length; i++) {
+		    try {
+			myServiceManager.addAddress(addresses[i]);
+		    }
+		    catch(IMTPException imtpe) {
+			// It should never happen...
+			imtpe.printStackTrace();
+		    }
+		}
+	    }
 	}
 	catch(IMTPException imtpe) {
-	    // Try to get a newer slice and repeat...
-	    mainSlice = (AddressNotificationSlice)getFreshSlice(MAIN_SLICE);
-
-	    try {
-		addresses = mainSlice.getServiceManagerAddresses();
-	    }
-	    catch(IMTPException imtpe2) {
-		throw new ServiceException("Could not retrieve Service Manager address list");
-	    }
-
+	    throw new ServiceException("Boot failure", imtpe);
 	}
 
-	for(int i = 0; i < addresses.length; i++) {
-	    try {
-		myServiceManager.addAddress(addresses[i]);
-	    }
-	    catch(IMTPException imtpe) {
-		// It should never happen...
-		imtpe.printStackTrace();
-	    }
-	}
     }
 
 
@@ -189,7 +201,13 @@ public class AddressNotificationService extends BaseService {
 
 	public ServiceComponent(Profile p) {
 
-	    myServiceManager = myContainer.getServiceManager();
+	    try {
+		myServiceManager = myContainer.getServiceManager();
+		localSMAddr = myServiceManager.getLocalAddress();
+	    }
+	    catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
+	    }
 
 	}
 
@@ -240,7 +258,9 @@ public class AddressNotificationService extends BaseService {
 
 
 	private void addServiceManagerAddress(String addr) throws IMTPException {
-	    myServiceManager.addAddress(addr);
+	    if(!addr.equals(localSMAddr)) {
+		myServiceManager.addAddress(addr);
+	    }
 	}
 
 	private void removeServiceManagerAddress(String addr) throws IMTPException {
@@ -250,6 +270,8 @@ public class AddressNotificationService extends BaseService {
 	private String[] getServiceManagerAddresses() throws IMTPException {
 	    return myServiceManager.getAddresses();
 	}
+
+	private String localSMAddr;
 
     } // End of ServiceComponent class
 
@@ -264,12 +286,9 @@ public class AddressNotificationService extends BaseService {
 
     private ServiceManager myServiceManager;
 
-
     private void broadcastToSlices(HorizontalCommand cmd) throws IMTPException, ServiceException {
 
 	Object[] slices = getAllSlices();
-
-	String localNodeName = getLocalNode().getName();
 	for(int i = 0; i < slices.length; i++) {
 	    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
 	    slice.serve(cmd);
