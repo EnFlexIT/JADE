@@ -258,7 +258,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	      jade.util.Logger.println("create-mediator-rsp-got" + System.currentTimeMillis());
 
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
-		  // The JICPServer refused to create the Mediator 
+		  // The JICPServer agreed to create the Mediator 
 		  return;
 	      }
 	  }
@@ -277,7 +277,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	sb.append(key);
   	sb.append('=');
   	sb.append(val);
-  	sb.append(';');
+  	sb.append('#');
   }
   
   //////////////////////////////////////////////

@@ -233,7 +233,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request
     	StringBuffer sb = new StringBuffer(JICPProtocol.MEDIATOR_CLASS_KEY);
-    	sb.append("=jade.imtp.leap.JICP.Mediator;");
+    	sb.append("=jade.imtp.leap.JICP.Mediator#");
     	sb.append(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
     	sb.append('=');
     	sb.append(maxDisconnectionTime);

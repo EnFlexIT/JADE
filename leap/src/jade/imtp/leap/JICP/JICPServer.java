@@ -458,7 +458,7 @@ public class JICPServer extends Thread {
   }
 
   private Properties parseProperties(String s) throws ICPException {
-  	StringTokenizer st = new StringTokenizer(s, "=;");
+  	StringTokenizer st = new StringTokenizer(s, "=#");
   	Properties p = new Properties();
   	while (st.hasMoreTokens()) {
   		String key = st.nextToken();

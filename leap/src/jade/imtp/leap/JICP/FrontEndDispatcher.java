@@ -306,7 +306,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
       sb.append(key);
       sb.append('=');
       sb.append(val);
-      sb.append(';');
+      sb.append('#');
   }
 
   private String[] parseBackEndAddresses(String addressesText) {

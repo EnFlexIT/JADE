@@ -155,7 +155,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	      sb.append(key);
 	      sb.append('=');
 	      sb.append(value);
-	      sb.append(';');
+	      sb.append('#');
 
 	  }
 
