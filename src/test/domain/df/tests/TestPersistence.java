@@ -59,12 +59,6 @@ public class TestPersistence extends Test {
   	
     // Read group arguments
   	final String persistentContainer = (String) getGroupArgument(PersistentDFTesterAgent.PERSISTENT_DF_CONTAINER_KEY);
-  	//String url = (String) getGroupArgument(PersistenceDFTesterAgent.DB_URL_KEY);
-  	//String driver = (String) getGroupArgument(PersistenceDFTesterAgent.DB_DRIVER_KEY);
-  	
-  	// Start a new "persistent" DF on a separated container
-		//jc = TestUtility.launchJadeInstance("Persistent", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -jade_domain_df_verbosity 2 -jade_domain_df_db-url "+url+" -jade_domain_df_db-driver "+driver, new String[] {});
-  	//df1 = TestUtility.createAgent(a, "df1", "jade.domain.df", null, a.getAMS(), jc.getContainerName());
 	  
   	// Register a DFD
   	DFAgentDescription dfd = TestDFHelper.getSampleDFD(new AID("a1", AID.ISLOCALNAME));

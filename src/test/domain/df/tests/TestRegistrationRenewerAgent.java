@@ -22,12 +22,11 @@ public class TestRegistrationRenewerAgent extends Agent {
    // requested by an agent
    public void setup() {
         DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setLeaseTime(new Date(System.currentTimeMillis()+5000));
+        dfd.setLeaseTime(new Date(System.currentTimeMillis()+10000));
         dfd.setName(getAID());
-        // register the agent for 5 seconds create RegistrationRenewerBehaviour 
 
         try {
-                // register agent for 5 seconds
+                // register agent for 10 seconds
                 Date exactLeaseTime = DFService.register(this,dfd);
                 System.out.println("lease time returned by the register:"+exactLeaseTime);
                 // register the agent for other 10 seconds
@@ -44,8 +43,7 @@ public class TestRegistrationRenewerAgent extends Agent {
        try{
             DFService.deregister(this);
        }catch(Exception e) {
-            e.printStackTrace();
+       			// Do nothing as the registration should have already expired
        }
-        doDelete();
    }
 }

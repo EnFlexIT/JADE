@@ -67,7 +67,7 @@ public class TestDFLeaseTime extends Test {
   		
   		public void action() {
   			Logger l = Logger.getLogger();
-  			ret = Test.TEST_PASSED;
+  			ret = Test.TEST_FAILED;
   			
   			// Register with the DF
   			DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent.getAID());
@@ -78,7 +78,6 @@ public class TestDFLeaseTime extends Test {
   			catch (FIPAException fe) {
   				l.log("DF registration failed");
   				fe.printStackTrace();
-  				ret = Test.TEST_FAILED;
   				return;
   			}	
   			l.log("DF registration done");
@@ -92,13 +91,11 @@ public class TestDFLeaseTime extends Test {
   			catch (FIPAException fe) {
   				l.log("DF search-1 failed");
   				fe.printStackTrace();
-  				ret = Test.TEST_FAILED;
   				return;
   			}	
   			l.log("DF search-1 done");
   			if (result.length != 1 || (!TestDFHelper.compare(result[0], dfd))) {
   				l.log("DF search-1 result different from what was expected");
-  				ret = Test.TEST_FAILED;
   				return;
   			}
   			l.log("DF search-1 result OK: 1 item found as expected");
@@ -114,27 +111,29 @@ public class TestDFLeaseTime extends Test {
   			catch (FIPAException fe) {
   				l.log("DF search-2 failed");
   				fe.printStackTrace();
-  				ret = Test.TEST_FAILED;
   				return;
   			}	
   			l.log("DF search-2 done");
   			if (result.length != 0) {
    				l.log("DF search-2 result different from what was expected");
- 					ret = Test.TEST_FAILED;
   				return;
   			}
   			l.log("DF search-2 result OK: no item found as expected.");
+  			
+  			// Try to deregister. We should get a NotRegistered exception
+  			try {
+	  			DFService.deregister(myAgent, myAgent.getDefaultDF(), new DFAgentDescription());
+  				l.log("Deregistration unexpectedly succeeded"); 
+  			}
+  			catch (FIPAException fe) {
+  				// FIXME: Here we should check that it is a NotRegistered
+					l.log("FIPAException received as expected while trying to deregister"); 
+					ret = Test.TEST_PASSED;
+  			}	
   		}
   		
   		public int onEnd() {
   			store.put(key, new Integer(ret));
-  			try {
-	  			DFService.deregister(myAgent, myAgent.getDefaultDF(), new DFAgentDescription());
-  			}
-  			catch (FIPAException fe) {
-  				fe.printStackTrace();
-  				ret = Test.TEST_FAILED;
-  			}	
 
   			return 0;
   		}	

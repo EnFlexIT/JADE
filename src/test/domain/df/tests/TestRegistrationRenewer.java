@@ -44,7 +44,7 @@ import java.util.Date;
  * @author  chiarotto
  */
 public class TestRegistrationRenewer extends Test {
-    
+    private static final String RENEWER_AGENT = "RenewerAgent";    
     private static final long LEASE_TIME = 10000; // 10 sec
 	
   private int informCnt = 0;
@@ -57,14 +57,13 @@ public class TestRegistrationRenewer extends Test {
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;
   	final String key = resultKey;
-  	final String agentName = new String("RenewerAgent");
   	Behaviour b = new OneShotBehaviour(a) {
                 
             // create agent 
             public void onStart() {
                 try{
                   TestUtility.createAgent(myAgent,
-                  agentName,
+                  RENEWER_AGENT,
                   "test.domain.df.tests.TestRegistrationRenewerAgent",
                   null,
                   myAgent.getAMS(),
@@ -73,44 +72,59 @@ public class TestRegistrationRenewer extends Test {
                     e.printStackTrace();
                 }
             }
-            int ret = Test.TEST_PASSED;
+            int ret = Test.TEST_FAILED;
             
             public void action() {
                 Logger l = Logger.getLogger();
                 try{
+                		// Search 1
+                    l.log("Wait 5 secs");
+                    Thread.sleep(5000);
+                    l.log("Search the DF. Should find 1 agent");
                     DFAgentDescription dfd = new DFAgentDescription();
                     DFAgentDescription[] dfds = DFService.search(myAgent, dfd); 
                     if(dfds.length == 1) {
                         DFAgentDescription dfa = (DFAgentDescription) dfds[0];
-                        if(dfa.getName().compareTo(new AID(agentName,AID.ISLOCALNAME)) == 0) {
-                            l.log("Exepected agent" + dfa.getName() + "found in DF.");
-                        } else {
-                            l.log("Error: expected agent not found.");
-                            ret = Test.TEST_FAILED;
+                        if(!dfa.getName().getLocalName().equals(RENEWER_AGENT)) {
+                            l.log("Search Error: expected agent "+RENEWER_AGENT+", found "+dfa.getName().getLocalName());
+                            return;
                         }
                     }
-                    l.log("Wait 4000ms before search againg with DF");
-                    Thread.sleep(6000);
+                    else {
+                      l.log("Search Error: expected 1 agent, found "+dfds.length);
+                      return;
+                    }
+                    l.log("Search 1 OK");
+                    
+                    // Search 2
+                    l.log("Wait 10 secs");
+                    Thread.sleep(10000);
+                    l.log("Search the DF. Should find 1 agent again");
                     dfds = DFService.search(myAgent, dfd); 
                     if(dfds.length == 1) {
                         DFAgentDescription dfa = (DFAgentDescription) dfds[0];
-                        if(dfa.getName().compareTo(new AID(agentName,AID.ISLOCALNAME)) == 0) {
-                            l.log("Exepected agent" + dfa.getName() + "found in DF.");
-                        } else {
-                            l.log("Error: expected agent not found.");
-                            ret = Test.TEST_FAILED;
+                        if(!dfa.getName().getLocalName().equals(RENEWER_AGENT)) {
+                            l.log("Search Error: expected agent "+RENEWER_AGENT+", found "+dfa.getName().getLocalName());
+                            return;
                         }
                     }
-                    Thread.sleep(10000);
-                    l.log("Wait 10000ms before search againg with DF");
-                    dfds = DFService.search(myAgent, dfd); 
-                    if(dfds.length == 0) {
-                        l.log("No agent found as exepected.");
-                        }
                     else {
-                        l.log("Error: agent found!");
-                        ret = Test.TEST_FAILED;
+                      l.log("Search Error: expected 1 agent, found "+dfds.length);
+                      return;
                     }
+                    l.log("Search 2 OK");
+                    
+                    // Search 3
+                    l.log("Wait 10 secs to let the registration lease time expire");
+                    Thread.sleep(10000);
+                    l.log("Search the DF. Should find NO agent");
+                    dfds = DFService.search(myAgent, dfd); 
+                    if(dfds.length != 0) {
+                        l.log("Search error: expected 0 agents, found "+dfds.length);
+                        return;
+                    }
+                    l.log("Search 3 OK");
+                    ret = Test.TEST_PASSED;
                    
                 }catch(Exception e) {
                     e.printStackTrace();
@@ -122,7 +136,7 @@ public class TestRegistrationRenewer extends Test {
             public int onEnd() {
                 store.put(key, new Integer(ret));
                 try {
-                TestUtility.killAgent(myAgent,new AID(agentName,AID.ISLOCALNAME));
+                TestUtility.killAgent(myAgent,new AID(RENEWER_AGENT,AID.ISLOCALNAME));
                 }catch(Exception e) {
                     e.printStackTrace();
                 }

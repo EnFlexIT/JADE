@@ -62,9 +62,9 @@ public class TestDFService extends Test {
   				ret = Test.TEST_FAILED;
   				return;
   			}	
-  			l.log("DF registration done");
+  			l.log("DF registration 1 done");
   			
-  			// Search with the DF
+  			// Search 1 with the DF 
   			DFAgentDescription template = TestDFHelper.getSampleTemplate1();
   			DFAgentDescription[] result = null;
   			try {
@@ -84,6 +84,63 @@ public class TestDFService extends Test {
   			}
   			l.log("DF search-1 result OK");
   			
+  			// Search 2 with the DF 
+  			template = TestDFHelper.getSampleTemplate2();
+  			try {
+	  			result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
+  			}
+  			catch (FIPAException fe) {
+  				l.log("DF search-2 failed");
+  				fe.printStackTrace();
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}	
+  			l.log("DF search-2 done");
+  			if (result.length != 1 || (!TestDFHelper.compare(result[0], dfd))) {
+  				l.log("DF search-2 result different from what was expected");
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}
+  			l.log("DF search-2 result OK");
+  			
+  			// Search 3 with the DF 
+  			template = TestDFHelper.getSampleTemplate3();
+  			try {
+	  			result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
+  			}
+  			catch (FIPAException fe) {
+  				l.log("DF search-3 failed");
+  				fe.printStackTrace();
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}	
+  			l.log("DF search-3 done");
+  			if (result.length > 0) {
+  				l.log("DF search-3 failed: no result expected, found "+result.length);
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}
+  			l.log("DF search-3 no result found as expected. OK");
+  			
+  			// Search 4 with the DF 
+  			template = TestDFHelper.getSampleTemplate4();
+  			try {
+	  			result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
+  			}
+  			catch (FIPAException fe) {
+  				l.log("DF search-4 failed");
+  				fe.printStackTrace();
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}	
+  			l.log("DF search-4 done");
+  			if (result.length > 0) {
+  				l.log("DF search-4 failed: no result expected, found "+result.length);
+  				ret = Test.TEST_FAILED;
+  				return;
+  			}
+  			l.log("DF search-4 no result found as expected. OK");
+  			
   			// Deregister with the DF
   			try {
 	  			DFService.deregister(myAgent, myAgent.getDefaultDF(), new DFAgentDescription());
@@ -97,22 +154,23 @@ public class TestDFService extends Test {
   			l.log("DF de-registration done");
   			
   	  	// Search again with the DF
+  			template = TestDFHelper.getSampleTemplate1();
   			try {
   				result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
   			}
   			catch (FIPAException fe) {
-  				l.log("DF search-2 failed");
+  				l.log("DF search-5 failed");
   				fe.printStackTrace();
   				ret = Test.TEST_FAILED;
   				return;
   			}	
-  			l.log("DF search-2 done");
+  			l.log("DF search-5 done");
   			if (result.length != 0) {
-   				l.log("DF search-2 result different from what was expected");
+  				l.log("DF search-5 failed: no result expected, found "+result.length);
  					ret = Test.TEST_FAILED;
   				return;
   			}
-  			l.log("DF search-2 result OK");
+  			l.log("DF search-5 no result found as expected. OK");
   		}
   		
   		public int onEnd() {
