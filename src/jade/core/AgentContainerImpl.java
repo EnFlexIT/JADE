@@ -297,7 +297,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void exit() throws RemoteException {
     shutDown();
-    System.exit(0);
   }
 
   public void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException {
@@ -538,12 +537,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
       re.printStackTrace();
-      System.exit(0);
+      Runtime.instance().endContainer();
     }
     catch(Exception e) {
       System.err.println("Some problem occurred while contacting agent platform.");
       e.printStackTrace();
-      System.exit(0);
+      Runtime.instance().endContainer();
     }
 
 
@@ -641,10 +640,23 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       a.resetToolkit();
     }
 
+    try {
+      // Unexport the container, without waiting for pending calls to
+      // complete.
+      unexportObject(this, true);
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
+    }
+
     // Unblock threads hung in ping() method (this will deregister the container)
     synchronized(pingLock) {
       pingLock.notifyAll();
     }
+
+    // Notify the JADE Runtime that the container has terminated
+    // execution
+    Runtime.instance().endContainer();
 
   }
 
