@@ -26,7 +26,7 @@ options {
 //  CHOICE_AMBIGUITY_CHECK = 2;
 //  OTHER_AMBIGUITY_CHECK = 1;
   STATIC = false;
-  DEBUG_PARSER = true;
+  DEBUG_PARSER = false;
   DEBUG_LOOKAHEAD = false;
   DEBUG_TOKEN_MANAGER = false;
   ERROR_REPORTING = true;
@@ -45,8 +45,6 @@ PARSER_BEGIN(SL0Parser)
 
 package jade.lang.sl;
 
-import jade.lang.Codec;
-
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.TermDescriptor;
@@ -57,24 +55,11 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.io.InputStreamReader;
 
-public class SL0Parser implements Codec {
+class SL0Parser {
 
-  public String encode(Frame f, Ontology o) {
-    return "";
-  }
-
-  public Frame decode(String s, Ontology o) throws Codec.CodecException {
+  public Frame parse(String s, Ontology o) throws ParseException, TokenMgrError {
     ReInit(new StringReader(s));
-    try {
-     return SL0Content(o);
-    }
-    catch(ParseException pe) {
-      throw new Codec.CodecException("Parse exception", pe);
-    }
-    catch(TokenMgrError tme) {
-      throw new Codec.CodecException("Token Manager error", tme);
-    }
-
+    return SL0Content(o);
   }
 
   private boolean isConcept(Ontology o, String roleName) {
@@ -112,21 +97,21 @@ public class SL0Parser implements Codec {
 
       // DF supported actions
       o.addFrame("register", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
       });
 
       o.addFrame("deregister", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
       });
 
       o.addFrame("modify", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
       });
 
       o.addFrame("search", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M),
-	new TermDescriptor("arg1", Ontology.PREDICATE_TYPE, ":df-depth", Ontology.O),
-	new TermDescriptor("arg2", Ontology.PREDICATE_TYPE, ":resp-req", Ontology.O)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M),
+	new TermDescriptor(Ontology.PREDICATE_TYPE, ":df-depth", Ontology.O),
+	new TermDescriptor(Ontology.PREDICATE_TYPE, ":resp-req", Ontology.O)
       });
 
       o.addFrame(":df-depth", Ontology.PREDICATE_TYPE, new TermDescriptor[] {
@@ -141,19 +126,19 @@ public class SL0Parser implements Codec {
 
       // AMS supported actions
       o.addFrame("register-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
       });
 
       o.addFrame("deregister-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
       });
 
       o.addFrame("authenticate", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
       });
 
       o.addFrame("modify-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
       });
 
 
@@ -330,7 +315,7 @@ void Action(Ontology o, Frame result):
   Object arg;
 }
 {
-  ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one argument
+  ( arg = SL0Term(o) { result.putSlot(arg); } )* // Zero or more arguments
 }
 
 void Predicate(Ontology o, Frame result):
@@ -338,7 +323,7 @@ void Predicate(Ontology o, Frame result):
   Object arg;
 }
 {
-  ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one term
+  ( arg = SL0Term(o) { result.putSlot(arg); } )* // Zero or more terms
 }
 
 Object SL0Term(Ontology o) :
