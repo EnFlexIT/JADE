@@ -56,7 +56,7 @@ public class TestCreateAgent extends Test {
     			Vector v = new Vector();
     			CreateAgent ca = new CreateAgent();
     			ca.setAgentName(TARGET);
-    			ca.setClassName(TestUtility.TARGET_CLASS_NAME);
+    			ca.setClassName(TestUtility.CONFIGURABLE_AGENT);
     			ca.setContainer((ContainerID) myAgent.here());
     			Action action = new Action(fa.getAMS(), ca);
     			try {
