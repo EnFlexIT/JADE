@@ -537,8 +537,12 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
       // Kill agent and wait for its termination
       Agent a = localAgents.get(id);
-      a.doDelete();
-      a.join();
+      if(a != null) {
+	a.doDelete();
+	a.join();
+      }
+      else // FIXME: Should not happen, but it does when there are sniffers around...
+	System.out.println("Zombie agent [" + id + "]");
     }
 
 
@@ -827,32 +831,36 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
 
-  public void sniffOn(AID snifferName, List toBeSniffed) throws UnreachableException  {
+  public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
 
-    AgentContainer[] allContainers = containers.containers();
-    for(int i = 0; i < allContainers.length; i++) {
-      try {
-	AgentContainer ac = allContainers[i]; 
-	ac.enableSniffer(snifferName, toBeSniffed); // RMI call
-      }
-      catch (RemoteException re) {
-	throw new UnreachableException(re.getMessage());
-      } 
-    }
-  }
-
-  public void sniffOff(AID snifferName, List notToBeSniffed) throws UnreachableException {
-
-    AgentContainer[] allContainers = containers.containers();
-    for(int i = 0; i < allContainers.length; i++) {
-      try {
-	AgentContainer ac = allContainers[i];
-	ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
-      }
-      catch (RemoteException re) {
-	throw new UnreachableException(re.getMessage());
+    Iterator it = toBeSniffed.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.enableSniffer(snifferName, id); // RMI call
       }
     }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+
   }
+
+  public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
+    Iterator it = notToBeSniffed.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.disableSniffer(snifferName, id); // RMI call
+      }
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+
+  }
+
 
 }
