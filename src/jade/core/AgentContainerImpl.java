@@ -821,13 +821,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
-		try {
-			deliverNow(msg, receiverID);
-		}
-    catch (UnreachableException ue) {
-    	// The receiver is currently unreachable --> retry later
-    	myDisconnectionManager.deliverLater(msg, receiverID);
+    try {
+      deliverNow(msg, receiverID);
     }
+    catch (UnreachableException ue) {
+      // The receiver is currently unreachable --> retry later
+      myDisconnectionManager.deliverLater(msg, receiverID);
+    }
+
   }
 
   /**
