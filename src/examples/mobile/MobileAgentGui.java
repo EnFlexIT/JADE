@@ -40,6 +40,11 @@ import jade.core.*;
 import jade.domain.MobilityOntology;
 import jade.gui.LocationTableModel;
 
+/**
+ * This is the GUI of the MobileAGent. Becuase in Java a new Thread is spawn
+ * for each GUI, the communication with the Agent thread is based on
+ * event passing.
+ */
 public class MobileAgentGui extends JFrame implements ActionListener
 {
   private MobileAgent          myAgent;

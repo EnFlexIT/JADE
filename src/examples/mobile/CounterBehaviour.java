@@ -31,7 +31,7 @@ import jade.core.behaviours.*;
 /**
 The behaviour uses two resources, in particular the counter cnt
 and the flag cntEnabled, of the agent object. 
-It prints its value, increments by one,blocks 
+It increments by one its value, displays it, blocks 
 for two seconds, and repeats forever. 
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$

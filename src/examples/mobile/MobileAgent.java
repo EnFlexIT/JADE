@@ -48,12 +48,20 @@ import jade.lang.acl.MessageTemplate;
 
 /**
 This is an example of mobile agent. 
-This class contains the two resources used by the agent behaviours: the counter and the 
-flag cntEnabled. At the setup it adds two behaviours to serve the incoming messages and
+This class contains the resources used by the agent behaviours: the counter, 
+the 
+flag cntEnabled, and the list of visited locations. 
+At the setup it creates a gui and adds behaviours to: get the list of
+available locations from AMS, serve the incoming messages, and
 to increment the counter. 
 In particular, notice the usage of the two methods <code>beforeMove()</code> and
 <code>afterMove()</code> to execute some application-specific tasks just before and just after
 the agent migration takes effect.
+
+Because this agent has a GUI, it extends the class GuiAgent that, in turn,
+extends the class Agent. Being the GUI a different thread, the communication
+between the agent and its GUI is based on event passing.
+@see jade.gui.GuiAgent
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -69,6 +77,7 @@ public class MobileAgent extends GuiAgent {
   public static final int CONTINUE_EVENT = 1003;
   public static final int REFRESH_EVENT = 1004;
 
+  // this vector contains the list of visited locations
   Vector visitedLocations = new Vector();;
 
 
@@ -85,28 +94,46 @@ public class MobileAgent extends GuiAgent {
 	  // get the list of available locations and show it in the GUI
 	  addBehaviour(new GetAvailableLocationsBehaviour(this));
 
+	  // initialize the counter and the flag
 	  cnt = 0;
 	  cntEnabled = true;
 
 	  ///////////////////////
-	  // Add agent behaviours
+	  // Add agent behaviours to increment the counter and serve
+	  // incoming messages
 	  Behaviour b1 = new CounterBehaviour(this);
 	  addBehaviour(b1);	
-	  Behaviour b2 = new ExecutorBehaviour(this);
+	  Behaviour b2 = new ServeIncomingMessagesBehaviour(this);
 	  addBehaviour(b2);	
 	}
 
+  /**
+   * This method stops the counter by disabling the flag
+   */
    void stopCounter(){
     cntEnabled = false;
    }
+
+  /**
+   * This method resume counting by enabling the flag
+   */
    void continueCounter(){
      cntEnabled = true;
    }
+
+  /**
+   * This method displays the counter in the GUI
+   */
    void displayCounter(){
      gui.displayCounter(cnt);
    }
   
    
+  /**
+   * This method is executed just before moving the agent to another
+   * location. It is automatically called by the JADE framework.
+   * It disposes the GUI and prints a bye message on the standard output.
+   */
 	protected void beforeMove() 
 	{
 		gui.dispose();
@@ -114,24 +141,30 @@ public class MobileAgent extends GuiAgent {
 		System.out.println(getLocalName()+" is now moving elsewhere.");
 	}
 
-	protected void afterMove() 
-	{
-		System.out.println(getLocalName()+" is just arrived to this location.");
-		// creates and shows the GUI
-		gui = new MobileAgentGui(this);
-
-		visitedLocations.addElement(nextSite);
-		for (int i=0; i<visitedLocations.size(); i++)
-			gui.addVisitedSite((Location)visitedLocations.elementAt(i));
-		gui.setVisible(true); 	
+  /**
+   * This method is executed as soon as the agent arrives to the new 
+   * destination.
+   * It creates a new GUI and sets the list of visited locations and
+   * the list of available locations (via the behaviour) in the GUI.
+   */
+   protected void afterMove() {
+     System.out.println(getLocalName()+" is just arrived to this location.");
+     // creates and shows the GUI
+     gui = new MobileAgentGui(this);
+     
+     visitedLocations.addElement(nextSite);
+     for (int i=0; i<visitedLocations.size(); i++)
+       gui.addVisitedSite((Location)visitedLocations.elementAt(i));
+     gui.setVisible(true); 	
 			
-		// Register again SL0 content language and JADE mobility ontology,
-		// since they don't migrate.
-		registerLanguage(SL0Codec.NAME, new SL0Codec());
-		registerOntology(MobilityOntology.NAME, MobilityOntology.instance());		
-
-		addBehaviour(new GetAvailableLocationsBehaviour(this));
-	}
+     // Register again SL0 content language and JADE mobility ontology,
+     // since they don't migrate.
+     registerLanguage(SL0Codec.NAME, new SL0Codec());
+     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());		
+     // get the list of available locations from the AMS.
+     // FIXME. This list might be stored in the Agent and migrates with it.
+     addBehaviour(new GetAvailableLocationsBehaviour(this));
+   }
 	
 
 
