@@ -24,7 +24,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-public class NotUnderstoodException extends Exception {
+import jade.domain.FIPAException;
 
+public class NotUnderstoodException extends FIPAException {
+
+  public NotUnderstoodException(String msg) {
+    super(msg);
+  }
 
 }
