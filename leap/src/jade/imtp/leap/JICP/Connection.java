@@ -45,7 +45,7 @@ import java.net.*;
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.io.*;
 #MIDP_INCLUDE_END*/
-
+import jade.util.Logger;
 
 /**
  * Class declaration
@@ -61,6 +61,7 @@ public class Connection {
 	#MIDP_INCLUDE_END*/
   private InputStream  is;
   private OutputStream os;
+  private ByteArrayOutputStream bos;
 
   /**
    * Constructor declaration
@@ -99,15 +100,24 @@ public class Connection {
     if (sc == null) {
       throw new IOException("connection not open");
     } 
-    if (os == null) {
-    	//#MIDP_EXCLUDE_BEGIN
-      os = sc.getOutputStream();
-    	//#MIDP_EXCLUDE_END
-    	/*#MIDP_INCLUDE_BEGIN
-      os = sc.openOutputStream();
-    	#MIDP_INCLUDE_END*/
+    if (bos == null) {
+  		bos = new ByteArrayOutputStream() {
+  			public void flush() throws IOException {
+  				if (os == null) {
+			    	//#MIDP_EXCLUDE_BEGIN
+			      os = sc.getOutputStream();
+			    	//#MIDP_EXCLUDE_END
+			    	/*#MIDP_INCLUDE_BEGIN
+			      os = sc.openOutputStream();
+			    	#MIDP_INCLUDE_END*/
+  				}
+  				os.write(buf, 0, count);
+  				os.flush();
+  				reset();
+  			}
+  		};
     } 
-    return os;
+    return bos;
   } 
 
   /**
