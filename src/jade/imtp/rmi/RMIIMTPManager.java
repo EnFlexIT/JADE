@@ -325,4 +325,23 @@ public class RMIIMTPManager implements IMTPManager {
     }
   }
 
+
+	/**
+		Creates the client socket factory, which will be used
+		to instantiate a <code>UnicastRemoteObject</code>.
+		@return The client socket factory.
+	*/
+	public RMIClientSocketFactory getClientSocketFactory() {
+		return null;
+	}
+
+	/**
+		Creates the server socket factory, which will be used
+		to instantiate a <code>UnicastRemoteObject</code>.
+		@return The server socket factory.
+	*/
+	public RMIServerSocketFactory getServerSocketFactory() { 
+		return null;
+	}
+
 }
