@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.21  1999/02/04 12:13:47  rimassa
+  Fixed a bug in the String representation of the search result of the DF.
+
   Revision 1.20  1999/02/03 10:29:08  rimassa
   Made 'protected' some former 'private' variables to allow compilation
   with jdk 1.2. Used correct accessor methods in subclasses and
@@ -73,7 +76,6 @@ package jade.domain;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
 
 import java.util.Enumeration;
@@ -213,11 +215,6 @@ public class AgentManagementOntology {
 
     }
 
-    public String toString() {
-      StringWriter text = new StringWriter();
-      toText(text);
-      return text.toString();
-    }
   } // End of ServiceDescriptor class
 
 
@@ -623,7 +620,8 @@ public class AgentManagementOntology {
       if(searchOutcome != null)
 	throw searchOutcome;
       try {
-	w.write("( result ( ");
+	// w.write("( result ");
+	w.write("(");
 	Enumeration e = results.elements();
 	while(e.hasMoreElements()) {
 	  w.write("(" + DFAction.ARGNAME + " ");
@@ -631,7 +629,8 @@ public class AgentManagementOntology {
 	  current.toText(w);
 	  w.write(" )");
 	}
-	w.write(" ) )");
+	w.write(")");
+	// w.write(")");
 	w.flush();
       }
       catch(IOException ioe) {
