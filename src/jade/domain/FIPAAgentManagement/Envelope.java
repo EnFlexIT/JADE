@@ -220,4 +220,47 @@ public class Envelope implements java.io.Serializable {
 
   // FIXME: Handle Properties
 
+    public String toString() {
+	String s = new String("(Envelope ");
+	Iterator i = getAllTo();
+	if (i.hasNext()) {
+	    s = s + " :to (sequence ";
+	    for (Iterator ii=i; ii.hasNext(); ) 
+		s = s+" "+((AID)ii.next()).toFullString();
+	    s = s + ") ";
+	}
+	if (getFrom() != null)
+	    s = s + " :from " + getFrom().toFullString();
+	if (getComments() != null) 
+	    s = s + " :comments " + getComments(); 
+	if (getAclRepresentation() != null) 
+	    s = s + " :acl-representation " + getAclRepresentation(); 
+	if (getPayloadLength() != null) 
+	    s = s + " :payload-length " + getPayloadLength().toString(); 
+	if (getPayloadEncoding() != null) 
+	    s = s + " :payload-encoding " + getPayloadEncoding();
+	if (getDate() != null)
+	    s = s + " :date " + getDate().toString();
+	i = getAllEncrypted();
+	if (i.hasNext()) {
+	    s = s + " :encrypted ";
+	    for (Iterator ii=i; ii.hasNext(); )
+		s = s + " "+ii.next().toString();
+	}
+	i = getAllIntendedReceiver();
+	if (i.hasNext()) {
+	    s = s + " :intended-receiver (sequence ";
+	    for (Iterator ii=i; ii.hasNext(); ) 
+		s = s+" "+((AID)ii.next()).toFullString();
+	    s = s + ") ";
+	}
+	ReceivedObject[] ro = getStamps();
+	if (ro.length > 0 ) {
+	    s = s + " :received-object (sequence ";
+	    for (int j=0; j<ro.length; j++) 
+		s = s + " "+ ro[j].toString(); 
+	    s = s + ") ";
+	}
+	return s;
+    }
 }
