@@ -101,7 +101,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
-  private java.lang.Object pingLock = new java.lang.Object();
+  private Object pingLock = new Object();
 
   //private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
@@ -224,7 +224,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void exit() throws IMTPException {
     shutDown();
-  }
+	}
 
   public void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
   	// Delegate the operation to the MobilityManager
@@ -420,6 +420,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   		// Create and initialize the IMTPManager
   		myIMTPManager = myProfile.getIMTPManager();
   		myIMTPManager.initialize(myProfile);
+  		
+  		// Make itself accessible from remote JVMs
   		myIMTPManager.remotize(this);
   		
   		// Get the Main
@@ -454,11 +456,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       System.err.println("Communication failure while contacting agent platform.");
       re.printStackTrace();
       Runtime.instance().endContainer();
+      return;
     }
     catch(Exception e) {
       System.err.println("Some problem occurred while contacting agent platform.");
       e.printStackTrace();
       Runtime.instance().endContainer();
+      return;
     }
 
     // Create and activate agents that must be launched at bootstrap
@@ -512,11 +516,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
   public void shutDown() {
-
     // Close down the ACC
     myACC.shutdown();
 
-    // Remove all agents
+    // Remove all non-system agents 
     Agent[] allLocalAgents = localAgents.values();
 
     for(int i = 0; i < allLocalAgents.length; i++) {
@@ -534,17 +537,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     try {
-      // Deregister this container from the platform
+      // Deregister this container from the platform.
+    	// If this is the Main Container this call also stop the AMS and DF
       myMain.deregister(this);
-
 
       // Unblock threads hung in ping() method (this will deregister the container)
       synchronized(pingLock) {
-	pingLock.notifyAll();
+				pingLock.notifyAll();
       }
 
+  		// Make itself no longer accessible from remote JVMs
       myIMTPManager.unremotize(this); 
-      myIMTPManager.shutDown();
     }
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();

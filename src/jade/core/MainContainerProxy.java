@@ -36,15 +36,17 @@ package jade.core;
 class MainContainerProxy implements MainContainer {
 
 	private Profile myProfile;
-    private MainContainer adaptee;
+  private MainContainer adaptee;
 
-    MainContainerProxy(Profile p, MainContainer mc) {
+    MainContainerProxy(Profile p) throws ProfileException, IMTPException {
     	myProfile = p;
-    	adaptee = mc;
+			// Use the IMTPManager to get a stub of the real Main container
+			adaptee = myProfile.getIMTPManager().getMain();
     }
 
     public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
-      // The Main Container initialization of a peripheral container is just adding it to the platform.
+			
+    	// The Main Container initialization of a peripheral container is just adding it to the platform.
       String name = adaptee.addContainer(ac, cid);
       cid.setName(name);
     }

@@ -188,22 +188,22 @@ public class ProfileImpl extends Profile {
    * @see
    */
   private void createMain() throws ProfileException {
-    try {
-      String isMain = props.getProperty(MAIN);
-      if (isMain == null || isMain.equalsIgnoreCase("true")) {
-        // The real Main
-        myMain = new MainContainerImpl(this);
+  	try {
+	    String isMain = props.getProperty(MAIN);
+  	  if (isMain == null || isMain.equalsIgnoreCase("true")) {
+    	  // The real Main
+      	myMain = new MainContainerImpl(this);
 
-        myIMTPManager.remotize(myMain);
-      } 
-      else {
-        // A proxy to the main
-        myMain = new MainContainerProxy(this, myIMTPManager.getMain());
-      } 
-    } 
-    catch (IMTPException imtpe) {
-      throw new ProfileException(imtpe.getMessage());
-    } 
+      	//myIMTPManager.remotize(myMain);
+    	} 
+    	else {
+      	// A proxy to the main
+      	myMain = new MainContainerProxy(this /*, myIMTPManager.getMain()*/);
+    	}
+  	}
+  	catch (IMTPException imtpe) {
+  		throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
+  	}
   } 
 
   /**

@@ -58,6 +58,45 @@ public class ResourceManager {
   	
   	return t;
   }
+  
+  public static void releaseResources() {
+  	// Release ThreadGroup for user agents
+    try {
+      agentThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+			System.out.println("Active threads in 'JADE-Agents' thread group:");
+			agentThreads.list();
+    }
+    finally {
+      agentThreads = null;
+    }
+    
+  	// Release ThreadGroup for system agents
+    try {
+      systemAgentThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+			System.out.println("Active threads in 'JADE-Agents' thread group:");
+			systemAgentThreads.list();
+    }
+    finally {
+      systemAgentThreads = null;
+    }
+    
+  	// Release ThreadGroup for time critical threads
+  	try {
+			criticalThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+			System.out.println("Time-critical threads still active: ");
+			criticalThreads.list();
+    }
+    finally {
+			criticalThreads = null;
+    }
+  }
+  	
 }
   	
   		

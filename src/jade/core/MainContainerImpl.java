@@ -107,7 +107,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     defaultDF = new df();
     ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
     defaultDF.waitUntilStarted();
-
+    
+    // Make itself accessible from remote JVMs
+    myIMTPManager.remotize(this);
   }
 
   public void deregister(AgentContainer ac) throws IMTPException {
@@ -120,7 +122,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       AgentContainer target = allContainers[i];
       target.exit(); // This call removes 'ac' from 'container' map and from the collection 'c'
     }
-
 
     // Make sure all containers are succesfully removed from the table...
     containers.waitUntilEmpty();
@@ -138,6 +139,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     systemAgent.resetToolkit();
     removeListener(theAMS);    
 
+    // Make itself no longer accessible from remote JVMs
+    myIMTPManager.unremotize(this);
   }
 
   // this variable holds a progressive number just used to name new containers
@@ -170,29 +173,57 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     public void run() {
       while(active) {
-	try {
-	  target.ping(true); // Hang on this call
-	}
-	catch(IMTPException re1) { // Connection down
-	  try {
-	    target.ping(false); // Try a non blocking ping to check
-	  }
-	  catch(IMTPException re2) { // Object down
+				try {
+	  			target.ping(true); // Hang on this call
+	  			active = false;
+				}
+				catch(IMTPException imtpe1) { // Connection down
+	  			try {
+	    			target.ping(false); // Try a non blocking ping to check
+	  			}
+	  			catch(IMTPException imtpe2) { // Object down
 
-	    containers.removeContainer(targetID.getName());
-	    fireRemovedContainer(targetID);
+	    			//containers.removeContainer(targetID.getName());
+	    			//fireRemovedContainer(targetID);
+						cleanTables(targetID);
+	    			active = false;
+	  			}
+				}
+				catch(Throwable t) {
+	  			t.printStackTrace();
+				}
+      } // END of while
+      
+      // If we reach this point the container is no longer active -->
+      // remove it
+	    try {
+	     	removeContainer(targetID);
+	    }
+	    catch (IMTPException imtpe) {
+	    	// Should never happen as this is a local call
+	     	imtpe.printStackTrace();
+	    }
+    } // END of method run()
+  
+  } // END of inner class FailureMonitor
 
-	    active = false;
-	  }
-	}
-	catch(Throwable t) {
-	  t.printStackTrace();
-	}
-      }
-    }
+  private void cleanTables(ContainerID crashedContainer) {
+    // If the container that is being removed has crashed all its agents
+    // appear to be still alive both in the GADT and in the AMS.
+    AID[] allIds = platformAgents.keys();
+
+    for (int i = 0; i < allIds.length; ++i) {
+    	AID    id = allIds[i];
+      ContainerID cid = platformAgents.get(id).getContainerID();
+
+      if (cid.getName().equalsIgnoreCase(crashedContainer.getName())) {
+      	// This agent was living in the container that has crashed
+        // --> It must be cleaned
+        platformAgents.remove(id);
+        fireDeadAgent(crashedContainer, id);
+    	} 
+  	} 
   }
-
-
 
   // Private methods to notify platform listeners of a significant event.
 
@@ -637,20 +668,26 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     // This call spawns a separate thread in order to avoid deadlock.
     try {
-      String containerName = cid.getName();
-      final AgentContainer ac = containers.getContainer(containerName);
-      final String cName = containerName;
+      final ContainerID contID = cid;
+      final AgentContainer ac = containers.getContainer(cid.getName());
       Thread auxThread = new Thread(new Runnable() {
-	 public void run() {
-	   try {
-	     ac.exit();
-	   }
-	   catch(IMTPException re) {
-	     System.out.println("Container " + cName + " is unreachable.");
-	     containers.removeContainer(cName);
-	     fireRemovedContainer(new ContainerID(cName, null));
-	   }
-	 }
+	 			public void run() {
+	   			try {
+	     			ac.exit();
+	   			}
+	   			catch(IMTPException imtp1) {
+	     			System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
+	     			try {
+	     				removeContainer(contID);
+	     			}
+	     			catch (IMTPException imtpe2) {
+	     				// Should never happen as this is a local call
+	     				imtpe2.printStackTrace();
+	     			}
+	     			//containers.removeContainer(cName);
+	     			//fireRemovedContainer(new ContainerID(cName, null));
+	   			}
+	 			}
       });
       auxThread.start();
     }
