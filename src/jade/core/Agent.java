@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.68  1999/10/08 08:27:35  rimassa
+  Fixed a problem, when an unhandled exception caused the agent to die
+  without deregistering itself with the AMS.
+
   Revision 1.67  1999/09/03 13:05:49  rimassa
   Fixed a bug in send() methods, due to the fact that now an ACL message
   slot is never null.
@@ -1064,6 +1068,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       default:
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
+	takeDown();
+	destroy();
       }
     }
 
