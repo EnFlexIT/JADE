@@ -37,6 +37,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.*;
 import java.awt.event.*;
+/*
+@author Tiziana Trucco - CSELT S.p.A.
+@version $Date$ $ Revision:  $
+
+ */
 
 public class TreeHelp extends JFrame {
     private JEditorPane htmlPane;
