@@ -26,6 +26,8 @@ package jade.tools.rma;
 import java.util.Map;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
+import javax.swing.JOptionPane;
+import javax.swing.JFrame;
 import java.util.HashMap;
 import jade.gui.AgentTree;
 
@@ -76,6 +78,7 @@ class ActionProcessor {
    action = a;
    paths = panel.treeAgent.tree.getSelectionPaths();
 
+
    // Fixed actions are without parameters, so they are executed once,
    // regardless how many tree elements are selected
    if (action instanceof FixedAction)
@@ -92,7 +95,16 @@ class ActionProcessor {
          else if (action instanceof ContainerAction) containerAct(now);
            else if (action instanceof GenericAction) genericAct(now);
        }
+       
      }
+     else
+       //path null
+       {
+       	if (action instanceof AgentAction)
+       		JOptionPane.showMessageDialog(new JFrame(),"You must select an agent in the Tree","Start Procedure Error",JOptionPane.ERROR_MESSAGE);
+				else
+				  JOptionPane.showMessageDialog(new JFrame(), "You must select an agent-platform or a agent-container in the Tree","Start Procedure Error", JOptionPane.ERROR_MESSAGE);
+       }
    }
 
  } // End Process
