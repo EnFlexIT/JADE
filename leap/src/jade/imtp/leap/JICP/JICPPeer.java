@@ -112,7 +112,13 @@ public class JICPPeer implements ICP {
       port = Integer.parseInt(strPort);
     } 
     catch (Exception e) {
-      // Keep default  
+      // Try to use the Peer-ID as the port number
+    	try {
+    		port = Integer.parseInt(peerID);
+    	}
+    	catch (Exception e1) {
+    		// Keep default
+    	}
     } 
 			
     // Start listening for connections
