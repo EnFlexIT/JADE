@@ -128,6 +128,21 @@ public class AgentManagementOntology {
   } // End of ServiceDescription class
 
 
+  public static class ServiceTypes {
+
+    // These String constants are the names of FIPA special services
+    static final String FIPADF = "fipa-df";
+    static final String FIPAAMS = "fipa-ams";
+    static final String FIPAACC = "fipa-acc";
+    static final String FIPAAGENT = "fipa-agent";
+
+    // Utility class; can't be instantiated
+    private ServiceTypes() {
+    }
+
+  } // End of ServiceTypes class
+
+
   public static class AMSAgentDescription {
 
     // These String constants are the keywords in
