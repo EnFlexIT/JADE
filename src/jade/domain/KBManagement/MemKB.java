@@ -52,7 +52,7 @@ import jade.core.AID;
  *
  */
 /** Common base class for AMS and DF Knowledge Base*/
-public abstract class MemKB implements KB {
+abstract class MemKB implements KB {
 
 	protected Map facts = new HashMap();
 	protected Hashtable subscriptions = new Hashtable();

@@ -51,7 +51,7 @@ import jade.content.abs.*;
  * @author Elisabetta Cortese - TILab
  *
  */
-public class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager{
+class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager{
 
 	KB kBase;
 	ContentManager cm;
