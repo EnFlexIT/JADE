@@ -38,6 +38,7 @@ Agent@- doWait@public synchronized void doWait() {
 Agent@- doWake@public synchronized void doWake() {
 Agent@- forwardWithACC@public void forwardWithACC(ACLMessage msg) {
 Agent@- getName@public String getName() {
+Agent@- join@void join() {
 Agent@= listeners@protected Vector listeners =
 Agent@- mainLoop@private void mainLoop() throws InterruptedException {
 Agent@- modifyAMSRegistration@public void modifyAMSRegistration(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
@@ -65,11 +66,12 @@ Agent@- searchDF@public void searchDF(String dfName, AgentManagementOntology.DFA
 Agent@- send@public final void send(ACLMessage msg, AgentGroup g) {
 Agent@- send@public final void send(ACLMessage msg) {
 Agent@- setup@protected void setup() {
+Agent@- takeDown@protected void takeDown() {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@= addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@= bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
-AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException;
+AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException;
 AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@= removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
@@ -118,12 +120,14 @@ MessageDispatcher@= ping@void ping() throws RemoteException;
 /home/rimassa/DEVEL/JADE/src/jade/domain/ams.java
 ams@- AMSBehaviour@protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
 ams@- AMSBehaviour@protected AMSBehaviour(String name) {
+ams@- AgDesc@private static class AgDesc {
 ams@- AuthBehaviour@public AuthBehaviour(ACLMessage request, ACLMessage reply) {
 ams@- AuthBehaviour@public AuthBehaviour() {
 ams@- CreateBehaviour@CreateBehaviour(ACLMessage request, ACLMessage reply) {
 ams@- CreateBehaviour@CreateBehaviour() {
 ams@- DeregBehaviour@public DeregBehaviour(ACLMessage request, ACLMessage reply) {
 ams@- DeregBehaviour@public DeregBehaviour() {
+ams@- DeregisterRMABehaviour@DeregisterRMABehaviour() {
 ams@- KillBehaviour@KillBehaviour(ACLMessage request, ACLMessage reply) {
 ams@- KillBehaviour@KillBehaviour() {
 ams@- ModBehaviour@public ModBehaviour(ACLMessage request, ACLMessage reply) {
@@ -136,12 +140,15 @@ ams@- RegisterRMABehaviour@RegisterRMABehaviour() {
 ams@- action@public void action() {
 ams@- action@public void action() {
 ams@- action@public void action() {
+ams@- action@public void action() {
 ams@+ ams@public ams(AgentPlatformImpl ap, String name) {
+ams@= cancellationTemplate@private MessageTemplate cancellationTemplate;
 ams@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
 ams@- checkMandatory@protected void checkMandatory(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
 ams@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
 ams@= deadAgentsBuffer@private Vector deadAgentsBuffer =
 ams@= deadContainersBuffer@private Vector deadContainersBuffer =
+ams@= deregisterRMA@private DeregisterRMABehaviour deregisterRMA;
 ams@= dispatcher@private FipaRequestServerBehaviour dispatcher;
 ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
@@ -316,22 +323,28 @@ AgentContainerImpl@- shutDown@public void shutDown() {
 AgentContainerImpl@- unicastPostMessage@private void unicastPostMessage(ACLMessage msg) {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
+AgentPlatformImpl@- AMSAgentNames@public Enumeration AMSAgentNames() {
 AgentPlatformImpl@- AMSChangeData@public void AMSChangeData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
-AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, Agent instance, int containerID) throws NoCommunicationMeansException {
-AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, String className, int containerID) throws NoCommunicationMeansException {
+AgentPlatformImpl@- AMSContainerNames@public Enumeration AMSContainerNames() {
+AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, Agent instance, String containerName) throws NoCommunicationMeansException {
+AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, String className, String containerName) throws NoCommunicationMeansException {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData(String agentName) {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData() {
+AgentPlatformImpl@- AMSGetAddress@public String AMSGetAddress(String agentName) {
+AgentPlatformImpl@- AMSGetContainerName@public String AMSGetContainerName(String agentName) {
 AgentPlatformImpl@- AMSKillAgent@public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
 AgentPlatformImpl@- AMSNewData@public void AMSNewData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException, AgentAlreadyRegisteredException {
 AgentPlatformImpl@- AMSRemoveData@public void AMSRemoveData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
+AgentPlatformImpl@= CONTAINERS_SIZE@private static final int CONTAINERS_SIZE =
 AgentPlatformImpl@= GLOBALMAP_LOAD_FACTOR@private static final float GLOBALMAP_LOAD_FACTOR =
 AgentPlatformImpl@= GLOBALMAP_SIZE@private static final int GLOBALMAP_SIZE =
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
-AgentPlatformImpl@= containers@private Vector containers =
-AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException {
+AgentPlatformImpl@= containers@private Hashtable containers =
+AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException {
 AgentPlatformImpl@= defaultDF@private df defaultDF;
+AgentPlatformImpl@- getContainerName@private String getContainerName(AgentContainer ac) {
 AgentPlatformImpl@- initACC@private void initACC() {
 AgentPlatformImpl@- initAMS@private void initAMS() {
 AgentPlatformImpl@- initDF@private void initDF() {
@@ -751,7 +764,7 @@ AgentGroup@- hasMoreMembers@public boolean hasMoreMembers() {
 AgentGroup@= iterator@private Enumeration iterator =
 AgentGroup@= memberNames@private Vector memberNames =
 AgentGroup@- removeMember@public void removeMember(String name) {
-AgentGroup@- resetCursor@public void resetCursor() {
+AgentGroup@- reset@public void reset() {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(Agent a, int endCondition) {
@@ -993,6 +1006,9 @@ acc@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
 AgentManagementOntology@= ADDRESS@static final String ADDRESS =
+AgentManagementOntology@= AGENTCODE@public static final String AGENTCODE =
+AgentManagementOntology@= AGENTNAME@public static final String AGENTNAME =
+AgentManagementOntology@= AGENTPROPERTIES@public static final String AGENTPROPERTIES =
 AgentManagementOntology@- AMSEvent@public static abstract class AMSEvent {
 AgentManagementOntology@= AMSMandatoryAttributes@private static final boolean AMSMandatoryAttributes[][] =
 AgentManagementOntology@- APLifeCycle@public static class APLifeCycle {
@@ -1007,6 +1023,7 @@ AgentManagementOntology@+ AgentManagementOntology@private AgentManagementOntolog
 AgentManagementOntology@= CONTAINER@public static final String CONTAINER =
 AgentManagementOntology@= CREATEAGENT@public static final String CREATEAGENT =
 AgentManagementOntology@- Constraint@public static class Constraint {
+AgentManagementOntology@- CreateAgentAction@public CreateAgentAction() {
 AgentManagementOntology@= DELEGATE@static final String DELEGATE =
 AgentManagementOntology@= DEREGISTER@public static final String DEREGISTER =
 AgentManagementOntology@= DEREGISTERAGENT@public static final String DEREGISTERAGENT =
@@ -1017,11 +1034,14 @@ AgentManagementOntology@- Exception@public static class Exception {
 AgentManagementOntology@= FORWARD@public static final String FORWARD =
 AgentManagementOntology@= FORWARD@static final String FORWARD =
 AgentManagementOntology@= KILLAGENT@public static final String KILLAGENT =
+AgentManagementOntology@- KillAgentAction@public KillAgentAction() {
 AgentManagementOntology@= MODIFY@public static final String MODIFY =
 AgentManagementOntology@= MODIFYAGENT@public static final String MODIFYAGENT =
 AgentManagementOntology@= NAME@static final String NAME =
 AgentManagementOntology@= OWNERSHIP@static final String OWNERSHIP =
+AgentManagementOntology@= PASSWORD@public static final String PASSWORD =
 AgentManagementOntology@- PlatformProfile@public static class PlatformProfile {
+AgentManagementOntology@- PropertyContainer@public static interface PropertyContainer {
 AgentManagementOntology@= REGISTER@public static final String REGISTER =
 AgentManagementOntology@= REGISTERAGENT@public static final String REGISTERAGENT =
 AgentManagementOntology@= SEARCH@public static final String SEARCH =
@@ -1033,9 +1053,10 @@ AgentManagementOntology@= actions@private static Hashtable actions =
 AgentManagementOntology@= actions@private static Hashtable actions =
 AgentManagementOntology@- addConstraint@public void addConstraint(Constraint c) {
 AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
+AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
 AgentManagementOntology@= address@private String address;
 AgentManagementOntology@= agentDescriptor@private AMSAgentDescriptor agentDescriptor;
-AgentManagementOntology@= agentName@private String agentName =
+AgentManagementOntology@= agentName@private String agentName;
 AgentManagementOntology@= agentProperties@private Properties agentProperties =
 AgentManagementOntology@= arg@private ACLMessage arg;
 AgentManagementOntology@= arg@private DFAgentDescriptor arg;
@@ -1073,6 +1094,7 @@ AgentManagementOntology@- getName@public String getName() {
 AgentManagementOntology@- getOwnership@public String getOwnership() {
 AgentManagementOntology@- getPassword@public String getPassword() {
 AgentManagementOntology@- getProperty@public String getProperty(String name) {
+AgentManagementOntology@- getProperty@public String getProperty(String name) {
 AgentManagementOntology@- getSignature@public String getSignature() {
 AgentManagementOntology@- instance@public static final AgentManagementOntology instance() {
 AgentManagementOntology@- isMandatoryForAMS@public boolean isMandatoryForAMS(String actionName, String attributeName) {
@@ -1090,8 +1112,9 @@ AgentManagementOntology@= name@private String name;
 AgentManagementOntology@= name@private String name;
 AgentManagementOntology@= ownership@private String ownership;
 AgentManagementOntology@= parser@private static AgentManagementParser parser =
-AgentManagementOntology@= password@private String password =
+AgentManagementOntology@= password@private String password;
 AgentManagementOntology@- removeConstraints@public void removeConstraints() {
+AgentManagementOntology@- removeProperty@public void removeProperty(String name) {
 AgentManagementOntology@- removeProperty@public void removeProperty(String name) {
 AgentManagementOntology@- setAPState@public void setAPState(int AP) throws IllegalArgumentException {
 AgentManagementOntology@- setAddress@public void setAddress(String a) {
@@ -1113,6 +1136,10 @@ AgentManagementOntology@- setPassword@public void setPassword(String pwd) {
 AgentManagementOntology@- setSignature@public void setSignature(String s) {
 AgentManagementOntology@= signature@private String signature;
 AgentManagementOntology@= singleton@private static AgentManagementOntology singleton =
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
@@ -1306,7 +1333,7 @@ AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction (String IconPath,
 AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction(String IconKey,String ActionName, Vector listeners) {
 AMSAbstractAction@= ActionName@protected String ActionName =
 AMSAbstractAction@- AddListener@public synchronized static void AddListener(Object current) {
-AMSAbstractAction@- getActionName@public String getActionName () {
+AMSAbstractAction@- getActionName@public String getActionName() {
 AMSAbstractAction@- getAllListeners@public synchronized static Vector getAllListeners() {
 AMSAbstractAction@- getFirst@public synchronized static Object getFirst() {
 AMSAbstractAction@- getLast@public synchronized static Object getLast() {
@@ -1321,14 +1348,21 @@ AMSAbstractAction@- setTree@public static void setTree (AMSTree treeP) {
 AMSAbstractAction@= tree@protected static AMSTree tree;
 
 /home/rimassa/DEVEL/JADE/src/jade/gui/AMSMainFrame.java
-AMSMainFrame@+ AMSMainFrame@public AMSMainFrame () {
+AMSMainFrame@+ AMSMainFrame@public AMSMainFrame (rma anRMA) {
 AMSMainFrame@- ShowCorrect@public void ShowCorrect() {
+AMSMainFrame@- addAgent@public void addAgent(String containerName, String agentName, String agentAddress, String agentType) {
+AMSMainFrame@- addContainer@public void addContainer(String name) {
+AMSMainFrame@- getRMA@public static rma getRMA() {
 AMSMainFrame@- main@public static void main (String[] argv) {
+AMSMainFrame@= myRMA@private static rma myRMA;
+AMSMainFrame@- removeAgent@public void removeAgent(String containerName, String agentName) {
+AMSMainFrame@- removeContainer@public void removeContainer(String name) {
 AMSMainFrame@- setUI@private void setUI(String ui) {
 AMSMainFrame@- setUI2Metal@public void setUI2Metal() {
 AMSMainFrame@- setUI2Motif@public void setUI2Motif() {
 AMSMainFrame@- setUI2Multi@public void setUI2Multi() {
 AMSMainFrame@- setUI2Windows@public void setUI2Windows() {
+AMSMainFrame@= tree@private AMSTree tree;
 
 /home/rimassa/DEVEL/JADE/src/jade/gui/AMSMenu.java
 AMSMenu@+ AMSMenu@public AMSMenu () {
@@ -1381,7 +1415,7 @@ AMSToolBar@= tree@protected AMSTree tree;
 AMSTree@= AMSFirstNode@private DefaultMutableTreeNode AMSFirstNode;
 AMSTree@+ AMSTree@public AMSTree() {
 AMSTree@- actionPerformed@public void actionPerformed (ActionEvent e){
-AMSTree@- createNewNode@public DefaultMutableTreeNode createNewNode(String name,int level) {
+AMSTree@- createNewNode@public TreeData createNewNode(String name,int level) {
 AMSTree@- createSplit@private void createSplit (JScrollPane scroll) {
 AMSTree@- getModel@public AMSTreeModel getModel() {
 AMSTree@- getPathAsString@private String getPathAsString (TreePath Tpath) {
@@ -1466,31 +1500,31 @@ StartAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 /home/rimassa/DEVEL/JADE/src/jade/gui/StartDialog.java
 StartDialog@= CANCEL_BUTTON@protected static int CANCEL_BUTTON =
 StartDialog@= CancelButton@protected static JButton CancelButton =
-StartDialog@= HostL@protected static JLabel HostL=
-StartDialog@= HostToolTip@protected static String HostToolTip =
-StartDialog@= NameL@protected static JLabel NameL=
-StartDialog@= NameToolTip@protected static String NameToolTip =
 StartDialog@= OKButton@protected static JButton OKButton =
 StartDialog@= OK_BUTTON@protected static int OK_BUTTON =
-StartDialog@= PortL@protected static JLabel PortL=
-StartDialog@= PortToolTip@protected static String PortToolTip =
-StartDialog@+ StartDialog@protected StartDialog (String ClassName) {
+StartDialog@+ StartDialog@protected StartDialog (String agentNameP) {
 StartDialog@- actionPerformed@public void actionPerformed (ActionEvent evt) {
+StartDialog@= agentName@protected static JTextField agentName;
+StartDialog@= agentNameL@protected static JLabel agentNameL=
+StartDialog@= agentNameToolTip@protected static String agentNameToolTip =
 StartDialog@= choice@protected static int choice =
+StartDialog@= className@protected static JTextField className;
+StartDialog@= classNameL@protected static JLabel classNameL=
+StartDialog@= classNameToolTip@protected static String classNameToolTip =
+StartDialog@= container@protected static JTextField container;
+StartDialog@= containerL@protected static JLabel containerL=
+StartDialog@= containerToolTip@protected static String containerToolTip =
 StartDialog@= frame@protected static JFrame frame =
-StartDialog@- getClassName@public static String getClassName () {
-StartDialog@- getHost@public static String getHost() {
-StartDialog@- getPort@public static String getPort () {
+StartDialog@- getAgentName@public static String getAgentName() {
+StartDialog@- getClassName@public static String getClassName() {
+StartDialog@- getContainer@public static String getContainer() {
 StartDialog@- getPreferredSize@public Dimension getPreferredSize () {
-StartDialog@= host@protected static JTextField host;
-StartDialog@= name@protected static JTextField name;
-StartDialog@= port@protected static JTextField port;
 StartDialog@= result@protected static String result =
-StartDialog@- setClassName@public static void setClassName(String nameP) {
-StartDialog@- setHost@public static void setHost(String hostP) {
-StartDialog@- setPort@public static void setPort(String portP) {
-StartDialog@- showStartDialog@public static int showStartDialog(String ClassName) {
-StartDialog@- showStartNewDialog@public static int showStartNewDialog () {
+StartDialog@- setAgentName@public static void setAgentName(String agentNameP) {
+StartDialog@- setClassName@public static void setClassName(String classNameP) {
+StartDialog@- setContainer@public static void setContainer(String containerP) {
+StartDialog@- showStartDialog@public static int showStartDialog(String agentNameP) {
+StartDialog@- showStartNewDialog@public static int showStartNewDialog(String containerName) {
 
 /home/rimassa/DEVEL/JADE/src/jade/gui/StartNewAgentAction.java
 StartException@= ErrorMessage@public static final String ErrorMessage =
@@ -1498,6 +1532,7 @@ StartException@= ErrorPaneTitle@public static final String ErrorPaneTitle =
 StartException@+ StartException@public StartException() {
 StartNewAgentAction@+ StartNewAgentAction@public StartNewAgentAction() {
 StartNewAgentAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+StartNewAgentAction@- doStartNewAgent@private int doStartNewAgent(String containerName) {
 StartException@- handle@public static final void handle () {
 
 /home/rimassa/DEVEL/JADE/src/jade/gui/SuspendAction.java
@@ -1548,9 +1583,9 @@ TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String ty
 TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String typeP,int LevelP) {
 TreeData@- addAddress@public void addAddress(String newAdd) {
 TreeData@= addresses@protected String[] addresses ;
+TreeData@= containerID@private int containerID;
 TreeData@= currentState@protected int currentState =
 TreeData@- getAddressesAsString@public String getAddressesAsString() {
-TreeData@- getChildCount@public int getChildCount() {
 TreeData@- getIcon@public Icon getIcon() {
 TreeData@- getLevel@public int getLevel () {
 TreeData@- getName@public String getName () {
@@ -1560,7 +1595,6 @@ TreeData@- getType@public String getType() {
 TreeData@= hasLoaded@protected boolean hasLoaded =
 TreeData@= icons@protected static Icon[] icons;
 TreeData@- isLeaf@public boolean isLeaf() {
-TreeData@- loadChildren@protected void loadChildren() {
 TreeData@= name@protected String name =
 TreeData@- setAddresses@public void setAddresses (String[] aP) {
 TreeData@- setLevel@public boolean setLevel (int LevelP) {
@@ -1714,6 +1748,11 @@ rma@- AMSListenerBehaviour@AMSListenerBehaviour() {
 rma@= AMSSubscribe@private SequentialBehaviour AMSSubscribe =
 rma@= AMSSubscription@private ACLMessage AMSSubscription =
 rma@- action@public void action() {
+rma@- killAgent@public void killAgent(String name) {
+rma@= killAgentMsg@private ACLMessage killAgentMsg =
 rma@= listenTemplate@private MessageTemplate listenTemplate;
 rma@= myGUI@private AMSMainFrame myGUI =
+rma@- newAgent@public void newAgent(String agentName, String className, String containerName) {
+rma@= newAgentMsg@private ACLMessage newAgentMsg =
 rma@- setup@public void setup() {
+rma@- takeDown@public void takeDown() {
