@@ -114,12 +114,12 @@ public class ContentManager implements Serializable {
         
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(content.getTypeName());
-  			if (schema == null) {
+   			if (schema == null) {
   				throw new OntologyException("No schema found for type "+content.getTypeName());
   			}
     		schema.validate(content, onto);
-        	
-        if (codec instanceof ByteArrayCodec)
+
+    		if (codec instanceof ByteArrayCodec)
 					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, content));
 				else if (codec instanceof StringCodec)
 					msg.setContent(((StringCodec) codec).encode(onto, content));
@@ -170,7 +170,10 @@ public class ContentManager implements Serializable {
         
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(abs.getTypeName());
-        schema.validate(abs, onto);
+   			if (schema == null) {
+  				throw new OntologyException("No schema found for type "+abs.getTypeName());
+  			}
+       	schema.validate(abs, onto);
         
         if (codec instanceof ByteArrayCodec)
 					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, abs));
