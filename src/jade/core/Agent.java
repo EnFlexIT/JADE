@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.63  1999/08/10 15:42:23  rimassa
+  Removed debugging printouts.
+
   Revision 1.62  1999/08/10 15:26:21  rimassa
   Added support for agent cloning.
 
@@ -1058,12 +1061,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      TO DO
   */
-  protected void beforeClone() { System.out.println("Agent " + myName + " about to be cloned as " + myNewName);}
+  protected void beforeClone() {}
 
   /**
      TO DO
   */
-  protected void afterClone() { System.out.println("Agent " + myName + " is a clone ");}
+  protected void afterClone() {}
 
   // This method is used by the Agent Container to fire up a new agent for the first time
   void powerUp(String name, String platformAddress, ThreadGroup myGroup) {
