@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.18  1999/11/19 13:22:24  rimassaJade
+  Some changes to the class implementation, in order to comply with the
+  new ACLMessage class.
+
   Revision 1.17  1999/09/02 15:03:28  rimassa
   Added a 'throws ParseException' specification to fromText() method.
 
@@ -72,8 +76,7 @@ public class MessageTemplate implements Serializable {
 					       "ReplyBy",
 					       "ReplyTo",
 					       "ReplyWith",
-					       "Source",
-					       "Type"
+					       "Source"
   };
 
   private static interface MatchExpression {
@@ -164,10 +167,29 @@ public class MessageTemplate implements Serializable {
 
   private static class Literal implements MatchExpression, Serializable {
 
-    private ACLMessage template;
+    private class WildCardedMessage {
+      private boolean hasPerformative;
+      private ACLMessage myMessage;
 
-    public Literal(ACLMessage msg) {
-      template = (ACLMessage)msg.clone();
+      public WildCardedMessage(ACLMessage msg, boolean b) {
+	myMessage = msg;
+	hasPerformative = b;
+      }
+
+      public boolean matchPerformative() {
+	return hasPerformative;
+      }
+
+      public ACLMessage getMsg() {
+	return myMessage;
+      }
+
+    }
+
+    private WildCardedMessage template;
+
+    public Literal(ACLMessage msg, boolean wildcardOnPerformative) {
+      template = new WildCardedMessage((ACLMessage)msg.clone(), wildcardOnPerformative);
     }
 
     public boolean match(ACLMessage msg) {
@@ -186,14 +208,24 @@ public class MessageTemplate implements Serializable {
       String s2 = null;
 
       boolean result = true;
+      ACLMessage templMessage = template.getMsg();
+
+      if(template.matchPerformative()) {
+	int perf1 = templMessage.getPerformative();
+	int perf2 = msg.getPerformative();
+	if(perf1 != perf2)
+	  return false;
+      }
+
       for(int i = 0; i<fieldNames.length; i++) {
 	String name = fieldNames[i];
 
 	try {
+
 	  getValue = ACLMessageClass.getMethod("get"+name, noClass);
 
-	  // This means: s1 = template.get<value>();
-	  s1 = (String)getValue.invoke(template, noParams);
+	  // This means: s1 = templMessage.get<value>();
+	  s1 = (String)getValue.invoke(templMessage, noParams);
 
 	  // This means: s2 = msg.get<value>();
 	  s2 = (String)getValue.invoke(msg, noParams);
@@ -219,9 +251,10 @@ public class MessageTemplate implements Serializable {
 	  String name = fieldNames[i];
 	  String value = null;
 	  try {
+	    ACLMessage msg = template.getMsg();
 	    Method getValue = ACLMessage.class.getMethod("get"+name, new Class[0]);
-	    // This means: s1 = template.get<value>();
-	    value = (String)getValue.invoke(template, new Object[0]);
+	    // This means: s1 = msg.get<value>();
+	    value = (String)getValue.invoke(msg, new Object[0]);
 	  }
 	  catch(Exception e) {
 	    e.printStackTrace();
@@ -283,8 +316,8 @@ public class MessageTemplate implements Serializable {
 
   // Private constructor: use static factory methods to create message
   // templates.
-  private MessageTemplate(ACLMessage msg) {
-    toMatch = new Literal((ACLMessage)msg.clone());
+  private MessageTemplate(ACLMessage msg, boolean matchPerformative) {
+    toMatch = new Literal((ACLMessage)msg.clone(), matchPerformative);
   }
 
 
@@ -295,7 +328,7 @@ public class MessageTemplate implements Serializable {
      value.
   */
   public static MessageTemplate MatchAll() {
-    return new MessageTemplate(allWildCard());
+    return new MessageTemplate(allWildCard(), false);
   }
 
   /**
@@ -308,7 +341,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchSource(String value) {
     ACLMessage msg = allWildCard();
     msg.setSource(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -322,7 +355,7 @@ public class MessageTemplate implements Serializable {
     ACLMessage msg = allWildCard();
     msg.removeAllDests();
     msg.addDest(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -335,7 +368,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchContent(String value) {
     ACLMessage msg = allWildCard();
     msg.setContent(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -348,7 +381,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchReplyWith(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyWith(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -361,7 +394,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchReplyTo(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyTo(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -374,7 +407,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchEnvelope(String value) {
     ACLMessage msg = allWildCard();
     msg.setEnvelope(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -387,7 +420,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchLanguage(String value) {
     ACLMessage msg = allWildCard();
     msg.setLanguage(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -400,7 +433,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchOntology(String value) {
     ACLMessage msg = allWildCard();
     msg.setOntology(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -413,7 +446,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchReplyBy(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyBy(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -426,7 +459,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchProtocol(String value) {
     ACLMessage msg = allWildCard();
     msg.setProtocol(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -439,7 +472,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchConversationId(String value) {
     ACLMessage msg = allWildCard();
     msg.setConversationId(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, false);
   }
 
   /**
@@ -452,7 +485,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchType(String value) {
     ACLMessage msg = allWildCard();
     msg.setType(value);
-    return new MessageTemplate(msg);
+    return new MessageTemplate(msg, true);
   }
 
   /**
@@ -469,10 +502,19 @@ public class MessageTemplate implements Serializable {
      care</em>.
      @param msg The <code>ACLMessage</code> used to build a custom
      message template.
+
+     @param matchPerformative a <code>bool</code> value. When
+     <code>true</code>, the performative of the <code>msg</code> will
+     be considered as a part of the template (i.e. the message
+     template will match only ACL messages with the same performativa
+     as <code>msg</code>).
+     When <false>, the performative of <code>msg</code> is ignored and
+     the resulting message template will not consider it when matching
+     messages.
      @return A new <code>MessageTemplate</code>, matching the given
      message according to the above algorithm.
   */
-  public static MessageTemplate MatchCustom(ACLMessage msg) {
+  public static MessageTemplate MatchCustom(ACLMessage msg, boolean matchPerformative) {
     ACLMessage message = allWildCard();
 
     Class ACLMessageClass = msg.getClass();
@@ -506,7 +548,7 @@ public class MessageTemplate implements Serializable {
 	if(s1 != null) {
 	  Object[] stringParams = { s1 };
 	  // This means: message.set<value>(s1);
-	  getValue.invoke(message, stringParams);
+	  setValue.invoke(message, stringParams);
 	}
       }
       catch(Exception e) {
@@ -514,7 +556,7 @@ public class MessageTemplate implements Serializable {
       }
     }
 
-    return new MessageTemplate(message);
+    return new MessageTemplate(message, matchPerformative);
   }
 
   /**
@@ -525,7 +567,7 @@ public class MessageTemplate implements Serializable {
      @exception ParseException Thrown when the string format is incorrect.
   */
   public static MessageTemplate fromText(Reader r) throws ParseException {
-    Literal l = new Literal(ACLMessage.fromText(r));
+    Literal l = new Literal(ACLMessage.fromText(r), true);
     return new MessageTemplate(l);
   }
 
