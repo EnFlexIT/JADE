@@ -84,7 +84,7 @@ class AbsObjectImpl implements AbsObject {
      * abstract descriptor.
      * @param name The name of the attribute.
      * @return value The value of the attribute.
-     * @see AbsObject#getAbsObject()
+     * @see AbsObject#getAbsObject(String)
      */
     public AbsObject getAbsObject(String name) {
         return (AbsObject) elements.get(new CaseInsensitiveString(name));
