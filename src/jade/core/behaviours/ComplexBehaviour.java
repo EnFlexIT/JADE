@@ -225,11 +225,18 @@ public abstract class ComplexBehaviour extends Behaviour {
      Abstract policy method for children execution. Different
      subclasses will implement this method to run children according
      to some policy (sequentially, round robin, priority based, ...).
+     This abstract method is the policy routine to be used by
+     subclasses to schedule children behaviours. This method must be
+     used by application programmer only to create new kinds of
+     <code>ComplexBehaviour</code> with custom children scheduling. In
+     this case, the method must return <code>true</code> when the
+     composite behaviour has ended and <code>false</code>
+     otherwise. Typically, the value returned will be some function of
+     all termination statuses of children behaviours.
      @return <code>true</code> when done, <code>false</code> when
      children behaviours still need to be run.
      @see jade.core.behaviours.SequentialBehaviour
-     @see jade.core.behaviours.NonDeterministicBehaviour
-  */
+     @see jade.core.behaviours.NonDeterministicBehaviour */
   protected abstract boolean bodyAction();
 
   /**

@@ -116,7 +116,15 @@ public abstract class Behaviour implements Serializable {
 
   /**
      The agent this behaviour belongs to.
-   */
+
+     This is an instance variable that holds a reference to the Agent
+     object and allows the usage of its methods within the body of the
+     behaviour. As the class <code>Behaviour</code> is the superclass
+     of all the other behaviour classes, this variable is always
+     available. Of course, remind to use the appropriate constructor,
+     i.e. the one that accepts an agent object as argument; otherwise,
+     this variable is set to <code>null</code>.
+  */
   protected Agent myAgent;
 
   /**
