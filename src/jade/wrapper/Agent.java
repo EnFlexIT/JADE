@@ -25,6 +25,7 @@ package jade.wrapper;
 
 import jade.core.AID;
 import jade.core.Location;
+import jade.security.AuthException;	
 
 /**
 
@@ -152,7 +153,7 @@ public class Agent implements AgentController {
      @exception StaleProxyException If the underlying agent is dead or
      gone.
   */
-  public void move(Location where) throws StaleProxyException {
+  public void move(Location where) throws StaleProxyException, AuthException {
     validateProxy();
     adaptee.doMove(where);
     adaptee = null; // FIXME: Should check whether the migration transaction succeeded
@@ -171,7 +172,7 @@ public class Agent implements AgentController {
      @exception StaleProxyException If the underlying agent is dead or
      gone.
    */
-  public void clone(Location where, String newName) throws StaleProxyException {
+  public void clone(Location where, String newName) throws StaleProxyException, AuthException {
     validateProxy();
     adaptee.doClone(where, newName);
   }
