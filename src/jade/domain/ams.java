@@ -1082,6 +1082,7 @@ public class ams extends Agent implements AgentManager.Listener {
     Object old = agentDescriptions.deregister(amsd.getName());
     if(old == null)
       throw new NotRegistered();
+    // System.out.println(amsd.getName().getName()+ " deregistered from AMS" );
   }
 
   private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
@@ -1229,13 +1230,14 @@ public class ams extends Agent implements AgentManager.Listener {
     try {
       AMSAgentDescription amsd = new AMSAgentDescription();
       amsd.setName(agentID);
-      List l = AMSSearch(amsd, null, null);
-      if(!l.isEmpty())
-	AMSDeregister(amsd);
+      AMSDeregister(amsd);
+    }
+    catch(NotRegistered nr){
+	//the agent deregistered already during his dodolete method.
     }
     catch(FIPAException fe) {
       fe.printStackTrace();
-    }
+      }
 
     DeadAgent da = new DeadAgent();
     da.setAgent(agentID);
