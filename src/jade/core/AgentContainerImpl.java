@@ -134,6 +134,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent agent = null;
     try {
       agent = (Agent)Class.forName(new String(className)).newInstance();
+      agent.setArguments(args);
       // Set agent principal and certificates
       if (identity != null) {
 	      agent.setPrincipal((AgentPrincipal)identity.getSubject(), identity, delegation);
