@@ -250,8 +250,18 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   }
 
-  private void dummyResponse() {
-      myJICPServer.dummyReply(lastRspAddr, lastRspPort);
+  private void ensureFERunning() {
+  	Thread t = new Thread() {
+  		public void run() {
+  			if (!myOutgoingsHandler.waitForInitialResponse()) {
+  				log("Missing initial dummy response after reconnection", 2);
+  				// Likely the HTTPFEDispatcher thread is hanging on an
+  				// invalid connection --> try to unblock it sending a fake response
+			  	myJICPServer.fakeReply(lastRspAddr, lastRspPort);
+  			}
+  		}
+  	};
+  	t.start();
   }
   
   //////////////////////////////////////////
@@ -370,6 +380,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	
   	private boolean waitingForFlush = false;
   	
+  	private Object initialResponseLock = new Object();
+  	private boolean initialResponseReceived;
+  	
   	public OutgoingsHandler(long maxDisconnectionTime) {
   		this.maxDisconnectionTime = maxDisconnectionTime;
   	}
@@ -458,7 +471,13 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   			// No one was waiting for this response. It must be the
     		// initial dummy response or a response that arrives after 
   			// the timeout has expired. 
-	    	log("Spurious response received", 2);
+  			if (frontEndStatus == CONNECTING) {
+		    	log("Initial dummy response received", 2);
+		    	notifyInitialResponseReceived();
+  			}
+  			else {
+  				log("Out of time respose received "+rsp.getSessionID(), 2);
+  			}
   		}
   		if (frontEndStatus != REACHABLE) {
   			frontEndStatus = REACHABLE;
@@ -503,11 +522,15 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	   The frontEndStatus is set to CONNECTING.
   	   Called by HTTPBEDispatcher#handleIncomingConnection()
   	 */
-  	public synchronized void setConnecting() {
+  	public void setConnecting() {
   		log("Resetting the connection ", 2);
-  		dummyResponse();
-  		frontEndStatus = CONNECTING;
-  		reset();
+  		initialResponseReceived = false;
+  		synchronized (this) {
+	  		frontEndStatus = CONNECTING;
+	  		reset();
+  		}
+  		// This must be done outside the synchronized block to avoid deadlock
+  		ensureFERunning();
   	}
   	
   	/**
@@ -548,6 +571,25 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 				// The remote FrontEnd is probably down --> notify up.
 				handleConnectionError();
 	  	}
+  	}
+  	
+  	private boolean waitForInitialResponse() {
+  		synchronized (initialResponseLock) {
+  			if (!initialResponseReceived) {
+  				try {
+  					initialResponseLock.wait(30000);
+  				}
+  				catch (Exception e) {}
+  			}
+  			return initialResponseReceived;
+  		}
+  	}
+  	
+  	private void notifyInitialResponseReceived() {
+  		synchronized (initialResponseLock) {
+  			initialResponseReceived = true;
+  			initialResponseLock.notifyAll();
+  		}
   	}
   } // END of inner class OutgoingsHandler
   	  	
