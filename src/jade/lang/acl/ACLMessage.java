@@ -228,7 +228,7 @@ private int performative; // keeps the performative type of this object
   */
   private Properties userDefProps = new Properties();
 
-  private transient Envelope messageEnvelope;
+  private Envelope messageEnvelope;
 
   /**
   Returns the list of the communicative acts.
@@ -1089,6 +1089,7 @@ private int performative; // keeps the performative type of this object
     m.setReplyBy(null);
     m.setContent(null);
     m.setEncoding(null);
+    m.setEnvelope(null);
     return m;
   }
 
