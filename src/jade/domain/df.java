@@ -87,7 +87,7 @@ import jade.content.abs.*;
 	<li>
 	<code>jade_domain_df_maxresult</code> Indicates the maximum number of items found
 	in a search operation that the DF will return to the requester (defaults 
-	to infinite).
+	to 100).
 	</li>
 	<li>
 	<code>jade_domain_df_db-url</code> Indicates the JDBC URL of the database
