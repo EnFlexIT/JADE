@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package examples.Base64;
 
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.core.Agent;
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
@@ -38,8 +39,6 @@ This agent makes the following task:
 2. waits a message from its companion, the ObjectWriterAgent; 
 3. reads the content of the message, knowing a-priori that 
    it is encoded in Base64 and contains a Java object;
-4. uses the reflection to discover the type of java object
-   and calls the <code>toString()</code> method.
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -71,20 +70,16 @@ protected void setup() {
     try {
       System.out.println(getLocalName()+" is waiting for a message");
       ACLMessage msg = blockingReceive(); 
+  
+      Person p = (Person)msg.getContentObject();
+
+      System.out.println(getLocalName()+ " read Java Object " + p.getClass().getName() + p.toString());
       
-      msg.toText(new BufferedWriter( new OutputStreamWriter(System.out)));
-      ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(msg.getContentBase64()));
-
-      /* Read all objects written in the content up to the end of the content */
-      while (true) {
-	Object o = oin.readObject();
-	System.out.println(getLocalName()+" read Java Object: "+o.getClass().getName()+" toString()="+o.toString());
-      }
-
-    } catch (IOException e ) {
-      System.err.println(getLocalName()+" catched exception "+e.getMessage());
-    } catch (ClassNotFoundException e1) {
+    } catch (IOException e1 ) {
       System.err.println(getLocalName()+" catched exception "+e1.getMessage());
+    } catch (ClassNotFoundException e2) {
+    System.err.println(getLocalName()+" catched exception "+e2.getMessage());
+    } catch(UnreadableException e3){System.err.println(getLocalName()+ " catched exception "+e3.getMessage());
     }
   }
 }
@@ -100,5 +95,3 @@ protected void setup() {
 
 
 }
-
-
