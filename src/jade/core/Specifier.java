@@ -126,7 +126,7 @@ public class Specifier {
         	String tmp = sbSpecifier.toString().trim();
 
         	if (tmp.length() > 0) {
-          	Specifier s = parseSpecifier(tmp);
+          	Specifier s = parseSpecifier(tmp, ',');
 
           	// Add the Specifier to the list
           	specs.add(s);
@@ -143,7 +143,7 @@ public class Specifier {
     	String tmp = sbSpecifier.toString().trim();
 
     	if (tmp.length() > 0) {
-      	Specifier s = parseSpecifier(tmp);
+      	Specifier s = parseSpecifier(tmp, ',');
 
       	// Add the Specifier to the list
       	specs.add(s);
@@ -160,7 +160,7 @@ public class Specifier {
    * Concrete implementations can take advantage from this method to
    * implement the getSpecifiers() method.
    */
-  private static Specifier parseSpecifier(String specString) throws Exception {
+  public static Specifier parseSpecifier(String specString, char argsDelimiter) throws Exception {
     Specifier s = new Specifier();
 
     // NAME
@@ -206,7 +206,7 @@ public class Specifier {
       // Get everything is in between '(' and ')'
       String args = specString.substring(index2+1, specString.length()-1);
 
-      s.setArgs(parseArguments(args));
+      s.setArgs(parseArguments(args, argsDelimiter));
     } 
 
     return s;
@@ -214,10 +214,10 @@ public class Specifier {
 
   /**
    */
-  private static String[] parseArguments(String args) {
+  private static String[] parseArguments(String args, char argsDelimiter) {
     List argList = new ArrayList();
     int  argStart = 0;
-    int  argEnd = args.indexOf(',');
+    int  argEnd = args.indexOf(argsDelimiter);
 
     while (argEnd >= 0) {
       String arg = args.substring(argStart, argEnd);
@@ -225,7 +225,7 @@ public class Specifier {
       argList.add(arg.trim());
 
       argStart = argEnd+1;
-      argEnd = args.indexOf(',', argStart);
+      argEnd = args.indexOf(argsDelimiter, argStart);
     } 
 
     // Last argument
