@@ -35,7 +35,6 @@ import java.io.IOException;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.AID;
 
 /**
 A simple agent that can send  custom messages to another agent.
