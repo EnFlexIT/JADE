@@ -1,48 +1,24 @@
-/*
-  $Log$
-  Revision 1.14  1999/11/10 09:34:06  rimassaJade
-  Added a method to remove a group member regardless of case and agent
-  address.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.13  1999/10/08 08:26:34  rimassa
-  Added an explanatory comments for a behaviour change (case
-  sensitiveness).
+GNU Lesser General Public License
 
-  Revision 1.12  1999/10/06 14:49:03  rimassa
-  Removed a couple of 'toLowerCase()' calls, to preserve case in agent
-  names when inserted and extracted into and from an AgentGroup.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.11  1999/04/08 12:00:51  rimassa
-  Changed clone() method to correctly implement a deep copy.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.10  1999/04/06 00:09:34  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.9  1999/03/09 12:57:44  rimassa
-  Added 'implements Serializable' clause to AgentGroup class, since now
-  it an AgentGroup is part of ACLMessage objects.
-
-  Revision 1.8  1999/03/07 22:50:52  rimassa
-  Added a reset() method to remove all group members.
-
-  Revision 1.7  1999/02/25 08:27:26  rimassa
-  Made AgentGroup case-insensitive with respect to agent names.
-
-  Revision 1.6  1999/02/14 23:12:09  rimassa
-  Removed reset(), hasMoreMembers() and nextMember() methods. Added
-  getMembers() and size() methods.
-
-  Revision 1.5  1999/02/04 11:46:06  rimassa
-  Added getMembers() method. Added clone() and toString() methods to
-  better support fipa-contract-net protocol.
-
-  Revision 1.4  1998/11/03 00:40:56  rimassa
-  Changed a method name from resetCursor() to reset().
-
-  Revision 1.3  1998/10/04 18:00:59  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core;
 
@@ -56,7 +32,8 @@ import java.util.Vector;
    This class allows to hold a set of agent names together, in order
    to perform message multicasting.
    @see jade.core.Agent#send(ACLMessage msg, AgentGroup g)
-
+	
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

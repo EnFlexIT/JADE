@@ -1,45 +1,35 @@
-/*
-  $Log$
-  Revision 1.13  1999/08/31 17:23:08  rimassa
-  Removed useless 'public' specifier from interface methods.
-  Added a method to perform agent identity transfer.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.12  1999/08/10 15:31:31  rimassa
-  Added a lookup() method to retrieve an AgentContainer object reference by name.
+GNU Lesser General Public License
 
-  Revision 1.11  1999/06/04 07:45:51  rimassa
-  Made package scoped this previously public interface.
-  Removed some String constants from this interface to put them into
-  AgentManagementOntology class.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.10  1999/03/17 13:00:59  rimassa
-  Some changes were made to the interface, to support new proxy-based
-  design.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.9  1999/03/09 12:59:14  rimassa
-  Added some String constants to represent container names.
-  Added a getAddress() method.
-
-  Revision 1.8  1999/02/03 10:05:44  rimassa
-  Changed addContainer() signature: now it returns a String containing
-  the IIOP address (in IOR or URL format).
-
-  Revision 1.7  1998/11/03 00:28:56  rimassa
-  Added an exeption specification to deadAgent() method.
-
-  Revision 1.6  1998/10/11 19:21:32  rimassa
-  Added the new name clash exception to bornAgent() throws clause.
-
-  Revision 1.5  1998/10/04 18:01:00  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 interface AgentPlatform extends AgentContainer {
 

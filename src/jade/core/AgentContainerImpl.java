@@ -1,197 +1,24 @@
-/*
-  $Log$
-  Revision 1.53  1999/11/09 14:46:27  rimassaJade
-  Added a getCorrectName() call to perform case-insensitive agent name
-  lookup.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.52  1999/11/08 15:18:15  rimassaJade
-  Added support for the message sniffer.
+GNU Lesser General Public License
 
-  Revision 1.51  1999/11/04 09:54:56  rimassaJade
-  Removed flawed retry scheme. Now a fully synchronized solution is
-  used, with a retry on a LADT miss and an error on GADT miss.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.50  1999/11/03 07:52:55  rimassaJade
-  Changed an older, check-and-wait code to adhere to new try-and-see
-  approach.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.49  1999/10/20 15:26:48  rimassa
-  Removed an useless semicolon.
-
-  Revision 1.48  1999/10/06 08:33:13  rimassa
-  Added a printout message to show when the container is ready.
-
-  Revision 1.47  1999/09/03 13:07:52  rimassa
-  Fixed a bug: agents started on peripheral containers on the command
-  line were not inserted into Global Agent Descriptor Table.
-
-  Revision 1.46  1999/09/01 00:15:17  rimassa
-  Added support for message queue transfer during agent migration.
-
-  Revision 1.45  1999/08/31 17:21:43  rimassa
-  Added complete support for agent migration.
-
-  Revision 1.44  1999/08/27 15:43:04  rimassa
-  Implemented moveAgent() method to forward action to the agent itself.
-  Put in some locking mechanisms to support transactional agent
-  migration.
-
-  Revision 1.43  1999/08/10 15:28:41  rimassa
-  Added support for agent cloning, both agent-initiated and AMS-initiated.
-
-  Revision 1.42  1999/07/19 00:04:01  rimassa
-  Added an empty implementation of moveAgent() method.
-
-  Revision 1.41  1999/06/24 12:27:08  rimassa
-  Added a new line.
-
-  Revision 1.40  1999/06/15 14:34:31  rimassa
-  Added a new thread group for time-critical activities, runnning at
-  high priority.
-  Added support for timer dispatching, using a time critical thread.
-
-  Revision 1.39  1999/06/04 07:44:02  rimassa
-  Made package scoped this previously public class.
-
-  Revision 1.38  1999/04/13 15:58:55  rimassa
-  Added a hack to catch a SocketException arising during RMA shutdown.
-
-  Revision 1.37  1999/04/08 12:07:55  rimassa
-  Added a missing clone() to multicast messages.
-
-  Revision 1.36  1999/04/08 12:00:03  rimassa
-  Changed multicast code to make it work, even if now isn't probably
-  compliant.
-
-  Revision 1.35  1999/04/07 11:39:00  rimassa
-  Fixed a shutdown problem: a ConcurrentModificationException was thrown
-  during local agents destruction.
-  Removed calls to ACLMessage.getDest() method.
-
-  Revision 1.34  1999/03/30 06:49:44  rimassa
-  Fixed a bug: when an agent on another platform had the same local name
-  of a local agent, it was not contacted with IIOP.
-
-  Revision 1.33  1999/03/24 12:16:57  rimassa
-  Ported most data structures to newer Java 2 Collection
-  framework. Changed unicastPostMessage() method to provide transparent
-  address caching for every kind of agent address (local, RMI or IIOP).
-
-  Revision 1.32  1999/03/17 12:55:26  rimassa
-  Implemented a complete, general caching mechanism for agent addresses,
-  using the same cache to keep local and remote agent proxies. Besides,
-  caching works now independently from the specific remote protocol used
-  for message transport (i.e. RMI, CORBA or other).
-  Now a cached local proxy can fault and be replaced with a remote one,
-  thus setting some bases for agent mobility.
-
-  Revision 1.31  1999/03/15 15:25:10  rimassa
-  Changed priority setting for user agents.
-
-  Revision 1.30  1999/03/09 12:54:55  rimassa
-  Some minor modifications for a better container name handling.
-
-  Revision 1.29  1999/03/07 22:50:12  rimassa
-  Added support for ACL messages with more than one receiver.
-
-  Revision 1.28  1999/03/03 16:09:34  rimassa
-  Implemented new methods from AgentContainer interface to remotely
-  suspend and resume agents.
-
-  Revision 1.27  1999/02/25 08:18:03  rimassa
-  Added separate ThreadGroup objects for JADE user agents and JADE
-  system agents.
-  Moved container shutdown code from finalization to explicit invocation
-  of an RMI exit() method.
-
-  Revision 1.26  1999/02/16 08:06:32  rimassa
-  Caught CORBA System Exception to trap inter-platform communications
-  problems.
-
-  Revision 1.25  1999/02/14 23:08:16  rimassa
-  Changed AgentGroup handling to comply with new version of that class.
-
-  Revision 1.24  1999/02/03 10:03:17  rimassa
-  Added client-side CORBA support. Now every AgentContainer can call
-  another platform through IIOP directly, without intervention from
-  AgentPlatform or ACC.
-  Now an AgentContainer receives the IIOP address for the Agent Platform
-  at registration time.
-  Filled in 'postOtherPlatform()' method to resort to IIOP for
-  inter-platform communication.
-
-  Revision 1.23  1998/12/07 23:48:56  rimassa
-  Modified message dispatching methods to allow both a simple name
-  (e.g. 'peter') and a complete name (e.g. 'peter@fipa.org:50/acc') to
-  be present as message receiver.
-  Added an empty postOtherPlatform() method for a future IIOP transport.
-
-  Revision 1.22  1998/11/09 22:12:25  Giovanni
-  Added AgentContainer interface's exit() method implementation to allow
-  shutting down an AgentContainer remotely.
-
-  Revision 1.21  1998/11/09 00:05:31  rimassa
-  Now when an AgentContainer terminates and its shutDown() method is
-  called each agent is killed and the AgentContainer waits for its
-  thread to end by calling Agent.join() method.
-
-  Revision 1.20  1998/11/03 00:27:52  rimassa
-  Fixed a bug in ACL message multicast send: a reset() call was missing
-  on target AgentGroup.
-
-  Revision 1.19  1998/11/01 19:13:43  rimassa
-  Removed every reference to now-deleted MessageDispatcher
-  interface. Added code to do what MessageDispatcherImpl used to do.
-
-  Revision 1.18  1998/11/01 14:58:25  rimassa
-  Now shutDown() method is correctly called on exit.
-
-  Revision 1.17  1998/10/31 16:30:58  rimassa
-  Added support for correct agent and container termination. Now when an
-  Agent informs its AgentContainer it is ended, the container removes
-  the dead agent from the agent table and informs the
-  AgentPlatform. Besides, when the last agent of an agent container
-  ends, the container itself is shut down.
-
-  Revision 1.16  1998/10/25 23:58:26  rimassa
-  Moved agent creation code into a 'createAgent()' method. Besides,
-  createAgent() and killAgent() are now Remote Methods, thus allowing to
-  create an agent on a different container.
-
-  Revision 1.15  1998/10/18 15:53:13  rimassa
-  Added a private lookup3() method to avoid a bug in java.rmi.Naming
-  class.
-  Set Java runtime property "java.rmi.server.hostname" to the complete
-  host name, to allow agent platforms to be distributed over WAN and
-  interoperate without DNS lookups.
-
-  Revision 1.14  1998/10/15 18:03:51  Giovanni
-  Fixed an horrible bug: a chunk of code was moved from outside a for
-  loop to inside the loop !!! This resulted in platform misbehaviour
-  whenever more than one agent was started on a container.
-
-  Revision 1.13  1998/10/14 21:32:06  Giovanni
-  Moved a piece of code inside a try { ... } block; now when a new agent
-  has a name clashing with a previous one and a NameClashException is
-  thrown the agent is not started anymore and it is removed from the
-  local agents table.
-
-  Revision 1.12  1998/10/11 19:20:14  rimassa
-  Changed code to comply with new MessageDispatcher constructor.
-  Implemented invalidateCacheEntry() remote method.
-  New name clash exception handled properly.
-  Implemented a cache refresh on communication failures: when a cached
-  AgentDescriptor results in a RemoteException, main Agent Platform is
-  called to update remote agent cache and retry with the newer RMI
-  object reference before giving up for good with a NotFoundException.
-
-  Revision 1.11  1998/10/05 20:13:51  Giovanni
-  Made every agent name table is case insensitive, according to FIPA
-  specification.
-
-  Revision 1.10  1998/10/04 18:00:57  rimassa
-  Added a 'Log:' field to every source file.
-  */
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core;
 
@@ -216,6 +43,11 @@ import jade.lang.acl.*;
 
 import FIPA_Agent_97;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
 
