@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/10 14:18:16  rimassa
+  Corrected two wrong cross-references in Javadoc comments.
+
   Revision 1.2  1999/06/09 16:13:57  rimassa
   Added a block() method with timeout.
 
@@ -222,7 +225,7 @@ public abstract class Behaviour {
      blocked behaviours queue by the agent scheduler. If this method
      is called from within <code>action()</code> method, behaviour
      suspension occurs as soon as <code>action()</code> returns.
-     @see jade.core.Behaviour#restart() 
+     @see jade.core.behaviours.Behaviour#restart() 
   */
   public void block() {
     myEvent.init(false, NOTIFY_UP);
@@ -243,7 +246,7 @@ public abstract class Behaviour {
      to notify this behaviour's parent. When the agent scheduler
      inserts a blocked event back into the agent ready queue, it
      restarts it automatically.
-     @see jade.core.Behaviour#restart()
+     @see jade.core.behaviours.Behaviour#block()
   */
   public void restart() {
     myEvent.init(true, NOTIFY_UP);
