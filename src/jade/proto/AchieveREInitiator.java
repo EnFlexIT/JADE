@@ -156,8 +156,8 @@ public class AchieveREInitiator extends FSMBehaviour {
     
     private ACLMessage request;
 	
-	final String conversationID = "C"+Integer.toString(hashCode());
-	final MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
+	String conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
+	MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
     
     /**
      * Construct for the class by creating a new empty DataStore
@@ -789,7 +789,10 @@ public class AchieveREInitiator extends FSMBehaviour {
 	//initializeDataStore(msg);
 	request = msg;
 	allResponsesReceived = false;
-    }
+  conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
+	mt = MessageTemplate.MatchConversationId(conversationID);
+    
+  }
 
     /** 
        Override the onStart() method to initialize the vectors that

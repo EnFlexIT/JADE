@@ -121,8 +121,8 @@ public class ContractNetInitiator extends FSMBehaviour {
   
   private ACLMessage cfp;
 	
-	final String conversationID = "C"+Integer.toString(hashCode());
-	final MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
+	String conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
+	MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
     
   /**
    * Construct for the class by creating a new empty DataStore
@@ -746,6 +746,8 @@ public class ContractNetInitiator extends FSMBehaviour {
 		cfp = msg;
 		step = 1;
 		skipNextRespFlag = false;
+  	conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
+		mt = MessageTemplate.MatchConversationId(conversationID);
   }
 
   /** 

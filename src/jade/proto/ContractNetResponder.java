@@ -322,6 +322,21 @@ public void registerHandleRejectProposal(Behaviour b){
 		registerDSState(b,HANDLE_REJECT_STATE);
 }
 
+    /**
+       This method allows to register a user defined <code>Behaviour</code>
+       in the PREPARE_RESPONSE state.
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       It is responsibility of the registered behaviour to put the
+       response to be sent into the datastore at the <code>RESPONSE_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
+    */
+public void registerPrepareResponse(Behaviour b) {
+	registerDSState(b, PREPARE_PROPOSE_STATE);
+}
  /**
    This method allows to register a user defined <code>Behaviour</code>
    in the PREPARE_RESULT_NOTIFICATION state.
