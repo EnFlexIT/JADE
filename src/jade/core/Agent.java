@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.61  1999/07/26 15:33:59  rimassa
+  Added complete support for serialization.
+  Added support for agent reading and writing from/to Java streams.
+
   Revision 1.60  1999/07/25 23:54:02  rimassa
   Added a state and two transiton functions for mobility support within
   Agent Platform Life Cycle.
@@ -297,6 +301,14 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Serializable;
 
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+
+import java.io.IOException;
 import java.io.InterruptedIOException;
 
 import java.util.Date;
@@ -520,19 +532,19 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int MSG_QUEUE_SIZE = 100;
 
-  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
-  private Vector listeners = new Vector();
+  private transient MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+  private transient Vector listeners = new Vector();
 
   private String myName = null;
   private String myAddress = null;
-  private Object stateLock = new Object(); // Used to make state transitions atomic
-  private Object waitLock = new Object(); // Used for agent waiting
-  private Object suspendLock = new Object(); // Used for agent suspension
+  private transient Object stateLock = new Object(); // Used to make state transitions atomic
+  private transient Object waitLock = new Object();  // Used for agent waiting
+  private transient Object suspendLock = new Object(); // Used for agent suspension
 
-  private Thread myThread;
+  private transient Thread myThread;
   private Scheduler myScheduler;
 
-  private AssociationTB pendingTimers = new AssociationTB();
+  private transient AssociationTB pendingTimers = new AssociationTB();
 
   /**
      The <code>Behaviour</code> that is currently executing.
@@ -556,7 +568,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private int myDomainState;
   private Vector blockedBehaviours = new Vector();
 
-  private ACLParser myParser = ACLParser.create();
+  private transient ACLParser myParser = ACLParser.create();
 
   /**
      Default constructor.
@@ -685,9 +697,84 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      Agent Platform or by the agent itself to start a migration process.
      <em>This method is currently not implemented.</em>
   */
-  public void doMove() {
+  public void doMove(String destination) {
     myAPState = AP_TRANSIT;
     // FIXME: Should do something more
+  }
+
+  /**
+     Write this agent to an output stream; this method can be used to
+     record a snapshot of the agent state on a file or to send it
+     through a network connection. Of course, the whole agent must
+     be serializable in order to be written successfully.
+     @param s The stream this agent will be sent to. The stream is
+     <em>not</em> closed on exit.
+     @see jade.core.Agent#read(InputStream s)
+   */
+  public void write(OutputStream s) {
+    try {
+      ObjectOutput out = new ObjectOutputStream(s);
+      out.writeUTF(myName);
+      out.writeObject(this);
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
+  }
+
+  /**
+     Read a previously saved agent from an input stream and restarts
+     it under its former name. This method can realize some sort of
+     mobility through time, where an agent is saved, then destroyed
+     and then restarted from the saved copy.
+     @param s The stream the agent will be read from. The stream is
+     <em>not</em> closed on exit.
+     @see jade.core.Agent#write(OutputStream s)
+   */
+  public static void read(InputStream s) {
+    try {
+      ObjectInput in = new ObjectInputStream(s);
+      String name = in.readUTF();
+      Agent a = (Agent)in.readObject();
+      a.doStart(name);
+    }
+    catch(ClassNotFoundException cnfe) {
+      cnfe.printStackTrace();
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
+  }
+
+  /**
+     Read a previously saved agent from an input stream and restarts
+     it under a different name. This method can realize agent cloning
+     through streams, where an agent is saved, then an exact copy of
+     it is restarted as a completely separated agent, with the same
+     state but with different identity and address.
+     @param s The stream the agent will be read from. The stream is
+     <em>not</em> closed on exit.
+     @param agentName The name of the new agent, copy of the saved
+     original one.
+     @see jade.core.Agent#write(Outputstream s)
+   */
+  public static void read(InputStream s, String agentName) {
+    try {
+      ObjectInput in = new ObjectInputStream(s);
+      String name = in.readUTF();
+      Agent a = (Agent)in.readObject();
+      a.doStart(agentName);
+    }
+    catch(ClassNotFoundException cnfe) {
+      cnfe.printStackTrace();
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
+  }
+
+  public void restore(InputStream s) {
+    // FIXME: Not implemented
   }
 
   /**
@@ -697,7 +784,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      Platform when a migration process completes and the mobile agent
      is about to be restarted on its new location.
   */
-  public void doExecute() {
+  public void doExecute(String source) {
     myAPState = AP_ACTIVE;
     activateAllBehaviours();
   }
@@ -919,6 +1006,23 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      TO DO
   */
   protected void afterMotion() {
+  }
+
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+
+    // Restore transient fields (apart from myThread, which will be set by doStart())
+    msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+    listeners = new Vector();
+    stateLock = new Object();
+    suspendLock = new Object();
+    pendingTimers = new AssociationTB();
+    myParser = ACLParser.create();
   }
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
