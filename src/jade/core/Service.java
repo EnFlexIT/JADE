@@ -40,7 +40,13 @@ import jade.core.behaviours.Behaviour;
 
 */
 public interface Service {
-
+	
+	/**
+	   Service independent vertical command issued on the Main 
+	   container whenever a new slice of a given service is added
+	 */
+	public static final String NEW_SLICE = "Added-Slice";
+	
     /**
        The <code>Slice</code> nested interface represents that part of
        a service that is deployed at a given network node.

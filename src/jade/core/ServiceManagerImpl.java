@@ -464,13 +464,17 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	ServiceEntry e = (ServiceEntry)services.get(serviceKey);
 
 	if(e == null) {
+		// The service is not installed on this Main container --> Add a Dummy entry
 	    Service svc = new DummyService(serviceKey, Service.Slice.class);
 	    e = new ServiceEntry(svc);
 	    services.put(serviceKey, e);
 	}
 
 	e.addSlice(sliceKey, slice, remoteNode);
-
+	
+	GenericCommand gCmd = new GenericCommand(Service.NEW_SLICE, serviceKey, null);
+	gCmd.addParam(sliceKey);
+	myCommandProcessor.processIncoming(gCmd);
     }
 
     public void removeRemoteSlice(String serviceKey, String sliceKey) {
@@ -701,14 +705,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	}
 
 	// Install the service sinks
-	String[] commandNames = svc.getOwnedCommands();
 	Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
 	if(sSrc != null) {
-	    myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, commandNames);
+	    myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, svc.getName());
 	}
 	Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
 	if(sTgt != null) {
-	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, commandNames);
+	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, svc.getName());
 	}
 
 	// Register the service-specific behaviour (if any) within the AMS
@@ -744,14 +747,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    }
 
 	    // Uninistall the service sinks
-	    String[] commandNames = svc.getOwnedCommands();
 	    Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
 	    if(sSrc != null) {
-		myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, commandNames);
+		myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, svc.getName());
 	    }
 	    Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
 	    if(sTgt != null) {
-		myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, commandNames);
+		myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
 	    }
 
 	    // Uninstall the service

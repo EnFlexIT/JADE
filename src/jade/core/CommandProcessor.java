@@ -104,7 +104,7 @@ public class CommandProcessor {
        @throws ServiceException If some other sink is already
        registered for a member of the <code>commandNames</code> set.
     */
-    public synchronized void registerSink(Sink snk, boolean side, String[] commandNames) throws ServiceException {
+    public synchronized void registerSink(Sink snk, boolean side, String serviceName) throws ServiceException {
 
 	Map sinks;
 	if(side == Sink.COMMAND_SOURCE) {
@@ -113,13 +113,7 @@ public class CommandProcessor {
 	else {
 	    sinks = targetSinks;
 	}
-	for(int i = 0; i < commandNames.length; i++) {
-	    Object old = sinks.put(commandNames[i], snk);
-	    if(old != null) { // Command name owned by another service
-		sinks.put(commandNames[i], old);
-		throw new ServiceException("Command <" + commandNames[i] + "> has a sink already.");
-	    }
-	}
+	sinks.put(serviceName, snk);
     }
 
     /**
@@ -135,7 +129,7 @@ public class CommandProcessor {
        @throws ServiceException If a member of the
        <code>commandNames</code> set has no associated command sink.
     */
-    public synchronized void deregisterSink(boolean side, String[] commandNames) throws ServiceException {
+    public synchronized void deregisterSink(boolean side, String serviceName) throws ServiceException {
 	
 	Map sinks;
 	if(side == Sink.COMMAND_SOURCE) {
@@ -144,12 +138,8 @@ public class CommandProcessor {
 	else {
 	    sinks = targetSinks;
 	}
-	for(int i = 0; i < commandNames.length; i++) {
-	    Object snk = sinks.remove(commandNames[i]);
-	    if(snk == null) {
-		throw new ServiceException("No sink is registered for command <" + commandNames[i] + ">");
-	    }
-	}
+	
+	sinks.remove(serviceName);
     }
 
     /**
@@ -172,12 +162,12 @@ public class CommandProcessor {
 	    // Give each filter a chance to veto the command
 	    boolean accepted = f.accept(cmd);
 	    if(!accepted) {
-		// FIXME: Should we throw e.g. a VetoedCommandException?
-		return null;
+				// Vetoed command
+				return null;
 	    }
 	}
 
-	Sink s = (Sink)sourceSinks.get(cmd.getName());
+	Sink s = (Sink)sourceSinks.get(cmd.getService());
 	if(s != null) {
 	    s.consume(cmd);
 	}
@@ -205,12 +195,12 @@ public class CommandProcessor {
 	    // Give each filter a chance to veto the command
 	    boolean accepted = f.accept(cmd);
 	    if(!accepted) {
-		// FIXME: Should we throw e.g. a VetoedCommandException?
-		return null;
+				// Vetoed command
+				return null;
 	    }
 	}
 
-	Sink s = (Sink)targetSinks.get(cmd.getName());
+	Sink s = (Sink)targetSinks.get(cmd.getService());
 	if(s != null) {
 	    s.consume(cmd);
 	}

@@ -210,7 +210,7 @@ public abstract class BaseService implements Service {
     }
 
     public Object submit(VerticalCommand cmd) throws ServiceException {
-	String cmdName = cmd.getName();
+    	String cmdName = cmd.getName(); 
 	String[] ownedCommands = getOwnedCommands();
 
 	for(int i = 0; i < ownedCommands.length; i++) {

@@ -44,6 +44,13 @@ public interface Command {
     String getName();
 
     /**
+       Query the service this command object belongs to.
+
+       @return The name of the service this command object belongs to.
+    */
+    String getService();
+
+    /**
        Obtain the parameter list, as an array of Java objects.
        @return The parameters associated with this command object.
     */

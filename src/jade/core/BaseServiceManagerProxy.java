@@ -203,6 +203,7 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	    myIMTPManager.connect(cid);
 	}
 
+	// Install the services in the local node
 	List failedServices = new LinkedList();
 	for(int i = 0; i < services.length; i++) {
 	    // Install the local component of the new service
@@ -274,8 +275,7 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	    uninstallServiceLocally(name);
 	}
 
-	// Add a service slice for this service on this node to the remote Service Manager
-
+	// Add a service slice for this service on this node to the remote ServiceManagerImpl
 	// Remote call, IMTP-dependent
 	addRemoteSlice(name, svc.getHorizontalInterface(), new NodeDescriptor(localNode.getName(), localNode));
 
@@ -348,15 +348,6 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	return result;
     }
 
-    /**
-       Allows subclasses to access the command processor.
-
-       @return The <code>CommandProcessor</code> instance used by this
-       Service Manager proxy.
-    */
-    protected CommandProcessor getCommandProcessor() {
-	return myCommandProcessor;
-    }
 
     // Private helper method, common to one-shot and batch service activation
     private void installServiceLocally(String name, Service svc) throws IMTPException, ServiceException {
@@ -375,11 +366,11 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	String[] commandNames = svc.getOwnedCommands();
 	Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
 	if(sSrc != null) {
-	    myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, commandNames);
+	    myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, svc.getName());
 	}
 	Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
 	if(sTgt != null) {
-	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, commandNames);
+	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, svc.getName());
 	}
 
 	// Export the local slice so that it can be reached through the network
@@ -414,11 +405,11 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	String[] commandNames = svc.getOwnedCommands();
 	Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
 	if(sSrc != null) {
-	    myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, commandNames);
+	    myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, svc.getName());
 	}
 	Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
 	if(sTgt != null) {
-	    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, commandNames);
+	    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
 	}
 
     }
