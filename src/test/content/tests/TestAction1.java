@@ -46,8 +46,9 @@ public class TestAction1 extends Test{
   }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Object[] args = getGroupArguments();
-  		final ACLMessage msg = (ACLMessage) args[0];
+  		//Object[] args = getGroupArguments();
+  		//final ACLMessage msg = (ACLMessage) args[0];
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Sell sell = new Sell();

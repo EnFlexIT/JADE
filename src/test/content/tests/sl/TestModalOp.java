@@ -53,8 +53,9 @@ public class TestModalOp extends Test{
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Object[] args = getGroupArguments();
-  		final ACLMessage msg = (ACLMessage) args[0];
+  		//Object[] args = getGroupArguments();
+  		//final ACLMessage msg = (ACLMessage) args[0];
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Item it = new Item();
@@ -66,14 +67,15 @@ public class TestModalOp extends Test{
   				i.set(SLVocabulary.INTENTION_CONDITION, TestOntology.getInstance().fromObject(e));
   					
   				AbsPredicate b = new AbsPredicate(SLVocabulary.BELIEF);
-  	  		b.set(SLVocabulary.BELIEF_AGENT, BasicOntology.getInstance().fromObject(new AID("Bill", AID.ISLOCALNAME)));
   				b.set(SLVocabulary.BELIEF_CONDITION, i);
+  	  		b.set(SLVocabulary.BELIEF_AGENT, BasicOntology.getInstance().fromObject(new AID("Bill", AID.ISLOCALNAME)));
   					
 					AbsPredicate u = new AbsPredicate(SLVocabulary.UNCERTAINTY);
   				u.set(SLVocabulary.UNCERTAINTY_AGENT, BasicOntology.getInstance().fromObject(new AID("Peter", AID.ISLOCALNAME)));
   				u.set(SLVocabulary.UNCERTAINTY_CONDITION, b);
   				
   				myAgent.getContentManager().fillContent(msg, u);
+  				System.out.println("Encoded content is:\n"+msg.getContent());
   				return msg;
   			}
   		};

@@ -39,6 +39,11 @@ import test.common.agentConfigurationOntology.*;
 import test.content.testOntology.TestOntology;
 
 public class ContentTesterAgent extends TesterAgent {
+	// Names and default values for group arguments
+	public static final String CODEC_CLASS_NAME = "codec";
+	private static final String CODEC_CLASS_DEFAULT = "jade.content.lang.sl.SLCodec";
+		
+	public static final String INFORM_MSG_NAME = "inform-msg";
 	
 	private static final String RESPONDER_NAME = "responder";
 	
@@ -54,6 +59,7 @@ public class ContentTesterAgent extends TesterAgent {
   		"test.content.tests.TestAgentAction",
   		"test.content.tests.TestAction1",
   		"test.content.tests.TestAction2",
+  		"test.content.tests.TestObject",
   		"test.content.tests.TestUnknownSchema",
   		"test.content.tests.TestOntoAID",
   		"test.content.tests.TestSequence",
@@ -67,19 +73,23 @@ public class ContentTesterAgent extends TesterAgent {
   		"test.content.tests.TestOntoACLMessage",
   		"test.content.tests.TestBCReflectiveIntrospector",
   		"test.content.tests.TestAbsDescriptorAsConcept",
-  		"test.content.tests.TestAbsDescriptorAsPredicate"
+  		"test.content.tests.TestAbsDescriptorAsPredicate",
+  		"test.content.tests.TestSlotOrder"
 		} ) {
 			
 			private AID resp;
 			
 			public void initialize(Agent a) throws TestException {
 				// Load the codec to be used in the tests
-				Object[] args = ContentTesterAgent.this.getArguments();
+				/*Object[] args = ContentTesterAgent.this.getArguments();
     		String codecClassName = "jade.content.lang.sl.SLCodec";
     		Codec codec = null;
     		if (args != null && args.length > 0) {
     			codecClassName = (String) args[0];
-    		}
+    		}*/
+    		
+    		Codec codec = null;
+    		String codecClassName = (String) getArgument(CODEC_CLASS_NAME);
     		try {
     			codec = (Codec) Class.forName(codecClassName).newInstance();
     		}
@@ -104,7 +114,7 @@ public class ContentTesterAgent extends TesterAgent {
   			msg.setOntology(TestOntology.getInstance().getName());
   			msg.setConversationId(Responder.TEST_CONVERSATION);
   			msg.setReplyWith(Responder.TEST_RESPONSE_ID);
-				setArguments(new Object[] {msg});
+				setArgument(INFORM_MSG_NAME, msg);
 			}
 			
 			public void shutdown(Agent a) {
@@ -117,6 +127,8 @@ public class ContentTesterAgent extends TesterAgent {
 			}
 		};
 				
+		tg.specifyArgument(CODEC_CLASS_NAME, "Codec class name", CODEC_CLASS_DEFAULT);
+		
 		return tg;
 	}
 	

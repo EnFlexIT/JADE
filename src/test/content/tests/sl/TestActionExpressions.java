@@ -25,53 +25,59 @@ package test.content.tests.sl;
 
 import test.common.*;
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
 import jade.content.lang.sl.*;
 import jade.content.abs.*;
+import jade.content.onto.basic.Action;
 import examples.content.ecommerceOntology.*;
 import test.common.*;
 import test.content.*;
 import test.content.testOntology.*;
+import java.util.Date;
 
 /**
  * @author Giovanni Caire - TILAB
  */
-public class TestQuantifiers extends Test{
+public class TestActionExpressions extends Test{
   public String getName() {
-  	return "Test-quantifiers";
+  	return "Test-action-expressions";
   }
   
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including the EXISTS and FORALL operators\n");
-  	sb.append("The content tested looks like: (exists ?x (forall ?y (CLOSE ?x ?y) ) )");
+  	StringBuffer sb = new StringBuffer("Tests a content including the | (ACTION_ALTERNATIVE) and ; (ACTION_SEQUENCE) operators\n");
+  	sb.append("The tested content looks like: (; (action (agent-identifier ...) (SELL...)) (| (action (agent-identifier ...) (SELL ...)) (action (agent-identifier ...) (SELL ...))))");
   	return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
   		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				AbsVariable x = new AbsVariable("x", TestOntology.LOCATION);
-  				AbsVariable y = new AbsVariable("y", TestOntology.LOCATION);
+  				msg.setPerformative(ACLMessage.REQUEST);
   				
-  				AbsPredicate close = new AbsPredicate(TestOntology.CLOSE);
-  				close.set(TestOntology.CLOSE_WHERE, x);
-  				close.set(TestOntology.CLOSE_TO, y);
+  				AID john = new AID("John", AID.ISLOCALNAME);
+  				AID bill = new AID("Bill", AID.ISLOCALNAME);
+  				Sell s1 = new Sell(john, new Item(100), new CreditCard("VISA", 1000000, new Date()));
+  				Sell s2 = new Sell(john, new Item(200), new CreditCard("VISA", 1000000, new Date()));
+  				Sell s3 = new Sell(john, new Item(200), new CreditCard("AMEX", 1000000, new Date()));
   				
-  				AbsPredicate exists = new AbsPredicate(SLVocabulary.EXISTS);
-  				exists.set(SLVocabulary.EXISTS_CONDITION, close);
-  				exists.set(SLVocabulary.EXISTS_WHAT, y);
+  				Action a1 = new Action(bill, s1);
+  				Action a2 = new Action(bill, s2);
+  				Action a3 = new Action(bill, s3);
   				
-  				AbsPredicate forall = new AbsPredicate(SLVocabulary.FORALL);
-  				forall.set(SLVocabulary.FORALL_WHAT, x);
-  				forall.set(SLVocabulary.FORALL_CONDITION, exists);
+  				AbsAgentAction alternative = new AbsAgentAction(SLVocabulary.ACTION_ALTERNATIVE);
+  				alternative.set(SLVocabulary.ACTION_ALTERNATIVE_FIRST, (AbsAgentAction) ECommerceOntology.getInstance().fromObject(a2));
+  				alternative.set(SLVocabulary.ACTION_ALTERNATIVE_SECOND, (AbsAgentAction) ECommerceOntology.getInstance().fromObject(a3));
   				
-  				myAgent.getContentManager().fillContent(msg, forall);
+  				AbsAgentAction sequence = new AbsAgentAction(SLVocabulary.ACTION_SEQUENCE);
+  				sequence.set(SLVocabulary.ACTION_SEQUENCE_SECOND, alternative);
+  				sequence.set(SLVocabulary.ACTION_SEQUENCE_FIRST, (AbsAgentAction) ECommerceOntology.getInstance().fromObject(a1));
+  				
+  				myAgent.getContentManager().fillContent(msg, sequence);
   				System.out.println("Encoded content is:\n"+msg.getContent());
   				return msg;
   			}

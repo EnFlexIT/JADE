@@ -39,6 +39,8 @@ import test.common.agentConfigurationOntology.*;
 import test.content.testOntology.TestOntology;
 
 public class SLOperatorsTesterAgent extends TesterAgent {
+	// Names and default values for group arguments
+	public static final String INFORM_MSG_NAME = "inform-msg";
 	
 	private static final String RESPONDER_NAME = "responder";
 	
@@ -46,7 +48,8 @@ public class SLOperatorsTesterAgent extends TesterAgent {
 		TestGroup tg = new TestGroup(new String[] {
   		"test.content.tests.sl.TestLogicalOp",
   		"test.content.tests.sl.TestModalOp",
-  		"test.content.tests.sl.TestQuantifiers"
+  		"test.content.tests.sl.TestQuantifiers",
+  		"test.content.tests.sl.TestActionExpressions"
 		} ) {
 			
 			private AID resp;
@@ -77,7 +80,7 @@ public class SLOperatorsTesterAgent extends TesterAgent {
   			msg.setOntology(TestOntology.getInstance().getName());
   			msg.setConversationId(Responder.TEST_CONVERSATION);
   			msg.setReplyWith(Responder.TEST_RESPONSE_ID);
-				setArguments(new Object[] {msg});
+				setArgument(INFORM_MSG_NAME, msg);
 			}
 			
 			public void shutdown(Agent a) {

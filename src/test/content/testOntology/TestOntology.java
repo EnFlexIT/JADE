@@ -26,6 +26,7 @@ package test.content.testOntology;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.content.abs.*;
 import examples.content.musicShopOntology.*;
 
 /**
@@ -61,6 +62,9 @@ public class TestOntology extends Ontology {
   public static final String CLOSE_WHERE = "where";
   public static final String CLOSE_TO = "to";
   
+  public static final String ELEMENT = "ELEMENT";
+  public static final String ELEMENT_WHAT = "what";
+  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new TestOntology(MusicShopOntology.getInstance());
 	
@@ -79,8 +83,9 @@ public class TestOntology extends Ontology {
     	add(new ConceptSchema(POSITION), Position.class);
     	add(new ConceptSchema(MOVE), Move.class);
     	add(new ConceptSchema(ROUTE), Route.class);
-    	add(new ConceptSchema(LOCATION), absConceptClass);
-    	add(new PredicateSchema(CLOSE), absPredicateClass);
+    	add(new ConceptSchema(LOCATION), AbsConcept.getJavaClass());
+    	add(new PredicateSchema(CLOSE), AbsPredicate.getJavaClass());
+    	add(new PredicateSchema(ELEMENT), AbsPredicate.getJavaClass());
     	
     	PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
     	ps.add(EXISTS_WHAT, (ConceptSchema) ConceptSchema.getBaseSchema());
@@ -88,6 +93,9 @@ public class TestOntology extends Ontology {
     	ps = (PredicateSchema) getSchema(CLOSE);
     	ps.add(CLOSE_WHERE, (ConceptSchema) getSchema(LOCATION));
     	ps.add(CLOSE_TO, (ConceptSchema) getSchema(LOCATION));
+    	
+    	ps = (PredicateSchema) getSchema(ELEMENT);
+    	ps.add(ELEMENT_WHAT, ObjectSchema.getBaseSchema());
 
     	ConceptSchema cs = (ConceptSchema) getSchema(POSITION);
     	cs.add(POSITION_X, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));

@@ -45,14 +45,15 @@ public class TestLogicalOp extends Test{
   
   public String getDescription() {
   	StringBuffer sb = new StringBuffer("Tests a content including the AND, OR and NOT operators\n");
-  	sb.append("The content tested looks like: (not (or (EXISTS ...) (and (EXISTS ...) (EXISTS ...) ) ) )");
+  	sb.append("The content tested looks like: (not (or (TEST_EXISTS ...) (and (TEST_EXISTS ...) (TEST_EXISTS ...) ) ) )");
   	return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Object[] args = getGroupArguments();
-  		final ACLMessage msg = (ACLMessage) args[0];
+  		//Object[] args = getGroupArguments();
+  		//final ACLMessage msg = (ACLMessage) args[0];
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Item i1 = new Item();
@@ -66,17 +67,18 @@ public class TestLogicalOp extends Test{
   				Exists e3 = new Exists(i3);
   				
   				AbsPredicate and = new AbsPredicate(SLVocabulary.AND);
-  				and.set(SLVocabulary.AND_LEFT, TestOntology.getInstance().fromObject(e1));
-  				and.set(SLVocabulary.AND_RIGHT, TestOntology.getInstance().fromObject(e2));
+  				and.set(SLVocabulary.AND_LEFT, TestOntology.getInstance().fromObject(e2));
+  				and.set(SLVocabulary.AND_RIGHT, TestOntology.getInstance().fromObject(e3));
   				
   				AbsPredicate or = new AbsPredicate(SLVocabulary.OR);
-  				or.set(SLVocabulary.OR_LEFT, TestOntology.getInstance().fromObject(e3));
   				or.set(SLVocabulary.OR_RIGHT, and);
+  				or.set(SLVocabulary.OR_LEFT, TestOntology.getInstance().fromObject(e1));
   				
   				AbsPredicate not = new AbsPredicate(SLVocabulary.NOT);
   				not.set(SLVocabulary.NOT_WHAT, or);
   				
   				myAgent.getContentManager().fillContent(msg, not);
+  				System.out.println("Encoded content is:\n"+msg.getContent());
   				return msg;
   			}
   		};

@@ -23,46 +23,48 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
+import test.common.*;
 import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
-import jade.content.*;
+import jade.content.ContentManager;
 import jade.content.abs.*;
-import jade.content.onto.*;
-import jade.content.onto.basic.*;
+import examples.content.ecommerceOntology.*;
 import test.common.*;
 import test.content.*;
-import test.content.testOntology.*;
-import examples.content.ecommerceOntology.*;
-import examples.content.musicShopOntology.*;
+import test.content.testOntology.Exists;
 
-public class TestAggregateAsConcept extends Test{
+/**
+   @author Giovanni Caire - TILAB
+ */
+public class TestSlotOrder extends Test{
   public String getName() {
-  	return "Aggregate-as-concept";
+  	return "Slot-order";
   }
+  
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content with an aggregate where a concept is required");
+  	StringBuffer sb = new StringBuffer("Tests a content including a predicate where slots values have been set in a mixed order");
   	return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
   		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
-  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);
-  				AbsConcept t = new AbsConcept(MusicShopOntology.TRACK);
-  				t.set(MusicShopOntology.TRACK_NAME, "Every breath you take");
-  				agg.add(t);
-  		
-  				AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
-  				// Compilation should allows that as AbsAggregate extends AbsConcept
-  				// However an OntologyException should be thrown as an 
-  				// aggregate is not a concept
-  				e.set(TestOntology.EXISTS_WHAT, agg);
-  				myAgent.getContentManager().fillContent(msg, e);
+  				AbsConcept i = new AbsConcept(ECommerceOntology.ITEM);
+  				i.set(ECommerceOntology.ITEM, 35624);
+  				
+  				AbsConcept p = new AbsConcept(ECommerceOntology.PRICE);
+  				p.set(ECommerceOntology.PRICE_VALUE, 5.37);
+  				p.set(ECommerceOntology.PRICE_CURRENCY, "Euro");
+  				
+  				AbsPredicate c = new AbsPredicate(ECommerceOntology.COSTS);
+  				// Set the price before the item
+  				c.set(ECommerceOntology.COSTS_PRICE, p);
+  				c.set(ECommerceOntology.COSTS_ITEM, i);
+  				
+  				myAgent.getContentManager().fillContent(msg, c);
   				return msg;
   			}
   		};

@@ -28,41 +28,32 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
-import jade.content.onto.*;
-import jade.content.onto.basic.*;
+import jade.content.onto.BasicOntology;
 import test.common.*;
 import test.content.*;
 import test.content.testOntology.*;
-import examples.content.ecommerceOntology.*;
-import examples.content.musicShopOntology.*;
 
-public class TestAggregateAsConcept extends Test{
+/**
+   @author Giovanni Caire - TILAB
+ */
+public class TestObject extends Test{
   public String getName() {
-  	return "Aggregate-as-concept";
+  	return "Generic-object-slot";
   }
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content with an aggregate where a concept is required");
+  	StringBuffer sb = new StringBuffer("Tests a content where a slot must be a generic object");
   	return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
   		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
-  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);
-  				AbsConcept t = new AbsConcept(MusicShopOntology.TRACK);
-  				t.set(MusicShopOntology.TRACK_NAME, "Every breath you take");
-  				agg.add(t);
-  		
-  				AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
-  				// Compilation should allows that as AbsAggregate extends AbsConcept
-  				// However an OntologyException should be thrown as an 
-  				// aggregate is not a concept
-  				e.set(TestOntology.EXISTS_WHAT, agg);
-  				myAgent.getContentManager().fillContent(msg, e);
+  				msg.setPerformative(ACLMessage.INFORM);
+  				AbsPredicate p = new AbsPredicate(TestOntology.ELEMENT);
+  				p.set(TestOntology.ELEMENT_WHAT, BasicOntology.getInstance().fromObject(myAgent.getAID()));
+  				myAgent.getContentManager().fillContent(msg, p);
   				return msg;
   			}
   		};
