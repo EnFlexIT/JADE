@@ -31,7 +31,7 @@ package jade.core;
 class AgentDescriptor {
 
   private RemoteProxy proxy;
-  private String containerName;
+  private ContainerID containerID;
   private boolean locked = false;
 
   public void setProxy(RemoteProxy rp) {
@@ -42,12 +42,12 @@ class AgentDescriptor {
     return proxy;
   }
 
-  public void setContainerName(String name) {
-    containerName = name;
+  public void setContainerID(ContainerID cid) {
+    containerID = cid;
   }
 
-  public String getContainerName() {
-    return containerName;
+  public ContainerID getContainerID() {
+    return containerID;
   }
 
   public synchronized void lock() {
