@@ -27,7 +27,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
 
-import jade.domain.AgentManagementOntology;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -38,21 +37,6 @@ public class FIPAException extends Exception {
 
   public FIPAException(String msg) {
     super(msg);
-  }
-
-  public static FIPAException fromText(Reader r) {
-    AgentManagementOntology o = AgentManagementOntology.instance();
-      return o.getException(r);
-  }
-
-  public void toText(Writer w) {
-    try {
-      w.write(getMessage());
-      w.flush();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
   }
 
 }
