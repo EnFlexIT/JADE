@@ -1,3 +1,30 @@
+Changes in the snapshot of the 28/09/04
+==========================================================================
+GENERAL IMPROVEMENTS:
+- HashCache is now synchronized and uses a LinkedList instead of a Vector
+- StringACLCodec 
+- Scalability improvements:
+  - added support for child nodes that are monitored by a parent
+    node instead of the main-container
+  - Now the platform accepts nodes with no container
+- changed the log levels of some classes
+
+ADD-ONS:
+- RDFCodec: fixed bug in URI (Spanoudakis Nikos). It creates a backward incompatibility
+  as content encoded by the new RDF codec cannot be decoded by old RDFCodec
+
+BUG FIXES:
+- Principal and Credentials in the message shutdownPlatform and killContainer
+  were not properly managed by the security add-on
+- PersistentDeliveryService: messages were not properly restored
+- MessageManager: avoided deliverer crash
+- jade.core.Agent: fixed bug in putO2AObject synch (Christian Pocher)
+- LEAP-IMTP: did not manage properly a keep-alive time < 0
+
+
+
+
+
 Changes in the snapshot of the 20/09/04
 ==========================================================================
 GENERAL IMPROVEMENTS:
