@@ -428,11 +428,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     for(int i = 0; i < allLocalAgents.length; i++) {
       String name = (String)allLocalAgents[i];
 
-			// Kill agent and wait for its termination
-			Agent a = (Agent)localAgents.get(name);
-			a.doDelete();
-			a.join();
-		}
+      // Kill agent and wait for its termination
+      Agent a = (Agent)localAgents.get(name);
+      a.doDelete();
+      a.join();
+    }
 
     // Unblock threads hung in ping() method (this will deregister the container)
     synchronized(pingLock) {
