@@ -13,10 +13,9 @@ ant dist - to create the distribution files
   <description>JADE build file</description>
   <property name="version" value="2.6"/>
   <property name="build.compiler" value="javac1.2"/>
-  <property name="javac.optimize" value="on" />
-  <property name="javac.debug" value="off" />
-
- <property name="EXECidlj" value="false"/> 
+  <property name="javac.optimize" value="on"/>
+  <property name="javac.debug" value="off"/>
+  <property name="EXECidlj" value="false"/>
   <!-- by default idlj is not executed, set to true the value for the
        previous property if you want to execute idlj -->
   <property environment="env"/>
@@ -57,8 +56,6 @@ ant dist - to create the distribution files
   <target name="check_execIdlj" unless="EXECidlj.is.set">
     <echo>Default behaviour: IDLJ task is being skipped.</echo>
   </target>
-  
- 
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
@@ -99,7 +96,6 @@ ant dist - to create the distribution files
     <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
     <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
   </target>
-  
   <!--     _______________________________________________
                                 idlj
           _______________________________________________ -->
@@ -189,13 +185,6 @@ ant dist - to create the distribution files
     <javadoc destdir="${doc}/tools/sniffer/html/jdoc" author="true" windowtitle="JADE ${version} Sniffer Reference" sourcepath="${src}" packagenames="jade.tools.sniffer"/>
   </target>
   <!--     _______________________________________________
-                               test
-         _______________________________________________ -->
-  <target name="test" depends="lib" description="compile the test ">
-    <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" includes="test/**" classpath="${lib}/jade.jar"/>
-  </target>
-  <!--     _______________________________________________
                                examples
          _______________________________________________ -->
   <target name="examples" depends="lib,examples1,demo,jessexamples" description="compile the examples "/>
@@ -232,11 +221,9 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-      <!-- fileset dir="${dist}" includes="jade/src/Makefile"/ -->
       <fileset dir="${dist}" includes="jade/src/*.idl"/>
       <fileset dir="${dist}" includes="jade/src/*.html"/>
       <fileset dir="${dist}" includes="jade/classes/*.mf"/>
-      <!-- fileset dir="${dist}" includes="jade/lib/Makefile"/ -->
     </jar>
   </target>
   <target name="dist_examples" depends="init">
