@@ -21,8 +21,6 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package jade.domain;
 
 import java.lang.reflect.Method;
@@ -52,9 +50,8 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.MissingParameter;
-import jade.domain.FIPAAgentManagement.NotRegistered;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.NotRegistered;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -224,7 +221,6 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       fillContent(msg,l); 
       send(msg);
     }
-     
 
   } // End of SrchBehaviour class
 
@@ -251,7 +247,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	      sendReply(ACLMessage.FAILURE,"(Gui_is_being_shown_already)");
   	}
       
-     public boolean done() 
+      public boolean done() 
       {
 	  return true;
       }
@@ -584,13 +580,15 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   public boolean showGui() {
    if (gui == null) 
   		{
-			gui = new DFGUI(df.this, false);
-			gui.refresh(PROVA.values().iterator(),parents.iterator(),children.iterator());
+		    gui = new DFGUI(df.this, false);
+		    DFAgentDescription matchEverything = new DFAgentDescription();
+		    List agents = agentDescriptions.search(matchEverything);
+		    gui.refresh(agents.iterator(), parents.iterator(), children.iterator());
 			
-			gui.setVisible(true);
-			return true;
+		    gui.setVisible(true);
+		    return true;
   		}
-  	
+ 
    return false;
   }
    
@@ -663,16 +661,94 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   }
   
   
-private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
-  
+  private KB agentDescriptions = new KBAbstractImpl() {
+      protected boolean match(Object template, Object fact) {
+
+	try {
+	  DFAgentDescription templateDesc = (DFAgentDescription)template;
+	  DFAgentDescription factDesc = (DFAgentDescription)fact;
+
+	  // Match name
+	  AID id1 = templateDesc.getName();
+	  if(id1 != null) {
+	    AID id2 = factDesc.getName();
+	    if((id2 == null) || (!matchAID(id1, id2)))
+	      return false;
+	  }
+
+	  // Match protocol set
+	  Iterator itTemplate = templateDesc.getAllProtocols();
+	  while(itTemplate.hasNext()) {
+	    String templateProto = (String)itTemplate.next();
+	    boolean found = false;
+	    Iterator itFact = factDesc.getAllProtocols();
+	    while(!found && itFact.hasNext()) {
+	      String factProto = (String)itFact.next();
+	      found = templateProto.equalsIgnoreCase(factProto);
+	    }
+	    if(!found)
+	      return false;
+	  }
+
+	  // Match ontologies set
+	  itTemplate = templateDesc.getAllOntologies();
+	  while(itTemplate.hasNext()) {
+	    String templateOnto = (String)itTemplate.next();
+	    boolean found = false;
+	    Iterator itFact = factDesc.getAllOntologies();
+	    while(!found && itFact.hasNext()) {
+	      String factOnto = (String)itFact.next();
+	      found = templateOnto.equalsIgnoreCase(factOnto);
+	    }
+	    if(!found)
+	      return false;
+	  }
+
+	  // Match languages set
+	  itTemplate = templateDesc.getAllLanguages();
+	  while(itTemplate.hasNext()) {
+	    String templateLang = (String)itTemplate.next();
+	    boolean found = false;
+	    Iterator itFact = factDesc.getAllLanguages();
+	    while(!found && itFact.hasNext()) {
+	      String factLang = (String)itFact.next();
+	      found = templateLang.equalsIgnoreCase(factLang);
+	    }
+	    if(!found)
+	      return false;
+	  }
+
+	  // Match services set
+	  itTemplate = templateDesc.getAllServices();
+	  while(itTemplate.hasNext()) {
+	    ServiceDescription templateSvc = (ServiceDescription)itTemplate.next();
+	    boolean found = false;
+	    Iterator itFact = factDesc.getAllServices();
+	    while(!found && itFact.hasNext()) {
+	      ServiceDescription factSvc = (ServiceDescription)itFact.next();
+	      found = matchServiceDesc(templateSvc, factSvc);
+	    }
+	    if(!found)
+	      return false;
+	  }
+
+	  return true;
+	}
+	catch(ClassCastException cce) {
+	  return false;
+	}
+      }
+    };
+
+
 private void DFRegister(DFAgentDescription dfd) throws FIPAException {
-    System.out.println("df::DFRegister() called.");
     
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+    
+    Object old = agentDescriptions.register(dfd.getName(), dfd);
+    if(old != null)
+      throw new AlreadyRegistered();
 
-    if (PROVA.containsKey(dfd.getName()))
-	throw new AlreadyRegistered();
-    PROVA.put(dfd.getName(),dfd);
     if (isADF(dfd)) {
     	children.add(dfd.getName());
     	try {
@@ -687,38 +763,39 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 
 
   private void DFDeregister(DFAgentDescription dfd) throws FIPAException {
-    System.out.println("df::DFDeregister() called.");
     checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
 
-    if (PROVA.remove(dfd.getName()) == null)
+    Object old = agentDescriptions.deregister(dfd.getName());
+    if(old == null)
       throw new NotRegistered();
+
     if (children.remove(dfd.getName()))
-      try {
-      gui.removeChildren(dfd.getName());
-    } catch (Exception e) {}
+    	try {
+    		gui.removeChildren(dfd.getName());
+    	} catch (Exception e) {}
     try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-      // this refresh must be here, otherwise the GUI is not synchornized with 
-      // registration/deregistration made without using the GUI
-      gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-      gui.showStatusMsg("Deregistration of agent : " + dfd.getName().getName() +" done.");
-    }catch(Exception e1){}	
-  }
+    	// this refresh must be here, otherwise the GUI is not synchornized with 
+    	// registration/deregistration made without using the GUI
+    		        gui.removeAgentDesc(dfd.getName());		
+						}catch(Exception e1){}	
     
+
+  }
+
   private void DFModify(DFAgentDescription dfd) throws FIPAException {
-    System.out.println("df::DFModify() called.");
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
 
-    if (PROVA.put(dfd.getName(),dfd) == null)
-    	throw new NotRegistered();
-    
+    Object old = agentDescriptions.deregister(dfd.getName());
+    if(old == null)
+      throw new NotRegistered();
+    agentDescriptions.register(dfd.getName(), dfd);    
     
 
   }
 
   private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
-    System.out.println("df::DFSearch() called.");
-    //FIXME: now returns all the agent registered.
-    return new ArrayList(PROVA.values());
+    // Search has no mandatory slots
+    return agentDescriptions.search(dfd);
     
   }
 
@@ -908,11 +985,15 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	// This method returns the descriptor of an agent registered with the df.
 	public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException
 	{
-	  return  (DFAgentDescription)PROVA.get(name);
+	  DFAgentDescription template = new DFAgentDescription();
+	  template.setName(name);
+	  List l = agentDescriptions.search(template);
+	  if(l.isEmpty())
+	    return null;
+	  else
+	    return (DFAgentDescription)l.get(0);
 	}
-	
-	
-	
+
 	/**
   * This method creates the DFAgent descriptor for this df used to federate with other df.
 	*/
