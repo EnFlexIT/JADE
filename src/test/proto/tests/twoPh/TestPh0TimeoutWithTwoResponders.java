@@ -166,8 +166,8 @@ public class TestPh0TimeoutWithTwoResponders extends Test {
 
 
   		addBehaviour(new TwoPhResponder(this, TwoPhResponder.createMessageTemplate()) {
-  			protected ACLMessage preparePropose(ACLMessage cfp) {
-                l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+  			protected ACLMessage handleCfp(ACLMessage cfp) {
+                l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                         ") - received --------------> " + cfp);
                 ACLMessage response = null;
                 try {
@@ -177,17 +177,17 @@ public class TestPh0TimeoutWithTwoResponders extends Test {
                     e.printStackTrace();
                 }
                 if(timeout.equals("timeout")) {
-                    l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                    l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                         ") - SLEEP " + System.currentTimeMillis());
                     try {
                         Thread.sleep(20000);
                     } catch(InterruptedException e) {
-                        l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                        l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                             ") - WAKE UP " + System.currentTimeMillis());
 
                     }
                 }
-                l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                         ") - send --------------> " + response);
 
                 return response;

@@ -219,8 +219,8 @@ public class TestPh1DisconfirmWithTwoResponders extends Test {
 		ph1Response = (String) args[0];
 
   		addBehaviour(new TwoPhResponder(this, TwoPhResponder.createMessageTemplate()) {
-  			protected ACLMessage preparePropose(ACLMessage cfp) {
-                  l.log("\nLOG - (Responder, preparePropose(), " + myAgent.getAID() + ") - received " + cfp);
+  			protected ACLMessage handleCfp(ACLMessage cfp) {
+                  l.log("\nLOG - (Responder, handleCfp(), " + myAgent.getAID() + ") - received " + cfp);
                 ACLMessage response = null;
                 try {
                     response = cfp.createReply();
@@ -228,7 +228,7 @@ public class TestPh1DisconfirmWithTwoResponders extends Test {
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
-                l.log("\nLOG - (Responder, preparePropose(), " + myAgent.getAID() + ") - send " + response);
+                l.log("\nLOG - (Responder, handleCfp(), " + myAgent.getAID() + ") - send " + response);
                 return response;
   			}
 

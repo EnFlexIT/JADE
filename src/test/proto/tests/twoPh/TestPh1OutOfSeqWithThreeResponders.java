@@ -254,8 +254,8 @@ public class TestPh1OutOfSeqWithThreeResponders extends Test {
         protected void setup() {
 
             addBehaviour(new TwoPhResponder(this, TwoPhResponder.createMessageTemplate()) {
-                protected ACLMessage preparePropose(ACLMessage cfp) {
-                  l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                protected ACLMessage handleCfp(ACLMessage cfp) {
+                  l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                           ") - received --------------> " + cfp);
                   ACLMessage response = null;
                   try {
@@ -264,7 +264,7 @@ public class TestPh1OutOfSeqWithThreeResponders extends Test {
                   } catch(Exception e) {
                       e.printStackTrace();
                   }
-                  l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                  l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                           ") - send --------------> " + response);
                   return response;
                 }

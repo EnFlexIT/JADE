@@ -167,8 +167,8 @@ public class TestPh0FailureByInitiator extends Test {
 		ph0Response = (String) args[0];
 
   		addBehaviour(new TwoPhResponder(this, TwoPhResponder.createMessageTemplate()) {
-  			protected ACLMessage preparePropose(ACLMessage cfp) {
-                l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+  			protected ACLMessage handleCfp(ACLMessage cfp) {
+                l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                         ") - received --------------> " + cfp);
                 ACLMessage response = null;
                 try {
@@ -177,7 +177,7 @@ public class TestPh0FailureByInitiator extends Test {
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
-                l.log("\n\nLOG - (Responder, preparePropose(), " + myAgent.getLocalName() +
+                l.log("\n\nLOG - (Responder, handleCfp(), " + myAgent.getLocalName() +
                         ") - send --------------> " + response);
                 return response;
   			}
