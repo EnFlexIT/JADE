@@ -9,8 +9,8 @@ import java.util.Map;
   */
 public interface AgentManager {
 
-  Set containerNames();
-  Set agentNames();
+  String[] containerNames();
+  String[] agentNames();
   String getContainerName(String agentName) throws NotFoundException;
   String getAddress(String agentName);
 
