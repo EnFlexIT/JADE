@@ -25,7 +25,9 @@ package jade.core.event;
 
 import jade.core.AID;
 import jade.core.ContainerID;
+//__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__END
 
 /**
  * This class represents an event related to the platform life cycle
@@ -50,8 +52,10 @@ public class PlatformEvent extends JADEEvent {
   private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
   private AID agent = null;
+//__JADE_ONLY__BEGIN
   private AgentPrincipal oldPrincipal = null;
   private AgentPrincipal newPrincipal = null;
+//__JADE_ONLY__END
 
   /**
    * This constructor is used to create a PlatformEvent when a container is
@@ -150,6 +154,7 @@ public class PlatformEvent extends JADEEvent {
     newContainer = to;
   }
 
+//__JADE_ONLY__BEGIN
   public PlatformEvent(AID aid, ContainerID eventSource, AgentPrincipal from, AgentPrincipal to) {
     super(eventSource);
     myID = CHANGED_AGENT_PRINCIPAL;
@@ -157,6 +162,7 @@ public class PlatformEvent extends JADEEvent {
     oldPrincipal = from;
     newPrincipal = to;
   }
+//__JADE_ONLY__END
 
   /**
    * Returns the {@link jade.core.ContainerID ContainerID} of the event source.
@@ -212,6 +218,7 @@ public class PlatformEvent extends JADEEvent {
     return agent;
   }
 
+//__JADE_ONLY__BEGIN
   public AgentPrincipal getOldPrincipal() {
     return oldPrincipal;
   }
@@ -219,6 +226,7 @@ public class PlatformEvent extends JADEEvent {
   public AgentPrincipal getNewPrincipal() {
     return newPrincipal;
   }
+//__JADE_ONLY__END
 
   /**
    * Returns a boolean to indicate if the event type is either
@@ -302,12 +310,14 @@ public class PlatformEvent extends JADEEvent {
               .append(" from: ").append(getSource())
               .append(" to: ").append(newContainer);
               break;
+//__JADE_ONLY__BEGIN
           case CHANGED_AGENT_PRINCIPAL:
               buf.append("changed agent principal: ").append(agent)
               .append(" in: ").append(getSource())
               .append(" from: ").append(oldPrincipal)
               .append(" to: ").append(newPrincipal);
               break;
+//__JADE_ONLY__END
           default:
               // This should never happen, but just in case...
               buf.append("Error: bad event type ID in PlatformEvent.toString()");

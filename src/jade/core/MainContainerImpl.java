@@ -56,12 +56,12 @@ import jade.mtp.MTPDescriptor;
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.Authority;
-import jade.security.AuthenticationException;
-import jade.security.AuthorizationException;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.UserPrincipal;
 //__JADE_ONLY__END
+import jade.security.AuthenticationException;
+import jade.security.AuthorizationException;
 
 
 /**
@@ -370,6 +370,7 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
+//__JADE_ONLY__BEGIN
   private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
     PlatformEvent ev = new PlatformEvent(agentID, cid, oldPrincipal, newPrincipal);
 
@@ -378,6 +379,7 @@ class MainContainerImpl implements Platform, AgentManager {
       l.changedAgentPrincipal(ev);
     }
   }
+//__JADE_ONLY__END
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
     PlatformEvent ev = new PlatformEvent(agentID, from, to);
@@ -614,8 +616,8 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException {
 //__JADE_ONLY__BEGIN
+  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException {
     try {
       Authority auth = Authority.getAuthority();
       IdentityCertificate cert = auth.authenticateUser(user, passwd);
@@ -627,8 +629,8 @@ class MainContainerImpl implements Platform, AgentManager {
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
-//__JADE_ONLY__END
   }
+//__JADE_ONLY__END
 
   public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {

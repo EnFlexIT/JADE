@@ -27,7 +27,9 @@ package jade.domain.introspection;
 import jade.core.AID;
 import jade.core.ContainerID;
 
+//__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__END
 
 /**
   
@@ -39,16 +41,13 @@ public class ChangedAgentPrincipal implements Event {
 
   public static final String NAME = "Changed-Agent-Principal";
 
+//__JADE_ONLY__BEGIN
   private AID agent;
   private AgentPrincipal oldPrincipal;
   private AgentPrincipal newPrincipal;
 
   private ContainerID where;
-
-  public String getName() {
-    return NAME;
-  }
-
+  
   public void setWhere(ContainerID id) {
     where = id;
   }
@@ -80,5 +79,9 @@ public class ChangedAgentPrincipal implements Event {
   public AgentPrincipal getNewPrincipal() {
     return newPrincipal;
   }
+//__JADE_ONLY__END
 
+  public String getName() {
+    return NAME;
+  }
 }
