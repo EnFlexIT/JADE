@@ -47,4 +47,14 @@
 			<WhenTestPass> The test passes if the tester agent is actually cloned and the Vector is correctly transferred.
 			</WhenTestPass>
 		</Test>		
+		
+		<Test name="Dynamic behaviour loading" skip="false">
+			<TestClassName>test.mobility.tests.TestLoadBehaviour</TestClassName>
+			<WhatTest> Test the LoadBehaviour action of the BehaviourLoadingOntology and the LoaderBehaviour.
+			</WhatTest>
+			<HowWorkTest> A behaviour whose code is included in a separate jar file (outside the classpath) is loaded and executed by an agent running a LoaderBehaviour.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the behaviour is correctly loaded and executed and the tester agent receives the expected notification sent withing the loaded behaviour.
+			</WhenTestPass>
+		</Test>		
 	</TestsList>
