@@ -25,7 +25,7 @@ package jade.imtp.leap;
 
 import jade.core.*;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import java.util.Vector;
 
 
@@ -50,7 +50,7 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 	  static final int ADOPT = 10;
 	  static final int PING = 11;
   
-    private static final String AUTH_EXCEPTION = "jade.security.AuthException";
+    private static final String AUTH_EXCEPTION = "jade.security.JADESecurityException";
     private static final String SERVICE_EXCEPTION = "jade.core.ServiceException";
 
     /**
@@ -92,7 +92,7 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 	  	// Should never be called
 	  }
 	  
-    public String addNode(NodeDescriptor desc, Vector services, boolean propagated) throws IMTPException, ServiceException, AuthException {
+    public String addNode(NodeDescriptor desc, Vector services, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
 			try {		
 			    Command cmd = new Command(ADD_NODE, remoteID);
 		
@@ -105,7 +105,7 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 			    // Check whether an exception occurred in the remote container
 			    switch (checkResult(result, new String[] {AUTH_EXCEPTION, SERVICE_EXCEPTION})) {
 			    case 1:
-						throw new AuthException((String) result.getParamAt(1));
+						throw new JADESecurityException((String) result.getParamAt(1));
 					case 2:
 						throw new ServiceException((String) result.getParamAt(1));
 			    }

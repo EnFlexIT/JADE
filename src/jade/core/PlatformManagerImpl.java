@@ -29,7 +29,7 @@ package jade.core;
 
 import jade.core.behaviours.Behaviour;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 import jade.mtp.TransportAddress;
@@ -249,7 +249,7 @@ public class PlatformManagerImpl implements PlatformManager {
        @param propagated Flag indicating whether the new-node event 
        was a propagated event within the replication mechanism
      */
-    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, AuthException {
+    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
     	String newName = localAddNode(dsc, nodeServices, propagated);
     	if (!propagated) {
     		broadcastAddNode(dsc, nodeServices);
@@ -257,7 +257,7 @@ public class PlatformManagerImpl implements PlatformManager {
     	return newName;
     }
     
-    private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, AuthException {
+    private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
     	Node node = dsc.getNode();
     	
 			// Adjust node name
@@ -273,8 +273,8 @@ public class PlatformManagerImpl implements PlatformManager {
 				GenericCommand gCmd = new GenericCommand(Service.NEW_NODE, null, null);
 				gCmd.addParam(dsc);
 				Object result = myCommandProcessor.processIncoming(gCmd);
-				if (result instanceof AuthException) {
-					throw (AuthException) result;
+				if (result instanceof JADESecurityException) {
+					throw (JADESecurityException) result;
 				}
 				else if (result instanceof Throwable) {
 					myLogger.log("Unexpected error processing NEW_NODE command. Node is "+dsc.getName(), 0);
@@ -319,7 +319,7 @@ public class PlatformManagerImpl implements PlatformManager {
     			// Zombie replica. Just remove it
     			localRemoveReplica(replica.getLocalAddress(), true);
     		}
-    		catch (AuthException ae) {
+    		catch (JADESecurityException ae) {
     			// Should never happen since this is a propagated info
     			ae.printStackTrace();
     		}
@@ -524,7 +524,7 @@ public class PlatformManagerImpl implements PlatformManager {
 					try {
 						newReplica.addNode(info.getNodeDescriptor(), info.getServices(), true);
 					}
-					catch (AuthException ae) {
+					catch (JADESecurityException ae) {
 						// Should never happen since this is a propagated info
 						ae.printStackTrace();
 					}

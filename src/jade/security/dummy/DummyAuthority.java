@@ -51,13 +51,13 @@ public class DummyAuthority implements Authority {
 		return null;
 	}
 	
-	public void verify(JADECertificate cert) throws AuthException {
+	public void verify(JADECertificate cert) throws JADESecurityException {
 	}
 	
-	public void sign(JADECertificate certificate, Credentials creds) throws AuthException {
+	public void sign(JADECertificate certificate, Credentials creds) throws JADESecurityException {
 	}
 /*	
-	public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws AuthException {
+	public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws JADESecurityException {
 		IdentityCertificate identity = createIdentityCertificate();
 		identity.setSubject(principal);
 		CertificateFolder certs = new CertificateFolder();
@@ -73,7 +73,7 @@ public class DummyAuthority implements Authority {
 		return action.run();
 	}
 	
-	public void checkAction(String action, JADEPrincipal target, Credentials creds) throws AuthException {
+	public void checkAction(String action, JADEPrincipal target, Credentials creds) throws JADESecurityException {
 	}
 	
 	public JADEPrincipal createAgentPrincipal(AID aid, String ownership){

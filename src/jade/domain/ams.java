@@ -69,7 +69,7 @@ import jade.content.onto.basic.Action;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
@@ -222,7 +222,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			    // Send failure notification to the requester if any
 					sendFailureNotification(ca, agentID, new InternalError("Destination container unreachable. "+ue.getMessage()));
 				}
-				catch (AuthException ae) {
+				catch (JADESecurityException ae) {
 			    logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Create-agent: " + ae);
 			    // Send failure notification to the requester if any
 			    sendFailureNotification(ca, agentID, new Unauthorised());
@@ -252,7 +252,7 @@ public class ams extends Agent implements AgentManager.Listener {
     try {
     	myPlatform.kill(agentID, requesterPrincipal, requesterCredentials);
     }
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action KillAgent");
 			throw new Unauthorised();
 		}
@@ -279,7 +279,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  try {
 			myPlatform.copy(agentID, where, newName);
 		}
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action CloneAgent");
 			throw new Unauthorised();
 		}
@@ -308,7 +308,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  try {
 			myPlatform.move(agentID, where);
 		}
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action MoveAgent");
 			throw new Unauthorised();
 		}
@@ -334,7 +334,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				try {
 				    myPlatform.killContainer(cid);
 				}
-				catch(AuthException ae) {
+				catch(JADESecurityException ae) {
 				    logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Kill-container: " + ae);
 				    // Send failure notification to the requester if any
 				    sendFailureNotification(kc, cid, new Unauthorised());
@@ -362,7 +362,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				    try {
 					myPlatform.shutdownPlatform();
 				    }
-				    catch(AuthException ae) {
+				    catch(JADESecurityException ae) {
 					logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Shutdown-Platform: " + ae);
 				    }
 				}
@@ -531,7 +531,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch(AlreadyRegistered ar) {
 			throw ar;
 		}
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Register");
 			throw new Unauthorised();
 		}
@@ -557,7 +557,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch(NotRegistered nr) {
 			throw nr;
 		}
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Deregister");
 			throw new Unauthorised();
 		}
@@ -590,7 +590,7 @@ public class ams extends Agent implements AgentManager.Listener {
     catch (NotFoundException nfe) {
       throw new InternalError("Agent not found. "+nfe.getMessage());
     }
-		catch(AuthException ae) {
+		catch(JADESecurityException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Modify");
 			throw new Unauthorised();
 		}

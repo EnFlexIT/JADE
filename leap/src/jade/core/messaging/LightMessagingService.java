@@ -56,7 +56,7 @@ import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.security.PrivilegedExceptionAction;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.lang.acl.ACLMessage;
 
@@ -284,7 +284,7 @@ public class LightMessagingService extends BaseService implements MessageManager
           handleSetPlatformAddresses(cmd);
         }
       }
-      catch(AuthException ae) {
+      catch(JADESecurityException ae) {
         cmd.setReturnValue(ae);
       }
       catch(IMTPException imtpe) {
@@ -541,7 +541,7 @@ public class LightMessagingService extends BaseService implements MessageManager
   // Vertical command handler methods
 
 
-  private void handleSendMessage(VerticalCommand cmd) throws AuthException {
+  private void handleSendMessage(VerticalCommand cmd) throws JADESecurityException {
     Object[] params = cmd.getParams();
     AID sender = (AID)params[0];
     GenericMessage msg = (GenericMessage)params[1];
@@ -553,7 +553,7 @@ public class LightMessagingService extends BaseService implements MessageManager
     myMessageManager.deliver(msg, dest, this);
   }
 
-  private void handleNotifyFailure(VerticalCommand cmd) throws AuthException {
+  private void handleNotifyFailure(VerticalCommand cmd) throws JADESecurityException {
 
     Object[] params = cmd.getParams();
     GenericMessage msg = (GenericMessage)params[0];

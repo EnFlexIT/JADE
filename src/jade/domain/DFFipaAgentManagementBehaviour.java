@@ -33,7 +33,7 @@ import jade.content.onto.basic.Result;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.*;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 /**
    This behaviour serves the actions of the FIPA management ontology 
@@ -58,7 +58,7 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
      Call the proper method of the DF and prepare the notification 
      message
    */
-  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException {
   	Concept action = slAction.getAction();
   	Object result = null;
   	boolean asynchNotificationRequired = false;

@@ -37,7 +37,7 @@ import jade.core.NotFoundException;
 
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 /**
 
@@ -50,7 +50,7 @@ import jade.security.AuthException;
 */
 public class AgentManagementProxy extends Service.SliceProxy implements AgentManagementSlice {
 
-    public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException {
+    public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
@@ -74,8 +74,8 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 		else if(result instanceof NameClashException) {
 		    throw (NameClashException)result;
 		}
-		else if(result instanceof AuthException) {
-		    throw (AuthException)result;
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else {
 		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
@@ -138,7 +138,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	}
     }
 
-    public void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    public void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, JADESecurityException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
@@ -158,8 +158,8 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 		else if(result instanceof NameClashException) {
 		    throw (NameClashException)result;
 		}
-		else if(result instanceof AuthException) {
-		    throw (AuthException)result;
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else {
 		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);

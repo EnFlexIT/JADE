@@ -63,7 +63,7 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.JADECertificate;
 import jade.security.DelegationCertificate;
 import jade.security.PrivilegedExceptionAction;
@@ -119,7 +119,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     	return myPlatformManager;
     }
     
-    public void addLocalContainer(NodeDescriptor desc) throws IMTPException, AuthException {
+    public void addLocalContainer(NodeDescriptor desc) throws IMTPException, JADESecurityException {
 
 	Node node = desc.getNode();
 	ContainerID cid = desc.getContainer();
@@ -145,7 +145,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     }
 
-    public void addRemoteContainer(NodeDescriptor desc) throws AuthException {
+    public void addRemoteContainer(NodeDescriptor desc) throws JADESecurityException {
 
 	Node node = desc.getNode();
 	ContainerID cid = desc.getContainer();
@@ -192,7 +192,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	fireRemovedContainer(cid);
     }
 
-    void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
+    void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, JADESecurityException {
 	ContainerID cid = ac.getID();
 	
 	// Start the AMS
@@ -213,7 +213,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
 
     // Start the AMS and the Default DF
-    void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
+    void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, JADESecurityException {
 	ContainerID cid = ac.getID();
 	JADEPrincipal cp = containers.getPrincipal(cid);
 	Credentials cr = containers.getCredentials(cid);
@@ -496,9 +496,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
   /**
      Create an agent on a given container
-     @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException
+     @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, JADESecurityException, NotFoundException
    */
-  public void create(String name, String className, String args[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, AuthException, NotFoundException, NameClashException {
+  public void create(String name, String className, String args[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException {
 
       // Get the container where to create the agent
       // If it is not specified, assume it is the Main
@@ -528,8 +528,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  else if (ret instanceof UnreachableException) {
 			      throw (UnreachableException)ret;
 			  }
-			  else if (ret instanceof AuthException) {
-			      throw (AuthException)ret;
+			  else if (ret instanceof JADESecurityException) {
+			      throw (JADESecurityException)ret;
 			  }
 			  else if (ret instanceof Throwable) {
           ((Throwable) ret).printStackTrace();
@@ -545,7 +545,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Kill an agent wherever it is
     */
-    public void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, AuthException {
+    public void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_KILL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
   cmd.setPrincipal(requesterPrincipal);
@@ -559,8 +559,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if (ret instanceof UnreachableException) {
 	      throw (UnreachableException)ret;
 	  }
-	  else if (ret instanceof AuthException) {
-	      throw (AuthException)ret;
+	  else if (ret instanceof JADESecurityException) {
+	      throw (JADESecurityException)ret;
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -574,7 +574,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Suspend an agent wherever it is
     */
-    public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+    public void suspend(final AID agentID) throws NotFoundException, UnreachableException, JADESecurityException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_SUSPENDED));
@@ -587,8 +587,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if (ret instanceof UnreachableException) {
 	      throw (UnreachableException)ret;
 	  }
-	  else if (ret instanceof AuthException) {
-	      throw (AuthException)ret;
+	  else if (ret instanceof JADESecurityException) {
+	      throw (JADESecurityException)ret;
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -602,7 +602,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Resume an agent wherever it is
     */
-    public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+    public void activate(final AID agentID) throws NotFoundException, UnreachableException, JADESecurityException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
@@ -615,8 +615,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if (ret instanceof UnreachableException) {
 	      throw (UnreachableException)ret;
 	  }
-	  else if (ret instanceof AuthException) {
-	      throw (AuthException)ret;
+	  else if (ret instanceof JADESecurityException) {
+	      throw (JADESecurityException)ret;
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -681,7 +681,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Move an agent to a given destination
     */
-    public void move(AID agentID, Location where) throws NotFoundException, UnreachableException, AuthException {
+    public void move(AID agentID, Location where) throws NotFoundException, UnreachableException, JADESecurityException {
 
 	ContainerID from = getContainerID(agentID);
 	ContainerID to = (ContainerID)where;
@@ -701,8 +701,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if (ret instanceof UnreachableException) {
 	      throw (UnreachableException)ret;
 	  }
-	  else if (ret instanceof AuthException) {
-	      throw (AuthException)ret;
+	  else if (ret instanceof JADESecurityException) {
+	      throw (JADESecurityException)ret;
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -718,7 +718,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Clone an agent to a given destination
     */
-    public void copy(AID agentID, Location where, String newName) throws NotFoundException, NameClashException, UnreachableException, AuthException {
+    public void copy(AID agentID, Location where, String newName) throws NotFoundException, NameClashException, UnreachableException, JADESecurityException {
 	ContainerID from = getContainerID(agentID);
 	ContainerID to = (ContainerID)where;
 		
@@ -741,8 +741,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  else if(ret instanceof UnreachableException) {
 	      throw (UnreachableException)ret;
 	  }
-	  else if(ret instanceof AuthException) {
-	      throw (AuthException)ret;
+	  else if(ret instanceof JADESecurityException) {
+	      throw (JADESecurityException)ret;
 	  }
 	  else if (ret instanceof Throwable) {
 		  	// In methods called by the AMS to serve agents requests we throw
@@ -757,7 +757,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /** 
 	Kill a given container
     */
-    public void killContainer(ContainerID cid) throws NotFoundException, AuthException {
+    public void killContainer(ContainerID cid) throws NotFoundException, JADESecurityException {
 			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 			cmd.addParam(cid);
 			Object ret = myCommandProcessor.processOutgoing(cmd);
@@ -765,8 +765,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			  if(ret instanceof NotFoundException) {
 			      throw (NotFoundException)ret;
 			  }
-			  else if (ret instanceof AuthException) {
-			      throw (AuthException)ret;
+			  else if (ret instanceof JADESecurityException) {
+			      throw (JADESecurityException)ret;
 			  }
 			  else if (ret instanceof Throwable) {
 				  	// In methods called by the AMS to serve agents requests we throw
@@ -781,7 +781,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Shut down the whole platform
     **/
-    public void shutdownPlatform() throws AuthException {
+    public void shutdownPlatform() throws JADESecurityException {
 
 	// First kill all peripheral containers
 	ContainerID[] allContainers = containers.names();
@@ -793,7 +793,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				    containers.waitForRemoval(targetID);
 				}
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
 	    }
 	    catch(NotFoundException nfe) {
@@ -812,7 +812,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				    containers.waitForRemoval(targetID);
 				}
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
 	    }
 	    catch(NotFoundException nfe) {
@@ -829,7 +829,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	    containers.waitUntilEmpty();
 
 	}
-	catch(AuthException ae) {
+	catch(JADESecurityException ae) {
 	    System.out.println("Cannot kill container " + localContainerID.getName() + ": Permission Denied.");
 	}
 	catch(NotFoundException nfe) {
@@ -918,7 +918,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Change the ownership of an agent
      // FIXME: implement or remove
    */
-	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
+	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, JADESecurityException {
 	}
 
 
@@ -1026,7 +1026,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Register an agent to the White Pages service of this platform
    */
-  public void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, AuthException {
+  public void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, JADESecurityException {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	
@@ -1057,7 +1057,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Deregister an agent from the White Pages service of this platform
    */
-  public void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, AuthException {
+  public void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, JADESecurityException {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	
@@ -1088,7 +1088,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      If the modification implies a change in the agent ownership (and the agent
      lives in the platform) --> force that change 
    */
-  public void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, AuthException {
+  public void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, JADESecurityException {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	

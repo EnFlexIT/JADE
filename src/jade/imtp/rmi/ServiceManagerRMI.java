@@ -33,7 +33,7 @@ import jade.core.Node;
 import jade.core.NodeDescriptor;
 import jade.core.ServiceException;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import java.util.Vector;
 
@@ -45,7 +45,7 @@ interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
     String getPlatformName() throws RemoteException;
-    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, AuthException;
+    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, JADESecurityException;
     void removeNode(NodeDescriptor dsc, boolean propagated) throws RemoteException, ServiceException;
     void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws RemoteException, ServiceException;
     void removeSlice(String serviceKey, String sliceKey, boolean propagated)  throws RemoteException, ServiceException;

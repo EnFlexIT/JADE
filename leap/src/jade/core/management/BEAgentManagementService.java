@@ -55,7 +55,7 @@ import jade.security.Authority;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 //import jade.security.IdentityCertificate;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
@@ -159,7 +159,7 @@ public class BEAgentManagementService extends BaseService {
 	    catch(NameClashException nce) {
 		cmd.setReturnValue(nce);
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
@@ -170,7 +170,7 @@ public class BEAgentManagementService extends BaseService {
 
 	// Vertical command handler methods
 
-	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -294,7 +294,7 @@ public class BEAgentManagementService extends BaseService {
 	    }
 	}
 
-	private void createAgentOnBE(AID target, Agent instance, VerticalCommand cmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+	private void createAgentOnBE(AID target, Agent instance, VerticalCommand cmd) throws IMTPException, JADESecurityException, NameClashException, NotFoundException, ServiceException {
 	    // Connect the new instance to the local container
 	    Agent old = myContainer.addLocalAgent(target, instance);
 
@@ -326,7 +326,7 @@ public class BEAgentManagementService extends BaseService {
 		myContainer.removeLocalAgent(target);
 		throw nfe;
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		myContainer.removeLocalAgent(target);
 		throw ae;
 	    }
@@ -366,7 +366,7 @@ public class BEAgentManagementService extends BaseService {
 	    catch(NameClashException nce) {
 		cmd.setReturnValue(nce);
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
@@ -378,7 +378,7 @@ public class BEAgentManagementService extends BaseService {
 
 	// Vertical command handler methods
 
-	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, NameClashException, ServiceException {
 
     Object[] params = cmd.getParams();
     AID agentID = (AID)params[0];
@@ -389,7 +389,7 @@ public class BEAgentManagementService extends BaseService {
     createAgent(agentID, className, args, owner, initialCredentials);
 	}
 
-	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -397,7 +397,7 @@ public class BEAgentManagementService extends BaseService {
 	    killAgent(agentID);
 	}
 
-	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];

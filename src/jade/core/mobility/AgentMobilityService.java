@@ -74,7 +74,7 @@ import jade.lang.acl.ACLMessage;
 import jade.security.Authority;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.CredentialsHelper;
 
 import jade.util.leap.List;
@@ -182,7 +182,7 @@ public class AgentMobilityService extends BaseService {
 	    catch(NameClashException nce) {
 		cmd.setReturnValue(nce);
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
@@ -240,7 +240,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	private void handleInformMoved(VerticalCommand cmd) throws IMTPException, ServiceException, AuthException, NotFoundException {
+	private void handleInformMoved(VerticalCommand cmd) throws IMTPException, ServiceException, JADESecurityException, NotFoundException {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 	    Location where = (Location)params[1];
@@ -363,7 +363,7 @@ public class AgentMobilityService extends BaseService {
 		System.out.println("Error in agent serialization. Abort transfer. " + ioe);
 		myContainer.abortMigration(a);
 	    }
-	    catch (AuthException ae) {
+	    catch (JADESecurityException ae) {
 		// Permission to move not owned
 		System.out.println("Permission to move not owned. Abort transfer. " + ae.getMessage());
 		myContainer.abortMigration(a);
@@ -413,7 +413,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException { // HandleInformCloned start
+	private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException { // HandleInformCloned start
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 	    Location where = (Location)params[1];
@@ -513,7 +513,7 @@ public class AgentMobilityService extends BaseService {
 	    catch(IMTPException imtpe) {
 		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during agent cloning", imtpe));
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(NotFoundException nfe) {
@@ -545,7 +545,7 @@ public class AgentMobilityService extends BaseService {
 	    // Nothing to do here: INFORM_MOVED has no target-side action...
 	}
 
-	private void handleInformCloned(VerticalCommand cmd) throws AuthException, NotFoundException, NameClashException {
+	private void handleInformCloned(VerticalCommand cmd) throws JADESecurityException, NotFoundException, NameClashException {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
@@ -575,7 +575,7 @@ public class AgentMobilityService extends BaseService {
 	}
 	
 	// FIXME: adjust principal 
-	private void clonedAgent(AID agentID, ContainerID cid, Credentials credentials) throws AuthException, NotFoundException, NameClashException {
+	private void clonedAgent(AID agentID, ContainerID cid, Credentials credentials) throws JADESecurityException, NotFoundException, NameClashException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 	  // Retrieve the ownership from the credentials
@@ -722,7 +722,7 @@ public class AgentMobilityService extends BaseService {
 	}
 
 
-	private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
+	private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
 	    try {
 		log("Incoming agent " + agentID, 1);
 
@@ -1030,7 +1030,7 @@ public class AgentMobilityService extends BaseService {
 	public void init(Agent a) {
 	}
 
-	public void informMoved(AID agentID, Location where) throws ServiceException, AuthException, NotFoundException, IMTPException {
+	public void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
@@ -1040,8 +1040,8 @@ public class AgentMobilityService extends BaseService {
 	    Object lastException = submit(cmd);
 	    if(lastException != null) {
 
-		if(lastException instanceof AuthException) {
-		    throw (AuthException)lastException;
+		if(lastException instanceof JADESecurityException) {
+		    throw (JADESecurityException)lastException;
 		}
 		if(lastException instanceof NotFoundException) {
 		    throw (NotFoundException)lastException;
@@ -1052,7 +1052,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	public void informCloned(AID agentID, Location where, String newName) throws ServiceException, AuthException, IMTPException, NotFoundException, NameClashException {
+	public void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_CLONED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
@@ -1063,8 +1063,8 @@ public class AgentMobilityService extends BaseService {
 	    Object lastException = submit(cmd);
 	    if(lastException != null) {
 
-		if(lastException instanceof AuthException) {
-		    throw (AuthException)lastException;
+		if(lastException instanceof JADESecurityException) {
+		    throw (JADESecurityException)lastException;
 		}
 		if(lastException instanceof NotFoundException) {
 		    throw (NotFoundException)lastException;

@@ -27,7 +27,7 @@ import jade.lang.acl.ACLMessage;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.Logger;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.*;
@@ -342,7 +342,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	// FIXME: This should call myBackEnd.suspendedAgent()/resumedAgent()
   }
   
-  public final void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
+  public final void handleSend(ACLMessage msg, AID sender) /*throws JADESecurityException*/ {
 		Iterator it = msg.getAllIntendedReceiver();
 		// If some receiver is local --> directly post the message
 		int remoteCnt = 0;
@@ -383,10 +383,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException {
+  public void handleMove(AID agentID, Location where) throws JADESecurityException, IMTPException, NotFoundException {
   }
   
-  public void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException {
+  public void handleClone(AID agentID, Location where, String newName) throws JADESecurityException, IMTPException, NotFoundException {
   }
   
   public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
@@ -398,10 +398,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
   }
 
-  public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
+  public void handlePosted(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {
   }
   
-  public void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/ {
+  public void handleReceived(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {
   }
   
   public void handleBehaviourAdded(AID agentID, Behaviour b) {

@@ -26,7 +26,7 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 
 /**
@@ -96,7 +96,7 @@ public interface ServiceManager {
        executed (or an execution attempt failed) due to some condition
        on the remote end.
     */
-    void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException;
+    void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, JADESecurityException;
 
     /**
        Removes a node from the distributed platform. The node

@@ -34,7 +34,7 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 
@@ -99,7 +99,7 @@ public interface AgentMobilityHelper extends ServiceHelper {
     static final String INFORM_CLONED = "Inform-Cloned";
 
 
-    void informMoved(AID agentID, Location where) throws ServiceException, AuthException, NotFoundException, IMTPException;
-    void informCloned(AID agentID, Location where, String newName) throws ServiceException, AuthException, IMTPException, NotFoundException, NameClashException;
+    void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException;
+    void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException;
 
 }

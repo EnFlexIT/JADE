@@ -37,7 +37,7 @@ import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
 import jade.security.Credentials;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 
@@ -67,7 +67,7 @@ public interface AgentMobilitySlice extends Service.Slice {
     static final String H_HANDLETRANSFERRESULT = "7";
     static final String H_CLONEDAGENT = "8";
 
-    void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException;
+    void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException;
     byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
     void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
@@ -77,6 +77,6 @@ public interface AgentMobilitySlice extends Service.Slice {
 
     boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException;
     void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;
-    void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, AuthException, NotFoundException, NameClashException;
+    void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, JADESecurityException, NotFoundException, NameClashException;
 
 }

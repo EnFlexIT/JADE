@@ -25,7 +25,7 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import java.util.Vector;
 
@@ -44,7 +44,7 @@ public interface PlatformManager {
        @param propagated Flag indicating whether the new-node event 
        was a propagated event within the replication mechanism
      */
-    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, AuthException;
+    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException;
     void removeNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException;
     void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws IMTPException, ServiceException;
     void removeSlice(String serviceKey, String sliceKey, boolean propagated)  throws IMTPException, ServiceException;

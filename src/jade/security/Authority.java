@@ -69,13 +69,13 @@ public interface Authority {
 	public final String AUTHORITY_SIGN_IC   = "authority-sign-ic";
 	public final String AUTHORITY_SIGN_DC   = "authority-sign-dc";
 
-	public void init(Profile profile, MainContainer platform) throws AuthException;
+	public void init(Profile profile, MainContainer platform) throws JADESecurityException;
 	
 	/**
 		Sets the name of the authority.
 		@param name The name of the authority.
 	*/
-	public void setName(String name) throws AuthException;
+	public void setName(String name) throws JADESecurityException;
 	
 	/**
 		Returns the name of the authority.
@@ -93,7 +93,7 @@ public interface Authority {
 		@throws AuthenticationException if the certificate is not
 			integer or is out of its validity period.
 	*/
-	public void verify(JADECertificate cert) throws AuthException;
+	public void verify(JADECertificate cert) throws JADESecurityException;
 	
 	/**
 		Signs a new certificate. The certificates presented with the
@@ -108,15 +108,15 @@ public interface Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	//public void sign(JADECertificate certificate, CertificateFolder certs) throws AuthException;
+	//public void sign(JADECertificate certificate, CertificateFolder certs) throws JADESecurityException;
 
-	//public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws AuthException;
+	//public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws JADESecurityException;
 	
 	//public Object doPrivileged(PrivilegedExceptionAction action) throws Exception;
 	
 	//public Object doAsPrivileged(PrivilegedExceptionAction action, CertificateFolder certs) throws Exception;
 	
-	//public void checkAction(String action, JADEPrincipal target, CertificateFolder certs) throws AuthException;
+	//public void checkAction(String action, JADEPrincipal target, CertificateFolder certs) throws JADESecurityException;
 	
 	//public AgentPrincipal createAgentPrincipal(AID aid, String ownership);
 
@@ -132,9 +132,9 @@ public interface Authority {
 	
 	//!!! to remove
 	/*
-	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
-	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException;
-	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws JADESecurityException;
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws JADESecurityException;
+	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws JADESecurityException;
 	public Object doAsPrivileged(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
 	*/
 }

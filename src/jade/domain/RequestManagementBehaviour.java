@@ -45,7 +45,7 @@ import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.UnsupportedValue;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
 
 /**
@@ -65,7 +65,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 		super(a,mt);
   }
  
-  protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException; 
+  protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException; 
 
   /**
    * @return null when the AGREE message can be skipper, the AGREE message

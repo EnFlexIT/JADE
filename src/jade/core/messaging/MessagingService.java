@@ -64,7 +64,7 @@ import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.security.Authority;
 import jade.security.JADEPrincipal;
 import jade.security.PrivilegedExceptionAction;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;

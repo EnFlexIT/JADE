@@ -47,7 +47,7 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.CredentialsHelper;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
@@ -233,7 +233,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
    public void initAgent(
         AID agentID, Agent instance, 
         JADEPrincipal ownerPrincipal, Credentials ownerCredentials)
-      throws NameClashException, IMTPException, NotFoundException, AuthException {
+      throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
       
       // Setting the AID and toolkit here is redundant, but 
       // allows services to retrieve their agent helper correctly
@@ -258,8 +258,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	else if (ret instanceof NotFoundException) {
       		throw ((NotFoundException) ret);
       	}
-      	else if (ret instanceof AuthException) {
-      		throw ((AuthException) ret);
+      	else if (ret instanceof JADESecurityException) {
+      		throw ((JADESecurityException) ret);
       	}
       	else if (ret instanceof Throwable) {
       		((Throwable) ret).printStackTrace();
@@ -311,7 +311,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   /**
      Add the node to the platform with the basic services
    */
-  protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+  protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 	  // Start all the container fundamental services (without activating them)
   	List basicServices = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
@@ -414,7 +414,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
         endContainer();
         return false;
     }
-    catch (AuthException ae) {
+    catch (JADESecurityException ae) {
         myLogger.log(Logger.SEVERE,"Authentication or authorization failure while joining agent platform.");
         ae.printStackTrace();
         endContainer();
@@ -833,7 +833,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return AID.getPlatformID();
     }
 
-    public Agent addLocalAgent(AID id, Agent a) throws AuthException {
+    public Agent addLocalAgent(AID id, Agent a) throws JADESecurityException {
 
 	a.setToolkit(this);
 	return localAgents.put(id, a);

@@ -37,7 +37,7 @@ import jade.core.NotFoundException;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.Credentials;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 
 /**
@@ -82,7 +82,7 @@ public interface MainReplicationSlice extends Service.Slice {
 
     void fillGADT(AID[] agents, ContainerID[] containers) throws IMTPException;
 
-    //void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    //void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, JADESecurityException;
     //void deadAgent(AID name) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     //void resumedAgent(AID name) throws IMTPException, NotFoundException;

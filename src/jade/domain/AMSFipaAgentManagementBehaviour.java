@@ -42,7 +42,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 /**
    This behaviour serves the actions of the FIPA management ontology 
@@ -71,7 +71,7 @@ class AMSFipaAgentManagementBehaviour extends RequestManagementBehaviour{
      Call the proper method of the ams and prepare the notification 
      message
    */
-  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException {
   	Concept action = slAction.getAction();
   	List resultItems = null;
   	

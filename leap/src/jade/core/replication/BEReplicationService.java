@@ -59,7 +59,7 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
@@ -275,7 +275,7 @@ public class BEReplicationService extends BaseService {
 	    catch(NameClashException nce) {
 		cmd.setReturnValue(nce);
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
@@ -287,7 +287,7 @@ public class BEReplicationService extends BaseService {
 	}
 
 
-	private void handleBornFEAgent(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleBornFEAgent(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 
@@ -300,7 +300,7 @@ public class BEReplicationService extends BaseService {
 	}
 
 
-	private void handleDeadFEAgent(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleDeadFEAgent(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 

@@ -35,7 +35,7 @@ import jade.core.Command;
 
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 
 /**
@@ -159,11 +159,11 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String H_RESUMEDAGENT = "7";
     static final String H_EXITCONTAINER = "8";
 
-    void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException;
+    void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException;
     void killAgent(AID agentID, Command sourceCmd) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, JADESecurityException;
     void deadAgent(AID name, Command sourceCmd) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;

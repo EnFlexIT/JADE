@@ -39,7 +39,7 @@ import jade.core.NameClashException;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.Credentials;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 
 /**
@@ -162,7 +162,7 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	}
     }
     
-    /*public void bornAgent(AID name, ContainerID cid, JADEPrincipal principal String ownership) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    /*public void bornAgent(AID name, ContainerID cid, JADEPrincipal principal String ownership) throws IMTPException, NameClashException, NotFoundException, JADESecurityException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, NAME, null);
 	    cmd.addParam(name);
@@ -181,8 +181,8 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 		else if(result instanceof NotFoundException) {
 		    throw (NotFoundException)result;
 		}
-		else if(result instanceof AuthException) {
-		    throw (AuthException)result;
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else {
 		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);

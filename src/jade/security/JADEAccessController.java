@@ -60,13 +60,13 @@ public interface JADEAccessController {
   * @param action
   * @param target
   * @param credentials
-  * @throws AuthException
+  * @throws JADESecurityException
   */
   public void checkAction( JADEPrincipal requester, 
                            Permission p, 
                            JADEPrincipal target, 
                            Credentials credentials) 
-         throws AuthException;
+         throws JADESecurityException;
 
   /**
    *

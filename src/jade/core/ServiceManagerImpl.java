@@ -25,7 +25,7 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
@@ -125,7 +125,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
   
   // FIXME: Should take an array of Service 
-  public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
+  public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, JADESecurityException {
   	localNode = desc.getNode();
 	  try {
 			// Install all services locally
@@ -164,7 +164,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     catch (ServiceException se) {
     	throw se;
     }
-    catch (AuthException ae) {
+    catch (JADESecurityException ae) {
     	throw ae;
     }
     catch (Throwable t) {

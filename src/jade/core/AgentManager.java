@@ -37,7 +37,7 @@ import jade.core.event.MTPListener;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 
@@ -87,24 +87,24 @@ public interface AgentManager {
      * then the agent is created on the main-container.
      * @throws NotFoundException if the passed container does not exist
      * @throws UnreachableException if the container is unreachable 
-     * @throws AuthException if this action is not authorized
+     * @throws JADESecurityException if this action is not authorized
      **/
-  void create(String agentName, String className, String arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, AuthException, NotFoundException, NameClashException;
-  void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, AuthException;
-  void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
-  void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException;
+  void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException;
+  void suspend(AID agentID) throws NotFoundException, UnreachableException, JADESecurityException;
+  void activate(AID agentID) throws NotFoundException, UnreachableException, JADESecurityException;
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
   void wake(AID agentID, String password) throws NotFoundException, UnreachableException;
 
-  void move(AID agentID, Location where) throws NotFoundException, UnreachableException, AuthException;
-  void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, NameClashException, UnreachableException, AuthException;
+  void move(AID agentID, Location where) throws NotFoundException, UnreachableException, JADESecurityException;
+  void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, NameClashException, UnreachableException, JADESecurityException;
 
-  void shutdownPlatform() throws AuthException;
-  void killContainer(ContainerID cid) throws NotFoundException, AuthException;
+  void shutdownPlatform() throws JADESecurityException;
+  void killContainer(ContainerID cid) throws NotFoundException, JADESecurityException;
   MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
   void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;
 
-  void take(AID agentID, String username, byte[] password) throws NotFoundException, UnreachableException, AuthException;
+  void take(AID agentID, String username, byte[] password) throws NotFoundException, UnreachableException, JADESecurityException;
 
   void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
   void sniffOff(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
@@ -112,9 +112,9 @@ public interface AgentManager {
   void debugOff(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
 
   // FIPA actions method
-  void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, AuthException;
-  void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, AuthException;
-  void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, AuthException; 
+  void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, JADESecurityException;
+  void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, JADESecurityException;
+  void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, JADESecurityException; 
   List amsSearch(AMSAgentDescription template, long maxResults);
 }
 

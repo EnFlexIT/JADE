@@ -43,7 +43,7 @@ import jade.domain.JADEAgentManagement.*;
 import jade.domain.FIPAAgentManagement.UnsupportedFunction;
 import jade.domain.mobility.*;
 import jade.mtp.MTPDescriptor;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.CredentialsHelper;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
@@ -75,7 +75,7 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
      Call the proper method of the ams and prepare the notification 
      message
    */
-  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException {
   	Concept action = slAction.getAction();
   	Object result = null;
   	boolean resultNeeded = false;

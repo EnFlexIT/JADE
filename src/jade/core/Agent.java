@@ -36,7 +36,7 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.acl.*;
 import jade.domain.FIPAException;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 //#MIDP_EXCLUDE_BEGIN
 import java.io.InputStream;
@@ -1868,9 +1868,9 @@ public class Agent implements Runnable, Serializable
 	  	// something went wrong
 	  	changeStateTo(myBufferedState);
 			myDestination = null;
-			if (e instanceof AuthException) {
-				// Will be caught together with all other AuthException-s
-				throw (AuthException) e;
+			if (e instanceof JADESecurityException) {
+				// Will be caught together with all other JADESecurityException-s
+				throw (JADESecurityException) e;
 	  	}
 	  	else {
 	  		e.printStackTrace();
@@ -1889,9 +1889,9 @@ public class Agent implements Runnable, Serializable
 	  	// something went wrong
 	  	changeStateTo(myBufferedState);
 			myDestination = null;
-			if (e instanceof AuthException) {
-				// Will be catched together with all other AuthException-s
-				throw (AuthException) e;
+			if (e instanceof JADESecurityException) {
+				// Will be catched together with all other JADESecurityException-s
+				throw (JADESecurityException) e;
 	  	}
 	  	else {
 	  		e.printStackTrace();
@@ -2007,11 +2007,11 @@ public class Agent implements Runnable, Serializable
     catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
     }
-    catch(AuthException e) {
-    	// If there is an AuthException we don't want the agent to be killed
+    catch(JADESecurityException e) {
+    	// If there is an JADESecurityException we don't want the agent to be killed
     	// as for other unexpected exceptions.
 		  // FIXME: maybe should send a message to the agent
-		  System.out.println("AuthException: "+e.getMessage() );
+		  System.out.println("JADESecurityException: "+e.getMessage() );
 		}
 	//#MIDP_EXCLUDE_END
     } // END of while
@@ -2355,7 +2355,7 @@ public class Agent implements Runnable, Serializable
   }
 
   // Notify toolkit of the need to move the current agent
-  private void notifyMove() throws AuthException, IMTPException, NotFoundException {
+  private void notifyMove() throws JADESecurityException, IMTPException, NotFoundException {
       try {
 	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
 	  h.informMoved(myAID, myDestination);
@@ -2372,7 +2372,7 @@ public class Agent implements Runnable, Serializable
   }
 
   // Notify toolkit of the need to copy the current agent
-  private void notifyCopy() throws AuthException, IMTPException, NotFoundException, NameClashException {
+  private void notifyCopy() throws JADESecurityException, IMTPException, NotFoundException, NameClashException {
       try {
 	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
 	  h.informCloned(myAID, myDestination, myNewName);

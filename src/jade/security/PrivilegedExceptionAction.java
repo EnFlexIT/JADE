@@ -39,7 +39,7 @@ public interface PrivilegedExceptionAction
 
 	/**
 		The action body.
-		@throws An AuthException is some permission is not owned.
+		@throws An JADESecurityException is some permission is not owned.
 	*/
 	public Object run() throws Exception;
 

@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.JADEPrincipal;

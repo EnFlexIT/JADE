@@ -60,7 +60,7 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
@@ -277,7 +277,7 @@ public class MainReplicationService extends BaseService {
 	    catch(NameClashException nce) {
 		cmd.setReturnValue(nce);
 	    }
-	    catch(AuthException ae) {
+	    catch(JADESecurityException ae) {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
@@ -288,7 +288,7 @@ public class MainReplicationService extends BaseService {
 	    return true;
 	}
 
-	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 
@@ -574,7 +574,7 @@ public class MainReplicationService extends BaseService {
 	    }
 	}
 
-	private void fillGADT(AID[] agents, ContainerID[] containers) throws AuthException {
+	private void fillGADT(AID[] agents, ContainerID[] containers) throws JADESecurityException {
 	    for(int i = 0; i < agents.length; i++) {
 
 		try {

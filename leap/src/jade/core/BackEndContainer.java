@@ -119,7 +119,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
 
-      protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+      protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 	  // Start all the container fundamental services (without activating them)
   	List basicServices = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
@@ -166,17 +166,17 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      - Notify the Main
      - Return the platform info to the FrontEnd if required
   */
-  public String[] bornAgent(String name) throws AuthException, IMTPException {
+  public String[] bornAgent(String name) throws JADESecurityException, IMTPException {
       AID id = new AID(name, AID.ISLOCALNAME);
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(id);
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret instanceof NameClashException) {
-      	throw new AuthException("Name already in use");
+      	throw new JADESecurityException("Name already in use");
       }
-      else if (ret instanceof AuthException) {
-      	throw (AuthException) ret;
+      else if (ret instanceof JADESecurityException) {
+      	throw (JADESecurityException) ret;
       }
       else if (ret instanceof Exception) {
       	throw new IMTPException(null, (Exception) ret);

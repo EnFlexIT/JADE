@@ -51,7 +51,7 @@ import jade.core.UnreachableException;
 import jade.security.Authority;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 /**
 
@@ -169,7 +169,7 @@ public class AgentManagementService extends BaseService {
 
 	// Vertical command handler methods
 
-	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, NameClashException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    String name = (String)params[0];
@@ -203,7 +203,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -228,7 +228,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -264,7 +264,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
@@ -443,7 +443,7 @@ public class AgentManagementService extends BaseService {
 
 	// Vertical command handler methods
 
-	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, NameClashException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -457,7 +457,7 @@ public class AgentManagementService extends BaseService {
 	    createAgent(agentID, className, arguments, owner, initialCredentials, startIt);
 	}
 
-	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -466,7 +466,7 @@ public class AgentManagementService extends BaseService {
 	    killAgent(agentID);
 	}
 
-	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
@@ -515,7 +515,7 @@ public class AgentManagementService extends BaseService {
 	    exitContainer();
 	}
 
-	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
+	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
@@ -792,7 +792,7 @@ public class AgentManagementService extends BaseService {
 
 
 
-    private void initAgent(AID target, Agent instance, VerticalCommand vCmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+    private void initAgent(AID target, Agent instance, VerticalCommand vCmd) throws IMTPException, JADESecurityException, NameClashException, NotFoundException, ServiceException {
   // Connect the new instance to the local container
 	Agent old = myContainer.addLocalAgent(target, instance);
 
@@ -824,7 +824,7 @@ public class AgentManagementService extends BaseService {
 	    myContainer.removeLocalAgent(target);
 	    throw nfe;
 	}
-	catch(AuthException ae) {
+	catch(JADESecurityException ae) {
 	    myContainer.removeLocalAgent(target);
 	    throw ae;
 	}

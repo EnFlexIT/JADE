@@ -38,7 +38,7 @@ import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
 import jade.security.Credentials;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 
@@ -52,7 +52,7 @@ import jade.util.leap.List;
 public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobilitySlice {
 
 
-    public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
+    public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
@@ -74,8 +74,8 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 		else if(result instanceof NameClashException) {
 		    throw (NameClashException)result;
 		}
-		else if(result instanceof AuthException) {
-		    throw (AuthException)result;
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else {
 		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
@@ -245,7 +245,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 	}
     }
 
-    public void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, AuthException, NotFoundException, NameClashException {
+    public void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, JADESecurityException, NotFoundException, NameClashException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_CLONEDAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
@@ -259,8 +259,8 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 		if(result instanceof IMTPException) {
 		    throw (IMTPException)result;
 		}
-		else if(result instanceof AuthException) {
-		    throw (AuthException)result;
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else if(result instanceof NotFoundException) {
 		    throw (NotFoundException)result;

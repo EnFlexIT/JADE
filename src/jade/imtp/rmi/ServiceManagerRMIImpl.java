@@ -35,7 +35,7 @@ import jade.core.ServiceDescriptor;
 import jade.core.ServiceException;
 import jade.core.PlatformManager;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
@@ -72,7 +72,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
   }
 
-  public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, AuthException {
+  public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, JADESecurityException {
 		try {
 		    return impl.addNode(dsc, nodeServices, propagated);
 		}

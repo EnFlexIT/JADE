@@ -32,7 +32,7 @@ import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
 import jade.core.*;
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.mtp.TransportAddress;
 
 import java.util.Vector;
@@ -410,7 +410,7 @@ public class RMIIMTPManager implements IMTPManager {
 	  	// Should never be called
 	  }
 	  
-    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, AuthException {
+    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
 		 	try {
 			    return adaptee.addNode(dsc, nodeServices, propagated);
 			}

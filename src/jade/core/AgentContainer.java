@@ -29,7 +29,7 @@ import jade.lang.acl.ACLMessage;
 
 import jade.util.leap.List;
 
-import jade.security.AuthException;
+import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
@@ -58,9 +58,9 @@ public interface AgentContainer {
 
     void initAgent(AID agentID, Agent instance,  
                    JADEPrincipal creator, Credentials creds                  
-                   ) throws NameClashException, IMTPException, NotFoundException, AuthException;
+                   ) throws NameClashException, IMTPException, NotFoundException, JADESecurityException;
     void powerUpLocalAgent(AID agentID) throws NotFoundException;
-    Agent addLocalAgent(AID id, Agent a) throws AuthException;
+    Agent addLocalAgent(AID id, Agent a) throws JADESecurityException;
     void removeLocalAgent(AID id);
     Agent acquireLocalAgent(AID id);
     void releaseLocalAgent(AID id);
