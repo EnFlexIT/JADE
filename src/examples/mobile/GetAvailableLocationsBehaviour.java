@@ -25,7 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.mobile;
 
-import jade.util.leap.*;
+import java.util.*;
 
 import jade.proto.*;
 import jade.lang.acl.*;
@@ -71,7 +71,7 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
        action.setAction(new MobilityOntology.QueryPlatformLocationsAction());
        List tuple = new ArrayList();
        tuple.add(action);
-       a.fillContent2(request, tuple);
+       a.fillContent(request, tuple);
      }
      catch(FIPAException fe) {
        fe.printStackTrace();
@@ -102,7 +102,7 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
      String content = inform.getContent();
      //System.out.println(inform.toString());
      try {
-       List tuple = myAgent.extractContent2(inform);
+       List tuple = myAgent.extractContent(inform);
        ResultPredicate r = (ResultPredicate)tuple.get(0);
        //update the GUI
        ((MobileAgent)myAgent).gui.updateLocations(r.getAll_1());

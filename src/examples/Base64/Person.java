@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package examples.Base64;
 
-import jade.util.leap.*;
 import java.io.*;
 import java.util.Date;
 
@@ -34,7 +33,7 @@ Refer to them for any documentation.
 @version $Date$ $Revision$
 */
 
-public class Person implements jade.util.leap.Serializable {
+public class Person implements Serializable {
 
 String name;
 String surname;

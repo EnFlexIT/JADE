@@ -33,7 +33,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 
-import jade.util.leap.*;
+import java.util.*;
 import java.io.*;
 
 import jade.core.*;

@@ -30,7 +30,6 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.domain.DFServiceCommunicator;
 
-import jade.util.leap.*;
 import java.io.*;
 
 

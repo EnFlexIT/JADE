@@ -28,7 +28,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import jade.util.leap.*;
+import java.util.*;
 import java.util.Vector;
 
 // Import required Jade classes
