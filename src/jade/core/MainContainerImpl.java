@@ -75,14 +75,17 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   private df defaultDF;
 
   private String platformID;
+  private IMTPManager myIMTPManager;
 
   private List platformListeners = new LinkedList();
   private List platformAddresses = new LinkedList();
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
+
   MainContainerImpl(Profile p) throws ProfileException {
     platformID = p.getParameter(Profile.PLATFORM_ID);
+    myIMTPManager = p.getIMTPManager();
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
@@ -115,14 +118,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     AgentContainer[] allContainers = containers.containers();
     for(int i = 0; i < allContainers.length; i++) {
       AgentContainer target = allContainers[i];
-      try {
-	APKillContainer(target); // This call removes 'ac' from 'container' map and from the collection 'c'
-      }
-      catch(IMTPException re) {
-	throw new IMTPException("Container is unreachable.", re);
-      }
-
+      target.exit(); // This call removes 'ac' from 'container' map and from the collection 'c'
     }
+
 
     // Make sure all containers are succesfully removed from the table...
     containers.waitUntilEmpty();
@@ -173,7 +171,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     public void run() {
       while(active) {
 	try {
-	  target.ping(true); // Hang on this RMI call
+	  target.ping(true); // Hang on this call
 	}
 	catch(IMTPException re1) { // Connection down
 	  try {
@@ -292,7 +290,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     containers.addContainer(name, ac);
     containersProgNo++;
 
-    // Spawn a blocking RMI call to the remote container in a separate
+    // Spawn a blocking call to the remote container in a separate
     // thread. This is a failure notification technique.
     Thread t = new Thread(new FailureMonitor(ac, cid));
     t.start();
@@ -391,7 +389,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     // Commit transaction and notify listeners
     ad.lock();
-    ad.setProxy(new RemoteContainerProxy(destAC, agentID));
+    ad.setProxy(myIMTPManager.createAgentProxy(destAC, agentID));
     ad.setContainerID(dest);
     fireMovedAgent(src, dest, agentID);
     ad.unlock();
@@ -399,7 +397,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
   // These methods dispatch agent management operations to
-  // appropriate Agent Container through RMI.
+  // appropriate Agent Container through a suitable IMTP.
 
   public void kill(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
@@ -411,14 +409,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-  public void APKillContainer(AgentContainer ac) throws IMTPException {
-      ac.exit();
-  }
-
   public void suspend(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.suspendAgent(agentID); // RMI call
+      ac.suspendAgent(agentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -428,7 +422,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   public void activate(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.resumeAgent(agentID); // RMI call
+      ac.resumeAgent(agentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -438,7 +432,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.waitAgent(agentID); // RMI call
+      ac.waitAgent(agentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -448,7 +442,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.wakeAgent(agentID); // RMI call
+      ac.wakeAgent(agentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -470,7 +464,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     // Retrieve the container for the original agent
     AgentContainer src = getContainerFromAgent(agentID);
     try {
-      src.copyAgent(agentID, where, newAgentID); // RMI call
+      src.copyAgent(agentID, where, newAgentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -632,7 +626,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       }
 
       AID id = new AID(agentName, AID.ISLOCALNAME);
-      ac.createAgent(id, className, args, AgentContainer.START); // RMI call
+      ac.createAgent(id, className, args, AgentContainer.START);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -649,7 +643,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       Thread auxThread = new Thread(new Runnable() {
 	 public void run() {
 	   try {
-	     APKillContainer(ac);
+	     ac.exit();
 	   }
 	   catch(IMTPException re) {
 	     System.out.println("Container " + cName + " is unreachable.");
@@ -672,7 +666,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       while(it.hasNext()) {
 	AID id = (AID)it.next();
 	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableSniffer(snifferName, id); // RMI call
+	ac.enableSniffer(snifferName, id);
       }
     }
     catch(IMTPException re) {
@@ -687,7 +681,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       while(it.hasNext()) {
 	AID id = (AID)it.next();
 	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableSniffer(snifferName, id); // RMI call
+	ac.disableSniffer(snifferName, id);
       }
     }
     catch(IMTPException re) {
@@ -702,7 +696,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       while(it.hasNext()) {
 	AID id = (AID)it.next();
 	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableDebugger(debuggerName, id); // RMI call
+	ac.enableDebugger(debuggerName, id);
       }
     }
     catch(IMTPException re) {
@@ -716,7 +710,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       while(it.hasNext()) {
 	AID id = (AID)it.next();
 	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableDebugger(debuggerName, id); // RMI call
+	ac.disableDebugger(debuggerName, id);
       }
     }
     catch(IMTPException re) {
