@@ -245,7 +245,7 @@ public class LEAPCodec extends Codec {
                         marker = stream.readByte();
                     } 
                 } 
-                while (marker != CONTENT_ELEMENT_LIST);
+                while (marker != END_CONTENT_ELEMENT_LIST);
 
                 return abs;
             } 
