@@ -1,10 +1,14 @@
 /*
   $Log$
-  Revision 1.55  1999/06/15 14:30:57  rimassa
-  Added support for timeouts. Now every agent maintains a bidirectional
-  mapping between Timer objects and behaviours. Furthermore, a static
-  instance of a TimerDispatcher active object is used by agents to
-  schedule behaviour restarts.
+  Revision 1.56  1999/06/16 00:16:00  rimassa
+  Handled special case of 0 timeout in restartLater() method.
+  Fixed a bug in activateBehaviour() method.
+
+   Revision 1.55  1999/06/15 14:30:57  rimassa
+   Added support for timeouts. Now every agent maintains a bidirectional
+   mapping between Timer objects and behaviours. Furthermore, a static
+   instance of a TimerDispatcher active object is used by agents to
+   schedule behaviour restarts.
 
   Revision 1.54  1999/06/09 16:13:16  rimassa
   Added an empty restartLater() method.
@@ -384,6 +388,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.behaviours.Behaviour#block(long millis)
   */
   public void restartLater(Behaviour b, long millis) {
+    if(millis == 0)
+      return;
     Timer t = new Timer(System.currentTimeMillis() + millis, this);
     pendingTimers.addPair(b, t);
     theDispatcher.add(t);
@@ -1649,9 +1655,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   private void activateBehaviour(Behaviour b) {
-    blockedBehaviours.remove(b);
+    Behaviour root = b.root();
+    blockedBehaviours.remove(root);
     b.restart();
-    myScheduler.add(b);
+    myScheduler.add(root);
   }
 
   private void activateAllBehaviours() {
