@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
+//#MIDP_EXCLUDE_FILE
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -40,8 +41,8 @@ import jade.core.ServiceException;
 import jade.core.Filter;
 import jade.core.Node;
 
-import jade.core.AgentContainerImpl;
-import jade.core.MainContainerImpl;
+import jade.core.AgentContainer;
+import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -63,6 +64,7 @@ import jade.security.AuthException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
+
 import jade.lang.acl.StringACLCodec;
 
 import jade.mtp.MTP;
@@ -94,40 +96,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
       }
     } // End of UnknownACLEncodingException class
 
-    /**
-       The name of this service.
-    */
-    public static final String NAME = "jade.core.messaging.Messaging";
-
-    /**
-       This command name represents the action of sending an ACL
-       message from an agent to another.
-    */
-    public static final String SEND_MESSAGE = "Send-Message";
-
-    /**
-       This command name represents the <code>install-mtp</code>
-       action.
-    */
-    public static final String INSTALL_MTP = "Install-MTP";
-
-    /**
-       This command name represents the <code>uninstall-mtp</code>
-       action.
-    */
-    public static final String UNINSTALL_MTP = "Uninstall-MTP";
-
-    /**
-       This command name represents the <code>set-platform-addresses</code>
-       action.
-    */
-    public static final String SET_PLATFORM_ADDRESSES = "Set-Platform-Addresses";
-
 
     public static final String MAIN_SLICE = "Main-Container";
 
 
-    public MessagingService(AgentContainerImpl ac, Profile p) throws ProfileException {
+    public MessagingService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
 
 	myContainer = ac;
@@ -146,7 +119,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     public String getName() {
-	return NAME;
+	return MessagingSlice.NAME;
     }
 
     public Class getHorizontalInterface() {
@@ -178,7 +151,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// Entry point for the ACL message dispatching process
 	public void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
 	    try {
-		MainContainerImpl impl = myContainer.getMain();
+		MainContainer impl = myContainer.getMain();
 		if(impl != null) {
 		    while(true) {
 			// Directly use the GADT on the main container
@@ -399,7 +372,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	public ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		return impl.getContainerID(agentID);
 	    }
@@ -537,7 +510,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 
 	    if(impl != null) {
 
@@ -570,7 +543,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 
 	    if(impl != null) {
 
@@ -636,6 +609,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
        the list of ACL codecs and MTPs to activate on this node.
     **/
     public void activateProfile(Profile myProfile) {
+
 	try {
 
 	    // Activate the default ACL String codec anyway
@@ -813,8 +787,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    authority.doPrivileged(new PrivilegedExceptionAction() {
 		    public Object run() {
 			try {
-			    // FIXME: Having a custom code path for send failure notifications would be better...
-			    GenericCommand cmd = new GenericCommand(SEND_MESSAGE, NAME, "");
+			    // FIXME: Having a custom code path to send failure notifications would be better...
+			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, "");
 			    cmd.addParam(failure);
 			    cmd.addParam(theAMS);
 			    handleSendMessage(cmd);
@@ -1018,7 +992,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainerImpl myContainer;
+    private AgentContainer myContainer;
 
     // The local slice for this service
     private ServiceComponent localSlice;
@@ -1034,8 +1008,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // The component managing asynchronous message delivery and retries
     private MessageManager myMessageManager;
-
-
 
 
 }
