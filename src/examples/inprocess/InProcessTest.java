@@ -113,11 +113,12 @@ public class InProcessTest {
       if(args.length > 0) {
 	if(args[0].equalsIgnoreCase("-container")) {
 	  // Create a default profile
-	  Profile p = new ProfileImpl();
+	  Profile p = new ProfileImpl(false);
 	  //p.setParameter(Profile.MAIN, "false");
 
 	  // Create a new non-main container, connecting to the default
 	  // main container (i.e. on this host, port 1099)
+      System.out.println("Launching the agent container ..."+p);
 	  AgentContainer ac = rt.createAgentContainer(p);
 
 	  // Create a new agent, a DummyAgent
@@ -137,7 +138,7 @@ public class InProcessTest {
 	  // Create another peripheral container within the same JVM
 	  // NB. Two containers CAN'T share the same Profile object!!! -->
 	  // Create a new one.
-	  p = new ProfileImpl();
+	  p = new ProfileImpl(false);
 	  //p.putProperty(Profile.MAIN, "false");
 	  AgentContainer another = rt.createAgentContainer(p);
 
@@ -158,12 +159,13 @@ public class InProcessTest {
       Profile pMain = new ProfileImpl(null, 8888, null);
 
       System.out.println("Launching a whole in-process platform..."+pMain);
-      MainContainer mc = rt.createMainContainer(pMain);
+      AgentContainer mc = rt.createMainContainer(pMain);
 
       // set now the default Profile to start a container
       ProfileImpl pContainer = new ProfileImpl(null, 8888, null);
       System.out.println("Launching the agent container ..."+pContainer);
       AgentContainer cont = rt.createAgentContainer(pContainer);
+      System.out.println("Launching the agent container after ..."+pContainer);
 
       System.out.println("Launching the rma agent on the main container ...");
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
@@ -177,7 +179,7 @@ public class InProcessTest {
 
       CondVar startUpLatch = new CondVar();
 
-      Agent custom = (Agent)mc.createNewAgent("customAgent", CustomAgent.class.getName(), new Object[] { startUpLatch });
+      AgentController custom = mc.createNewAgent("customAgent", CustomAgent.class.getName(), new Object[] { startUpLatch });
       custom.start();
 
       // Wait until the agent starts up and notifies the Object
@@ -191,12 +193,12 @@ public class InProcessTest {
 
       // Put an object in the queue, asynchronously
       System.out.println("Inserting an object, asynchronously...");
-      custom.putO2AObject("Message 1", Agent.ASYNC);
+      custom.putO2AObject("Message 1", AgentController.ASYNC);
       System.out.println("Inserted.");
 
       // Put an object in the queue, synchronously
       System.out.println("Inserting an object, synchronously...");
-      custom.putO2AObject(mc, Agent.SYNC);
+      custom.putO2AObject(mc, AgentController.SYNC);
       System.out.println("Inserted.");
 
     }

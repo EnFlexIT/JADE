@@ -53,11 +53,14 @@ import jade.wrapper.*;
  **/
 public class ThanksAgent extends Agent {
 
-    private static boolean IAmTheCreator = true;
+    public static boolean IAmTheCreator = true;
+		// number of thanks message sent, if 2 then the example terminated successfully (used by the Test Suite)
+		public static int terminated = 0;
 
     public final static String GREETINGS = "GREETINGS";
     public final static String ANSWER = "ANSWER";
     public final static String THANKS = "THANKS";
+		private AgentContainer ac = null;
 
     protected void setup() {
 	System.out.println(getLocalName()+" STARTED ITS JOB");
@@ -81,44 +84,33 @@ public class ThanksAgent extends Agent {
 	    String t2AgentName = getLocalName()+"t2";
 
 	    try {
-		PlatformController container = getContainerController(); // get a container controller for creating new agents
+					// create agent t1 on the same container of the creator agent
+		AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
 		container.createNewAgent(t1AgentName, "examples.thanksAgent.ThanksAgent", null).start();
-		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName);
-		container.createNewAgent(t2AgentName, "examples.thanksAgent.ThanksAgent", null).start();
-		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName); 
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName + " ON CONTAINER "+container.getContainerName());
 	    } catch (Exception any) {
 		any.printStackTrace();
 	    }
 
 
-	    /* THIS CODE WORKS AFTER JADE 2.3. 
-	       IT IS AN EXAMPLE OF USAGE OF THE INPROCESS INTERFACE
-  */
+			// create agent t2 on a new container 
 	    // Get a hold on JADE runtime
 	    Runtime rt = Runtime.instance();
 	    // Create a default profile
-	    ProfileImpl p = new ProfileImpl();
-	    // set the profile to be non-main container
-	    p.setParameter(Profile.MAIN, "false");
+	    ProfileImpl p = new ProfileImpl(false);
 
 	    try {
 		// Create a new non-main container, connecting to the default
 		// main container (i.e. on this host, port 1099)
-		AgentContainer ac = rt.createAgentContainer(p);
+		ac = rt.createAgentContainer(p);
 		// create a new agent
-		jade.wrapper.Agent t1 = (jade.wrapper.Agent) ac.createNewAgent(t1AgentName,getClass().getName(),new Object[0]);
-		// fire-up the agent
-		t1.start();
-		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName);
-		// create a new agent
-		jade.wrapper.Agent t2 = (jade.wrapper.Agent) ac.createNewAgent(t2AgentName,getClass().getName(),new Object[0]);
+		AgentController t2 = ac.createNewAgent(t2AgentName,getClass().getName(),new Object[0]);
 		// fire-up the agent
 		t2.start();
-		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName);
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName + " ON CONTAINER "+ac.getContainerName());
 	    } catch (Exception e2) {
 		e2.printStackTrace();
 	    }
-//end comment was first here
 
 	    // send them a GREETINGS message
 	    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -162,6 +154,16 @@ public class ThanksAgent extends Agent {
 			    replyT.setContent(THANKS);
 			    myAgent.send(replyT);
 			    System.out.println(myAgent.getLocalName()+" SENT THANKS MESSAGE : "+replyT); 
+					synchronized (myAgent.getClass()) { // synchronized between all agents of this class
+							terminated++;
+							if (terminated == 2) {
+									try {
+											// kill the created container
+											ac.kill();
+									} catch (StaleProxyException any) {
+									}
+							}
+					}
 			}
 		    } else // if no message is arrived, block the behaviour
 			block();
