@@ -181,7 +181,7 @@ public class MainReplicationService extends BaseService {
 
     private class CommandOutgoingFilter implements Filter {
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -199,6 +199,9 @@ public class MainReplicationService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 	private void handleNewTool(VerticalCommand cmd) throws IMTPException, ServiceException {
@@ -242,7 +245,7 @@ public class MainReplicationService extends BaseService {
 
     private class CommandIncomingFilter implements Filter {
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -278,6 +281,9 @@ public class MainReplicationService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
