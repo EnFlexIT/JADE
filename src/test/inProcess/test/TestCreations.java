@@ -1,6 +1,6 @@
 package test.inProcess.test;
 
-import jade.core.*;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.wrapper.*;
 import jade.content.onto.basic.*;
@@ -26,7 +26,7 @@ public class TestCreations extends Test {
 		private final static String AGENTNAME = "ThanksAgent";
 		private int availableContainers = 0;
 
-		public Behaviour load(Agent a) throws TestException {
+		public Behaviour load(jade.core.Agent a) throws TestException {
 				try {
 						// get the number of current containers
 						availableContainers = ((List)TestUtility.requestAMSAction(a, a.getAMS(), new QueryPlatformLocationsAction())).size();
@@ -69,7 +69,7 @@ public class TestCreations extends Test {
 				return b;
 		}
 
-		public void clean(Agent a) {
+		public void clean(jade.core.Agent a) {
 				try {
 						TestUtility.killAgent(a, new AID(AGENTNAME, AID.ISLOCALNAME));
 						TestUtility.killAgent(a, new AID(AGENTNAME+"t1", AID.ISLOCALNAME));
