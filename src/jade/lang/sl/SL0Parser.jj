@@ -15,48 +15,82 @@ options {
 //  BUILD_PARSER = true;
 //  BUILD_TOKEN_MANAGER = true;
 //  SANITY_CHECK = true;
-//  FORCE_LA_CHECK = true;	// Force LookAhead Cecking
+//  FORCE_LA_CHECK = true;	// Force LookAhead Checking
 }
 
 PARSER_BEGIN(SL0Parser)
-
-import java.io.StringReader;
 
 import jade.lang.Codec;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
-import jade.onto.DummyOntology;
+import jade.onto.OntologyException;
+import jade.onto.DefaultOntology;
 
-//import java.io.*;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.io.InputStreamReader;
 
 public class SL0Parser implements Codec {
 
-  public String encodeConcept(Frame f) {
+  public String encode(Frame f, Ontology o) {
     return "";
   }
 
-  public Frame decodeConcept(String s) {
+  public Frame decode(String s, Ontology o) throws Codec.CodecException {
     ReInit(new StringReader(s));
-    return SL0Concept();
+    try {
+     return SL0Content(o);
+    }
+    catch(ParseException pe) {
+      throw new Codec.CodecException("Parse exception", pe);
+    }
+    catch(TokenMgrError tme) {
+      throw new Codec.CodecException("Token Manager error", tme);
+    }
+
   }
 
-  public String encodeAction(Action a) {
-    return "";
+  private boolean isConcept(Ontology o, String roleName) {
+    try {
+      return o.isConcept(roleName);
+    }
+    catch(OntologyException oe) {
+      return false;
+    }
   }
 
-  public Action decodeAction(String s) {
-    ReInit(new StringReader(s));
-    return SL0Action();
+  private boolean isAction(Ontology o, String roleName) {
+    try {
+      return o.isAction(roleName);
+    }
+    catch(OntologyException oe) {
+      return false;
+    }
   }
 
-  public String encodeProposition(Predicate p) {
-    return "";
+  private boolean isPredicate(Ontology o, String roleName) {
+    try {
+      return o.isPredicate(roleName);
+    }
+    catch(OntologyException oe) {
+      return false;
+    }
   }
 
-  public Predicate decodeProposition(String s) {
-    ReInit(new StringReader(s));
-    return SL0Predicate();
+  public static void main(String[] args) {
+    System.out.println("SL0 Parser starting...");
+    SL0Parser theParser = new SL0Parser(new BufferedReader(new InputStreamReader(System.in)));
+    try {
+      Frame result = theParser.SL0Content(new DefaultOntology());
+      result.dump();
+    }
+    catch(ParseException pe) {
+      pe.printStackTrace();
+    }
+    catch(TokenMgrError tme) {
+      tme.printStackTrace();
+    }
   }
 
 }
@@ -64,6 +98,46 @@ public class SL0Parser implements Codec {
 PARSER_END(SL0Parser)
 
 
+/* 
+
+   The following grammar productions try to match as closely as
+   possible the SL0 grammar given in FIPA 97, Version 2.0 Part 2. The
+   differences are as follows:
+
+   1) In order to keep single lookahead, braces have been factored out
+      whenever possible. So, the parser methods corresponding to
+      SL0ActionExpression and to SL0FunctionalTerm don't expect
+      neither opening nor closing brace. Braces are explicitly
+      indicated in the calling methods/productions.
+
+   2) In order to keep the single lookahead requirement, the
+      derivation chain
+      SL0ContentExpression --> SL0Wff --> SL0AtomicFormula --> SLPropositionSymbol --> <WORD>
+      has been shortened to SL0ContentExpression --> <WORD>. This
+      allows us to factor out the opening brace, which is common to
+      all the other branches of the parse tree.
+
+   3) Identical productions have been merged into one; these are:
+      - SLPropositionSymbol, "true" and "false", that all result in a single <WORD> token.
+      - SLFunctionalTerm and "(" SLPredicateSymbol SL0Term* ")", that are exactly the same.
+
+   4) Due to the production merging of the previous point, the
+      SL0AtomicFormula production is no more needed, so it has been
+      removed; now there's a rule SL0Wff --> SL0FunctionalTerm. The
+      only difference with the original grammar is that here "result"
+      is no more a reserved word; the section B.2.5 states that "a
+      standard predicate 'result', of arity two, is introduced to the
+      language". This does not seem to forbid having other, user
+      defined, predicates named 'result' but with different
+      arity. This is indeed possible with the current grammar, but can
+      be troublesome with the standard one.
+
+   5) A special JavaCC feature, namely "semantic lookahead", has been
+      exploited to support key/value pairs for concept slots, but
+      simple argument lists for actions and predicates. An ontology
+      lookup is performed in order to distinguish among the two cases.
+
+*/
 
 
 
@@ -76,50 +150,99 @@ PARSER_END(SL0Parser)
 * <code>request</code>, predicate for <code>inform</code>, etc.), any
 * allowed SL content expression can be parsed from here.
 */
-Frame SL0Content() :
-{ Frame result; }
+Frame SL0Content(Ontology o) :
+{ 
+  Frame result;
+  Token t;
+}
 {
-  result = ActionAndProposition() | result = Formula() | result = ActionExpression()
+  ( t = <WORD> { result = new Frame(t.image); } | <LBRACE> ( result = ActionExpression(o) | result = Wff(o) ) <RBRACE> )
   { return result; }
 }
 
 
-/**
-* This production represents the content of a propose, agree, ...
-* communicative act. 
-* <p> <code> ActionAndProposition = "(" ActionExpression Formula ")" </code>
-*/
-Frame ActionAndProposition():
+Frame Wff(Ontology o):
 {
-  Frame result = new Frame("Couple");
-  Frame action;
-  Frame proposition;
-  Ontology o = DummyOntology.instance();
-}
-{
-  <LBRACE>
-  action = ActionExpression()
-  { result.putSlot(o.getSlotName("", 1), action); }
-  proposition = Formula()
-  { result.putSlot(o.getSlotName("", 2), proposition); }
-  <RBRACE>
-}
-
-
-/**
-* This production represents the content of an inform, ... comm. act. 
-* <p> <code> Formula = "(" PredicateSymbol SL0Term* ")" | PropositionSymbol  </code>
-*/
-void Formula(Frame parent):
-{
-  String s;
   Frame result;
 }
 {
+  ( result = SL0ActionOp(o) | result = FunctionalTerm(o) )
+  { return result; }
+}
 
-<LBRACE> s=String() (SL0Term())*  <RBRACE>
-| ( s=String() { parent.put
 
+Frame ActionExpression(Ontology o):
+{
+  Frame result;
+  Object agentID;
+}
+{
+  <ACTION> agentID = AID(o) <LBRACE> result = FunctionalTerm(o) { result.putSlot(":actor", agentID); } <RBRACE>
+  { return result; }
+}
+
+
+Frame SL0ActionOp(Ontology o):
+{
+  Frame result;
+  Frame action;
+}
+{
+  <DONE> <LBRACE> action = ActionExpression(o) { result = new Frame("Done"); result.putSlot(action); } <RBRACE>
+  { return result; }
+}
+
+Frame FunctionalTerm(Ontology o):
+{
+  Frame result;
+  Token t;
+}
+{
+  t = <WORD> { result = new Frame(t.image); } // The function name becomes the frame name
+(
+  LOOKAHEAD({ isConcept(o, t.image)   }) Concept(o, result) // if it's a Concept, fill the Frame with key/value pairs
+
+| LOOKAHEAD({ isAction(o, t.image)    }) Action(o, result)  // if it's an Action, fill the Frame with unnamed arguments
+
+| LOOKAHEAD({ isPredicate(o, t.image) }) Predicate(o, result) // if it's a Predicate, fill the Frame with unnamed terms
+
+| { throw new ParseException("Ontological inconsistency: " + t.image + " must be a Concept, an Action or a Predicate"); }
+)
+  { return result; }
+}
+
+void Concept(Ontology o, Frame result):
+{
+  Token name;
+  Object value;
+}
+{
+  ( <LBRACE> name = <WORD> value = SL0Term(o) <RBRACE> { result.putSlot(name.image, value); } )+ // At least one slot
+}
+
+void Action(Ontology o, Frame result):
+{
+  Object arg;
+}
+{
+  <LBRACE> ( arg = SL0Term(o) { result.putSlot(arg); } )+ <RBRACE> // At least one argument
+}
+
+void Predicate(Ontology o, Frame result):
+{
+  Object arg;
+}
+{
+  <LBRACE> ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one term
+}
+
+Object SL0Term(Ontology o) :
+{
+  Object result;
+}
+{
+  ( result = String() | result = Number() | <LBRACE> result = FunctionalTerm(o) <RBRACE> )
+  { return result; }
 }
 
 
@@ -133,123 +256,37 @@ String String() :
 | t=<STRING_LITERAL>	{return t.image;}
 }
 
-
-/**
-* This production represents the content of a request, ... comm. act.
-* <p> <code> ActionExpression = "(" ContentActionExpressionwithoutBraces ")" </code>
-*/
-void ActionExpression(Ontology o) :
-{String s;}
-{ 
-<LBRACE> ContentActionExpressionWithoutBraces(o) <RBRACE>
-}
-
-
-/**
-* This strange production rule is necessary to reduce lookahead between
-* functionalterm and ACLCommunicativeAct. Further to that, it allows
-* to avoid having functional terms as the content of a REQUEST ca. 
-* <p> <code> ContentActionExpressionWithoutBraces = ActionExpressionwithoutBraces | ACLCommunicativeActWithoutBraces </code>
-**/
-void ContentActionExpressionWithoutBraces(Ontology o):
-{}
-{
-  ActionExpressionWithoutBraces(o)
-| ACLCommunicativeActWithoutBraces(o)
-}
-
-
-/**
-* Notice that this production does not match an ACL Communicative act.
-* <p> <code> ActionExpressionWithoutBraces = "action" AID "(" FunctionalTermOrACLWithoutBraces ")" </code>
-*/
-void ActionExpressionWithoutBraces(Ontology o) :
-{}
-{ <ACTION> AID(o) <LBRACE> FunctionalTermOrACLWithoutBraces(o) <RBRACE>
-}
-
 /*
 * AID. 
 */
-void AID(Ontology o) :
+Object AID(Ontology o) :
 {String s; }
 { 
-  String() //FIXME. Only for FIPA97
-| <LBRACE> s=String() (String() SL0Term(o))* <RBRACE>
-  { if (o.isAObjectSymbol(s)) { }
-   else throw new ParseException(s+" is not an object symbol in this ontolgy"); } 	
-//FIXME This production rule should be more restrictive to allow only for AID symbol. To check with SL0 definition
+  s = String() { return s; } // FIPA97 agent name
 }
 
 
 /*
 * <code> ACLCommunicativeActWithoutBraces = String ( String SL0Term )* </code>
 */
+
+/*
 void ACLCommunicativeActWithoutBraces(Ontology o) :
 {String s; }
 {
  s=String() (String() SL0Term(o))*
  {if (jade.lang.acl.ACLMessage.getPerformative(s)==jade.lang.acl.ACLMessage.UNKNOWN) throw new ParseException(s+" is not a performative symbol"); } 	
 }
-
-
-/*
-* <code> SL0Term = String | Number | "(" SL0TermWithoutBraces ")"  </code>
 */
-void SL0Term(Ontology o) :
+
+Object Number():
 { 
+  Token t;
 }
-{
-  String() 
-| Number() 
-| <LBRACE> SL0TermWithoutBraces(o) <RBRACE>
-}
-
-/*
-* <code> SL0TermWithoutBraces = ActionExpressionWithoutBraces | FunctionalOrObjectOrACLTermWithoutBraces </code>
-*/
-void SL0TermWithoutBraces(Ontology o) :
-{ }
-{
-  ActionExpressionWithoutBraces(o)
-| FunctionalOrObjectOrACLTermWithoutBraces(o)
-}
-
-/**
-* Here I can have a functional term or an object description term
-* or an ACL communicative act
-* <code> FunctionalOrObjectOrACLTermWithoutBraces = String SL0Term* </code>
-*/
-void FunctionalOrObjectOrACLTermWithoutBraces(Ontology o) :
-{ String s;}
-{ s=String() (SL0Term(o))* 
-  {if (o.isAFunctionSymbol(s)) { }
-   else if (o.isAObjectSymbol(s)) { }
-   else if (jade.lang.acl.ACLMessage.getPerformative(s)!=jade.lang.acl.ACLMessage.UNKNOWN) {}
-   else throw new ParseException(s+" is neither a performative symbol nor a function symbol nor an object symbol in this ontolgy"); } 	
-}
-
-/**
-* This production rule enforces a term to be a function symbol or a 
-* communicative act name. It is called by ActionExpressionWithoutBraces.
-* That avoids having an objectdescription as a functional term argument of an action.
-* <code> FunctionalTermOrACLWithoutBraces = String SL0Term* </code>
-**/
-void FunctionalTermOrACLWithoutBraces(Ontology o) :
-{ String s;}
-{ s=String() (SL0Term(o))* 
-  {if (o.isAFunctionSymbol(s)) { }
-   else if (jade.lang.acl.ACLMessage.getPerformative(s)!=jade.lang.acl.ACLMessage.UNKNOWN) {}
-   else throw new ParseException(s+" is neither a performative symbol nor a function symbol in this ontolgy"); } 	
-}
-
-
-void Number():
-{  }
 { 
-  <INTEGER>   
-| <FLOATONE>  
-| <FLOATTWO>  
+  t = <INTEGER> { return new Long(t.image); }
+| t = <FLOATONE> { return new Double(t.image); }
+| t = <FLOATTWO> { return new Double(t.image); }
 }
 
 
@@ -275,6 +312,7 @@ TOKEN:
   < LBRACE     : "("       > 
 | < RBRACE     : ")"       >
 | < ACTION     : "action"  >
+| < DONE: "done">
 | < INTEGER :       (["+","-"])? (["0"-"9"])+ >
 | < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
                     (["e","E"] (["-","+"])? (["0"-"9"])+)? >
