@@ -372,6 +372,7 @@ public class BasicJessBehaviour extends CyclicBehaviour{
    * will be then sent by the caller.
    */
   public ACLMessage JessFact2ACL(jess.ValueVector vv) throws jess.ReteException {
+    // System.err.println("JessFact2ACL "+vv.toString());
     int perf = ACLMessage.getInteger(vv.get(3).stringValue());
     ACLMessage msg = new ACLMessage(perf);
     if (vv.get(4).stringValue() != "nil")
@@ -401,7 +402,8 @@ public class BasicJessBehaviour extends CyclicBehaviour{
     }
     if (vv.get(14).stringValue() != "nil")
       msg.setEncoding(vv.get(14).stringValue());      
-    if (vv.get(15).stringValue() != "nil") {
+    //System.err.println("JessFact2ACL type is "+vv.get(15).type());
+    if (vv.get(15).toString() != "nil") {
       List l = getAIDListFromCache(vv.get(15).toString());
       for (int i=0; i<l.size(); i++)
 	msg.addReplyTo((AID)l.get(i)); 
