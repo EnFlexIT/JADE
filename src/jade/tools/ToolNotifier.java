@@ -64,7 +64,7 @@ import jade.content.onto.basic.*;
 import jade.proto.AchieveREResponder;
 
 /*
-  @author Giovanni Rimassa -  Universita` di Parma
+  @author Giovanni Rimassa -  Universita' di Parma
   @author Giovanni Caire -  TILAB
 */
 public class ToolNotifier extends ToolAgent implements MessageListener, AgentListener {

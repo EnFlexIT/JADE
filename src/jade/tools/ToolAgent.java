@@ -52,7 +52,7 @@ import jade.content.lang.sl.SLCodec;
   interact with the AMS, registering for interesting events and
   requesting actions when needed.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 
  */
