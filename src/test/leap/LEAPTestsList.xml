@@ -27,6 +27,13 @@
 			<Argument key="n-messages" value="10"> The number of messages to be sent </Argument>
 		</Test>	
 		
+		<Test name="BackEnd fault tolerance" skip="false">
+			<TestClassName>test.leap.tests.TestBackEndFault</TestClassName>
+			<WhatTest> Tests that a split container can recover from a fault of the backe-end</WhatTest>
+			<HowWorkTest> A sender agent and a ping agent are created on the split container. Then a backup main is created. After that the master main container (hosting the back-end for the split container) is killed and then restored. Finally a message is sent to the ping agent</HowWorkTest>
+			<WhenTestPass> The test passes if all messages from the sender agent and the reply from the ping agent are correctly received</WhenTestPass>
+		</Test>	
+		
 		<Test name="Message reception" skip="true">
 			<TestClassName>test.leap.tests.TestMessageReception</TestClassName>
 			<WhatTest> 

@@ -54,8 +54,10 @@ public class SenderAgent extends Agent {
 			msg.addReceiver(receiver);
 			addBehaviour(new TickerBehaviour(this, period) {
 				protected void onTick() {
+					int cnt = getTickCount();
+					msg.setContent(String.valueOf(cnt - 1));
 					myAgent.send(msg);
-					if (getTickCount() >= nMessages) {
+					if (cnt >= nMessages) {
 						stop();
 					}
 				}
