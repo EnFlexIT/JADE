@@ -76,7 +76,8 @@ public abstract class Profile {
   public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
 
   public static final String MASTER_NODE_NAME = "masternodename";
-
+  public static final String BE_REPLICA_INDEX = "be-replica-index";
+  public static final String BE_MEDIATOR_ID = "be-mediator-id";
 
   public static final String MAINAUTH_CLASS = "main-auth";
   public static final String AUTHORITY_CLASS = "authority";
