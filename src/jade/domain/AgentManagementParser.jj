@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.22  1999/10/06 08:32:33  rimassa
+  Removed syntax checks for communication protocols. Changed WORD token
+  definition to allow words starting with ':'.
+
   Revision 1.21  1999/08/31 17:26:57  rimassa
   Extended AMSEvent grammar to handle new agent motion events.
 
@@ -761,75 +765,12 @@ String AgentName() :
 
 String CommAddress() :
 {
-  String result;
 }
 {
-  // { token_source.SwitchTo(COMM_PROTOCOLSTATE); }
-  ( result = IORAddress() | result = URLAddress() )
-  { return result; }
+  {Token t;}	t=<WORD> {return t.image;}
 }
 
 
-String IORAddress() :
-{
-  Token ior;
-}
-{
-  ior = <IOR>
-  { return ior.image; }
-}
-
-String URLAddress() :
-{
-  Token proto;
-  String addr;
-  Token port;
-  String acc;
-}
-{
-
-  proto = <IIOP> (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
-  {
-    String s = proto.image + addr + ":" + port.image + "/" + acc;
-    return s;
-  }
-}
-
-String IPAddress() :
-{
-  Token t1;
-  Token t2;
-  Token t3;
-  Token t4;
-}
-{
-  t1 = <INTEGER> "." t2 = <INTEGER> "." t3 = <INTEGER> "." t4 = <INTEGER>
-  {
-    return t1.image + "." + t2.image + "." + t3.image + "." + t4.image;
-  }
-}
-
-String DNSName() :
-{
-  Token t;
-}
-{
-  t = <WORD>
-  {
-    return t.image;
-  }
-}
-
-String ACCObj() :
-{
-  Token t;
-}
-{
-  t = <WORD>
-  {
-    return t.image;
-  }
-}
 
 void Constraint(AgentManagementOntology.DFSearchAction a) :
 {
@@ -986,9 +927,7 @@ TOKEN:
 | <ACTION : "action">
 | <RESULT : "result">
 | <PROPERTY_NAME : ":"["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
-| <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
-| <IOR : "IOR:" (["0"-"9", "a"-"f", "A"-"F"] ["0"-"9", "a"-"f", "A"-"F"])+> 
-| <IIOP : "IIOP://">
+| <WORD : ["!" , "\"" , "$"-"'" , "*" , "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
 | < INTEGER :       (["+","-"])? (["0"-"9"])+ >
 | < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
                     (["e","E"] (["-","+"])? (["0"-"9"])+)? >
@@ -1094,7 +1033,7 @@ SKIP:
 TOKEN:
 {
   <EXC_STRING_LITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\""> 
-| < EXC_WORD : ["!" , "\"", "$"-"'", "*", "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
+| < EXC_WORD : ["!" , "\"" , "$"-"'" , "*" , "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
 | < EXC_INTEGER :       (["+","-"])? (["0"-"9"])+ >
 | < EXC_FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
                     (["e","E"] (["-","+"])? (["0"-"9"])+)? >
