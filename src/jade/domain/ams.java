@@ -97,6 +97,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       }
       catch(FIPAException fe) {
+      	System.out.println(fe.getMessage());
 	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
       }
 
@@ -532,7 +533,7 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
       SniffOn so = (SniffOn)a.get_1();
       try {
-	myPlatform.sniffOn(so.getSniffer(), so.getAllSniffedAgents());
+				myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -552,7 +553,7 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
       SniffOff so = (SniffOff)a.get_1();
       try {
-	myPlatform.sniffOff(so.getSniffer(), so.getAllSniffedAgents());
+				myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");

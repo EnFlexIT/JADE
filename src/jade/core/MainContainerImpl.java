@@ -638,38 +638,37 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
 
-  public void sniffOn(AID snifferName, Iterator toBeSniffed) throws UnreachableException  {
+  public void sniffOn(AID snifferName, List toBeSniffed) throws UnreachableException  {
 
     Collection myContainersColl = containers.values();
     Iterator myContainers = myContainersColl.iterator();
 
     while (myContainers.hasNext()) {
       try {
-	AgentContainer ac = (AgentContainer)myContainers.next();
-	ac.enableSniffer(snifferName, toBeSniffed); // RMI call
+				AgentContainer ac = (AgentContainer)myContainers.next(); 
+				ac.enableSniffer(snifferName, toBeSniffed); // RMI call
       }
       catch (RemoteException re) {
-	throw new UnreachableException(re.getMessage());
+				throw new UnreachableException(re.getMessage());
       } 
     }
   }
 
-  public void sniffOff(AID snifferName, Iterator notToBeSniffed) throws UnreachableException {
+  public void sniffOff(AID snifferName, List notToBeSniffed) throws UnreachableException {
 
     Collection myContainersColl = containers.values();
     Iterator myContainers = myContainersColl.iterator();
 
     while (myContainers.hasNext()) {
       try {
-	AgentContainer ac = (AgentContainer)myContainers.next();
-	ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
+				AgentContainer ac = (AgentContainer)myContainers.next();
+				ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
       }
       catch (RemoteException re) {
-	throw new UnreachableException(re.getMessage());
+				throw new UnreachableException(re.getMessage());
       }
     }
   }
 
 
 }
-

@@ -29,7 +29,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import java.util.List;
-import java.util.Iterator;
 
 import jade.lang.acl.ACLMessage;
 
@@ -66,7 +65,7 @@ interface AgentContainer extends Remote {
   void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException;
   void ping(boolean hang) throws RemoteException;
 
-  void enableSniffer(AID snifferName, Iterator toBeSniffed) throws RemoteException;
-  void disableSniffer(AID snifferName, Iterator notToBeSniffed) throws RemoteException;
+  void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException;
+  void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException;
 
 }

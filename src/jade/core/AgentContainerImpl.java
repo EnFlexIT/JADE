@@ -315,11 +315,12 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   /**
     @param toBeSniffer is an Iterator over the AIDs of agents to be sniffed
   **/
-  public void enableSniffer(AID snifferName, Iterator toBeSniffed) throws RemoteException {
+  public void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException {
     // In the SniffedAgents hashmap the key is the agent name and the value 
     // is a list containing the sniffer names for that agent 
-    for ( ;toBeSniffed.hasNext(); ) {
-      AID aid = (AID)toBeSniffed.next();
+  	Iterator iOnToBeSniffed = toBeSniffed.iterator();
+  	for ( ;iOnToBeSniffed.hasNext(); ) {
+      AID aid = (AID)iOnToBeSniffed.next();
       ArrayList l;
       if (SniffedAgents.containsKey(aid)) {
 	l = (ArrayList)SniffedAgents.get(aid);
@@ -334,11 +335,12 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
 
-  public void disableSniffer(AID snifferName, Iterator notToBeSniffed) throws RemoteException {
+  public void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException {
     // In the SniffedAgents hashmap the key is the agent name and the value 
     // is a list containing the sniffer names for that agent 
-    for ( ;notToBeSniffed.hasNext(); ) {
-      AID aid = (AID)notToBeSniffed.next();
+  	Iterator iOnNotToBeSniffed = notToBeSniffed.iterator();
+    for ( ;iOnNotToBeSniffed.hasNext(); ) {
+      AID aid = (AID)iOnNotToBeSniffed.next();
       ArrayList l;
       if (SniffedAgents.containsKey(aid)) {
 	l = (ArrayList)SniffedAgents.get(aid);

@@ -66,6 +66,15 @@ public class SniffOff {
     return sniffedAgents.iterator();
   }
 
+  /**
+  	This method is called by the AMS in order to prepare an RMI call.
+  	The <code>getAllSniffedAgents()</code> cannot be used as it returns
+  	an <code>Iterator</code> that is not serializable.
+  	*/
+  public ArrayList getCloneOfSniffedAgents(){
+  	return (ArrayList) ((ArrayList) sniffedAgents).clone();
+  }
+
   public void setPassword(String p) {
     password = p;
   }
