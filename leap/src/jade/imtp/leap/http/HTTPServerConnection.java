@@ -39,6 +39,7 @@ package jade.imtp.leap.http;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.JICP.Connection;
 import jade.imtp.leap.JICP.JICPPacket;
+import jade.imtp.leap.JICP.JICPProtocol;
 
 import java.io.*;
 import java.net.*;
@@ -53,6 +54,7 @@ import java.net.*;
  * @author Giovanni Caire - TILAB
  */
 public class HTTPServerConnection extends Connection {
+	private static byte[] serializedOK = new byte[] {(byte) jade.imtp.leap.Command.OK, (byte) 0};
 
   private Socket sc;
   private InputStream  is;
@@ -77,9 +79,21 @@ public class HTTPServerConnection extends Connection {
 	    request.readFrom(is);
 	    readAvailable = false;
 	    writeAvailable = true;
-	    // Read the JICPPacket from the HTTP request payload
-	    ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
-	    return JICPPacket.readFrom(bis);
+	    if (request.getMethod().equals("GET")) {
+	    	// This is an OK response
+	    	String sessionID = request.getField("jicp-ssn");
+	    	String recipientID = request.getField("jicp-rcp");
+	    	JICPPacket pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, serializedOK); 
+	    	if (sessionID != null) {
+	    		pkt.setSessionID((byte) Integer.parseInt(sessionID));
+	    	}
+	    	return pkt;
+	    }
+	    else {
+		    // Read the JICPPacket from the HTTP request payload
+		    ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
+		    return JICPPacket.readFrom(bis);
+	    }
     }
     else {
 			throw new IOException("Read not available");
@@ -87,24 +101,32 @@ public class HTTPServerConnection extends Connection {
   }
   
   public int writePacket(JICPPacket pkt) throws IOException {
-		if (writeAvailable) {
-			// Transform the JICPPacket into a sequence of bytes
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			int ret = pkt.writeTo(bos);
-			// Create an HTTPResponse and set the serialized JICPPacket as payload 
-			HTTPResponse response = new HTTPResponse();
-			response.setCode("200");
-			response.setMessage("OK");
-			response.setHttpType("HTTP/1.1");
-			response.setPayload(bos.toByteArray());
-			// Write the HTTPResponse to os and close the connection
-			os = sc.getOutputStream();
-			response.writeTo(os);
-			os.flush();
-	    readAvailable = true;
-	    writeAvailable = false;
-			close();
-			return ret;
+  	if (writeAvailable) {
+  		try {
+				// Transform the JICPPacket into a sequence of bytes
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				int ret = pkt.writeTo(bos);
+				// Create an HTTPResponse and set the serialized JICPPacket as payload 
+				HTTPResponse response = new HTTPResponse();
+				response.setCode("200");
+				response.setMessage("OK");
+				response.setHttpType("HTTP/1.1");
+				response.setPayload(bos.toByteArray());
+				// Write the HTTPResponse to os and close the connection
+				os = sc.getOutputStream();
+				response.writeTo(os);
+				os.flush();
+		    readAvailable = true;
+		    writeAvailable = false;
+				return ret;
+  		}
+  		finally {
+    		try {
+	    		close();
+    		}
+    		catch (Exception e) {
+    		}
+  		}
 		}
 		else {
 			throw new IOException("Write not available");
@@ -116,18 +138,27 @@ public class HTTPServerConnection extends Connection {
   public void close() throws IOException {
 		readAvailable = false;
 		writeAvailable = false;
-    if (is != null) {
-      is.close();
-      is = null;
-    } 
-    if (os != null) {
-      os.close();
-      os = null;
-    } 
-    if (sc != null) {
-	    sc.close();
-	    sc = null;
-    }
+		try {
+	    if (is != null) {
+	      is.close();
+	      is = null;
+	    }
+		}
+		catch (Exception e) {}
+		try {
+	    if (os != null) {
+	      os.close();
+	      os = null;
+	    }
+		}
+		catch (Exception e) {}
+		try {
+	    if (sc != null) {
+		    sc.close();
+		    sc = null;
+	    }
+		}
+		catch (Exception e) {}
   } 
 
   /**
