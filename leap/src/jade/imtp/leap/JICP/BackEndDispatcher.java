@@ -104,8 +104,8 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	myStub = new FrontEndStub(this);
     	props.setProperty(Profile.MAIN, "false");
     	// FIXME: Get main host and port from the command dispatcher
-    	props.setProperty(Profile.MAIN_HOST, "localhost");
-    	props.setProperty(Profile.MAIN_PORT, String.valueOf(JICPProtocol.DEFAULT_PORT));
+    	//props.setProperty(Profile.MAIN_HOST, "localhost");
+    	//props.setProperty(Profile.MAIN_PORT, String.valueOf(JICPProtocol.DEFAULT_PORT));
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
     	myContainer = new BackEndContainer(new ProfileImpl(props), this);
 			// Check that the BackEndContainer has successfully joined the platform

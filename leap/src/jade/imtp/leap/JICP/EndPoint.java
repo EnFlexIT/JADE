@@ -432,10 +432,7 @@ public abstract class EndPoint extends Thread {
   static void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
-      System.out.println(name+": "+s);
-      if (level <= 1) {
-      	jade.util.Logger.println(s);
-      }
+      jade.util.Logger.println(name+": "+s);
     } 
   } 
 
