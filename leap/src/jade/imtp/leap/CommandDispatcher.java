@@ -337,7 +337,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   	try {
   		TransportAddress ta1 = (TransportAddress) addresses.get(0);
   		TransportAddress ta2 = (TransportAddress) destTAs.get(0);
-  		return (ta1.getHost().equals(ta2.getHost()) && ta1.getPort().equals(ta2.getPort()));
+  		return (ta1.getHost().equals(ta2.getHost()) && ta1.getPort().equals(ta2.getPort()) && ta2.getFile() == null);
   	}
   	catch (Exception e) {
 	  	return false;
@@ -428,9 +428,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       catch (UnreachableException ue) {
         // Can't send command to this address --> try the next one
         // DEBUG
-        // TransportAddress ta = (TransportAddress)destTAs.get(i);
-        // System.out.println("Sending command to " + ta.getProto() + "://" + ta.getHost() + ":" + ta.getPort() + " failed [" + ue.getMessage() + "]");
-        // if (i < destTAs.size() - 1)
+        //TransportAddress ta = (TransportAddress)destTAs.get(i);
+        //System.out.println("Sending command to " + ta.getProto() + "://" + ta.getHost() + ":" + ta.getPort() + " failed [" + ue.getMessage() + "]");
+        //if (i < destTAs.size() - 1)
         // System.out.println("Try next address");
       } 
     } 
@@ -798,6 +798,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         return ((ICP) list.get(i)).deliverCommand(ta, commandPayload);
       } 
       catch (ICPException icpe) {
+      	// DEBUG
         // Print a warning and try next address
       	//System.out.println("Warning: can't deliver command to "+ta+". "+icpe.getMessage());
       } 
