@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.18  1999/02/16 08:12:05  rimassa
+  Removed some debugging printouts and fixed a bug in recursive search:
+  a couple of addBehaviour() calls changed to addSubBehaviour() calls.
+
   Revision 1.17  1999/02/14 23:24:20  rimassa
   Changed addBehaviour() calls to addSubBehaviour() where appropriate.
   Added an automatic management of DF federeation: now a DF agent
@@ -133,13 +137,13 @@ public class df extends Agent {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	pe.printStackTrace();
- 	System.out.println("DF ParseException with: " + content);
+	// pe.printStackTrace();
+	// System.out.println("DF ParseException with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	tme.printStackTrace();
-  System.out.println("DF TokenMgrError with: " + content);
+	// tme.printStackTrace();
+	// System.out.println("DF TokenMgrError with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
 
@@ -394,7 +398,7 @@ public class df extends Agent {
 	String name = c.getName();
 	String fn = c.getFn();
 	int arg = c.getArg();
-	//      System.err.println("Constraints = " +name+fn+arg); 
+
 	if(arg <= 0)
 	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
 
@@ -568,9 +572,9 @@ public class df extends Agent {
 	}
       }
 
-      addBehaviour(searchThemAll);
+      addSubBehaviour(searchThemAll);
 
-      addBehaviour(new OneShotBehaviour(df.this) {
+      addSubBehaviour(new OneShotBehaviour(df.this) {
 
 	public void action() {
 	  StringWriter text = new StringWriter();
