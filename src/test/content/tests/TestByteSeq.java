@@ -61,7 +61,7 @@ public class TestByteSeq extends Test{
   					return true;
   				}
   				else {
-  					l.log("Wrong byte[] value: expected "+VALUE+", received "+value); 
+  					l.log("Wrong byte[] value: expected \""+new String(value)+"\", received \""+new String(VALUE)+"\""); 
   					return false;
   				}
 				}		
