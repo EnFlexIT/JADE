@@ -470,8 +470,9 @@ public class Boot {
 	      	usage();
 	      }
 	      else
-	        endCommand = true; //no more command line
-	      
+	        if(isAgentName(args[n])>-1)
+	          endCommand = true; //no more command line
+	          
 	      n++;
       }
       
