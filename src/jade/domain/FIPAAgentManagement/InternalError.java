@@ -27,14 +27,14 @@ package jade.domain.FIPAAgentManagement;
 public class InternalError extends FailureException {
 
   public InternalError(String msg) {
-    super(msg);
+    super("(internal-error "+msg+")");
   }
 
   public InternalError() {
-    this("Internal-Error");
+    this("unknown-error");
   }
 
   String s1;
-public void set_0(String s){ s1=s;}
+public void set_0(String s){ s1=s; setMessage("(internal-error "+s1+")");}
 public String get_0() {return s1;}
 }

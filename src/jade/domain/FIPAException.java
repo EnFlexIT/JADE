@@ -30,26 +30,64 @@ import java.io.IOException;
 import jade.lang.acl.ACLMessage;
 
 /**
+This class represents a generic FIPAException, i.e. one of NotUnderstood,Failure,Refuse, as defined in <code>jade.domain.FIPAAgentManagement</code>.
+It has two constructors, one based on an ACLMessage, and the second based
+on its content, i.e. the exception message.
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
 public class FIPAException extends Exception {
 
-  private ACLMessage msg;
+  protected ACLMessage msg; // can be accessed by subclasses
+  private String content;
 
+  /**
+   * constructs a generic FIPAException. The ACLMessage performative is
+   * defaulted to not-understood.
+   * @param message is the content of the ACLMessage
+  **/
   public FIPAException(String message) {
     super(message);
-    msg=new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-    msg.setContent(message);
+    content=message;
   }
 
+  /**
+   * @param message is the ACLMessage representing this exception
+   **/
   public FIPAException(ACLMessage message) {
-    super(message.getContent());
+    this(message.getContent());
     msg=(ACLMessage)message.clone();
   }
 
+  /**
+   * @return the ACLMessage representing this exception
+   **/
   public ACLMessage getACLMessage() {
+    if (msg == null) {
+      msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+      msg.setContent(content);
+    }
     return msg;
   }
+
+  /**
+   * set the content of the ACLMessage representing this exception
+   * @param message is the content
+   **/
+  public void setMessage(String message) {
+    content=message;
+    if (msg!=null)
+      msg.setContent(message);
+  }
+
+  /**
+   * get the content of the ACLMessage representing this exception
+   **/
+  public String getMessage() {
+    return content;
+  }
 }
+
+
+

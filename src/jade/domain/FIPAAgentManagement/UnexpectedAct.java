@@ -27,11 +27,15 @@ package jade.domain.FIPAAgentManagement;
 public class UnexpectedAct extends NotUnderstoodException {
 
   public UnexpectedAct() {
-    super("Unexpected communicative act");
+    super("(Unexpected-act unknwon");
   }
 
+public UnexpectedAct(String act) {
+  super("(Unexpected-act "+act+")");
+  s=act;
+}
 String s;
-public void set_0(String a){s=a;}
+public void set_0(String a){s=a;setMessage("(Unexpected-act "+a+")");}
 public String get_0() {return s;}
 
 }

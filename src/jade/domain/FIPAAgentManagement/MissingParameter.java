@@ -27,18 +27,18 @@ package jade.domain.FIPAAgentManagement;
 public class MissingParameter extends RefuseException {
 
   public MissingParameter() {
-    super("A parameter is missing");
+    this("Unkown-object", "Unknown-parameter-name"); 
   }
   
 public MissingParameter(String objectName, String parameterName) {
-  this();
+  super("(missing-parameter "+objectName+" "+parameterName+")");
   s1=objectName;
   s2=parameterName;
 }
 
 String s1,s2;
-public void set_0(String a){s1=a;}
+public void set_0(String a){s1=a; setMessage("(missing-parameter "+s1+" "+s2+")");}
 public String get_0() {return s1;}
-public void set_1(String a){s2=a;}
+public void set_1(String a){s2=a; setMessage("(missing-parameter "+s1+" "+s2+")");}
 public String get_1() {return s2;}
 }

@@ -27,7 +27,7 @@ package jade.domain.FIPAAgentManagement;
 public class NotRegistered extends FailureException {
 
   public NotRegistered() {
-    super("The agent is not registered with this platform");
+    super("not-registered");
   }
 
 }

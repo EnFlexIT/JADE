@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
 public class NotUnderstoodException extends FIPAException {
 
@@ -32,4 +33,12 @@ public class NotUnderstoodException extends FIPAException {
     super(msg);
   }
 
+  public ACLMessage getACLMessage() {
+    if (msg == null) {
+      msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+      msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
+    } else
+      msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+    return msg;
+  }
 }

@@ -25,11 +25,25 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
+/**
+This class represents a generic FailureException 
+@author Fabio Bellifemine - CSELT S.p.A. 
+@version $Date$ $Revision$
+*/
 public class FailureException extends FIPAException {
 
   public FailureException(String msg) {
     super(msg);
+  }
+  public ACLMessage getACLMessage() {
+    if (msg == null) {
+      msg = new ACLMessage(ACLMessage.FAILURE);
+      msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
+    } else
+      msg.setPerformative(ACLMessage.FAILURE);
+    return msg;
   }
 
 }

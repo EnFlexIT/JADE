@@ -28,10 +28,14 @@ public class UnsupportedValue extends NotUnderstoodException {
 String s;
 
   public UnsupportedValue() {
-    super("Unsupported value");
+    this("unknown-value");
   }
+public UnsupportedValue(String value) {
+    super("(Unsupported-value "+value+")");
+    s=value;
+}
 
-public void set_0(String a){s=a;}
+public void set_0(String a){s=a;setMessage("(Unsupported-value "+a+")"); }
 public String get_0() {return s;}
 
 }

@@ -27,13 +27,18 @@ package jade.domain.FIPAAgentManagement;
 public class UnrecognisedParameterValue extends RefuseException {
 
   public UnrecognisedParameterValue() {
-    super("A parameter was not expected");
+    this("unknown-parameter-name","unknown-parameter-value"); 
+  }
+  public UnrecognisedParameterValue(String parameterName, String parameterValue) {
+    super("(unrecognised-parameter-value "+parameterName+" "+parameterValue+")");
+    s1=parameterName;
+    s2=parameterValue;
   }
 
 String s1,s2;
-public void set_0(String a){s1=a;}
+public void set_0(String a){s1=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
 public String get_0() {return s1;}
-public void set_1(String a){s2=a;}
+public void set_1(String a){s2=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
 public String get_1() {return s2;}
 
 }

@@ -27,11 +27,14 @@ package jade.domain.FIPAAgentManagement;
 public class UnsupportedAct extends NotUnderstoodException {
 
   public UnsupportedAct() {
-    super("Unsupported communicative act");
+    super("(Unsupported-act unknown)");
   }
-
+  public UnsupportedAct(String act) {
+    super("(Unsupported-act "+act+")");
+    s=act;
+  }
 String s;
-public void set_0(String a){s=a;}
+public void set_0(String a){s=a; setMessage("(Unsupported-act "+a+")");}
 public String get_0() {return s;}
 
 }

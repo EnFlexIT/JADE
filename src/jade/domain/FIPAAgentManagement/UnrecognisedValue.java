@@ -27,10 +27,10 @@ package jade.domain.FIPAAgentManagement;
 public class UnrecognisedValue extends NotUnderstoodException {
 
   public UnrecognisedValue() {
-    super("Unrecognised value");
+    this("unknown-value");
   }
 public UnrecognisedValue(String value) {
-  this();
+  super("(Unrecognised-value " + value+")");
   s=value;
 }
 String s;

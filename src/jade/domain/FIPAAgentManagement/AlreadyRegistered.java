@@ -25,12 +25,8 @@ package jade.domain.FIPAAgentManagement;
 
 public class AlreadyRegistered extends FailureException {
 
-  public AlreadyRegistered(String msg) {
-    super(msg);
-  }
-
   public AlreadyRegistered() {
-    this("Agent already registered");
+    super("already-registered");
   }
 
 }

@@ -27,7 +27,11 @@ package jade.domain.FIPAAgentManagement;
 public class UnsupportedFunction extends RefuseException {
 
   public UnsupportedFunction() {
-    super("Unsupported function");
+    this("unknown-func"); 
+  }
+  public UnsupportedFunction(String func) {
+    super("(unsupported-function "+func+")");
+    s=func;
   }
 
 String s;

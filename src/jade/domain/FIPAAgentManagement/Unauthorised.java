@@ -27,7 +27,7 @@ package jade.domain.FIPAAgentManagement;
 public class Unauthorised extends RefuseException {
 
   public Unauthorised() {
-    super("Agent not authorised");
+    super("unauthorised");
   }
 
 }
