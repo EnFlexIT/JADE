@@ -3,19 +3,19 @@
  * JADE - Java Agent DEvelopment Framework is a framework to develop
  * multi-agent systems in compliance with the FIPA specifications.
  * Copyright (C) 2000 CSELT S.p.A.
- * 
+ *
  * GNU Lesser General Public License
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation,
  * version 2.1 of the License.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -42,16 +42,16 @@ import jade.util.Logger;
  **/
 class SimpleSLCodec extends StringCodec {
 	private int indent = 0;
-	
+
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-	
+
 	public SimpleSLCodec() {
 		super(jade.domain.FIPANames.ContentLanguage.FIPA_SL);
 	}
-	
+
   /**
    * Encodes a content into a string using a given ontology.
-   * @param ontology the ontology 
+   * @param ontology the ontology
    * @param content the content as an abstract descriptor.
    * @return the content as a string.
    * @throws CodecException
@@ -64,7 +64,7 @@ class SimpleSLCodec extends StringCodec {
 				stringify(abs, ontology, str);
   			str.append(" ");
 	    }
-		} 
+		}
 		else {
 			stringify(content, ontology, str);
 		}
@@ -73,13 +73,13 @@ class SimpleSLCodec extends StringCodec {
 	}
 
   private void stringify(AbsObject val, Ontology onto, StringBuffer str) throws CodecException {
-		if (val instanceof AbsPrimitive) 
+		if (val instanceof AbsPrimitive)
 			stringifyPrimitive((AbsPrimitive) val, str);
-		else if (val instanceof AbsVariable) 
+		else if (val instanceof AbsVariable)
 			stringifyVariable((AbsVariable) val, str);
-		else if (val instanceof AbsAggregate) 
+		else if (val instanceof AbsAggregate)
 			stringifyAggregate((AbsAggregate)val, onto, str);
-		else 
+		else
 			stringifyComplex(val, onto, str);
   }
 
@@ -101,11 +101,11 @@ class SimpleSLCodec extends StringCodec {
   	}
   	str.append(")");
   }
-	  			
+
   /**
-   * Encode the slots of an abstract descriptor by order, i.e. 
+   * Encode the slots of an abstract descriptor by order, i.e.
    * without writing the slot names. Also take into account that, in
-   * order to ensure a correct parsing, empty slots can only occur at 
+   * order to ensure a correct parsing, empty slots can only occur at
    * the end.
    */
   private void encodeSlotsByOrder(AbsObject val, String[] slotNames, Ontology onto, StringBuffer str) throws CodecException {
@@ -124,9 +124,9 @@ class SimpleSLCodec extends StringCodec {
 			}
 		}
   }
-    
+
   /**
-   * Encode the slots of an abstract descriptor by name, i.e. 
+   * Encode the slots of an abstract descriptor by name, i.e.
    * writing for each non-empty slot the slot name followed by the
    * slot value.
    */
@@ -141,7 +141,7 @@ class SimpleSLCodec extends StringCodec {
 			}
 		}
   }
-  
+
   private void stringifyAggregate(AbsAggregate val, Ontology onto, StringBuffer str) throws CodecException {
 		str.append("(");
 		str.append(val.getTypeName());
@@ -156,10 +156,10 @@ class SimpleSLCodec extends StringCodec {
   	str.append("?");
   	str.append(val.getName());
   }
-  
+
   private void stringifyPrimitive(AbsPrimitive val, StringBuffer str) throws CodecException {
 		String type = val.getTypeName();
-  	if (type.equals(BasicOntology.STRING)) {	
+  	if (type.equals(BasicOntology.STRING)) {
 	   	String s = val.getString();
 			if (CaseInsensitiveString.equalsIgnoreCase("true",s) || CaseInsensitiveString.equalsIgnoreCase("false",s)) {
 					s = '"'+s+'"'; // quote it to avoid confusion with the boolean primitives
@@ -172,12 +172,12 @@ class SimpleSLCodec extends StringCodec {
 	    str.append(ISO8601.toString(val.getDate()));
   	else if (type.equals(BasicOntology.BYTE_SEQUENCE))
   		throw new CodecException("SL_does_not_allow_encoding_sequencesOfBytes");
-  	else 
+  	else
   		str.append(val.getObject().toString());
   }
 
   /**
-   * Decodes the content to an abstract description using a 
+   * Decodes the content to an abstract description using a
    * given ontology.
    * @param ontology the ontology.
    * @param content the content as a string.
@@ -205,7 +205,7 @@ class SimpleSLCodec extends StringCodec {
   		throw new CodecException("Error converting to AbsContentElement", cce);
   	}
   }
-  
+
   private AbsObject parse(SimpleSLTokenizer p, Ontology o) throws CodecException {
   	AbsObject abs = null;
   	if (p.nextToken().startsWith("(")) {
@@ -221,7 +221,8 @@ class SimpleSLCodec extends StringCodec {
   	AbsObject abs = null;
   	p.consumeChar('(');
   	String name = p.getElement();
-  	logger.log(Logger.FINE,"Parse complex descriptor: "+name);
+          if(logger.isLoggable(Logger.FINE))
+            logger.log(Logger.FINE,"Parse complex descriptor: "+name);
   	++indent;
   	try {
 	  	ObjectSchema s = o.getSchema(name);
@@ -244,10 +245,11 @@ class SimpleSLCodec extends StringCodec {
   	}
   	indent--;
   	p.consumeChar(')');
-  	logger.log(Logger.FINE,abs.toString());
+          if(logger.isLoggable(Logger.FINE))
+            logger.log(Logger.FINE,abs.toString());
   	return abs;
   }
-  		
+
   private void fillSlotsByOrder(AbsObject abs, ObjectSchema s, SimpleSLTokenizer p, Ontology o) throws CodecException {
   	String[] slotNames = s.getNames();
   	int i = 0;
@@ -292,7 +294,8 @@ class SimpleSLCodec extends StringCodec {
 
   private AbsObject parseSimple(SimpleSLTokenizer p) throws CodecException {
   	String val = p.getElement();
-  	logger.log(Logger.FINE,"Parse simple descriptor: "+val+". Next is "+p.nextToken());
+          if(logger.isLoggable(Logger.FINE))
+            logger.log(Logger.FINE,"Parse simple descriptor: "+val+". Next is "+p.nextToken());
   	try {
   		return AbsPrimitive.wrap(Long.parseLong(val));
   	}
@@ -332,7 +335,7 @@ class SimpleSLCodec extends StringCodec {
   		return AbsPrimitive.wrap(val);
   	}
   }
-  	
+
   /**
    */
   public AbsContentElement decode(String content) throws CodecException {
@@ -351,11 +354,11 @@ class SimpleSLCodec extends StringCodec {
   class Parser {
   	private String content;
   	private int current = 0;
-  	
+
   	Parser(String s) {
   		content = s;
   	}
-  	
+
   	String next() {
   		skipSpaces();
   		char c = content.charAt(current);
@@ -370,14 +373,14 @@ class SimpleSLCodec extends StringCodec {
   		current = start;
   		return s;
   	}
-  	
+
   	void consumeChar(char c) throws CodecException {
   		skipSpaces();
   		if (content.charAt(current++) != c) {
   			throw new CodecException("Parse error: found "+content.charAt(current-1)+" while "+c+" was expected");
   		}
   	}
-  	
+
   	String consumeWord() {
   		skipSpaces();
   		int start = current;
@@ -388,7 +391,7 @@ class SimpleSLCodec extends StringCodec {
   		String s = content.substring(start, current);
   		return s;
   	}
-  	
+
   	String consumeElement() throws CodecException {
   		String el = null;
   		skipSpaces();
@@ -405,20 +408,20 @@ class SimpleSLCodec extends StringCodec {
   		}
   		return el;
   	}
-  	
+
   	private void skipSpaces() {
   		while (isSpace(content.charAt(current))) {
   			current++;
   		}
   	}
-  	
+
   	private boolean isSpace(char c) {
   		return (c == ' ' || c == '\t' || c == '\n');
   	}
   }
   */
-  
-  
+
+
   public Ontology getInnerOntology() {
     return SLOntology.getInstance();
   }
