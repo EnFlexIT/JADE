@@ -28,10 +28,10 @@ import jade.util.leap.Properties;
 import jade.util.leap.Serializable;
 
 import java.util.Hashtable;
+import java.io.*;
 
 //#J2ME_EXCLUDE_BEGIN
 import java.util.logging.Level;
-import java.io.ObjectStreamException;
 //#J2ME_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -206,10 +206,11 @@ public class Logger
 	public static void initialize(Properties pp) {
 	}
 	//#J2ME_EXCLUDE_END
-
+	
+  private static PrintStream logStream = System.out;
 
 	public static void println(String log) {
-		System.out.println(log);
+		logStream.println(log);
 		/*#MIDP_INCLUDE_BEGIN
 		try {
 			write(log);
@@ -227,8 +228,8 @@ public class Logger
 		}		
 		#MIDP_INCLUDE_END*/
 	}
+		
 	
-
 	/*#J2ME_INCLUDE_BEGIN
 	  //SEVERE is a message level indicating a serious failure.
 		public static final int SEVERE	=	10;
@@ -258,7 +259,7 @@ public class Logger
 		public synchronized static Logger getMyLogger(String name){
 			Logger l = (Logger) loggers.get(name);
 			if (l == null) {
-				String key = name.replace('.', '_')+"_verbosity";
+				String key = name.replace('.', '_')+"_loglevel";
 				int level = INFO;
 				if (verbosityLevels != null) {
 					try {
@@ -276,6 +277,10 @@ public class Logger
 	
 		public static void initialize(Properties pp) {
 			if (pp != null) {
+				PrintStream ps = initLogStream(pp);
+				if (ps != null) {
+				  logStream = ps;
+        }
 				verbosityLevels = pp;
 			}
 			else {
@@ -339,6 +344,23 @@ public class Logger
 	#J2ME_INCLUDE_END*/
 
 
+  /*#PJAVA_INCLUDE_BEGIN
+    private static PrintStream initLogStream(Properties pp) {
+      String logprefix = pp.getProperty("jade_util_Logger_logfile");
+      if (logprefix != null) {
+        try {
+		      java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy");
+		      String logfile = logprefix + sdf.format(new java.util.Date()) + ".txt";
+          return new PrintStream(new FileOutputStream(logfile, true));
+        }
+        catch (Exception e) {
+          println("Cannot initialize log stream. "+e);
+        }
+      }
+      return null;
+    }
+  #PJAVA_INCLUDE_END*/
+	
 	
   /*#MIDP_INCLUDE_BEGIN
     private static final String OUTPUT = "OUTPUT";
@@ -363,6 +385,10 @@ public class Logger
 			theRecordStore.addRecord(bb,0,bb.length);
 			cnt++;
 		}
+		
+    private static PrintStream initLogStream(Properties pp) {
+      return null;
+    }
   #MIDP_INCLUDE_END*/
 }
 
