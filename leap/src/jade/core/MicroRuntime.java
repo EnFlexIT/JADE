@@ -39,6 +39,7 @@ public class MicroRuntime {
 	
 	private static Runnable terminator;
 	private static FrontEnd myFrontEnd;
+	private static boolean terminated;
 	
 	/**
 	   Start up the JADE runtime
@@ -46,7 +47,11 @@ public class MicroRuntime {
 	public static void startJADE(Properties p, Runnable r) {
 		if (myFrontEnd == null) {
 			terminator = r;
+			terminated = false;
 			myFrontEnd = new FrontEndContainer(p);
+			if (terminated) {
+				myFrontEnd = null;
+			}
 		}
 	}
 	
@@ -64,6 +69,13 @@ public class MicroRuntime {
 				imtpe.printStackTrace();
 			}
 		}
+	}
+	
+	/**
+	   Return <code>true</code> if the JADE runtime is currently running.
+	 */
+	public static boolean isRunning() {
+		return myFrontEnd != null;
 	}
 	
 	/**
@@ -101,6 +113,7 @@ public class MicroRuntime {
 	   has stopped.
 	 */
 	static void handleTermination(boolean self) {
+		terminated = true;
 		myFrontEnd = null;
 		Thread t = null;
 		if (self) {
