@@ -361,8 +361,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       //#MIDP_EXCLUDE_END
       /*#MIDP_INCLUDE_BEGIN
 	myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
-	password = new byte[] {};
-	username = ContainerPrincipal.NONE;
+	//password = new byte[] {};
+	//username = ContainerPrincipal.NONE;
 	#MIDP_INCLUDE_END*/
       //myProfile.setParameter(Profile.OWNER, username);
 
