@@ -61,4 +61,9 @@
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\proto\\achieveRETestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Communication performance & scalability" skip="false">
+			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\roundTripTime\\roundTripTimeTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>

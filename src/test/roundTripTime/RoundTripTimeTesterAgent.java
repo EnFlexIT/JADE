@@ -29,6 +29,7 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
 import test.common.*;
+import test.common.xml.*;
 
 /**
  * @author Giovanni Caire - TILAB
@@ -53,12 +54,20 @@ public class RoundTripTimeTesterAgent extends TesterAgent {
 	public static final String RECEIVER_CLASS = "benchmark.roundTripTime.RoundTripReceiver";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup(new String[] {
+		/*TestGroup tg = new TestGroup(new String[] {
 			"test.roundTripTime.tests.TestRTT1Container",
 			"test.roundTripTime.tests.TestRTT2Containers",
 			"test.roundTripTime.tests.TestRTT2Containers2Hosts"
 			//"test.roundTripTime.tests.TestRTT2Platforms2HostsIIOP"
-		} );
+		} );*/
+		TestDescriptor[] tests = XMLManager.getTests("test//roundTripTime//roundTripTimeTestsList.xml");
+		System.out.println(tests);
+		String[] classes  = new String[tests.length];
+		for (int i = 0; i < tests.length; ++i) {
+			classes[i] = tests[i].getTestClassName();
+			System.out.println("Class "+i+" is "+classes[i]);
+		}
+		TestGroup tg = new TestGroup(classes);
 		
 		tg.specifyArgument(N_COUPLES_KEY, "Number of couples", String.valueOf(N_COUPLES_DEFAULT));
 		tg.specifyArgument(N_ITERATIONS_KEY, "Number of iterations", String.valueOf(N_ITERATIONS_DEFAULT));
