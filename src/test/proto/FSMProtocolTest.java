@@ -65,15 +65,15 @@ public class FSMProtocolTest {
 	  Object[] arguments = new Object[args.length];
 	  for(int i=0;i<args.length;i++){
 	      System.out.println( "Launching the FIPARequestResponderTest: " + args[i]);
-	      Agent responder = mc.createAgent(args[i], "test.proto.FIPARequestResponderTest",new Object[0]);
+	      Agent responder = (Agent) mc.createNewAgent(args[i], "test.proto.FIPARequestResponderTest",new Object[0]);
 	      responder.start();
 	      arguments[i]=args[i];
 	  }
-	  Agent requester = mc.createAgent( "requester", "test.proto.FIPARequestInitiatorTest",arguments);
+	  Agent requester = (Agent) mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",arguments);
 	  requester.start();
       }else{
 	  System.out.println( "Launching the FIPARequestInitiatorTest" );
-	  Agent requester = mc.createAgent( "requester", "test.proto.FIPARequestInitiatorTest",new Object[0]);
+	  Agent requester = (Agent) mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",new Object[0]);
 	  requester.start();
       }
       //requester.start();
