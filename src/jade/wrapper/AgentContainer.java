@@ -64,7 +64,9 @@ public class AgentContainer {
 
   /**
      Creates a new JADE agent, running within this container, 
-     @param agentID The unique identifier for the newly created agent.
+     @param nickname A platform-unique nickname for the newly created
+     agent. The agent will be given a FIPA compliant agent identifier
+     using the nickname and the ID of the platform it is running on.
      @param className The fully qualified name of the class that
      implements the agent.
      @param args A string array, containing initialization parameters
@@ -74,17 +76,20 @@ public class AgentContainer {
      @return A proxy object, allowing to call state-transition forcing
      methods on the real agent instance.
    */
-  public Agent createAgent(AID agentID, String className, String[] args) throws NotFoundException {
+  public Agent createAgent(String nickname, String className, String[] args) throws NotFoundException, StaleProxyException {
+    if(myImpl == null)
+      throw new StaleProxyException();
     try {
       jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
       a.setArguments(args);
+      AID agentID = new AID(nickname, AID.ISLOCALNAME);
       myImpl.initAgent(agentID, a, false);
 
       Agent result = new Agent(agentID, a);
       return result;
     }
     catch(ClassNotFoundException cnfe) {
-      throw new NotFoundException("Class " + className + " for agent " + agentID + " was not found.");
+      throw new NotFoundException("Class " + className + " for agent " + nickname + " was not found.");
     }
     catch(IllegalAccessException iae) {
       throw new InternalError("IllegalAccessException"); // FIXME: Need to throw a more meaningful exception
@@ -98,8 +103,11 @@ public class AgentContainer {
   /**
      Shuts down this container, terminating all the agents running within it.
    */
-  public void kill() {
+  public void kill() throws StaleProxyException {
+    if(myImpl == null)
+      throw new StaleProxyException();
     myImpl.shutDown();
+    myImpl = null;
   }
 
 
@@ -115,7 +123,9 @@ public class AgentContainer {
      @exception MTPException If something goes wrong during transport
      protocol activation.
    */
-  public void installMTP(String address, String className) throws MTPException {
+  public void installMTP(String address, String className) throws MTPException, StaleProxyException {
+    if(myImpl == null)
+      throw new StaleProxyException();
     try {
       myImpl.installMTP(address, className);
     }
@@ -135,7 +145,9 @@ public class AgentContainer {
      @exception NotFoundException If no protocol with the given
      address is currently installed on this container.
    */
-  public void uninstallMTP(String address) throws MTPException, NotFoundException {
+  public void uninstallMTP(String address) throws MTPException, NotFoundException, StaleProxyException {
+    if(myImpl == null)
+      throw new StaleProxyException();
     try {
       myImpl.uninstallMTP(address);
     }
