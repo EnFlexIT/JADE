@@ -3,6 +3,8 @@ package jade.onto;
 import java.lang.reflect.*;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -10,17 +12,19 @@ public class DefaultOntology implements Ontology {
 
   private static final String ACTOR_METHOD_NAME = "__actor";
 
-  private static final Map wrapperTypes = new HashMap(8);
+  private static final List primitiveTypes = new ArrayList(10);
 
   static {
-    wrapperTypes.put(Boolean.class, Boolean.TYPE);
-    wrapperTypes.put(Byte.class, Byte.TYPE);
-    wrapperTypes.put(Character.class, Character.TYPE);
-    wrapperTypes.put(Double.class, Double.TYPE);
-    wrapperTypes.put(Float.class, Float.TYPE);
-    wrapperTypes.put(Integer.class, Integer.TYPE);
-    wrapperTypes.put(Long.class, Long.TYPE);
-    wrapperTypes.put(Short.class, Short.TYPE);
+    primitiveTypes.add(BOOLEAN_TYPE, Boolean.TYPE);
+    primitiveTypes.add(BYTE_TYPE, Byte.TYPE);
+    primitiveTypes.add(CHARACTER_TYPE, Character.TYPE);
+    primitiveTypes.add(DOUBLE_TYPE, Double.TYPE);
+    primitiveTypes.add(FLOAT_TYPE, Float.TYPE);
+    primitiveTypes.add(INTEGER_TYPE, Integer.TYPE);
+    primitiveTypes.add(LONG_TYPE, Long.TYPE);
+    primitiveTypes.add(SHORT_TYPE, Short.TYPE);
+    primitiveTypes.add(STRING_TYPE, String.class);
+    primitiveTypes.add(BINARY_TYPE, (new byte[0]).getClass());
   }
 
   private Map schemas;
@@ -78,7 +82,7 @@ public class DefaultOntology implements Ontology {
 
     // Check for the public "init()" method
     try {
-      Method initMethod = c.getMethod("init", new Class[] { Frame.class, Ontology.class });
+      Method initMethod = c.getMethod("init", new Class[] { Frame.class });
     }
     catch(NoSuchMethodException nsme) {
       throw new OntologyException("Wrong class: Missing a suitable init() method.");
@@ -111,14 +115,17 @@ public class DefaultOntology implements Ontology {
 
 	// If the descriptor is a complex term (Concept, Action or
 	// Predicate) and some class C is registered for that role,
-	// then the implementation type must be a subtype of C.
+	// then the implementation type must be a supertype of C.
 	if(desc.isComplex()) {
-	  Class termImpl = lookupClass(desc.getName());
-	  if((termImpl != null) && (!implType.isAssignableFrom(termImpl)))
-	    throw new OntologyException("Wrong class: the " + desc.getName() + " role is played by " + termImpl + " class, which is not a subtype of " + implType + " class.");
+	  Class roleType = lookupClass(desc.getName());
+	  if((roleType != null) && (!implType.isAssignableFrom(roleType)))
+	    throw new OntologyException("Wrong class: the " + desc.getName() + " role is played by " + roleType + " class, which is not a subtype of " + implType + " class.");
 	}
-
-	// FIXME: Check that the returned primitive type is the same as the one dictated by the TermDescriptor
+	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
+	  Class primitive = (Class)primitiveTypes.get(desc.getType());
+	  if(!implType.isAssignableFrom(primitive))
+	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	}
 
       }
       catch(SecurityException se) {
@@ -166,15 +173,16 @@ public class DefaultOntology implements Ontology {
 
   }
 
-  public Object createObject(Frame f, String roleName) throws OntologyException {
+  public Object createObject(Frame f) throws OntologyException {
     Object concept;
+    String roleName = f.getName();
     try {
       Class theConceptClass = lookupClass(roleName);
       if(theConceptClass == null)
 	throw new OntologyException("No class able to play " + roleName + " role.");
       concept = theConceptClass.newInstance();
-      Method initMethod = theConceptClass.getMethod("init", new Class[] { Frame.class, Ontology.class });
-      initMethod.invoke(concept, new Object[] { f, this });
+      Method initMethod = theConceptClass.getMethod("init", new Class[] { Frame.class });
+      initMethod.invoke(concept, new Object[] { f });
     }
     catch(NoSuchMethodException nsme) {
       throw new OntologyException("Wrong class: " + nsme.getMessage());
@@ -197,15 +205,16 @@ public class DefaultOntology implements Ontology {
     return concept;
   }
 
-  public Object createObject(Action a, String roleName) throws OntologyException {
+  public Object createObject(Action a) throws OntologyException {
     Object action;
+    String roleName = a.getName();
     try {
       Class theActionClass = lookupClass(roleName);
       if(theActionClass == null)
 	throw new OntologyException("No class able to play " + roleName + " role.");
       action = theActionClass.newInstance();
-      Method initMethod = theActionClass.getMethod("init", new Class[] { Action.class, Ontology.class });
-      initMethod.invoke(action, new Object[] { a, this });
+      Method initMethod = theActionClass.getMethod("init", new Class[] { Action.class });
+      initMethod.invoke(action, new Object[] { a });
     }
     catch(NoSuchMethodException nsme) {
       throw new OntologyException("Wrong class: " + nsme.getMessage());
@@ -228,15 +237,16 @@ public class DefaultOntology implements Ontology {
     return action;
   }
 
-  public Object createObject(Predicate p, String roleName) throws OntologyException {
+  public Object createObject(Predicate p) throws OntologyException {
     Object predicate;
+    String roleName = p.getName();
     try {
       Class thePredicateClass = lookupClass(roleName);
       if(thePredicateClass == null)
 	throw new OntologyException("No class able to play " + roleName + " role.");
       predicate = thePredicateClass.newInstance();
-      Method initMethod = thePredicateClass.getMethod("init", new Class[] { Predicate.class, Ontology.class });
-      initMethod.invoke(predicate, new Object[] { p, this });
+      Method initMethod = thePredicateClass.getMethod("init", new Class[] { Predicate.class });
+      initMethod.invoke(predicate, new Object[] { p });
     }
     catch(NoSuchMethodException nsme) {
       throw new OntologyException("Wrong class: " + nsme.getMessage());
@@ -311,17 +321,20 @@ public class DefaultOntology implements Ontology {
     return p;
   }
 
-  public void check(Frame f, String roleName) throws OntologyException {
+  public void check(Frame f) throws OntologyException {
+    String roleName = f.getName();
     FunctorSchema fs = lookupSchema(roleName);
     fs.checkAgainst(f);
   }
 
-  public void check(Action a, String roleName) throws OntologyException {
+  public void check(Action a) throws OntologyException {
+    String roleName = a.getName();
     FunctorSchema fs = lookupSchema(roleName);
     fs.checkAgainst(a);
   }
 
-  public void check(Predicate p, String roleName) throws OntologyException {
+  public void check(Predicate p) throws OntologyException {
+    String roleName = p.getName();
     FunctorSchema fs = lookupSchema(roleName);
     fs.checkAgainst(p);
   }
@@ -375,7 +388,6 @@ public class DefaultOntology implements Ontology {
     FunctorSchema fs = lookupSchema(roleName);
     return fs.termsArray();
   }
-
 
 
 
@@ -467,7 +479,6 @@ public class DefaultOntology implements Ontology {
       catch(SecurityException se) {
 	throw new OntologyException("Wrong class: some required method is not accessible."); 
       }
-
 
     }
 
