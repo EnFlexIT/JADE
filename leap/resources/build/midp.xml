@@ -133,7 +133,7 @@
 
 
 	<!-- DEMO -->
-	<target name="do-demo" depends="do-init"
+	<target name="do-demo" depends="do-init, do-compile"
 	        description="Build the demo">
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-unverified}" quiet="true"/>
