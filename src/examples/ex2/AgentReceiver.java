@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/06/08 23:44:40  rimassa
+  Added a timeout argument in blockingReceive().
+
   Revision 1.10  1999/06/08 15:49:30  rimassa
   Added a timeout in blockingReceive() call.
 
@@ -43,15 +46,20 @@ public class AgentReceiver extends Agent {
       public void action() {
         System.out.println("Now receiving (blocking style)...");
         ACLMessage msg = blockingReceive(1000);
-	msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+	if(msg != null) {
+	  msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
-        System.out.println("Sending back reply to sender ...");
-        ACLMessage reply = new ACLMessage("inform");
-        reply.setSource(getLocalName());
-	reply.removeAllDests();
-        reply.addDest(msg.getSource());
-        reply.setContent("\"Thank you for calling, " + msg.getSource() + "\"");
-        send(reply);
+	  System.out.println("Sending back reply to sender ...");
+	  ACLMessage reply = new ACLMessage("inform");
+	  reply.setSource(getLocalName());
+	  reply.removeAllDests();
+	  reply.addDest(msg.getSource());
+	  reply.setContent("\"Thank you for calling, " + msg.getSource() + "\"");
+	  send(reply);
+	}
+	else {
+	  System.out.println("Timeout expired!");
+	}
       }
 
     });
