@@ -28,6 +28,29 @@ public class JessBehaviour extends BasicJessBehaviour {
        super(agent,jessFile,maxJessPasses);
      }
 
+  /*
+   * replace a char in a String with a String
+   * @return the new String
+   */
+private String stringReplace(String str, char oldChar, String s) {
+  int len = str.length();
+  int i = 0; int j=0;  int k=0;
+  char[] val = new char[len];
+  str.getChars(0,len,val,0); // put chars into val
+  char buf[] = new char[len*s.length()];
+
+  while (i < len) {
+    if (val[i] == oldChar) {
+      s.getChars(0,s.length(),buf,j);
+      j+=s.length();
+    } else
+      buf[j]=val[i];
+    i++;
+    j++;
+  }
+  return new String(buf, 0, j);
+}
+
   /**
    * Returns a String representing the received ACLMessage.
    * If the message content starts with the character "(", that is it is
@@ -43,9 +66,11 @@ public class JessBehaviour extends BasicJessBehaviour {
     fact = "(assert (ACLMessage (receiver " + msg.getDest() + ") (communicative-act " + msg.getType();     
     if (msg.getSource() != null)         fact = fact + ") (sender " + msg.getSource();   
     if (msg.getContent() != null) {
-      if ((msg.getContent()).charAt(0) == '(')
-	                                 fact = fact + ") (content \"" + msg.getContent() + "\"";
-      else 	                         fact = fact + ") (content " + msg.getContent();
+      //FIXME replace all chars " in \ "
+      String content = msg.getContent();
+      content = stringReplace(content,'"',"\\\""); 
+      //System.err.println("content = " + content);
+      fact = fact + ") (content \"" + content + "\"";
     }
     if (msg.getReplyWith() != null)      fact=fact+") (reply-with " + msg.getReplyWith();
     if (msg.getReplyTo() != null)        fact=fact+") (in-reply-to " + msg.getReplyTo();   
