@@ -143,7 +143,9 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
     } 
 	  	
 		// Read the LEAP configuration properties
-    String fileName = p.getParameter(LEAP_PROPERTY_FILE, LEAP_PROPERTY_FILE_DEFAULT); 
+		sb.setLength(idLength);
+		sb.append(LEAP_PROPERTY_FILE);
+    String fileName = p.getParameter(sb.toString(), LEAP_PROPERTY_FILE_DEFAULT); 
 		try {
 			leapProps.load(fileName);
 		}
