@@ -10,7 +10,7 @@ API_PACKAGES = jade jade.core jade.core.behaviours jade.lang.acl jade.domain jad
 
 API_FLAGS = -d $(DOC_OUTDIR) -overview $(DOC_MAIN) -author -windowtitle $(DOC_WINTITLE)
 
-SNIFFER_OUTDIR = ../doc/sniffer/html/jdoc
+SNIFFER_OUTDIR = ../doc/tools/sniffer/html/jdoc
 SNIFFER_FLAGS =  -d $(SNIFFER_OUTDIR) -author -windowtitle "$(PACKAGE) $(VERSION) Sniffer Reference"
 SNIFFER_PACKAGES = jade.tools.sniffer
 
