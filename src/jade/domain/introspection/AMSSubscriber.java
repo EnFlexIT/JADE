@@ -36,6 +36,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.content.lang.sl.SLCodec;
+import jade.util.leap.Serializable;
 
 /**
    This behaviour subscribes to the AMS to receive notifications
@@ -63,7 +64,7 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
      This interface must be implemented by concrete event handlers
      installed by this AMSSubscriber.
    */
-  public static interface EventHandler {
+  public static interface EventHandler extends Serializable {
     void handle(Event ev);
   }
 
