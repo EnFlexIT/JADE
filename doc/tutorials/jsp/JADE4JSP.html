@@ -7,7 +7,7 @@
 	<META NAME="AUTHOR" CONTENT="Daniel Le Berre">
 	<META NAME="CREATED" CONTENT="20000814;14394714">
 	<META NAME="CHANGEDBY" CONTENT="Daniel Le Berre">
-	<META NAME="CHANGED" CONTENT="20000904;13015864">
+	<META NAME="CHANGED" CONTENT="20000915;12225636">
 	<STYLE>
 	<!--
 		@page { size: 8.27in 11.69in; margin-left: 1.25in; margin-right: 1.25in; margin-top: 1in; margin-bottom: 1in }
@@ -23,16 +23,16 @@ Pages (JSP)</H1>
 <P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I>Author:
 <A HREF="http://cafe.newcastle.edu.au/daniel/">Daniel Le Berre</A>
 (daniel@cafe.newcastle.edu.au)</I></P>
-<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I>Date: <SDFIELD TYPE=DOCINFO SUBTYPE=CHANGE FORMAT=DATE SDNUM="1033;1033;NNNNMMMM D, YYYY">Monday, September 4, 2000</SDFIELD></I></P>
-<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><FONT SIZE=2><I>Java
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I>Date: <SDFIELD TYPE=DOCINFO SUBTYPE=CHANGE FORMAT=DATE SDNUM="1033;1033;NNNNMMMM D, YYYY">Friday, September 15, 2000</SDFIELD></I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I><FONT SIZE=2>Java
 platform: <A HREF="http://java.sun.com/j2se/1.3/">Sun JDK 1.3
-Windows, Sun JDK1.3 beta Solaris</A></I></FONT></P>
-<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><FONT SIZE=2><I>JSP
+Windows, Sun JDK1.3 beta Solaris</A></FONT></I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I><FONT SIZE=2>JSP
 platform: <A HREF="http://java.sun.com/products/jsp/download.html">Sun
 Java Server Web Development Kit (JSWDK) 1.0.1</A> , <A HREF="http://jakarta.apache.org/">Jakarta
-Tomcat 3.1</A></I></FONT></P>
-<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><FONT SIZE=2><I><A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
-version 1.4 and 2.0</I></FONT></P>
+Tomcat 3.1</A></FONT></I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I><FONT SIZE=2><A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
+version 1.4 and 2.0</FONT></I></P>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
 <P STYLE="margin-bottom: 0in">One of the major interest when adopting
@@ -77,54 +77,48 @@ received the information before deleting it.
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
 <P STYLE="margin-bottom: 0in"><SPAN ID="Frame2" STYLE="float: left; width: 3.56in; height: 2.79in; border: none; padding: 0in; background: #ffffff">
-	<P STYLE="margin-top: 0.08in; margin-bottom: 0.08in"><IMG SRC="svlm9lma.gif" ALIGN=LEFT><BR CLEAR=LEFT><FONT SIZE=2><I>Drawing
+	<P STYLE="margin-top: 0.08in; margin-bottom: 0.08in"><IMG SRC="svlm9lma.gif" NAME="Graphic1" ALIGN=LEFT WIDTH=342 HEIGHT=267 BORDER=0><BR CLEAR=LEFT><FONT SIZE=2><I>Drawing
 	1 JADE agents</I></FONT></P>
 </SPAN><BR CLEAR=LEFT><BR>
 </P>
 <H2>Creating the agents</H2>
 <P STYLE="margin-bottom: 0in">The three agents are really easy to
-construct. Here is their code:</P>
-<A HREF="Snooper.java.html"> 
-<H3>Snooper.java</H3> </A>
-<A HREF="Buffer.java.html">
-<H3>Buffer.java</H3> </A>
-<A HREF="Client.java.html">
-<H3>Client.java</H3> </A>
-
-</PRE><P STYLE="margin-bottom: 0in">
-There are two tips in this code:</P>
+construct. The code should work both under JADE 1.4 and JADE 2.0
+after minor syntactical modifications given in the code.</P>
+<H3><A HREF="Snooper.java.html">Snooper.java</A></H3>
+<H3><A HREF="Buffer.java.html">Buffer.java</A></H3>
+<H3><A HREF="Client.java.html">Client.java</A></H3>
+<P STYLE="margin-bottom: 0in">There are two tips in this code:</P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in">I am using the block() method both
 	on Client and Buffer agents to avoid CPU consumption overhead.</P>
 	<LI><P STYLE="margin-bottom: 0in">To be able to know if the client
 	is alive or not, I need to wait for a reply from the client during
 	10 seconds. If no confirmation arrive, I suppose that the agent is
-	not there and I  do not clear the message in the buffer agent.</P>
+	not there and I do not clear the message in the buffer agent.</P>
 </UL>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
 <H3>Agent and JSP</H3>
 <P>Now we have all our JADE agents defined. We need to integrate the
 Snooper agent in our web page. Here is how to proceed.</P>
-<A HREF="testjade.jsp"><H3>testjade.jsp</H3></A>
-
-We first need to import some jade classes using the page import
+<H3><A HREF="testjade.html">testjade.jsp</A></H3>
+<P>We first need to import some jade classes using the page import
 statement. Then we declare our agent, <B>with an application scope</B>.
 This is important because it means that the agent will have the same
 life than the enclosing servlet (the JSP page). So the agent will
 still living even if there is no connections to the page.
 Furthermore, all the initialization code defined between the useBean
 tags will be only executed once.</P>
-<P STYLE="margin-bottom: 0in"><BR>
-</P>
 <P STYLE="margin-bottom: 0in">To be able to use JADE agent, we need
 at least one agent container on the JVM running the servlet. So we
 need to integrate the call to JADE platform or container, usually
 done from the command line, directly in the JSP page. Here I simulate
-a command line call with no option, which means that the JADE
+a command line call with no option for JADE 1.4, with the
+&quot;-container&quot; for JADE 2.0, which means that the JADE
 platform is running on the same machine than the JSP web server. A
 JADE Agent Platform cannot be created within a JSP page because of
-Security restrictions. In the next releases of JADE this limitation
+security restrictions. In the next releases of JADE this limitation
 will probably be removed.</P>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
@@ -143,7 +137,7 @@ remote host, the date and the name of the web page.</P>
 <P>Here is the architecture of our working JADE environment with a
 JSP page.</P>
 <P STYLE="margin-bottom: 0in"><SPAN ID="Frame1" STYLE="float: left; width: 4.76in; height: 2.22in; border: none; padding: 0in; background: #ffffff">
-	<P STYLE="margin-top: 0.08in; margin-bottom: 0.08in"><IMG SRC="svlm9lmb.gif" ALIGN=LEFT><BR CLEAR=LEFT><FONT SIZE=2><I>Drawing
+	<P STYLE="margin-top: 0.08in; margin-bottom: 0.08in"><IMG SRC="svlm9lmb.gif" NAME="Graphic2" ALIGN=LEFT WIDTH=457 HEIGHT=213 BORDER=0><BR CLEAR=LEFT><FONT SIZE=2><I>Drawing
 	2 JADE containers</I></FONT></P>
 </SPAN><BR CLEAR=LEFT><BR>
 </P>
@@ -167,20 +161,20 @@ buffer avoid to loose all the information it contains.
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
 <P STYLE="margin-bottom: 0in">To run this example, compile the three
-agent java files. Put <FONT FACE="Courier New, monospace"><FONT SIZE=2>Snooper.class</FONT></FONT>
-and <FONT FACE="Courier New, monospace"><FONT SIZE=2>Buffer.class</FONT></FONT>
+agent java files. Put <FONT SIZE=2><FONT FACE="Courier New, monospace">Snooper.class</FONT></FONT>
+and <FONT SIZE=2><FONT FACE="Courier New, monospace">Buffer.class</FONT></FONT>
 in the server in a directory of the classpath of your JSP web server
-(the <FONT FACE="Courier New, monospace"><FONT SIZE=2>classes</FONT></FONT>
-directory with tomcat, the <FONT FACE="Courier New, monospace"><FONT SIZE=2>webpages/WEB-INF/jsp/beans/</FONT></FONT>
+(the <FONT SIZE=2><FONT FACE="Courier New, monospace">classes</FONT></FONT>
+directory with tomcat, the <FONT SIZE=2><FONT FACE="Courier New, monospace">webpages/WEB-INF/jsp/beans/</FONT></FONT>
 with JSWDK for instance). Do not forget to add JADE jar files in the
-<FONT FACE="Courier New, monospace"><FONT SIZE=2>lib</FONT></FONT>
+<FONT SIZE=2><FONT FACE="Courier New, monospace">lib</FONT></FONT>
 directory of the JSP web server. (they will be added automatically on
-the JSP web server classpath). Put <FONT FACE="Courier New, monospace"><FONT SIZE=2>Client.class</FONT></FONT>
+the JSP web server classpath). Put <FONT SIZE=2><FONT FACE="Courier New, monospace">Client.class</FONT></FONT>
 on the client computer. (I assume that JADE is installed on this
-computers). Remember that if you use the package <FONT FACE="Courier New, monospace"><FONT SIZE=2>examples.jsp</FONT></FONT>,
-you have to put the class files in a subdirectory <FONT FACE="Courier New, monospace"><FONT SIZE=2>examples/jsp/</FONT></FONT>.
-Put the file <FONT FACE="Courier New, monospace"><FONT SIZE=2>testjade.jsp</FONT></FONT>
-in a directory accessible from your JSP web server (<FONT FACE="Courier New, monospace"><FONT SIZE=2>webpages/</FONT></FONT>
+computers). Remember that if you use the package <FONT SIZE=2><FONT FACE="Courier New, monospace">examples.jsp</FONT></FONT>,
+you have to put the class files in a subdirectory <FONT SIZE=2><FONT FACE="Courier New, monospace">examples/jsp/</FONT></FONT>.
+Put the file <FONT SIZE=2><FONT FACE="Courier New, monospace">testjade.jsp</FONT></FONT>
+in a directory accessible from your JSP web server (<FONT SIZE=2><FONT FACE="Courier New, monospace">webpages/</FONT></FONT>
 for instance).</P>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
@@ -188,7 +182,7 @@ for instance).</P>
 on the server</P>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
-<PRE>java jade.Boot -platform buffer:examples.jsp.Buffer</PRE><P STYLE="margin-bottom: 0in">
+<PRE STYLE="margin-bottom: 0.2in">java jade.Boot -platform buffer:examples.jsp.Buffer</PRE><P STYLE="margin-bottom: 0in">
 <BR>
 </P>
 <P STYLE="margin-bottom: 0in">2. Run the JSP page with the snooper
@@ -203,7 +197,7 @@ web server</P>
 container on the client</P>
 <P STYLE="margin-bottom: 0in"><BR>
 </P>
-<PRE>java jade.Boot -container -host server.domain daniel:examples.jsp.Client</PRE><P STYLE="margin-bottom: 0in">
+<PRE STYLE="margin-bottom: 0.2in">java jade.Boot -container -host server.domain daniel:examples.jsp.Client</PRE><P STYLE="margin-bottom: 0in">
 <BR>
 </P>
 <P STYLE="margin-bottom: 0in"><BR>

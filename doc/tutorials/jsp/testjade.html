@@ -1,0 +1,34 @@
+<pre>
+<tt>
+&lt;%@ page <font color=#0000FF>import</font>=<font color=#FF0000>"jade.core.*"</font>%&gt;
+&lt;%!
+
+%&gt;
+&lt;jsp:useBean id=<font color=#FF0000>"snooper"</font> <font color=#0000FF>class</font>=<font color=#FF0000>"examples.jsp.Snooper"</font> scope=<font color=#FF0000>"application"</font>&gt;
+&lt;% <font color=#0000FF>try</font> {
+    <font color=#9A1900>// Does not work due to security reason with JSP 
+</font>    <font color=#9A1900>// String [] _args = {"-platform", "buffer:examples.jsp.Buffer"};
+</font>    <font color=#9A1900>// JADE 1.4
+</font>    <font color=#9A1900>// String [] _args = {};
+</font>    <font color=#9A1900>// JADE 2.0
+</font>    String [] _args = {<font color=#FF0000>"-container"</font>};	
+    jade.Boot.main(_args);
+    <font color=#9A1900>// System.out.println("Jade Inited()");
+</font>    <font color=#9A1900>// System.out.println("Start");
+</font>    snooper.doStart(<font color=#FF0000>"snooper"</font>);
+   } <font color=#0000FF>catch</font> (Exception ex) {
+       out.println(ex);
+       ex.printStackTrace();
+   }
+ %&gt;
+&lt;/jsp:useBean&gt;
+&lt;% 
+  snooper.snoop(request.getRemoteHost()+<font color=#FF0000>" "</font>+(<font color=#0000FF>new</font> java.util.Date())+<font color=#FF0000>" "</font>+request.getRequestURI()); %&gt;
+&lt;HTML&gt;
+&lt;BODY&gt;
+It works !!!!
+&lt;/BODY&gt;
+&lt;/HTML&gt;
+
+</tt>
+</pre>

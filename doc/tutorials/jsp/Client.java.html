@@ -64,6 +64,7 @@
 </font>	frame.addWindowListener(<font color=#0000FF>new</font> WindowAdapter() {
 		<font color=#0000FF>public</font> <font color=#009900>void</font> windowClosing(WindowEvent we) {
 		    unsubscribe();
+		    doDelete();
 		    System.exit(<font color=#CC33CC>0</font>); 
 		    <font color=#9A1900>// kill all the container because there is also
 </font>		    <font color=#9A1900>// 1 client running.
