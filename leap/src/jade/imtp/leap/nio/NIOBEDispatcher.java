@@ -171,10 +171,16 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	}
    	if (inp) {
    		inpManager.setConnection(c);
+   		if (myLogger.isLoggable(Logger.CONFIG)) {
+   			myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd"
+   		}
    		((NIOJICPConnection) c).configureBlocking();
    	}
    	else {
    		outManager.setConnection(c);
+   		if (myLogger.isLoggable(Logger.CONFIG)) {
+   			myLogger.log(Logger.CONFIG, myID+": New OUT Connection establishd"
+   		}
    	}
 
     return true;
