@@ -68,25 +68,26 @@ public class AgentReceiver extends Agent {
     
     private boolean op1(){
     		  
-    	System.out.println( "\nAgent "+getLocalName()+" in state 1.1 is waiting for a message");
+
     	MessageTemplate m1 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
     	MessageTemplate m2 = MessageTemplate.MatchLanguage("PlainText");
     	MessageTemplate m3 = MessageTemplate.MatchOntology("ReceiveTest");
     	MessageTemplate m1andm2 = MessageTemplate.and(m1,m2);
     	MessageTemplate notm3 = MessageTemplate.not(m3);
     	MessageTemplate m1andm2_and_notm3 = MessageTemplate.and(m1andm2, notm3);
-    	
+
+    	System.out.println( "\nAgent "+getLocalName()+" in state FIRST.op1 is waiting for a message matching the template ");    	
     	//The agent waits for a specific message. If it doesn't arrive the behaviour is suspended until a new message arrives.
     	ACLMessage msg = receive(m1andm2_and_notm3);
     	
     	if (msg!= null){
-    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.1: ");
+    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state FIRST.op1: ");
 		System.out.println(msg.toString());
     		return true;
     	}
     	else 
     		{
-    			System.out.println("\nNo message received in state 1.1");
+    			System.out.println("\nNo message matching the template received in state FIRST.op1. Blocking the behaviour");
     			block();
     			return false;
     		}
@@ -95,16 +96,16 @@ public class AgentReceiver extends Agent {
     
     private void op2(){
   
-    	System.out.println("\nAgent "+ getLocalName() + " in state 1.2 is waiting for a message");
+    	System.out.println("\nAgent "+ getLocalName() + " in state SECOND.op2 is waiting for any message in next 5000 msec");
     	
     	//Using a blocking receive causes the block of all the behaviours
     	ACLMessage msg = blockingReceive(5000);
     	if(msg != null) {
-    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.2: ");
+    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state SECOND.op2: ");
 		System.out.println(msg.toString());
     	}
 	  	else{
-	  		System.out.println("\nNo message received in state 1.2");
+	  		System.out.println("\nNo message received in state SECOND.op2");
 	  	}
 
     }
@@ -113,7 +114,6 @@ public class AgentReceiver extends Agent {
     
     private void op3(){
     	
-    	System.out.println("\nAgent: "+getLocalName()+" in state 1.3 is waiting for a message");
     	MessageTemplate m1 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
     	MessageTemplate m2 = MessageTemplate.MatchLanguage("PlainText");
     	MessageTemplate m3 = MessageTemplate.MatchOntology("ReceiveTest");
@@ -121,16 +121,15 @@ public class AgentReceiver extends Agent {
     	MessageTemplate m1andm2 = MessageTemplate.and(m1,m2);
     
     	MessageTemplate m1andm2_and_m3 = MessageTemplate.and(m1andm2, m3);
+
+    	System.out.println("\nAgent: "+getLocalName()+" in state THIRD.op3 is blocked waiting for a message matching the template"); 
     	//blockingReceive and template
     	ACLMessage msg = blockingReceive(m1andm2_and_m3);
     	
-    	if (msg!= null){
-    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.3: ");
-		System.out.println(msg.toString());
-
-    	}
+    	if (msg!= null)
+    		System.out.println("\nAgent "+ getLocalName() + " received the following message in state THIRD.op3: "+msg.toString());
     	else 
-    	  System.out.println("\nNo message received in state 1.3");
+    	  System.out.println("\nNo message received in state THIRD.op3");
 
     	
     }     
