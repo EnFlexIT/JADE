@@ -26,13 +26,22 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
     myAgent = a;
     actions = new Hashtable();
 
-    MessageTemplate mt1 = 
-      MessageTemplate.and(MessageTemplate.MatchProtocol("fipa-request"),
+    requestTemplate = MessageTemplate.and(
+			  MessageTemplate.MatchProtocol("fipa-request"),
 			  MessageTemplate.MatchType("request"));
-    MessageTemplate mt2 = 
-      MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
-			  MessageTemplate.MatchOntology("fipa-agent-management"));
-    requestTemplate = MessageTemplate.and(mt1, mt2);
+  }
+
+  
+  /** 
+   * This constructor allows to specify a message pattern to be matched
+   * by the received message.
+   *
+   * @param a the agent that adds the behaviour
+   * @param match the MessageTemplate to be matched
+   */
+  public FipaRequestServerBehaviour(Agent a, MessageTemplate match) {
+    this(a);
+    requestTemplate = MessageTemplate.and( requestTemplate, match);
   }
 
   public void action() {
@@ -52,7 +61,7 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
       String s = msg.getReplyWith();
       if(s != null)
 	reply.setReplyTo(s);
-      s =msg.getConversationId();
+      s = msg.getConversationId();
       if(s != null)
 	reply.setConversationId(s);
 
