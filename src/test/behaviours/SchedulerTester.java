@@ -3,10 +3,25 @@ package test.behaviours;
 import jade.core.*;
 import jade.core.behaviours.*;
 
+import java.io.*;
+
 public class SchedulerTester extends Agent {
+	private long tick;
 	
 	public void setup() {
-		final Behaviour clock = new TCounterBehaviour(this, 1000, 0); 
+		try{
+			BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("This test checks the Agent Scheduler by adding/removing/blocking/restarting behaviours.");
+			System.out.print("Press any key to start...");
+			String dummy = buff.readLine();
+		}
+		catch (IOException ioe) { 
+			System.err.println("I/O error: " + ioe.getMessage()); 
+		}
+		
+		tick = 2000;
+		
+		final Behaviour clock = new TCounterBehaviour(this, tick, 0); 
 		addBehaviour(clock);
 		
 		Behaviour b1 = new TNTimePrinterBehaviour(this, 0, 3, "B1") {
@@ -57,24 +72,24 @@ public class SchedulerTester extends Agent {
 			}
 		};
 		
-		// After 5 sec restart B1 --> B4 should start running
-		Behaviour b = new TWakerBehaviour(this, 5000, b1, new String("restart B1 --> B1 should start running"));
+		// After 5 ticks restart B1 --> B4 should start running
+		Behaviour b = new TWakerBehaviour(this, 5*tick, b1, new String("restart B1 --> B1 should start running"));
 		addBehaviour(b);
 		
-		// After 10 sec block B3 --> nothing should happen as B3 is already terminated
-		b = new TBlockerBehaviour(this, 10000, b3, new String("block B3 --> nothing should happen as B3 is already terminated"));
+		// After 10 ticks block B3 --> nothing should happen as B3 is already terminated
+		b = new TBlockerBehaviour(this, 10*tick, b3, new String("block B3 --> nothing should happen as B3 is already terminated"));
 		addBehaviour(b);
 		
-		// After 15 sec remove B4 --> B4 should stop
-		b = new TRemoverBehaviour(this, 15000, null, b4, new String("remove B4 --> B4 should stop"));
+		// After 15 ticks remove B4 --> B4 should stop
+		b = new TRemoverBehaviour(this, 15*tick, null, b4, new String("remove B4 --> B4 should stop"));
 		addBehaviour(b);
 		
-		// After 20 sec remove B2 --> Nothing should happen as B2 is blocked
-		b = new TRemoverBehaviour(this, 20000, null, b4, new String("remove B2 --> Nothing should happen as B2 is blocked"));
+		// After 20 ticks remove B2 --> Nothing should happen as B2 is blocked
+		b = new TRemoverBehaviour(this, 20*tick, null, b4, new String("remove B2 --> Nothing should happen as B2 is blocked"));
 		addBehaviour(b);
 		
-		// After 25 sec add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7 
-		b = new TAdderBehaviour(this, 25000, null, new Behaviour[]{b5, b6}, new String("add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7"));
+		// After 25 ticks add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7 
+		b = new TAdderBehaviour(this, 25*tick, null, new Behaviour[]{b5, b6}, new String("add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7"));
 		addBehaviour(b);
 		
 		b1.block();
@@ -84,7 +99,7 @@ public class SchedulerTester extends Agent {
 		addBehaviour(b3);
 		addBehaviour(b4);
 
-		System.out.println("Initial condition: five behaviours added clock, B1(blocked), B2(blocked), B3 and B4"); 
+		System.out.println("Initial condition - five behaviours added: clock, B1(blocked), B2(blocked), B3 and B4"); 
 		System.out.println("--> only B3 and B4 should run"); 
 
 	}
