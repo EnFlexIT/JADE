@@ -191,13 +191,6 @@ public class AbsContentElementList implements AbsContentElement {
     	return size();
     }
     
-    /**
-       @deprecated Use <code>toString</code> instead
-     */    
-    /*public void dump() {
-      dump(0, System.out);
-    }*/
-    	
     public String toString() {
     	StringBuffer sb = new StringBuffer("(");
     	sb.append(getTypeName());

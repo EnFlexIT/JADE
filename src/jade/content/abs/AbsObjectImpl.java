@@ -84,7 +84,7 @@ class AbsObjectImpl implements AbsObject {
      * abstract descriptor.
      * @param name The name of the attribute.
      * @return value The value of the attribute.
-     * @see AbsObject#getAbsObject()
+     * @see AbsObject#getAbsObject(String)
      */
     public AbsObject getAbsObject(String name) {
         return (AbsObject) elements.get(new CaseInsensitiveString(name));
@@ -137,20 +137,6 @@ class AbsObjectImpl implements AbsObject {
         return elements.size();
     } 
 
-    /**
-       @deprecated Use <code>toString()</code> instead
-     */
-    /*protected void dump(int indent, PrintStream ps) {
-    	ps.println(toString());
-    }*/
-
-    /**
-     * @see AbsObject#dump()
-     * @deprecated Use <code>toString()</code> instead
-     */
-    /*public void dump() {
-        dump(0, System.out);
-    } */
 
     public String toString() {
     	StringBuffer sb = new StringBuffer("(");
