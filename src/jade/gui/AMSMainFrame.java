@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/04/13 16:01:10  rimassa
+  Added a method to perform asynchronously GUI disposal.
+
   Revision 1.10  1999/03/07 22:54:22  rimassa
   Changed class name prefix string in setUI() method to enable multiple
   Look & Feel.
@@ -94,6 +97,28 @@ public class AMSMainFrame extends JFrame {
     pack();
     setSize(600,400);
     setVisible(true);
+  }
+
+  // Perform asynchronous disposal to avoid nasty InterruptedException
+  // printout.
+  public void disposeAsync() {
+
+    class disposeIt implements Runnable {
+      private Window toDispose;
+
+      public disposeIt(Window w) {
+	toDispose = w;
+      }
+
+      public void run() {
+	toDispose.dispose();
+      }
+
+    }
+
+    // Make AWT Event Dispatcher thread dispose RMA window for us.
+    EventQueue.invokeLater(new disposeIt(this));
+
   }
 
   public AMSTreeModel getModel() {
