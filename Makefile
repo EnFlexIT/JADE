@@ -16,12 +16,13 @@ LIBDIR  = $(ROOTDIR)/lib
 LIBNAME = jade.jar
 LIBTOOLSNAME = jadeTools.jar
 LIBBASE64NAME = Base64.jar
+LIBAPPLETNAME = appletArchive.jar
 EXAMPLESDIR = $(SRCDIR)/examples
 DEMODIR = $(SRCDIR)/demo
 MAKE = make
 
 JC = javac
-JFLAGS = -deprecation -d $(CLSDIR)
+JFLAGS = -deprecation -O -d $(CLSDIR)
 
 BATCH_ALL = $(ROOTDIR)/build.bat
 BATCH_DOC = $(ROOTDIR)/makedoc.bat
