@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1999/08/31 17:30:11  rimassa
+  Implemented GUI update whenever some JADE agent migrates from an agent
+  container to another.
+
   Revision 1.4  1999/08/10 15:41:14  rimassa
   Added serialization support.
 
@@ -224,6 +228,13 @@ public class rma extends Agent {
 	    amsd = ev4.getAgentDescriptor();
 	    myGUI.removeAgent(container, amsd.getName());
 	    break;
+	  case AgentManagementOntology.AMSEvent.MOVEDAGENT:
+	    AgentManagementOntology.AMSMotionEvent ev5 = (AgentManagementOntology.AMSMotionEvent)amse;
+	    amsd = ev5.getAgentDescriptor();
+	    container = ev5.getSrc();
+	    myGUI.removeAgent(container, amsd.getName());
+	    container = ev5.getDest();
+	    myGUI.addAgent(container, amsd.getName(), amsd.getAddress(), "fipa-agent");
 	  }
 
 	}
