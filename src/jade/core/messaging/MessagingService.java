@@ -104,6 +104,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	MessagingSlice.SEND_MESSAGE,
 	MessagingSlice.INSTALL_MTP,
 	MessagingSlice.UNINSTALL_MTP,
+	MessagingSlice.NEW_MTP,
+	MessagingSlice.DEAD_MTP,
 	MessagingSlice.SET_PLATFORM_ADDRESSES
     };
 
@@ -184,6 +186,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 		else if(name.equals(MessagingSlice.UNINSTALL_MTP)) {
 		    handleUninstallMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.NEW_MTP)) {
+		    handleNewMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.DEAD_MTP)) {
+		    handleDeadMTP(cmd);
 		}
 		else if(name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
 		    handleSetPlatformAddresses(cmd);
@@ -298,6 +306,37 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
+	private void handleNewMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    MTPDescriptor mtp = (MTPDescriptor)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+
+	    MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
+	    try {
+		mainSlice.newMTP(mtp, cid);
+	    }
+	    catch(IMTPException imtpe) {
+		mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		mainSlice.newMTP(mtp, cid);
+	    }
+	}
+
+	private void handleDeadMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    MTPDescriptor mtp = (MTPDescriptor)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+
+	    MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
+	    try {
+		mainSlice.deadMTP(mtp, cid);
+	    }
+	    catch(IMTPException imtpe) {
+		mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		mainSlice.deadMTP(mtp, cid);
+	    }
+
+	}
+
 	private void handleSetPlatformAddresses(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
 	    AID id = (AID)params[0];
@@ -322,6 +361,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 		else if(name.equals(MessagingSlice.UNINSTALL_MTP)) {
 		    handleUninstallMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.NEW_MTP)) {
+		    handleNewMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.DEAD_MTP)) {
+		    handleDeadMTP(cmd);
 		}
 		else if(name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
 		    handleSetPlatformAddresses(cmd);
@@ -362,6 +407,22 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    String address = (String)params[0];
 
 	    uninstallMTP(address);
+	}
+
+	private void handleNewMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    MTPDescriptor mtp = (MTPDescriptor)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+
+	    newMTP(mtp, cid);
+	}
+
+	private void handleDeadMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    MTPDescriptor mtp = (MTPDescriptor)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+
+	    deadMTP(mtp, cid);
 	}
 
 	private void handleSetPlatformAddresses(VerticalCommand cmd) {
@@ -519,7 +580,71 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
+	private  void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
+	    MainContainer impl = myContainer.getMain();
 
+	    if(impl != null) {
+
+		// Update the routing tables of all the other slices
+		Service.Slice[] slices = getAllSlices();
+		for(int i = 0; i < slices.length; i++) {
+		    try {
+			MessagingSlice slice = (MessagingSlice)slices[i];
+			String sliceName = slice.getNode().getName();
+			if(!sliceName.equals(cid.getName())) {
+			    slice.addRoute(mtp, cid.getName());
+			}
+		    }
+		    catch(Throwable t) {
+			// Re-throw allowed exceptions
+			if(t instanceof IMTPException) {
+			    throw (IMTPException)t;
+			}
+			if(t instanceof ServiceException) {
+			    throw (ServiceException)t;
+			}
+			System.out.println("### addRoute() threw " + t.getClass().getName() + " ###");
+		    }
+		}
+		impl.newMTP(mtp, cid);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
+	    MainContainer impl = myContainer.getMain();
+
+	    if(impl != null) {
+
+		// Update the routing tables of all the other slices
+		Service.Slice[] slices = getAllSlices();
+		for(int i = 0; i < slices.length; i++) {
+		    try {
+			MessagingSlice slice = (MessagingSlice)slices[i];
+			String sliceName = slice.getNode().getName();
+			if(!sliceName.equals(cid.getName())) {
+			    slice.removeRoute(mtp, cid.getName());
+			}
+		    }
+		    catch(Throwable t) {
+			System.out.println("### removeRoute() threw " + t.getClass().getName() + " ###");
+			// Re-throw allowed exceptions
+			if(t instanceof IMTPException) {
+			    throw (IMTPException)t;
+			}
+			if(t instanceof ServiceException) {
+			    throw (ServiceException)t;
+			}
+		    }
+		}
+		impl.deadMTP(mtp, cid);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
 
 
     } // End of CommandTargetSink class
@@ -685,8 +810,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    MTPDescriptor mtp = (MTPDescriptor)params[0];
 		    ContainerID cid = (ContainerID)params[1];
 
-		    newMTP(mtp, cid);
-
 		    GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
 		    gCmd.addParam(mtp);
 		    gCmd.addParam(cid);
@@ -696,8 +819,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		else if(cmdName.equals(MessagingSlice.H_DEADMTP)) {
 		    MTPDescriptor mtp = (MTPDescriptor)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-
-		    deadMTP(mtp, cid);
 
 		    GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
 		    gCmd.addParam(mtp);
@@ -743,72 +864,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    else {
 		// Do nothing for now, but could also have a local GADT copy, thus enabling e.g. Main Container replication
 		return null;
-	    }
-	}
-
-	private  void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainer impl = myContainer.getMain();
-
-	    if(impl != null) {
-
-		// Update the routing tables of all the other slices
-		Service.Slice[] slices = getAllSlices();
-		for(int i = 0; i < slices.length; i++) {
-		    try {
-			MessagingSlice slice = (MessagingSlice)slices[i];
-			String sliceName = slice.getNode().getName();
-			if(!sliceName.equals(cid.getName())) {
-			    slice.addRoute(mtp, cid.getName());
-			}
-		    }
-		    catch(Throwable t) {
-			// Re-throw allowed exceptions
-			if(t instanceof IMTPException) {
-			    throw (IMTPException)t;
-			}
-			if(t instanceof ServiceException) {
-			    throw (ServiceException)t;
-			}
-			System.out.println("### addRoute() threw " + t.getClass().getName() + " ###");
-		    }
-		}
-		impl.newMTP(mtp, cid);
-	    }
-	    else {
-		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	    }
-	}
-
-	private void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainer impl = myContainer.getMain();
-
-	    if(impl != null) {
-
-		// Update the routing tables of all the other slices
-		Service.Slice[] slices = getAllSlices();
-		for(int i = 0; i < slices.length; i++) {
-		    try {
-			MessagingSlice slice = (MessagingSlice)slices[i];
-			String sliceName = slice.getNode().getName();
-			if(!sliceName.equals(cid.getName())) {
-			    slice.removeRoute(mtp, cid.getName());
-			}
-		    }
-		    catch(Throwable t) {
-			// Re-throw allowed exceptions
-			if(t instanceof IMTPException) {
-			    throw (IMTPException)t;
-			}
-			if(t instanceof ServiceException) {
-			    throw (ServiceException)t;
-			}
-			System.out.println("### removeRoute() threw " + t.getClass().getName() + " ###");
-		    }
-		}
-		impl.deadMTP(mtp, cid);
-	    }
-	    else {
-		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
 	    }
 	}
 
