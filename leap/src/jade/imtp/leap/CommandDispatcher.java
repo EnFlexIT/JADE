@@ -212,6 +212,24 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	return stub;
     }
 
+    public ServiceManagerStub getServiceManagerStub(String addr) throws IMTPException {
+
+
+	// Try to translate the address into a TransportAddress
+	// using a protocol supported by this CommandDispatcher
+	try {
+	    ServiceManagerStub stub = new ServiceManagerStub();
+	    TransportAddress ta = stringToAddr(addr);
+	    stub.bind(this);
+	    stub.addTA(ta);
+	    return stub;
+	}
+	catch (DispatcherException de) {
+	    throw new IMTPException("Invalid address for a Service Manager", de);
+	}
+	
+    }
+
   /**
    * Sets the transport address of the default router used for the
    * forwarding mechanism.
