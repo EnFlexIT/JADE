@@ -24,7 +24,7 @@ package jade.imtp.rmi;
 import java.rmi.*;
 
 import jade.core.HorizontalCommand;
-
+import jade.core.IMTPException;
 
 /**
 
@@ -44,7 +44,7 @@ interface NodeRMI extends Remote {
        this horizontal command.
        @throws RemoteException If a network problem occurs.
     */
-    Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException;
+    Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException, IMTPException;
 
     /**
        Check whether this node is reachable.
