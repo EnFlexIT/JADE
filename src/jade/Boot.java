@@ -46,7 +46,7 @@ import jade.core.Profile;
 import jade.core.Specifier;
 import jade.util.BasicProperties;
 import jade.util.PropertiesException;
-import jade.security.SecurityFactory;
+//import jade.security.SecurityFactory;
 
 /**
  * Boots <B><em>JADE</em></b> system, parsing command line arguments.
