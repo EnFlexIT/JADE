@@ -154,7 +154,7 @@ class SLParser {
 	AbsContentElementList result = theParser.Content();
 	System.out.println("\n\n RESULT=\n"+result.toString());
 	System.out.println("\n\n");
-	result.dump();
+	//result.dump();
 	//System.out.println("AFTER ENCODING: "+codec.encode(result,o));
       }
       catch(Exception pe) {
