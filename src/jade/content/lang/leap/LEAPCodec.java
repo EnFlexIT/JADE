@@ -132,7 +132,7 @@ public class LEAPCodec extends Codec {
             return;
         } 
 
-        references.add(abs);
+        references.addElement(abs);
         stream.writeByte(OBJECT);
         stream.writeUTF(abs.getTypeName());
 
@@ -254,7 +254,7 @@ public class LEAPCodec extends Codec {
             ObjectSchema schema = ontology.getSchema(typeName);
             AbsObject    abs = schema.newInstance();
 
-            references.add(abs);
+            references.addElement(abs);
 
             counter++;
 
