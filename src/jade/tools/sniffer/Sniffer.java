@@ -190,6 +190,8 @@ public class Sniffer extends ToolAgent {
 
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
+		System.out.println(current);
+
 	try {
 	  Occurred o = (Occurred)getContentManager().extractContent(current);
 	  EventRecord er = o.getWhat();
@@ -219,6 +221,7 @@ public class Sniffer extends ToolAgent {
 	      return;
 	  }
 
+
           // If the message that we just got is one that should be filtered out
           // then drop that it on the floor.  WARNING - this means that the log file
           // that the sniffer might dump does not include the message!!!!
@@ -238,6 +241,7 @@ public class Sniffer extends ToolAgent {
 	  //System.out.println("Serious problem Occurred");
 	  myGUI.showError("An error occurred parsing the incoming message.\n" +
 			  "          The message was lost.");
+		System.out.println("The sniffer lost the following message because of a parsing error:"+current);
 	  e.printStackTrace();
 	}
       }
