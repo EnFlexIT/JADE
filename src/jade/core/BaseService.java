@@ -52,8 +52,8 @@ public abstract class BaseService implements Service {
 			myFinder = p.getServiceFinder();
 			myIMTPManager = p.getIMTPManager();
 			
-			slices = new HashMap();
-			aliases = new HashMap();
+			slices = new HashMap(5);
+			aliases = new HashMap(1);
 			
 			myLogger.log(jade.util.Logger.INFO, "Service "+getName()+" initialized");
     }
@@ -276,5 +276,5 @@ public abstract class BaseService implements Service {
     private Map slices;
     private Map aliases;
 
-    protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(this.getClass().getName());
+    protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(getClass().getName());
 }

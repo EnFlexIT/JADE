@@ -47,8 +47,8 @@ class CommandProcessor {
 
 
     public CommandProcessor() {
-			downSinks = new Hashtable();
-			upSinks = new Hashtable();
+			downSinks = new Hashtable(4);
+			upSinks = new Hashtable(4);
     	lastDownFilter = new SinksFilter(downSinks);
     	lastUpFilter = new SinksFilter(upSinks);
     	firstDownFilter = lastDownFilter;
