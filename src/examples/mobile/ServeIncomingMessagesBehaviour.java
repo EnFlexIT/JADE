@@ -121,7 +121,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 
 				// Get destination from the new content
 				try {
-				  dest = (Location)myAgent.buildFrom(msg);
+				  dest = (Location)myAgent.extractContent(msg);
 				}
 				catch(FIPAException fe) {
 				  fe.printStackTrace();
