@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.gui;
+package jade;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -50,10 +50,8 @@ import java.util.ArrayList;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import jade.PropertyType;
-import jade.Boot;
-import jade.BootException;
-import jade.BootArguments;
+import jade.gui.TreeHelp;
+
 /**
    
    This class create the gui for the jade configuration
@@ -106,7 +104,7 @@ import jade.BootArguments;
  
   BootGUI thisBootGui;
   
-  BootArguments bootArguments;
+  Boot bootArguments;
   
 	//This class create a JPanel for a single property
  	class singlePanel extends JPanel
@@ -216,7 +214,7 @@ import jade.BootArguments;
  		This method shows the configuration properties stored in a BootArgument object.
  		To  be showed the arguments have to be stored in an arrayList using the PropertyType structore.
  	*/
- 	public BootArguments ShowBootGUI(BootArguments arg)
+ 	public void getConfValues(Boot arg)
  	 {
  	 	bootArguments = arg;
  	 	
@@ -501,7 +499,7 @@ import jade.BootArguments;
  	  
  	  ShowCorrect();
  	  
- 	  return bootArguments;
+ 	  //return bootArguments;
  	 }
  	 
  	
