@@ -55,6 +55,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
 
   /** Creates new MainContainerRMIImpl */
   public MainContainerRMIImpl(MainContainer mc, RMIIMTPManager mgr) throws RemoteException {
+    super(0, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());
     impl = mc;
     manager = mgr;
   }
