@@ -607,7 +607,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     private void adjustContainerName(Node n, ContainerID cid) {
 
 	// Do nothing if a custom name is already supplied
-	if((n != null) && !n.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
+	if((cid != null) && !cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
 	    return;
 	}
 
