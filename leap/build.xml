@@ -242,6 +242,7 @@
     	<include name="add-ons/leap/build.xml"/>
     	<include name="add-ons/leap/LEAPUserGuide.pdf"/>
     	<include name="add-ons/leap/demo/*.bat"/>
+    	<include name="add-ons/leap/demo/demo.dlc"/>
     	<include name="add-ons/leap/demo/demo.jad"/>
     	<include name="add-ons/leap/demo/demo.manifest"/>
     	<include name="add-ons/leap/demo/src/**"/>
