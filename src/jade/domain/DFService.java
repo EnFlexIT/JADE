@@ -990,7 +990,7 @@ call getLastMsg() and getSearchResults() where both throw a NotYetReadyException
 * @param a is the agent performing the task
 * @param dfName is the AID of the DF that should perform the requested action
 * @param actionName is the name of the action (one of the constants defined
-* in FIPAAgentManagementOntology: REGISTER / DEREGISTER / MODIFY / SEARCH).
+* in FIPAManagementOntology: REGISTER / DEREGISTER / MODIFY / SEARCH).
 * @param dfd is the agent description
 * @param constraints are the search constraints (can be null if this is
 * not a search operation)
@@ -998,7 +998,7 @@ call getLastMsg() and getSearchResults() where both throw a NotYetReadyException
      @exception FIPAException A suitable exception can be thrown 
      to indicate some error condition 
      locally discovered (e.g.the agentdescription is not valid.)
-@see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+@see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 @deprecated Use <code>AchieveREInitiator</code> instead
      **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {

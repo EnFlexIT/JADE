@@ -30,7 +30,7 @@ import jade.util.leap.ArrayList;
  
 /**
    Agent platform description.
-   @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+   @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
    @author Giovanni Rimassa - Universita` di Parma
    @author Alessandro Chiarotto - TILAB
    @version $Date$ $Revision$

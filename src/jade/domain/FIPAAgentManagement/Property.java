@@ -29,7 +29,7 @@ import jade.content.Concept;
 
 /** 
  This class implements the property type, a pair of a name and value.
- @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+ @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
  @author Fabio Bellifemine - CSELT S.p.A.
  @version $Date$ $Revision$
 */

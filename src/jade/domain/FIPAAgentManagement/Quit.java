@@ -28,7 +28,7 @@ import jade.content.*;
 
 /** 
 * This class implements the quit action (termination of an agent).
-* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
