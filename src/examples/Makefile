@@ -21,5 +21,8 @@ clean:
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 
-
-
+batch:
+	echo 'cd examples' >> $(BATCH_ALL)
+	echo 'set CLASSPATH=..;..\\..\\classes' >> $(BATCH_ALL)
+	echo '$(JC) $(subst /,\\,$(subst $(ROOTDIR),..\\..,$(JFLAGS))) $(subst /,\\,$(TARGETS))' >> $(BATCH_ALL)
+	echo 'cd ..\\..' >> $(BATCH_ALL)
