@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/11/10 07:54:27  rimassaJade
+  Fixed a misspelled icon name.
+
   Revision 1.3  1999/11/08 15:30:08  rimassaJade
   Changed the name of the icons for "Suspend Agent" and "Resume Agent"
   toolbar buttons.
@@ -54,7 +57,7 @@ public class GuiProperties {
       "AMSAbstractAction.StartActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/start.gif"),
       "AMSAbstractAction.StartNewAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/baby.gif"),
       "AMSAbstractAction.SuspendActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/suspend.gif"),
-      "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stoptree.gif"),
+      "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
       "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/runtree.gif"),
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),
       "AMSAbstractAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif")    
