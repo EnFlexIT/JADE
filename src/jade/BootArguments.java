@@ -18,6 +18,7 @@ public class BootArguments {
     
     String hostName;
     int    portNo;
+    String platformName="";
     boolean startRMAGUI;
     boolean isContainer;
     boolean startConfGUI;
@@ -60,6 +61,7 @@ public class BootArguments {
 	    String tmp = new String();
 	    tmp = tmp + " :host "+hostName;
 	    tmp = tmp + " :portNumber "+portNo;
+	    tmp = tmp + " :name "+platformName;
 	    tmp = tmp + " :startRMAGUI "+startRMAGUI;
 	    tmp = tmp + " :isContainer "+isContainer;
 	    tmp = tmp + " :startConfGUI "+startConfGUI;
@@ -99,6 +101,7 @@ public class BootArguments {
 		PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,hostName, "Host Name of the main-container", false);
 		PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,new Boolean(startRMAGUI).toString(), "Select to launch the RMA Gui", false);
 		PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,new Integer(portNo).toString(), "Port Number of the main-container", false);
+		PropertyType NameProperty = new PropertyType("name",PropertyType.STRING_TYPE,platformName, "The symbolic plaform name", false);
 		PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, new Boolean(isContainer).toString(), "Select to launch an agent-container",false);
 		PropertyType MTPProperty = new PropertyType("mtp", PropertyType.STRING_TYPE, toMTPsString(), "List of MTPs to activate", false); 
 		PropertyType NoMTPProperty = new PropertyType("nomtp", PropertyType.BOOLEAN_TYPE, new Boolean(noMTP).toString(), "Disable all external MTPs on this container", false);		
@@ -107,6 +110,7 @@ public class BootArguments {
 		//update the propertyVector with all the -option 
 		propertyVector.add(HostProperty);
 		propertyVector.add(PortProperty);
+		propertyVector.add(NameProperty);
 		propertyVector.add(GuiProperty);
 		propertyVector.add(ContainerProperty);
 		propertyVector.add(MTPProperty);
@@ -257,8 +261,8 @@ public class BootArguments {
 	  startRMAGUI = (Boolean.valueOf(p.getProperty("gui"))).booleanValue();
 	  isContainer = (Boolean.valueOf(p.getProperty("container"))).booleanValue();
 	  noMTP = (Boolean.valueOf(p.getProperty("nomtp"))).booleanValue();
-	 	hostName = p.getProperty("host");
-	  
+	  hostName = p.getProperty("host");
+	  platformName = p.getProperty("name");	  
 	  
 	  MTPs = parseArgumentList(p.getProperty("mtp"),true);
 	 	aclCodecs = parseArgumentList(p.getProperty("aclcodec"),false);
@@ -284,6 +288,7 @@ public class BootArguments {
 			p.put("gui",(new Boolean(startRMAGUI)).toString());
 			p.put( "nomtp",(new Boolean(noMTP)).toString());
 			p.put( "host",hostName);
+			p.put( "name",platformName);
 			p.put("mtp",toMTPsString());
 			p.put("aclcodec",toACLCodecsString());
 			p.put("agents",toAgentString());

@@ -41,7 +41,9 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
     selected agents.
 - Added the SLFormatter tool (jade.tools.sl.SLFormatter) that allows to
   format an SL-expression into a human-friendly string. (Craig Sayers, HP)
-
+- Added the command line parameter "-name" which specifies the symbolic 
+  name to be used as the platform name rather than the default name generated
+  from the main container's hostname and the portnumber. (Ion Constantinescu)
 	
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)

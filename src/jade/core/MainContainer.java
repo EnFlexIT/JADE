@@ -34,19 +34,21 @@ import java.rmi.RemoteException;
 
 interface MainContainer extends AgentContainer {
 
-  String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException;
-  void removeContainer(ContainerID cid) throws RemoteException;
+    String getPlatformName() throws RemoteException;
 
-  AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException;
+    String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException;
+    void removeContainer(ContainerID cid) throws RemoteException;
 
-  void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException;
-  void deadAgent(AID name) throws RemoteException, NotFoundException;
+    AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException;
 
-  void newMTP(String mtpAddress, ContainerID cid) throws RemoteException;
-  void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException;
+    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException;
+    void deadAgent(AID name) throws RemoteException, NotFoundException;
 
-  boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException;
+    void newMTP(String mtpAddress, ContainerID cid) throws RemoteException;
+    void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException;
 
-  RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
+    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException;
+
+    RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
 
 }

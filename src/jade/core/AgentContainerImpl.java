@@ -100,6 +100,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
   protected static String platformID;
+  protected static String platformRMI;
   protected ContainerID myID;
 
   private List messageListeners;
@@ -475,18 +476,21 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     theACC.forwardMessage((jade.domain.FIPAAgentManagement.Envelope)env, payload, address);
   }
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
+  public void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
 
-    // This string will be used to build the GUID for every agent on this platform.
-    platformID = pID;
-
-    // Build the Agent IDs for the AMS and for the Default DF.
-    Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
+    // This string will be used as the transport address for the main container
+    platformRMI = pRMI;
 
     try {
       // Retrieve agent platform from RMI registry and register as agent container
-      String platformRMI = "rmi://" + platformID;
       myPlatform = lookup3(platformRMI);
+
+      // This string will be used to build the GUID for every agent on
+      // this platform.
+      platformID = myPlatform.getPlatformName(); // RMI call
+
+      // Build the Agent IDs for the AMS and for the Default DF.
+      Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
       theACC = new acc(this, platformID);
 
@@ -1013,7 +1017,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   private void restoreMainContainer() throws NotFoundException {
     try {
-      myPlatform = lookup3("rmi://" + platformID);
+      myPlatform = lookup3(platformRMI);
 
       // Register again with the Main Container.
       String myName = myPlatform.addContainer(this, myID); // RMI call

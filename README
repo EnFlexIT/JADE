@@ -112,6 +112,11 @@ the JADE configuration from a file
 -gui this option launches a Remote Monitoring Agent, a graphical interface 
 that allows to monitor the agent platform (see section 6).
 -version -prints on the standard output versioning information of JADE.
+-name <symbolicname> specifies the symbolic name to be used as the 
+platform name; this option should be specified only for the main container; the
+ default is to generate this from the values of the main container's hostname 
+and portnumber
+
 
 5.3.2 Launching agents from the command line
 ============================================

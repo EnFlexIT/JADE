@@ -73,6 +73,11 @@ public class Boot {
 		    ba.printUsageInfo = true;
 		else
 		    ba.hostName=args[n];
+	    } else if(args[n].equalsIgnoreCase("-name")) {
+      		if(++n  == args.length)
+		    ba.printUsageInfo = true;
+		 else 
+		    ba.platformName=args[n];
 	    } else if(args[n].equalsIgnoreCase("-port")) {
       		if(++n  == args.length) 
 		    ba.printUsageInfo = true;
@@ -168,6 +173,18 @@ public class Boot {
    }
 
   /**
+   * Returns a String with a warning in the case of user specified platform names
+  */    
+    private static String getNameWarning( boolean isPlatform ) {
+	if( isPlatform ) {
+	    return("\nWARNING: using user specified platform name. Please note that this option is stronlgy discouraged since uniqueness of the HAP is not enforced. This might result in non-unique agent names.\n");
+	} else {
+	    return("\nWARNING: ignoring user specified platform name. This should be specified as the argument when starting the main container.\n");
+	}
+    }
+
+
+  /**
    * Fires up <b><em>JADE</em></b> system.
    * This method starts the bootstrap process for <B><em>JADE</em></b>
    * agent platform. It parses command line arguments and acts
@@ -188,14 +205,13 @@ public class Boot {
    * <li>  <b>-mtp</b>      <em>Specifies a list of external Message Transport Protocols to be activated on this container (by default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers).</em>
    * <li>  <b>-nomtp</b>    <em>has precedence over -mtp and overrides it. It should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).</em>
    * <li>  <b>-aclcodec</b> <em>To specify an acl encoding.By default the string encoding is used. </em>
+   * <li>  <b>-name <platform name></b><em>The symbolic name of the platform. By default this is generated from the hostname and portnumber of the main container and its uniqueness is guaranteed.</em>
    * </ul>
    *
    * In any case the properties specified by command line replace the properties read by a file (if specified) or the default ones.
    */
   public static void main(String args[]) {
 
-  	String platformName = "JADE";
-  	
     System.out.println(getCopyrightNotice());
 
     // create an object that contains all the arguments to their default value
@@ -267,7 +283,15 @@ public class Boot {
     	// Build a unique ID for this platform, using host name, port and
       // object name for the main container, taken from default values
       // and command line options.
-      String platformID = ba.hostName + ":" + ba.portNo + "/" + platformName;
+      String platformID;
+ 
+      if( (ba.platformName==null) || ba.platformName.equals("") ) {
+	  platformID= ba.hostName + ":" + ba.portNo + "/JADE";
+      } else {
+	  System.out.println(getNameWarning(isPlatform));
+	  platformID=ba.platformName;
+      }
+
 
     	// Configure Java runtime system to put the selected host address in RMI messages
       try {
@@ -289,7 +313,7 @@ public class Boot {
      	// Start a new JADE runtime system, passing along suitable
       // information extracted from command line arguments.
       
-      jade.core.Starter.startUp(isPlatform, platformID, ba.agents.iterator(), (ba.MTPs == null ? new String[0]:ba.MTPs), (ba.aclCodecs == null ? new String[0]:ba.aclCodecs) );
+      jade.core.Starter.startUp(isPlatform, platformID, ba.hostName, ba.portNo, ba.agents.iterator(), (ba.MTPs == null ? new String[0]:ba.MTPs), (ba.aclCodecs == null ? new String[0]:ba.aclCodecs) );
 
     }catch(BootException be){
     	be.printStackTrace();
@@ -325,6 +349,7 @@ public class Boot {
     System.out.println("  -nomtp\t\tHas precedence over -mtp and overrides it.");
     System.out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
     System.out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
+    System.out.println("  -name <platform name>\tThe symbolic platform name specified only for the main container.");
     System.out.println("  -help\t\t\tPrints out usage informations.");
     System.out.println("");
     System.out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");

@@ -68,9 +68,13 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
-  public MainContainerImpl() throws RemoteException {
+  public MainContainerImpl( String pID ) throws RemoteException {
     super();
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
+
+    // This string will be used to build the GUID for every agent on
+    // this platform.
+    platformID = pID;
   }
 
   private void initAMS() {
@@ -116,13 +120,10 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs, String[] ACLCodecs) {
+  public void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs, String[] ACLCodecs) {
 
-    // This string will be used to build the GUID for every agent on
-    // this platform.
-    platformID = pID;
-
-    String platformRMI = "rmi://" + platformID;
+    // This string will be used as the transport address for the main container
+    platformRMI = pRMI;
 
     try {
       InetAddress netAddr = InetAddress.getLocalHost();
@@ -346,6 +347,9 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
    }
   }
 
+    public String getPlatformName() throws RemoteException {
+	return platformID;
+    }
 
   public String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException {
 

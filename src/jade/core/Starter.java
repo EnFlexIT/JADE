@@ -67,33 +67,27 @@ public class Starter {
      containing the class names of the ACLCodecs to be activated
      @param args Command line arguments, used by CORBA ORB.
   */
-  public static void startUp(boolean isPlatform, String platformID, Iterator agents, String[] MTPs,String[] ACLCodecs) {
+  public static void startUp(boolean isPlatform, String platformID, String host, int port, Iterator agents, String[] MTPs,String[] ACLCodecs ) {
 
-   try{
-   	if(isPlatform) {
-			theContainer = new MainContainerImpl();
+      try{
+	  String platformRMI = "rmi://" + host+":"+port+"/JADE";
 
-			// Create an embedded RMI Registry within the platform and
-			// bind the Agent Platform to it
+	  if(isPlatform) {
+	      theContainer = new MainContainerImpl(platformID);
 
-			String platformRMI = "rmi://" + platformID;
+	      // Create an embedded RMI Registry within the platform and
+	      // bind the Agent Platform to it
 
-			int colonPos = platformRMI.lastIndexOf(':');
-			int slashPos = platformRMI.indexOf('/', colonPos + 1);
+	      Registry theRegistry = LocateRegistry.createRegistry(port);
+	      Naming.bind(platformRMI, theContainer);
+	  }
+	  else {
+	      theContainer = new AgentContainerImpl();
+	  }
 	
-			String platformPort = platformRMI.substring(colonPos + 1, slashPos);
-
-			int port = Integer.parseInt(platformPort);
-			Registry theRegistry = LocateRegistry.createRegistry(port);
-			Naming.bind(platformRMI, theContainer);
-   	}
-    else {
-			theContainer = new AgentContainerImpl();
-    }
-	
-  	theContainer.joinPlatform(platformID, agents, MTPs,ACLCodecs);
+	  theContainer.joinPlatform(platformRMI, agents, MTPs,ACLCodecs);
   	
-   }catch(ConnectException ce) {
+      }catch(ConnectException ce) {
       // This one is thrown when trying to bind in an RMIRegistry that
       // is not on the current host
       System.out.println("ERROR: trying to bind to a remote RMI registry.");
