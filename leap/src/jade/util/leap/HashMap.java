@@ -69,9 +69,7 @@ public class HashMap implements Map, Serializable {
    * The following elements are necessary to handle null keys and
    * objects that are allowed in HashMap, but not in Hashtable.
    */
-  // FIXME: Probably this creates problems in serialization
-  // private Object               nullKeyMapping = null;
-  private transient Object     nullValue = new Object();
+  private transient Object     nullValue = new Integer(hashCode());
 
   /**
    * Default constructor, creates a new empty Map
