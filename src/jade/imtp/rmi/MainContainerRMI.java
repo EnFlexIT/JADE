@@ -40,7 +40,7 @@ import jade.core.NameClashException;
 public interface MainContainerRMI extends Remote {
     public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException;
     public RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException;
-    public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException, IMTPException;
+    public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException;
     public String getPlatformName() throws RemoteException, IMTPException;
     public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException;
     public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException;

@@ -78,9 +78,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws IMTPException, NameClashException {
+  public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException {
     try {
-      adaptee.bornAgent(name, rp, cid);
+      adaptee.bornAgent(name, cid);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -125,6 +125,10 @@ public class MainContainerAdapter implements MainContainer, Serializable {
 
   public void deregister(AgentContainer ac) throws IMTPException {
       throw new IMTPException("This method cannot be called on an adapter.");
+  }
+
+  public void dispatch(jade.lang.acl.ACLMessage msg, AID receiverID) throws NotFoundException {
+      throw new NotFoundException("This method cannot be called on an adapter.");
   }
 
   public void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException {

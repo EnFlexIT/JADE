@@ -58,22 +58,21 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     public void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException {
       impl.deadMTP(mtpAddress, cid);
     }
-    
+
     public RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
       return impl.getProxy(id);
     }
-    
+
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException {
       return impl.transferIdentity(agentID, src, dest);
     }
-    
+
     public String getPlatformName() throws RemoteException, IMTPException {
       return impl.getPlatformName();
     }
-    
-    public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException, IMTPException {
-      manager.adopt(rp); // This needs to be restored by hand, since it must not be serialized...
-      impl.bornAgent(name, rp, cid);
+
+    public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException {
+      impl.bornAgent(name, cid);
     }
     
     public void removeContainer(ContainerID cid) throws RemoteException, IMTPException {
