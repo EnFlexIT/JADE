@@ -150,21 +150,16 @@ public class RMIIMTPManager implements IMTPManager {
 	  originalRMI = "rmi://" + mainHost + ":" + mainPort + "/";
       }
 
-      // If this node is exporting a local Service Manager, read host
-      // and port from the profile.
-      if(myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
+      localSvcMgrHost = myProfile.getParameter(LOCAL_SERVICE_MANAGER_HOST, mainHost);
 
-	  localSvcMgrHost = myProfile.getParameter(LOCAL_SERVICE_MANAGER_HOST, mainHost);
-
-	  localSvcMgrPort = 0;
-	  String localSvcMgrPortStr = myProfile.getParameter(LOCAL_SERVICE_MANAGER_PORT, null);
-	  if(localSvcMgrPortStr != null) {
-	      try {
-		  localSvcMgrPort = Integer.parseInt(localSvcMgrPortStr);
-	      }
-	      catch(NumberFormatException nfe) {
-		  // Do nothing. An OS-chosen port is used
-	      }
+      localSvcMgrPort = 0;
+      String localSvcMgrPortStr = myProfile.getParameter(LOCAL_SERVICE_MANAGER_PORT, null);
+      if(localSvcMgrPortStr != null) {
+	  try {
+	      localSvcMgrPort = Integer.parseInt(localSvcMgrPortStr);
+	  }
+	  catch(NumberFormatException nfe) {
+	      // Do nothing. An OS-chosen port is used
 	  }
       }
 
@@ -183,7 +178,7 @@ public class RMIIMTPManager implements IMTPManager {
 
       try {
 	  // Create the local node and mark it as hosting a local Service Manager
-	  localNode = new NodeAdapter(AgentManager.UNNAMED_CONTAINER_NAME, myProfile.getParameter(Profile.MAIN, true));
+	  localNode = new NodeAdapter(AgentManager.UNNAMED_CONTAINER_NAME, myProfile.getParameter(Profile.MAIN, true), localNodePort);
       }
       catch(RemoteException re) {
 	  throw new IMTPException("An RMI error occurred", re);
@@ -246,7 +241,7 @@ public class RMIIMTPManager implements IMTPManager {
       ServiceManagerImpl smImpl = (ServiceManagerImpl)sm;
       String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
       smImpl.setLocalAddress(baseRMI);
-      myRMIServiceManager = new ServiceManagerRMIImpl(smImpl, this);
+      myRMIServiceManager = new ServiceManagerRMIImpl(smImpl, this, localSvcMgrPort);
 
       int registryPort = localPort;
       if(registryPort == 0) {
