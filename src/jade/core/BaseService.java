@@ -49,7 +49,18 @@ public abstract class BaseService implements Service {
 
 	slices = new HashMap();
 	aliases = new HashMap();
+    }
 
+    // Package scoped method to receive the Command Processor from the
+    // agent container at startup time. The rationale for avoiding
+    // passing this to the constructor is to prevent concrete services
+    // from accessing the Command Processor (they are less trusted than jade.core).
+    // Notice that, for further measure, this method only works the first time it
+    // is called.
+    void setCommandProcessor(CommandProcessor cp) {
+	if(myCommandProcessor == null) {
+	    myCommandProcessor = cp;
+	}
     }
 
 
@@ -160,6 +171,20 @@ public abstract class BaseService implements Service {
 	// Empty placeholder method
     }
 
+    public Object submit(VerticalCommand cmd) throws ServiceException {
+	String cmdName = cmd.getName();
+	String[] ownedCommands = getOwnedCommands();
+
+	for(int i = 0; i < ownedCommands.length; i++) {
+	    if(cmdName.equals(ownedCommands[i])) {
+		return myCommandProcessor.processOutgoing(cmd);
+	    }
+	}
+
+	throw new ServiceException("Command <" + cmdName + "> does not belong to service <" + getName() + ">");
+
+    }
+
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
 
 	// First look through the name alias table
@@ -175,6 +200,8 @@ public abstract class BaseService implements Service {
 
     private ServiceFinder myFinder;
     private IMTPManager myIMTPManager;
+
+    private CommandProcessor myCommandProcessor = null;
 
     private Map slices;
     private Map aliases;
