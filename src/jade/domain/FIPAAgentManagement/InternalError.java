@@ -34,6 +34,7 @@ public class InternalError extends FailureException {
 
   public InternalError(String msg) {
     super("(internal-error "+msg+")");
+    s1=msg;
   }
 
   public InternalError() {
