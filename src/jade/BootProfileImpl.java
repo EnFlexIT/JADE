@@ -102,7 +102,8 @@ public class BootProfileImpl extends ProfileImpl {
      * Construct default profile with empty argument properties
      */
     public BootProfileImpl() {
-        super();
+				// creates the default profile
+        super(true); 
         argProp = new ExpandedProperties();
     }
     
