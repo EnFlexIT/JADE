@@ -29,12 +29,12 @@ import jade.util.leap.Serializable;
 
 public class MTPDescriptor implements Serializable {
   private String name;
-  private String address;
+  private String[] addresses;
   private String[] protoNames;
 
-  public MTPDescriptor(String n, String a, String[] pn) {
+  public MTPDescriptor(String n, String[] a, String[] pn) {
     name = n;
-    address = a;
+    addresses = a;
     protoNames = pn;
   }
 
@@ -42,8 +42,8 @@ public class MTPDescriptor implements Serializable {
     return name;
   }
 
-  public String getAddress() {
-    return address;
+  public String[] getAddresses() {
+    return addresses;
   }
 
   public String[] getSupportedProtocols() {
