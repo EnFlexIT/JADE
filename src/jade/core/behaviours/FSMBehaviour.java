@@ -62,7 +62,7 @@ import jade.core.Agent;
    @version $Date$ $Revision$
 
  */
-public class FSMBehaviour extends CompositeBehaviour {
+public class FSMBehaviour extends SerialBehaviour {
   
   private Map states = new HashMap();
   private Behaviour current = null;
@@ -373,7 +373,7 @@ public class FSMBehaviour extends CompositeBehaviour {
    * when its current child is ready. This method takes care of the
    * various possibilities.
    * @param rce The event to handle.
-   */
+   *
   protected void handle(RunnableChangedEvent rce) {
     if(rce.isUpwards()) {
       // Upwards notification
@@ -403,7 +403,7 @@ public class FSMBehaviour extends CompositeBehaviour {
 	  	b.handle(rce);
 	  }
     }  	
-  }
+  }*/
 
   /** 
    * Inner class implementing the FSM transition table

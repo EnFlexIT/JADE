@@ -259,23 +259,38 @@ public abstract class CompositeBehaviour extends Behaviour {
   	super.setAgent(a);
   }
 
-  /**
-     @deprecated Use <code>onStart()</code> instead.
-     This method is just an empty placeholders for subclasses. It is
-     executed just once before starting children
-     scheduling. Therefore, it acts as a prolog to the composite
-     task represented by this <code>CompositeBehaviour</code>.
-  *
-  protected void preAction() {
+  /*protected void handle(RunnableChangedEvent rce) {
+    if(rce.isUpwards()) {
+      // Upwards notification
+      if (rce.getSource() == this) {
+      	// If the event is from this behaviour, set the new 
+      	// runnable state and notify upwords.
+      	super.handle(rce);
+      }
+      else if (rce.getSource() == getCurrent()) {
+  		// If the event is from the currently executing child, 
+  		// create a new event, set the new runnable state and
+      	// notify upwords.
+		myEvent.init(rce.isRunnable(), NOTIFY_UP);
+		super.handle(myEvent);
+      }
+      else {
+      	// If the event is from another child, just ignore it
+      }
+    }
+    else {
+      // Downwards notifications 
+      // Copy the state and pass it downwords only to the
+      // current child
+	  setRunnable(rce.isRunnable());
+	  Behaviour b  = getCurrent();
+	  if (b != null) {
+	  	b.handle(rce);
+	  }
+    }  	
   }*/
-
-  /**
-     @deprecated Use <code>onEnd()</code> instead.
-     This method is just an empty placeholder for subclasses. It is
-     invoked just once after this behaviour has ended. Therefore,
-     it acts as an epilog for the composite task represented by this
-     <code>CompositeBehaviour</code>. 
-  *
-  protected void postAction() {
-  }*/  
+  
+  protected void registerAsChild(Behaviour b) {
+  	b.setParent(this);
+  }
 }

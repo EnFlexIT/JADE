@@ -39,7 +39,7 @@ import jade.core.Agent;
    @version $Date$ $Revision$
 
 */
-public class SequentialBehaviour extends CompositeBehaviour {
+public class SequentialBehaviour extends SerialBehaviour {
 	
   private List subBehaviours = new ArrayList();
   int current = 0;
@@ -139,7 +139,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
      when its current child is ready. This method takes care of the
      various possibilities.
      @param rce The event to handle.
-  */
+  *
   protected void handle(RunnableChangedEvent rce) {
     if(rce.isUpwards()) {
       // Upwards notification
@@ -169,7 +169,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
 	  	b.handle(rce);
 	  }
     }  	
-  }
+  }*/
   
   public void skipNext() {
   	current = subBehaviours.size();
