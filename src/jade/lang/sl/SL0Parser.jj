@@ -20,10 +20,13 @@ options {
 
 PARSER_BEGIN(SL0Parser)
 
+package jade.lang.sl;
+
 import jade.lang.Codec;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
+import jade.onto.TermDescriptor;
 import jade.onto.OntologyException;
 import jade.onto.DefaultOntology;
 
@@ -82,8 +85,33 @@ public class SL0Parser implements Codec {
     System.out.println("SL0 Parser starting...");
     SL0Parser theParser = new SL0Parser(new BufferedReader(new InputStreamReader(System.in)));
     try {
-      Frame result = theParser.SL0Content(new DefaultOntology());
+      Ontology o = new DefaultOntology();
+
+      o.addFrame(":service-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	new TermDescriptor(":service-name", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":service-type", Ontology.STRING_TYPE, Ontology.M)
+      });
+
+      o.addFrame(":df-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	new TermDescriptor(":agent-name", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":agent-address", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":agent-services", Ontology.CONCEPT_TYPE,":service-description", Ontology.M),
+	new TermDescriptor(":agent-type", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":interaction-protocols", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":ontology", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":ownership", Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor(":df-state", Ontology.STRING_TYPE, Ontology.M)
+      });
+      o.addFrame("register", Ontology.ACTION_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+      });
+
+
+      Frame result = theParser.SL0Content(o);
       result.dump();
+    }
+    catch(OntologyException oe) {
+      oe.printStackTrace();
     }
     catch(ParseException pe) {
       pe.printStackTrace();
@@ -206,7 +234,7 @@ Frame FunctionalTerm(Ontology o):
 
 | LOOKAHEAD({ isPredicate(o, t.image) }) Predicate(o, result) // if it's a Predicate, fill the Frame with unnamed terms
 
-| { throw new ParseException("Ontological inconsistency: " + t.image + " must be a Concept, an Action or a Predicate"); }
+| { throw new ParseException("Ontological inconsistency: '" + t.image + "' must be a Concept, an Action or a Predicate"); }
 )
   { return result; }
 }
@@ -225,7 +253,7 @@ void Action(Ontology o, Frame result):
   Object arg;
 }
 {
-  <LBRACE> ( arg = SL0Term(o) { result.putSlot(arg); } )+ <RBRACE> // At least one argument
+  ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one argument
 }
 
 void Predicate(Ontology o, Frame result):
@@ -233,7 +261,7 @@ void Predicate(Ontology o, Frame result):
   Object arg;
 }
 {
-  <LBRACE> ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one term
+  ( arg = SL0Term(o) { result.putSlot(arg); } )+ // At least one term
 }
 
 Object SL0Term(Ontology o) :
