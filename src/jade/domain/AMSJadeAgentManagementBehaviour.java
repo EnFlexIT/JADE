@@ -99,6 +99,10 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   		theAMS.killContainerAction((KillContainer) action, request.getSender());
   		asynchNotificationKey = ((KillContainer) action).getContainer();
   	}
+	// SHUT DOWN PLATFORM
+	else if (action instanceof ShutdownPlatform) {
+	    theAMS.shutdownPlatformAction((ShutdownPlatform)action, request.getSender());
+	}
   	// INSTALL MTP
   	else if (action instanceof InstallMTP) {
   		MTPDescriptor dsc = theAMS.installMTPAction((InstallMTP) action, request.getSender());
