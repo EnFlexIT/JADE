@@ -175,10 +175,10 @@ public class EmploymentOntology {
 			);
 
 			// DEBUG: PRINT VOCABULARY
-	  	List voc = theInstance.getVocabulary();
-	  	Iterator i = voc.iterator();
-	  	while (i.hasNext())
-	  		System.out.println((String) (i.next()));
+	  	//List voc = theInstance.getVocabulary();
+	  	//Iterator i = voc.iterator();
+	  	//while (i.hasNext())
+	  	//	System.out.println((String) (i.next()));
 	  	
     }	// End of try
     catch(OntologyException oe) {
