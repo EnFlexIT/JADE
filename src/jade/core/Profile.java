@@ -30,21 +30,21 @@ public abstract class Profile {
      This constant is the name of the property whose value is a String
      indicating the protocol to use to connect to the Main Container.
    */
-  public static final String MAIN_PROTO = "proto";
+  public static final String MAIN_PROTO = "main-proto";
 
   /**
      This constant is the name of the property whose value is the name
      (or the IP address) of the network host where the JADE Main
      Container is running.
    */
-  public static final String MAIN_HOST = "host";
+  public static final String MAIN_HOST = "main-host";
 
   /**
      This constant is the name of the property whose value contains an
      integer representing the port number where the Main Container is
      listening for container registrations.
    */
-  public static final String MAIN_PORT = "port";
+  public static final String MAIN_PORT = "main-port";
 
   /**
      This constant is the name of the property whose value contains
@@ -52,7 +52,19 @@ public abstract class Profile {
      are made by a platform-unique nickname, the '@' character and the
      platform ID.
    */
-  public static final String PLATFORM_ID = "name";
+  public static final String PLATFORM_ID = "platform-id";
+  
+  /**
+     This constant is the name of the property whose value contains a
+     boolean indicating if an RMA agent must be started on this container
+   */
+  public static final String GUI = "gui";
+  
+  /**
+     This constant is the name of the property whose value contains the
+     list of agents that have to be launched at bootstrap time
+   */
+  public static final String AGENTS = "agents";
   
     /**
      */
