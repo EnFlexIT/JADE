@@ -52,7 +52,7 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
 
-import jade.domain.AMSServiceCommunicator;
+import jade.domain.AMSService;
 // Concepts from fipa-agent-management ontology
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
@@ -1159,7 +1159,7 @@ public class Agent implements Runnable, Serializable {
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
 	  ((jade.domain.ams)this).AMSRegister(amsd);
 	else
-	  AMSServiceCommunicator.register(this,amsd);
+	  AMSService.register(this,amsd);
         notifyStarted();
 	setup();
 	break;
@@ -1172,7 +1172,7 @@ public class Agent implements Runnable, Serializable {
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
 	  ((jade.domain.ams)this).AMSRegister(amsd);
 	else
-	  AMSServiceCommunicator.register(this,amsd);
+	  AMSService.register(this,amsd);
 	afterClone();
 	break;
       }
@@ -1464,7 +1464,7 @@ public class Agent implements Runnable, Serializable {
 	amsd.setName(getAID());
 	((jade.domain.ams)this).AMSDeregister(amsd);
       } else
-	AMSServiceCommunicator.deregister(this);
+	AMSService.deregister(this);
     }
     catch(FIPAException fe) {
       fe.printStackTrace();
