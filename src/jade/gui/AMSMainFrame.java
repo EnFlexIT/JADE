@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/11/05 23:39:47  rimassa
+  Some minor changes. Added a static method getRMA(), returning a static
+  reference to RMA agent. Probably a better solution would be useful.
+
   Revision 1.5  1998/11/03 00:43:22  rimassa
   Added automatic GUI tree updating in response to AMS 'inform' messages to
   Remote Management Agent.
@@ -25,6 +29,8 @@ import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 import com.sun.java.swing.tree.*;
 
+import jade.domain.rma;
+
 /**
  * A class representing the main window of the Management System
  * command line parameters are:
@@ -43,8 +49,9 @@ import com.sun.java.swing.tree.*;
 public class AMSMainFrame extends JFrame {	
 
   private AMSTree tree;
+  private static rma myRMA;
 
-  public AMSMainFrame () {
+  public AMSMainFrame (rma anRMA) {
     super("JADE Remote Agent Management GUI");
     setJMenuBar(new AMSMenu());
 
@@ -55,7 +62,14 @@ public class AMSMainFrame extends JFrame {
     getContentPane().add(new AMSToolBar(tree),"North");
 		
     getContentPane().add(tree,"Center");
+    myRMA = anRMA;
+
   }
+
+  public static rma getRMA() {
+    return myRMA;
+  }
+
   /**
      show the AMSMainfFrame packing and setting its size correctly
   */
@@ -187,7 +201,7 @@ public class AMSMainFrame extends JFrame {
   }
 
   public static void main (String[] argv) {
-    AMSMainFrame jf = new AMSMainFrame();
+    AMSMainFrame jf = new AMSMainFrame(null);
 
     if (argv.length >= 1) {
       if (argv[0].equals("-me"))
