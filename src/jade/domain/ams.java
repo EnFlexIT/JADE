@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.31  1999/05/19 18:20:44  rimassa
+  Removed fake RMA authentication. Now every agent can ask the AMS to
+  perform Life Cycle Management tasks.
+
   Revision 1.30  1999/04/06 00:09:55  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -530,12 +534,6 @@ public class ams extends Agent {
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
 
-      // Make sure it is RMA that's calling
-      ACLMessage msg = getRequest();
-      String peerName = msg.getSource();
-      if(!peerName.equalsIgnoreCase("RMA"))
-	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
-
       // Obtain container name and ask AgentPlatform to kill it
       AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
       String containerName = kca.getContainerName();
@@ -553,12 +551,6 @@ public class ams extends Agent {
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-
-      // Make sure it is RMA that's calling
-      ACLMessage msg = getRequest();
-      String peerName = msg.getSource();
-      if(!peerName.equalsIgnoreCase("RMA"))
-	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
       AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
       String className = caa.getClassName();
@@ -582,12 +574,6 @@ public class ams extends Agent {
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-
-    // Make sure it is RMA that's calling
-    ACLMessage msg = getRequest();
-    String peerName = msg.getSource();
-    if(!peerName.equalsIgnoreCase("RMA"))
-       throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
       // Kill an agent
       AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
