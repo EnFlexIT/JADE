@@ -812,12 +812,11 @@ public class BasicProperties {
                 
                 if (line != null) {
                     line = line.trim();
-
-                    if ((sb != null) 
-                            && ((line.startsWith("#")
-                                 || line.startsWith("!")))) {
+                    // If we already have something going ignore blank lines and comments
+                    if ((sb != null)
+                            && ((line.length() == 0) || 
+                                (line.startsWith("#") || line.startsWith("!")))) {
                         continued = true;
-
                         continue;
                     }
 
