@@ -869,7 +869,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	private void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 
-	    MessagingSlice slice = (MessagingSlice)getSlice(sliceName);
+	    MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
 	    routes.addRemoteMTP(mtp, sliceName, slice);
 
 	    String[] addresses = mtp.getAddresses();
