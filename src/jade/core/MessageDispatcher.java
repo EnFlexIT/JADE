@@ -32,7 +32,6 @@ import jade.lang.acl.ACLMessage;
 interface MessageDispatcher extends Remote {
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
-  public void dispatch(String msg) throws RemoteException, NotFoundException;
 
 }
 
