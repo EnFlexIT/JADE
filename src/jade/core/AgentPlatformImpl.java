@@ -8,6 +8,8 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 import jade.domain.ams;
+import jade.domain.AgentManagementOntology;
+
 import jade.domain.FIPAException;
 import jade.domain.AgentAlreadyRegisteredException;
 
@@ -27,7 +29,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private void initAMS() {
 
     System.out.print("Starting AMS... ");
-    theAMS = new ams(this,"ams");
+    theAMS = new ams(this, "ams");
 
     // Subscribe as a listener for the AMS agent
     theAMS.addCommListener(this);
@@ -104,16 +106,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 	throw new AgentAlreadyRegisteredException();
       }
 
-      int state; // FIXME: Ugly code. All fipa-man-* objects must be gathered in a single place
-      if(APState.equalsIgnoreCase("initiated"))
-	state = Agent.AP_INITIATED;
-      else if(APState.equalsIgnoreCase("active"))
-	state = Agent.AP_ACTIVE;
-      else if(APState.equalsIgnoreCase("suspended"))
-	state = Agent.AP_SUSPENDED;
-      else if(APState.equalsIgnoreCase("waiting"))
-	state = Agent.AP_WAITING;
-      else throw new jade.domain.UnrecognizedAttributeValueException();
+      AgentManagementOntology o = AgentManagementOntology.instance();
+      int state = o.getAPStateByName(APState);
 
       MessageDispatcher md = ad.getDemux(); // Preserve original MessageDispatcher
 
@@ -144,17 +138,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 	ad.setAddress(forwardAddress);
 
       if(APState != null) {
-	int state; // FIXME: Ugly code. All fipa-man-* objects must be gathered in a single place
-	if(APState.equalsIgnoreCase("initiated"))
-	  state = Agent.AP_INITIATED;
-	else if(APState.equalsIgnoreCase("active"))
-	  state = Agent.AP_ACTIVE;
-	else if(APState.equalsIgnoreCase("suspended"))
-	  state = Agent.AP_SUSPENDED;
-	else if(APState.equalsIgnoreCase("waiting"))
-	  state = Agent.AP_WAITING;
-	else throw new jade.domain.UnrecognizedAttributeValueException();
 
+	AgentManagementOntology o = AgentManagementOntology.instance();
+	int state = o.getAPStateByName(APState);
 	ad.setAPState(state);
       }
     }
@@ -178,19 +164,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     Enumeration descriptors = platformAgents.elements();
     while(descriptors.hasMoreElements()) {
       AgentDescriptor desc = (AgentDescriptor)descriptors.nextElement();
-      System.out.println("===========================");
-      System.out.println(":agent-name " + desc.getName());
-      System.out.println(":address " + desc.getAddress());
-      System.out.println(":signature " + desc.getSignature());
-      System.out.println(":delegate-agent " + desc.getDelegateAgent());
-      System.out.println(":forward-address " + desc.getForwardAddress());
-      System.out.println(":ap-state " + desc.getAPState());
-      System.out.println("===========================");
-      System.out.println("");
+      desc.dump();
     }
-
   }
 
+  public void AMSDumpData(String agentName) {
+    AgentDescriptor desc = (AgentDescriptor)platformAgents.get(agentName);
+    desc.dump();
+  }
 
 }
 
