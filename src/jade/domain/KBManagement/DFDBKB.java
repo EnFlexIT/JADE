@@ -632,7 +632,7 @@ public class DFDBKB extends DBKB{
 			lW.add(" dfagentdescr.lease > '"+lease.getTime()+"'");
 		}
 		if(lease.compareTo(lm.INFINITE_LEASE_TIME) ==0){
-			lW.add(" dfagentdescr.lease = '"+lease.getTime()+"'");
+//			lW.add(" dfagentdescr.lease = '"+lease.getTime()+"'");
 		}
 		Iterator iter = dfdTemplate.getAllLanguages();
 		int i=0;
