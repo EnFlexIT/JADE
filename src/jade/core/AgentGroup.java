@@ -17,7 +17,7 @@ import java.util.Vector;
 
   + Provides means for iterating along the names, easing message
     multicast.
-    (ACLMessage)
+    (ACLMessage,CommEvent)
 
 ****************************************************************/
 public class AgentGroup {
@@ -43,7 +43,7 @@ public class AgentGroup {
 
   public String getNextMember() {
     if(hasMoreMembers())
-      return iterator.nextElement();
+      return (String)iterator.nextElement();
     else
       return null;
   }
