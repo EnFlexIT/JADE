@@ -356,6 +356,8 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
 	state = 0;
 	return;
       }
+      if (waitedAgents.size()==0)  // If No proposal has been accepted
+	finished=true;
       break;
     }
     case 4: { // I can here receive failure, or inform(done) or not-understood
