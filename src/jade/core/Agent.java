@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.35  1999/03/01 13:09:53  rimassa
+  Started to write Javadoc comments for Agent class.
+
   Revision 1.34  1999/02/25 08:12:35  rimassa
   Instance variables 'myName' and 'myAddress' made private.
   Made variable 'myAPState' volatile.
@@ -207,21 +210,25 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FipaRequestClientBehaviour;
 import jade.domain.FIPAException;
 
-/**************************************************************
+/**
+   The <code>Agent</code> class is the common superclass for user
+   defined software agents. It provides methods to perform basic agent
+   tasks, such as:
+   <ul>
+   <li> <em> Message passing using <code>ACLMessage</code> objects,
+   both unicast and multicast with optional pattern matching. </em>
+   <li> <em> Complete Agent Platform life cycle support, including
+   starting, suspending and killing an agent. </em>
+   <li> <em> Scheduling and execution of multiple concurrent activities. </em>
+   <li> <em> Simplified interaction with <it>FIPA</it> system agents
+   for automating common agent tasks (DF registration, etc.).
+   </ul>
 
-  Name: Agent
+   Application programmers must write their own agents as
+   <code>Agent</code> subclasses, adding specific behaviours as needed
+   and exploiting <code>Agent</code> class capabilities.
+ */
 
-  Responsibility and Collaborations:
-
-  + Abstract placeholder for user-defined agents.
-
-  + Provides primitives for sending and receiving messages.
-    (ACLMessage)
-
-  + Schedules and executes complex behaviours.
-    (Behaviour, Scheduler)
-
-****************************************************************/
 public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // This inner class is used to force agent termination when a signal
@@ -234,8 +241,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // Agent Platform Life-Cycle states
-
+  /**
+     These constants represent the various Agent Platform life cycle states
+  */
   public static final int AP_MIN = -1;   // Hand-made type checking
   public static final int AP_INITIATED = 1;
   public static final int AP_ACTIVE = 2;
@@ -244,8 +252,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public static final int AP_DELETED = 5;
   public static final int AP_MAX = 6;    // Hand-made type checking
 
-  // Domain Life-Cycle states
 
+  /**
+     These constants represent the various Domain Life Cycle states
+  */
   public static final int D_MIN = 9;     // Hand-made type checking
   public static final int D_ACTIVE = 10;
   public static final int D_SUSPENDED = 20;
@@ -273,21 +283,42 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   protected ACLParser myParser = ACLParser.create();
 
-
+  /**
+     Default constructor.
+  */
   public Agent() {
     myAPState = AP_INITIATED;
     myDomainState = D_UNKNOWN;
     myScheduler = new Scheduler(this);
   }
 
+  /**
+     Method to query the agent local name.
+     @return a <code>String</code> containing the local agent name
+     (e.g. <it>peter</it>).
+  */
   public String getLocalName() {
     return myName;
   }
 
+  /**
+     Method to query the agent complete name (<it><em>GUID</em></it>).
+
+     @return a <code>String</code> containing the complete agent name
+     (e.g. <it>peter@iiop://fipa.org:50/acc</it>).
+  */
   public String getName() {
     return myName + '@' + myAddress;
   }
 
+  /**
+     Method to query the agent home address. This is the address of
+     the platform where the agent was created, and will never change
+     during the whole lifetime of the agent.
+
+     @return a <code>String</code> containing the agent home address
+     (e.g. <it>iiop://fipa.org:50/acc<it>).
+  */
   public String getAddress() {
     return myAddress;
   }
@@ -305,6 +336,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // State transition methods for Agent Platform Life-Cycle
 
+  /**
+     Make a state transition from <it>initiated</it> to
+     <it>active</it> within Agent Platform Life Cycle. This method is
+     called automatically by JADE on agent startup and should not be
+     used by application developers, unless creating some kind of
+     agent factory. This method starts the embedded thread of the agent.
+     @param name The local name of the agent.
+     @param platformAddress The home address of the agent.
+     @param myGroup The <code>ThreadGroup</code> the agent will run within.
+  */
   public void doStart(String name, String platformAddress, ThreadGroup myGroup) { // Transition from Initiated to Active
 
     // Set this agent's name and address and start its embedded thread
@@ -521,8 +562,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @deprecated Builds an ACL message from a character stream. Now
      ACLMessage class has this capabilities itself, through fromText()
      method.
-     @see ACLMessage
-  */
+     @see ACLMessage */
   public ACLMessage parse(Reader text) {
     ACLMessage msg = null;
     try {
