@@ -31,7 +31,7 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
-		<Test name="FIPA Management Onto DF" skip="flase">
+		<Test name="FIPA Management Onto DF" skip="false">
 			<TestClassName>test.domain.df.tests.TestFIPAManagementOntology_DF</TestClassName>
 			<WhatTest> Tests actions in the FIPAManagementOntology related to the DF.</WhatTest>
 			<HowWorkTest> 
@@ -96,5 +96,19 @@
 			    </UL>			
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+			</Test>		
+			
+		<Test name="Multiple Subscriptions" skip="false">
+			<TestClassName>test.domain.df.tests.TestMultipleSubscriptions</TestClassName>
+			<WhatTest> Tests the case in which 2 or more agents subscribed to the DF.</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				Launches 3 agents that subscribe to the DF to receive notifications.
+				<br><b>Actual test</b></br>
+				Registers a DFD matching the template specified by the subscribed agents.
+				Then waits for INFORM messages from the subscribed agents who are expected 
+				to forward to the tester agent the notifications they receive from the DF.
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent gets an INFORM message from each subscriber within a 10 sec.timeout.</WhenTestPass>
 		</Test>		
 	</TestsList>
