@@ -194,6 +194,10 @@ public abstract class ToolAgent extends Agent {
       refillContentManager();
   }
 
+  protected void afterReload() {
+      refillContentManager();
+  }
+
   private void refillContentManager() {
     // Register the supported ontologies
     getContentManager().registerOntology(JADEManagementOntology.getInstance());
