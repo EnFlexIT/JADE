@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.41  1999/09/02 14:59:01  rimassa
+  Handled new ParseException exception from ACLMessage.fromText().
+
   Revision 1.40  1999/08/31 17:23:57  rimassa
   Added a method to transfer agent identity between two agent
   containers.
@@ -226,11 +229,16 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   private class InComingIIOP extends _FIPA_Agent_97ImplBase {
     public void message(String acl_message) {
 
+      try {
       // Recover ACL message object from String
       ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));
       // Create and handle a suitable communication event
       CommEvent ev = new CommEvent(theACC, msg);
       CommHandle(ev);
+      }
+      catch (jade.lang.acl.ParseException e) {
+	e.printStackTrace();
+      }
     }
   }
 
