@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.17  1998/11/03 00:37:33  rimassa
+  Added AMS event notification to the Remote Management Agent. Now the
+  AMS picks up AgentPlatform events from synchronized buffers and
+  forwards them to RMA agent for GUI update.
+
   Revision 1.16  1998/11/02 02:04:29  rimassa
   Added two new Behaviours to support AMS <-> RMA interactions. The
   first Behaviour listens for incoming 'subscribe' messages from RMA
@@ -36,10 +41,7 @@
 package jade.domain;
 
 import java.io.StringReader;
-
-// FIXME: For debug only
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -368,14 +370,13 @@ public class ams extends Agent {
       // Receive 'subscribe' ACL messages.
       ACLMessage current = receive(subscriptionTemplate);
       if(current != null) {
-	current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+	// FIXME: Should parse 'iota ?x ...'
 
 	// Send back the whole container list.
 
 	// Add the new RMA to RMAs agent group.
 	RMAs.addMember(current.getSource());
 
-	current = null;
       }
       else
 	block();
@@ -390,9 +391,13 @@ public class ams extends Agent {
       Enumeration e = newContainersBuffer.elements();
       while(e.hasMoreElements()) {
 	String name = (String)e.nextElement();
-	RMANotification.setContent("new-container ( " + name + " )");
-	System.out.println("Notify new...");
-	send(RMANotification);
+	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
+	ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
+	ev.setContainerName(name);
+	StringWriter w = new StringWriter();
+	ev.toText(w);
+	RMANotification.setContent(w.toString());
+	send(RMANotification, RMAs);
 	newContainersBuffer.removeElement(name);
       }
     }
@@ -401,17 +406,47 @@ public class ams extends Agent {
       Enumeration e = deadContainersBuffer.elements();
       while(e.hasMoreElements()) {
 	String name = (String)e.nextElement();
-	RMANotification.setContent("dead-container ( " + name + " )");
-	System.out.println("Notify dead...");
-	send(RMANotification);
+	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
+	ev.setKind(AgentManagementOntology.AMSContainerEvent.DEADCONTAINER);
+	ev.setContainerName(name);
+	StringWriter w = new StringWriter();
+	ev.toText(w);
+	RMANotification.setContent(w.toString());
+	send(RMANotification, RMAs);
 	deadContainersBuffer.removeElement(name);
       }
     }
 
     private void processNewAgents() {
+      Enumeration e = newAgentsBuffer.elements();
+      while(e.hasMoreElements()) {
+	AgDesc ad = (AgDesc)e.nextElement();
+	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
+	ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
+	ev.setContainerName(ad.containerName);
+	ev.setAgentDescriptor(ad.amsd);
+	StringWriter w = new StringWriter();
+	ev.toText(w);
+	RMANotification.setContent(w.toString());
+	send(RMANotification, RMAs);
+	newAgentsBuffer.removeElement(ad);
+      }
     }
 
     private void processDeadAgents() {
+      Enumeration e = deadAgentsBuffer.elements();
+      while(e.hasMoreElements()) {
+	AgDesc ad = (AgDesc)e.nextElement();
+	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
+	ev.setKind(AgentManagementOntology.AMSContainerEvent.DEADAGENT);
+	ev.setContainerName(ad.containerName);
+	ev.setAgentDescriptor(ad.amsd);
+	StringWriter w = new StringWriter();
+	ev.toText(w);
+	RMANotification.setContent(w.toString());
+	send(RMANotification, RMAs);
+	deadAgentsBuffer.removeElement(ad);
+      }
     }
 
     public void action() {
@@ -507,6 +542,18 @@ public class ams extends Agent {
   } // End of KillBehaviour class
 
 
+  private static class AgDesc {
+
+    public AgDesc(String s, AgentManagementOntology.AMSAgentDescriptor a) {
+      containerName = s;
+      amsd = a;
+    }
+
+    public String containerName;
+    public AgentManagementOntology.AMSAgentDescriptor amsd;
+
+  }
+
   // The AgentPlatform where information about agents is stored 
   private AgentPlatformImpl myPlatform;
 
@@ -547,7 +594,6 @@ public class ams extends Agent {
     RMAs = new AgentGroup();
 
     RMANotification.setSource(myName);
-    RMANotification.setDest("RMA"); // FIXME: Should use AgentGroup.
     RMANotification.setLanguage("SL");
     RMANotification.setOntology("jade-agent-management");
     RMANotification.setReplyTo("RMA-subscription");
@@ -613,12 +659,12 @@ public class ams extends Agent {
   }
 
   public synchronized void postNewAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
-    //    newAgentsBuffer.addElement(ad);
+    newAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
 
   public synchronized void postDeadAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
-    //    deadAgentsBuffer.addElement(ad);
+    deadAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
 
