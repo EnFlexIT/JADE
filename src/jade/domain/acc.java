@@ -82,7 +82,7 @@ public class acc extends Agent {
 	ACLMessage toForward = myAction.getArg();
 
 	// Make sure destination agent is registered with platform AMS
-	String destName = toForward.getDest();
+	String destName = toForward.getFirstDest();
 
 	// Forward message
 	send(toForward);
@@ -107,7 +107,14 @@ public class acc extends Agent {
   } // End of ACCBehaviour class
 
 
+  /**
+  @serial
+  */
   private AgentManagementOntology myOntology;
+  
+  /**
+  @serial
+  */
   private FipaRequestResponderBehaviour dispatcher;
 
   /**
