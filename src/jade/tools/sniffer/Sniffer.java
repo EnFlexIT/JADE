@@ -160,7 +160,7 @@ public class Sniffer extends jade.core.Agent {
   } // End of AMSListenerBehaviour
 
 	
-	private class SniffListenerBehaviour extends CyclicBehaviour { // by BENNY
+    private class SniffListenerBehaviour extends CyclicBehaviour { // by BENNY
 
     private MessageTemplate listenSniffTemplate;
 
@@ -258,7 +258,7 @@ public class Sniffer extends jade.core.Agent {
     // Schedule Behaviour for execution
     addBehaviour(AMSSubscribe);
 
-		addBehaviour(new SniffListenerBehaviour()); 
+    addBehaviour(new SniffListenerBehaviour()); 
 
 
     // Show Graphical User Interface
@@ -273,7 +273,7 @@ public class Sniffer extends jade.core.Agent {
    * Currently sniffed agents are also unsniffed to avoid errors.
    */
   public void takeDown() {
-  	
+
   	String currentAgent;
   	String agentList = " ";
   	
