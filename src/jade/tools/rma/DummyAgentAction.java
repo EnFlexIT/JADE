@@ -31,7 +31,7 @@ import jade.gui.AgentTree;
  * @see jade.gui.AMSAbstractAction
  */
 
-  class DummyAgentAction extends FixedAction {
+  class DummyAgentAction extends ContainerAction {
 
 	/**
    * Progressive Number to give always a new name to DummyAgent
@@ -46,8 +46,12 @@ import jade.gui.AgentTree;
       myRMA = anRMA;
     }
 
-   public void doAction() {
-      myRMA.newAgent("da"+progressiveNumber, "jade.tools.DummyAgent.DummyAgent", new String());
+   public void doAction(AgentTree.ContainerNode node) {
+   	 
+   	String containerName = new String();
+   	if(node != null)
+   	  	containerName = node.getName();
+      myRMA.newAgent("da"+progressiveNumber, "jade.tools.DummyAgent.DummyAgent", containerName);
       progressiveNumber++;
      }
 
