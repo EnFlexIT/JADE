@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.50  1999/06/04 12:03:48  rimassa
+  Removed global lock in setup() method, since the GUI problem turned to
+  be unrelated.
+
   Revision 1.49  1999/06/04 07:41:44  rimassa
   Changed a line to use Starter class instead of jade.Boot class.
 
@@ -289,12 +293,6 @@ import jade.domain.FIPAException;
 
  */
 public class Agent implements Runnable, Serializable, CommBroadcaster {
-
-  // FIXME: This static lock is used to execute setup() methods in
-  // mutual exclusion between all the agent within this Agent
-  // Container; this is a hack to avoid a mysterious deadlock problem
-  // arising when many GUI main windows start together.
-  private static Object globalAgentLock = new Object();
 
   // This inner class is used to force agent termination when a signal
   // from the outside is received
@@ -685,9 +683,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     try{
       registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
 
-      synchronized(globalAgentLock) {
 	setup();
-      }
 
       mainLoop();
 
