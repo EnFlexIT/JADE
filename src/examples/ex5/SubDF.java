@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.2  1999/02/25 08:00:10  rimassa
+  Removed direct usage of 'myName' and 'myAddress' variables.
+  Added a correct handling of InterruptedIOException; it now terminates
+  the agent.
+
   Revision 1.1  1998/12/08 00:24:41  rimassa
   Added this new example to show how to set up multiple Agent Domains.
   This agent is simply a DF agent, but on startup it asks the user for a
@@ -12,6 +17,7 @@
 package examples.ex5;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import jade.core.*;
 
@@ -35,8 +41,8 @@ public class SubDF extends jade.domain.df {
 	parentName = new String(buffer,0,len-1);
 
       AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-      dfd.setName(myName + '@' + myAddress);
-      dfd.addAddress(myAddress);
+      dfd.setName(getName());
+      dfd.addAddress(getAddress());
       dfd.setType("SubDF");
       dfd.addInteractionProtocol("fipa-request");
       dfd.setOntology("fipa-agent-management");
@@ -44,7 +50,7 @@ public class SubDF extends jade.domain.df {
       dfd.setDFState("active");
 
     AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
-    sd.setName(myName + "-sub-df");
+    sd.setName(getLocalName() + "-sub-df");
     sd.setType("fipa-df");
 
     dfd.addAgentService(sd);
@@ -58,10 +64,14 @@ public class SubDF extends jade.domain.df {
 
     super.setup();
     }
+    catch(InterruptedIOException iioe) {
+      doDelete();
+    }
     catch(IOException ioe) {
       ioe.printStackTrace();
     }
 
   }
+
 
 }
