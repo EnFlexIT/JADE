@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/06/15 14:32:25  rimassa
+  Added support for timeouts in block() and restart() methods.
+
   Revision 1.3  1999/06/10 14:18:16  rimassa
   Corrected two wrong cross-references in Javadoc comments.
 
@@ -234,21 +237,36 @@ public abstract class Behaviour {
 
 
   /**
-     Blocks this behaviour for a specified amount of time.
-   */
+     Blocks this behaviour for a specified amount of time. The
+     behaviour will be restarted when among the three following
+     events happens.
+     <ul>
+
+     <li> <em>A time of <code>millis</code> milliseconds has passed
+     since the call to <code>block()</code>.</em>
+     <li> <em>An ACL message is received by the agent this behaviour
+     belongs to.</em>
+     <li> <em>Method <code>restart()</code> is called explicitly on
+     this behaviour object.</em>
+
+     </ul> 
+  */
   public void block(long millis) {
     myAgent.restartLater(this, millis);
     block();
   }
 
   /**
-     Restart a blocked behaviour. This method fires a suitable event
+     Restarts a blocked behaviour. This method fires a suitable event
      to notify this behaviour's parent. When the agent scheduler
      inserts a blocked event back into the agent ready queue, it
-     restarts it automatically.
+     restarts it automatically. When this method is called, any timer
+     associated with this behaviour object is cleared.
      @see jade.core.behaviours.Behaviour#block()
   */
   public void restart() {
+    if(myAgent != null)
+     myAgent.notifyRestarted(this);
     myEvent.init(true, NOTIFY_UP);
     handle(myEvent);
   }
