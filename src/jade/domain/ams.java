@@ -127,10 +127,10 @@ public class ams extends Agent implements AgentManager.Listener {
      * message; in case an exception is thrown somewhere, the method
      * try to return anyway a valid content with a best-effort strategy
      **/
-    protected String createExceptionalMsgContent(Action a, FIPAException e) {
+    protected String createExceptionalMsgContent(Action a, String ontoName, FIPAException e) {
 	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
 	temp.setLanguage(SL0Codec.NAME);
-	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	temp.setOntology(ontoName);
 	List l = new ArrayList(2);
 	if (a == null) {
 	    a = new Action();
@@ -161,8 +161,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	// Do real action, deferred to subclasses
 	processAction(a);
 	} catch(FIPAException fe) {
-	    System.out.println("FIPA Exception: " + fe.getMessage());
-	    sendReply(ACLMessage.REFUSE,createExceptionalMsgContent(a, fe));
+	    String ontoName = getRequest().getOntology();
+	    sendReply(ACLMessage.REFUSE,createExceptionalMsgContent(a, ontoName, fe));
 	}
     }
 
@@ -251,11 +251,12 @@ public class ams extends Agent implements AgentManager.Listener {
       }
       catch(AlreadyRegistered are) {
 	sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	sendReply(ACLMessage.FAILURE,createExceptionalMsgContent(a, are));
+	String ontoName = getRequest().getOntology();
+	sendReply(ACLMessage.FAILURE,createExceptionalMsgContent(a, ontoName, are));
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
 	  informCreator.setPerformative(ACLMessage.FAILURE);
-	  informCreator.setContent(createExceptionalMsgContent(a, are));
+	  informCreator.setContent(createExceptionalMsgContent(a, ontoName, are));
 	  send(informCreator);
 	}
       }
@@ -676,6 +677,9 @@ public class ams extends Agent implements AgentManager.Listener {
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
+      catch(NotFoundException nfe) {
+	throw new NotRegistered();
+      }
     }
 
   } // End of SniffAgentOnBehaviour class
@@ -696,6 +700,9 @@ public class ams extends Agent implements AgentManager.Listener {
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+      }
+      catch(NotFoundException nfe) {
+	throw new NotRegistered();
       }
     }
 
