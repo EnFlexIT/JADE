@@ -284,8 +284,7 @@ public class ProfileImpl extends Profile {
   } 
 
   private void createResourceManager() throws ProfileException {
-  	ThreadGroup parentGroup = new ThreadGroup("FIXME: Dummy name");
-  	myResourceManager = new FullResourceManager(parentGroup);
+  	myResourceManager = new FullResourceManager();
   } 
 
   private void createNotificationManager() throws ProfileException {

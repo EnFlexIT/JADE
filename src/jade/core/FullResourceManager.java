@@ -34,8 +34,8 @@ class FullResourceManager implements ResourceManager {
   //private ThreadGroup criticalThreads;
       
     
-  public FullResourceManager(ThreadGroup tg) {
-  	parent = tg;
+  public FullResourceManager() {
+  	parent = new ThreadGroup("FIXME: Dummy name");
   	agentThreads = new ThreadGroup(parent, USER_AGENTS_GROUP_NAME);
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
   	
