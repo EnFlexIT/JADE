@@ -33,6 +33,7 @@ import jade.content.lang.Codec.CodecException;
 import jade.content.abs.AbsContentElement;
 import jade.content.schema.ObjectSchema;
 import jade.content.onto.*;
+import jade.core.CaseInsensitiveString;
 
 /**
  * This class provides all methods to manage the content languages 
@@ -84,7 +85,7 @@ public class ContentManager implements Serializable {
     	if (c == null) {
     		throw new IllegalArgumentException("Null codec registered");
     	}
-      languages.put(name, c);
+      languages.put(new CaseInsensitiveString(name), c);
     }
 
     /**
@@ -111,7 +112,7 @@ public class ContentManager implements Serializable {
     	if (o == null) {
     		throw new IllegalArgumentException("Null ontology registered");
     	}
-      ontologies.put(name, o);
+      ontologies.put(new CaseInsensitiveString(name), o);
     }
 
     /**
@@ -124,7 +125,7 @@ public class ContentManager implements Serializable {
      * with the given name.
      */
     public Codec lookupLanguage(String name) {
-        return (Codec) languages.get(name);
+        return (Codec) languages.get(new CaseInsensitiveString(name));
     }
 
     /**
@@ -137,7 +138,7 @@ public class ContentManager implements Serializable {
      * with the given name.
      */
     public Ontology lookupOntology(String name) {
-        return (Ontology) ontologies.get(name);
+        return (Ontology) ontologies.get(new CaseInsensitiveString(name));
     }
 
     /**
