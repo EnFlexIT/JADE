@@ -1,3 +1,31 @@
+MAJOR CHANGES in JADE Snapshot (13 July 2002) 
+==========================================================================
+GENERAL
+- Modified the signature of the method Profile.getParameter (BACKWARD INCOMP.)
+- Added new configuration parameter to set the output directory of JADE files
+- Removed old patch in method Agent.doStart(), now agents can be created
+  only via the inprocess interface (BACKWARD INCOMP.) 
+- Added new tool jade/tools/testagent provided by Chris Van Aart
+- Added method getAgent in jade.wrapper.PlatformController to get the
+  wrapper of a running Agent
+- Added new add-on bechmark with the roundtriptime benchmark
+- jade.content
+  - modified hashcode() method of AbsObjectImpl to take the type into account
+  - improved some exception messages
+- all ontologies used directly by the JADE framework have been ported to
+  the new support for content
+- added new package jade.domain.mobility with all the classes of the
+  JADE-MObility ontology
+- constants of the ontologies used by JADE have been moved into the XXXVocabulary
+  classes (BACKWARD INCOMP.)
+- Added to the DF the capability of dealing with fipa-subscribe protocol.
+  Added in jade.proto also the SubscribeInitiator/Responder classes.
+- jade.proto.states.MsgReceiver: added method to reset deadline and template;
+  added method interrupt() to stop waiting for messages.
+
+
+
+	
 MAJOR CHANGES in JADE Snapshot (6 June 2002) 
 ==========================================================================
 GENERAL:
