@@ -41,49 +41,31 @@ import jade.gui.AclGui;
 
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
 */
-public class TablePopupMenuListener implements ActionListener,Runnable {
+public class TablePopupMenuListener implements ActionListener {
 
-  private boolean addMessage;
-  private boolean viewMessage;
-  private boolean removeMessage;
   private MessageTableModel model;
   private int selectedRow;
 
 
   public void actionPerformed(ActionEvent evt){
-    JMenuItem mi=(JMenuItem)evt.getSource();
-    TablePopupMenu tpm=(TablePopupMenu)mi.getParent();
-    model=(MessageTableModel)(tpm.getTable().getModel());
-    selectedRow=tpm.getTable().getSelectedRow();
-    String name=((JMenuItem)evt.getSource()).getName();
-    if (name.equals("add")) addMessage=true;
-    else if(name.equals("view")) viewMessage=true;
-    else if(name.equals("remove")) removeMessage=true;
-    Thread td= new Thread(this);
-    td.start();
-  }
-
-
-
-  public void run() {
-    if (viewMessage) {
-      if( (selectedRow >= 0) && (selectedRow < model.getRowCount()) ) {
-	ACLMessage m = (ACLMessage)model.getValueAt(selectedRow,0);
+    JMenuItem mi = (JMenuItem)evt.getSource();
+    TablePopupMenu tpm = (TablePopupMenu)mi.getParent();
+    model = (MessageTableModel)(tpm.getTable().getModel());
+    selectedRow = tpm.getTable().getSelectedRow();
+    String name = ((JMenuItem)evt.getSource()).getName();
+    if(name.equals("view")) {
+      if((selectedRow >= 0) && (selectedRow < model.getRowCount())) {
+	ACLMessage m = (ACLMessage)model.getValueAt(selectedRow, 0);
         if(m != null) AclGui.showMsgInDialog(m, null);
       }
-      viewMessage = false;
     }
-    else if(addMessage) {
-      ACLMessage m = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-      m = AclGui.editMsgInDialog(m,null);
-      if(m != null) {
-        EventQueue.invokeLater(new TableModifier(model, selectedRow, m));
-      }
-      addMessage = false;
+    else if(name.equals("remove")) {
+      model.removeRow(selectedRow);
     }
-    else if(removeMessage) {
-      EventQueue.invokeLater(new TableModifier(model, selectedRow, null));
-      removeMessage = false;
+    else if(name.equals("clear")) {
+      model.clearRows();
     }
+
   }
+
 }

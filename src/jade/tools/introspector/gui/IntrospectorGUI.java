@@ -231,6 +231,7 @@ public IntrospectorGUI(Introspector i) {
   public void addWindow(MainWindow m) {
     desk.add(m);
     m.pack();
+    m.setSize(600, 400);
     m.setVisible(true);
     m.adjustDividerLocation();
 

@@ -32,39 +32,40 @@ import java.awt.*;
 
    @author Andrea Squeri, Corti Denis, Ballestracci Paolo -  Universita` di Parma
 */
-public class TablePopupMenu extends JPopupMenu{
+public class TablePopupMenu extends JPopupMenu {
   private TablePopupMenuListener listener;
-  private JMenuItem addMessage;
+  private JMenuItem clearMessages;
   private JMenuItem removeMessage;
   private JMenuItem viewMessage;
   private JTable table;
 
-  public TablePopupMenu(){
+  public TablePopupMenu() {
     super();
     listener = new TablePopupMenuListener();
-    addMessage= new JMenuItem("Add Message");
-    removeMessage= new JMenuItem("Remove Message");
-    viewMessage= new JMenuItem("View Message");
+    viewMessage = new JMenuItem("View Message");
+    removeMessage = new JMenuItem("Remove Message");
+    clearMessages = new JMenuItem("Clear All Messages");
 
-    addMessage.setName("add");
-    removeMessage.setName("remove");
     viewMessage.setName("view");
+    removeMessage.setName("remove");
+    clearMessages.setName("clear");
 
-    addMessage.addActionListener(listener);
-    removeMessage.addActionListener(listener);
     viewMessage.addActionListener(listener);
+    removeMessage.addActionListener(listener);
+    clearMessages.addActionListener(listener);
 
-    this.add(addMessage);
-    this.addSeparator();
+    this.add(viewMessage);
     this.add(removeMessage);
     this.addSeparator();
-    this.add(viewMessage);
+    this.add(clearMessages);
+
   }
 
-  public void setTable(JTable t){
-    table=t;
+  public void setTable(JTable t) {
+    table = t;
   }
-  public JTable getTable(){
+
+  public JTable getTable() {
     return table;
   }
 }

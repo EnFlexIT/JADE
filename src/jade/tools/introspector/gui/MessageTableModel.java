@@ -77,4 +77,11 @@ public class MessageTableModel extends AbstractTableModel {
     items.remove(index);
     this.fireTableRowsDeleted(index, index);
   }
+
+  public void clearRows() {
+    int index = items.size();
+    items.clear();
+    this.fireTableRowsDeleted(0, index);
+  }
+
 }

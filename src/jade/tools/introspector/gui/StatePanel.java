@@ -31,12 +31,15 @@ import java.util.Map;
 import java.util.HashMap;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+
 
 import jade.core.AgentState;
 
 /**
-   This is a split pane, with a left-side part containing state
-   buttons and a right-side part containing some action buttons. It
+   This is a panel, with a top part containing state
+   buttons and a bottom part containing some action buttons. It
    allows to manage the state of an agent.
 
    @author Giovanni Rimassa, Andrea Squeri, Corti Denis, Ballestracci
@@ -47,7 +50,6 @@ public class StatePanel extends JPanel {
 
   private int state;
 
-  private Box viewPanel;
   private ButtonGroup leds;
   private JRadioButton waitingLed;
   private JRadioButton activeLed;
@@ -56,7 +58,7 @@ public class StatePanel extends JPanel {
   private JRadioButton movingLed;
   private JRadioButton idleLed;
   private JButton suspendAction;
-  private JButton waitAction;
+  private JButton activateAction;
   private JButton wakeUpAction;
   private JButton killAction;
 
@@ -78,7 +80,16 @@ public class StatePanel extends JPanel {
   }
 
   public void build(){
-    viewPanel = Box.createVerticalBox();
+    Border line = BorderFactory.createEtchedBorder();
+    JPanel ledPanel = new JPanel();
+    ledPanel.setLayout(new BoxLayout(ledPanel, BoxLayout.Y_AXIS));
+    ledPanel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+    ledPanel.setBorder(BorderFactory.createTitledBorder(line, "Current State", TitledBorder.CENTER, TitledBorder.TOP, new Font("Monospaced", Font.BOLD, 10)));
+
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+    buttonPanel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+    buttonPanel.setBorder(BorderFactory.createTitledBorder(line, "Change State", TitledBorder.CENTER, TitledBorder.TOP, new Font("Dialog", Font.BOLD, 10)));
 
     activeLed = new JRadioButton("Active", ledOff);
     activeLed.setFont(myFont);
@@ -88,7 +99,7 @@ public class StatePanel extends JPanel {
     activeLed.setEnabled(false);
     leds.add(activeLed);
     ledMap.put(new AgentState("Active"), activeLed);
-    viewPanel.add(activeLed);
+    ledPanel.add(activeLed);
 
     suspendedLed = new JRadioButton("Suspended", ledOff);
     suspendedLed.setFont(myFont);
@@ -98,7 +109,7 @@ public class StatePanel extends JPanel {
     suspendedLed.setEnabled(false);
     leds.add(suspendedLed);
     ledMap.put(new AgentState("Suspended"), suspendedLed);
-    viewPanel.add(suspendedLed);
+    ledPanel.add(suspendedLed);
 
     idleLed = new JRadioButton("Idle", ledOff);
     idleLed.setFont(myFont);
@@ -108,7 +119,7 @@ public class StatePanel extends JPanel {
     idleLed.setEnabled(false);
     leds.add(idleLed);
     ledMap.put(new AgentState("Idle"), idleLed);
-    viewPanel.add(idleLed);
+    ledPanel.add(idleLed);
 
     waitingLed = new JRadioButton("Waiting", ledOff);
     waitingLed.setFont(myFont);
@@ -118,7 +129,7 @@ public class StatePanel extends JPanel {
     waitingLed.setEnabled(false);
     leds.add(waitingLed);
     ledMap.put(new AgentState("Waiting"), waitingLed);
-    viewPanel.add(waitingLed);
+    ledPanel.add(waitingLed);
 
     movingLed = new JRadioButton("Moving", ledOff);
     movingLed.setFont(myFont);
@@ -128,7 +139,7 @@ public class StatePanel extends JPanel {
     movingLed.setEnabled(false);
     leds.add(movingLed);
     ledMap.put(new AgentState("Transit"), movingLed);
-    viewPanel.add(movingLed);
+    ledPanel.add(movingLed);
 
     deletedLed = new JRadioButton("Dead", ledOff);
     deletedLed.setFont(myFont);
@@ -138,62 +149,35 @@ public class StatePanel extends JPanel {
     deletedLed.setEnabled(false);
     leds.add(deletedLed);
     ledMap.put(new AgentState("Deleted"), deletedLed);
-    viewPanel.add(deletedLed);
+    ledPanel.add(deletedLed);
 
     suspendAction = new JButton("Suspend", button);
     configurePushButton(suspendAction);
-    /*
-    suspendAction.setPressedIcon(pressedButton);
-    suspendAction.setBorderPainted(false);
-    suspendAction.setFocusPainted(false);
-    suspendAction.setFont(f);
-    suspendAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    suspendAction.addActionListener(listener);
-    */
-    suspendAction.setMnemonic(5);
+    suspendAction.setMnemonic(1);
 
-    waitAction = new JButton("Wait", button);
-    configurePushButton(waitAction);
-    /*
-    waitAction.setPressedIcon(pressedButton);
-    waitAction.setBorderPainted(false);
-    waitAction.setFocusPainted(false);
-    waitAction.setFont(f);
-    waitAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    waitAction.addActionListener(listener);
-    waitAction.setMnemonic(7);
-    */
+    activateAction = new JButton("Activate", button);
+    configurePushButton(activateAction);
+    activateAction.setMnemonic(2);
 
-    wakeUpAction = new JButton("WakeUp", button);
+    wakeUpAction = new JButton("Wake Up", button);
     configurePushButton(wakeUpAction);
-    /*
-    wakeUpAction.setPressedIcon(pressedButton);
-    wakeUpAction.setBorderPainted(false);
-    wakeUpAction.setFocusPainted(false);
-    wakeUpAction.setFont(f);
-    wakeUpAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    wakeUpAction.addActionListener(listener);
-    */
-    wakeUpAction.setMnemonic(6);
+    wakeUpAction.setMnemonic(3);
 
     killAction = new JButton("Kill", button);
     configurePushButton(killAction);
-    /*
-    killAction.setPressedIcon(pressedButton);
-    killAction.setBorderPainted(false);
-    killAction.setFocusPainted(false);
-    killAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    killAction.setFont(f);
-    killAction.addActionListener(listener);
-    */
     killAction.setMnemonic(4);
 
-    viewPanel.add(suspendAction);
-    viewPanel.add(waitAction);
-    viewPanel.add(wakeUpAction);
-    viewPanel.add(killAction);
+    buttonPanel.add(suspendAction);
+    buttonPanel.add(activateAction);
+    buttonPanel.add(wakeUpAction);
+    buttonPanel.add(killAction);
 
-    add(viewPanel);
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    add(Box.createVerticalStrut(15));
+    add(ledPanel);
+    add(Box.createVerticalStrut(10));
+    add(buttonPanel);
+    
 
   }
 

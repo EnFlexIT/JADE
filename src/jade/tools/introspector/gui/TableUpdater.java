@@ -40,14 +40,14 @@ import jade.domain.introspection.ReceivedMessage;
 */
 public class TableUpdater implements Runnable {
 
-  MessageTableModel model;
+  MessageTableModel modelFrom;
+  MessageTableModel modelTo;
   ACLMessage msg;
-  boolean added;
 
   public TableUpdater(MessagePanel wnd, SentMessage sm) {
     try {
-      added = true;
-      model = wnd.getModelOut();
+      modelFrom = null;
+      modelTo = wnd.getOutProcessedModel();
 
       String s = sm.getMessage().getPayload();
       ACLCodec codec = new StringACLCodec();
@@ -61,8 +61,8 @@ public class TableUpdater implements Runnable {
 
   public TableUpdater(MessagePanel wnd, PostedMessage pm) {
     try {
-      added = true;
-      model = wnd.getModelIn();
+      modelFrom = null;
+      modelTo = wnd.getInPendingModel();
 
       String s = pm.getMessage().getPayload();
       ACLCodec codec = new StringACLCodec();
@@ -76,8 +76,8 @@ public class TableUpdater implements Runnable {
 
   public TableUpdater(MessagePanel wnd, ReceivedMessage rm) {
     try {
-      added = false;
-      model = wnd.getModelIn();
+      modelFrom = wnd.getInPendingModel();
+      modelTo = wnd.getInProcessedModel();
 
       String s = rm.getMessage().getPayload();
       ACLCodec codec = new StringACLCodec();
@@ -89,20 +89,26 @@ public class TableUpdater implements Runnable {
     }
   }
 
+
   public void run() {
-    if(added) {
-      model.addRow(msg);
-    }
-    else {
-      for(int i = 0; i < model.getRowCount(); i++) {
-        ACLMessage m = (ACLMessage)model.getValueAt(i, 0);
+
+    if(modelFrom != null) {
+
+      for(int i = 0; i < modelFrom.getRowCount(); i++) {
+        ACLMessage m = (ACLMessage)modelFrom.getValueAt(i, 0);
 	String s1 = m.toString();
 	String s2 = msg.toString();
 	if(s1.equalsIgnoreCase(s2)) {
-          model.removeRow(i);
+          modelFrom.removeRow(i);
           break;
         }
       }
+
     }
+    if(modelTo != null) {
+      modelTo.addRow(msg);
+    }
+
   }
+
 }

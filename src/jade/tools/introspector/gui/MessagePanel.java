@@ -27,8 +27,12 @@ package jade.tools.introspector.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.*;
 
 import jade.lang.acl.ACLMessage;
@@ -38,55 +42,106 @@ import jade.lang.acl.ACLMessage;
 
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
 */
-public class MessagePanel extends JSplitPane {
-  private JScrollPane inScroll;
-  private JScrollPane outScroll;
-  private JTable inMessage;
-  private JTable outMessage;
-  private MessageTableModel inModel,outModel;
+public class MessagePanel extends JPanel {
+  private JTabbedPane incoming = new JTabbedPane();
+  private JTabbedPane outgoing = new JTabbedPane();
+  private JScrollPane inScrollPending = new JScrollPane();
+  private JScrollPane inScrollDone = new JScrollPane();
+  private JScrollPane outScrollPending = new JScrollPane();
+  private JScrollPane outScrollDone = new JScrollPane();
+  private JTable inMessagesPending;
+  private JTable inMessagesDone;
+  private JTable outMessagesPending;
+  private JTable outMessagesDone;
+  private MessageTableModel inPending, inDone, outPending, outDone;
   private TableMouseListener listener;
 
-  public MessagePanel(MessageTableModel in,MessageTableModel out) {
+  public MessagePanel(MessageTableModel in1, MessageTableModel in2, MessageTableModel out1, MessageTableModel out2) {
     super();
-    inModel =in;
-    outModel=out;
-    inMessage=new JTable(inModel);
-    outMessage=new JTable(outModel);
-    inMessage.setName("IN");
-    outMessage.setName("OUT");
-    inMessage.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
-    outMessage.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
+    inPending = in1;
+    inDone = in2;
+    outPending = out1;
+    outDone = out2;
+    inMessagesPending = new JTable(inPending);
+    inMessagesDone = new JTable(inDone);
+    outMessagesPending = new JTable(outPending);
+    outMessagesDone = new JTable(outDone);
+    inMessagesPending.setName("Incoming Messages");
+    inMessagesDone.setName("Incoming Messages");
+    outMessagesPending.setName("Outgoing Messages");
+    outMessagesPending.setName("Outgoing Messages");
+    inMessagesPending.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
+    inMessagesDone.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
+    outMessagesPending.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
+    outMessagesDone.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
     listener = new TableMouseListener();
-    inMessage.addMouseListener(listener);
-    outMessage.addMouseListener(listener);
+    // inMessagesPending.addMouseListener(listener);
+    inMessagesDone.addMouseListener(listener);
+    // outMessagesPending.addMouseListener(listener);
+    outMessagesDone.addMouseListener(listener);
     build();
   }
 
   public void build() {
-    inScroll=new JScrollPane();
-    inScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    inScroll.setAutoscrolls(true);
+    inScrollPending.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    inScrollDone.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    inScrollPending.setAutoscrolls(true);
+    inScrollDone.setAutoscrolls(true);
 
-    outScroll=new JScrollPane();
-    outScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    outScroll.setAutoscrolls(true);
+    outScrollPending.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    outScrollDone.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    outScrollPending.setAutoscrolls(true);
+    outScrollDone.setAutoscrolls(true);
 
-    inScroll.getViewport().add(inMessage, null);
-    outScroll.getViewport().add(outMessage, null);
+    inScrollPending.getViewport().add(inMessagesPending, null);
+    inScrollDone.getViewport().add(inMessagesDone, null);
+    outScrollPending.getViewport().add(outMessagesPending, null);
+    outScrollDone.getViewport().add(outMessagesDone, null);
 
-    this.add(inScroll, JSplitPane.LEFT);
-    this.add(outScroll, JSplitPane.RIGHT);
-    this.setDividerSize(2);
-    this.setDividerLocation(200);
+    Border line = BorderFactory.createEtchedBorder();
+    incoming.setBorder(BorderFactory.createTitledBorder(line, "Incoming Messages", TitledBorder.CENTER, TitledBorder.TOP));
+    incoming.add(inScrollPending, "Pending");
+    incoming.add(inScrollDone, "Received");
+    outgoing.setBorder(BorderFactory.createTitledBorder(line, "Outgoing Messages", TitledBorder.CENTER, TitledBorder.TOP));
+    outgoing.add(outScrollPending, "Pending");
+    outgoing.add(outScrollDone, "Sent");
+    /*
+    Font titleFont = new Font("Monospaced", Font.BOLD, 16);
+    Box in = Box.createVerticalBox();
+    JLabel inTitle = new JLabel("Incoming Messages");
+    inTitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    inTitle.setFont(titleFont);
+    in.add(inTitle);
+    in.add(incoming);
+
+    Box out = Box.createVerticalBox();
+    JLabel outTitle = new JLabel("Outgoing Messages");
+    outTitle.setFont(titleFont);
+    outTitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    out.add(outTitle);
+    out.add(outgoing);
+    */
+    setLayout(new GridLayout(1,2));
+    add(incoming);
+    add(outgoing);
   }
 
-  public MessageTableModel getModelIn() {
-    return inModel;
+  public MessageTableModel getInPendingModel() {
+    return inPending;
   }
 
-  public MessageTableModel getModelOut() {
-    return outModel;
+  public MessageTableModel getInProcessedModel() {
+    return inDone;
   }
+
+  public MessageTableModel getOutPendingModel() {
+    return outPending;
+  }
+
+  public MessageTableModel getOutProcessedModel() {
+    return outDone;
+  }
+
 
   private static class ACLMessageRenderer extends JLabel implements TableCellRenderer {
 

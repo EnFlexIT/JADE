@@ -56,14 +56,16 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
   public MainWindow(Introspector da,String title){
     super(title);
     debugger = da;
-    MessageTableModel mi=new MessageTableModel(new Vector(),"MESSAGE IN");
-    MessageTableModel mo=new MessageTableModel(new Vector(),"MESSAGE OUT");
-    DefaultTreeModel r=new DefaultTreeModel(new DefaultMutableTreeNode("Behaviours"));
-    int s=1;
+    MessageTableModel mi1 = new MessageTableModel(new Vector(), "Incoming Messages -- Pending");
+    MessageTableModel mi2 = new MessageTableModel(new Vector(), "Incoming Messages --  Received");
+    MessageTableModel mo1 = new MessageTableModel(new Vector(), "Outgoing Messages -- Pending");
+    MessageTableModel mo2 = new MessageTableModel(new Vector(), "Outgoing Messages -- Sent");
+    DefaultTreeModel r = new DefaultTreeModel(new DefaultMutableTreeNode("Behaviours"));
+    int s = 1;
 
     list = new MainBarListener(this);
     mainBar = new MainBar(list);
-    messagePanel = new MessagePanel(mi,mo);
+    messagePanel = new MessagePanel(mi1, mi2, mo1, mo2);
     statePanel = new StatePanel(list);
     behaviourPanel = new BehaviourPanel(r);
     splitPanel = new JSplitPane();
@@ -72,7 +74,7 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
   }
 
-  public void build(){
+  public void build() {
 
     /*layout*/
     this.getContentPane().setLayout(new BorderLayout());
@@ -93,12 +95,11 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
   }
 
   public void adjustDividerLocation() {
-    System.out.println("Width = " + getWidth());
     splitPanel.setDividerLocation(getWidth() / 2);
     lastDividerLocation = splitPanel.getDividerLocation();
   }
 
-  public void setMessagePanelVisible(boolean b){
+  public void setMessagePanelVisible(boolean b) {
     if(!b) {
       lastDividerLocation = splitPanel.getDividerLocation();
       splitPanel.remove(messagePanel);
@@ -109,7 +110,7 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
     }
   }
 
-  public void setBehaviourPanelVisible(boolean b){
+  public void setBehaviourPanelVisible(boolean b) {
     if(!b) {
       lastDividerLocation = splitPanel.getDividerLocation();
       splitPanel.remove(behaviourPanel);
@@ -120,11 +121,11 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
     }
   }
 
-  public MessagePanel getMessagePanel(){
+  public MessagePanel getMessagePanel() {
     return messagePanel;
   }
 
-  public BehaviourPanel getBehaviourPanel(){
+  public BehaviourPanel getBehaviourPanel() {
     return behaviourPanel;
   }
 
@@ -134,15 +135,15 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
   //inerface InternalFrameListener
 
-  public void internalFrameActivated(InternalFrameEvent e){
+  public void internalFrameActivated(InternalFrameEvent e) {
     this.moveToFront();
   }
 
-  public void internalFrameDeactivated(InternalFrameEvent e){}
-  public void internalFrameClosed(InternalFrameEvent e){}
-  public void internalFrameClosing(InternalFrameEvent e){}
-  public void internalFrameIconified(InternalFrameEvent e){}
-  public void internalFrameDeiconified(InternalFrameEvent e){}
-  public void internalFrameOpened(InternalFrameEvent e){}
+  public void internalFrameDeactivated(InternalFrameEvent e) {}
+  public void internalFrameClosed(InternalFrameEvent e) {}
+  public void internalFrameClosing(InternalFrameEvent e) {}
+  public void internalFrameIconified(InternalFrameEvent e) {}
+  public void internalFrameDeiconified(InternalFrameEvent e) {}
+  public void internalFrameOpened(InternalFrameEvent e) {}
 }
 
