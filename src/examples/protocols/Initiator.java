@@ -102,7 +102,7 @@ public class Initiator extends Agent {
 	Behaviour b;
 	ACLMessage request = createNewMessage();
 	//System.out.println(request);
-	b = new MyInitiator(this, request);
+	b = new MyInitiator(this, request, true);
 	addBehaviour(b);
     }
     
@@ -110,8 +110,17 @@ public class Initiator extends Agent {
        Inner class MyInitiator
     */
     class MyInitiator extends AchieveREInitiator {
-	public MyInitiator(Agent a, ACLMessage req) {
+	boolean restartOnEnd;
+	/**
+	 * @param req the ACLMessage to be sent in order to initiate the protocol
+	 * @param restartOnEnd if true the behaviour is reset and readded
+	 * to the agent queue of behaviours as soon as it terminates. Take
+	 * care becuase this might cause an infinite loop.
+	 *
+	 **/
+	public MyInitiator(Agent a, ACLMessage req, boolean restartOnEnd) {
 	    super(a, req);
+	    this.restartOnEnd = restartOnEnd;
 	}
 	
 	protected void handleAgree(ACLMessage agree) {
@@ -154,14 +163,23 @@ public class Initiator extends Agent {
 	    System.out.println(myAgent.getLocalName()+ " in handleOutOfSequence: " + msg);
 	}
 	
+	protected List prepareRequests(ACLMessage msg) {
+	    List l = super.prepareRequests(msg);
+	    if (l.size() == 0) //msg was null because the beahviour was reset
+		l.add(createNewMessage());
+	    return l;
+	}
+
 	public int onEnd(){
 	    try{
-		System.out.println("\nPress a Key to repeat the protocol: ");
-		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-		String reply = buff.readLine();
+		if (restartOnEnd) {
+		    System.out.println("\nPress a Key to repeat the protocol: ");
+		    BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+		    String reply = buff.readLine();
 		
-		reset(createNewMessage());
-		myAgent.addBehaviour(this);
+		    reset(createNewMessage());
+		    myAgent.addBehaviour(this);
+		}
 	    }catch(Exception e){
 		e.printStackTrace();
 	    }
