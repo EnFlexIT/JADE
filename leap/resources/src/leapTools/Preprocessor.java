@@ -25,6 +25,8 @@ public class Preprocessor extends Task {
 	// There is no need for J2SE specific code exclusion/inclusion markers
 	private static final String ALL_EXCLUDE_BEGIN_MARKER = "//#ALL_EXCLUDE_BEGIN"; 
 	private static final String ALL_EXCLUDE_END_MARKER = "//#ALL_EXCLUDE_END";
+	private static final String ALL_INCLUDE_BEGIN_MARKER = "/*#ALL_INCLUDE_BEGIN";
+	private static final String ALL_INCLUDE_END_MARKER = "#ALL_INCLUDE_END*/";
 		
 	private static final String J2ME_EXCLUDE_BEGIN_MARKER = "//#J2ME_EXCLUDE_BEGIN"; 
 	private static final String J2ME_EXCLUDE_END_MARKER = "//#J2ME_EXCLUDE_END";
@@ -45,7 +47,7 @@ public class Preprocessor extends Task {
 	private static final String NODEBUG_EXCLUDE_BEGIN_MARKER = "//#NODEBUG_EXCLUDE_BEGIN"; 
 	private static final String NODEBUG_EXCLUDE_END_MARKER = "//#NODEBUG_EXCLUDE_END";
 	
-	// Preprocessing types
+	// Predefined preprocessing types
 	private static final String J2SE = "j2se"; 
 	private static final String PJAVA = "pjava"; 
 	private static final String MIDP = "midp"; 
@@ -106,6 +108,8 @@ public class Preprocessor extends Task {
 				J2ME_EXCLUDE_END_MARKER, 
 				MIDP_EXCLUDE_END_MARKER};
 			ims = new String[] {
+				ALL_INCLUDE_BEGIN_MARKER, 
+				ALL_INCLUDE_END_MARKER, 
 				J2ME_INCLUDE_BEGIN_MARKER, 
 				J2ME_INCLUDE_END_MARKER, 
 				MIDP_INCLUDE_BEGIN_MARKER, 
@@ -126,6 +130,8 @@ public class Preprocessor extends Task {
 				J2ME_EXCLUDE_END_MARKER, 
 				PJAVA_EXCLUDE_END_MARKER};
 			ims = new String[] {
+				ALL_INCLUDE_BEGIN_MARKER, 
+				ALL_INCLUDE_END_MARKER, 
 				J2ME_INCLUDE_BEGIN_MARKER, 
 				J2ME_INCLUDE_END_MARKER, 
 				PJAVA_INCLUDE_BEGIN_MARKER, 
@@ -141,7 +147,10 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER};
-			ims = new String[] {};
+			ims = new String[] {
+				ALL_INCLUDE_BEGIN_MARKER, 
+				ALL_INCLUDE_END_MARKER 
+			};
 			efms = new String[] {
 				ALL_EXCLUDE_FILE_MARKER,
 				J2SE_EXCLUDE_FILE_MARKER};
