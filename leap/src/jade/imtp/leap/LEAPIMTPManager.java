@@ -366,16 +366,6 @@ public class LEAPIMTPManager implements IMTPManager {
 
 	  myServiceManagerProxy = new BaseServiceManagerProxy(this, proc) {
 
-	      public void addAddress(String addr) throws IMTPException {
-		  theDispatcher.addAddressToStub(remoteSvcMgr, addr);
-		  super.addAddress(addr);
-	      }
-
-	      public void removeAddress(String addr) throws IMTPException {
-		  super.removeAddress(addr);
-		  theDispatcher.removeAddressFromStub(remoteSvcMgr, addr);
-	      }
-
 	      public String getLocalAddress() throws IMTPException {
 		  List addrs = theDispatcher.getLocalURLs();
 		  if((addrs == null) || (addrs.size() == 0)) {
@@ -531,16 +521,24 @@ public class LEAPIMTPManager implements IMTPManager {
 	      }
 
 	      // Try to connect once again
-	      private boolean reconnect() {
-		  try {
-		      remoteSvcMgr.adopt(localNode);
-		      return true;
-		  }
-		  catch(Exception e) {
-		      return false;
-		  }
-	      }
+	      private boolean reconnect() throws IMTPException {
 
+		  String[] addrs = getAddresses();
+		  for(int i = 0; i < addrs.length; i++) {
+		      try {
+			  theDispatcher.clearStubAddresses(remoteSvcMgr);
+			  theDispatcher.addAddressToStub(remoteSvcMgr, addrs[i]);
+
+			  remoteSvcMgr.adopt(localNode);
+			  return true;
+		      }
+		      catch(Exception e) {
+			  // Ignore it and try the next address...
+		      }
+		  }
+
+		  return false;
+	      }
 
 	  };
 
