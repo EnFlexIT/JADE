@@ -167,7 +167,7 @@ batch:
 	echo >> $(BATCH_LIB)
 
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\$(LIBNAME)' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\*.jar' >> $(BATCH_CLEAN)
 
 
 
