@@ -27,17 +27,20 @@ package test;
 import java.util.List;
 import java.io.*;
 
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.domain.MobilityOntology;
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
+import jade.domain.mobility.MobilityOntology;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.FIPAException;
-import jade.domain.introspection.JADEIntrospectionOntology;
+import jade.domain.introspection.IntrospectionOntology;
 import jade.lang.acl.*;
-import jade.backward.Agent;
-import jade.lang.sl.SL0Codec;
-import jade.onto.basic.*;
-import jade.onto.*;
+import jade.core.Agent;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.*;
+import jade.content.onto.*;
+import jade.content.ContentElement;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPANames;
+
 public class TestAgent extends Agent {
 
 final static String SAMPLEFILE = "test/testmessages.msg";
@@ -71,45 +74,17 @@ final static String SAMPLEFILE = "test/testmessages.msg";
 
 protected void setup() {
   // register the codec of the language
-  registerLanguage(SL0Codec.NAME,new SL0Codec());	
+  getContentManager().registerLanguage(new SLCodec(0),FIPANames.ContentLanguage.FIPA_SL0);	
 	
-  // test to/from string
-  Ontology o1 = new DefaultOntology();
-  try {
-    o1.fromSL0String(FIPAAgentManagementOntology.instance().toSL0String(FIPAAgentManagementOntology.NAME));
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
   // register the ontology used by application
-  registerOntology(FIPAAgentManagementOntology.NAME, o1);
+  getContentManager().registerOntology(FIPAManagementOntology.getInstance(),FIPAManagementOntology.NAME);
 
-  // test to/from string
-  Ontology o2 = new DefaultOntology();
-  try {
-    o2.fromSL0String(MobilityOntology.instance().toSL0String(MobilityOntology.NAME));
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
   // register the ontology used by application
-  registerOntology(MobilityOntology.NAME, o2);
+  getContentManager().registerOntology(MobilityOntology.getInstance(),MobilityOntology.NAME);
 
-  // test to/from string
-  Ontology o3 = new DefaultOntology();
-  try {
-    o3.fromSL0String(JADEAgentManagementOntology.instance().toSL0String(JADEAgentManagementOntology.NAME));
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
-  registerOntology(JADEAgentManagementOntology.NAME, o3); 
+  getContentManager().registerOntology(JADEManagementOntology.getInstance(),JADEManagementOntology.NAME); 
 
-  // test to/from string
-  Ontology o4 = new DefaultOntology();
-  try {
-    o4.fromSL0String(JADEIntrospectionOntology.instance().toSL0String(JADEIntrospectionOntology.NAME));
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
-  registerOntology(JADEIntrospectionOntology.NAME, o4); 
+  getContentManager().registerOntology(IntrospectionOntology.getInstance(),IntrospectionOntology.NAME); 
 	
 
   StringACLCodec codec = getStringACLCodec(); 
@@ -123,43 +98,42 @@ protected void setup() {
       codec.write(msg);
       System.out.println("\nEXTRACTING THE CONTENT AND CREATING A LIST OF JAVA OBJECTS ...");
 
-      List l=extractContent(msg);
+      ContentElement l=getContentManager().extractContent(msg);
 
+			/** FIXME
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
       System.out.println(")");
-
+			** FIXME **/
 
 
       msg = msg.createReply();
       System.out.println("\nFILLING BACK THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
 
-      fillContent(msg,l);
+      getContentManager().fillContent(msg,l);
       System.out.println("  created the following message:\n"+msg.toString());
 
       System.out.println("\nDOUBLE CHECK BY EXTRACTING THE CONTENT AGAIN ...");
 
-      l=extractContent(msg);
+      l=getContentManager().extractContent(msg);
 
+			/** FIXME **
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
       System.out.println(")");
+			** FIXME **/
 
       System.out.println("\n FINAL CHECK BY FILLING AGAIN THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
 
-      fillContent(msg,l);
+      getContentManager().fillContent(msg,l);
 
       System.out.println(" created the following message:\n"+msg.toString());
 
-    } catch (FIPAException e) {
+    } catch (Exception e) {
       e.printStackTrace();
-      System.exit(0);
-    } catch (ACLCodec.CodecException e) {
-      e.printStackTrace();
-      System.exit(0);
-    }
+		}
   }
   
 

@@ -1,3 +1,15 @@
+(PROXY
+ :X-comment "This message tests the case where the value of an ACLMessage  parameter is a number"
+ :reply-with 99
+)
+
+(PROXY :reply-with +99)
+(PROXY :reply-with -99)
+(PROXY :reply-with +.99E-23)
+
+
+
+
 (REQUEST
  :sender  ( agent-identifier  :name da0@FBELLIF:1099/JADE)
  :receiver  (set ( agent-identifier  :name df@FBELLIF:1099/JADE) )
@@ -18,7 +30,7 @@
           			 (Property :name X4 :value -12.23) 
           			 (Property :name X5 :value 20001211T100025100A)
           			 (Property :name X6 :value (Agent-Identifier :name x))
-          			 (Property :name X7 :value (Dummy :name x))
+          			 (Property :name X7 :value (Service-Description :name x))
                                  (Property :name X2 :value V2) )))
              :protocols (set FIPA-Request FIPA-Contract-Net)
              :ontologies (set FIPA-Agent-Management Trading)
