@@ -60,6 +60,13 @@ public interface MessagingSlice extends Service.Slice {
     static final String SEND_MESSAGE = "Send-Message";
 
     /**
+       This command name represents the action of sending back a
+       FAILURE ACL message to notify the message originator of a
+       failed delivery.
+    */
+    static final String NOTIFY_FAILURE = "Notify-Failure";
+
+    /**
        This command name represents the <code>install-mtp</code>
        action.
     */
