@@ -26,6 +26,7 @@ package jade.tools.rma;
 import jade.gui.AgentTree;
 
 /**
+	 Refresh the APDescription of a remote platform.
    @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
