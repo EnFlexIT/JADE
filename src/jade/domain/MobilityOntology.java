@@ -144,7 +144,7 @@ public class MobilityOntology {
 
   private static void initInstance() {
     try {
-	theInstance.addFrame(DefaultOntology.NAME_OF_ACTION_FRAME, new TermDescriptor[] {
+	theInstance.addFrame(Ontology.NAME_OF_ACTION_FRAME, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
 	  new TermDescriptor(Ontology.FRAME_TERM, Ontology.ANY_TYPE, Ontology.M)
 	}, new RoleFactory() {
@@ -162,14 +162,14 @@ public class MobilityOntology {
 	   });
 
 	theInstance.addFrame(DONE, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M)
+	  new TermDescriptor(Ontology.FRAME_TERM, Ontology.NAME_OF_ACTION_FRAME, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) {return new DonePredicate(); }
 	     public Class getClassForRole() {return DonePredicate.class;}
 	   });
 
 	theInstance.addFrame(RESULT, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M),
+	  new TermDescriptor(Ontology.FRAME_TERM, Ontology.NAME_OF_ACTION_FRAME, Ontology.M),
 	  new TermDescriptor(Ontology.ANY_TERM, Ontology.ANY_TYPE, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) {return new ResultPredicate(); }
