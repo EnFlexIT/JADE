@@ -4,8 +4,8 @@
 
 package jade.domain;
 
-import java.util.Hashtable;
-import java.util.StringTokenizer;
+import java.io.StringReader;
+
 import java.util.NoSuchElementException;
 
 import jade.core.*;
@@ -34,36 +34,29 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 
   private abstract class AMSBehaviour extends OneShotBehaviour implements BehaviourPrototype {
 
-    // This String will be set by subclasses
-    private String myActionName;
+    // This Action will be set by crackMessage()
+    private AgentManagementOntology.AMSAction myAction;
 
+    private String myActionName;
+    private ACLMessage myRequest;
     private ACLMessage myReply;
-    private StringTokenizer myTokenizer;
 
     protected AgentManagementOntology myOntology;
 
-    // These variables are set by crackMessage() method to the
-    // attribute values of message content
-    private String agentName;
-    private String address;
-    private String signature;
-    private String delegateAgent;
-    private String forwardAddress;
-    private String APState;
 
-    protected AMSBehaviour(String actionName) {
+    protected AMSBehaviour(String name) {
       super(ams.this);
-      myActionName = actionName;
+      myActionName = name;
+      myRequest = null;
       myReply = null;
-      myTokenizer = null;
       myOntology = AgentManagementOntology.instance();
     }
 
-    protected AMSBehaviour(String actionName, ACLMessage msg, StringTokenizer st) {
+    protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
       super(ams.this);
-      myActionName = actionName;
-      myReply = msg;
-      myTokenizer = st;
+      myActionName = name;
+      myRequest = request;
+      myReply = reply;
       myOntology = AgentManagementOntology.instance();
     }
 
@@ -71,74 +64,56 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     // mandatory for the current AMS action but it is a null object
     // reference
     private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
-      if(myOntology.isMandatoryForAMS(myActionName, attributeName) && (attributeValue == null))
+      if(myOntology.isMandatoryForAMS(myAction.getName(), attributeName) && (attributeValue == null))
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
     }
 
     // This method parses the message content and puts
-    // 'fipa-ams-agent-description' attribute values in instance
+    // 'FIPA-AMS-description' attribute values in instance
     // variables. If some error is found a FIPA exception is thrown
     private void crackMessage() throws FIPAException, NoSuchElementException {
 
-      Hashtable attributes = new Hashtable();
+      String content = myRequest.getContent();
 
-      while(myTokenizer.hasMoreTokens()) {
+      // Remove 'action ams' from content string
+      content = content.substring(content.indexOf("ams") + 3); // FIXME: AMS could crash for a bad msg
 
-	String name = myTokenizer.nextToken();
-
-	// Make sure that keyword is defined in
-	// 'fipa-man-ams-agent-description'
-	if(!myOntology.isValidAMSADKeyword(name))
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
-
-	String value = myTokenizer.nextToken();
-
-	Object old = attributes.put(name, value);
-	// Check if attribute exists already. If so, raise an
-	// exception
-	if(old != null)
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+      // Obtain an AMS action from message content
+      try {
+	myAction = AgentManagementOntology.AMSAction.fromText(new StringReader(content));
+      }
+      catch(ParseException pe) {
+	//	pe.printStackTrace();
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
+      // Finally, make sure mandatory attributes for the current AMS
+      // action are non-null
+      AgentManagementOntology.AMSAgentDescriptor amsd = myAction.getArg();
 
-      // Finally, assign each attribute value to an instance variable,
-      // making sure mandatory attributes for the current AMS action
-      // are non-null
-
-      agentName = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.NAME);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.NAME, agentName);
-
-      address = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.ADDRESS);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.ADDRESS, address);
-
-      signature = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.SIGNATURE);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.SIGNATURE, signature);
-
-      delegateAgent = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.DELEGATE);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.DELEGATE, delegateAgent);
-
-      forwardAddress = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.FORWARD);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.FORWARD, forwardAddress);
-
-      APState = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.APSTATE);
-      checkAttribute(AgentManagementOntology.AMSAgentDescription.APSTATE, APState);
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.NAME, amsd.getName());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.ADDRESS, amsd.getAddress());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.SIGNATURE, amsd.getSignature());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.APSTATE, amsd.getAPState());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.DELEGATE, amsd.getDelegateAgentName());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.FORWARD, amsd.getForwardAddress());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.OWNERSHIP, amsd.getOwnership());
 
     }
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processAttributes(String agentName, String address,
-					      String signature, String delegateAgent,
-					      String forwardAddress, String APState);
+    protected abstract void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd);
 
     public void action() {
 
       try {
-	// Convert message from untyped keyword/value list to ordinary
-	// typed variables, throwing a FIPAException in case of errors
+	// Convert message from untyped keyword/value list to a Java
+	// object throwing a FIPAException in case of errors
 	crackMessage();
       }
       catch(FIPAException fe) {
+	//	fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
 	return;
       }
@@ -148,7 +123,7 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       }
 
       // Do real action, deferred to subclasses
-      processAttributes(agentName, address, signature, delegateAgent, forwardAddress, APState);
+      processArgs(myAction.getArg());
 
     }
 
@@ -205,27 +180,25 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   private class AuthBehaviour extends AMSBehaviour {
 
     public AuthBehaviour() {
-      super(AgentManagementOntology.AMSActions.AUTHENTICATE);
+      super(AgentManagementOntology.AMSAction.AUTHENTICATE);
     }
 
-    public AuthBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.AMSActions.AUTHENTICATE, msg, st);
+    public AuthBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.AUTHENTICATE, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new AuthBehaviour(msg, st);
+    public Behaviour instance(ACLMessage msg, ACLMessage reply) {
+      return new AuthBehaviour(msg, reply);
     }
 
-    protected void processAttributes(String agentName, String address, String signature,
-				     String delegateAgent, String forwardAddress, String APState) {
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
       sendRefuse(myReply, AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
 
+      String agentName = amsd.getName();
       if(agentName != null)
 	myPlatform.AMSDumpData(agentName);
       else
 	myPlatform.AMSDumpData();
-
     }
 
   } // End of AuthBehaviour class
@@ -234,24 +207,22 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   private class RegBehaviour extends AMSBehaviour {
 
     public RegBehaviour() {
-      super(AgentManagementOntology.AMSActions.REGISTERAGENT);
+      super(AgentManagementOntology.AMSAction.REGISTERAGENT);
     }
 
-    public RegBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.AMSActions.REGISTERAGENT, msg, st);
+    public RegBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.REGISTERAGENT, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new RegBehaviour(msg, st);
+    public Behaviour instance(ACLMessage msg, ACLMessage reply) {
+      return new RegBehaviour(msg, reply);
     }
 
-    protected void processAttributes(String agentName, String address, String signature,
-				     String delegateAgent, String forwardAddress, String APState) {
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
       // Write new agent data in Global Agent Descriptor Table
       try {
-	myPlatform.AMSNewData(agentName, address, signature, delegateAgent,
-			      forwardAddress, APState);
+	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
+			      amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       }
       catch(AgentAlreadyRegisteredException aare) {
 	sendAgree(myReply);
@@ -259,13 +230,13 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 	return;
       }
       catch(FIPAException fe) {
+	//	fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
 	return;
       }
 
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
   } // End of RegBehaviour class
@@ -274,25 +245,25 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   private class DeregBehaviour extends AMSBehaviour {
 
     public DeregBehaviour() {
-      super(AgentManagementOntology.AMSActions.DEREGISTERAGENT);
+      super(AgentManagementOntology.AMSAction.DEREGISTERAGENT);
     }
 
-    public DeregBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.AMSActions.DEREGISTERAGENT, msg, st);
+    public DeregBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.DEREGISTERAGENT, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new DeregBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new DeregBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String address, String signature,
-				     String delegateAgent, String forwardAddress, String APState) {
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
       try {
 	// Remove the agent data from Global Descriptor Table
-	myPlatform.AMSRemoveData(agentName, address, signature, delegateAgent,
-				 forwardAddress, APState);
+	myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
+				 amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       }
       catch(FIPAException fe) {
+	//	fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
 	return;
       }
@@ -308,26 +279,25 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   private class ModBehaviour extends AMSBehaviour {
 
     public ModBehaviour() {
-      super(AgentManagementOntology.AMSActions.MODIFYAGENT);
+      super(AgentManagementOntology.AMSAction.MODIFYAGENT);
     }
 
-    public ModBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(AgentManagementOntology.AMSActions.MODIFYAGENT, msg, st);
+    public ModBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.MODIFYAGENT, request, reply);
     }
 
-    public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-      return new ModBehaviour(msg, st);
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new ModBehaviour(request, reply);
     }
 
-    protected void processAttributes(String agentName, String address, String signature,
-				     String delegateAgent, String forwardAddress, String APState) {
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
       try {
 	// Modify agent data from Global Descriptor Table
-	myPlatform.AMSChangeData(agentName, address, signature, delegateAgent,
-				 forwardAddress, APState);
+	myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
+				 amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       }
       catch(FIPAException fe) {
+	//	fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
 	return;
       }
@@ -359,10 +329,10 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.AUTHENTICATE, new AuthBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.REGISTERAGENT, new RegBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.DEREGISTERAGENT, new DeregBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.MODIFYAGENT, new ModBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.AUTHENTICATE, new AuthBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
 
   }
 
@@ -375,14 +345,14 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 
 
   // The AMS must have a special version for this method, or a deadlock will occur...
-  public void registerWithAMS(String signature, String delegateAgent,
-		       String forwardAddress, int APState) {
+  public void registerWithAMS(String signature, int APState, String delegateAgentName,
+		       String forwardAddress, String ownership) {
 
     // Skip all fipa-request protocol and go straight to the target
     
-    try {
-      myPlatform.AMSNewData(myName, myAddress, signature, delegateAgent,
-			    forwardAddress, "active");
+    try { // FIXME: APState parameter is never used
+      myPlatform.AMSNewData(myName + '@' + myAddress, myAddress, signature, "active", delegateAgentName,
+			    forwardAddress, ownership);
     }
     // No exception should occur since this is a special case ...
     catch(AgentAlreadyRegisteredException aare) {
