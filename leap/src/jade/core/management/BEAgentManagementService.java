@@ -446,7 +446,8 @@ public class BEAgentManagementService extends BaseService {
 	}
 
 	private void handleKillContainer(VerticalCommand cmd) {
-	    exitContainer();
+	    myContainer.shutDown();
+	    //exitContainer();
 	}
 
 	/**
@@ -535,7 +536,7 @@ public class BEAgentManagementService extends BaseService {
 
 	}
 
-	private void exitContainer() {
+	/*private void exitContainer() {
 
 	    // "Kill" all agent images
 	    AID[] targets = myContainer.getAgentImages();
@@ -563,7 +564,7 @@ public class BEAgentManagementService extends BaseService {
 	    }
 
 	    myContainer.shutDown();
-	}
+	}*/
 
 
     } // End of CommandTargetSink class

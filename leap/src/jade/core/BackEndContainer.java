@@ -126,7 +126,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  startService("jade.core.event.NotificationService");
 	  // Start the Back-End replication service
 	  startService("jade.core.replication.BEReplicationService");
-
+		/*#CUSTOMJ2SE_INCLUDE_BEGIN
+	  startService("ePresence.log.EPresenceLogService");
+		#CUSTOMJ2SE_INCLUDE_END*/
       }
 
 
@@ -390,21 +392,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       return super.createCertificateFolder(agentID);
   }
 
-    /*public void exit() {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
-
-	myCommandProcessor.processOutgoing(cmd);
-    }*/
-
   /**
    */
   public void shutDown() {
-
-      agentImages.clear();
-
       // Forward the exit command to the FrontEnd
       try {
-
 	  if(isMaster()) {
 	      myFrontEnd.exit(false);
 	  }
@@ -414,6 +406,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  myConnectionManager.shutdown();
       }
 
+  	// "Kill" all agent images
+		AID[] ids = getAgentImages();
+		for (int i = 0; i < ids.length; ++i) {
+			handleEnd(ids[i]);
+		}
+		agentImages.clear();
+		
       super.shutDown();
   }
 
