@@ -203,45 +203,27 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     id = 1;
   }
 
-  /**
-   * Return a MainContainerStub to call remote methods on the Main container
-   */
+    /***
   public MainContainer getMain(Profile p) throws IMTPException {
-    TransportAddress mainTA = null;
 
-    try {
-      String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
-
-      // Try to translate the mainURL into a TransportAddress
-      // using a protocol supported by this CommandDispatcher
-      try {
-        mainTA = stringToAddr(mainURL);
-      } 
-      catch (DispatcherException de) {
-        // Failure --> A suitable protocol class may be explicitly
-        // indicated in the profile (otherwise rethrow the exception)
-        String mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
-        if (mainTPClass != null) {
-	        TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
-	        mainTA = tp.stringToAddr(mainURL);
-        }
-        else {
-        	throw de;
-        }
-      } 
-
-      // If the router TA was not set --> use the mainTA as default
-      if (routerTA == null) {
-    		routerTA = mainTA;
-      }
-    } 
-    catch (Exception e) {
-      throw new IMTPException("Error getting Main Container address", e);
-    } 
+    TransportAddress mainTA = initMainTA(p);
+    return null;
 
     // Create a stub to access the Main Container
     return createMainContainerStub(mainTA);
+
   } 
+
+    ***/
+
+    public ServiceManagerStub getServiceManagerStub(Profile p) throws IMTPException {
+	ServiceManagerStub stub = new ServiceManagerStub();
+	TransportAddress mainTA = initMainTA(p);
+	stub.bind(this);
+	stub.addTA(mainTA);
+
+	return stub;
+    }
 
   /**
    * Sets the transport address of the default router used for the
@@ -398,25 +380,31 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     shutDown();
   } 
 
-  /**
-   * Builds a stub for an already remotized object.
-   * 
-   * @param remoteObject the remote object the stub depends on.
-   * @return a new stub depending on the specified remote object.
-   * @throws IMTPException if the stub cannot be created.
-   */
-  public Stub buildLocalStub(Object remoteObject) throws IMTPException {
-    if (remoteObject instanceof AgentContainer) {
-      Stub stub = new AgentContainerStub(getID(remoteObject));
 
-      // Add the local address
-      stub.addTA(icpTA);
+
+  public Stub buildLocalStub(Object remoteObject) throws IMTPException {
+
+    if(remoteObject instanceof NodeAdapter) {
+
+	NodeAdapter na = (NodeAdapter)remoteObject;
+	NodeLEAP nl = na.getAdaptee();
+	NodeStub stub;
+	if(nl instanceof NodeStub) {
+	    stub = (NodeStub)nl;
+	}
+	else {
+	    stub = new NodeStub(getID(remoteObject));
+
+	    // Add the local address
+	    stub.addTA(icpTA);
+	}
 
       return stub;
-    } 
+    }
 
-    throw new IMTPException("can't create a stub for object "+remoteObject+".");
+    throw new IMTPException("can't create a stub for object " + remoteObject + ".");
   } 
+
 
   /**
    * This method dispatches the specified command to the first address
@@ -440,9 +428,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
       // If the dispatched command was an ADD_CONTAINER --> get the
       // name from the response and use it as the name of the CommandDispatcher
-      if (command.getCode() == Command.ADD_CONTAINER && name.equals(DEFAULT_NAME)) {
+      if (command.getCode() == Command.ADD_NODE && name.equals(DEFAULT_NAME)) {
         name = (String) response.getParamAt(0);
-      } 
+      }
 
       return response;
     } 
@@ -743,14 +731,54 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     } 
   } 
 
-  /**
-   */
+    private TransportAddress initMainTA(Profile p) throws IMTPException {
+
+	TransportAddress mainTA = null;
+
+	try {
+	    String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
+
+	    // Try to translate the mainURL into a TransportAddress
+	    // using a protocol supported by this CommandDispatcher
+	    try {
+		mainTA = stringToAddr(mainURL);
+	    }
+	    catch (DispatcherException de) {
+		// Failure --> A suitable protocol class may be explicitly
+		// indicated in the profile (otherwise rethrow the exception)
+		String mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
+		if (mainTPClass != null) {
+		    TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
+		    mainTA = tp.stringToAddr(mainURL);
+		}
+		else {
+		    throw de;
+		}
+	    }
+
+	    // If the router TA was not set --> use the mainTA as default
+	    if (routerTA == null) {
+    		routerTA = mainTA;
+	    }
+
+	    return mainTA;
+
+	}
+	catch (Exception e) {
+	    throw new IMTPException("Error getting Main Container address", e);
+	}
+
+    }
+
+    /***
+
   private MainContainer createMainContainerStub(TransportAddress mainTA) {
     MainContainerStub stub = new MainContainerStub();
-		stub.bind(this);
+    stub.bind(this);
     stub.addTA(mainTA);
 
     return stub;
   } 
+    ***/
 }
 
