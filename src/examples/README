@@ -62,8 +62,7 @@ You can execute it, for instance, with the following command:
 				2. waits a message from its companion, the ObjectWriterAgent; 
 				3. reads the content of the message, knowing a-priori that 
    				   it is encoded in Base64 and contains a Java object;
-				4. uses the reflection to discover the type of java object
-   				   and calls the toString() method.
+				
 	
  
  - ObjectWriterAgent.class	This agent makes the following task:
