@@ -26,6 +26,7 @@ package examples.content.musicShopOntology;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.content.schema.facets.*;
 import examples.content.ecommerceOntology.*;
 
 /**
@@ -45,6 +46,8 @@ public class MusicShopOntology extends Ontology {
   public static final String TRACK_NAME = "name";
   public static final String TRACK_DURATION = "duration";
   
+  public static final String SINGLE = "SINGLE";
+  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new MusicShopOntology(ECommerceOntology.getInstance());
 	
@@ -61,6 +64,7 @@ public class MusicShopOntology extends Ontology {
     try {
     	add(new ConceptSchema(CD), CD.class);
     	add(new ConceptSchema(TRACK), Track.class);
+    	add(new ConceptSchema(SINGLE), Single.class);
     	
     	ConceptSchema cs = (ConceptSchema) getSchema(CD);
     	cs.addSuperSchema((ConceptSchema) getSchema(ECommerceOntology.ITEM));
@@ -71,6 +75,10 @@ public class MusicShopOntology extends Ontology {
     	cs.add(TRACK_NAME, (TermSchema) getSchema(BasicOntology.STRING));
     	cs.add(TRACK_DURATION, (TermSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     	
+    	cs = (ConceptSchema) getSchema(SINGLE);
+    	cs.addSuperSchema((ConceptSchema) getSchema(CD));
+    	// A SINGLE only includes two tracks 
+    	cs.addFacet(CD_TRACKS, new CardinalityFacet(2, 2));
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();
