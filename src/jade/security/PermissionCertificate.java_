@@ -1,0 +1,282 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+package jade.security;
+
+import java.math.BigInteger;
+import java.security.*;
+import java.security.cert.*;
+import java.security.spec.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
+
+import starlight.util.Base64;
+
+public class PermissionCertificate implements java.io.Serializable {
+	// extends java.security.cert.X509Certificate
+	// peccato: non e' possibile serializzare !!
+	// probabilmente perche' manca getTBSCertificate
+	
+	public static final String IDENTITY_DELEGATION = "identity";
+	public static final String NO_DELEGATION = "no";
+	public static final String SIMPLE_DELEGATION = "simple";
+	public static final String CASCADE_DELEGATION = "cascade";
+	
+	String delegationFrom;
+	String delegationTo;
+	String delegationMode;
+	String issuer;
+	
+	long serial;
+	long notBefore;
+	long notAfter;
+	
+	byte[] key;
+	byte[] signature;
+	
+	ArrayList permissions = new ArrayList();
+	
+	// methods to (un)marshall
+	
+	public void addPermissionDescrs(Object o) {
+      	PermissionDescr permdescr = (PermissionDescr) o;
+		Object[] objlist = permdescr.getAllArgumentsAsArray();
+		Class[] clslist = new Class[objlist.length];
+		for (int i = 0; i < clslist.length; i++)
+			clslist[i] = objlist[i].getClass();
+		try {
+			permissions.add( Class.forName(permdescr.getClassName()).getConstructor(clslist).newInstance(objlist) );
+		}
+		catch (Exception cnfe) {
+			cnfe.printStackTrace();
+		}
+	}
+	
+	public Iterator getAllPermissionDescrs() {
+		ArrayList list = new ArrayList();
+		for (int i = 0; i < permissions.size(); i++) {
+			Permission p = (Permission) permissions.get(i);
+			list.add(new PermissionDescr(p));
+		}
+		return list.iterator();
+	}
+	
+	public String getDelegationFrom() { return delegationFrom; }
+	public String getDelegationTo() { return delegationTo; }
+	public String getDelegationMode() { return delegationMode; }
+	public String getIssuer() { return issuer; }
+	public Long getSerialAsLong() { return new Long(serial); }
+	public Long getNotBeforeAsLong() { return new Long(notBefore); }
+	public Long getNotAfterAsLong() { return new Long(notAfter); }
+	public String getPublicKeyAsString() { return new String(Base64.encode(key)); }
+	public String getSignatureAsString() { return new String(Base64.encode(signature)); }
+	
+	public void setDelegationFrom(String from) { this.delegationFrom = from; }
+	public void setDelegationTo(String to) { this.delegationTo = to; }
+	public void setDelegationMode(String mode) { this.delegationMode = mode; }
+	public void setIssuer(String issuer) { this.issuer = issuer; }
+	public void setSerialAsLong(Long serial) { this.serial = serial.longValue(); }
+	public void setNotBeforeAsLong(Long nb) { this.notBefore = nb.longValue(); }
+	public void setNotAfterAsLong(Long na) { this.notAfter = na.longValue(); }
+	public void setPublicKeyAsString(String key) { this.key = Base64.decode(key.toCharArray()); }
+	public void setSignatureAsString(String signature) { this.signature = Base64.decode(signature.toCharArray()); }
+	
+	// other methods
+	
+	public byte[] getSignature() { return signature; }
+
+	public void addPermission(Permission p) {
+		permissions.add(p);
+	}
+	
+	public Permissions getPermissions() {
+		Permissions perms = new Permissions();
+		for (int i = 0; i < permissions.size(); i++) {
+			perms.add( (Permission) permissions.get(i) );
+		}
+		return perms;
+	}
+	
+	public void init(String delegationFrom, String delegationTo, String delegationMode, long notBefore, long notAfter) {
+		this.delegationFrom = delegationFrom;
+		this.delegationTo = delegationTo;
+		this.delegationMode = delegationMode;
+		this.notBefore = notBefore;
+		this.notAfter = notAfter;
+	}
+	
+	public void issue(String issuer, PublicKey key, long serial) {
+		this.issuer = issuer;
+		this.serial = serial;
+		if (key != null)
+			this.key = key.getEncoded();
+	}
+	
+	public void sign(byte[] signature) {
+		this.signature = signature;
+	}
+	
+	public long getSerial() {
+		return serial;
+	}
+	
+	public BigInteger getSerialNumber() {
+		return BigInteger.valueOf(serial);
+	}
+	
+	public Principal getIssuerDN() {
+		return new JADEPrincipal(issuer);
+	}
+	
+	public Principal getSubjectDN() {
+		return new JADEPrincipal(delegationTo);
+	}
+	
+	public Date getNotBefore() {
+		return new Date(notBefore);
+	}
+	
+	public Date getNotAfter() {
+		return new Date(notAfter);
+	}
+	
+	public byte[] getTBSCertificate() throws CertificateEncodingException {
+		// ...
+		return null;
+	}
+	public String getSigAlgName() { return "SHA-1/DSA"; }
+	public String getSigAlgOID() { return "1.2.840.10040.4.3"; }
+	public int getVersion() { return 1; }
+	public byte[] getSigAlgParams() { return null; }
+	public boolean[] getIssuerUniqueID() { return null; }
+	public boolean[] getSubjectUniqueID() { return null; }
+	public boolean[] getKeyUsage() { return null; }
+	public int getBasicConstraints() { return -1; }
+	
+	// methods from java.security.cert.Certificate
+	public byte[] getEncoded() throws CertificateEncodingException {
+		StringBuffer str = new StringBuffer();
+		str.append(delegationFrom);
+		str.append(delegationTo);
+		str.append(delegationMode);
+		str.append(issuer);
+		str.append(notBefore);
+		str.append(notAfter);
+		str.append(serial);
+		for (Iterator i = permissions.iterator(); i.hasNext();) {
+			Permission p = (Permission) i.next();
+			str.append(p.getClass().getName());
+			str.append(p.getName());
+			str.append(p.getActions());
+		}
+		return str.toString().getBytes();
+	}
+	
+	public void verify(PublicKey key) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, SignatureException {
+		verify(key, null);
+	}
+	
+	public void verify(PublicKey key, String sigProvider) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, SignatureException {
+			/*MessageDigest algorithm = MessageDigest.getInstance("MD5");
+			algorithm.reset();
+			algorithm.update(getEncoded());
+			byte[] digest = algorithm.digest();*/
+			
+			Signature sign = null;
+			if (sigProvider != null)
+				sign = Signature.getInstance("DSA", sigProvider);
+			else
+				sign = Signature.getInstance("DSA");
+			sign.initVerify(key);
+			sign.update(getEncoded());
+			if (!sign.verify(getSignature())) throw new SignatureException();
+	}
+	
+	public String toString() {
+		StringBuffer str = new StringBuffer();
+		str.append(delegationFrom).append('\n');
+		str.append(delegationTo).append('\n');
+		str.append(delegationMode).append('\n');
+		str.append(issuer).append('\n');
+		str.append(notBefore).append('\n');
+		str.append(notAfter).append('\n');
+		str.append(serial).append('\n');
+		for (Iterator j = permissions.iterator(); j.hasNext();) {
+			str.append(j.next().toString()).append('\n');
+		}
+		str.append(Bytes2String.convert(signature)).append('\n');
+		return str.toString();
+	}
+	
+	public Object clone() {
+		PermissionCertificate cert = new PermissionCertificate();
+		
+		cert.delegationFrom = this.delegationFrom;
+		cert.delegationTo = this.delegationTo;
+		cert.delegationMode = this.delegationMode;
+		cert.notBefore = this.notBefore;
+		cert.notAfter = this.notAfter;
+		cert.issuer = this.issuer;
+		cert.key = this.key;
+		cert.serial = this.serial;
+		cert.signature = this.signature;
+		cert.permissions = (ArrayList) this.permissions.clone();
+
+		return cert;
+	}
+	
+	public void checkValidity() throws CertificateExpiredException, CertificateNotYetValidException {
+		checkValidity(new Date());
+	}
+	
+	public void checkValidity(Date date) throws CertificateExpiredException, CertificateNotYetValidException {
+		if (notAfter != 0 && date.compareTo(getNotAfter())>=0)
+			throw new CertificateExpiredException();
+		if (notBefore != 0 && date.compareTo(getNotBefore())<=0)
+			throw new CertificateNotYetValidException();
+	}
+	
+	public PublicKey getPublicKey() {
+		if (key == null)
+			return null;
+		PublicKey pkey = null;
+		try {
+			X509EncodedKeySpec keyspec = new X509EncodedKeySpec(key);
+			KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+			pkey = keyFactory.generatePublic(keyspec);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pkey;
+	}
+	
+	// methods from java.security.cert.X509Extension
+	public boolean hasUnsupportedCriticalExtension() { return false; }
+	public Set getCriticalExtensionOIDs() { return null; }
+	public Set getNonCriticalExtensionOIDs() { return null; }
+	public byte[] getExtensionValue(String oid) { return null; }
+	
+}
