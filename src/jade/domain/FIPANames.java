@@ -69,7 +69,8 @@ public interface FIPANames {
 			public static final String FIPA_BROKERING = "fipa-brokering";
 			public static final String FIPA_RECRUITING = "fipa-recruiting";
 			public static final String FIPA_PROPOSE = "fipa-propose";
-		
+			public static final String FIPA_SUBSCRIBE = "fipa-subscribe";
+			
 			//auction protocol
 			public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
 			public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
