@@ -110,17 +110,7 @@ API_FILES3 =	jade/domain/FIPAAgentManagement/package.html \
 		jade/domain/FIPAAgentManagement/UnsupportedFunction.java \
 		jade/domain/FIPAAgentManagement/UnsupportedValue.java
 
-API_FILES4 =	jade/domain/JADEAgentManagement/CreateAgent.java \
-		jade/domain/JADEAgentManagement/DebugOff.java \
-		jade/domain/JADEAgentManagement/DebugOn.java \
-		jade/domain/JADEAgentManagement/InstallMTP.java \
-		jade/domain/JADEAgentManagement/JADEAgentManagementOntology.java \
-		jade/domain/JADEAgentManagement/KillAgent.java \
-		jade/domain/JADEAgentManagement/KillContainer.java \
-		jade/domain/JADEAgentManagement/ShowGui.java \
-		jade/domain/JADEAgentManagement/SniffOff.java \
-		jade/domain/JADEAgentManagement/SniffOn.java \
-		jade/domain/JADEAgentManagement/UninstallMTP.java \
+API_FILES4 =	jade/domain/JADEAgentManagement/*.java \
 		jade/domain/introspection/package.html \
 		jade/domain/introspection/ACLMessage.java \
 		jade/domain/introspection/AddedBehaviour.java \

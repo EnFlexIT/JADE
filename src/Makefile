@@ -37,6 +37,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/domain/DFServiceCommunicator.java \
 		jade/domain/AMSServiceCommunicator.java \
 		jade/domain/FIPANames.java \
+		jade/domain/JADEAgentManagement/JADEManagementOntology.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
