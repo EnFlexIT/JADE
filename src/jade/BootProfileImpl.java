@@ -251,8 +251,15 @@ public class BootProfileImpl extends ProfileImpl {
 
         value = argProp.getProperty(SMADDRS_KEY);
         if (value != null) {
-	    try {
-		setSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES, Specifier.parseSpecifierList(value));
+      	try {
+    Vector v = Specifier.parseSpecifierList(value);
+    // Convert the Vector into a List
+    List l = new ArrayList(v.size());
+    Enumeration e = v.elements();
+    while (e.hasMoreElements()) {
+    	l.add(e.nextElement());
+    }
+		setSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES, l);
 	    }
 	    catch(Exception e) {
 		e.printStackTrace();
