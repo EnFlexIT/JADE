@@ -71,7 +71,7 @@ class Scheduler {
   public synchronized Behaviour schedule() {
 
     if(behaviours.isEmpty()) {
-      System.out.println("Agent " + owner.getName() + " has nothing to do, so it sleeps ...");
+      // System.out.println("Agent " + owner.getName() + " has nothing to do, so it sleeps ...");
       try {
 	wait();
       }
