@@ -260,9 +260,10 @@ AbsPrimitive Constant() :
 {
  (  s= String() { 
 	// if it is true or false, then converts the String into a Boolean
-        if (CaseInsensitiveString.equalsIgnoreCase(s, "true") ||  
-            CaseInsensitiveString.equalsIgnoreCase(s, "false") )  
-	        val = AbsPrimitive.wrap(Boolean.getBoolean(s));
+        if (CaseInsensitiveString.equalsIgnoreCase(s, "true")) 
+	        val = AbsPrimitive.wrap(true);	
+        else if (CaseInsensitiveString.equalsIgnoreCase(s, "false"))  
+	        val = AbsPrimitive.wrap(false);
 	else
 		val = AbsPrimitive.wrap(s);
                 }
