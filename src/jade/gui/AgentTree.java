@@ -478,7 +478,7 @@ public class RemoteAgentNode extends AgentNode{
 	  	String folderName = folderNode.getName();
 	  	if(folderName.equalsIgnoreCase(localPlatformName)){
     		// Search for the agent container 'containerName'
-    		Enumeration containers = root.children();
+    		Enumeration containers = folderNode.children();
     		while(containers.hasMoreElements()) {
 	    		AgentTree.Node container = (AgentTree.Node)containers.nextElement();
 	    		String contName = container.getName();
