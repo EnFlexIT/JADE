@@ -13,11 +13,7 @@ DOCDIR  = $(ROOTDIR)/doc
 SRCDIR  = $(ROOTDIR)/src
 CLSDIR  = $(ROOTDIR)/classes
 LIBDIR  = $(ROOTDIR)/lib
-LIBNAME = jade.jar
-LIBTOOLSNAME = jadeTools.jar
-LIBIIOPNAME = iiop.jar
-LIBBASE64NAME = Base64.jar
-LIBAPPLETNAME = appletArchive.jar
+#LIBAPPLETNAME = appletArchive.jar
 EXAMPLESDIR = $(SRCDIR)/examples
 DEMODIR = $(SRCDIR)/demo
 MAKE = make
@@ -97,7 +93,10 @@ clean:
 	rm -f `find . -name '#*#'`
 	rm -f `find . -name JADE.IOR`
 	rm -f `find . -name JADE.URL`
-	rm -fr $(CLSDIR)/*
+	rm -fr $(CLSDIR)/*.class
+	rm -fr $(CLSDIR)/jade
+	rm -fr $(CLSDIR)/FIPA
+	rm -fr $(CLSDIR)/starlight
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
 	cd $(EXAMPLESDIR); $(MAKE) clean
