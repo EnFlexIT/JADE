@@ -143,7 +143,7 @@ public class TestMainFault extends Test {
   		public void action() {
 				log("5) Restoring old master (now backup) main container ...");
   			try {
-					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES+" -container-name Main-Container -name "+TestSuiteAgent.TEST_PLATFORM_NAME, null);
+					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES+" -container-name Main-Container -name "+TestSuiteAgent.TEST_PLATFORM_NAME+" -jade_domain_df_autocleanup true", null);
 					log("Old master (now backup) main container correctly restored");
 					pause();
   			}
