@@ -172,11 +172,13 @@ class SerializationEngine {
     Date replyBy = msg.getReplyByDate();
     Envelope envelope = null;
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
 		envelope = msg.getEnvelope();
     Properties props = msg.getAllUserDefinedParameters();
     if (props.size() > 63) {
     	throw new LEAPSerializationException("Cannot serialize more than 63 params");
     }
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
 
     if (sender != null) { presence1 |= 0x80; }
@@ -190,7 +192,9 @@ class SerializationEngine {
     if (replyBy != null) { presence2 |= 0x80; }
     if (envelope != null) { presence2 |= 0x40; }
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     presence2 |= (props.size() & 0x3F);
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence1);
     dos.writeByte(presence2);
@@ -204,12 +208,14 @@ class SerializationEngine {
     if (inReplyTo != null) { dos.writeUTF(inReplyTo); }
     if (replyWith != null) { dos.writeUTF(replyWith); }
     if (replyBy != null) { dos.writeLong(replyBy.getTime()); }
-//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     if (envelope != null) { serializeEnvelope(envelope, dos); }
 
     // User defined parameters
     serializeProperties(props, dos);
-//#CUSTOM_EXCLUDE_END    
+		//#CUSTOMJ2SE_EXCLUDE_END
+		//#CUSTOM_EXCLUDE_END    
     // Receivers
     Iterator it = msg.getAllReceiver();
     while (it.hasNext()) {
@@ -266,6 +272,7 @@ class SerializationEngine {
     if ((presence1 & 0x01) != 0) { msg.setReplyWith(dis.readUTF()); }
     if ((presence2 & 0x80) != 0) { msg.setReplyByDate(new Date(dis.readLong())); }
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     if ((presence2 & 0x40) != 0) { msg.setEnvelope(deserializeEnvelope(dis)); }
     // User defined properties
     int propsSize = presence2 & 0x3F;
@@ -274,6 +281,7 @@ class SerializationEngine {
     	String val = dis.readUTF();
     	msg.addUserDefinedParameter(key, val);
     }
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
     
     // Receivers
@@ -307,17 +315,21 @@ class SerializationEngine {
     String name = id.getName();
     Iterator addresses = id.getAllAddresses();
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     Iterator resolvers = id.getAllResolvers();
     Properties props = id.getAllUserDefinedSlot();
     if (props.size() > 31) {
     	throw new LEAPSerializationException("Cannot serialize more than 31 slots");
     }
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
     if (name != null) { presence |= 0x80; }
     if (addresses.hasNext()) { presence |= 0x40; }
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     if (resolvers.hasNext()) { presence |= 0x20; }
     presence |= (props.size() & 0x1F);
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence);
     
@@ -328,6 +340,7 @@ class SerializationEngine {
     	dos.writeBoolean(addresses.hasNext());
     }
 		//#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     // Resolvers
     while (resolvers.hasNext()) {
     	serializeAID((AID) resolvers.next(), dos);
@@ -335,6 +348,7 @@ class SerializationEngine {
     }
     // User defined slots
     serializeProperties(props, dos);
+		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
   }
   
@@ -349,6 +363,7 @@ class SerializationEngine {
     	} while (dis.readBoolean());
     }
     //#CUSTOM_EXCLUDE_BEGIN
+		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     // Resolvers
     if ((presence & 0x20) != 0) {
     	do {
@@ -363,6 +378,7 @@ class SerializationEngine {
     	String val = dis.readUTF();
     	id.addUserDefinedSlot(key, val);
     }
+		//#CUSTOMJ2SE_EXCLUDE_END
     //#CUSTOM_EXCLUDE_END
   	return id;
   }
@@ -383,6 +399,7 @@ class SerializationEngine {
   }
 
 //#CUSTOM_EXCLUDE_BEGIN
+//#CUSTOMJ2SE_EXCLUDE_BEGIN
   private final static void serializeEnvelope(Envelope env, DataOutputStream dos) throws IOException, LEAPSerializationException {
   	System.out.println("SerializationEngine.serializeEnvelope() not yet implemented");
   	// FIXME: To be implemented
@@ -402,6 +419,7 @@ class SerializationEngine {
     	dos.writeUTF(props.getProperty(key));
     }
   }  
+//#CUSTOMJ2SE_EXCLUDE_END
 //#CUSTOM_EXCLUDE_END
 
 }
