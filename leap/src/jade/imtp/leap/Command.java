@@ -63,7 +63,7 @@ public class Command {
     // Lower limit for service and node management related commands
     static final int SERVICE_BASE = 0;
 
-    // Service management related command IDs
+    // Service and node management related command IDs
     public static final int GET_PLATFORM_NAME = 1;
     public static final int ADD_NODE = 2;
     public static final int REMOVE_NODE = 3;
@@ -75,30 +75,10 @@ public class Command {
     public static final int PING_NODE_BLOCKING = 9;
     public static final int PING_NODE_NONBLOCKING = 10;
     public static final int EXIT_NODE = 11;
+    public static final int INTERRUPT_NODE = 12;
 
 
-    // Lower limit for agent management related commands
-    static final int AGENT_MANAGEMENT_BASE = 100;
 
-    // Agent management related command IDs
-
-
-    // Lower limit for messaging related commands
-    static final int MESSAGING_BASE = 200;
-
-    // Messaging related command IDs
-
-
-    // Lower limit for agent mobility related commands
-    static final int AGENT_MOBILITY_BASE = 300;
-
-    // Agent mobility related command IDs
-
-
-    // Lower limit for event notification related commands
-    static final int NOTIFICATION_BASE = 400;
-
-    // Service management related command IDs
 
 
   static final int        NO_OPERATION = 0;
