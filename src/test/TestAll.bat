@@ -77,7 +77,7 @@ CALL makejadejessprotegeexample
 pause
 echo compile the Test code
 cd src
-javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR%;. test\TestAgent.java test\jsp\TestDanielExample.java test\content\*.java test\wrapper\*.java test\proto\*.java test\MessageTemplate\*.java test\common\*.java test\content\tests\*.java test\proto\tests\*.java test\proto\tests\contractNet\*.java test\proto\responderBehaviours\*.java test\proto\responderBehaviours\achieveRE\*.java test\proto\responderBehaviours\contractNet\*.java  
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR%;. test\TestAgent.java test\jsp\TestDanielExample.java test\content\*.java test\wrapper\*.java test\proto\*.java test\MessageTemplate\*.java test\common\*.java test\content\tests\*.java test\proto\tests\*.java test\proto\tests\contractNet\*.java test\proto\responderBehaviours\*.java test\proto\responderBehaviours\achieveRE\*.java test\proto\responderBehaviours\contractNet\*.java test\roundTripTime\*.java
 cd test
 pause
 :SKIPCOMPILATION
@@ -179,6 +179,24 @@ cd test
 echo Running the Test of the Wrapper
 %JAVA% -cp %CLASSPATH% test.wrapper.TestListener
 
+echo Running the roundTripTime test on a single container. 10 couples=5.34msec (JADE 2.4)
+echo This test tests also the configuration file and setting arguments to agents
+%JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\SingleContainer.conf
+pause
+
+echo Running the roundTripTime test on 2 containers. 10 couples=33.52msec (JADE 2.4)
+START %JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\Receiver.conf 
+pause press a key when the platform is ready
+%JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\RoundTripper.conf 
+pause
+
+echo Running the roundTripTime test on 2 platforms. 
+echo Edit RoundTripper.conf with the right IOR of the running platform and
+echo set container=false
+%JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\RoundTripper.conf 
+pause
+:STARTHERE	
+
 
 echo Running the tests on CL and ontology support for LEAP Codec
 %JAVA% -cp %CLASSPATH% test.content.ContentTesterAgent
@@ -222,12 +240,10 @@ START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\
 START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar jade.Boot -gui -port 1300 -mtp jamr.jademtp.http.MessageTransportProtocol(http://%LOCALHOST%:7779/acc) da0:jade.tools.DummyAgent.DummyAgent
 pause
 
-:STARTHERE	
-
 
 echo FIXME RDFCodec Test
 dir
-START %JAVA% -cp %ALLJADEJARS%;..\..\add-ons\http\lib\sax2\sax2.jar;..\..\lib\rdf-api-2001-19.jar;..\..\add-ons\RDFCodec\classes jade.Boot -gui sender:examples.rdfcontent.Sender receiver:examples.rdfcontent.Receiver
+START %JAVA% -cp %ALLJADEJARS%;..\..\add-ons\http\lib\sax2\sax2.jar;..\..\lib\rdf-api-2001-19.jar;..\..\lib\xerces.jar;..\..\add-ons\RDFCodec\classes jade.Boot -gui sender:examples.rdfcontent.Sender receiver:examples.rdfcontent.Receiver
 pause 
 
 pause
