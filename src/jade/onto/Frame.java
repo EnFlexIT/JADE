@@ -33,6 +33,18 @@ public class Frame {
     slotsByPosition.add(value);
   }
 
+  public void putSlot(Object value) {
+    // generate a name with an underscore followed by the position number
+    String dummyName = "_" + Integer.toString(slotsByPosition.size());
+
+    // Add more underscores as needed
+    while(slotsByName.containsKey(dummyName))
+      dummyName = "_" + dummyName;
+
+    putSlot(dummyName, value);
+
+  }
+
   public Object getSlot(String name) throws NoSuchSlotException {
     Object result = slotsByName.get(new Name(name));
     if(result == null)
