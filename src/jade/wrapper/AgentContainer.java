@@ -66,7 +66,7 @@ public class AgentContainer implements PlatformController {
   private static Logger logger = Logger.getMyLogger(AgentContainer.class.getName());	
 	
   /**
-     Public constructor. This constructor requires a concrete
+     This constructor requires a concrete
      implementation of a JADE agent container, which cannot be
      instantiated by applications, so it cannot be meaningfully called
      from application code. The proper way to create an agent

@@ -60,8 +60,8 @@ public class AgentController {
   private jade.core.AgentContainer myContainer;
 
   /**
-     Default constructor. This should not be called by applications,
-     but the method <code>AgentContainer.createAgent()</code> should
+     This constructor should not be called by applications.
+     The method <code>AgentContainer.createAgent()</code> should
      be used instead.
      @param id The <code>AID</code> of the agent to be wrapped by this proxy.
      @param a The real JADE agent, that will be wrapped by this proxy.
