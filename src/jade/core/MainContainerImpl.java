@@ -26,30 +26,15 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 //#MIDP_EXCLUDE_FILE
 
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.StringReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import jade.util.leap.Collection;
-import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.Set;
 
 import jade.core.behaviours.Behaviour;
 
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;
-import jade.core.mobility.AgentMobilityHelper;
 
 import jade.domain.ams;
 import jade.domain.df;
@@ -57,10 +42,7 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 
-import jade.lang.acl.ACLMessage;
-
 import jade.mtp.MTPException;
-import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.JADESecurityException;
@@ -839,7 +821,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     myLogger.log(Logger.FINE, "Container " + localContainerID.getName() + " does not exist. Ignoring...");
   }
   catch(UnreachableException ue) {
-		myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unreachable.");
+		myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unreachable. "+ue);
   }
   catch(JADESecurityException se) {
   	// Let it through
