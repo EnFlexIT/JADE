@@ -58,6 +58,11 @@ public class CardinalityFacet implements Facet {
 	   @throws OntologyException If the value is not valid
 	 */
 	public void validate(AbsObject value, Ontology onto) throws OntologyException {
+		if (value instanceof AbsVariable) {
+			// A variable can always be used where whatever term is required
+			return;
+		}
+		
   	if (!(value instanceof AbsAggregate)) {
   		throw new OntologyException(value+" is not an AbsAggregate");
   	}
