@@ -54,7 +54,6 @@ class DFGUIViewAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("VIEW");
 	    DFAgentDescription dfd = new DFAgentDescription();
 	    int kind = gui.kindOfOperation();
 		
@@ -71,7 +70,6 @@ class DFGUIViewAction extends AbstractAction
 	          else
 	  			    dfd = gui.myAgent.getDFAgentDsc(name); // agent registered
 	      	}catch (FIPAException fe){
-	  			  //System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
 	  			  gui.showStatusMsg("WARNING! No description for agent called " + name + " is found");
 	  			  return;}
 	  	  }

@@ -47,7 +47,6 @@ class DFGUICloseGuiAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("CLOSE GUI");
 		//gui.myAgent.postCloseGuiEvent((Object) gui);
 		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.CLOSEGUI);
 		gui.myAgent.postGuiEvent(ev);

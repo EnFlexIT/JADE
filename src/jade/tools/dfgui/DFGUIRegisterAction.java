@@ -55,7 +55,6 @@ class DFGUIRegisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{	
 		AID df; 
-		//System.out.println("REGISTER NEW AGENT");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,true);
 	

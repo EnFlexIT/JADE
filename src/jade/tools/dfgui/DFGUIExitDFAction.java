@@ -49,7 +49,6 @@ class DFGUIExitDFAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("EXIT DF");
 		//gui.myAgent.postExitEvent((Object) gui);
 		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.EXIT);
 		gui.myAgent.postGuiEvent(ev);

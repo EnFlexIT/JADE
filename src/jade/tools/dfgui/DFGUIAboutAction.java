@@ -47,7 +47,6 @@ class DFGUIAboutAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("ABOUT");
 	  TreeHelp help = new TreeHelp(gui,"DF Help", "help/DFGUI.html");
 	  
 	  help.setVisible(true);

@@ -31,6 +31,7 @@ import java.net.*;
 import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
+import jade.util.Logger;
 
 import jade.domain.DFGUIAdapter;
 import jade.lang.acl.ACLParser;
@@ -67,6 +68,8 @@ public class DFAppletCommunicator implements DFGUIAdapter{
   //default description of the df. 
   private DFAgentDescription thisDF = null;
    
+  //logging
+  private Logger logger = Logger.getMyLogger(this.getClass().getName());
  
   /**
    * Create a socket to communicate with a server on port 6789 of the
@@ -80,10 +83,10 @@ public class DFAppletCommunicator implements DFGUIAdapter{
     a = applet;
     //retrive the HAP from the html file.
     hap = a.getParameter("HAP");
-    //System.out.println("HAP:" + hap);
+    logger.log(Logger.FINEST,"HAP:" + hap);
  
     Socket s = new Socket(a.getCodeBase().getHost(), DEFAULT_PORT);
-    System.out.println("DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
+    logger.log(Logger.CONFIG,"DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
     in = new DataInputStream(s.getInputStream());
     parser = new ACLParser(in);
     out = new PrintStream(s.getOutputStream(),true);
@@ -120,7 +123,6 @@ public class DFAppletCommunicator implements DFGUIAdapter{
    */
 public String getName() {
     String dfName = "df" + "@" + hap;
-    //System.out.println("In get Name: " + dfName);
 	return dfName;
 }
 
@@ -395,7 +397,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
   */
   public DFAgentDescription getDescriptionOfThisDF(AID df)
   {
-      System.out.println("CALLED METHOD: getDescriptionOfThisDF(aid) into DFAppletCommunicator");
+      logger.log(Logger.FINEST,"CALLED METHOD: getDescriptionOfThisDF(aid) into DFAppletCommunicator");
     DFAgentDescription output = null;
   	try{
     	

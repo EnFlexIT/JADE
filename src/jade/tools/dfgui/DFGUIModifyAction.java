@@ -38,6 +38,8 @@ import jade.domain.DFGUIAdapter;
 import jade.gui.DFAgentDscDlg;
 import jade.gui.GuiEvent;
 
+import jade.util.Logger;
+
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -46,6 +48,9 @@ import jade.gui.GuiEvent;
 class DFGUIModifyAction extends AbstractAction
 {
 	private DFGUI gui;
+	
+	//logging
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
 	public DFGUIModifyAction(DFGUI gui)
 	{
@@ -55,7 +60,6 @@ class DFGUIModifyAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("MODIFY");
 		int kind = gui.kindOfOperation();
 		
 	  AID name = gui.getSelectedAgentInTable();
@@ -69,7 +73,7 @@ class DFGUIModifyAction extends AbstractAction
     			dfd = gui.myAgent.getDFAgentDsc(name); //agent registered
 
     		}catch(FIPAException fe){
-    			System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+    			logger.log(Logger.WARNING, "No agent called " + name + " is currently registered with this DF");
 				  return;
 
     		}

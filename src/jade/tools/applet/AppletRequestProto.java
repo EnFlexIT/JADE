@@ -26,6 +26,7 @@ package jade.tools.applet;
 import java.io.PrintStream;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.Logger;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLParser;
@@ -53,6 +54,9 @@ abstract class AppletRequestProto
     boolean notYetReady;
     PrintStream myOut;
     ACLParser myParser;
+    
+    //logging
+    private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
         /**
          * Constructor of the class.
@@ -87,7 +91,7 @@ abstract class AppletRequestProto
 
         try{
             ACLMessage reply = receiveMessage();
-            System.out.println("Received Message:" + reply.toString());
+            logger.log(Logger.INFO,"Received Message:" + reply.toString());
             if(ACLMessage.AGREE == (reply.getPerformative()))
             {
 
@@ -95,7 +99,7 @@ abstract class AppletRequestProto
 
                 ACLMessage inform = receiveMessage();
 
-                System.out.println(inform.toString());
+                logger.log(Logger.INFO,inform.toString());
 
                 if(ACLMessage.INFORM == inform.getPerformative())
                     handleInform(inform);
@@ -123,7 +127,6 @@ abstract class AppletRequestProto
          * private method to read the message
          */
     private ACLMessage receiveMessage() throws ParseException {
-	System.out.println("In receiveMessage");
         return myParser.Message();
 
     }

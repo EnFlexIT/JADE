@@ -54,7 +54,6 @@ class DFGUIDeregisterAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("DEREGISTER");
 		DFAgentDescription dfd;
 	  AID df =null;
 	  AID name;
