@@ -36,6 +36,6 @@ public String getMtpName() {return name;}
 
 public void addAddresses(String a) {addresses.add(a);}
 public boolean removeAddresses(String a) {return addresses.remove(a);}
-public void clearAllAddresses() { addresses = new ArrayList();}
+public void clearAllAddresses() { addresses.clear();}
 public Iterator getAllAddresses() {return addresses.iterator();}
 }

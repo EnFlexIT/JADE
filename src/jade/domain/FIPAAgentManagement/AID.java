@@ -60,7 +60,7 @@ public boolean removeAddresses(String url) {
 }
 
 public void clearAllAddresses(){
-  addresses = new ArrayList();
+  addresses.clear();
 }
 
 public Iterator getAllAddresses(){
@@ -76,7 +76,7 @@ public boolean removeResolvers(AID aid){
 }
 
 public void clearAllResolvers(){
-  resolvers = new ArrayList();
+  resolvers.clear();
 }
 
 public Iterator getAllResolvers() {

@@ -62,7 +62,7 @@ public String getType() {
       return interactionProtocols.remove(ip);
     }
     public void clearAllProtocol(){
-      interactionProtocols = new ArrayList();
+      interactionProtocols.clear();
     }
     public Iterator getAllProtocol() {
       return interactionProtocols.iterator();
@@ -76,7 +76,7 @@ public String getType() {
       return language.remove(ip);
     }
     public void clearAllLanguage(){
-      language = new ArrayList();
+      language.clear();
     }
     public Iterator getAllLanguage() {
       return language.iterator();
@@ -89,7 +89,7 @@ public String getType() {
       return ontology.remove(ip);
     }
     public void clearAllOntology(){
-      ontology = new ArrayList();
+      ontology.clear();
     }
     public Iterator getAllOntology() {
       return ontology.iterator();
@@ -111,7 +111,7 @@ public String getOwnership(){
       return properties.remove(ip);
     }
     public void clearAllProperties(){
-      properties = new ArrayList();
+      properties.clear();
     }
     public Iterator getAllProperties() {
       return properties.iterator();

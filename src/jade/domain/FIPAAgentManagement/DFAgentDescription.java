@@ -32,7 +32,7 @@ import java.util.*;
     <code>DF-agent-description</code> objects in
     <code>fipa-agent-management</code> ontology.
   */
-  public class DFAgentDescription implements Cloneable {
+  public class DFAgentDescription {
 
 
 
@@ -60,7 +60,7 @@ import java.util.*;
     }
 
 public void clearAllServices(){
-  services = new ArrayList();
+  services.clear();
 }
 
 public Iterator getAllServices(){
@@ -74,7 +74,7 @@ public Iterator getAllServices(){
       return interactionProtocols.remove(ip);
     }
     public void clearAllProtocols(){
-      interactionProtocols = new ArrayList();
+      interactionProtocols.clear();
     }
     public Iterator getAllProtocols() {
       return interactionProtocols.iterator();
@@ -87,7 +87,7 @@ public Iterator getAllServices(){
       return ontology.remove(ip);
     }
     public void clearAllOntology(){
-      ontology = new ArrayList();
+      ontology.clear();
     }
     public Iterator getAllOntology() {
       return ontology.iterator();
@@ -100,23 +100,10 @@ public Iterator getAllServices(){
       return language.remove(ip);
     }
     public void clearAllLanguage(){
-      language = new ArrayList();
+      language.clear();
     }
     public Iterator getAllLanguage() {
       return language.iterator();
     }
-
-    
-  public Object clone()
-  {
-  	Object o = null;
-  	try{
-  		o = super.clone();
-  	}catch(CloneNotSupportedException e){
-  		System.out.println("DFAgentDescriptor not support clone");
-  	}
-  	return o;
-  
-  }  
 
   } // End of DFAgentDescriptor class

@@ -30,6 +30,6 @@ public class APTransportDescription {
 
 public void addAvailableMtps(MTPDescription s) {mtps.add(s);}
 public boolean removeAvailableMtps(MTPDescription s) {return mtps.remove(s);}
-public void clearAllAvailableMtps() {mtps = new ArrayList();}
+public void clearAllAvailableMtps() {mtps.clear();}
 public Iterator getAllAvailableMtps() {return mtps.iterator();}
 }
