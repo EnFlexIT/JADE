@@ -173,13 +173,12 @@ class SerializationEngine {
     Envelope envelope = null;
 		//#CUSTOM_EXCLUDE_BEGIN
 		envelope = msg.getEnvelope();
-		//#CUSTOM_EXCLUDE_END
-
     Properties props = msg.getAllUserDefinedParameters();
     if (props.size() > 63) {
     	throw new LEAPSerializationException("Cannot serialize more than 63 params");
     }
-    
+		//#CUSTOM_EXCLUDE_END
+
     if (sender != null) { presence1 |= 0x80; }
     if (language != null) { presence1 |= 0x40; }
     if (ontology != null) { presence1 |= 0x20; }
@@ -190,8 +189,9 @@ class SerializationEngine {
     if (replyWith != null) { presence1 |= 0x01; }
     if (replyBy != null) { presence2 |= 0x80; }
     if (envelope != null) { presence2 |= 0x40; }
+		//#CUSTOM_EXCLUDE_BEGIN
     presence2 |= (props.size() & 0x3F);
-    
+		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence1);
     dos.writeByte(presence2);
 
@@ -204,11 +204,12 @@ class SerializationEngine {
     if (inReplyTo != null) { dos.writeUTF(inReplyTo); }
     if (replyWith != null) { dos.writeUTF(replyWith); }
     if (replyBy != null) { dos.writeLong(replyBy.getTime()); }
+//#CUSTOM_EXCLUDE_BEGIN
     if (envelope != null) { serializeEnvelope(envelope, dos); }
 
     // User defined parameters
     serializeProperties(props, dos);
-    
+//#CUSTOM_EXCLUDE_END    
     // Receivers
     Iterator it = msg.getAllReceiver();
     while (it.hasNext()) {
@@ -266,7 +267,6 @@ class SerializationEngine {
     if ((presence2 & 0x80) != 0) { msg.setReplyByDate(new Date(dis.readLong())); }
 		//#CUSTOM_EXCLUDE_BEGIN
     if ((presence2 & 0x40) != 0) { msg.setEnvelope(deserializeEnvelope(dis)); }
-		//#CUSTOM_EXCLUDE_END
     // User defined properties
     int propsSize = presence2 & 0x3F;
     for (int i = 0; i < propsSize; ++i) {
@@ -274,6 +274,7 @@ class SerializationEngine {
     	String val = dis.readUTF();
     	msg.addUserDefinedParameter(key, val);
     }
+		//#CUSTOM_EXCLUDE_END
     
     // Receivers
     while (dis.readBoolean()) {
@@ -381,6 +382,7 @@ class SerializationEngine {
   	return ss;
   }
 
+//#CUSTOM_EXCLUDE_BEGIN
   private final static void serializeEnvelope(Envelope env, DataOutputStream dos) throws IOException, LEAPSerializationException {
   	System.out.println("SerializationEngine.serializeEnvelope() not yet implemented");
   	// FIXME: To be implemented
@@ -400,5 +402,7 @@ class SerializationEngine {
     	dos.writeUTF(props.getProperty(key));
     }
   }  
+//#CUSTOM_EXCLUDE_END
+
 }
 

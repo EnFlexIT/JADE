@@ -61,7 +61,7 @@ public class OutputViewer extends MIDlet implements CommandListener {
   /**
    */
   public void startApp() {
-    form = new Form("Output:");
+    form = new Form(OUTPUT);
     form.addCommand(exitCommand);
     form.addCommand(clearCommand);
     form.setCommandListener(this);

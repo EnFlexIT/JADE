@@ -553,9 +553,9 @@ class DeliverableDataOutputStream extends DataOutputStream {
         writeString(msg.getInReplyTo());
         writeString(msg.getReplyWith());
 
+				//#CUSTOM_EXCLUDE_BEGIN
         // User def properties can't be null!
         serializeProperties(msg.getAllUserDefinedParameters());
-				//#CUSTOM_EXCLUDE_BEGIN
         writeObject(msg.getEnvelope());
 				//#CUSTOM_EXCLUDE_END
     } 

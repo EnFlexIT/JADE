@@ -236,11 +236,8 @@ private int performative; // keeps the performative type of this object
   */
   private String conversation_id = null;
 
-  /**
-  @serial
-  */
-  private Properties userDefProps = null; 
 	//#CUSTOM_EXCLUDE_BEGIN
+  private Properties userDefProps = null; 
   private Envelope messageEnvelope;
   
   /**
@@ -825,7 +822,7 @@ private int performative; // keeps the performative type of this object
   }
  
 
-
+//#CUSTOM_EXCLUDE_BEGIN
   /**
    * Add a new user defined parameter to this ACLMessage.
    * Notice that according to the FIPA specifications, the keyword of a
@@ -874,7 +871,7 @@ private int performative; // keeps the performative type of this object
 			 else
 					 return (userDefProps.remove(key) != null);
    }
-	//#CUSTOM_EXCLUDE_BEGIN
+
   /**
      Attaches an envelope to this message. The envelope is used by the
      <b><it>ACC</it></b> for inter-platform messaging.
@@ -980,8 +977,8 @@ private int performative; // keeps the performative type of this object
     result.reply_byInMillisec = reply_byInMillisec;
     result.protocol = protocol;
     result.conversation_id = conversation_id;
+   //#CUSTOM_EXCLUDE_BEGIN
     result.userDefProps = userDefProps;
- 	  //#CUSTOM_EXCLUDE_BEGIN
     if(messageEnvelope != null) {
 	  	result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
@@ -1024,8 +1021,10 @@ private int performative; // keeps the performative type of this object
   reply_byInMillisec = 0;
   protocol = null;
   conversation_id = null;
+	//#CUSTOM_EXCLUDE_BEGIN
 	if (userDefProps != null)
 			userDefProps.clear();
+	//#CUSTOM_EXCLUDE_END
  }
 
   /**
