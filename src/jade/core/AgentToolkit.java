@@ -43,8 +43,8 @@ interface AgentToolkit {
   Location here();
   void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
-  void handleMove(AID agentID, Location where);
-  void handleClone(AID agentID, Location where, String newName);
+  void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException;
+  void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException;
   void handleSend(ACLMessage msg) throws AuthException;
   void handlePosted(AID agentID, ACLMessage msg) throws AuthException;
   void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
