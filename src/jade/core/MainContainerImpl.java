@@ -50,6 +50,7 @@ import jade.domain.df;
 import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
+import jade.mtp.TransportAddress;
 
 
 /**
@@ -83,8 +84,19 @@ class MainContainerImpl implements Platform, AgentManager {
 
 
   MainContainerImpl(Profile p) throws ProfileException {
-    platformID = p.getParameter(Profile.PLATFORM_ID);
     myIMTPManager = p.getIMTPManager();
+    platformID = p.getParameter(Profile.PLATFORM_ID);
+	  if (platformID == null || platformID.equals("")) {
+    	try {
+    		// Build the PlatformID using the local host and port
+  	  	List l = myIMTPManager.getLocalAddresses();
+    		TransportAddress localAddr = (TransportAddress) l.get(0);
+    		platformID = localAddr.getHost()+":"+localAddr.getPort()+"/JADE";
+    	}
+    	catch (Exception e) {
+    		throw new ProfileException("Can't set PlatformID");
+    	}
+	  }
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
