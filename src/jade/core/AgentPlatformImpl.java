@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.19  1998/11/09 00:13:46  rimassa
+  Container list now is an Hashtable instead of a Vector, indexed by a
+  String, which is used also as container name in RMA GUI; various
+  changes throughout the code to support the new data structure.
+  Added some public methods for the AMS to use, such as a method to
+  obtain an Enumeration of container names or agent names.
+
   Revision 1.18  1998/11/03 00:30:25  rimassa
   Added AMS notifications for new agents and dead agents.
 
@@ -52,7 +59,6 @@ import java.io.OutputStreamWriter;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -68,6 +74,9 @@ import jade.domain.AgentAlreadyRegisteredException;
 
 public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
 
+  // Initial size of containers hash table
+  private static final int CONTAINERS_SIZE = 10;
+
   // Initial size of agent hash table
   private static final int GLOBALMAP_SIZE = 100;
 
@@ -78,7 +87,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private acc theACC;
   private df defaultDF;
 
-  private Vector containers = new Vector();
+  private Hashtable containers = new Hashtable(CONTAINERS_SIZE);
   private Hashtable platformAgents = new Hashtable(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
 
   private void initAMS() {
@@ -135,31 +144,43 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   }
 
+  private String getContainerName(AgentContainer ac) {
+    String name = "";
+    Enumeration e = containers.keys();
+    while(e.hasMoreElements()) {
+      name = (String)e.nextElement();
+      AgentContainer current = (AgentContainer)containers.get(name);
+      if(ac.equals(current))
+	break;
+    }
+    return name;
+  }
+
   public AgentPlatformImpl() throws RemoteException {
     initAMS();
     initACC();
     initDF();
   }
 
+
   public void addContainer(AgentContainer ac) throws RemoteException {
     
     String name = "Container-" + new Integer(containers.size()).toString();
-    containers.addElement(ac);
+    containers.put(name, ac);
 
     // Notify AMS
     theAMS.postNewContainer(name);
   }
 
   public void removeContainer(AgentContainer ac) throws RemoteException {
-    String name = "Container-" + new Integer(containers.indexOf(ac)).toString();
-    containers.removeElement(ac);
+    String name = getContainerName(ac);
+    containers.remove(name);
 
     // Notify AMS
     theAMS.postDeadContainer(name);
   }
 
   public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
-    System.out.println("Born agent " + name);
     Object old = platformAgents.put(name.toLowerCase(), desc);
 
     // If there's already an agent with name 'name' throw a name clash
@@ -180,14 +201,13 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void deadAgent(String name) throws RemoteException, NotFoundException {
-    System.out.println("Dead agent " + name);
 
     // Notify AMS
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(name.toLowerCase());
     if(ad == null)
       throw new NotFoundException("Failed to find " + name);
     AgentContainer ac = ad.getContainer();
-    String containerName = "Container-" + new Integer(containers.indexOf(ac)).toString();
+    String containerName = getContainerName(ac);
     AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
     platformAgents.remove(name.toLowerCase());
 
@@ -214,25 +234,56 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   // These methods are to be used only by AMS agent.
 
 
+
+  // This is used by AMS to obtain the list of all the Agent Containers of the platform.
+  public Enumeration AMSContainerNames() {
+    return containers.keys();
+  }
+
+  // This is used by AMS to obtain the list of all the agents of the platform.
+  public Enumeration AMSAgentNames() {
+    return platformAgents.keys();
+  }
+
+  // This maps the name of an agent to the name of the Agent Container the agent lives in.
+  public String AMSGetContainerName(String agentName) {
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    AgentContainer ac = ad.getContainer();
+    return getContainerName(ac);
+  }
+
+  // This maps the name of an agent to its IIOP address.
+  public String AMSGetAddress(String agentName) {
+    // FIXME: Should not even exist; it would be better to put the
+    // complete agent name in the hash table
+    return platformAddress; 
+  }
+
   // This is called in response to a 'create-agent' action
-  public void AMSCreateAgent(String agentName, String className, int containerID) throws NoCommunicationMeansException {
+  public void AMSCreateAgent(String agentName, String className, String containerName) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
-      AgentContainer ac = (AgentContainer)containers.elementAt(containerID);
+      AgentContainer ac;
+      // If no name is given, the agent is started on the AgentPlatform itself
+      if(containerName == null)
+	ac = this; 
+      else
+	ac = (AgentContainer)containers.get(containerName);
+
+      // If a wrong name is given, then again the agent starts on the AgentPlatform itself
+      if(ac == null)
+	ac = this;
       ac.createAgent(simpleName, className, START); // RMI call
-    }
-    catch(ArrayIndexOutOfBoundsException aioobe) {
-      throw new NoCommunicationMeansException();
     }
     catch(RemoteException re) {
       throw new NoCommunicationMeansException();
     }
   }
 
-  public void AMSCreateAgent(String agentName, Agent instance, int containerID) throws NoCommunicationMeansException {
+  public void AMSCreateAgent(String agentName, Agent instance, String containerName) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
-      AgentContainer ac = (AgentContainer)containers.elementAt(containerID);
+      AgentContainer ac = (AgentContainer)containers.get(containerName);
       ac.createAgent(simpleName, instance, START); // RMI call, 'instance' is serialized
     }
     catch(ArrayIndexOutOfBoundsException aioobe) {
@@ -294,7 +345,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
       // Notify AMS
       AgentContainer ac = ad.getContainer();
-      String containerName = "Container-" + new Integer(containers.indexOf(ac)).toString();
+      String containerName = getContainerName(ac);
       theAMS.postNewAgent(containerName, amsd);
     }
     catch(NotFoundException nfe) {
@@ -347,9 +398,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     // Extract the agent name from the beginning to the '@'
     agentName = agentName.substring(0,agentName.indexOf('@'));
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.remove(agentName);
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
     if(ad == null)
       throw new jade.domain.UnableToDeregisterException();
+    AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
+    amsd.setAPState(Agent.AP_DELETED);
   }
 
   public void AMSDumpData() {
