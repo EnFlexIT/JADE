@@ -85,6 +85,7 @@ public class ProfileImpl extends Profile {
       props.setPropertyIfNot(MAIN_PROTO, "rmi");
       props.setPropertyIfNot(MAIN_HOST, host);
       props.setPropertyIfNot(MAIN_PORT, Integer.toString(DEFAULT_PORT));
+      props.setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
       updatePlatformID();
       if (!props.getBooleanProperty("nomtp", false)) {
         Specifier s = new Specifier();
