@@ -17,8 +17,10 @@ ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 EXECS       = 	jade/Boot.java
 ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/NonDeterministicBehaviour.java \
+		jade/core/SequentialBehaviour.java \
 		jade/core/SimpleBehaviour.java \
-		jade/core/SequentialBehaviour.java
+		jade/proto/ProtocolDrivenBehaviour.java \
+		jade/proto/Standard.java
 STUBDIR     =	.
 STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.MessageDispatcherImpl \
