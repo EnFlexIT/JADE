@@ -253,7 +253,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
-
+	  	Logger.println("Connection manager closed");
+	  	
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
 	    
