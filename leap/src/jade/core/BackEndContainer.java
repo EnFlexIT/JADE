@@ -39,13 +39,15 @@ import jade.util.leap.Properties;
 import jade.security.*;
 
 import java.util.StringTokenizer;
+import java.util.Enumeration;
 
 /**
 @author Giovanni Caire - TILAB
 */
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
-
+	private static final String BE_PROPERTIES_FILE = "backends.properties";
+	
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
     public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
 
@@ -74,6 +76,25 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     public BackEndContainer(Properties props, BEConnectionManager cm) throws ProfileException {
 	super(new ProfileImpl(props));
 	creationProperties = props;
+	
+	// Set default additional services
+	props.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
+	
+	// Read the BackEnd configuration properties
+	Properties beProps = new Properties();
+	try {
+		beProps.load(BE_PROPERTIES_FILE);
+		Enumeration e = beProps.propertyNames();
+		while (e.hasMoreElements()) {
+			String key = (String) e.nextElement();
+			props.setProperty(key, beProps.getProperty(key));
+		}
+	}
+	catch (Exception e) {
+		// Ignore and keep defaults
+		e.printStackTrace();
+	}
+		
 	myConnectionManager = cm;
 
 	try {
@@ -122,18 +143,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
 	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
 
-      }
-
-
-      protected void startAdditionalServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
-	  startService("jade.core.event.NotificationService");
-	  // Start the Back-End replication service
-	  startService("jade.core.replication.BEReplicationService");
-
-		/*#CUSTOMJ2SE_INCLUDE_BEGIN
-	  startService("ePresence.log.EPresenceLogService");
-	  startService("jade.core.messaging.PersistentDeliveryService");
-		#CUSTOMJ2SE_INCLUDE_END*/
       }
 
 
@@ -620,11 +629,16 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.IS_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
 	myCommandProcessor.processOutgoing(cmd);
 	Object result = cmd.getReturnValue();
-	if(result instanceof Boolean) {
+	if (result instanceof Boolean) {
 	    return ((Boolean)result).booleanValue();
 	}
-	else { // Some exception was thrown
-	    return false;
+	else if (result == null) { 
+		// The replication service is not installed --> behave as if it were a master
+		return true;
+	}
+	else {
+		// Some exception was thrown
+		return false;
 	}
     }
 
