@@ -133,6 +133,9 @@ import jade.domain.FIPAAgentManagement.*;
     nameText = new JTextField();
     nameText.setBackground(Color.white);
     nameText.setText(agentAID.getName());
+    nameText.setPreferredSize(new Dimension(125,26));
+    nameText.setMinimumSize(new Dimension(125,26));
+    nameText.setMaximumSize(new Dimension(125,26));
  	  nameText.setEditable(editable);
  		namePanel.add(nameText);
  		
