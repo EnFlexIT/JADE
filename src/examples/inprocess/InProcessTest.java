@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package examples.inprocess;
 
-import jade.core.AID;
 import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -43,36 +42,55 @@ public class InProcessTest {
   public static void main(String args[]) {
 
     try {
-      // Create a default profile
-      Profile p = new ProfileImpl();
 
       // Get a hold on JADE runtime
       Runtime rt = Runtime.instance();
 
-      // Create a new non-main container, connecting to the default
-      // main container (i.e. on this host, port 1099)
-      AgentContainer ac = rt.createAgentContainer(p);
+      // Check whether a '-container' flag was given
+      if(args.length > 0) {
+	if(args[0].equalsIgnoreCase("-container")) {
+	  // Create a default profile
+	  Profile p = new ProfileImpl();
 
-      // Create a new agent, a DummyAgent
-      AID id = new AID("inProcess", AID.ISLOCALNAME);
-      Agent dummy = ac.createAgent(id, "jade.tools.DummyAgent.DummyAgent", new String[0]);
+	  // Create a new non-main container, connecting to the default
+	  // main container (i.e. on this host, port 1099)
+	  AgentContainer ac = rt.createAgentContainer(p);
 
-      // Fire up the agent
-      dummy.start();
+	  // Create a new agent, a DummyAgent
+	  Agent dummy = ac.createAgent("inProcess", "jade.tools.DummyAgent.DummyAgent", new String[0]);
 
-      // Create another peripheral container within the same JVM
-      AgentContainer another = rt.createAgentContainer(p);
+	  // Fire up the agent
+	  System.out.println("Starting up a DummyAgent...");
+	  dummy.start();
 
-      // Launch the Mobile Agent example
-      AID mobID = new AID("Johnny", AID.ISLOCALNAME);
-      Agent mobile = another.createAgent(mobID, "examples.mobile.MobileAgent", new String[0]);
-      mobile.start();
+	  // Wait for 10 seconds
+	  Thread.sleep(10000);
 
-      // Wait for 5 seconds
-      Thread.sleep(5000);
+	  // Kill the DummyAgent
+	  System.out.println("Killing DummyAgent...");
+	  dummy.delete();
 
-      // Kill the DummyAgent
-      dummy.delete();
+	  // Create another peripheral container within the same JVM
+	  AgentContainer another = rt.createAgentContainer(p);
+
+	  // Launch the Mobile Agent example
+	  Agent mobile = another.createAgent("Johnny", "examples.mobile.MobileAgent", new String[0]);
+	  mobile.start();
+
+	  return;
+	}
+      }
+
+
+      // Launch a complete platform on the 8888 port
+      Profile pMain = new ProfileImpl(null, "8888", null);
+
+      System.out.println("Launching a whole in-process platform...");
+      MainContainer mc = rt.createMainContainer(pMain);
+      AgentContainer cont = rt.createAgentContainer(pMain);
+
+      Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new String[0]);
+      rma.start();
 
     }
     catch(Exception e) {
