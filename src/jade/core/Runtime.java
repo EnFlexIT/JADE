@@ -219,13 +219,11 @@ public class Runtime {
       theDispatcher.start();
     }
     ++activeContainers;
-    System.out.println("beginContainer(): active containers="+activeContainers);
   }
 
   // Called by a terminating container.
   void endContainer() {
     --activeContainers;
-    System.out.println("endContainer(): active containers="+activeContainers);    
     if(activeContainers == 0) {
     	// Start a new Thread that calls all terminators one after 
     	// the other
