@@ -42,8 +42,9 @@ import jade.util.leap.HashMap;
 public abstract class BaseService implements Service {
 
 
-    protected BaseService(ServiceFinder sf) {
-	myFinder = sf;
+    protected BaseService(Profile p) throws ProfileException {
+	myFinder = p.getServiceFinder();
+	myIMTPManager = p.getIMTPManager();
 
 	slices = new HashMap();
 	aliases = new HashMap();
@@ -105,6 +106,10 @@ public abstract class BaseService implements Service {
 	return slices.size();
     }
 
+    public Node getLocalNode() throws IMTPException {
+	return myIMTPManager.getLocalNode();
+    }
+
     /**
        The <code>getAllSlices()</code> implementation of this class
        directly retrieves the current list of slices from the Service
@@ -151,6 +156,7 @@ public abstract class BaseService implements Service {
     }
 
     private ServiceFinder myFinder;
+    private IMTPManager myIMTPManager;
 
     private Map slices;
     private Map aliases;
