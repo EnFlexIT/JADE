@@ -758,8 +758,7 @@ public class Agent implements Runnable, Serializable
     return myAID;
   }
 
-  // FIXME: Must become private (or package scoped at least)
-  public void setAID(AID id) {
+  private void setAID(AID id) {
       myAID = id;
   }
 
