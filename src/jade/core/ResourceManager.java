@@ -34,13 +34,13 @@ interface ResourceManager {
 	// requested to the ResourceManager 
 	public static final int USER_AGENTS = 0;
 	public static final int SYSTEM_AGENTS = 1;
-	//public static final int CRITICAL = 2;
+	public static final int TIME_CRITICAL = 2;
 
 	/** 
 	   Return a Thread without starting it.
 	   @param type The type of the Thread that will be returned: valid 
 	   types are <code>USER_AGENTS</code>, <code>SYSTEM_AGENTS</code>,
-	   <code>CRITICAL</code>.
+	   <code>TIME_CRITICAL</code>.
 	   @param r The <code>Runnable</code> object that will executed by the 
 	   returned <code>Thread</code>.
 	 */

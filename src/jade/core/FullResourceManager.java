@@ -26,12 +26,12 @@ package jade.core;
 class FullResourceManager implements ResourceManager {
 	private static final String USER_AGENTS_GROUP_NAME = "JADE User Agents";
 	private static final String SYSTEM_AGENTS_GROUP_NAME = "JADE System Agents";
-	//private static final String CRITICAL_THREADS_GROUP_NAME = "JADE Critical Threads";
+	private static final String CRITICAL_THREADS_GROUP_NAME = "JADE Time-critical Threads";
   
 	private ThreadGroup parent;
 	private ThreadGroup agentThreads;
   private ThreadGroup systemAgentThreads;
-  //private ThreadGroup criticalThreads;
+  private ThreadGroup criticalThreads;
       
     
   public FullResourceManager() {
@@ -42,8 +42,8 @@ class FullResourceManager implements ResourceManager {
   	systemAgentThreads = new ThreadGroup(parent, SYSTEM_AGENTS_GROUP_NAME);
     systemAgentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     
-  	//criticalThreads = new ThreadGroup(parent, CRITICAL_THREADS_GROUP_NAME);
-    //criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
+  	criticalThreads = new ThreadGroup(parent, CRITICAL_THREADS_GROUP_NAME);
+    criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
   }
   
   public Thread getThread(int type, String name, Runnable r) {
@@ -57,10 +57,10 @@ class FullResourceManager implements ResourceManager {
   		t = new Thread(systemAgentThreads, r);
       t.setPriority(systemAgentThreads.getMaxPriority());
   		break;
-  	//case CRITICAL:
-  	//	t = new Thread(criticalThreads, r);
-    //  t.setPriority(criticalThreads.getMaxPriority());
-  	//	break;
+  	case TIME_CRITICAL:
+  		t = new Thread(criticalThreads, r);
+      t.setPriority(criticalThreads.getMaxPriority());
+  		break;
   	}
   	if (t != null) {
   		t.setName(name);
@@ -70,47 +70,12 @@ class FullResourceManager implements ResourceManager {
   }
   
   public void releaseResources() {
-  	// Release ThreadGroup for user agents
-    //try {
-			//parent.list();
-    	parent.interrupt();
-      //parent.destroy();
-    //}
-    //catch(IllegalThreadStateException itse) {
-		//	System.out.println("Active threads in '"+USER_AGENTS_GROUP_NAME+"' thread group:");
-		//	System.out.println(itse.getMessage());
-		//	itse.printStackTrace();
-		//	parent.list();
-    //}
-    //finally {
-      agentThreads = null;
-      systemAgentThreads = null;
-      parent = null;
-    //}
+    parent.interrupt();
     
-  	/* Release ThreadGroup for system agents
-    try {
-      systemAgentThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-			System.out.println("Active threads in '"+SYSTEM_AGENTS_GROUP_NAME+"' thread group:");
-			systemAgentThreads.list();
-    }
-    finally {
-      systemAgentThreads = null;
-    }
-    */
-  	// Release ThreadGroup for time critical threads
-  	//try {
-		//	criticalThreads.destroy();
-    //}
-    //catch(IllegalThreadStateException itse) {
-		//	System.out.println("Time-critical threads still active: ");
-		//	criticalThreads.list();
-    //}
-    //finally {
-		//	criticalThreads = null;
-    //}
+    agentThreads = null;
+    systemAgentThreads = null;
+		criticalThreads = null;
+		parent = null;
   }
   	
 }

@@ -91,7 +91,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   
   // The Object managing messages that cannot reach the destination because
   // of disconnection problems in this container
-  private DisconnectionManager myDisconnectionManager;
+  private MessageManager myMessageManager;
   
   // The Object managing all operations related to event notification
   // in this container
@@ -298,20 +298,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void enableSniffer(AID snifferName, AID toBeSniffed) throws IMTPException {
   	// Delegate the operation to the NotificationManager
   	myNotificationManager.enableSniffer(snifferName, toBeSniffed);
-		/*
-    ToolNotifier tn = findNotifier(snifferName);
-    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
-      removeMessageListener(tn);
-      tn = null;
-    }
-    if(tn == null) { // New sniffer
-      tn = new ToolNotifier(snifferName);
-      AID id = new AID(snifferName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
-      initAgent(id, tn, START);
-      addMessageListener(tn);
-    }
-    tn.addObservedAgent(toBeSniffed);
-		*/
   }
 
 
@@ -322,16 +308,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException {
   	// Delegate the operation to the NotificationManager
   	myNotificationManager.disableSniffer(snifferName, notToBeSniffed);
-  	/*
-    ToolNotifier tn = findNotifier(snifferName);
-    if(tn != null) { // The sniffer must be here
-      tn.removeObservedAgent(notToBeSniffed);
-      if(tn.isEmpty()) {
-	removeMessageListener(tn);
-	tn.doDelete();
-      }
-    }
-		*/
   }
 
 
@@ -342,28 +318,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
   	// Delegate the operation to the NotificationManager
   	myNotificationManager.enableDebugger(debuggerName, toBeDebugged);
-  	/*
-    ToolNotifier tn = findNotifier(debuggerName);
-    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
-      removeMessageListener(tn);
-      // removeAgentListener(tn);
-      tn = null;
-    }
-    if(tn == null) { // New debugger
-      tn = new ToolNotifier(debuggerName);
-      AID id = new AID(debuggerName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
-      initAgent(id, tn, START);
-      addMessageListener(tn);
-      addAgentListener(tn);
-    }
-    tn.addObservedAgent(toBeDebugged);
-
-    //  FIXME: Need to send a complete, transactional snapshot of the
-    //  agent state.
-    Agent a = localAgents.get(toBeDebugged);
-    AgentState as = a.getAgentState();
-    fireChangedAgentState(toBeDebugged, as, as);
-		*/
   }
 
   /**
@@ -373,17 +327,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
   	// Delegate the operation to the NotificationManager
   	myNotificationManager.disableDebugger(debuggerName, notToBeDebugged); 
-  	/*
-    ToolNotifier tn = findNotifier(debuggerName);
-    if(tn != null) { // The debugger must be here
-      tn.removeObservedAgent(notToBeDebugged);
-      if(tn.isEmpty()) {
-	removeMessageListener(tn);
-	removeAgentListener(tn);
-	tn.doDelete();
-      }
-    }
-    */
   }
 
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
@@ -547,12 +490,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
-      // Create the DisconnectionManager
-      myDisconnectionManager = new DisconnectionManager();
-      myDisconnectionManager.initialize(myProfile, this);
-      
       // Create the ResourceManager
       myResourceManager = myProfile.getResourceManager();
+      
+      // Create the MessageManager
+      myMessageManager = new MessageManager();
+      myMessageManager.initialize(myProfile, this);
       
       // Create and initialize the NotificationManager
       myNotificationManager = myProfile.getNotificationManager();
@@ -696,7 +639,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
         continue;
 
       a.doDelete();
+      //System.out.println("Killed agent "+a.getLocalName()+". Waiting for its termination...");
+      //System.out.flush();
       a.join();
+      //System.out.println("Agent "+a.getLocalName()+" terminated");
+      //System.out.flush();
       a.resetToolkit();
     }
 
@@ -717,25 +664,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       imtpe.printStackTrace();
     }
 
-
     // Releases Thread resources
     myResourceManager.releaseResources();
-    // Destroy the (now empty) thread groups
-    //try {
-    //  agentThreads.destroy();
-    //}
-    //catch(IllegalThreadStateException itse) {
-			//System.out.println("Active threads in 'JADE-Agents' thread group:");
-			//agentThreads.list();
-    //}
-    //finally {
-    //  agentThreads = null;
-    //}
-
-    // Notify the JADE Runtime that the container has terminated
-    // execution
+    
+    // Notify the JADE Runtime that the container has terminated execution
     Runtime.instance().endContainer();
-
   }
 
 
@@ -914,34 +847,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
-    enqueue(msg, receiverID);
+    try {
+			// If the receiver is local, post the message directly in its message queue	  
+			dispatch(msg, receiverID);
+    }
+    catch(NotFoundException nfe) {
+    	// Otherwise let the MessageManager deliver it asynchronously
+    	myMessageManager.deliver(msg, receiverID);
+    }
+    catch(IMTPException imtpe) {
+			// This should never happen as this is a local call
+			imtpe.printStackTrace();
+    }
   }
 
   /**
-   Adds a new ACLMessage to the send list...
-  */
-  public void enqueue(final ACLMessage msg, final AID receiverID) {
-
-    // Setting a Timer to now will force its expiration as soon as
-    // it is added to the timer dispatcher thread...
-    Timer t = new Timer(System.currentTimeMillis(), new TimerListener() {
-
-      public void doTimeOut(Timer t) {
-	try {
-	  deliverNow(msg, receiverID);
-	}
-	catch(UnreachableException ue) {
-	  myDisconnectionManager.deliverLater(msg, receiverID);
-	}
-      }
-
-    });
-
-    Runtime.instance().getTimerDispatcher().add(t);
-  }
-
-  /**
-   * Package scoped as it is called by the DisconnectionManager
+   * Package scoped as it is called by the MessageManager
    */
   void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException {
     try {
@@ -964,7 +885,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
    * This method is used internally by the platform in order
    * to notify the sender of a message that a failure was reported by
    * the Message Transport Service.
-   * Package scoped as it can be called by the DisconnectionManager
+   * Package scoped as it can be called by the MessageManager
    */
   void notifyFailureToSender(ACLMessage msg, InternalError ie) {
 		//if (the sender is not the AMS and the performative is not FAILURE)
