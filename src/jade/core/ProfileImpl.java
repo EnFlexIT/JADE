@@ -121,7 +121,7 @@ public class ProfileImpl extends Profile {
       /*#ALL_INCLUDE_BEGIN
 			props = new Properties();
       #ALL_INCLUDE_END*/
-		  props.setProperty(Profile.MAIN, Boolean.toString(isMain)); // set to a main/non-main container
+		  props.setProperty(Profile.MAIN, (new Boolean(isMain)).toString()); // set to a main/non-main container
 		  init();
   }
 
@@ -556,12 +556,12 @@ public class ProfileImpl extends Profile {
   }
 
   private void createResourceManager() throws ProfileException {
-  	//#PJAVA_EXCLUDE_BEGIN
+  	//#ALL_EXCLUDE_BEGIN
     String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
-  	//#PJAVA_EXCLUDE_END
-  	/*#PJAVA_INCLUDE_BEGIN
+  	//#ALL_EXCLUDE_END
+  	/*#ALL_INCLUDE_BEGIN
     String className = getParameter(RESOURCE, "jade.core.LightResourceManager");
-  	#PJAVA_INCLUDE_END*/
+  	#ALL_INCLUDE_END*/
 
     try {
       myResourceManager = (ResourceManager) Class.forName(className).newInstance();
