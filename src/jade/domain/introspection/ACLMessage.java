@@ -36,8 +36,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 public class ACLMessage {
 
   private Envelope env;
-  private Byte[] payload;
-
+  private String payload;
 
   public void setEnvelope(Envelope e) {
     env = e;
@@ -48,18 +47,22 @@ public class ACLMessage {
   }
 
   public void setAclRepresentation(String r) {
-    env.setAclRepresentation(r);
+    if(env != null)
+      env.setAclRepresentation(r);
   }
 
   public String getAclRepresentation() {
-    return env.getAclRepresentation();
+    if(env != null)
+      return env.getAclRepresentation();
+    else
+      return null;
   }
 
-  public void setPayload(Byte[] p) {
+  public void setPayload(String p) {
     payload = p;
   }
 
-  public Byte[] getPayload() {
+  public String getPayload() {
     return payload;
   }
 
