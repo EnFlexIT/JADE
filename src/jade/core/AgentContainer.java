@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.9  1999/03/03 16:08:31  rimassa
+ * Added remote methods to suspend and resume an agent.
+ *
  * Revision 1.8  1998/11/09 22:11:07  Giovanni
  * Added exit() method to allow shutting down an AgentContainer from a
  * remote host.
@@ -32,6 +35,12 @@ public interface AgentContainer extends Remote {
 
   void createAgent(String agentName, String className, boolean startIt) throws RemoteException;
   void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException;
+
+  void suspendAgent(String agentName) throws RemoteException, NotFoundException;
+  void resumeAgent(String agentName) throws RemoteException, NotFoundException;
+
+  void waitAgent(String agentName) throws RemoteException, NotFoundException;
+  void wakeAgent(String agentName) throws RemoteException, NotFoundException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
