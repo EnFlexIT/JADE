@@ -27,7 +27,9 @@ REM goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
 CALL makejade
-REM remember to call the makelib of jade FIXME
+pause
+echo generating the jade jar
+CALL makelib
 pause 
 CALL makeexamples
 pause
