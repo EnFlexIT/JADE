@@ -99,9 +99,11 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
   			
-   	// 2) Check if the new address has been added to the agent AID
-  	b = new OneShotBehaviour(a) {	
-  		public void action() {
+   	// 2) Wait a bit and then check if the new address has been added 
+  	// to the agent AID
+  	// - to the locally available AMS AID
+  	b = new WakerBehaviour(a, 1000) {	
+  		public void handleElapsedTimeout() {
   			AID id = myAgent.getAID();
   			Iterator it = id.getAllAddresses();
   			while (it.hasNext()) {
@@ -116,7 +118,24 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-  	// 3) Searches the AMS for himself and checks that the new 
+   	// 3) Check if the new address has been added to the locally available AMS AID
+  	b = new OneShotBehaviour(a) {	
+  		public void action() {
+  			AID id = myAgent.getAMS();
+  			Iterator it = id.getAllAddresses();
+  			while (it.hasNext()) {
+  				if (address.equals(it.next())) {
+  					l.log("New address correctly added to the locally available AMS AID.");
+  					return;
+  				}
+  			}
+  			l.log("The new address has NOT been added to the locally available  AMS AID.");
+	  		((SequentialBehaviour) parent).skipNext();
+  		}
+  	};
+  	sb.addSubBehaviour(b);
+
+  	// 4) Searches the AMS for himself and checks that the new 
   	// address has been added to the AMSDescription		
   	b = new OneShotBehaviour(a) {	
   		public void action() {
@@ -153,7 +172,7 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-  	// 4) Gets the platform description and check that the new 
+  	// 5) Gets the platform description and check that the new 
   	// address has been added		
   	b = new OneShotBehaviour(a) {	
   		public void action() {
@@ -209,7 +228,7 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-   	// 5) Kill the JVM where the container is running (simulate a crash)
+   	// 6) Kill the JVM where the container is running (simulate a crash)
   	b = new OneShotBehaviour(a) {			
   		public void action() {
   			jc.kill();
@@ -218,9 +237,9 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-   	// 6) Check if the address of the dead MTP has been removed from the agent AID
-  	b = new OneShotBehaviour(a) {	
-  		public void action() {
+   	// 7) Wait a bit and then check if the address of the dead MTP has been removed from the agent AID
+  	b = new WakerBehaviour(a, 1000) {	
+  		public void handleElapsedTimeout() {
   			AID id = myAgent.getAID();
   			Iterator it = id.getAllAddresses();
   			while (it.hasNext()) {
@@ -235,7 +254,24 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-  	// 7) Searches the AMS for himself and checks that the address of 
+   	// 8) Check if the address of the dead MTP has been removed from the locally available AMS AID
+  	b = new OneShotBehaviour(a) {	
+  		public void action() {
+  			AID id = myAgent.getAMS();
+  			Iterator it = id.getAllAddresses();
+  			while (it.hasNext()) {
+  				if (address.equals(it.next())) {
+		  			l.log("The address of the dead MTP has NOT been removed from the locally available AMS AID.");
+			  		((SequentialBehaviour) parent).skipNext();
+						return;
+  				}
+  			}
+				l.log("Address of the dead MTP correctly removed from the locally available AMS AID.");
+  		}
+  	};
+  	sb.addSubBehaviour(b);
+
+  	// 9) Searches the AMS for himself and checks that the address of 
   	// the dead MTP has been removed from the AMS-Description
   	b = new OneShotBehaviour(a) {	
   		public void action() {
@@ -272,7 +308,7 @@ public class TestMTPCrash extends Test {
   	};
   	sb.addSubBehaviour(b);
 
-  	// 8) Gets the platform description and check that the  
+  	// 10) Gets the platform description and check that the  
   	// address has been removed		
   	b = new OneShotBehaviour(a) {	
   		public void action() {
