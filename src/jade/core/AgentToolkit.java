@@ -28,10 +28,7 @@ import jade.security.AuthException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.Authority;
-import jade.security.AgentPrincipal;
-import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
 //#MIDP_EXCLUDE_END
 
 /**

@@ -49,9 +49,8 @@ import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
 import jade.security.Authority;
-import jade.security.CertificateFolder;
-import jade.security.AgentPrincipal;
-import jade.security.IdentityCertificate;
+import jade.security.Credentials;
+import jade.security.JADEPrincipal;
 import jade.security.AuthException;
 
 /**
@@ -196,8 +195,8 @@ public class AgentManagementService extends BaseService {
 	    String className = (String)params[1];
 	    String[]args = (String[])params[2];
 	    ContainerID cid = (ContainerID)params[3];
-	    String ownership = (String)params[4];
-	    CertificateFolder certs = (CertificateFolder)params[5];
+	    String ownership = "";//(String)params[4];
+	    Credentials creds = null;//TOFIX: get from cmd //(Credentials) params[5];
 
 	    log("Source Sink consuming command REQUEST_CREATE. Name is "+name, 3);
 	    MainContainer impl = myContainer.getMain();
@@ -206,12 +205,12 @@ public class AgentManagementService extends BaseService {
 				AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 				if (targetSlice != null) {
 					try {
-					    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+					    targetSlice.createAgent(agentID, className, args, ownership, creds, AgentManagementSlice.CREATE_AND_START);
 					}
 					catch(IMTPException imtpe) {
 					    // Try to get a newer slice and repeat...
 					    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-					    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+					    targetSlice.createAgent(agentID, className, args, ownership, creds, AgentManagementSlice.CREATE_AND_START);
 					}
 				}
 				else {
@@ -235,7 +234,7 @@ public class AgentManagementService extends BaseService {
 		throw new NotFoundException("Start-Agent failed to find " + target);
 
 
-			CertificateFolder agentCerts = null;
+			Credentials agentCerts = null;
 	    //#MIDP_EXCLUDE_BEGIN
 	    //CertificateFolder agentCerts = instance.getCertificateFolder();
 	    //#MIDP_EXCLUDE_END
@@ -536,11 +535,11 @@ public class AgentManagementService extends BaseService {
 	    String className = (String)params[1];
 	    Object[] arguments = (Object[])params[2];
 	    String ownership = (String)params[3];
-	    CertificateFolder certs = (CertificateFolder)params[4];
+	    Credentials creds = (Credentials)params[4];
 	    boolean startIt = ((Boolean)params[5]).booleanValue();
 	    
 			log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
-	    createAgent(agentID, className, arguments, ownership, certs, startIt);
+	    createAgent(agentID, className, arguments, ownership, creds, startIt);
 	}
 
 	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
@@ -567,7 +566,7 @@ public class AgentManagementService extends BaseService {
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    CertificateFolder certs = (CertificateFolder)params[2];
+	    Credentials certs = (Credentials)params[2];
 
 			log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
 	    bornAgent(agentID, cid, certs);
@@ -602,7 +601,7 @@ public class AgentManagementService extends BaseService {
 	    exitContainer();
 	}
 
-	private void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
+	private void createAgent(AID agentID, String className, Object arguments[], String ownership, Credentials creds, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
@@ -674,12 +673,12 @@ public class AgentManagementService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	private void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, Credentials creds) throws NameClashException, NotFoundException, AuthException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(name, cid, certs, false); 
+		    impl.bornAgent(name, cid, creds, false); 
 		}
 		catch(NameClashException nce) {
 			//#CUSTOMJ2SE_EXCLUDE_BEGIN
@@ -698,7 +697,7 @@ public class AgentManagementService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(name, cid, certs, true);
+			impl.bornAgent(name, cid, creds, true);
 		    }
 			//#CUSTOMJ2SE_EXCLUDE_END
 			/*#CUSTOMJ2SE_INCLUDE_BEGIN
@@ -808,7 +807,7 @@ public class AgentManagementService extends BaseService {
 		    String className = (String)params[1];
 		    Object[] arguments = (Object[])params[2];
 		    String ownership = (String)params[3];
-		    CertificateFolder certs = (CertificateFolder)params[4];
+		    Credentials certs = (Credentials)params[4];
 		    Boolean startIt = (Boolean)params[5];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(className);
@@ -839,7 +838,7 @@ public class AgentManagementService extends BaseService {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_CREATED, AgentManagementSlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    CertificateFolder certs = (CertificateFolder)params[2];
+		    Credentials certs = (Credentials)params[2];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(cid);
 		    gCmd.addParam(certs);
@@ -893,7 +892,7 @@ public class AgentManagementService extends BaseService {
 
 	try {
 
-	    CertificateFolder agentCerts = null;
+	    Credentials agentCerts = null;
           //TOFIX:  --- the following needs to be replaced ----
 	    //#MIDP_EXCLUDE_BEGIN
 	    //CertificateFolder agentCerts = instance.getCertificateFolder();

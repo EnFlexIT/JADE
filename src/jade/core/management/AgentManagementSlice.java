@@ -32,7 +32,7 @@ import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
 
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import jade.security.AuthException;
 
 
@@ -165,11 +165,11 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String H_RESUMEDAGENT = "7";
     static final String H_EXITCONTAINER = "8";
 
-    void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException;
+    void createAgent(AID agentID, String className, Object arguments[], String ownership, Credentials creds, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException;
     void killAgent(AID agentID) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;

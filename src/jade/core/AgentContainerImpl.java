@@ -50,11 +50,6 @@ import jade.mtp.TransportAddress;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AuthException;
-import jade.security.AgentPrincipal;
-import jade.security.ContainerPrincipal;
-//import jade.security.IdentityCertificate;
-//import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
 import jade.security.PrivilegedExceptionAction;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
@@ -233,7 +228,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_END
 	}*/
 
-	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
+	public void changedAgentPrincipal(AID agentID, JADEPrincipal principal) throws IMTPException {
 		principals.put(agentID, principal);
 	}
 
@@ -255,11 +250,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		return myPlatform.getContainerPrincipal((ContainerID)loc);
 	}*/
 
+/***
 	public AgentPrincipal getAgentPrincipal(final AID agentID) {
 		AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
 		if (principal == null) {
 
-		    /***
+
 			try {
 				principal = (AgentPrincipal)authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 					public Object run() throws IMTPException, NotFoundException {
@@ -280,7 +276,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				// e should never be thrown
 				e.printStackTrace();
 			}
-		    ***/
+
 
 		    // FIXME: Temporary Hack
 		    principal = new jade.security.dummy.DummyPrincipal();
@@ -288,6 +284,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 		return principal;
 	}
+***/
 //__SECURITY__END
 
 
@@ -542,12 +539,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // no matter priviledges of who originaltely triggered this action 
   private void endContainer() {
 	try {
-	authority.doPrivileged(new PrivilegedExceptionAction() {
-	        public Object run() {
-					Runtime.instance().endContainer();
-	            return null; // nothing to return
-	        }
-	});
+		Runtime.instance().endContainer();
 	} catch(Exception e) {
 		e.printStackTrace();
 	}
@@ -670,7 +662,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, CertificateFolder certs) {
+  public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal oldPrincipal, Credentials creds) {
 
       /***
 

@@ -38,7 +38,7 @@ import jade.core.NameClashException;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import jade.security.AuthException;
 
 
@@ -162,12 +162,12 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	}
     }
 
-    public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    public void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, NAME, null);
 	    cmd.addParam(name);
 	    cmd.addParam(cid);
-	    cmd.addParam(certs);
+	    cmd.addParam(creds);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

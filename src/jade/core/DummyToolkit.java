@@ -28,12 +28,11 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
 //__SECURITY__BEGIN
+import jade.security.JADEPrincipal;
 import jade.security.Authority;
 import jade.security.AuthException;
-import jade.security.AgentPrincipal;
-import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import jade.security.dummy.DummyAuthority;
 //__SECURITY__END
 
@@ -78,7 +77,7 @@ final class DummyToolkit implements AgentToolkit {
     public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {}
 
     //__SECURITY__BEGIN
-    public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs) {}
+    public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal from, Credentials creds) {}
     public Authority getAuthority() {
         return new DummyAuthority();
     } 

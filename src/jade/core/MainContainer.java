@@ -28,10 +28,10 @@ package jade.core;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
+import jade.security.Credentials;
 
 /**
    @author Giovanni Rimassa - Universita' di Parma
@@ -40,7 +40,7 @@ import jade.util.leap.List;
 
 public interface MainContainer {
 
-    void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, Credentials creds, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws NotFoundException;
     void suspendedAgent(AID name) throws NotFoundException;
     void resumedAgent(AID name) throws NotFoundException;

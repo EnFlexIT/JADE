@@ -58,9 +58,7 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
-import jade.security.IdentityCertificate;
-import jade.security.ContainerPrincipal;
+import jade.security.Credentials;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -292,12 +290,12 @@ public class MainReplicationService extends BaseService {
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    CertificateFolder certs = (CertificateFolder)params[2];
+	    Credentials creds = (Credentials)params[2];
 
 	    GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
 	    hCmd.addParam(agentID);
 	    hCmd.addParam(cid);
-	    hCmd.addParam(certs);
+	    hCmd.addParam(creds);
 
 	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
 	}
@@ -454,8 +452,8 @@ public class MainReplicationService extends BaseService {
 		else if(cmdName.equals(MainReplicationSlice.H_BORNAGENT)) {
 		    AID name = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    CertificateFolder certs = (CertificateFolder)params[2];
-		    bornAgent(name, cid, certs);
+		    Credentials creds = (Credentials)params[2];
+		    bornAgent(name, cid, creds);
 		}
 		else if(cmdName.equals(MainReplicationSlice.H_DEADAGENT)) {
 		    AID name = (AID)params[0];
@@ -576,14 +574,9 @@ public class MainReplicationService extends BaseService {
 	private void fillGADT(AID[] agents, ContainerID[] containers) throws AuthException {
 	    for(int i = 0; i < agents.length; i++) {
 
-		// FIXME: Temporary Hack --- Start
-		CertificateFolder certs = new CertificateFolder();
-		IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
-		identity.setSubject(new jade.security.dummy.DummyPrincipal(containers[i], " - "));
-		certs.setIdentityCertificate(identity);
-		// FIXME: Temporary Hack --- End
+                Credentials creds = null;
 		try {
-		    myMain.bornAgent(agents[i], containers[i], certs, true);
+		    myMain.bornAgent(agents[i], containers[i], creds, true);
 				log("Agent "+agents[i].getName()+" inserted into GADT", 2);		    
 		}
 		catch(NotFoundException nfe) {
@@ -598,10 +591,10 @@ public class MainReplicationService extends BaseService {
 
 	}
 
-	private void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, Credentials creds) throws NameClashException, NotFoundException, AuthException {
 	    try {
 		// If the name is already in the GADT, throws NameClashException
-		myMain.bornAgent(name, cid, certs, false);
+		myMain.bornAgent(name, cid, creds, false);
 		log("Agent "+name.getName()+" inserted into GADT", 2);
 	    }
 	    catch(NameClashException nce) {
@@ -620,7 +613,7 @@ public class MainReplicationService extends BaseService {
 		}
 		catch(Exception e) {
 		    // Ping failed: forcibly replace the dead agent...
-		    myMain.bornAgent(name, cid, certs, true);
+		    myMain.bornAgent(name, cid, creds, true);
 				log("Agent "+name.getName()+" inserted into GADT", 2);
 		}
 	    }

@@ -28,8 +28,6 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 
 import jade.security.Authority;
-import jade.security.AgentPrincipal;
-import jade.security.ContainerPrincipal;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -87,7 +85,7 @@ public interface AgentContainer {
     Location here();
 
     Authority getAuthority();
-    AgentPrincipal getAgentPrincipal(final AID agentID);
+    //AgentPrincipal getAgentPrincipal(final AID agentID);
     //ContainerPrincipal getContainerPrincipal();
     void setOwnerPrincipal(JADEPrincipal p);
     void setOwnerCredentials(Credentials c);

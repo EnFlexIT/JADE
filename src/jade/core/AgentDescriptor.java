@@ -26,8 +26,9 @@ package jade.core;
 //#MIDP_EXCLUDE_FILE
 
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-import jade.security.AgentPrincipal;
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
+import jade.security.JADEPrincipal;
+
 
 
 /**
@@ -48,8 +49,8 @@ class AgentDescriptor {
     //  private AgentProxy proxy;
     private boolean foreign;
     private ContainerID containerID;
-    private AgentPrincipal principal;
-    private CertificateFolder amsDelegation;
+    private JADEPrincipal principal;
+    private Credentials amsDelegation;
 
 
     public AgentDescriptor() {
@@ -90,20 +91,20 @@ class AgentDescriptor {
     }
 
     // Agent principal
-    public void setPrincipal(AgentPrincipal p) {
+    public void setPrincipal(JADEPrincipal p) {
 	principal = p;
     }
 
-    public AgentPrincipal getPrincipal() {
+    public JADEPrincipal getPrincipal() {
 	return principal;
     }
 
     // AMS delegation
-    public void setAMSDelegation(CertificateFolder cf) {
+    public void setAMSDelegation(Credentials cf) {
 	amsDelegation = cf;
     }
 
-    public CertificateFolder getAMSDelegation() {
+    public Credentials getAMSDelegation() {
 	return amsDelegation;
     }
 
