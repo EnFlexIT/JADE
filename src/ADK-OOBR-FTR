@@ -90,27 +90,23 @@ ams@- AuthBehaviour@public AuthBehaviour(ACLMessage msg, StringTokenizer st) {
 ams@- AuthBehaviour@public AuthBehaviour() {
 ams@- DeregBehaviour@public DeregBehaviour(ACLMessage msg, StringTokenizer st) {
 ams@- DeregBehaviour@public DeregBehaviour() {
-ams@- DispatcherBehaviour@public DispatcherBehaviour() {
 ams@- ModBehaviour@public ModBehaviour(ACLMessage msg, StringTokenizer st) {
 ams@- ModBehaviour@public ModBehaviour() {
 ams@- RegBehaviour@public RegBehaviour(ACLMessage msg, StringTokenizer st) {
 ams@- RegBehaviour@public RegBehaviour() {
 ams@- action@public void action() {
-ams@= actions@private Hashtable actions;
 ams@= address@private String address;
 ams@= agentName@private String agentName;
 ams@+ ams@public ams(AgentPlatformImpl ap, String name) {
 ams@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
 ams@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
 ams@= delegateAgent@private String delegateAgent;
-ams@- done@public boolean done() {
-ams@- execute@public void execute() {
+ams@= dispatcher@private FipaRequestServerBehaviour dispatcher;
 ams@= forwardAddress@private String forwardAddress;
 ams@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
 ams@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
 ams@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
 ams@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
-ams@> instance@public abstract Behaviour instance(ACLMessage msg, StringTokenizer st);
 ams@= myActionName@private String myActionName;
 ams@= myOntology@protected AgentManagementOntology myOntology;
 ams@= myPlatform@private AgentPlatformImpl myPlatform;
@@ -122,22 +118,62 @@ ams@- processAttributes@protected void processAttributes(String agentName, Strin
 ams@- processAttributes@protected void processAttributes(String agentName, String address, String signature, String delegateAgent, String forwardAddress, String APState) {
 ams@> processAttributes@protected abstract void processAttributes(String agentName, String address, String signature, String delegateAgent, String forwardAddress, String APState);
 ams@- registerWithAMS@public void registerWithAMS(String signature, String delegateAgent, String forwardAddress, int APState) {
-ams@= requestTemplate@private MessageTemplate requestTemplate;
-ams@- sendAgree@private void sendAgree(ACLMessage msg) {
-ams@- sendFailure@private void sendFailure(ACLMessage msg, String reason) {
-ams@- sendInform@private void sendInform(ACLMessage msg) {
-ams@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
-ams@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
-ams@- sendRefuse@private void sendRefuse(ACLMessage msg, String reason) {
+ams@- sendAgree@protected void sendAgree(ACLMessage msg) {
+ams@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
+ams@- sendInform@protected void sendInform(ACLMessage msg) {
+ams@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
+ams@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 ams@- setup@protected void setup() {
 ams@= signature@private String signature;
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/df.java
-df@= agents@private Vector agents;
-df@- local_startup@public void local_startup() {
-df@- parseMsg@public int parseMsg() {
-df@- sendAddress@private void sendAddress( String requestedAdd, aclMessage msg, String type ) {
-df@- updateService@private void updateService( String source, String name, String service ) {
+df@- DFBehaviour@protected DFBehaviour(String actionName, ACLMessage msg, StringTokenizer st) {
+df@- DFBehaviour@protected DFBehaviour(String actionName) {
+df@- DFDeregister@private void DFDeregister(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- DFModify@private void DFModify(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- DFRegister@private void DFRegister(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- DFSearch@private void DFSearch(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@= DFState@private String DFState;
+df@- DeregBehaviour@public DeregBehaviour(ACLMessage msg, StringTokenizer st) {
+df@- DeregBehaviour@public DeregBehaviour() {
+df@- ModBehaviour@public ModBehaviour(ACLMessage msg, StringTokenizer st) {
+df@- ModBehaviour@public ModBehaviour() {
+df@- RegBehaviour@public RegBehaviour(ACLMessage msg, StringTokenizer st) {
+df@- RegBehaviour@public RegBehaviour() {
+df@- SrchBehaviour@public SrchBehaviour(ACLMessage msg, StringTokenizer st) {
+df@- SrchBehaviour@public SrchBehaviour() {
+df@- action@public void action() {
+df@= address@private String address;
+df@= agentName@private String agentName;
+df@= agentServices@private String agentServices;
+df@= agentType@private String agentType;
+df@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
+df@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
+df@+ df@public df() {
+df@= dispatcher@private FipaRequestServerBehaviour dispatcher;
+df@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
+df@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
+df@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
+df@- instance@public Behaviour instance(ACLMessage msg, StringTokenizer st) {
+df@= interactionProtocols@private String interactionProtocols;
+df@= myActionName@private String myActionName;
+df@= myOntology@protected AgentManagementOntology myOntology;
+df@= myParser@private DFDescriptionParser myParser =
+df@= myReply@private ACLMessage myReply;
+df@= myTokenizer@private StringTokenizer myTokenizer;
+df@= ontology@private String ontology;
+df@= ownership@private String ownership;
+df@- processAttributes@protected void processAttributes(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- processAttributes@protected void processAttributes(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- processAttributes@protected void processAttributes(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@- processAttributes@protected void processAttributes(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState) {
+df@> processAttributes@protected abstract void processAttributes(String agentName, String agentServices, String agentType, String interactionProtocols, String ontology, String address, String ownership, String DFState);
+df@- sendAgree@protected void sendAgree(ACLMessage msg) {
+df@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
+df@- sendInform@protected void sendInform(ACLMessage msg) {
+df@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
+df@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
+df@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java
 Parser@= parse@public void parse(Reader textSource);
@@ -251,6 +287,7 @@ AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) thr
 AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
 AgentPlatformImpl@= containers@private Vector containers =
 AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException {
+AgentPlatformImpl@= defaultDF@private df defaultDF;
 AgentPlatformImpl@- initACC@private void initACC() {
 AgentPlatformImpl@- initAMS@private void initAMS() {
 AgentPlatformImpl@- initDF@private void initDF() {
@@ -905,6 +942,7 @@ AgentManagementOntology@- DomainLifeCycle@public static class DomainLifeCycle {
 AgentManagementOntology@- Exception@public static class Exception {
 AgentManagementOntology@- PlatformProfile@public static class PlatformProfile {
 AgentManagementOntology@- ServiceDescription@public static class ServiceDescription {
+AgentManagementOntology@- ServiceTypes@public static class ServiceTypes {
 AgentManagementOntology@- getAPStateByCode@public String getAPStateByCode(int code) throws FIPAException {
 AgentManagementOntology@- getAPStateByName@public int getAPStateByName(String name) throws FIPAException {
 AgentManagementOntology@- getDomainStateByName@public int getDomainStateByName(String name) throws FIPAException {
@@ -996,3 +1034,89 @@ UnauthorisedException@+ UnauthorisedException@public UnauthorisedException() {
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
 UnwillingToPerformException@+ UnwillingToPerformException@public UnwillingToPerformException() {
+
+/home/rimassa/DEVEL/JADE/src/examples/ex5/dfTester.java
+dfTester@= DFState@private String DFState =
+dfTester@- ReceiveBehaviour@protected ReceiveBehaviour(dfTester a) {
+Receiver@+ Receiver@private Receiver() {
+dfTester@= address@private String address =
+dfTester@- agreed@public boolean agreed() {
+dfTester@= convCounter@private int convCounter =
+dfTester@= convID@private String convID;
+dfTester@- done@public boolean done() {
+dfTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
+dfTester@> execute@public abstract void execute();
+dfTester@= finished@protected boolean finished =
+dfTester@- getAction@public String getAction() {
+dfTester@- getConvID@public String getConvID() {
+dfTester@- handleFailure@public void handleFailure(ACLMessage msg) {
+dfTester@- handleInform@public void handleInform(ACLMessage msg) {
+dfTester@= interactionProtocols@private String interactionProtocols =
+dfTester@= myAction@private String myAction;
+dfTester@= myAgent@protected dfTester myAgent;
+dfTester@= name@private String name =
+dfTester@- newConvID@private String newConvID() {
+dfTester@= ontology@private String ontology =
+dfTester@= ownership@private String ownership =
+Receiver@- receive@public static final ACLMessage receive(dfTester a, String messageType) {
+dfTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
+dfTester@= receivedAgree@private boolean receivedAgree =
+dfTester@- sendRequest@public void sendRequest() {
+dfTester@= services@private String services =
+dfTester@- setup@protected void setup() {
+dfTester@= type@private String type =
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
+BehaviourPrototype@= instance@public Behaviour instance(ACLMessage msg, StringTokenizer st);
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/DFAgentDescriptor.java
+DFAgentDescriptor@= DFState@private String DFState;
+DFAgentDescriptor@= address@private String address;
+DFAgentDescriptor@- dump@public void dump() {
+DFAgentDescriptor@- getAddress@public String getAddress() {
+DFAgentDescriptor@- getAgentServices@public ServiceDescriptor getAgentServices() {
+DFAgentDescriptor@- getDFState@String getDFState() {
+DFAgentDescriptor@- getInteractionProtocols@public String getInteractionProtocols() {
+DFAgentDescriptor@- getName@public String getName() {
+DFAgentDescriptor@- getOntology@public String getOntology() {
+DFAgentDescriptor@- getOwnership@public String getOwnership() {
+DFAgentDescriptor@- getType@public String getType() {
+DFAgentDescriptor@= interactionProtocols@private String interactionProtocols;
+DFAgentDescriptor@= name@private String name;
+DFAgentDescriptor@= ontology@private String ontology;
+DFAgentDescriptor@= ownership@private String ownership;
+DFAgentDescriptor@= services@private ServiceDescriptor services;
+DFAgentDescriptor@- setAddress@public void setAddress(String a) {
+DFAgentDescriptor@- setDFState@public void setDFState(String dfs) {
+DFAgentDescriptor@- setInteractionProtocols@public void setInteractionProtocols(String ip) {
+DFAgentDescriptor@- setName@public void setName(String n) {
+DFAgentDescriptor@- setOntology@public void setOntology(String o) {
+DFAgentDescriptor@- setOwnership@public void setOwnership(String o) {
+DFAgentDescriptor@- setServices@public void setServices(ServiceDescriptor sd) {
+DFAgentDescriptor@- setType@public void setType(String t) {
+DFAgentDescriptor@= type@private String type;
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
+FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a) {
+FipaRequestServerBehaviour@= actions@private Hashtable actions;
+FipaRequestServerBehaviour@- done@public boolean done() {
+FipaRequestServerBehaviour@- execute@public void execute() {
+FipaRequestServerBehaviour@= myAgent@private Agent myAgent;
+FipaRequestServerBehaviour@- registerPrototype@public void registerPrototype(String actionName, BehaviourPrototype bp) {
+FipaRequestServerBehaviour@= requestTemplate@private MessageTemplate requestTemplate;
+FipaRequestServerBehaviour@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
+FipaRequestServerBehaviour@- unregisterPrototype@public void unregisterPrototype(String actionName) {
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/ServiceDescriptor.java
+ServiceDescriptor@= conditions@private String conditions;
+ServiceDescriptor@= description@private String description;
+ServiceDescriptor@- getConditions@public String getConditions() {
+ServiceDescriptor@- getDescription@public String getDescription() {
+ServiceDescriptor@- getOntology@public String getOntology() {
+ServiceDescriptor@- getType@public String getType() {
+ServiceDescriptor@= ontology@private String ontology;
+ServiceDescriptor@- setConditions@public void setConditions(String c) {
+ServiceDescriptor@- setDescription@public void setDescription(String d) {
+ServiceDescriptor@- setOntology@public void setOntology(String o) {
+ServiceDescriptor@- setType@public void setType(String t) {
+ServiceDescriptor@= type@private String type;
