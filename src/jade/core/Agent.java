@@ -432,6 +432,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   private volatile int myAPState;
   
+
+  private String ownership = jade.security.Principal.NONE;
 //__JADE_ONLY__BEGIN
   private AgentPrincipal principal = new AgentPrincipal();
   private IdentityCertificate identity = null;
@@ -928,6 +930,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   //__JADE_ONLY__BEGIN
+	public void setOwnership(String ownership) {
+	  this.ownership = ownership;
+	}
+
 	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
     synchronized(principalLock) {
       this.identity = identity;
@@ -1428,7 +1434,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     try {
       AMSAgentDescription amsd = new AMSAgentDescription();
       amsd.setName(myAID);
-      amsd.setOwnership(principal.getName());
+      amsd.setOwnership(ownership);
       amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:

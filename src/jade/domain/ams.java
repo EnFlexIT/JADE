@@ -651,7 +651,7 @@ public class ams extends Agent implements AgentManager.Listener {
       sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
       try {
-	myPlatform.create(agentName, className, arguments, container, null, null); //!!!
+	myPlatform.create(agentName, className, arguments, container, jade.security.Principal.NONE); //!!!
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.

@@ -104,6 +104,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   private UserPrincipal user = null;
   private byte[] passwd = null;
+  private String ownership;
   private JADESubject subject;
 
   // This monitor is used to hang a remote ping() call from the front
@@ -125,12 +126,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
   // /////////////////////////////////////////
-  public void createAgent(AID agentID, String className, Object[] args, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] args, String ownership, boolean startIt) throws IMTPException {
 
     Agent agent = null;
     try {
         agent = (Agent)Class.forName(new String(className)).newInstance();
-        agent.setPrincipal(identity, delegation);
+        agent.setOwnership(ownership);
 				agent.setArguments(args);
     }
     catch(ClassNotFoundException cnfe) {
@@ -488,24 +489,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID("No-Name", addr);
       
-      // Register to the platform. If myPlatform is the real MainContainerImpl
-      // this call also starts the AMS and DF
-      String ownership = System.getProperty("jade.security.ownership");
-      if (ownership == null) {
-        user = new UserPrincipal();
-        passwd = new byte[] {};
+      ownership = System.getProperty("jade.security.ownership");
+      if (ownership == null)
+        ownership = jade.security.Principal.NONE;
+
+      int dot2 = ownership.indexOf(':');
+      if (dot2 != -1) {
+        user = new UserPrincipal(ownership.substring(0, dot2));
+        passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
       }
       else {
-        int dot2 = ownership.indexOf(':');
-        if (dot2 != -1) {
-          user = new UserPrincipal(ownership.substring(0, dot2));
-          passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-        }
-        else {
-          user = new UserPrincipal(ownership);
-          passwd = new byte[] {};
-        }
+        user = new UserPrincipal(ownership);
+        passwd = new byte[] {};
       }
+
+      // Register to the platform. If myPlatform is the real MainContainerImpl
+      // this call also starts the AMS and DF
       myPlatform.register(this, myID, user, passwd);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
@@ -562,7 +561,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    authority.sign(delegation, subject);
 	    
 	    try {
-	      createAgent(agentID, s.getClassName(), s.getArgs(), identity, delegation, NOSTART);
+	      createAgent(agentID, s.getClassName(), s.getArgs(), ownership, NOSTART);
 	    }
 	    catch (IMTPException imtpe) {
 	      // The call to createAgent() in this case is local --> no need to

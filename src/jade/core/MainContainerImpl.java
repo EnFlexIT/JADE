@@ -125,6 +125,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
 
+    String ownership = user.getName() + ":" + new String(passwd);
     // Set the container-principal
     JADESubject subject = authority.authenticateUser(user, passwd);
     IdentityCertificate identity = subject.getIdentity();
@@ -138,6 +139,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
     // Start the AMS
     theAMS = new ams(this);
+    theAMS.setOwnership(ownership);
     ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
     theAMS.waitUntilStarted();
 
@@ -146,6 +148,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
     // Start the Default DF
     defaultDF = new df();
+    defaultDF.setOwnership(ownership);
     ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
     defaultDF.waitUntilStarted();
     
@@ -815,7 +818,7 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(String agentName, String className, String args[], ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, JADESecurityException {
+  public void create(String agentName, String className, String args[], ContainerID cid, String ownership) throws UnreachableException, JADESecurityException {
     try {
       String containerName = cid.getName();
       AgentContainer ac;
@@ -836,7 +839,7 @@ class MainContainerImpl implements Platform, AgentManager {
       }
 
       AID id = new AID(agentName, AID.ISLOCALNAME);
-      ac.createAgent(id, className, args, identity, delegation, AgentContainer.START);
+      ac.createAgent(id, className, args, ownership, AgentContainer.START);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());

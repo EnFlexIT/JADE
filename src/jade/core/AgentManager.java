@@ -72,7 +72,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   ContainerID getContainerID(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[], ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, JADESecurityException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership) throws UnreachableException, JADESecurityException;
 
   void killContainer(ContainerID cid);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;

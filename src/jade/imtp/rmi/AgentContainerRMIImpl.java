@@ -105,8 +105,8 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.disableSniffer(snifferName, notToBeSniffed);
     }
     
-    public void createAgent(AID agentID, String className, Object[] arguments, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws RemoteException, IMTPException {
-      impl.createAgent(agentID, className, arguments, identity, delegation, startIt);
+    public void createAgent(AID agentID, String className, Object[] arguments, String ownership, boolean startIt) throws RemoteException, IMTPException {
+      impl.createAgent(agentID, className, arguments, ownership, startIt);
     }
     
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {

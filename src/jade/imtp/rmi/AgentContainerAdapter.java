@@ -130,9 +130,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public void createAgent(AID agentID, String className, Object[] arguments, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] arguments, String ownership, boolean startIt) throws IMTPException {
     try {
-      adaptee.createAgent(agentID, className, arguments, identity, delegation, startIt);
+      adaptee.createAgent(agentID, className, arguments, ownership, startIt);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
