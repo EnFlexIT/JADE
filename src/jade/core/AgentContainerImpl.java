@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.44  1999/08/27 15:43:04  rimassa
+  Implemented moveAgent() method to forward action to the agent itself.
+  Put in some locking mechanisms to support transactional agent
+  migration.
+
   Revision 1.43  1999/08/10 15:28:41  rimassa
   Added support for agent cloning, both agent-initiated and AMS-initiated.
 
@@ -307,13 +312,15 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   public void wakeAgent(String agentName) throws RemoteException, NotFoundException {
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if(agent==null)
-      throw new NotFoundException("WaitAgent failed to find " + agentName);
+      throw new NotFoundException("WakeAgent failed to find " + agentName);
     agent.doWake();
   }
 
-  public void moveAgent(String agentName, AgentContainer where) throws RemoteException {
-    // Detach yourself as a listener from the departing agent
-    // Send agent code and data to the destination with a remote creation
+  public void moveAgent(String agentName, String where) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent==null)
+      throw new NotFoundException("MoveAgent failed to find " + agentName);
+    agent.doMove(where);
   }
 
   public void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException {
@@ -335,7 +342,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     System.exit(0);
   }
 
-  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
+  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException {
     String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
     int atPos = completeName.indexOf('@');
@@ -349,7 +356,22 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     if(receiver == null) 
       throw new NotFoundException("DispatchMessage failed to find " + receiverName);
 
-    receiver.postMessage(msg);
+    synchronized(receiver) {
+      // If this is a mobile agent, Wait until the end of the transaction.
+      while(receiver.getState() == Agent.AP_TRANSIT) {
+	try {
+	  receiver.wait();
+	}
+	catch(InterruptedException ie) {
+	  ie.printStackTrace();
+	}
+      }
+      if(receiver.getState() == Agent.AP_GONE) {
+	System.out.println("ARGH!!! in AgentContainer.dispatch()");
+	throw new TransientException("Agent " + receiverName + " is dead.");
+      }
+      receiver.postMessage(msg);
+    }
   }
 
   public void ping() throws RemoteException {
@@ -449,7 +471,18 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
-	unicastPostMessage(copy, dest);
+	// Follow a retry scheme to handle transient failures when
+	// addressing mobile agents.
+	boolean retryNeeded = true;
+	while(retryNeeded) {
+	  try {	      
+	    unicastPostMessage(copy, dest);
+	    retryNeeded = false;
+	  }
+	  catch(TransientException te) {
+	    retryNeeded = true;
+	  }
+	}
       }
     }
     else {  // FIXME: This is probably not compliant
@@ -460,9 +493,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
-	unicastPostMessage(copy, dest);
+	// Follow a retry scheme to handle transient failures when
+	// addressing mobile agents.
+	boolean retryNeeded = true;
+	while(retryNeeded) {
+	  try {	      
+	    unicastPostMessage(copy, dest);
+	    retryNeeded = false;
+	  }
+	  catch(TransientException te) {
+	    retryNeeded = true;
+	  }
+	}
       }
-
     }
   }
 
@@ -487,7 +530,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void moveSource(String name, String where) {
-    // FIXME: Not implemented
+
   }
 
   public void copySource(String name, String where, String newName) {
@@ -533,7 +576,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     return (AgentPlatform)o;
   }
 
-  private void unicastPostMessage(ACLMessage msg, String completeName) {
+  private void unicastPostMessage(ACLMessage msg, String completeName) throws TransientException {
     String receiverName = null;
     String receiverAddr = null;
 
