@@ -62,7 +62,7 @@ public class DFRegisterAgent extends Agent {
   		// Agents that want to use this service need to "know" the weather-forecast-ontology
   		sd.addOntologies("weather-forecast-ontology");
   		// Agents that want to use this service need to "speak" the FIPA-SL language
-  		sd.addOntologies(FIPANames.ContentLanguage.FIPA_SL);
+  		sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
   		sd.addProperties(new Property("country", "Italy"));
   		dfd.addServices(sd);
   		
