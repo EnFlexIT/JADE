@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.16  1998/10/25 23:58:26  rimassa
+  Moved agent creation code into a 'createAgent()' method. Besides,
+  createAgent() and killAgent() are now Remote Methods, thus allowing to
+  create an agent on a different container.
+
   Revision 1.15  1998/10/18 15:53:13  rimassa
   Added a private lookup3() method to avoid a bug in java.rmi.Naming
   class.
@@ -109,6 +114,59 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Interface AgentContainer implementation
 
+  public void createAgent(String agentName, String className, boolean startIt) throws RemoteException {
+
+    Agent agent = null;
+    try {
+      agent = (Agent)Class.forName(new String(className)).newInstance();
+    }
+    catch(ClassNotFoundException cnfe) {
+      System.err.println("Class " + className + " for agent " + agentName + " was not found.");
+      return;
+    }
+    catch( Exception e ){
+      e.printStackTrace();
+    }
+
+    createAgent(agentName, agent, startIt);
+  }
+
+
+  public void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
+
+    AgentDescriptor desc = new AgentDescriptor();
+
+    // Subscribe as a listener for the new agent
+    instance.addCommListener(this);
+
+    // Insert new agent into local agents table
+    localAgents.put(agentName.toLowerCase(), instance);
+
+    desc.setDemux(myDispatcher);
+
+    try {
+      myPlatform.bornAgent(agentName, desc); // RMI call
+    }
+    catch(NameClashException nce) {
+      System.out.println("Agent name already in use");
+      nce.printStackTrace();
+      localAgents.remove(agentName.toLowerCase());
+    }
+    catch(RemoteException re) {
+      System.out.println("Communication error while adding a new agent to the platform.");
+      re.printStackTrace();
+    }
+
+    if(startIt)
+      instance.doStart(agentName, platformAddress);
+  }
+
+  public void killAgent(String agentName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent == null)
+      throw new NotFoundException("KillAgent failed to find " + agentName);
+    agent.doDelete();
+  }
 
   public void invalidateCacheEntry(String key) throws RemoteException {
     remoteAgentsCache.remove(key);
@@ -117,11 +175,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
 
-    Agent agent = null;
-    AgentDescriptor desc = new AgentDescriptor();
-
     platformAddress = platformIIOP;
-
 
     // Retrieve agent platform from RMI registry and register as agent container
     try {
@@ -150,40 +204,13 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     for( int i=0; i < agentNamesAndClasses.size(); i+=2 ) {
       String agentName = (String)agentNamesAndClasses.elementAt(i);
       String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
-
-      System.out.println("new agent: " + agentName + " : " + agentClass);
-
       try {
-	agent = (Agent)Class.forName(new String(agentClass)).newInstance();
+	createAgent(agentName, agentClass, NOSTART);
       }
-      catch(ClassNotFoundException cnfe) {
-	System.err.println("Class " + agentClass + " for agent " + agentName + " was not found.");
-	continue;
-      }
-      catch( Exception e ){
-	e.printStackTrace();
-      }
-
-      // Subscribe as a listener for the new agent
-      agent.addCommListener(this);
-
-      // Insert new agent into local agents table
-      localAgents.put(agentName.toLowerCase(),agent);
-
-      desc.setDemux(myDispatcher);
-
-      try {
-	myPlatform.bornAgent(agentName, desc); // RMI call
-      }
-      catch(NameClashException nce) {
-	System.out.println("Agent name already in use");
-	nce.printStackTrace();
-	localAgents.remove(agentName.toLowerCase());
-      }
-      catch(RemoteException re) {
-	System.out.println("Communication error while adding a new agent to the platform.");
+      catch(RemoteException re) { // It should never happen
 	re.printStackTrace();
       }
+
     }
 
     // Now activate all agents (this call starts their embedded threads)
@@ -191,7 +218,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     String currentName = null;
     while(nameList.hasMoreElements()) {
       currentName = (String)nameList.nextElement();
-      agent = (Agent)localAgents.get(currentName.toLowerCase());
+      Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
       agent.doStart(currentName, platformAddress);
     }
   }
