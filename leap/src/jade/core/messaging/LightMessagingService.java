@@ -401,14 +401,12 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    catch(Throwable t) {
         cmd.setReturnValue(t);
 	    }
-	    finally {
         if(cmd instanceof VerticalCommand) {
           return (VerticalCommand)cmd;
         }
         else {
           return null;
         }
-	    }
     }
 
 

@@ -676,9 +676,8 @@ public class BEAgentManagementService extends BaseService {
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
     } // End of AgentManagementSlice class

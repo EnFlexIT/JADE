@@ -506,9 +506,8 @@ public class BEReplicationService extends BaseService {
 		    result.setReturnValue(t);
 		}
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
 
