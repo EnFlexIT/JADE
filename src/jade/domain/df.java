@@ -101,7 +101,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	try {
 	    ACLMessage msg = getRequest();
 	    // Extract the Action object from the message content
-	    List l = extractContent(msg);
+	    List l = extractContent2(msg);
 	    a = (Action)l.get(0);
 	    // Do real action, deferred to subclasses
 	    processAction(a);
@@ -271,7 +271,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	      r.add_1(l.get(i));
             l.clear();
             l.add(r);
-            fillContent(msg,l); 
+            fillContent2(msg,l); 
             send(msg);
       			return;
       		}
@@ -312,7 +312,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	r.add_1(l.get(i));
       l.clear();
       l.add(r);
-      fillContent(msg,l); 
+      fillContent2(msg,l); 
       send(msg);
     }
 
@@ -376,7 +376,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	  r.add_1(results.get(i));
       	 ArrayList tuple = new ArrayList(1);
       	 tuple.add(r);
-         fillContent(inform,tuple); 
+         fillContent2(inform,tuple); 
          send(inform);
          //kill the behaviours in children
   			} 
@@ -434,7 +434,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      try {
 	    	// Extract the Action object from the message content
 	      ACLMessage request = getRequest();
-	    	List l = extractContent(request);
+	    	List l = extractContent2(request);
 	      Action a = (Action)l.get(0);
 
 	      ACLMessage inform = request.createReply();
@@ -445,7 +445,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      	rp.add_1(parents.get(i));
 	      ArrayList list = new ArrayList(1);
 	      list.add(rp);
-	      fillContent(inform,list);
+	      fillContent2(inform,list);
 	      send(inform);
 	      
 	    }
@@ -485,7 +485,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
         try
         {
       	  ACLMessage request = getRequest();
-	    	  List l = extractContent(request);
+	    	  List l = extractContent2(request);
 	        Action a = (Action)l.get(0);
 
       	  ACLMessage inform = request.createReply();      
@@ -496,7 +496,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	        rp.add_1(thisDF);
 	        ArrayList list = new ArrayList(1);
 	        list.add(rp);
-	        fillContent(inform,list);
+	        fillContent2(inform,list);
 	        send(inform);
        }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
 	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
@@ -564,7 +564,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  					
  						try{	
  							reply.setPerformative(ACLMessage.INFORM); 
- 						  List l = extractContent(request);
+ 						  List l = extractContent2(request);
 	            Action a = (Action)l.get(0);
             
  					  
@@ -578,7 +578,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
 	            result.clear();
 	            result.add(rp);
-	            fillContent(reply,result);
+	            fillContent2(reply,result);
  					  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
             	reply.setPerformative(ACLMessage.FAILURE);
  					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
@@ -626,7 +626,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				
  				//extract content from request message
  		    try{
- 		    	List l = extractContent(msg);
+ 		    	List l = extractContent2(msg);
 	        Action a = (Action)l.get(0);
 
 	        Federate f = (Federate)a.getAction(); 	
@@ -690,7 +690,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
         try
         {
       	  ACLMessage request = getRequest();
-	    	  List l = extractContent(request);
+	    	  List l = extractContent2(request);
 	        Action a = (Action)l.get(0);
           
 	        GetDescriptionUsed act = (GetDescriptionUsed)a.getAction();
@@ -705,7 +705,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	        
 	        ArrayList list = new ArrayList(1);
 	        list.add(rp);
-	        fillContent(inform,list);
+	        fillContent2(inform,list);
 	        send(inform);
        }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
 	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
@@ -740,7 +740,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				//extract content from request message
 				Action a = null;
  		    try{
- 		    	List l = extractContent(msg);
+ 		    	List l = extractContent2(msg);
 			a = (Action)l.get(0);
 
 	        DeregisterFrom f = (DeregisterFrom)a.getAction(); 	
@@ -804,7 +804,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				//extract content from request message
 				Action a = null;
  		    try{
- 		    	List l = extractContent(msg);
+ 		    	List l = extractContent2(msg);
 			a = (Action)l.get(0);
 
 	        RegisterWith rf = (RegisterWith)a.getAction(); 	
@@ -868,7 +868,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				//extract content from request message
 				Action a = null;
  		    try{
- 		    	List l = extractContent(msg);
+ 		    	List l = extractContent2(msg);
 			a = (Action)l.get(0);
 
 	        ModifyOn mod = (ModifyOn)a.getAction(); 	
@@ -932,7 +932,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				
  				//extract content from request message
  		    try{
- 		    	List l = extractContent(msg);
+ 		    	List l = extractContent2(msg);
 	        Action a = (Action)l.get(0);
 
 	        SearchOn s = (SearchOn)a.getAction(); 	
@@ -1209,7 +1209,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	ArrayList tupla = new ArrayList(1);
 	tupla.add(d);
 	try {
-	    fillContent(temp,tupla);
+	    fillContent2(temp,tupla);
 	} catch (Exception e) {
 	    return "( (done unknownAction) )";
 	}
@@ -1235,7 +1235,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	l.add(a);
 	l.add(new TrueProposition());
 	try {
-	    fillContent(temp,l);
+	    fillContent2(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return "( true )";
 	} 
@@ -1265,7 +1265,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	l.add(a);
 	l.add(e);
 	try {
-	    fillContent(temp,l);
+	    fillContent2(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return e.getMessage();
 	} 

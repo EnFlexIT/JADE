@@ -86,7 +86,7 @@ public class EngagerAgent extends Agent {
 			
 			try{
 				// Get the predicate for which the truth is queried	
-				List l = myAgent.extractContent(msg);
+				List l = myAgent.extractContent2(msg);
 				Object requestedInfo = l.get(0);
 				Ontology o = myAgent.lookupOntology(msg.getOntology());
 				String requestedInfoName = o.getRoleName(requestedInfo.getClass());
@@ -114,7 +114,7 @@ public class EngagerAgent extends Agent {
     			// Write the NOT object in the :content slot of the reply message
 		    	l = new ArrayList(1);
 		    	l.add(not);
-		    	myAgent.fillContent(reply, l);
+		    	myAgent.fillContent2(reply, l);
 				}
 			}
 			catch (FIPAException fe) {
@@ -179,7 +179,7 @@ public class EngagerAgent extends Agent {
 			
 			try{
 				// Get the requested action. 
-				List l = myAgent.extractContent(msg);
+				List l = myAgent.extractContent2(msg);
 				Action a = (Action) l.get(0);
 				Engage e = (Engage) a.get_1();
 				Person p = e.get_0();
@@ -192,14 +192,14 @@ public class EngagerAgent extends Agent {
 					l.clear();
 					l.add(a);
 					l.add(new TrueProposition());
-					myAgent.fillContent(tmp, l);
+					myAgent.fillContent2(tmp, l);
 					sendReply(ACLMessage.AGREE,tmp.getContent());
 				}
 				else {
 					l.clear();
 					l.add(a);
 					l.add(new PersonTooOld());
-					myAgent.fillContent(tmp, l);
+					myAgent.fillContent2(tmp, l);
 					sendReply(ACLMessage.REFUSE,tmp.getContent());
 					return;
 				}
@@ -214,7 +214,7 @@ public class EngagerAgent extends Agent {
 					d.set_0(a);
 					l.clear();
 					l.add(d);
-					myAgent.fillContent(tmp, l);
+					myAgent.fillContent2(tmp, l);
       		sendReply(ACLMessage.INFORM, tmp.getContent());
 				}
 				else{
@@ -222,7 +222,7 @@ public class EngagerAgent extends Agent {
 					l.clear();
 					l.add(a);
 					l.add(new EngagementError());
-					myAgent.fillContent(tmp, l);
+					myAgent.fillContent2(tmp, l);
       		sendReply(ACLMessage.FAILURE, tmp.getContent());
 				}
 			}
