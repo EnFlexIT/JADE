@@ -40,6 +40,7 @@ import jade.util.leap.Properties;
 import jade.util.Logger;
 import java.util.StringTokenizer;
 import java.util.Stack;
+import java.util.Enumeration;
 import java.io.*;
 
 /**
@@ -131,6 +132,26 @@ public class Boot {
 	  			}
 	  			else {
 	  				throw new IllegalArgumentException("No port number specified after \"-port\" option");
+	  			}
+	  		}
+	  		else if (args[i].equalsIgnoreCase("-conf")) {
+	  			if (++i < args.length) {
+	  				// Some parameters are specified in a properties file
+	  				try {
+		  				Properties pp = new Properties();
+		  				pp.load(args[i]);
+		  				Enumeration kk = pp.keys();
+		  				while (kk.hasMoreElements()) {
+		  					String key = (String) kk.nextElement();
+	  						props.setProperty(key, pp.getProperty(key));
+		  				}
+	  				}
+	  				catch (Exception e) {
+	  					Logger.println("WARNING: error loading properties from file "+args[i]+". "+e);
+	  				}	
+	  			}
+	  			else {
+	  				throw new IllegalArgumentException("No configuration file name specified after \"-conf\" option");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-mtp")) {
