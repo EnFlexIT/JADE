@@ -97,7 +97,6 @@ public class ACLParser {
     s = s.trim();
     if(s.startsWith("\"") && (s.endsWith("\"")))
       s = s.substring(1, s.length() - 1);
-   //System.out.println("trimQuote="+s);	
     return unescape(s);
   }
 
@@ -162,7 +161,7 @@ String Content():
 { Token t; String s;}
 {
   s = Stringa() { return s; }
-| t = <WORD> { return t.image; }
+| t = <WORD> { return trimQuotes(t.image); } 
 }
 
 AID AgentIdentifier():
