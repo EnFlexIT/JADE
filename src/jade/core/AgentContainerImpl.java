@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.27  1999/02/25 08:18:03  rimassa
+  Added separate ThreadGroup objects for JADE user agents and JADE
+  system agents.
+  Moved container shutdown code from finalization to explicit invocation
+  of an RMI exit() method.
+
   Revision 1.26  1999/02/16 08:06:32  rimassa
   Caught CORBA System Exception to trap inter-platform communications
   problems.
@@ -151,6 +157,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   protected ORB myORB;
 
+  private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
+  private ThreadGroup systemAgentThreads = new ThreadGroup("JADE System Agents");
+
   public AgentContainerImpl(String args[]) throws RemoteException {
 
     // Configure Java runtime system to put the whole host address in RMI messages
@@ -160,6 +169,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     catch(java.net.UnknownHostException jnue) {
       // Silently ignore it
     }
+
+    // Set up attributes for agents thread group
+    agentThreads.setMaxPriority(Thread.MIN_PRIORITY);
+    systemAgentThreads.setMaxPriority(Thread.MAX_PRIORITY);
 
     // Initialize CORBA runtime
     myORB = ORB.init(args, null);
@@ -204,7 +217,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(NameClashException nce) {
       System.out.println("Agent name already in use");
-      // nce.printStackTrace();
       localAgents.remove(agentName.toLowerCase());
     }
     catch(RemoteException re) {
@@ -213,7 +225,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
 
     if(startIt)
-      instance.doStart(agentName, platformAddress);
+      instance.doStart(agentName, platformAddress, agentThreads);
   }
 
   public void killAgent(String agentName) throws RemoteException, NotFoundException {
@@ -224,6 +236,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void exit() throws RemoteException {
+    shutDown();
     System.exit(0);
   }
 
@@ -295,7 +308,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     while(nameList.hasMoreElements()) {
       currentName = (String)nameList.nextElement();
       Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
-      agent.doStart(currentName, platformAddress);
+      agent.doStart(currentName, platformAddress, agentThreads);
     }
   }
 
@@ -307,7 +320,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Remove all agents
       while(agentNames.hasMoreElements()) {
 	String name = (String)agentNames.nextElement();
-
 	// Kill agent and wait for its termination
 	Agent a = (Agent)localAgents.get(name);
 	a.doDelete();
@@ -323,9 +335,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
   }
 
-  protected void finalize() {
-    shutDown();
-  }
 
   // Implementation of CommListener interface
 
@@ -421,7 +430,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // If still fails, raise NotFound exception.
     }
     else
-      // Forward to the ACC for IIOP inter-platform communication
+      // Use IIOP for inter-platform communication
       postOtherPlatform(msg, receiverName, receiverAddr);
 
   }
@@ -451,6 +460,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(NotFoundException nfe) {
       System.err.println("Agent " + receiverName + " was not found on agent platform");
+      System.err.println("Message from platform was: " + nfe.getMessage());
       // nfe.printStackTrace();
     }
     catch(RemoteException re) {
