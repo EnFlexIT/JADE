@@ -43,8 +43,9 @@ public class JarClassLoader extends ClassLoader {
    * @param Path and name of the JAR file
    * @throws IOException If there are problems opening the file
    */
-  public JarClassLoader(String filename) throws IOException{
-    File file = new File(filename);
+  public JarClassLoader(String filename, ClassLoader parent) throws IOException{
+    super(parent);
+  	File file = new File(filename);
     if(file.exists()){
       _file = new JarFile(new File(filename));
     }

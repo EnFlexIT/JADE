@@ -536,7 +536,7 @@ public class AgentManagementService extends BaseService {
 		  jarName = agentsPath+jarName;
 	  }
 	  try { 
-		  JarClassLoader loader = new JarClassLoader(jarName);
+		  JarClassLoader loader = new JarClassLoader(jarName, getClass().getClassLoader());
 		  agent = (Agent) loader.loadClass(className).newInstance();
 	  } 
 	  catch (IOException ioe) {
