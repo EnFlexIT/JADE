@@ -370,13 +370,17 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  	}
 					  }
 					  
+					  // If last connection from the same device aborted, the old 
+					  // BackEnd may still exist as a zombie. In case ids are assigned
+					  // using the MSISDN the new name is equals to the old one.
 					  if (id.equals(msisdn)) {
 					  	JICPMediator old = (JICPMediator) mediators.get(id);
+	    				myLogger.log(Logger.INFO,"Killing old mediator "+id);
 					  	if (old != null) {
 					  		// This is a zombie mediator --> kill it
 					  		old.kill();
 					  		// Be sure the zombie container has been removed
-					  		waitABit(100);
+					  		waitABit(1000);
 					  	}
 					  }
 
