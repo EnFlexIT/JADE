@@ -266,8 +266,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    System.out.println("Added a local slice <" + name + ";" + here.getName() + ">");
 
 	    // Install the service filter
-	    Filter f = svc.getCommandFilter();
-	    myCommandProcessor.addFilter(f);
+	    Filter f = svc.getCommandFilter(Filter.OUTGOING);
+	    myCommandProcessor.addFilter(f, Filter.OUTGOING);
+
+	    // FIXME: Should also add incoming filters and sink
 	}
     }
 
@@ -281,8 +283,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    Service svc = e.getService();
 
 	    // Uninstall the service filter
-	    Filter f = svc.getCommandFilter();
-	    myCommandProcessor.removeFilter(f);
+	    Filter f = svc.getCommandFilter(Filter.OUTGOING);
+	    myCommandProcessor.removeFilter(f, Filter.OUTGOING);
+
+	    // FIXME: Should also remove incoming filters and sink
 
 	    // Uninstall the service
 	    services.remove(name);
