@@ -233,18 +233,19 @@ public class ExpandedProperties extends EnhancedProperties {
 
             if (isShellCommand) {
                 String osName = System.getProperty("os.name").toLowerCase();
-
-                if (osName.startsWith("windows nt")
-                        || osName.startsWith("windows 2000")) {
-                    prefix = "cmd.exe /c ";    // true 32-bit windows
-                } else
-
-                // 16 bit windows hybrid
                 if (osName.startsWith("windows")) {
-                    prefix = "command.com /e:16000 /c ";
+                    // Windows OS
+                    if (osName.startsWith("windows 95") || osName.startsWith("windows 98")) {
+                        // 16 bit windows hybrid
+                        prefix = "command.com /e:16000 /c ";
+                    } else {
+                        // true 32-bit windows
+                        // NT, 2000, XP, whatever is next?
+                        prefix = "cmd.exe /c ";
+                    }
                 } else {
-                    prefix =
-                        "/bin/sh -c ";    // Linux/Unix -c indicates command follows 
+                    // Linux/Unix -c indicates command follows 
+                    prefix = "/bin/sh -c ";
                 }
             } else {
                 prefix = "";
