@@ -158,9 +158,9 @@ import jade.BootException;
  			{
  				valueText = new JTextField();
  				valueText.setBorder(etched);
- 				valueText.setPreferredSize(new Dimension(150,26));
- 				valueText.setMaximumSize(new Dimension(150,26));
-        valueText.setMinimumSize(new Dimension(150,26));
+ 				valueText.setPreferredSize(new Dimension(180,26));
+ 				valueText.setMaximumSize(new Dimension(180,26));
+        valueText.setMinimumSize(new Dimension(180,26));
 
  	      valueText.setText(value);
  		 		valueText.setToolTipText(property.getToolTip());
@@ -267,7 +267,7 @@ import jade.BootException;
  	  buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
  	  
  	  JButton openB = new JButton("Open File");
- 	  
+ 	  openB.setToolTipText("Read configuration from file");
  	  openB.addActionListener(new ActionListener(){
  	  
  	  	public void actionPerformed(ActionEvent e){
@@ -313,19 +313,9 @@ import jade.BootException;
  	  
  	  buttonPanel.add(openB);
  	  
- 	  JButton exitB = new JButton("Exit");
- 	  exitB.addActionListener(new ActionListener(){
- 	   public void actionPerformed(ActionEvent e)
- 	   {
- 	   	String param =(String)e.getActionCommand();
- 	   	if(param.equals("Exit"))
- 	   		System.exit(0);
- 	   }
- 	  });
- 	  
- 	  buttonPanel.add(exitB);
  	  
  	  JButton saveB = new JButton("Save File");
+ 	  saveB.setToolTipText("Save configuration into a file");
  	  saveB.addActionListener(new ActionListener(){
  	   public void actionPerformed(ActionEvent e)
  	   {
@@ -382,6 +372,7 @@ import jade.BootException;
 
  	  
  	  JButton runB = new JButton("Run");
+ 	  runB.setToolTipText("Launch the system");
  	  runB.addActionListener(new ActionListener(){
  	   public void actionPerformed(ActionEvent e)
  	   {
@@ -458,6 +449,38 @@ import jade.BootException;
  	  });
  	  buttonPanel.add(runB);
 
+ 	  JButton exitB = new JButton("Exit");
+ 	  exitB.setToolTipText("Exit without executing");
+ 	  exitB.addActionListener(new ActionListener(){
+ 	   public void actionPerformed(ActionEvent e)
+ 	   {
+ 	   	String param =(String)e.getActionCommand();
+ 	   	if(param.equals("Exit"))
+ 	   		System.exit(0);
+ 	   }
+ 	  });
+ 	  
+ 	  buttonPanel.add(exitB);
+ 	  
+ 	  JButton helpB = new JButton("Help");
+ 	  helpB.addActionListener(new ActionListener(){
+ 	  	public void actionPerformed(ActionEvent e)
+ 	  	{
+ 	  		String param = (String)e.getActionCommand();
+ 	  		if(param.equals("Help"))
+ 	  			{
+ 	  				TreeHelp help = new TreeHelp("Boot Help", "help/BOOTGUI.html");
+	         // must insert the listener for the close action
+	         help.pack();
+	         help.setSize(500,500);
+	         help.setVisible(true);
+	         help.requestFocus();
+ 	  			}
+
+ 	  	}
+ 	  });
+
+ 	  buttonPanel.add(helpB);
  	  topPanel.add(buttonPanel);
  	  topPanel.add(propertyPanel);
 
