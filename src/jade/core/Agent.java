@@ -371,7 +371,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private int       msgQueueMaxSize = 0;
   private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
   private transient List o2aQueue;
-  private int o2aQueueSize;
+  private int o2aQueueSize = 0;
   private transient Map o2aLocks = new HashMap();
   private transient AgentToolkit myToolkit = DummyToolkit.instance();
   //#MIDP_EXCLUDE_END
@@ -1450,6 +1450,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
     principalLock = new Object();
     pendingTimers = new AssociationTB();
     theDispatcher = TimerDispatcher.getTimerDispatcher();
+    // restore O2AQueue
+    if (o2aQueueSize > 0) 
+	o2aQueue = new ArrayList(o2aQueueSize);
+    o2aLocks = new HashMap();
+  //#MIDP_EXCLUDE_BEGIN
+    myToolkit = DummyToolkit.instance();
+  //#MIDP_EXCLUDE_END
   }
 	//#MIDP_EXCLUDE_END
 
