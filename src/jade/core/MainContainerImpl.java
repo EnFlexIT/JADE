@@ -298,6 +298,20 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
+  private void postNewAddress(String address) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleNewAddress(address);
+   } 
+  }
+
+  private void postDeadAddress(String address) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleDeadAddress(address);
+   } 
+  }
+
 
   public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
 
@@ -590,6 +604,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 	}
 
       }
+
+      postNewAddress(result);
 
       return result;
     }

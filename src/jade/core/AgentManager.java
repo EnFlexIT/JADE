@@ -53,6 +53,8 @@ public interface AgentManager {
     void handleNewAgent(String containerName, AID agentID);
     void handleDeadAgent(String containerName, AID agentID);
     void handleMovedAgent(String fromContainer, String toContainer, AID agentID);
+    void handleNewAddress(String address);
+    void handleDeadAddress(String address);
   }
 
   void addListener(Listener l);

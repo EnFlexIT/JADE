@@ -854,6 +854,10 @@ public class ams extends Agent implements AgentManager.Listener {
   /** it is called also by Agent.java **/
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    String[] addresses = myPlatform.platformAddresses();
+    AID id = amsd.getName();
+    for(int i = 0; i < addresses.length; i++)
+      id.addAddresses(addresses[i]);
     Object old = agentDescriptions.register(amsd.getName(), amsd);
     if(old != null)
       throw new AlreadyRegistered();
@@ -996,5 +1000,30 @@ public class ams extends Agent implements AgentManager.Listener {
     eventQueue.add(am);
     doWake();
   }
+
+  public void handleNewAddress(String address) {
+    AMSAgentDescription amsd = new AMSAgentDescription();
+
+    List l = agentDescriptions.search(amsd);
+    Iterator it = l.iterator();
+    while(it.hasNext()) {
+      AMSAgentDescription desc = (AMSAgentDescription)it.next();
+      AID name = desc.getName();
+      name.addAddresses(address);
+    }
+  }
+
+  public void handleDeadAddress(String address) {
+    AID[] agents = myPlatform.agentNames();
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    for(int i = 0; i < agents.length; i++) {
+      amsd.setName(agents[i]);
+      List l = agentDescriptions.search(amsd);
+      AMSAgentDescription desc = (AMSAgentDescription)l.get(0);
+      AID name = desc.getName();
+      name.removeAddresses(address);
+    }
+  }
+
 
 } // End of class ams
