@@ -73,4 +73,8 @@ class Timer implements Comparable {
     return expireTimeMillis;
   }
 
+  void setExpirationTime(long t) {
+    expireTimeMillis = t;
+  }
+
 }

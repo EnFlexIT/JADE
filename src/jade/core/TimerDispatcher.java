@@ -48,7 +48,9 @@ class TimerDispatcher implements Runnable {
   }
 
   synchronized void add(Timer t) {
-    timers.add(t);
+  	while (!timers.add(t)) {
+  		t.setExpirationTime(t.expirationTime()+1);
+  	}
     // If this is the first timer, wake up the dispatcher thread
     if(timers.first() == t)
       notify();
@@ -89,21 +91,23 @@ class TimerDispatcher implements Runnable {
 	    			t = firstTimer();
 	    			// If t was expired, calling this function executes the
 	    			// time-out action; then the timer is removed and the need
-	    			// for further inspections of the timer list is flagged.
+	    			// for further inspections of the timer list is flagged (in
+	    			// fact while the timeout action is executed other timers 
+	    			// may have expired).
 	    			if(t.isExpired()) {
 	      			remove(t);
 	      			checkAgain = true;
 	    			}
 	    			else {
-	      			// The first timer is still armed. Then the dispatcher
-	      			// calculates the remaining time to wait.
+	      			// The first timer is still armed --> we have to wait until  
+	    				// its expiration time.
 	      			timeToWait = t.expirationTime() - System.currentTimeMillis();
-	      			if(timeToWait <= 0) // Avoid wait(0), that means 'for ever'...
+	      			if(timeToWait <= 0) // Avoid wait(0), that means 'for ever'
 								timeToWait = 1;
 	    			}
-	  			}
+	  			}	  			
+	  			
 	  			if(!checkAgain) {
-	    			// System.out.println("Waiting for " + timeToWait + " ms.");
 	    			wait(timeToWait);
 	  			}
 	  			
