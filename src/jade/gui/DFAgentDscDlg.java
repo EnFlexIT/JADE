@@ -35,8 +35,7 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.AgentManagementOntology.DFAgentDescriptor;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Caire Adriana Quinto- CSELT S.p.A
+@author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */
 class DFAgentDscDlg extends JDialog 
@@ -69,78 +68,110 @@ class DFAgentDscDlg extends JDialog
 		setTitle("DF description");
 
 		JPanel p = new JPanel();
-		LayoutFacilitator lf = new LayoutFacilitator(p);
-		lf.formatGrid(12, // 12 rows
-		              3,  // 3 columns
-		              5,  // 5 pixels as left, right, top and bottom border
-		              5,
-		              5,
-		              5,
-		              2,  // 2 pixels betweens rows and columns 
-		              2); 
-		lf.setGridColumnWidth(0, 90);
-		lf.setGridColumnWidth(1, 200);
-		lf.setGridColumnWidth(2, 290);
-
+		JPanel main = new JPanel();
+		JPanel main1 = new JPanel();
+		
 		JLabel l;
 		JPanel bPane;
-		JScrollPane lPane;
+	  JScrollPane lPane;
 		JButton bAdd, bModify, bRemove;
-
-		// Agent name - row 0
+		
+		main1.setLayout(new BoxLayout(main1, BoxLayout.X_AXIS));
+		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
+		
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		
+		// Agent name 
 		l = new JLabel("Agent-name:");
-		lf.put(l, 0, 0, 1, 1, false);
+		l.setPreferredSize(new Dimension(80,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
 		agentName = new JTextField();
 		agentName.setEditable(false);
-		lf.put(agentName, 1, 0, 1, 1, false);
+		agentName.setPreferredSize(new Dimension (250, 20));
+		p.add(agentName);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 		
-		// Agent addresses - rows 1..3
+		// Agent addresses 
 		JPanel pAddress = new JPanel();
 		pAddress .setLayout(new BorderLayout());
 		DefaultListModel addressesListModel = new DefaultListModel();
 		JList addressesList = new JList(addressesListModel);
 		lPane = new JScrollPane();
 		lPane.getViewport().setView(addressesList);
+		lPane.setPreferredSize( new Dimension ( 250, 100));
 		pAddress .add(lPane, BorderLayout.CENTER);
-		pAddress .setBorder(BorderFactory.createTitledBorder("Agent-addresses"));
-		lf.put(pAddress , 0, 1, 2, 3, false);		
+	  pAddress .setBorder(BorderFactory.createTitledBorder("Agent-addresses"));
+		main.add(pAddress);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Agent type - row 4
+		// Agent type 
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Agent-type:");
-		lf.put(l, 0, 4, 1, 1, false);
+		l.setPreferredSize(new Dimension(80,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
 		agentType= new JTextField();
 		agentType.setEditable(false);
-		lf.put(agentType, 1, 4, 1, 1, false);
-
-		// Ownership - row 5	
-		l = new JLabel("Ownership:");
-		lf.put(l, 0, 5, 1, 1, false);
+    p.add(agentType);
+    main.add(p);
+	  main.add(Box.createRigidArea(new Dimension (0,3)));
+	  
+    // Ownership 	
+    p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("Ownership:");
+    l.setPreferredSize(new Dimension(80,20));
+		p.add(l);	
+		p.add(Box.createHorizontalGlue());
 		ownership = new JTextField();
 		ownership.setEditable(false);
-		lf.put(ownership, 1, 5, 1, 1, false);
+		p.add(ownership);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// DF state - row 6
-		l = new JLabel("DF-state:");
-		lf.put(l, 0, 6, 1, 1, false);
+		// DF state 
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("DF-state:");
+    l.setPreferredSize(new Dimension(80,20));
+    p.add(l);
+	  p.add(Box.createHorizontalGlue());
 		dfState = new JTextField();
 		dfState.setEditable(false);
-		lf.put(dfState, 1, 6, 1, 1, false);
+		p.add(dfState);
+		main.add(p);
+	  main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Ontology - row 7
-		l = new JLabel("Ontology:");
-		lf.put(l, 0, 7, 1, 1, false);
+	  // Ontology 
+	  p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("Ontology:");
+    l.setPreferredSize(new Dimension(80,20));
+	  p.add(l);	
+	  p.add(Box.createHorizontalGlue());
 		ontology = new JTextField();
 		ontology.setEditable(false);
-		lf.put(ontology, 1, 7, 1, 1, false);
-
-		// Language - row 8
+		p.add(ontology);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+		// Language
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Language:");
-		lf.put(l, 0, 8, 1, 1, false);
+		l.setPreferredSize(new Dimension(80,20));
+    p.add(l);
+    p.add(Box.createHorizontalGlue());
 		language = new JTextField();
 		language.setEditable(false);
-		lf.put(language, 1, 8, 1, 1, false);
-
-		// Interaction protocols - rows 9..11
+	  p.add(language);
+    main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+		// Interaction protocols 
 		JPanel pProtocols = new JPanel();
 		pProtocols .setLayout(new BorderLayout());
 		DefaultListModel protocolsListModel = new DefaultListModel();
@@ -149,9 +180,13 @@ class DFAgentDscDlg extends JDialog
 		lPane.getViewport().setView(protocolsList);
 		pProtocols .add(lPane, BorderLayout.CENTER);
 		pProtocols .setBorder(BorderFactory.createTitledBorder("Interaction-protocols"));
-		lf.put(pProtocols , 0, 9, 2, 3, false);		
+		main.add(pProtocols);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Services list
+    main1.add(main);
+    
+    
+    // Services list
 		JPanel p1 = new JPanel();
 		p1.setLayout(new BorderLayout());
 		final DefaultListModel servicesListModel = new DefaultListModel();
@@ -159,8 +194,9 @@ class DFAgentDscDlg extends JDialog
 		servicesList.setCellRenderer(new ServiceDscCellRenderer());
 		lPane = new JScrollPane();
 		lPane.getViewport().setView(servicesList);
+		p1.setPreferredSize(new Dimension (300,400));
 		p1.add(lPane, BorderLayout.CENTER);
-
+    
 		// View Button
 		bPane = new JPanel();
 		JButton bView = new JButton("View");
@@ -201,15 +237,17 @@ class DFAgentDscDlg extends JDialog
 		                           } );
 		p1.add(bPane, BorderLayout.SOUTH);
 		p1.setBorder(BorderFactory.createTitledBorder("Agent services"));
-		lf.put(p1, 2, 0, 1, 12, false);		
-		
-		getContentPane().add(p, BorderLayout.CENTER);
+		main1.add(p1);
 
+    
+    getContentPane().add(main1,BorderLayout.NORTH);
+			
+	
 		// INITIALIZATION
 		if (dfd != null)
 		{
 			agentName.setText(dfd.getName());
-			agentType.setText(dfd.getType());
+		  agentType.setText(dfd.getType());
 			ownership.setText(dfd.getOwnership());
 			dfState.setText(dfd.getDFState());
 			ontology.setText(dfd.getOntology());
@@ -229,6 +267,7 @@ class DFAgentDscDlg extends JDialog
 
 		// OK BUTTON
 		bPane = new JPanel();
+		bPane.setLayout(new BoxLayout(bPane, BoxLayout.Y_AXIS));
 		JButton bOK = new JButton("OK");
 		bOK.addActionListener( new ActionListener()
 		                           {
@@ -241,8 +280,12 @@ class DFAgentDscDlg extends JDialog
 								}
 							} 
 		                           } );
-
+		
+	  bPane.add(Box.createRigidArea(new Dimension(0,20)));
+    bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
 		bPane.add(bOK);
+		bPane.add(Box.createRigidArea(new Dimension(0,10)));
+
 		getContentPane().add(bPane, BorderLayout.SOUTH);
 
 		setModal(true);
@@ -250,6 +293,7 @@ class DFAgentDscDlg extends JDialog
 		setLocation(50, 50);
 		pack();
 		show();
+
 	}
 
 	AgentManagementOntology.DFAgentDescriptor editDFD(AgentManagementOntology.DFAgentDescriptor dfd)
@@ -260,42 +304,42 @@ class DFAgentDscDlg extends JDialog
 		setTitle("DF description");
 
 		JPanel p = new JPanel();
-		LayoutFacilitator lf = new LayoutFacilitator(p);
-		lf.formatGrid(12, // 12 rows
-		              3,  // 3 columns
-		              5,  // 5 pixels as left, right, top and bottom border
-		              5,
-		              5,
-		              5,
-		              2,  // 2 pixels betweens rows and columns 
-		              2); 
-		lf.setGridColumnWidth(0, 90);
-		lf.setGridColumnWidth(1, 200);
-		lf.setGridColumnWidth(2, 290);
-
-		JLabel l;
+		JPanel main = new JPanel();
+		JPanel main1 = new JPanel();
+	  JLabel l;
 		JPanel bPane;
-		JScrollPane lPane;
+	  JScrollPane lPane;
 		JButton bAdd, bModify, bRemove;
 
-		// Agent name - row 0
-		l = new JLabel("Agent-name:");
-		lf.put(l, 0, 0, 1, 1, false);
-		agentName = new JTextField();
-		if (dfd != null)
-			if (!dfd.getName().equals(""))
-				agentName.setEditable(false);
-		lf.put(agentName, 1, 0, 1, 1, false);
+		main1.setLayout(new BoxLayout(main1, BoxLayout.X_AXIS));
+		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
 		
-		// Agent addresses - rows 1..3
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+		
+	  // Agent name 
+		l = new JLabel("Agent-name:");
+		l.setPreferredSize(new Dimension(80,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
+		agentName = new JTextField();
+		agentName.setPreferredSize(new Dimension (250, 20));
+	  if (dfd !=null)
+	  	if (!dfd.getName().equals(""))
+	  		agentName.setEditable(true);
+		p.add(agentName);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+	
+	  // Agent addresses 
 		JPanel pAddress = new JPanel();
 		pAddress .setLayout(new BorderLayout());
 		final DefaultListModel addressesListModel = new DefaultListModel();
 		final JList addressesList = new JList(addressesListModel);
 		lPane = new JScrollPane();
 		lPane.getViewport().setView(addressesList);
+		lPane.setPreferredSize( new Dimension ( 250, 100));
 		pAddress .add(lPane, BorderLayout.CENTER);
-		//Buttons
+		// Buttons
 		bPane = new JPanel();
 		bAdd = new JButton("Add");
 		bModify = new JButton("Modify");
@@ -389,44 +433,77 @@ class DFAgentDscDlg extends JDialog
 									}
 								}
 							} 
-		                           } );            
-		pAddress .add(bPane, BorderLayout.SOUTH);
+		                           });
+
+		
+	  pAddress.add(bPane, BorderLayout.SOUTH);
 		pAddress .setBorder(BorderFactory.createTitledBorder("Agent-addresses"));
-		lf.put(pAddress , 0, 1, 2, 3, false);		
-
-		// Agent type - row 4
+		main.add(pAddress);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+		// Agent type 
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Agent-type:");
-		lf.put(l, 0, 4, 1, 1, false);
+		l.setPreferredSize(new Dimension(80,20));
+		p.add(l);
+		p.add(Box.createHorizontalGlue());
 		agentType= new JTextField();
-		lf.put(agentType, 1, 4, 1, 1, false);
+    p.add(agentType);
+    main.add(p);
+	  main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Ownership - row 5	
-		l = new JLabel("Ownership:");
-		lf.put(l, 0, 5, 1, 1, false);
+    // Ownership 	
+    p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("Ownership:");
+    l.setPreferredSize(new Dimension(80,20));
+		p.add(l);	
+		p.add(Box.createHorizontalGlue());
 		ownership = new JTextField();
-		lf.put(ownership, 1, 5, 1, 1, false);
+		p.add(ownership);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// DF state - row 6
-		l = new JLabel("DF-state:");
-		lf.put(l, 0, 6, 1, 1, false);
+		// DF state 
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("DF-state:");
+    l.setPreferredSize(new Dimension(80,20));
+    p.add(l);
+	  p.add(Box.createHorizontalGlue());
 		dfState = new JTextField();
-		lf.put(dfState, 1, 6, 1, 1, false);
+		p.add(dfState);
+		main.add(p);
+	  main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Ontology - row 7
-		l = new JLabel("Ontology:");
-		lf.put(l, 0, 7, 1, 1, false);
+	  // Ontology 
+	  p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    l = new JLabel("Ontology:");
+    l.setPreferredSize(new Dimension(80,20));
+	  p.add(l);	
+	  p.add(Box.createHorizontalGlue());
 		ontology = new JTextField();
-		lf.put(ontology, 1, 7, 1, 1, false);
-
-		// Language - row 8
+		p.add(ontology);
+		main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+		// Language
+		p = new JPanel();
+		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Language:");
-		lf.put(l, 0, 8, 1, 1, false);
+		l.setPreferredSize(new Dimension(80,20));
+    p.add(l);
+    p.add(Box.createHorizontalGlue());
 		language = new JTextField();
-		lf.put(language, 1, 8, 1, 1, false);
-
-		// Interaction protocols - rows 9..11
+	  p.add(language);
+    main.add(p);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
+		
+		// Interaction protocols 
 		JPanel pProtocols = new JPanel();
-		pProtocols.setLayout(new BorderLayout());
+		pProtocols .setLayout(new BorderLayout());
 		final DefaultListModel protocolsListModel = new DefaultListModel();
 		final JList protocolsList = new JList(protocolsListModel);
 		lPane = new JScrollPane();
@@ -529,9 +606,12 @@ class DFAgentDscDlg extends JDialog
 		                           } );            
 		pProtocols .add(bPane, BorderLayout.SOUTH);
 		pProtocols .setBorder(BorderFactory.createTitledBorder("Interaction-protocols"));
-		lf.put(pProtocols , 0, 9, 2, 3, false);		
+		main.add(pProtocols);
+		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-		// Services list
+    main1.add(main);
+
+    // Services list
 		JPanel p1 = new JPanel();
 		p1.setLayout(new BorderLayout());
 		final DefaultListModel servicesListModel = new DefaultListModel();
@@ -539,6 +619,7 @@ class DFAgentDscDlg extends JDialog
 		servicesList.setCellRenderer(new ServiceDscCellRenderer());
 		lPane = new JScrollPane();
 		lPane.getViewport().setView(servicesList);
+		p1.setPreferredSize(new Dimension (300,400));
 		p1.add(lPane, BorderLayout.CENTER);
 		//Buttons
 		bPane = new JPanel();
@@ -640,10 +721,10 @@ class DFAgentDscDlg extends JDialog
 		                           } );
 		p1.add(bPane, BorderLayout.SOUTH);
 		p1.setBorder(BorderFactory.createTitledBorder("Agent services"));
-		lf.put(p1, 2, 0, 1, 12, false);		
-		
-		getContentPane().add(p, BorderLayout.CENTER);
+		main1.add(p1);
 
+		getContentPane().add(main1, BorderLayout.NORTH);
+	  
 		// INITIALIZATION
 		if (dfd != null)
 		{
@@ -668,8 +749,12 @@ class DFAgentDscDlg extends JDialog
 
 		// OK AND CANCEL BUTTONS
 		bPane = new JPanel();
+		bPane.setLayout(new FlowLayout(FlowLayout.CENTER));
+	//	bPane.add(Box.createRigidArea(new Dimension(0,30)));
 		JButton bOK = new JButton("OK");
+	
 		JButton bCancel = new JButton("Cancel");
+	
 		bOK.setPreferredSize(bCancel.getPreferredSize());
 		bPane.add(bOK);
 		bOK.addActionListener( new ActionListener()
@@ -697,8 +782,11 @@ class DFAgentDscDlg extends JDialog
 								}
 							} 
 		                           } );
+		                           
+		bPane.add(Box.createRigidArea(new Dimension(0,70)));
+	                           
 		getContentPane().add(bPane, BorderLayout.SOUTH);
-
+				
 		setModal(true);
 		setResizable(false);
 		setLocation(50, 50);
@@ -707,12 +795,13 @@ class DFAgentDscDlg extends JDialog
 		if (ret.getValue() == 1)
 		{	
 			AgentManagementOntology.DFAgentDescriptor editedDfd = new AgentManagementOntology.DFAgentDescriptor();
-			editedDfd.setName(agentName.getText());
-                  editedDfd.setDFState(dfState.getText());
-                  editedDfd.setOwnership(ownership.getText());
-                  editedDfd.setType(agentType.getText());
-                  editedDfd.setOntology(ontology.getText());
-                  // editedDfd.setLanguage(language.getText());
+		
+			editedDfd.setName(getSaveText(agentName));
+			editedDfd.setDFState(getSaveText(dfState));
+			editedDfd.setOwnership(getSaveText(ownership));
+      editedDfd.setType(getSaveText(agentType));
+      editedDfd.setOntology(getSaveText(ontology));
+      // editedDfd.setLanguage(language.getText());
 		
 			Enumeration temp;
 			editedDfd.removeAddresses();
@@ -733,4 +822,15 @@ class DFAgentDscDlg extends JDialog
 		return(null);		
 	}
 
+	//Returns a String corresponding to the textfield if not empty, null otherwise
+	private String getSaveText(JTextField field){
+	
+		try {
+			String out = field.getText();
+			return (out.length() == 0 ? null : out); 
+		}catch(Exception e){
+		return null;
+		}
+	
+	}
 }
