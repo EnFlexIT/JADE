@@ -200,7 +200,7 @@ public class RequesterAgent extends Agent {
 					Company c = (Company) wf.get_1();
 					System.out.println("Person " + p.getName() + " is already working for " + c.getName());
 				}
-				else if (respName == BasicOntologyVocabulary.NOT){
+				else if (respName == BasicOntology.NOT){
 					// The indicated person is NOT already working for company c.
 					// Get person and company details and create an object representing the engagement action
 					WorksFor wf = (WorksFor) ((Not) resp).get_0();
