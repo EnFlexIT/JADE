@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/11/04 09:57:52  rimassaJade
+  Removed TransientException related code.
+
   Revision 1.3  1999/11/03 07:50:28  rimassaJade
   Changed an older, check-and-wait code to adhere to new try-and-see
   approach.
@@ -30,22 +33,12 @@ class LocalProxy implements AgentProxy {
     ref = new WeakReference(a);
   }
 
-  public void dispatch(ACLMessage msg) throws NotFoundException, TransientException {
+  public void dispatch(ACLMessage msg) throws NotFoundException {
 
     Agent receiver = (Agent)ref.get();
     // If the agent has been collected, throw an exception
     if(receiver == null)
       throw new NotFoundException("Stale local proxy");
-
-    // If this is a mobile agent, Wait until the end of the transaction.
-    if(receiver.getState() == Agent.AP_TRANSIT) {
-      System.out.println("AP_TRANSIT in LocalProxy.dispatch()");
-      throw new TransientException("Agent " + receiver.getLocalName() + " is moving...");
-    }
-    if(receiver.getState() == Agent.AP_GONE) {
-      System.out.println("AP_GONE in LocalProxy.dispatch()");
-      throw new TransientException("Agent " + receiver.getLocalName() + " is dead.");
-    }
     receiver.postMessage(msg);
 
   }
