@@ -23,6 +23,8 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - added methods jade.wrapper.AgentContainer#acceptNewAgent and 
   jade.core.Agent#getContainerController (HP Palo Alto)
 - jade.security
+- added support for Object2Agent Communication (see 
+  jade.core.Agent.putO2AObject and jade.wrapper.Agent.putO2AObject)
 
 BUG FIX
 - the ACLMessage class is now able to properly deal with a content encoded
@@ -39,9 +41,13 @@ BUG FIX
 - Fixed StackOverflow bug in AbsCommunicativeact (as reported by Habin Lee, bug #63)
 - Improved handling of errors in remote creation of moving agents
 - Made LEAPCodec compilable in pJava
+- Fixed bug in HTTP-MTP when dealing with intended-receiver list 
+  (as reported by Jerome Picault, Motorola)
+- Made more robust the HTTP-MTP with a number of sanity checks (Ion Constantinescu)
 
 EXAMPLES
 - added party example kindly provided by Ian Dickinson (HP Bristol)
+- updated the MeetingScheduler demo by using Swing instead of awt
 
 	
 MAJOR CHANGES in JADE 2.4 (25 Sep. 2001) 
