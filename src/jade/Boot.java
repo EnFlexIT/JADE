@@ -385,6 +385,7 @@ public class Boot {
         out.println("  -name <platform name>\tThe symbolic platform name specified only for the main container.");
         out.println("  -owner <username:password>\tThe owner of a container or platform.");
 	out.println("  -nomobility\t\tIf specified, disables the mobility and cloning support for the container.");
+        out.println("  -auth <Simple|Unix|NT|Kerberos>\tThe user authentication module to be used.");
         out.println("  -help\t\t\tPrints out usage informations.");
         out.println("  -<key> <value>\t\tApplication specific options.");
         out.println("");
