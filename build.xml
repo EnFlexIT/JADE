@@ -1,12 +1,18 @@
-
 <!-- ANT BUILD FILE FOR THE JADE PROJECT -->
+<!-- The following targets are expected to be used by users:
+ant jade - to compile JADE
+ant lib - to create the JADE libraries (i.e. all the .jar files)
+ant examples - to compile demo
+ant dist - to create the distribution files
+-->
 
 <!-- set properties for this project -->
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
-  <!--- set location of javacc program -->
+
   <property environment="env"/>
-  <property name="version" value="2.5"/>
+  <property name="version" value="2.6"/>
+  
   <!-- set global properties for this build -->
   <property name="root" location="."/>
   <property name="lib" location="lib"/>
@@ -14,13 +20,16 @@
   <property name="dist" location=".."/>
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
+
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
+
     <!-- Create the directory structure -->
     <mkdir dir="${doc}"/>
     <mkdir dir="${lib}"/>
     <mkdir dir="${build}"/>
+
     <condition property="javacc.home.is.set">
       <not>
         <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
@@ -34,6 +43,7 @@
     </condition>
 	
   </target>
+
   <target name="check_javacc" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
@@ -47,12 +57,13 @@
          _______________________________________________ -->
   <target name="jade" depends="init,parser" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
-    <delete dir="${build}/examples"/>
-    <delete dir="${build}/demo"/>
+ <!--   <delete dir="${build}/examples"/>
+    <delete dir="${build}/demo"/> -->
 
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" 
+   <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" 
 		   excludes="demo/**,examples/**,test/**"
     />
+
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
@@ -146,9 +157,11 @@
     <delete dir="${build}/starlight"/>
 
     <!-- Create the jade.jar file -->
-    <jar jarfile="${lib}/jade.jar" basedir="${build}" manifest="${build}/jade.mf"/>
-<!--    <delete dir="${build}/jade"/> -->
-
+    <jar jarfile="${lib}/jade.jar" manifest="${build}/jade.mf">
+	    <fileset dir="${build}"
+	 	  	excludes="**/examples/**,**/demo/**,**/test/**"
+	 	/>
+	</jar>
 	<delete includeEmptyDirs="true" >
 	    <fileset dir="${build}/jade" />
     </delete>
@@ -185,12 +198,13 @@
   <!--     _______________________________________________
                                examples
          _______________________________________________ -->
-  <target name="examples" depends="jade,lib" description="compile the examples ">
-  
+  <target name="examples" depends="lib,examples1,demo,jessexamples" description="compile the examples "/>
+  <target name="examples1" depends="lib" description="compile all examples except the demo and the JESS-based examples">
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${lib}/jade.jar"/>
+  </target>
+  <target name="demo" depends="lib" description="compile the demo">
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
-	<delete dir="${build}/jade" />
   </target>
   
   <!--     _______________________________________________
@@ -206,10 +220,14 @@
                                dist
          _______________________________________________ -->
   <!-- Make distribution zip file and put in ${dist} -->
-  <target name="dist" depends="dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+  <target name="dist" depends="check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+
+  <target name="check_javacc_dist" unless="javacc.home.is.set">
+    <echo>javacc task is being skipped and THE DISTRIBUTION FILES MIGHT NOT BE PROPERLY GENERATED. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
+  </target>
   
-  <target name="dist_src" depends="init">
-    <jar jarfile="${dist}/JADE-src-2.5.zip">
+  <target name="dist_src" depends="init,parser">
+    <jar jarfile="${dist}/JADE-src-${version}.zip">
       <fileset dir="${dist}" includes="jade/src/FIPA/**"/>
       <fileset dir="${dist}" includes="jade/src/starlight/**"/>
       <fileset dir="${dist}" includes="jade/src/jade/**"/>
@@ -218,16 +236,16 @@
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-      <fileset dir="${dist}" includes="jade/src/Makefile"/>
+      <!-- fileset dir="${dist}" includes="jade/src/Makefile"/>
       <fileset dir="${dist}" includes="jade/src/*.idl"/>
       <fileset dir="${dist}" includes="jade/src/*.html"/>
       <fileset dir="${dist}" includes="jade/classes/*.mf"/>
-      <fileset dir="${dist}" includes="jade/lib/Makefile"/>
+      <!--fileset dir="${dist}" includes="jade/lib/Makefile"/>
 	</jar>
   </target>
 
   <target name="dist_examples" depends="init">
-    <jar jarfile="${dist}/JADE-examples-2.5.zip">  
+    <jar jarfile="${dist}/JADE-examples-${version}.zip">  
       <fileset dir="${dist}" includes="jade/src/examples/**"/>
       <fileset dir="${dist}" includes="jade/src/demo/**"/>
       <fileset dir="${dist}" includes="jade/demo/**"/>
@@ -239,7 +257,7 @@
   </target>
 
   <target name="dist_doc" depends="init,doc">
-    <jar jarfile="${dist}/JADE-doc-2.5.zip"> 
+    <jar jarfile="${dist}/JADE-doc-${version}.zip"> 
       <fileset dir="${dist}" includes="jade/doc/**"/>
       <fileset dir="${dist}" includes="jade/README"/>
       <fileset dir="${dist}" includes="jade/COPYNG"/>
@@ -253,7 +271,7 @@
       <fileset dir="${root}" includes="**/demo/*"/>
     </jar>
 	<move file="${root}/MeetingScheduler.jar" todir="${root}/demo"/>
-    <jar jarfile="${dist}/JADE-bin-2.5.zip"> 
+    <jar jarfile="${dist}/JADE-bin-${version}.zip"> 
       <fileset dir="${dist}" includes="jade/lib/**"/>
       <fileset dir="${dist}" includes="jade/demo/**"/>
       <fileset dir="${dist}" includes="jade/README"/>
@@ -264,11 +282,11 @@
   </target>
   
   <target name="dist_all" depends="init,dist_src,dist_examples,dist_doc,dist_bin">
-    <jar jarfile="${dist}/JADE-all-2.5.zip"> 
-      <fileset dir="${dist}" includes="JADE-src-2.5.zip"/>
-      <fileset dir="${dist}" includes="JADE-examples-2.5.zip"/>
-      <fileset dir="${dist}" includes="JADE-doc-2.5.zip"/>
-      <fileset dir="${dist}" includes="JADE-bin-2.5.zip"/>
+    <jar jarfile="${dist}/JADE-all-${version}.zip"> 
+      <fileset dir="${dist}" includes="JADE-src-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-examples-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-doc-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-bin-${version}.zip"/>
 	</jar>
   </target>
   
