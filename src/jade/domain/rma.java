@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/02/15 11:46:52  rimassa
+  Changed a line of code to correctly use Agent.getName().
+
   Revision 1.9  1999/02/14 23:25:31  rimassa
   Changed addBehaviour() calls to addSubBehaviour() calls where
   appropriate.
@@ -172,7 +175,7 @@ public class rma extends Agent {
     AMSCancellation.setLanguage("SL");
     AMSCancellation.setOntology("jade-agent-management");
     AMSCancellation.setReplyWith("RMA-cancellation");
-    AMSCancellation.setConversationId(myName+'@'+myAddress);
+    AMSCancellation.setConversationId(getName());
 
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
