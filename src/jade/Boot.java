@@ -319,6 +319,8 @@ public class Boot {
                 }
             } else if (theArg.equalsIgnoreCase("-container")) {
                 results.add(theArg);
+	    } else if (theArg.equalsIgnoreCase("-backupmain")) {
+		results.add(theArg);
             } else if (theArg.equalsIgnoreCase("-gui")) {
                 results.add(theArg);
             } else if (theArg.equalsIgnoreCase("-version")

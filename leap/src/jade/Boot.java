@@ -116,6 +116,9 @@ public class Boot {
 	  		if (args[i].equalsIgnoreCase("-container")) {
 	  			props.setProperty(Profile.MAIN, "false");
 	  		}
+			else if(args[i].equalsIgnoreCase("-backupmain")) {
+			    props.setProperty(Profile.LOCAL_SERVICE_MANAGER, "true");
+			}
 	  		else if (args[i].equalsIgnoreCase("-gui")) {
 	  			props.setProperty("gui", "true");
 	  		}
