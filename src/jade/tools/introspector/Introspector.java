@@ -171,6 +171,11 @@ public class Introspector extends ToolAgent {
 	    ContainerID cid = da.getWhere();
 	    String container = cid.getName();
 	    AID agent = da.getAgent();
+	    MainWindow m = (MainWindow)windowMap.get(agent);
+	    if(m != null) {
+	      myGUI.closeInternal(m);
+	      windowMap.remove(agent);
+	    }
 	    myGUI.removeAgent(container, agent);
 	  }
         });
