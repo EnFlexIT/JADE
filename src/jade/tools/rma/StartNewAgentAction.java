@@ -58,7 +58,10 @@ class StartNewAgentAction extends ContainerAction {
       String className = StartDialog.getClassName();
       String container = StartDialog.getContainer();
 
-      myRMA.newAgent(agentName, className, container);
+      if((agentName.trim().length() > 0) && (className.trim().length() >0))
+        {
+        	myRMA.newAgent(agentName, className, container);
+        }
     }
     return result;
   }
