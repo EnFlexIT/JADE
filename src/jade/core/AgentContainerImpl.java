@@ -552,12 +552,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
 
+	myServiceManager.removeNode(myNodeDescriptor);
+
 	myIMTPManager.unexportServiceManager(myServiceManager);
 	myIMTPManager.disconnect(myID);
 
     }
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();
+    }
+    catch(ServiceException se) {
+	se.printStackTrace();
     }
 
     // Releases Thread resources
@@ -939,6 +944,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	localAgents.release(receiverID);
 
 	return true;
+    }
+
+    public void storeUndelivered(ACLMessage msg, AID receiverID) {
+
     }
 
     // Tells whether the given AID refers to an agent of this platform
