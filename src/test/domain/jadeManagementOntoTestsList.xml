@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Create Agent" skip="false">
+			<TestClassName>test.domain.tests.TestCreateAgent</TestClassName>
+			<WhatTest> Tests the CreateAgent action.</WhatTest>
+			<HowWorkTest> Create an agent with <em>CreateAgent</em> method.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>

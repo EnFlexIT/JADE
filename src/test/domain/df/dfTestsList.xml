@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Search Until Found" skip="true">
+			<TestClassName>test.domain.df.tests.TestSearchUntilFound</TestClassName>
+			<WhatTest> Tests the searchUntilFound() method of the DFService class.</WhatTest>
+			<HowWorkTest> 
+				More in details:
+				<UL>
+	   			<LI>register DFD1 with the DF;</LI>
+	   			<LI>launch another agent that will register a DFD2 after 5 sec and DFD12 after other 10 sec;</LI>
+	   			<LI>call searchUntilFound(template1 matching DFD1) (this should immediately return DFD1);</LI>
+			    <LI>call searchUntilFound(template2 matching DFD2) (this should return DFD2 as soos as the other agent registers DFD2);</LI>
+			    <LI>call searchUntilFound(template3 not matching, timeout == 5 sec) (this should return null when the timeout expires);</LI>
+			    <LI>wait some time to check that no further notifications are received from the DF.</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="DF Service" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFService</TestClassName>
+			<WhatTest> Tests accessing the DF agent by means of the DFService utility class.</WhatTest>
+			<HowWorkTest> 
+				More in details there is an agent that:
+				<UL>
+	   			<LI>registers with the DF;</LI>
+	   			<LI>searches the DF (he should find himself);</LI>
+	   			<LI>deregisters with the DF;</LI>
+			    <LI>searches again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Light DF Service" skip="true">
+			<TestClassName>test.domain.df.tests.TestLightDFService</TestClassName>
+			<WhatTest> Tests accessing the DF agent by means of the LightDFService utility class.</WhatTest>
+			<HowWorkTest> 
+				More in details there is an agent that:
+				<UL>
+	   			<LI>registers with the DF;</LI>
+	   			<LI>searches the DF (he should find himself);</LI>
+	   			<LI>deregisters with the DF;</LI>
+			    <LI>searches again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="FIPA Management Onto DF" skip="flase">
+			<TestClassName>test.domain.df.tests.TestFIPAManagementOntology_DF</TestClassName>
+			<WhatTest> Tests actions in the FIPAManagementOntology related to the DF.</WhatTest>
+			<HowWorkTest> 
+				More in details there is an agent that:
+				<UL>
+	   			<LI>registers with the DF;</LI>
+	   			<LI>searches the DF (he should find himself);</LI>
+	   			<LI>deregisters with the DF;</LI>
+			    <LI>searches again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Fedaration" skip="true">
+			<TestClassName>test.domain.df.tests.TestFederation</TestClassName>
+			<WhatTest> Tests DF federation and recursive search on federated DF.</WhatTest>
+			<HowWorkTest> 
+				More in details this test behaves as follows:
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>Create another DF agent called DF1;</LI>
+	   			<LI>Register a DFD on DF1;</LI>
+	   			</UL>
+	   			<br><b>Actual Test</b></br>
+	   			<UL>
+	   			<LI>Request DF1 to federate with the default DF;</LI>
+			    <LI>Searches the default DF specifying maxDepth ==1 (he should find 1 agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Subscription at DF" skip="true">
+			<TestClassName>test.domain.df.tests.TestDFSubscription</TestClassName>
+			<WhatTest> Tests the subscription service supported by the JADE DF.</WhatTest>
+			<HowWorkTest> 
+				More in details this test behaves as follows:
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>registers a DFD with the DF;</LI>
+	   			</UL>
+	   			<br><b>Actual Test</b></br>
+	   			<UL>
+	   			<LI>subscribes to the DF (should immediately get back a notification);</LI>
+			    <LI>After 5 sec registers 2nd DFD (matching) with the DF (should get back another notification;</LI>
+			    <LI>After 10 sec registers 3rd DFD (not matching) with the DF (should not get back anything;</LI>
+			    <LI>After 15 sec modifies 2nd DFD (still matching) with the DF (should get back another notification;</LI>
+			    <LI>After 20 sec modifies 3rd DFD (now matching) with the DF (should get back another notification;</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "test//common//xml//listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Integer" skip="false">
+			<TestClassName>test.content.tests.TestInt</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type int.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Boolean" skip="false">
+			<TestClassName>test.content.tests.TestBoolean</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type boolean.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Long" skip="false">
+			<TestClassName>test.content.tests.TestLong</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest>
+				It includes a concept with an attribute of type boolean.
+				<br></br><em>NOTE: This test uses the same content as the Date-attribute test.</em>
+			</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Float" skip="false">
+			<TestClassName>test.content.tests.TestFloat</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type float.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Double" skip="false">
+			<TestClassName>test.content.tests.TestDouble</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type double.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Date" skip="false">
+			<TestClassName>test.content.tests.TestDate</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> 
+				It includes a concept with an attribute of type date.
+				<br></br><em>NOTE: This test uses the same content as the Long-attribute test</em>
+			</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Byte Sequence" skip="false">
+			<TestClassName>test.content.tests.TestByteSeq</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type byte-sequence.</HowWorkTest>
+			<WhenTestPass> 
+				Test passed if no exception is fired.
+				<br></br><em>NOTE: When using the SL language this test is PASSED if the above operation fails</em>
+			</WhenTestPass>
+		</Test>		
+		<Test name="Agent Action" skip="false">
+			<TestClassName>test.content.tests.TestAgentAction</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It sends an AgentAction content.</HowWorkTest>
+			<WhenTestPass> 
+				Test passed if no exception is fired.
+				<br></br><em>NOTE: When using the SL language this test is PASSED if the above operation fails</em>
+			</WhenTestPass>
+		</Test>		
+		<Test name="Agent Action1" skip="false">
+			<TestClassName>test.content.tests.TestAction1</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It sends an AgentAction content with BasicOntology.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Agent Action2" skip="false">
+			<TestClassName>test.content.tests.TestAction2</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It send a Concept that represents an action but is not an AgentAction within a BasicOntology.ACTION</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Object" skip="false">
+			<TestClassName>test.content.tests.TestObject</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with a slot as generic object.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Unknown Schema" skip="false">
+			<TestClassName>test.content.tests.TestUnknownSchema</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It inserts a content that is a Predicate of an unknown type.</HowWorkTest>
+			<WhenTestPass> Test passed if exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Onto AID" skip="false">
+			<TestClassName>test.content.tests.TestOntoAID</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> Test the usage of an OntoAID where a Concept is required.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Sequence" skip="false">
+			<TestClassName>test.content.tests.TestSequence</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an aggregate attribute of type SEQUENCE.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Missing Optional" skip="false">
+			<TestClassName>test.content.tests.TestMissingOptional</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with a missing optional attribute.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Missing Manadatory" skip="false">
+			<TestClassName>test.content.tests.TestMissingMandatory</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with a missing mandatory attribute.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Content Element List" skip="false">
+			<TestClassName>test.content.tests.TestContentElementList</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It composes the content with more than one content element, i.e. a content element list.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Aggregate as Concept" skip="false">
+			<TestClassName>test.content.tests.TestAggregateAsConcept</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It inserts an aggregate where a concept is required.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Typed Aggregate" skip="false">
+			<TestClassName>test.content.tests.TestTypedAggregate</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a typed aggregate containing an element of a wrong type.</HowWorkTest>
+			<WhenTestPass> Test passed if an exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Cardinality" skip="false">
+			<TestClassName>test.content.tests.TestCardinality</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> 
+				It includes with an aggregate including a wrong number of elements.
+				<br></br><em>NOTE: This also tests adding a facet in a class for a slot defined in a superclass.</em>
+			</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Correct IRE" skip="false">
+			<TestClassName>test.content.tests.TestCorrectIRE</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a correct IRE.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Onto ACLMessage" skip="false">
+			<TestClassName>test.content.tests.TestOntoACLMessage</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It uses an OntoACLMessage where an AgentAction is required.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="BC Reflective Introspector" skip="false">
+			<TestClassName>test.content.tests.TestBCReflectiveIntrospector</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It includes a concept with an attribute of type sequence using the Backward compatible Reflective Introspector.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Abs Descriptor As Concept" skip="false">
+			<TestClassName>test.content.tests.TestAbsDescriptorAsConcept</TestClassName>
+			<WhatTest> Tests the usage of AbsConcept as a Java class associated to a Concept in an ontology.</WhatTest>
+			<HowWorkTest> The content used in this test is a predicate represented as a Java object including a concept represented as an instance of the AbsConcept class.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Abs Descriptor As Predicate" skip="false">
+			<TestClassName>test.content.tests.TestAbsDescriptorAsPredicate</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It uses an AbsPredicate as a Java class associated to a Predicate in an ontology.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Slot Order" skip="false">
+			<TestClassName>test.content.tests.TestSlotOrder</TestClassName>
+			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<HowWorkTest> It including a predicate where slots values have been set in a mixed order.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>

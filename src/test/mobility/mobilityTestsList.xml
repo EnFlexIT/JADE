@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Do Move" skip="false">
+			<TestClassName>test.mobility.tests.TestDoMove</TestClassName>
+			<WhatTest> Tests the mobility proactively initiated by an agent by means of a call to the doMove() method.</WhatTest>
+			<HowWorkTest> 
+				This test requests an example.mobile.MobileAgent to move to another container 
+				and then checks it has actually moved by asking its current location. 
+				This process is repeated 4 times (including moving to the local container).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the agent move correctly.</WhenTestPass>
+		</Test>		
+	</TestsList>

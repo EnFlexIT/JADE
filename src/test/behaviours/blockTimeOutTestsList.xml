@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Behaviour Block with timeout stress test" skip="false">
+			<TestClassName>test.behaviours.tests.TestBlockTimeout</TestClassName>
+			<WhatTest> Tests the behaviour block/restart mechanism when a timeout is specified by stressing it.</WhatTest>
+			<HowWorkTest>It should be noticed that passing this test does not ensure the mechanism works correctly, this test will take a while.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Logical Op" skip="false">
+			<TestClassName>test.content.tests.sl.TestLogicalOp</TestClassName>
+			<WhatTest> Tests a content including the AND, OR and NOT operators.</WhatTest>
+			<HowWorkTest> The content tested looks like: (not (or (TEST_EXISTS ...) (and (TEST_EXISTS ...) (TEST_EXISTS ...) ) ) ).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Modal Op" skip="false">
+			<TestClassName>test.content.tests.sl.TestModalOp</TestClassName>
+			<WhatTest> Tests a content including the B, U and I operators.</WhatTest>
+			<HowWorkTest> The content tested looks like: (U (agent-identifier ...) (B (agent-identifier ...) (I (agent-identifier ...) (TEST_EXISTS ...)))).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Quantifiers" skip="false">
+			<TestClassName>test.content.tests.sl.TestQuantifiers</TestClassName>
+			<WhatTest> Tests a content including the EXISTS and FORALL operators.</WhatTest>
+			<HowWorkTest> The content tested looks like: (forall ?x (exists ?y (CLOSE ?x ?y) ) ).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Action Expressions" skip="false">
+			<TestClassName>test.content.tests.sl.TestActionExpressions</TestClassName>
+			<WhatTest> Tests a content including the | (ACTION_ALTERNATIVE) and ; (ACTION_SEQUENCE) operators.</WhatTest>
+			<HowWorkTest> The tested content looks like: (; (action (agent-identifier ...) (SELL...)) (| (action (agent-identifier ...) (SELL ...)) (action (agent-identifier ...) (SELL ...)))).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>

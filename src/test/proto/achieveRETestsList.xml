@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Initiator and responder in the same agent" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestMyselfAsResp</TestClassName>
+			<WhatTest> Tests the normal flow of messages with two responders, but one of them is the initiator agent itself.</WhatTest>
+			<HowWorkTest> All handlers are defined overriding methods.</HowWorkTest>
+			<WhenTestPass> The test passes when it terminates correctly.</WhenTestPass>
+		</Test>		
+		<Test name="Missing AGREE" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestMissingAgree</TestClassName>
+			<WhatTest> Tests the protocol when a responder directly replies with the result notification (INFORM or FAILURE) and no AGREE message is sent.</WhatTest>
+			<HowWorkTest> 
+				More in details:
+				<UL>
+	   			<LI>Responder-0 behaves normally (i.e. AGREE, INFORM);</LI>
+	   			<LI>Responder-1 replies with INFORM;</LI>
+	   			<LI>Responder-2 replies with FAILURE;</LI>
+			    </UL>
+			    This test also checks that the handleAllResponses handler is properly called
+			    <br></br><em>NOTES: All handlers are defined overriding methods.</em>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Timeout and Out-of-sequence" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestTimeoutAndOutOfSeq</TestClassName>
+			<WhatTest> Tests the protocol when a responder does not reply or reply with a wrong message.</WhatTest>
+			<HowWorkTest> 
+				More in details there will be 5 responders:
+				<UL>
+	   			<LI>Responder-0 replies with AGREE and INFORM;</LI>
+	   			<LI>Responder-1 replies with FAILURE;</LI>
+	   			<LI>Responder-2 replies with REFUSE;</LI>
+	   			<LI>Responder-3 replies with REQUEST (an out of sequence message);</LI>
+	   			<LI>Responder-4 does not reply at all;</LI>
+	   			<LI>Responder-2 replies with REFUSE.</LI>
+			    </UL>
+			    This test also checks that the handleAllResponses handler is properly called
+			    <br></br><em>NOTES: 
+			    <UL>
+	   			<LI>This test also checks that the handleAllResponses handler is properly called;</LI>
+	   			<LI>This test will take ~ 10 sec as the timeout must expire;</LI>
+	   			<LI>All handlers are defined overriding methods.</LI>
+	   			</UL>
+			    </em>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Register HandleInform" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestRegisterHandleInform</TestClassName>
+			<WhatTest> Tests the registration of a composite behaviour in the HANDLE_INFORM state.</WhatTest>
+			<HowWorkTest> There will be three responders behaving normally (i.e. AGREE INFORM) so that the registered state is visited three times.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Missing Result notification" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestMissingNotification</TestClassName>
+			<WhatTest> Tests the protocol when a responder replies with an AGREE, but then does not send any notification.</WhatTest>
+			<HowWorkTest> 
+				More in details there will be three responders:
+				<UL>
+	   			<LI>Responder-0 behaves normally (i.e. AGREE, INFORM);</LI>
+	   			<LI>Responder-1 replies with AGREE, but does not send any INFORM/FAILURE;</LI>
+	   			<LI>Responder-2 does not reply at all;</LI>
+			    </UL>
+			    The protocol in this case would stick. Therefore a waker behaviour is added in the handleAllResponses() method 
+			    that will stop the protocol after a while.
+			    <br></br><em>NOTES: This test will take ~ 20 sec.</em>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>
