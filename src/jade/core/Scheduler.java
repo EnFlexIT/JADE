@@ -136,9 +136,11 @@ class Scheduler implements Serializable {
   // round-robin algorithm.
   public synchronized Behaviour schedule() throws InterruptedException {
     while(readyBehaviours.isEmpty()) {
-      // System.out.println("Agent " + owner.getLocalName() + " has nothing to do, so it sleeps ...");
+      int oldState = owner.getState();
+      owner.doIdle();
       wait();
     }
+
     Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);
     currentIndex = (currentIndex + 1) % readyBehaviours.size();
     return b;
