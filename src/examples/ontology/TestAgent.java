@@ -29,14 +29,41 @@ import java.io.*;
 
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAException;
-import jade.lang.acl.ACLParser;
-import jade.lang.acl.ParseException;
-import jade.lang.acl.ACLMessage;
+import jade.lang.acl.*;
 import jade.core.Agent;
 import jade.lang.sl.SL0Codec;
 import jade.domain.MobilityOntology;
 
 public class TestAgent extends Agent {
+
+final static String SAMPLEFILE = "examples/ontology/testmessages.msg";
+
+  private StringACLCodec getStringACLCodec() {
+    System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology all together.");
+    System.out.println("It is an application (i.e. do not need to run a JADE Agent Platform).");
+    System.out.println("The application reads from a file, or from standard input,  a sequence of ACL messages, whose language parameter is set to FIPA-SL0 and whose ontology parameter is set to fipa-agent-management or to jade-mobility-ontology. Then it parses the message, creates the Java objects according to the ontology, fills back the content on the basis of these Java objects, and double check these last two operations.");
+    System.out.println("The file "+SAMPLEFILE+ " is provided with a lot of interesting sample messages"); 
+
+    System.out.println("ENTER the name of the input file (write sample to use the sample file; write in to use the standard input, any other string is used as a file name");
+    String fileName;
+    Reader r;
+    while (true) {
+      try {
+	BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+	fileName = buff.readLine();
+	if ("sample".equalsIgnoreCase(fileName))
+	  r = new FileReader(SAMPLEFILE);
+	else if ("in".equalsIgnoreCase(fileName))
+	  r = new InputStreamReader(System.in);
+	else
+	  r = new FileReader(fileName);
+	break;
+      } catch (Exception e) {
+	e.printStackTrace();
+      }
+    }
+    return new StringACLCodec(r, new OutputStreamWriter(System.out)); 
+}
 
 protected void setup() {
   // register the codec of the language
@@ -47,19 +74,16 @@ protected void setup() {
   // register the ontology used by application
   registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
 	
-  System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology all together.");
-  System.out.println("It is an application (i.e. do not need to run a JADE Agent Platform).");
-  System.out.println("The application reads from the file examples/ontology/testmessages.msg a sequence of ACL messages, whose language parameter is set to FIPA-SL0 and whose ontology parameter is set to fipa-agent-management.");
 
-  try {
-    ACLParser parser = new ACLParser(new FileReader("examples/ontology/testmessages.msg")); //System.in);
+  StringACLCodec codec = getStringACLCodec(); 
   ACLMessage msg;
   while (true) {  
     try {
       PushAKey();
       System.out.println("\nREADING NEXT MESSAGE FROM THE FILE ...");
-      msg = parser.Message();
+      msg = codec.decode();
       System.out.println("  read the following message:\n"+msg.toString());
+      codec.write(msg);
       System.out.println("\nEXTRACTING THE CONTENT AND CREATING A LIST OF JAVA OBJECTS ...");
       List l=extractContent(msg);
       System.out.print("  created the following classes: (");
@@ -86,19 +110,17 @@ protected void setup() {
     } catch (FIPAException e) {
       e.printStackTrace();
       System.exit(0);
-    } catch (jade.lang.acl.ParseException e) {
+    } catch (ACLCodec.CodecException e) {
       e.printStackTrace();
       System.exit(0);
     }
   }
-  } catch (FileNotFoundException e) {
-    e.printStackTrace();
-  }
+  
 
 }
 
 private void PushAKey(){
-  System.out.println("Press ENTER");
+  System.out.println("Press ENTER to start processing next message ...");
   try {
     BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
     buff.readLine();
