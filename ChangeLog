@@ -1,3 +1,22 @@
+MAJOR CHANGES in JADE Snapshot (17 April 2002) 
+==========================================================================
+GENERAL:
+- A number of classes have been made compatible with CLDC
+- content support: 
+  modified to allow using AbsDescriptors as Java classes
+  representing more that one element in an ontology. 
+  Improved exception reporting.
+  added vocabulary, schemas and operators for SL0,1,2
+BUG FIXES:
+- Prevented nullpointerexception of the SLParsers when the content is empty
+- Fixed bug in behaviour restart with very short timeout
+- Made Serializable MessageFuture
+- Fixed bug in SL when parsing boolean values
+
+DOCUMENTATION:
+- added SimpleAchieveREResponder/Initiator and removed references to   DF/AMSServiceCommunicator
+- Added new tutorial for JADE beginners
+
 MAJOR CHANGES in JADE Snapshot (26 March 2002) 
 ==========================================================================
 GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES:
