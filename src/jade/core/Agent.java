@@ -794,12 +794,15 @@ public class Agent implements Runnable, Serializable
 		}
   }
   /**
-     Method to query the agent home address. This is the address of
-     the platform where the agent was created, and will never change
-     during the whole lifetime of the agent.
-
-     @return A <code>String</code> containing the agent home address
-     (e.g. <em>iiop://fipa.org:50/acc</em>).
+   * Method to query the Home Agent Platform. This is the name of
+   * the platform where the agent has been created, therefore it will 
+   * never change during the entire lifetime of the agent.
+   * In JADE the name of an agent by default is composed by the 
+   * concatenation (using '@') of the agent local name and the Home 
+   * Agent Platform name 
+   *
+   * @return A <code>String</code> containing the name of the home agent platform
+   * (e.g. <em>myComputerName:1099/JADE</em>).
   */
   public final String getHap() {
     return myHap;
