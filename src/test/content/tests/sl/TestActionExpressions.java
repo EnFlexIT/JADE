@@ -80,8 +80,8 @@ public class TestActionExpressions extends Test{
   				AbsAgentAction sequence = (AbsAgentAction) myAgent.getContentManager().extractContent(reply);
   				l.log("Content correctly decoded");
   				AbsAgentAction alternative = (AbsAgentAction) sequence.getAbsTerm(SLVocabulary.ACTION_SEQUENCE_SECOND);
-  				AbsAgentAction a = (AbsAgentAction) alternative.getAbsTerm(SLVocabulary.ACTION_ALTERNATIVE_FIRST);
-  				Action act = (Action) TestOntology.getInstance().toObject(a);
+  				AbsAgentAction aa = (AbsAgentAction) alternative.getAbsTerm(SLVocabulary.ACTION_ALTERNATIVE_FIRST);
+  				Action act = (Action) TestOntology.getInstance().toObject(aa);
   				Sell s = (Sell) act.getAction();
   				Item i = s.getItem();
   				if (i.getSerialID() == 200) {
