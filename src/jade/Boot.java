@@ -77,7 +77,8 @@ public class Boot {
 	  usage();
 	}
 	else {
-	  /* Every other string is supposed to be the name of an
+	  /* 
+	     Every other string is supposed to be the name of an
 	     agent, in the form name:class. The two parts must be at
 	     least one character long to be put in the Vector;
 	     otherwise they are ignored.
@@ -98,18 +99,20 @@ public class Boot {
       System.exit(1);
     }
 
-    // Build the complete URL of the agent platform from default values and command line options
-    String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
+    // Build the complete URL of the agent platform from default
+    // values and command line options, both for RMI and IIOP calls.
+    String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
+    String platformIIOP = "iiop://" + platformHost + ":" + platformPort + "/" + "acc";
     try{
       AgentContainerImpl theContainer = null;
       if(isPlatform) {
 	theContainer = new AgentPlatformImpl();
-	Naming.bind(platformURL, theContainer);
+	Naming.bind(platformRMI, theContainer);
       }
       else {
 	theContainer = new AgentContainerImpl();
       }
-      theContainer.joinPlatform(platformURL, agents);
+      theContainer.joinPlatform(platformRMI, platformIIOP, agents);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while starting Agent Container.");
