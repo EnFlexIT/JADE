@@ -10,9 +10,16 @@ ant dist - to create the distribution files
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
 
-  <property environment="env"/>
+
   <property name="version" value="2.6"/>
-  
+  <property name="build.compiler" value="javac1.2"/> 
+  <property name="EXECidlj" value="false"/>
+  <!-- by default idlj is not executed, set to true the value for the
+       previous property if you want to execute idlj -->
+
+
+
+  <property environment="env"/>
   <!-- set global properties for this build -->
   <property name="root" location="."/>
   <property name="lib" location="lib"/>
@@ -41,6 +48,10 @@ ant dist - to create the distribution files
         <equals arg1="${env.JESS_HOME}" arg2="$${env.JESS_HOME}"/>
       </not>
     </condition>
+
+    <condition property="EXECidlj.is.set">
+     <equals arg1="${EXECidlj}" arg2="true"/>
+    </condition>
 	
   </target>
 
@@ -55,14 +66,12 @@ ant dist - to create the distribution files
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
-  <target name="jade" depends="init,parser" description="compile the source ">
+  <target name="jade" depends="init,parser,idlj" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
  <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
 
-   <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" 
-		   excludes="demo/**,examples/**,test/**"
-    />
+   <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" excludes="demo/**,examples/**,test/**"  />
 
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
@@ -96,6 +105,16 @@ ant dist - to create the distribution files
     <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
     <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
   </target>
+
+  <!--     _______________________________________________
+                                idlj
+          _______________________________________________ -->
+   <target name="idlj" depends="init" if="EXECidlj.is.set">
+     <echo> WARNING: Executing the idlj task might create wrong java files </echo>
+     <exec dir="${src}" executable="idlj.exe">
+       <arg line="-fall fipa.idl"/>
+     </exec>
+   </target>
 
   <!--     _______________________________________________
                               parser
@@ -158,12 +177,10 @@ ant dist - to create the distribution files
 
     <!-- Create the jade.jar file -->
     <jar jarfile="${lib}/jade.jar" manifest="${build}/jade.mf">
-	    <fileset dir="${build}"
-	 	  	excludes="**/examples/**,**/demo/**,**/test/**"
-	 	/>
-	</jar>
-	<delete includeEmptyDirs="true" >
-	    <fileset dir="${build}/jade" />
+     <fileset dir="${build}" excludes="**/examples/**,**/demo/**,**/test/**" />
+    </jar>
+    <delete includeEmptyDirs="true" >
+     <fileset dir="${build}/jade" />
     </delete>
 
   </target>
@@ -236,11 +253,11 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-      <!-- fileset dir="${dist}" includes="jade/src/Makefile"/>
+      <!-- fileset dir="${dist}" includes="jade/src/Makefile"/ -->
       <fileset dir="${dist}" includes="jade/src/*.idl"/>
       <fileset dir="${dist}" includes="jade/src/*.html"/>
       <fileset dir="${dist}" includes="jade/classes/*.mf"/>
-      <!--fileset dir="${dist}" includes="jade/lib/Makefile"/>
+      <!-- fileset dir="${dist}" includes="jade/lib/Makefile"/ -->
 	</jar>
   </target>
 
@@ -267,13 +284,12 @@ ant dist - to create the distribution files
   </target>
   
   <target name="dist_bin" depends="init,lib,examples">
-    <jar jarfile="${root}/MeetingScheduler.jar" manifest="demo/demo.mf">
-      <fileset dir="${root}" includes="**/demo/*"/>
+    <jar jarfile="demo/MeetingScheduler.jar" manifest="demo/demo.mf">
+      <fileset dir="${build}" includes="**/demo/*"/>
     </jar>
-	<move file="${root}/MeetingScheduler.jar" todir="${root}/demo"/>
     <jar jarfile="${dist}/JADE-bin-${version}.zip"> 
       <fileset dir="${dist}" includes="jade/lib/**"/>
-      <fileset dir="${dist}" includes="jade/demo/**"/>
+      <fileset dir="${dist}" includes="jade/demo/*"/>
       <fileset dir="${dist}" includes="jade/README"/>
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
