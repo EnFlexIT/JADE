@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.11  1998/11/18 23:00:52  Giovanni
+  Written 'search' action implementation; now a simple linear scan of DF
+  agent descriptor table is used. Still missing is a non trivial match
+  function, support for action constraints and result packaging as an
+  'inform' message.
+
   Revision 1.10  1998/10/18 17:37:34  rimassa
   Minor changes towards 'search' action implementation.
 
@@ -11,12 +17,15 @@
 package jade.domain;
 
 import java.io.StringReader;
+
+// FIXME: Just for debug
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
+import java.util.Vector;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -270,9 +279,9 @@ public class df extends Agent {
       AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       AgentManagementOntology.DFSearchAction dfsa = (AgentManagementOntology.DFSearchAction)dfa;
       Enumeration constraints = dfsa.getConstraints();
-      DFSearch(dfsa, dfd, constraints);
+      DFSearch(dfd, constraints);
       sendAgree(myReply);
-      sendInform(myReply);
+      sendInform(myReply); // FIXME: To change, since it must send a result instead of Done(action)
     }
 
   } // End of SrchBehaviour class
@@ -365,9 +374,34 @@ public class df extends Agent {
     
   }
 
-  private void DFSearch(AgentManagementOntology.DFSearchAction dfsa, AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
-    dfsa.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-    // FIXME: To be implemented
+  private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
+
+    Vector matchesFound = new Vector();
+    Enumeration e = descriptors.elements();
+
+    while(e.hasMoreElements()) {
+      Object obj = e.nextElement();
+      AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
+      if(match(dfd, current)) {
+	matchesFound.addElement(current);
+      }
+
+    }
+
+    e = matchesFound.elements();
+    while(e.hasMoreElements()) {
+      Object obj = e.nextElement();
+      AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
+
+      current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+
+    }
+    // FIXME: To be completed
+  }
+
+  private boolean match(AgentManagementOntology.DFAgentDescriptor template,
+			AgentManagementOntology.DFAgentDescriptor dfd) {
+    return true;
   }
 
 }
