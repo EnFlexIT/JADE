@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/02/14 23:12:09  rimassa
+  Removed reset(), hasMoreMembers() and nextMember() methods. Added
+  getMembers() and size() methods.
+
   Revision 1.5  1999/02/04 11:46:06  rimassa
   Added getMembers() method. Added clone() and toString() methods to
   better support fipa-contract-net protocol.
@@ -33,7 +37,6 @@ import java.util.Vector;
 public class AgentGroup implements Cloneable {
 
   private Vector memberNames = new Vector();
-  private Enumeration iterator = memberNames.elements();
 
   public void addMember(String name) {
     memberNames.addElement(name);
@@ -43,24 +46,12 @@ public class AgentGroup implements Cloneable {
     memberNames.removeElement(name);
   }
 
-  public void reset() {
-    iterator = memberNames.elements();
-  }
-
-  // FIXME: seems unnecessary to me ...
   public Enumeration getMembers(){
     return memberNames.elements();
   }
 
-  public boolean hasMoreMembers() {
-    return iterator.hasMoreElements();
-  }
-
-  public String getNextMember() {
-    if(hasMoreMembers())
-      return (String)iterator.nextElement();
-    else
-      return null;
+  public int size() {
+    return memberNames.size();
   }
 
   /**
