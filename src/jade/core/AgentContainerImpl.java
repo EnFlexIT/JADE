@@ -177,19 +177,27 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		// Subscribe as a listener for the new agent
 		instance.setToolkit(this);
-
+		
 		// put the agent in the local table and get the previous one, if any
 		Agent previous = localAgents.put(agentID, instance);
 		if (startIt) {
 			try {
-				myPlatform.bornAgent(agentID, myID, instance.getIdentity(), instance.getDelegation());
+				IdentityCertificate identity = instance.getIdentity();
+				DelegationCertificate delegation = instance.getDelegation();
+				if (identity == null) {
+					AgentPrincipal principal = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+					identity = authority.createIdentityCertificate();
+					identity.setSubject(principal);
+					authority.sign(identity, this.identity, new DelegationCertificate[] {this.delegation});
+				}
+				myPlatform.bornAgent(agentID, myID, identity, delegation);
 				instance.powerUp(agentID, myResourceManager);
 			}
 			catch (NameClashException nce) {
 				System.out.println("Agentname already in use:"+nce.getMessage());
 				localAgents.remove(agentID);
 				if (previous != null) {
-					localAgents.put(agentID,previous);
+					localAgents.put(agentID, previous);
 				}
 			}
 			catch (IMTPException re) {
