@@ -1105,13 +1105,21 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				((DFAgentDescription) item).setLeaseTime(lease);
 			}
 		
+			/**
+			 * Grant a lease to this request according to the
+			 * policy of the DF: if the requested lease is
+			 * greater than the max lease policy of this DF, then
+			 * the granted lease is set to the max of the DF.
+			 **/
 			public Object grantLeaseTime(Object item){
 				if (maxLeaseTime != null) {
 					Date lease = getLeaseTime(item);
 					long current = System.currentTimeMillis();
-					if (lease != null && lease.getTime() > (current+maxLeaseTime.getTime())) {
+					if ( (lease != null && lease.getTime() > (current+maxLeaseTime.getTime())) ||
+					( (lease == null) && (maxLeaseTime != null))) {
+					    // the first condition of this if considers the case when the agent requestes a leasetime greater than the policy of this DF. The second condition, instead, considers the case when the agent requests an infinite leasetime and the policy of this DF does not allow infinite leases. 
 						setLeaseTime(item, new Date(current+maxLeaseTime.getTime()));
-					}
+					} 
 				}
 				return item;
 			}
