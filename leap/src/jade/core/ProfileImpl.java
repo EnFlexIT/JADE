@@ -194,7 +194,10 @@ public class ProfileImpl extends Profile {
   	// Set jvm parameter if not set
   	if (props.getProperty(JVM) == null) {
   		props.setProperty(JVM, MIDP);
-  	}  	
+  	}  
+  	
+  	// Set main parameter to false as we can't have a main container in MIDP
+  	props.setProperty(MAIN, "false");
   }
 	#MIDP_INCLUDE_END*/
 	
