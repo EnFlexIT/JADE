@@ -93,20 +93,20 @@ public class AgentTree extends JPanel {
    /**
   @serial
   */
-  protected boolean chgeIcon=false;
+  protected boolean greyOut=false;
 
    public Node(String name) {
      this.name = name;
     }
 
    public Icon getIcon(String typeAgent) {
-      Image image = getToolkit().getImage(getClass().getResource(getIconAgent(typeAgent)));
-    if (chgeIcon) {
-        ImageFilter colorfilter = new MyFilterImage();
-        Image imageFiltered=createImage(new FilteredImageSource(image.getSource(),colorfilter));
-        return new ImageIcon(imageFiltered);
-    }
-   else return new ImageIcon(image);
+       Image image = getToolkit().getImage(getClass().getResource(getIconAgent(typeAgent)));
+       if (greyOut) {
+	   ImageFilter colorfilter = new MyFilterImage();
+	   Image imageFiltered=createImage(new FilteredImageSource(image.getSource(),colorfilter));
+	   return new ImageIcon(imageFiltered);
+       }
+       else return new ImageIcon(image);
 
    }
 
@@ -133,9 +133,20 @@ public class AgentTree extends JPanel {
    public void setOwnership(String ownership){
    this.ownership = ownership;
    }
-   
-   public void changeIcon(boolean chI) {
-      chgeIcon=chI;
+
+   public void changeIcon(String agentState) {
+       if(agentState.equalsIgnoreCase("suspended")) {
+	   greyOut = true;
+	   setType("FIPAAGENT");
+       }
+       else if(agentState.equalsIgnoreCase("active")) {
+	   greyOut = false;
+	   setType("FIPAAGENT");
+       }
+       else if(agentState.equalsIgnoreCase("frozen")) {
+	   greyOut = false;
+	   setType("FROZENAGENT");
+       }
    }
 
    public abstract String getType();
@@ -345,6 +356,8 @@ public class RemoteAgentNode extends AgentNode{
 	}
 }
 
+    private static final String FROZEN_AGENTS = "Frozen Agents";
+
  public AgentTree(Font f) {
 
   TreeSelectionModel selModel;
@@ -463,6 +476,8 @@ public class RemoteAgentNode extends AgentNode{
     }
   }
 
+
+
   public void addRemotePlatformsFolderNode(){
   	AgentTreeModel model = getModel();
   	MutableTreeNode root = (MutableTreeNode)model.getRoot();
@@ -521,65 +536,118 @@ public class RemoteAgentNode extends AgentNode{
       //search for the folder of the local Platform
       Enumeration folders = root.children();
       while (folders.hasMoreElements()) {
-       	AgentTree.Node folderNode = (AgentTree.Node)folders.nextElement();
-       	String folderName = folderNode.getName();
-       	if (folderName.equalsIgnoreCase(localPlatformName)) {
-       		// Search for the agent container 'containerName'
-	      	Enumeration containers = folderNode.children();
-	        while (containers.hasMoreElements()) {
+	  AgentTree.Node folderNode = (AgentTree.Node)folders.nextElement();
+	  String folderName = folderNode.getName();
+	  if (folderName.equalsIgnoreCase(localPlatformName)) {
+	      // Search for the agent container 'containerName'
+	      Enumeration containers = folderNode.children();
+	      while (containers.hasMoreElements()) {
 	          AgentTree.Node container = (AgentTree.Node)containers.nextElement();
 	          String contName = container.getName();
 	          if (contName.equalsIgnoreCase(containerName)) {
-             	Enumeration agents = container.children();
-	            while(agents.hasMoreElements()) {
-    	          AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
-                // Add this new agent to this container and return
-                if (agent.getName().equalsIgnoreCase(agentName)) {
-                  if (state != null) agent.setState(state);
-                  if (ownership != null) agent.setOwnership(ownership);
-                  agent.changeIcon(state != null && state.equalsIgnoreCase("suspended"));
-                  model.nodeChanged(agent);
-                  return;
-                }
-              }
-            }
-          }
-       	}
+		      Enumeration agents = container.children();
+		      while(agents.hasMoreElements()) {
+			  AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
+
+			  if (agent.getName().equalsIgnoreCase(agentName)) {
+			      if (state != null) agent.setState(state);
+			      if (ownership != null) agent.setOwnership(ownership);
+			      agent.changeIcon(state);
+			      model.nodeChanged(agent);
+			      return;
+			  }
+		      }
+		  }
+	      }
+	  }
       }
   }
 
-  public void removeAgentNode(String containerName, String agentName) {
-   	AgentTreeModel model = getModel();
-	  MutableTreeNode root = (MutableTreeNode)model.getRoot();
+  public void moveAgentNode(String fromContainerName, String toContainerName, String agentName) {
+      AgentTreeModel model = getModel();
+      AgentTree.Node fromContainer = findContainerNode(fromContainerName);
+      AgentTree.Node toContainer = findContainerNode(toContainerName);
 
-	  //search for the localPlatform folder
-	  Enumeration folders = root.children();
-	  while(folders.hasMoreElements()){
-	  	AgentTree.Node folderNode =(AgentTree.Node)folders.nextElement();
-	  	String folderName = folderNode.getName();
-	  	if(folderName.equalsIgnoreCase(localPlatformName)){
-    		// Search for the agent container 'containerName'
-    		Enumeration containers = folderNode.children();
-    		while(containers.hasMoreElements()) {
-	    		AgentTree.Node container = (AgentTree.Node)containers.nextElement();
-	    		String contName = container.getName();
-	     		if(contName.equalsIgnoreCase(containerName)) {
-        		// Search for the agent 'agentName' in this agent container
-	      		Enumeration agents = container.children();
-	      		while(agents.hasMoreElements()) {
-	        		AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
-	        		String agName = agent.getName();
-	         		if(agName.equalsIgnoreCase(agentName)){
-             		model.removeNodeFromParent(agent);
-             	return;
-           		}
-	      		}
-	     		}
-    		}
-	  	}
+      // If there is a frozen agent already, do nothing, else move the agent node
+      AgentTree.Node frozenAgents = findFrozenAgentsFolder(toContainer, FROZEN_AGENTS);
+      if(frozenAgents != null) {
+	  AgentTree.Node agent = findAgentNode(frozenAgents, agentName);
+	  if(agent == null) {
+	      // Move the agent node
+	      agent = findAgentNode(fromContainer, agentName);
+	      model.removeNodeFromParent(agent);
+	      model.insertNodeInto(agent, toContainer, toContainer.getChildCount());
 	  }
+      }
+      else {
+	  // Move the agent node
+	  AgentTree.Node agent = findAgentNode(fromContainer, agentName);
+	  model.removeNodeFromParent(agent);
+	  model.insertNodeInto(agent, toContainer, toContainer.getChildCount());
+      }
   }
-  
+
+  public void freezeAgentNode(String oldContainerName, String newContainerName, String agentName) {
+      AgentTreeModel model = getModel();
+      AgentTree.Node oldContainer = findContainerNode(oldContainerName);
+      AgentTree.Node agent = findAgentNode(oldContainer, agentName);
+      model.removeNodeFromParent(agent);
+
+      agent.setState("frozen");
+      agent.changeIcon("frozen");
+
+      AgentTree.Node newContainer = findContainerNode(newContainerName);
+      AgentTree.Node frozenAgents = findFrozenAgentsFolder(newContainer, FROZEN_AGENTS);
+      if(frozenAgents == null) {
+	  frozenAgents = createNewNode(FROZEN_AGENTS, 0);
+	  frozenAgents.setType("FROZENCONTAINER");
+	  model.insertNodeInto(frozenAgents, newContainer, 0);
+      }
+      model.insertNodeInto(agent, frozenAgents, frozenAgents.getChildCount());
+
+  }
+
+  public void thawAgentNode(String oldContainerName, String newContainerName, String agentName) {
+      AgentTreeModel model = getModel();
+      AgentTree.Node oldContainer = findContainerNode(oldContainerName);
+      AgentTree.Node frozenAgents = findFrozenAgentsFolder(oldContainer, FROZEN_AGENTS);
+      AgentTree.Node agent = findAgentNode(frozenAgents, agentName);
+      model.removeNodeFromParent(agent);
+      if(frozenAgents.isLeaf()) {
+	  model.removeNodeFromParent(frozenAgents);
+      }
+
+      agent.setState("active");
+      agent.changeIcon("active");
+
+      AgentTree.Node newContainer = findContainerNode(newContainerName);
+      model.insertNodeInto(agent, newContainer, newContainer.getChildCount());
+
+  }
+
+  public void removeAgentNode(String containerName, String agentName) {
+
+      AgentTreeModel model = getModel();
+      AgentTree.Node container = findContainerNode(containerName);
+      AgentTree.Node agent = findAgentNode(container, agentName);
+
+      if(agent != null) {
+	  model.removeNodeFromParent(agent);
+      }
+      else {
+	  // It can be a frozen agent
+	  AgentTree.Node frozenAgents = findFrozenAgentsFolder(container, FROZEN_AGENTS);
+	  if(frozenAgents != null) {
+	      agent = findAgentNode(frozenAgents, agentName);
+
+	      model.removeNodeFromParent(agent);
+	      if(frozenAgents.isLeaf()) {
+		  model.removeNodeFromParent(frozenAgents);
+	      }
+	  }
+      }
+  }
+
   public void addRemotePlatformNode(AID ams,APDescription desc){
   
   	AgentTreeModel model = getModel();
@@ -713,10 +781,62 @@ public class RemoteAgentNode extends AgentNode{
  	 	NodeDescriptor nDescriptor = (NodeDescriptor)mapDescriptor.get(key);
  	  nDescriptor.setNewPopupMenu(pop);
  	}
- } 
+ }
  protected String getIconAgent(String key) {
    NodeDescriptor nDescriptor=(NodeDescriptor) mapDescriptor.get(key);
    return nDescriptor.getPathImage();
  }
+
+  private AgentTree.Node findAgentNode(AgentTree.Node container, String name) {
+
+      Enumeration agents = container.children();
+      while(agents.hasMoreElements()) {
+	  AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
+	  if (agent.getName().equalsIgnoreCase(name)) {
+	      return agent;
+	  }
+      }
+
+      return null;
+  }
+
+  private AgentTree.Node findContainerNode(String name) {
+      AgentTreeModel model = getModel();
+      MutableTreeNode root = (MutableTreeNode)model.getRoot();
+      //search for the folder of the local Platform
+      Enumeration folders = root.children();
+      while (folders.hasMoreElements()) {
+	  AgentTree.Node folderNode = (AgentTree.Node)folders.nextElement();
+	  String folderName = folderNode.getName();
+	  if(folderName.equalsIgnoreCase(localPlatformName)) {
+	      // Search for the agent container 'name'
+	      Enumeration containers = folderNode.children();
+	      while (containers.hasMoreElements()) {
+	          AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+	          String contName = container.getName();
+	          if(contName.equalsIgnoreCase(name)) {
+		      return container;
+		  }
+	      }
+	  }
+      }
+
+      return null;
+
+  }
+
+    private AgentTree.Node findFrozenAgentsFolder(AgentTree.Node container, String name) {
+
+      Enumeration agents = container.children();
+      while(agents.hasMoreElements()) {
+	  AgentTree.Node child = (AgentTree.Node)agents.nextElement();
+	  if(child.getName().equalsIgnoreCase(name) && child.getType().equalsIgnoreCase("FROZENCONTAINER")) {
+	      return child;
+	  }
+      }
+
+      return null;
+
+    }
 
 }
