@@ -33,6 +33,7 @@ import java.util.Vector;         // J2ME CLDC OK
 import java.util.Stack;          // J2ME CLDC OK
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 import jade.util.BasicProperties;
 import jade.util.ExpandedProperties;
 import jade.util.PropertiesException;
@@ -117,17 +118,22 @@ public class BootProfileImpl extends ProfileImpl {
     public void setArgProperties(BasicProperties source) {
         argProp.copyProperties(source);
         String value = null;
-
+        boolean flag = false;
+        
         // Configure Java runtime system to put the selected host address in RMI messages
+
+  	    boolean isMain = fetchAndVerifyBoolean(CONTAINER_KEY);
+  	                
         try {
 
-            if (!argProp.getBooleanProperty(CONTAINER_KEY, false)) {
+            if (!isMain) {
                 value = argProp.getProperty(HOST_KEY);
-                if (value == null) 
-		    value = InetAddress.getLocalHost().getHostAddress();
-            } else 
+                if (value == null) { 
+		            value = InetAddress.getLocalHost().getHostAddress();
+		        }
+            } else {
                 value = InetAddress.getLocalHost().getHostAddress();
-
+            }
             System.getProperties().put("java.rmi.server.hostname", value);
         } catch (java.net.UnknownHostException jnue) {
             throw new PropertiesException("Unknown host: " + value);
@@ -136,14 +142,14 @@ public class BootProfileImpl extends ProfileImpl {
         // Transfer argument properties into profile properties
 
         BasicProperties profileProp = getProperties();
-
-        // No alternative on MAIN_PROTO
-        profileProp.setProperty(Profile.MAIN_PROTO, "rmi");
         
         value = argProp.getProperty(CONTAINER_KEY);
-        if (value != null) { // is a container
+        if (value != null) { // There is a container attribute and its value was previously verified.
             profileProp.setProperty(Profile.MAIN, value);
-            setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
+            if (!isMain) {
+                // Since the value is false, we cancel the default done in ProfileImpl's constructor
+                setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
+            }
         }
 
         value = argProp.getProperty(AUTHORITY_KEY);
@@ -217,16 +223,20 @@ public class BootProfileImpl extends ProfileImpl {
             setSpecifiers(Profile.MTPS, parseSpecifiers(value));
         }
 
-        value = argProp.getProperty(NOMTP_KEY);
-        if (value != null) {
+        //NOMTP
+        flag = fetchAndVerifyBoolean(NOMTP_KEY);
+        if (flag) {
+            // Since the value was set to true, cancel the MTP settings
             setSpecifiers(Profile.MTPS, new ArrayList(0));
         }
         
         //NOMOBILITY
-        if(argProp.getBooleanProperty(NOMOBILITY_KEY,false))
+        flag = fetchAndVerifyBoolean(NOMOBILITY_KEY);
+        if (!flag) {
             setParameter(MOBILITYMGRCLASSNAME, "jade.core.DummyMobilityManager");
-        else
+        } else {
             setParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
+        }
         
         value = argProp.getProperty(ACLCODEC_KEY);
         if (value != null) {
@@ -236,7 +246,8 @@ public class BootProfileImpl extends ProfileImpl {
         // Get agent list (if any)
         value = argProp.getProperty(AGENTS_KEY);
 
-        if (argProp.getBooleanProperty(GUI_KEY, false)) {
+        flag = fetchAndVerifyBoolean(GUI_KEY);
+        if (flag) {
             // need to run RAM agent
             if (value != null) {
                 value = "RMA:jade.tools.rma.rma " + value;  // put before other agents
@@ -256,10 +267,61 @@ public class BootProfileImpl extends ProfileImpl {
 
             setSpecifiers(Profile.AGENTS, agents);
         }
+        
+        // The following is for debugging only. Probably should not document the "dumpProfile" attribute.
+        // Note All the jade.util.leap.ArrayList structures will only print their type unless a
+        // toString() method were added to them. 
+        if (argProp.getBooleanProperty("dumpProfile", false)) {
+            ArrayList aList = new ArrayList();
+            System.out.println("---------- Jade Boot profile property values ----------");
+            for (Enumeration e = profileProp.sortedKeys(); e.hasMoreElements(); ) {
+                String key = (String) e.nextElement();
+                Object o = profileProp.get(key);
+                if (o.getClass().isAssignableFrom(aList.getClass())) {
+                    System.out.print(key + "=");
+                    ArrayList al = (ArrayList)o;
+                    Iterator itor = al.iterator();
+                    if (!itor.hasNext()) {
+                        System.out.println("<empty>");
+                    } else {
+                        StringBuffer sb = new StringBuffer();
+                        while (itor.hasNext()) {
+                            sb.append(itor.next());
+                            if (itor.hasNext()) {
+                                sb.append(" ");
+                            }
+                        }
+                        System.out.println(sb.toString());
+                    }
+                } else {
+                    System.out.println(key + "=" + profileProp.getProperty(key));
+                }
+            }
+            System.out.println("-------------------------------------------------------");
+        }
     }
 
-
-
+    /**
+     * Fetch and verify a boolean attribute.
+     * @param aKey The property key to check.
+     * @return True or false depending on the attributes setting. False if attribute doesn't exist.
+     * @throws PropertiesException if there is a value but its not either "true" or "false".
+     */
+    protected boolean fetchAndVerifyBoolean(String aKey) throws PropertiesException {
+        boolean result = false;
+        String value = argProp.getProperty(aKey);
+        if (value != null) {
+            if (value.equalsIgnoreCase("true")) {
+                return true;
+            }
+            if (value.equalsIgnoreCase("false")) {
+                return false;
+            }
+            throw new PropertiesException("The value of the attribute " + aKey + " must be either true or false.");
+        }
+        return false;
+    }
+ 
     private static final String ARGUMENT_SEPARATOR = ";";
 
     /**
