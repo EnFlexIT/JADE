@@ -34,7 +34,7 @@ import java.io.*;
  * This class complies with the frame specified in the Agent Management
  * document no. 23 of FIPA 2000.
  * The name is a GUID for the agent. A simple way to construct it is
- * by concatenating the local name to the HAP address.
+ * by concatenating the local name to the HAP identifier.
     @see jade.onto.Ontology
   */
 public class AID implements Cloneable, Serializable {
@@ -91,7 +91,7 @@ public void addUserDefinedSlot(String key, String value){
    * This method is called from ACLMessage in order to create
    * the String encoding of an ACLMessage.
    */
-public void toText(Writer w) {
+  public void toText(Writer w) {
   try {
     w.write("(AID ");
     if ((name!=null)&&(name.length()>0))
@@ -127,6 +127,10 @@ public void toText(Writer w) {
   }
 }
 
+  public String toString() {
+    return name;
+  }
+
   public synchronized Object clone() {
     AID result;
     try {
@@ -138,4 +142,46 @@ public void toText(Writer w) {
     }
     return result;
   }
+
+  /**
+    Equality operation. This method compares an <code>AID</code> object with
+    another or with a Java <code>String</code>. The comparison is case
+    insensitive.
+    @param o The Java object to compare this <code>AID</code> to.
+    @return <code>true</code> if one of the following holds:
+    <ul>
+    <li> The argument <code>o</code> is an <code>AID</code> object
+    with the same <em>GUID</em> in its name slot (apart from
+    differences in case).
+    <li> The argument <code>o</code> is a <code>String</code> that is
+    equal to the <em>GUID</em> contained in the name slot of this
+    Agent ID (apart from differences in case).
+    </ul>
+  */
+  public boolean equals(Object o) {
+
+    if(o instanceof String) {
+      return name.equalsIgnoreCase((String)o);
+    }
+    try {
+      AID id = (AID)o;
+      return name.equalsIgnoreCase(id.name);
+    }
+    catch(ClassCastException cce) {
+      return false;
+    }
+
+  }
+
+
+  /**
+    Hash code. This method returns an hash code in such a way that two
+    <code>AID</code> objects with equal names or with names differing
+    only in case have the same hash code.
+    @return The hash code for this <code>AID</code> object.
+  */
+  public int hashCode() {
+    return name.toLowerCase().hashCode();
+  }
+
 }
