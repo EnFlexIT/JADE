@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1998/11/03 00:35:02  rimassa
+  Completed grammar productions for AMS events.
+
   Revision 1.11  1998/11/02 02:01:02  rimassa
   Started to add new grammar productions to support AMS notifications to
   Remote Management Agent.
@@ -152,11 +155,62 @@ AgentManagementOntology.AMSAction AMSAction() :
 
 AgentManagementOntology.AMSEvent AMSEvent() :
 {
+  AgentManagementOntology.AMSEvent amse;
+}
+{
+  "(" ( amse = ContainerEvent() | amse = AgentEvent() ) ")"
+  { return amse; }
+}
+
+AgentManagementOntology.AMSEvent ContainerEvent() :
+{
+  AgentManagementOntology.AMSContainerEvent amse = new AgentManagementOntology.AMSContainerEvent();;
+  Token kind;
+  Token name;
+}
+{
+  ( ( kind = "new-container" { amse.setKind(AgentManagementOntology.AMSAgentEvent.NEWCONTAINER); } )
+  | ( kind = "dead-container" { amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADCONTAINER); } )
+  )
+    name = <WORD>
+  { 
+    amse.setContainerName(name.image);
+    return amse;
+  }
+}
+
+AgentManagementOntology.AMSEvent AgentEvent() :
+{
+  AgentManagementOntology.AMSAgentEvent amse = new AgentManagementOntology.AMSAgentEvent();
+  Token kind;
+  Token name;
+  AgentManagementOntology.AMSAgentDescriptor amsd;
+}
+{
+  ( ( kind = "new-agent" { amse.setKind(AgentManagementOntology.AMSAgentEvent.NEWAGENT); } )
+  | ( kind = "dead-agent" { amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADAGENT); } )
+  )
+  "("
+  ( ( ":container" name = <WORD> ")" "(" amsd = AMSDescriptionBody() )
+  | ( amsd = AMSDescriptionBody() ")" "(" ":container" name = <WORD> )
+  )
+  ")"
+  {
+    amse.setContainerName(name.image);
+    amse.setAgentDescriptor(amsd);
+    return amse;
+  }
+}
+
+AgentManagementOntology.AMSEvent DeadAgentEvent() :
+{
   AgentManagementOntology.AMSEvent amse = null;
 }
 {
+
   { return amse; }
 }
+
 
 AgentManagementOntology.DFAction DFAction() :
 {
