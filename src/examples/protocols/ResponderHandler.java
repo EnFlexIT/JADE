@@ -27,7 +27,6 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
-import jade.util.leap.*;
 import java.io.*;
 import jade.proto.states.*;
 
