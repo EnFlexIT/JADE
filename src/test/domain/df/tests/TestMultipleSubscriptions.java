@@ -205,8 +205,8 @@ public class TestMultipleSubscriptions extends Test {
 					cancel.addReceiver(myAgent.getDefaultDF());
 					cancel.setLanguage(codec.getName());
 					cancel.setOntology(FIPAManagementOntology.getInstance().getName());
-					ACLMessage subscriptionMsg = (ACLMessage) getDataStore().get(myAgent.getDefaultDF());				
-					Action act = new Action(myAgent.getDefaultDF(), OntoACLMessage.wrap(subscriptionMsg));
+					ACLMessage subscriptionMsg1 = (ACLMessage) getDataStore().get(myAgent.getDefaultDF());				
+					Action act = new Action(myAgent.getDefaultDF(), OntoACLMessage.wrap(subscriptionMsg1));
 					try {
 						myAgent.getContentManager().fillContent(cancel, act);
 					}

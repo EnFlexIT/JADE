@@ -175,8 +175,8 @@ public class PerformanceHelperAgent extends Agent {
 		}
 		resumable = new ListProcessor(this, l) {
 			protected void processItem(Object item, int index) {
-				Behaviour b = (Behaviour) item;
-				myAgent.addBehaviour(b);
+				Behaviour b1 = (Behaviour) item;
+				myAgent.addBehaviour(b1);
 				pause();
 			}
 			

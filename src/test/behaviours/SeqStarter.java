@@ -62,8 +62,8 @@ public class SeqStarter extends Agent {
     addBehaviour(new SimpleBehaviour(this) {
     	private int cnt = 0;
     	public void action() {
-    		ACLMessage msg = receive();
-    		if (msg != null) {
+    		ACLMessage msg1 = receive();
+    		if (msg1 != null) {
     			cnt++;
     		}
     		block();
