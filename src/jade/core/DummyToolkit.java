@@ -90,4 +90,8 @@ final class DummyToolkit implements AgentToolkit {
     public AID getDefaultDF() {
         return null;
     }
+    
+	public String getProperty(String key, String aDefault) {
+		return null;
+	}
 }

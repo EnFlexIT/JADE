@@ -347,6 +347,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
   	return dfAID;
   }
 
+  public String getProperty(String key, String aDefault) {
+  	String ret = configProperties.getProperty(key);
+  	return (ret != null ? ret : aDefault); 
+  }
+
   //#MIDP_EXCLUDE_BEGIN
   public void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException {
   }

@@ -28,8 +28,6 @@ import java.io.InterruptedIOException;
 
 import jade.util.leap.Serializable;
 import jade.util.leap.Iterator;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
@@ -50,6 +48,8 @@ import java.io.ObjectOutputStream;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 import java.util.Vector;
 
@@ -2048,7 +2048,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	private ContentManager theContentManager = null;
 
 	/**
-	* Retrieves the content manager 
+	* Retrieves the agent's content manager 
 	* @return The content manager.
 	*/
 	public ContentManager getContentManager() {
@@ -2057,6 +2057,26 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		return theContentManager;
 	} 
+	
+	/**
+	   Retrieve a configuration property set in the <code>Profile</code>
+	   of the local container (first) or as a System property.
+	   @param key the key that maps to the property that has to be 
+	   retrieved.
+	   @default a aDefault value that is returned if there is no mapping
+	   for <code>key</code>
+	 */
+	public String getProperty(String key, String aDefault) {
+		String val = myToolkit.getProperty(key, aDefault);
+		if (val.equals(aDefault)) {
+			// Try among the System properties
+			String sval = System.getProperty(key);
+			if (sval != null) {
+				val = sval;
+			}
+		}
+		return val;
+	}
 	
   /**
      This method is used to interrupt the agent's thread.

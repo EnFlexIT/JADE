@@ -782,8 +782,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 
-
-  // Implementation of AgentToolkit interface
+	////////////////////////////////////////////
+  // AgentToolkit interface implementation
+  ////////////////////////////////////////////
 
   public Location here() {
     return myID;
@@ -866,7 +867,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
         new Object[]{agentID, b, from, to});
   }
 
-//__SECURITY__BEGIN
   public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, CertificateFolder certs) {
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
       new Object[]{agentID, oldPrincipal, (AgentPrincipal)certs.getIdentityCertificate().getSubject()});
@@ -880,7 +880,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       nfe.printStackTrace();
     }
   }
-//__SECURITY__END
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
     //fireChangedAgentState(agentID, from, to);
@@ -965,7 +964,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return (AID)theDefaultDF.clone();
   }
 
-
+  public String getProperty(String key, String aDefault) {
+  	return myProfile.getParameter(key, aDefault);
+  }
 
   // Private and package scoped methods
 

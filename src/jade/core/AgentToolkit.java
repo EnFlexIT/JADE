@@ -59,4 +59,5 @@ interface AgentToolkit {
   void setPlatformAddresses(AID id);
   AID getAMS();
   AID getDefaultDF();
+  String getProperty(String key, String aDefault);
 }
