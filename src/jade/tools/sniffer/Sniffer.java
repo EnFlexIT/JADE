@@ -147,7 +147,7 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleNotUnderstood(ACLMessage reply) {
-      myGUI.showError("NOT-UNDERSTOOD received by RMA during " + actionName);
+      myGUI.showError("NOT-UNDERSTOOD received during " + actionName);
     }
 
     protected void handleRefuse(ACLMessage reply) {
