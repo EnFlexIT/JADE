@@ -40,7 +40,7 @@ import jade.core.CaseInsensitiveString;
 import jade.core.IMTPException;
 import jade.core.UnreachableException;
 import jade.core.Profile;
-import jade.core.ServiceManagerImpl;
+import jade.core.ServiceManager;
 import jade.mtp.TransportAddress;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -61,7 +61,7 @@ import java.util.Hashtable;
  */
 class FullCommandDispatcher extends CommandDispatcher {
 
-	
+
   /**
    * This hashtable maps the IDs of the objects remotized by this
    * command dispatcher to the skeletons for these objects. It is used
@@ -245,7 +245,7 @@ class FullCommandDispatcher extends CommandDispatcher {
    */
   public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
   	Integer id = null;
-  	if (remoteObject instanceof ServiceManagerImpl) {
+  	if (remoteObject instanceof ServiceManager) {
 	    id = new Integer(0);
 	    name = "Service-Manager";
   	}
