@@ -296,7 +296,9 @@ public class Introspector extends ToolAgent {
 	FIPAServiceCommunicator.doFipaRequestClient(this, msg);
       }
       catch(FIPAException fe) {
-	fe.printStackTrace();
+    	// When the AMS replies the tool notifier is no longer registered.
+    	// But we don't care as we are exiting
+      //System.out.println(e.getMessage());
       }
     }
 

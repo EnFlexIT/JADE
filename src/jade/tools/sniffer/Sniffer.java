@@ -431,7 +431,9 @@ public class Sniffer extends ToolAgent {
 	FIPAServiceCommunicator.doFipaRequestClient(this,request);
     }
     catch(jade.domain.FIPAException e) {
-      System.out.println(e.getMessage());
+    	// When the AMS replies the tool notifier is no longer registered.
+    	// But we don't care as we are exiting
+      //System.out.println(e.getMessage());
     }
 
     myGUI.mainPanel.panelcan.canvMess.ml.removeAllMessages();
