@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
+import java.util.List;
+
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.lang.acl.*;
@@ -47,8 +49,9 @@ protected void setup() {
   while (true) {  
     try {
       msg = parser.Message();
-      Object obj=extractContent(msg);
-      System.out.println(obj.getClass().toString());
+      List l=extractContent(msg);
+      for (int i=0; i<l.size(); i++)
+	System.out.println(l.get(i).getClass().toString());
       msg = msg.createReply();
       msg.setPerformative(ACLMessage.INFORM);
       msg.setContent("(true)");
