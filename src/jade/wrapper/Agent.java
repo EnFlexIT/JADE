@@ -47,14 +47,14 @@ public class Agent {
   private jade.core.Agent adaptee;
 
   /**
-     Public constructor. This should not be called by applications,
+     Default constructor. This should not be called by applications,
      but the method <code>AgentContainer.createAgent()</code> should
      be used instead.
 
      @see AgentContainer#createAgent(AID agentID, String className, String[] args)
      @param a A real JADE agent, that will be wrapped by this proxy.
    */
-  public Agent(AID id, jade.core.Agent a) {
+  Agent(AID id, jade.core.Agent a) {
     agentID = id;
     adaptee = a;
   }
@@ -65,24 +65,36 @@ public class Agent {
      <b>ACTIVE</b>. This call also starts the internal agent
      thread. If this call is performed on an already started agent,
      nothing happens.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
    */
-  public void start() {
+  public void start() throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doStart(agentID.getLocalName());
   }
 
   /**
      Triggers a state transition from <b>ACTIVE</b> to
      <b>SUSPENDED</b>.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
    */
-  public void suspend() {
+  public synchronized void suspend() throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doSuspend();    
   }
 
   /**
      Triggers a state transition from <b>SUSPENDED</b> to
      <b>ACTIVE</b>.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
    */
-  public void activate() {
+  public void activate() throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doActivate();
   }
 
@@ -91,9 +103,14 @@ public class Agent {
      <b>DELETED</b>. This call also stops the internal agent thread
      and fully terminates the agent. If this call is performed on an
      already terminated agent, nothing happens.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
    */
-  public void delete() {
+  public void delete() throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doDelete();
+    adaptee = null;
   }
 
   /**
@@ -102,13 +119,18 @@ public class Agent {
      another container. This calls terminates the locally running
      agent, so that this proxy object becomes detached from the moved
      agent that keeps on executing elsewhere (i.e., no proxy
-     remotization is performed.
+     remotization is performed).
 
      @param where A <code>Location</code> object, representing the
      container the agent should move to.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
   */
-  public void move(Location where) {
+  public void move(Location where) throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doMove(where);
+    adaptee = null; // FIXME: Should check whether the migration transaction succeeded
   }
 
 
@@ -121,8 +143,12 @@ public class Agent {
      @param where The <code>Location</code> object, representing the
      container where the new agent copy will start.
      @param newName The new nickname to give to the copy.
+     @exception StaleProxyException If the underlying agent is dead or
+     gone.
    */
-  public void clone(Location where, String newName) {
+  public void clone(Location where, String newName) throws StaleProxyException {
+    if(adaptee == null)
+      throw new StaleProxyException();
     adaptee.doClone(where, newName);
   }
 
