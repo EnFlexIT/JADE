@@ -33,10 +33,9 @@ class JADEClassLoader extends ClassLoader {
 
   private AgentContainer classServer;
 
-  public JADEClassLoader(ClassLoader parent, AgentContainer ac) {
+  public JADEClassLoader(AgentContainer ac) {
   	//#PJAVA_EXCLUDE_BEGIN
-      super(parent);
-      //super(Thread.currentThread().getContextClassLoader());
+    super(Thread.currentThread().getContextClassLoader());
   	//#PJAVA_EXCLUDE_END
     classServer = ac;
   }
