@@ -35,6 +35,10 @@
 /* 
  *
  * $Log$
+ * Revision 1.7  1999/03/07 22:59:14  rimassa
+ * Modified grammar rules and actions to support either a single agent
+ * name or a list of agent names as value for ':receiver' slot.
+ *
  * Revision 1.6  1998/12/13 16:39:50  rimassa
  * Fixed a bug involving date and time representation.
  *
@@ -151,7 +155,7 @@ void MessageParameter() :
 { String s; }
 {
   <SENDER>          s=AgentName()			{ msg.setSource(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <RECEIVER>        s=RecipientExpr()		{ msg.setDest(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <RECEIVER>        ( RecipientExpr() | (s = AgentName() {msg.removeAllDests(); msg.addDest(s);}) ) { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONTENT>         s=Expression()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_BY>        s=DateTimeToken()		{ msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
@@ -189,11 +193,10 @@ String KeyValuePair():
 }
 
 
-String RecipientExpr():
-{ String s; String s1=new String();}
+void RecipientExpr():
+{ String s; }
 { 
-  s=AgentName() 							{return s;}
-| <LBRACE> ( s=AgentName() {s1+=(s+" ");} )+ <RBRACE>		{return "("+s1+")";}
+<LBRACE> (s = AgentName() { msg.addDest(s); })+ <RBRACE>
 }
 
 
