@@ -49,7 +49,7 @@ import fipa.lang.acl.*;
  * 
  * @version 2.0 5/98
  * */
-public class Agent implements Runnable, CommBroadcaster { // FIXME: Should be abstract ?
+public class Agent implements Runnable, CommBroadcaster {
 
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
@@ -149,7 +149,7 @@ public class Agent implements Runnable, CommBroadcaster { // FIXME: Should be ab
   }
 
   // Blocking receive
-  protected final ACLMessage receive() {
+  protected final ACLMessage blockingReceive() {
     if(msgQueue.isEmpty()) {
       try {
 	wait();
@@ -164,6 +164,17 @@ public class Agent implements Runnable, CommBroadcaster { // FIXME: Should be ab
     return msg;
   }
 
+  // Non-blocking receive
+  protected final ACLMessage receive() {
+    if(msgQueue.isEmpty())
+      return null;
+    else {
+      ACLMessage msg = (ACLMessage)msgQueue.firstElement();
+      currentMessage = msg;
+      msgQueue.removeElementAt(0);
+      return msg;
+    }
+  }
 
   // FIXME: Check with Paolo whether this is still needed.
 /**
