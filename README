@@ -115,7 +115,7 @@ subdirectory and the current directory. For instance, for Windows 9x/NT use
 the following command:
 set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar;
                 c:\jade\lib\jadeTools.jar; c:\jade\lib\Base64.jar;
-		c:\jade\lib\iiop.jar
+		c:\jade\lib\http.jar
 Execute the following command to start the main-container of the platform. 
 Let's suppose that the hostname of this machine is "kim.cselt.it"
 prompt> java jade.Boot -gui 
@@ -198,7 +198,7 @@ targets you can use. Feel free to try them, especially if you are modifying
 JADE source code, but be aware that these other make targets are for internal 
 use only, so they have not been documented.
 
-5.5 IIOP support and inter-platform messaging
+5.6 IIOP support and inter-platform messaging
 =============================================
 JADE supports FIPA compliant IIIOP communication for inter-platform agent 
 communication. This mechanism is used both to communicate with another JADE 
