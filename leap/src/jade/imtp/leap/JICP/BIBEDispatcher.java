@@ -52,7 +52,12 @@ import java.util.*;
  * @author Giovanni Caire - TILAB
  */
 public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispatcher, JICPMediator {
+	private static final long RESPONSE_TIMEOUT = 60000;
 	
+	private static final int REACHABLE = 1;
+	private static final int UNREACHABLE = 0;
+	
+	private int frontEndStatus = UNREACHABLE;
   private long              maxDisconnectionTime;
 
   private JICPServer        myJICPServer;
@@ -95,7 +100,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
       // Use default (1)
   	}
   	/*#CUSTOMJ2SE_INCLUDE_BEGIN
-  	verbosity = 3;
+  	verbosity = 4;
   	#CUSTOMJ2SE_INCLUDE_END*/
   	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
 
@@ -123,6 +128,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 
     	props.setProperty(Profile.MAIN, "false");
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
+    	props.setProperty(Profile.CONTAINER_NAME, myID);
 			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
 
 			// Add the mediator ID to the profile (it's used as a token
@@ -178,10 +184,17 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
    */
   public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
   	boolean inp = false;
-   	try {
-   		inp = (new String(pkt.getData())).equals("inp");
+  	byte[] data = pkt.getData();
+  	if (data.length == 1) {
+  		inp = (data[0] == 1);
+  	}
+  	else {
+  		// Backward compatibility
+	   	try {
+	   		inp = (new String(data)).equals("inp");
+	   	}
+	   	catch (Exception e) {}
    	}
-   	catch (Exception e) {}
    	if (inp) {
    		inpHolder.setConnection(c);
    	}
@@ -279,21 +292,26 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	Connection inpConnection = inpHolder.getConnection(flush);
   	if (inpConnection != null && active) {
   		int status = 0;
-		  int sid = inpCnt;
-		  inpCnt = (inpCnt+1) & 0x0f;
-	  	myLogger.log("Issuing command to FE "+sid, 3);
+	  	myLogger.log("Issuing command to FE "+inpCnt, 3);
 	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-	  	pkt.setSessionID((byte) sid);
+	  	pkt.setSessionID((byte) inpCnt);
 	  	try {
 		  	inpConnection.writePacket(pkt);
 		  	status = 1;
+		  	
+		  	// Create a watch-dog to avoid waiting forever
+		  	inpHolder.startWatchDog(RESPONSE_TIMEOUT);
 		  	pkt = inpConnection.readPacket();
+		  	// Reply received --> Remove the watch-dog
+		  	inpHolder.stopWatchDog();
 		  	status = 2;
+		  	
 	  		myLogger.log("Response received from FE "+pkt.getSessionID(), 3); 
 		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		    	// Communication OK, but there was a JICP error on the peer
 		      throw new ICPException(new String(pkt.getData()));
 		    }
+		  	inpCnt = (inpCnt+1) & 0x0f;
 		    return pkt.getData();
 	  	}
 	  	catch (IOException ioe) {
@@ -307,7 +325,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   		throw new ICPException("Unreachable");
   	}
   } 
-
 	
   //////////////////////////////////////////////////
   // The embedded Thread handling outgoing commands
@@ -323,31 +340,40 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 				while (true) {
 					status = 0;
 					Connection outConnection = outHolder.getConnection();
-					myLogger.log("outConnection is "+outConnection, 2);
 					JICPPacket pkt = outConnection.readPacket();
-		    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-		    		// PEER TERMINATION NOTIFICATION
-		    		// The remote FrontEnd has terminated spontaneously -->
-		    		// Terminate and notify up.
-		    		handlePeerExited();
-		    		break;
-		    	}
 					status = 1;
-  				byte sid = pkt.getSessionID();
-  				if (sid == lastSid) {
-  					myLogger.log("Duplicated command from FE "+sid, 2);
-  					pkt = lastResponse;
-  				}
-  				else {
-	      		myLogger.log("Command from FE received "+sid, 3);
-						byte[] rspData = mySkel.handleCommand(pkt.getData());
-	      		myLogger.log("Command from FE served "+ sid, 3);
-					  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
-					  pkt.setSessionID(sid);
-					  lastSid = sid;
-					  lastResponse = pkt;
-  				}
+					
+		    	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+		    		// Keep-alive packet
+		    		myLogger.log("Keep-alive received", 4);
+					  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
+		    	}
+		    	else {
+		    		// Outgoing command
+			    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+			    		// PEER TERMINATION NOTIFICATION
+			    		// The remote FrontEnd has terminated spontaneously -->
+			    		// Terminate and notify up.
+			    		handlePeerExited();
+			    		break;
+			    	}
+	  				byte sid = pkt.getSessionID();
+	  				if (sid == lastSid) {
+	  					myLogger.log("Duplicated command from FE "+sid, 2);
+	  					pkt = lastResponse;
+	  				}
+	  				else {
+		      		myLogger.log("Command from FE received "+sid, 3);
+							byte[] rspData = mySkel.handleCommand(pkt.getData());
+		      		myLogger.log("Command from FE served "+ sid, 3);
+						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
+						  pkt.setSessionID(sid);
+						  lastSid = sid;
+						  lastResponse = pkt;
+	  				}
+		    	}
   				status = 2;
+  				
   				outConnection.writePacket(pkt);
   				status = 3;
   			}
@@ -362,6 +388,15 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     myLogger.log("BIBEDispatcher Thread terminated", 1);
   }
 
+  private byte getReconnectInfo() {
+  	byte info = JICPProtocol.DEFAULT_INFO;
+		// If the inpConnection is null request the FrontEnd to reconnect
+		if (!inpHolder.isConnected()) {
+			info |= JICPProtocol.RECONNECT_INFO;
+		}
+		return info;
+  }
+  
   private void handlePeerExited() {
 		myLogger.log("Peer termination notification received", 2);
 		active = false;
@@ -369,17 +404,24 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   }
   
   /**
-     Inner class InpConnectionHolder
+     Inner class InpConnectionHolder.
+     Wrapper for the connection used to deliver commands to the FrontEnd
    */
   private class InpConnectionHolder {
   	private Connection myConnection;
   	private boolean connectionRefreshed;
   	private boolean waitingForFlush = false;
+  	private Thread watchDog = null;
   	
   	private synchronized void setConnection(Connection c) {
+  		myLogger.log("New input connection.", 2);
+  		// Close the old connection
   		if (myConnection != null) {
   			close(myConnection);
   		}
+  		// Stop the WatchDog if any
+  		stopWatchDog();
+  		// Set the new connection
   		myConnection = c;
   		connectionRefreshed = true;
   		waitingForFlush = myStub.flush();
@@ -402,17 +444,47 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 	  		myConnection = null;
   		}
   	}
+  	
+  	private synchronized boolean isConnected() {
+  		return myConnection != null;
+  	}
+  	
+  	private synchronized void startWatchDog(final long timeout) {
+  		watchDog = new Thread() {
+		  	public void run() {
+		  		try {
+			  		Thread.sleep(timeout);
+			  		// WatchDog expired --> close the connection
+			  		myLogger.log("Response timeout expired", 2);
+			  		resetConnection();
+		  		}
+		  		catch (InterruptedException ie) {
+		  			// Watch dog removed. Just do nothing
+		  		}
+		  	}
+  		};
+  		watchDog.start();
+  	}
+  	
+  	private synchronized void stopWatchDog() {
+  		if (watchDog != null) {
+  			watchDog.interrupt();
+  			watchDog = null;
+  		}
+  	}  	
   } // END of inner class InpConnectionHolder
 
   
   /**
      Inner class OutConnectionHolder
+     Wrapper for the connection used to receive commands from the FrontEnd
    */
   private class OutConnectionHolder {
   	private Connection myConnection;
   	private boolean connectionRefreshed;
   	
   	private synchronized void setConnection(Connection c) {
+  		myLogger.log("New output connection.", 2);
   		if (myConnection != null) {
   			close(myConnection);
   		}

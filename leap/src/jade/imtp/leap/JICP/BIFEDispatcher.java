@@ -27,6 +27,9 @@ import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
+import jade.core.TimerDispatcher;
+import jade.core.Timer;
+import jade.core.TimerListener;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
 import jade.imtp.leap.MicroSkeleton;
@@ -44,9 +47,9 @@ import java.io.*;
  * Class declaration
  * @author Giovanni Caire - TILAB
  */
-public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispatcher {
-	private static final String INP = "inp";
-	private static final String OUT = "out";
+public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
+	private static final byte INP = (byte) 1;
+	private static final byte OUT = (byte) 0;
 	
   private MicroSkeleton mySkel = null;
   private BackEndStub myStub = null;
@@ -56,29 +59,27 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
   private String myMediatorID;
   private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
   private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
-  private boolean waitingForFlush = false;
+  private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+  private Timer kaTimer;
   private String owner;
   private Properties props;
 
-  private String beAddrsText;
-  private String[] backEndAddresses;
-  
-  private Connection outConnection, inpConnection;
+  private Connection outConnection;
+  private InputManager myInputManager;
   private ConnectionListener myConnectionListener;
   
-  private int outCnt = 0;
   private boolean active = true;
+  private boolean waitingForFlush = false;
+  private boolean refreshingInput = false;
+  private int outCnt = 0;
   private Thread terminator;
   
   private int verbosity = 1;
 
-  /**
-   * Constructor declaration
-   */
-  public BIFEDispatcher() {
-  	super();
-  }
-
+  private String beAddrsText;
+  private String[] backEndAddresses;
+  
+  
   //////////////////////////////////////////////
   // FEConnectionManager interface implementation
   //////////////////////////////////////////////
@@ -117,7 +118,7 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 
 	    // Compose URL 
 	    mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	    log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
+	    log("Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
 
 	    // Read (re)connection retry time
 	    String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
@@ -127,7 +128,7 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 	    catch (Exception e) {
 				// Use default
 	    }
-	    log("Reconnection retry time is "+retryTime, 2);
+	    log("Recon. time="+retryTime, 2);
 
 	    // Read Max disconnection time
 	    tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
@@ -137,7 +138,17 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 	    catch (Exception e) {
 				// Use default
 	    }
-	    log("Max disconnection time is "+maxDisconnectionTime, 2);
+	    log("Max discon. time="+maxDisconnectionTime, 2);
+
+	    // Read Keep-alive time
+	    tmp = props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY);
+	    try {
+				keepAliveTime = Long.parseLong(tmp);
+	    } 
+	    catch (Exception e) {
+				// Use default
+	    }
+	    log("Keep-alive time="+keepAliveTime, 2);
 
 	    // Create the BackEnd stub and the FrontEnd skeleton
 	    myStub = new BackEndStub(this);
@@ -149,8 +160,9 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 	    createBackEnd();
 	    log("Connection OK", 1);
 
-	    // Start the embedded thread that deals with incoming commands
-	    start();
+	    // Start the InputManager dealing with incoming commands
+	    refreshInp();
+
 	    return myStub;
   	}
   	catch (ICPException icpe) {
@@ -160,21 +172,27 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 
   /**
      Make this BIFEDispatcher terminate.
+     Note that this method is not synchronized so that, if there is a 
+     problem and a Thread hangs in the dispatch method (e.g. waiting
+     for a response), the shutdown procedure can go on in any way. The
+     synchronized block within writePacket() ensures that we don't
+     write two packets at the same time on the same connection.
 	 */
-  public synchronized void shutdown() {
+  public void shutdown() {
   	active = false;
+  	myInputManager.close();
   	
   	terminator = Thread.currentThread();
-  	if (terminator != this) {
+  	if (terminator != myInputManager) {
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd.
   		if (outConnection != null) {
 		  	log("Sending termination notification", 2);
 	  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	  		try {
-	  			outConnection.writePacket(pkt);
+	  			writePacket(pkt, outConnection);
 	  		}
-	  		catch (IOException ioe) {
+	  		catch (Exception e) {
 	  			// When the BackEnd receives the termination notification,
 	  			// it just closes the connection --> we always have this
 	  			// exception
@@ -195,6 +213,7 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
     appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BIBEDispatcher");
     appendProp(sb, "verbosity", String.valueOf(verbosity));
     appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
+    appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
     if(beAddrsText != null) {
 		  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
     }
@@ -216,9 +235,9 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 		  }
 	
 		  try {
-	      log("Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	      log("Connecting to jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
 	      outConnection = new JICPConnection(mediatorTA);
-	      outConnection.writePacket(pkt);
+	      writePacket(pkt, outConnection);
 	      pkt = outConnection.readPacket();
 
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
@@ -262,13 +281,11 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
   		waitingForFlush = false;
   
   		int status = 0;
-		  int sid = outCnt;
-		  outCnt = (outCnt+1) & 0x0f;
-	  	log("Issuing outgoing command "+sid, 3);
+	  	log("Issuing outgoing command "+outCnt, 3);
 	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-	  	pkt.setSessionID((byte) sid);
+	  	pkt.setSessionID((byte) outCnt);
 	  	try {
-		  	outConnection.writePacket(pkt);
+		  	writePacket(pkt, outConnection);
 		  	status = 1;
 		  	pkt = outConnection.readPacket();
 		  	status = 2;
@@ -277,29 +294,17 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 		    	// Communication OK, but there was a JICP error on the peer
 		      throw new ICPException(new String(pkt.getData()));
 		    }
+  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+  				// The BackEnd is considering the input connection no longer valid
+  				refreshInp();
+  			}
+			  outCnt = (outCnt+1) & 0x0f;
 		    return pkt.getData();
 	  	}
 	  	catch (IOException ioe) {
-	  		// Can't reach the BackEnd. Assume we are unreachable and start
-	  		// a reachability checker
+	  		// Can't reach the BackEnd. 
   			log("IOException OC["+status+"]"+ioe, 2);
-  			handleDisconnection(outConnection);
-  			Thread t = new Thread() {
-  				public void run() {
-  					synchronized (BIFEDispatcher.this) {
-  						try {
-				  			outConnection = connect(OUT);
-				  			// Activate postponed commands flushing
-				  			waitingForFlush = myStub.flush();
-				  			handleReconnection(outConnection);
-  						}
-			  			catch (ICPException icpe) {
-			  				handleError();
-			  			}
-  					}
-  				}
-  			};
-  			t.start();
+  			refreshOut();
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
   	}
@@ -308,36 +313,48 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
   	}
   } 
 
-  //////////////////////////////////////////////////
-  // The embedded Thread handling incoming commands
-  //////////////////////////////////////////////////
-  public void run() {
-  	// Give precedence to the Thread that is creating the BackEnd
-  	Thread.yield();
+  // These variables are only used within the InputManager class,
+  // but are declared externally since they must "survive" when 
+  // an InputManager is replaced
+  private JICPPacket lastResponse = null;
+  private byte lastSid = 0x10;
+  private int cnt = 0;
+  
+  /**
+     Inner class InputManager.
+     This class is responsible for serving incoming commands
+   */
+  private class InputManager extends Thread {
+  	private int myId;
+  	private Connection myConnection = null;
   	
-    // In the meanwhile load the ConnectionListener if any
-    try {
-    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
-    }
-    catch (Exception e) {
-    	// Just ignore it
-    }
-    
-  	JICPPacket lastResponse = null;
-  	byte lastSid = 0x10;
-  	int status = 0;
-		try {
-			inpConnection = connect(INP);
-		}
-		catch (ICPException icpe) {
-			handleError();
-		}
-  	
-  	while (active) {
+	  public void run() {
+	  	if (cnt == 0) {
+		  	// Give precedence to the Thread that is creating the BackEnd
+		  	Thread.yield();
+		  	
+		    // In the meanwhile load the ConnectionListener if any
+		    try {
+		    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
+		    }
+		    catch (Exception e) {
+		    	// Just ignore it
+		    }
+	  	}
+	    
+	  	myId = cnt++;
+	    log("IM-"+myId+" started", 1);
+	  	
+	  	int status = 0;
+			connect(INP);
   		try {
-				while (true) {
+				while (isConnected()) {
 					status = 0;
-					JICPPacket pkt = inpConnection.readPacket();
+					JICPPacket pkt = myConnection.readPacket();
+					if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+						// Keep-alive. Just ignore it
+						continue;
+					}
 					status = 1;
   				byte sid = pkt.getSessionID();
   				if (sid == lastSid) {
@@ -358,62 +375,133 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 					  lastResponse = pkt;
   				}
   				status = 2;
-  				inpConnection.writePacket(pkt);
+  				writePacket(pkt, myConnection);
   				status = 3;
   			}
   		}
   		catch (IOException ioe) {
 				if (active) {
   				log("IOException IC["+status+"]"+ioe, 2);
-  				handleDisconnection(inpConnection);
-  				try {
-	  				inpConnection = connect(INP);
-  					handleReconnection(inpConnection);
-  				}
-  				catch (ICPException icpe) {
-  					handleError();
-  				}
+  				refreshInp();
 				}
   		}
-  	}
-    log("BIFEDispatcher Thread terminated", 1);
-  }
+  		
+	    log("IM-"+myId+" terminated", 1);
+	  }
+	  
+	  private void close() {
+	  	try {
+	  		myConnection.close();
+	  	}
+	  	catch (Exception e) {}
+	  	myConnection = null;
+	  }
+	  
+	  private final void setConnection(Connection c) {
+	  	refreshingInput = false;
+	  	myConnection = c;
+	  }
+	  
+	  private final boolean isConnected() {
+	  	return myConnection != null;
+	  }
+  } // END of inner class InputManager
 
-	private synchronized void handleDisconnection(Connection c) {
-		boolean transition = false;
-		if (c == inpConnection) {
-			inpConnection = null;
-			if (outConnection != null) {
-				transition = true;
+  private synchronized void refreshInp() {
+  	// Avoid 2 refresh at the same time
+  	if (!refreshingInput && active) {
+	  	// Close the current InputManager	
+	  	if (myInputManager != null && myInputManager.isConnected()) {
+	  		myInputManager.close();
+				if (outConnection != null && myConnectionListener != null) {
+					myConnectionListener.handleDisconnection();
+				}
 			}
-		}
-		else if (c == outConnection) {
-			outConnection = null;
-			if (inpConnection != null) {
-				transition = true;
+			
+			// Start a new InputManager
+			refreshingInput = true;
+	  	myInputManager = new InputManager();
+	  	myInputManager.start();
+  	}
+  }
+  		
+  private synchronized void refreshOut() {
+  	// Close the outConnection
+  	if (outConnection != null) {
+  		try {
+  			outConnection.close();
+  		}
+  		catch (Exception e) {}
+  		outConnection = null;
+			if (myInputManager.isConnected() && myConnectionListener != null) {
+				myConnectionListener.handleDisconnection();
 			}
-		}
-		try {
-			c.close();
-		}
-		catch (IOException ioe) {}
-		if (transition && myConnectionListener != null) {
-			myConnectionListener.handleDisconnection();
-		}
+  	}
+  	
+  	// Asynchronously try to recreate the outConnection
+		Thread t = new Thread(this);
+		t.start();
+  }
+	
+  /**
+     Asynchronously restore the OUT connection
+   */
+	public void run() {
+		connect(OUT);
 	}
 	
-	private synchronized void handleReconnection(Connection c) {
-		if (c == null) {
-			return;
-		}
+
+  private void connect(byte type) {
+  	int cnt = 0;
+  	long startTime = System.currentTimeMillis();
+  	while (active) {
+	  	try {
+		  	log("Connect to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")", 2);
+		  	Connection c = new JICPConnection(mediatorTA);
+		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
+		  	writePacket(pkt, c);
+		  	pkt = c.readPacket();
+			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+		      // The JICPServer didn't find my Mediator.  
+		      handleError();
+		      return;
+			  }
+			  log("Connect OK",2);
+			  handleReconnection(c, type);
+			  return;
+	  	}
+	  	catch (IOException ioe) {
+	  		log("Connect failed "+ioe.toString(), 2);
+	  		cnt++;
+	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
+	  			handleError();
+	  			return;
+	  		}
+	  		else {
+	  			// Wait a bit before trying again
+	  			try {
+	  				Thread.sleep(retryTime);
+	  			}
+	  			catch (Exception e) {}
+	  		}
+	  	}
+  	}
+  }
+
+	private synchronized void handleReconnection(Connection c, byte type) {
 		boolean transition = false;
-		if (c == inpConnection) {
+		if (type == INP) {
+			myInputManager.setConnection(c);
 			if (outConnection != null) {
 				transition = true;
 			}
 		}
-		else if (c == outConnection) {
-			if (inpConnection != null) {
+		else if (type == OUT) {
+			outConnection = c;
+			// The Output connection is available again --> 
+			// Activate postponed commands flushing
+			waitingForFlush = myStub.flush();
+			if (myInputManager.isConnected()) {
 				transition = true;
 			}
 		}
@@ -427,46 +515,10 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 		if (myConnectionListener != null) {
 			myConnectionListener.handleReconnectionFailure();
 		}
+		myInputManager.close();
+		active = false;
 	}
   
-
-  private Connection connect(String type) throws ICPException {
-  	int cnt = 0;
-  	long startTime = System.currentTimeMillis();
-  	while (active) {
-	  	try {
-		  	log("Connect to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")", 2);
-		  	Connection c = new JICPConnection(mediatorTA);
-		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), type.getBytes());
-		  	c.writePacket(pkt);
-		  	pkt = c.readPacket();
-			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-		      // The JICPServer didn't find my Mediator.  
-		      throw new ICPException("Mediator expired.");
-			  }
-			  log("Connect OK",2);
-			  return c;
-	  	}
-	  	catch (IOException ioe) {
-	  		log("Connect failed "+ioe.toString(), 2);
-	  		cnt++;
-	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
-	  			throw new ICPException("Timeout");
-	  		}
-	  		else {
-	  			// Wait a bit before trying again
-	  			try {
-	  				Thread.sleep(retryTime);
-	  			}
-	  			catch (Exception e) {}
-	  		}
-	  	}
-  	}
-  	return null;
-  }
-  	
-  	
-  	
   private String[] parseBackEndAddresses(String addressesText) {
     ArrayList addrs = new ArrayList();
 
@@ -522,6 +574,55 @@ public class BIFEDispatcher extends Thread implements FEConnectionManager, Dispa
 
   }
   
+  
+  ////////////////////////////////////////
+  // Keep-alive mechanism management
+  ////////////////////////////////////////
+  private void writePacket(JICPPacket pkt, Connection c) throws IOException {
+  	// This synchronization block avoids writing the peer termination notification 
+  	// together with a normal command or a keep alive. In fact shutdown() is
+  	// not synchronized.
+  	synchronized (c) {
+	  	c.writePacket(pkt);
+  	}
+  	if (Thread.currentThread() != terminator) {
+	  	updateKeepAlive();
+  	}
+  }
+  	
+  // Mutual exclusion with doTimeOut()
+  private synchronized void updateKeepAlive() {
+  	if (keepAliveTime > 0) {
+	  	TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+	  	if (kaTimer != null) {
+		  	td.remove(kaTimer);
+	  	}
+	  	kaTimer = td.add(new Timer(System.currentTimeMillis()+keepAliveTime, this));
+  	}
+  }
+  
+  // Mutual exclusion with updateKeepAlive() and dispatch()
+  public synchronized void doTimeOut(Timer t) {
+  	if (t == kaTimer) { 
+  		// Send a keep-alive packet to the BackEnd
+  		if (outConnection != null) {
+  			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+  			try {
+	  			writePacket(pkt, outConnection);
+	  			pkt = outConnection.readPacket();
+	  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+	  				// The BackEnd is considering the input connection no longer valid
+	  				refreshInp();
+	  			}	  				
+  			}
+  			catch (IOException ioe) {
+  				log("KA error "+ioe.toString(), 2);
+  				refreshOut();
+  			}
+  		}
+  	}
+  }
+  	
   /**
    */
   void log(String s, int level) {
