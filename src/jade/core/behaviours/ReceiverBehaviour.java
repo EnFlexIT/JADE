@@ -35,9 +35,8 @@ import jade.lang.acl.MessageTemplate;
 /**
    Behaviour for receiving an ACL message. This class encapsulates a
    <code>receive()</code> as an atomic operation. This behaviour
-   terminates when an ACL message is received. If no suitable message
-   is present, <code>action()</code> calls <code>block()</code> and
-   returns.
+   terminates when an ACL message is received. 
+   The method <code>getMessage()</code> allows to get the received message.
    @see jade.core.behaviours.SenderBehaviour
    @see jade.core.Agent#receive()
    @see jade.lang.acl.ACLMessage
@@ -151,11 +150,6 @@ public final class ReceiverBehaviour extends Behaviour {
     return new MessageFuture();
   }
 
-  // This message will contain the result
-  /**
-  @serial
-  */
-  private ACLMessage result;
 
   // The pattern to match incoming messages against
   /**
@@ -192,37 +186,26 @@ public final class ReceiverBehaviour extends Behaviour {
   private boolean finished;
 
   /**
-     Receive a matching ACL message. This constructor creates a
+     This constructor creates a
      <code>ReceiverBehaviour</code> object that ends as soon as an ACL
-     message matching a given <code>MessageTemplate</code> arrives.
+     message matching a given <code>MessageTemplate</code> arrives or
+     the passed <code>millis<code> timeout expires.
      @param a The agent this behaviour belongs to, and that will
      <code>receive()</code> the message.
-     @param msg An ACL message where the received message will be
-     copied.
-     @param mt A Message template to match incoming messages against.
+     @param millis The timeout expressed in milliseconds, an infinite timeout
+     can be expressed by a value < 0.
+     @param mt A Message template to match incoming messages against, null to
+     indicate no template and receive any message that arrives.
   */
-  public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
-    super(a);
-    result = msg;
-    template = mt;
+  public ReceiverBehaviour(Agent a, long millis, MessageTemplate mt) {
+      this(a, newHandle(), millis, mt);
   }
 
-  /**
-     Receive any ACL message. This constructor creates a
-     <code>ReceiverBehaviour</code> object that ends as soon as any
-     ACL message is received.
-     @param a The agent this behaviour belongs to, and that will
-     <code>receive()</code> the message.
-     @param msg An ACL message where the received message will be
-     copied.
-  */
-  public ReceiverBehaviour(Agent a, ACLMessage msg) {
-    this(a, msg, null);
-  }
+
 
   /**
      Receive any ACL message, waiting at most <code>millis</code>
-     milliseconds.
+     milliseconds (infinite time if <code>millis<1</code>).
      When calling this constructor, a suitable <code>Handle</code>
      must be created and passed to it. When this behaviour ends, some
      other behaviour will try to get the ACL message out of the
@@ -265,7 +248,6 @@ public final class ReceiverBehaviour extends Behaviour {
     future = (MessageFuture)h;
     timeOut = millis;
     timeToWait = timeOut;
-    result = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
     template = mt;
   }
 
@@ -283,7 +265,7 @@ public final class ReceiverBehaviour extends Behaviour {
       msg = myAgent.receive(template);
 
     if(msg == null) {
-      if(future == null) {
+      if(timeOut < 0) {
 	block();
 	finished = false;
 	return;
@@ -308,7 +290,8 @@ public final class ReceiverBehaviour extends Behaviour {
       }
     }
     else {
-      copyInResult(msg);
+	future.setMessage(msg);
+	finished = true;
     }
   }
 
@@ -327,22 +310,16 @@ public final class ReceiverBehaviour extends Behaviour {
   */
   public void reset() {
     finished = false;
-    if(future != null) {
-      result = null;
-      future.reset();
-      result = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-    }
+    future.reset();
     timeToWait = timeOut;
     blockingTime = 0;
     super.reset();
   }
 
-  private void copyInResult(ACLMessage msg) {
-    // Copies msg into result
-      result = (ACLMessage)msg.clone();
-      if(future != null)
-	  future.setMessage(result);
-      finished = true;
-  }
 
+
+
+    public ACLMessage getMessage() throws TimedOut, NotYetReady {
+	return future.getMessage();
+    }
 } // End of ReceiverBehaviour class
