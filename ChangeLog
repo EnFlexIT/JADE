@@ -6,8 +6,11 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
   Furthermore, a warning is print on stderr when the message queue is full
 - added new class jade.domain.FIPANames with the list of constants defined
   by FIPA
-- added a dialog box in the RMA GUI for managing all the platform MTPs (i.e.
-  installing and deinstalling MTPs)
+- RMA GUI:
+  - added a dialog box to manage all the platform MTPs (i.e.
+    installing and deinstalling MTPs)
+  - added a vertical scroll bar to see better all the agents (Ion Constantinescu, EPFL)
+  - Now several APDescriptions can be added via a single AddViaURL command (Ion Constantinescu, EPFL)
 - the reception of the AGREE message is now optional in Fipa-Request initiator
   protocol. In this way initiating the protocol with a not-existent agent,
   or an agent with a wrong address, does not block for-ever the protocol
@@ -22,7 +25,7 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
   and file inclusions (HP Palo Alto)
 - added methods jade.wrapper.AgentContainer#acceptNewAgent and 
   jade.core.Agent#getContainerController (HP Palo Alto)
-- jade.security
+- added interface to support agent security functionality 
 - added support for Object2Agent Communication (see 
   jade.core.Agent.putO2AObject and jade.wrapper.Agent.putO2AObject)
 - support to content
@@ -47,7 +50,17 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
   - The Introspector used by an ontology tries to convert Java objects to/from 
     abstract descriptors only for schemas defined in the ontology that uses it
     (and not also in base ontologies)
-
+  - Added support for full FIPA-SL
+- Made fully asynchronous the message passing. This feature has temporarily
+  reduced the performance of JADE, but optimization is under development
+- Deprecated FipaContractNetInitiator/ResponderBehaviour and replaced by
+  ContractNetInitiator/Responder whose interface is homogeneous with
+  AchieveREInitiator/Responder
+- Reingeneered the implementation of MessageTemplate in order to improve
+  performance.
+- Added mechanism to bufer messages in the disconnected state and to
+  automatically retry sending messages in case of exceptions.
+- HTTP MTP. see ChangeLog in jade\add-ons\http
 	
 BUG FIX
 - the ACLMessage class is now able to properly deal with a content encoded
@@ -69,10 +82,25 @@ BUG FIX
     (as reported by Jerome Picault, Motorola)
   - Made more robust the HTTP-MTP with a number of sanity checks (Ion Constantinescu)
   - fixed the MTP Name
-
+- AchieveREInitiator and ContractNetInitiator did not work properly if the
+  initiator was also one of the responders. Modified also the method
+  reset to change the conversationId after each reset.
+- Removed causes for a possible ConcurrentModificationException in AMS and
+  MobilityManager.
+	
+	
 EXAMPLES
+- removed usage of depreacted methods in the examples.
+- improved documentation.
 - added party example kindly provided by Ian Dickinson (HP Bristol)
 - updated the MeetingScheduler demo by using Swing instead of awt
+- ported the code of the Jess Example to compile both with JESS 6.0 (Xiaoxu 
+  Ren, Dept. of ACSE, University of Sheffield) and JESS 5.1 (in this latter 
+  case the source code needs to be modified, see the comment in the source)
+
+DISTRIBUTION
+- created a new demo directory under the root and distributed an already
+  compiled jar file for a quick start of the demo, usefull for novice users.
 
 	
 MAJOR CHANGES in JADE 2.4 (25 Sep. 2001) 
