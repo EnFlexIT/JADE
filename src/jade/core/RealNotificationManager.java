@@ -184,7 +184,7 @@ class RealNotificationManager implements NotificationManager {
 				AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, toBeDebugged, new BehaviourID(b), myID());
     		tn.addedBehaviour(ev);
     	}
-    	// Blocked behaviours: fire an ADD event and then a BLOCK event
+    	
     	it = s.blockedBehaviours.iterator();
     	while (it.hasNext()) {
     		Behaviour b = (Behaviour) it.next();

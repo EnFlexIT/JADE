@@ -385,6 +385,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   	EventInformer(Agent a, Event ev) {
   		super(a);
   		this.ev = ev;
+  		setBehaviourName(getBehaviourName()+"-"+ev.toString());
   	}
 
   	public void action() {
