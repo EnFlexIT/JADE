@@ -21,6 +21,14 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
+		
+		<Test name="Already registered" skip="false">
+			<TestClassName>test.domain.df.tests.TestAlreadyRegistered</TestClassName>
+			<WhatTest> Test that registering an already registered agent results in receiving a FAILURE message.</WhatTest>
+			<HowWorkTest> A DFD is registered with the DF. Then the same DFD is registered again </HowWorkTest>
+			<WhenTestPass> The test passes if a FAILURE message indicating already-registered as the failure reason is received from the DF</WhenTestPass>
+		</Test>		
+
 		<Test name="Registration from remote platform" skip="false">
 			<TestClassName>test.domain.df.tests.TestRemoteRegistration</TestClassName>
 			<WhatTest> Tests accessing the DF agent by an agent living on a remote platform.</WhatTest>
