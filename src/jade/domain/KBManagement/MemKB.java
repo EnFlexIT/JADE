@@ -53,7 +53,7 @@ import jade.core.AID;
  *
  */
 /** Common base class for AMS and DF Knowledge Base*/
-abstract class MemKB extends KB {
+public abstract class MemKB extends KB {
 
 	protected Map facts = new HashMap();
 	protected Hashtable subscriptions = new Hashtable();

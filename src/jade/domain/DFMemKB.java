@@ -47,7 +47,7 @@ import jade.domain.FIPANames;
  * @author Elisabetta Cortese - TILab
  *
  */
-class DFMemKB extends MemKB{
+public class DFMemKB extends MemKB{
 	
 	public DFMemKB(){
 		super();

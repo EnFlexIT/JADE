@@ -30,6 +30,7 @@ import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.KBManagement.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.StringACLCodec;
 import jade.proto.SubscriptionResponder;

@@ -43,7 +43,7 @@ import jade.proto.SubscriptionResponder;
  * 
  * @author Elisabetta Cortese (TiLab S.p.A.)
  */
-abstract class DBKB extends KB {
+public abstract class DBKB extends KB {
 	
 	// il database e' generico per JADE, ora viene usato solo dal
 	// DF ma in futuro potra' essere usato anche dall'AMS
