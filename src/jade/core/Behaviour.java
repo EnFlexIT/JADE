@@ -80,7 +80,7 @@ public abstract class Behaviour {
   }
 
   // Runs the behaviour
-  public abstract void execute();
+  public abstract void action();
 
   // returns true if the behaviour has completely executed
   public abstract boolean done();
