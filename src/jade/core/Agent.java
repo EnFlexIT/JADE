@@ -2109,40 +2109,41 @@ public class Agent implements Runnable, Serializable
 
   private void waitUntilWake(long millis) {
     synchronized(msgQueue) {
+      //long timeToWait = millis;
+      //while(myAPState == AP_WAITING) {
+			try {
+			  //long startTime = System.currentTimeMillis();
+			  // Blocks on msgQueue monitor for a while
+			  waitOn(msgQueue, /*timeToWait*/ millis);
+		    changeStateTo(AP_ACTIVE);
+			  //long elapsedTime = System.currentTimeMillis() - startTime;
 
-      long timeToWait = millis;
-      while(myAPState == AP_WAITING) {
-	try {
-
-	  long startTime = System.currentTimeMillis();
-	  // Blocks on msgQueue monitor for a while
-	  waitOn(msgQueue, timeToWait);
-	  long elapsedTime = System.currentTimeMillis() - startTime;
-
-	  // If this was a timed wait, update time to wait; if the
-	  // total time has passed, wake up.
-	  if(millis != 0) {
-	    timeToWait -= elapsedTime;
-
-	    if(timeToWait <= 0)
-	    changeStateTo(AP_ACTIVE);
-	  }
-
-	}
-	catch(InterruptedException ie) {
-	  switch(myAPState) {
-	  case AP_DELETED:
-	    throw new AgentDeathError();
-	  //#MIDP_EXCLUDE_BEGIN
-	  case AP_TRANSIT:
-	  case AP_COPY:
-	  case AP_FROZEN:
-	  case AP_SAVING:
-	    throw new AgentInMotionError();
-	  //#MIDP_EXCLUDE_END
-	  }
-	}
-      }
+			  // If this was a timed wait, update time to wait; if the
+			  // total time has passed, wake up.
+			  /*if(millis != 0) {
+			    timeToWait -= elapsedTime;
+		
+			    if(timeToWait <= 0)
+			    changeStateTo(AP_ACTIVE);
+			  }*/
+			}
+			catch(InterruptedException ie) {
+			  switch(myAPState) {
+			  case AP_DELETED:
+			    throw new AgentDeathError();
+			  //#MIDP_EXCLUDE_BEGIN
+			  case AP_TRANSIT:
+			  case AP_COPY:
+			  case AP_FROZEN:
+			  case AP_SAVING:
+			    throw new AgentInMotionError();
+			  //#MIDP_EXCLUDE_END
+			  default:
+			  	if (Thread.currentThread().equals(myThread)) {
+			  		System.out.println("Agent "+getName()+" interrupted in waiting state");
+			  	}
+			  }
+			}
     }
   }
 
@@ -2306,11 +2307,11 @@ public class Agent implements Runnable, Serializable
      @see jade.lang.acl.ACLMessage
   */
   public final ACLMessage blockingReceive() {
-    ACLMessage msg = null;
-    while(msg == null) {
-      msg = blockingReceive(0);
-    }
-    return msg;
+    //ACLMessage msg = null;
+    //while(msg == null) {
+      return blockingReceive(0);
+    //}
+    //return msg;
   }
 
   /**
@@ -2344,11 +2345,11 @@ public class Agent implements Runnable, Serializable
      @see jade.lang.acl.MessageTemplate
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
-    ACLMessage msg = null;
-    while(msg == null) {
-      msg = blockingReceive(pattern, 0);
-    }
-    return msg;
+    //ACLMessage msg = null;
+    //while(msg == null) {
+      return blockingReceive(pattern, 0);
+    //}
+    //return msg;
   }
 
 
@@ -2372,18 +2373,30 @@ public class Agent implements Runnable, Serializable
       while(msg == null) {
 	long startTime = System.currentTimeMillis();
 	//#MIDP_EXCLUDE_BEGIN
-	doWait(timeToWait);
+	if (Thread.currentThread().equals(myThread)) {
+		doWait(timeToWait);
+	}
+	else {
+		// blockingReceive() called from an external thread --> Do not change the agent state
+		waitUntilWake(timeToWait);
+	}
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
   // As Thread.interrupt() is substituted by interruptThread(),
   // it is possible to enter this method with the agent state
   // equals to AP_DELETED. If this is the case the loop
   // lasts forever as doWait() does nothing -->the monitor
-  // of the waitLock is not released --> even if a message arrive
+  // of the msgQueue is not released --> even if a message arrive
   // the postMessage method can't be executed.
   // Throwing AgentDeathError is necessary to exit this infinite loop.
   if (myAPState == AP_ACTIVE) {
-    doWait(timeToWait);
+		if (Thread.currentThread().equals(myThread)) {
+			doWait(timeToWait);
+		}
+		else {
+			// blockingReceive() called from an external thread --> Do not change the agent state
+			waitUntilWake(timeToWait);
+		}
   } 
   else {
     throw new AgentDeathError();
