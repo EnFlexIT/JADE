@@ -139,7 +139,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Register r = (Register)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)r.get_0();
       DFRegister(dfd);
-      sendReply(ACLMessage.AGREE,"( true )");
+      //sendReply(ACLMessage.AGREE,"( true )");
       sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") register))");
     }
 
@@ -157,7 +157,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Deregister d = (Deregister)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)d.get_0();
       DFDeregister(dfd);
-      sendReply(ACLMessage.AGREE,"( true )");
+      //sendReply(ACLMessage.AGREE,"( true )");
       sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") deregister))");
     }
 
@@ -175,7 +175,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Modify m = (Modify)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)m.get_0();
       DFModify(dfd);
-      sendReply(ACLMessage.AGREE,"( true )");
+      //sendReply(ACLMessage.AGREE,"( true )");
       sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") modify))");
     }
 
@@ -229,7 +229,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       if( maxResults != null)
       		if (l.size() >= maxResults.intValue()) 
       		{
-      			l = l.subList(0, maxResults.intValue());//elimino i risultati in eccesso;
+      			l = l.subList(0, maxResults.intValue());
       		
       			ACLMessage msg = getRequest().createReply();
       			msg.setPerformative(ACLMessage.INFORM);
@@ -240,7 +240,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
             l.clear();
             l.add(r);
             fillContent(msg,l); 
-            send(msg);//	mando la inform
+            send(msg);
       			return;
       		}
       	
@@ -258,7 +258,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	if(maxResults != null)
       	newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));
       	
-      	//creo constraints = constaints.maxdepth-1, maxresults-l.size,
+      
       	Iterator childIt = children.iterator();
       	while(childIt.hasNext())
       	{
@@ -269,7 +269,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	      rsh.addChildren(b);
       	    }catch(FIPAException e){}
       	}
-      	if (children.size() != 0) //to verify	
+      	if (children.size() != 0) 
       	return;
       }		
       ACLMessage msg = getRequest().createReply();
@@ -302,11 +302,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
     RecursiveSearchHandler(List l, SearchConstraints c, DFAgentDescription dfd, ACLMessage msg, Action a) { 
 	    this.results = l;
 	    this.constraints = new SearchConstraints();
-	    constraints.setMaxDepth(c.getMaxDepth()); //MAxDepth is not null by definition of this point of the code
+	    constraints.setMaxDepth(c.getMaxDepth()); //MaxDepth is not null by definition of this point of the code
 	    if(c.getMaxResults() != null)
-	    constraints.setMaxResults(c.getMaxResults());
+	      constraints.setMaxResults(c.getMaxResults());
 	    else
-	    constraints.setMaxResults(new Long(MAXRESULTS));
+	      constraints.setMaxResults(new Long(MAXRESULTS));
 	    this.dfd = dfd;
 	    this.request = msg;
 	    this.children = new ArrayList();
@@ -325,7 +325,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		this.children.remove(b);
   	}
   	
-  	void addResults(Behaviour b, List localResults) throws FIPAException, jade.domain.RequestFIPAServiceBehaviour.NotYetReady {
+   	void addResults(Behaviour b, List localResults) throws FIPAException, jade.domain.RequestFIPAServiceBehaviour.NotYetReady {
   		this.children.remove(b);
   	// add local results to the full list of results
   		for (Iterator i=localResults.iterator(); i.hasNext(); )
@@ -334,7 +334,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		if ( (results.size() >= constraints.getMaxResults().intValue()) || 
   			   (System.currentTimeMillis() >= deadline) || 
   			   (children.size() == 0)  )
-  			//sono sufficienti OR è scaduto il timeout OR children.size() == 0) 
+   
   			{
   		   ACLMessage inform = request.createReply();
   		   inform.setPerformative(ACLMessage.INFORM);
@@ -365,7 +365,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   	public void action () 
   	{ 
-	    sendReply(ACLMessage.AGREE,"( true )");
+	    //sendReply(ACLMessage.AGREE,"( true )");
 	    if (((df)myAgent).showGui())
 	      sendReply(ACLMessage.INFORM,"( )");
 	    else

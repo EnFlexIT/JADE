@@ -135,7 +135,7 @@ public class ams extends Agent implements AgentManager.Listener {
       try {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
-	sendReply(ACLMessage.AGREE,"( true )");
+	//sendReply(ACLMessage.AGREE,"( true )");
 	sendReply(ACLMessage.INFORM, "FIXME");
 
 	// Inform agent creator that registration was successful.
@@ -146,7 +146,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
       }
       catch(AlreadyRegistered are) {
-	sendReply(ACLMessage.AGREE, "( true )");
+	//sendReply(ACLMessage.AGREE, "( true )");
 	sendReply(ACLMessage.FAILURE,"("+are.getMessage()+")");
 
 	// Inform agent creator that registration failed.
@@ -172,7 +172,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Deregister d = (Deregister)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
-      sendReply(ACLMessage.AGREE, "( true )");
+      //sendReply(ACLMessage.AGREE, "( true )");
       sendReply(ACLMessage.INFORM,"FIXME");
     }
 
@@ -190,7 +190,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
-      sendReply(ACLMessage.AGREE, "( true)");
+      //sendReply(ACLMessage.AGREE, "( true)");
       sendReply(ACLMessage.INFORM,"FIXME");
     }
 
@@ -209,7 +209,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = AMSSearch(amsd, constraints, getReply());
-      sendReply(ACLMessage.AGREE,"( true)");
+      //sendReply(ACLMessage.AGREE,"( true)");
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -234,7 +234,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     protected void processAction(Action a) throws FIPAException {
 
-      sendReply(ACLMessage.AGREE, "( true )");
+      //sendReply(ACLMessage.AGREE, "( true )");
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
@@ -445,7 +445,7 @@ public class ams extends Agent implements AgentManager.Listener {
       KillContainer kc = (KillContainer)a.get_1();
       String containerName = kc.getName();
       myPlatform.killContainer(containerName);
-      sendReply(ACLMessage.AGREE, " (true)");
+      //sendReply(ACLMessage.AGREE, " (true)");
       sendReply(ACLMessage.INFORM,"FIXME");
 
     }
@@ -467,7 +467,7 @@ public class ams extends Agent implements AgentManager.Listener {
       String className = ca.getClassName();
       String containerName = ca.getContainerName();
 
-      sendReply(ACLMessage.AGREE, "(true)");
+      //sendReply(ACLMessage.AGREE, "(true)");
 
       try {
 	myPlatform.create(agentName, className, containerName);
@@ -503,7 +503,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       try {
 	myPlatform.kill(agentID, password);
-	sendReply(ACLMessage.AGREE, "FIXME");
+	//sendReply(ACLMessage.AGREE, "FIXME");
 	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
