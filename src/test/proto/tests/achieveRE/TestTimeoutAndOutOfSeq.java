@@ -38,15 +38,17 @@ import java.util.Enumeration;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestMissingAgree extends TestBase {
-	public static final String TEST_NAME = "Missing AGREE";
+public class TestTimeoutAndOutOfSeq extends TestBase {
+	public static final String TEST_NAME = "Timeout and Out-of-sequence";
 	private Behaviour b;
 	
-	public TestMissingAgree() {
+	public TestTimeoutAndOutOfSeq() {
 		responderBehaviours= new String[] {
 			"test.proto.responderBehaviours.achieveRE.AgreeInformReplier",
-			"test.proto.responderBehaviours.achieveRE.InformReplier",
-			"test.proto.responderBehaviours.achieveRE.FailureReplier"
+			"test.proto.responderBehaviours.achieveRE.FailureReplier",
+			"test.proto.responderBehaviours.achieveRE.RefuseReplier",
+			"test.proto.responderBehaviours.achieveRE.RequestReplier",
+			"test.proto.responderBehaviours.achieveRE.NullReplier"
 		};
 	}
 	
@@ -55,13 +57,17 @@ public class TestMissingAgree extends TestBase {
   }
   
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder directly replies with the result notification (INFORM or FAILURE) and no AGREE message is sent");
-  	sb.append("\nMore in details there will be three responders");
-  	sb.append("\nResponder-0 behaves normally (i.e. AGREE, INFORM)");
-  	sb.append("\nResponder-1 replies with INFORM");
-  	sb.append("\nResponder-2 replies with FAILURE");
-  	sb.append("\nThis test also checks that the handleAllResponses handler is properly called");
-  	sb.append("\nAll handlers are defined overriding methods");
+  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder does not reply or reply with a wrong message");
+  	sb.append("\nMore in details there will be 5 responders");
+  	sb.append("\nResponder-0 replies with AGREE and INFORM)");
+  	sb.append("\nResponder-0 replies with FAILURE)");
+  	sb.append("\nResponder-2 replies with REFUSE");
+  	sb.append("\nResponder-3 replies with REQUEST (an out of sequence message)");
+  	sb.append("\nResponder-4 does not reply at all");
+  	sb.append("\nNOTES:");
+  	sb.append("\n- This test also checks that the handleAllResponses handler is properly called");
+  	sb.append("\n- This test will take ~ 10 sec as the timeout must expire");
+  	sb.append("\n- All handlers are defined overriding methods");
   	return sb.toString();
   }
   
@@ -72,7 +78,7 @@ public class TestMissingAgree extends TestBase {
  		initialize(a, msg);
   	
   	return new BasicAchieveREInitiator(a, msg, ds, resultKey, 10000, 
-  		new int[] {1, 0, 0, 2, 1, 0}) { // 1 AGREE, 2 INFORM and 1 FAILURE
+  		new int[] {1, 1, 0, 1, 1, 1}) { // 1 AGREE, 1 REFUSE, 1 INFORM, 1 FAILURE and 1 OUT_OF_SEQ
   		
   		boolean handleAllResponsesCalled = false;
   		protected void handleAllResponses(Vector responses) {

@@ -38,15 +38,15 @@ import java.util.Enumeration;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestMissingAgree extends TestBase {
-	public static final String TEST_NAME = "Missing AGREE";
+public class TestMissingNotification extends TestBase {
+	public static final String TEST_NAME = "Missing Result notification";
 	private Behaviour b;
 	
-	public TestMissingAgree() {
+	public TestMissingNotification() {
 		responderBehaviours= new String[] {
 			"test.proto.responderBehaviours.achieveRE.AgreeInformReplier",
-			"test.proto.responderBehaviours.achieveRE.InformReplier",
-			"test.proto.responderBehaviours.achieveRE.FailureReplier"
+			"test.proto.responderBehaviours.achieveRE.AgreeReplier",
+			"test.proto.responderBehaviours.achieveRE.NullReplier"
 		};
 	}
 	
@@ -55,14 +55,15 @@ public class TestMissingAgree extends TestBase {
   }
   
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder directly replies with the result notification (INFORM or FAILURE) and no AGREE message is sent");
+  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder replies with an AGREE, but then does not send any notification");
   	sb.append("\nMore in details there will be three responders");
   	sb.append("\nResponder-0 behaves normally (i.e. AGREE, INFORM)");
-  	sb.append("\nResponder-1 replies with INFORM");
-  	sb.append("\nResponder-2 replies with FAILURE");
-  	sb.append("\nThis test also checks that the handleAllResponses handler is properly called");
-  	sb.append("\nAll handlers are defined overriding methods");
-  	return sb.toString();
+  	sb.append("\nResponder-1 replies with AGREE, but does not send any INFORM/FAILURE");
+  	sb.append("\nResponder-2 does not reply at all");
+  	sb.append("\nThe protocol in this case would stick. Therefore a waker behaviour is added in the handleAllResponses() method");
+  	sb.append("\nthat will stop the protocol after a while");
+   	sb.append("\nThis test will take ~ 20 sec.");
+ 		return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
@@ -72,20 +73,22 @@ public class TestMissingAgree extends TestBase {
  		initialize(a, msg);
   	
   	return new BasicAchieveREInitiator(a, msg, ds, resultKey, 10000, 
-  		new int[] {1, 0, 0, 2, 1, 0}) { // 1 AGREE, 2 INFORM and 1 FAILURE
+  		new int[] {2, 0, 0, 1, 0, 0}) { // 2 AGREE, 1 INFORM
   		
-  		boolean handleAllResponsesCalled = false;
   		protected void handleAllResponses(Vector responses) {
-  			handleAllResponsesCalled = true;
+  			myAgent.addBehaviour(new WakerBehaviour(myAgent, 10000) {
+  				
+  				protected void handleElapsedTimeout() {
+  					interrupt();
+  				}
+  			} );
   		}
   		
-  		protected void handleAllResultNotifications(Vector resultNotifications) {
-  			if (!handleAllResponsesCalled) {
-  				System.out.println("handleAllResponses() not called");
-  			}
-  			else {
-  				super.handleAllResultNotifications(resultNotifications);
-  			}
+  		private void interrupt() {
+  			replyReceiver.setDeadline(0);
+  			sessions.clear();
+  			forceTransitionTo(CHECK_SESSIONS);
+  			restart();
   		}	
   	};
   }  

@@ -38,15 +38,16 @@ import java.util.Enumeration;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestMissingAgree extends TestBase {
-	public static final String TEST_NAME = "Missing AGREE";
+public class TestRegisterHandleInform extends TestBase {
+	public static final String TEST_NAME = "RegisterHandleInform";
+	public static final String INFORM_CNT_KEY = "inform-cnt";
 	private Behaviour b;
 	
-	public TestMissingAgree() {
+	public TestRegisterHandleInform() {
 		responderBehaviours= new String[] {
 			"test.proto.responderBehaviours.achieveRE.AgreeInformReplier",
-			"test.proto.responderBehaviours.achieveRE.InformReplier",
-			"test.proto.responderBehaviours.achieveRE.FailureReplier"
+			"test.proto.responderBehaviours.achieveRE.AgreeInformReplier",
+			"test.proto.responderBehaviours.achieveRE.AgreeInformReplier"
 		};
 	}
 	
@@ -55,39 +56,46 @@ public class TestMissingAgree extends TestBase {
   }
   
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the protocol when a responder directly replies with the result notification (INFORM or FAILURE) and no AGREE message is sent");
-  	sb.append("\nMore in details there will be three responders");
-  	sb.append("\nResponder-0 behaves normally (i.e. AGREE, INFORM)");
-  	sb.append("\nResponder-1 replies with INFORM");
-  	sb.append("\nResponder-2 replies with FAILURE");
-  	sb.append("\nThis test also checks that the handleAllResponses handler is properly called");
-  	sb.append("\nAll handlers are defined overriding methods");
+  	StringBuffer sb = new StringBuffer("Tests the registration of a composite behaviour in the HANDLE_INFORM state");
+  	sb.append("\nThere will be three responders behaving normally (i.e. AGREE INFORM) so that the registered state is visited three times");
   	return sb.toString();
   }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	ds.put(resultKey, new Integer(TEST_FAILED));
+  	ds.put(INFORM_CNT_KEY, new Integer(0));
  
   	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
  		initialize(a, msg);
   	
-  	return new BasicAchieveREInitiator(a, msg, ds, resultKey, 10000, 
-  		new int[] {1, 0, 0, 2, 1, 0}) { // 1 AGREE, 2 INFORM and 1 FAILURE
-  		
-  		boolean handleAllResponsesCalled = false;
-  		protected void handleAllResponses(Vector responses) {
-  			handleAllResponsesCalled = true;
-  		}
-  		
-  		protected void handleAllResultNotifications(Vector resultNotifications) {
-  			if (!handleAllResponsesCalled) {
-  				System.out.println("handleAllResponses() not called");
-  			}
-  			else {
-  				super.handleAllResultNotifications(resultNotifications);
-  			}
-  		}	
+ 		SequentialBehaviour informHandler = new SequentialBehaviour(a);
+ 		Behaviour b1 = new OneShotBehaviour(a) {
+ 			public void action() {
+  			TestUtility.log("INFORM received");
+ 				Integer cnt = (Integer) getDataStore().get(INFORM_CNT_KEY);
+ 				cnt = new Integer(cnt.intValue() + 1);
+ 				getDataStore().put(INFORM_CNT_KEY, cnt);
+ 			}
+ 		};
+ 		b1.setDataStore(ds);
+ 		informHandler.addSubBehaviour(b1);
+ 		
+ 		Behaviour b2 = new OneShotBehaviour(a) {
+ 			public void action() {
+ 				System.out.println("Dummy");
+ 			}
+ 		};
+ 		informHandler.addSubBehaviour(b2);
+ 		
+  	AchieveREInitiator b = new BasicAchieveREInitiator(a, msg, ds, resultKey, 10000, new int[] {3, 0, 0, 3, 0, 0}) { // 3 AGREE, 3 INFORM
+			public boolean check() {
+ 				Integer cnt = (Integer) getDataStore().get(INFORM_CNT_KEY);
+ 				informCnt = cnt.intValue();
+ 				return super.check();
+			}
   	};
+  	b.registerHandleInform(informHandler);
+  	return b;
   }  
   
 }

@@ -36,7 +36,10 @@ public class AchieveRETesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup(new String[] {
 			"test.proto.tests.achieveRE.TestMyselfAsResp",
-			"test.proto.tests.achieveRE.TestMissingAgree"
+			"test.proto.tests.achieveRE.TestMissingAgree",
+			"test.proto.tests.achieveRE.TestTimeoutAndOutOfSeq",
+			"test.proto.tests.achieveRE.TestRegisterHandleInform",
+			"test.proto.tests.achieveRE.TestMissingNotification"
 		});
 		
 		return tg;

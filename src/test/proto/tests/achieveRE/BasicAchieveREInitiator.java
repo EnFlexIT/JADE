@@ -39,8 +39,8 @@ import java.util.Vector;
 public class BasicAchieveREInitiator extends AchieveREInitiator {
 
 	protected int agreeCnt = 0;
-	protected int notUnderstoodCnt = 0;
 	protected int refuseCnt = 0;
+	protected int notUnderstoodCnt = 0;
 	protected int informCnt = 0;
 	protected int failureCnt = 0;
 	protected int outOfSeqCnt = 0;
@@ -103,7 +103,6 @@ public class BasicAchieveREInitiator extends AchieveREInitiator {
   	outOfSeqCnt++;
   }
   		
-  // Reply with ACCEPT_PROPOSAL to all PROPOSE
   protected void handleAllResponses(Vector responses) {
   }
   		
