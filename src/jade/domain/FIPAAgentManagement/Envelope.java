@@ -43,7 +43,7 @@ public class Envelope implements jade.util.leap.Serializable {
 	/**
   @serial
   */
-  private List to = new ArrayList();
+  private ArrayList to = new ArrayList();
   /**
   @serial
   */
@@ -71,11 +71,11 @@ public class Envelope implements jade.util.leap.Serializable {
   /**
   @serial
   */
-  private List encrypted = new ArrayList();
+  private ArrayList encrypted = new ArrayList();
   /**
   @serial
   */
-  private List intendedReceiver = new ArrayList();
+  private ArrayList intendedReceiver = new ArrayList();
   /**
   @serial
   */
@@ -84,7 +84,7 @@ public class Envelope implements jade.util.leap.Serializable {
   /**
   serial
   */
-  private List stamps = new ArrayList();
+  private ArrayList stamps = new ArrayList();
 
     /**
      * Constructor. Initializes the payloadLength to -1.
@@ -268,5 +268,21 @@ public class Envelope implements jade.util.leap.Serializable {
 	    s = s + ") ";
 	}
 	return s+")";
+    }
+
+    public Object clone(){
+	Envelope env = new Envelope();
+	env.to = (ArrayList)to.clone();
+	env.encrypted = (ArrayList)encrypted.clone();
+	env.intendedReceiver= (ArrayList)intendedReceiver.clone();
+	env.stamps = (ArrayList)stamps.clone();
+	env.from = from;
+	env.comments = comments;
+	env.aclRepresentation = aclRepresentation;
+	env.payloadLength = payloadLength;
+	env.payloadEncoding = payloadEncoding;
+	env.date = date;
+	env.transportBehaviour = transportBehaviour;
+	return env;
     }
 }

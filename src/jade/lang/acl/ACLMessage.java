@@ -937,6 +937,8 @@ private int performative; // keeps the performative type of this object
       result = (ACLMessage)super.clone();
       result.dests = (ArrayList)dests.clone();       // Deep copy
       result.reply_to = (ArrayList)reply_to.clone(); // Deep copy
+      if(messageEnvelope != null)
+	  result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen
