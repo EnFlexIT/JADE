@@ -179,12 +179,13 @@ public class AgentState {
 	new AgentState("Waiting", Agent.AP_WAITING),
 	new AgentState("Deleted", Agent.AP_DELETED),
 	//#MIDP_EXCLUDE_BEGIN
-	new AgentState("Transit", Agent.AP_TRANSIT),
-	new AgentState("Copy", Agent.AP_COPY),
-	new AgentState("Gone", Agent.AP_GONE),
-	new AgentState("Saving", Agent.AP_SAVING),
-	new AgentState("Loading", Agent.AP_RELOADING),
-	new AgentState("Frozen", Agent.AP_FROZEN),
+	new AgentState("Transit", jade.core.mobility.AgentMobilityService.AP_TRANSIT),
+	new AgentState("Copy", jade.core.mobility.AgentMobilityService.AP_COPY),
+	new AgentState("Gone", jade.core.mobility.AgentMobilityService.AP_GONE),
+	// FIXME: We can't use the constants since they are defined in the Persistence add-on
+	new AgentState("Saving", 10),
+	new AgentState("Loading", 11),
+	new AgentState("Frozen", 12),
 	//#MIDP_EXCLUDE_END
 	new AgentState("Illegal MAX state", Agent.AP_MAX)
     };

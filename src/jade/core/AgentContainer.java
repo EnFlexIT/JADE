@@ -70,8 +70,8 @@ public interface AgentContainer {
     void fillListFromReadyBehaviours(List behaviours, Agent a);
     void fillListFromBlockedBehaviours(List behaviours, Agent a);
 
-    void commitMigration(Agent instance);
-    void abortMigration(Agent instance);
+    //void commitMigration(Agent instance);
+    //void abortMigration(Agent instance);
     //#MIDP_EXCLUDE_END
 
     void addAddressToLocalAgents(String address);

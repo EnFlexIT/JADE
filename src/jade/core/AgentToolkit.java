@@ -39,7 +39,7 @@ import jade.security.Credentials;
 interface AgentToolkit {
   Location here();
   void handleEnd(AID agentID);
-  void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
+  void handleChangedAgentState(AID agentID, int from, int to);
   void handleSend(ACLMessage msg, AID sender);
 
   //#MIDP_EXCLUDE_BEGIN
@@ -50,9 +50,9 @@ interface AgentToolkit {
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
 
   // FIXME: Needed due to the Persistence Service being an add-on
-  void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
-  void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
-  void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
+  //void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+  //void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+  //void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
 
   jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials);
   //#MIDP_EXCLUDE_END

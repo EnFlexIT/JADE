@@ -681,7 +681,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
 
-  public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
+  public void handleChangedAgentState(AID agentID, int oldState, int newState) {
+	    AgentState from = AgentState.getInstance(oldState);
+	    AgentState to = AgentState.getInstance(newState);
+	    
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_STATE_CHANGED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(from);
@@ -710,7 +713,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
 
-  // FIXME: Needed due to the Persistence Service being an add-on
+  /* FIXME: Needed due to the Persistence Service being an add-on
   public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
       GenericCommand cmd = new GenericCommand("Save-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
@@ -733,10 +736,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       		((Throwable) ret).printStackTrace();
       	}
       }
-  }
+  }*/
 
   // FIXME: Needed due to the Persistence Service being an add-on
-  public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
+  /*public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
       GenericCommand cmd = new GenericCommand("Reload-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
@@ -758,10 +761,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       		((Throwable) ret).printStackTrace();
       	}
       }
-  }
+  }*/
 
   // FIXME: Needed due to the Persistence Service being an add-on
-  public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
+  /*public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
       GenericCommand cmd = new GenericCommand("Freeze-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
@@ -784,7 +787,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       		((Throwable) ret).printStackTrace();
       	}
       }
-  }
+  }*/
 
   public void setPlatformAddresses(AID id) {
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
@@ -913,16 +916,16 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //#MIDP_EXCLUDE_END
 
     //#MIDP_EXCLUDE_BEGIN
-    public void commitMigration(Agent instance) {
+    /*public void commitMigration(Agent instance) {
 	instance.doGone();
 	localAgents.remove(instance.getAID());
-    }
+    }*/
     //#MIDP_EXCLUDE_END
 
     //#MIDP_EXCLUDE_BEGIN
-    public void abortMigration(Agent instance) {
+    /*public void abortMigration(Agent instance) {
 	instance.doExecute();
-    }
+    }*/
     //#MIDP_EXCLUDE_END
 
     public void addAddressToLocalAgents(String address) {

@@ -236,6 +236,12 @@ public abstract class BaseService implements Service {
 
     }
 
+    //#MIDP_EXCLUDE_BEGIN
+    protected CallbackInvokator createInvokator() {
+    	return new CallbackInvokator();
+    }
+    //#MIDP_EXCLUDE_END
+    
     private ServiceFinder myFinder;
     private IMTPManager myIMTPManager;
 
