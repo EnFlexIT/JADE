@@ -28,7 +28,7 @@ package jade.gui;
 @version $Date$ $Revision$
 */
 
-public class IntRetValue 
+class IntRetValue 
 {
 	private int value;
 
