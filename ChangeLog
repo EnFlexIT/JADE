@@ -1,3 +1,44 @@
+MAJOR CHANGES in this snapshot (2 February 2004)
+==========================================================================
+GENERAL IMPROVEMENTS:
+- Added PersistenceService with support for agent save, load, reload, 
+	freeze and thaw on relational database. The PersistenceService is based
+	on Hybernate and is included in the Persistence add-on.
+	Documentation is still missing.
+	- Added doXXX methods in the Agent class to support persistence-related 
+	actions.
+	- Added proper buttons and menu items in the RMA to activate the 
+	persistence-related actions.
+	- Modified jade.util.leap classes to be persistent.
+	- JADE tools made persistent
+	- Added persistence ontology
+- Added LEAP BackEnd configuration support through property file.	
+
+ 	
+BUG FIXES:
+- Added AlreadyRegistered predicate in JADEManagementOntology.
+- Added sanity check when delivering a message to an agent whose 
+	container has just disappeared in the meanwhile.
+- New containers were not notified about currently installed MTPs: fixed.
+- Modified SLCodec to correctly handle boolean values
+- PersistentDelivery Service didn't handle message expiration correctly: fixed	
+
+	
+OTHERS:
+- Added Credentials interface
+- Added SDSIName interface
+- Added ServiceHelper interface to support services access from agents
+- Harmonized logging mechanism in services.
+- Modified sink selection on the basis of the command service instead 
+	of the command name.
+- Added handleMessage() callback method in MsgReceiver behaviour.
+- Modified so that it does not throw an exception when an MTP s 
+	activated with an user-supplied address. Rather, it ignores the supplied 
+	address and modifies it to suit the one automatically chosen by the ORB.
+	
+	
+	
+
 MAJOR CHANGES in JADE 3.1 (16 December 2003)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
