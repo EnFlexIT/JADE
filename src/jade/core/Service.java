@@ -264,4 +264,32 @@ public interface Service {
     */
     String[] getOwnedCommands();
 
+    /**
+       Performs the passive initialization step of the service. This
+       method is called <b>before</b> activating the service. Its role
+       should be simply the one of a constructor, setting up the
+       internal data as needed.
+       Service implementations should not use the Service Manager and
+       Service Finder facilities from within this method. A
+       distributed initialization protocol, if needed, should be
+       exectuted within the <code>boot()</code> method.
+
+       @param ac The agent container this service is activated on.
+       @param p The configuration profile for this service.
+       @throws ProfileException If the given profile is not valid.
+    */
+    void init(AgentContainer ac, Profile p) throws ProfileException;
+
+    /**
+       Performs the active initialization step of a kernel-level
+       service. When JADE kernel calls this method, the service has
+       already been already associated with its container and
+       registered with the Service Manager.
+
+       @param p The configuration profile for this service.
+       @throws ServiceException If a problem occurs during service
+       initialization.
+    */
+    void boot(Profile p) throws ServiceException;
+
 }

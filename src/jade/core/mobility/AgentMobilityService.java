@@ -110,21 +110,10 @@ public class AgentMobilityService extends BaseService {
     static final boolean TRANSFER_COMMIT = true;
 
 
-    public AgentMobilityService(AgentContainer ac, Profile p) throws ProfileException {
-	super(p);
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
+	super.init(ac, p);
 
 	myContainer = ac;
-
-	// Create a local slice
-	localSlice = new ServiceComponent();
-
-	// Create the two command sinks for this service
-	senderSink = new CommandSourceSink();
-	receiverSink = new CommandTargetSink();
-
-	// Initialize internal tables
-	loaders = new HashMap();
-	sites = new HashMap();
     }
 
     public String getName() {
@@ -929,11 +918,11 @@ public class AgentMobilityService extends BaseService {
 
     // This Map holds the mapping between a container and the class loader
     // that can retrieve agent classes from this container.
-    private Map loaders;
+    private final Map loaders = new HashMap();
 
     // This Map holds the mapping between an agent that arrived on this
     // container and the service slice where its classes can be found
-    private Map sites;
+    private final Map sites = new HashMap();
 
     // The concrete agent container, providing access to LADT, etc.
     private AgentContainer myContainer;
@@ -945,13 +934,13 @@ public class AgentMobilityService extends BaseService {
     private int verbosity = 0;
 
     // The local slice for this service
-    private ServiceComponent localSlice;
+    private final ServiceComponent localSlice = new ServiceComponent();
 
     // The command sink, source side
-    private final CommandSourceSink senderSink;
+    private final CommandSourceSink senderSink = new CommandSourceSink();
 
     // The command sink, target side
-    private final CommandTargetSink receiverSink;
+    private final CommandTargetSink receiverSink = new CommandTargetSink();
 
 }
 

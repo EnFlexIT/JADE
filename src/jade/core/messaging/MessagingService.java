@@ -109,11 +109,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	MessagingSlice.SET_PLATFORM_ADDRESSES
     };
 
-    public MessagingService(AgentContainer ac, Profile p) throws ProfileException {
-	super(p);
-
-	myContainer = ac;
-
+    public MessagingService() {
 	//#MIDP_EXCLUDE_BEGIN
 	cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
 	//#MIDP_EXCLUDE_END
@@ -121,20 +117,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	/*#MIDP_INCLUDE_BEGIN
 	cachedSlices = new HashMap();
 	#MIDP_INCLUDE_END*/
+    }
+
+
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
+	super.init(ac, p);
+
+	myContainer = ac;
 
 	// Initialize its own ID
 	String platformID = myContainer.getPlatformID();
 	accID = "fipa-mts://" + platformID + "/acc";
 
 	myMessageManager = MessageManager.instance(p);
-
-	// Create a local slice
-	localSlice = new ServiceComponent();
-
-	// Create the two command sinks for this service
-	senderSink = new CommandSourceSink();
-	receiverSink = new CommandTargetSink();
-
     }
 
     public String getName() {
@@ -259,7 +254,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
 		    ACLMessage copy = (ACLMessage)msg.clone();
 
-		    boolean found = myContainer.postMessageToLocalAgent(copy, dest);
+		    boolean found = false; //myContainer.postMessageToLocalAgent(copy, dest);
 		    if(!found) {
 			myMessageManager.deliver(copy, dest, MessagingService.this);
 		    }
@@ -576,7 +571,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 		try {
 		    targetSlice.dispatchLocally(msg, receiverID);
-		    System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
+		    // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
 		    // On successful message dispatch, put the slice into the slice cache
 		    cachedSlices.put(receiverID, targetSlice);
 		    ok = true;
@@ -796,7 +791,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
        @param myProfile The <code>Profile</code> instance containing
        the list of ACL codecs and MTPs to activate on this node.
     **/
-    public void activateProfile(Profile myProfile) {
+    public void boot(Profile myProfile) throws ServiceException {
 
 	try {
 
@@ -1093,16 +1088,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private final AgentContainer myContainer;
+    private AgentContainer myContainer;
 
     // The local slice for this service
-    private final ServiceComponent localSlice;
+    private final ServiceComponent localSlice = new ServiceComponent();
 
     // The command sink, source side
-    private final CommandSourceSink senderSink;
+    private final CommandSourceSink senderSink = new CommandSourceSink();
 
     // The command sink, target side
-    private final CommandTargetSink receiverSink;
+    private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     // The cached AID -> MessagingSlice associations
     private final Map cachedSlices;
@@ -1115,10 +1110,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     private final Map messageEncodings = new HashMap(EXPECTED_ACLENCODINGS_SIZE);
 
     // The platform ID, to be used in inter-platform dispatching
-    private final String accID;
+    private String accID;
 
     // The component managing asynchronous message delivery and retries
-    private final MessageManager myMessageManager;
+    private MessageManager myMessageManager;
 
 
 }

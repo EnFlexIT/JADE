@@ -86,8 +86,8 @@ public class LightMessagingService extends BaseService implements MessageManager
 	MessagingSlice.SET_PLATFORM_ADDRESSES
     };
 
-    public LightMessagingService(AgentContainer ac, Profile p) throws ProfileException {
-	super(p);
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
+	super.init(ac, p);
 
 	myContainer = ac;
 
@@ -396,7 +396,7 @@ public class LightMessagingService extends BaseService implements MessageManager
        @param myProfile The <code>Profile</code> instance containing
        the list of ACL codecs and MTPs to activate on this node.
     **/
-    public void activateProfile(Profile myProfile) {
+    public void boot(Profile myProfile) {
 	// Do nothing
     }
 
@@ -577,12 +577,12 @@ public class LightMessagingService extends BaseService implements MessageManager
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private final AgentContainer myContainer;
+    private AgentContainer myContainer;
 
     // The local slice for this service
-    private final ServiceComponent localSlice;
+    private ServiceComponent localSlice;
 
     // The component managing asynchronous message delivery and retries
-    private final MessageManager myMessageManager;
+    private MessageManager myMessageManager;
 
 }

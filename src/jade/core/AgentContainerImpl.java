@@ -342,18 +342,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // FIXME: Temporary Hack --- End 
 
 	  // Create the agent management service
-	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService(this, myProfile);
+	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService();
+	  agentManagement.init(this, myProfile);
 
 
 	  //#MIDP_EXCLUDE_BEGIN
 	  // Create the messaging service
-	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService(this, myProfile);
+	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
 	  //#MIDP_EXCLUDE_END
 
 	  /*#MIDP_INCLUDE_BEGIN
-	    jade.core.messaging.LightMessagingService messaging = new jade.core.messaging.LightMessagingService(this, myProfile);
+	    jade.core.messaging.LightMessagingService messaging = new jade.core.messaging.LightMessagingService();
 	  #MIDP_INCLUDE_END*/
 
+	  messaging.init(this, myProfile);
 
 	  NodeDescriptor localDesc = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
@@ -372,10 +374,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  boolean disableMobility = myProfile.getParameter("mobility", "").equals("jade.core.DummyMobilityManager");
 
 	  if(!disableMobility) {
-
-	      // Separately create and activate the (optional) mobility service
-	      jade.core.mobility.AgentMobilityService agMob = new jade.core.mobility.AgentMobilityService(this, myProfile);
-	      myServiceManager.activateService(new ServiceDescriptor(agMob.getName(), agMob));
+	      startService("jade.core.mobility.AgentMobilityService");
 	  }
 
 	  //#MIDP_EXCLUDE_END
@@ -383,9 +382,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  //#J2ME_EXCLUDE_BEGIN
 
-	  // Activate the Event Notification Service
-	  jade.core.event.NotificationService evNot = new jade.core.event.NotificationService(this, myProfile);
-	  myServiceManager.activateService(new ServiceDescriptor(evNot.getName(), evNot));
+	  startService("jade.core.event.NotificationService");
 
 	  //#J2ME_EXCLUDE_END
 
@@ -394,7 +391,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  myPlatform.startSystemAgents(this);
 
 	  // Install all ACL Codecs and MTPs specified in the Profile
-	  messaging.activateProfile(myProfile);
+	  messaging.boot(myProfile);
 
       }
       catch (IMTPException imtpe) {
@@ -918,6 +915,27 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     public MainContainer getMain() {
 	return myMainContainer;
+    }
+
+    // Utility method to start a kernel service
+    private void startService(String name) throws ServiceException {
+
+	try {
+
+	    Class svcClass = Class.forName(name);
+	    Service svc = (Service)svcClass.newInstance();
+	    svc.init(this, myProfile);
+	    
+	    myServiceManager.activateService(new ServiceDescriptor(svc.getName(), svc));
+	    svc.boot(myProfile);
+	}
+	catch(ServiceException se) {
+	    // Let it through
+	    throw se;
+	}
+	catch(Throwable t) {
+	    throw new ServiceException("An error occurred during service activation", t);
+	}
     }
 
 

@@ -103,8 +103,8 @@ public class NotificationService extends BaseService {
     // The special name of an auxiliary thread used to avoid deadlock when debugging the AMS
     private final static String AMS_DEBUG_HELPER = "AMS-debug-helper";
 
-    public NotificationService(AgentContainer ac, Profile p) throws ProfileException {
-	super(p);
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
+	super.init(ac, p);
 
 	myContainer = ac;
 

@@ -42,7 +42,7 @@ import jade.util.leap.HashMap;
 public abstract class BaseService implements Service {
 
 
-    protected BaseService(Profile p) throws ProfileException {
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
 	myFinder = p.getServiceFinder();
 	myIMTPManager = p.getIMTPManager();
 
@@ -153,6 +153,10 @@ public abstract class BaseService implements Service {
 	else {
 	    return alias;
 	}
+    }
+
+    public void boot(Profile p) throws ServiceException {
+	// Empty placeholder method
     }
 
     private ServiceFinder myFinder;

@@ -79,17 +79,11 @@ public class AgentManagementService extends BaseService {
 	AgentManagementSlice.KILL_CONTAINER
     };
 
-    public AgentManagementService(AgentContainer ac, Profile p) throws ProfileException {
-	super(p);
+
+    public void init(AgentContainer ac, Profile p) throws ProfileException {
+	super.init(ac, p);
 
 	myContainer = ac;
-
-	// Create a local slice
-	localSlice = new ServiceComponent();
-
-	// Create the two command sinks for this service
-	senderSink = new CommandSourceSink();
-	receiverSink = new CommandTargetSink();
 
     }
 
@@ -796,13 +790,13 @@ public class AgentManagementService extends BaseService {
     private AgentContainer myContainer;
 
     // The local slice for this service
-    private ServiceComponent localSlice;
+    private final ServiceComponent localSlice = new ServiceComponent();
 
     // The command sink, source side
-    private final CommandSourceSink senderSink;
+    private final CommandSourceSink senderSink = new CommandSourceSink();
 
     // The command sink, target side
-    private final CommandTargetSink receiverSink;
+    private final CommandTargetSink receiverSink = new CommandTargetSink();
 
 
 }
