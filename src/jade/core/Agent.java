@@ -306,8 +306,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // received.
   private int messageCounter = 0 ;
 
-  private Map languages = new HashMap();
-  private Map ontologies = new HashMap();
+  private transient Map languages = new HashMap();
+  private transient Map ontologies = new HashMap();
 
   /**
      The <code>Behaviour</code> that is currently executing.
@@ -335,8 +335,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private int myDomainState;
   private Vector blockedBehaviours = new Vector();
-
-  private transient ACLParser myParser = ACLParser.create();
 
   /**
      Default constructor.
@@ -1009,7 +1007,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     suspendLock = new Object();
     waitLock = new Object();
     pendingTimers = new AssociationTB();
-    myParser = ACLParser.create();
+    languages = new HashMap();
+    ontologies = new HashMap();
   }
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
@@ -1385,28 +1384,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-
-  /**
-     @deprecated Builds an ACL message from a character stream. Now
-     <code>ACLMessage</code> class has this capabilities itself,
-     through <code>fromText()</code> method.
-     @see jade.lang.acl.ACLMessage#fromText(Reader r)
-  */
-    /*
-  public ACLMessage parse(Reader text) {
-    ACLMessage msg = null;
-    try {
-      msg = myParser.parse(text);
-    }
-    catch(ParseException pe) {
-      pe.printStackTrace();
-    }
-    catch(TokenMgrError tme) {
-      tme.printStackTrace();
-    }
-    return msg;
-  }
-    */
   private ACLMessage FipaRequestMessage(String dest, String replyString) {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 
