@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.31  1999/02/03 09:48:05  rimassa
+  Added a timestamp to 'failure' and 'refuse' messages.
+  Added a non blocking 'doFipaRequestClientNB()' method, as a temporary
+  hack for agent management actions, and made non blocking API for DF
+  registration, deregistration and modification
+
   Revision 1.30  1998/12/07 23:42:35  rimassa
   Added a getAddress() method.
   Fixed by-hand parsing of message content beginning "( action ams ";
@@ -171,11 +177,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
 
 import jade.lang.acl.*;
 import jade.domain.AgentManagementOntology;
+import jade.domain.FipaRequestClientBehaviour;
 import jade.domain.FIPAException;
 
 /**************************************************************
@@ -536,12 +544,33 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
+  // FIXME: Temporary hack; should find a better solution...
+  private void doFipaRequestClientNB(ACLMessage request, String replyString) throws FIPAException {
+    MessageTemplate template = MessageTemplate.MatchReplyTo(replyString);
+    addBehaviour(new FipaRequestClientBehaviour(this, request, template) {
+      protected void handleNotUnderstood(ACLMessage reply) {
+        // Do nothing
+      }
+      protected void handleRefuse(ACLMessage reply) {
+        // Do nothing
+      }
+      protected void handleAgree(ACLMessage reply) {
+        // Do nothing
+      }
+      protected void handleFailure(ACLMessage reply) {
+        // Do Nothing
+      }
+      protected void handleInform(ACLMessage reply) {
+        // Do nothing
+      }
+    });
+  }
 
   // Register yourself with platform AMS
   public void registerWithAMS(String signature, int APState, String delegateAgent,
 			      String forwardAddress, String ownership) throws FIPAException {
-				
-    String replyString = myName + "-ams-registration";
+
+    String replyString = myName + "-ams-registration-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage("ams", replyString);
 
     // Build an AMS action object for the request
@@ -577,11 +606,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // Deregister yourself with platform AMS
   public void deregisterWithAMS() throws FIPAException {
 
-    String replyString = myName + "-ams-deregistration";
+    String replyString = myName + "-ams-deregistration-" + (new Date()).getTime();
 
     // Get a semi-complete request message
     ACLMessage request = FipaRequestMessage("ams", replyString);
-    
+
     // Build an AMS action object for the request
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
@@ -604,7 +633,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public void modifyAMSRegistration(String signature, int APState, String delegateAgent,
 				    String forwardAddress, String ownership) throws FIPAException {
 
-    String replyString = myName + "-ams-modify";
+    String replyString = myName + "-ams-modify-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage("ams", replyString);
 
     // Build an AMS action object for the request
@@ -633,7 +662,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   public void forwardWithACC(ACLMessage msg) throws FIPAException {
 
-    String replyString = myName + "-acc-forward";
+    String replyString = myName + "-acc-forward-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage("acc", replyString);
 
     // Build an ACC action object for the request
@@ -654,7 +683,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // Register yourself with a DF
   public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
-    String replyString = myName + "-df-register";
+    String replyString = myName + "-df-register-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
@@ -668,17 +697,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     a.toText(text);
     request.setContent(text.toString());
 
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
+    // Send message and collect reply, in a separate Behaviour
+    doFipaRequestClientNB(request, replyString);
 
   }
 
-  // Deregister yourself with a DF 
+  // Deregister yourself with a DF
   public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
-    String replyString = myName + "-df-deregister";
+    String replyString = myName + "-df-deregister-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(dfName, replyString);
-    
+
     // Build a DF action object for the request
     AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
     a.setName(AgentManagementOntology.DFAction.DEREGISTER);
@@ -691,14 +720,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setContent(text.toString());
 
     // Send message and collect reply
-    doFipaRequestClient(request, replyString);
+    doFipaRequestClientNB(request, replyString);
 
   }
 
   // Modify registration data with a DF
   public void modifyDFData(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
-    String replyString = myName + "-df-modify";
+    String replyString = myName + "-df-modify-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
@@ -713,7 +742,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setContent(text.toString());
 
     // Send message and collect reply
-    doFipaRequestClient(request, replyString);
+    doFipaRequestClientNB(request, replyString);
 
   }
 
@@ -721,7 +750,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {
 
-    String replyString = myName + "-df-search";
+    String replyString = myName + "-df-search-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
