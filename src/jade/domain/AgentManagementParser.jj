@@ -1,5 +1,13 @@
 /*
   $Log$
+  Revision 1.17  1999/02/03 10:35:16  rimassa
+  Changed grammar to support both URLs and stringified IORs as agent
+  addresses.
+  Improvements to 'fipa-exception' representation.
+  Complete implementation of SL1 terms wherever they are needed.
+  Some changes to lexical tokens to support multiple receiver names for
+  an ACL message.
+
   Revision 1.16  1998/12/08 00:04:21  rimassa
   Added code to parse the common prefix for Actions (i.e. "( action
   <AGENT_NAME>" ... ")" ).
@@ -555,7 +563,7 @@ void FIPA_DF_description(AgentManagementOntology.DFAgentDescriptor dfd) :
      if(dfd.getName() == null) dfd.setName(s);
      else throw new ParseException();
    }
- | <AGENT_ADDRESS> ( s = CommAddress() { dfd.addAddress(s); } )+ // FIXME: Error when multiple adrresses are present
+ | <AGENT_ADDRESS> ( s = CommAddress() { dfd.addAddress(s); } )+
  | <AGENT_SERVICES> ( sd = FIPA_Service_Desc() { dfd.addAgentService(sd); })+
  | <AGENT_TYPE> ( t = <ServiceTypes> | t = <WORD> )
    {
@@ -641,7 +649,28 @@ String AgentName() :
   { return result; }
 }
 
+
 String CommAddress() :
+{
+  String result;
+}
+{
+  // { token_source.SwitchTo(COMM_PROTOCOLSTATE); }
+  ( result = IORAddress() | result = URLAddress() )
+  { return result; }
+}
+
+
+String IORAddress() :
+{
+  Token ior;
+}
+{
+  ior = <IOR>
+  { return ior.image; }
+}
+
+String URLAddress() :
 {
   Token proto;
   String addr;
@@ -649,10 +678,10 @@ String CommAddress() :
   String acc;
 }
 {
-  { token_source.SwitchTo(COMM_PROTOCOLSTATE); }
-  proto = <COMM_PROTOCOL> "://" (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
+
+  proto = <IIOP> (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
   {
-    String s = proto.image + "://" + addr + ":" + port.image + "/" + acc;
+    String s = proto.image + addr + ":" + port.image + "/" + acc;
     return s;
   }
 }
@@ -709,18 +738,29 @@ void Constraint(AgentManagementOntology.DFSearchAction a) :
 }
 
 
-// FIXME: This should be an almighty SL1 term
-// instead of an humble Word
 String SL1Term() :
 {
   Token t;
+  String s;
 }
 {
-  t = <WORD>
-  {
-    return t.image;
-  }
+  t = <WORD>  { return t.image; }
+| t = <STRING_LITERAL> { return t.image;}
+| s = Number() { return s; }
+| "(" t=<WORD> { s = "(" + t.image; String s1; } ( s1 = SL1Term() {s = s + " " + s1; } )* ")"
+  { return s + ")"; }
+
 }
+
+
+String Number():
+{ Token t;}
+{ 
+  t=<INTEGER> 			{return t.image;}
+| t=<FLOATONE> 			{return t.image;}
+| t=<FLOATTWO> 			{return t.image;}
+}
+
 
 AgentManagementOntology.DFSearchResult Search_Result() :
 {
@@ -732,25 +772,38 @@ AgentManagementOntology.DFSearchResult Search_Result() :
   { return dfsa; }
 }
 
+
 FIPAException FIPA_Exception(AgentManagementOntology o) :
+{ 
+  String s;
+  token_source.SwitchTo(EXCEPTIONSTATE);
+}
+{
+  s = ExceptionExpression()
+  { token_source.SwitchTo(DEFAULT); return o.getException(s); }
+}
+
+
+String ExceptionExpression() :
 {
   Token t;
   String s;
 }
 {
-  "(" <ACTION>
-  {
-    token_source.SwitchTo(EXCEPTIONSTATE);
-  }
-  <NAME> <NAME>
-  {
-    token_source.SwitchTo(DEFAULT);
-  }
-  ")" t = <WORD>
-  {
-    s = t.image;
-    return o.getException(s);
-  }
+  t = <EXC_WORD> 
+  { return t.image; }
+| t = <EXC_STRING_LITERAL> 
+  { return t.image; }
+| t = <EXC_INTEGER> 
+  { return t.image; }
+| t = <EXC_FLOATONE>
+  { return t.image; }
+| t= <EXC_FLOATTWO>
+  { return t.image; }
+| <EXC_LBRACE> t=<EXC_WORD> 
+  {s="("+t.image; String s1;}
+  (s1=ExceptionExpression() { s = s + " " + s1;} )* <EXC_RBRACE> 
+  { return s+")"; }
 }
 
 
@@ -813,23 +866,14 @@ TOKEN:
 | <RESULT : "result">
 | <PROPERTY_NAME : ":"["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
-| <INTEGER : ["0"-"9"](["0"-"9"])*>
+| <IOR : "IOR:" (["0"-"9", "a"-"f", "A"-"F"] ["0"-"9", "a"-"f", "A"-"F"])+> 
+| <IIOP : "IIOP://">
+| < INTEGER :       (["+","-"])? (["0"-"9"])+ >
+| < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
+                    (["e","E"] (["-","+"])? (["0"-"9"])+)? >
+| < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
 
-}
 
-<COMM_PROTOCOLSTATE>
-SKIP:
-{
-  " "
-| "\t"
-| "\n"
-| "\r"
-}
-
-<COMM_PROTOCOLSTATE>
-TOKEN:
-{
-  <COMM_PROTOCOL : ["A"-"Z", "a"-"z"](["A"-"Z", "a"-"z", "0"-"9", "_"])*> : DEFAULT
 }
 
 <APStateSTATE>
@@ -903,13 +947,13 @@ SKIP:
 <EXCEPTIONSTATE>
 TOKEN:
 {
-  <NAME : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"~"] (["*"-".", "0"-"9", ";"-"~","!"-"'"])* >
+  <EXC_STRING_LITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\""> 
+| < EXC_WORD : ["!" , "\"", "$"-"'", "*", "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
+| < EXC_INTEGER :       (["+","-"])? (["0"-"9"])+ >
+| < EXC_FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
+                    (["e","E"] (["-","+"])? (["0"-"9"])+)? >
+| < EXC_FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
+| < EXC_LBRACE : "(" >
+| < EXC_RBRACE : ")" >
 }
-
-
-
-
-
-
-
 
