@@ -18,6 +18,10 @@ EXECS       = 	jade/Boot.java jade/core/Runtime.java
 IDLSPEC     =   fipa.idl
 ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/core/RealMobilityManager.java \
+		jade/core/DummyMobilityManager.java \
+		jade/core/DummyNotificationManager.java \
+		jade/core/LightAcc.java \
+		jade/core/LightResourceManager.java \
 		jade/core/behaviours/CompositeBehaviour.java \
 		jade/core/behaviours/NonDeterministicBehaviour.java \
 		jade/core/behaviours/SequentialBehaviour.java \
@@ -27,6 +31,8 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/core/behaviours/WakerBehaviour.java \
 		jade/core/behaviours/FSMBehaviour.java \
 		jade/domain/MobilityOntology.java \
+		jade/domain/DFServiceCommunicator.java \
+		jade/domain/AMSServiceCommunicator.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
@@ -35,6 +41,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
+		jade/proto/states/HandlerSelector.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
