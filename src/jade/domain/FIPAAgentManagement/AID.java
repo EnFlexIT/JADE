@@ -116,7 +116,7 @@ public boolean removeUserDefinedSlot(String key){
     if ((name!=null)&&(name.length()>0))
       w.write(":name "+name);
     if (addresses.size()>0)
-      w.write(":addresses (sequence ");
+      w.write(" :addresses (sequence ");
     for (int i=0; i<addresses.size(); i++)
       try {
 	w.write((String)addresses.get(i) + " ");
@@ -124,7 +124,7 @@ public boolean removeUserDefinedSlot(String key){
     if (addresses.size()>0)
       w.write(")");
     if (resolvers.size()>0)
-      w.write(":resolvers (sequence ");
+      w.write(" :resolvers (sequence ");
     for (int i=0; i<resolvers.size(); i++) { 
       try {
 	((AID)resolvers.get(i)).toText(w);
