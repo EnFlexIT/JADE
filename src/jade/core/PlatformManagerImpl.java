@@ -207,8 +207,6 @@ public class PlatformManagerImpl implements PlatformManager {
 			services = new HashMap();
 			replicas = new HashMap();
 			monitors = new HashMap();
-
-      //UDPMonitorServer.init(myProfile);
       
 			platformID = p.getParameter(Profile.PLATFORM_ID, null);
 			if (platformID == null || platformID.equals("")) {
@@ -870,7 +868,6 @@ public class PlatformManagerImpl implements PlatformManager {
 
     private NodeFailureMonitor monitor(Node target) {
 
-      NodeFailureMonitor failureMonitor;
       NodeEventListener listener = new NodeEventListener() {
 
         public void nodeAdded(Node n) {
@@ -897,9 +894,9 @@ public class PlatformManagerImpl implements PlatformManager {
 
       };
       
-	    // Start the new node failure monitor
-      failureMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, target, listener);
-	    failureMonitor.start();
+	    // Start a new node failure monitor
+	    NodeFailureMonitor failureMonitor = NodeFailureMonitor.getFailureMonitor();
+      failureMonitor.start(target, listener);
 	
 	    return failureMonitor;
     }

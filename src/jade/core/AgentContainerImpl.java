@@ -78,9 +78,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_BEGIN
   // The agent platform this container belongs to
   protected MainContainerImpl myMainContainer; // FIXME: It should go away
-  
-  // monitor client to send UDP ping messages to the main container
-  private UDPMonitorClient    myUDPMonitorClient = null;    // FIXME: It should go away
   //#MIDP_EXCLUDE_END
 
   // The IMTP manager, used to access IMTP-dependent functionalities
@@ -359,41 +356,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
-	  
-	  // FIXME: This should go away
-    try {
-      // activate UDP monitoring client if we are a simple container and the
-      // UDP monitoring is activated
-      boolean useUDPMonitoring = myProfile.getBooleanProperty(Profile.UDP_MONITORING, false);
-
-      if (myMainContainer == null && useUDPMonitoring) {
-        String nodeName = myNodeDescriptor.getNode().getName();
-        String serverHost = myProfile.getParameter(Profile.MAIN_HOST, Profile.getDefaultNetworkName());
-
-        int    serverPort = Integer.valueOf(myProfile.getParameter(Profile.UDP_MONITORING_PORT, "-1")).intValue();
-        if (serverPort < 0) {
-          serverPort = UDPMonitorServer.DEFAULT_PORT;
-        } 
-
-        int pingDelay = Integer.valueOf(myProfile.getParameter(Profile.UDP_MONITORING_PING_DELAY, "-1")).intValue();
-        if (pingDelay < 0) {
-          pingDelay = UDPMonitorClient.DEFAULT_PING_DELAY;
-        } 
-
-        myUDPMonitorClient = new UDPMonitorClient(nodeName, serverHost, serverPort, pingDelay);
-        myUDPMonitorClient.start();
-
-        if (myLogger.isLoggable(Logger.INFO)) {
-          myLogger.log(Logger.INFO, "UDP monitoring client has been started successfully.");
-        } 
-      } 
-
-    } 
-    catch (Exception e) {
-      if (myLogger.isLoggable(Logger.SEVERE)) {
-        myLogger.log(Logger.SEVERE, "Error activating UDP monitoring client. "+e);
-      } 
-    } 
 	  //#MIDP_EXCLUDE_END
   }
 
@@ -531,14 +493,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void shutDown() {
-  	// FIXME: This should go away
-    //#MIDP_EXCLUDE_BEGIN
-    // Stop sending UDP ping messages if UDP failure monitor client is activated
-    if (myMainContainer == null && myUDPMonitorClient != null) {
-      myUDPMonitorClient.stop();
-    } 
-    //#MIDP_EXCLUDE_END
-    
     // Remove all non-system agents
     Agent[] allLocalAgents = localAgents.values();
 

@@ -24,59 +24,118 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
 
-import jade.util.Logger;
+import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
 import jade.util.leap.LinkedList;
 import jade.util.leap.List;
+import jade.util.leap.Map;
+
+import jade.core.nodeMonitoring.NodeMonitoringService;
 
 /**
- * The abstract class <code>NodeFailureMonitor</code> provides a basic implementation
- * for all classes that supervise nodes and detect node failures.
+ * The abstract class <code>NodeFailureMonitor</code> provides a basic implementation for classes
+ * that are used to monitor the availability of nodes and detect node failures. In addition to that it provides 
+ * static methods to initialize and create instances of monitors depending on the current
+ * settings in the profile.
  * 
- * The monitor can only supervise a single node. If there are additional nodes in <br />
- * the same JVM, you can add these as child nodes. A child node is not supervised <br />
- * directly. Instead it has always the same state than its parent node. 
- * So if the parent node gets unreachable automatically all its child nodes will 
- * turn to the state unreachable.
+ * An instance of a subclass of the <code>NodeFailureMonitor</code> can only supervise 
+ * a single node. If there are additional nodes in the same JVM, you can add these as child nodes.
+ * A child node is not supervised directly. Instead it has always the same state than its parent node. 
+ * So if the parent node gets unreachable automatically all its child nodes will turn to the state unreachable.
+ * 
+ * <p>
+ * Since JADE 3.3 there are two different types of failure monitoring available:
+ * <ul>
+ * <li>Blocking failure monitoring based on RMI (Default)
+ * </li>
+ * <li>UDP based failure monitoring
+ * </li>
+ * </ul>
+ * <p>
+ * 
+ * The failure monitoring can be configured through the following profile parameter:
+ * 
+ * <p>
+ * <table border="1" cellspacing="0">
+ *  <tr>
+ *    <th>Parameter</th>
+ *    <th>Description</th>
+ *    <th>PC</th>
+ *    <th>MC</th>
+ *  </tr>
+ *  <tr>
+ *    <td><code>jade_core_NodeFailureMonitor_udp</code> (*)</td>
+ *    <td>If <code>true</code>, indicates that the UDP based failure monitoring has to be used.
+ *        If <code>false</code> or not specified the default RMI based failure monitoring is activated.
+ *    </td>
+ *    <td>X</td>
+ *    <td>X</td>
+ *  </tr>
+ *  <tr>
+ *    <td><code>jade_core_NodeFailureMonitor_udp-port</code></td>
+ *    <td>Specifies the port number where the main container will listen for UDP pings. 
+ *     The default value is <code>28000</code>. (This parameter is only used in combination with (*)</td>
+ *    <td>X</td>
+ *    <td>X</td>
+ *  </tr>
+ * <tr>
+ *    <td><code>jade_core_NodeFailureMonitor_udp-ping-delay-limit</code></td>
+ *    <td>Defines the maximum time (in milliseconds) the main container will wait for 
+ *        incoming ping messages. The default value is <code>3000</code>. (This parameter is only used in combination with (*)</td>
+ *    <td>&nbsp;</td>
+ *    <td>X</td>
+ *  </tr>
+ *
+ * <tr>
+ *    <td><code>jade_core_NodeFailureMonitor_udp-unreachable-limit</code></td>
+ *    <td>Defines the maximum time (in milliseconds) a node can be temporarily unreachable
+ *    until it gets removed from the platform. The default value is <code>10.000</code>. (This parameter is only used in combination with (*)</td>
+ *    <td>&nbsp;</td>
+ *    <td>X</td>
+ * </tr>
+ * <tr>
+ *    <td><code>jade_core_NodeFailureMonitor_udp-ping-delay</code></td>
+ *    <td>Defines the time interval (in milliseconds) in which a peripheral
+ *        container sends UDP ping messages to the main container. 
+ *        The default value is <code>1.000</code>. (This parameter is only used in combination with (*)</td>
+ *    <td>X</td>
+ *    <td>&nbsp;</td>
+ * </tr>
+ * </table>
+ * <p>
+ * MC ... main container
+ * PC ... peripheral container
  * 
  * @author Roland Mungenast - Profactor
- * @see jade.core.BlockingNodeFailureMonitor
- * @see jade.core.UDPNodeFailureMonitor
  * @see jade.core.NodeEventListener
  */
 public abstract class NodeFailureMonitor {
 
+	private static NodeMonitoringService theMonitoringService;
+	
   protected Node target;
   protected NodeEventListener listener;
   protected List childNodes = new LinkedList();
-  protected Logger logger = Logger.getMyLogger(this.getClass().getName());
-
-  public static NodeFailureMonitor getFailureMonitor(Profile p, Node n, NodeEventListener listener) {
-  	try {
-  		String className = (p.getBooleanProperty(Profile.UDP_MONITORING, false) ? "jade.core.UDPNodeFailureMonitor" : "jade.core.BlockingNodeFailureMonitor");
-  		NodeFailureMonitor monitor = (NodeFailureMonitor) Class.forName(className).newInstance();
-			monitor.init(p, n, listener);
-			return monitor;
-  	}
-  	catch (Throwable t) {
-  		// FIXME: Properly hand;le the exception
-  		t.printStackTrace();
-  		return null;
-  	}
-  }
   
   /**
-   * Constructor
+   * Start the monitoring
    * @param n target node to monitor
    * @param nel listener to inform about new events
    */
-  public void init(Profile p, Node n, NodeEventListener nel) {
+  public void  start(Node n, NodeEventListener nel) {
     target = n;
     listener = nel;
   }
+  	
+  /**
+   * Stop the monitoring
+   */
+  public abstract void stop();
   
   /**
-   * Adds a child node for monitoring. 
+   * Add a child node for monitoring. 
    * @param n child node
    */
   public synchronized void addChild(Node n) {
@@ -84,7 +143,7 @@ public abstract class NodeFailureMonitor {
   }
   
   /**
-   * Removes a child node from monitoring
+   * Remove a child node from monitoring
    * @param n child node
    */
   public synchronized void removeChild(Node n) {
@@ -92,20 +151,92 @@ public abstract class NodeFailureMonitor {
   }
   
   /**
-   * Returns the monitored target node
+   * Return the monitored target node
    */
   public Node getNode() {
     return target;
   }
   
   /**
-   * Starts the monitoring
+   * Fire a NODE ADDED event
    */
-  public abstract void start();
- 
-  /**
-   * Stops the monitoring
-   */
-  public abstract void stop();
+  protected synchronized void fireNodeAdded() {
+    listener.nodeAdded(target);
+    Iterator iter = childNodes.iterator();
+    while (iter.hasNext()) {
+      Node n = (Node) iter.next();
+      listener.nodeAdded(n);
+    }  
+  }
   
+  /**
+   * Fire a NODE REMOVED event
+   */
+  protected synchronized void fireNodeRemoved() {
+    listener.nodeRemoved(target);
+    Iterator iter = childNodes.iterator();
+    while (iter.hasNext()) {
+      Node n = (Node) iter.next();
+      listener.nodeRemoved(n);
+    }
+  }
+  
+  /**
+   * Fire a NODE REACHABLE event
+   */
+  protected synchronized void fireNodeReachable() {
+    listener.nodeReachable(target);
+    Iterator iter = childNodes.iterator();
+    while (iter.hasNext()) {
+      Node n = (Node) iter.next();
+      listener.nodeReachable(n);
+    }  
+  }
+  
+  /**
+   * Fire a NODE UNREACHABLE event
+   */
+  protected synchronized void fireNodeUnreachable() {
+    listener.nodeUnreachable(target);
+    Iterator iter = childNodes.iterator();
+    while (iter.hasNext()) {
+      Node n = (Node) iter.next();
+      listener.nodeUnreachable(n);
+    }  
+  }
+ 
+   
+  
+  /////////////////////////////////////////////////////
+  // Static methods
+  /////////////////////////////////////////////////////
+  
+  
+  /**
+     Return an instance of a <code>NodeFailureMonitor</code> class.
+   */
+  public static NodeFailureMonitor getFailureMonitor() {
+  	NodeFailureMonitor nfm = null;
+  	if (theMonitoringService != null) {
+  		nfm = theMonitoringService.getFailureMonitor();
+  	}
+  	
+  	if (nfm == null) {
+  		// Use the default NodeFailureMonitor
+  		try {
+  			nfm = (NodeFailureMonitor) Class.forName("jade.core.nodeMonitoring.BlockingNodeFailureMonitor").newInstance();
+  		}
+  		catch (Throwable t) {
+  			// Should never happen
+  			t.printStackTrace();
+  		}
+  	}
+  	
+  	return nfm;
+  }
+  
+  
+  public static void init(NodeMonitoringService nms) {
+  	theMonitoringService = nms;
+  }  
 }

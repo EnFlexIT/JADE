@@ -26,6 +26,7 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
+import jade.core.AgentManager;
 import jade.core.ServiceFinder;
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
@@ -53,7 +54,9 @@ import jade.core.UnreachableException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-//import jade.core.BlockingNodeFailureMonitor;
+import jade.core.AgentManager.Listener;
+import jade.core.event.MTPEvent;
+import jade.core.event.PlatformEvent;
 
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
@@ -92,7 +95,6 @@ public class MainReplicationService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
-	myProfile = p;
 
 	// Create a local slice
 	localSlice = new ServiceComponent();
@@ -411,8 +413,8 @@ public class MainReplicationService extends BaseService {
 	    monitoredSvcMgr = slice.getPlatformManagerAddress();
 
 	    // Set up a failure monitor on the target slice...
-      nodeMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, slice.getNode(), this);
-	    nodeMonitor.start();
+	    nodeMonitor = NodeFailureMonitor.getFailureMonitor();
+	    nodeMonitor.start(slice.getNode(), this);
 	}
 
 	// Implementation of the Service.Slice interface
@@ -787,7 +789,6 @@ public class MainReplicationService extends BaseService {
 
 
     private AgentContainer myContainer;
-    private Profile myProfile;
 
     private ServiceComponent localSlice;
 
