@@ -337,14 +337,21 @@ public class MessageTransportProtocol implements MTP {
         if (keepAlive) {
           //Search the address in Keep-Alive object
           kac = ka.getConnection(url);
-          if ((kac != null)&&(sendOut(kac,request,false) == 200)) {
-            //change the priority of socket & another components of keep-alive object
-            //Only the policy == AGGRESSIVE
-            //HTTPAddress is cached;
-            if (policy) {
-              ka.swap(kac);
+          try {
+            if ((kac != null)&&(sendOut(kac,request,false) == 200)) {
+              //change the priority of socket & another components of keep-alive object
+              //Only the policy == AGGRESSIVE
+              //HTTPAddress is cached;
+              if (policy) {
+                ka.swap(kac);
+              }
+              return;
             }
-            return;
+          } catch (IOException ioe) {
+            if (kac != null) {
+              kac.close();
+              ka.remove(kac);
+            }
           }
         }
          
