@@ -28,25 +28,25 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.InternalError;
 
 import java.util.Date;
+import java.util.Hashtable;
 
 /**
  * @author  Giovanni Caire - TILAB
  */
 class MessageManager implements TimerListener {
-	private static final int  DELIVERER_POOL_SIZE = 10;
-	
 	// Default values for retry-interval and retry-maximum
-	private static final int  DEFAULT_POOL_SIZE = 1;
+	//private static final int  DEFAULT_POOL_SIZE = 1;
 	private static final long  DEFAULT_RETRY_INTERVAL = 60000; // 1 minute
 	private static final long  DEFAULT_RETRY_MAXIMUM = 300000; // 5 minutes
-	private int poolSize = DEFAULT_POOL_SIZE;
+	//private int poolSize = DEFAULT_POOL_SIZE;
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 	private long retryMaximum = DEFAULT_RETRY_MAXIMUM;
 	
 	private AgentContainerImpl myContainer;
 	private List         errBox = new ArrayList();
 	private List         outBox = new LinkedList();
-	private HashMap      receivers = new HashMap();
+	//private HashMap      receivers = new HashMap();
+	//private Hashtable    waiting = new Hashtable();
 	
 	private int verbosity = 2;
 	
@@ -57,17 +57,17 @@ class MessageManager implements TimerListener {
 		myContainer = ac;
 		
 		try {
-			// POOL_SIZE
+			/* POOL_SIZE
 			String tmp = p.getParameter("jade.core.MessageManager.pool-size");
 			try {
 				poolSize = Integer.parseInt(tmp);
 			}
 			catch (Exception e) {
 				// Do nothing and keep default value
-			}
+			}*/
 			
 			// RETRY_INTERVAL
-			tmp = p.getParameter("jade.core.MessageManager.retry-interval");
+			String tmp = p.getParameter("jade.core.MessageManager.retry-interval");
 			try {
 				retryInterval = Long.parseLong(tmp);
 			}
@@ -91,10 +91,11 @@ class MessageManager implements TimerListener {
 		
 		try {
 			ResourceManager rm = p.getResourceManager();
-			for (int i = 0; i < DELIVERER_POOL_SIZE; ++i) {
-				Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer-"+i, new Deliverer());
+			//for (int i = 0; i < poolSize; ++i) {
+				//Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer-"+i, new Deliverer());
+				Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer", new Deliverer());
 				t.start();
-			}
+			//}
 		}
 		catch (ProfileException pe) {
 			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
@@ -105,10 +106,11 @@ class MessageManager implements TimerListener {
 	   Activate the asynchronuos delivery of an ACLMessage
 	 */
 	public void deliver(ACLMessage msg, AID receiverID) {
-		enqueue(new PendingMsg(msg, receiverID, -1));
+		//enqueue(new PendingMsg(msg, receiverID, -1));
+		putInOutBox(new PendingMsg(msg, receiverID, -1));
 	}
 	
-	private void enqueue(PendingMsg pm) {
+	/*private void enqueue(PendingMsg pm) {
 		ACLMessage msg = pm.getMessage();
 		AID receiverID = pm.getReceiver();
 		
@@ -121,7 +123,10 @@ class MessageManager implements TimerListener {
 				Deliverer d = null;
 				while ((d = (Deliverer) receivers.get(receiverID)) == null) {
 					try {
+						waiting.put(Thread.currentThread(), receiverID);
+						//log("before wait");
 						receivers.wait();
+						//log("after wait");
 					}
 					catch (InterruptedException ie) {
 					}
@@ -130,23 +135,27 @@ class MessageManager implements TimerListener {
 				//log("Message "+stringify(msg, receiverID)+" enqueued to active deliverer");
 			}
 		}
-	}
+	}*/
 	
 	private void putInOutBox(PendingMsg pm) {
 		synchronized (outBox) {
 			outBox.add(pm);
-			//log("Message "+stringify(pm.getMessage(), pm.getReceiver())+" inserted in OutBox");
+			//log("Message "+stringify(pm.getMessage(), pm.getReceiver())+" inserted in OutBox "+outBox.size());
 			// Wake up one delivering thread. Don't want to wake up all of them
 			// to avoid unnecessary task-switches
-			outBox.notify();
+			//outBox.notify();
+			outBox.notifyAll();
 		}
 	}
 	
 	private PendingMsg getFromOutBox() {
 		synchronized (outBox) {
+		    //log("getFromOutBox. size="+outBox.size());
 			while (outBox.isEmpty()) {
 				try {
+				    //log("before wait");
 					outBox.wait();
+					//log("after wait");
 				}
 				catch (InterruptedException ie) {
 				}
@@ -159,7 +168,7 @@ class MessageManager implements TimerListener {
  	   Inner class Deliverer
  	 */
  	class Deliverer implements Runnable {
- 		private List queued = new LinkedList();
+ 		//private List queued = new LinkedList();
  		
  		public void run() {
  			//log("Started");
@@ -168,13 +177,13 @@ class MessageManager implements TimerListener {
  				PendingMsg pm = getFromOutBox();
  				ACLMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
- 				synchronized (receivers) {
+ 				/*synchronized (receivers) {
  					receivers.put(receiverID, this);
  					receivers.notifyAll();
- 				}
+ 				}*/
  				
 	 			//log("Serving message "+stringify(msg, receiverID));
- 				while (msg != null) {
+ 				//while (msg != null) {
     			try {
     				myContainer.deliverNow(msg, receiverID);
     				//log("Message served");
@@ -183,6 +192,16 @@ class MessageManager implements TimerListener {
     				// The receiver is currently not reachable --> retry later
  						log("Destination unreachable. Will retry later", 1);
     				deliverLater(pm);
+    			}
+    			
+    			/*synchronized (this) {
+	    			while (waiting.contains(receiverID)) {
+	    				try {
+	    					wait();
+	    				}
+	    				catch (InterruptedException ie) {
+	    				}
+	    			}
     			}
     			
     			// Check if there are other messages for the same receiver
@@ -195,14 +214,18 @@ class MessageManager implements TimerListener {
     					//log("Serving enqueued message "+stringify(msg, receiverID));
     					msg = (ACLMessage) queued.remove(0);
     				}
-    			}
- 				}
+    			}*/
+ 				//}
  			}
  		}
  		
- 		void enqueue(ACLMessage msg) {
- 			queued.add(msg);
- 		}
+ 		/*void enqueue(ACLMessage msg) {
+ 			synchronized (this) {
+	 			queued.add(msg);
+	 			waiting.remove(Thread.currentThread());
+	 			notifyAll();
+ 			}
+ 		}*/
  	}
  	
 	/**
@@ -284,7 +307,8 @@ class MessageManager implements TimerListener {
 				}
 				else {
 					// Otherwise schedule again the message for delivery
-					enqueue(pm);
+					//enqueue(pm);
+					putInOutBox(pm);
 				}
 			}
 			errBox.clear();
