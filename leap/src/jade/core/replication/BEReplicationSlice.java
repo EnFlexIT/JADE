@@ -55,17 +55,46 @@ public interface BEReplicationSlice extends Service.Slice {
     */
     static final String NAME = "jade.core.replication.BEReplication";
 
+    /**
+       This command name represents the <code>become-master</code>
+       action. This action requests the local back end to become the
+       master replica and to notify all other replicas of this change.
+    */
+    static final String BECOME_MASTER = "Become-Master";
+
+    /**
+       This command name represents the <code>is-master</code>
+       query. This query asks whether the local back end is the master
+       replica (i.e. the one actually connected to the front end).
+    */
+    static final String IS_MASTER = "Is-Master";
+
+
+    /**
+       This command name represents the <code>create-agent</code>
+       action. The target agent identifier in this command is set to
+       <code>null</code>, because no agent exists yet.
+       This command object represents only the <i>first half</i> of
+       the complete agent creation process. Even if this command is
+       accepted by the kernel, there is no guarantee that the
+       requested creation will ever happen. Only when the
+       <code>InformCreated</code> command is issued can one assume
+       that the agent creation has taken place.
+    */
+
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_ACCEPTREPLICA = "1";
-    static final String H_SETREPLICAS = "2";
-    static final String H_GETLABEL = "3";
-    static final String H_ADDREPLICA = "4";
-    static final String H_REMOVEREPLICA = "5";
-    static final String H_BORNAGENT = "6";
-    static final String H_DEADAGENT = "7";
+    static final String H_SETMASTER = "2";
+    static final String H_SETREPLICAS = "3";
+    static final String H_GETLABEL = "4";
+    static final String H_ADDREPLICA = "5";
+    static final String H_REMOVEREPLICA = "6";
+    static final String H_BORNAGENT = "7";
+    static final String H_DEADAGENT = "8";
 
     void acceptReplica(String sliceName, String replicaIndex) throws IMTPException;
+    void setMaster(String name) throws IMTPException;
     void setReplicas(String[] replicas) throws IMTPException;
 
     String getLabel() throws IMTPException;
