@@ -185,7 +185,7 @@ public class Sniffer extends ToolAgent {
 	  List l = extractContent(current);
 	  Occurred o = (Occurred)l.get(0);
 	  EventRecord er = o.get_0();
-	  Event ev = (Event)er.getWhat();
+	  Event ev = er.getWhat();
 	  String content;
 	  if(ev instanceof SentMessage)
 	    content = ((SentMessage)ev).getMessage().getPayload();
@@ -427,8 +427,10 @@ public class Sniffer extends ToolAgent {
 
     List l = (List)(agentsUnderSniff.clone());
     ACLMessage request = getSniffMsg(l, SNIFF_OFF);
-    //start a FIPARequestProtocol to sniffOf the agent since the sniffer will die
-    try{
+
+    // Start a FIPARequestProtocol to sniffOff all the agents since
+    // the sniffer is shutting down
+    try {
       if(request != null)
 	FIPAServiceCommunicator.doFipaRequestClient(this,request);
     }
