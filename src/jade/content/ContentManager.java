@@ -125,7 +125,7 @@ public class ContentManager implements Serializable {
      * with the given name.
      */
     public Codec lookupLanguage(String name) {
-        return (Codec) languages.get(new CaseInsensitiveString(name));
+       return (name==null?null:(Codec) languages.get(new CaseInsensitiveString(name)));
     }
 
     /**
@@ -138,7 +138,7 @@ public class ContentManager implements Serializable {
      * with the given name.
      */
     public Ontology lookupOntology(String name) {
-        return (Ontology) ontologies.get(new CaseInsensitiveString(name));
+        return (name==null?null:(Ontology) ontologies.get(new CaseInsensitiveString(name)));
     }
 
     /**
