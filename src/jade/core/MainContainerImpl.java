@@ -375,7 +375,7 @@ public class MainContainerImpl implements Platform, AgentManager {
   /**
      Notify the platform that an agent has just born on a container
    */
-  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws IMTPException, NameClashException, NotFoundException, AuthException {
 
     // verify identity certificate
     authority.verify(certs.getIdentityCertificate());
@@ -401,15 +401,14 @@ public class MainContainerImpl implements Platform, AgentManager {
       if (old.isNative()) {
       	// The agent lives in the platform. Make sure it is reachable 
       	// and then restore it and throw an Exception 
-	  //      	try {
-	    //	    ac.ping(false);
+	if(forceReplacement) {
+	    System.out.println("Replacing a dead agent ...");
+	    fireDeadAgent(old.getContainerID(), name);
+	}
+	else {
 	    platformAgents.put(name, old);
 	    throw new NameClashException("Agent " + name + " already present in the platform ");
-	    //      	}
-	    //      	catch(IMTPException imtpe) {
-	    //	    System.out.println("Replacing a dead agent ...");
-	    //	    fireDeadAgent(old.getContainerID(), name);
-	    //      	}
+	}
       }
       else {
 	  // The agent lives outside the platform. Can't check whether it is 
@@ -646,7 +645,6 @@ public class MainContainerImpl implements Platform, AgentManager {
 
       Object result = myCommandProcessor.process(cmd);
       if(result != null) {
-
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
 	  }
@@ -654,6 +652,7 @@ public class MainContainerImpl implements Platform, AgentManager {
 	      throw (NameClashException)result;
 	  }
 	  if(result instanceof UnreachableException) {
+	      ((Throwable)result).printStackTrace();
 	      throw (UnreachableException)result;
 	  }
 	  if(result instanceof AuthException) {
@@ -1183,7 +1182,14 @@ public class MainContainerImpl implements Platform, AgentManager {
     platformAgents.release(agentID);
     return result;
   }
-  
+
+  /**
+     Return the node a container is deployed at
+  */
+  public Node getContainerNode(ContainerID cid) throws NotFoundException {
+      return containers.getContainerNode(cid);
+  }
+
   /**
      Return the AMS description of an agent
    */
