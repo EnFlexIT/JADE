@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.23  1998/12/07 23:48:56  rimassa
+  Modified message dispatching methods to allow both a simple name
+  (e.g. 'peter') and a complete name (e.g. 'peter@fipa.org:50/acc') to
+  be present as message receiver.
+  Added an empty postOtherPlatform() method for a future IIOP transport.
+
   Revision 1.22  1998/11/09 22:12:25  Giovanni
   Added AgentContainer interface's exit() method implementation to allow
   shutting down an AgentContainer remotely.
@@ -129,7 +135,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       System.getProperties().put("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
     }
     catch(java.net.UnknownHostException jnue) {
-      // Silently ingnore it
+      // Silently ignore it
     }
 
   }
@@ -196,7 +202,14 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
-    String receiverName = msg.getDest();
+    String completeName = msg.getDest();
+    String receiverName = null;
+    int atPos = completeName.indexOf('@');
+    if(atPos == -1)
+      receiverName = completeName;
+    else
+      receiverName = completeName.substring(0,atPos);
+
     Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
 
     if(receiver == null) 
@@ -354,19 +367,39 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   private void unicastPostMessage(ACLMessage msg) {
-    String receiverName = msg.getDest();
+    String receiverName = null;
+    String receiverAddr = null;
 
-    // Look up in local agents.
-    Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
+    String completeName = msg.getDest();
 
-    if(receiver != null)
-      receiver.postMessage(msg);
+    int atPos = completeName.indexOf('@');
+    if(atPos == -1) {
+      receiverName = completeName;
+      receiverAddr = platformAddress;
+    }
+    else {
+      receiverName = completeName.substring(0,atPos);
+      receiverAddr = completeName.substring(atPos + 1);
+    }
+
+    if(receiverAddr.equalsIgnoreCase(platformAddress)) {
+
+      // Look up in local agents.
+      Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
+
+      if(receiver != null)
+	receiver.postMessage(msg);
+      else
+	// Search failed; look up in remote agents.
+	postRemote(msg, receiverName);
+
+      // If it fails again, ask the Agent Platform.
+      // If still fails, raise NotFound exception.
+    }
     else
-      // Search failed; look up in remote agents.
-      postRemote(msg, receiverName);
+      // Forward to the ACC for IIOP inter-platform communication
+      postOtherPlatform(msg, receiverName, receiverAddr);
 
-    // If it fails again, ask the Agent Platform.
-    // If still fails, raise NotFound exception.
   }
 
   private void postRemote(ACLMessage msg, String receiverName) {
@@ -400,6 +433,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       System.out.println("Communication error while contacting agent platform");
       re.printStackTrace();
     }
+  }
+
+  private void postOtherPlatform(ACLMessage msg, String receiverName, String receiverAddr) {
+    // Not implemented yet
   }
 
 }
