@@ -40,6 +40,9 @@ public interface BEConnectionManager {
 	 */
   FrontEnd getFrontEnd(BackEnd be, Properties props) throws IMTPException;
 
+  void activateReplica(String addr, Properties props) throws IMTPException;
+
+
   /**
 	   Shut down the permanent connection to the remote FrontEnd
 	 */
