@@ -28,10 +28,22 @@ import jade.core.behaviours.*;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
+/**
+ * This class implements a selector of handler 
+ * (i.e. <code>jade.core.behaviours.Behaviour</code>)
+ * A number of handlers can be registered with 
+ * this <code>HandlerSelector</code>, each handler bound to a different key.
+ * The abstract method <code>getSelectionKey<code> is then called that
+ * must return the key to select one of the registered handlers.
+ * The selected handler is finally scheduled for execution.
+ * @author Giovanni Caire - TILab Torino
+ * @version $Date$ $Revision$
+ **/
 public abstract class HandlerSelector extends FSMBehaviour {
 	private Map handlers = new HashMap();
+        private Object accessKey;
 	
-	// FSM states names
+        // FSM states names
 	public static final String SELECT = "Select";
 	public static final String HANDLE = "Handle";
 	public static final String DUMMY = "Dummy";
@@ -40,14 +52,22 @@ public abstract class HandlerSelector extends FSMBehaviour {
 	public static final int SELECTION_OK = 1;
 	public static final int SELECTION_NOK = 0;
 	
-	// FIXME: We should include the key to retrieve from the 
-	// private data store the object to be passes to the getSelectionKey() 
-	// method 
-	public HandlerSelector(Agent a, DataStore s) {
+
+    /**
+     * Constructor for this HandlerSelector.
+     * @param a is a reference to the Agent object
+     * @param s is the DataStore where the object can be retrieved from
+     * @param accessKey is the key to get the proper object from the DataStore,
+     * this is the object that will be later passed as argument to the
+     * method <code>getSelectionKey</code>
+     * @see #getSelectionKey(Object)
+     **/
+	public HandlerSelector(Agent a, DataStore s, Object accessKey) {
 		super(a);
 		
 		setDataStore(s);
-		
+		this.accessKey = accessKey;
+
 		Behaviour b = null;
 		// Create and register the states that make up the FSM
 		// SELECT
@@ -56,8 +76,7 @@ public abstract class HandlerSelector extends FSMBehaviour {
 			
 			public void action() {
 				ret = SELECTION_NOK;
-				// Modify as FIXME above
-				Object key = getSelectionKey();
+				Object key = getSelectionKey(s.get(accessKey));
 				if (key != null) {
 					Behaviour b1 = (Behaviour) handlers.get(key);
 					if (b1 != null) {
@@ -86,9 +105,22 @@ public abstract class HandlerSelector extends FSMBehaviour {
 		registerDefaultTransition(SELECT, DUMMY);
 	}
 	
-	// Modify as FIXME above
-	protected abstract Object getSelectionKey();
+    /**
+     * Subclasses must provide a concrete implementation for this method.
+     * It must return the key to which the handler was bound.
+     * @param selectionVar the object retrieved from the datastore at
+     * the <code>accessKey</code> passed in the constructor 
+     * @return the key to which the handler was bound
+     **/
+	protected abstract Object getSelectionKey(Object selectionVar);
 	
+    /**
+     * Register the bounding between an handler and a key.
+     * @param key this is the key that must be later returned by
+     * the method <code>getSelectionKey</code> when the passed
+     * Behaviour must be selected
+     * @param h the handler for this key
+     **/
 	public void registerHandler(Object key, Behaviour h) {
 		handlers.put(key, h);
 	}
