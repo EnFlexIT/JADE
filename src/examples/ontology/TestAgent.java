@@ -56,6 +56,7 @@ protected void setup() {
   ACLMessage msg;
   while (true) {  
     try {
+      PushAKey();
       System.out.println("\nREADING NEXT MESSAGE FROM THE FILE ...");
       msg = parser.Message();
       System.out.println("  read the following message:\n"+msg.toString());
@@ -96,7 +97,14 @@ protected void setup() {
 
 }
 
-
+private void PushAKey(){
+  System.out.println("Press ENTER");
+  try {
+    BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+    buff.readLine();
+  } catch (Exception e) {
+  }
+}
 
 public static void main(String args[]) {
   TestAgent a = new TestAgent();
