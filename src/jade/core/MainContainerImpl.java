@@ -577,8 +577,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       // Get the container where to create the agent
       // If it is not specified, assume it is the Main
       if (cid == null || cid.getName() == null) {
-	  cid = new ContainerID(MAIN_CONTAINER_NAME, null);
-      } 
+	  cid = localContainerID;
+      }
 
       // --- This code should go into the Security Service ---
 
