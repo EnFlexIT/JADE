@@ -42,6 +42,7 @@ import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
 import jade.domain.FIPAServiceCommunicator;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -194,14 +195,18 @@ public class Sniffer extends ToolAgent {
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
 	  String content;
-	  if(ev instanceof SentMessage)
+	  Envelope env;
+	  if(ev instanceof SentMessage) { 
 	    content = ((SentMessage)ev).getMessage().getPayload();
-	  else if(ev instanceof PostedMessage)
+	    env = ((SentMessage)ev).getMessage().getEnvelope();
+	  } else if(ev instanceof PostedMessage) {
 	    content = ((PostedMessage)ev).getMessage().getPayload();
-	  else return;
+	    env = ((PostedMessage)ev).getMessage().getEnvelope();
+	  } else return;
 
 	  ACLCodec codec = new StringACLCodec();
 	  ACLMessage tmp = codec.decode(content.getBytes());
+	  tmp.setEnvelope(env);
 	  Message msg = new Message(tmp);
 
 	  // If this is a 'posted-message' event and the sender is

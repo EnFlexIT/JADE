@@ -84,7 +84,7 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     this.setReplyByDate(msg.getReplyByDate());
     this.setProtocol(msg.getProtocol());
     this.setConversationId(msg.getConversationId());
-
+    this.setEnvelope(msg.getEnvelope());
   }
 
 
