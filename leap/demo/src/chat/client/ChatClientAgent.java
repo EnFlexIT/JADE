@@ -252,7 +252,8 @@ public class ChatClientAgent extends Agent {
 	}	
 	
 	private void handleUnexpected(ACLMessage msg) {
+		if(logger.isLoggable(Logger.WARNING)){
 		logger.log(Logger.WARNING,"Unexpected message received from "+msg.getSender().getName());
-		logger.log(Logger.WARNING,"Content is: "+msg.getContent());
+		logger.log(Logger.WARNING,"Content is: "+msg.getContent());}
 	}
 }

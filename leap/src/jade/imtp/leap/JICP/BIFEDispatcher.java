@@ -688,7 +688,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
       Logger logger = Logger.getMyLogger(this.getClass().getName());
-      logger.log(Logger.INFO,name+": "+s);
+      if(logger.isLoggable(Logger.INFO))
+      	logger.log(Logger.INFO,name+": "+s);
     } 
   } 
 }

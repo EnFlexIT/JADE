@@ -173,7 +173,8 @@ public class Boot {
 		  				}
 	  				}
 	  				catch (Exception e) {
-	  					logger.log(Logger.SEVERE, "WARNING: error loading properties from file "+args[i]+". "+e);
+	  					if(logger.isLoggable(Logger.SEVERE))
+	  						logger.log(Logger.SEVERE, "WARNING: error loading properties from file "+args[i]+". "+e);
 	  				}	
 	  			}
 	  			else {
@@ -188,13 +189,15 @@ public class Boot {
 	  				throw new IllegalArgumentException("No mtps specified after \"-mtp\" option");
 	  			}
 	  			if (props.getProperty("nomtp") != null) {
-	  				logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				if(logger.isLoggable(Logger.WARNING))
+	  					logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-nomtp")) {
 	  			props.setProperty("nomtp", "true");
 	  			if (props.getProperty(Profile.MTPS) != null) {
-	  				logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				if(logger.isLoggable(Logger.WARNING))
+	  					logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-agents")) {
@@ -219,17 +222,21 @@ public class Boot {
   		else {
   			// Get agents at the end of command line
   			if (props.getProperty(Profile.AGENTS) != null) {
-  				logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
+  				if(logger.isLoggable(Logger.WARNING))
+  					logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
   			}
   			String agents = args[i];
   			props.setProperty(Profile.AGENTS, args[i]);
   			if (++i < args.length) {
-  				logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+  				if(logger.isLoggable(Logger.WARNING))
+  					logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
 					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
-						logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
+						if(logger.isLoggable(Logger.WARNING))
+							logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
 					}
   				if (args[i].indexOf(':') != -1) {
-						logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+						if(logger.isLoggable(Logger.WARNING))
+							logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
 					}
   			}
   			break;
@@ -288,7 +295,8 @@ public class Boot extends MIDlet implements Runnable {
     
     logger = Logger.getMyLogger(this.getClass().getName());
     if (quit) {
-      logger.log(Logger.SEVERE,"JADE runtime already active");
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"JADE runtime already active");
   		return; 
     }
     
@@ -320,7 +328,8 @@ public class Boot extends MIDlet implements Runnable {
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      logger.log(Logger.SEVERE,"Error creating the Profile Manager ["+e.getMessage()+"]");
+      if(logger.isLoggable(Logger.SEVERE))
+	      logger.log(Logger.SEVERE,"Error creating the Profile Manager ["+e.getMessage()+"]");
       e.printStackTrace();
       Agent.midlet = null;
       midlet = null;
@@ -329,11 +338,13 @@ public class Boot extends MIDlet implements Runnable {
   } 
 
   public void pauseApp() {
-		logger.log(Logger.INFO,"pauseApp() called");
+		if(logger.isLoggable(Logger.INFO))
+			logger.log(Logger.INFO,"pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-		logger.log(Logger.INFO,"destroyApp() called");
+		if(logger.isLoggable(Logger.INFO))
+			logger.log(Logger.INFO,"destroyApp() called");
 		// If the MIDlet is killed, kill JADE too
   	Runtime.instance().shutDown();
   } 
@@ -341,7 +352,8 @@ public class Boot extends MIDlet implements Runnable {
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
-  		logger.log(Logger.INFO, "Destroying MIDlet now");
+  		if(logger.isLoggable(Logger.INFO))
+  			logger.log(Logger.INFO, "Destroying MIDlet now");
 	    Agent.midlet.notifyDestroyed();
 		}
   	Agent.midlet = null;

@@ -100,13 +100,15 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
 		}
 		catch (IMTPException imtpe) {
-		  logger.log(Logger.SEVERE,"IMTP error "+imtpe);
+		  if(logger.isLoggable(Logger.SEVERE))
+		  	logger.log(Logger.SEVERE,"IMTP error "+imtpe);
 			imtpe.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
 		}
 		catch (Exception e) {
-		  logger.log(Logger.SEVERE,"Unexpected error "+e);
+		  if(logger.isLoggable(Logger.SEVERE))
+		  	logger.log(Logger.SEVERE,"Unexpected error "+e);
 			e.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
@@ -123,7 +125,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 					initAgent(s.getName(), s.getClassName(), s.getArgs());
 				}
 				catch (Exception e) {
-		  		logger.log(Logger.SEVERE,"Exception creating new agent "+e);
+		  		if(logger.isLoggable(Logger.SEVERE))
+		  			logger.log(Logger.SEVERE,"Exception creating new agent "+e);
 				}
 			}
 			
@@ -139,7 +142,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		catch (Exception e1) {
-		  logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
+		  if(logger.isLoggable(Logger.SEVERE))
+		  	logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
 	}
@@ -167,7 +171,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	}
   	catch (Exception e) {
   		String msg = "Exception creating new agent. ";
-  		logger.log(Logger.SEVERE,msg+e);
+  		if(logger.isLoggable(Logger.SEVERE))
+  			logger.log(Logger.SEVERE,msg+e);
   		throw new IMTPException(msg, e);
   	}
   }
@@ -232,7 +237,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public final void exit(boolean self) throws IMTPException {
   	if (!exiting) {
   		exiting = true;
-	  	logger.log(Logger.INFO,"Container shut down activated");
+	  	if(logger.isLoggable(Logger.INFO))
+	  		logger.log(Logger.INFO,"Container shut down activated");
 	    
 	  	// Kill all agents 
 	  	synchronized (this) {
@@ -246,12 +252,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 	  		localAgents.clear();
 	  	}
-	  	logger.log(Logger.INFO,"Local agents terminated");
+	  	if(logger.isLoggable(Logger.INFO))
+	  		logger.log(Logger.INFO,"Local agents terminated");
 	  	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
-	  	logger.log(Logger.INFO,"Connection manager closed");
+	  	if(logger.isLoggable(Logger.INFO))
+	  		logger.log(Logger.INFO,"Connection manager closed");
 	  	
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
@@ -328,7 +336,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	  }
 	    }
 	    catch(IMTPException re) {
-			  logger.log(Logger.SEVERE,re.toString());
+			  if(logger.isLoggable(Logger.SEVERE))
+			  	logger.log(Logger.SEVERE,re.toString());
 	    }
   	}
   }
@@ -472,7 +481,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	pending.addElement(sender);
 			int size = pending.size();
 	  	if (size > 100 && size < 110) {
-	  		logger.log(Logger.INFO,size+" pending messages");
+	  		if(logger.isLoggable(Logger.INFO))
+	  			logger.log(Logger.INFO,size+" pending messages");
 	  	}
 	  	pending.notifyAll();
   	}
@@ -490,7 +500,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  			}
 	  			catch (InterruptedException ie) {
 	  				// Should never happen
-	  				logger.log(Logger.SEVERE,ie.toString());
+	  				if(logger.isLoggable(Logger.SEVERE))
+	  					logger.log(Logger.SEVERE,ie.toString());
 	  			}
 	  		}
 	  		msg = (ACLMessage) pending.elementAt(0);
@@ -505,7 +516,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	catch (Exception e) {
 	  		// Should never happen. Note that "NotFound" here is referred 
 	  		// to the sender.
-	  		logger.log(Logger.SEVERE,e.toString());
+	  		if(logger.isLoggable(Logger.SEVERE))
+	  			logger.log(Logger.SEVERE,e.toString());
 	  	}
 	  	// Notify terminating agents (if any) waiting for their messages to be delivered
 	  	synchronized (pending) {

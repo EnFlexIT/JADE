@@ -114,6 +114,7 @@ public class LEAPIMTPManager implements IMTPManager {
           theDispatcher.addICP(peer, id, theProfile);
         } 
         catch (Exception e) {
+        if(logger.isLoggable(Logger.SEVERE))
           logger.log(Logger.SEVERE,"Error adding ICP. "+e);
         } 
       }
@@ -125,7 +126,8 @@ public class LEAPIMTPManager implements IMTPManager {
     }
     catch (ProfileException pe) {
       // Just print a warning
-      logger.log(Logger.SEVERE,"Profile error. "+pe.getMessage());
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"Profile error. "+pe.getMessage());
     } 
 
     // Now check that some ICP is active. Note that, as a CommandDispatcher
@@ -139,7 +141,11 @@ public class LEAPIMTPManager implements IMTPManager {
     	localAddr = (String) URLs.get(0);
       Iterator it = URLs.iterator();
 
+
+      	logger.log(Logger.ALL,"Listening for intra-platform commands on address:");
+
 			StringBuffer sb = new StringBuffer("Listening for intra-platform commands on address:\n");
+
       while (it.hasNext()) {
       	sb.append("- "+(String) it.next()+"\n");
       }

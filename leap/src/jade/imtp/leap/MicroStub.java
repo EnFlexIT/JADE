@@ -55,7 +55,8 @@ public class MicroStub {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
 					// Unexpected exception thrown in the remote site
 					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site processing command "+c.getCode()+". "+(String) r.getParamAt(2));
-					logger.log(Logger.SEVERE,msg);
+					if(logger.isLoggable(Logger.SEVERE))
+						logger.log(Logger.SEVERE,msg);
       		throw new IMTPException(msg);
 				}
 				else if (((String) r.getParamAt(1)).equals("jade.core.IMTPException")) {
@@ -89,7 +90,8 @@ public class MicroStub {
 		pendingCommands.addElement(c);
 		int size = pendingCommands.size();
   	if (size > 100 && size < 110) {
-  		logger.log(Logger.INFO,size+" postponed commands");
+  		if(logger.isLoggable(Logger.INFO))
+	  		logger.log(Logger.INFO,size+" postponed commands");
   	}
 	}
 	
@@ -101,7 +103,8 @@ public class MicroStub {
 			// deadlock
 			flusher = new Thread() {
 				public void run() {
-					logger.log(Logger.INFO,"Flushing thread activated");
+					if(logger.isLoggable(Logger.INFO))
+						logger.log(Logger.INFO,"Flushing thread activated");
 					// 1) Lock the buffer of pending commands to avoid calling 
 					// remote methods while flushing
 					synchronized (pendingCommands) {
@@ -116,7 +119,8 @@ public class MicroStub {
 					}
 					
 					// Flush the buffer of pending commands
-					logger.log(Logger.INFO,"Start flushing");
+					if(logger.isLoggable(Logger.INFO))
+						logger.log(Logger.INFO,"Start flushing");
 					Enumeration e = pendingCommands.elements();
 					int flushedCnt = 0;
 					while (e.hasMoreElements()) {
@@ -129,11 +133,13 @@ public class MicroStub {
 							Command r = executeRemotely(c, 0);
 							flushedCnt++;
 							if (r.getCode() == Command.ERROR) {
-								logger.log(Logger.SEVERE,"WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
+								if(logger.isLoggable(Logger.SEVERE))
+									logger.log(Logger.SEVERE,"WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
 							}
 						}
 						catch (Exception ex) {
-							logger.log(Logger.SEVERE,"WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
+							if(logger.isLoggable(Logger.SEVERE))
+								logger.log(Logger.SEVERE,"WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
 							// We are disconnected again
 							break;
 						}
@@ -153,7 +159,8 @@ public class MicroStub {
 						flushing = false;
 						pendingCommands.notifyAll();
 					}
-					logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
+					if(logger.isLoggable(Logger.INFO))
+						logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
 			flusher.start();

@@ -83,19 +83,22 @@ public class MicroBoot {
 		    	}
 		    	catch (InterruptedException ie) {
 		    	}
-		      logger.log(Logger.INFO,"Exiting now!");
+		      if(logger.isLoggable(Logger.INFO))
+		      	logger.log(Logger.INFO,"Exiting now!");
 		      System.exit(0);
 		    } 
 		  });
     }
     catch (IllegalArgumentException iae) {
-      logger.log(Logger.SEVERE,"Error reading command line configuration properties. "+iae.getMessage());
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"Error reading command line configuration properties. "+iae.getMessage());
       iae.printStackTrace();
       printUsage();
       System.exit(-1);
     }
     catch (IOException ioe) {
-      logger.log(Logger.SEVERE,"Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
       ioe.printStackTrace();
       printUsage();
       System.exit(-1);
@@ -121,17 +124,21 @@ public class MicroBoot {
   		else {
   			// Get agents at the end of command line
   			if (props.getProperty(MicroRuntime.AGENTS_KEY) != null) {
-  				logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
+  				if(logger.isLoggable(Logger.WARNING))
+  					logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
   			}
   			String agents = args[i];
   			props.setProperty(MicroRuntime.AGENTS_KEY, args[i]);
   			if (++i < args.length) {
-  				logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+  				if(logger.isLoggable(Logger.WARNING))
+  					logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
 					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
-						logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
+						if(logger.isLoggable(Logger.WARNING))
+							logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
 					}
   				if (args[i].indexOf(':') != -1) {
-						logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+						if(logger.isLoggable(Logger.WARNING))
+							logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
 					}
   			}
   			break;
@@ -172,7 +179,8 @@ public class MicroBoot extends MIDlet implements Runnable {
     
     logger = Logger.getMyLogger(this.getClass().getName());
     if (quit) {
-      logger.log(Logger.SEVERE,"JADE runtime already active");
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"JADE runtime already active");
   		return; 
     }
     
@@ -206,7 +214,8 @@ public class MicroBoot extends MIDlet implements Runnable {
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      logger.log(Logger.SEVERE,"Error reading configuration properties");
+      if(logger.isLoggable(Logger.SEVERE))
+      	logger.log(Logger.SEVERE,"Error reading configuration properties");
       e.printStackTrace();
       Agent.midlet = null;
       notifyDestroyed();
@@ -214,11 +223,13 @@ public class MicroBoot extends MIDlet implements Runnable {
   } 
 
   public void pauseApp() {
-		logger.log(Logger.INFO,"pauseApp() called");
+		if(logger.isLoggable(Logger.INFO))
+			logger.log(Logger.INFO,"pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-		logger.log(Logger.INFO,"destroyApp() called");
+		if(logger.isLoggable(Logger.INFO))
+			logger.log(Logger.INFO,"destroyApp() called");
 		// When the MIDlet is killed, kill JADE too
   	MicroRuntime.stopJADE();
   } 
@@ -226,7 +237,8 @@ public class MicroBoot extends MIDlet implements Runnable {
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
-  		logger.log(Logger.INFO,"Destroying MIDlet now");
+  		if(logger.isLoggable(Logger.INFO))
+  			logger.log(Logger.INFO,"Destroying MIDlet now");
     	Agent.midlet.notifyDestroyed();
     }
     Agent.midlet = null;

@@ -288,13 +288,15 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     	try {
 	      TransportAddress ta = stringToAddr(url);
     		if (routerTA != null && !routerTA.equals(ta)) {
-      		logger.log(Logger.WARNING,"WARNING : transport address of current router has been changed");
+      		if(logger.isLoggable(Logger.WARNING))
+      			logger.log(Logger.WARNING,"WARNING : transport address of current router has been changed");
     		} 
     		routerTA = ta;
     	}
     	catch (Exception e) {
 	      // Just print a warning: default (i.e. main TA) will be used
-	      logger.log(Logger.SEVERE,"Can't initialize router address");
+	      if(logger.isLoggable(Logger.SEVERE))
+	      	logger.log(Logger.SEVERE,"Can't initialize router address");
     	}
     }    		
   } 
