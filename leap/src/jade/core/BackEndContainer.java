@@ -154,12 +154,21 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      - Notify the Main
      - Return the platform info to the FrontEnd if required
   */
-  public String[] bornAgent(String name) throws IMTPException {
+  public String[] bornAgent(String name) throws AuthException, IMTPException {
       AID id = new AID(name, AID.ISLOCALNAME);
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(id);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret instanceof NameClashException) {
+      	throw new AuthException("Name already in use");
+      }
+      else if (ret instanceof AuthException) {
+      	throw (AuthException) ret;
+      }
+      else if (ret instanceof Exception) {
+      	throw new IMTPException(null, (Exception) ret);
+      }
 
       // Prepare platform info to return if necessary
       String[] info = null;
@@ -456,7 +465,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
 
       if (agentImages.size() > 0) {
-      	System.out.println("AAAAAAAAAAAAA");
+      	System.out.println("WARNING: Zombie agent images found");
       }
       //agentImages.clear();
 		
@@ -562,9 +571,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    try {
 		bornAgent(name);
 	    }
-	    catch(IMTPException imtpe) {
+	    catch(Exception e) {
 		// Ignore it and try the next agent...
-		imtpe.printStackTrace();
+		e.printStackTrace();
 	    }
 	}
 
