@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 11:34:27  rimassa
+  Added icon for DummyAgent tool.
+
   Revision 1.1  1999/05/20 15:42:09  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -49,8 +52,8 @@ public class GuiProperties {
       "AMSAbstractAction.SuspendActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/suspend.gif"),
       "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
       "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/fg.gif"),
-      "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif")
-  
+      "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),
+      "AMSAbstractAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif")    
     };
 
     MyDefaults = new UIDefaults (icons);
