@@ -122,7 +122,7 @@ public boolean done() {
       if (!  (ACLMessage.QUERY_IF ==msg.getPerformative()|| 
 	      ACLMessage.QUERY_REF == msg.getPerformative())) {
 	if (! (ACLMessage.NOT_UNDERSTOOD == msg.getPerformative()))
-	  SendNotUnderstood(msg, "unexpected Communicative Act");
+	  SendNotUnderstood(msg, "(unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+")");
 	state = 0;
       } else { 
 	reply = handleQueryMessage(msg);
@@ -135,7 +135,7 @@ public boolean done() {
 	      ACLMessage.NOT_UNDERSTOOD == reply.getPerformative() ||
 	      ACLMessage.FAILURE == reply.getPerformative()||
 	      ACLMessage.REFUSE == reply.getPerformative()))
-	SendFailure(msg,"ill-formed return in handleQueryMessage");
+	SendFailure(msg,"(unexpected-act "+ACLMessage.getPerformative(reply.getPerformative())+")");
       else 
 	SendReply(msg,reply);
       state=0;
@@ -157,41 +157,39 @@ public boolean done() {
 public abstract ACLMessage handleQueryMessage(ACLMessage msg);
 
 private void SendFailure(ACLMessage msg, String reason) {
+  ACLMessage reply=msg.createReply();
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
-  msg.setContent(content);
-  msg.setPerformative(ACLMessage.FAILURE);
-  msg.removeAllDests();
-  msg.addDest(msg.getSource());
-  msg.setSource(myAgent.getName());
-  msg.setReplyTo(msg.getReplyWith());
-  msg.setConversationId(msg.getConversationId());
-  myAgent.send(msg);
+  reply.setContent(content);
+  reply.setPerformative(ACLMessage.FAILURE);
+  myAgent.send(reply);
 }
 
-private void SendReply(ACLMessage msg, ACLMessage reply) {
-  reply.removeAllDests();
-  reply.addDest(msg.getSource());
-  reply.setSource(myAgent.getName());
-  reply.setReplyTo(msg.getReplyWith());
-  reply.setConversationId(msg.getConversationId());
-  reply.setProtocol("FIPA-Query");
-  if (reply.getLanguage().length()<1)
-    reply.setLanguage(msg.getLanguage());
-  if (reply.getOntology().length()<1)
-    reply.setOntology(msg.getOntology());
+  /**
+   * @param msg is the QUERY received
+   * @param rep is the message to be sent
+   */
+private void SendReply(ACLMessage msg, ACLMessage rep) {
+  ACLMessage reply=msg.createReply();
+  reply.setContent(rep.getContent());
+  // language, ontology, and encoding are set to what is in rep
+  if (rep.getLanguage().length()>1)
+    reply.setLanguage(rep.getLanguage());
+  if (rep.getOntology().length()>1)
+    reply.setOntology(rep.getOntology());
+  if (rep.getEncoding().length()>1)
+    reply.setEncoding(rep.getEncoding());
   myAgent.send(reply);
 }
 
 private void SendNotUnderstood(ACLMessage msg, String reason) {
+  ACLMessage reply=msg.createReply();
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
-  msg.setContent(content);
-  msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-  msg.removeAllDests();
-  msg.addDest(msg.getSource());
-  msg.setSource(myAgent.getName());
-  msg.setReplyTo(msg.getReplyWith());
-  msg.setConversationId(msg.getConversationId());
-  myAgent.send(msg);
+  reply.setContent(content);
+  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+  myAgent.send(reply);
 }
   
 }
+
+
+

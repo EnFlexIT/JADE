@@ -27,10 +27,9 @@ import jade.core.*;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.AID;
 
-import java.util.Date;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.*;
 
 import java.io.*;
 
@@ -92,15 +91,16 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
   /**
   @serial
   */
-  private AgentGroup informerAgents;
+  private List informerAgents;
   /**
   @serial
   */
-  private AgentGroup waitedAgents;
+  private List waitedAgents;
   /**
   @serial
   */
   private boolean finished;
+
 
 
   /**
@@ -113,15 +113,19 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
    * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
    * @param msg is the Query message to be sent (notice that the performative
    * must be set to <code>QUERY-IF</code> or <code>QUERY-REF</code>
-   * @param group is the group of agents to which the query must be sent
+   * @param responders is the group of agents 
+   * (i.e. a <code>List</code> of <code>AID</code>)
+   * to which the query must be sent
    */
-    public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
-      super(a);
-      queryMsg = msg;
-      informerAgents = (AgentGroup)group.clone();
-      finished = false;
+    public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, List responders) {
+      this(a,msg);
+      queryMsg.clearAllReceiver();
+      informerAgents =new ArrayList();
+      for (int i=0; i<responders.size(); i++) { 
+	queryMsg.addReceiver((AID)responders.get(i));
+	informerAgents.add((AID)responders.get(i));
+      }
     }
-
 
     /**
     * constructor of the behaviour.
@@ -130,7 +134,13 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
     * @see jade.proto.FipaQueryInitiatorBehaviour#FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
     */
 public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
-  this(a,msg,msg.getDests());
+  super(a);
+  queryMsg = msg;
+  finished = false;
+  informerAgents =new ArrayList();
+  Iterator i=msg.getAllReceiver();
+  while (i.hasNext())
+    informerAgents.add(i.next());
 }
 
   /**
@@ -144,19 +154,19 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       state = 1;
       //queryMsg.setType("query-ref");
       queryMsg.setProtocol("FIPA-Query");
-      queryMsg.setSource(myAgent.getName());
+      queryMsg.setSender(myAgent.getAID());
       if (queryMsg.getReplyWith().length()<1)
-      	queryMsg.setReplyWith("Query"+(new Date()).getTime());
+      	queryMsg.setReplyWith("Query"+myAgent.getLocalName()+(new Date()).getTime());
       if (queryMsg.getConversationId().length()<1)
-	      queryMsg.setConversationId("Query"+(new Date()).getTime());
+	      queryMsg.setConversationId("Query"+myAgent.getLocalName()+(new Date()).getTime());
       timeout = queryMsg.getReplyByDate().getTime()-(new Date()).getTime();
       if (timeout <= 1000) timeout = -1; // infinite timeout
       endingTime = System.currentTimeMillis() + timeout;
       //      System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis());
-      myAgent.send(queryMsg,informerAgents);
+      myAgent.send(queryMsg);
 
-      template = MessageTemplate.MatchReplyTo(queryMsg.getReplyWith());
-      waitedAgents = (AgentGroup)informerAgents.clone();
+      template = MessageTemplate.MatchInReplyTo(queryMsg.getReplyWith());
+      waitedAgents = informerAgents;
       //      System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       break;
     }
@@ -183,9 +193,9 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       // a new message is arrived and must be processed.		
       
       // remove the sender of this message from the list of responders that have not yet responded
-      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
+      waitedAgents.remove(msg.getSender());
       // if all responders have already responded then go into the next state
-      if (!waitedAgents.getMembers().hasMoreElements()) 
+      if (waitedAgents.size()==0) 
       	state=2;
       
       if (ACLMessage.INFORM == msg.getPerformative()) 
@@ -196,7 +206,7 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       break;
     }
     case 2: {
-    	handleInformMessages(msgInforms);
+      handleInformMessages(msgInforms);
       finished = true;
       break;
     }
@@ -246,3 +256,4 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
    */
    public abstract void handleInformMessages(Vector messages);
 }
+

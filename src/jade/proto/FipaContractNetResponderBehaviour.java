@@ -28,6 +28,7 @@ import jade.core.*;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.AID;
 
 import java.util.Date;
 
@@ -182,13 +183,13 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
     }
     case 2: {
       state = 3;
-      proposeMsg.setSource(myAgent.getName());
-      proposeMsg.setReplyTo(cfpMsg.getReplyWith());
+      proposeMsg.setSender(myAgent.getAID());
+      proposeMsg.setInReplyTo(cfpMsg.getReplyWith());
       proposeMsg.setProtocol("FIPA-Contract-Net");
       proposeMsg.setConversationId(cfpMsg.getConversationId());
       if (proposeMsg.getReplyWith().length()<1)
 	proposeMsg.setReplyWith("ContractNetResponder"+(new Date()).getTime());
-      template = MessageTemplate.MatchReplyTo(proposeMsg.getReplyWith());
+      template = MessageTemplate.MatchInReplyTo(proposeMsg.getReplyWith());
       myAgent.send(proposeMsg);
       //System.err.println("FipaContractNetResponderBehaviour: send");
       //proposeMsg.dump();
@@ -235,10 +236,10 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
       break;
     }
     case 4: { // send the last message
-      informMsg.setSource(myAgent.getName());
-      informMsg.removeAllDests();
-      informMsg.addDest(acceptMsg.getSource());
-      informMsg.setReplyTo(acceptMsg.getReplyWith());
+      informMsg.setSender(myAgent.getAID());
+      informMsg.clearAllReceiver();
+      informMsg.addReceiver(acceptMsg.getSender());
+      informMsg.setInReplyTo(acceptMsg.getReplyWith());
       informMsg.setProtocol("FIPA-Contract-Net");
       informMsg.setConversationId(acceptMsg.getConversationId());
       myAgent.send(informMsg);

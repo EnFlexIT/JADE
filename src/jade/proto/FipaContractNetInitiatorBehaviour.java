@@ -28,10 +28,9 @@ import jade.core.*;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.AID;
 
-import java.util.Date;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.*;
 
 import java.io.*;
 
@@ -65,7 +64,7 @@ import java.io.*;
 * of <code>ACLMessages</code> to be sent before terminating the
 * behaviour (return <code>null</code> to terminate the protocol).
 
-* <li> <code> public String createCfpContent(String cfpContent, String receiver)</code> 
+* <li> <code> public String createCfpContent(String cfpContent, AID receiver)</code> 
 * to return the cfp content for each receiver.
 * </ul>
 * <li> Create a new instance of this class and add it to the agent
@@ -89,7 +88,7 @@ import java.io.*;
 * the behaviour);
 * <li> implement the iteration within the method 
 * <code>handleProposeMessages</code>
-* by calling the method <code>reset(newcfp,newagentgroup)</code> 
+* by calling the method <code>reset(newcfp,newagentlist)</code> 
 * (eventually updating the cfp
 * message and the agent group);  the vector of ACLMessages returned by the 
 * <code>handleProposeMessages</code> method are still sent by this class, 
@@ -143,12 +142,12 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
   /**
   @serial
   */
-  private AgentGroup proposerAgents;
+  private List proposerAgents;
   
   /**
   @serial
   */
-  private AgentGroup waitedAgents;
+  private List waitedAgents;
 
   /**
    * This boolean should be set to true in order to finish abnormally
@@ -173,12 +172,13 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * @param msg is the Call for Proposal message to be sent. If not set 
    * already in the parameter, the protocol is set to the value
    * <code>FIPA-Contract-Net</code>
-   * @param group is the group of agents to which the cfp must be sent
+   * @param responders is the group of agents to which the cfp must be sent 
+   * sintactically it is a <code>List of AID</code>
    */
-    public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
+    public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, List responders) {
       super(a);
       cfpMsg = (ACLMessage)msg.clone();
-      proposerAgents = (AgentGroup)group.clone();
+      proposerAgents = responders;
       state=0;
       hasBeenReset = false;
     }
@@ -189,10 +189,14 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * is extracted directly 
    * by the receiver field of the ACLMessage that has been passed as
    * parameter.
-   * @see #FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
+   * @see #FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, List responders)
    */
     public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg) {
-      this(a,msg,msg.getDests());
+      this(a,msg,null);
+      proposerAgents = new ArrayList();
+      Iterator i=msg.getAllReceiver();
+      while (i.hasNext())
+	proposerAgents.add(i.next());
     }
     
 
@@ -222,7 +226,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       cfpMsg.setPerformative(ACLMessage.CFP);
       if (cfpMsg.getProtocol().length() < 1)
 	cfpMsg.setProtocol("FIPA-Contract-Net");
-      cfpMsg.setSource(myAgent.getName());
+      cfpMsg.setSender(myAgent.getAID());
       if (cfpMsg.getReplyWith().length() < 1)
 	cfpMsg.setReplyWith("ContractNet"+(new Date()).getTime());
       if (cfpMsg.getConversationId().length() < 1)
@@ -233,19 +237,19 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
 
       //replace the content with the actual actor name 
       // that is 1 actor for each message.
-      String actor;
+      AID actor;
       String oldcontent = cfpMsg.getContent();
-      Enumeration e = proposerAgents.getMembers();
-      while (e.hasMoreElements()) {
-	actor = (String)e.nextElement();
+      Iterator e = proposerAgents.iterator();
+      while (e.hasNext()) {
+	actor = (AID)e.next();
 	cfpMsg.setContent(createCfpContent(oldcontent,actor));
-	cfpMsg.removeAllDests();
-	cfpMsg.addDest(actor);
+	cfpMsg.clearAllReceiver();
+	cfpMsg.addReceiver(actor);
 	myAgent.send(cfpMsg);
       }
 
-      template = MessageTemplate.MatchReplyTo(cfpMsg.getReplyWith());
-      waitedAgents = (AgentGroup)proposerAgents.clone();
+      template = MessageTemplate.MatchInReplyTo(cfpMsg.getReplyWith());
+      waitedAgents = proposerAgents;
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       state = 1;
       break;
@@ -290,9 +294,9 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       // Here the receive() has really read a message
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
-      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
+      waitedAgents.remove(msg.getSender());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
-      if (!waitedAgents.getMembers().hasMoreElements()) {
+      if (waitedAgents.size()==0) {
 	state=2;
 	}
       if (ACLMessage.PROPOSE == msg.getPerformative()) 
@@ -327,7 +331,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
     }
     case 3: { // send accept-proposals and reject-proposals
       ACLMessage tmpmsg;
-      waitedAgents = new AgentGroup();
+      waitedAgents = new ArrayList();
       long tmptime;
       timeout = -1;
       String replyWith = "ContractNetState4"+(new Date()).getTime();
@@ -337,9 +341,9 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
 	  tmptime = tmpmsg.getReplyByDate().getTime()-(new Date()).getTime();
 	  if (timeout < tmptime)
 	    timeout = tmptime; // put in timeout the maximum timeout
-	  waitedAgents.addMember(tmpmsg.getFirstDest());
+	  waitedAgents.add(tmpmsg.getAllReceiver().next());
 	}
-	tmpmsg.setSource(myAgent.getName());
+	tmpmsg.setSender(myAgent.getAID());
 	tmpmsg.setReplyWith(replyWith);
 	tmpmsg.setConversationId(cfpMsg.getConversationId());
 	tmpmsg.setProtocol(cfpMsg.getProtocol());
@@ -348,7 +352,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
 	//tmpmsg.dump();
 	//System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       }
-      template = MessageTemplate.MatchReplyTo(replyWith);
+      template = MessageTemplate.MatchInReplyTo(replyWith);
       endingTime = System.currentTimeMillis() + timeout;
       state = 4;
       if (hasBeenReset) {
@@ -386,9 +390,9 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
-      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
+      waitedAgents.remove(msg.getSender());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
-      if (!waitedAgents.getMembers().hasMoreElements()) 
+      if (waitedAgents.size() == 0) 
 	state=5;
       msgFinal.addElement(msg);
       break;
@@ -407,7 +411,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
     }
     case 6: { // final state of the protocol
       for (int i=0; i<msgFinalAnswers.size(); i++) {
-	((ACLMessage)msgFinalAnswers.elementAt(i)).setSource(myAgent.getName());
+	((ACLMessage)msgFinalAnswers.elementAt(i)).setSender(myAgent.getAID());
 	myAgent.send((ACLMessage)msgFinalAnswers.elementAt(i));
 	//System.err.println("FipaContractNetInitiatorBehaviour: send");
 	//((ACLMessage)msgFinalAnswers.elementAt(i)).dump();
@@ -514,17 +518,17 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * The purpose of this abstract method is to return the actual content for 
    * the cfp message to be sent to the given receiver.
    * A suggestion for the implementation is to insert a special symbol within
-   * the cfpContent that, at every call, is replaced with the name of the 
+   * the cfpContent that, at every call, is replaced with the AID of the 
    * receiver. Unfortunatelly, this default implementation cannot be 
    * provided by this behaviour because there exist no such a universal
    * special symbol.
    * @param cfpContent this is the content of the cfp message that was passed
    * in the constructor of the behaviour
-   * @param receiver this is the name of the receiver agent to which this 
+   * @param receiver this is the AID of the receiver agent to which this 
    * content is destinated
    * @return the actual content to be sent to this receiver
    */
-  public abstract String createCfpContent(String cfpContent, String receiver);
+  public abstract String createCfpContent(String cfpContent, AID receiver);
 
 
   /**
@@ -549,12 +553,13 @@ public void reset() {
 
   /**
    * @param msg updates the cfp message to be sent
-   * @param group updates the group of agents to which the cfp message should be sent
+   * @param responders updates the group of agents to which the cfp message should be sent
    * @see #reset()
    */
-public void reset(ACLMessage msg, AgentGroup group) {
+public void reset(ACLMessage msg, List responders) {
   reset();
   cfpMsg = (ACLMessage)msg.clone();
-  proposerAgents = (AgentGroup)group.clone();
+  proposerAgents = responders;
 }
 }
+
