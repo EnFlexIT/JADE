@@ -366,7 +366,6 @@ public class RMIIMTPManager implements IMTPManager {
 	  // FIXME: Must get the whole list from the profile...
 	  final String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
 
-
 	  myServiceManagerProxy = new BaseServiceManagerProxy(this, proc) {
 
 	      // Look up the actual remote object in the RMI Registry
@@ -546,6 +545,15 @@ public class RMIIMTPManager implements IMTPManager {
 
 	  // Add the initial addresses to the proxy
 	  myServiceManagerProxy.addAddress(baseRMI);
+
+	  // Add all the additional addresses to the Service Manager Proxy...
+	  List smAddrs = myProfile.getSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES);
+	  Iterator smIt = smAddrs.iterator();
+	  while(smIt.hasNext()) {
+	      Specifier spec = (Specifier)smIt.next();
+	      String smAddr = "rmi://" + spec.toString() + "/";
+	      myServiceManagerProxy.addAddress(smAddr);
+	  }
 
 	  return myServiceManagerProxy;
       }
