@@ -39,10 +39,14 @@ import jade.util.leap.Serializable;
  */
 public abstract class BaseNode implements Node, Serializable {
 
+    public BaseNode(String name, boolean hasSM) {
+	myName = name;
+	hasLocalSM = hasSM;
+	localSlices = new HashMap();
+    }
 
     public BaseNode(String name) {
-	myName = name;
-	localSlices = new HashMap();
+	this(name, false);
     }
 
     public void setName(String name) {
@@ -51,6 +55,10 @@ public abstract class BaseNode implements Node, Serializable {
 
     public String getName() {
 	return myName;
+    }
+
+    public boolean hasServiceManager() {
+	return hasLocalSM;
     }
 
     /***
@@ -105,6 +113,9 @@ public abstract class BaseNode implements Node, Serializable {
 
     // The name of this node
     private String myName;
+
+    // True if a local copy of the Service Manager is deployed at this Node
+    private boolean hasLocalSM;
 
     // A map, indexed by service name, of all the local slices of this
     // node. This map is used to dispatch incoming commands to the
