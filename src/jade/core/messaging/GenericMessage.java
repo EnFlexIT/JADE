@@ -81,6 +81,10 @@ public class GenericMessage implements Serializable {
     return msg;
   }
 
+  public void setACLMessage(ACLMessage msg){
+    this.msg = msg;
+  }
+
   public void update(ACLMessage msg, Envelope env, byte[]payload){
     this.msg = msg;
     this.env = env;
