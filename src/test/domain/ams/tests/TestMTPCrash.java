@@ -81,7 +81,7 @@ public class TestMTPCrash extends Test {
   	Behaviour b = new OneShotBehaviour(a) {			
   		public void action() {
   			try {
-					jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp jade.mtp.iiop.MessageTransportProtocol", new String[]{"IOR"}); 
+					jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+Test.DEFAULT_MTP, new String[]{Test.DEFAULT_PROTO}); 
 					List l = jc.getAddresses();
 					address = (String) l.iterator().next();
   			}

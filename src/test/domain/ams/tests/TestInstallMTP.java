@@ -78,7 +78,7 @@ public class TestInstallMTP extends Test {
   	Behaviour b = new OneShotBehaviour(a) {			
   		public void action() {
   			InstallMTP im = new InstallMTP();
-  			im.setClassName("jade.mtp.iiop.MessageTransportProtocol");
+  			im.setClassName(Test.DEFAULT_MTP);
   			im.setContainer(new ContainerID(jc.getContainerName(), null));
   			Action slAct = new Action(myAgent.getAMS(), im);
   			ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
@@ -245,6 +245,7 @@ public class TestInstallMTP extends Test {
   			request.setOntology(jadeOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
+  				l.log("Requesting MTP removal...");
   				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Done d = (Done) cm.extractContent(inform);
   				l.log("MTP correctly un-installed.");
