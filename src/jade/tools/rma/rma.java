@@ -221,6 +221,26 @@ public class rma extends ToolAgent {
 	  }
         });
 
+        handlersTable.put(JADEIntrospectionOntology.SUSPENDEDAGENT, new EventHandler() {
+          public void handle(Event ev) {
+      	    SuspendedAgent sa = (SuspendedAgent)ev;
+      	    ContainerID cid = sa.getWhere();
+      	    String container = cid.getName();
+      	    AID agent = sa.getAgent();
+      	    myGUI.modifyAgent(container, agent, "Suspended", null);
+	        }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.RESUMEDAGENT, new EventHandler() {
+          public void handle(Event ev) {
+      	    ResumedAgent ra = (ResumedAgent)ev;
+      	    ContainerID cid = ra.getWhere();
+      	    String container = cid.getName();
+      	    AID agent = ra.getAgent();
+      	    myGUI.modifyAgent(container, agent, "Running", null);
+	        }
+        });
+
         handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    MovedAgent ma = (MovedAgent)ev;

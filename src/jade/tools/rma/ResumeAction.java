@@ -48,15 +48,15 @@ import jade.gui.AgentTreeModel;
 
   public void doAction(AgentTree.AgentNode node ) {
 
-    node.setState("Running");
-    node.changeIcon(false);
+    //node.setState("Running");
+    //node.changeIcon(false);
     String toResume = node.getName();
     AID agentID = new AID();
     agentID.setName(toResume);
 
     myRMA.resumeAgent(agentID);
-    AgentTreeModel myModel = myRMA.getModel();
-    myModel.nodeChanged(node);
+    //AgentTreeModel myModel = myRMA.getModel();
+    //myModel.nodeChanged(node);
   }
 
 }

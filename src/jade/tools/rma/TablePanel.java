@@ -56,11 +56,11 @@ class TablePanel extends JPanel {
 
   // final
   /**@clientCardinality **/
-  final String[] names = {"agent-name", "agent-addresses"};
+  final String[] names = {"agent-name", "agent-addresses", "agent-state", "agent-ownership"};
   // Create the dummy data (a few rows of names)
   /**@clientCardinality **/
   Object[][] data = {
-    {"AGENT-NAME", "AGENT-ADDRESSES"},
+    {"AGENT-NAME", "AGENT-ADDRESSES", "AGENT-STATE", "AGENT-OWNERSHIP"},
   };
 
   public TablePanel() {
@@ -121,8 +121,8 @@ class TablePanel extends JPanel {
 
   public void setData (TreePath paths[]) {
 
-   int numPaths=paths.length;
-   data = new Object[numPaths][2];
+   int numPaths =  paths.length;
+   data = new Object[numPaths][names.length];
    Object relCur[];
    AgentTree.AgentNode current;
     for(int i=0;i<numPaths;i++) {
@@ -132,6 +132,8 @@ class TablePanel extends JPanel {
               current = (AgentTree.AgentNode)relCur[j];
               data[i][0] = current.getName();
               data[i][1] = current.getAddress();
+              data[i][2] = current.getState();
+              data[i][3] = current.getOwnership();
               //data[i][2] = current.getType();
             }
          }

@@ -42,15 +42,15 @@ class SuspendAction extends AgentAction {
   }
 
   public void doAction(AgentTree.AgentNode node ) {
-    node.setState("Suspended");
-    node.changeIcon(true);
+    //node.setState("Suspended");
+    //node.changeIcon(true);
     String toSuspend = node.getName();
     AID agentID = new AID();
     agentID.setName(toSuspend);
 
     myRMA.suspendAgent(agentID);
-    AgentTreeModel myModel = myRMA.getModel();
-    myModel.nodeChanged(node);
+    //AgentTreeModel myModel = myRMA.getModel();
+    //myModel.nodeChanged(node);
 
   }
 

@@ -206,6 +206,18 @@ class MainWindow extends JFrame {
     SwingUtilities.invokeLater(removeIt);
   }
 
+  public void modifyAgent(final String containerName, final AID agentID, final String state, final String ownership) {
+
+    // Remove an agent from the specified container
+    Runnable modifyIt = new Runnable() {
+      public void run() {
+      	String agentName = agentID.getName();
+        tree.treeAgent.modifyAgentNode(containerName, agentName, null, state, ownership);
+      }
+    };
+    SwingUtilities.invokeLater(modifyIt);
+  }
+
   public void addAddress(final String address, final String where) {
     Runnable addIt = new Runnable() {
       public void run() {
