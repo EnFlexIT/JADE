@@ -42,6 +42,18 @@ import jade.core.Location;
  */
 public class Agent {
 
+  /**
+     Constant representing an asynchronous rendez-vous policy.
+     @see jade.wrapper.Agent#putO2AObject(Object o)
+   */
+  public static final boolean ASYNC = false;
+
+  /**
+     Constant representing a synchronous rendez-vous policy.
+     @see jade.wrapper.Agent#putO2AObject(Object o)
+   */
+  public static final boolean SYNC = true;
+
   private AID agentID;
   private jade.core.Agent adaptee;
 
@@ -149,6 +161,26 @@ public class Agent {
     if(adaptee == null)
       throw new StaleProxyException();
     adaptee.doClone(where, newName);
+  }
+
+  /**
+     Passes an application-specific object to a local agent, created
+     using JADE In-Process Interface. The object will be put into an
+     internal agent queue, from where it can be picked using the
+     <code>jade.core.Agent.getO2AObject()</code> method. The agent
+     must first declare its will to accept passed objects, using the
+     <code>jade.core.Agent.setEnabledO2ACommunication()</code> method.
+     @param o The object to put in the private agent queue.
+     @param blocking A flag, stating the desired rendez-vous policy;
+     it can be <code>ASYNC</code>, for a non-blocking call, returning
+     right after putting the object in the quque, or
+     <code>SYNC</code>, for a blocking call that does not return until
+     the agent picks the object from the private queue.
+     @see jade.core.Agent#getO2AObject()
+     @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
+   */
+  public void putO2AObject(Object o, boolean blocking) throws InterruptedException {
+    adaptee.putO2AObject(o, blocking);
   }
 
 }
