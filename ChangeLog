@@ -37,7 +37,11 @@ MAJOR CHANGES since JADE 2.3 ($Date$ $Name$)
 - fixed bug in ReceiverBehaviour, removed 2 bugged constructors and added
   getMessage method.
 - added ThanksAgent in examples/thanksAgent
-
+- BACKWARD INCOMPATIBILITY: 
+  an Agent can no more be created by another agent simply by creating
+  a new instance of the Agent object and calling the doStart() method;
+  instead now the InProcessInterface must be used.
+	
 	
 MAJOR CHANGES in JADE 2.3 (11 July 2001) 
 ==========================================================================
