@@ -24,35 +24,32 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
-interface MainContainer extends Remote {
+interface MainContainer {
 
-    void register(AgentContainerImpl ac, ContainerID cid) throws RemoteException;
+    void register(AgentContainerImpl ac, ContainerID cid) throws InvocationException;
 
-    void deregister(AgentContainer ac) throws RemoteException;
+    void deregister(AgentContainer ac) throws InvocationException;
 
-    String getPlatformName() throws RemoteException;
+    String getPlatformName() throws InvocationException;
 
-    String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException;
-    void removeContainer(ContainerID cid) throws RemoteException;
+    String addContainer(AgentContainer ac, ContainerID cid) throws InvocationException;
+    void removeContainer(ContainerID cid) throws InvocationException;
 
-    AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException;
+    AgentContainer lookup(ContainerID cid) throws InvocationException, NotFoundException;
 
-    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException;
-    void deadAgent(AID name) throws RemoteException, NotFoundException;
+    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws InvocationException, NameClashException;
+    void deadAgent(AID name) throws InvocationException, NotFoundException;
 
-    void newMTP(String mtpAddress, ContainerID cid) throws RemoteException;
-    void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException;
+    void newMTP(String mtpAddress, ContainerID cid) throws InvocationException;
+    void deadMTP(String mtpAddress, ContainerID cid) throws InvocationException;
 
-    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException;
+    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws InvocationException, NotFoundException;
 
-    RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
+    RemoteProxy getProxy(AID id) throws InvocationException, NotFoundException;
 
 }

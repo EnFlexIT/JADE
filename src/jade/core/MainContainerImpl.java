@@ -42,9 +42,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
-
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;
 
@@ -70,7 +67,7 @@ import jade.mtp.MTPException;
    @version $Date$ $Revision$
 
 */
-public class MainContainerImpl extends UnicastRemoteObject implements MainContainer, AgentManager {
+public class MainContainerImpl implements MainContainer, AgentManager {
 
 
   // The two mandatory system agents.
@@ -84,16 +81,11 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
-  MainContainerImpl(Profile p) throws RemoteException {
-    try {
-      platformID = p.getParameter(Profile.PLATFORM_ID);
-    }
-    catch(ProfileException pe) {
-      platformID = "localhost:1099/JADE_Default";
-    }
+  MainContainerImpl(Profile p) throws ProfileException {
+    platformID = p.getParameter(Profile.PLATFORM_ID);
   }
 
-  public void register(AgentContainerImpl ac, ContainerID cid) throws RemoteException {
+  public void register(AgentContainerImpl ac, ContainerID cid) throws InvocationException {
 
     // Add the calling container as the main container and set its name
     containers.addContainer(MAIN_CONTAINER_NAME, ac);
@@ -115,7 +107,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 
   }
 
-  public void deregister(AgentContainer ac) throws RemoteException {
+  public void deregister(AgentContainer ac) throws InvocationException {
     // Deregister yourself as a container
     containers.removeContainer(MAIN_CONTAINER_NAME);
 
@@ -126,8 +118,8 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       try {
 	APKillContainer(target); // This call removes 'ac' from 'container' map and from the collection 'c'
       }
-      catch(RemoteException re) {
-	System.out.println("Container is unreachable. Ignoring...");
+      catch(InvocationException re) {
+	throw new InvocationException("Container is unreachable.", re);
       }
 
     }
@@ -183,11 +175,11 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	try {
 	  target.ping(true); // Hang on this RMI call
 	}
-	catch(RemoteException re1) { // Connection down
+	catch(InvocationException re1) { // Connection down
 	  try {
 	    target.ping(false); // Try a non blocking ping to check
 	  }
-	  catch(RemoteException re2) { // Object down
+	  catch(InvocationException re2) { // Object down
 
 	    containers.removeContainer(targetID.getName());
 	    fireRemovedContainer(targetID);
@@ -270,11 +262,11 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
    }
   }
 
-  public String getPlatformName() throws RemoteException {
+  public String getPlatformName() throws InvocationException {
     return platformID;
   }
 
-  public String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException {
+  public String addContainer(AgentContainer ac, ContainerID cid) throws InvocationException {
 
     // Send all platform addresses to the new container
     String[] containerNames = containers.names();
@@ -313,19 +305,19 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 
   }
 
-  public void removeContainer(ContainerID cid) throws RemoteException {
+  public void removeContainer(ContainerID cid) throws InvocationException {
     containers.removeContainer(cid.getName());
 
     // Notify listeners
     fireRemovedContainer(cid);
   }
 
-  public AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException {
+  public AgentContainer lookup(ContainerID cid) throws InvocationException, NotFoundException {
     AgentContainer ac = containers.getContainer(cid.getName());
     return ac;
   }
 
-  public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException {
+  public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws InvocationException, NameClashException {
     AgentDescriptor desc = new AgentDescriptor();
     desc.setProxy(rp);
     desc.setContainerID(cid);
@@ -351,7 +343,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 
   }
 
-  public void deadAgent(AID name) throws RemoteException, NotFoundException {
+  public void deadAgent(AID name) throws InvocationException, NotFoundException {
     AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
@@ -362,7 +354,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     fireDeadAgent(cid, name);
   }
 
-  public RemoteProxy getProxy(AID agentID) throws RemoteException, NotFoundException {
+  public RemoteProxy getProxy(AID agentID) throws InvocationException, NotFoundException {
     RemoteProxy rp;
     AgentDescriptor ad = platformAgents.get(agentID);
 
@@ -382,7 +374,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     }
   }
 
-  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException {
+  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws InvocationException, NotFoundException {
     AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null)
       throw new NotFoundException("transferIdentity() unable to find agent " + agentID.getName());
@@ -392,7 +384,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       srcAC.ping(false);
       destAC.ping(false);
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       // Abort transaction
       return false;
     }
@@ -414,12 +406,12 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.killAgent(agentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void APKillContainer(AgentContainer ac) throws RemoteException {
+  public void APKillContainer(AgentContainer ac) throws InvocationException {
     try {
       ac.exit(); // RMI call
     }
@@ -434,7 +426,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.suspendAgent(agentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -444,7 +436,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.resumeAgent(agentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -454,7 +446,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.waitAgent(agentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -464,7 +456,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.wakeAgent(agentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -475,7 +467,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     try {
       src.moveAgent(agentID, where);
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -486,7 +478,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     try {
       src.copyAgent(agentID, where, newAgentID); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -495,7 +487,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
   // Methods for Message Transport Protocols management
 
 
-  public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException {
+  public void newMTP(String mtpAddress, ContainerID cid) throws InvocationException {
     try {
       String containerName = cid.getName();
       platformAddresses.add(mtpAddress);
@@ -524,7 +516,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     }
   }
 
-  public void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException {
+  public void deadMTP(String mtpAddress, ContainerID cid) throws InvocationException {
     try {
       String containerName = cid.getName();
       platformAddresses.remove(mtpAddress);
@@ -562,7 +554,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     try {
       return target.installMTP(address, className);
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException("Container " + containerName + " is unreachable.");
     }
 
@@ -574,7 +566,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
     try {
       target.uninstallMTP(address);
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException("Container " + containerName + " is unreachable.");
     }
 
@@ -648,7 +640,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
       AID id = new AID(agentName, AID.ISLOCALNAME);
       ac.createAgent(id, className, args, AgentContainer.START); // RMI call
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -665,7 +657,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	   try {
 	     APKillContainer(ac);
 	   }
-	   catch(RemoteException re) {
+	   catch(InvocationException re) {
 	     System.out.println("Container " + cName + " is unreachable.");
 	     containers.removeContainer(cName);
 	     fireRemovedContainer(new ContainerID(cName, null));
@@ -689,7 +681,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	ac.enableSniffer(snifferName, id); // RMI call
       }
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
 
@@ -704,7 +696,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	ac.disableSniffer(snifferName, id); // RMI call
       }
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
 
@@ -719,7 +711,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	ac.enableDebugger(debuggerName, id); // RMI call
       }
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
@@ -733,7 +725,7 @@ public class MainContainerImpl extends UnicastRemoteObject implements MainContai
 	ac.disableDebugger(debuggerName, id); // RMI call
       }
     }
-    catch(RemoteException re) {
+    catch(InvocationException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
