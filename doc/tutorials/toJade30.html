@@ -54,7 +54,7 @@ More in details an <em>ap-description</em> definition now includes a <em>name</e
 <li><B>Content language and ontology support</B></li>
 <UL><br>
 <li> The old support for content language and ontology based on the <FONT FACE= "courier">jade.onto</FONT> package and on the <FONT FACE= "courier">registerLanguage(), registerOntology(), fillContent() and extractContent()</FONT> methods of the <FONT FACE= "courier">jade.core.Agent</FONT> class has been removed. Programmers should migrate to the new support included into the <FONT FACE= "courier">jade.content</FONT> package. 
-Details about how to use it and how to migrate code based on the old support to the new one are provided in <A HREF="http://jade.cselt.it/doc/CLOntoSupport.pdf">JADE Support to application-defined ontologies and content languages</A></li>
+Details about how to use it and how to migrate code based on the old support to the new one are provided in <A HREF="CLOntoSupport.pdf">JADE Support to application-defined ontologies and content languages</A></li>
 <li><font face="Arial,Helvetica">In order to make the transition between the old and the new support for content language and ontologies as smooth as possible
     you can still use previously written application
     ontologies, with minimal modification of your
@@ -92,9 +92,16 @@ the old classes are still available in the <em>jade2xback</em> add-on (see bulle
 <li> Following to the modification of the <em>fipa-subscribe</em> interaction protocol introduced in the new FIPA specification, the signature of the <FONT FACE= "courier">deregister()</FONT> method of the <FONT FACE= "courier">jade.proto.SubscriptionResponder.SubscriptionManager</FONT> interface has slightly changed. Now it returns a <FONT FACE= "courier">boolean</FONT> value (while it used to return <FONT FACE= "courier">void</FONT>) and throws <FONT FACE= "courier">jade.domain.FIPAAgentManagement.FailureException</FONT> instead of <FONT FACE= "courier">jade.domain.FIPAAgentManagement.RefuseException and jade.domain.FIPAAgentManagement.NotUnderstoodException</FONT></li> 
 </ul><br>
 
-<li><B>Others</B></li>
+<li><B>Other deprecated classes and methods removed</B></li>
 <ul><br>
-<li> The (already deprecated) <FONT FACE= "courier">jade.core.behaviours.NonDeterministicBehaviour</FONT> class has been removed. Programmers should use <FONT FACE= "courier">jade.core.behaviours.ParallelBehaviour</FONT> instead. The old class is still available in the <em>jade2xback</em> add-on (see bullet on content language and ontology support)</li>
+<li> The <FONT FACE= "courier">jade.core.behaviours.NonDeterministicBehaviour</FONT> class has been removed. Programmers should use <FONT FACE= "courier">jade.core.behaviours.ParallelBehaviour</FONT> instead. The old class is still available in the <em>jade2xback</em> add-on (see bullet on content language and ontology support)</li>
+<li> The <FONT FACE= "courier">setArguments(String)</FONT> method of the <FONT FACE= "courier">jade.core.Agent</FONT> class has been removed. Programmers should explicitly call <FONT FACE= "courier">Object[] getArguments()</FONT> from within the <FONT FACE= "courier">setup()</FONT> method instead.</li>
+<li> The <FONT FACE= "courier">toText()</FONT> method of the <FONT FACE= "courier">jade.core.AID</FONT> class has been removed. Programmers should use <FONT FACE= "courier">toString()</FONT> instead.</li>
+<li> The <FONT FACE= "courier">preAction() and postAction()</FONT> methods of the <FONT FACE= "courier">jade.core.behaviours.CompositeBehaviour</FONT> class have been removed. Programmers should use <FONT FACE= "courier">onStart() and onEnd()</FONT> instead.</li>
+<li> The <FONT FACE= "courier">toText(), getAllPerformatives() and setReplyBy(String)</FONT> methods of the <FONT FACE= "courier">jade.lang.acl.ACLMessage</FONT> class have been removed. Programmers should use <FONT FACE= "courier">toString(), getAllPerformativeNames(), setReplyByDate(Date)</FONT> instead.</li>
+<li> The <FONT FACE= "courier">MatchReceiver(java.util.List), MatchReplyTo(java.util.List) and MatchReplyBy(String)</FONT> methods of the <FONT FACE= "courier">jade.lang.acl.MessageTemplate</FONT> class have been removed. Programmers should use <FONT FACE= "courier">MatchReceiver(AID[]), MatchReplyTo(AID[]) and MatchReplyByDate(Date)</FONT> instead.</li>
+<li> The <FONT FACE= "courier">delete()</FONT> method of the <FONT FACE= "courier">jade.wrapper.Agent</FONT> class has been removed. Programmers should use <FONT FACE= "courier">kill()</FONT> instead.</li>
+<li> The <FONT FACE= "courier">createAgent()</FONT> method of the <FONT FACE= "courier">jade.wrapper.AgentContainer</FONT> class has been removed. Programmers should use <FONT FACE= "courier">createNewAgent()</FONT> instead.</li>
 </ul><br>
 </ul>
 </ul>
