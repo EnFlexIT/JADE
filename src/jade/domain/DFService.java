@@ -42,6 +42,7 @@ import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
 import jade.content.abs.*;
 import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Done;
 
 import java.util.Date;
 
@@ -100,20 +101,26 @@ public class DFService extends FIPAServiceCommunicator {
     }
   }
 
+  
   /**
-     Register a DFDescription with a <b>DF</b> agent. 
+     Register a DFDescription with a <b>DF</b> agent. The lease duration request
+     is not exact; the returned lease is allowed to have a shorter (but not longer)
+     duration thatn what was requested setting the corresponding lease-time field
+     in the <code>DFAgentDescription</code>.
      @param a is the Agent performing the registration (it is needed in order
      to send/receive messages
      @param dfName The AID of the <b>DF</b> agent to register with.
      @param dfd A <code>DFAgentDescriptor</code> object containing all
      data necessary to the registration. If the Agent name is empty, than
      it is set according to the <code>a</code> parameter.
+     @return the effective lease time, in milliseconds, assigned to the
+     <code>DFAgentDescription</code>. 0 if the request has not been satisfied.
      @exception FIPAException A suitable exception can be thrown when
      a <code>refuse</code> or <code>failure</code> messages are
      received from the DF to indicate some error condition or when
      the method locally discovers that the DFDescription is not valid.
    */
-  public static void register(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
+  public static long register(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     ACLMessage request = createRequestMessage(a, dfName);
 
     if (dfd.getName() == null)
@@ -134,6 +141,7 @@ public class DFService extends FIPAServiceCommunicator {
 			catch(Exception e){
 				throw new FIPAException("Error encoding REQUEST content. "+e);
 			}
+   
     }
 
     
@@ -141,7 +149,25 @@ public class DFService extends FIPAServiceCommunicator {
 //      request.setContent(encode(act,c,o));
 //    }
     // Send message and collect reply
-    doFipaRequestClient(a,request);
+    ACLMessage reply = doFipaRequestClient(a,request);
+    // get the effective lease time assigne the current request
+    
+    Date retLeaseTime = null;
+    try{
+        Done doneRegister = (Done) cm.extractContent(reply);
+        Action replyAction = (Action) doneRegister.getAction();
+        Register replyRegister = (Register) replyAction.getAction();
+        //Register replyRegister = (Register) doneRegister.getAction();
+        DFAgentDescription replyDFA = (DFAgentDescription)replyRegister.getDescription();
+        retLeaseTime = replyDFA.getLeaseTime();
+        
+    }catch(Exception e) {
+        e.printStackTrace();
+    }
+    if (retLeaseTime!=null)
+        return retLeaseTime.getTime();
+    else 
+        return 0;
   }
 
 
@@ -149,8 +175,8 @@ public class DFService extends FIPAServiceCommunicator {
    * registers a <code>DFAgentDescription</code> with the default DF
    * @see #register(Agent,AID,DFAgentDescription)
    **/
-  public static void register(Agent a, DFAgentDescription dfd) throws FIPAException {
-    register(a,a.getDefaultDF(),dfd);
+  public static long register(Agent a, DFAgentDescription dfd) throws FIPAException {
+    return register(a,a.getDefaultDF(),dfd);
   }
 
   /**
@@ -233,11 +259,13 @@ public class DFService extends FIPAServiceCommunicator {
      to be changed.
      @param dfd A <code>DFAgentDescriptor</code> object containing all
      new data values; 
+     @return the effective lease time, in milliseconds, assigned to the
+     <code>DFAgentDescription</code>. 0 if the request has not been satisfied.
      @exception FIPAException A suitable exception can be thrown when
      a <code>refuse</code> or <code>failure</code> messages are
      received from the DF to indicate some error condition.
   */
-  public static void modify(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
+  public static long modify(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     ACLMessage request = createRequestMessage(a, dfName);
 
     if (dfd.getName() == null)
@@ -264,15 +292,31 @@ public class DFService extends FIPAServiceCommunicator {
 //    }
 
     // Send message and collect reply
-    doFipaRequestClient(a,request);
+    ACLMessage reply = doFipaRequestClient(a,request);
+    // get the effective lease time assigne the current request
+    Date retLeaseTime = null;
+    try{
+        Done doneModify = (Done) cm.extractContent(reply);
+        Action replyAction = (Action) doneModify.getAction();
+        Modify replyModify = (Modify) replyAction.getAction();
+        DFAgentDescription replyDFA = (DFAgentDescription)replyModify.getDescription();
+        retLeaseTime = replyDFA.getLeaseTime();
+        
+    }catch(Exception e) {
+        e.printStackTrace();
+    }
+    if (retLeaseTime!=null)
+        return retLeaseTime.getTime();
+    else 
+        return 0;
   }
 
   /**
    * The default DF of the platform is used.
 @see #modify(Agent a, AID dfName, DFAgentDescription dfd)
   **/
-  public static void modify(Agent a, DFAgentDescription dfd) throws FIPAException {
-    modify(a,a.getDefaultDF(),dfd);
+  public static long modify(Agent a, DFAgentDescription dfd) throws FIPAException {
+    return modify(a,a.getDefaultDF(),dfd);
   }
 
   /**
