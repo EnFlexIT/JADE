@@ -33,7 +33,7 @@ import java.util.Enumeration;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class ObjectSchema {
+public class ObjectSchema {
     private class SlotDescriptor {
         private String       name = null;
         private ObjectSchema schema = null;
@@ -56,14 +56,34 @@ public abstract class ObjectSchema {
     private Hashtable       slots = new Hashtable();
     private Vector          superSchemas = new Vector();
     private String          typeName = null;
+    private Hashtable       facets = new Hashtable();
+
+    public static final String         BASE_NAME = "Object";
+    private static ObjectSchema baseSchema = new ObjectSchema();
 
     /**
-     * Construct an empty schema with only the type-name specified
-     * @param typeName 
+     * Construct a schema that vinculates an entity to be a generic
+     * object (i.e. no constraints at all)
+     */
+    private ObjectSchema() {
+        this(BASE_NAME);
+    }
+
+    /**
+     * Creates an <code>ObjectSchema</code> with a given type-name.
+     * @param typeName The name of this <code>ObjectSchema</code>.
      */
     protected ObjectSchema(String typeName) {
         this.typeName = typeName;
     }
+
+    /**
+     * Retrieve the generic base schema for all objects.
+     * @return the generic base schema for all objects.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
 
     /**
      * Add a slot to the schema.
@@ -97,6 +117,30 @@ public abstract class ObjectSchema {
         superSchemas.addElement(superSchema);
     } 
 
+    /** 
+       Add a <code>Facet</code> on a slot of this schema
+       @param slotName the name of the slot the <code>Facet</code>
+       must be added to.
+       @param f the <code>Facet</code> to be added.
+       @throws OntologyException if slotName does not identify
+       a valid slot in this schema
+     */
+		public void addFacet(String slotName, Facet f) throws OntologyException {
+			slotName = slotName.toUpperCase();
+			if (containsSlot(slotName)) {
+				Vector v = (Vector) facets.get(slotName);
+				if (v == null) {
+					v = new Vector();
+					facets.put(slotName, v);
+					System.out.println("Added facet "+f+" to slot "+slotName); 
+				}
+				v.addElement(f);
+			}
+			else {
+				throw new OntologyException(slotName+" is not a valid slot in this schema");
+			}
+		}
+		
     /**
      * Retrieves the name of the type of this schema.
      *
@@ -156,34 +200,6 @@ public abstract class ObjectSchema {
     } 
 
     /**
-     * Indicate whether a slot is mandatory or not.
-     *
-     * @param name The name of the slot.
-     * @return <code>true</code> if the slot is mandatory.
-     * @throws OntologyException If no slot with this name is present
-     * in this schema.
-     */
-    public boolean isMandatory(String name) throws OntologyException {
-        name = name.toUpperCase();
-        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
-
-        if (slot == null) {
-            for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
-                try {
-                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
-                    return superSchema.isMandatory(name);
-                } 
-                catch (OntologyException oe) {
-                	// Do nothing. Maybe the slot is defined in another super-schema
-                }
-            } 
-            throw new OntologyException("No slot named: " + name);
-        } 
-
-        return (slot.cardinality == MANDATORY);
-    } 
-
-    /**
      * Indicate whether a given <code>String</code> is the name of a
      * slot defined in this <code>Schema</code>
      *
@@ -191,7 +207,7 @@ public abstract class ObjectSchema {
      * @return <code>true</code> if <code>name</code> is the name of a
      * slot defined in this <code>Schema</code>.
      */
-    public boolean isSlot(String name) {
+    public boolean containsSlot(String name) {
         name = name.toUpperCase();
         SlotDescriptor slot = (SlotDescriptor) slots.get(name);
 
@@ -201,7 +217,7 @@ public abstract class ObjectSchema {
 
 	      for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
   	        ObjectSchema superSchema = (ObjectSchema) e.nextElement();
-            if (superSchema.isSlot(name)) {
+            if (superSchema.containsSlot(name)) {
                	return true;
             } 
         } 
@@ -213,7 +229,9 @@ public abstract class ObjectSchema {
      * Creates an Abstract descriptor to hold an object compliant to 
      * this <code>Schema</code>.
      */
-    public abstract AbsObject newInstance() throws OntologyException;
+    public AbsObject newInstance() throws OntologyException {
+    	throw new OntologyException("AbsObject cannot be instantiated");
+    }
 
     private void getAllSlotDescriptors(Vector v) {
     		// Get slot descriptors of super schemas
@@ -228,9 +246,178 @@ public abstract class ObjectSchema {
             v.addElement(e.nextElement());
         }
     } 
-
+    
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// DEBUG
+  		System.out.println("Validating "+abs+" against schema "+this); 
+  		// Validate all the attributes in the abstract descriptor
+  		String[] slotNames = getNames();
+  		for (int i = 0; i < slotNames.length; ++i) {
+  			AbsObject slotValue = abs.getAbsObject(slotNames[i]);
+  			validate(slotNames[i], slotValue, onto);
+  		}
+  	}
+  		
+		/**
+		   Validate a given abstract descriptor as a value for a slot
+		   defined in this schema
+		   @param slotName The name of the slot
+	     @param value The abstract descriptor to be validated
+	     @throws OntologyException If the abstract descriptor is not a 
+	     valid value 
+	     @return true if the slot is defined in this schema (or in 
+	     one of its super schemas). false otherwise
+	   */
+  	private boolean validate(String slotName, AbsObject value, Ontology onto) throws OntologyException {
+			// DEBUG
+  		System.out.println("Validating "+value+" as a value for slot "+slotName); 
+  		// NOTE: for performance reasons we don't want to scan the schema 
+  		// to check if slotValue is a valid slot and THEN to scan again
+  		// the schema to validate value. This is the reason for the 
+  		// boolean return value of this method
+  		boolean slotFound = false;
+  		
+  		// If the slot is defined in this schema --> check the value
+  		// against the schema of the slot. Otherwise let the super-schema
+  		// where the slot is defined validate the value
+  		SlotDescriptor dsc = (SlotDescriptor) slots.get(slotName);
+  		if (dsc != null) {
+				// DEBUG
+  			System.out.println("Slot "+slotName+" is defined in schema "+this); 
+  			if (value == null) {
+  				// Check optionality
+  				if (dsc.cardinality == MANDATORY) {
+  					throw new OntologyException("Missing value for mandatory slot "+slotName);
+  				}
+  				// Don't need to check facets on a null value for an optional slot
+  				return true;
+  			}
+  			else {
+  				// - Get from the ontology the schema s that defines the type 
+  				// of the abstract descriptor value.
+  				// - Check if this schema is compatible with the schema for 
+  				// slot slotName
+  				// - Finally check value against s
+  				ObjectSchema s = onto.getSchema(value.getTypeName());
+  				if (!s.isCompatibleWith(dsc.schema)) {
+  					throw new OntologyException("Schema "+s+" for type "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName); 
+  				}
+  				System.out.println("Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName); 
+  				s.validate(value, onto);
+  			}
+  			slotFound = true;
+  		}
+  		else {
+  			Enumeration e = superSchemas.elements();
+  			while (e.hasMoreElements()) {
+  				ObjectSchema s = (ObjectSchema) e.nextElement();
+  				if (s.validate(slotName, value, onto)) {
+  					slotFound = true;
+  					// Don't need to check other super-schemas
+  					break;
+  				}
+  			}
+  		}
+  		
+  		if (slotFound) {
+  			// Check value against the facets (if any) defined for the  
+  			// slot in this schema
+  			Vector ff = (Vector) facets.get(slotName);
+  			if (ff != null) {
+  				Enumeration e = ff.elements();
+  				while (e.hasMoreElements()) {
+  					Facet f = (Facet) e.nextElement();
+  					System.out.println("Checking facet "+f+" defined on slot "+slotName);
+  					f.validate(value, onto);
+  				}
+  			}
+  			else {
+  				System.out.println("No facets for slot "+slotName);
+  			}
+  		}
+  		
+  		return slotFound;
+  	}
+  			
+  	/**
+  	   Check if this schema is compatible with a given schema s.
+  	   This is the case if 
+  	   1) This schema is equals to s
+  	   2) This schema descends from s i.e.
+  	      - s is the base schema for the XXXSchema class this schema is
+  	        an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	        schema is an instance of ConceptSchema)
+  	      - s is the base schema for a super-class of the XXXSchema class
+  	        this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	        and this schema is an instance of ConceptSchema)
+  	   3) s is one of the super-schemas of this schema
+  	   4) This schema is VariableSchema.getBaseSchema() and s descends from 
+  	      TermSchema.getBaseSchema()
+  	 */
+  	public boolean isCompatibleWith(ObjectSchema s) {
+  		if (equals(s)) {
+  			return true;
+  		}
+  		if (descendsFrom(s)) {
+  			return true;
+  		}
+  		if (isSubSchema(s)) {
+  			return true;
+  		}
+  		if (equals(VariableSchema.getBaseSchema())) {
+  			if (s.descendsFrom(TermSchema.getBaseSchema())) {
+  				return true;
+  			}
+  		}
+  		return false;
+  	}
+  	
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		// The base schema for the ObjectSchema class descends only
+  		// from itself
+  		return s.equals(getBaseSchema());
+  	}
+  			
+  	/**
+  	   Return true if s is a super-schema (directly or indirectly)
+  	   of this schema
+  	 */
+  	private boolean isSubSchema(ObjectSchema s) {
+  		Enumeration e = superSchemas.elements();
+  		while (e.hasMoreElements()) {
+  			ObjectSchema s1 = (ObjectSchema) e.nextElement();
+  			if (s1.equals(s)) {
+  				return true;
+  			}
+  			if (s1.isSubSchema(s)) {
+  				return true;
+  			}
+  		}
+  		return false;
+  	}
+  	
     public String toString() {
     	return getClass().getName()+"-"+getTypeName();
+    }
+    
+    public boolean equals(Object o) {
+    	return toString().equals(o.toString());
     }
 }
 

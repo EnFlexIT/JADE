@@ -28,6 +28,14 @@ import jade.content.abs.*;
 import jade.content.onto.OntologyException;
 
 /**
+ * Note that a GenericActionSchema should also be a TermSchema, but
+ * this inheritance relation is cut as Java does not support
+ * multiple inheritance. As a consequence in practice it will 
+ * not be possible to define e.g. a ConceptSchema with a slot 
+ * whose value must be instances of a certain type of generic-action 
+ * even if in theory this should be
+ * possible as a ConceptSchema can have slots of type term and 
+ * a generic-action is a term.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class GenericActionSchema extends ContentElementSchema {
@@ -67,4 +75,29 @@ public class GenericActionSchema extends ContentElementSchema {
     public AbsObject newInstance() throws OntologyException {
     	throw new OntologyException("AbsGenericAction cannot be instantiated"); 
     } 
+    
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema.
+  	   Moreover, as GenericActionSchema extends ContentElementSchema, but should
+  	   also extend TermSchema (this is not possible in practice as
+  	   Java does not support multiple inheritance), this method
+  	   returns true also in the case that s is equals to, or is an
+  	   ancestor of, TermSchema.getBaseSchema() (i.e. TermSchema.getBaseSchema()
+  	   descends from s)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		if (super.descendsFrom(s)) {
+  			return true;
+  		}
+  		return TermSchema.getBaseSchema().descendsFrom(s);
+  	}
 }

@@ -62,49 +62,25 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
 
     /**
      * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>PropositionSchema</code>.
+     * be a generic <code>ObjectSchema</code>.
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
-    public void add(String name, PropositionSchema slotSchema) {
+    public void add(String name, ObjectSchema slotSchema) {
         super.add(name, slotSchema);
     } 
 
     /**
      * Add a slot to the schema. The schema for this slot must 
-     * be a <code>PropositionSchema</code>.
+     * be a generic <code>ObjectSchema</code>.
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, PropositionSchema slotSchema, int cardinality) {
-        super.add(name, slotSchema, cardinality);
-    } 
-
-    /**
-     * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
-     * @param name The name of the slot.
-     * @param slotSchema The schema of the slot.
-     */
-    public void add(String name, TermSchema slotSchema) {
-        super.add(name, slotSchema);
-    } 
-
-    /**
-     * Add a slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
-     * @param name The name of the slot.
-     * @param slotSchema The schema of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
-     * or <code>MANDATORY</code>
-     */
-    public void add(String name, TermSchema slotSchema, int cardinality) {
+    public void add(String name, ObjectSchema slotSchema, int cardinality) {
         super.add(name, slotSchema, cardinality);
     } 
 
@@ -115,4 +91,20 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
     public AbsObject newInstance() throws OntologyException {
         return new AbsHigherOrderPredicate(getTypeName());
     } 
+
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		return super.descendsFrom(s);
+  	}
 }

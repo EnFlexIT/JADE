@@ -25,7 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
-import jade.content.onto.OntologyException;
+import jade.content.onto.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -68,5 +68,34 @@ public class PrimitiveSchema extends TermSchema {
         return new AbsPrimitive(getTypeName());
     } 
 
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	/*public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// DEBUG
+  		System.out.println("Validating "+abs+" against schema "+this); 
+  		if (!getTypeName().equals(abs.getTypeName())) {
+  			
+  	}*/
+  	
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		return super.descendsFrom(s);
+  	}
 }
 

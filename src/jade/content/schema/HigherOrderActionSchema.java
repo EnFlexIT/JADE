@@ -30,89 +30,81 @@ import jade.content.onto.OntologyException;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ActionPredicateSchema extends PropositionSchema {
-    public static final String         BASE_NAME = "ActionPredicate";
-    private static ActionPredicateSchema baseSchema = new ActionPredicateSchema();
+public class HigherOrderActionSchema extends GenericActionSchema {
+    public static final String         BASE_NAME = "HigherOrderAction";
+    private static HigherOrderActionSchema baseSchema = new HigherOrderActionSchema();
 
     /**
      * Construct a schema that vinculates an entity to be a generic
-     * action predicate
+     * higher order action
      */
-    private ActionPredicateSchema() {
+    private HigherOrderActionSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates an <code>ActionPredicateSchema</code> with a given type-name.
+     * Creates a <code>HigherOrderActionSchema</code> with a given type-name.
      *
-     * @param typeName The name of this <code>ActionPredicateSchema</code>.
+     * @param typeName The name of this <code>HigherOrderActionSchema</code>.
      */
-    public ActionPredicateSchema(String typeName) {
+    public HigherOrderActionSchema(String typeName) {
         super(typeName);
     }
 
     /**
-     * Retrieve the generic base schema for all action predicates.
+     * Retrieve the generic base schema for all higher order actions.
      *
-     * @return the generic base schema for all action predicates.
+     * @return the generic base schema for all higher order actions.
      */
     public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
-    
+
     /**
      * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>GenericActionSchema</code>.
+     * be a generic <code>ObjectSchema</code>.
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
-    public void add(String name, GenericActionSchema slotSchema) {
+    public void add(String name, ObjectSchema slotSchema) {
         super.add(name, slotSchema);
     } 
 
     /**
      * Add a slot to the schema. The schema for this slot must 
-     * be a <code>GenericActionSchema</code>.
+     * be a generic <code>ObjectSchema</code>.
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, GenericActionSchema slotSchema, int cardinality) {
+    public void add(String name, ObjectSchema slotSchema, int cardinality) {
         super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
-     * @param name The name of the slot.
-     * @param slotSchema The schema of the slot.
-     */
-    public void add(String name, TermSchema slotSchema) {
-        super.add(name, slotSchema);
-    } 
-
-   /**
-     * Add a slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
-     * @param name The name of the slot.
-     * @param slotSchema The schema of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
-     * or <code>MANDATORY</code>
-     */
-    public void add(String name, TermSchema slotSchema, int cardinality) {
-        super.add(name, slotSchema, cardinality);
-    } 
-
-    /**
-     * Creates an Abstract descriptor to hold an action predicate of
+     * Creates an Abstract descriptor to hold a higher oredr action of
      * the proper type.
      */
     public AbsObject newInstance() throws OntologyException {
-        return new AbsActionPredicate(getTypeName());
+        return new AbsHigherOrderAction(getTypeName());
     } 
+
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		return super.descendsFrom(s);
+  	}
 }

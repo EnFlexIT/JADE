@@ -106,4 +106,20 @@ public class CommunicativeActSchema extends GenericActionSchema {
     public AbsObject newInstance() throws OntologyException {
         return new AbsCommunicativeAct(getTypeName());
     } 
+
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		return super.descendsFrom(s);
+  	}
 }

@@ -28,6 +28,14 @@ import jade.content.abs.*;
 import jade.content.onto.OntologyException;
 
 /**
+ * Note that an AgentActionSchema should also be a ConceptSchema, but
+ * this inheritance relation is cut as Java does not support
+ * multiple inheritance. As a consequence in practice it will 
+ * not be possible to define e.g. a ConceptSchema with a slot 
+ * whose value must be instances of a certain type of agent-action 
+ * even if in theory this should be
+ * possible as a ConceptSchema can have slots of type term and 
+ * an agent-action is a concept and therefore a term.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AgentActionSchema extends GenericActionSchema {
@@ -91,4 +99,29 @@ public class AgentActionSchema extends GenericActionSchema {
     public AbsObject newInstance() throws OntologyException {
         return new AbsAgentAction(getTypeName());
     } 
+
+  	/**
+  	   Return true if 
+  	   - s is the base schema for the XXXSchema class this schema is
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     schema is an instance of ConceptSchema)
+  	   - s is the base schema for a super-class of the XXXSchema class
+  	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
+  	     and this schema is an instance of ConceptSchema.
+  	   Moreover, as AgentActionSchema extends GenericActionSchema, but should
+  	   also extend ConceptSchema (this is not possible in practice as
+  	   Java does not support multiple inheritance), this method
+  	   returns true also in the case that s is equals to, or is an
+  	   ancestor of, ConceptSchema.getBaseSchema() (i.e. TermSchema.getBaseSchema()
+  	   descends from s)
+  	 */
+  	protected boolean descendsFrom(ObjectSchema s) {
+  		if (s.equals(getBaseSchema())) {
+	  		return true;
+  		}
+  		if (super.descendsFrom(s)) {
+  			return true;
+  		}
+  		return ConceptSchema.getBaseSchema().descendsFrom(s);
+  	}
 }
