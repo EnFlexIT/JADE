@@ -87,8 +87,6 @@ import javax.swing.tree.TreePath;
          now = (AgentTree.Node) (paths[i].getLastPathComponent());
          agentAct(now);
        }
-       agentAction=(AgentAction) act;
-       agentAction.sendAgentVector();
      }
    }
 
