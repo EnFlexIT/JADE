@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/09 16:13:57  rimassa
+  Added a block() method with timeout.
+
   Revision 1.1  1999/05/20 13:43:16  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -224,6 +227,15 @@ public abstract class Behaviour {
   public void block() {
     myEvent.init(false, NOTIFY_UP);
     handle(myEvent);
+  }
+
+
+  /**
+     Blocks this behaviour for a specified amount of time.
+   */
+  public void block(long millis) {
+    myAgent.restartLater(this, millis);
+    block();
   }
 
   /**
