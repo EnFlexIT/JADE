@@ -251,3 +251,11 @@ Turin
 ==================
 This is an example of integration of JADE and JSP kindly provided by Daniel
 Le Berre. Look at the tutorial in the documentation.
+
+'PingAgent' subdirectory
+========================
+This directory contains a simple Ping Agent. This agent registers itself with 
+the DF and the waits for ACLMessages. If a QUERY_REF message arrives with content
+"ping" then it replies with an INFORM message whose content will be "pong".
+For every other message received, except for NOT-UNDERSTOOD, 
+it replies with a NOT_UNDERSTOOD message. 
