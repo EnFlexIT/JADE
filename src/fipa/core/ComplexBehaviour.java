@@ -21,7 +21,7 @@ package fipa.core;
 import java.util.Vector;
 
 
-public class ComplexBehaviour implements Behaviour {
+public abstract class ComplexBehaviour implements Behaviour {
 
   // Inner class to implement a singly linked list of behaviours
   private class BehaviourList {
@@ -110,7 +110,9 @@ public class ComplexBehaviour implements Behaviour {
   private Agent myAgent;
   private BehaviourList subBehaviours = new BehaviourList();
 
-  // This variable becomes true when all sub-behaviours have been run
+  // This variables mark the states when no sub-behaviour has been run
+  // yet and when all sub-behaviours have been run.
+  private boolean starting = true;
   private boolean finished = false;
 
   public ComplexBehaviour() {
@@ -121,12 +123,22 @@ public class ComplexBehaviour implements Behaviour {
     myAgent = a;
   } 
 
-  public void execute() {
+  // These two methods must be implemented by derived classes.
+  protected abstract void preAction();
+  protected abstract void postAction();
+
+  public final void execute() {
+    if(starting) {
+      preAction();
+      starting = false;
+    }
     Behaviour b = subBehaviours.getCurrent();
     b.execute();
     if (b.done()) {
       finished = subBehaviours.next();
+    }
     if(finished) {
+      postAction();
       // Remove yourself from ready queue
     }
   }
@@ -137,7 +149,7 @@ public class ComplexBehaviour implements Behaviour {
 
   public void addBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
-    b.setAgent(myAgent);
+    //    b.setAgent(myAgent); // FIXME: Forcing the same agent in all behaviours tree ?
   }
 
   public void removeBehaviour(Behaviour b) {
