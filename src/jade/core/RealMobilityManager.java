@@ -68,6 +68,9 @@ class RealMobilityManager implements MobilityManager {
     
     // The ResourceManager of the container including this MobilityManager
     private ResourceManager    myResourceManager;
+    
+		private static final String VERBOSITY_KEY = "jade_core_RealMobilityManager_verbosity";
+    private int verbosity = 0;
 
     /**
      * Inner class Deserializer
@@ -91,8 +94,7 @@ class RealMobilityManager implements MobilityManager {
             JADEClassLoader cl = (JADEClassLoader) loaders.get(ac);
 
             if (cl == null) {
-                //cl = new JADEClassLoader(ac);
-		cl = new JADEClassLoader(Thread.currentThread().getContextClassLoader(), ac);
+                cl = new JADEClassLoader(ac);
                 loaders.put(ac, cl);
             } 
             Class c = cl.loadClass(v.getName());
@@ -122,6 +124,12 @@ class RealMobilityManager implements MobilityManager {
       try {
 	    	myPlatform = myProfile.getPlatform();
 	    	myResourceManager = myProfile.getResourceManager();
+		    try {
+		    	verbosity = Integer.parseInt(myProfile.getParameter(VERBOSITY_KEY, "0"));
+		    }
+		    catch (Exception e) {
+		    	// Keep default (0)
+		    }
       }
       catch (ProfileException pe) {
       	// Should never happen
@@ -136,9 +144,11 @@ class RealMobilityManager implements MobilityManager {
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
                             AgentContainer classSite, boolean startIt) throws Exception {
+        log("Incoming agent "+agentID, 1);         	
         // Reconstruct the serialized agent
         ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSite);
         Agent             instance = (Agent) in.readObject();
+        log("Agent "+agentID+" reconstructed", 2);         	
 
 		// check for security permissions - see also: RealMobilityManager.createAgent()
         // agent is about to be created on the destination Container, 
@@ -161,6 +171,7 @@ class RealMobilityManager implements MobilityManager {
 		  		instance.getCertificateFolder()  );
 		break;
 		} // end switch
+        log("Permissions for agent "+agentID+" OK", 2);         	
     
 
         // Store the container where the classes for this agent can be
@@ -169,6 +180,7 @@ class RealMobilityManager implements MobilityManager {
 
         // Make the container initialize the reconstructed agent
         myContainer.initAgent(agentID, instance, startIt);
+        log("Agent "+agentID+" inserted into LADT", 1);         	
     } 
 
     /**
@@ -233,6 +245,7 @@ class RealMobilityManager implements MobilityManager {
      */
     public void handleTransferResult(AID agentID, boolean result, 
                                      List messages) throws NotFoundException {
+        log("Activating incoming agent "+agentID, 1);                             	
         try {
 	  Agent agent = localAgents.acquire(agentID);
 
@@ -252,6 +265,7 @@ class RealMobilityManager implements MobilityManager {
 	      }
         Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), agent);
 	      agent.powerUp(agentID, t);
+        log("Incoming agent "+agentID+" activated", 1);                             	
 	  }
         }
         finally {
@@ -263,6 +277,7 @@ class RealMobilityManager implements MobilityManager {
        @see jade.core.MobilityManager#handleMove()
      */
     public void handleMove(AID agentID, Location where) {
+    	log("Moving agent "+agentID+" on container "+where.getName(), 1);
 	    Agent a = localAgents.acquire(agentID);
 	    if (a == null) {
 				System.out.println("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
@@ -283,8 +298,10 @@ class RealMobilityManager implements MobilityManager {
       	// Note that CONTAINER_MOVE_TO will be checked on the destination container
 				myContainer.getAuthority().checkAction(Authority.AGENT_MOVE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
 				myContainer.getAuthority().checkAction(Authority.CONTAINER_MOVE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
+    		log("Permissions for agent "+agentID+" OK", 2);
 
 	    	dest = myPlatform.lookup((ContainerID)where);
+    		log("Destination container for agent "+agentID+" found", 2);
 	    	transferState = 1;
 	    	// If the destination container is the same as this one, there is nothing to do
 	    	if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
@@ -297,6 +314,7 @@ class RealMobilityManager implements MobilityManager {
 				ObjectOutputStream encoder = new ObjectOutputStream(out);
 				encoder.writeObject(a);
 	    	byte[] bytes = out.toByteArray();
+    		log("Agent "+agentID+" correctly serialized", 2);
 
 	    	// Gets the container where the agent classes can be retrieved
 	    	AgentContainer classSite = (AgentContainer) sites.get(a);
@@ -308,12 +326,14 @@ class RealMobilityManager implements MobilityManager {
 	    	// Create the agent on the destination container
 	    	dest.createAgent(agentID, bytes, classSite, AgentContainer.NOSTART);
 	    	transferState = 2;
+    		log("Agent "+agentID+" correctly created on destination container", 1);
 
 	    	// Perform an atomic transaction for agent identity transfer
 				// From now on, messages for the moving agent will be routed to the 
 	    	// destination container
 	    	boolean transferResult = myPlatform.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
 	    	transferState = 3;
+    		log("Identity of agent "+agentID+" correctly transferred", 1);
                         
 	    	if (transferResult == TRANSFER_COMMIT) {
 					// Send received messages to the destination container. Note that 
@@ -331,6 +351,7 @@ class RealMobilityManager implements MobilityManager {
 					a.doExecute();
 					dest.postTransferResult(agentID, transferResult, messages);
 	    	}
+    		log("Agent "+agentID+" correctly activated on destination container", 1);
 			}
     	catch (IOException ioe) {
     		// Error in agent serialization
@@ -442,5 +463,10 @@ class RealMobilityManager implements MobilityManager {
 			}
     } 
 
+  private void log(String s, int level) {
+  	if (verbosity >= level) {
+	  	System.out.println("RMM-log: "+s);
+  	}
+  }  
 }
 
