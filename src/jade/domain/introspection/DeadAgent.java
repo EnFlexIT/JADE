@@ -34,10 +34,16 @@ import jade.core.ContainerID;
    @version $Date$ $Revision$
 */
 
-public class DeadAgent {
+public class DeadAgent implements Event {
+
+  public static final String NAME = "Dead-Agent";
 
   private AID agent;
   private ContainerID where;
+
+  public String getName() {
+    return NAME;
+  }
 
   public void setAgent(AID id) {
     agent = id;
