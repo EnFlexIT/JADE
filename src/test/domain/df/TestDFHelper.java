@@ -31,12 +31,15 @@ import jade.domain.FIPAAgentManagement.*;
    @author Giovanni Caire - TILAB
  */
 public class TestDFHelper {
+	private static final String TEST_LANGUAGE11 = "Test language 1.1"; // Test a string including  spaces
+	private static final String TEST_LANGUAGE12 = "\"Test language 1.2\""; // Test a quoted string
+	
 	private static final String P_NAME_1 = "pname1";
-	private static final String P_VALUE_1 = "p value)1";
+	private static final String P_VALUE_1 = "pvalue)1"; // Test a string including a ')'
 	private static final String P_NAME_2 = "pname2";
-	private static final String P_VALUE_2 = "2pvalue";
+	private static final String P_VALUE_2 = "2pvalue"; // Test a string starting with a digit
 	private static final String P_NAME_3 = "pname3";
-	private static final String P_VALUE_3 = "pvalue\"3";
+	private static final String P_VALUE_3 = "p\"value\\\"3"; // Test a string including a " and an escaped "
 	
 	public static DFAgentDescription getSampleDFD(AID id) {
 		DFAgentDescription dfd = new DFAgentDescription();
@@ -60,8 +63,8 @@ public class TestDFHelper {
 		sd.setType("Test-type-1");
 		sd.addOntologies("Test-ontology-1.1");
 		sd.addOntologies("Test-ontology-1.2");
-		sd.addLanguages("Test-language-1.1");
-		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages(TEST_LANGUAGE11);
+		sd.addLanguages(TEST_LANGUAGE12);
 		sd.addLanguages("Test-language-1.3");
 		sd.addProtocols("Test-protocol-1");
 		
@@ -95,7 +98,7 @@ public class TestDFHelper {
 		DFAgentDescription dfd = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-1");
-		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages(TEST_LANGUAGE12);
 		sd.addLanguages("Test-language-1.3");
 		dfd.addServices(sd);
 		return dfd;
@@ -123,7 +126,7 @@ public class TestDFHelper {
 		DFAgentDescription dfd = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-1");
-		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages(TEST_LANGUAGE12);
 		sd.addLanguages("Test-language-1.3");
 		sd.addLanguages("Test-language-1.4");
 		dfd.addServices(sd);
