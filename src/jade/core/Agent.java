@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.53  1999/06/09 12:53:54  rimassa
+  Completed implementation of blockingReceive() with timeouts. Now
+  elapsed time is correctly tracked to handle spurious wakeups.
+
   Revision 1.52  1999/06/08 23:46:17  rimassa
   Fixed some problems in new blockingReceive() with timeout methods.
 
@@ -803,11 +807,20 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private void waitUntilWake(long millis) {
     synchronized(waitLock) {
+
+      long timeToWait = millis;
       while(myAPState == AP_WAITING) {
-	try { // FIXME: Track elapsed time: cfr. Lea page 110
-	  System.out.println("Sleeping for " + millis + " ms.");
-	  waitLock.wait(millis); // Blocks on waiting state monitor
-	  myAPState = AP_ACTIVE;
+	try {
+
+	  long startTime = System.currentTimeMillis();
+	  waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
+	  long elapsedTime = System.currentTimeMillis() - startTime;
+	  timeToWait -= elapsedTime;
+
+	  // If this was a timed wait and the total time has passed, wake up.
+	  if((millis != 0) && (timeToWait <= 0))
+	    myAPState = AP_ACTIVE;
+
 	}
 	catch(InterruptedException ie) {
 	  myAPState = AP_DELETED;
@@ -1034,9 +1047,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern, long millis) {
     ACLMessage msg = receive(pattern);
-    if(msg == null) {
-      doWait(millis);
+    long timeToWait = millis;
+    while(msg == null) {
+      long startTime = System.currentTimeMillis();
+      doWait(timeToWait);
+      long elapsedTime = System.currentTimeMillis() - startTime;
+      timeToWait -= elapsedTime;
+
       msg = receive(pattern);
+      if((millis != 0) && (timeToWait <= 0))
+	break;
+
     }
     return msg;
   }
