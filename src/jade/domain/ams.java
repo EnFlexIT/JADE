@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.39  1999/11/08 15:26:16  rimassaJade
+  Added AMS support for the message sniffer.
+
   Revision 1.38  1999/08/31 17:28:55  rimassa
   Added automatic notification to registered RMAs whenever an agent
   moves across containers.
@@ -297,7 +300,7 @@ public class ams extends Agent {
       // message from the Map and send it back.
       ACLMessage informCreator = (ACLMessage)pendingInforms.remove(amsd.getName());
 
-      // Write new agent data in Global Agent Descriptor Table
+      // Write new agent data in AMS Agent Table
       try {
 	AMSNewData(amsd);
 	sendAgree();
@@ -700,6 +703,78 @@ public class ams extends Agent {
   } // End of KillBehaviour class
 
 
+  private class SniffAgentOnBehaviour extends AMSBehaviour { 
+
+    public FipaRequestResponderBehaviour.Action create() {
+      return new SniffAgentOnBehaviour();
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+
+    }
+    
+    
+    public void action() {
+
+      try {
+
+	ACLMessage msg = getRequest();
+	AgentManagementOntology.SniffAgentOnAction myAction;
+	String content = msg.getContent();
+	try {
+	  myAction = (AgentManagementOntology.SniffAgentOnAction)
+	    AgentManagementOntology.SniffAgentOnAction.fromText(new StringReader(content));			
+	  sendAgree();
+	  myPlatform.sniffOn(myAction.getSnifferName(),myAction.getEntireList());		
+	}
+	catch (ParseException e) {
+	  sendRefuse(e.getMessage());       		
+	}
+	catch (TokenMgrError et) {
+	  sendRefuse(et.getMessage());       	       		
+	}
+      }
+      catch (UnreachableException ue) {
+	sendRefuse(ue.getMessage()); 
+      }
+    }
+
+  } // End of SniffAgentOnBehaviour class
+
+  private class SniffAgentOffBehaviour extends AMSBehaviour {
+
+    public FipaRequestResponderBehaviour.Action create() {
+      return new SniffAgentOffBehaviour();
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+    }
+
+    public void action() {
+      try {
+	ACLMessage msg = getRequest();
+	AgentManagementOntology.SniffAgentOffAction myAction;
+	String content = msg.getContent();
+	try {
+	  myAction = (AgentManagementOntology.SniffAgentOffAction)
+	    AgentManagementOntology.SniffAgentOffAction.fromText(new StringReader(content));
+	  sendAgree();
+	  myPlatform.sniffOff(myAction.getSnifferName(),myAction.getEntireList());
+      	}
+	catch (ParseException e) {
+	  sendRefuse(e.getMessage());
+      	}
+	catch (TokenMgrError et) {
+	  sendRefuse(et.getMessage());
+      	}
+      }
+      catch (UnreachableException ue) {
+	sendRefuse(ue.getMessage());
+      }
+    }
+  } // End of SniffAgentOffBehaviour class
+
+
   private static class AgDesc {
 
     public AgDesc(String s, AgentManagementOntology.AMSAgentDescriptor a) {
@@ -802,6 +877,8 @@ public class ams extends Agent {
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTON, new SniffAgentOnBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTOFF, new SniffAgentOffBehaviour());
 
   }
 
@@ -1003,6 +1080,7 @@ public class ams extends Agent {
   public synchronized void postNewAgent(String containerName, String agentName) {
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
     amsd.setName(agentName);
+    amsd.setAddress(myPlatform.getAddress(agentName));
     newAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
