@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/09/03 10:42:49  rimassa
+  Some minor graphical adjustments.
+
   Revision 1.1  1999/09/02 15:06:10  rimassa
   Abstract interface for GUI/DF interaction.
 
@@ -93,9 +96,6 @@ public class DFGUI extends JFrame {
     buttonDFname.setBounds(144,96,60,40);
     buttonDFname.setBackground(new Color(12632256));
     add(buttonDFname);
-    canvas1 = new java.awt.Canvas();
-    canvas1.setBounds(0,0,20,40);
-    add(canvas1);
     textFieldErrMsg = new JTextField();
     textFieldErrMsg.setEditable(false);
     textFieldErrMsg.setVisible(false);
@@ -309,7 +309,6 @@ public class DFGUI extends JFrame {
   JTextField textFieldDFname, textFieldErrMsg;
   JLabel labelDFname;
   JButton buttonDFname;
-  java.awt.Canvas canvas1;
   //}}
 
   class SymMouse extends java.awt.event.MouseAdapter {
@@ -468,11 +467,6 @@ class agentDescriptionFrame extends JFrame {
     add(button5);
     button4 = new JButton("OK");
     add(button4);
-
-//     canvas1 = new java.awt.Container()//Canvas();
-//     canvas1.setBounds(0,0,680,550);
-//     canvas1.setBackground(new Color(12632256));
-//     add(canvas1);
 
     setTitle("Agent Description");
     //}}
@@ -739,7 +733,6 @@ class agentDescriptionFrame extends JFrame {
 	JButton button7;
 	JButton button8;
 
-	java.awt.Canvas canvas1;
 	//}}
 	
 	//{{DECLARE_MENUS
