@@ -246,7 +246,7 @@ public class Logger {
 			sb.append(msg);
 		}
 	}  // END of inner class MessagePrinter
-	
+	//#MIDP_EXCLUDE_END
 }
 
     
