@@ -477,14 +477,13 @@ public class Agent implements Runnable, Serializable
 
   //#MIDP_EXCLUDE_BEGIN
   private int       msgQueueMaxSize = 0;
-  private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
+  private transient MessageQueue msgQueue;
   private transient List o2aQueue;
   private int o2aQueueSize = 0;
-  private transient Map o2aLocks = new HashMap();
+  private transient Map o2aLocks;
   private transient AgentToolkit myToolkit = DummyToolkit.instance();
   //#MIDP_EXCLUDE_END
   /*#MIDP_INCLUDE_BEGIN
-  private transient MessageQueue    msgQueue = new MessageQueue(0);
   private transient AgentToolkit    myToolkit;
 	#MIDP_INCLUDE_END*/
   
@@ -500,7 +499,7 @@ public class Agent implements Runnable, Serializable
 
   private Scheduler myScheduler;
 
-  private transient AssociationTB pendingTimers = new AssociationTB();
+  private transient AssociationTB pendingTimers;
 
   // Free running counter that increments by one for each message
   // received.
@@ -555,6 +554,14 @@ public class Agent implements Runnable, Serializable
      Default constructor.
    */
   public Agent() {
+  	//#MIDP_EXCLUDE_BEGIN
+  	msgQueue = new MessageQueue(msgQueueMaxSize);
+  	//#MIDP_EXCLUDE_END
+  	/*#MIDP_INCLUDE_BEGIN
+  	msgQueue = new MessageQueue();
+  	#MIDP_INCLUDE_END*/
+  	o2aLocks = new HashMap();
+  	pendingTimers = new AssociationTB();
   	myActiveLifeCycle = new ActiveLifeCycle();
   	myLifeCycle = myActiveLifeCycle;
     myScheduler = new Scheduler(this);
