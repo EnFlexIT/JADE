@@ -187,6 +187,17 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   	reset(request);
   }
 
+  /**
+     This method gives access to the <code>request</code> ACL message,
+     originally set by the class constructor.
+     @return The ACL <code>request</code> message sent by this
+     behaviour.
+   */
+  protected ACLMessage getRequest() {
+    return reqMsg;
+  }
+
+
   public boolean done(){
   
   	return finished;
