@@ -30,6 +30,7 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.util.Logger;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -131,22 +132,31 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 		// The SYNCH command must not be postponed
 		executeRemotely(c, 0);
   }
-  
-  public List getPendingMessages(AID id) {
+    
+  public List removePendingMessages(MessageTemplate template) {
   	synchronized (pendingCommands) {
-  		List l = new ArrayList();
+  		List messages = new ArrayList();
+  		List commands = new ArrayList();
   		Enumeration e = pendingCommands.elements();
   		while (e.hasMoreElements()) {
   			Command c = (Command) e.nextElement();
   			if (c.getCode() == FrontEndSkel.MESSAGE_IN) {
-					String receiver = (String) c.getParamAt(1);
-  				if (id.getLocalName().equals(receiver)) {
-	  				ACLMessage msg = (ACLMessage) c.getParamAt(0);
-  					l.add(AddressedMessage.wrap(id, msg));
+					ACLMessage msg = (ACLMessage) c.getParamAt(0);
+  				if (template.match(msg)) {
+  					Object[] oo = new Object[]{msg, c.getParamAt(1)};
+  					messages.add(oo);
+  					commands.add(c);
   				}
   			}
   		}
-	  	return l;
+  		// Remove all the commands carrying matching messages
+	  	Iterator it = commands.iterator();
+	  	while (it.hasNext()) {
+	  		pendingCommands.remove(it.next());
+	  	}	
+	  	
+	  	// Return the list of matching messages
+	  	return messages; 
   	}
   }
   

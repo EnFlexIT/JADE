@@ -27,6 +27,7 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.util.leap.List;
@@ -38,6 +39,8 @@ import jade.util.leap.Properties;
 import jade.security.*;
 
 import jade.core.messaging.*;
+
+import jade.util.Logger;
 
 import java.util.StringTokenizer;
 import java.util.Enumeration;
@@ -76,6 +79,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     // The original properties passed to this container when it was created
     private Properties creationProperties;
 
+		private Logger myLogger = Logger.getMyLogger(getClass().getName());
+
     private static Properties adjustProperties(Properties pp) {
 			// A BackEndContainer is never a Main
     	pp.setProperty(Profile.MAIN, "false");
@@ -104,11 +109,15 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		    }
 	
 		    myFrontEnd = myConnectionManager.getFrontEnd(this, null);
+		    myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ...");
 		    Runtime.instance().beginContainer();
 		    boolean connected = joinPlatform();
+		    myLogger.log(Logger.FINE, "Join platform OK");
 		    if (connected) {
 		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
+				    myLogger.log(Logger.INFO, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
 		    		resynch();
+				    myLogger.log(Logger.INFO, "Resynch OK");
 		    	}
 		    }
 		    return connected;
@@ -567,19 +576,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	AgentImage img = (AgentImage)agentImages.remove(id);
 	// If there are messages that were waiting to be delivered to the 
 	// real agent on the FrontEnd, notify failure to sender
-	List pendingMsg = ((jade.imtp.leap.FrontEndStub) myFrontEnd).getPendingMessages(id);
-	Iterator it = pendingMsg.iterator();
-	while (it.hasNext()) {
-		try {
-			ACLMessage msg = (ACLMessage) it.next();
-			ServiceFinder myFinder = getServiceFinder();
-			MessagingService msgSvc = (MessagingService) myFinder.findService(MessagingSlice.NAME);
-			msgSvc.notifyFailureToSender(new GenericMessage(msg), id, new InternalError("Agent dead"));  
-    }
-    catch (Exception e) {
-    	System.out.println("Cannot send AMS FAILURE. "+e);
-    }
-	}
+	removePendingMessages(MessageTemplate.MatchReceiver(new AID[]{id}), true);
 	return img;
     }
 
@@ -597,7 +594,31 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	return result;
     }
 
-
+    
+    public List removePendingMessages(MessageTemplate template, boolean notifyFailure) {
+			List pendingMsg = ((jade.imtp.leap.FrontEndStub) myFrontEnd).removePendingMessages(template);
+    	if (pendingMsg.size() > 0) {
+				myLogger.log(Logger.FINE, "Flushing "+pendingMsg.size()+" pending messages.");
+    	}
+			if (notifyFailure) {
+				Iterator it = pendingMsg.iterator();
+				while (it.hasNext()) {
+					try {
+						Object[] removed = (Object[]) it.next();
+						ACLMessage msg = (ACLMessage) removed[0];
+						AID receiver = new AID((String) removed[1], AID.ISLOCALNAME);						
+						ServiceFinder myFinder = getServiceFinder();
+						MessagingService msgSvc = (MessagingService) myFinder.findService(MessagingSlice.NAME);
+						msgSvc.notifyFailureToSender(new GenericMessage(msg), receiver, new InternalError("Agent dead"));  
+			    }
+			    catch (Exception e) {
+			    	myLogger.log(Logger.WARNING, "Cannot send AMS FAILURE. "+e);
+			    }
+				}
+			}
+			return pendingMsg;
+    }
+    	
 
   ////////////////////////////////////////////////////////////
   // Methods and variables related to the front-end synchronization 
