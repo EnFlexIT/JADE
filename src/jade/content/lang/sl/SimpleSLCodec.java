@@ -416,10 +416,10 @@ class SimpleSLCodec extends StringCodec {
   */
   
   private void log(String s) {
-  	for (int i = 0; i < indent; ++i) {
+  	/*for (int i = 0; i < indent; ++i) {
   		System.out.print("  ");
   	}
-  	System.out.println(s);
+  	System.out.println(s);*/
   }
   
   public Ontology getInnerOntology() {
