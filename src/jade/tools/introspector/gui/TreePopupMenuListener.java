@@ -40,7 +40,7 @@ import jade.core.behaviours.*;
 
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
 */
-public class TreePopupMenuListener implements ActionListener,Runnable {
+public class TreePopupMenuListener implements ActionListener {
   private boolean addBehaviour;
   private JTree myTree;
 
@@ -51,14 +51,11 @@ public class TreePopupMenuListener implements ActionListener,Runnable {
     JMenuItem act=(JMenuItem) e.getSource();
     if (act.getName().equals("add")) addBehaviour=true;
     else addBehaviour=false;
-    Thread td = new Thread(this);
-    td.start();
   }
 
-
+    /*
   public void createTree(DefaultMutableTreeNode r,Iterator v){
     while(v.hasNext()){
-	/*
       BehaviourRapp b=(BehaviourRapp)v.next();
       if (b.getSimple().booleanValue()) r.add(new DefaultMutableTreeNode(b));
       else{
@@ -66,12 +63,10 @@ public class TreePopupMenuListener implements ActionListener,Runnable {
         createTree(rc,b.getAllChildren());
         r.add(rc);
       }
-	*/
     }
   }
 
   public void run(){
-      /*
     if(!addBehaviour){
       TreePath path=myTree.getSelectionPath();
       DefaultMutableTreeNode t=
@@ -104,7 +99,7 @@ public class TreePopupMenuListener implements ActionListener,Runnable {
         }
       }
     }
-      */
   }
+    */
 
 }
