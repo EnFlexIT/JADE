@@ -75,6 +75,10 @@ public class InProcessTest {
 	  dummy.delete();
 
 	  // Create another peripheral container within the same JVM
+	  // NB. Two containers CAN'T share the same Profile object!!! -->
+	  // Create a new one.
+	  p = new ProfileImpl();
+	  p.putProperty(Profile.MAIN, "false");
 	  AgentContainer another = rt.createAgentContainer(p);
 
 	  // Launch the Mobile Agent example
