@@ -31,27 +31,37 @@ import jade.core.AID;
 import jade.wrapper.*;
 import test.common.*;
 
+import javax.swing.JOptionPane;
+
 /**
    @author Givanni Caire - TILAB
  */
 public class LEAPTesterAgent extends TesterAgent {
 
+	public static final int MEDIATOR_LOCAL_PORT = 9902;
+	public static final String MEDIATOR_SERVICES = "jade.core.event.NotificationService;jade.imtp.leap.nio.BEManagementService";
+	
 	// Names and default values for group arguments
 	public static final String LIGHT_CONTAINER_KEY = "light-container";
-	public static final String LIGHT_CONTAINER_DEFAULT = "Container-1";
 		
+	public static JadeController mediatorController;
+	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/leap/LEAPTestsList.xml"){		
 			
 			public void initialize(Agent a) throws TestException {
-				Logger.getLogger().log("************ NOTE *************");
-				Logger.getLogger().log("You should manually start a JADE container on a wireless device using the testleap.jar (MIDP) or testleappjava.jar (PJAVA) jar file for this group of tests to be executed.");
-				Logger.getLogger().log("The name of this container must be set as group argument to this group of tests (default \"Container-1\").");
-				Logger.getLogger().log("*******************************\n");
-			}			
+				mediatorController = TestUtility.launchJadeInstance("Mediator", null, "-container -local-port "+MEDIATOR_LOCAL_PORT+" -services "+MEDIATOR_SERVICES, null);
+				
+				String lightContainerName = JOptionPane.showInputDialog(null, "Connect a split container either to the main or to\nthe BEManagementService on the mediator container.\nThen insert the split container name and press OK");
+				setArgument(LIGHT_CONTAINER_KEY, lightContainerName);
+			}	
+			
+			public void shutdown(Agent a) {
+				// Kill the mediatoir container
+				mediatorController.kill();
+			}
 		};
 		
-		tg.specifyArgument(LIGHT_CONTAINER_KEY, "Light container name", LIGHT_CONTAINER_DEFAULT);
 		return tg;
 	}
 		
