@@ -38,6 +38,7 @@ import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
 
@@ -367,8 +368,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		*/
   }
 
-  public String installMTP(String address, String className) throws IMTPException, MTPException {
-  	String result = myACC.addMTP(className, address);
+  public MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException {
+  	MTPDescriptor result = myACC.addMTP(className, address);
   	myPlatform.newMTP(result, myID);
   	return result;
   	/*
@@ -393,17 +394,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
-    myACC.removeMTP(address);
-    myPlatform.deadMTP(address, myID);
+    MTPDescriptor mtp = myACC.removeMTP(address);
+    myPlatform.deadMTP(mtp, myID);
   }
 
-  public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
+  public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException {
     switch(op) {
     case ADD_RT:
-      myACC.addRoute(address, ac);
+      myACC.addRoute(mtp, ac);
       break;
     case DEL_RT:
-      myACC.removeRoute(address, ac);
+      myACC.removeRoute(mtp, ac);
       break;
     }
 

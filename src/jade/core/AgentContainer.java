@@ -27,6 +27,7 @@ import jade.util.leap.List;
 
 import jade.lang.acl.ACLMessage;
 
+import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 
 /**
@@ -65,10 +66,10 @@ public interface AgentContainer {
   void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException;
   void ping(boolean hang) throws IMTPException;
 
-  String installMTP(String address, String className) throws IMTPException, MTPException;
+  MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException;
   void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException;
 
-  void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException;
+  void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException;
   void routeOut(ACLMessage msg, AID receiver, String address) throws IMTPException, MTPException;
 
   void enableSniffer(AID snifferName , AID toBeSniffed) throws IMTPException;

@@ -51,6 +51,7 @@ import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
+import jade.mtp.MTPDescriptor;
 
 
 /**
@@ -352,11 +353,11 @@ class MainContainerImpl implements Platform, AgentManager {
       
       try {
 	AgentContainer cont = containers.getContainer(name);
-	List addresses = containers.getAddresses(name);
-	Iterator it = addresses.iterator();
+	List mtps = containers.getMTPs(name);
+	Iterator it = mtps.iterator();
 	while(it.hasNext()) {
-	  String a = (String)it.next();
-	  ac.updateRoutingTable(AgentContainer.ADD_RT, a, cont);
+	  MTPDescriptor mtp = (MTPDescriptor)it.next();
+	  ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, cont);
 	}
       }
       catch(NotFoundException nfe) {
@@ -557,11 +558,12 @@ class MainContainerImpl implements Platform, AgentManager {
   // Methods for Message Transport Protocols management
 
 
-  public void newMTP(String mtpAddress, ContainerID cid) throws IMTPException {
+  public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
       String containerName = cid.getName();
+      String mtpAddress = mtp.getAddress();
       platformAddresses.add(mtpAddress);
-      containers.addAddress(containerName, mtpAddress);
+      containers.addMTP(containerName, mtp);
       AgentContainer target = containers.getContainer(containerName);
 
       // To avoid additions/removals of containers during MTP tables update
@@ -573,7 +575,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(AgentContainer.ADD_RT, mtpAddress, target);
+	    ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, target);
 	}
 
       }
@@ -586,11 +588,12 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  public void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException {
+  public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
       String containerName = cid.getName();
+      String mtpAddress = mtp.getAddress();
       platformAddresses.remove(mtpAddress);
-      containers.removeAddress(containerName, mtpAddress);
+      containers.removeMTP(containerName, mtp);
       AgentContainer target = containers.getContainer(containerName);
 
       // To avoid additions/removals of containers during MTP tables update
@@ -602,7 +605,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(AgentContainer.DEL_RT, mtpAddress, target);
+	    ac.updateRoutingTable(AgentContainer.DEL_RT, mtp, target);
 	}
 
       }
@@ -618,7 +621,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   }
 
-  public String installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
+  public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
     String containerName = cid.getName();
     AgentContainer target = containers.getContainer(containerName);
     try {

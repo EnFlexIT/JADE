@@ -25,6 +25,9 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 
+import jade.mtp.MTPDescriptor;
+
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -48,8 +51,8 @@ public interface MainContainer {
     void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
 
-    void newMTP(String mtpAddress, ContainerID cid) throws IMTPException;
-    void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException;
+    void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
+    void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
 
     boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException;
 

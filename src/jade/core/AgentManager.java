@@ -32,6 +32,7 @@ import jade.core.event.PlatformListener;
 import jade.core.event.MTPListener;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -83,7 +84,7 @@ public interface AgentManager {
   void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
   void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
-  String installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
+  MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
   void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;
 
 }
