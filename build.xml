@@ -130,7 +130,7 @@ ant dist - to create the distribution files
                                 SubWCRev
           _______________________________________________ -->
   <target name="SubWCRev" depends="init,check_execSubWCRev" if="EXECSubWCRev" description="Set the value of the latest revision number and date for this checkout of JADE">
-    <echo>eseguo SUBWCRev</echo>
+    <echo>executing SUBWCRev to set revision number and date for this JADE</echo>
     <exec dir="." executable="${SubWCRev.exe}">
      <arg line=". src\jade\core\Runtime.java src\jade\core\Runtime.java"/>
     </exec>
