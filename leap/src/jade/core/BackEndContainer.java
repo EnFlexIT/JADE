@@ -203,7 +203,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       else if (ret instanceof JADESecurityException) {
       	throw (JADESecurityException) ret;
       }
-      else if (ret instanceof Exception) {
+      else if (ret instanceof IMTPException) {
+      	throw (IMTPException) ret;
+      }
+      else if (ret instanceof Throwable) {
       	throw new IMTPException(null, (Exception) ret);
       }
 
@@ -439,13 +442,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       // "Kill" all agent images
       AID[] ids = getAgentImages();
       for (int i = 0; i < ids.length; ++i) {
-	  handleEnd(ids[i]);
+      	handleEnd(ids[i]);
       }
 
       if (agentImages.size() > 0) {
-      	System.out.println("WARNING: Zombie agent images found");
+    		myLogger.log(Logger.WARNING, "# "+agentImages.size()+" zombie agent images found. "+e);
+	      agentImages.clear();
       }
-      agentImages.clear();
 		
       if (theBEManager != null) {
       	theBEManager.deregister(myNodeDescriptor);
