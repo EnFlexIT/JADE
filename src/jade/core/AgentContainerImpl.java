@@ -72,6 +72,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   protected String myName;
 
+  // FIXME: Temporary hack...
+  String getName() {
+    return myName;
+  }
+
   // The Agent Communication Channel, managing the external MTPs.
   protected acc theACC;
 
@@ -176,7 +181,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // Accepts the fully qualified class name as parameter and searches
   // the class file in the classpath
   public byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException {
-    System.out.println("Classserver: fetch " + name);
     name = name.replace( '.' , '/') + ".class";
     InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
     if (classStream == null) 
@@ -419,8 +423,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // Build the Agent IDs for the AMS and for the Default DF.
     Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
 
-    theACC = new acc();
-
     try {
       // Retrieve agent platform from RMI registry and register as agent container
       String platformRMI = "rmi://" + platformID;
@@ -428,6 +430,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call
+
+      theACC = new acc(this, myPlatform);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -573,7 +577,15 @@ private List getSniffer(AID id, java.util.Map theMap) {
     List currentSnifferVector;
 
     boolean sniffedSource = false;
+
+    // The AID of the message sender must have the complete GUID
     AID msgSource = msg.getSender();
+    if(!livesHere(msgSource)) {
+      String guid = msgSource.getName();
+      guid = guid.concat("@" + platformID);
+      msgSource.setName(guid);
+    }
+
     currentSnifferVector = getSniffer(msgSource, SniffedAgents);
     if (currentSnifferVector != null) {
       sniffedSource = true;
@@ -586,6 +598,17 @@ private List getSniffer(AID id, java.util.Map theMap) {
       currentSnifferVector = getSniffer(dest, SniffedAgents);	    
       if((currentSnifferVector != null) && (!sniffedSource)) {
 	sendMsgToSniffers(msg,currentSnifferVector);	    		
+      }
+
+
+      // If this AID has no explicit addresses, but it does not seem
+      // to live here, then the platform ID is appended to the AID
+      // name
+      Iterator addresses = dest.getAllAddresses();
+      if(!addresses.hasNext() && !livesHere(dest)) {
+	String guid = dest.getName();
+	guid = guid.concat("@" + platformID);
+	dest.setName(guid);
       }
 
       ACLMessage copy = (ACLMessage)msg.clone();
@@ -761,9 +784,9 @@ private List getSniffer(AID id, java.util.Map theMap) {
     return (MainContainer)o;
   }
 
-  private void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
-      //    msg.toText(new java.io.OutputStreamWriter(System.out));
+  // FIXME: Temporary hack (this should be private)
+  void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
     AgentProxy ap = cachedProxies.get(receiverID);
     if(ap != null) { // Cache hit :-)
@@ -792,9 +815,6 @@ private List getSniffer(AID id, java.util.Map theMap) {
       catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
 	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform.");
 	System.err.println("Message from platform was: " + nfe.getMessage());
-	System.out.println("------------------------------------------------");
-	msg.toText(new java.io.OutputStreamWriter(System.out));
-	System.out.println("------------------------------------------------");
 	return;
       }
       try {
@@ -819,11 +839,9 @@ private List getSniffer(AID id, java.util.Map theMap) {
       // Look first in local agents
       Agent a = localAgents.get(id);
       if(a != null) {
-	System.out.println("Found in LADT...");
 	result = new LocalProxy(localAgents, id);
       }
       else { // Agent is not local
-	System.out.println("Looking in GADT...");
 	// Maybe it's registered with this AP on some other container...
         try {
 	  result = myPlatform.getProxy(id); // RMI call
@@ -835,7 +853,6 @@ private List getSniffer(AID id, java.util.Map theMap) {
       }
     }
     else { // It lives outside: then it's a job for the ACC...
-      System.out.println("Using the ACC...");
       result = theACC.getProxy(id);
     }
 
