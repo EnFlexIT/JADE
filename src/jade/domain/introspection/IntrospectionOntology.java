@@ -119,7 +119,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
   		add(new ConceptSchema(SENTMESSAGE), SentMessage.class);
   		add(new ConceptSchema(RECEIVEDMESSAGE), ReceivedMessage.class);
   		add(new ConceptSchema(POSTEDMESSAGE), PostedMessage.class);
-  		add(new ConceptSchema(ROUTEDMESSAGE), SentMessage.class);
+  		add(new ConceptSchema(ROUTEDMESSAGE), RoutedMessage.class);
   		
   		add(new AgentActionSchema(STARTNOTIFY), StartNotify.class);
   		add(new AgentActionSchema(STOPNOTIFY), StopNotify.class);
