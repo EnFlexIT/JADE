@@ -153,9 +153,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     //myLogger.log("Keep-alive-time = "+keepAliveTime, 1);
 
     if(myLogger.isLoggable(Logger.INFO)){
-       myLogger.log(Logger.INFO,"Created BIBEDispatcher V2.0 ID = "+myID);
-       myLogger.log(Logger.INFO,"Max-disconnection-time = "+maxDisconnectionTime);
-       myLogger.log(Logger.INFO,"Keep-alive-time = "+keepAliveTime);
+       myLogger.log(Logger.INFO,"Created BIBEDispatcher V2.0 ID = "+myID+"\n- Max-disconnection-time = "+maxDisconnectionTime+"\n- Keep-alive-time = "+keepAliveTime);
     }
     startBackEndContainer(props);
   }
@@ -388,16 +386,14 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	if (inpConnection != null && active) {
   		int status = 0;
   		if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
-		  	//myLogger.log("Issuing Keep-alive to FE "+inpCnt, 2);
-                          if(myLogger.isLoggable(Logger.INFO))
-                             myLogger.log(Logger.INFO,"Issuing Keep-alive to FE "+inpCnt);
-
+	      if(myLogger.isLoggable(Logger.FINE)) {
+	         myLogger.log(Logger.FINE,"Issuing Keep-alive to FE "+inpCnt);
+	      }
   		}
   		else {
-		  	//myLogger.log("Issuing command to FE "+inpCnt, 3);
-                          if(myLogger.isLoggable(Logger.CONFIG))
-                             myLogger.log(Logger.CONFIG,"Issuing command to FE "+inpCnt);
-
+	      if(myLogger.isLoggable(Logger.FINE)) {
+	         myLogger.log(Logger.FINE,"Issuing command to FE "+inpCnt);
+	      }
   		}
 	  	pkt.setSessionID((byte) inpCnt);
 	  	try {
@@ -464,7 +460,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 						status = 1;
 						pkt = handlePacket(pkt);
 						if (pkt != null) {
-		  				status = 2;
+							status = 2;
 
 		  				outConnection.writePacket(pkt);
 		  				status = 3;
@@ -495,9 +491,9 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	JICPPacket reply = null;
   	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
   		// Keep-alive packet
-  		//myLogger.log("Keep-alive received", 4);
-                  if(myLogger.isLoggable(Logger.FINE))
-                     myLogger.log(Logger.FINE,"Keep-alive received");
+      if(myLogger.isLoggable(Logger.FINE)) {
+         myLogger.log(Logger.FINE,"Keep-alive received");
+      }
 
 		  reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
   	}

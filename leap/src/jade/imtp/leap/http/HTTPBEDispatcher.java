@@ -107,7 +107,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime, keepAliveTime);
   	
     if(myLogger.isLoggable(Logger.INFO)) {
-      myLogger.log(Logger.INFO, "Created HTTPBEDispatcher V2.0. ID = "+myID+", MaxDisconnectionTime = "+maxDisconnectionTime);
+      myLogger.log(Logger.INFO, "Created HTTPBEDispatcher V2.0. ID = "+myID+"\n- MaxDisconnectionTime = "+maxDisconnectionTime);
     }
     
     startBackEndContainer(props);
@@ -189,6 +189,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			    if(myLogger.isLoggable(Logger.FINEST)) {
 			      myLogger.log(Logger.FINEST, "Incoming command received "+sid+" "+from);
 			    }
+			    
 			  	byte[] rspData = mySkel.handleCommand(pkt.getData());
 			    if(myLogger.isLoggable(Logger.FINEST)) {
 			      myLogger.log(Logger.FINEST, "Incoming command served "+sid);
