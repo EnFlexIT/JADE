@@ -1,6 +1,6 @@
 # Makefile for JADE project
 
-VERSION    = 2.01
+VERSION    = 2.1
 PACKAGE    = JADE
 
 ZIP = jar
