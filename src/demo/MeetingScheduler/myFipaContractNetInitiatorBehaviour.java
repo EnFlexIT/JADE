@@ -24,7 +24,7 @@ package demo.MeetingScheduler;
 
 import jade.util.leap.*;
 
-import java.util.List;
+//import java.util.List;
 import java.util.Vector;
 import java.util.Date;
 import jade.lang.acl.ACLMessage;

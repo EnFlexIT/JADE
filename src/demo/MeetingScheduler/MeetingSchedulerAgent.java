@@ -227,7 +227,7 @@ protected Person getPersonbyAgentName(AID agentname) {
    */
 private void fixAppointment(Appointment a) {
 
-  java.util.List ag = new java.util.ArrayList();
+  List ag = new ArrayList();
   for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); ) 
     ag.add(((Person)i.next()).getAID());
     
