@@ -161,7 +161,7 @@ public class BasicProperties extends Properties {
         if (sortVector == null) {
             sortVector = new Vector();
         } else {
-            sortVector.clear();
+            sortVector.removeAllElements();
         }
         for (Enumeration e = super.keys(); e.hasMoreElements(); ) {
             String key = (String) e.nextElement();

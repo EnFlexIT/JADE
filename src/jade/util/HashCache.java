@@ -139,7 +139,7 @@ public class HashCache implements Map
 	 */
         public void clear() {
 	     ht.clear();
-	     v.clear();
+	     v.removeAllElements();
 	}
 
 

@@ -54,13 +54,13 @@ import jade.content.onto.basic.*;
  */
 class RemoteDFRequester extends SimpleAchieveREInitiator {
 	private AID remoteDF;
-	private Concept action;
+	private Concept myAction;
 	private Object result = null;
 	
-	RemoteDFRequester(AID remoteDF, Concept action) {
+	RemoteDFRequester(AID remoteDF, Concept myAction) {
 		super(null, null);
 		this.remoteDF = remoteDF;
-		this.action = action;
+		this.myAction = myAction;
 	}
 	
   protected ACLMessage prepareRequest(ACLMessage msg){
@@ -70,7 +70,7 @@ class RemoteDFRequester extends SimpleAchieveREInitiator {
   	request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
   	request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
   	
-  	Action act = new Action(remoteDF, action);
+  	Action act = new Action(remoteDF, myAction);
   	try {
   		myAgent.getContentManager().fillContent(request, act);
   		return request;
@@ -116,7 +116,7 @@ class RemoteDFRequester extends SimpleAchieveREInitiator {
   }
   
   protected Concept getAction() {
-  	return action;
+  	return myAction;
   }
 }
     	
