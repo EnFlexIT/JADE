@@ -39,7 +39,6 @@
 				<exclude name="**/parsers/**"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
-				<exclude name="**/jade/core/Runtime.java"/>
 				<exclude name="**/jade/core/MainContainerProxy.java"/>
 				<!--
 				<include name="**/jade/Boot.java"/>
@@ -132,4 +131,38 @@
 		         packagenames="jade.*, starlight.* "/>
 	</target>
 
+	
+	<!-- DEMO -->
+	<target name="do-demo" depends="do-init"
+	        description="Build the demo">
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+	  <copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+			</fileset>
+		</copy>
+		
+	  <pproc basedir="${demo-preprocessed}" type="pjava"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${classes}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       bootclasspath="${boot-java-1.1-classes}"
+		       target="1.1"/>
+		       
+	  <copy todir="${demo-classes}">
+			<fileset dir="${classes}">
+			</fileset>
+		</copy>
+		
+		<delete file="${root}/demo/demoPjava.jar" quiet="true"/>
+		<jar jarfile="${root}/demo/demoPjava.jar" basedir="${demo-classes}"/>
+	</target>
+	
 </project>

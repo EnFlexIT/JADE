@@ -128,4 +128,42 @@
 		         packagenames="jade.*, starlight.* "/>
 	</target>
 
+	
+	<!-- DEMO -->
+	<target name="do-demo" depends="do-init"
+	        description="Build the demo">
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-unverified}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-unverified}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+	  <copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+			</fileset>
+		</copy>
+		
+	  <pproc basedir="${demo-preprocessed}" type="midp"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-unverified}"
+		       classpath="${classes}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       bootclasspath="${boot-midp-classes}"
+		       target="1.1"/>
+		       
+		<preverify unverified="${demo-unverified}" verified="${demo-classes}" classpath="${classes}"/>		
+	  
+		<copy todir="${demo-classes}">
+			<fileset dir="${classes}">
+			</fileset>
+		</copy>
+		
+		<delete file="${demo}/demoMidp.jar" quiet="true"/>
+		<jar jarfile="${demo}/demoMidp.jar" basedir="${demo-classes}" manifest="${demo}/demo.manifest"/>
+	</target>
+	
 </project>
