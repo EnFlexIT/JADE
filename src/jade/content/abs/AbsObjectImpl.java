@@ -28,14 +28,14 @@ import jade.core.CaseInsensitiveString;
 import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Enumeration;
-import java.io.PrintStream;
 
 /**
- * Base class for all abstract descriptor classes.
+ * Base class for all non-primitive abstract descriptor classes.
+ * This class is not intended to be used by programmers.
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
-class AbsObjectImpl implements AbsObject {
+public class AbsObjectImpl implements AbsObject {
     private Hashtable elements = new Hashtable();
     //private Vector    names = new Vector();
     private String    typeName = null;
