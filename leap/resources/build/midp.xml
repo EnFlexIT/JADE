@@ -119,7 +119,7 @@
 
 	
 	<!-- JAVADOC -->
-	<target name="do-javadoc" depends="do-init"
+	<target name="do-javadoc" depends="do-setup"
 	        description="Generate javadoc">
 		<javadoc sourcepath="${src}"
 		         destdir="${doc}"
@@ -131,7 +131,7 @@
 		         packagenames="jade.*, starlight.* "/>
 	</target>
 
-        <target name="do-apidoc" depends="do-init"
+        <target name="do-apidoc" depends="do-setup"
             description="Generate filtered javadoc">
             
             <!-- 1) Create filtered src directory -->
@@ -153,7 +153,8 @@
                      bottom="${javadoc-footer}"
                      verbose="false"
                      windowtitle="${midp-title}"
-                     packagenames="jade.*, starlight.* "/>
+                     packagenames="jade.content.*, jade.*, starlight.*"
+                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.imtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
 
             <!-- 5) Remove filtered src-->
             <delete dir="${filtered.src}"/>
