@@ -73,6 +73,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	// The configuration properties for this FrontEndContainer
 	private Properties configProperties;
 	
+	// Flag indicating that the shutdown procedure is in place
+	private boolean exiting = false;
+	
 	//#MIDP_EXCLUDE_BEGIN
 	private Authority authority = new DummyAuthority();
 	//#MIDP_EXCLUDE_END
@@ -95,12 +98,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 		}
 		catch (IMTPException imtpe) {
 			imtpe.printStackTrace();
-			MicroRuntime.stopJADE(false);
+			MicroRuntime.handleTermination();
 			return;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			MicroRuntime.stopJADE(false);
+			MicroRuntime.handleTermination();
 			return;
 		}
 		
@@ -227,35 +230,38 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	   Request the FrontEnd container to exit.
 	 */
   public final void exit(boolean self) throws IMTPException {
-  	Logger.println("Container shut down activated");
-    
-  	// Kill all agents 
-  	Vector v = null;
-  	synchronized (localAgents) {
-  		// Create a temporary Vector including all the local agents
-  		// to avoid ConcurrentModification with handleEnd()
-	    Enumeration e = localAgents.elements();
-	    v = new Vector(localAgents.size());
-	    while (e.hasMoreElements()) {
-	    	v.addElement(e.nextElement());
+  	if (!exiting) {
+  		exiting = true;
+	  	Logger.println("Container shut down activated");
+	    
+	  	// Kill all agents 
+	  	Vector v = null;
+	  	synchronized (localAgents) {
+	  		// Create a temporary Vector including all the local agents
+	  		// to avoid ConcurrentModification with handleEnd()
+		    Enumeration e = localAgents.elements();
+		    v = new Vector(localAgents.size());
+		    while (e.hasMoreElements()) {
+		    	v.addElement(e.nextElement());
+		    }
+	  	}
+	
+	  	Enumeration e = v.elements();
+	  	while (e.hasMoreElements()) {
+	      // Kill agent and wait for its termination
+	      Agent a = (Agent) e.nextElement();
+	      a.doDelete();
+	      a.join();
+	      a.resetToolkit();
 	    }
+	
+			// Shut down the connection with the BackEnd. The BackEnd will 
+	    // exit and deregister with the main
+	  	myConnectionManager.shutdown(self);
+	    
+	    // Notify the JADE Runtime that the container has terminated execution
+	    MicroRuntime.handleTermination();
   	}
-
-  	Enumeration e = v.elements();
-  	while (e.hasMoreElements()) {
-      // Kill agent and wait for its termination
-      Agent a = (Agent) e.nextElement();
-      a.doDelete();
-      a.join();
-      a.resetToolkit();
-    }
-
-		// Shut down the connection with the BackEnd. The BackEnd will 
-    // exit and deregister with the main
-  	myConnectionManager.shutdown(self);
-    
-    // Notify the JADE Runtime that the container has terminated execution
-    MicroRuntime.stopJADE(!self);
   }
   
   
@@ -277,6 +283,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	      localAgents.remove(name);
     	}
   	  myBackEnd.deadAgent(name);
+  	  
+  	  // If there are no more agents and the exitwhenempty option 
+  	  // is set, activate shutdown
+  	  if ("true".equals(configProperties.getProperty("exitwhenempty"))) {
+  	  	if (localAgents.isEmpty()) {
+		  	  exit(true);
+  	  	}
+  	  }
     }
     catch(IMTPException re) {
       re.printStackTrace();
