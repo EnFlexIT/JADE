@@ -3,17 +3,14 @@
 # The following targets are not file names
 .PHONY: all clean
 
-TARGETS = ex1/Agent1.java ex1/Agent2.java ex1/Agent3.java ex1/Agent4.java \
-	  ex2/AgentSender.java ex2/AgentReceiver.java ex2/AgentBroadcaster.java ex2/AgentTimeout.java \
-	  ex3/AgentMessageFilter.java ex3/AgentThread.java \
-	  ex4/AgentRequester.java ex4/AgentResponder.java \
-	  ex5/amsTester.java ex5/dfTester.java ex5/SubDF.java \
-	  ex6/AgQueryInit.java ex6/AgQueryResp.java \
+TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
+	  protocols/AgRequestInitiator.java protocols/AgRequestResponder.java \
+	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java \
+	  subdf/SubDF.java \
+	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
 	  ex7/ObjectReaderAgent.java ex7/ObjectWriterAgent.java ex7/OntologyTest.java \
-	  ex8/WakerExampleAgent.java \
-          ex_mobile/MobileAgent.java \
-          jess/JessAgent.java
-
+	  mobile/MobileAgent.java \
+	  jess/JessAgent.java
 
 all: 
 	@echo Making test examples
