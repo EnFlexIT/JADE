@@ -1,6 +1,10 @@
 /*
 
   $Log$
+  Revision 1.14  1998/12/07 23:37:24  rimassa
+  Added support for search constraints and for multiple DFs. Now dfTester
+  is a complete FIPA 98 client for Directory Facilitators.
+
   Revision 1.13  1998/12/01 23:33:19  rimassa
   Completely rewritten (again!) to use new Agent class API for DF
   access. Now all DF actions are carried on by means of suitable Agent
@@ -85,6 +89,13 @@ public class dfTester extends Agent {
 	  len = System.in.read(buffer);
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
 	  String actionName = new String(buffer,0,len-1);
+
+	  System.out.println("Enter DF name (ENTER uses platform default DF)");
+	  len = System.in.read(buffer);
+
+	  String dfName = "df";
+	  if(len > 1)
+	    dfName = new String(buffer,0,len-1);
 
 	  System.out.println("Enter values for parameters (ENTER leaves them blank)");
 
@@ -175,15 +186,41 @@ public class dfTester extends Agent {
 
 	  if(actionName.equalsIgnoreCase("search")) {
 
+	    System.out.println("Enter search constraints: ");
+	    System.out.println("  Constraint name (':df-depth' or ':resp-req')");
+	    System.out.print("  ENTER to end: ");
+	    len = System.in.read(buffer);
+	    Vector constraints = null;
+	    while(len > 1) {
+	      if(constraints == null)
+		constraints = new Vector();
+	      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+	      c.setName(new String(buffer,0,len-1));
+	      System.out.print("  Constraint function ('Min', 'Max' or 'Exactly'): ");
+	      len = System.in.read(buffer);
+	      if(len > 1)
+		c.setFn(new String(buffer,0,len-1));
+	      else
+		c.setFn("Exactly");
+	      System.out.print("  Constraint argument (a positive integer): ");
+	      len = System.in.read(buffer);
+	      if(len > 1)
+		c.setArg(Integer.parseInt(new String(buffer,0,len-1)));
+	      else
+		c.setArg(1);
+
+	      constraints.addElement(c);
+
+	      System.out.println("  Constraint name (':df-depth' or ':resp-req')");
+	      System.out.print("  ENTER to end: ");
+	      len = System.in.read(buffer);
+
+	    }
+
 	    AgentManagementOntology.DFSearchResult agents = null;
 	    System.out.println("Calling searchDF()");
 	    try {
-	      agents = searchDF("df", dfd, null);
-	    }
-	    catch(FIPAException fe) {
-	      System.out.println("Caught a FIPA exception: " + fe.getMessage());
-	    }
-	    try {
+	      agents = searchDF(dfName, dfd, constraints);
 	      Writer w = new BufferedWriter(new OutputStreamWriter(System.out));
 	      agents.toText(w);
 	      System.out.println("");
@@ -195,7 +232,7 @@ public class dfTester extends Agent {
 	  else if(actionName.equalsIgnoreCase("register")) {
 	    System.out.println("Calling registerWithDF()");
 	    try {
-	      registerWithDF("df", dfd);
+	      registerWithDF(dfName, dfd);
 	    }
 	    catch(FIPAException fe) {
 	      System.out.println("Caught a FIPA exception: " + fe.getMessage());
@@ -204,7 +241,7 @@ public class dfTester extends Agent {
 	  else if(actionName.equalsIgnoreCase("deregister")) {
 	    System.out.println("Calling deregisterWithDF()");
 	    try {
-	      deregisterWithDF("df", dfd);
+	      deregisterWithDF(dfName, dfd);
 	    }
 	    catch(FIPAException fe) {
 	      System.out.println("Caught a FIPA exception: " + fe.getMessage());
@@ -213,7 +250,7 @@ public class dfTester extends Agent {
 	  else if(actionName.equalsIgnoreCase("modify")) {
 	    System.out.println("Calling modifyDFData()");
 	    try {
-	      modifyDFData("df", dfd);
+	      modifyDFData(dfName, dfd);
 	    }
 	    catch(FIPAException fe) {
 	      System.out.println("Caught a FIPA exception: " + fe.getMessage());
