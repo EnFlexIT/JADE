@@ -161,6 +161,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
     // Implementation of the ServiceManager interface
 
+    public String getPlatformName() throws IMTPException {
+	return myMain.getPlatformName();
+    }
+
     public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
 
 	// Add the node as a local agent container and activate the new container with the IMTP manager
@@ -355,6 +359,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	String name = desc.getName();
 	Node node = desc.getNode();
+	node.setName(name);
 
 	// Set up a failure monitor using the blocking ping...
 	NodeFailureMonitor monitor = new NodeFailureMonitor(node, new NodeEventListener() {
@@ -367,6 +372,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 		public void nodeRemoved(Node n) {
 		    System.out.println("--- Node <" + n.getName() + "> REMOVED ---");
+		    removeRemoteNode(new NodeDescriptor(n.getName(), n));
 		}
 
 		public void nodeUnreachable(Node n) {
@@ -381,7 +387,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	// Start a new node failure monitor
 	Thread t = new Thread(monitor);
-	//	t.start();
+	t.start();
 
 	// Return the name given to the new container
 	return cid.getName();
@@ -393,7 +399,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	// FIXME: remove all the slices corresponding to the removed node
 
 	// Remove the node as a remote container
-	myMain.removeRemoteContainer(desc.getContainer());
+	myMain.removeRemoteContainer(desc);
     }
 
     public void addRemoteSlice(String serviceKey, String sliceKey, Service.Slice slice, Node remoteNode) {
