@@ -91,11 +91,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
 
   // ClassLoader table, used for agent mobility
-  private Map loaders = new HashMap();
+  //private Map loaders = new HashMap();
 
   // This Map holds the mapping between an agent that arrived on this
   // container and the container where its classes can be retrieved
-  private Map sites = new HashMap();
+  //private Map sites = new HashMap();
 
   // The agent platform this container belongs to
   private MainContainer myMain;
@@ -103,9 +103,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Agent Communication Channel, managing the external MTPs.
   private acc theACC;
 
+  // The Profile thefining the configuration of this Container
+  private Profile myProfile;
+  
+  // 
+  private IMTPManager myIMTPManager;
+  
+  // The Object this container delegates all operations related to
+  // agent mobility
+  private MobilityManager myMobilityManager;
+  
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
-  private Profile myProfile;
   private static String platformID;
   private ContainerID myID;
 
@@ -116,29 +125,29 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // end, in order to detect container failures.
   private java.lang.Object pingLock = new java.lang.Object();
 
-  private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
+  //private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
   // FIXME: Temporary hack
-  private jade.imtp.rmi.AgentContainerAdapter myAdapter;
-  public jade.imtp.rmi.AgentContainerAdapter getAdapter() {
-    return myAdapter;
-  }
+  //private jade.imtp.rmi.AgentContainerAdapter myAdapter;
+  //public jade.imtp.rmi.AgentContainerAdapter getAdapter() {
+  //  return myAdapter;
+  //}
   
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
   AgentContainerImpl(Profile p) {
 
     // Set up attributes for agents thread group
-    agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
+    //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
     
     // FIXME: Temporary hack
-    try {
-      myAdapter = new jade.imtp.rmi.AgentContainerAdapter(new jade.imtp.rmi.AgentContainerRMIImpl(this));
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-    }
+    //try {
+    //  myAdapter = new jade.imtp.rmi.AgentContainerAdapter(new jade.imtp.rmi.AgentContainerRMIImpl(this));
+    //}
+    //catch(Exception e) {
+    //  e.printStackTrace();
+    //}
 
   }
 
@@ -164,7 +173,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
-
+  	myMobilityManager.createAgent(agentID, serializedInstance, classSite, startIt);
+  }
+/*
     final AgentContainer ac = classSite;
 
     class Deserializer extends ObjectInputStream {
@@ -200,12 +211,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     catch(ClassNotFoundException cnfe) {
       cnfe.printStackTrace();
     }
-
   }
+*/
 
   // Accepts the fully qualified class name as parameter and searches
   // the class file in the classpath
   public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+  	return myMobilityManager.fetchClassFile(name);
+  }
+/*  
     name = name.replace( '.' , '/') + ".class";
     InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
     if (classStream == null) 
@@ -218,6 +232,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	throw new ClassNotFoundException();
     }
   }
+*/
 
   public void initAgent(AID agentID, Agent instance, boolean startIt) {
 
@@ -230,7 +245,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       try {
 	RemoteContainerProxy rp = new RemoteContainerProxy(this, agentID);
 	myMain.bornAgent(agentID, rp, myID); // RMI call
-	instance.powerUp(agentID, agentThreads);
+	instance.powerUp(agentID, ResourceManager.USER_AGENTS);
       }
       catch(NameClashException nce) {
 	System.out.println("Agentname already in use:"+nce.getMessage());
@@ -275,18 +290,26 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+  	myMobilityManager.moveAgent(agentID, where);
+  }
+/*
+  	Agent agent = localAgents.get(agentID);
     if(agent==null)
       throw new NotFoundException("MoveAgent failed to find " + agentID);
     agent.doMove(where);
   }
+*/
 
   public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+  	myMobilityManager.copyAgent(agentID, where, newName);
+  }
+/*  
+  	Agent agent = localAgents.get(agentID);
     if(agent == null)
       throw new NotFoundException("CopyAgent failed to find " + agentID);
     agent.doClone(where, newName);
   }
+*/
 
   public void killAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
@@ -300,7 +323,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
-    synchronized(localAgents) {
+		myMobilityManager.handleTransferResult(agentID, result, messages);
+  }
+/*  
+  	synchronized(localAgents) {
       Agent agent = localAgents.get(agentID);
       if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
 	throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
@@ -311,10 +337,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	// Insert received messages at the start of the queue
 	for(int i = messages.size(); i > 0; i--)
 	  agent.putBack((ACLMessage)messages.get(i - 1));
-	agent.powerUp(agentID, agentThreads);
+	agent.powerUp(agentID, ResourceManager.USER_AGENTS);
       }
     }
   }
+*/
 
   /**
     @param snifferName The Agent ID of the sniffer to send messages to.
@@ -496,6 +523,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   void joinPlatform() {
   	try {
+  		myIMTPManager = myProfile.getIMTPManager();
+  		myIMTPManager.initialize(myProfile);
+  		myIMTPManager.remotize(this);
+  		
       myMain = myProfile.getMain();
 
       // This string will be used to build the GUID for every agent on
@@ -509,39 +540,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       theACC = myProfile.getAcc();
 
       // Initialize the Container ID
-      //InetAddress netAddr = InetAddress.getLocalHost();
       // FIXME: ContainerID should be modified so that to take
       // a list of addresses
-      TransportAddress addr = (TransportAddress) myProfile.getIMTPManager().getLocalAddresses().get(0);
+      TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID("No-Name", addr);
       myMain.register(this, myID);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       theACC.initialize(this, myProfile);
       
-      /*
-      // Install the ACLCodecs inserted by command line.
-      for(int i =0; i<ACLCodecs.length;i++){
-      	String className = ACLCodecs[i];
-      	installACLCodec(className);
-      }
-
-      // Install required MTPs
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myID.getName() + ".txt"));
-
-      for(int i = 0; i < MTPs.length; i += 2) {
-
-	String className = MTPs[i];
-	String addressURL = MTPs[i+1];
-	if(addressURL.equals(""))
-	  addressURL = null;
-	String s = installMTP(addressURL, className);
-	f.println(s);
-	System.out.println(s);
-      }
-
-      f.close();
-      */
     }
     catch(IMTPException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -560,20 +567,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	Iterator agentSpecifiers = l.iterator();
     	while(agentSpecifiers.hasNext()) {
     		Specifier s = (Specifier) agentSpecifiers.next();
-      	/*Iterator i = ((List)agentSpecifiers.next()).iterator();
-      	String agentName =(String)i.next();
-      	String agentClass = (String)i.next();
-      	List tmp = new ArrayList(); 
-      	while(i.hasNext())	         
-        	tmp.add((String)i.next());
-
-      	//Create the String[] args to pass to the createAgent method  
-      	int size = tmp.size();
-      	String arguments[] = new String[size];
-      	Iterator it = tmp.iterator();
-      	for(int n = 0; it.hasNext(); n++)
-        	arguments[n] = (String)it.next();
-      	*/
       
       	AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
       	try {
@@ -599,150 +592,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	for(int i = 0; i < allLocalNames.length; i++) {
       	AID id = allLocalNames[i];
       	Agent agent = localAgents.get(id);
-      	agent.powerUp(id, agentThreads);
+      	agent.powerUp(id, ResourceManager.USER_AGENTS);
     	}
     }
     catch (ProfileException pe) {
     	System.out.println("Warning: error reading initial agents");
     }
     	
-
     System.out.println("Agent container " + myID + " is ready.");
   }
 
-  /**************************************************************
-  void joinPlatform( MainContainer mc, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
-
-    try {
-
-      myMain = mc;
-
-      // This string will be used to build the GUID for every agent on
-      // this platform.
-      platformID = myMain.getPlatformName();
-
-      // Build the Agent IDs for the AMS and for the Default DF.
-      Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
-
-      // Set up the ACC.
-      theACC = myProfile.getAcc();
-      theACC.initialize(this, myProfile);
-
-      // Initialize the Container ID
-      InetAddress netAddr = InetAddress.getLocalHost();
-      myID = new ContainerID("No-Name", netAddr);
-      myMain.register(this, myID);
-
-      // Install the ACLCodecs inserted by command line.
-      for(int i =0; i<ACLCodecs.length;i++){
-      	String className = ACLCodecs[i];
-      	installACLCodec(className);
-      }
-
-      // Install required MTPs
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myID.getName() + ".txt"));
-
-      for(int i = 0; i < MTPs.length; i += 2) {
-
-	String className = MTPs[i];
-	String addressURL = MTPs[i+1];
-	if(addressURL.equals(""))
-	  addressURL = null;
-	String s = installMTP(addressURL, className);
-	f.println(s);
-	System.out.println(s);
-      }
-
-      f.close();
-    }
-    catch(IMTPException re) {
-      System.err.println("Communication failure while contacting agent platform.");
-      re.printStackTrace();
-      Runtime.instance().endContainer();
-    }
-    catch(Exception e) {
-      System.err.println("Some problem occurred while contacting agent platform.");
-      e.printStackTrace();
-      Runtime.instance().endContainer();
-    }
-
-    // Create all agents and set up necessary links for message passing.
-
-    //   The link chain is:
-    //   a) Agent 1 -> AgentContainer1 -- Through CommEvent
-    //   b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from MainContainer)
-    //   c) AgentContainer 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
-
-    //   agentSpecifiers is a List of List.Every list contains ,orderly, th a agent name the agent class and the arguments (if any).
-    
-    while(agentSpecifiers.hasNext()) {
-      Iterator i = ((List)agentSpecifiers.next()).iterator();
-      String agentName =(String)i.next();
-      String agentClass = (String)i.next();
-      List tmp = new ArrayList(); 
-      while(i.hasNext())	         
-        tmp.add((String)i.next());
-
-      //Create the String[] args to pass to the createAgent method  
-      int size = tmp.size();
-      String arguments[] = new String[size];
-      Iterator it = tmp.iterator();
-      for(int n = 0; it.hasNext(); n++)
-        arguments[n] = (String)it.next();
-      
-      AID agentID = new AID(agentName, AID.ISLOCALNAME);
-      try {
-        createAgent(agentID, agentClass, arguments, NOSTART);
-        RemoteContainerProxy rp = new RemoteContainerProxy(this, agentID);
-        myMain.bornAgent(agentID, rp, myID);
-      }
-      catch(IMTPException re) { // It should never happen
-        re.printStackTrace();
-      }
-      catch(NameClashException nce) {
-        System.out.println("Agent name already in use: "+nce.getMessage());
-        localAgents.remove(agentID);
-      }
-	
-    }
-
-    // Now activate all agents (this call starts their embedded threads)
-    AID[] allLocalNames = localAgents.keys();
-    for(int i = 0; i < allLocalNames.length; i++) {
-      AID id = allLocalNames[i];
-      Agent agent = localAgents.get(id);
-      agent.powerUp(id, agentThreads);
-    }
-
-    System.out.println("Agent container " + myID + " is ready.");
-
-  }
-  *****************************************/
 
   public void shutDown() {
 
-  	/*
-    // Close all MTP links to the outside world
-    List l = theACC.getLocalAddresses();
-    String[] addresses = (String[])l.toArray(new String[0]);
-    for(int i = 0; i < addresses.length; i++) {
-      try {
-	String addr = addresses[i];
-	uninstallMTP(addr);
-      }
-      catch(IMTPException re) {
-	// It should never happen
-	System.out.println("ERROR: Remote Exception thrown for a local call.");
-      }
-      catch(NotFoundException nfe) {
-	nfe.printStackTrace();
-      }
-      catch(MTPException mtpe) {
-	mtpe.printStackTrace();
-      }
-
-    }
-		*/
     // Close down the ACC
     theACC.shutdown();
 
@@ -776,19 +638,23 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       pingLock.notifyAll();
     }
 
+    
     // Destroy the (now empty) thread groups
 
-    try {
-      agentThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-	//System.out.println("Active threads in 'JADE-Agents' thread group:");
-	//agentThreads.list();
-    }
-    finally {
-      agentThreads = null;
-    }
+    //try {
+    //  agentThreads.destroy();
+    //}
+    //catch(IllegalThreadStateException itse) {
+			//System.out.println("Active threads in 'JADE-Agents' thread group:");
+			//agentThreads.list();
+    //}
+    //finally {
+    //  agentThreads = null;
+    //}
 
+    //myIMTPManager.unremotize(this); 
+    myIMTPManager.shutDown();
+    
     // Notify the JADE Runtime that the container has terminated
     // execution
     Runtime.instance().endContainer();
@@ -883,6 +749,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleMove(AID agentID, Location where) {
+  	myMobilityManager.handleMove(agentID, where);
+  }
+/*
     // Mutual exclusion with dispatch() method
     synchronized(localAgents) {
       try {
@@ -956,8 +825,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
     }
   }
+*/
 
   public void handleClone(AID agentID, Location where, String newName) {
+  	myMobilityManager.handleClone(agentID, where, newName);
+  }
+/*  
     try {
       String proto = where.getProtocol();
       if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
@@ -993,7 +866,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       nfe.printStackTrace();
     }
   }
-
+*/
   // Private methods
 
     /**

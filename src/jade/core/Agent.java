@@ -1194,7 +1194,7 @@ public class Agent implements Runnable, Serializable {
   protected void afterClone() {}
 
   // This method is used by the Agent Container to fire up a new agent for the first time
-  void powerUp(AID id, ThreadGroup myGroup) {
+  void powerUp(AID id, int threadType) {
 
     // Set this agent's name and address and start its embedded thread
     if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
@@ -1202,9 +1202,10 @@ public class Agent implements Runnable, Serializable {
       myHap = id.getHap();
       myAID = id;
 
-      myThread = new Thread(myGroup, this);    
+      //myThread = new Thread(myGroup, this);    
+      myThread = ResourceManager.getThread(threadType, this);    
       myThread.setName(getLocalName());
-      myThread.setPriority(myGroup.getMaxPriority());
+      //myThread.setPriority(myGroup.getMaxPriority());
       myThread.start();
     }
   }

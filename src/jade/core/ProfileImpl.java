@@ -1,25 +1,27 @@
-/*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
-
-GNU Lesser General Public License
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-*****************************************************************/
+/**
+ * ***************************************************************
+ * JADE - Java Agent DEvelopment Framework is a framework to develop
+ * multi-agent systems in compliance with the FIPA specifications.
+ * Copyright (C) 2000 CSELT S.p.A.
+ * 
+ * GNU Lesser General Public License
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation,
+ * version 2.1 of the License.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA  02111-1307, USA.
+ * **************************************************************
+ */
 
 
 package jade.core;
@@ -44,161 +46,223 @@ import java.util.Hashtable;
  */
 public class ProfileImpl extends Profile {
 
-    private LEAPProperties props = new LEAPProperties();
-
-    public void putProperty(String key, String value) {
-	props.put(key,value);
-    }
-    
-    public void putSpecifierList(String key, List value) {
-	props.put(key,value);
-    }
+  private LEAPProperties  props = new LEAPProperties();
 
 
-    private MainContainer myMain = null;
-    private IMTPManager myIMTPManager = null;
-    private acc myACC = null;
+  private MainContainer   myMain = null;
+  private IMTPManager     myIMTPManager = null;
+  private acc             myACC = null;
+  private MobilityManager myMobilityManager = null;
 
+  /**
+   * Creates a Profile implementation with the default configuration
+   */
+  public ProfileImpl() {
+    props = new LEAPProperties();
 
-
-    
-    
-    /**
-     */
-    protected MainContainer getMain() throws ProfileException { 
-    	if (myMain == null) {
-    		createMain();
-    	}
-    	return myMain;
-    }
-    
-    /**
-     */
-    protected IMTPManager getIMTPManager() throws ProfileException {
-    	if (myIMTPManager == null) {
-    		createIMTPManager();
-    	}
-    	return myIMTPManager;
+    try {
+      // Set default values
+      String host = InetAddress.getLocalHost().getHostName();
+      props.setProperty(MAIN, "true");
+      props.setProperty(MAIN_PROTO, "rmi");
+      props.setProperty(MAIN_HOST, host);
+      props.setProperty(MAIN_PORT, "1099");
+      props.setProperty(PLATFORM_ID, host+":1099/JADE");
     } 
-    
-    /**
-     */
-    protected acc getAcc() throws ProfileException {
-    	if (myACC == null) {
-    		createACC();
-    	}
-    	return myACC;
-    }
-    
-    private void createMain() throws ProfileException {
-			// Be sure that the IMTPManager is not null
-    	getIMTPManager();   
-    	
-    	try {
-        	String isMain = props.getProperty(MAIN);
-        	if(isMain == null || isMain.equalsIgnoreCase("true")) {
-        		// The real Main
-        		myMain = new MainContainerImpl(this);
-        		myIMTPManager.remotize(myMain);
-        	}
-        	else {
-        		// A proxy to the main
-        		myMain = new MainContainerProxy(this, myIMTPManager.getMain());
-        	}
-    	}
-    	catch (IMTPException imtpe) {
-    		throw new ProfileException(imtpe.getMessage());
-    	}
-    }
-    
-    private void createIMTPManager() throws ProfileException {
-      	// Use the RMI IMTP by default
-	String className = new String("jade.imtp.rmi.RMIIMTPManager");
+    catch (UnknownHostException uhe) {
+      uhe.printStackTrace();
+    } 
+    catch (IOException ioe) {
+      ioe.printStackTrace();
+    } 
+  }
 
-      try {
-        myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
-        myIMTPManager.initialize(this);
+ 	public ProfileImpl(String host, String port, String platformID) {
+     	this(); // Call default constructor
+     	props.setProperty(MAIN, "false");
+     	if(host != null)
+       		props.setProperty(MAIN_HOST, host);
+     	if(port != null)
+       		props.setProperty(MAIN_PORT, port);
+     	if(platformID != null)
+       		props.setProperty(PLATFORM_ID, platformID);
+     	else {
+       		String h = props.getProperty(MAIN_HOST);
+       		String p = props.getProperty(MAIN_PORT);
+       		props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
+     	}
+ 	}
+      
+  /**
+   * Method declaration
+   *
+   * @param key
+   * @param value
+   *
+   * @see
+   */
+  public void putProperty(String key, String value) {
+    props.put(key, value);
+  } 
+
+  /**
+   * Method declaration
+   *
+   * @param key
+   * @param value
+   *
+   * @see
+   */
+  public void putSpecifierList(String key, List value) {
+    props.put(key, value);
+  } 
+
+  /**
+   */
+  protected MainContainer getMain() throws ProfileException {
+    if (myMain == null) {
+      createMain();
+    } 
+
+    return myMain;
+  } 
+
+  /**
+   */
+  protected IMTPManager getIMTPManager() throws ProfileException {
+    if (myIMTPManager == null) {
+      createIMTPManager();
+    } 
+
+    return myIMTPManager;
+  } 
+
+  /**
+   */
+  protected acc getAcc() throws ProfileException {
+    if (myACC == null) {
+      createACC();
+    } 
+
+    return myACC;
+  } 
+
+  /**
+   */
+  protected MobilityManager getMobilityManager() throws ProfileException {
+    if (myMobilityManager == null) {
+      createMobilityManager();
+    } 
+
+    return myMobilityManager;
+  } 
+
+  /**
+   * Method declaration
+   *
+   * @throws ProfileException
+   *
+   * @see
+   */
+  private void createMain() throws ProfileException {
+    try {
+      String isMain = props.getProperty(MAIN);
+      if (isMain == null || isMain.equalsIgnoreCase("true")) {
+        // The real Main
+        myMain = new MainContainerImpl(this);
+
+        myIMTPManager.remotize(myMain);
       } 
-      catch (Exception e) {
-      	e.printStackTrace();
-	  		throw new ProfileException("Error loading IMTPManager class " + className);
-      }
-    }
-    
-    private void createACC() throws ProfileException {
-	// Use the Full ACC by default
-	String className = new String("jade.core.FullAcc");
-        try {
-            myACC = (acc) Class.forName(className).newInstance();
-        } 
-        catch (Exception e) {
-	  		throw new ProfileException("Error loading acc class " + className);
-        }
-    }
-
-    /**
-     *
-    protected AgentCache getAgentCache() throws ProfileException {
-        String className = props.getProperty(AGENTCACHE);
-
-	if (className == null) {
-			// Use FullAgentCache by default
-            className = new String("jade.core.FullAgentCache");
-        } 
-
-        try {
-            return (AgentCache) Class.forName(className).newInstance();
-        } 
-        catch (Exception e) {
-            throw new ProfileException("Error loading AgentCache class" 
-                                       + className);
-        } 
+      else {
+        // A proxy to the main
+        myMain = new MainContainerProxy(this, myIMTPManager.getMain());
+      } 
     } 
-    */
-
-    /**
-     *
-    protected MobilityHandler getMobilityHandler() throws ProfileException {
-        String className = props.getProperty(MOBILITY);
-
-        if (className == null) {
-        	// Use RealMobilityHandler by default
-            className = new String("jade.core.RealMobilityHandler");
-        } 
-
-        try {
-            return (MobilityHandler) Class.forName(className).newInstance();
-        } 
-        catch (Exception e) {
-            throw new ProfileException("Error loading MobilityHandler class" 
-                                       + className);
-        } 
+    catch (IMTPException imtpe) {
+      throw new ProfileException(imtpe.getMessage());
     } 
-	*/
-	
-    /**
-     * Retrieve a String value from the configuration properties.
-     * If no parameter corresponding to the specified key is found,
-     * null is returned.
-     * @param key The key identifying the parameter to be retrieved
-     * among the configuration properties.
-     */
-    public String getParameter(String key) throws ProfileException {
-      return props.getProperty(key);
-    } 
+  } 
 
-    /**
-     * Retrieve a list of Specifiers from the configuration properties.
-     * Agents, MTPs and other items are specified among the configuration
-     * properties in this way.
-     * If no list of Specifiers corresponding to the specified key is found,
-     * an empty list is returned.
-     * @param key The key identifying the list of Specifires to be retrieved
-     * among the configuration properties.
-     */
-    public List getSpecifiers(String key) throws ProfileException {
-        return (List)props.get(key);
+  /**
+   * Method declaration
+   *
+   * @throws ProfileException
+   *
+   * @see
+   */
+  private void createIMTPManager() throws ProfileException {
+    // Use the RMI IMTP by default
+    String className = new String("jade.imtp.rmi.RMIIMTPManager");
+
+    try {
+      myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
     } 
+    catch (Exception e) {
+      e.printStackTrace();
+
+      throw new ProfileException("Error loading IMTPManager class "+className);
+    } 
+  } 
+
+  /**
+   * Method declaration
+   *
+   * @throws ProfileException
+   *
+   * @see
+   */
+  private void createACC() throws ProfileException {
+    // Use the Full ACC by default
+    String className = new String("jade.core.FullAcc");
+    try {
+      myACC = (acc) Class.forName(className).newInstance();
+    } 
+    catch (Exception e) {
+      throw new ProfileException("Error loading acc class "+className);
+    } 
+  } 
+
+  /**
+   * Method declaration
+   *
+   * @throws ProfileException
+   *
+   * @see
+   */
+  private void createMobilityManager() throws ProfileException {
+    // Use the RealMobilityManager by default
+    String className = new String("jade.core.RealMobilityManager");
+    try {
+      myMobilityManager = (MobilityManager) Class.forName(className).newInstance();
+    } 
+    catch (Exception e) {
+      throw new ProfileException("Error loading MobilityManager class "+className);
+    } 
+  } 
+
+  /**
+   * Retrieve a String value from the configuration properties.
+   * If no parameter corresponding to the specified key is found,
+   * null is returned.
+   * @param key The key identifying the parameter to be retrieved
+   * among the configuration properties.
+   */
+  public String getParameter(String key) throws ProfileException {
+    return props.getProperty(key);
+  } 
+
+  /**
+   * Retrieve a list of Specifiers from the configuration properties.
+   * Agents, MTPs and other items are specified among the configuration
+   * properties in this way.
+   * If no list of Specifiers corresponding to the specified key is found,
+   * an empty list is returned.
+   * @param key The key identifying the list of Specifires to be retrieved
+   * among the configuration properties.
+   */
+  public List getSpecifiers(String key) throws ProfileException {
+    return (List) props.get(key);
+  } 
 
 }
 
