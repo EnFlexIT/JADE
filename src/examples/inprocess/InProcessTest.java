@@ -38,6 +38,66 @@ import jade.wrapper.*;
  */
 public class InProcessTest {
 
+  // Simple class behaving as a Condition Variable
+  private static class CondVar {
+    private boolean value = false;
+
+    synchronized void waitOn() throws InterruptedException {
+      while(!value) {
+	wait();
+      }
+    }
+
+    synchronized void signal() {
+      value = true;
+      notifyAll();
+    }
+
+  } // End of CondVar class
+
+
+  // This class is a custom agent, accepting an Object through the
+  // object-to-agent communication channel, and displying it on the
+  // standard output.
+  public static class CustomAgent extends jade.core.Agent {
+
+    public void setup() {
+      // Accept objects through the object-to-agent communication
+      // channel, with a maximum size of 10 queued objects
+      setEnabledO2ACommunication(true, 10);
+
+      // Notify blocked threads that the agent is ready and that
+      // object-to-agent communication is enabled
+      Object[] args = getArguments();
+      if(args.length > 0) {
+	CondVar latch = (CondVar)args[0];
+	latch.signal();
+      }
+
+      // Add a suitable cyclic behaviour...
+      addBehaviour(new jade.core.behaviours.CyclicBehaviour() {
+
+	public void action() {
+	  // Retrieve the first object in the queue and print it on
+	  // the standard output
+	  Object obj = getO2AObject();
+	  if(obj != null) {
+	    System.out.println("Got an object from the queue: [" + obj + "]");
+	  }
+	  else 
+	    block();
+	}
+
+      });
+    }
+
+    public void takeDown() {
+      // Disables the object-to-agent communication channel, thus
+      // waking up all waiting threads
+      setEnabledO2ACommunication(false, 0);
+    }
+
+  } // End of CustomAgent class
 
   public static void main(String args[]) {
 
@@ -108,6 +168,36 @@ public class InProcessTest {
       System.out.println("Launching the rma agent on the main container ...");
       Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
+
+      // Launch a custom agent, taking an object via the
+      // object-to-agent communication channel. Notice how an Object
+      // is passed to the agent, to achieve a startup synchronization:
+      // this Object is used as a POSIX 'condvar' or a Win32
+      // 'EventSemaphore' object...
+
+      CondVar startUpLatch = new CondVar();
+
+      Agent custom = mc.createAgent("customAgent", CustomAgent.class.getName(), new Object[] { startUpLatch });
+      custom.start();
+
+      // Wait until the agent starts up and notifies the Object
+      try {
+	startUpLatch.waitOn();
+      }
+      catch(InterruptedException ie) {
+	ie.printStackTrace();
+      }
+	    
+
+      // Put an object in the queue, asynchronously
+      System.out.println("Inserting an object, asynchronously...");
+      custom.putO2AObject("Message 1", Agent.ASYNC);
+      System.out.println("Inserted.");
+
+      // Put an object in the queue, synchronously
+      System.out.println("Inserting an object, synchronously...");
+      custom.putO2AObject(mc, Agent.SYNC);
+      System.out.println("Inserted.");
 
     }
     catch(Exception e) {
