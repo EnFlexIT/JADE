@@ -158,6 +158,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   protected void finalize() {
+    shutDown();
   }
 
   public void CommHandle(CommEvent event) {
