@@ -67,14 +67,21 @@ class DFGUISearchAction extends AbstractAction
 		else 
 		 	df = gui.myAgent.getDescriptionOfThisDF().getName();
 		
-		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+		ConstraintDlg constraintsGui = new ConstraintDlg(gui);
+		//insert the constraints for the search.
+	  SearchConstraints constraints = constraintsGui.setConstraint();
+		
+	  if(constraints == null) //pressed the cancel button
+	  	return;
+	  	
+	  DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 	
 		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,false); //checkMandatorySlots = false
 
 		//If no df is selected, the df of the platform is used. 
 		if (editedDfd != null)
 		{	
-			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd,new SearchConstraints());
+			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd,constraints);
 			gui.setTab("Search",df);
 		}
 	}
