@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.24  1999/06/22 13:17:22  rimassa
+  Added support for showing the GUI on demand.
+
   Revision 1.23  1999/05/20 13:43:18  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -102,6 +105,14 @@ import jade.proto.FipaRequestResponderBehaviour;
   by application programmers to divide a platform into many
   <em><b>Agent Domains</b></em>.
 
+  Each DF has a GUI but, by default, it is not visible. The GUI of the
+  agent platform includes a menu item that allows to show the GUI of the
+  default DF. 
+
+  In order to show the GUI, you should simply send the following message
+  to each DF agent: <code>(request :content (action DFName (SHOWGUI))
+  :ontology jade-extensions :protocol fipa-request)</code>
+ 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
@@ -471,6 +482,39 @@ public class df extends Agent {
 
   } // End of SrchBehaviour class
 
+  private class ShowGUIBehaviour 
+   extends FipaRequestResponderBehaviour.Action 
+   implements FipaRequestResponderBehaviour.Factory {
+
+    protected ShowGUIBehaviour() {
+      super(df.this);
+    }
+
+    public FipaRequestResponderBehaviour.Action create() {
+      return new ShowGUIBehaviour();
+    }
+
+   public void action () { 
+      //      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
+      //      DFRegister(dfd);
+      sendAgree();
+      if (gui == null) {
+	gui = new DFGUI((df)myAgent);
+	gui.setVisible(true);
+	sendInform();
+      } else
+	sendFailure("Gui_is_being_shown_already");
+    }
+      
+      public boolean done() {
+	return true;
+      }
+
+      public void reset() {
+      }
+  } // End of ShowGUIBehaviour class
+
+
   private class RecursiveSearchBehaviour extends SequentialBehaviour {
 
     ACLMessage reply;
@@ -539,6 +583,7 @@ public class df extends Agent {
 
   private AgentManagementOntology myOntology;
   private FipaRequestResponderBehaviour dispatcher;
+  private FipaRequestResponderBehaviour guiActivator;
   private Hashtable descriptors = new Hashtable();
   private Hashtable subDFs = new Hashtable();
 
@@ -573,6 +618,14 @@ public class df extends Agent {
     dispatcher.registerFactory(AgentManagementOntology.DFAction.DEREGISTER, new DeregBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.DFAction.MODIFY, new ModBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
+
+    // Behaviour to deal with the GUI
+    // FIXME. Fabio. This is only necessary because AgentManagementParser.jj
+    // parses also the action names. Asap AgentManagementParser.jj is
+    // fixed, we can register SHOWGUI with dispatcher
+    MessageTemplate mt1 = MessageTemplate.MatchOntology("jade-extensions");
+    guiActivator = new FipaRequestResponderBehaviour(this, mt1);
+    guiActivator.registerFactory("SHOWGUI", new ShowGUIBehaviour());
   }
 
   /**
@@ -581,10 +634,11 @@ public class df extends Agent {
   */
   protected void setup() {
     // Show GUI
-    gui = new DFGUI(this);
-    gui.setVisible(true);
+    //    gui = new DFGUI(this);
+    //gui.setVisible(true);
     // Add a message dispatcher behaviour
     addBehaviour(dispatcher);
+    addBehaviour(guiActivator);
 
     // Add an event listener behaviour
     addBehaviour(new CyclicBehaviour() {
@@ -634,6 +688,9 @@ public class df extends Agent {
     cleanup operations during agent shutdown.
   */
   protected void takeDown() {
+
+    if(gui != null)
+	gui.disposeAsync();
     AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
     dfd.setName(getName());
     Enumeration e = parents.getMembers();
@@ -946,4 +1003,5 @@ public class df extends Agent {
   }
 
 }
+
 
