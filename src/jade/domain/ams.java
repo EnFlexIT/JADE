@@ -333,7 +333,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	// KILL CONTAINER
-	void killContainerAction(final KillContainer kc, final AID requester) throws FIPAException {
+	void killContainerAction(final KillContainer kc, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
     final ContainerID cid = kc.getContainer();
        if(logger.isLoggable(Logger.FINE))
          logger.log(Logger.FINE,"Agent "+requester+" requesting Kill-container "+cid);
@@ -341,17 +341,20 @@ public class ams extends Agent implements AgentManager.Listener {
 			Thread auxThread = new Thread() {
 			    public void run() {
 				try {
-				    myPlatform.killContainer(cid);
+				    myPlatform.killContainer(cid, requesterPrincipal, requesterCredentials);
 				}
 				catch(JADESecurityException ae) {
-                                  if(logger.isLoggable(Logger.SEVERE))
-                                    logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Kill-container: " + ae);
+            logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Kill-container: " + ae);
 				    // Send failure notification to the requester if any
 				    sendFailureNotification(kc, cid, new Unauthorised());
 				}
 				catch(NotFoundException nfe) {
 				    // Send failure notification to the requester if any
 				    sendFailureNotification(kc, cid, new InternalError("Container not found. "+nfe.getMessage()));
+				}
+				catch(UnreachableException ue) {
+				    // Send failure notification to the requester if any
+				    sendFailureNotification(kc, cid, new InternalError("Container unreachable. "+ue.getMessage()));
 				}
 				catch(Throwable t) {
 				    // Send failure notification to the requester if any
@@ -364,14 +367,14 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	// SHUTDOWN PLATFORM
-	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester) throws FIPAException {
+	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
           if(logger.isLoggable(Logger.FINE))
             logger.log(Logger.FINE,"Agent "+requester+" requesting Shutdown-platform ");
 
 			    Thread auxThread = new Thread() {
 			        public void run() {
 				    try {
-					myPlatform.shutdownPlatform();
+					myPlatform.shutdownPlatform(requesterPrincipal, requesterCredentials);
 				    }
 				    catch(JADESecurityException ae) {
                                       if(logger.isLoggable(Logger.SEVERE))

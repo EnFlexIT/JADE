@@ -115,14 +115,14 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	}
   	// KILL CONTAINER (asynchronous notification to requester)
   	else if (action instanceof KillContainer) {
-  		theAMS.killContainerAction((KillContainer) action, request.getSender());
+  		theAMS.killContainerAction((KillContainer) action, request.getSender(), requesterPrincipal, requesterCredentials);
   		asynchNotificationKey = ((KillContainer) action).getContainer();
   	}
 		// SHUT DOWN PLATFORM
 		else if (action instanceof ShutdownPlatform) {
 			// Synchronous notification since we will not be here to send the notification 
 			// when the platform will have shut down.
-	    theAMS.shutdownPlatformAction((ShutdownPlatform)action, request.getSender());
+	    theAMS.shutdownPlatformAction((ShutdownPlatform)action, request.getSender(), requesterPrincipal, requesterCredentials);
 		}
   	// INSTALL MTP
   	else if (action instanceof InstallMTP) {
