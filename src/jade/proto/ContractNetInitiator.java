@@ -471,7 +471,7 @@ public class ContractNetInitiator extends Initiator {
    * collected or when the timeout is expired.
    * The used timeout is the minimum value of the slot <code>replyBy</code> 
    * of all the sent messages. 
-   * By response message we intend here all the <code>agree, not-understood,
+   * By response message we intend here all the <code>propose, not-understood,
    * refuse</code> received messages, which are not
    * not out-of-sequence according
    * to the protocol rules.
