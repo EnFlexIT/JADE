@@ -33,6 +33,7 @@ import jade.onto.OntologyException;
 
 import jade.onto.basic.*;
 
+import java.util.*;
 
 /**
    Javadoc documentation for the file EmploymentOntology
@@ -52,10 +53,13 @@ public class EmploymentOntology {
   public static final String ADDRESS = "ADDRESS";
   public static final String PERSON = "PERSON";
   public static final String COMPANY = "COMPANY";
-  // Predicates
-  public static final String WORKS_FOR = "WORKS-FOR";
   // Actions
   public static final String ENGAGE = "ENGAGE";
+  // Predicates
+  public static final String WORKS_FOR = "WORKS-FOR";
+	// Propositions
+  public static final String ENGAGEMENT_ERROR = "ENGAGEMENT-ERROR";
+  public static final String PERSON_TOO_OLD = "PERSON-TOO-OLD";
   
   private static Ontology theInstance = new DefaultOntology();
 
@@ -86,6 +90,7 @@ public class EmploymentOntology {
 				ADDRESS, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor("street", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  			new SlotDescriptor("number", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.M),
 	  			new SlotDescriptor("city", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 				}, 
 				new RoleEntityFactory() {
@@ -99,7 +104,7 @@ public class EmploymentOntology {
 				PERSON, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  			new SlotDescriptor("age", Ontology.PRIMITIVE_SLOT, Ontology.INTEGER_TYPE, Ontology.O),
+	  			new SlotDescriptor("age", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  			new SlotDescriptor("address", Ontology.FRAME_SLOT, ADDRESS, Ontology.O)
 				}, 
 				new RoleEntityFactory() {
@@ -121,7 +126,7 @@ public class EmploymentOntology {
 				}
 			);
 
-			// Adds WORKS-FOR role
+			// Adds WORKS_FOR role
 			theInstance.addRole(
 				WORKS_FOR, 
 				new SlotDescriptor[]{
@@ -146,12 +151,34 @@ public class EmploymentOntology {
 					public Class getClassForRole() { return Engage.class; }
 				}
 			);
-	   	   
+	
+			// Adds PERSON_TO_OLD role
+			theInstance.addRole(
+				EmploymentOntology.PERSON_TOO_OLD, 
+				new SlotDescriptor[]{
+				}, 
+				new RoleEntityFactory() {
+					public Object create(Frame f) { return new PersonTooOld(); } 
+					public Class getClassForRole() { return PersonTooOld.class; }
+				}
+			);
+
+			// Adds ENGAGEMENT_ERROR role
+			theInstance.addRole(
+				EmploymentOntology.ENGAGEMENT_ERROR, 
+				new SlotDescriptor[]{
+				}, 
+				new RoleEntityFactory() {
+					public Object create(Frame f) { return new EngagementError(); } 
+					public Class getClassForRole() { return EngagementError.class; }
+				}
+			);
+
 			// DEBUG: PRINT VOCABULARY
-	  	//List voc = theInstance.getVocabulary();
-	  	//Iterator i = voc.iterator();
-	  	//while (i.hasNext())
-	  	//	System.out.println((String) (i.next()));
+	  	List voc = theInstance.getVocabulary();
+	  	Iterator i = voc.iterator();
+	  	while (i.hasNext())
+	  		System.out.println((String) (i.next()));
 	  	
     }	// End of try
     catch(OntologyException oe) {
