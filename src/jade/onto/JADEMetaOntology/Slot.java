@@ -22,7 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-package jade.onto.JadeMetaOntology;
+package jade.onto.JADEMetaOntology;
 import java.util.ArrayList;
 import java.util.Iterator;
 
