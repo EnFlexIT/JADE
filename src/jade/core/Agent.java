@@ -9,6 +9,8 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import jade.lang.acl.*;
+import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAException;
 
 /**************************************************************
 
@@ -28,25 +30,24 @@ import jade.lang.acl.*;
 public class Agent implements Runnable, CommBroadcaster {
 
 
-  // Agent Platform Life-Cycle states -- Package-level visibility
+  // Agent Platform Life-Cycle states
 
-  static final int AP_MIN = -1;   // Hand-made type checking
-  static final int AP_INITIATED = 1;
-  static final int AP_ACTIVE = 2;
-  static final int AP_SUSPENDED = 3;
-  static final int AP_WAITING = 4;
-  static final int AP_DELETED = 5;
-  static final int AP_MAX = 6;    // Hand-made type checking
+  public static final int AP_MIN = -1;   // Hand-made type checking
+  public static final int AP_INITIATED = 1;
+  public static final int AP_ACTIVE = 2;
+  public static final int AP_SUSPENDED = 3;
+  public static final int AP_WAITING = 4;
+  public static final int AP_DELETED = 5;
+  public static final int AP_MAX = 6;    // Hand-made type checking
 
+  // Domain Life-Cycle states
 
-  // Domain Life-Cycle states -- Package-level visibility
-
-  static final int D_MIN = 9;     // Hand-made type checking
-  static final int D_ACTIVE = 10;
-  static final int D_SUSPENDED = 20;
-  static final int D_RETIRED = 30;
-  static final int D_UNKNOWN = 40;
-  static final int D_MAX = 41;    // Hand-made type checking
+  public static final int D_MIN = 9;     // Hand-made type checking
+  public static final int D_ACTIVE = 10;
+  public static final int D_SUSPENDED = 20;
+  public static final int D_RETIRED = 30;
+  public static final int D_UNKNOWN = 40;
+  public static final int D_MAX = 41;    // Hand-made type checking
 
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
@@ -59,14 +60,15 @@ public class Agent implements Runnable, CommBroadcaster {
   protected Scheduler myScheduler;
   protected ACLMessage currentMessage;
 
-  protected int APState;
-  protected int DomainState;
+  private int myAPState;
+  private int myDomainState;
 
   protected ACLParser myParser = ACLParser.create();
 
 
   public Agent() {
-    APState = AP_INITIATED;
+    myAPState = AP_INITIATED;
+    myDomainState = D_UNKNOWN;
     myThread = new Thread(this);
     myScheduler = new Scheduler(this);
   }
@@ -89,22 +91,22 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   public void doMove() { // Transition from Active to Initiated
-    APState = AP_INITIATED;
+    myAPState = AP_INITIATED;
     // FIXME: Should do something more
   }
 
   public void doSuspend() { // Transition from Active to Suspended
-    APState = AP_SUSPENDED;
+    myAPState = AP_SUSPENDED;
     // FIXME: Should do something more
   }
 
   public void doActivate() { // Transition from Suspended to Active
-    APState = AP_ACTIVE;
+    myAPState = AP_ACTIVE;
     // FIXME: Should do something more
   }
 
   public synchronized void doWait() { // Transition from Active to Waiting
-    APState = AP_WAITING;
+    myAPState = AP_WAITING;
     try {
       wait(); // Blocks on its monitor
     }
@@ -114,29 +116,37 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   public synchronized void doWake() { // Transition from Waiting to Active
-    APState = AP_ACTIVE;
+    myAPState = AP_ACTIVE;
     notify(); // Wakes up the embedded thread
   }
 
   public void doDelete() { // Transition to destroy the agent
-    APState = AP_DELETED; // FIXME: Should do something more
+    myAPState = AP_DELETED; // FIXME: Should do something more
   }
 
   public final void run() {
 
-    registerWithAMS(null,null,null,Agent.AP_ACTIVE);
+    try{
+      registerWithAMS(null,null,null,Agent.AP_ACTIVE);
+      
+      setup();
 
-    setup();
+      mainLoop();
 
-    mainLoop();
+      destroy();
+    }
+    catch(Exception e) {
+      System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
+      e.printStackTrace();
+      destroy();
+    }
 
-    destroy();
   }
 
   protected void setup() {}
 
   private void mainLoop() {
-    while(APState != AP_DELETED) {
+    while(myAPState != AP_DELETED) {
 
       // Select the next behaviour to execute
       Behaviour b = myScheduler.schedule();
@@ -249,7 +259,7 @@ public class Agent implements Runnable, CommBroadcaster {
 
   // Register yourself with platform AMS
   public void registerWithAMS(String signature, String delegateAgent,
-			      String forwardAddress, int APState) {
+			      String forwardAddress, int APState) throws FIPAException {
 
     String replyString = myName + "-ams-registration";
 
@@ -263,11 +273,15 @@ public class Agent implements Runnable, CommBroadcaster {
     request.setProtocol("fipa-request");
     request.setReplyWith(replyString);
 
+    AgentManagementOntology o = AgentManagementOntology.instance();
+
+    String APStateName = o.getAPStateByCode(APState);
+
     // Put mandatory attributes in content string
     String content = "( action ams ( register-agent (" +
       " :agent-name " + myName +
       " :address " + myAddress +
-      " :ap-state active"; // FIXME: 'APState argument is ignored
+      " :ap-state " + APStateName;
 
     // Add optional attributes if presents
     if(signature != null)
@@ -287,10 +301,19 @@ public class Agent implements Runnable, CommBroadcaster {
 
     ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
-    if(reply.getType().equalsIgnoreCase("agree"))
-      blockingReceive(MessageTemplate.MatchReplyTo(replyString)); // FIXME: Should check that it is an 'inform' message
+    // FIXME: Should unmarshal content of 'refuse' and 'failure'
+    // messages and convert them in Java exceptions
+    if(reply.getType().equalsIgnoreCase("agree")) {
+      reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
+
+      if(!reply.getType().equalsIgnoreCase("inform")) {
+	System.out.println("AMS registration failed !!!");
+	doDelete();
+      }
+
+    }
     else {
-      System.out.println("AMS registration failed !!!");
+      System.out.println("AMS registration refused !!!");
       doDelete();
     }
 
