@@ -107,7 +107,7 @@ public class DefaultOntology implements Ontology {
 
     Class c = fac.getClassForRole();
 
-    Object o = fac.create();
+    Object o = fac.create(f);
     return initObject(f, o, c);
 
   }
