@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1998/10/26 22:39:48  Giovanni
+  Added a list of properties to CreateAgentAction class.
+
   Revision 1.8  1998/10/26 00:02:21  rimassa
   Added new inner classes and string constant to represent
   'create-agent' and 'kill-agent' new AMS actions.
@@ -22,6 +25,7 @@ import java.io.Writer;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.Vector;
 
 import jade.core.Agent;
@@ -589,8 +593,10 @@ public class AgentManagementOntology {
 
   public static class CreateAgentAction extends AMSAction {
 
+    public static final String CONTAINER = ":container";
+
     private String className = "jade.core.Agent";
-    private int containerID = 0;
+    private Properties agentProperties = new Properties();
 
     public void setClassName(String cn) {
       className = cn;
@@ -600,12 +606,16 @@ public class AgentManagementOntology {
       return className;
     }
 
-    public void setContainerID(int id) {
-      containerID = id;
+    public void addProperty(String name, String value) {
+      agentProperties.put(name.toLowerCase(), value);
     }
 
-    public int getContainerID() {
-      return containerID;
+    public String getProperty(String name) {
+      return agentProperties.getProperty(name.toLowerCase());
+    }
+
+    public void removeProperty(String name) {
+      agentProperties.remove(name.toLowerCase());
     }
 
   }
