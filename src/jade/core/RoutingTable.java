@@ -21,7 +21,6 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-//__BACKWARD_COMPATIBILITY__BEGIN
 package jade.core;
 
 import jade.util.leap.Iterator;
@@ -174,7 +173,7 @@ class RoutingTable {
      Adds a new locally installed MTP for the URL named
      <code>url</code>.
    */
-  public void addLocalMTP(String url, MTP proto) {
+  public synchronized void addLocalMTP(String url, MTP proto) {
     url = url.toLowerCase();
     // A local MTP can receive messages
     inPorts.put(url, proto);
@@ -204,7 +203,7 @@ class RoutingTable {
      Removes a locally installed MTP for the URL named
      <code>url</code>.
    */
-  public MTP removeLocalMTP(String url) {
+  public synchronized MTP removeLocalMTP(String url) {
     url = url.toLowerCase();
     // A local MTP appears both in the input and output port tables
     MTP proto = (MTP)inPorts.remove(url);
@@ -232,7 +231,7 @@ class RoutingTable {
     return proto;
   }
 
-  public void addRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
+  public synchronized void addRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
 
     // A remote MTP can be used only for outgoing messages, through an
     // OutPort that routes messages through a container
@@ -249,7 +248,7 @@ class RoutingTable {
   /**
      Removes the MTP for the URL named <code>name</code>.
    */
-  public void removeRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
+  public synchronized void removeRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
     OutPort ch = new OutViaContainer(where);
     String[] protoNames = mtp.getSupportedProtocols();
     for(int i = 0; i < protoNames.length; i++) {
@@ -264,7 +263,7 @@ class RoutingTable {
      Retrieves an outgoing channel object suitable for
      reaching the address <code>url</code>.
    */
-  public OutPort lookup(String url) {
+  public synchronized OutPort lookup(String url) {
     url = url.toLowerCase();
     String proto = extractProto(url);
     OutPortList l = (OutPortList)outPorts.get(proto);
@@ -274,7 +273,7 @@ class RoutingTable {
       return null;
   }
 
-  public Iterator getAddresses() {
+  public synchronized Iterator getAddresses() {
     return platformAddresses.iterator();
   }
 
@@ -305,7 +304,6 @@ class RoutingTable {
   }
 
 }
-//__BACKWARD_COMPATIBILITY__END
 
 /*__J2ME_COMPATIBILITY__BEGIN
 package jade.core;

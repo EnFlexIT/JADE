@@ -257,22 +257,47 @@ class MainContainerImpl implements Platform, AgentManager {
   
   } // END of inner class FailureMonitor
 
-  private void cleanTables(ContainerID crashedContainer) {
-    // If the container that is being removed has crashed all its agents
-    // appear to be still alive both in the GADT and in the AMS.
+  private void cleanTables(ContainerID crashedID) {
+  	String crashedName = crashedID.getName();
+    // If a container has crashed all its agents
+    // appear to be still alive both in the GADT and in the AMS -->
+  	// Clean them 
     AID[] allIds = platformAgents.keys();
 
     for (int i = 0; i < allIds.length; ++i) {
     	AID    id = allIds[i];
       ContainerID cid = platformAgents.get(id).getContainerID();
 
-      if (CaseInsensitiveString.equalsIgnoreCase(cid.getName(), crashedContainer.getName())) {
+      if (CaseInsensitiveString.equalsIgnoreCase(cid.getName(), crashedName)) {
       	// This agent was living in the container that has crashed
         // --> It must be cleaned
         platformAgents.remove(id);
-        fireDeadAgent(crashedContainer, id);
+        fireDeadAgent(crashedID, id);
     	} 
   	} 
+  	
+  	// Also notify listeners and other containers that the MTPs that 
+  	// were active on the crashed container are no longer available
+  	try {
+	  	String[] names = containers.names();
+  		AgentContainer crashed = containers.getContainer(crashedName);
+  		List mtps = containers.getMTPs(crashedName);
+  		Iterator it = mtps.iterator();
+  		while (it.hasNext()) {
+  			MTPDescriptor dsc = (MTPDescriptor) it.next();
+  			fireRemovedMTP(dsc.getAddress(), crashedID);
+  			for (int i = 0; i < names.length; ++i) {
+  				if (!CaseInsensitiveString.equalsIgnoreCase(names[i], crashedName)) {
+  					AgentContainer ac = containers.getContainer(names[i]);
+  					ac.updateRoutingTable(AgentContainer.DEL_RT, dsc, crashed);
+  				}
+  			}
+  		}
+  	}
+  	catch (Exception e) {
+  		// Just print a warning
+  		System.out.println("Error cleaning MTPs of crashed container");
+  	}
   }
 
   // Private methods to notify platform listeners of a significant event.

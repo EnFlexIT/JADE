@@ -348,63 +348,49 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void installACLCodec(String className) throws jade.lang.acl.ACLCodec.CodecException {
   	myACC.addACLCodec(className);
-  	/*
-    try{
-      Class c = Class.forName(className);
-      ACLCodec codec = (ACLCodec)c.newInstance(); 
-      myACC.addACLCodec(codec);
-      System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className +"\n");
-      // FIXME: notify the AMS of the new Codec to update the APDescritption.
-    }
-    catch(ClassNotFoundException cnfe){
-      throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.",cnfe);
-    }
-    catch(InstantiationException ie) {
-      throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)",ie);
-    }
-    catch(IllegalAccessException iae) {
-      throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-    }
-		*/
   }
 
   public MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException {
   	MTPDescriptor result = myACC.addMTP(className, address);
+  	
+    // Add the address of the new MTP to the AIDs of all local agents
+    Agent[] allLocalAgents = localAgents.values();
+  	for(int i = 0; i < allLocalAgents.length; i++) {
+	  	allLocalAgents[i].addPlatformAddress(result.getAddress());
+  	}
+  	
   	myPlatform.newMTP(result, myID);
+  	
   	return result;
-  	/*
-  	try {
-      Class c = Class.forName(className);
-      MTP proto = (MTP)c.newInstance();
-      TransportAddress ta = myACC.addMTP(proto, address);
-      String result = proto.addrToStr(ta);
-      myMain.newMTP(result, myID);
-      return result;
-    }
-    catch(ClassNotFoundException cnfe) {
-      throw new MTPException("ERROR: The class " + className + " for the " + address  + " MTP was not found");
-    }
-    catch(InstantiationException ie) {
-      throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
-    }
-    catch(IllegalAccessException iae) {
-      throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-    }
-    */
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
     MTPDescriptor mtp = myACC.removeMTP(address);
+    
+    // Remove the address of the old MTP to the AIDs of all local agents
+    Agent[] allLocalAgents = localAgents.values();
+  	for(int i = 0; i < allLocalAgents.length; i++) {
+	  	allLocalAgents[i].removePlatformAddress(address);
+  	}
+  	
     myPlatform.deadMTP(mtp, myID);
   }
 
   public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException {
+    Agent[] allLocalAgents = localAgents.values();
     switch(op) {
     case ADD_RT:
       myACC.addRoute(mtp, ac);
+    	// Add the address of the new MTP to the AIDs of all local agents
+      for(int i = 0; i < allLocalAgents.length; i++) 
+	  		allLocalAgents[i].addPlatformAddress(mtp.getAddress());
       break;
     case DEL_RT:
       myACC.removeRoute(mtp, ac);
+      System.out.println("removed address "+mtp.getAddress());
+    	// Remove the address of the old MTP to the AIDs of all local agents
+      for(int i = 0; i < allLocalAgents.length; i++) 
+	  		allLocalAgents[i].removePlatformAddress(mtp.getAddress());
       break;
     }
 
@@ -691,6 +677,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	myMobilityManager.handleClone(agentID, where, newName);
   }
 
+	public void addPlatformAddresses(AID id) {
+		myACC.addPlatformAddresses(id);
+	}
+	
   // Private methods
 
     /**

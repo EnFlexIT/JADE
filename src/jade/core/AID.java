@@ -143,9 +143,12 @@ public class AID implements Comparable, Serializable {
   /**
   * This method permits to add a transport address where 
   * the agent can be contacted.
+  * The address is added only if not yet present
   */
   public void addAddresses(String url) {
-    addresses.add(url);
+  	if (!addresses.contains(url)) {
+	    addresses.add(url);
+  	}
   }
 
   /**
@@ -301,19 +304,9 @@ public class AID implements Comparable, Serializable {
     public synchronized Object clone() {
         AID      result = new AID(this.name);
 
-        // Copying addresses
-        //Iterator it = getAllAddresses();
-        //while (it.hasNext()) {
-        //    result.addAddresses((String) it.next());
-        //}
-        result.addresses = addresses;
+        result.addresses = (ArrayList)((ArrayList)addresses).clone();
 
-        // Copying resolvers
-        //it = getAllResolvers();
-        //for (; it.hasNext(); ) {
-        //    result.addResolvers((AID) it.next());
-        //}
-        result.resolvers = resolvers;
+        result.resolvers = (ArrayList)((ArrayList)resolvers).clone();
 
         // Copying user defined slots
         //Enumeration enum = userDefSlots.propertyNames();

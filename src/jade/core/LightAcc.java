@@ -41,6 +41,8 @@ class LightAcc implements acc {
 
     // This is the default router to which outgoing messages are passed
     private AgentContainer router;
+    // The list of all platform addresses
+    private List platformAddresses = new ArrayList();
 
     /**
      * Constructor declaration
@@ -82,13 +84,6 @@ class LightAcc implements acc {
     } 
 
     /**
-     * @see acc#getProxy()
-     */
-    //public AgentProxy getProxy(AID agentID) throws NotFoundException {
-    //    return new ACCProxy(agentID, this);
-    //} 
-
-    /**
      * @see acc#addMTP()
      */
     public MTPDescriptor addMTP(String mtpClassName, 
@@ -99,7 +94,7 @@ class LightAcc implements acc {
     } 
 
     /**
-     * @see acc#addMTP()
+     * @see acc#removeMTP()
      */
     public MTPDescriptor removeMTP(String address) throws MTPException {
       // Just do nothing 
@@ -119,16 +114,35 @@ class LightAcc implements acc {
      * @see acc#addRoute()
      */
     public void addRoute(MTPDescriptor mtp, AgentContainer ac) {
-        // Just do nothing
+      // Just update the list of platform addresses
+    	synchronized (this) { // Mutual exclusion with addPlatformAddresses()
+    		platformAddresses.add(mtp.getAddress());
+    	}
     } 
 
     /**
      * @see acc#removeRoute()
      */
     public void removeRoute(MTPDescriptor mtp, AgentContainer ac) {
-        // Just do nothing
+      // Just update the list of platform addresses
+    	synchronized (this) { // Mutual exclusion with addPlatformAddresses()
+    		platformAddresses.remove(mtp.getAddress());
+    	}
     } 
 
+  /**
+     Add all platform addresses to the given AID
+   */
+  public void addPlatformAddresses(AID id) {
+  	synchronized (this) { // Mutual exclusion with add/removeRoute()
+  		Iterator it = platformAddresses.iterator();
+    	while(it.hasNext()) {
+      	String addr = (String)it.next();
+      	id.addAddresses(addr);
+    	}
+  	}
+  }
+  
     /**
      * @see acc#shutdown()
      */

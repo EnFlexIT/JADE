@@ -496,6 +496,38 @@ public class Agent implements Runnable, Serializable {
   }
 
   /**
+     This method adds a new platform address to the AID of this Agent.
+     It is called by the container when a new MTP is activated
+     in the platform (in the local container - installMTP() -  
+     or in a remote container - updateRoutingTable()) to keep the 
+     Agent AID updated.
+   */
+  synchronized void addPlatformAddress(String address) { // Mutual exclusion with Agent.powerUp()
+		if (myAID != null) {
+			// Cloning the AID is necessary as the agent may be using its AID.
+			// If this is the case a ConcurrentModificationException would be thrown
+			myAID = (AID)myAID.clone(); 
+			myAID.addAddresses(address);
+		}
+  }
+  
+  /**
+     This method removes an old platform address from the AID of this Agent.
+     It is called by the container when a new MTP is deactivated
+     in the platform (in the local container - uninstallMTP() -  
+     or in a remote container - updateRoutingTable()) to keep the 
+     Agent AID updated.
+   */
+  synchronized void removePlatformAddress(String address) { // Mutual exclusion with Agent.powerUp()
+		if (myAID != null) {
+			// Cloning the AID is necessary as the agent may be using its AID.
+			// If this is the case a ConcurrentModificationException would be thrown
+			myAID = (AID)myAID.clone(); 
+			myAID.removeAddresses(address);
+		}
+  }
+
+  /**
      Method to query the agent home address. This is the address of
      the platform where the agent was created, and will never change
      during the whole lifetime of the agent.
@@ -1340,12 +1372,13 @@ public class Agent implements Runnable, Serializable {
     if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
       myName = id.getLocalName();
       myHap = id.getHap();
-      myAID = id;
+      
+      synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
+		    myAID = id;
+				myToolkit.addPlatformAddresses(myAID);
+      }
 
-      //myThread = new Thread(myGroup, this);    
       myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
-      //myThread.setName(getLocalName());
-      //myThread.setPriority(myGroup.getMaxPriority());
       myThread.start();
     }
   }

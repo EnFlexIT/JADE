@@ -109,5 +109,9 @@ interface acc {
 
     public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
 
+  	/**
+       Add all platform addresses to the given AID
+   	*/
+  	public void addPlatformAddresses(AID id);
 }
 
