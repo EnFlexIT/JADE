@@ -131,10 +131,10 @@ public class Frame {
 
   /**
    @return the number of slots in this Frame.
-   **/
-   public int size() {
-     return slotNames.size();
-   }
+  */
+  public int size() {
+  	return slotNames.size();
+  }
 
   public String getSlotName(int position) throws OntologyException { 
     try {

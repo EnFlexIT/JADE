@@ -42,56 +42,59 @@ import java.util.Iterator;
 */
 class FrameSchema implements Cloneable, Serializable {
 
-  static class WrongTermTypeException extends OntologyException {
-    public WrongTermTypeException(String functorName, String termName, String termType) {
-      super("No term of type " + termType + " named " + termName + " in functor " + functorName);
+  static class WrongSlotTypeException extends OntologyException {
+    public WrongSlotTypeException(String functorName, String slotName, String slotType) {
+      super("No slot of type " + slotType + " named " + slotName + " in functor " + functorName);
     }
   }
 
   private Ontology myOntology;
   private Name myName;
-  private List terms;
+  private List slots;
 
 
   public FrameSchema(Ontology o, String n) {
     myOntology = o;
     myName = new Name(n);
-    terms = new ArrayList();
+    slots = new ArrayList();
   }
 
   public String getName() {
     return myName.toString();
   }
 
-  public void addTerm(TermDescriptor td) {
-    terms.add(td);
+  public void addSlot(SlotDescriptor td) {
+    slots.add(td);
   }
 
 
-private boolean isGoodConstantType(String required, Object current) {
-  try { 
-    return (Class.forName(required).isInstance(current));
-  } catch (Exception e) {
-    e.printStackTrace();
-    return false;
-  }
-}
+	private boolean isGoodPrimitiveType(String required, Object current) {
+  	try { 
+    	return (Class.forName(required).isInstance(current));
+  	} catch (Exception e) {
+    	e.printStackTrace();
+    	return false;
+  	}
+	}
 
 
   public void checkAgainst(Frame f) throws OntologyException {
-    for(int i = 0; i < terms.size(); i++) {
-      TermDescriptor td = (TermDescriptor)terms.get(i);
-      String name = td.getName();
-      if(!td.isOptional()) {
-	Object o = f.getSlot(name);
-	if (td.isConstant()) {
-	  if (!isGoodConstantType(td.getValueType(),o))
-	    throw new WrongTermTypeException(f.getName(), name, td.getValueType()); 
-	} else {
-	  if(!(o instanceof Frame))
-	    throw new WrongTermTypeException(f.getName(), name, "Frame"); 
-	  myOntology.check((Frame)o);
-	}
+    for(int i = 0; i < slots.size(); i++) {
+      SlotDescriptor sd = (SlotDescriptor)slots.get(i);
+      String name = sd.getName();
+      if(!sd.isOptional()) {
+				Object o = f.getSlot(name); // If a slot called name is not present in f, this method throws an exception
+				if (sd.isPrimitive()) {
+	  			if (!isGoodPrimitiveType(sd.getType(),o))
+	    			throw new WrongSlotTypeException(f.getName(), name, sd.getType()); 
+				} 
+				else {
+					// If the slot is not primitive than its value must be an instance of Frame
+					// In this case recursively check that frame
+	  			if(!(o instanceof Frame))
+	    			throw new WrongSlotTypeException(f.getName(), name, "Frame");
+	  			myOntology.check((Frame)o);
+				}
 
       } // End of 'if slot is not optional'
 
@@ -100,12 +103,12 @@ private boolean isGoodConstantType(String required, Object current) {
   }
 
   Iterator subSchemas() {
-    return terms.iterator();
+    return slots.iterator();
   }
 
-  TermDescriptor[] termsArray() {
-    Object[] objs = terms.toArray();
-    TermDescriptor[] result = new TermDescriptor[objs.length];
+  SlotDescriptor[] slotsArray() {
+    Object[] objs = slots.toArray();
+    SlotDescriptor[] result = new SlotDescriptor[objs.length];
     System.arraycopy(objs, 0, result, 0, objs.length);
     return result;
   }
