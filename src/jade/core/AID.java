@@ -223,12 +223,14 @@ public class AID implements Comparable, Serializable {
   * resolution services for the agent can be contacted) 
   */
   public void addResolvers(AID aid){
-		//#MIDP_EXCLUDE_BEGIN
-    resolvers.add(aid);
-		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
-    resolvers.addElement(aid);
-			#MIDP_INCLUDE_END*/
+  	if (!resolvers.contains(aid)) {
+			//#MIDP_EXCLUDE_BEGIN
+	    resolvers.add(aid);
+			//#MIDP_EXCLUDE_END
+			/*#MIDP_INCLUDE_BEGIN
+	    resolvers.addElement(aid);
+				#MIDP_INCLUDE_END*/
+  	}
   }
 
   /**
