@@ -64,8 +64,6 @@ final class DummyToolkit implements AgentToolkit {
 
     //FIXME should we here throw an InternalError also?
     public void handleEnd(AID agentID) {}
-    public void handleMove(AID agentID, Location where) {}
-    public void handleClone(AID agentID, Location where, String newName) {}
     public void handleSend(ACLMessage msg, AID sender) throws AuthException {}
     public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {}
     public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {}
@@ -73,6 +71,10 @@ final class DummyToolkit implements AgentToolkit {
     public void handleBehaviourAdded(AID agentID, Behaviour b) {}
     public void handleBehaviourRemoved(AID agentID, Behaviour b) {}
     public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {}
+
+    // FIXME: Needed due to the Persistence Service being an add-on
+    public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
+    public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {}
 
     //__SECURITY__BEGIN
     public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs) {}
