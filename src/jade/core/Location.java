@@ -29,8 +29,13 @@ Javadoc documentation for the file
 @version $Date$ $Revision$
 */
 
-public interface Location {
+import java.io.Serializable;
+
+public interface Location extends Serializable {
 
   String getID();
+  String getName();
+  String getProtocol();
+  String getAddress();
 
 }
