@@ -220,7 +220,7 @@ API_FILES6 =	jade/proto/package.html \
 		jade/proto/AchieveREResponder.java \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
-		jade/proto/FipaRequestInitiatorBehaviour.java 
+		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FIPAProtocolNames.java \
 		jade/tools/DummyAgent/package.html \
 		jade/tools/DummyAgent/DummyAgent.java \
