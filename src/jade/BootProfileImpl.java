@@ -237,7 +237,6 @@ public class BootProfileImpl extends ProfileImpl {
 	    // the default port if also the local port is null.
 	    if(isFirstMain()) {
 		port = argProp.getProperty(LOCALPORT_KEY);
-		System.out.println("FIRST MAIN @@@@@@@@ [" + port + "] @@@@@@@@@");
 	    }
 	    if(port == null) {
 		// All other cases: use the default port.
