@@ -32,7 +32,7 @@ import java.util.Vector;
 /**
    Boots <B><em>JADE</em></b> system, parsing command line arguments.
 
-   Javadoc documentation for the file 
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

@@ -34,7 +34,7 @@ import java.util.Vector;
    to perform message multicasting.
    @see jade.core.Agent#send(ACLMessage msg, AgentGroup g)
 	
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 
