@@ -255,9 +255,9 @@ public class ACLTracePanel extends JPanel {
     jade.util.leap.Properties prop = theACL.getAllUserDefinedParameters();
     if (prop.size() > 0) {
       aclModel.insertNodeInto(new DefaultMutableTreeNode("--- User Defined Parameters ---"), messageNode, i++);
-      java.util.Enumeration enum = prop.elements();
-      while (enum.hasMoreElements()) {
-        String key = (String)enum.nextElement();
+      java.util.Enumeration enumeration = prop.elements();
+      while (enumeration.hasMoreElements()) {
+        String key = (String)enumeration.nextElement();
         String value = (String)prop.getProperty(key);
         aclModel.insertNodeInto(new DefaultMutableTreeNode(":X-" + key + " " + value), messageNode, i++);
       }

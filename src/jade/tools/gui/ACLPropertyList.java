@@ -88,9 +88,9 @@ public class ACLPropertyList extends JPanel {
     this.fieldName = fieldName;
     jade.util.leap.Properties prop = msg.getAllUserDefinedParameters();
     this.aclPropertyListCellRenderer.register(msg);
-    java.util.Enumeration enum = prop.elements();
-    while (enum.hasMoreElements()) {
-      String key = (String)enum.nextElement();
+    java.util.Enumeration enumeration = prop.elements();
+    while (enumeration.hasMoreElements()) {
+      String key = (String)enumeration.nextElement();
       listModel.addElement(key);
     }
     contentList.setModel(listModel);

@@ -154,10 +154,10 @@ public class Properties extends Hashtable {
     //#APIDOC_EXCLUDE_BEGIN
   public Object clone() {
     Properties  p = new Properties();
-    Enumeration enum = propertyNames();
+    Enumeration enumeration = propertyNames();
 
-    while (enum.hasMoreElements()) {
-      String key = (String) enum.nextElement();
+    while (enumeration.hasMoreElements()) {
+      String key = (String) enumeration.nextElement();
       String value = getProperty(key);
       if(value != null) {
 	  p.setProperty(key, value);

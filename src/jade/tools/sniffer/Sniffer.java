@@ -277,8 +277,8 @@ public class Sniffer extends ToolAgent {
 //     * @return String The key which matched.
 //
     protected String preloadContains(String agentName) {
-        for (Enumeration enum = preload.keys(); enum.hasMoreElements() ;) {
-            String key = (String)enum.nextElement();
+        for (Enumeration enumeration = preload.keys(); enumeration.hasMoreElements() ;) {
+            String key = (String)enumeration.nextElement();
             if (isMatch(key, agentName)) {
                 return key;
             }
