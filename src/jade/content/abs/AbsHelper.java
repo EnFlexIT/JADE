@@ -39,6 +39,7 @@ import java.io.ByteArrayOutputStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class AbsHelper {
     /**
@@ -325,11 +326,11 @@ public class AbsHelper {
   		}
   	}
   	
-    public static String toString(AbsObject abs) {
+    /*public static String toString(AbsObject abs) {
 			ByteArrayOutputStream str = new ByteArrayOutputStream();
 			((AbsObjectImpl) abs).dump(0, new PrintStream(str));
 			return new String(str.toByteArray());
     
-    }    
+    }*/   
 }
 

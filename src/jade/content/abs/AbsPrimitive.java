@@ -32,6 +32,7 @@ import java.util.Date;
 
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class AbsPrimitive implements AbsTerm {
     private Object value = null;
@@ -322,12 +323,11 @@ public class AbsPrimitive implements AbsTerm {
         return value;
     } 
 
+    /**
+       @deprecated Use <code>toString()</code> instead
+     */
     protected void dump(int indent, PrintStream ps) {
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println(getObject());
+    	ps.println(toString());
     } 
 
     /**
@@ -369,7 +369,10 @@ public class AbsPrimitive implements AbsTerm {
     public int getCount() {
     	return 0;
     }
-
+    
+    /**
+       @deprecated Use <code>toString()</code> instead
+     */
     public void dump() {
       dump(0, System.out);
     }

@@ -29,6 +29,7 @@ import jade.util.leap.Serializable;
 /**
  * The common ancestor of all abstract descriptors
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public interface AbsObject extends Serializable {
     /**
@@ -63,6 +64,9 @@ public interface AbsObject extends Serializable {
      */
     public int getCount();
 
+    /**
+     * @deprecated Use <code>toString()</code> instead
+     */
     public void dump();
 }
 

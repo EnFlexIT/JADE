@@ -173,7 +173,6 @@ public class BCReflectiveIntrospector implements Introspector {
 
     	// LOOP on slots 
     	for (int i = 0; i < names.length; ++i) {
-      	//SlotDescriptor desc = (SlotDescriptor)it.next();
       	String slotName = names[i];
       	AbsObject value = abs.getAbsObject(slotName);
       	if (value != null) {

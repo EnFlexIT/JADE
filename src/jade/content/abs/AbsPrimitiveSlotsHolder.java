@@ -27,7 +27,7 @@ package jade.content.abs;
 import java.util.Date;
 
 /**
- * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
 

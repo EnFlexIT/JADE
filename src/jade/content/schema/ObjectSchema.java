@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 import jade.content.schema.facets.*;
+import jade.core.CaseInsensitiveString;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -70,6 +71,7 @@ public class ObjectSchema {
     public static final int UNLIMITED = -1;
     
     private Hashtable       slots = new Hashtable();
+    private Vector       		slotNames = new Vector();
     private Vector          superSchemas = new Vector();
     private String          typeName = null;
     private Hashtable       facets = new Hashtable();
@@ -109,7 +111,10 @@ public class ObjectSchema {
      * or <code>MANDATORY</code>
      */
     protected void add(String name, ObjectSchema slotSchema, int optionality) {
-        slots.put(name.toUpperCase(), new SlotDescriptor(name, slotSchema, optionality));
+    	CaseInsensitiveString ciName = new CaseInsensitiveString(name);
+      if (slots.put(ciName, new SlotDescriptor(name, slotSchema, optionality)) == null) {
+        	slotNames.addElement(ciName);
+      }
     } 
 
   	/**
@@ -169,12 +174,12 @@ public class ObjectSchema {
        a valid slot in this schema
      */
 		protected void addFacet(String slotName, Facet f) throws OntologyException {
-			slotName = slotName.toUpperCase();
 			if (containsSlot(slotName)) {
-				Vector v = (Vector) facets.get(slotName);
+				CaseInsensitiveString ciName = new CaseInsensitiveString(slotName);
+				Vector v = (Vector) facets.get(ciName);
 				if (v == null) {
 					v = new Vector();
-					facets.put(slotName, v);
+					facets.put(ciName, v);
 					//DEBUG
 					//System.out.println("Added facet "+f+" to slot "+slotName); 
 				}
@@ -200,14 +205,14 @@ public class ObjectSchema {
      * @return the names of all slots.
      */
     public String[] getNames() {
-        Vector allSlotDescriptors = new Vector();
+        Vector allSlotNames = new Vector();
 
-        getAllSlotDescriptors(allSlotDescriptors);
+        fillAllSlotNames(allSlotNames);
 
-        String[] names = new String[allSlotDescriptors.size()];
+        String[] names = new String[allSlotNames.size()];
         int      counter = 0;
-        for (Enumeration e = allSlotDescriptors.elements(); e.hasMoreElements(); ) {
-            names[counter++] = (String) e.nextElement();
+        for (Enumeration e = allSlotNames.elements(); e.hasMoreElements(); ) {
+            names[counter++] = ((CaseInsensitiveString) e.nextElement()).toString();
         }
 
         return names;
@@ -222,8 +227,8 @@ public class ObjectSchema {
      * in this schema.
      */
     public ObjectSchema getSchema(String name) throws OntologyException {
-        name = name.toUpperCase();
-        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
+        CaseInsensitiveString ciName = new CaseInsensitiveString(name);
+        SlotDescriptor slot = (SlotDescriptor) slots.get(ciName);
 
         if (slot == null) {
             for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
@@ -251,8 +256,8 @@ public class ObjectSchema {
      * slot defined in this <code>Schema</code>.
      */
     public boolean containsSlot(String name) {
-        name = name.toUpperCase();
-        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
+        CaseInsensitiveString ciName = new CaseInsensitiveString(name);
+        SlotDescriptor slot = (SlotDescriptor) slots.get(ciName);
 
         if (slot != null) {
             return true;
@@ -276,21 +281,17 @@ public class ObjectSchema {
     	throw new OntologyException("AbsObject cannot be instantiated");
     }
 
-    private void getAllSlotDescriptors(Vector v) {
-    		// Get slot descriptors of super schemas
+    private void fillAllSlotNames(Vector v) {
+    		// Get slot names of super schemas first
         for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
             ObjectSchema superSchema = (ObjectSchema) e.nextElement();
 
-            superSchema.getAllSlotDescriptors(v);
+            superSchema.fillAllSlotNames(v);
         } 
-
-        int position = v.size() + slots.size() - 1;
-        v.setSize(v.size() + slots.size());
-        // Get slot descriptors directly defined in this schema
-        for (Enumeration e = slots.keys(); e.hasMoreElements(); ) {
-            v.setElementAt(e.nextElement(), position);
-            position--;
-        	//v.addElement(e.nextElement());
+				
+        // Then add slot names of this schema
+        for (Enumeration e = slotNames.elements(); e.hasMoreElements(); ) {
+        	v.addElement(e.nextElement());
         }
     } 
     
@@ -319,7 +320,8 @@ public class ObjectSchema {
   		String[] slotNames = getNames();
   		for (int i = 0; i < slotNames.length; ++i) {
   			AbsObject slotValue = abs.getAbsObject(slotNames[i]);
-  			validate(slotNames[i], slotValue, onto);
+  			CaseInsensitiveString ciName = new CaseInsensitiveString(slotNames[i]);
+  			validate(ciName, slotValue, onto);
   		}
   	}
   		
@@ -333,7 +335,7 @@ public class ObjectSchema {
 	     @return true if the slot is defined in this schema (or in 
 	     one of its super schemas). false otherwise
 	   */
-  	private boolean validate(String slotName, AbsObject value, Ontology onto) throws OntologyException {
+  	private boolean validate(CaseInsensitiveString slotName, AbsObject value, Ontology onto) throws OntologyException {
 			// DEBUG
   		//System.out.println("Validating "+value+" as a value for slot "+slotName); 
   		// NOTE: for performance reasons we don't want to scan the schema 

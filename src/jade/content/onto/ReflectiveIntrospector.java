@@ -30,9 +30,11 @@ import jade.content.schema.*;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import java.lang.reflect.*;
+import jade.core.CaseInsensitiveString;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class ReflectiveIntrospector implements Introspector {
 
@@ -61,30 +63,23 @@ public class ReflectiveIntrospector implements Introspector {
             //System.out.println("Schema is: "+schema);
             AbsObject    abs = schema.newInstance();
             
-            Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
 
-            //FIXME: The correct way to do this would be to loop on
-            // slot names and call related get methods.
-            for (int i = 0; i < methods.length; i++) {
-            	Method m = methods[i];
-              String methodName = m.getName();
+            // Loop on slots
+      			for (int i = 0; i < names.length; ++i) {
+      				String slotName = names[i];
+      				ObjectSchema slotSchema = schema.getSchema(slotName);
+      	
+      				String methodName = "get" + translateName(slotName);
+      				// Retrieve the accessor method from the class and call it
+      				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
+        			AbsObject value = invokeGetMethod(referenceOnto, getMethod, obj);
+        			//DEBUG 
+        			//System.out.println("Attribute value is: "+value);
 
-              if (methodName.startsWith("get")) {
-                String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
-
-                if (schema.containsSlot(attributeName)) {
-            			//DEBUG 
-                	//System.out.println("Handling attribute "+attributeName);
-                  AbsObject attributeValue = invokeGetMethod(referenceOnto, m, obj);
-            			//DEBUG 
-                  //System.out.println("Attribute value is: "+attributeValue);
-
-                  if (attributeValue != null) {
-                  	Ontology.setAttribute(abs, attributeName, attributeValue);
-                  } 
-                } 
-              } 
+        			if (value != null) {
+          			Ontology.setAttribute(abs, slotName, value);
+        			}             	
             } 
 
             return abs;
@@ -158,26 +153,20 @@ public class ReflectiveIntrospector implements Introspector {
             Object       obj = javaClass.newInstance();
             //DEBUG System.out.println("Object created");
             
-            Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
 
-            for (int i = 0; i < methods.length; i++) {
-            	Method m = methods[i];
-              String methodName = m.getName();
-
-              if (methodName.startsWith("set")) {
-                String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
-
-                if (schema.containsSlot(attributeName)) {
-            			//DEBUG System.out.println("Handling attribute "+attributeName);
-                	AbsObject attributeValue = abs.getAbsObject(attributeName);
-            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
-
-                  if (attributeValue != null) {
-                  	invokeSetMethod(referenceOnto, m, obj, attributeValue);
-                  } 
-                } 
-              } 
+    				// LOOP on slots 
+    				for (int i = 0; i < names.length; ++i) {
+      				String slotName = names[i];
+      				AbsObject value = abs.getAbsObject(slotName);
+      				if (value != null) {
+	      				ObjectSchema slotSchema = schema.getSchema(slotName);
+      	
+  	    				String methodName = "set" + translateName(slotName);
+      					// Retrieve the modifier method from the class and call it
+      					Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
+          			invokeSetMethod(referenceOnto, setMethod, obj, value);
+        			}             	
             } 
 
             return obj;
@@ -244,5 +233,44 @@ public class ReflectiveIntrospector implements Introspector {
     public void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException {
     	// FIXME: Not yet implemented
     }
+    
+  private Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
+    Method[] methods = c.getMethods();
+    for(int i = 0; i < methods.length; i++) {
+      String ithName = methods[i].getName();
+      if(CaseInsensitiveString.equalsIgnoreCase(ithName, name))
+				return methods[i];
+    }
+    throw new OntologyException("Method " + name + " not found in class "+c.getName());
+  }
+  
+	private String translateName(String name) {
+		StringBuffer buf = new StringBuffer();
+
+		boolean capitalize = false;
+
+		for (int i = 0; i < name.length(); i++) {
+			char c = name.charAt(i);
+			switch (c) {
+			case ':':
+				// Just ignore it
+	     	break;
+			case '-':
+				// Don't copy the character, but capitalize the next
+				// one so that x-y becomes xY
+	     	capitalize = true;
+				break;
+ 			default:
+				if (capitalize) {
+					buf.append(Character.toUpperCase(c));
+					capitalize = false;
+				} 
+				else {
+					buf.append(c);
+				} 
+			}
+		} 
+		return buf.toString();
+	} 
 }
 

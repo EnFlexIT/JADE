@@ -32,6 +32,7 @@ import jade.content.lang.Codec;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class AbsAggregate extends AbsConcept {
 		private static final int UNNAMEDPREFIX_LENGTH = Codec.UNNAMEDPREFIX.length();
@@ -168,21 +169,7 @@ public class AbsAggregate extends AbsConcept {
     }
     			
     protected void dump(int indent, PrintStream ps) {
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println("(");
-
-        for (int i = 0; i < elements.size(); i++) {
-            ((AbsObjectImpl) elements.get(i)).dump(indent + 1, ps);
-        }
-
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println(")");
+    	ps.println(toString());
     } 
     
     

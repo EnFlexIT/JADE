@@ -32,6 +32,7 @@ import java.io.PrintStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class AbsContentElementList implements AbsContentElement {
   	private List elements = new ArrayList();
@@ -138,22 +139,8 @@ public class AbsContentElementList implements AbsContentElement {
     }
 
     protected void dump(int indent, PrintStream ps) {
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println("(");
-
-        for (int i = 0; i < elements.size(); i++) {
-            ((AbsObjectImpl) elements.get(i)).dump(indent + 1, ps);
-        }
-
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println(")");
-    } 
+    	ps.println(toString());
+    }
     
     /**
      * @return The name of the type of the object held by this
@@ -191,16 +178,31 @@ public class AbsContentElementList implements AbsContentElement {
     }
 
     /**
-       Makes no sense in the case of an AbsContentElementList that has no attribute
-       --> Just return 0
+       Return the number of elements in the list. Is equivalent to 
+       <code>size()</code>
      */
     public int getCount() {
-    	return 0;
+    	return size();
     }
-
+    
+    /**
+       @deprecated Use <code>toString</code> instead
+     */    
     public void dump() {
       dump(0, System.out);
     }
     	
+    public String toString() {
+    	StringBuffer sb = new StringBuffer("(");
+    	sb.append(getTypeName());
+    	Iterator it = elements.iterator();
+    	int i = 0;
+    	while (it.hasNext()) {
+    		sb.append(" #"+i+" "+it.next());
+    		++i;
+    	}
+    	sb.append(")");
+    	return sb.toString();
+    }
 }
 

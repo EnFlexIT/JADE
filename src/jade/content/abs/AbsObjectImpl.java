@@ -24,6 +24,8 @@
  */
 package jade.content.abs;
 
+import jade.core.CaseInsensitiveString;
+import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.io.PrintStream;
@@ -31,9 +33,11 @@ import java.io.PrintStream;
 /**
  * Base class for all abstract descriptor classes.
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
-public class AbsObjectImpl implements AbsObject {
+class AbsObjectImpl implements AbsObject {
     private Hashtable elements = new Hashtable();
+    private Vector    names = new Vector();
     private String    typeName = null;
 
     /**
@@ -64,11 +68,14 @@ public class AbsObjectImpl implements AbsObject {
      * removed.
      */
     protected void set(String name, AbsObject value) {
+    		CaseInsensitiveString ciName = new CaseInsensitiveString(name);
     		if (value == null) {
-    			elements.remove(name);
+    			elements.remove(ciName);
+    			names.removeElement(ciName);
     		}
     		else {
-	        elements.put(name.toUpperCase(), value);
+	        elements.put(ciName, value);
+    			names.addElement(ciName);
     		}
     } 
 
@@ -80,7 +87,7 @@ public class AbsObjectImpl implements AbsObject {
      * @see AbsObject#getAbsObject()
      */
     public AbsObject getAbsObject(String name) {
-        return (AbsObject) elements.get(name.toUpperCase());
+        return (AbsObject) elements.get(new CaseInsensitiveString(name));
     } 
 
     /**
@@ -88,14 +95,19 @@ public class AbsObjectImpl implements AbsObject {
      * @see AbsObject#getNames()
      */
     public String[] getNames() {
-        String[] names = new String[getCount()];
-        int      count = getCount() - 1;
+        String[] elementNames = new String[getCount()];
+        
+        int count = 0;
+				for (Enumeration e = names.elements(); e.hasMoreElements(); ) {
+					elementNames[count++] = ((CaseInsensitiveString) e.nextElement()).toString();
+				}
+        /*int      count = getCount() - 1;
 
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
             names[count--] = (String) e.nextElement();
-        }
+        }*/
 
-        return names;
+        return elementNames;
     } 
 
     /**
@@ -124,30 +136,16 @@ public class AbsObjectImpl implements AbsObject {
         return elements.size();
     } 
 
+    /**
+       @deprecated Use <code>toString()</code> instead
+     */
     protected void dump(int indent, PrintStream ps) {
-        for (int i = 0; i < indent; i++) {
-            ps.print("  ");
-        }
-
-        ps.println(getTypeName());
-
-        String[] names = getNames();
-
-        for (int i = 0; i < getCount(); i++) {
-            for (int j = 0; j < indent; j++) {
-                ps.print("  ");
-            }
-
-            ps.println(":" + names[i]);
-
-            AbsObjectImpl abs = (AbsObjectImpl) getAbsObject(names[i]);
-
-            abs.dump(indent + 1, ps);
-        } 
+    	ps.println(toString());
     }
 
     /**
      * @see AbsObject#dump()
+     * @deprecated Use <code>toString()</code> instead
      */
     public void dump() {
         dump(0, System.out);
