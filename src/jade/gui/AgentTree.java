@@ -40,7 +40,7 @@ import java.awt.event.*;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class AgentTree extends JPanel{
+public class AgentTree extends JPanel {
   public JTree tree;
   static protected  Icon[] icons;
   private DescriptionNode desNode;
@@ -129,15 +129,14 @@ public class AgentTree extends JPanel{
 
   public ContainerNode(int idIcon,String name) {
      super(idIcon,name);
-     try {
-       addressmachine = InetAddress.getLocalHost(); // FIXME: Need the remote address of the container
-     }
-     catch (UnknownHostException a)
-       { System.out.println("Error LocalHost");}
    }
 
+  public void setAddress(InetAddress addr) {
+   addressmachine = addr; 
+  }
+
   public void setType(String type) {
-     typeContainer=type;
+     typeContainer = type;
   }
 
   public String getType() {
@@ -145,8 +144,11 @@ public class AgentTree extends JPanel{
   }
 
   public String getToolTipText() {
-     return name + ":" + addressmachine.getHostName() + "[" + addressmachine.getHostAddress() + "]";
-    }
+    if(addressmachine != null)
+      return name + ":" + addressmachine.getHostName() + "[" + addressmachine.getHostAddress() + "]";
+    else
+      return name + ":<Unknown Host> [???:???:???:???]";
+  }
 
  } // End of ContainerNode
 
@@ -200,7 +202,8 @@ public class AgentTree extends JPanel{
    return null;
  }
 
-  public void addContainerNode(Node node,String typeContainer) {
+  public void addContainerNode(ContainerNode node,String typeContainer, InetAddress addr) {
+    node.setAddress(addr);
     AgentTreeModel model = getModel();
     MutableTreeNode root = (MutableTreeNode)model.getRoot();
     model.insertNodeInto(node, root, root.getChildCount());
@@ -208,22 +211,21 @@ public class AgentTree extends JPanel{
     return;
   }
 
-
   public void removeContainerNode(String nameNode) {
     AgentTreeModel model = getModel();
     MutableTreeNode root = (MutableTreeNode)model.getRoot();
-	  Enumeration containers = root.children();
-	    while(containers.hasMoreElements()) {
-	      AgentTree.Node node = (AgentTree.Node)containers.nextElement();
-	      String nodeName = node.getName();
-	       if(nodeName.equalsIgnoreCase(nameNode)) {
-	         model.removeNodeFromParent(node);
-           return;
-         }
+    Enumeration containers = root.children();
+    while(containers.hasMoreElements()) {
+      AgentTree.Node node = (AgentTree.Node)containers.nextElement();
+      String nodeName = node.getName();
+      if(nodeName.equalsIgnoreCase(nameNode)) {
+	model.removeNodeFromParent(node);
+	return;
       }
+    }
   }
 
-  public void addAgentNode(Node node,String containerName,String agentName,String agentAddress,String agentType) {
+  public void addAgentNode(AgentNode node,String containerName,String agentName,String agentAddress,String agentType) {
       AgentTreeModel model = getModel();
       MutableTreeNode root = (MutableTreeNode)model.getRoot();
       node.setType(agentType);
