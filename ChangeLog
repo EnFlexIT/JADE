@@ -1,4 +1,4 @@
-MAJOR CHANGES in JADE Snapshot (29 August 2003)
+MAJOR CHANGES in JADE Snapshot (4 September 2003)
 ==========================================================================
 GENERAL IMPROVEMENTS:
 - new service-based kernel based on a Distributed Composition Filter pattern
@@ -15,6 +15,7 @@ GENERAL IMPROVEMENTS:
 - Introspector tool: a list of agents to introspect can be now passed as
   argument on the command line (Karl-Heinz Krempels)
 - ACC returns a failure msg to sender when msg is bouncing
+- The content of notifyFailureToSender() includes now the intended receiver that failed
 - LEAP IMTP and J2ME containers:
   - Modified to optimize container shutdown.
   - Adjusted synchronizations on local agents table
@@ -31,6 +32,7 @@ GENERAL IMPROVEMENTS:
   definition directly from an ACLMessage.
 - DF: improved the DF Applet (possible backward incompatibility), fixed bug
   in recursive search
+- Made lighter the ACLMessage class by avoiding cloning where possible
 	
 DOCUMENTATION:
 - Added JADEApplets tutorial
