@@ -31,7 +31,7 @@ import java.util.Iterator;
 
 import jade.lang.Codec;
 import jade.onto.Ontology;
-import jade.tools.dfgui.onto.*;
+import jade.domain.DFGUIManagement.*;
 import jade.core.AID;
 import jade.lang.acl.ACLParser;
 import jade.lang.acl.ACLMessage;

@@ -46,7 +46,7 @@ import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 import jade.domain.JADEAgentManagement.*;
 
-import jade.tools.dfgui.onto.*;
+import jade.domain.DFGUIManagement.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -56,7 +56,6 @@ import jade.onto.basic.ResultPredicate;
 import jade.proto.FipaRequestResponderBehaviour;
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-import jade.tools.dfgui.DFGUI;
 import jade.proto.FipaRequestInitiatorBehaviour;
 import jade.onto.basic.DonePredicate;
 
@@ -1004,12 +1003,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private class GUIRequestDFServiceBehaviour extends RequestFIPAServiceBehaviour
   {
     String actionName;
-    DFGUI gui;
+    DFGUIInterface gui;
     AID receiverDF;
     DFAgentDescription dfd;
     boolean correctly = false; //used to verify if the protocol finish correctly
     
-  	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUI gui) throws FIPAException
+  	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUIInterface gui) throws FIPAException
   	{
   		
   		super(df.this,receiverDF,actionName,dfd,constraints);
@@ -1156,7 +1155,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   @serial
   */
-  private DFGUI gui;
+  private DFGUIInterface gui;
 
   // Current description of the df
   /**
@@ -1242,17 +1241,23 @@ public class df extends GuiAgent implements DFGUIAdapter {
   public boolean showGui() {
    if (gui == null) 
   		{
-		    gui = new DFGUI(df.this, false);
-		    DFAgentDescription matchEverything = new DFAgentDescription();
-		    List agents = agentDescriptions.search(matchEverything);
-		    List AIDList = new ArrayList();
-		    Iterator it = agents.iterator();
-		    while(it.hasNext())
-		    	AIDList.add(((DFAgentDescription)it.next()).getName());
+		 
+  			try{
+  				Class c = Class.forName("jade.tools.dfgui.DFGUI");
+  			  gui = (DFGUIInterface)c.newInstance();
+		      gui.setAdapter(df.this); //this method must be called to avoid reflection (the constructor of the df gui has no parameters).		
+  			  DFAgentDescription matchEverything = new DFAgentDescription();
+		      List agents = agentDescriptions.search(matchEverything);
+		      List AIDList = new ArrayList();
+		      Iterator it = agents.iterator();
+		      while(it.hasNext())
+		      	AIDList.add(((DFAgentDescription)it.next()).getName());
 		    
-		    gui.refresh(AIDList.iterator(), parents.iterator(), children.iterator());
-		    gui.setVisible(true);
-		    return true;
+		      gui.refresh(AIDList.iterator(), parents.iterator(), children.iterator());
+		      gui.setVisible(true);
+		      return true;
+  			
+  			}catch(Exception e){e.printStackTrace();}
   		}
  
    return false;

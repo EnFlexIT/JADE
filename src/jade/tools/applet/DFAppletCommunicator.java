@@ -39,7 +39,7 @@ import jade.gui.GuiEvent;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
-import jade.tools.dfgui.onto.*;
+import jade.domain.DFGUIManagement.*;
 
 /**
  * This class is used by DFApplet in order to communicate with the DF agent

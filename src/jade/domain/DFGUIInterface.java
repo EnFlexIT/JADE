@@ -21,36 +21,44 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.applet;
+package jade.domain;
 
-import jade.tools.dfgui.*;
-import java.applet.Applet;
+import java.util.Iterator;
+import java.util.List;
+
+import jade.core.AID;
 
 /**
- * This applet is a client of SocketProxyAgent and executes an applet
- * showing the GUI of the default DF.
- *
- * @see jade.applet.DFAppletCommunicator
- * @author Fabio Bellifemine - CSELT S.p.A
- * @version $Date$ $Revision$
- *
- */
- 
- //to start the applet the dfproxy agent must be launched on the platform 
- //and the file dfproxy.inf must be in the working directory (i.e. classes
- //if the platform was launched from that directory).
- //HTML Code:
- //<applet code = DFApplet.class width = 200 height=100></applet>
-
- public class DFApplet extends Applet {
-
-  public void init() {
   
-    DFAppletCommunicator dfc = new DFAppletCommunicator(this);
-    DFGUI gui = new DFGUI(dfc);
-    dfc.setGUI(gui);
-    dfc.refreshDFGUI();
-    gui.setVisible(true); 
-   
-  }
+  This interface is used to avoid any relationship between the df 
+  and the tools packages.
+  A gui for a DF must implements this interface.
+
+  @author Tiziana Trucco - CSELT S.p.A.
+  @version $Date$ $Revision$
+
+*/
+
+public interface DFGUIInterface
+{
+
+  public void addParent(AID parentName);
+  public void removeParent(AID parentName);
+  
+  public void addAgentDesc(AID name); 
+  public void removeAgentDesc(AID name, AID df);
+  
+  public void addChildren(AID childrenName);
+  public void removeChildren(AID childrenName);
+  
+  public void setAdapter(DFGUIAdapter dfa);
+  
+  public void showStatusMsg(String msg);
+	public void refreshLastSearchResults(List l, AID df);
+  public void removeSearchResult(AID name);
+  public void disposeAsync();
+  public void setVisible(boolean b);
+  public void refresh(Iterator AIDOfAllAgentRegistered,Iterator parents,Iterator children) ;
+
+	
 }
