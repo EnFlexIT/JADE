@@ -487,15 +487,19 @@ class ObjectSchemaImpl extends ObjectSchema {
     	}
     }
     
+   	/**
+    * Get the facets defined upon a slot of the objectschema.
+    * Return null if there aren't facets on the specified slot.
+    */
     public Facet[] getFacets(String slotName) {
     	Vector v = (Vector)facets.get(slotName);
     	
-    	Facet temp[] = new Facet[v.size()];
-    	for (int i=0; i<v.size()-1; i++) 
-    		temp[i] = (Facet)v.elementAt(i);
-    	
-    	return temp;
-	}    	
-
+    	if (v!=null) {
+    		Facet temp[] = new Facet[v.size()];
+    		for (int i=0; i<v.size()-1; i++) 
+    		temp[i] = (Facet)v.get(i);
+	    	return temp;
+		} else return null;
+	}
 }
 
