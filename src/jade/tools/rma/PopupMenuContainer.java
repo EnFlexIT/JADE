@@ -53,6 +53,12 @@ class PopupMenuContainer extends JPopupMenu{
 
    addSeparator();
 
+   tmp=add((RMAAction)actPro.actions.get(actPro.SAVECONTAINER_ACTION));
+   tmp.setIcon(null);
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.LOADCONTAINER_ACTION));
+   tmp.setIcon(null);
+
    tmp=add((RMAAction)actPro.actions.get(actPro.KILL_ACTION));
    tmp.setIcon(null);
  }
