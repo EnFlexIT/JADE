@@ -70,7 +70,8 @@ import jade.security.Credentials;
 */
 class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
-
+  Logger myLogger = Logger.getMyLogger(this.getClass().getName());
+  
   // Local agents, indexed by agent name
   private LADT localAgents = new LADT();
 
@@ -305,7 +306,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
+      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);   
   }
 
   /**
@@ -410,19 +411,19 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  startNode();
     }
     catch (IMTPException imtpe) {
-        Logger.println("Communication failure while joining agent platform: " + imtpe.getMessage());
+        myLogger.log(Logger.SEVERE,"Communication failure while joining agent platform: " + imtpe.getMessage());
         imtpe.printStackTrace();
         endContainer();
         return false;
     }
     catch (AuthException ae) {
-        Logger.println("Authentication or authorization failure while joining agent platform.");
+        myLogger.log(Logger.SEVERE,"Authentication or authorization failure while joining agent platform.");
         ae.printStackTrace();
         endContainer();
         return false;
     }
     catch (Exception e) {
-        Logger.println("Some problem occurred while joining agent platform.");
+        myLogger.log(Logger.SEVERE,"Some problem occurred while joining agent platform.");
         e.printStackTrace();
         endContainer();
         return false;
@@ -454,7 +455,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
               	getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(agentID, s.getClassName(), s.getArgs());
               } 
               catch (Throwable t) {
-              	Logger.println("Cannot create agent "+s.getName()+": "+t.getMessage());
+              	myLogger.log(Logger.SEVERE,"Cannot create agent "+s.getName()+": "+t.getMessage());
               }
           }
           
