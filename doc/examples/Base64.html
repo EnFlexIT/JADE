@@ -1,0 +1,94 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76 [en] (Windows NT 5.0; U) [Netscape]">
+   <meta name="ProgId" content="FrontPage.Editor.Document">
+   <title>Introduction</title>
+<!-- created by Alessandro Beneventi, Universita' degli Studi di Parma -->
+<!--            alessandro.beneventi@re.nettuno.it                     -->
+<link REL ="stylesheet" TYPE="text/css" HREF="stylesheet.css" TITLE="Style">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+&nbsp;
+<table BORDER=0 CELLSPACING=0 WIDTH="100%" >
+<tr>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><a NAME="navbar_top_firstrow"></a>
+<table BORDER=0 CELLSPACING=3 CELLPADDING=0 >
+<tr ALIGN=CENTER VALIGN=TOP>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1">Sections:</td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../index.html">Index</a></b></td>
+
+<td BGCOLOR="#FFFFFF" ID="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>More Info.</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>Visual Index</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../api/index.html">Class
+by Class</a></b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../links.htm">Links</a></b></td>
+</tr>
+</table>
+</td>
+
+<td ALIGN=RIGHT VALIGN=TOP ROWSPAN="2"></td>
+</tr>
+</table>
+
+<p><b><font face="Arial"><font size=+3>Base64</font></font></b>
+<p><span lang="EN-GB">
+<ul><font face="Arial,Helvetica">This example shows how to transport serialized
+Java object over an ACLMessage.</font>
+<br><font face="Arial,Helvetica">You can execute it, for instance, with
+the following command:</font>
+<br><font face="Arial,Helvetica">&nbsp;</font>
+<br><font face="Arial,Helvetica">&nbsp;java jade.Boot -platform a1:examples.Base64.ObjectWriterAgent</font>
+<br><font face="Arial,Helvetica">&nbsp;a2:examples.ex7.ObjectReaderAgent</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">&nbsp;- ObjectReaderAgent.class</font>
+<br><font face="Arial,Helvetica">This agent makes the following task:</font>
+<br><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 1. registers itself
+with the df as a reader;</font>
+<br><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 2. waits a message
+from its companion, the ObjectWriterAgent;</font>
+<br><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 3. reads the content
+of the message, knowing a-priori that&nbsp; it is encoded in Base64 and
+contains a Java object;</font>
+<br><font face="Arial,Helvetica">&nbsp;</font>
+<br><font face="Arial,Helvetica">&nbsp;- ObjectWriterAgent.class</font>
+<br><font face="Arial,Helvetica">This agent makes the following task:</font>
+<br><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 1. searches in the
+DF for an ObjectReaderAgent;</font>
+<br><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 2. sends an ACLMessage
+with a content encoded in Base64 to the&nbsp; ObjectReaderAgent.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">&nbsp;- Person.class&nbsp;&nbsp; This is&nbsp;
+just a support class for the object reader and writer agents.</font>
+<br><font face="Arial,Helvetica"></font>&nbsp;
+<br><font face="Arial,Helvetica"></font>&nbsp;</ul>
+<font face="Arial,Helvetica">.</font></span>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<ol>&nbsp;</ol>
+
+<hr>
+<center>
+<p><font face="Arial"><font size=-1><a href="http://jade.cselt.it/">JADE</a>
+is a trademark of
+<a href="http://www.cselt.it">CSELT</a>. <a href="http://jade.cselt.it/">JADE</a>
+has been developed jointly by <a href="http://www.cselt.it">CSELT</a> and
+the <a href="http://www.ce.unipr.it">Computer Engineering Group</a> of
+the <a href="http://www.unipr.it">University of Parma</a></font></font></center>
+
+<p><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>

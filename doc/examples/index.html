@@ -1,0 +1,151 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+   <meta name="ProgId" content="FrontPage.Editor.Document">
+   <title>Introduction</title>
+<!-- created by Alessandro Beneventi, Universita' degli Studi di Parma -->
+<!--            alessandro.beneventi@re.nettuno.it                     -->
+<link REL ="stylesheet" TYPE="text/css" HREF="stylesheet.css" TITLE="Style">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+&nbsp;
+<table BORDER=0 CELLSPACING=0 WIDTH="100%" >
+<tr>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><a NAME="navbar_top_firstrow"></a>
+<table BORDER=0 CELLSPACING=3 CELLPADDING=0 >
+<tr ALIGN=CENTER VALIGN=TOP>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1">Sections:</td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../index.html">Index</a></b></td>
+
+<td BGCOLOR="#FFFFFF" ID="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>More Info.</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>Visual Index</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../api/index.html">Class
+by Class</a></b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../links.htm">Links</a></b></td>
+</tr>
+</table>
+</td>
+
+<td ALIGN=RIGHT VALIGN=TOP ROWSPAN="2"></td>
+</tr>
+</table>
+
+<p><b><font size=+3>Description of the examples</font></b>
+<p><span lang="EN-GB">
+<br><font face="Arial,Helvetica">Some examples are distributed with the JADE
+software, that&nbsp; show how to use some of the JADE features and some suggested programming
+idioms.&nbsp;&nbsp;</font>
+</span>
+<p><span lang="EN-GB">
+<font face="Arial,Helvetica">All the examples must be compiled because only
+their source code has been distributed. Some </font><font face="Courier">makeexampleXXX.bat</font><font face="Arial,Helvetica">
+files in the JADE root help the users into this compilation step.</font></span>&nbsp;<p><span lang="EN-GB"><font face="Arial,Helvetica">In
+order to run the examples,&nbsp; set the CLASSPATH environment variable
+to contain the files </font><font face="Courier"> jade.jar, jadeTools.jar,
+Base64.jar, iiop.jar</font><font face="Arial,Helvetica"> and
+the directory where the </font><font face="Courier">.class</font><font face="Arial,Helvetica">
+files of the examples have been generated, usually&nbsp; ('.').&nbsp; All example
+agent classes belong to subpackages of 'examples' package, refer to
+the various example agents with a fully qualified package name; for example,
+class ComplexBehaviourAgent in 'behaviours' subdirectory of 'examples'
+directory must be started&nbsp; via the following command line::</font>
+<p><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; java jade.Boot
+-platform agent1:examples.behaviours.ComplexBehaviourAgent</font>
+<p><font face="Arial,Helvetica">The following is the list of all the example
+programs distributed in the 'src/examples' directory.</font>
+<ul>
+<li>
+<font face="Arial,Helvetica"><a href="behaviours.html">Behaviours</a>,
+this subdirectory shows some examples of agent behaviours.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="Base64.html">Base 64</a>, this example
+shows how to encode serialized Java objects into the content of an ACLMessage.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="Jess.html">Jess</a>, is a sample
+agent that allows the programmer to avoid writing any line of Java code and implement everything in CLIPS by using JESS.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="mobile.html">Mobile</a>, this is
+an example of a mobile agent.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="protocols.html">Protocols</a>, this
+example shows the usage of two behaviours provided by JADE that implement
+the 'fipa-query' protocol and the 'fipa-request' protocol.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="receivers.html">Receivers</a>, this
+example shows some methods an agent can use to receive a message.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="Subdf.html">Subdf</a>, this examples
+shows how to set up multiple Agent Domains by means of a network of connected
+Directory Facilitator Agents.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="ontology.html">Ontology</a>, this
+example shows how to use the support for application specific ontologies
+provided by JADE.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="jsp.html">JSP</a>, this is an example
+of integration of JADE and JSP kindly provided by Daniel Le Berre. Look
+at the <a href="../tutorials/jsp/JADE4JSP.html"> tutorial</a> in the documentation.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="PingAgent.html">PingAgent</a>, this
+directory contains a simple Ping Agent.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="MessageTemplate.html">Message Template</a>,
+his example shows how to define application specific MessageTemplates.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="JadeJessProtege.html">JadeJessProtege</a>,
+this package includes examples for a closer integration of JADE with JESS,
+optionally also with protege.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="inprocess.html">In Process</a>, this
+example shows how to start a JADE runtime from within an external application.</font></li>
+
+<li>
+<font face="Arial,Helvetica"><a href="thanksAgent.html">ThanksAgent</a>,
+this sample agent implements the following functionality:&nbsp;</font></li>
+
+</ul>
+<blockquote>
+  <ul>
+    <li><font face="Arial,Helvetica">The agent registers with the DF as soon as
+      it is started&nbsp;</font></li>
+    <li><font face="Arial,Helvetica">then it searches for&nbsp; agents
+registered in DF.&nbsp;</font></li>
+    <li><font face="Arial,Helvetica">and sends a greeting message to all of them&nbsp;</font></li>
+    <li><font face="Arial,Helvetica">it listens if there is an answer&nbsp;</font></li>
+    <li><font face="Arial,Helvetica">finally, to the agents that sends an answer, it
+      thanks them for having answered.</font></li>
+  </ul>
+</blockquote>
+</span>
+
+<hr>
+<center>
+<p><font face="Arial"><font size=-1><a href="http://jade.cselt.it/">JADE</a>
+is a trademark of
+<a href="http://www.cselt.it">CSELT</a>. <a href="http://jade.cselt.it/">JADE</a>
+has been developed jointly by <a href="http://www.cselt.it">CSELT</a> and
+the <a href="http://www.ce.unipr.it">Computer Engineering Group</a> of
+the <a href="http://www.unipr.it">University of Parma</a></font></font></center>
+
+</body>
+</html>

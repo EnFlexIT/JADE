@@ -1,0 +1,141 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76 [en] (Windows NT 5.0; U) [Netscape]">
+   <meta name="ProgId" content="FrontPage.Editor.Document">
+   <title>Introduction</title>
+<!-- created by Alessandro Beneventi, Universita' degli Studi di Parma -->
+<!--            alessandro.beneventi@re.nettuno.it                     -->
+<link REL ="stylesheet" TYPE="text/css" HREF="stylesheet.css" TITLE="Style">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+&nbsp;
+<table BORDER=0 CELLSPACING=0 WIDTH="100%" >
+<tr>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><a NAME="navbar_top_firstrow"></a>
+<table BORDER=0 CELLSPACING=3 CELLPADDING=0 >
+<tr ALIGN=CENTER VALIGN=TOP>
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1">Sections:</td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../index.html">Index</a></b></td>
+
+<td BGCOLOR="#FFFFFF" ID="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>More Info.</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>Visual Index</b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../api/index.html">Class
+by Class</a></b></td>
+
+<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../links.htm">Links</a></b></td>
+</tr>
+</table>
+</td>
+
+<td ALIGN=RIGHT VALIGN=TOP ROWSPAN="2"></td>
+</tr>
+</table>
+
+<p><b><font face="Arial"><font size=+3>ontology</font></font></b>
+<p><span lang="EN-GB">
+<ul><font face="Arial,Helvetica">This examples shows how to use the support
+for application specific ontologie provided by JADE.</font>
+<br><font face="Arial,Helvetica">A very simple ontology (the employment-ontology)including
+concepts related to the employment of people into companies is defined
+in the package</font>
+<br><font face="Arial,Helvetica">examples.ontology.employment. The roles
+in this ontology are</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Concepts:</font>
+<br><font face="Arial,Helvetica">&nbsp;PERSON</font>
+<br><font face="Arial,Helvetica">&nbsp;COMPANY</font>
+<br><font face="Arial,Helvetica">&nbsp;ADDRESS</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Predicates</font>
+<br><font face="Arial,Helvetica">&nbsp;WORKS-FOR - meaning that a person
+is working for a company</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Actions</font>
+<br><font face="Arial,Helvetica">&nbsp;ENGAGE - meaning that a person is
+being engaged by a company</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Propositions</font>
+<br><font face="Arial,Helvetica">&nbsp;ENGAGEMENT-ERROR - meaning that
+an error occurred in performing the engage action</font>
+<br><font face="Arial,Helvetica">&nbsp;PERSON-TOO-OLD - meaning that a
+person cannot be engaged by a&nbsp; company because he is too old.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">The employment subdirectory contains one
+class for each ontological role plus the static class EmploymentOntology
+that creates an ontology</font>
+<br><font face="Arial,Helvetica">object and adds to it all the roles described
+above.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">The employment-ontology is used by two
+agents:</font>
+<br><font face="Arial,Helvetica">- The RequesterAgent that gets the details
+of people to engage from the user and asks the EngagerAgent to actually
+engage them.</font>
+<br><font face="Arial,Helvetica">- The EngagerAgent that actually perform
+the engagement.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">The RequesterAgent, before requesting the
+engagement of a person, queries the EngagerAgent whether that person is
+already working for the company whose employees are managed by the EngagerAgent.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">Some hints about the code are in the followings.</font>
+<br><font face="Arial,Helvetica">The RequesterAgent has a single cyclic
+complex behaviour in which</font>
+<br><font face="Arial,Helvetica">- The details of a person to engage are
+got from the user. This is done in the preAction() method.</font>
+<br><font face="Arial,Helvetica">- A query is sent to the EngagerAgent
+to check that the indicated person is not already working for the indicated
+company. This is done by following</font>
+<br><font face="Arial,Helvetica">the FIPA-Query protocol and it is implemented
+through a FipaQueryInitiatorBehaviour that is added as a sub-behaviour
+of the main agent behaviour.</font>
+<br><font face="Arial,Helvetica">- According to the result of the query,
+A request is sent to the</font>
+<br><font face="Arial,Helvetica">EngagerAgent to actually perform the engagement.
+This is done following the FIPA-Request protocol and is implemented through
+FipaRequestInitiatorBehaviour that is added as a sub-behaviour.</font>
+<br><font face="Arial,Helvetica">- In the postAction() method the main
+agent behaviour is reset so that it is performed cyclically</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">In the agent setup, besides the addition
+of the main behaviour, the name of the EngagerAgent and the detail of the
+company where to engage people are requested to the user.</font><font face="Arial,Helvetica"></font>
+<p><font face="Arial,Helvetica">The EngagerAgent has two behaviours:</font>
+<br><font face="Arial,Helvetica">- A FipaQueryResponderBehaviour to handle
+queries about people working for a company following a FIPA-Query protocol.</font>
+<br><font face="Arial,Helvetica">- A FipaRequestResponderBehaviour to handle
+engagement requests following a FIPA-Request protocol.</font>
+<br><font face="Arial,Helvetica">Both behaviours are cyclic.</font>
+<br><font face="Arial,Helvetica">The company whose engagement are handled
+by the EngagerAgent is fixed:</font>
+<br><font face="Arial,Helvetica">CSELT</font>
+<br><font face="Arial,Helvetica">Via Reiss Romoli 274</font>
+<br><font face="Arial,Helvetica">Turin</font>
+<br><font face="Arial,Helvetica"></font>&nbsp;
+<br><font face="Arial,Helvetica"></font>&nbsp;
+<br><font face="Arial,Helvetica"></font>&nbsp;
+<br>&nbsp;
+<br>&nbsp;</ul>
+<font face="Arial,Helvetica">.</font></span>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<ol>&nbsp;</ol>
+
+<hr>
+<center>
+<p><font face="Arial"><font size=-1><a href="http://jade.cselt.it/">JADE</a>
+is a trademark of
+<a href="http://www.cselt.it">CSELT</a>. <a href="http://jade.cselt.it/">JADE</a>
+has been developed jointly by <a href="http://www.cselt.it">CSELT</a> and
+the <a href="http://www.ce.unipr.it">Computer Engineering Group</a> of
+the <a href="http://www.unipr.it">University of Parma</a></font></font></center>
+
+<p><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>
