@@ -38,10 +38,12 @@ import jade.content.onto.*;
  * The content manager associated with an agent.
  * 
  * @author Federico Bergenti
+ * @author Govanni Caire - TILAB
  */
 public class ContentManager implements Serializable {
     private Map languages = new HashMap();
     private Map ontologies = new HashMap();
+    private boolean validationMode = true;
 
     /**
      * Registers a codec <code>c</code> with its default name (i.e.
@@ -110,42 +112,11 @@ public class ContentManager implements Serializable {
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
         // DEBUG
-        //content.dump();
+        // System.out.println("Filling content with "+content);
         
-        // Validate the content against the ontology
-    		ObjectSchema schema = onto.getSchema(content.getTypeName());
-   			if (schema == null) {
-  				throw new OntologyException("No schema found for type "+content.getTypeName());
-  			}
-    		schema.validate(content, onto);
+        validate(content, onto);
 
-    		if (codec instanceof ByteArrayCodec)
-					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, content));
-				else if (codec instanceof StringCodec)
-					msg.setContent(((StringCodec) codec).encode(onto, content));
-				else
-					throw new CodecException("UnsupportedTypeOfCodec");
-    } 
-
-    /**
-     * Extracts an abstract descriptor of the content from a message.
-     * @param msg the message
-     * @return the content as an abstract descriptor.
-     * @throws CodecException
-     * @throws OntologyException
-     * @see jade.content.Ontology
-     */
-    public AbsContentElement extractAbsContent(ACLMessage msg) 
-            throws CodecException, OntologyException {
-        Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-
-        if (codec instanceof ByteArrayCodec)
-					return ((ByteArrayCodec) codec).decode(onto, msg.getByteSequenceContent());
-				else if (codec instanceof StringCodec)
-					return ((StringCodec) codec).decode(onto, msg.getContent());
-				else
-					throw new CodecException("UnsupportedTypeOfCodec");
+        encode(msg, content, codec, onto);
     } 
 
     /**
@@ -165,23 +136,33 @@ public class ContentManager implements Serializable {
 
         AbsContentElement abs = (AbsContentElement) onto.fromObject(content);
        
-        //DEBUG
-        //abs.dump();
+        // DEBUG
+        // System.out.println("Filling content with "+abs);
         
-        // Validate the content against the ontology
-    		ObjectSchema schema = onto.getSchema(abs.getTypeName());
-   			if (schema == null) {
-  				throw new OntologyException("No schema found for type "+abs.getTypeName());
-  			}
-       	schema.validate(abs, onto);
+        validate(abs, onto);
         
-        if (codec instanceof ByteArrayCodec)
-					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, abs));
-				else if (codec instanceof StringCodec)
-					msg.setContent(((StringCodec) codec).encode(onto, abs));
-				else
-					throw new CodecException("UnsupportedTypeOfCodec");
+        encode(msg, abs, codec, onto);
     } 
+
+    /**
+     * Extracts an abstract descriptor of the content from a message.
+     * @param msg the message
+     * @return the content as an abstract descriptor.
+     * @throws CodecException
+     * @throws OntologyException
+     * @see jade.content.Ontology
+     */
+    public AbsContentElement extractAbsContent(ACLMessage msg) 
+            throws CodecException, OntologyException {
+        Codec    codec = lookupLanguage(msg.getLanguage());
+        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
+
+        AbsContentElement content = decode(msg, codec, onto);
+        
+        validate(content, onto);
+        
+        return content;
+    }
 
     /**
      * Retrieves the content of a message as a concrete object.
@@ -195,15 +176,12 @@ public class ContentManager implements Serializable {
             throws CodecException, UngroundedException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-				AbsContentElement abs = null;
-        if (codec instanceof ByteArrayCodec)
-					abs=((ByteArrayCodec) codec).decode(onto, msg.getByteSequenceContent());
-				else if (codec instanceof StringCodec)
-					abs=((StringCodec) codec).decode(onto, msg.getContent());
-				else
-					throw new CodecException("UnsupportedTypeOfCodec");
-
-				return (ContentElement) onto.toObject(abs);
+        
+        AbsContentElement content = decode(msg, codec, onto);
+        
+        validate(content, onto);
+        
+				return (ContentElement) onto.toObject(content);
     } 
 
 		/**
@@ -222,5 +200,55 @@ public class ContentManager implements Serializable {
 				return ontology;
     }
     
+		private void validate(AbsContentElement content, Ontology onto) throws OntologyException { 
+    	if (validationMode) {
+        // Validate the content against the ontology
+    		ObjectSchema schema = onto.getSchema(content.getTypeName());
+   			if (schema == null) {
+  				throw new OntologyException("No schema found for type "+content.getTypeName());
+  			}
+    		schema.validate(content, onto);
+      }
+		}
+
+		private void encode(ACLMessage msg, AbsContentElement content, Codec codec, Ontology onto) throws CodecException, OntologyException { 
+      if (codec instanceof ByteArrayCodec)
+				msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, content));
+			else if (codec instanceof StringCodec)
+				msg.setContent(((StringCodec) codec).encode(onto, content));
+			else
+				throw new CodecException("UnsupportedTypeOfCodec");
+		}
+
+		private AbsContentElement decode(ACLMessage msg, Codec codec, Ontology onto) throws CodecException, OntologyException { 
+      if (codec instanceof ByteArrayCodec)
+				return ((ByteArrayCodec) codec).decode(onto, msg.getByteSequenceContent());
+			else if (codec instanceof StringCodec)
+				return ((StringCodec) codec).decode(onto, msg.getContent());
+			else
+				throw new CodecException("UnsupportedTypeOfCodec");
+		}
+		
+		/** 
+		   Set the validation mode i.e. whether contents that are managed
+		   by this content manager should be validated during 
+		   message content filling/extraction.
+		   Default value is <code>true</code>
+		   @param mode the new validation mode 
+		 */
+		public void setValidationMode(boolean mode) {
+			validationMode = mode;
+		}
+		
+		/** 
+		   Return the currently set validation mode i.e. whether 
+		   contents that are managed by this content manager should 
+		   be validated during message content filling/extraction.
+		   Default value is <code>true</code>
+		   @return the currently set validation mode 
+		 */
+		public boolean getValidationMode() {
+			return validationMode;
+		}
 }
 
