@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Main container fault and recovery" skip="false">
+			<TestClassName>test.mainReplication.tests.TestMainFault</TestClassName>
+			<WhatTest>Tests the JADE capability of recovering from a main container fault
+			</WhatTest>
+			<HowWorkTest>The test creates a fault tolerence topology by starting a backup main container. 
+			Then a peripheral container is attached to the backup main. 
+			After that the master main container is killed and successively restored (now it plays the role of the backup main). 
+			Finally the new master main container (initial backup) is killed too.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations succeeds and the platform continues to work properly.
+			</WhenTestPass>
+		</Test>
+		
+	</TestsList>

@@ -61,6 +61,11 @@
 			<Description> This item includes tests related to agent mobility </Description>
 			<TestsListRif>test/mobility/mobilityTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Main-replication" skip="false">
+			<ClassName>test.mainReplication.MainReplicationTesterAgent</ClassName>
+			<Description> This item includes tests related to fault-tolerance/main-replication </Description>
+			<TestsListRif>test/mainReplication/mainReplicationTestsList.xml</TestsListRif>
+		</Tester>
 		<Tester name="ContractNet Protocol" skip="false">
 			<ClassName>test.proto.ContractNetTesterAgent</ClassName>
 			<Description> This item includes tests related to the support for the Contract Net interaction protocol </Description>
