@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.29  1999/03/24 12:20:49  rimassa
+  Ported most data structures to newer Java 2 Collection framework.
+
   Revision 1.28  1999/03/17 13:06:12  rimassa
   A small change to use complete agent GUID in addressing the platform
   Global Descriptor Table.
@@ -91,6 +94,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
@@ -346,9 +351,10 @@ public class ams extends Agent {
 	String newRMA = current.getSource();
 
 	// Send back the whole container list.
-	Enumeration e = myPlatform.AMSContainerNames();
-	while(e.hasMoreElements()) {
-	  String containerName = (String)e.nextElement();
+	Set s = myPlatform.AMSContainerNames();
+	Iterator i = s.iterator();
+	while(i.hasNext()) {
+	  String containerName = (String)i.next();
 	  AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
 	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
 	  ev.setContainerName(containerName);
@@ -362,10 +368,11 @@ public class ams extends Agent {
 	}
 
 	// Send all agent names, along with their container name.
-	e = myPlatform.AMSAgentNames();
-	while(e.hasMoreElements()) {
+	s = myPlatform.AMSAgentNames();
+	i = s.iterator();
+	while(i.hasNext()) {
           try {
-	    String agentName = (String)e.nextElement();
+	    String agentName = (String)i.next();
 	    String containerName = myPlatform.AMSGetContainerName(agentName);
 	    String agentAddress = myPlatform.AMSGetAddress(agentName); // FIXME: Need to use AMSAgDesc directly
 	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
