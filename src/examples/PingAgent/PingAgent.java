@@ -34,7 +34,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 import jade.domain.FIPAException;
 
 /**
@@ -126,7 +126,7 @@ public class PingAgent extends Agent {
     	dfd.setName(getAID());
     	dfd.addServices(sd);
     	try {
-      	DFServiceCommunicator.register(this,dfd);
+      	DFService.register(this,dfd);
     	} catch (FIPAException e) {
       	System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
       	doDelete();

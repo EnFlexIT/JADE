@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type"
 content="text/html; charset=iso-8859-1">
 <meta name="ProgId" content="FrontPage.Editor.Document">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
 <title>PingAgent</title>
 <link rel="stylesheet" type="text/css" href="stylesheet.css"
 title="Style">
@@ -46,18 +46,19 @@ vlink="#0000FF" alink="#0000FF">
 <p><font size="6" face="Arial"><b>PingAgent</b></font> </p>
 
 <p>Author: Tiziana Trucco (TILab S.p.a)<br>
-Date: 09/01/2001</p>
+Date: 6/12/2001</p>
 
-<p><span lang="EN-GB"> </p>
+<span lang="EN-GB"> <p><font face="Arial,Helvetica">This is a simple example that
+describes how an agent can register its service with the DF and respond to ping
+requests</font>.</p>
 
-<p><font face="Arial,Helvetica">This is a simple example that
-describes how an agent can register its service with the DF</font>.<br>
-<font face="Arial,Helvetica">To try this examples the user must
-start the agent using the Jade guit, starting the sniffer to see
-the interaction and sending the proper message ( Actions-&gt;Send
-a message)</font>.</p>
+<p>
+<font face="Arial,Helvetica">To try this example just start the agent</font></p>
 
-<p>&nbsp;</p>
+<p><font face="Arial,Helvetica">java jade.Boot -gui
+ping:examples.PingAgent.PingAgent</font></p>
+
+<p><font face="Arial,Helvetica">and then send it a message via the DummyAgent.&nbsp;</font></p>
 
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
@@ -82,7 +83,7 @@ a message)</font>.</p>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>SimpleBehaviour,DFServiceCommunicator,ServiceDescription,DFAgentDescription</td>
+        <td>SimpleBehaviour,DFService,ServiceDescription,DFAgentDescription</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
@@ -92,32 +93,17 @@ a message)</font>.</p>
     </tr>
 </table>
 
-<p></span> <br>
+<p></span> 
 &nbsp;</p>
 
 <hr>
 
-<p align="center"><a href="http://jade.cselt.it/"><font size="2"
-face="Arial">JADE</font></a><font size="2" face="Arial"> is a
-trademark of </font><a href="http://www.cselt.it"><font size="2"
-face="Arial">CSELT</font></a><font size="2" face="Arial">. </font><a
-href="http://jade.cselt.it/"><font size="2" face="Arial">JADE</font></a><font
-size="2" face="Arial"> has been developed jointly by </font><a
-href="http://www.cselt.it"><font size="2" face="Arial">CSELT</font></a><font
-size="2" face="Arial"> and the </font><a
-href="http://www.ce.unipr.it"><font size="2" face="Arial">Computer
-Engineering Group</font></a><font size="2" face="Arial"> of the </font><a
-href="http://www.unipr.it"><font size="2" face="Arial">University
-of Parma</font></a> </p>
-
-<p><br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-</p>
+<p align="center"><a href="http://jade.cselt.it/"><font face="Arial" size="2">JADE</font></a><font face="Arial" size="2">
+is a trademark of <a href="http://www.telecomitalialab.com">TILAB</a> (formerly </font><a href="http://www.cselt.it"><font face="Arial" size="2">CSELT</font></a><font face="Arial" size="2">).&nbsp;</font><a href="http://jade.cselt.it/"><font face="Arial" size="2"><br>
+JADE</font></a><font face="Arial" size="2"> has been developed jointly by <a href="http://www.telecomitalialab.com">TILAB</a>
+(formerly </font><a href="http://www.cselt.it"><font face="Arial" size="2">CSELT</font></a><font face="Arial" size="2">)
+and the </font><a href="http://www.ce.unipr.it"><font face="Arial" size="2">Computer
+Engineering Group</font></a><font face="Arial" size="2"> of the </font><a href="http://www.unipr.it"><font face="Arial" size="2">University
+of Parma</font></a></p>
 </body>
 </html>
