@@ -539,7 +539,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		}
 
 		// Add the calling container and set its name
-		if (cid.getName()=="No-Name") { // no name => assign a new name
+		if (cid.getName().equals("No-Name")) { // no name => assign a new name
                      String name = AUX_CONTAINER_NAME + containersProgNo;
 		     containersProgNo++;
                      cid.setName(name);
@@ -895,6 +895,9 @@ class MainContainerImpl implements Platform, AgentManager {
     try {
      		ContainerID from = getContainerIDFromAgent(agentID);
      		ContainerID to = (ContainerID)where;
+		containers.getContainer(to); // this method call just checks if
+		// the recipient container exists, if not exist then it throws
+		// a NotFoundException. there is no other effect for this call
 			authority.checkAction(Authority.CONTAINER_MOVE_FROM, getContainerPrincipal(from), null);
 			authority.checkAction(Authority.CONTAINER_MOVE_TO, getContainerPrincipal(to), null);
 
@@ -909,17 +912,26 @@ class MainContainerImpl implements Platform, AgentManager {
     catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
+    catch (NotFoundException ne) {
+	throw ne;
+    }
+    catch (AuthException aue) {
+	throw aue;
+    }
     catch (Exception e) {
-			if (e instanceof AuthException)
-					throw (AuthException)e;
-			// It should never happen...
+	e.printStackTrace();
+	// It should never happen...
     }
   }
 
   public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
     try {
+	(new Exception()).printStackTrace();
 	    	ContainerID from = getContainerIDFromAgent(agentID);
     	 	ContainerID to = (ContainerID)where;
+		containers.getContainer(to); // this method call just checks if
+		// the recipient container exists, if not exist then it throws
+		// a NotFoundException. there is no other effect for this call
  			authority.checkAction(Authority.AGENT_CLONE, getAgentPrincipal(agentID), null);
  			authority.checkAction(Authority.CONTAINER_CLONE_FROM, getContainerPrincipal(from), null);
  			authority.checkAction(Authority.CONTAINER_CLONE_TO, getContainerPrincipal(to), null);
@@ -934,10 +946,15 @@ class MainContainerImpl implements Platform, AgentManager {
     catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
+    catch (NotFoundException ne) {
+	throw ne;
+    }
+    catch (AuthException aue) {
+	throw aue;
+    }
     catch (Exception e) {
-			if (e instanceof AuthException)
-					throw (AuthException)e;
-			// It should never happen...
+	e.printStackTrace();
+	// It should never happen...
     }
   }
 
