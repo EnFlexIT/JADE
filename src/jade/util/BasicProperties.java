@@ -240,7 +240,26 @@ public class BasicProperties extends Properties {
     protected String[] prepareArgs(String[] args) {
         return args;
     }
-            
+    
+	/**
+   * Used by isCandidate, isolateKey and isolateValue to determine
+	 * the index of the separation character (':' or '=') within an argument string.
+	 * @param arg The argument being processed.
+	 */
+    protected int getSeparatorIndex(String arg) {
+      int idxA = arg.indexOf('=');
+      int idxB = arg.indexOf(':');
+	  
+      if (idxA == -1)  // key:value 
+        return idxB;
+      if (idxB == -1)  // key=value
+        return idxA;
+      if (idxA < idxB) // key=value with :
+	    return idxA;
+	  else             // key:value with =
+	    return idxB;   
+	}
+	
     /**
      * Called by parseArgument to determine if an argument is a candidate key, value combination.
      * By default this method will return true if the argument similar
@@ -256,11 +275,7 @@ public class BasicProperties extends Properties {
      * @return True if it is a candidate, false if not.
      */
     protected boolean isCandidate(String arg) {
-        if (arg.indexOf('=') > 0) {  // key=value
-            return true;
-        }
-
-        if (arg.indexOf(':') > 0) {  // key:value
+        if (getSeparatorIndex(arg) > 0) {  // key=value or key:value
             return true;
         }
         
@@ -289,11 +304,7 @@ public class BasicProperties extends Properties {
      * @param index Index into args of current argument.
      */
     protected String isolateKey(String arg) {
-        int separatorIndex = arg.indexOf('=');    // key=value
-
-        if (separatorIndex < 0) {
-            separatorIndex = arg.indexOf(':');    // key:value
-        }
+        int separatorIndex = getSeparatorIndex(arg);    // key=value or key:value
 
         if (separatorIndex > 0) {
             return arg.substring(0, separatorIndex);
@@ -318,11 +329,7 @@ public class BasicProperties extends Properties {
     protected String isolateValue(String arg) {
         String value = null;
         
-        int separatorIndex = arg.indexOf('=');    // key=value
-
-        if (separatorIndex < 0) {
-            separatorIndex = arg.indexOf(':');    // key:value
-        }
+        int separatorIndex = getSeparatorIndex(arg);    // key=value or key:value
 
         if (separatorIndex > 0) {
             if (separatorIndex == (arg.length()-1)) {
