@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/06/08 15:49:30  rimassa
+  Added a timeout in blockingReceive() call.
+
   Revision 1.9  1999/05/20 14:12:39  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -39,7 +42,7 @@ public class AgentReceiver extends Agent {
 
       public void action() {
         System.out.println("Now receiving (blocking style)...");
-        ACLMessage msg = blockingReceive();
+        ACLMessage msg = blockingReceive(1000);
 	msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
         System.out.println("Sending back reply to sender ...");
