@@ -72,6 +72,8 @@ public class JADEIntrospectionOntology {
   public static final String REMOVEDMTP = "removed-mtp";
   public static final String BORNAGENT = "born-agent";
   public static final String DEADAGENT = "dead-agent";
+  public static final String SUSPENDEDAGENT = "suspended-agent";
+  public static final String RESUMEDAGENT = "resumed-agent";
   public static final String MOVEDAGENT = "moved-agent";
   public static final String CHANGEDAGENTSTATE = "changed-agent-state";
   public static final String ADDEDBEHAVIOUR = "added-behaviour";
@@ -156,6 +158,16 @@ public class JADEIntrospectionOntology {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
 	}, DeadAgent.class); 
+
+	theInstance.addRole(SUSPENDEDAGENT, new SlotDescriptor[] {
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
+	}, SuspendedAgent.class); 
+
+	theInstance.addRole(RESUMEDAGENT, new SlotDescriptor[] {
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
+	}, ResumedAgent.class); 
 
 	theInstance.addRole(MOVEDAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
