@@ -168,9 +168,6 @@ public class LEAPIMTPManager implements IMTPManager {
 	localSMAddr = mainURL;
     }
 
-    System.out.println(">>> Original [" + originalSMAddr + "] <<<");
-    System.out.println(">>> Local [" + localSMAddr + "] <<<");
-
   }
 
   public void addServiceManagerAddress(String addr) throws IMTPException {
