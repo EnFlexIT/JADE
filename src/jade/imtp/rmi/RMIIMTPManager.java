@@ -134,12 +134,49 @@ public class RMIIMTPManager implements IMTPManager {
     }
   }
 
+
+
+    /**
+     * Get the RMIRegistry. If a registry is already active on this host
+     * and the given portNumber, then that registry is returned, 
+     * otherwise a new registry is created and returned.
+     * @param portNumber is the port on which the registry accepts requests
+     * @param host host for the remote registry, if null the local host is used
+     * @author David Bell (HP Palo Alto)
+     **/
+    private Registry getRmiRegistry(String host, int portNumber) throws RemoteException {
+	Registry rmiRegistry = null;
+	// See if a registry already exists and
+	// make sure we can really talk to it.
+	try {
+	    rmiRegistry = LocateRegistry.getRegistry(host, portNumber);
+	    rmiRegistry.list();
+	} catch (Exception exc) {
+	    rmiRegistry = null;
+	}
+
+	// If rmiRegistry is null, then we failed to find an already running
+	// instance of the registry, so let's create one.
+	if (rmiRegistry == null) {
+	    //if (isLocalHost(host))
+		rmiRegistry = LocateRegistry.createRegistry(portNumber);
+		//else
+		//throw new java.net.UnknownHostException("cannot create RMI registry on a remote host");
+	}
+
+	return rmiRegistry;
+	
+    } // END getRmiRegitstry()
+
+
+
+
   /**
    */
   public void remotize(MainContainer mc) throws IMTPException {
     try {
       MainContainerRMI mcRMI = new MainContainerRMIImpl(mc, this);
-      Registry theRegistry = LocateRegistry.createRegistry(mainPort);
+      Registry theRegistry = getRmiRegistry(null,mainPort);
       Naming.bind(platformRMI, mcRMI);
     }
     catch(ConnectException ce) {
@@ -155,7 +192,7 @@ public class RMIIMTPManager implements IMTPManager {
       throw new IMTPException("RMI Binding error", ce);
     }
     catch(RemoteException re) {
-      throw new IMTPException("Communication failure while starting JADE Runtime System.", re);
+      throw new IMTPException("Communication failure while starting JADE Runtime System. Check if the RMIRegistry CLASSPATH includes the RMI Stub classes of JADE.", re);
     }
     catch(Exception e) {
       throw new IMTPException("Problem starting JADE Runtime System.", e);
