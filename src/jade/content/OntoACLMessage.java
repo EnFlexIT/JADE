@@ -67,11 +67,65 @@ public class OntoACLMessage extends ACLMessage implements AgentAction {
 		}
 		else {
 			wrapper = new OntoACLMessage(msg.getPerformative());
-			// FIXME: fills other fields wrapping sender and receivers
+			// This automatically performs the wrapping
+			wrapper.setSender(msg.getSender());
+			Iterator it = msg.getAllReceiver();
+			while (it.hasNext()) {
+				// This automatically performs the wrapping
+				wrapper.addReceiver((AID) it.next());
+			}
+			
+			it = msg.getAllReplyTo();
+			while (it.hasNext()) {
+				// This automatically performs the wrapping
+				wrapper.addReplyTo((AID) it.next());
+			}
+			
+    	wrapper.setLanguage(msg.getLanguage());
+    	wrapper.setOntology(msg.getOntology());
+    	wrapper.setProtocol(msg.getProtocol());
+    	wrapper.setInReplyTo(msg.getInReplyTo());
+      wrapper.setReplyWith(msg.getReplyWith()); 
+    	wrapper.setConversationId(msg.getConversationId());
+    	wrapper.setReplyByDate(msg.getReplyByDate());
+    	if (msg.hasByteSequenceContent()) {
+    	wrapper.setByteSequenceContent(msg.getByteSequenceContent());
+    	}
+    	else {
+    		wrapper.setContent(msg.getContent());
+    	}
+    	wrapper.setEncoding(msg.getEncoding());
+    
+    	//FIXME: Message Envelope is missing
 		}
 		
 		return wrapper; 
 	}
 	
+	/**
+	 * This method is redefined so that the sender AID is automatically
+	 * wrapped into an OntoAID
+	 */
+	public void setSender(AID aid) {
+		super.setSender(OntoAID.wrap(aid));
+	}
+	
+	/**
+	 * This method is redefined so that the receiver AID is automatically
+	 * wrapped into an OntoAID
+	 */
+	public void addReceiver(AID aid) {
+		super.addReceiver(OntoAID.wrap(aid));
+	}
+	
+	/**
+	 * This method is redefined so that the replyTo AID is automatically
+	 * wrapped into an OntoAID
+	 */
+	public void addReplyTo(AID aid) {
+		super.addReplyTo(OntoAID.wrap(aid));
+	}
+	
+	// FIXME: clone method should be redefined too
 }
 
