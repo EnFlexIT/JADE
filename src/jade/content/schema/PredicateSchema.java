@@ -26,6 +26,7 @@ package jade.content.schema;
 
 import jade.content.abs.*;
 import jade.content.onto.*;
+import jade.content.schema.facets.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -100,13 +101,14 @@ public class PredicateSchema extends ContentElementSchema {
       int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
     	try {
     		super.add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
+     		// Add proper facets
+    		addFacet(name, new TypedAggregateFacet(elementsSchema));
+    		addFacet(name, new CardinalityFacet(cardMin, cardMax));
     	}
     	catch (OntologyException oe) {
     		// Should never happen
     		oe.printStackTrace();
     	}
-    	// Add proper facets
-    	// FIXME: to be done
     } 
 
     /**

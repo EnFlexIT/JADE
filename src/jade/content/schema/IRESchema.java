@@ -37,7 +37,7 @@ import jade.content.abs.*;
  * of type term and an IRE is a term.
  * @author Federico Bergenti - Universita` di Parma
  */
-public class IRESchema extends ContentElementSchema {
+public class IRESchema extends TermSchema {
     public static final String BASE_NAME = "IRE";
     private static IRESchema   baseSchema = new IRESchema();
     
@@ -136,7 +136,8 @@ public class IRESchema extends ContentElementSchema {
   			if (super.descendsFrom(s)) {
   				return true;
   			}
-  			return TermSchema.getBaseSchema().descendsFrom(s);
+  			// An IRE is also a ContentElement
+  			return ContentElementSchema.getBaseSchema().descendsFrom(s);
   		}
   		else {
   			return false;

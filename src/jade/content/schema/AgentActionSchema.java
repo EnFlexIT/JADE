@@ -67,23 +67,22 @@ public class AgentActionSchema extends ConceptSchema {
     } 
 
     /**
-     * Add a mandatory slot to this schema. 
+     * Add a mandatory slot of type PredicateSchema to this schema. 
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
-    public void add(String name, ContentElementSchema slotSchema) {
+    public void add(String name, PredicateSchema slotSchema) {
         super.add(name, slotSchema);
     } 
 
     /**
-     * Add a slot to this schema. 
-     *
+     * Add a slot of type PredicateSchema to this schema. 
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      * @param optionality The optionality, i.e. <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, ContentElementSchema slotSchema, int optionality) {
+    public void add(String name, PredicateSchema slotSchema, int optionality) {
         super.add(name, slotSchema, optionality);
     } 
 
