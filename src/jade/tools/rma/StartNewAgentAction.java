@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/06 21:56:06  rimassa
+  Removed old, commented out code.
+
   Revision 1.1  1999/05/20 15:42:12  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -82,12 +85,6 @@ public class StartNewAgentAction extends AMSAbstractAction {
 	    if (result == StartDialog.OK_BUTTON) {
 	      ((TreeData)listeners.elementAt(i)).setState(TreeData.RUNNING);
  
-	      //	      AMSTreeModel treeModel = (AMSTreeModel)tree.getModel();
-	      //	      TreeData current = new TreeData(StartDialog.getAgentName(), TreeData.AGENT);
-	      //	      String [] s = new String[1];
-	      //	      s[0] =  StartDialog.getHost()+" : "+StartDialog.getPort();
-	      //	      current.setAddresses(s);
-	      //	      treeModel.insertNodeInto(current,parent, 0);
 	    }
 	  }
 	}
