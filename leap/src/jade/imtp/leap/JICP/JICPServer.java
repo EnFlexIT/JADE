@@ -58,9 +58,7 @@ import java.util.StringTokenizer;
  */
 public class JICPServer extends Thread {
 	private static final int LISTENING = 0;
-	private static final int PAUSING = 1;
-	private static final int PAUSED = 2;
-	private static final int TERMINATING = 3;
+	private static final int TERMINATING = 1;
  
 	private int      state = LISTENING;
 	
@@ -86,7 +84,7 @@ public class JICPServer extends Thread {
     cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
-  	myLogger = new Logger("JICPServer", 2);
+  	myLogger = new Logger("JICPServer", 1);
 		
     try {
     	localHost = InetAddress.getLocalHost(); 
@@ -116,8 +114,7 @@ public class JICPServer extends Thread {
   }
   
   /**
-   * Method declaration
-   * @see
+     Shut down this JICP server
    */
   public synchronized void shutdown() {
 	  myLogger.log("Shutting down JICPServer...", 2);
@@ -128,9 +125,7 @@ public class JICPServer extends Thread {
       // Calling this.interrupt(); should be the right way, but it seems
       // not to work...so do that by closing the server socket.
       server.close();
-      // Wakeup the JICPServer thread in case it has been paused
-      notifyAll();
-
+      
       // Wait for the listening thread to complete
       this.join();
     } 
@@ -141,114 +136,6 @@ public class JICPServer extends Thread {
       ie.printStackTrace();
     } 
   } 
-
-  /**
-     Temporarily stop this JICPServer from accepting connections
-   */
-  private synchronized boolean pause() {
-  	if (state == LISTENING) {
-	  	myLogger.log("Pausing JICPServer...", 2);
-	  	try {
-	  		state = PAUSING;
-	  		server.close();
-	  		while (state == PAUSING) {
-	  			try {
-	  				wait();
-	  			}
-	  			catch (Exception e) {
-	  			}
-	  		}
-	  	}
-	  	catch (IOException ioe) {
-	  		ioe.printStackTrace();
-	  	}
-  	}
-  	return (state == PAUSED);
-  }
-  
-  /**
-     Restart this JICPServer from the paused state
-   */
-  private synchronized boolean restart(int port) {
-  	if (state == PAUSED || state == PAUSING) {
-	  	myLogger.log("Restarting JICPServer...", 2);
-	  	while (true) {
-		    try {
-		      server = new ServerSocket(port);
-		      state = LISTENING;
-		      notifyAll();
-		      return true;
-		    } 
-				catch (BindException be) {
-					// The port is still busy. Wait a bit
-					myLogger.log("Local port "+port+" still busy for listening. Wait a bit before retrying...", 2);
-					waitABit(10000);
-				}					
-				catch (Exception e) {
-					myLogger.log("PANIC: Cannot restart JICPServer", 1);
-					break;
-				}
-	  	}
-  	}
-  	return false;
-  }
-  	
-  private Object fakeReplyLock = new Object();
-  
-  /**
-     Send a fake TCP packet to a given address and port. This can 
-     be used as an extreme remedy 
-     to unblock a thread on a remote terminal that is blocked in
-     a read() on a socket previously opened with this JICPServer
-   */
-  public void fakeReply(InetAddress addr, int port) {
-  	if (addr != null) {
-	  		
-			// Send the fake reply
-	  	Socket s = null;
-	  	while (true) {
-	  		// Only one thread at a time can execute this block
-	  		synchronized (fakeReplyLock) {
-			  	int oldPort = getLocalPort();
-					try {
-		  			pause();
-						myLogger.log("Sending fake reply to "+addr+":"+port, 2);
-			  		s = new Socket(addr, port, localHost, oldPort);
-					}
-					catch (BindException be) {
-						myLogger.log("Local port "+oldPort+" still busy", 2);
-					}					
-					catch (Exception e) {
-						myLogger.log("Fake reply sent", 2);
-						return;
-					}
-					finally {
-						try {
-							s.close();
-						}
-						catch (Exception e) {}
-						restart(oldPort);
-					}
-	  		}
-				
-				// If we get here the local port is still busy. Wait a bit
-				myLogger.log("Wait a bit before retrying...", 2);
-				waitABit(30000);
-	  	}
-  	}
-  }
-  
-  /**
-     Wait for a given amount of time
-   */
-	private void waitABit(long time) {
-    try {
-      Thread.sleep(time);
-    } 
-    catch (InterruptedException ie) {
-      myLogger.log("InterruptedException in Thread.sleep()", 1);
-    }
-	}
 	
   /**
    * JICPServer thread entry point. Accept incoming connections 
@@ -261,9 +148,7 @@ public class JICPServer extends Thread {
         Socket s = server.accept();
         InetAddress addr = s.getInetAddress();
         int port = s.getPort();
-        //if (!addr.equals(localHost)) {
-	        myLogger.log("Incoming connection from "+addr+":"+port, 3);
-        //}
+        myLogger.log("Incoming connection from "+addr+":"+port, 3);
         Connection c = connFactory.createConnection(s);
         new ConnectionHandler(c, addr, port).start();    // start a handler and go back to listening
       } 
@@ -274,33 +159,13 @@ public class JICPServer extends Thread {
         // server will exit).
       } 
       catch (Exception e) {
-  			synchronized (this) {
-	      	if (state == PAUSING) {
-						// This exception has been forced by a call to pause()
-						myLogger.log("JICPServer paused", 2);
-    				state = PAUSED;
-    				// Notify the thread that requested the pause
-    				notifyAll();
-  					// Wait for restart (or shutdown)
-    				while (state == PAUSED) {
-	    				try {
-	    					wait();
-	    				}
-	    				catch (Exception e1) {
-	    				}
-    				}
-    				if (state != TERMINATING) {
-	    				myLogger.log("JICPServer restarted", 2);
-    				}
-	    		}
-	      	else if (state == LISTENING) {
-	          myLogger.log("Problems accepting a new connection", 1);
-	          e.printStackTrace();
-	
-	          // Stop listening
-	          state = TERMINATING;
-	      	}
-  			}
+      	if (state == LISTENING) {
+          myLogger.log("Problems accepting a new connection", 1);
+          e.printStackTrace();
+
+          // Stop listening
+          state = TERMINATING;
+      	}
       } 
     } // END of while(listen) 
 
@@ -358,26 +223,18 @@ public class JICPServer extends Thread {
     public void run() {
     	handlersCnt++;
     	
-      //OutputStream out = null;
-      //InputStream  inp = null;
+	    myLogger.log("CommandHandler started", 3);
       boolean closeConnection = true;
       int status = 0;
       byte type = (byte) 0;
       try {
-        // Get input and output stream from the connection
-        //inp = c.getInputStream();
-        //out = c.getOutputStream();
-	
 	      boolean loop = false;
       	do {
 	        // Read the input
-	        //JICPPacket pkt = JICPPacket.readFrom(inp);
 	        JICPPacket pkt = c.readPacket();
-	        status = 1;
-	        
-	        // Reply packet
 	        JICPPacket reply = null;
-	
+	        status = 1;
+	        	
 	        type = pkt.getType();
 	        switch (type) {
 	        case JICPProtocol.COMMAND_TYPE:
@@ -386,6 +243,7 @@ public class JICPServer extends Thread {
 	          String recipientID = pkt.getRecipientID();
 	          if (recipientID != null) {
 	            // The recipient is one of the mediators
+	          	myLogger.log("Passing incoming COMMAND to mediator", 3);
 	            JICPMediator m = (JICPMediator) mediators.get(recipientID);
 	            if (m != null) {
 	              reply = m.handleJICPPacket(pkt, addr, port);
@@ -400,8 +258,9 @@ public class JICPServer extends Thread {
 	          	// The recipient is my ICP.Listener (the local CommandDispatcher)
 	          	loop = true;
 	          	if (type == JICPProtocol.COMMAND_TYPE) { 
+	          		myLogger.log("Passing incoming COMMAND to local listener", 3);
 		            byte[] rsp = cmdListener.handleCommand(pkt.getData());
-		            byte dataInfo = JICPProtocol.COMPRESSED_INFO;
+		            byte dataInfo = JICPProtocol.DEFAULT_INFO;
 		            if (handlersCnt >= maxHandlers) {
 		            	// Too many connections open --> close the connection as soon as the command has been served
 		            	dataInfo |= JICPProtocol.TERMINATED_INFO;
@@ -427,12 +286,12 @@ public class JICPServer extends Thread {
 	          String s = new String(pkt.getData());
 	          Properties p = parseProperties(s);
 
-		  // Get mediator ID from the passed properties, if there is one
-		  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
-		  if(id == null) {
-		      // The string representation of the server's TCP endpoint is used to build an unique mediator ID
-		      id = localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
-		  }
+					  // Get mediator ID from the passed properties, if there is one
+					  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
+					  if(id == null) {
+				      // The string representation of the server's TCP endpoint is used to build an unique mediator ID
+				      id = localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+					  }
 
 	          myLogger.log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
@@ -507,7 +366,7 @@ public class JICPServer extends Thread {
 	      		myLogger.log("Client "+addr+":"+port+" has closed the connection.", 2);
 	      	}
 	      	else {
-	      		myLogger.log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 1);
+	      		myLogger.log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 2);
 	      	}
       	}
       } 
