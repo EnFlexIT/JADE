@@ -25,7 +25,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import java.io.Serializable;
 import jade.content.Concept;
 
 
@@ -39,7 +38,7 @@ import jade.content.Concept;
 public class Property implements Concept {
 
     private String name;
-    private Serializable value;
+    private Object value;
 
     /**
        Default constructor. A default constructor is needed for JADE
@@ -53,7 +52,7 @@ public class Property implements Concept {
        @param name The name of the property.
        @param value The Java object associated with the given name.
     */
-    public Property(String name, Serializable value) {
+    public Property(String name, Object value) {
 	this.name = name;
 	this.value = value;
     }
@@ -80,7 +79,7 @@ public class Property implements Concept {
        property name.
        @param o The new Java object to attach to the property name.
     */
-    public void setValue(Serializable o) {
+    public void setValue(Object o) {
 	value = o;
     }
 
@@ -90,8 +89,18 @@ public class Property implements Concept {
        @return The value of this property, or <code>null</code> if no
        value was set.
     */
-    public Serializable getValue() {
+    public Object getValue() {
 	return value;
     }
 
+    //#J2ME_EXCLUDE_BEGIN
+    // For persistence only
+    private void setsvalue(java.io.Serializable s) {
+    	value = s;
+    }
+    
+    private java.io.Serializable getsvalue() {
+    	return (java.io.Serializable) value;
+    }
+    //#J2ME_EXCLUDE_END
 }
