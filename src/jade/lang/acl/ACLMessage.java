@@ -963,7 +963,7 @@ private int performative; // keeps the performative type of this object
       }
       if(content != null)
 	if(content.length() > 0)
-	  w.write(CONTENT + " " + content + "\n");
+	  w.write(CONTENT + " \"" + escape(content) + " \"\n");
       if(reply_with != null)
 	if(reply_with.length() > 0)
 	  w.write(REPLY_WITH + " " + reply_with + "\n");
@@ -1089,8 +1089,35 @@ private int performative; // keeps the performative type of this object
     m.setReplyBy(null);
     m.setContent(null);
     m.setEncoding(null);
+    
+    //Set the Aclrepresentation of the reply message to the aclrepresentation of the sent message 
+    if (messageEnvelope != null)
+    {
+    	String aclCodec= messageEnvelope.getAclRepresentation();
+    	if (aclCodec != null)
+    	{	
+    		m.setDefaultEnvelope();
+    		m.getEnvelope().setAclRepresentation(aclCodec);
+    	}
+    }
+    else
     m.setEnvelope(null);
+    
     return m;
+  }
+
+  private String escape(StringBuffer s) {
+    // Make the stringBuffer a little larger than strictly
+    // necessary in case we need to insert any additional
+    // characters.  (If our size estimate is wrong, the
+    // StringBuffer will automatically grow as needed).
+    StringBuffer result = new StringBuffer(s.length()+20);
+    for( int i=0; i<s.length(); i++)
+      if( s.charAt(i) == '"' ) 
+	result.append("\\\"");
+      else 
+	result.append(s.charAt(i));
+    return result.toString();
   }
 
 }
