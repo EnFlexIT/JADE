@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.30  1999/03/15 15:25:39  rimassa
+  Changed priority for system agents.
+
   Revision 1.29  1999/03/09 13:30:14  rimassa
   Used String constants for system agent names.
   Completely redesigned AgentPlatform startup: now system agents (AMS,
@@ -192,7 +195,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public AgentPlatformImpl(String args[]) throws RemoteException {
     super(args);
     myName = MAIN_CONTAINER_NAME;
-    systemAgentsThreads.setMaxPriority(Thread.MAX_PRIORITY);
+    systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY);
     initAMS();
     initACC();
     initDF();
