@@ -1,3 +1,17 @@
+MAJOR CHANGES in JADE Snapshot (25 February 2003) 
+==========================================================================
+GENERAL IMPROVEMENTS:
+- removed a set of unused constants and replaced with the constants in the class 
+  FIPANames
+- removed jade.core.MobilityManager because no longer used, added logging mechanism
+  to RealMobilityManager
+- improved management of persistent DF
+- adjusted ontology herarchy in MIDP
+
+BUG FIXES:
+- ISO8601 in managing relative time
+- jade.core.LADT fixed a bug that generated a deadlock
+
 MAJOR CHANGES in JADE Snapshot (15 February 2003) 
 ==========================================================================
 GENERAL IMPROVEMENTS:
@@ -30,6 +44,7 @@ BUG FIXES:
   - fixed bug in the reconnection mechanism. Improved logs
   - Modified response timeout
 - XMLACLCodec add-on: Fixed bug on dealing with a null reply-by (Giovanni Barone)
+- BlueJADE: Bug fix on agent mobility (Dick Cowan, reported by Arunanthisivam Vimalathithen.)
 
 
 
