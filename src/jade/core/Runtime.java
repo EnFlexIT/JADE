@@ -51,6 +51,7 @@ public class Runtime {
   private TimerDispatcher theDispatcher;
   private int activeContainers = 0;
   private boolean closeVM = false;
+  private Object lock = new Object();
 
   // Private constructor to forbid instantiation outside the class.
   private Runtime() {
@@ -183,30 +184,33 @@ public class Runtime {
   void endContainer() {
     --activeContainers;
     if(activeContainers == 0) {
-    	/*theDispatcher.stop();
-      
-      try {
-	criticalThreads.destroy();
-      }
-      catch(IllegalThreadStateException itse) {
-	System.out.println("Time-critical threads still active: ");
-	criticalThreads.list();
-      }
-      finally {
-	criticalThreads = null;
-      }
-      */
-			
+    	// If this JVM must be closed --> span another Thread that 
+    	// asynchronously does it
       if(closeVM) {
       	Thread t = new Thread(new Runnable() {
       		public void run() {
+      			System.out.println("Exiting now!");
 						System.exit(0);
       		}
       	} );
+      	t.setDaemon(false);
       	t.start();
       }
+      
+      // Terminate the TimerDispatcher and release its resources
+    	theDispatcher.stop();
+      
+      try {
+				criticalThreads.destroy();
+      }
+      catch(IllegalThreadStateException itse) {
+				System.out.println("Time-critical threads still active: ");
+				criticalThreads.list();
+      }
+      finally {
+				criticalThreads = null;
+      }
     }
-
   }
 
   TimerDispatcher getTimerDispatcher() {
