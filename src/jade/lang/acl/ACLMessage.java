@@ -34,6 +34,12 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.23  1999/11/19 13:21:20  rimassaJade
+ Changed representation for ACL performatives: now simple integer
+ constants are used, and no more StringBuffer objects.
+ Changed ACLMessage interface for setting and getting the performative,
+ and deprecated the older interface.
+
  Revision 1.22  1999/09/03 10:42:05  rimassa
  Added support for serialized Java objects within message content,
  using a Base64 codec.
@@ -128,6 +134,7 @@ import java.io.StringWriter;
 
 import java.util.Enumeration;
 import java.util.Date;
+import java.util.Vector;
 
 import jade.core.AgentGroup;
 
@@ -151,6 +158,74 @@ import starlight.util.Base64;
  */
 public class ACLMessage implements Cloneable, Serializable {
 
+  /** constant identifying the FIPA performative **/
+  public static final int ACCEPT_PROPOSAL = 0;
+  /** constant identifying the FIPA performative **/
+  public static final int AGREE = 1;
+  /** constant identifying the FIPA performative **/
+  public static final int CANCEL = 2;
+  /** constant identifying the FIPA performative **/
+  public static final int CFP = 3;
+  /** constant identifying the FIPA performative **/
+  public static final int CONFIRM = 4;
+  /** constant identifying the FIPA performative **/
+  public static final int DISCONFIRM = 5;
+  /** constant identifying the FIPA performative **/
+  public static final int FAILURE = 6;
+  /** constant identifying the FIPA performative **/
+  public static final int INFORM = 7;
+  /** constant identifying the FIPA performative **/
+  public static final int INFORM_IF = 8;
+  /** constant identifying the FIPA performative **/
+  public static final int INFORM_REF = 9;
+  /** constant identifying the FIPA performative **/
+  public static final int NOT_UNDERSTOOD = 10;
+  /** constant identifying the FIPA performative **/
+  public static final int PROPOSE = 11;
+  /** constant identifying the FIPA performative **/
+  public static final int QUERY_IF = 12;
+  /** constant identifying the FIPA performative **/
+  public static final int QUERY_REF = 13;
+  /** constant identifying the FIPA performative **/
+  public static final int REFUSE = 14;
+  /** constant identifying the FIPA performative **/
+  public static final int REJECT_PROPOSAL = 15;
+  /** constant identifying the FIPA performative **/
+  public static final int REQUEST = 16;
+  /** constant identifying the FIPA performative **/
+  public static final int REQUEST_WHEN = 17;
+  /** constant identifying the FIPA performative **/
+  public static final int REQUEST_WHENEVER = 18;
+  /** constant identifying the FIPA performative **/
+  public static final int SUBSCRIBE = 19;
+  /** constant identifying an unknown performative **/
+  public static final int UNKNOWN = -1;
+ 
+private int performative; // keeps the performative type of this object
+  private static Vector performatives = new Vector(20);
+  static { // initialization of the Vector of performatives
+    performatives.addElement("ACCEPT-PROPOSAL");
+    performatives.addElement("AGREE");
+    performatives.addElement("CANCEL");
+    performatives.addElement("CFP");
+    performatives.addElement("CONFIRM");
+    performatives.addElement("DISCONFIRM");
+    performatives.addElement("FAILURE");
+    performatives.addElement("INFORM");
+    performatives.addElement("INFORM-IF");
+    performatives.addElement("INFORM-REF");
+    performatives.addElement("NOT-UNDERSTOOD");
+    performatives.addElement("PROPOSE");
+    performatives.addElement("QUERY-IF");
+    performatives.addElement("QUERY-REF");
+    performatives.addElement("REFUSE");
+    performatives.addElement("REJECT-PROPOSAL");
+    performatives.addElement("REQUEST");
+    performatives.addElement("REQUEST-WHEN");
+    performatives.addElement("REQUEST-WHENEVER");
+    performatives.addElement("SUBSCRIBE");
+  }
+
   private static final String SOURCE          = new String(" :sender ");
   private static final String DEST            = new String(" :receiver ");
   private static final String CONTENT         = new String(" :content ");
@@ -165,7 +240,6 @@ public class ACLMessage implements Cloneable, Serializable {
 
   private StringBuffer source = new StringBuffer();
   private AgentGroup dests = new AgentGroup();
-  private StringBuffer msgType = new StringBuffer();
   private StringBuffer content = new StringBuffer();
   private StringBuffer reply_with = new StringBuffer();
   private StringBuffer in_reply_to = new StringBuffer();
@@ -185,17 +259,32 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#ACLMessage(String type)
   */
   public ACLMessage() {
-    msgType.replace(0, msgType.length(), "not-understood");
+    performative = NOT_UNDERSTOOD;
   }
 
   /**
-     Ordinary <code>ACLMessage</code> constructor. This constructor
-     creates an ACL message object with the specified type.
+    @deprecated It increases the probability of error when the passed
+    String does not belong to the set of performatives supported by
+    FIPA. This constructor creates an ACL message object with the
+    specified type.    To avoid problems, the constructor <code>ACLMessage(int)</code>
+    should be used instead.
      @param type The type of the communicative act represented by this
-     message. 
-   */
+     message.
+     @see jade.lang.acl.ACLMessage#ACLMessage(int type)
+*/
   public ACLMessage(String type) {
-    msgType.replace(0, msgType.length(), type);
+    performative = performatives.indexOf(type.toUpperCase());
+  }
+
+
+  /**
+   * This constructor creates an ACL message object with the specified
+   * performative. If the passed integer does not correspond to any of
+   * the known performatives, it silently initializes the message to
+   * <code>not-understood</code>.
+   **/
+  public ACLMessage(int perf) {
+    performative = perf;
   }
 
   /**
@@ -275,16 +364,27 @@ public class ACLMessage implements Cloneable, Serializable {
 
 
   /**
+    @deprecated Use <code>setPerformative</code> instead.
      Writes the message type. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
      @param type The new value for the slot.
-     @see jade.lang.acl.ACLMessage#getType()
+     @see jade.lang.acl.ACLMessage#setPerformative(int perf)
   */
   public void setType( String type ) {
     if (type != null)
-      msgType = new StringBuffer(type);
+      performative = performatives.indexOf(type.toUpperCase());
     else
-      msgType = new StringBuffer();
+      performative = NOT_UNDERSTOOD;
+  }
+
+  /**
+   * set the performative of this ACL message object to the passed constant.
+   * Remind to 
+   * use the set of constants (i.e. <code> INFORM, REQUEST, ... </code>)
+   * defined in this class
+   */
+  public void setPerformative(int perf) {
+    performative = perf;
   }
 
   /**
@@ -559,10 +659,23 @@ public class ACLMessage implements Cloneable, Serializable {
   /**
      Reads message type.
      @return The value of the message type..
-     @see jade.lang.acl.ACLMessage#setType(String).
+     @see jade.lang.acl.ACLMessage#setPerformative(int perf).
   */
   public String getType() {
-    return new String(msgType);
+    try {
+      return new String((String)performatives.elementAt(performative));
+    } catch (Exception e) {
+      return new String((String)performatives.elementAt(NOT_UNDERSTOOD));
+    }
+  }
+
+
+  /**
+   * return the integer representing the performative of this object
+   * @return an integer representing the performative of this object
+   */
+  public int getPerformative() {
+    return performative;
   }
 
   /**
@@ -692,7 +805,7 @@ public class ACLMessage implements Cloneable, Serializable {
   public void toText(Writer w) {
     try {
       w.write("(");
-      w.write(msgType + "\n");
+      w.write(getType() + "\n");
       if(source.length() > 0)
 	w.write(SOURCE + " " + source + "\n");
       Enumeration e = dests.getMembers();
@@ -773,7 +886,7 @@ public class ACLMessage implements Cloneable, Serializable {
        Pertanto non inizializzare direttamente a null.*/
   source=new StringBuffer();
   dests=new AgentGroup();
-  msgType=new StringBuffer("not-understood");
+  performative = NOT_UNDERSTOOD;
   content=new StringBuffer();
   reply_with=new StringBuffer();
   in_reply_to=new StringBuffer();
