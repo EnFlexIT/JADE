@@ -23,12 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.mtp.MTPDescriptor;
+
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
-
 
 class ContainerTable {
 
@@ -37,26 +38,26 @@ class ContainerTable {
 
   private static class Entry {
     private AgentContainer container;
-    private List addresses = new LinkedList();
+    private List mtps = new LinkedList();
 
     public Entry(AgentContainer ac) {
       container = ac;
     }
 
-    public void addAddress(String a) {
-      addresses.add(a);
+    public void addMTP(MTPDescriptor mtp) {
+      mtps.add(mtp);
     }
 
-    public void removeAddress(String a) {
-      addresses.remove(a);
+    public void removeMTP(MTPDescriptor mtp) {
+      mtps.remove(mtp);
     }
 
     public AgentContainer getContainer() {
       return container;
     }
 
-    public List getAddresses() {
-      return addresses;
+    public List getMTPs() {
+      return mtps;
     }
 
   } // End of Entry class
@@ -70,12 +71,12 @@ class ContainerTable {
     entries.put(new CaseInsensitiveString(containerName), e);
   }
 
-  public synchronized void addAddress(String containerName, String address) throws NotFoundException {
+  public synchronized void addMTP(String containerName, MTPDescriptor mtp) throws NotFoundException {
     Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
-    List l = e.getAddresses();
-    l.add(address);
+    List l = e.getMTPs();
+    l.add(mtp);
   }
 
   public synchronized void removeContainer(String containerName) {
@@ -84,12 +85,12 @@ class ContainerTable {
       notifyAll();
   }
 
-  public synchronized void removeAddress(String containerName, String address) throws NotFoundException {
+  public synchronized void removeMTP(String containerName, MTPDescriptor mtp) throws NotFoundException {
     Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
-    List l = e.getAddresses();
-    l.remove(address);
+    List l = e.getMTPs();
+    l.remove(mtp);
   }
 
   public synchronized AgentContainer getContainer(String containerName) throws NotFoundException {
@@ -99,11 +100,11 @@ class ContainerTable {
     return e.getContainer();
   }
 
-  public synchronized List getAddresses(String containerName) throws NotFoundException {
+  public synchronized List getMTPs(String containerName) throws NotFoundException {
     Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
-    return e.getAddresses();
+    return e.getMTPs();
   }
 
   public int size() {
