@@ -36,7 +36,6 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.core.BackEndContainer;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.util.Logger;
@@ -327,7 +326,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          myLogger.log("Received a GET_ADDRESS request from "+addr+":"+port, 2);
 	          reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          break;
-	
+
+			  	//#PJAVA_EXCLUDE_BEGIN
 	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
 
 	          // Starts a new Mediator and sends back its ID
@@ -350,7 +350,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 					  if(id != null) {
 					  	// An existing front-end whose back-end was lost 
-					  	p.setProperty(BackEndContainer.RESYNCH, "true");
+					  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
 					  }
 					  else {
 					  	// Use the MSISDN (if present) 
@@ -393,7 +393,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
 	          }
 	          break;
-	
+			  		//#PJAVA_EXCLUDE_END
+	          
 	        default:
 	          // Send back an error response
 	          myLogger.log("Uncorrect JICP data type: "+pkt.getType(), 1);
