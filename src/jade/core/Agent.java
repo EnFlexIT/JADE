@@ -54,7 +54,7 @@ import jade.lang.acl.*;
 import jade.lang.sl.SL0Codec;
 
 import jade.onto.Name;
-import jade.onto.Action;
+import jade.onto.basic.Action;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;

@@ -54,7 +54,7 @@ import jade.lang.acl.MessageTemplate;
 
 import jade.lang.sl.SL0Codec;
 
-import jade.onto.Action;
+import jade.onto.basic.Action;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
