@@ -37,10 +37,11 @@ class MessageManager implements TimerListener {
 	// Default values for retry-interval and retry-maximum
 	//private static final int  DEFAULT_POOL_SIZE = 1;
 	private static final long  DEFAULT_RETRY_INTERVAL = 60000; // 1 minute
-	private static final long  DEFAULT_RETRY_MAXIMUM = 300000; // 5 minutes
+	private static final long  DEFAULT_RETRY_MAXIMUM = 600000; // 10 minutes
 	//private int poolSize = DEFAULT_POOL_SIZE;
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 	private long retryMaximum = DEFAULT_RETRY_MAXIMUM;
+	private boolean preserveOrder;
 	
 	private AgentContainerImpl myContainer;
 	private List         errBox = new ArrayList();
@@ -83,6 +84,16 @@ class MessageManager implements TimerListener {
 			catch (Exception e) {
 				// Do nothing and keep default value
 			}
+			
+			// PRESERVE_ORDER
+			tmp = p.getParameter("jade.core.MessageManager.preserve-order");
+			try {
+				preserveOrder = !("false").equals(tmp);
+			}
+			catch (Exception e) {
+				// Do nothing and keep default value
+			}
+			System.out.println("preserveOrder set to "+preserveOrder);
 		}
 		catch (ProfileException pe) {
 			// Print a warning and keep default values
@@ -177,13 +188,11 @@ class MessageManager implements TimerListener {
  				PendingMsg pm = getFromOutBox();
  				ACLMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
- 				/*synchronized (receivers) {
- 					receivers.put(receiverID, this);
- 					receivers.notifyAll();
- 				}*/
- 				
-	 			//log("Serving message "+stringify(msg, receiverID));
- 				//while (msg != null) {
+ 				if (checkPostpone(receiverID, msg.getSender())) {
+ 					log("Postpone delivery to preserve order", 1);
+ 					deliverLater(pm);
+ 				}
+ 				else {
     			try {
     				myContainer.deliverNow(msg, receiverID);
     				//log("Message served");
@@ -193,29 +202,7 @@ class MessageManager implements TimerListener {
  						log("Destination unreachable. Will retry later", 1);
     				deliverLater(pm);
     			}
-    			
-    			/*synchronized (this) {
-	    			while (waiting.contains(receiverID)) {
-	    				try {
-	    					wait();
-	    				}
-	    				catch (InterruptedException ie) {
-	    				}
-	    			}
-    			}
-    			
-    			// Check if there are other messages for the same receiver
-    			synchronized (receivers) {
-    				if (queued.isEmpty()) {
-    					msg = null;
-    					receivers.remove(receiverID);
-    				}
-    				else {
-    					//log("Serving enqueued message "+stringify(msg, receiverID));
-    					msg = (ACLMessage) queued.remove(0);
-    				}
-    			}*/
- 				//}
+ 				}
  			}
  		}
  		
@@ -263,6 +250,24 @@ class MessageManager implements TimerListener {
  	// Methods dealing with buffering and retransmission when
 	// the destination is temporarily unreachable
  	/////////////////////////////////////////////////////////
+	private boolean checkPostpone(AID receiverID, AID senderID) {
+		if (preserveOrder) {
+			synchronized (errBox) {
+				Iterator it = errBox.iterator();
+				while (it.hasNext()) {
+					PendingMsg pm = (PendingMsg) it.next();
+					if (receiverID.equals(pm.getReceiver())) {
+						if (senderID.equals(pm.getMessage().getSender())) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+		}
+		return false;
+	}
+	
 	private void deliverLater(PendingMsg pm) {
 		synchronized (errBox) {
 			// If the errBox is not empty --> a proper Timer is already active.

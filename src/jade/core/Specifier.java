@@ -20,6 +20,10 @@
  */
 package jade.core;
 
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+
 /**
  * This class represent a specifier and collects
  * a name, a className, and an array of arguments.
@@ -94,6 +98,150 @@ public class Specifier {
 	}
 	return tmp.toString();
     }
+
+  /**
+   */
+  public static List parseSpecifierList(String specsLine) throws Exception {
+    ArrayList specs = new ArrayList();
+    
+    if (specsLine != null && !specsLine.equals("")) {
+	    // Copy the string with the specifiers into an array of char
+  	  char[] specsChars = new char[specsLine.length()];
+
+    	specsLine.getChars(0, specsLine.length(), specsChars, 0);
+
+    	// Create the StringBuffer to hold the first specifier
+    	StringBuffer sbSpecifier = new StringBuffer();
+    	int          i = 0;
+
+    	while (i < specsChars.length) {
+      	char c = specsChars[i];
+
+      	if (c != ';') {
+        	sbSpecifier.append(c);
+      	} 
+      	else {
+
+        	// The specifier is terminated --> Convert it into a Specifier object
+        	String tmp = sbSpecifier.toString().trim();
+
+        	if (tmp.length() > 0) {
+          	Specifier s = parseSpecifier(tmp);
+
+          	// Add the Specifier to the list
+          	specs.add(s);
+        	} 
+
+        	// Create the StringBuffer to hold the next specifier
+        	sbSpecifier = new StringBuffer();
+      	} 
+
+      	++i;
+    	} 
+
+    	// Handle the last specifier
+    	String tmp = sbSpecifier.toString().trim();
+
+    	if (tmp.length() > 0) {
+      	Specifier s = parseSpecifier(tmp);
+
+      	// Add the Specifier to the list
+      	specs.add(s);
+    	} 
+    }
+  	return specs;
+  } 
+
+  /**
+   * Utility method that parses a stringified object specifier in the form
+   * name:class(arg1, arg2...) and returns
+   * a Specifier object.
+   * Both the name and the list of arguments are optional.
+   * Concrete implementations can take advantage from this method to
+   * implement the getSpecifiers() method.
+   */
+  private static Specifier parseSpecifier(String specString) throws Exception {
+    Specifier s = new Specifier();
+
+    // NAME
+    int       index1 = specString.indexOf(':');
+    int       index2 = specString.indexOf('(');
+
+    if (index2 < 0) {
+      index2 = 99999;
+    } 
+
+    if (index1 > 0 && index1 < index2) {
+
+      // The name exists, colon exists, and is followed by the class name
+      s.setName(specString.substring(0, index1));
+
+      // Skip colon
+      index1++;
+    } 
+    else {
+
+      // No name specified
+      index1 = 0;
+    } 
+
+    // CLASS
+    index2 = specString.indexOf('(', index1);
+
+    if (index2 < 0) {
+
+      // No arguments --> just add the class name
+      s.setClassName(specString.substring(index1));
+    } 
+    else {
+
+      // There are arguments --> add the class name and then parse the args
+      s.setClassName(specString.substring(index1, index2));
+
+      // ARGUMENTS
+      if (!specString.endsWith(")")) {
+        throw new Exception("Incorrect specifier \""+specString+"\". Missing final parenthesis");
+      } 
+
+      // Get everything is in between '(' and ')'
+      String args = specString.substring(index2+1, specString.length()-1);
+
+      s.setArgs(parseArguments(args));
+    } 
+
+    return s;
+  } 
+
+  /**
+   */
+  private static String[] parseArguments(String args) {
+    List argList = new ArrayList();
+    int  argStart = 0;
+    int  argEnd = args.indexOf(',');
+
+    while (argEnd >= 0) {
+      String arg = args.substring(argStart, argEnd);
+
+      argList.add(arg.trim());
+
+      argStart = argEnd+1;
+      argEnd = args.indexOf(',', argStart);
+    } 
+
+    // Last argument
+    String arg = args.substring(argStart, args.length());
+
+    argList.add(arg.trim());
+
+    // Convert the List into an Array
+    String arguments[] = new String[argList.size()];
+    int    i = 0;
+
+    for (Iterator it = argList.iterator(); it.hasNext(); arguments[i++] = (String) it.next());
+
+    return arguments;
+  } 
+
 
 }
 
