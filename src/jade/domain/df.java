@@ -82,15 +82,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     // This method throws a FIPAException if the attribute is
     // mandatory for the current DF action but it is a null object
     // reference
-    private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
-      if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (attributeValue == null))
-	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
-    }
-
-    private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
-      if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (!attributeValue.hasMoreElements()))
-	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
-    }
+    
+    
 
     // This method parses the message content and puts
     // 'FIPA-DF-agent-description' attribute values in instance
@@ -120,14 +113,14 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       // are non-null
       AgentManagementOntology.DFAgentDescriptor dfd = myAction.getArg();
 
-      checkAttribute(AgentManagementOntology.DFAgentDescriptor.NAME, dfd.getName());
-      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.SERVICES, dfd.getAgentServices());
-      checkAttribute(AgentManagementOntology.DFAgentDescriptor.TYPE, dfd.getType());
-      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.PROTOCOLS, dfd.getInteractionProtocols());
-      checkAttribute(AgentManagementOntology.DFAgentDescriptor.ONTOLOGY, dfd.getOntology());
-      checkAttributeList(AgentManagementOntology.DFAgentDescriptor.ADDRESS, dfd.getAddresses());
-      checkAttribute(AgentManagementOntology.DFAgentDescriptor.OWNERSHIP, dfd.getOwnership());
-      checkAttribute(AgentManagementOntology.DFAgentDescriptor.DFSTATE, dfd.getDFState());
+      checkAttribute(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.NAME, dfd.getName());
+      checkAttributeList(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.SERVICES, dfd.getAgentServices());
+      checkAttribute(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.TYPE, dfd.getType());
+      checkAttributeList(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.PROTOCOLS, dfd.getInteractionProtocols());
+      checkAttribute(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.ONTOLOGY, dfd.getOntology());
+      checkAttributeList(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.ADDRESS, dfd.getAddresses());
+      checkAttribute(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.OWNERSHIP, dfd.getOwnership());
+      checkAttribute(myAction.getName(), AgentManagementOntology.DFAgentDescriptor.DFSTATE, dfd.getDFState());
 
     }
 
@@ -447,13 +440,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	public void action () 
   	{ 
       	sendAgree();
-      	if (gui == null) 
-  		{
-			gui = new DFGUI((GUI2DFCommunicatorInterface) (df.this));
-			gui.refresh();
-			gui.setVisible(true);
-			sendInform();
-  		} 
+			if (((df)myAgent).showGui())
+			  sendInform();
   		else
 			sendFailure("Gui_is_being_shown_already");
   	}
@@ -591,7 +579,21 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
   }  // End of method setup()
 
-		
+	/**
+	  This method make visible the GUI of the DF.
+	  @return true if the GUI was not visible already, false otherwise.
+	*/
+  protected boolean showGui() {
+   if (gui == null) 
+  		{
+			gui = new DFGUI((GUI2DFCommunicatorInterface) (df.this));
+			gui.refresh();
+			gui.setVisible(true);
+			return true;
+  		}
+   return false;
+  }
+   
 
 
   /**
@@ -633,10 +635,40 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     super.deregisterWithDF(dfName, dfd);
     parents.removeMember(dfName);
   }
+  	
+    // This method throws a FIPAException if the attribute is
+    // mandatory for the current DF action but it is a null object
+    // reference
 
+  private void checkAttribute(String dfAction, String attributeName, String attributeValue) throws FIPAException {
+      if(myOntology.isMandatoryForDF(dfAction, attributeName) && (attributeValue == null))
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
+    }
+
+  private void checkAttributeList(String dfAction, String attributeName, Enumeration attributeValue) throws FIPAException {
+      if(myOntology.isMandatoryForDF(dfAction, attributeName) && (!attributeValue.hasMoreElements()))
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE+ " "+attributeName);
+    }
+
+  private void checkAllAttributes(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+  
+  		checkAttribute("register", AgentManagementOntology.DFAgentDescriptor.NAME, dfd.getName());
+      checkAttributeList("register", AgentManagementOntology.DFAgentDescriptor.SERVICES, dfd.getAgentServices());
+      checkAttribute("register", AgentManagementOntology.DFAgentDescriptor.TYPE, dfd.getType());
+      checkAttributeList("register",AgentManagementOntology.DFAgentDescriptor.PROTOCOLS, dfd.getInteractionProtocols());
+      checkAttribute("register", AgentManagementOntology.DFAgentDescriptor.ONTOLOGY, dfd.getOntology());
+      checkAttributeList("register", AgentManagementOntology.DFAgentDescriptor.ADDRESS, dfd.getAddresses());
+      checkAttribute("register", AgentManagementOntology.DFAgentDescriptor.OWNERSHIP, dfd.getOwnership());
+      checkAttribute("register", AgentManagementOntology.DFAgentDescriptor.DFSTATE, dfd.getDFState());
+
+  
+  }  
     // PP
   private void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-    if(descriptors.containsKey(dfd.getName()))
+    
+  	checkAllAttributes(dfd);
+  
+  	if(descriptors.containsKey(dfd.getName()))
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
@@ -647,9 +679,9 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       AgentManagementOntology.ServiceDescriptor current = (AgentManagementOntology.ServiceDescriptor)e.nextElement();
       String type = current.getType();
       if(type == null)
-	return;
+      	return;
       if(type.equalsIgnoreCase("fipa-df") || type.equalsIgnoreCase("df")) {
-	subDFs.put(dfd.getName(), dfd);
+      	subDFs.put(dfd.getName(), dfd);
       }
     }
 
@@ -769,13 +801,15 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
 	// This means: templateValue = template.get<stringFields[i]>()
 	templateValue = (String)m.invoke(template, noParams);
+	
 	if(templateValue != null) {
 	  // This means: dfdValue = dfd.get<stringFields[i]>()
 	  dfdValue = (String)m.invoke(dfd, noParams);
-	  if(dfdValue == null)
-	    return false;
+	  if(dfdValue == null) 
+	  	return false;
 	  if(!dfdValue.equalsIgnoreCase(templateValue))
-	    return false;
+	  	return false;
+	    
 	}
 
       }
@@ -903,6 +937,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		public static final int REGISTER = 1001;
 		public static final int DEREGISTER = 1002;
 		public static final int MODIFY = 1003;
+		public static final int SEARCH = 1004;
 	
 		public String dfName;
 		public AgentManagementOntology.DFAgentDescriptor dfd;
@@ -934,6 +969,11 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		postGuiEvent(ev);
 	}
 
+	public void postSearchEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
+	{
+	 DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.SEARCH, dfName, dfd);
+	 postGuiEvent(ev);
+	}	
 	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
 	{
@@ -993,6 +1033,19 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 					modifyDFData(e.dfName, e.dfd);
 				}
 				break;
+		 case DFGuiEvent.SEARCH:
+		 	e = (DFGuiEvent) ev;
+		 	if(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+		 	{ // Search the agent with this DF
+		 		searchDFAgentDescriptor(e.dfd);
+		 	}
+		 	else
+		 	{
+		 	  //Search with another DF
+		 		System.out.println("Not yet implemented");
+		 	}
+		 	break;
+		 
 			} // END of switch
 		} // END of try
 		catch(FIPAException fe) 
@@ -1015,6 +1068,19 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 			throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
 		return(dsc);
 	}
+	
+	public void searchDFAgentDescriptor(AgentManagementOntology.DFAgentDescriptor dfd)
+	{
+		Vector out = new Vector();
+		Enumeration e = descriptors.elements();
+		while (e.hasMoreElements()){
+			Object obj = e.nextElement();
+			AgentManagementOntology.DFAgentDescriptor current = (	AgentManagementOntology.DFAgentDescriptor ) obj;
+			if (match(dfd, current))				
+				out.add(current);
+		
+		}
+	  if (gui != null)
+	  	gui.refreshLastSearch(out.elements());
+	}
 }
-
-
