@@ -121,12 +121,7 @@ BUGS
      present, instead of the complete receiver list. This is not
      strictly a bug, but is probably non compliant.
 
-  2) If more than a single instance of an RMA agent is run within the
-     same agent container, incorrect behaviour results. Presently,
-     willing to run multiple RMA agents on the same JADE platform,
-     each one of them must live in a separate agent container.
-
-  3) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
+  2) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
      unavailable" appears during platform shutdown, but then the
      process completes without any problems.
 
