@@ -28,8 +28,8 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
-import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
+import jade.onto.Name;
 
 import jade.onto.basic.*;
 
@@ -63,9 +63,6 @@ public class EmploymentOntology {
   
   private static Ontology theInstance = new DefaultOntology();
 
-  static {
-    initInstance();
-  }
 
   /**
      This method grants access to the unique instance of the
@@ -80,51 +77,40 @@ public class EmploymentOntology {
   private EmploymentOntology() {
   }
 
+  static { 
+    initInstance();
+  }
+
   private static void initInstance() {
     try {
 			// Adds the roles of the basic ontology (ACTION, AID,...)
     	theInstance.joinOntology(BasicOntology.instance());
     	
 			// Adds ADDRESS role
-    	theInstance.addRole(
+    	                theInstance.addRole(
 				ADDRESS, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor("street", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  			new SlotDescriptor("number", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.M),
 	  			new SlotDescriptor("city", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-	     		public Object create(Frame f) { return new Address(); }
-	     		public Class getClassForRole() { return Address.class; }
-				}
-			);
+				}, Address.class);
 
 			// Adds PERSON role
-			theInstance.addRole(
+	                theInstance.addRole(
 				PERSON, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  			new SlotDescriptor("age", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  			new SlotDescriptor("address", Ontology.FRAME_SLOT, ADDRESS, Ontology.O)
-				}, 
-				new RoleEntityFactory() {
-	     		public Object create(Frame f) { return new Person(); }
-	     		public Class getClassForRole() { return Person.class; }
-				}
-			);
+				}, Person.class); 
 	
 			// Adds COMPANY role
-			theInstance.addRole(
+	                theInstance.addRole(
 				COMPANY, 
 				new SlotDescriptor[]{
 	  			new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  			new SlotDescriptor("address", Ontology.FRAME_SLOT, ADDRESS, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new Company(); } 
-					public Class getClassForRole() { return Company.class; }
-				}
-			);
+				},  Company.class);
 
 			// Adds WORKS_FOR role
 			theInstance.addRole(
@@ -132,12 +118,7 @@ public class EmploymentOntology {
 				new SlotDescriptor[]{
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, PERSON, Ontology.M),
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, COMPANY, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new WorksFor(); } 
-					public Class getClassForRole() { return WorksFor.class; }
-				}
-			);
+				}, WorksFor.class);
 
 			// Adds ENGAGE role
 			theInstance.addRole(
@@ -145,34 +126,19 @@ public class EmploymentOntology {
 				new SlotDescriptor[]{
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, PERSON, Ontology.M),
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, COMPANY, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new Engage(); } 
-					public Class getClassForRole() { return Engage.class; }
-				}
-			);
+				}, Engage.class);
 	
 			// Adds PERSON_TO_OLD role
 			theInstance.addRole(
 				EmploymentOntology.PERSON_TOO_OLD, 
 				new SlotDescriptor[]{
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new PersonTooOld(); } 
-					public Class getClassForRole() { return PersonTooOld.class; }
-				}
-			);
+				}, PersonTooOld.class);
 
 			// Adds ENGAGEMENT_ERROR role
 			theInstance.addRole(
 				EmploymentOntology.ENGAGEMENT_ERROR, 
 				new SlotDescriptor[]{
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new EngagementError(); } 
-					public Class getClassForRole() { return EngagementError.class; }
-				}
-			);
+				}, EngagementError.class);
 
 			// DEBUG: PRINT VOCABULARY
 	  	//List voc = theInstance.getVocabulary();
@@ -185,5 +151,7 @@ public class EmploymentOntology {
       oe.printStackTrace();
     }
   } //end of initInstance
+
+
 
 }
