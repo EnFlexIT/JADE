@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -55,11 +56,11 @@ public class DefaultOntology implements Ontology {
   }
 
   private Map schemas;
-  private Map classes;
+  private Map factories;
 
   public DefaultOntology() {
     schemas = new HashMap();
-    classes = new HashMap();
+    factories = new HashMap();
   }
 
   // Raw interface, exposes Frame Schemas directly.
@@ -69,81 +70,10 @@ public class DefaultOntology implements Ontology {
     return (FrameSchema)schemas.get(new Name(name));
   }
 
-  Class lookupClass(String name) {
-    return (Class)classes.get(new Name(name));
+  RoleFactory lookupFactory(String name) {
+    return (RoleFactory)factories.get(new Name(name));
   }
 
-  // Higher level interface, allows direct usage of user-defined
-  // classes but requires a compliance to some rules (that represent
-  // the metaclass of the user class).
-
-  /*************************************************************
-
-  Rules for a concept class:
-
-  1) For every Frame slot named "term", of type T, the class must have
-     two public methods:
-
-       void setTerm(T value)
-       T getTerm()
-
-  2) The two methods above must be such that, for each obj of a
-     concept class and for each object v of type T, after the fragment
-
-       obj.setTerm(v);
-       T v2 = obj.getTerm();
-
-     the postCondition 'v.equals(v2)' must be true
-
-  3) For every sub-frame of the Frame, (i.e. a slot not of
-     boolean, int, double, String, byte[]), named "SubFrame", there
-     must be a class F that must itself obey to the four rules with
-     respect to the "SubFrame" frame (i.e. it must be a valid
-     Concept class).
-
-  **************************************************************/
-
-  public void addClass(String roleName, Class c) throws OntologyException {
-
-    FrameSchema fs = lookupSchema(roleName);
-    if(fs == null)
-      throw new OntologyException("No schema was found for " + roleName + "role.");
-
-    Iterator it = fs.subSchemas();
-    while(it.hasNext()) {
-      TermDescriptor desc = (TermDescriptor)it.next();
-
-      String termName = translateName(desc.getName());
-      try {
-	Method[] methods = c.getMethods();
-
-	// Check for correct set and get methods for the current
-	// descriptor and retrieve the implementation type.
-	Class implType = checkGetAndSet(termName, methods);
-
-	// If the descriptor is a complex term (Concept, Action or
-	// Predicate) and some class C is registered for that role,
-	// then the implementation type must be a supertype of C.
-	if(desc.isComplex()) {
-	  Class roleType = lookupClass(desc.getTypeName());
-	  if((roleType != null) && (!implType.isAssignableFrom(roleType)))
-	    throw new OntologyException("Wrong class: the " + desc.getName() + " role is played by " + roleType + " class, which is not a subtype of " + implType + " class.");
-	}
-	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
-	  Class primitive = (Class)primitiveTypes.get(desc.getType());
-	  if(!implType.isAssignableFrom(primitive))
-	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
-	}
-
-      }
-      catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible."); 
-      }
-
-    }
-    addClassToTable(roleName, c);
-
-  }
 
   public void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException {
 
@@ -160,90 +90,37 @@ public class DefaultOntology implements Ontology {
 
   }
 
-  public Object initObject(Frame f) throws OntologyException {
-    String roleName = f.getName();
-    Class theConceptClass = lookupClass(roleName);
+  public void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException {
+    addFrame(conceptName, kind, slots);
 
-    if(theConceptClass == null)
-      throw new OntologyException("No class able to play " + roleName + " role.");
-
-    try {
-
-      Object o = theConceptClass.newInstance();
-      return initObject(f, o);
-    }
-    catch(IllegalAccessException iae) {
-      throw new OntologyException("Wrong class: The default constructor of " + theConceptClass.getName() + " is not accessible.");
-    }
-    catch(InstantiationException ie) {
-      throw new OntologyException("Wrong class: The class " + theConceptClass.getName() + " cannot be instantiated.");
-    }
+    Class c = rf.getClassForRole();
+    checkClass(conceptName, c);
+    addFactoryToTable(conceptName, rf);
   }
 
-  public Object initObject(Frame f, Object concept) throws OntologyException {
-
+  public Object createObject(Frame f) throws OntologyException {
     String roleName = f.getName();
+    RoleFactory fac = lookupFactory(roleName);
 
-    Class theConceptClass = lookupClass(roleName);
-    if(theConceptClass == null)
+    if(fac == null)
       throw new OntologyException("No class able to play " + roleName + " role.");
 
-    if(!theConceptClass.isInstance(concept))
-      throw new OntologyException("The object <" + concept + "> is not an instance of " + theConceptClass.getName() + " class.");
+    Class c = fac.getClassForRole();
 
-    FrameSchema fs = lookupSchema(roleName);
-    Iterator it = fs.subSchemas();
+    Object o = fac.create();
+    return initObject(f, o, c);
 
-    while(it.hasNext()) {
-      TermDescriptor desc = (TermDescriptor)it.next();
-      String slotName = desc.getName();
-      String methodName = "set" + translateName(slotName);
-
-      // Retrieve the modifier method from the class and call it
-      Method setMethod = findMethodCaseInsensitive(methodName, theConceptClass.getMethods());
-      try {
-
-	Object slotValue = f.getSlot(slotName);
-	// System.out.println("Name: " + slotName + " - Value: " + slotValue);
-
-	// For complex slots, transform from sub-slot to
-	// sub-object. Three steps are made:
-	//   1) The subObject is retrieved using the accessor method getXXX() ).
-	//   2) initObject() is called recursively to fill the returned sub-object with sub-frame data.
-	//   3) The modifier method setXXX() is called to write back the changes.
-	if(desc.isComplex()) {
-	  Method getMethod = findMethodCaseInsensitive("get" + translateName(slotName), theConceptClass.getMethods());
-	  Object subObject = getMethod.invoke(concept, new Object[] { });
-
-	  slotValue = initObject((Frame)slotValue, subObject);
-
-	}
-	setMethod.invoke(concept, new Object[] { slotValue });
-
-      }
-      catch(InvocationTargetException ite) {
-	Throwable e = ite.getTargetException();
-	e.printStackTrace();
-	throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()");
-      }
-      catch(IllegalAccessException iae) {
-	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
-      }
-      catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible."); 
-      }
-
-    }
-
-    return concept;
   }
 
   public Frame createFrame(Object o, String roleName) throws OntologyException {
-    Class theConceptClass = lookupClass(roleName);
-    if(theConceptClass == null)
+    RoleFactory rf = lookupFactory(roleName);
+    if(rf == null)
       throw new OntologyException("No class able to play " + roleName + " role.");
+
+    Class theConceptClass = rf.getClassForRole();
     if(!theConceptClass.isInstance(o))
       throw new OntologyException("The object <" + o + "> is not an instance of " + theConceptClass.getName() + " class.");
+
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
       throw new OntologyException("Internal error: inconsistency between schema and class table");
@@ -271,9 +148,11 @@ public class DefaultOntology implements Ontology {
      *   - The Object get method must not return 'null'
      */
 
-    Class implementationClass = lookupClass(roleName);
-    if(implementationClass == null)
+    RoleFactory rf = lookupFactory(roleName);
+    if(rf == null)
       throw new OntologyException("No class able to play " + roleName + " role.");
+
+    Class implementationClass = rf.getClassForRole();
     if(!implementationClass.isInstance(o))
       throw new OntologyException("The object is not an instance of " + implementationClass.getName() + " class.");
 
@@ -305,7 +184,6 @@ public class DefaultOntology implements Ontology {
 	  throw new OntologyException("Wrong class: some required method is not accessible."); 
 	}
     }
-
   }
 
   public boolean isConcept(String roleName) throws OntologyException {
@@ -338,6 +216,8 @@ public class DefaultOntology implements Ontology {
 
   // Private methods.
 
+
+
   private String translateName(String name) {
     StringBuffer buf = new StringBuffer(name);
     for(int i = 0; i < buf.length(); i++) {
@@ -357,6 +237,7 @@ public class DefaultOntology implements Ontology {
     
     return new String(buf);
   }
+
 
   private Class checkGetAndSet(String name, Method[] methods) throws OntologyException {
     Class result;
@@ -381,6 +262,122 @@ public class DefaultOntology implements Ontology {
     return result;
 
   }
+
+
+  /*************************************************************
+
+  Rules for a concept class:
+
+  1) For every Frame slot named "term", of type T, the class must have
+     two public methods:
+
+       void setTerm(T value)
+       T getTerm()
+
+  2) The two methods above must be such that, for each obj of a
+     concept class and for each object v of type T, after the fragment
+
+       obj.setTerm(v);
+       T v2 = obj.getTerm();
+
+     the postCondition 'v.equals(v2)' must be true
+
+  3) For every sub-frame of the Frame, (i.e. a slot not of
+     boolean, int, double, String, byte[]), named "SubFrame", there
+     must be a class F that must itself obey to the four rules with
+     respect to the "SubFrame" frame (i.e. it must be a valid
+     Concept class).
+
+  **************************************************************/
+
+  private void checkClass(String roleName, Class c) throws OntologyException {
+
+    FrameSchema fs = lookupSchema(roleName);
+    if(fs == null)
+      throw new OntologyException("No schema was found for " + roleName + "role.");
+
+    Iterator it = fs.subSchemas();
+    while(it.hasNext()) {
+      TermDescriptor desc = (TermDescriptor)it.next();
+
+      String termName = translateName(desc.getName());
+      try {
+	Method[] methods = c.getMethods();
+
+	// Check for correct set and get methods for the current
+	// descriptor and retrieve the implementation type.
+	Class implType = checkGetAndSet(termName, methods);
+
+	// If the descriptor is a complex term (Concept, Action or
+	// Predicate) and some class C is registered for that role,
+	// then the implementation type must be a supertype of C.
+	if(desc.isComplex()) {
+	  RoleFactory rf = lookupFactory(desc.getTypeName());
+	  if(rf != null) {
+	    Class roleType = rf.getClassForRole();
+	    if(!implType.isAssignableFrom(roleType))
+	      throw new OntologyException("Wrong class: the " + desc.getName() + " role is played by " + roleType + " class, which is not a subtype of " + implType + " class.");
+	  }
+	}
+	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
+	  Class primitive = (Class)primitiveTypes.get(desc.getType());
+	  if(!implType.isAssignableFrom(primitive))
+	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	}
+      }
+      catch(SecurityException se) {
+	throw new OntologyException("Wrong class: some required method is not accessible."); 
+      }
+
+    }
+
+  }
+
+
+  private Object initObject(Frame f, Object concept, Class theConceptClass) throws OntologyException {
+
+    String roleName = f.getName();
+
+    FrameSchema fs = lookupSchema(roleName);
+    Iterator it = fs.subSchemas();
+
+    while(it.hasNext()) {
+      TermDescriptor desc = (TermDescriptor)it.next();
+      String slotName = desc.getName();
+      String methodName = "set" + translateName(slotName);
+
+      // Retrieve the modifier method from the class and call it
+      Method setMethod = findMethodCaseInsensitive(methodName, theConceptClass.getMethods());
+      try {
+
+	Object slotValue = f.getSlot(slotName);
+	// System.out.println("Name: " + slotName + " - Value: " + slotValue);
+
+	// For complex slots, transform from sub-frame to sub-object.
+	// This is performed calling createObject() recursively.
+	if(desc.isComplex())
+	  slotValue = createObject((Frame)slotValue);
+
+	setMethod.invoke(concept, new Object[] { slotValue });
+
+      }
+      catch(InvocationTargetException ite) {
+	Throwable e = ite.getTargetException();
+	e.printStackTrace();
+	throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()");
+      }
+      catch(IllegalAccessException iae) {
+	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+      }
+      catch(SecurityException se) {
+	throw new OntologyException("Wrong class: some required method is not accessible."); 
+      }
+
+    }
+
+    return concept;
+  }
+
 
   private void buildFromObject(Frame f, FrameSchema fs, Object o, Class c) throws OntologyException {
     Iterator it = fs.subSchemas();
@@ -417,13 +414,16 @@ public class DefaultOntology implements Ontology {
 
   }
 
+
   private void addSchemaToTable(String roleName, FrameSchema fs) {
     schemas.put(new Name(roleName), fs);
   }
 
-  private void addClassToTable(String roleName, Class c) {
-    classes.put(new Name(roleName), c);
+
+  private void addFactoryToTable(String roleName, RoleFactory rf) {
+    factories.put(new Name(roleName), rf);
   }
+
 
   private Method findMethodCaseInsensitive(String name, Method[] methods) throws OntologyException {
 
