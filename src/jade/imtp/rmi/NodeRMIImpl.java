@@ -32,6 +32,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import jade.core.HorizontalCommand;
 import jade.core.Service;
+import jade.core.Node;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
@@ -42,8 +43,8 @@ import jade.util.leap.HashMap;
  */
 public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
-    public NodeRMIImpl() throws RemoteException {
-	localSlices = new HashMap();
+    public NodeRMIImpl(NodeAdapter impl) throws RemoteException {
+	myNode = impl;
     }
 
     public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException {
@@ -64,7 +65,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	Object[] commandParams = cmd.getParams();
 
 	// Look up in the local slices table and find the slice to dispatch to
-	Service.Slice slice = (Service.Slice)localSlices.get(serviceName);
+	Service.Slice slice = myNode.getSlice(serviceName);
 
 	if(slice != null) {
 	    // Reflective dispatching
@@ -115,15 +116,6 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
       notifyTermination();
     }
 
-    public void exportSlice(String serviceName, Service.Slice localSlice) {
-	localSlices.put(serviceName, localSlice);
-    }
-
-    public void unexportSlice(String serviceName) {
-	localSlices.remove(serviceName);
-    }
-
-
     private void waitTermination() {
 	synchronized(terminationLock) {
 	    try {
@@ -143,13 +135,10 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
     }
 
 
-    // A map, indexed by service name, of all the local slices of this
-    // node. This map is used to dispatch incoming commands to the
-    // service they belong to.
-    private Map localSlices;
-
     // This monitor is used to hang a remote ping() call in order to
     // detect node failures.
     private Object terminationLock = new Object();
+
+    private NodeAdapter myNode;
 
 }
