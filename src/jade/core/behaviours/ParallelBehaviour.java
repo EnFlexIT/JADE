@@ -138,7 +138,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
      This method
      schedules children behaviours one at a time, in a round robin
      fashion.
-     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext(boolean, int)
   */
   protected void scheduleNext(boolean currentDone, int currentResult) {
     // Regardless of whether the current child is terminated, schedule

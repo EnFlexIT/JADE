@@ -755,7 +755,7 @@ public final class DefaultOntology implements Ontology {
   
 
   /**
-   * @see Ontology.fromSL0String(String)
+   * @see Ontology#fromSL0String(String)
   **/
   public String fromSL0String(String str) throws CodecException, OntologyException {
     Ontology meta = JADEMetaOntology.instance();
@@ -768,7 +768,7 @@ public final class DefaultOntology implements Ontology {
   }
 
   /**
-    @see Ontology.fromMetaOntologyRepresentation(AnOntology)
+    @see Ontology#fromMetaOntologyRepresentation(AnOntology)
     **/
   public void fromMetaOntologyRepresentation(AnOntology o) throws OntologyException {
     for (Iterator i=o.getAllRoles(); i.hasNext(); ) { //iteration on roles
@@ -818,7 +818,7 @@ public final class DefaultOntology implements Ontology {
   }
 
   /**
-    @see Ontology.toMetaOntologyRepresentation(String)
+    @see jade.onto.Ontology#toMetaOntologyRepresentation(String)
     **/
   public AnOntology toMetaOntologyRepresentation (String ontologyName){
     AnOntology o = new AnOntology();
@@ -859,7 +859,7 @@ public final class DefaultOntology implements Ontology {
   /**
     Writes the ontology represented by this Ontology object as an
     SL-0 expression. 
-    @see Ontology.toSL0String() 
+    @see jade.onto.Ontology#toSL0String(String) 
   */  
   public String toSL0String(String ontologyName) throws OntologyException {
     AnOntology o = toMetaOntologyRepresentation(ontologyName);

@@ -37,7 +37,7 @@ import jade.onto.JADEMetaOntology.AnOntology;
 	provided that they have been initialized differently.<br>	
 	<br>
 	In the adopted approach, a generic item included in an ontology is called 
-	a <b>role</b>. For example the concepts <i>Company<i> and <i>Person</i>, the 
+	a <b>role</b>. For example the concepts <i>Company</i> and <i>Person</i>, the 
 	predicate <i>WorfsFor</i> and	the action <i>Engage</i> can be <b>roles</b> 
 	in an ontology dealing with employees.<br>
   Each ontological role is characterised by a <b>name</b> and a structure
@@ -57,7 +57,7 @@ import jade.onto.JADEMetaOntology.AnOntology;
 		or role (for <code>FRAME_SLOT<code>) of the value of the 
 		slot or of the elements in the set/sequence in case of <code>SET_SLOT<code> 
 		or <code>SEQUENCE_SLOT<code>. </li>
-		<li> a <b>presence<b> flag defining whether the slot is mandatory or 
+		<li> a <b>presence</b> flag defining whether the slot is mandatory or 
 		optional.</li>
 	</ul>
 	<br>
@@ -320,7 +320,7 @@ public interface Ontology {
     <li> The position of the slot (implicitly defined by the position in the array).
     </ul>
   */
-  void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException;
+  public void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException;
   
   /**
     Adds to the ontology a role with an application-specific class 
@@ -364,7 +364,7 @@ public interface Ontology {
      @exception OntologyException If a <code>Frame</code> does
      not represent an instance of any role in the current ontology, 
      or if the registered class does not follow the rules for representing a role.
-     @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref)
+     @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots)
   */
   List createObject(List v) throws OntologyException;
 
@@ -461,23 +461,23 @@ public interface Ontology {
    * This method initialized this ontology object on the basis of its
    * representation as an SL-0 expression.
    * This expression is based on the JADE-Meta-Ontology encoded in the
-   * package <code>jade.onto.JadeMetaOntology</code
+   * package <code>jade.onto.JADEMetaOntology</code
    * @param str is the SL-0 expression representing this ontology 
    * @return the name of the ontology
-   * @see toSL0String()
+   * @see jade.onto.Ontology#toSL0String(String) 
    * @see jade.lang.sl.SL0Codec
-   * @see jade.onto.JadeMetaOntology.JADEMetaOntology
+   * @see jade.onto.JADEMetaOntology.JADEMetaOntology
   **/
-  String fromSL0String(String str) throws CodecException, OntologyException;
+  public String fromSL0String(String str) throws CodecException, OntologyException;
 
   /**
    * This method encodes the current ontology according to the SL-0 syntax
    * and the JADE-meta-ontology ontology.
    * @param ontologyName the name of this ontology
    * @return a String that is an SL-0 expression representing this ontology
-   * @see fromSL0String(String)
+   * @see jade.onto.Ontology#fromSL0String(String)
    * @see jade.lang.sl.SL0Codec
-   * @see jade.onto.JadeMetaOntology.JADEMetaOntology
+   * @see jade.onto.JADEMetaOntology.JADEMetaOntology
   **/
   public String toSL0String(String ontologyName) throws OntologyException;
 

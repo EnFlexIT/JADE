@@ -50,7 +50,7 @@ import jade.mtp.TransportAddress;
    This class cannot be instantiated from applications. Instead, the
    <code>Runtime.createAgentContainer(Profile p)</code> method must be called.
 
-   @see Runtime#createAgentContainer(Profile p);
+   @see Runtime#createAgentContainer(Profile)
 
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$

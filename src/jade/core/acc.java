@@ -36,7 +36,8 @@ import jade.mtp.TransportAddress;
  * and the full implementations of the Agent Communication Channel.
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
- * @see jade.core.LightAcc, jade.core.fullAcc
+ * @see jade.core.LightAcc 
+ * @see jade.core.fullAcc
  * @version $Date$ $Revision$
  */
 interface acc {

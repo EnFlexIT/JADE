@@ -41,7 +41,8 @@ public class DummyMobilityManager implements MobilityManager {
     }
 
     /**
-       @see jade.core.MobilityManager#createAgent()
+       @see jade.core.MobilityManager#createAgent(AID agentID, byte[] serializedInstance, 
+                            AgentContainer classSite, boolean startIt)
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
                             AgentContainer classSite, boolean startIt) {
@@ -49,14 +50,15 @@ public class DummyMobilityManager implements MobilityManager {
     } 
 
     /**
-       @see jade.core.MobilityManager#fetchClassFile()
+       @see jade.core.MobilityManager#fetchClassFile(String)
      */
     public byte[] fetchClassFile(String name) throws ClassNotFoundException {
     	return null;
     } 
 
     /**
-       @see jade.core.MobilityManager#moveAgent()
+       @see jade.core.MobilityManager#moveAgent(AID agentID, 
+                          Location where) throws NotFoundException
      */
     public void moveAgent(AID agentID, 
                           Location where) throws NotFoundException {
@@ -64,7 +66,8 @@ public class DummyMobilityManager implements MobilityManager {
     } 
 
     /**
-       @see jade.core.MobilityManager#copyAgent()
+       @see jade.core.MobilityManager#copyAgent(AID agentID, Location where, 
+                          String newName) throws NotFoundException;
      */
     public void copyAgent(AID agentID, Location where, 
                           String newName) throws NotFoundException {
@@ -72,7 +75,7 @@ public class DummyMobilityManager implements MobilityManager {
     } 
 
     /**
-       @see jade.core.MobilityManager#handleTransferResult()
+       @see jade.core.MobilityManager#handleTransferResult(AID, boolean, List)
      */
     public void handleTransferResult(AID agentID, boolean result, 
                                      List messages) throws NotFoundException {
@@ -80,14 +83,14 @@ public class DummyMobilityManager implements MobilityManager {
     } 
 
     /**
-       @see jade.core.MobilityManager#handleMove()
+       @see jade.core.MobilityManager#handleMove(AID agentID, Location where)
      */
     public void handleMove(AID agentID, Location where) {
     	return;
     } 
 
     /**
-       @see jade.core.MobilityManager#handleClone()
+       @see jade.core.MobilityManager#handleClone(AID agentID, Location where, String newName)
      */
     public void handleClone(AID agentID, Location where, String newName) {
     	return;

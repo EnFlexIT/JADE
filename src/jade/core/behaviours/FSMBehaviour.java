@@ -200,7 +200,7 @@ public class FSMBehaviour extends CompositeBehaviour {
      @param currentResult the termination value (as returned by
      <code>onEnd()</code>) of the just executed child in the case this
      child has completed (otherwise this parameter is meaningless)
-     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext(boolean, int)
   */
   protected void scheduleNext(boolean currentDone, int currentResult) {
   	if (currentDone) {

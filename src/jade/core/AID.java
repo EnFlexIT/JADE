@@ -84,7 +84,7 @@ public class AID extends Concept implements Comparable, Serializable {
    * @deprecated This constructor might generate a wrong AID, if
    * the passed parameter is not a guid (globally unique identifier), but
    * the local name of an agent (e.g. "da0"). 
-   * @see AID(String, boolean)
+   * @see AID#AID(String boolean)
    */
   public AID(String guid) {
       this(guid,ISGUID);

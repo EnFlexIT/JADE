@@ -59,7 +59,7 @@ import starlight.util.Base64;
  * These method are not FIPA compliant so their usage is not encouraged.
  * @author Fabio Bellifemine - CSELT
  * @version $Date$ $Revision$
- * @see http://www.fipa.org/specs/fipa00061/XC00061D.html
+ * @see <a href=http://www.fipa.org/specs/fipa00061/XC00061D.html>FIPA Spec</a>
  */
  
 public class ACLMessage implements Cloneable, Serializable {
@@ -236,7 +236,7 @@ private int performative; // keeps the performative type of this object
      should use the new constructor which gets a message type as a
      parameter.  To avoid problems, now this constructor silently sets
      the message type to <code>not-understood</code>.
-     @see jade.lang.acl.ACLMessage#ACLMessage(String type)
+     @see jade.lang.acl.ACLMessage#ACLMessage(int)
   */
   public ACLMessage() {
     performative = NOT_UNDERSTOOD;

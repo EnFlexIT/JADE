@@ -32,66 +32,37 @@ public class Specifier {
     private Object[] args = null;
 
     /**
-     * Method declaration
-     * 
-     * @param n
-     * 
-     * @see
      */
     public void setName(String n) {
         name = n;
     } 
 
     /**
-     * Method declaration
-     * 
-     * @return
-     * 
-     * @see
      */
     public String getName() {
         return name;
     } 
 
     /**
-     * Method declaration
-     * 
-     * @param cn
-     * 
-     * @see
+
      */
     public void setClassName(String cn) {
         className = cn;
     } 
 
     /**
-     * Method declaration
-     * 
-     * @return
-     * 
-     * @see
      */
     public String getClassName() {
         return className;
     } 
 
     /**
-     * Method declaration
-     * 
-     * @param a
-     * 
-     * @see
      */
     public void setArgs(Object[] a) {
         args = a;
     } 
 
     /**
-     * Method declaration
-     * 
-     * @return
-     * 
-     * @see
      */
     public Object[] getArgs() {
         return args;

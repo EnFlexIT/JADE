@@ -40,7 +40,7 @@ import jade.mtp.MTPException;
    This class must not be instantiated by applications. Instead, use
    the <code>createContainer()</code> method in class
    <code>Runtime</code>.
-   @see Runtime.createContainer()
+   @see jade.core.Runtime#createAgentContainer(Profile)
 
    @author Giovanni Rimassa - Universita` di Parma
 
@@ -56,7 +56,7 @@ public class AgentContainer {
      from application code. The proper way to create an agent
      container from an application is to call the
      <code>Runtime.createContainer()</code> method.
-     @see jade.core.Runtime#createContainer(Profile p)
+     @see jade.core.Runtime#createAgentContainer(Profile)
      @param impl A concrete implementation of a JADE agent container.
    */
   public AgentContainer(AgentContainerImpl impl) {

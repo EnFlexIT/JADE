@@ -70,7 +70,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
   /**
      Sequential policy for children scheduling. This method schedules
      children behaviours one at a time, in a FIFO fashion.
-     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext(boolean, int)
   */
   protected void scheduleNext(boolean currentDone, int currentResult) {
     if (currentDone) {

@@ -37,8 +37,7 @@ import jade.core.Location;
    not be instantiated by applications. Instead, use the
    <code>createAgent()</code> method in class
    <code>AgentContainer</code>.
-   @see AgentContainer.createAgent()
-
+   @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
    @author Giovanni Rimassa - Universita` di Parma
  */
 public class Agent {
@@ -51,7 +50,7 @@ public class Agent {
      but the method <code>AgentContainer.createAgent()</code> should
      be used instead.
 
-     @see AgentContainer#createAgent(AID agentID, String className, String[] args)
+     @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
      @param a A real JADE agent, that will be wrapped by this proxy.
    */
   Agent(AID id, jade.core.Agent a) {

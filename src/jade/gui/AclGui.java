@@ -1068,7 +1068,7 @@ public class AclGui extends JPanel
   /////////////////
   /**
     Ordinary <code>AclGui</code> constructor.
-    @see jade.lang.acl.ACLMessage#ACLMessage(String type)
+    @see jade.lang.acl.ACLMessage#ACLMessage(int)
   */
 
   public AclGui(Component owner)
