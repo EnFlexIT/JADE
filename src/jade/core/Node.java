@@ -40,6 +40,8 @@ public interface Node extends Serializable {
 
     void setName(String name);
     String getName();
+    boolean hasServiceManager();
+
 
     void exportSlice(String serviceName, Service.Slice localSlice);
     void unexportSlice(String serviceName);
@@ -84,7 +86,18 @@ public interface Node extends Serializable {
     */
     Object serve(VerticalCommand cmd) throws ServiceException;
 
-    void ping(boolean hang) throws IMTPException;
+    /**
+       Performs a ping operation on this node, to check whether it is
+       still alive.
+
+       @param hang If <code>true</code>, the call hangs until the node
+       exits or is interrupted.
+       @return If the node is currently terminating, <code>true</code>
+       is returned, else <code>false</code>
+    */
+    boolean ping(boolean hang) throws IMTPException;
+
+    void interrupt() throws IMTPException;
     void exit() throws IMTPException;
 
 }
