@@ -123,6 +123,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     myProfile = p;
   }
 
+  //__CLDC_UNSUPPORTED__BEGIN
   /**
    * Get the agentcontroller for a local agent given its AID.
    * @param agentID The agentID of the desired agent.
@@ -139,6 +140,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       else
 	  return null;
   }
+  //__CLDC_UNSUPPORTED__END
 
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
@@ -374,10 +376,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
+		// DEBUG
+		Runtime.instance().debug(receiverID.getLocalName(), "incoming message received by container: "+Runtime.instance().stringify(msg));
 
     Agent receiver = localAgents.acquire(receiverID);
     if(receiver == null) {
-	throw new NotFoundException("DispatchMessage failed to find " + receiverID);
+			Runtime.instance().debug(receiverID.getLocalName(), "Not found on this container");
+			throw new NotFoundException("DispatchMessage failed to find " + receiverID);
     }
     receiver.postMessage(msg);
 

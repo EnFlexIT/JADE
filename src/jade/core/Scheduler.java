@@ -80,15 +80,16 @@ class Scheduler implements Serializable {
     currentIndex = 0;
   }
 
-  // Adds a behaviour at the end of the behaviours queue. 
+  // Add a behaviour at the end of the behaviours queue. 
   // This can never change the index of the current behaviour.
   // If the behaviours queue was empty notifies the embedded thread of
   // the owner agent that a behaviour is now available.
   public synchronized void add(Behaviour b) {
     readyBehaviours.add(b);
     notify();
+    //__CLDC_UNSUPPORTED__BEGIN
     owner.notifyAddBehaviour(b);
-
+    //__CLDC_UNSUPPORTED__END
   }
 
   // Moves a behaviour from the ready queue to the sleeping queue.
@@ -96,7 +97,9 @@ class Scheduler implements Serializable {
     if (removeFromReady(b)) {
 	    blockedBehaviours.add(b);
     }
+    //__CLDC_UNSUPPORTED__BEGIN
     owner.notifyChangeBehaviourState(b, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED);
+    //__CLDC_UNSUPPORTED__END
   }
 
   // Moves a behaviour from the sleeping queue to the ready queue.
@@ -105,7 +108,9 @@ class Scheduler implements Serializable {
 	    readyBehaviours.add(b);
     	notify();
     }
+    //__CLDC_UNSUPPORTED__BEGIN
     owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_RUNNING);
+    //__CLDC_UNSUPPORTED__END
   }
 
   // Restarts all behaviours. This method simply calls
@@ -149,7 +154,9 @@ class Scheduler implements Serializable {
     if(!found) {
       removeFromReady(b);
     }
+    //__CLDC_UNSUPPORTED__BEGIN
     owner.notifyRemoveBehaviour(b);    
+    //__CLDC_UNSUPPORTED__END
   }
 
   // Selects the appropriate behaviour for execution, with a trivial
@@ -157,7 +164,10 @@ class Scheduler implements Serializable {
   public synchronized Behaviour schedule() throws InterruptedException {
     while(readyBehaviours.isEmpty()) {
       owner.doIdle();
+	  	//DEBUG
+	  	Runtime.instance().debug("Start waiting on the scheduler");
       wait();
+	  	Runtime.instance().debug("Exit waiting on the scheduler");
     }
 
     Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);

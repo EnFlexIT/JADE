@@ -172,7 +172,7 @@ class AgentCache {
 }
 //__JADE_ONLY__END
 
-/*__J2ME_COMPATIBILITY__BEGIN
+/*__PJAVA_COMPATIBILITY__BEGIN
 package jade.core;
 
 
@@ -314,5 +314,5 @@ class AgentCache {
   }
 
 }
-__J2ME_COMPATIBILITY__END*/
+__PJAVA_COMPATIBILITY__END*/
 

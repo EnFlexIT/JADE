@@ -881,7 +881,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
       List l = new ArrayList();
       Frame f;
       for (int i=0; i<content.size(); i++) {
-	f = o.createFrame(content.get(i), o.getRoleName(content.get(i).getClass()));
+      	Object obj = content.get(i);
+				// PATCH to deal with Location and ContainerID consistently with 
+				// the new ontology support
+      	/*if (o instanceof jade.domain.MobilityOntology && obj instanceof ContainerID) {
+      		obj = jade.domain.MobilityOntology.BCLocation.wrap((ContainerID) obj);
+      	}*/	
+	f = o.createFrame(obj, o.getRoleName(obj.getClass()));
 	l.add(f);
       }
       String s = c.encode(l, o);
@@ -1033,6 +1039,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   AgentState getAgentState() {
     return STATES[getState()];
+  }
+  
+  /**
+     This is only called by the NotificationManager to provide the Introspector
+     agent with a snapshot of the behaviours currently loaded in the agent
+   */
+  Scheduler getScheduler() {
+  	return myScheduler;
   }
 
   // State transition methods for Agent Platform Life-Cycle
@@ -1238,6 +1252,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(myAPState == AP_ACTIVE) {
       activateAllBehaviours();
       synchronized(waitLock) {
+      	Runtime.instance().debug(getLocalName(), "Notifying on waitLock");
         waitLock.notifyAll(); // Wakes up the embedded thread
       }
     }
@@ -1759,7 +1774,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	try {
 
 	  long startTime = System.currentTimeMillis();
+	  //DEBUG
+	  Runtime.instance().debug("Start waiting on waitLock");
 	  waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
+	  Runtime.instance().debug("Exit waiting on waitLock");
 	  long elapsedTime = System.currentTimeMillis() - startTime;
 
 	  // If this was a timed wait, update time to wait; if the
@@ -1789,7 +1807,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(suspendLock) {
       while(myAPState == AP_SUSPENDED) {
   try {
+	  //DEBUG
+	  Runtime.instance().debug("Start waiting on suspendLock");
 	  suspendLock.wait(); // Blocks on suspended state monitor
+	  Runtime.instance().debug("Exit waiting on suspendLock");
 	}
 	catch(InterruptedException ie) {
 	  switch(myAPState) {
@@ -2214,6 +2235,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.core.Agent#send(ACLMessage msg)
 	*/
 	public final void postMessage(final ACLMessage msg) {
+		//DEBUG
+		Runtime.instance().debug(getLocalName(), "message posted: "+Runtime.instance().stringify(msg));
+			
 		synchronized (waitLock) {
 			/*
 			try {
