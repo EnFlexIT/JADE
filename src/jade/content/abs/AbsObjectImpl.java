@@ -89,10 +89,10 @@ public class AbsObjectImpl implements AbsObject {
      */
     public String[] getNames() {
         String[] names = new String[getCount()];
-        int      count = 0;
+        int      count = getCount() - 1;
 
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
-            names[count++] = (String) e.nextElement();
+            names[count--] = (String) e.nextElement();
         }
 
         return names;
