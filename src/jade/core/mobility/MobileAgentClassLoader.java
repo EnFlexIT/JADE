@@ -24,7 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core.mobility;
 
 
+import jade.core.ServiceFinder;
 import jade.core.IMTPException;
+import jade.core.ServiceException;
 
 
 //#MIDP_EXCLUDE_FILE
@@ -35,14 +37,29 @@ import jade.core.IMTPException;
 class MobileAgentClassLoader extends ClassLoader {
 
     private AgentMobilitySlice classServer;
+    private String sliceName;
+    private ServiceFinder finder;
     private int verbosity;
 
-    public MobileAgentClassLoader(AgentMobilitySlice slice, int v) {
-  	//#PJAVA_EXCLUDE_BEGIN
+    public MobileAgentClassLoader(String sn, ServiceFinder sf, int v) {
+	//#PJAVA_EXCLUDE_BEGIN
 	super(Thread.currentThread().getContextClassLoader());
-  	//#PJAVA_EXCLUDE_END
-	classServer = slice;
-	verbosity = v;
+	//#PJAVA_EXCLUDE_END
+
+	try {
+	    sliceName = sn;
+	    finder = sf;
+	    classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
+	    verbosity = v;
+	}
+	catch(IMTPException imtpe) {
+	    // It should never happen...
+	    imtpe.printStackTrace();
+	}
+	catch(ServiceException se) {
+	    // It should never happen...
+	    se.printStackTrace();
+	}
     }
 
     protected Class findClass(String name) throws ClassNotFoundException {
@@ -50,11 +67,22 @@ class MobileAgentClassLoader extends ClassLoader {
 
 	try {
 	    log("Remote retrieval of code for class " + name, 4);
-	    classFile = classServer.fetchClassFile(name);
+	    try {
+		classFile = classServer.fetchClassFile(name);
+	    }
+	    catch(IMTPException imtpe) {
+		// Retry once with a newer slice
+		classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
+		classFile = classServer.fetchClassFile(name);
+	    }
 	}
-	catch (IMTPException re) {
+	catch (IMTPException imtpe) {
+	    imtpe.printStackTrace();
 	    throw new ClassNotFoundException(name);
-	} 
+	}
+	catch (ServiceException se) {
+	    throw new ClassNotFoundException(name);
+	}
 
 	if (classFile != null) {           	
 	    log("Code of class " + name + " retrieved. Length is " + classFile.length, 4);

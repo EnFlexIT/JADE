@@ -699,10 +699,8 @@ public class AgentMobilityService extends BaseService {
 	    try {
 		log("Incoming agent " + agentID, 1);
 
-		AgentMobilitySlice classSite = (AgentMobilitySlice)getSlice(classSiteName);
-
 		// Reconstruct the serialized agent
-		ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSiteName, classSite);
+		ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSiteName, myContainer.getServiceFinder());
 		Agent instance = (Agent)in.readObject();
 
 		log("Agent " + agentID + " reconstructed", 2);         	
@@ -942,14 +940,14 @@ public class AgentMobilityService extends BaseService {
      */
     private class Deserializer extends ObjectInputStream {
 	private String classSiteName;
-        private AgentMobilitySlice classSite;
+	private ServiceFinder finder;
 
         /**
          */
-        public Deserializer(InputStream inner, String sliceName, AgentMobilitySlice slice) throws IOException {
+        public Deserializer(InputStream inner, String sliceName, ServiceFinder sf) throws IOException {
             super(inner);
 	    classSiteName = sliceName;
-            classSite = slice;
+            finder = sf;
         }
 
         /**
@@ -958,7 +956,7 @@ public class AgentMobilityService extends BaseService {
         	throws IOException, ClassNotFoundException {
             MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(classSiteName);
             if (cl == null) {
-                cl = new MobileAgentClassLoader(classSite, verbosity);
+                cl = new MobileAgentClassLoader(classSiteName, finder, verbosity);
                 loaders.put(classSiteName, cl);
             }
             Class c = cl.loadClass(v.getName());
