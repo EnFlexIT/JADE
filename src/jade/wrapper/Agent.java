@@ -80,7 +80,7 @@ public class Agent implements AgentController {
    */
   public String getName() throws StaleProxyException {
     validateProxy();
-    return adaptee.getLocalName();
+    return adaptee.getName();
   }       
 
   /**
