@@ -40,10 +40,12 @@ public class Minimizer extends Task {
 	public void execute() throws BuildException {
 		try {
 			if (basedir != null) {
+				basedir = getProject().getBaseDir().toString()+"/"+basedir;
 				// Recursive preprocessing (use basedir arg and ignore target arg if any)
 				File bd = new File(basedir);
 				if (bd.isDirectory()) {
 					if (checkdir != null) {
+						checkdir = getProject().getBaseDir().toString()+"/"+checkdir;
 						File cd = new File(checkdir);
 						if (cd.isDirectory()) {
 							DirectoryScanner scanner = new DirectoryScanner();
