@@ -37,6 +37,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
+import jade.util.Logger;
 
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
@@ -62,6 +63,8 @@ public abstract class MemKB extends KB {
 	
 	protected static int maxResults = -1;
 	protected final static int MAX_REGISTER_WITHOUT_CLEAN = 100;
+	
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	public MemKB(){
 		
@@ -108,7 +111,7 @@ public abstract class MemKB extends KB {
 			ACLMessage aclSub = (ACLMessage) s.getMessage();
 			subscriptions.put(dfdTemplate, s);
 		}catch(Exception e){
-			System.out.println("Subscribe error: "+e.getMessage());
+			logger.log(Logger.SEVERE,"Subscribe error: "+e.getMessage());
 			throw new NotUnderstoodException(e.getMessage());
 		}
 	}
