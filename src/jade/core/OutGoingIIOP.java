@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/02/25 08:29:54  rimassa
+  Fixed some problems related to uppercase/lowercase.
+
   Revision 1.2  1999/02/04 13:35:10  rimassa
   Added actual interface type ID value to 'wrong type ID' exception.
 
@@ -38,9 +41,9 @@ class OutGoingIIOP {
   public OutGoingIIOP(ORB anOrb, FIPA_Agent_97 objRef) throws IIOPFormatException {
     orb = anOrb;
     String s = orb.object_to_string(objRef);
-    if(s.startsWith("IOR:"))
+    if(s.toUpperCase().startsWith("IOR:"))
       initFromIOR(s);
-    else if(s.startsWith("iiop://"))
+    else if(s.toLowerCase().startsWith("iiop://"))
       initFromURL(s, LITTLE_ENDIAN);
     else
       throw new IIOPFormatException("Invalid string prefix");
@@ -48,9 +51,9 @@ class OutGoingIIOP {
 
   public OutGoingIIOP(ORB anOrb, String s) throws IIOPFormatException {
     orb = anOrb;
-    if(s.startsWith("IOR:"))
+    if(s.toUpperCase().startsWith("IOR:"))
       initFromIOR(s);
-    else if(s.startsWith("iiop://"))
+    else if(s.toLowerCase().startsWith("iiop://"))
       initFromURL(s, LITTLE_ENDIAN);
     else
       throw new IIOPFormatException("Invalid string prefix");
@@ -59,7 +62,7 @@ class OutGoingIIOP {
   private void initFromIOR(String s) throws IIOPFormatException {
 
     // Store stringified IOR
-    ior = new String(s);
+    ior = new String(s.toUpperCase());
 
     // Remove 'IOR:' prefix to get Hex digits
     String hexString = ior.substring(4);
