@@ -87,7 +87,6 @@
 		       destdir="${classes}"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
-		       target="1.1"
 		       deprecation="off"/>
 		<!-- Ensure the images for the tools are also copied -->
 		<mkdir dir="${classes}/jade/tools/dfgui/images"/>
