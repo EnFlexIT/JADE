@@ -1843,10 +1843,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // Broadcast communication event to registered listeners
   private void broadcastEvent(CommEvent event) {
-    Iterator i = listeners.iterator();
-    while(i.hasNext()) {
-      CommListener l = (CommListener)i.next();
-      l.CommHandle(event);
+    synchronized(listeners) {
+      Iterator i = listeners.iterator();
+      while(i.hasNext()) {
+	CommListener l = (CommListener)i.next();
+	l.CommHandle(event);
+      }
     }
   }
 
