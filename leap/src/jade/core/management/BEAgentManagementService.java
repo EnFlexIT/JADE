@@ -657,6 +657,6 @@ public class BEAgentManagementService extends BaseService {
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     // Service specific data
-    private Map pendingImages = new HashMap();
+    private Map pendingImages = new HashMap(1);
 
 }
