@@ -49,7 +49,7 @@ public class MobilityTesterAgent extends TesterAgent {
 	public static final String CONTAINER1_KEY = "C1";
 	public static final String CONTAINER2_KEY = "C2";
 	public static final String ADDITIONAL_CLASSPATH_KEY = "classpath";
-	public static final String ADDITIONAL_CLASSPATH_DEFAULT = "c:/jade/src/test/separate.jar";
+	public static final String ADDITIONAL_CLASSPATH_DEFAULT = "separate.jar";
 	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/mobility/mobilityTestsList.xml"){		

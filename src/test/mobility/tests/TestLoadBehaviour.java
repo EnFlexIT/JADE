@@ -84,7 +84,7 @@ public class TestLoadBehaviour extends Test {
   			lb.setClassName("test.mobility.separate.behaviours.LoadableMsgSender");
   			lb.setParameters(params);
   			try {
-  				FileInputStream str = new FileInputStream("src/test/separate-behaviours.jar");
+  				FileInputStream str = new FileInputStream("separate-behaviours.jar");
   				int length = str.available();
   				byte[] zip = new byte[length];
   				str.read(zip, 0, length);
