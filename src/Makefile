@@ -11,14 +11,11 @@ PARSERGEN = javacc
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
-AGENTMANFLAGS =	-OUTPUT_DIRECTORY:jade/domain
-AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
-
 SL0FLAGS    =   -OUTPUT_DIRECTORY:jade/lang/sl
 SL0SPEC     =   jade/lang/sl/SL0Parser.jj
 
 EXECS       = 	jade/Boot.java
-IDLSPEC     =   FIPA_Agent_97.idl
+IDLSPEC     =   fipa.idl
 ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/core/behaviours/NonDeterministicBehaviour.java \
 		jade/core/behaviours/SequentialBehaviour.java \
@@ -51,14 +48,6 @@ ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/Token.java \
 		jade/lang/acl/TokenMgrError.java
 
-AGENTMANCLASSES = jade/domain/AgentManagementParser.java \
-		jade/domain/AgentManagementParserConstants.java \
-		jade/domain/AgentManagementParserTokenManager.java \
-		jade/domain/ASCII_CharStream.java \
-		jade/domain/ParseException.java \
-		jade/domain/Token.java \
-		jade/domain/TokenMgrError.java 
-
 SL0CLASSES =	jade/lang/sl/SL0Parser.java \
 		jade/lang/sl/SL0ParserConstants.java \
 		jade/lang/sl/SL0ParserTokenManager.java \
@@ -67,11 +56,40 @@ SL0CLASSES =	jade/lang/sl/SL0Parser.java \
 		jade/lang/sl/Token.java \
 		jade/lang/sl/TokenMgrError.java
 
-IDLSTUBS    =   _FIPA_Agent_97Stub.java \
-		FIPA_Agent_97.java \
-		FIPA_Agent_97Holder.java \
-		FIPA_Agent_97Helper.java \
-		_FIPA_Agent_97ImplBase.java
+IDLSTUBS    =   FIPA/AgentID.java \
+		FIPA/AgentIDHelper.java \
+		FIPA/AgentIDHolder.java \
+		FIPA/AgentIDsHelper.java \
+		FIPA/AgentIDsHolder.java \
+		FIPA/DateTime.java \
+		FIPA/DateTimeHelper.java \
+		FIPA/DateTimeHolder.java \
+		FIPA/Envelope.java \
+		FIPA/EnvelopeHelper.java \
+		FIPA/EnvelopeHolder.java \
+		FIPA/EnvelopesHelper.java \
+		FIPA/EnvelopesHolder.java \
+		FIPA/FipaMessage.java \
+		FIPA/FipaMessageHelper.java \
+		FIPA/FipaMessageHolder.java \
+		FIPA/MTS.java \
+		FIPA/MTSHelper.java \
+		FIPA/MTSHolder.java \
+		FIPA/PayloadHelper.java \
+		FIPA/PayloadHolder.java \
+		FIPA/Property.java \
+		FIPA/PropertyHelper.java \
+		FIPA/PropertyHolder.java \
+		FIPA/ReceivedObject.java \
+		FIPA/ReceivedObjectHelper.java \
+		FIPA/ReceivedObjectHolder.java \
+		FIPA/TransportBehaviourTypeHelper.java \
+		FIPA/TransportBehaviourTypeHolder.java \
+		FIPA/URLHelper.java \
+		FIPA/_MTSImplBase.java \
+		FIPA/_MTSStub.java \
+		FIPA/stringsHelper.java \
+		FIPA/stringsHolder.java
 
 STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.AgentPlatformImpl
@@ -84,26 +102,20 @@ all: $(IDLSTUBS) parsers classes stubs images
 idl: $(IDLSTUBS)
 	@echo IDL stubs and skeletons generated
 
-_%Stub.java %.java %Holder.java %Helper.java _%ImplBase.java: %.idl
+$(IDLSTUBS): $(IDLSPEC)
 	$(IDLCC) $<
 
-parsers: ACLParser AgentManParser SL0Parser
+parsers: ACLParser SL0Parser
 	@echo Parsers generated
 
 ACLParser: $(ACLCLASSES)
 	@echo ACL Parser generated.
-
-AgentManParser: $(AGENTMANCLASSES)
-	@echo Parser for fipa-agent-management ontology generated.
 
 SL0Parser: $(SL0CLASSES)
 	@echo SL0 Parser generated.
 
 $(ACLCLASSES): $(ACLSPEC)
 	$(PARSERGEN) $(ACLFLAGS) $(ACLSPEC)
-
-$(AGENTMANCLASSES): $(AGENTMANSPEC)
-	$(PARSERGEN) $(AGENTMANFLAGS) $(AGENTMANSPEC)
 
 $(SL0CLASSES): $(SL0SPEC)
 	$(PARSERGEN) $(SL0FLAGS) $(SL0SPEC)
@@ -130,7 +142,6 @@ idlclean:
 
 jjclean:
 	rm -f $(ACLCLASSES)
-	rm -f $(AGENTMANCLASSES)
 	rm -f $(SL0CLASSES)
 
 batch:
@@ -140,10 +151,9 @@ batch:
 	echo '@REM ===============================================================' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'cd src' >> $(BATCH_ALL)
-	echo $(IDLCC) FIPA_Agent_97.idl >> $(BATCH_ALL)
+	echo $(IDLCC) $(IDLSPEC) >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
-	echo 'call $(PARSERGEN) $(subst /,\,$(AGENTMANFLAGS)) $(subst /,\,$(AGENTMANSPEC))' >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
