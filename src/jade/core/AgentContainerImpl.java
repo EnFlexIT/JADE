@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.49  1999/10/20 15:26:48  rimassa
+  Removed an useless semicolon.
+
   Revision 1.48  1999/10/06 08:33:13  rimassa
   Added a printout message to show when the container is ready.
 
@@ -583,7 +586,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       // Start an atomic transaction for agent identity transfer
       boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
-      Vector messages = new Vector();;
+      Vector messages = new Vector();
       if(transferResult == TRANSFER_COMMIT) {
 
 	Iterator i = a.messages();
