@@ -576,7 +576,7 @@ public class AclGui extends JPanel
 
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
-		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight() / 2));
+		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
 		tempAclDlg.show();
 	}
 
@@ -618,7 +618,7 @@ public class AclGui extends JPanel
 		
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
-		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight() / 2));
+		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
 		tempAclDlg.show();
 
 		return editedMsg;
