@@ -119,7 +119,6 @@ images:
 	mkdir -p $(CLSDIR)/jade/tools/rma
 	mkdir -p $(CLSDIR)/jade/tools/sniffer
 	cp -R $(SRCDIR)/jade/tools/DummyAgent/images $(CLSDIR)/jade/tools/DummyAgent
-	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
 	cp -R $(SRCDIR)/jade/tools/sniffer/images $(CLSDIR)/jade/tools/sniffer
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 
@@ -148,7 +147,6 @@ batch:
 	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
-	echo 'xcopy /E /I jade\tools\rma\images ..\classes\jade\tools\rma\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
 
