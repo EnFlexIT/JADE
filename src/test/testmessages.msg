@@ -9,9 +9,9 @@
                (Service-Description
                 :name Service1
                 :type TestType
-                :ontology (set Os1 Os2 Os3)
-                :language (set l1 l2 l3)
-                :protocol (set Ps1 Ps2 Ps3)
+                :ontologies (set Os1 Os2 Os3)
+                :languages (set l1 l2 l3)
+                :protocols (set Ps1 Ps2 Ps3)
                 :ownership CSELT
                 :properties (set (Property :name X1 :value V1) 
           			 (Property :name X3 :value 12) 
@@ -20,9 +20,9 @@
           			 (Property :name X6 :value (Agent-Identifier :name x))
           			 (Property :name X7 :value (Dummy :name x))
                                  (Property :name X2 :value V2) )))
-             :protocol (set FIPA-Request FIPA-Contract-Net)
-             :ontology (set FIPA-Agent-Management Trading)
-             :language (set FIPA-SL0)
+             :protocols (set FIPA-Request FIPA-Contract-Net)
+             :ontologies (set FIPA-Agent-Management Trading)
+             :languages (set FIPA-SL0)
           ))))" 
  :language  fipa-sl0
  :ontology  fipa-agent-management
