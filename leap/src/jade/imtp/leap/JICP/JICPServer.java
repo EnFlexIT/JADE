@@ -341,6 +341,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		          	mergeProperties(p, pdpContextInfo);
 	          	}
 	          	else {
+	          		log("CREATE_MEDIATOR request from non authorized address: "+addr, 1);
 	          		reply = new JICPPacket("Not authorized", null);
 	          		break;
 	          	}

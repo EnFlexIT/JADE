@@ -239,16 +239,19 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	      writePacket(pkt, con);
 	      pkt = con.readPacket();
 
+		    String replyMsg = new String(pkt.getData());
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
-		      String replyMsg = new String(pkt.getData());
 		      int index = replyMsg.indexOf('#');
 		      myMediatorID = replyMsg.substring(0, index);
 		      props.setProperty(JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
 		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
-				  return con;
+				  return con;	      
+	      }
+	      else {
+		      log("Mediator error: "+replyMsg, 1);
 	      }
 		  }
 		  catch (IOException ioe) {
