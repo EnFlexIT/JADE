@@ -248,7 +248,7 @@ public class BootProfileImpl extends ProfileImpl {
 
         flag = fetchAndVerifyBoolean(GUI_KEY);
         if (flag) {
-            // need to run RAM agent
+            // need to run RMA agent
             if (value != null) {
                 value = "RMA:jade.tools.rma.rma " + value;  // put before other agents
             } else {
@@ -267,6 +267,21 @@ public class BootProfileImpl extends ProfileImpl {
 
             setSpecifiers(Profile.AGENTS, agents);
         }
+
+	// finally, copy into profileProp all the properties that
+	// were present in argProp AND were not already present in profileProp.
+	// The fact that we do not copy those properties that were already
+	// present in profileProp is a sanity check to avoid modification
+	// of properties that were set in the code above
+	for (Enumeration e=argProp.keys(); e.hasMoreElements(); ) {
+	    String key = (String)e.nextElement();
+	    try {
+		if (getParameter(key) == null) 
+		    setParameter(key, argProp.get(key).toString());
+	    } catch (jade.core.ProfileException e2) {
+		e2.printStackTrace();
+	    }
+	}
         
         // The following is for debugging only. Probably should not document the "dumpProfile" attribute.
         // Note All the jade.util.leap.ArrayList structures will only print their type unless a
