@@ -31,7 +31,7 @@ public class TestReceiverBehaviourAgent extends Agent {
 	be2 = new ReceiverBehaviour(this, 40000, MessageTemplate.MatchPerformative(ACLMessage.INFORM_REF));
 	addBehaviour(be2);
 
-	// After 10 seconds the behaviour sends to itself the INFORM message
+	// After 10 seconds this behaviour sends to itself the INFORM message
 	addBehaviour(new WakerBehaviour(this, 10000) {
 		protected void handleElapsedTimeout() {
 		    msg1.setContent("prova");

@@ -29,8 +29,9 @@ import jade.core.behaviours.SimpleBehaviour;
 /**
 This an examples of an agent whose behaviours built as finite state
 machine.
-Note that the first behaviour never ends since the method done returns 
-the boolean false;
+Note that the first behaviour never ends since the method <code>done</code>
+always returns false
+
 @author Tiziana Trucco - CSELT S.p.A.
 @version  $Date$ $Revision$  
 */
@@ -45,7 +46,7 @@ public class FSMAgent extends Agent {
   	final int THIRD = 3;
 
   	private int state = FIRST;
-    private boolean finished = false;
+      private int numberOfExecutions = 3; // it will be executed N times
     
     public my3StepBehaviour(Agent a) {
       super(a);
@@ -55,13 +56,13 @@ public class FSMAgent extends Agent {
       switch (state){
       	case FIRST: {op1(); state = SECOND; break;}
       	case SECOND:{op2(); state = THIRD;  break;}
-      	case THIRD: {op3(); state = FIRST;finished = false; break;}
+      	case THIRD: {op3(); state = FIRST; numberOfExecutions--; break;}
       }
     }
 
     
     public boolean done(){
-    	return finished;
+    	return (!(numberOfExecutions>0));
     }
     
     private void op1(){

@@ -29,7 +29,8 @@ import jade.core.behaviours.WakerBehaviour;
 import java.util.Date;
 
 /**
-This example shows the usage of the WakerBehaviour. The agent object, at its setup, adds
+This example shows the usage of the WakerBehaviour. In the setup method
+the agent adds
 2 WakerBehaviours. The first behaviour wakes up after the given timeout. The second
 behaviour wakes up at the given date and time. When they wake up, the method
 <code>handleElapsedTimeout()</code> is executed.

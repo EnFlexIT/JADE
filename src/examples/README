@@ -33,23 +33,29 @@ This examples shows some examples of agent behaviours.
                                 multitasking presently used for
                                 intra-agent behaviour scheduling.
  
- - WakerAgent.class      	This example shows the usage of the WakerBehaviour. 
-				The agent object, at its setup, adds 2 WakerBehaviours. 
-				The first behaviour wakes up after the given timeout. 
-				The second behaviour wakes up at the given date and time.
-                                When they wake up, the method handleElapsedTimeout() is 
-				executed.
-				Notice that in the first behaviour, the execution of the 
-				method reset(t) makes repetitive the behaviour itself; 
+ - WakerAgent.class      	This example shows the usage of the 
+				WakerBehaviour. 
+				The agent uses 2 WakerBehaviours. 
+				The first behaviour wakes up after the given 
+				timeout. 
+				The second behaviour wakes up at the given 
+				date and time.
+                                When they wake up, the method 
+				handleElapsedTimeout() is executed.
+				Notice that in the first behaviour, 
+				the execution of the 
+				method reset(t) makes repetitive the behaviour
+				itself; 
 				that is it wakes up every t milliseconds.
 
 
- - FSMAgent.class		An agent with two behaviours built like finite state 
-				machines.
+ - FSMAgent.class		An agent with two behaviours built like 
+				finite state machines.
 
  - TestReceiverBehaviourAgent	This agent shows the usage of the 
                                 ReceiverBehaviour, the WakerBehaviour, and
-                                the SimpleBehavoiour.
+                                the SimpleBehavoiour. It is also part of the
+				JADE Test Suite.
 
 
 
