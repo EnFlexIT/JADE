@@ -4,8 +4,6 @@
 <!-- set properties for this project -->
 <project name="testsuite" default="compile" basedir="../..">
   <description>Test Suite build file</description>
-  <property environment="env"/>
-  <property name="java-home" value="${env.JAVA_HOME}"/>
   
   <property name="version" value="3.1"/>
   <property name="classpath" value="classes"/>
@@ -76,26 +74,9 @@
     </copy> 
     
     <!-- Copy xml configuration files -->
-    <copy file="${src}/test/common/xml/listTests.dtd" todir="${dest}/test/common/xml"/>
-    <copy file="${src}/test/testerList.xml" todir="${dest}/test"/>
-    <copy file="${src}/test/behaviours/behavioursTestsList.xml" todir="${dest}/test/behaviours"/>
-    <copy file="${src}/test/content/contentTestsList.xml" todir="${dest}/test/content"/>
-    <copy file="${src}/test/content/SLOperatorTestsList.xml" todir="${dest}/test/content"/>
-    <copy file="${src}/test/domain/jadeManagementOntoTestsList.xml" todir="${dest}/test/domain"/>
-    <copy file="${src}/test/domain/ams/amsTestsList.xml" todir="${dest}/test/domain/ams"/>
-    <copy file="${src}/test/domain/df/dfTestsList.xml" todir="${dest}/test/domain/df"/>
-    <copy file="${src}/test/domain/df/persistentDFTestsList.xml" todir="${dest}/test/domain/df"/>
-    <copy file="${src}/test/domain/df/df.properties" todir="${dest}/test/domain/df"/>
-    <copy file="${src}/test/interPlatform/interPlatformTestsList.xml" todir="${dest}/test/interPlatform"/>
-    <copy file="${src}/test/mobility/mobilityTestsList.xml" todir="${dest}/test/mobility"/>
-    <copy file="${src}/test/mainReplication/mainReplicationTestsList.xml" todir="${dest}/test/mainReplication"/>
-    <copy file="${src}/test/persDelivery/PersistentDeliveryTestsList.xml" todir="${dest}/test/persDelivery"/>
-    <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
-    <copy file="${src}/test/proto/contractNetProtoTestsList.xml" todir="${dest}/test/proto"/>
-    <copy file="${src}/test/proto/twoPhTestsList.xml" todir="${dest}/test/proto"/>
-    <copy file="${src}/test/proto/proposeTestsList.xml" todir="${dest}/test/proto"/>
-    <copy file="${src}/test/roundTripTime/roundTripTimeTestsList.xml" todir="${dest}/test/roundTripTime"/>
-    <copy file="${src}/test/leap/LEAPTestsList.xml" todir="${dest}/test/leap"/>
+    <copy todir="${dest}" >
+     <fileset dir="${src}" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
+    </copy>
   </target>
 
   <!--  __________________________________________________
@@ -103,8 +84,8 @@
         __________________________________________________ -->
   <target name="lib" depends="compile" 
           description="Create a jar file including all Jade tests and the necessary examples">
-		<delete file="${src}/test/test.jar" quiet="true"/>
-		<jar jarfile="${src}/test/test.jar">
+		<delete file="lib/jadeTestSuite.jar" quiet="true"/>
+		<jar jarfile="lib/jadeTestSuite.jar">
 			<fileset dir="${dest}">
 				<include name="**/test/**"/>
 				<include name="**/examples/mobile/**"/>
@@ -161,7 +142,6 @@
   	       includes="**/leap/midp/**"
   	       verbose="false"
   	       fork="yes"
-  	       executable="${java-home}/bin/javac"
   	       compiler="modern"/>
 
   	       
@@ -216,6 +196,28 @@
     <delete includeEmptyDirs="true">
       <fileset dir="${dest}/test"/>
     </delete>
+    <delete file="lib/jadeTestSuite.jar"/>
+  </target>
+
+
+
+
+  <!--  __________________________________________________
+                            dist
+        __________________________________________________ -->
+  <target name="dist" description="create the distribution file">
+   <echo message="REMIND TO PUT IN THIS DIRECTORY THE PDF FILE JADE_TestSuite_V2.0.pdf"/>
+   <mkdir dir="doc"/>
+   <mkdir dir="doc/tutorials"/>
+   <copy file="src/test/JADE_TestSuite_V2.0.pdf" todir="doc/tutorials"/>
+   <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml"/>
+   <jar jarfile="../JADE-testSuite-${version}.zip">
+      <fileset dir=".." includes="jade/src/test/Copying"/>
+      <fileset dir=".." includes="jade/src/test/License"/>
+      <fileset dir=".." includes="jade/src/test/build.xml"/>
+      <fileset dir=".." includes="jade/src/test/doc/**"/>
+      <fileset dir=".." includes="jade/src/test/common/**"/>
+   </jar>
   </target>
 
 </project>
