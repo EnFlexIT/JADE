@@ -47,7 +47,7 @@ public abstract class Profile {
      This constant is the name of the property whose value is a String
      indicating the protocol to use to connect to the Main Container.
    */
-  public static final String MAIN_PROTO = "main-proto";
+  public static final String MAIN_PROTO = "proto";
 
   /**
      This constant is the name of the property whose value is the name
