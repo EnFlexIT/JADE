@@ -63,7 +63,7 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**"/>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="off" excludes="demo/**,examples/**,test/**"/>
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
@@ -120,50 +120,47 @@ ant dist - to create the distribution files
          ________________________________________________ -->
   <target name="lib" depends="jade" description="generate jar archive">
     <!-- Create the jadeTools.jar file -->
+		<delete file="${lib}/jadeTools.jar" quiet="true"/>
     <jar jarfile="${lib}/jadeTools.jar">
-      <fileset dir="${build}" includes="**/jade/tools/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/applet/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/dfgui/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/dfgui/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/DummyAgent/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/DummyAgent/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/gui/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/gui/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/introspector/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/introspector/gui/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/introspector/gui/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/rma/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/rma/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/sl/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/sniffer/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/sniffer/images/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/SocketProxyAgent/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/testagent/*"/>
-      <fileset dir="${build}" includes="**/jade/tools/testagent/images/*"/>
-      <fileset dir="${build}" includes="**/jade/gui/*"/>
-      <fileset dir="${build}" includes="**/jade/gui/images/*"/>
-      <fileset dir="${build}" includes="**/jade/gui/help/*"/>
+      <fileset dir="${build}">
+      	<include name="**/jade/tools/**"/>
+      	<exclude name="**/jade/tools/*.class"/>
+      	<include name="**/jade/gui/**"/>
+      	<exclude name="**/jade/gui/GuiAgent.class"/>
+      	<exclude name="**/jade/gui/GuiAgent$GuiHandlerBehaviour.class"/>
+      	<exclude name="**/jade/gui/GuiEvent.class"/>
+      </fileset>
     </jar>
-    <delete dir="${build}/jade/tools"/>
     <!-- Create the iiop.jar file -->
+		<delete file="${lib}/iiop.jar" quiet="true"/>
     <jar jarfile="${lib}/iiop.jar">
       <fileset dir="${build}" includes="**/FIPA/*"/>
       <fileset dir="${build}" includes="**/jade/mtp/iiop/*"/>
     </jar>
-    <delete dir="${build}/jade/mtp/iiop"/>
-    <delete dir="${build}/FIPA"/>
     <!-- Create the Base64.jar file -->
+		<delete file="${lib}/Base64.jar" quiet="true"/>
     <jar jarfile="${lib}/Base64.jar">
       <fileset dir="${build}" includes="**/starlight/util/*"/>
     </jar>
-    <delete dir="${build}/starlight"/>
     <!-- Create the jade.jar file -->
+		<delete file="${lib}/jade.jar" quiet="true"/>
     <jar jarfile="${lib}/jade.jar" manifest="${build}/jade.mf">
-      <fileset dir="${build}" excludes="**/examples/**,**/demo/**,**/test/**"/>
-    </jar>
-    <delete includeEmptyDirs="true">
-      <fileset dir="${build}/jade"/>
-    </delete>
+      <fileset dir="${build}">
+      	<exclude name="**/examples/**"/>
+      	<exclude name="**/demo/**"/>
+      	<exclude name="**/test/**"/>
+       	<exclude name="**/starlight/**"/>
+       	<exclude name="**/FIPA/**"/>
+      	<exclude name="**/jade/tools/**"/>
+      	<exclude name="**/jade/gui/**"/>
+      </fileset>
+      <fileset dir="${build}">
+      	<include name="**/jade/tools/*.class"/>
+      	<include name="**/jade/gui/GuiAgent.class"/>
+      	<include name="**/jade/gui/GuiAgent$GuiHandlerBehaviour.class"/>
+      	<include name="**/jade/gui/GuiEvent.class"/>
+      </fileset>
+  	</jar>
   </target>
   <!--    __________________________________________________
                             clean
@@ -184,13 +181,10 @@ ant dist - to create the distribution files
   <!--     _______________________________________________
                                examples
          _______________________________________________ -->
-  <target name="examples" depends="lib,examples1,demo,jessexamples" description="compile the examples "/>
-  <target name="examples1" depends="lib" description="compile all examples except the demo and the JESS-based examples">
+  <target name="examples" depends="lib,examples1,jessexamples" description="compile the examples "/>
+  <target name="examples1" depends="lib" description="compile all examples except the JESS-based examples">
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${lib}/jade.jar"/>
-  </target>
-  <target name="demo" depends="lib" description="compile the demo">
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="off" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${lib}/jade.jar"/>
   </target>
   <!--     _______________________________________________
                                JESS-based examples
@@ -198,7 +192,13 @@ ant dist - to create the distribution files
   <target name="jessexamples" depends="init,check_jess,lib" if="jess.home.is.set" description="compile the JESS-based examples ">
     <!-- Compile the java code from ${src} into ${build} -->
     <echo>Trying to compile the examples based on JESS. If the JESS library is not included into the CLASSPATH, a number of errors will be generated by the compiler but the task will contine.</echo>
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" includes="examples/jess/** examples/JadeJessProtege/**" classpath="${lib}/jade.jar,${env.JESS_HOME}/jess.jar,${env.JESS_HOME}/JessTab.jar" failonerror="false"/>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="off" includes="examples/jess/** examples/JadeJessProtege/**" classpath="${lib}/jade.jar,${env.JESS_HOME}/jess.jar,${env.JESS_HOME}/JessTab.jar" failonerror="false"/>
+  </target>
+  <!--     _______________________________________________
+                               Demo
+         _______________________________________________ -->
+  <target name="demo" depends="lib" description="compile the demo">
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="off" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
   </target>
   <!--     _______________________________________________
                                dist
