@@ -106,12 +106,12 @@ public class ThanksAgent extends Agent {
 		// main container (i.e. on this host, port 1099)
 		AgentContainer ac = rt.createAgentContainer(p);
 		// create a new agent
-		jade.wrapper.Agent t1 = ac.createAgent(t1AgentName,getClass().getName(),new Object[0]);
+		jade.wrapper.Agent t1 = (jade.wrapper.Agent) ac.createNewAgent(t1AgentName,getClass().getName(),new Object[0]);
 		// fire-up the agent
 		t1.start();
 		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName);
 		// create a new agent
-		jade.wrapper.Agent t2 = ac.createAgent(t2AgentName,getClass().getName(),new Object[0]);
+		jade.wrapper.Agent t2 = (jade.wrapper.Agent) ac.createNewAgent(t2AgentName,getClass().getName(),new Object[0]);
 		// fire-up the agent
 		t2.start();
 		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName);
