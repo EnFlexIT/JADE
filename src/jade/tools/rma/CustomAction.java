@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/06/25 12:56:43  rimassa
+  Changed code to reflect new jade.gui utility package.
+
   Revision 1.4  1999/06/16 00:21:21  rimassa
   Commented out a debugging printout.
 
@@ -31,6 +34,7 @@ import java.awt.*;
 import java.lang.*;
 
 import jade.lang.acl.ACLMessage;
+import jade.gui.*;
 
 /** 
  * Send Custom message Action
@@ -57,7 +61,7 @@ public class CustomAction extends AMSAbstractAction
 	    msg2.addDest(current.getName());
 	  }
 	}
-	ACLMessage msg = jade.tools.DummyAgent.AclGui.editMsgInDialog(msg2, mainWnd);
+	ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
 	if (msg != null)
 	  myRMA.send(msg);
 
