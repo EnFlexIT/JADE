@@ -400,6 +400,9 @@ public class RMIIMTPManager implements IMTPManager {
     catch(RemoteException re) {
       throw new IMTPException("Communication failure while starting JADE Runtime System. Check if the RMIRegistry CLASSPATH includes the RMI Stub classes of JADE.", re);
     }
+    catch(AlreadyBoundException abe) {
+	throw new IMTPException("The Service Manager was already bound in the RMI Registry", abe);
+    }
     catch(Exception e) {
       throw new IMTPException("Problem starting JADE Runtime System.", e);
     }
