@@ -36,6 +36,8 @@ import jade.mtp.MTPException;
 
 import java.util.Vector;
 import java.util.Enumeration;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 /**
    This class is a Proxy class, allowing access to a JADE agent
@@ -117,7 +119,7 @@ public class AgentContainer implements PlatformController {
       jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
       a.setArguments(args);
       AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      myImpl.initAgent(agentID, a, false);
+      myImpl.initAgent(agentID, a, false, (JADEPrincipal)null, (Credentials)null);
 
       Agent result = new Agent(agentID, a);
       return result;
@@ -145,7 +147,7 @@ public class AgentContainer implements PlatformController {
         }
         AID agentID = new AID(nickname, AID.ISLOCALNAME);
         try {
-            myImpl.initAgent(agentID, anAgent, false);
+            myImpl.initAgent(agentID, anAgent, false, (JADEPrincipal)null, (Credentials)null);
         }
         catch(Exception e) {
             throw new StaleProxyException(e);
