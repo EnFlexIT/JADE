@@ -34,7 +34,7 @@ import javax.swing.*;
 @version $Date$ $Revision$
 */
 
-class StringDlg extends JDialog 
+public class StringDlg extends JDialog 
 {
 	String     hint;
 	JTextField txtString;
@@ -56,7 +56,7 @@ class StringDlg extends JDialog
 		this.out = null;
 	}*/
 	
-	StringDlg(Component parent,String hint) 
+	public StringDlg(Component parent,String hint) 
 	{
 		super();
 		parentGUI = parent;
@@ -64,7 +64,7 @@ class StringDlg extends JDialog
 		this.out = null;
 	}
 	
-	String editString(String value)
+	public String editString(String value)
 	{
 		setTitle("Edit");
 
@@ -129,7 +129,7 @@ class StringDlg extends JDialog
 		return out;
 	}
 	
-	void viewString(String value)
+	public void viewString(String value)
 	{
 		
 		setTitle("View");
