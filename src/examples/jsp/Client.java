@@ -47,8 +47,10 @@ public class Client extends Agent {
 
     protected void unsubscribe() {
 	ACLMessage msg = new ACLMessage(ACLMessage.CANCEL);
+	// JADE 2.3
+	msg.addReceiver(new AID("buffer",AID.ISLOCALNAME));
 	// JADE 2.0:
-	msg.addReceiver(new AID("buffer@"+getHap()));
+	// msg.addReceiver(new AID("buffer@"+getHap()));
 	// JADE 1.4:
 	//msg.addDest("buffer");
 	send(msg);
@@ -77,8 +79,10 @@ public class Client extends Agent {
 	
 	// ask to the buffer stored messages.
 	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+	// JADE 2.3
+	msg.addReceiver(new AID("buffer",AID.ISLOCALNAME));
 	// JADE 2.0:
-	msg.addReceiver(new AID("buffer@"+getHap()));
+	// msg.addReceiver(new AID("buffer@"+getHap()));
 	// JADE 1.4:
 	//msg.addDest("buffer");
 	send(msg);

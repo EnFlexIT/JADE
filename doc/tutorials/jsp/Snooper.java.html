@@ -31,7 +31,7 @@
 </font>	<font color=#9A1900>// it would not work!
 </font>	<font color=#9A1900>// We need to remove each time the previous entry.
 </font>	msg.clearAllReceiver();
-	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer@"</font>+getHap()));
+	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer"</font>, AID.ISLOCALNAME));
 	msg.setContent(str);
 	send(msg);
     }

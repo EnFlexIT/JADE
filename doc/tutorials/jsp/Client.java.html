@@ -50,7 +50,7 @@
     <font color=#0000FF>protected</font> <font color=#009900>void</font> unsubscribe() {
 	ACLMessage msg = <font color=#0000FF>new</font> ACLMessage(ACLMessage.CANCEL);
 	<font color=#9A1900>// JADE 2.0:
-</font>	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer@"</font>+getHap()));
+</font>	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer"</font>, AID.ISLOCALNAME));
 	<font color=#9A1900>// JADE 1.4:
 </font>	<font color=#9A1900>//msg.addDest("buffer");
 </font>	send(msg);
@@ -80,7 +80,7 @@
 	<font color=#9A1900>// ask to the buffer stored messages.
 </font>	ACLMessage msg = <font color=#0000FF>new</font> ACLMessage(ACLMessage.REQUEST);
 	<font color=#9A1900>// JADE 2.0:
-</font>	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer@"</font>+getHap()));
+</font>	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer"</font>, AID.ISLOCALNAME));
 	<font color=#9A1900>// JADE 1.4:
 </font>	<font color=#9A1900>//msg.addDest("buffer");
 </font>	send(msg);
