@@ -98,18 +98,27 @@ public class DFService extends FIPAService {
    * service name and the service type
    * @exception a MissingParameter exception is it is not valid
    */
-  static void checkIsValid(DFAgentDescription dfd) throws MissingParameter {
-  	if (dfd.getName()==null) 
+  static void checkIsValid(DFAgentDescription dfd, boolean checkServices) throws MissingParameter {
+  	try {
+  		if (dfd.getName().getName().length() == 0) {
+	      throw new MissingParameter(FIPAManagementVocabulary.DFAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
+  		}
+  	}
+  	catch (NullPointerException npe) {
       throw new MissingParameter(FIPAManagementVocabulary.DFAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
-    Iterator i = dfd.getAllServices();
-    ServiceDescription sd;
-    while (i.hasNext()) {
-      sd = (ServiceDescription)i.next();
-      if (sd.getName() == null)
-	throw new MissingParameter(FIPAManagementVocabulary.SERVICEDESCRIPTION, FIPAManagementVocabulary.SERVICEDESCRIPTION_NAME);
-      if (sd.getType() == null)
-	throw new MissingParameter(FIPAManagementVocabulary.SERVICEDESCRIPTION, FIPAManagementVocabulary.SERVICEDESCRIPTION_TYPE);
-    }
+  	}
+  	
+  	if (checkServices) {
+	    Iterator i = dfd.getAllServices();
+	    ServiceDescription sd;
+	    while (i.hasNext()) {
+	      sd = (ServiceDescription)i.next();
+	      if (sd.getName() == null)
+					throw new MissingParameter(FIPAManagementVocabulary.SERVICEDESCRIPTION, FIPAManagementVocabulary.SERVICEDESCRIPTION_NAME);
+	      if (sd.getType() == null)
+					throw new MissingParameter(FIPAManagementVocabulary.SERVICEDESCRIPTION, FIPAManagementVocabulary.SERVICEDESCRIPTION_TYPE);
+	    }
+  	}
   }
 
   
@@ -144,7 +153,7 @@ public class DFService extends FIPAService {
     if (dfd.getName() == null) {
       dfd.setName(a.getAID());
     }
-    checkIsValid(dfd);
+    checkIsValid(dfd, true);
 
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.REGISTER, dfd, null);
     ACLMessage reply = doFipaRequestClient(a,request);
@@ -246,7 +255,7 @@ public class DFService extends FIPAService {
     if (dfd.getName() == null) {
       dfd.setName(a.getAID());
     }      
-    checkIsValid(dfd);
+    checkIsValid(dfd, true);
     
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.MODIFY, dfd, null);
     ACLMessage reply = doFipaRequestClient(a,request);

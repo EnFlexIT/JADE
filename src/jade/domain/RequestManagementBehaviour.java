@@ -55,7 +55,6 @@ import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
    action.
    @author Giovanni Caire - Tilab
 */
-
 abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	private ACLMessage notification;
 
@@ -102,10 +101,7 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 			response.setContent(request.getContent()+" ("+re.getMessage()+")");
 		}	
 		catch (FailureException fe) {
-			// FailureException thrown during action execution --> AGREE+FAILURE
-		        response = request.createReply();
-			response.setPerformative(ACLMessage.AGREE);
-			response.setContent(request.getContent()+" (true)");
+			// FailureException thrown during action execution --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 			notification.setContent(request.getContent()+" ("+fe.getMessage()+")");
@@ -118,10 +114,7 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 		}
 		catch(Throwable t){
 			t.printStackTrace();
-			// Generic error --> AGREE+FAILURE
-		        response = request.createReply();
-			response.setPerformative(ACLMessage.AGREE);
-			response.setContent(request.getContent()+" (true)");
+			// Generic error --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 			notification.setContent(request.getContent()+" ("+ExceptionVocabulary.INTERNALERROR+" \""+t.getMessage()+"\")");
@@ -130,7 +123,7 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
   }
     
   /**
-     Just return the (already prepared) notification message.
+     Just return the (already prepared) notification message (if any).
    */
   protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
   	//System.out.println("Notification is");		

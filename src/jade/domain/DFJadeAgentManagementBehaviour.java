@@ -25,100 +25,60 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.util.leap.List;
-
+import jade.content.Concept;
 import jade.content.onto.basic.Action;
-
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.UnrecognisedValue;
-
-import jade.domain.JADEAgentManagement.ShowGui;
-
+import jade.content.onto.basic.Done;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.JADEAgentManagement.*;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.security.AuthException;
 
-class DFJadeAgentManagementBehaviour extends DFResponderBehaviour{
+/**
+   This behaviour serves the actions of the JADE management ontology 
+   supported by the DF.
+   It extends RequestManagementBehaviour and implements performAction() to 
+   i) call the method of the DF corresponding to the requested 
+   action and ii) prepare the result notification.
+   @author Tiziana Trucco - TILAB
+   @author Fabio Bellifemine - TILAB
+   @author Giovanni Caire - TILAB
+ */
+class DFJadeAgentManagementBehaviour extends RequestManagementBehaviour {
 
-    private df myAgent;
-    private Action SLAction = null;
-    private int actionID = UNSUPPORTED;
+	private df theDF;
+	
+  protected DFJadeAgentManagementBehaviour(df a, MessageTemplate mt){
+		super(a,mt);
+		theDF = a;
+  }
 
-    private final static int UNSUPPORTED = -1;
-    private final static int SHOWGUI = 0;
-
-    protected DFJadeAgentManagementBehaviour(df a, MessageTemplate mt){
-	super(a,mt);
-	myAgent = a;
-    }
-
-    /*
-    In this method we can be send : AGREE- NOT UNDERSTOOD and Refuse.
-    in this method we parse the content in order to know the action required to the DF.
-    if the action is unsupported a NOT UDERSTOOD message is sent.
-    if something went wrong with the ontology a REFUSE message will be sent, otherwise an AGREE will be sent.
-    and performs the action.
-    */
-    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
-
-	isAnSLRequest(request);
-	try{
-	    //extract the content of the message this could throws a FIPAException
-	    SLAction = (Action) myAgent.getContentManager().extractContent(request);
-	    Object action = SLAction.getAction();
-	   
-	    if(action instanceof ShowGui){
-		//must perform a SHOWGUI.
-		actionID = SHOWGUI;
-	    }
-	    else{
-		//action not supported.
-		actionID = UNSUPPORTED;
-		//FIXME: the unsupported function exception requires as parameter the name of the unsupported action.
-		UnsupportedFunction uf = new UnsupportedFunction();
-		createExceptionalMsgContent(SLAction,uf,request);
-		throw uf;
-	    }
-	 
-	    return null;
-
-	}catch(RefuseException re){
-	    throw re;
-	}catch(Exception e){
-	    //Exception thrown by the parser.
-	    e.printStackTrace();
-	    UnrecognisedValue uv = new UnrecognisedValue("content");
-	    createExceptionalMsgContent(SLAction,uv,request);
-	    throw uv;
-	}   
-    }
-    
-    /**
-       Send the Inform message.
-     */
-    protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{
-
-	ACLMessage reply = request.createReply();
-
-	switch (actionID){
-	case SHOWGUI:
-	    myAgent.showGuiAction(SLAction);
-	    reply.setPerformative(ACLMessage.INFORM);
-	    reply.setContent("( )");
-	    break;
-	default: break; //FIXME: should never occur
-       }
-
-	return reply;
-    }
-    
-    //to reset the action
-    public void reset(){
-	super.reset();
-	SLAction = null;
-	actionID = UNSUPPORTED;
-    }
-   
-}//end class DFJadeAgentManagementBehaviour
+  /**
+     Call the proper method of the DF and prepare the notification 
+     message
+   */
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
+  	Concept action = slAction.getAction();
+  	
+  	// SHOW_GUI
+  	if (action instanceof ShowGui) {
+  		theDF.showGuiAction((ShowGui) action, request.getSender());
+  	}
+  	else {
+  		throw new UnsupportedFunction();
+  	}
+  	
+  	// Prepare the notification
+  	ACLMessage notification = request.createReply();
+  	notification.setPerformative(ACLMessage.INFORM);
+  	Done d = new Done(slAction);
+  	try {
+	  	theDF.getContentManager().fillContent(notification, d);
+  	}
+  	catch (Exception e) {
+  		// Should never happen
+  		e.printStackTrace();
+  	} 
+  	return notification;
+  }
+}

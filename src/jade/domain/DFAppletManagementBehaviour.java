@@ -25,52 +25,121 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.util.leap.List;
-
+import jade.content.Concept;
+import jade.content.Predicate;
 import jade.content.onto.basic.Action;
-
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.UnrecognisedValue;
-
-import jade.domain.DFGUIManagement.*;
-
+import jade.content.onto.basic.Done;
+import jade.content.onto.basic.Result;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.DFGUIManagement.*;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.security.AuthException;
 
-class DFAppletManagementBehaviour extends DFResponderBehaviour{
+/**
+   This behaviour serves the actions of the DF_Applet ontology 
+   supported by the DF.
+   It extends RequestManagementBehaviour and implements performAction() to 
+   i) call the method of the DF corresponding to the requested 
+   action and ii) prepare the result notification.
+   @author Tiziana Trucco - TILAB
+   @author Fabio Bellifemine - TILAB
+   @author Giovanni Caire - TILAB
+ */
+class DFAppletManagementBehaviour extends RequestManagementBehaviour {
 
-    private df myAgent;
-    private Action SLAction = null;
-    private int actionID = UNSUPPORTED;
-    private Object action = null;
+  private df theDF;
+  
+  protected DFAppletManagementBehaviour(df a, MessageTemplate mt) {
+		super(a, mt);
+		theDF = a;
+  }
 
-    //action supported by the df for the applet
-    private final static int UNSUPPORTED = -1;
-    private final static int GETPARENT = 0;
-    private static final int GETDEFAULTDESCRIPTION= 1;
-    private static final int FEDERATEWITH = 2;
-    private static final int GETDESCRIPTIONUSED = 3;
-    private static final int DEREGISTERFROM = 4;
-    private static final int REGISTERWITH = 5;
-    private static final int SEARCHON = 6;
-    private static final int MODIFYON = 7;
-
-
-    protected DFAppletManagementBehaviour(df a, MessageTemplate mt){
-	super(a,mt);
-	myAgent = a;
-    }
-
+  /**
+     Call the proper method of the DF and prepare the notification 
+     message
+   */
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
+  	Concept action = slAction.getAction();
+  	Object result = null;
+  	boolean asynchNotificationRequired = false;
+  	
+  	// GET_PARENTS
+  	if (action instanceof GetParents) {
+  		result = theDF.getParentsAction((GetParents) action, request.getSender());
+  	}
+  	// GET_DESCRIPTION
+  	else if (action instanceof GetDescription) {
+  		result = theDF.getDescriptionAction((GetDescription) action, request.getSender());
+  	}
+  	// GET_DESCRIPTION_USED
+  	else if (action instanceof GetDescriptionUsed) {
+  		result = theDF.getDescriptionUsedAction((GetDescriptionUsed) action, request.getSender());
+  	}
+  	// FEDERATE
+  	else if (action instanceof Federate) {
+  		theDF.federateAction((Federate) action, request.getSender());
+			asynchNotificationRequired = true;
+  	}
+  	// REGISTER_WITH
+  	else if (action instanceof RegisterWith) {
+  		theDF.registerWithAction((RegisterWith) action, request.getSender());
+			asynchNotificationRequired = true;
+  	}
+  	// DEREGISTER_FROM
+  	else if (action instanceof DeregisterFrom) {
+  		theDF.deregisterFromAction((DeregisterFrom) action, request.getSender());
+			asynchNotificationRequired = true;
+  	}
+  	// MODIFY_ON
+  	else if (action instanceof ModifyOn) {
+  		theDF.modifyOnAction((ModifyOn) action, request.getSender());
+			asynchNotificationRequired = true;
+  	}
+  	// SEARCH_ON 
+  	else if (action instanceof SearchOn) {
+  		theDF.searchOnAction((SearchOn) action, request.getSender());
+			asynchNotificationRequired = true;
+  	}
+  	else {
+  		throw new UnsupportedFunction();
+  	}
+  	
+  	if (!asynchNotificationRequired) {
+  		// The requested action has been completed. Prepare the notification
+	  	ACLMessage notification = request.createReply();
+	  	notification.setPerformative(ACLMessage.INFORM);
+	  	Predicate p = null;
+	  	if (result != null) {
+	  		// The action produced a result
+	  		p = new Result(slAction, result);
+	  	}
+	  	else {
+	  		p = new Done(slAction);
+	  	}
+	  	try {
+		  	theDF.getContentManager().fillContent(notification, p);
+	  	}
+	  	catch (Exception e) {
+	  		// Should never happen
+	  		e.printStackTrace();
+	  	}
+	  	return notification;
+  	}
+		else {
+			// The requested action is being processed by a Behaviour. Store
+			// the request message for later retrieval.
+  		theDF.storePendingRequest(action, request);
+  		return null;
+  	}
+  }
     /*
     In this method we can be send : AGREE- NOT UNDERSTOOD and Refuse.
     in this method we parse the content in order to know the action required to the DF.
     if the action is unsupported a NOT UDERSTOOD message is sent.
     if something went wrong with the ontology a REFUSE message will be sent, otherwise an AGREE will be sent.
     and performs the action.
-    */
+    *
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
 	isAnSLRequest(request);
 	try{
@@ -119,11 +188,11 @@ class DFAppletManagementBehaviour extends DFResponderBehaviour{
 	    createExceptionalMsgContent(SLAction,uv2,request);
 	    throw uv2;
 	}   
-    }
+    }*/
     
     /**
        Send the Inform message.
-     */
+     *
     protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{
 
 	ACLMessage reply = null;
@@ -165,6 +234,6 @@ class DFAppletManagementBehaviour extends DFResponderBehaviour{
 	action = null;
 	actionID = UNSUPPORTED;
 	SLAction = null;
-    }
+    }*/
    
-}//end class DFJadeAgentManagementBehaviour
+}

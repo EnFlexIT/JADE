@@ -39,11 +39,14 @@ import jade.lang.acl.MessageTemplate;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
 import jade.domain.mobility.*;
 import jade.mtp.MTPDescriptor;
 import jade.security.AuthException;
 
 /**
+   This behaviour serves the actions of the JADE management ontology 
+   supported by the AMS.
    Extends RequestManagementBehaviour and implements performAction() to 
    i) call the method of the AMS corresponding to the requested 
    action and ii) prepare the result notification depending on 
@@ -68,7 +71,7 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
      Call the proper method of the ams and prepare the notification 
      message
    */
-  protected ACLMessage performAction(Action slAction, ACLMessage request) throws FIPAException {
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException {
   	Concept action = slAction.getAction();
   	Object result = null;
   	boolean resultNeeded = false;
@@ -143,6 +146,9 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	else if (action instanceof QueryAgentsOnLocation) {
   		result = theAMS.queryAgentsOnLocationAction((QueryAgentsOnLocation) action, request.getSender());
   		resultNeeded = true;
+  	}
+  	else {
+  		throw new UnsupportedFunction();
   	}
   	
   	// Prepare the notification

@@ -45,6 +45,8 @@ import jade.util.leap.List;
 import jade.security.AuthException;
 
 /**
+   This behaviour serves the actions of the FIPA management ontology 
+   supported by the AMS.
    Extends RequestManagementBehaviour and implements performAction() to 
    i) call the method of the AMS corresponding to the requested 
    action and ii) prepare the result notification depending on 
@@ -94,6 +96,9 @@ class AMSFipaAgentManagementBehaviour extends RequestManagementBehaviour{
   		APDescription dsc = theAMS.getDescriptionAction(request.getSender());
   		resultItems = new ArrayList();
   		resultItems.add(dsc);
+  	}
+  	else {
+  		throw new UnsupportedFunction();
   	}
   	
   	// Prepare the notification

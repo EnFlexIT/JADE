@@ -65,20 +65,19 @@ public interface DFGUIAdapter {
   void postGuiEvent(GuiEvent ev);
   	
   /**
-   * this method returns the agent description of an agent registered with the DF given the agent name
+   * This method returns the agent description of an agent registered with the DF given the agent name
    */
   DFAgentDescription getDFAgentDsc(AID name) throws FIPAException;
   
   
   /**
-  * This method returns the description of this df used for federation with other dfs.
+  * This method returns the description of this df.
   */
   DFAgentDescription getDescriptionOfThisDF();
 
   /**
-  * Returns the descriptions used by the df to federate with another df.
+  * This method returns the description used by the df to federate with 
+  * a given parent DF.
   */
   DFAgentDescription getDescriptionOfThisDF(AID parent);
-  
-  
 }
