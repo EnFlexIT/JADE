@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.10  1999/02/03 11:53:59  rimassa
+ Added a more flexible time handling to use in ':reply-by' ACL message
+ field.
+
  Revision 1.9  1998/10/18 16:01:17  rimassa
  Deprecated constructor without arguments and dump() method. Added a
  newer constructor and a fromText() static Factory Method.
@@ -72,6 +76,12 @@ import java.io.Reader;
 import java.io.Writer;
 import java.io.Serializable;
 import java.io.IOException;
+import java.io.StringWriter;
+
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import java.text.SimpleDateFormat;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
@@ -104,6 +114,7 @@ public class ACLMessage implements Cloneable, Serializable {
   private String        language;
   private String        ontology;
   private String        reply_by;
+  private long          reply_byInMillisec;  
   private String        protocol;
   private String        conversation_id;
 
@@ -179,7 +190,63 @@ public class ACLMessage implements Cloneable, Serializable {
 
   public void setReplyBy( String str ) {
     reply_by = new String(str);
+    if (str.equals("*"))  // wildcard
+      reply_byInMillisec = new Date().getTime();
+    else {
+      int m_flag, pos;
+      long millisec;
+      Date data;
+      if(reply_by.substring(0, 1).equals("+")) {
+	m_flag = 1; // add current time
+	pos = 1;
+	millisec = Integer.parseInt(reply_by.substring(pos, pos + 4))*365*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 4, pos + 6))*30*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 6, pos + 8))*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 9, pos +11))*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 11, pos + 13))*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 13, pos + 15))*1000;
+	data = new Date((new Date()).getTime() + millisec);
+      } else if(reply_by.substring(0, 1).equals("-")) {
+	m_flag = -1;  // subtract current time
+	pos = 1;
+	millisec =  Integer.parseInt(reply_by.substring(pos, pos + 4))*365*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 4, pos + 6))*30*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 6, pos + 8))*24*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 9, pos +11))*60*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 11, pos + 13))*60*1000+
+	  Integer.parseInt(reply_by.substring(pos + 13, pos + 15))*1000;
+	data = new Date((new Date()).getTime() - millisec);
+      } else {
+    	m_flag = 0;   // do nothing
+    	pos = 0;
+      /* FIXME: Deprecated, so java.util.Calendar is used
+    	data = new Date(...);
+    */
+      GregorianCalendar cal = new GregorianCalendar(
+        Integer.parseInt(reply_by.substring(pos, pos + 4)),
+    		Integer.parseInt(reply_by.substring(pos + 4, pos + 6)),
+    		Integer.parseInt(reply_by.substring(pos + 6, pos + 8)),
+    		Integer.parseInt(reply_by.substring(pos + 9, pos +11)),
+    		Integer.parseInt(reply_by.substring(pos + 11, pos + 13)),
+    		Integer.parseInt(reply_by.substring(pos + 13, pos + 15))
+      );
+      data = cal.getTime();
+    }
+      reply_byInMillisec = data.getTime();
+    } // end of else
+
   }
+
+  public Date getReplyByDate() {
+   return new Date(reply_byInMillisec);
+  }
+
+  public void setReplyByDate(Date date) {
+   reply_byInMillisec = date.getTime();
+   SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS");
+   reply_by=formatter.format(date);
+  }
+
 
   public void setProtocol( String str ) {
     protocol = new String(str);
@@ -382,6 +449,7 @@ public class ACLMessage implements Cloneable, Serializable {
 
   public void toText(Writer w) {
     try {
+      w.write("(");
       w.write(msgType + "\n");
       if(source != null)
 	w.write(SOURCE + " " + source + "\n");
@@ -405,7 +473,7 @@ public class ACLMessage implements Cloneable, Serializable {
 	w.write(PROTOCOL + " " + protocol + "\n");
       if(conversation_id != null)
 	w.write(CONVERSATION_ID + " " + conversation_id + "\n");
-
+      w.write(")");
       w.flush();
     }
     catch(IOException ioe) {
@@ -427,6 +495,12 @@ public class ACLMessage implements Cloneable, Serializable {
     return result;
   }
 
+  public String toString(){
+    StringWriter text = new StringWriter();
+    toText(text);
+    return text.toString();
+  }
+
  /**
  * This method is used by ACLParser to reset the data structure
  */
@@ -441,6 +515,7 @@ public class ACLMessage implements Cloneable, Serializable {
   language=null;
   ontology=null;
   reply_by=null;
+  reply_byInMillisec = 0;
   protocol=null;
   conversation_id=null;
  }
