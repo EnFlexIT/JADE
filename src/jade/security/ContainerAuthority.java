@@ -77,4 +77,12 @@ public class ContainerAuthority extends Authority {
 	public JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException {
 	  return null;
 	}
+
+	public Object doAs(JADESubject subject, PrivilegedAction action) throws JADESecurityException {
+	  return action.run();
+	}
+	
+	public void checkPermission(PermissionHolder permission) throws JADESecurityException {
+	}
+
 }

@@ -440,6 +440,37 @@ public class ams extends Agent implements AgentManager.Listener {
 	    send(toolNotification);
 	  }
 
+	  // Send all agent principals.
+	  for(int i = 0; i < agents.length; i++) {
+
+	    AID agentName = agents[i];
+	    ContainerID cid = myPlatform.getContainerID(agentName);
+
+      // Let's find the agent principal
+      AMSAgentDescription amsd = new AMSAgentDescription();
+      amsd.setName(agentName);
+      amsd = (AMSAgentDescription)agentDescriptions.search(amsd).get(0);
+    
+	    ChangedAgentPrincipal cap = new ChangedAgentPrincipal();
+	    cap.setAgent(agentName);
+	    cap.setOldPrincipal(new AgentPrincipal());
+	    cap.setNewPrincipal(new AgentPrincipal(amsd.getOwnership()));
+	    cap.setWhere(cid);
+
+	    EventRecord er = new EventRecord(cap, here());
+	    Occurred o = new Occurred();
+	    o.set_0(er);
+
+	    List l = new ArrayList(1);
+	    l.add(o);
+
+	    toolNotification.clearAllReceiver();
+	    toolNotification.addReceiver(newTool);
+	    fillMsgContent(toolNotification, l);
+
+	    send(toolNotification);
+	  }
+
 	  // Send the list of the installed MTPs
 	  String[] addresses = myPlatform.platformAddresses();
 	  for(int i = 0; i < addresses.length; i++) {
@@ -1081,17 +1112,24 @@ public class ams extends Agent implements AgentManager.Listener {
       id.addAddresses(addresses[i]);
 
     try {
-    String ownership = amsd.getOwnership();
-    int dot2 = ownership.indexOf(':');
-    String username = dot2 != -1 ? ownership.substring(0, dot2) : ownership;
-    String password = dot2 != -1 ? ownership.substring(dot2 + 1, ownership.length()) : "";
+      String ownership = amsd.getOwnership();
+      UserPrincipal user = null;
+      byte[] word = null;
+      int dot2 = ownership.indexOf(':');
+      if (dot2 != -1) {
+        user = new UserPrincipal(ownership.substring(0, dot2));
+        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+      }
+      else {
+        user = new UserPrincipal(ownership);
+        word = new byte[] {};
+      }
 
-    Object old = agentDescriptions.register(amsd.getName(), amsd);
-    if(old != null)
-      throw new AlreadyRegistered();
-    //else
-    if (false)
-      myPlatform.changeAgentPrincipal(amsd.getName(), new UserPrincipal(username), password.getBytes());
+      Object old = agentDescriptions.register(amsd.getName(), amsd);
+      if(old != null)
+        throw new AlreadyRegistered();
+      else
+        myPlatform.changeAgentPrincipal(amsd.getName(), user, word);
     }
     catch (NotFoundException nfe) {
       nfe.printStackTrace();
@@ -1326,7 +1364,10 @@ public class ams extends Agent implements AgentManager.Listener {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
 
-    // Registry needs an update here!
+    // Registry needs an update here!!!
+    AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(agentID);
+    amsd.setOwnership(ev.getNewPrincipal().getName());
+    agentDescriptions.register(amsd.getName(), amsd);
     
     ChangedAgentPrincipal cap = new ChangedAgentPrincipal();
     cap.setAgent(agentID);

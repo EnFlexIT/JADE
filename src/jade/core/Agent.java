@@ -934,7 +934,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
       this.delegation = delegation;
       AgentPrincipal old = principal;
       principal = (AgentPrincipal)identity.getSubject();
-      notifyChangedAgentPrincipal(old, principal);
+      if (getState() != AP_INITIATED)
+        notifyChangedAgentPrincipal(old, principal);
     }
   }
 
@@ -1427,7 +1428,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     try {
       AMSAgentDescription amsd = new AMSAgentDescription();
       amsd.setName(myAID);
-      amsd.setOwnership("JADE"); //!!!
+      amsd.setOwnership(principal.getName());
       amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:

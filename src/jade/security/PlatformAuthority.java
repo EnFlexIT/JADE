@@ -137,4 +137,12 @@ public class PlatformAuthority extends Authority {
 	  }
 	  throw new AuthenticationException("Unknown user");
 	}
+
+	public Object doAs(JADESubject subject, PrivilegedAction action) throws JADESecurityException {
+	  return action.run();
+	}
+	
+	public void checkPermission(PermissionHolder permission) throws JADESecurityException {
+	}
+
 }

@@ -130,6 +130,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent agent = null;
     try {
         agent = (Agent)Class.forName(new String(className)).newInstance();
+        agent.setPrincipal(identity, delegation);
 				agent.setArguments(args);
     }
     catch(ClassNotFoundException cnfe) {
@@ -491,20 +492,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // this call also starts the AMS and DF
       String ownership = System.getProperty("jade.security.ownership");
       if (ownership == null) {
-        myPlatform.register(this, myID, null, null);
+        user = new UserPrincipal();
+        passwd = new byte[] {};
       }
       else {
         int dot2 = ownership.indexOf(':');
         if (dot2 != -1) {
           user = new UserPrincipal(ownership.substring(0, dot2));
           passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-          myPlatform.register(this, myID, user, passwd);
         }
         else {
-          user = new UserPrincipal(ownership.substring(0, dot2));
-          myPlatform.register(this, myID, user, null);
+          user = new UserPrincipal(ownership);
+          passwd = new byte[] {};
         }
       }
+      myPlatform.register(this, myID, user, passwd);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
@@ -527,6 +529,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       return;
     }
 
+	  // create and init container-authority
+	  try {
+	    Authority authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
+	    authority.setName("container-authority");
+	    authority.init(new Object[] {myPlatform});
+  	  Authority.setAuthority(authority);
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
+
     // Create and activate agents that must be launched at bootstrap
     try {
 			List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -534,33 +547,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	while(agentSpecifiers.hasNext()) {
 	  Specifier s = (Specifier) agentSpecifiers.next();
       
-	  try {
-	    Authority authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
-	    authority.setName("container-authority");
-	    authority.init(new Object[] {myPlatform});
-  	  Authority.setAuthority(authority);
-	  }
-	  catch (Exception e) {
-	    //e.printStackTrace();
-	  }
-
 	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
 	  Authority authority = Authority.getAuthority();
 
 	  try {
-	    /*
+	    
 	    IdentityCertificate identity = new IdentityCertificate();
 	    identity.init(new AgentPrincipal(user, agentID), 0, 0);
 	    authority.sign(identity, subject);
 	    
 	    DelegationCertificate delegation = new DelegationCertificate();
 	    delegation.init(new AgentPrincipal(user, agentID), 0, 0);
-	    //delegation.addPermission(...);
+	    //!!! delegation.addPermission(...);
 	    authority.sign(delegation, subject);
-	    */
 	    
 	    try {
-	      createAgent(agentID, s.getClassName(), s.getArgs(), null, null, NOSTART); //!!!
+	      createAgent(agentID, s.getClassName(), s.getArgs(), identity, delegation, NOSTART);
 	    }
 	    catch (IMTPException imtpe) {
 	      // The call to createAgent() in this case is local --> no need to
@@ -585,10 +587,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    System.out.println("This container does not appear to be registered with the main container.");
 	    localAgents.remove(agentID);
 	  }
-	  /*catch(JADESecurityException se) {
+	  catch(JADESecurityException se) {
 	    se.printStackTrace();
 	    localAgents.remove(agentID);
-	  }*/
+	  }
     	}
 
     	// Now activate all agents (this call starts their embedded threads)

@@ -111,21 +111,25 @@ class MainContainerImpl implements Platform, AgentManager {
     		throw new ProfileException("Can't set PlatformID");
     	}
 	  }
-//__JADE_ONLY__BEGIN
-	  //PlatformAuthority auth = new PlatformAuthority("main-auth", System.getProperty("jade.security.passwd"));
+
 	  try {
-	    authority = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
+	    authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
 	    authority.setName("main-authority");
-	    //authority.readPasswdFile(System.getProperty("jade.security.passwd"));
-  	  Authority.setAuthority(authority);
+	    authority.init(new Object[] {System.getProperty("jade.security.passwd")});
 	  }
 	  catch (Exception e) {
-	    //e.printStackTrace();
+	    e.printStackTrace();
 	  }
-//__JADE_ONLY__END
+
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
+
+    // Set the container-principal
+    JADESubject subject = authority.authenticateUser(user, passwd);
+    IdentityCertificate identity = subject.getIdentity();
+    DelegationCertificate delegation = subject.getDelegations()[0];
+    ac.changeContainerPrincipal(identity, delegation);
 
     // Add the calling container as the main container and set its name
     cid.setName(MAIN_CONTAINER_NAME);
@@ -535,9 +539,11 @@ class MainContainerImpl implements Platform, AgentManager {
     AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
       throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
-    ContainerID cid = ad.getContainerID();
+    //ad.setPrincipal(to);
+    //platformAgents.put(name, ad);
 
     // Notify listeners
+    ContainerID cid = ad.getContainerID();
     fireChangedAgentPrincipal(cid, name, from, to);
   }
 //__JADE_ONLY__END
@@ -622,8 +628,7 @@ class MainContainerImpl implements Platform, AgentManager {
 //__JADE_ONLY__BEGIN
   public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException {
     try {
-      Authority auth = Authority.getAuthority();
-      JADESubject subject = auth.authenticateUser(user, passwd);
+      JADESubject subject = authority.authenticateUser(user, passwd);
       // ottenere IC e DC per agente !!!
       subject.getIdentity().init(new AgentPrincipal((UserPrincipal)subject.getIdentity().getSubject(), agentID), 0, 0);
       AgentContainer ac = getContainerFromAgent(agentID);
