@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.10  1999/02/25 08:01:27  rimassa
+  Changed direct access to 'myName' and 'myAddress' variables to
+  accessor method calls.
+
   Revision 1.9  1999/02/14 22:52:05  rimassa
   Renamed addBehaviour() calls to addSubBehaviour() calls.
 
@@ -249,7 +253,7 @@ public class amsTester extends Agent {
   }
 
   private String newConvID() {
-    String s = new String(myName + (new Integer(convCounter).toString()));
+    String s = new String(getLocalName() + (new Integer(convCounter).toString()));
     ++convCounter;
     return s;
   } 
@@ -265,7 +269,7 @@ public class amsTester extends Agent {
     convID = newConvID();
 
     String text = "( request " +
-      "    :sender " + myName +
+      "    :sender " + getLocalName() +
       "    :receiver ams" +
       "    :protocol fipa-request" +
       "    :ontology fipa-agent-management" +
