@@ -177,7 +177,7 @@ public class Boot {
     {
       System.out.println("WARNING: Any additional command line option has been ignored and overloaded by the configuration file");
     	p = new Properties();
-      
+
       Iterator it = propertyVector.iterator();
       while(it.hasNext())
       {
@@ -191,7 +191,7 @@ public class Boot {
       }catch(BootException be){
       	System.out.println(be.getMessage());
       }
-     
+
     }
     else
     {	 
@@ -208,7 +208,7 @@ public class Boot {
        
       // check if the command line is correct.
       try{
-      		checkProperties(p);	  
+       checkProperties(p);	  
       }catch(BootException be){
       	System.out.println(be.getMessage());
       }
@@ -241,18 +241,42 @@ public class Boot {
         
     for (Iterator agentSpecifiers = getCommandLineAgentSpecifiers(agentArray); agentSpecifiers.hasNext(); ) 
     {
-    	List i = ((List)agentSpecifiers.next());
+      List i = ((List)agentSpecifiers.next());
       agents.add(i);
     }
 
-    // Build A unique ID for this platform, using host name, port and
-    // object name for the main container, taken from default values
-    // and command line options.
-    String platformID = p.getProperty("host") + ":" + p.getProperty("port") + "/" + platformName;
+    // Translate the value of the 'mtp' property into an array of Strings
+    String mtpList = p.getProperty("mtp");
+    try {
+      List l = parseMTPList(mtpList);
+
+      String[] containerMTPs = new String[l.size()];
+      for(int i = 0; i < l.size(); i++) {
+	String s = (String)l.get(i);
+	containerMTPs[i] = s;
+      }
+
+      // For the Main Container, if no '-nomtp' option is given, a
+      // single IIOP MTP is installed, using the Sun JDK 1.2 ORB and
+      // with a default address.
+      String noMTP = p.getProperty("nomtp");
+      if(isPlatform && noMTP.equals("false") && (containerMTPs.length == 0)) {
+	containerMTPs = new String[] { "jade.mtp.iiop.MessageTransportProtocol", "" };
+      }
+
+      // Build a unique ID for this platform, using host name, port and
+      // object name for the main container, taken from default values
+      // and command line options.
+      String platformID = p.getProperty("host") + ":" + p.getProperty("port") + "/" + platformName;
   
-    // Start a new JADE runtime system, passing along suitable
-    // information axtracted from command line arguments.
-    jade.core.Starter.startUp(isPlatform, platformID, agents.iterator());
+      // Start a new JADE runtime system, passing along suitable
+      // information extracted from command line arguments.
+      jade.core.Starter.startUp(isPlatform, platformID, agents.iterator(), containerMTPs);
+
+    }
+    catch(BootException be) {
+      System.out.println(be.getMessage());
+    }
 
   }
 
@@ -372,10 +396,13 @@ public class Boot {
   			p.put("port", platformPort);
   			throw new BootException("WARNING: Port number must be a number > 0.");
   		}
-  		
-  
+
+	// Remove the MTP list if '-nomtp' is specified
+	String noMTP = p.getProperty("nomtp");
+	if(noMTP.equals("true"))
+	  p.setProperty("mtp", "");
   }
- 
+
   /**
   parses the command line to find the -option and returns the index of the first agent specifiers 
   or -1 if no agent-specifers are inserted.
@@ -396,10 +423,12 @@ public class Boot {
         System.exit(1);
       }
 
-   	  PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name of the main-container", false);
+      PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name of the main-container", false);
       PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "Select to launch the RMA Gui", false);
       PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,platformPort, "Port Number of the main-container", false);
       PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "Select to launch an agent-container",false);
+      PropertyType MTPProperty = new PropertyType("mtp", PropertyType.STRING_TYPE, "", "List of MTPs to activate", false);
+      PropertyType NoMTPProperty = new PropertyType("nomtp", PropertyType.BOOLEAN_TYPE, "false", "Disable all external MTPs on this container", false);
       
       while( n < args.length && !endCommand)
       {
@@ -456,31 +485,40 @@ public class Boot {
       		PortProperty.setCommandLineValue(args[n]);
       	}
       
-	      else if(args[n].equals("-container")){
+	else if(args[n].equals("-container")){
 	        ContainerProperty.setCommandLineValue("true");
-	      }
-	      else if(args[n].equals("-gui")) {
+	}
+	else if(args[n].equals("-gui")) {
 	      	GuiProperty.setCommandLineValue("true");
-	      }
-	      else if(args[n].equals("-version") || args[n].equals("-v")) {
-          System.out.println(getCopyrightNotice());
-          System.exit(0);
-	      }
-	      else if(args[n].equals("-help") || args[n].equals("-h")) {
+	}
+	else if(args[n].equals("-version") || args[n].equals("-v")) {
+	    System.out.println(getCopyrightNotice());
+	    System.exit(0);
+	}
+	else if(args[n].equals("-help") || args[n].equals("-h")) {
 	      	usage();
-	      }
-	      else
-	        if(isAgentName(args[n])>-1)
-	          endCommand = true; //no more command line
+	}
+	else if(args[n].equals("-nomtp")) {
+	    NoMTPProperty.setCommandLineValue("true");
+	}
+	else if(args[n].equals("-mtp")) {
+	    if(++n  == args.length) usage();
+	    MTPProperty.setCommandLineValue(args[n]);
+	}
+	else
+	  if(isAgentName(args[n])>-1)
+	    endCommand = true; //no more command line
 	          
-	      n++;
+	n++;
       }
-      
+
       //update the propertyVector with all the -option 
       propertyVector.add(HostProperty);
       propertyVector.add(PortProperty);
       propertyVector.add(GuiProperty);
       propertyVector.add(ContainerProperty);
+      propertyVector.add(MTPProperty);
+      propertyVector.add(NoMTPProperty);
 
       if(endCommand)
       	return --n;
@@ -534,8 +572,49 @@ public class Boot {
 			} //1
       return all.iterator();
 	} // 0 
-	
-	
+
+  // Parses the given String to extract the set of the MTPs to
+  // activate on this container.
+  private static List parseMTPList(String mtpList) throws BootException {
+
+    // Cursor on the given string: marks the parser position
+    int cursor = 0;
+    List mtps = new ArrayList();
+    while(cursor < mtpList.length()) {
+      int commaPos = mtpList.indexOf(',', cursor);
+      if(commaPos == -1)
+	commaPos = mtpList.length();
+      int openBracketPos = mtpList.indexOf('(', cursor);
+      int closedBracketPos = mtpList.indexOf(')', cursor);
+
+      // No brackets: use default address.
+      if((openBracketPos == -1)&&(closedBracketPos == -1)) {
+	String className = mtpList.substring(cursor, commaPos);
+	mtps.add(className); // Put MTP class name into the list
+	mtps.add("");  // with an empty URL as the address
+      }
+      else {
+	// An open bracket, then something, then a closed bracket:
+        // the class name is before the open bracket, and the
+        // address URL is between brackets.
+	if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
+	  String className = mtpList.substring(cursor, openBracketPos);
+	  String addressURL = mtpList.substring(openBracketPos + 1, closedBracketPos);
+	  mtps.add(className);
+	  mtps.add(addressURL);
+	}
+	else
+	  throw new BootException("Ill-formed MTP specifier: mismatched parentheses.");
+      }
+
+      cursor = commaPos + 1;
+
+    }
+
+    return mtps;
+
+  }
+
 	/**
 	@param arg is the argument passed on the command line
 	@param as is the List where arguments must be added
