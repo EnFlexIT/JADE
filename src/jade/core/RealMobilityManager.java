@@ -27,6 +27,11 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.lang.acl.ACLMessage;
+
+import jade.security.Authority;
+import jade.security.AuthException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,10 +39,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
-import jade.lang.acl.ACLMessage;
-
-import jade.security.Authority;
-import jade.security.AuthException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.StringTokenizer;
+import java.util.zip.*;
+import java.net.URL;
 
 /**
  * Class declaration
@@ -187,23 +193,66 @@ class RealMobilityManager implements MobilityManager {
        @see jade.core.MobilityManager#fetchClassFile()
      */
     public byte[] fetchClassFile(String name) throws ClassNotFoundException {
-        name = name.replace('.', '/') + ".class";
-
-        InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
+				log("Fetching class "+name, 4);
+        String fileName = name.replace('.', '/') + ".class";
+        int length = -1;
+        InputStream classStream = ClassLoader.getSystemResourceAsStream(fileName);
+        if (classStream == null) {
+					// In PJAVA for some misterious reason getSystemResourceAsStream() 
+					// does not work --> Try to do it by hand
+					log("Class not found as a system resource. Try manually", 5);
+					String currentCp = System.getProperty("java.class.path");
+					StringTokenizer st = new StringTokenizer(currentCp, ";");
+					while (st.hasMoreTokens()) {
+						try {
+							String path = st.nextToken();
+							log("Searching in path "+path, 5);
+							if (path.endsWith(".jar")) {
+								log("It's a jar file", 5);
+								File f = new File(path);
+								if (f.exists()) {
+									log("Jar file exists", 5);
+								}
+								ZipFile zf = new ZipFile(f);
+								ZipEntry e = zf.getEntry(fileName);
+								if (e != null) {
+									log("Entry "+fileName+" found", 5);
+									length = (int) e.getSize();
+									classStream = zf.getInputStream(e);
+									break;
+								}
+							}
+							else {
+								log("Trying file "+path+"/"+fileName, 5);
+								File f = new File(path+"/"+fileName);
+								if (f.exists()) {
+									log("File exists", 5);
+									classStream = new FileInputStream(f);
+									break;
+								}
+							}
+						}
+						catch (Exception e) {
+							log(e.toString(), 5);
+						}
+					}
+				}		
 
         if (classStream == null) {
-            throw new ClassNotFoundException();
+        	log("Class "+name+" not found", 4);
+	        throw new ClassNotFoundException(name);
         } 
-
-        try {
-            byte[] bytes = new byte[classStream.available()];
-
-            classStream.read(bytes);
-
-            return (bytes);
+				log("Class "+name+" found", 4);
+				try {
+					if (length == -1) {
+						length = (int) classStream.available();
+					}
+          byte[] bytes = new byte[length];
+          classStream.read(bytes);
+          return (bytes);
         } 
         catch (IOException ioe) {
-            throw new ClassNotFoundException();
+          throw new ClassNotFoundException("IOException reading class bytes. "+ioe.getMessage());
         } 
     } 
 
