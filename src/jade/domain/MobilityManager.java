@@ -34,6 +34,7 @@ import jade.util.leap.Iterator;
 import jade.core.AID;
 import jade.core.Location;
 import jade.core.CaseInsensitiveString;
+import jade.core.Agent;
 
 import jade.core.behaviours.Behaviour;
 
@@ -49,7 +50,13 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
 
-import jade.proto.FipaRequestResponderBehaviour;
+import jade.proto.SimpleAchieveREResponder;
+
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.domain.FIPAAgentManagement.Unauthorised;
 
 import jade.security.AuthException;
 
@@ -58,15 +65,127 @@ import jade.security.AuthException;
 
 	Javadoc documentation for the file
 	@author Giovanni Rimassa - Universita` di Parma
+	@author Tiziana Trucco - Tilab
 	@version $Date$ $Revision$
 
  */
 
 class MobilityManager {
 
+
+    class MobilityManagerResponderB extends DFResponderBehaviour{
+
+	private ACLMessage res;
+
+
+	MobilityManagerResponderB(Agent a, MessageTemplate mt){
+	    super(a,mt);
+	}
+
+	protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
+
+	    Action SLAction = null;
+	    Object action = null;
+	    MobilityOntology.MobileAgentDescription description;
+
+	    res = request.createReply();
+	    res.setPerformative(ACLMessage.INFORM);
+	    try {
+		//extract the content of the message this could throws a FIPAException
+		List l = myAgent.extractMsgContent(request);
+		SLAction = (Action)l.get(0);
+		action = SLAction.getAction();
+		if(action instanceof MobilityOntology.MoveAction){
+		    if(action instanceof MobilityOntology.CloneAction){
+			description = ((MobilityOntology.CloneAction)action).get_0(); 
+			AID aName = description.getName();
+			Location dest = description.getDestination();
+			String newName = ((MobilityOntology.CloneAction)action).get_1();
+			theAMS.AMSCloneAgent(aName, dest, newName, request.getSender());
+			// res.setContent("FIXME");
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+		    }else{
+		
+			description = ((MobilityOntology.MoveAction)action).get_0();
+			AID agentName = description.getName();
+			Location destination = description.getDestination();
+			theAMS.AMSMoveAgent(agentName, destination, request.getSender());
+			//res.setContent("FIXME");
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+		    }		   
+		}else if(action instanceof MobilityOntology.WhereIsAgentAction){
+		
+		    AID agentN = ((MobilityOntology.WhereIsAgentAction)action).get_0();
+		    Location where = theAMS.AMSWhereIsAgent(agentN, request.getSender());
+		    ResultPredicate r = new ResultPredicate();
+		    r.set_0(SLAction);
+		    r.add_1(where);
+		    List l3 = new ArrayList(1);
+		    l3.add(r);
+		    theAMS.fillMsgContent(res, l3);
+		}else if(action instanceof MobilityOntology.QueryPlatformLocationsAction){
+		
+	
+		    ResultPredicate r2 = new ResultPredicate();
+		    r2.set_0(SLAction);
+		    
+		    // Mutual exclusion with addLocation() and removeLocation() methods
+		    synchronized(locations) {
+			Iterator it = locations.values().iterator();
+			while(it.hasNext())
+			    r2.add_1(it.next());
+		    }
+		    List l2 = new ArrayList();
+		    l2.add(r2);
+		    theAMS.fillMsgContent(res, l2); 
+		}else{
+		    //this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
+		    //FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
+		    //how can we retrive this name ?
+		    UnsupportedFunction uf = new UnsupportedFunction();
+		    createExceptionalMsgContent(SLAction,uf,request);
+		    throw uf;
+		}
+		
+	    }catch(FailureException fe){
+		createExceptionalMsgContent(SLAction,fe,request);
+		res.setPerformative(ACLMessage.FAILURE);
+		res.setContent(fe.getMessage());
+
+	    }catch(AuthException au){
+		Unauthorised un = new Unauthorised();
+		createExceptionalMsgContent(SLAction,un,request);
+		throw un;
+	    }catch(FIPAException fe){
+		//FIXME: verify the content.
+		RefuseException re = new RefuseException(fe.getMessage());
+		createExceptionalMsgContent(SLAction,re,request);
+		throw re;
+	    }
+		//if everything is OK returns an AGREE message.
+		ACLMessage agree = request.createReply();
+		agree.setPerformative(ACLMessage.AGREE);
+		//agree.setContent("(true)");
+		agree.setContent(createAgreeContent(SLAction,request.getLanguage(),request.getOntology()));
+		return agree;		
+	}
+
+
+	protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{
+	    return res;
+	}
+
+	//to reset the action
+	public void reset(){
+	    super.reset();
+	    res = null;
+	}
+    }
+
 	private ams theAMS;
 	private Map locations;
-	private FipaRequestResponderBehaviour main;
+   
+        private MobilityManagerResponderB main;
 
 	public MobilityManager(ams a) {
 		theAMS = a;
@@ -75,167 +194,13 @@ class MobilityManager {
 			MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 				MessageTemplate.MatchOntology(MobilityOntology.NAME));
 
-		main = new FipaRequestResponderBehaviour(theAMS, mt);
+		mt = MessageTemplate.and(mt,MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
-		main.registerFactory(MobilityOntology.MOVE,
-			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-						 return new MoveBehaviour(msg);
-				 }
-			 });
-		main.registerFactory(MobilityOntology.CLONE,
-			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-						 return new CloneBehaviour(msg);
-				 }
-			 });
-		main.registerFactory(MobilityOntology.WHERE_IS,
-			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-						 return new WhereIsBehaviour(msg);
-				 }
-			 });
-		main.registerFactory(MobilityOntology.QUERY_PLATFORM_LOCATIONS,
-			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-						 return new QPLBehaviour(msg);
-				 }
-			 });
-
+		main = new MobilityManagerResponderB(theAMS,mt);		
 	}
 
 	public Behaviour getMain() {
 		return main;
-	}
-
-
-	private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.ActionHandler {
-
-		MobilityBehaviour(ACLMessage msg) {
-			super(MobilityManager.this.theAMS, msg);
-		}
-
-		protected abstract void doAction(Action a) throws FIPAException, AuthException;
-
-		public final void action() {
-			Object o;
-			ACLMessage msg = getRequest();
-			try {
-				List l = theAMS.extractMsgContent(msg);
-				Action a = (Action)l.get(0);
-				sendReply(ACLMessage.AGREE, "(true)");
-				try {
-					doAction(a);
-				}
-				catch (FIPAException fe) {
-					sendReply(ACLMessage.FAILURE, "(" + fe.getMessage() + ")");
-					return;
-				}
-				catch (AuthException ae) {
-					sendReply(ACLMessage.FAILURE, "(" + ae.getMessage() + ")");
-					return;
-				}
-			}
-			catch (FIPAException fe) {
-				sendReply(ACLMessage.REFUSE, "(" + fe.getMessage() + ")");
-			}
-		}
-
-		public final boolean done() {
-			return true;
-		}
-
-		public final void reset() {
-			// Empty
-		}
-
-	} // End of MobilityBehaviour class
-
-
-	private class MoveBehaviour extends MobilityBehaviour {
-		public MoveBehaviour(ACLMessage msg) {
-			super(msg);
-		}
-		protected void doAction(Action a) throws FIPAException, AuthException {
-			MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)a.get_1();
-			MobilityOntology.MobileAgentDescription desc = action.get_0();
-
-			AID agentName = desc.getName();
-			Location destination = desc.getDestination();
-			theAMS.AMSMoveAgent(agentName, destination, getRequest().getSender());
-			sendReply(ACLMessage.INFORM, "FIXME");
-		}
-
-	}
-
-	private class CloneBehaviour extends MobilityBehaviour {
-		public CloneBehaviour(ACLMessage msg) {
-			super(msg);
-		}
-		protected void doAction(Action a) throws FIPAException, AuthException {
-			MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)a.get_1();
-			MobilityOntology.MobileAgentDescription desc = action.get_0();
-
-			AID agentName = desc.getName();
-			Location destination = desc.getDestination();
-			String newName = action.get_1();
-			theAMS.AMSCloneAgent(agentName, destination, newName, getRequest().getSender());
-			sendReply(ACLMessage.INFORM,"FIXME");
-		}
-
-	}
-
-	private class WhereIsBehaviour extends MobilityBehaviour {
-		public WhereIsBehaviour(ACLMessage msg) {
-			super(msg);
-		}
-		protected void doAction(Action a) throws FIPAException, AuthException {
-			MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)a.get_1();
-
-			AID agentName = action.get_0();
-			Location where = theAMS.AMSWhereIsAgent(agentName, getRequest().getSender());
-
-			ACLMessage reply = getReply();
-			reply.setPerformative(ACLMessage.INFORM);
-			reply.setLanguage(SL0Codec.NAME);
-			reply.setOntology(MobilityOntology.NAME);
-			ResultPredicate r = new ResultPredicate();
-			r.set_0(a);
-			r.add_1(where);
-			List l = new ArrayList(1);
-			l.add(r);
-			theAMS.fillMsgContent(reply, l);
-			theAMS.send(reply);
-		}
-
-	}
-
-	private class QPLBehaviour extends MobilityBehaviour {
-		public QPLBehaviour(ACLMessage msg) {
-			super(msg);
-		}
-		protected void doAction(Action a) throws FIPAException {
-			MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)a.get_1();
-
-			ACLMessage reply = getReply();
-			reply.setPerformative(ACLMessage.INFORM);
-			reply.setLanguage(SL0Codec.NAME);
-			reply.setOntology(MobilityOntology.NAME);
-			ResultPredicate r = new ResultPredicate();
-			r.set_0(a);
-
-			// Mutual exclusion with addLocation() and removeLocation() methods
-			synchronized(locations) {
-				Iterator it = locations.values().iterator();
-				while(it.hasNext())
-					r.add_1(it.next());
-			}
-			List l = new ArrayList();
-			l.add(r);
-			theAMS.fillMsgContent(reply, l); 
-			theAMS.send(reply);
-		}
-
 	}
 
 	public void addLocation(String name, Location l) {
@@ -253,5 +218,4 @@ class MobilityManager {
 	public Location getLocation(String containerName) {
 		return (Location)locations.get(new CaseInsensitiveString(containerName));
 	}
-
 }
