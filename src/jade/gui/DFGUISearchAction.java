@@ -27,13 +27,13 @@ package jade.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.Enumeration;
 
 // Import required Jade classes
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -46,7 +46,7 @@ class DFGUISearchAction extends AbstractAction
 	{
 		super ("Search");
 		this.gui = gui;
-		setEnabled(false);
+		setEnabled(true);
 	}
 	
 	public void actionPerformed(ActionEvent e) 
@@ -57,19 +57,9 @@ class DFGUISearchAction extends AbstractAction
 		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);		
 		if (editedDfd != null)
 		{
-			// FIXME:
-			// Non si puo` fare come sotto perche il metodo searchDF blocca l'agente che lo esegue
-			// --> non puo` essere eseguito dal DF su se stesso
-			/* try
-			{
-				gui.myAgent.searchDF(gui.myAgent.getName(), editedDfd, null);
-			}
-			catch (FIPAException fe)
-			{
-				System.out.println("Error in search");
-			}
-			*/
-			// Occorre definire un behaviour apposta per fare la ricerca da GUI
+				
+			gui.myAgent.postSearchEvent((Object) gui, gui.myAgent.getName(), editedDfd);
+			
 		}
 	}
 }
