@@ -172,7 +172,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      logger.log(Logger.FINE,"AGREE received");
+      if(logger.isLoggable(Logger.FINE))
+      	logger.log(Logger.FINE,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -180,7 +181,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      logger.log(Logger.FINE,"INFORM received");
+      if(logger.isLoggable(Logger.FINE))
+      	logger.log(Logger.FINE,"INFORM received");
     }
 
   } // End of AMSClientBehaviour class
@@ -253,7 +255,8 @@ public class Sniffer extends ToolAgent {
 	  //System.out.println("Serious problem Occurred");
 	  myGUI.showError("An error occurred parsing the incoming message.\n" +
 			  "          The message was lost.");
-	  logger.log(Logger.WARNING,"The sniffer lost the following message because of a parsing error:"+current);
+	  if(logger.isLoggable(Logger.WARNING))
+	  	logger.log(Logger.WARNING,"The sniffer lost the following message because of a parsing error:"+current);
 	  e.printStackTrace();
 	}
       }

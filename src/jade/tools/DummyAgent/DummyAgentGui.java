@@ -185,7 +185,8 @@ class DummyAgentGui extends JFrame
           myAgent.send(m);
 		    } 
         catch (ACLCodec.CodecException ce) {	
-		  	  logger.log(Logger.WARNING,"Wrong ACL Message " + m.toString());
+		  	  if(logger.isLoggable(Logger.WARNING))
+		  	  	logger.log(Logger.WARNING,"Wrong ACL Message " + m.toString());
 			    ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
         }
@@ -215,9 +216,11 @@ class DummyAgentGui extends JFrame
 				}
 				catch(FileNotFoundException e1) {
 						JOptionPane.showMessageDialog(null,"File not found: "+ fileName + e1.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
-					logger.log(Logger.WARNING,"File Not Found: " + fileName); }
+					if(logger.isLoggable(Logger.WARNING))
+						logger.log(Logger.WARNING,"File Not Found: " + fileName); }
 				catch (ACLCodec.CodecException e2) {
-					logger.log(Logger.WARNING,"Wrong ACL Message in file: " +fileName);
+					if(logger.isLoggable(Logger.WARNING))
+						logger.log(Logger.WARNING,"Wrong ACL Message in file: " +fileName);
 					// e2.printStackTrace(); 
 					JOptionPane.showMessageDialog(null,"Wrong ACL Message in file: "+ fileName +"\n"+ e2.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 				}
@@ -248,8 +251,12 @@ class DummyAgentGui extends JFrame
 				  	codec.write(ACLmsg);
             f.close();
 				  }
-				  catch(FileNotFoundException e3) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
-				  catch(IOException e4) {logger.log(Logger.WARNING,"IO Exception"); }
+				  catch(FileNotFoundException e3) { 
+				  if(logger.isLoggable(Logger.WARNING))
+				  	logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				  catch(IOException e4) {
+				  	if(logger.isLoggable(Logger.WARNING))
+				  		logger.log(Logger.WARNING,"IO Exception"); }
 			  } 
 	  	}
 		};
@@ -288,7 +295,9 @@ class DummyAgentGui extends JFrame
 						Integer nn = new Integer(inp.readLine());
 						n = nn.intValue();
 					}
-					catch(IOException ioEx) { logger.log(Logger.WARNING,"IO Exception reading the number of messages in the queue"); }
+					catch(IOException ioEx) { 
+					if(logger.isLoggable(Logger.WARNING))
+						logger.log(Logger.WARNING,"IO Exception reading the number of messages in the queue"); }
 					
 					// Read the messages and insert them in the queue
 					MsgIndication mi; 
@@ -298,8 +307,12 @@ class DummyAgentGui extends JFrame
 						queuedMsgListModel.add(i, (Object) mi);
 					}
 				}
-				catch(FileNotFoundException e5) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
-				catch(IOException e6) { logger.log(Logger.WARNING,"IO Exception"); }
+				catch(FileNotFoundException e5) { 
+				if(logger.isLoggable(Logger.WARNING))
+					logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				catch(IOException e6) {
+					if(logger.isLoggable(Logger.WARNING))
+					 logger.log(Logger.WARNING,"IO Exception"); }
 			} 
 
 	  	}
@@ -329,7 +342,9 @@ class DummyAgentGui extends JFrame
 						out.write(String.valueOf(queuedMsgListModel.getSize()));
 						out.newLine();
 					}
-					catch(IOException ioEx) { logger.log(Logger.WARNING,"IO Exception writing the number of messages in the queue"); }
+					catch(IOException ioEx) { 
+					if(logger.isLoggable(Logger.WARNING))
+						logger.log(Logger.WARNING,"IO Exception writing the number of messages in the queue"); }
 
 					// Write the messages
 					MsgIndication mi;
@@ -339,8 +354,12 @@ class DummyAgentGui extends JFrame
 						mi.toText(out);
 					}
 				}
-				catch(FileNotFoundException e5) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
-				catch(IOException e6) { logger.log(Logger.WARNING,"IO Exception"); }
+				catch(FileNotFoundException e5) { 
+				if(logger.isLoggable(Logger.WARNING))
+					logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				catch(IOException e6) { 
+				if(logger.isLoggable(Logger.WARNING))
+					logger.log(Logger.WARNING,"IO Exception"); }
 			} 
 
 	  }

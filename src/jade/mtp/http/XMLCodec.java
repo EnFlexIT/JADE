@@ -410,7 +410,8 @@ public class XMLCodec extends DefaultHandler {
     }
     else if (LENGTH_TAG.equalsIgnoreCase(localName)) {
       env.setPayloadLength(new Long(accumulator.toString()));
-      logger.log(Logger.FINE,"Length: "+env.getPayloadLength());
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.FINE,"Length: "+env.getPayloadLength());
     }
     else if (ENCODING_TAG.equalsIgnoreCase(localName)) {
       env.setPayloadEncoding(accumulator.toString());
@@ -437,19 +438,22 @@ public class XMLCodec extends DefaultHandler {
   
   /** This method is called when warning occur*/  
   public void warning(SAXParseException exception) {
-    logger.log(Logger.WARNING," line " + exception.getLineNumber() + ": "+
+    if(logger.isLoggable(Logger.WARNING))
+    	logger.log(Logger.WARNING," line " + exception.getLineNumber() + ": "+
                        exception.getMessage());
   }
   
   /** This method is called when errors occur*/ 
   public void error(SAXParseException exception)  {
-    logger.log(Logger.WARNING,"ERROR: line " + exception.getLineNumber() + ": " +
+    if(logger.isLoggable(Logger.WARNING))
+    	logger.log(Logger.WARNING,"ERROR: line " + exception.getLineNumber() + ": " +
                        exception.getMessage());
   }
   
   /** This method is called when non-recoverable errors occur.*/ 
   public void fatalError(SAXParseException exception) throws SAXException{
-    logger.log(Logger.SEVERE,"FATAL: line " + exception.getLineNumber() + ": " +
+    if(logger.isLoggable(Logger.WARNING))
+    	logger.log(Logger.SEVERE,"FATAL: line " + exception.getLineNumber() + ": " +
                        exception.getMessage());
     throw exception;
   }

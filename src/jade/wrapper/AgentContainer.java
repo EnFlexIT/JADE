@@ -336,22 +336,28 @@ public class AgentContainer implements PlatformController {
   	}
   	
  		public void addedMTP(MTPEvent ev) {
- 			logger.log(Logger.CONFIG,"Added MTP");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Added MTP");
   	} 
   	public void removedMTP(MTPEvent ev) {
- 			logger.log(Logger.CONFIG,"Removed MTP");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Removed MTP");
   	} 
   	public void messageIn(MTPEvent ev) {
- 			logger.log(Logger.CONFIG,"Message IN");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Message IN");
   	} 
   	public void messageOut(MTPEvent ev) {
- 			logger.log(Logger.CONFIG,"Message OUT");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Message OUT");
   	} 
   	public void addedContainer(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Added container");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Added container");
   	} 
   	public void removedContainer(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Removed container");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Removed container");
   	} 
   	public void bornAgent(jade.core.event.PlatformEvent ev) {
   		Enumeration e = listeners.elements();
@@ -370,26 +376,33 @@ public class AgentContainer implements PlatformController {
   		}
   	}
   	public void movedAgent(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Moved agent");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Moved agent");
   	} 
   	public void suspendedAgent(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Suspended agent");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Suspended agent");
   	} 
   	public void resumedAgent(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Resumed agent");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Resumed agent");
   	} 
         public void frozenAgent(jade.core.event.PlatformEvent ev) {
-	                logger.log(Logger.CONFIG,"Frozen agent");
+	                if(logger.isLoggable(Logger.CONFIG))
+	                	logger.log(Logger.CONFIG,"Frozen agent");
 	}
         public void thawedAgent(jade.core.event.PlatformEvent ev) {
-	                logger.log(Logger.CONFIG,"Thawed agent");
+	                if(logger.isLoggable(Logger.CONFIG))
+	                	logger.log(Logger.CONFIG,"Thawed agent");
 	}
 //__SECURITY__BEGIN  
   	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Changed agent principal");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Changed agent principal");
   	} 
   	public void changedContainerPrincipal(jade.core.event.PlatformEvent ev) {
- 			logger.log(Logger.CONFIG,"Changed container principal");
+ 			if(logger.isLoggable(Logger.CONFIG))
+ 				logger.log(Logger.CONFIG,"Changed container principal");
   	} 
 //__SECURITY__END 
   }

@@ -98,7 +98,8 @@ public class ACLTracePanel extends JPanel {
     if (currentACL == null) {
       return;
     }
-    logger.log(Logger.CONFIG,"\n" + currentACL.toString() + "\n");
+    if(logger.isLoggable(Logger.CONFIG))
+    	logger.log(Logger.CONFIG,"\n" + currentACL.toString() + "\n");
   }
 
 
@@ -325,10 +326,12 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-       logger.log(Logger.WARNING,"Can't open file: " + fileName);
+       if(logger.isLoggable(Logger.WARNING))
+       	logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        logger.log(Logger.WARNING,"IO Exception");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"IO Exception");
       }
     }
 
@@ -391,10 +394,12 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-        logger.log(Logger.WARNING,"Can't open file: " + fileName);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        logger.log(Logger.WARNING,"IO Exception");
+        if(logger.isLoggable(Logger.WARNING))
+	        logger.log(Logger.WARNING,"IO Exception");
       }
     }
   }
@@ -447,10 +452,12 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-        logger.log(Logger.WARNING,"Can't open file: " + fileName);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        logger.log(Logger.WARNING,"IO Exception");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"IO Exception");
       }
       catch (Exception ex) {
         ex.printStackTrace();

@@ -109,7 +109,8 @@ public class Introspector extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      logger.log(Logger.FINEST,"AGREE received");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -117,7 +118,8 @@ public class Introspector extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      logger.log(Logger.FINEST,"INFORM received");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"INFORM received");
     }
 
   } // End of AMSRequester class
@@ -409,7 +411,8 @@ public class Introspector extends ToolAgent {
       catch(Exception fe) {
     	// When the AMS replies the tool notifier is no longer registered.
     	// But we don't care as we are exiting
-      logger.log(Logger.WARNING,fe.getMessage());
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,fe.getMessage());
       }
     }
 
@@ -552,7 +555,8 @@ public class Introspector extends ToolAgent {
 	  EventRecord er = o.getWhat();
 	  Event ev = er.getWhat();
 	  // DEBUG
-	  logger.log(Logger.FINEST,"Received event "+ev);
+	  if(logger.isLoggable(Logger.FINEST))
+		  logger.log(Logger.FINEST,"Received event "+ev);
     if (message.getReplyWith() != null) {
     	// A reply is expected --> put relevant information into the
     	// pendingReplies Map

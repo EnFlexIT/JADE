@@ -65,17 +65,29 @@ public class MainBarListener implements ActionListener{
         if (item1.isSelected()) mainWnd.setBehaviourPanelVisible(true);
         else mainWnd.setBehaviourPanelVisible(false);
         break;
-      case 4://kill
-        logger.log(Logger.INFO,"kill agent: Not yet implemented");
+         case 4://kil
+         {
+        if(logger.isLoggable(Logger.INFO))
+        	logger.log(Logger.INFO,"kill agent: Not yet implemented");
+        }
         break;
       case 5://suspend
-        logger.log(Logger.INFO,"suspend agent: Not yet implemented");
+      {
+        if(logger.isLoggable(Logger.INFO))
+        	logger.log(Logger.INFO,"suspend agent: Not yet implemented");
+        }
         break;
       case 6://wakeup
-        logger.log(Logger.INFO,"WakeUp agent: Not yet implemented");
+      {
+        if(logger.isLoggable(Logger.INFO))
+        	logger.log(Logger.INFO,"WakeUp agent: Not yet implemented");
+        }
         break;
       case 7://wait
-        logger.log(Logger.INFO,"wait agent: Not yet implemented");
+      {
+     	if(logger.isLoggable(Logger.INFO))
+        	logger.log(Logger.INFO,"wait agent: Not yet implemented");
+    }
         break;
       case 8://Step
       	introspectorSensor.post(new Event(Introspector.STEP_EVENT, mainWnd));

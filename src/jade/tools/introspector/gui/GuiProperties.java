@@ -64,7 +64,8 @@ public class GuiProperties{
    public static final Icon getIcon(String key){
     Icon i = MyDefaults.getIcon(key);
         if (i == null){
-	  	logger.log(Logger.WARNING,"Mistake with Icon");
+	  	if(logger.isLoggable(Logger.WARNING))
+	  		logger.log(Logger.WARNING,"Mistake with Icon");
 		// System.exit(-1);
 		  return null;
 		}

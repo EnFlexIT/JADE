@@ -660,7 +660,9 @@ public class AclGui extends JPanel
 		  {
 		    t.setDate(ISO8601.toDate(d));
 		  }
-		  catch (Exception ee) { logger.log(Logger.WARNING,"Incorrect date format"); }
+		  catch (Exception ee) { 
+		  if(logger.isLoggable(Logger.SEVERE))
+		  	logger.log(Logger.WARNING,"Incorrect date format"); }
 		}
 		if (command.equals("Set"))
 		{
@@ -696,19 +698,23 @@ public class AclGui extends JPanel
     } // END AclMessagePanel()
 
     public void dragOver(java.awt.dnd.DropTargetDragEvent p1) {
-      logger.log(Logger.FINEST,"dragOver");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dragOver");
     }    
 
     public void dropActionChanged(java.awt.dnd.DropTargetDragEvent p1) {
-      logger.log(Logger.FINEST,"dropActionChanged");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dropActionChanged");
     }
     
     public void dragEnter(java.awt.dnd.DropTargetDragEvent dragEvent) {
-      logger.log(Logger.FINEST,"dragEnter");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dragEnter");
     }
 
     public void dragExit(java.awt.dnd.DropTargetEvent p1) {
-      logger.log(Logger.FINEST,"dragExit");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dragExit");
     }
 
     public void drop(java.awt.dnd.DropTargetDropEvent dropEvent)
@@ -727,7 +733,8 @@ public class AclGui extends JPanel
 	    completionStatus = false;
 	}
 	catch (IOException exc) {
-	    logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+	    if(logger.isLoggable(Logger.WARNING))
+	    	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	    completionStatus = false;
 	}
 	finally {
@@ -746,7 +753,8 @@ public class AclGui extends JPanel
 		 Enumeration receivers = receiverListPanel.getContent();
 		 setMsg( aclParser.parse(aclMsgFile) );
 		 if ( receivers.hasMoreElements() ) {
-		     logger.log(Logger.FINE,"revert to saved list");
+		     if(logger.isLoggable(Logger.FINE))
+		     	logger.log(Logger.FINE,"revert to saved list");
 		     ArrayList list = new ArrayList();
 		     while(receivers.hasMoreElements()) {
 		       list.add(receivers.nextElement());
@@ -755,19 +763,24 @@ public class AclGui extends JPanel
 		 }
 	       }
 	       catch (IOException exc) {
-		  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+		  if(logger.isLoggable(Logger.WARNING))
+			  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	       }
 	       catch (ParseException exc) {
-		  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+		  if(logger.isLoggable(Logger.WARNING))
+		  	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	       }
 	       catch (Exception exc) {
-		  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+		  if(logger.isLoggable(Logger.WARNING))
+		  	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	       }
 	       catch (Error exc) {
-		  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+		  if(logger.isLoggable(Logger.WARNING))
+		  	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	       }
 	       catch (Throwable exc) {
-		  logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+		  if(logger.isLoggable(Logger.WARNING))
+		  	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 	       }
 	   } //~ while (fileItor.hasNext())
 	} //~ if (selectedItems != null)
@@ -897,7 +910,9 @@ public class AclGui extends JPanel
                             {
                               t.setDate(ISO8601.toDate(d));
                             }
-                            catch (Exception ee) { logger.log(Logger.WARNING,"Incorrect date format"); }
+                            catch (Exception ee) { 
+                            if(logger.isLoggable(Logger.WARNING))
+                            	logger.log(Logger.WARNING,"Incorrect date format"); }
                           }
                           if (command.equals("Set"))
                           {
@@ -977,7 +992,9 @@ public class AclGui extends JPanel
                             {
                               t.setDate(ISO8601.toDate(d));
                             }
-                            catch (Exception ee) { logger.log(Logger.WARNING,"Incorrect date format"); }
+                            catch (Exception ee) { 
+                            if(logger.isLoggable(Logger.WARNING))
+                            	logger.log(Logger.WARNING,"Incorrect date format"); }
                           }
                           if (command.equals("Set"))
                           {

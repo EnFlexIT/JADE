@@ -1,7 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 The updating of this file to JADE 2.0 has been partially supported by the IST-1999-10211 LEAP Project
 
@@ -9,8 +9,8 @@ GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -60,16 +60,16 @@ public abstract class MemKB extends KB {
 	protected LeaseManager lm;
 	protected int currentReg = 0;
 	protected SubscriptionResponder sr;
-	
+
 	protected static int maxResults = -1;
 	protected final static int MAX_REGISTER_WITHOUT_CLEAN = 100;
-	
+
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-	
+
 	public MemKB(){
-		
+
 	}
-	
+
 	protected Object insert(Object name, Object fact) {
 		currentReg ++;
 		if(currentReg > MAX_REGISTER_WITHOUT_CLEAN){
@@ -78,17 +78,17 @@ public abstract class MemKB extends KB {
 		}
 	    return facts.put(name, fact);
 	}
-	
+
 	protected Object remove(Object name) {
 	    return facts.remove(name);
 	}
-	
+
 	  // This abstract method has to perform pattern matching
 	protected abstract boolean match(Object template, Object fact);
 
 
 	protected abstract void clean();
-	
+
 	public List search(Object template) {
 		List result = new ArrayList();
 	    Iterator it = facts.values().iterator();
@@ -102,26 +102,27 @@ public abstract class MemKB extends KB {
       	}
         return result;
 	}
-	
-	
-	// 
+
+
+	//
 	public void subscribe(Object dfd, SubscriptionResponder.Subscription s) throws NotUnderstoodException{
 		try{
 			DFAgentDescription dfdTemplate = (DFAgentDescription) dfd;
 			ACLMessage aclSub = (ACLMessage) s.getMessage();
 			subscriptions.put(dfdTemplate, s);
 		}catch(Exception e){
-			logger.log(Logger.SEVERE,"Subscribe error: "+e.getMessage());
+                  if(logger.isLoggable(Logger.SEVERE))
+                    logger.log(Logger.SEVERE,"Subscribe error: "+e.getMessage());
 			throw new NotUnderstoodException(e.getMessage());
 		}
 	}
-		
+
 
 	public Enumeration getSubscriptionDfAgentDescriptions(){
 		return subscriptions.keys();
 	}
 
-	
+
 	private SubscriptionResponder.Subscription getSubscription(Object key){
 		SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription)subscriptions.get(key);
 		return sub;
@@ -141,37 +142,37 @@ public abstract class MemKB extends KB {
 		return null;
 	}
 
-	
+
 	public void unsubscribe(SubscriptionResponder.Subscription sub ){
-		
+
 		ACLMessage aclSub = sub.getMessage();
 		String convID = aclSub.getConversationId();
 		Enumeration e = getSubscriptionDfAgentDescriptions();
-		
+
 		if( e != null ){
 			while(e.hasMoreElements()){
 				DFAgentDescription dfd = (DFAgentDescription)e.nextElement();
-				SubscriptionResponder.Subscription s = getSubscription((Object) dfd);				
+				SubscriptionResponder.Subscription s = getSubscription((Object) dfd);
 				if((s.getMessage().getConversationId()).equals(convID)){
 					subscriptions.remove(dfd);
 					break;
 				}
-			}		
+			}
 		}
 	}
-	
+
 	/*public void setSubscriptionResponder(SubscriptionResponder sResp){
 		sr = sResp;
 	}
-	
+
 	public void setLeaseManager(LeaseManager leaseMng){
 		lm = leaseMng;
 	}*/
 
-	
+
 	// Helper method to match two Agent Identifiers
 	protected final boolean matchAID(AID template, AID fact) {
-	
+
 	  // Match the GUID in the ':name' slot
 	    String templateName = template.getName();
 	    if(templateName != null) {
@@ -179,16 +180,16 @@ public abstract class MemKB extends KB {
 	        if((factName == null) || (!templateName.equalsIgnoreCase(factName)))
 		    	return false;
 	    }
-	
+
 	    // Match the address sequence. See 'FIPA Agent Management Specification, Sect. 6.4.2.1'
 	    Iterator itTemplate = template.getAllAddresses();
 	    Iterator itFact = fact.getAllAddresses();
-	
+
 	    // All the elements in the template sequence must appear in the
 	    // fact sequence, in the same order
 	    while(itTemplate.hasNext()) {
 	        String templateAddr = (String)itTemplate.next();
-	
+
 	        // Search 'templateAddr' into the remaining part of the fact sequence
 	        boolean found = false;
 	        while(!found && itFact.hasNext()) {
@@ -198,14 +199,14 @@ public abstract class MemKB extends KB {
 	        if(!found) // An element of the template does not appear in the fact sequence
 				return false;
 	   	}
-	
+
 	    // Match the resolvers sequence. See 'FIPA Agent Management Specification, Sect. 6.4.2.1'
 	    itTemplate = template.getAllResolvers();
 	    itFact = fact.getAllResolvers();
-	
+
 	    while(itTemplate.hasNext()) {
 	      AID templateRes = (AID)itTemplate.next();
-	
+
 	      // Search 'templateRes' into the remaining part of the fact sequence
 	      boolean found = false;
 	      while(!found && itFact.hasNext()) {
@@ -215,9 +216,9 @@ public abstract class MemKB extends KB {
 	      if(!found) // An element of the template does not appear in the fact sequence
 			  return false;
 	    }
-	
+
 	    return true;
 	  }
-	
-	
+
+
 }

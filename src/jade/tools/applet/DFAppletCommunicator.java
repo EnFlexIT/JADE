@@ -83,10 +83,12 @@ public class DFAppletCommunicator implements DFGUIAdapter{
     a = applet;
     //retrive the HAP from the html file.
     hap = a.getParameter("HAP");
-    logger.log(Logger.FINEST,"HAP:" + hap);
+    if(logger.isLoggable(Logger.FINEST))
+    	logger.log(Logger.FINEST,"HAP:" + hap);
  
     Socket s = new Socket(a.getCodeBase().getHost(), DEFAULT_PORT);
-    logger.log(Logger.CONFIG,"DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
+    if(logger.isLoggable(Logger.CONFIG))
+    	logger.log(Logger.CONFIG,"DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
     in = new DataInputStream(s.getInputStream());
     parser = new ACLParser(in);
     out = new PrintStream(s.getOutputStream(),true);
@@ -397,7 +399,8 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
   */
   public DFAgentDescription getDescriptionOfThisDF(AID df)
   {
-      logger.log(Logger.FINEST,"CALLED METHOD: getDescriptionOfThisDF(aid) into DFAppletCommunicator");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"CALLED METHOD: getDescriptionOfThisDF(aid) into DFAppletCommunicator");
     DFAgentDescription output = null;
   	try{
     	

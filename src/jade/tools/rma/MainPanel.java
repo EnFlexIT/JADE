@@ -97,11 +97,13 @@ class MainPanel extends JPanel
   }
 
   public void dragOver(java.awt.dnd.DropTargetDragEvent p1) {
-      logger.log(Logger.FINEST,"dragOver");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dragOver");
   }    
 
   public void dropActionChanged(java.awt.dnd.DropTargetDragEvent p1) {
-      logger.log(Logger.FINEST,"dropActionChanged");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dropActionChanged");
   }
     
   public void dragEnter(java.awt.dnd.DropTargetDragEvent dragEvent)
@@ -109,13 +111,15 @@ class MainPanel extends JPanel
       if (treeAgent.tree.getSelectionCount() < 1) {
         // FIXME: This output should probably be put in a message dialog
         // or something.
-        logger.log(Logger.FINEST,"No agents selected!");
+        if(logger.isLoggable(Logger.FINEST))
+        	logger.log(Logger.FINEST,"No agents selected!");
         dragEvent.rejectDrag();
       }
   }
 
   public void dragExit(java.awt.dnd.DropTargetEvent p1) {
-      logger.log(Logger.FINEST,"dragExit");
+      if(logger.isLoggable(Logger.FINEST))
+      	logger.log(Logger.FINEST,"dragExit");
   }
 
   public void drop(java.awt.dnd.DropTargetDropEvent dropEvent)
@@ -129,7 +133,8 @@ class MainPanel extends JPanel
          if (selectedItems == null) {
             // FIXME: This output should probably be put in a message dialog
             // or something.
-            logger.log(Logger.WARNING,"No agents selected!");
+            if(logger.isLoggable(Logger.WARNING))
+            	logger.log(Logger.WARNING,"No agents selected!");
              dropEvent.rejectDrop();
              dropEvent.dropComplete(completionStatus);
              return;
@@ -148,7 +153,8 @@ class MainPanel extends JPanel
       catch (IOException exc) {
           // FIXME: This output should probably be put in a message dialog
           // or something.
-          logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
+          if(logger.isLoggable(Logger.WARNING))
+          	logger.log(Logger.WARNING,"DragAndDrop operation failed: " + exc);
 
           completionStatus = false;
       }
@@ -187,27 +193,32 @@ class MainPanel extends JPanel
             catch (IOException exc) {
                 // FIXME: This output should probably be put in a message dialog
                 // or something.
-               logger.log(Logger.WARNING,"Unable to send message: " + exc);
+               if(logger.isLoggable(Logger.WARNING))
+               	logger.log(Logger.WARNING,"Unable to send message: " + exc);
             }
             catch (ParseException exc) {
                 // FIXME: This output should probably be put in a message dialog
                 // or something.
-                logger.log(Logger.WARNING,"Unable to send message: " + exc);
+                if(logger.isLoggable(Logger.WARNING))
+                	logger.log(Logger.WARNING,"Unable to send message: " + exc);
             }
             catch (Exception exc) {
                 // FIXME: This output should probably be put in a message dialog
                 // or something.
-                logger.log(Logger.WARNING,"Unable to send message: " + exc);
+                if(logger.isLoggable(Logger.WARNING))
+                	logger.log(Logger.WARNING,"Unable to send message: " + exc);
             }
             catch (Error exc) {
                 // FIXME: This output should probably be put in a message dialog
                 // or something.
-                logger.log(Logger.WARNING,"Unable to send message: " + exc);
+                if(logger.isLoggable(Logger.WARNING))
+                	logger.log(Logger.WARNING,"Unable to send message: " + exc);
             }
             catch (Throwable exc) {
                 // FIXME: This output should probably be put in a message dialog
                 // or something.
-                logger.log(Logger.WARNING,"Unable to send message: " + exc);
+                if(logger.isLoggable(Logger.WARNING))
+                	logger.log(Logger.WARNING,"Unable to send message: " + exc);
             }
         } //~ while (fileItor.hasNext())
      } //~ if (selectedItems != null)

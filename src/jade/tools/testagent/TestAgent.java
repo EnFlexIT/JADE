@@ -320,7 +320,8 @@ public class TestAgent extends Agent {
     splash = new SplashScreen();
     splash.show();
     splash.setProgress(25);
-    logger.log(Logger.FINE,"starting up: " + this.getAID().toString());
+    if(logger.isLoggable(Logger.FINE))
+    	logger.log(Logger.FINE,"starting up: " + this.getAID().toString());
 
     try {
       getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);

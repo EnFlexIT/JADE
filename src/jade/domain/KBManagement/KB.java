@@ -47,6 +47,8 @@ import java.util.Enumeration;
 public abstract class KB {
 	protected LeaseManager lm;
 	protected SubscriptionResponder sr;
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+
 	
 	public void setSubscriptionResponder(SubscriptionResponder sResp){
 		sr = sResp;
@@ -60,7 +62,8 @@ public abstract class KB {
 		// We don't want to register a fact whose lease time has 
 		// already expired
 		if (lm.isExpired(lm.getLeaseTime(fact))) {
-			Logger.getMyLogger(this.getClass().getName()).log(Logger.WARNING,"Fact with lease time already expired");
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"Fact with lease time already expired");
 			return null;
 		}
 		

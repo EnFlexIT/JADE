@@ -74,10 +74,12 @@ private MainPanel mainPanel;
 	 out.println(curMsg.toString());
        }
       out.close();
-      logger.log(Logger.INFO,"Message List File Written.");
+      if(logger.isLoggable(Logger.INFO))
+      	logger.log(Logger.INFO,"Message List File Written.");
    }
    } catch (Exception e){
-        logger.log(Logger.WARNING,"Error Writing List File:" + e);
+        if(logger.isLoggable(Logger.INFO))
+        	logger.log(Logger.WARNING,"Error Writing List File:" + e);
      }
  }
 

@@ -125,7 +125,9 @@ class MsgIndication
 
 			w.flush();
 		}
-		catch(IOException e) { logger.log(Logger.WARNING,"IO Exception in MsgIndication.toText()"); }
+		catch(IOException e) { 
+		if(logger.isLoggable(Logger.WARNING))
+			logger.log(Logger.WARNING,"IO Exception in MsgIndication.toText()"); }
 	}
 
 	static MsgIndication fromText(BufferedReader r)
@@ -159,9 +161,15 @@ class MsgIndication
 			line = r.readLine();
  
 		}
-		catch(IOException e) { logger.log(Logger.WARNING,"IO Exception in MsgIndication.fromText()"); }
-		catch (java.text.ParseException e1) { logger.log(Logger.WARNING,"ParseException in MsgIndication.fromText()"); }
-		catch (ACLCodec.CodecException e2) {logger.log(Logger.WARNING,"ParseException in parsing the ACL message"); } //Exception thrown by ACLMessage.fromText()
+		catch(IOException e) { 
+		if(logger.isLoggable(Logger.WARNING))
+			logger.log(Logger.WARNING,"IO Exception in MsgIndication.fromText()"); }
+		catch (java.text.ParseException e1) { 
+		if(logger.isLoggable(Logger.WARNING))
+			logger.log(Logger.WARNING,"ParseException in MsgIndication.fromText()"); }
+		catch (ACLCodec.CodecException e2) {
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"ParseException in parsing the ACL message"); } //Exception thrown by ACLMessage.fromText()
 
 		return(mi);
 	}

@@ -73,7 +73,8 @@ public class RWLock {
 				wait();
 			}
 			catch (InterruptedException ie) {
-				logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
+				if(logger.isLoggable(Logger.WARNING))
+					logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
 			}
 		}
 		writeLockDepth++;
@@ -114,7 +115,8 @@ public class RWLock {
 				wait();
 			}
 			catch (InterruptedException ie) {
-				logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
+				if(logger.isLoggable(Logger.WARNING))
+					logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
 			}
 		}
 		readersCnt++;

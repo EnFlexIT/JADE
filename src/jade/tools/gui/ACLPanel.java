@@ -179,7 +179,8 @@ public class ACLPanel extends JPanel {
         sn.invoke(obj, new Object[]{os});
       }
       catch (Exception ex) {
-        logger.log(Logger.WARNING,"Obj: " + obj.getClass().toString() + " " + ex.getMessage());
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Obj: " + obj.getClass().toString() + " " + ex.getMessage());
       }
     }
   }
@@ -189,7 +190,8 @@ public class ACLPanel extends JPanel {
    *  Description of the Method
    */
   public void doSystemOut() {
-    logger.log(Logger.INFO,"\n" + itsMsg.toString() + "\n");
+    if(logger.isLoggable(Logger.WARNING))
+    	logger.log(Logger.INFO,"\n" + itsMsg.toString() + "\n");
   }
 
 
@@ -225,10 +227,12 @@ public class ACLPanel extends JPanel {
         f.close();
       }
       catch (FileNotFoundException e3) {
-        logger.log(Logger.WARNING,"Can't open file: " + fileName);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        logger.log(Logger.WARNING,"IO Exception");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"IO Exception");
       }
     }
   }
@@ -258,10 +262,12 @@ public class ACLPanel extends JPanel {
       }
       catch (FileNotFoundException e1) {
         JOptionPane.showMessageDialog(null, "File not found: " + fileName + e1.getMessage(), "Error Message", JOptionPane.ERROR_MESSAGE);
-        logger.log(Logger.WARNING,"File Not Found: " + fileName);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"File Not Found: " + fileName);
       }
       catch (ACLCodec.CodecException e2) {
-        logger.log(Logger.WARNING,"Wrong ACL Message in file: " + fileName);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Wrong ACL Message in file: " + fileName);
         // e2.printStackTrace();
         JOptionPane.showMessageDialog(null, "Wrong ACL Message in file: " + fileName + "\n" + e2.getMessage(), "Error Message", JOptionPane.ERROR_MESSAGE);
       }
@@ -283,7 +289,8 @@ public class ACLPanel extends JPanel {
   void setDefaultEnvelope() {
     itsMsg.setDefaultEnvelope();
     setItsMsg(itsMsg);
-    logger.log(Logger.CONFIG,":" + this.itsEnvelope.toString());
+    if(logger.isLoggable(Logger.WARNING))
+    	logger.log(Logger.CONFIG,":" + this.itsEnvelope.toString());
   }
 
 
@@ -358,7 +365,8 @@ public class ACLPanel extends JPanel {
       catch (Exception ee) {
 //      static void showMessageDialog(Component parentComponent, Object message, String title, int messageType)           Brings
         JOptionPane.showMessageDialog(this, ee.getMessage(), "Incorrect date format", JOptionPane.ERROR_MESSAGE);
-        logger.log(Logger.WARNING,"Incorrect date format");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Incorrect date format");
         return;
       }
     }
@@ -393,7 +401,8 @@ public class ACLPanel extends JPanel {
       catch (Exception ee) {
 //      static void showMessageDialog(Component parentComponent, Object message, String title, int messageType)           Brings
         JOptionPane.showMessageDialog(this, ee.getMessage(), "Incorrect date format", JOptionPane.ERROR_MESSAGE);
-        logger.log(Logger.WARNING,"Incorrect date format");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Incorrect date format");
         return;
       }
     }
@@ -426,7 +435,8 @@ public class ACLPanel extends JPanel {
    */
   void contentTextArea_mouseClicked(MouseEvent e) {
     if (e.getClickCount() > 2) {
-      logger.log(Logger.WARNING,"to do display content dialog");
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,"to do display content dialog");
     }
 
   }

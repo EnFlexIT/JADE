@@ -69,10 +69,12 @@ public class WriteLogFileAction extends FixedAction implements Serializable{
        p.writeObject(mainPanel.panelcan.canvAgent.getAgentList());
        p.writeObject(mainPanel.panelcan.canvMess.getMessageList());
        p.close();
-       logger.log(Logger.INFO,"Serialized Snapshot File Written.");
+       if(logger.isLoggable(Logger.INFO))
+       	logger.log(Logger.INFO,"Serialized Snapshot File Written.");
      }
    } catch (Exception e){
-       logger.log(Logger.WARNING,"Error Writing Snapshot File:" + e);
+       if(logger.isLoggable(Logger.WARNING))
+       	logger.log(Logger.WARNING,"Error Writing Snapshot File:" + e);
      }
   }
 

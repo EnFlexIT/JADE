@@ -71,10 +71,12 @@ public class DisplayLogFileAction extends FixedAction {
       mainPanel.panelcan.canvAgent.setAgentList((AgentList)p.readObject());
       mainPanel.panelcan.canvMess.setMessageList((MessageList)p.readObject());
       p.close();
-      logger.log(Logger.CONFIG,"Snapshot File Read.");
+      if(logger.isLoggable(Logger.CONFIG))
+      	logger.log(Logger.CONFIG,"Snapshot File Read.");
     }
    } catch (Exception e){
-	     logger.log(Logger.WARNING,"Error Reading Snapshot File" + e);
+	     if(logger.isLoggable(Logger.WARNING))
+	     	logger.log(Logger.WARNING,"Error Reading Snapshot File" + e);
      }
    }
 

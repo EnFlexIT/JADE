@@ -102,7 +102,8 @@ public class rma extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-	logger.log(Logger.FINE,"AGREE received"+reply);
+	if(logger.isLoggable(Logger.FINE))
+		logger.log(Logger.FINE,"AGREE received"+reply);
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -110,7 +111,8 @@ public class rma extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-	logger.log(Logger.FINE,"INFORM received"+reply);
+	if(logger.isLoggable(Logger.FINE))
+		logger.log(Logger.FINE,"INFORM received"+reply);
     }
 
   } // End of AMSClientBehaviour class
@@ -124,7 +126,8 @@ public class rma extends ToolAgent {
     	}
 
     	protected void handleInform(ACLMessage msg){
-    		logger.log(Logger.FINE,"arrived a new APDescription");
+    		if(logger.isLoggable(Logger.FINE))
+    			logger.log(Logger.FINE,"arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
     			Result r =(Result)getContentManager().extractContent(msg);
@@ -152,7 +155,8 @@ public class rma extends ToolAgent {
     	}
 
     	protected void handleInform(ACLMessage msg){
-	    logger.log(Logger.FINE,"arrived a new agents from a remote platform");
+	    if(logger.isLoggable(Logger.FINE))
+	    	logger.log(Logger.FINE,"arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
     			Result r = (Result)getContentManager().extractContent(msg);
@@ -972,7 +976,8 @@ public class rma extends ToolAgent {
 
   //this method sends a request to a remote AMS to know the APDescription of a remote Platform
   public void addRemotePlatform(AID remoteAMS){
-      logger.log(Logger.FINE,"AddRemotePlatform"+remoteAMS.toString());
+      if(logger.isLoggable(Logger.FINE))
+      	logger.log(Logger.FINE,"AddRemotePlatform"+remoteAMS.toString());
   	try{
 
   		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
@@ -1030,7 +1035,8 @@ public class rma extends ToolAgent {
     			String amsName = "ams@" + APDesc.getName();
 
     			if(amsName.equalsIgnoreCase(getAMS().getName())){
-    				logger.log(Logger.WARNING,"ERROR: Action not allowed.");
+    				if(logger.isLoggable(Logger.WARNING))
+    					logger.log(Logger.WARNING,"ERROR: Action not allowed.");
     			}
     				else
     			{

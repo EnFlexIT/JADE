@@ -162,14 +162,16 @@ class DFDBKB extends DBKB {
          "aclm8	 	 VARCHAR(255), " +
          "PRIMARY KEY( conversationid )"+")" );
     		//DEBUG
-      		logger.log(Logger.INFO,"Tables correctly created");
+      		if(logger.isLoggable(Logger.FINE))
+      			logger.log(Logger.FINE,"Tables correctly created");
 		}
 		catch(SQLException se) {
 			// We interpret an SQLException here as a sign that tables 
 			// are already there.
 			// FIXME: We should distinguish the case of actual creation errors.
     	//DEBUG
-			logger.log(Logger.INFO,"Tables already present");
+			if(logger.isLoggable(Logger.FINE))
+				logger.log(Logger.FINE,"Tables already present");
 		}
 		finally {
 			if (stmt != null) {
@@ -216,7 +218,8 @@ class DFDBKB extends DBKB {
 			}
 		}
 		catch(SQLException se){
-			logger.log(Logger.SEVERE,"Error inserting DFD for agent "+dfd.getName());
+			if(logger.isLoggable(Logger.SEVERE))
+				logger.log(Logger.SEVERE,"Error inserting DFD for agent "+dfd.getName());
 			se.printStackTrace();
 		}
 		finally {
@@ -276,7 +279,8 @@ class DFDBKB extends DBKB {
   		}
 		}
 		catch(SQLException se){
-			logger.log(Logger.SEVERE,"Error searching for DFDs matching template. DB operation: "+select);
+			if(logger.isLoggable(Logger.SEVERE))
+				logger.log(Logger.SEVERE,"Error searching for DFDs matching template. DB operation: "+select);
 			se.printStackTrace();
 		}
 		finally {
@@ -413,7 +417,8 @@ class DFDBKB extends DBKB {
 			}
 		}
 		catch(SQLException se){
-			logger.log(Logger.WARNING,"Error reconstructing DFD for agent "+aidN);
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"Error reconstructing DFD for agent "+aidN);
 			se.printStackTrace();
 		}
 		finally {
@@ -445,7 +450,8 @@ class DFDBKB extends DBKB {
   		conn.setAutoCommit(true);
 		}
 		catch(SQLException se){
-			logger.log(Logger.WARNING,"Error removing DFD for agent "+nameAg);
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"Error removing DFD for agent "+nameAg);
 			se.printStackTrace();
 		}
 		finally {
@@ -897,7 +903,8 @@ class DFDBKB extends DBKB {
 		String convID = aclM.getConversationId();
 		String res = deregisterSubscription(convID);
 		if(res == null)
-			logger.log(Logger.WARNING,"No subscription to delete.");
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"No subscription to delete.");
 	}
 
 
@@ -984,6 +991,7 @@ class DFDBKB extends DBKB {
 				}
 			se.printStackTrace();
 		}
-		logger.log(Logger.INFO,"Tables dropped.");
+		if(logger.isLoggable(Logger.FINE))
+			logger.log(Logger.FINE,"Tables dropped.");
 	}
 }

@@ -91,15 +91,16 @@ abstract class AppletRequestProto
 
         try{
             ACLMessage reply = receiveMessage();
-            logger.log(Logger.INFO,"Received Message:" + reply.toString());
+            if(logger.isLoggable(Logger.INFO))
+            	logger.log(Logger.INFO,"Received Message:" + reply.toString());
             if(ACLMessage.AGREE == (reply.getPerformative()))
             {
 
                 handleAgree(reply);
 
                 ACLMessage inform = receiveMessage();
-
-                logger.log(Logger.INFO,inform.toString());
+				if(logger.isLoggable(Logger.INFO))
+                	logger.log(Logger.INFO,inform.toString());
 
                 if(ACLMessage.INFORM == inform.getPerformative())
                     handleInform(inform);

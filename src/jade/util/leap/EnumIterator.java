@@ -72,7 +72,8 @@ public class EnumIterator implements Iterator {
     public void remove() {
 	RuntimeException e = new RuntimeException("Unsupported Operation");
 	Logger logger = Logger.getMyLogger(this.getClass().getName());
-	logger.log(Logger.WARNING,e.getMessage());
+	if(logger.isLoggable(Logger.WARNING))
+		logger.log(Logger.WARNING,e.getMessage());
 	throw e;
     }
 

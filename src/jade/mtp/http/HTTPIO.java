@@ -305,20 +305,25 @@ public class HTTPIO {
     if(line==null) throw new IOException();
     StringTokenizer st = new StringTokenizer(line);
     try {
-      if(!(st.nextToken()).equalsIgnoreCase(POST_STR) ) { 
-        logger.log(Logger.WARNING,"Malformed POST");
+
+      if(!(st.nextToken()).equalsIgnoreCase(POST) ) { 
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Malformed POST");
+
         type.append(CLOSE);
         return ERROR;
       }
       st.nextToken(); // Consumme a token
       if(!(st.nextToken().toUpperCase().startsWith("HTTP/1."))) { 
-        logger.log(Logger.WARNING,"Malformed HTTP/1.1 ");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Malformed HTTP/1.1 ");
         type.append(CLOSE);
         return ERROR;
       }
     }
     catch(NoSuchElementException nsee) {
-      logger.log(Logger.WARNING,"Malformed start line !: "+line);
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,"Malformed start line !: "+line);
       type.append(CLOSE);
       return ERROR;
     }
@@ -338,8 +343,11 @@ public class HTTPIO {
       }
       if (lowerCaseLine.startsWith(CONTENT_STR.toLowerCase())) {	
         //Process the left part
-        if (!(processLine(line).toLowerCase().startsWith(MM_STR))) {
-          logger.log(Logger.WARNING,"MULTIPART/MIXED");
+
+        if (!(processLine(line).toLowerCase().startsWith(MM))) {
+          if(logger.isLoggable(Logger.WARNING))
+          	logger.log(Logger.WARNING,"MULTIPART/MIXED");
+
           type.append(CLOSE);
           return ERROR;
         }
@@ -350,7 +358,8 @@ public class HTTPIO {
           line=readLineFromInputStream(input);
           if ((pos = line.indexOf(BND_STR)) == -1) {
             // Bounday not found
-            logger.log(Logger.WARNING,"MIME boundary not found");
+            if(logger.isLoggable(Logger.WARNING))
+            	logger.log(Logger.WARNING,"MIME boundary not found");
             type.append(CLOSE);
             return ERROR;
           }
@@ -363,7 +372,8 @@ public class HTTPIO {
     }//end while
     //if( !foundBoundary || !foundMime) {
     if(!foundBoundary) {
-      logger.log(Logger.WARNING,"Mime header error");
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,"Mime header error");
       type.append(CLOSE);
       return ERROR;
     }

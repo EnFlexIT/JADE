@@ -92,7 +92,8 @@ public class HTTPServer extends Thread {
     	if (changePortIfBusy) {
     		// The specified port is busy. Let the system find a free one
     		server = new ServerSocket(0);
-        logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
     	}
     	else {
     		throw ioe;
@@ -125,14 +126,16 @@ public class HTTPServer extends Thread {
   void addThread(ServerThread st) { 
     synchronized(lock) {
       threads.addElement(st);
-      logger.log(Logger.CONFIG," Added Ka threads: "+threads.size()+"/"+maxKA);
+      if(logger.isLoggable(Logger.CONFIG))
+      	logger.log(Logger.CONFIG," Added Ka threads: "+threads.size()+"/"+maxKA);
     }
   }
   
   void removeThread(ServerThread st) {  
     synchronized(lock) {
       threads.removeElement(st);
-      logger.log(Logger.CONFIG," Removed Ka threads: "+threads.size()+"/"+maxKA);
+      if(logger.isLoggable(Logger.CONFIG))
+      	logger.log(Logger.CONFIG," Removed Ka threads: "+threads.size()+"/"+maxKA);
     }
   }
   
@@ -154,7 +157,8 @@ public class HTTPServer extends Thread {
       }
     } 
     catch( Exception e ) {
-      logger.log(Logger.WARNING,"HTTP Server closed on port "+port);
+      if(logger.isLoggable(Logger.WARNING))
+	      logger.log(Logger.WARNING,"HTTP Server closed on port "+port);
     } 
 	}
   
@@ -204,8 +208,11 @@ public class HTTPServer extends Thread {
             //System.out.println("Envelope received:\n"+env);
             //Post the Message to Jade platform	
             synchronized (dispatcher) {
-              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.size())) {
-                logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
+
+              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.length())) {
+                if(logger.isLoggable(Logger.WARNING))
+                	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
+
               }
               dispatcher.dispatchMessage(env,payload.toByteArray());
             }
@@ -236,7 +243,8 @@ public class HTTPServer extends Thread {
       catch(IOException ioe) {
       } 
       catch(Exception e ) {
-        logger.log(Logger.WARNING,"HTTPServer error : "+e);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"HTTPServer error : "+e);
       }
       finally {
         //Close socket connection

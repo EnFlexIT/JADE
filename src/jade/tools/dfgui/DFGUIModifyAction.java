@@ -73,7 +73,8 @@ class DFGUIModifyAction extends AbstractAction
     			dfd = gui.myAgent.getDFAgentDsc(name); //agent registered
 
     		}catch(FIPAException fe){
-    			logger.log(Logger.WARNING, "No agent called " + name + " is currently registered with this DF");
+    			if(logger.isLoggable(Logger.WARNING))
+    				logger.log(Logger.WARNING, "No agent called " + name + " is currently registered with this DF");
 				  return;
 
     		}

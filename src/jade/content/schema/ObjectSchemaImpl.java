@@ -3,19 +3,19 @@
  * JADE - Java Agent DEvelopment Framework is a framework to develop
  * multi-agent systems in compliance with the FIPA specifications.
  * Copyright (C) 2000 CSELT S.p.A.
- * 
+ *
  * GNU Lesser General Public License
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation,
  * version 2.1 of the License.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -47,7 +47,7 @@ class ObjectSchemaImpl extends ObjectSchema {
         /**
            Construct a SlotDescriptor
          */
-        private SlotDescriptor(String name, ObjectSchema schema, 
+        private SlotDescriptor(String name, ObjectSchema schema,
                                     int optionality) {
             this.name = name;
             this.schema = schema;
@@ -55,18 +55,18 @@ class ObjectSchemaImpl extends ObjectSchema {
         }
 
     }
-    
-    
+
+
     private String          typeName = null;
     private Hashtable       slots;
-    private Vector       		slotNames; 
-    private Vector          superSchemas; 
-    private Hashtable       facets; 
-    
+    private Vector       		slotNames;
+    private Vector          superSchemas;
+    private Hashtable       facets;
+
     static {
     	baseSchema = new ObjectSchemaImpl();
     }
-    
+
     /**
      * Construct a schema that vinculates an entity to be a generic
      * object (i.e. no constraints at all)
@@ -87,7 +87,7 @@ class ObjectSchemaImpl extends ObjectSchema {
      * Add a slot to the schema.
      * @param name The name of the slot.
      * @param slotSchema The schema defining the type of the slot.
-     * @param optionality The optionality, i.e., <code>OPTIONAL</code> 
+     * @param optionality The optionality, i.e., <code>OPTIONAL</code>
      * or <code>MANDATORY</code>
      */
     protected void add(String name, ObjectSchema slotSchema, int optionality) {
@@ -99,7 +99,7 @@ class ObjectSchemaImpl extends ObjectSchema {
       if (slots.put(ciName, new SlotDescriptor(name, slotSchema, optionality)) == null) {
         slotNames.addElement(ciName);
       }
-    } 
+    }
 
   	/**
      * Add a mandatory slot to the schema.
@@ -108,17 +108,17 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     protected void add(String name, ObjectSchema slotSchema) {
         add(name, slotSchema, MANDATORY);
-    } 
+    }
 
     /**
      * Add a slot with cardinality between <code>cardMin</code>
-     * and <code>cardMax</code> to this schema. 
+     * and <code>cardMax</code> to this schema.
      * Adding such a slot corresponds to add a slot
      * of type Aggregate and then to add proper facets (constraints)
      * to check that the type of the elements in the aggregate are
-     * compatible with <code>elementsSchema</code> and that the 
+     * compatible with <code>elementsSchema</code> and that the
      * aggregate contains at least <code>cardMin</code> elements and
-     * at most <code>cardMax</code> elements. By default the Aggregate 
+     * at most <code>cardMax</code> elements. By default the Aggregate
      * is of type <code>BasicOntology.SEQUENCE</code>.
      * @param name The name of the slot.
      * @param elementsSchema The schema for the elements of this slot.
@@ -129,7 +129,7 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax) {
     	add(name, elementsSchema, cardMin, cardMax, BasicOntology.SEQUENCE);
-    } 
+    }
 
     /**
      * Add a slot with cardinality between <code>cardMin</code>
@@ -156,7 +156,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     		// Should never happen
     		oe.printStackTrace();
     	}
-    } 
+    }
 
 
     /**
@@ -169,9 +169,9 @@ class ObjectSchemaImpl extends ObjectSchema {
     		superSchemas = new Vector();
     	}
       superSchemas.addElement(superSchema);
-    } 
+    }
 
-    /** 
+    /**
        Add a <code>Facet</code> on a slot of this schema
        @param slotName the name of the slot the <code>Facet</code>
        must be added to.
@@ -190,7 +190,8 @@ class ObjectSchemaImpl extends ObjectSchema {
 					v = new Vector();
 					facets.put(ciName, v);
 					//DEBUG
-					logger.log(Logger.CONFIG,"Added facet "+f+" to slot "+slotName); 
+                                if(logger.isLoggable(Logger.CONFIG))
+                                  logger.log(Logger.CONFIG,"Added facet "+f+" to slot "+slotName);
 				}
 				v.addElement(f);
 			}
@@ -198,17 +199,17 @@ class ObjectSchemaImpl extends ObjectSchema {
 				throw new OntologyException(slotName+" is not a valid slot in this schema");
 			}
 		}
-		
+
     /**
      * Retrieves the name of the type of this schema.
      * @return the name of the type of this schema.
      */
     public String getTypeName() {
         return typeName;
-    } 
+    }
 
     /**
-     * Returns the names of all the slots in this <code>Schema</code> 
+     * Returns the names of all the slots in this <code>Schema</code>
      * (including slots defined in super schemas).
      *
      * @return the names of all slots.
@@ -225,7 +226,7 @@ class ObjectSchemaImpl extends ObjectSchema {
         }
 
         return names;
-    } 
+    }
 
     /**
      * Retrieves the schema of a slot of this <code>Schema</code>.
@@ -237,7 +238,7 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     public ObjectSchema getSchema(String name) throws OntologyException {
         SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
-				if (slot == null) {    	
+				if (slot == null) {
             throw new OntologyException("No slot named: " + name);
 				}
 				return slot.schema;
@@ -250,7 +251,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 	                try {
 	                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
 	                    return superSchema.getSchema(name);
-	                } 
+	                }
 	                catch (OntologyException oe) {
 	                	// Do nothing. Maybe the slot is defined in another super-schema
 	                }
@@ -258,11 +259,11 @@ class ObjectSchemaImpl extends ObjectSchema {
         		}
 
             throw new OntologyException("No slot named: " + name);
-        } 
-	
+        }
+
         return slot.schema;
         */
-    } 
+    }
 
     /**
      * Indicate whether a given <code>String</code> is the name of a
@@ -275,7 +276,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     public boolean containsSlot(String name) {
         SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
 				return (slot != null);
-    } 
+    }
 
     /**
      * Indicate whether a slot of this schema is mandatory
@@ -287,14 +288,14 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     public boolean isMandatory(String name) throws OntologyException {
         SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
-				if (slot == null) {    	
+				if (slot == null) {
             throw new OntologyException("No slot named: " + name);
 				}
 				return slot.optionality == MANDATORY;
-    } 
+    }
 
     /**
-     * Creates an Abstract descriptor to hold an object compliant to 
+     * Creates an Abstract descriptor to hold an object compliant to
      * this <code>Schema</code>.
      */
     public AbsObject newInstance() throws OntologyException {
@@ -306,33 +307,33 @@ class ObjectSchemaImpl extends ObjectSchema {
     		if (superSchemas != null) {
 	        for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
 	            ObjectSchemaImpl superSchema = (ObjectSchemaImpl) e.nextElement();
-	
+
 	            superSchema.fillAllSlotNames(v);
 	        }
     		}
-				
+
         // Then add slot names of this schema
         if (slotNames != null) {
 	        for (Enumeration e = slotNames.elements(); e.hasMoreElements(); ) {
 	        	v.addElement(e.nextElement());
 	        }
         }
-    } 
-    
+    }
+
 		/**
-	     Check whether a given abstract descriptor complies with this 
+	     Check whether a given abstract descriptor complies with this
 	     schema.
 	     @param abs The abstract descriptor to be checked
-	     @throws OntologyException If the abstract descriptor does not 
+	     @throws OntologyException If the abstract descriptor does not
 	     complies with this schema
 	   */
-  	public void validate(AbsObject abs, Ontology onto) throws OntologyException { 
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
   		validateSlots(abs, onto);
   	}
-  	
+
   	/**
   	   For each slot
-  	   - get the corresponding attribute value from the abstract descriptor 
+  	   - get the corresponding attribute value from the abstract descriptor
   	     abs
   	   - Check that it is not null if the slot is mandatory
   	   - Check that its schema is compatible with the schema of the slot
@@ -348,33 +349,35 @@ class ObjectSchemaImpl extends ObjectSchema {
   			validate(ciName, slotValue, onto);
   		}
   	}
-  		
+
 		/**
 		   Validate a given abstract descriptor as a value for a slot
 		   defined in this schema
 		   @param slotName The name of the slot
 	     @param value The abstract descriptor to be validated
-	     @throws OntologyException If the abstract descriptor is not a 
-	     valid value 
-	     @return true if the slot is defined in this schema (or in 
+	     @throws OntologyException If the abstract descriptor is not a
+	     valid value
+	     @return true if the slot is defined in this schema (or in
 	     one of its super schemas). false otherwise
 	   */
   	private boolean validate(CaseInsensitiveString slotName, AbsObject value, Ontology onto) throws OntologyException {
 			// DEBUG
-  		logger.log(Logger.FINE,"Validating "+value+" as a value for slot "+slotName); 
-  		// NOTE: for performance reasons we don't want to scan the schema 
+                if(logger.isLoggable(Logger.FINE))
+                  logger.log(Logger.FINE,"Validating "+value+" as a value for slot "+slotName);
+  		// NOTE: for performance reasons we don't want to scan the schema
   		// to check if slotValue is a valid slot and THEN to scan again
-  		// the schema to validate value. This is the reason for the 
+  		// the schema to validate value. This is the reason for the
   		// boolean return value of this method
   		boolean slotFound = false;
-  		
+
   		// If the slot is defined in this schema --> check the value
   		// against the schema of the slot. Otherwise let the super-schema
   		// where the slot is defined validate the value
   		SlotDescriptor dsc = getOwnSlot(slotName);
   		if (dsc != null) {
 				// DEBUG
-  			logger.log(Logger.CONFIG,"Slot "+slotName+" is defined in schema "+this); 
+                      if(logger.isLoggable(Logger.CONFIG))
+                        logger.log(Logger.CONFIG,"Slot "+slotName+" is defined in schema "+this);
   			if (value == null) {
   				// Check optionality
   				if (dsc.optionality == MANDATORY) {
@@ -384,22 +387,24 @@ class ObjectSchemaImpl extends ObjectSchema {
   				return true;
   			}
   			else {
-  				// - Get from the ontology the schema s that defines the type 
+  				// - Get from the ontology the schema s that defines the type
   				// of the abstract descriptor value.
-  				// - Check if this schema is compatible with the schema for 
+  				// - Check if this schema is compatible with the schema for
   				// slot slotName
   				// - Finally check value against s
   				ObjectSchema s = onto.getSchema(value.getTypeName());
-  				//DEBUG 
-  				logger.log(Logger.CONFIG,"Actual schema for "+value+" is "+s); 
+  				//DEBUG
+                                if(logger.isLoggable(Logger.CONFIG))
+                                    logger.log(Logger.CONFIG,"Actual schema for "+value+" is "+s);
   				if (s == null) {
   					throw new OntologyException("No schema found for type "+value.getTypeName());
   				}
   				if (!s.isCompatibleWith(dsc.schema)) {
-  					throw new OntologyException("Schema "+s+" for element "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName); 
+  					throw new OntologyException("Schema "+s+" for element "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName);
   				}
   				//DEBUG
-  				logger.log(Logger.CONFIG,"Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName); 
+                                if(logger.isLoggable(Logger.CONFIG))
+                                    logger.log(Logger.CONFIG,"Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName);
   				s.validate(value, onto);
   			}
   			slotFound = true;
@@ -417,9 +422,9 @@ class ObjectSchemaImpl extends ObjectSchema {
 	  			}
   			}
   		}
-  		
+
   		if (slotFound && facets != null) {
-  			// Check value against the facets (if any) defined for the  
+  			// Check value against the facets (if any) defined for the
   			// slot in this schema
   			Vector ff = (Vector) facets.get(slotName);
   			if (ff != null) {
@@ -427,27 +432,29 @@ class ObjectSchemaImpl extends ObjectSchema {
   				while (e.hasMoreElements()) {
   					Facet f = (Facet) e.nextElement();
   					//DEBUG
-  					logger.log(Logger.CONFIG,"Checking facet "+f+" defined on slot "+slotName);
+                                        if(logger.isLoggable(Logger.CONFIG))
+                                            logger.log(Logger.CONFIG,"Checking facet "+f+" defined on slot "+slotName);
   					f.validate(value, onto);
   				}
   			}
   			else {
   				//DEBUG
-  				logger.log(Logger.CONFIG,"No facets for slot "+slotName);
+                                  if(logger.isLoggable(Logger.CONFIG))
+                                    logger.log(Logger.CONFIG,"No facets for slot "+slotName);
   			}
   		}
-  		
+
   		return slotFound;
   	}
-  			
+
   	/**
   	   Check if this schema is compatible with a given schema s.
-  	   This is the case if 
+  	   This is the case if
   	   1) This schema is equals to s
   	   2) s is one of the super-schemas of this schema
   	   3) This schema descends from s i.e.
   	      - s is the base schema for the XXXSchema class this schema is
-  	        an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	        an instance of (e.g. s is ConceptSchema.getBaseSchema() and this
   	        schema is an instance of ConceptSchema)
   	      - s is the base schema for a super-class of the XXXSchema class
   	        this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
@@ -465,11 +472,11 @@ class ObjectSchemaImpl extends ObjectSchema {
   		}
   		return false;
   	}
-  	
+
   	/**
-  	   Return true if 
+  	   Return true if
   	   - s is the base schema for the XXXSchema class this schema is
-  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
+  	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this
   	     schema is an instance of ConceptSchema)
   	   - s is the base schema for a super-class of the XXXSchema class
   	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
@@ -485,7 +492,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   			return false;
   		}
   	}
-  			
+
   	/**
   	   Return true if s is a super-schema (directly or indirectly)
   	   of this schema
@@ -505,11 +512,11 @@ class ObjectSchemaImpl extends ObjectSchema {
   		}
   		return false;
   	}
-  	
+
     public String toString() {
     	return getClass().getName()+"-"+getTypeName();
     }
-    
+
     public boolean equals(Object o) {
     	if (o != null) {
 	    	return toString().equals(o.toString());
@@ -518,7 +525,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     		return false;
     	}
     }
-    
+
    	/**
     * Get the facets defined upon a slot of the objectschema.
     * Return null if there aren't facets on the specified slot.
@@ -531,7 +538,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     			Vector v = (Vector)facets.get(caseInsensitiveSlotName);
 	    		if (v!=null) {
 	    			temp = new Facet[v.size()];
-	    			for (int i=0; i<v.size()-1; i++) 
+	    			for (int i=0; i<v.size()-1; i++)
 	    				temp[i] = (Facet)v.elementAt(i);
 				}
 			}
@@ -544,11 +551,11 @@ class ObjectSchemaImpl extends ObjectSchema {
     	}
     	return temp;
 	}
-	
+
 	private final SlotDescriptor getOwnSlot(CaseInsensitiveString ciName) {
 		return (slots != null ? (SlotDescriptor) slots.get(ciName) : null);
 	}
-	
+
 	private final SlotDescriptor getSlot(CaseInsensitiveString ciName) {
 		SlotDescriptor dsc = getOwnSlot(ciName);
 		if (dsc == null) {
@@ -561,8 +568,8 @@ class ObjectSchemaImpl extends ObjectSchema {
   				}
   			}
   		}
-    } 
+    }
     return dsc;
-	}		
+	}
 }
 

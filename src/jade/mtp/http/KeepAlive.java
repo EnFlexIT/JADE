@@ -95,7 +95,8 @@ public class KeepAlive {
         out.close();
       }
       catch(IOException ioe) {
-        logger.log(Logger.WARNING,"Exception while closing KA connection: "+ioe);
+        if(logger.isLoggable(Logger.WARNING))
+        	logger.log(Logger.WARNING,"Exception while closing KA connection: "+ioe);
       }
     }
     
@@ -121,7 +122,8 @@ public class KeepAlive {
       //System.out.println("DEBUG: Added Ka conn: "+connections.size()+"/"+dim+" with "+c.getAddress().getPortNo());
     }
     catch(Exception ioe) {
-      logger.log(Logger.WARNING,ioe.getMessage());
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,ioe.getMessage());
     }
   }
   
@@ -133,7 +135,8 @@ public class KeepAlive {
       old.close();
     }
     catch(Exception ioe) {
-      logger.log(Logger.WARNING,ioe.getMessage());
+      if(logger.isLoggable(Logger.WARNING))
+      	logger.log(Logger.WARNING,ioe.getMessage());
     }
   }
   
@@ -209,7 +212,8 @@ public class KeepAlive {
 	    }
     }
     catch(Exception ioe) {
-     logger.log(Logger.WARNING,ioe.getMessage());
+     if(logger.isLoggable(Logger.WARNING))
+     	logger.log(Logger.WARNING,ioe.getMessage());
     }
   } 
   
