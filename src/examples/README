@@ -184,15 +184,69 @@ This example shows some methods an agent can use to receive a message.
 
 'ontology' subdirectory
 =======================
-- RequesterAgent and ExecutorAgent are a couple of agents that show the usage of
-                                the support to application-defined content languages
-                                and ontologies. All the other files in the directory
-                                are the JAva classes that implement the different
-                                entities belonging to this sample ontology.
-- TestAgent		allows to test ACLMessages whose content language
-			is FIPA-SL0 and whose ontology is FIPA-Agent-Management.
+This examples shows how to use the support for application specific ontologie
+provided by JADE.
+A very simple ontology (the employment-ontology)including concepts related 
+to the employment of people into companies is defined in the package
+examples.ontology.employment. The roles in this ontology are
+Concepts:
+	PERSON
+	COMPANY
+	ADDRESS
+Predicates
+	WORKS-FOR - meaning that a person is working for a company
+Actions
+	ENGAGE - meaning that a person is being engaged by a company
+Propositions
+	ENGAGEMENT-ERROR - meaning that an error occurred in performing 
+				 the engage action
+	PERSON-TOO-OLD - meaning that a person cannot be engaged by a 
+			     company because he is too old.
+The employment subdirectory contains one class for each ontological 
+role plus the static class EmploymentOntology that creates an ontology
+object and adds to it all the roles described above.
 
+The employment-ontology is used by two agents:
+- The RequesterAgent that gets the details of people to engage from
+the user and asks the EngagerAgent to actually engage them.
+- The EngagerAgent that actually perform the engagement.
 
+The RequesterAgent, before requesting the engagement of a person, queries
+the EngagerAgent whether that person is already working for the company 
+whose employees are managed by the EngagerAgent.
+
+Some hints about the code are in the followings.
+The RequesterAgent has a single cyclic complex behaviour in which
+- The details of a person to engage are got from the user. This is
+done in the preAction() method.
+- A query is sent to the EngagerAgent to check that the indicated person is 
+not already working for the indicated company. This is done by following
+the FIPA-Query protocol and it is implemented through a FipaQueryInitiatorBehaviour
+that is added as a sub-behaviour of the main agent behaviour.
+- According to the result of the query, A request is sent to the 
+EngagerAgent to actually perform the engagement. This is done following
+the FIPA-Request protocol and is implemented through a 
+FipaRequestInitiatorBehaviour that is added as a sub-behaviour.
+- In the postAction() method the main agent behaviour is reset so that it 
+is performed cyclically
+
+In the agent setup, besides the addition of the main behaviour, the name
+of the EngagerAgent and the detail of the company where to engage people
+are requested to the user.
+
+The EngagerAgent has two behaviours:
+- A FipaQueryResponderBehaviour to handle queries about people 
+working for a company following a FIPA-Query protocol.
+- A FipaRequestResponderBehaviour to handle engagement requests
+following a FIPA-Request protocol.
+Both behaviours are cyclic. 
+The company whose engagement are handled by the EngagerAgent is fixed:
+CSELT
+Via Reiss Romoli 274
+Turin
+
+	
+	
 'jsp' subdirectory
 ==================
 This is an example of integration of JADE and JSP kindly provided by Daniel
