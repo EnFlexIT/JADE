@@ -27,9 +27,10 @@ package jade.content.abs;
 import java.util.Date;
 
 /**
+ * This class is not intended to be used by programmers.
  * @author Giovanni Caire - TILAB
  */
-class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
+public class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
 
     /**
      * Construct an Abstract descriptor to hold an object of

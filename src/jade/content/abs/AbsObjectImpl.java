@@ -35,7 +35,7 @@ import java.util.Enumeration;
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
-class AbsObjectImpl implements AbsObject {
+public class AbsObjectImpl implements AbsObject {
     private Hashtable elements = new Hashtable();
     private String    typeName = null;
 
