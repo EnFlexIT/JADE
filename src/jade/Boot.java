@@ -48,6 +48,29 @@ public class Boot {
 
 
   /**
+   * Return a String with copyright Notice, Name and Version of this version of JADE
+  */
+  public static String getCopyrightNotice() {
+    String CVSname = "$Name$";
+    String CVSdate = "$Date$";
+    int colonPos = CVSname.indexOf(":");
+    int dollarPos = CVSname.lastIndexOf('$');
+    String name = CVSname.substring(colonPos + 1, dollarPos);
+    if(name.indexOf("JADE") == -1)
+	name = "JADE snapshot";
+    else {
+        name = name.replace('-', ' ');
+	name = name.replace('_', '.');
+	name = name.trim();
+    }
+    colonPos = CVSdate.indexOf(':');
+    dollarPos = CVSdate.lastIndexOf('$');
+    String date = CVSdate.substring(colonPos + 1, dollarPos);
+    date = date.trim();
+    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://sharon.cselt.it/projects/jade\n");
+   }
+
+  /**
    * Fires up <b><em>JADE</em></b> system.
    * This method starts the bootstrap process for <B><em>JADE</em></b>
    * agent platform. It parses command line arguments and acts
@@ -70,6 +93,7 @@ public class Boot {
    */
   public static void main(String args[]) {
 
+    System.out.println(getCopyrightNotice());
     // Default values for looking RMI registry bind/lookup
 
     String platformHost = null;
@@ -114,24 +138,7 @@ public class Boot {
 	  hasGUI = true;
 	}
 	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	  String CVSname = "$Name$";
-	  String CVSdate = "$Date$";
-	  int colonPos = CVSname.indexOf(":");
-	  int dollarPos = CVSname.lastIndexOf('$');
-	  String name = CVSname.substring(colonPos + 1, dollarPos);
-	  if(name.indexOf("JADE") == -1)
-	    name = "JADE snapshot";
-	  else {
-	    name = name.replace('-', ' ');
-	    name = name.replace('_', '.');
-	    name = name.trim();
-	  }
- 
-	  colonPos = CVSdate.indexOf(':');
-	  dollarPos = CVSdate.lastIndexOf('$');
-	  String date = CVSdate.substring(colonPos + 1, dollarPos);
-	  date = date.trim();
-	  System.out.println(name + " - " + date);
+          System.out.println(getCopyrightNotice());
 	  System.exit(0);
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
