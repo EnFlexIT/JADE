@@ -36,13 +36,14 @@ import jade.util.leap.HashMap;
 class LADT {
 
   // Initial size of agent hash table
-  private static final int MAP_SIZE = 50;
+  //private static final int MAP_SIZE = 50;
 
   // Load factor of agent hash table
-  private static final float MAP_LOAD_FACTOR = 0.50f;
+  //private static final float MAP_LOAD_FACTOR = 0.50f;
 
 
-  private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
+  //private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
+  private Map agents = new HashMap();
 
   public synchronized Agent put(AID aid, Agent a) {
     return (Agent)agents.put(aid, a);
