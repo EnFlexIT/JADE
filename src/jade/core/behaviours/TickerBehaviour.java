@@ -55,32 +55,21 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
   	this.period = period;
   	state = 0;
 	}
-
+	
+	public final void onStart() {
+		wakeupTime = System.currentTimeMillis() + period;
+	}
+	
 	public void action() {
-  	switch (state) {
-  	case 0:
-    	// In this state the behaviour blocks itself
-  		wakeupTime = System.currentTimeMillis() + period;
-      block(period);
-    	state = 1;
-    	break;
-  	case 1:
-    	// In this state the behaviour has been restarted. This can be due to
-    	// 1. Timeout expiration --> call onTick() and go back to state 0
-    	// 2. A message has arrived --> block again and remains in state 1
-    	long blockTime = wakeupTime - System.currentTimeMillis();
-    	if (blockTime <= 0) {
-      	// Timeout is expired
-    		onTick();
-    		state = 0;
-    	} 
-    	else 
-      	block(blockTime);
-    	break;
-  	default :
-  		// Should never happen
-  		throw new RuntimeException("TickerBehaviour unknown state "+state);
-  	} // END of switch
+    long blockTime = wakeupTime - System.currentTimeMillis();
+    if (blockTime <= 0) {
+      // Timeout is expired --> execute the user defined action and
+    	// re-initialize wakeupTime
+    	onTick();
+			wakeupTime = System.currentTimeMillis() + period;
+			blockTime = period;
+    } 
+    block(blockTime);
 	} 
 
 	public boolean done() {
