@@ -12,11 +12,12 @@ import java.io.*;
 
 public class ObjectReaderAgent extends Agent {
 
+private AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
 
 protected void setup() {
 
   /** Registration with the DF */
-  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
+
   dfd.setType("ObjectReaderAgent"); 
   dfd.setName(getName());
   dfd.addAddress(getAddress());
@@ -52,7 +53,18 @@ protected void setup() {
       System.err.println(getLocalName()+" catched exception "+e1.getMessage());
     }
   }
+}
+
+  public void takeDown() {
+    try {
+      deregisterWithDF("DF", dfd);
+    }
+    catch (FIPAException e) {
+      System.err.println(getLocalName()+" deregistration with DF unsucceeded. Reason: "+e.getMessage());
+    }
   }
+
+
 }
 
 
