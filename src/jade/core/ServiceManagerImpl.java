@@ -396,7 +396,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
     public void removeRemoteNode(NodeDescriptor desc) {
 
-	// FIXME: remove all the slices corresponding to the removed node
+	// Remove all the slices corresponding to the removed node
+	Object[] allServices = services.values().toArray();
+	for(int i = 0; i < allServices.length; i++) {
+	    ServiceEntry e = (ServiceEntry)allServices[i];
+	    System.out.println("Removing slice for node <" + desc.getName() + "> from service " + e.getService().getName());
+	    e.removeSlice(desc.getName());
+	}
 
 	// Remove the node as a remote container
 	myMain.removeRemoteContainer(desc);
