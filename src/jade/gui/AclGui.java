@@ -1223,7 +1223,11 @@ public class AclGui extends JPanel
 		inReplyTo.setText(param);
 		if ((param = msg.getConversationId()) == null) param = "";
 		conversationId.setText(param);
-		if ((param = msg.getReplyBy()) == null) param = "";
+		try {
+		    param=ISO8601.toString(msg.getReplyByDate());
+		} catch (Exception exc) {
+		    param="";
+		}
 		replyBy.setText(param);
 		
 		if((param = msg.getProtocol()) == null)
@@ -1315,8 +1319,9 @@ public class AclGui extends JPanel
 			msg.setConversationId(param);
 			
 		param = replyBy.getText().trim();	
-		if (param.length()>0)
-			msg.setReplyBy(param);
+		try {
+		    msg.setReplyByDate(ISO8601.toDate(param));
+		} catch (Exception e) {}
 		
 	  
 		if (!(param = (String) protocol.getSelectedItem()).equals("Null"))

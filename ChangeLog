@@ -5,6 +5,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - Added a sanity check in notifyFailureToSender to avoid NullPointerException 
   when the sender is null
 - ACLMessage: removed an additional blank at the end of the content slot.
+- ACLMessage: deprecated the two methods setReplyBy and getReplyBy. The
+  methods getReplyByDate and setReplyByDate should be used instead.
 - MobileAgent example: fixed bug in dealing with the move message
 
 	

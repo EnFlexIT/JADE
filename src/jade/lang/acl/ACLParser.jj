@@ -144,7 +144,7 @@ void MessageParameter() :
         { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONTENT>         s=Content()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <REPLY_BY>        s=DateTimeToken()		{ msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <REPLY_BY>        s=DateTimeToken()		{ try { msg.setReplyByDate(ISO8601.toDate(s));} catch (Exception e) {} token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <IN_REPLY_TO>     s=Expression()			{ msg.setInReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_TO>       {msg.clearAllReplyTo();}
       <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addReplyTo(aid);})* <RBRACE2>

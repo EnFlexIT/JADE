@@ -206,12 +206,7 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer reply_by = null;
-
-  /**
-  @serial
-  */
-  private long reply_byInMillisec; 
+  private long reply_byInMillisec = 0; 
 
   /**
   @serial
@@ -591,23 +586,28 @@ private int performative; // keeps the performative type of this object
       ontology = null;
   }
 
+
   /**
      Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
      @param str The new value for the slot, as ISO8601 time.
      @see jade.lang.acl.ACLMessage#getReplyBy()
+     @see jade.lang.acl.ACLMessage#setReplyByDate(Date)
+     @deprecated The value of the <code>reply-by</code> slot
+     must be a valid Date, the method <code>setReplyByDate</code> should
+     be used that guarantees avoiding problems. If the passed
+     parameter represents a wrong date, this method silently converts
+     its value to null.
   */
   public void setReplyBy(String str) {
     if (str != null) {
-      reply_by = new StringBuffer(str);
       try {
 	reply_byInMillisec = ISO8601.toDate(str).getTime();
       } catch (Exception e) {
-	reply_byInMillisec = new Date().getTime(); // now
+	reply_byInMillisec = 0; 
       }
     } else {
-      reply_by = null;
-      reply_byInMillisec = new Date().getTime();
+      reply_byInMillisec = 0; 
     }
   }	
 
@@ -618,8 +618,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getReplyByDate()
   */
   public void setReplyByDate(Date date) {
-   reply_byInMillisec = date.getTime();
-   reply_by = new StringBuffer(ISO8601.toString(date));
+      reply_byInMillisec = (date==null?0:date.getTime());
   }
 
   /**
@@ -792,12 +791,15 @@ private int performative; // keeps the performative type of this object
      Reads <code>:reply-by</code> slot.
      @return The value of <code>:reply-by</code>slot, as a string.
      @see jade.lang.acl.ACLMessage#setReplyBy(String).
+     @see jade.lang.acl.ACLMessage#getReplyByDate().
+     @deprecated Since the value of this slot is a Date by definition, then
+     the <code>getReplyByDate</code> should be used that returns a Date
   */
   public String getReplyBy() {
-    if(reply_by != null)
-      return new String(reply_by);
-    else
-      return null;
+      if(reply_byInMillisec != 0)
+	  return ISO8601.toString(new Date(reply_byInMillisec));
+      else
+	  return null;
   }
 
   /**
@@ -807,7 +809,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setReplyByDate(Date).
   */
   public Date getReplyByDate() {
-    if(reply_by != null)
+    if(reply_byInMillisec != 0)
       return new Date(reply_byInMillisec);
     else
       return null;
@@ -979,9 +981,8 @@ private int performative; // keeps the performative type of this object
       if(ontology != null)
 	if(ontology.length() > 0)
 	  w.write(ONTOLOGY + " " + ontology + "\n");
-      if(reply_by != null)
-	if(reply_by.length() > 0)
-	  w.write(REPLY_BY + " " + reply_by + "\n");
+      if(reply_byInMillisec != 0)
+	  w.write(REPLY_BY + " " + ISO8601.toString(new Date(reply_byInMillisec)) + "\n");
       if(protocol != null)
 	if(protocol.length() > 0)
 	  w.write(PROTOCOL + " " + protocol + "\n");
@@ -1051,8 +1052,7 @@ private int performative; // keeps the performative type of this object
   encoding = null;
   language = null;
   ontology = null;
-  reply_by = null;
-  reply_byInMillisec = new Date().getTime();
+  reply_byInMillisec = 0;
   protocol = null;
   conversation_id = null;
   userDefProps.clear();
@@ -1086,7 +1086,7 @@ private int performative; // keeps the performative type of this object
     else
       m.setReplyWith("X"+java.lang.System.currentTimeMillis()); 
     m.setConversationId(getConversationId());
-    m.setReplyBy(null);
+    m.setReplyByDate(null);
     m.setContent(null);
     m.setEncoding(null);
     

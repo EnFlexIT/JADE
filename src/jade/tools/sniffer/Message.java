@@ -81,7 +81,7 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     this.setInReplyTo(msg.getInReplyTo());
     this.setLanguage(msg.getLanguage());
     this.setOntology(msg.getOntology());
-    this.setReplyBy(msg.getReplyBy());
+    this.setReplyByDate(msg.getReplyByDate());
     this.setProtocol(msg.getProtocol());
     this.setConversationId(msg.getConversationId());
 

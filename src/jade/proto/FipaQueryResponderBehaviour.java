@@ -183,7 +183,7 @@ private void SendReply(ACLMessage msg, ACLMessage rep) {
   reply.setLanguage(rep.getLanguage());
   reply.setOntology(rep.getOntology());
   reply.setEncoding(rep.getEncoding());
-  reply.setReplyBy(rep.getReplyBy());
+  reply.setReplyByDate(rep.getReplyByDate());
   
   // The :reply-to, and :reply-with slots are set by default unless
   // they are explicitly set in the rep message.
