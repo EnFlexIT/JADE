@@ -218,10 +218,16 @@ public class LightMessagingService extends BaseService
                     new InternalError("No valid address contained within the AID " +
                         receiverID.getName()));
             }
-        } catch (NotFoundException nfe) {
+        } 
+        catch (NotFoundException nfe) {
             // The receiver does not exist --> Send a FAILURE message
             notifyFailureToSender(msg, receiverID,
                 new InternalError("Agent not found: " + nfe.getMessage()));
+        }
+        catch (JADESecurityException jse) {
+            // The receiver does not exist --> Send a FAILURE message
+            notifyFailureToSender(msg, receiverID,
+                new InternalError("Not authorized: " + jse.getMessage()));
         }
     }
 
@@ -373,7 +379,7 @@ public class LightMessagingService extends BaseService
 
         // Entry point for the ACL message dispatching process
         public void deliverNow(GenericMessage msg, AID receiverID)
-            throws UnreachableException, NotFoundException {
+            throws UnreachableException, NotFoundException, JADESecurityException {
             try {
                 if (myHelper == null) {
                     myHelper = (MessagingSlice) getSlice(myHelperName);
@@ -388,7 +394,7 @@ public class LightMessagingService extends BaseService
         }
 
         private void deliverUntilOK(GenericMessage msg, AID receiverID)
-            throws IMTPException, NotFoundException, ServiceException {
+            throws IMTPException, NotFoundException, ServiceException, JADESecurityException {
             boolean ok = false;
 
             do {
