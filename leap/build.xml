@@ -40,8 +40,12 @@
 	
 	<!-- Additional ANT tasks definition -->
 	<!-- Preverify -->
-	<taskdef name = "pproc"    classname="leapTools.Preprocessor"/>
-  <taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask"/>
+	<taskdef name = "pproc"    classname="leapTools.Preprocessor">
+		<classpath path ="resources/antTasks/leapTools.jar"/>
+	</taskdef>
+	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
+  	<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
+	</taskdef>
   <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
   
   
