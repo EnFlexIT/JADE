@@ -1,86 +1,5 @@
 /*
-  $Log$
-  Revision 1.23  1999/11/08 15:24:49  rimassaJade
-  Added lexical tokens and grammar productions to support the message
-  sniffer.
-
-  Revision 1.22  1999/10/06 08:32:33  rimassa
-  Removed syntax checks for communication protocols. Changed WORD token
-  definition to allow words starting with ':'.
-
-  Revision 1.21  1999/08/31 17:26:57  rimassa
-  Extended AMSEvent grammar to handle new agent motion events.
-
-  Revision 1.20  1999/07/19 00:06:38  rimassa
-  Added liexical and syntactical production rules to support FIPA 98
-  compilant platform profile ontology object.
-
-  Revision 1.19  1999/02/16 08:08:18  rimassa
-  Removed a useless Reader, fixing a FIXME.
-
-  Revision 1.18  1999/02/04 12:49:59  rimassa
-  Added 'unknown' state to DF Life Cycle states.
-  '( action ... )' expression made optional in DF search result.
-  Fixed a bug in the parsing of request forward. Now the content of the
-  forward is parsed according to balanced parenthesis
-
-  Revision 1.17  1999/02/03 10:35:16  rimassa
-  Changed grammar to support both URLs and stringified IORs as agent
-  addresses.
-  Improvements to 'fipa-exception' representation.
-  Complete implementation of SL1 terms wherever they are needed.
-  Some changes to lexical tokens to support multiple receiver names for
-  an ACL message.
-
-  Revision 1.16  1998/12/08 00:04:21  rimassa
-  Added code to parse the common prefix for Actions (i.e. "( action
-  <AGENT_NAME>" ... ")" ).
-  Changed AgentName() grammar production to make the address optional.
-  Fixed FIPA_Exception() grammar production introducing a new
-  <EXCEPTIONSTATE> lexical state.
-
-  Revision 1.15  1998/11/30 00:20:49  rimassa
-  Made the parser a case-insensitive one, through a JavaCC option.
-  Fixed an error in ':agent-type' clause.
-  Added grammar productions and lexical tokens to support DF 'search'
-  action result parsing.
-
-  Revision 1.14  1998/11/15 23:07:10  rimassa
-  Removed an obsolete grammar production 'DeadAgentEvent()'.
-  Added a new grammar production to represent 'kill-container' AMS
-  action.
-
-  Revision 1.13  1998/11/09 00:19:20  rimassa
-  Modified some grammar productions to support both 'create-agent' AMS
-  action and 'new-agent' AMS notification event, avoiding also name
-  clashes between container events and agents events.
-
-  Revision 1.12  1998/11/03 00:35:02  rimassa
-  Completed grammar productions for AMS events.
-
-  Revision 1.11  1998/11/02 02:01:02  rimassa
-  Started to add new grammar productions to support AMS notifications to
-  Remote Management Agent.
-
-  Revision 1.10  1998/10/31 16:41:02  rimassa
-  Added some grammar productions to support 'kill-agent' AMS action.
-
-  Revision 1.9  1998/10/26 22:36:23  Giovanni
-  Added some grammar productions to support property lists in AMS action
-  'create-agent'.
-
-  Revision 1.8  1998/10/26 00:05:39  rimassa
-  Added grammar productions to parse two new AMS actions: 'create-agent'
-  and 'kill-agent'. Besides, some slight modifications were necessary to
-  require a 1-token lookahead even in presence of these new productions.
-
-  Revision 1.7  1998/10/23 21:42:14  Giovanni
-  Added grammar productions and actions to process ACL messages embedded
-  in 'forward' ACC actions.
-
-  Revision 1.6  1998/10/04 18:01:22  rimassa
-  Added a 'Log:' field to every source file.
-
+  $Id$
 */
 
 // This file defines a class to parse 'fipa-agent-management' grammar
@@ -121,7 +40,6 @@ class AgentManagementParser {
 
       try {
 	AgentManagementOntology.DFSearchResult result = parser.parseSearchResult(new BufferedReader(new InputStreamReader(System.in)));
-	//AgentManagementOntology.Action result = parser.parseAction(new BufferedReader(new InputStreamReader(System.in)));
 	result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       }
       catch(ParseException pe) {
@@ -188,9 +106,9 @@ class AgentManagementParser {
     return Search_Result();
   }
 
-  public FIPAException parseFIPAException(Reader r, AgentManagementOntology o) throws ParseException {
+  public FIPAException parseFIPAException(Reader r) throws ParseException {
     ReInit(r);
-    return FIPA_Exception(o);
+    return FIPA_Exception();
   }
 
 
@@ -945,14 +863,14 @@ AgentManagementOntology.DFSearchResult Search_Result() :
 }
 
 
-FIPAException FIPA_Exception(AgentManagementOntology o) :
+FIPAException FIPA_Exception() :
 { 
   String s;
   token_source.SwitchTo(EXCEPTIONSTATE);
 }
 {
   s = ExceptionExpression()
-  { token_source.SwitchTo(DEFAULT); return o.getException(s); }
+  { token_source.SwitchTo(DEFAULT); return AgentManagementOntology.getException(s); }
 }
 
 
