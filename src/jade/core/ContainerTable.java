@@ -80,6 +80,8 @@ class ContainerTable {
 
   public synchronized void removeContainer(String containerName) {
     entries.remove(new CaseInsensitiveString(containerName));
+    if(entries.isEmpty())
+      notifyAll();
   }
 
   public synchronized void removeAddress(String containerName, String address) throws NotFoundException {
@@ -128,6 +130,17 @@ class ContainerTable {
       result[i++] = s;
     }
     return result;
+  }
+
+  synchronized void waitUntilEmpty() {
+    while(!entries.isEmpty()) {
+      try {
+        wait();
+      }
+      catch(InterruptedException ie) {
+        // Do nothing...
+      }
+    }
   }
 
 }
