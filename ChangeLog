@@ -106,6 +106,16 @@ POSSIBLE BACKWARD INCOMPATIBILITIES:
   NonDeterministicBehaviour
 - removed deprecated classes AMSServiceCommunicator.java and 
   DFServiceCommunicator.java  from jade.domain
+- removed toText() deprecated methods
+- removed deprecated method setArguments from jade.core.Agent
+- removed the following deprecated methods from jade.lang.acl.MessageTemplate:
+  MatchReceiver(java.util.List) MatchReplyTo(java.util.List) MatchReplyBy(String)
+- removed the following deprecated methods from jade.lang.acl.ACLMessage:
+  getAllPerformatives()  setReplyBy(String) toText()
+- removed the deprecated method delete() from jade.wrapper.Agent
+- removed the deprecated methods createAgent from jade.wrapper.AgentContainer
+- removed the deprecated methods preAction() and postAction() from 
+  jade.core.behaviours.CompositeBehaviour
 - removed all old-style classes that defined ontologies.
 - removed the old class Quit.java (according to the new FIPA Standard)
 - all methods get_0,set_0,get_1,set_1,etc. in the ontology classes 

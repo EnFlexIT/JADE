@@ -30,19 +30,7 @@ needed. At least a Java Development Kit version 1.2 is required.
 KNOWN BUGS
 ==========
   see http://jade.cselt.it/  ('Bugs' page)  for the full list of reported bugs
-  1) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
-     unavailable" appears during platform shutdown, but then the
-     process completes without any problems.
 
-  2) The second argument of the ResultPredicate is limited to be a SET.
-
-  3) A deadlock happens when using the ORB of JDK1.3 for inter-platform
-     communication. ORBacus or JDK1.4 must be used instead.
-
-  4) The AMS actions move-agent and clone-agent succeed when the
-     proper method (doMove() and doClone()) is called on the target
-     agent; this means tat if the migration or cloning subsequently fail
-     the interaction protocol still completes successfully.
 
 CONTACT
 =======
