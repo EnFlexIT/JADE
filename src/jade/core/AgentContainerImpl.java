@@ -75,6 +75,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // ClassLoader table, used for agent mobility
   private Map loaders = new HashMap();
 
+  // This Map holds the mapping between an agent that arrived on this
+  // container and the container where its classes can be retrieved
+  private Map sites = new HashMap();
+
   // The agent platform this container belongs to
   protected MainContainer myPlatform;
 
@@ -170,6 +174,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance));
 
       Agent instance = (Agent)in.readObject();
+      // Store the container where the classes for this agent can be
+      // retrieved
+      sites.put(instance, classSite);
       initAgent(agentID, instance, startIt);
 
     }
@@ -702,7 +709,12 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	}
 
 	byte[] bytes = out.toByteArray();
-	ac.createAgent(agentID, bytes, this, NOSTART);
+    // Gets the container where the agent classes can be retrieved
+    AgentContainer classSite = (AgentContainer) sites.get(a);
+    if (classSite == null) {    // The agent was born on this container
+      classSite = this;
+    } 
+	ac.createAgent(agentID, bytes, classSite, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
 	boolean transferResult = myPlatform.transferIdentity(agentID, myName, destName);
@@ -719,6 +731,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	  a.doGone();
 	  localAgents.remove(agentID);
 	  cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
+      sites.remove(a);
 	}
 	else {
 	  a.doExecute();
@@ -763,7 +776,12 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
       AID newID = globalAID(newName);
       byte[] bytes = out.toByteArray();
-      ac.createAgent(newID, bytes, this, START);
+      // Gets the container where the agent classes can be retrieved
+      AgentContainer classSite = (AgentContainer) sites.get(a);
+      if (classSite == null) {    // The agent was born on this container
+        classSite = this;
+      } 
+      ac.createAgent(newID, bytes, classSite, START);
 
     }
     catch(RemoteException re) {
