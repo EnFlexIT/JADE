@@ -1263,7 +1263,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(myAPState == AP_ACTIVE) {
       activateAllBehaviours();
       synchronized(waitLock) {
-      	Runtime.instance().debug(getLocalName(), "Notifying on waitLock");
+      	//Runtime.instance().debug(getLocalName(), "Notifying on waitLock");
         waitLock.notifyAll(); // Wakes up the embedded thread
       }
     }
@@ -1785,9 +1785,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 	  long startTime = System.currentTimeMillis();
 	  //DEBUG
-	  Runtime.instance().debug("Start waiting on waitLock");
+	  //Runtime.instance().debug("Start waiting on waitLock");
 	  waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
-	  Runtime.instance().debug("Exit waiting on waitLock");
+	  //Runtime.instance().debug("Exit waiting on waitLock");
 	  long elapsedTime = System.currentTimeMillis() - startTime;
 
 	  // If this was a timed wait, update time to wait; if the
@@ -1818,9 +1818,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
       while(myAPState == AP_SUSPENDED) {
   try {
 	  //DEBUG
-	  Runtime.instance().debug("Start waiting on suspendLock");
+	  //Runtime.instance().debug("Start waiting on suspendLock");
 	  suspendLock.wait(); // Blocks on suspended state monitor
-	  Runtime.instance().debug("Exit waiting on suspendLock");
+	  //Runtime.instance().debug("Exit waiting on suspendLock");
 	}
 	catch(InterruptedException ie) {
 	  switch(myAPState) {
@@ -2257,7 +2257,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	*/
 	public final void postMessage(final ACLMessage msg) {
 		//DEBUG
-		Runtime.instance().debug(getLocalName(), "message posted: "+Runtime.instance().stringify(msg));
+		//Runtime.instance().debug(getLocalName(), "message posted: "+Runtime.instance().stringify(msg));
+		Runtime.instance().debug(getLocalName(), "message posted: "+msg);
 			
 		synchronized (waitLock) {
 			/*

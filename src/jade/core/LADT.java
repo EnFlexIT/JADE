@@ -58,12 +58,8 @@ class LADT {
       try {
         Thread me = Thread.currentThread();
 	while((owner != null) && (owner != me)) {
-		// DEBUG
-		Runtime.instance().debug(value, "Wait to lock row", "Wait to lock an empy row");
 	  wait();
-		Runtime.instance().debug(value, "Waking up", "Waking up on an empty row");
 	}
-	Runtime.instance().debug(value, "Row locked", "Empty row locked");
 
 	owner = me;
         ++depth;
@@ -84,8 +80,6 @@ class LADT {
       	// hanging threads even if depth is > 0, otherwise they will 
       	// hang forever
         owner = null;
-        // DEBUG
-				Runtime.instance().debug(value, "Unlocking row", "Unlocking empty row");
         notifyAll();
       }
     }
