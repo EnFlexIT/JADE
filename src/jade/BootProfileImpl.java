@@ -157,7 +157,7 @@ public class BootProfileImpl extends ProfileImpl {
 
         // Transfer argument properties into profile properties
 
-        BasicProperties profileProp = getProperties();
+        BasicProperties profileProp = (BasicProperties)getProperties();
         
 	if (isMain) {
 	    profileProp.setProperty(Profile.MAIN, "true");
@@ -308,6 +308,7 @@ public class BootProfileImpl extends ProfileImpl {
 
         // Get agent list (if any)
         value = argProp.getProperty(AGENTS_KEY);
+
 
         flag = fetchAndVerifyBoolean(GUI_KEY);
         if (flag) {
