@@ -279,15 +279,20 @@ it replies with a NOT_UNDERSTOOD message.
 	
 'MessageTemplate' subdirectory
 ==============================
-This example shows the user the way to define an application specific MessageTemplate.
-The WaitAgent agent waits for a REQUEST message from a set of agents the user must provide.
-Since the default method in class MessageTemplate does not provide a way to define such a
-pattern, the example shows how to create this application specific pattern.
-To try the example, the user can start the WaitAgent (from command line when launching 
-the platform or via RMA gui ) and  then enters the name of the agents that will 
-send messages to this agent (for example start a DummyAgent from the RMA gui and use 
-it as sender).
-If an REQUEST message will be sent (from one of the expected agent) than the WaitAgent will reply with a INFORM message otherwise no reply message will be sent.
+This example shows the usage of the MessageTemplate.MatchExpression Interface 
+to define an application specific MessageTemplate. In particular in the method 
+match() the programmer should realize the necessary checks on the ACLMessage 
+and return true only if the message matches the application-specific template.
+
+To try the example, start the WaitAgent and then enters the name (GUID) of all
+the agents that are allowed to send REQUEST messages to this agent.
+
+java jade.Boot -gui agent:examples.MessageTemplate.WaitAgent
+
+It might be useful to launch a DummyAgent from the RMA gui and use it to send 
+a REQUEST message.
+If a REQUEST message is received by one of the expected agents than the 
+WaitAgent replies with a INFORM message, otherwise the message is just ignored.
 
 'JadeJessProtege' subdirectory
 ==============================

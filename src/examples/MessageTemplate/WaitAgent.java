@@ -35,114 +35,102 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
-This agent waits for REQUEST ACLMessages from a set of agents the 
-user must provide.
-Since the method provided by the MessageTemplate class does not allow 
-to define such a pattern, an application specific Message Template has 
-been defined.
+ * This example shows how to define an application-specific MessageTemplate.
+ *
+ * This agent waits for REQUEST-type ACLMessages from the set of agents 
+ * specified in input by the user. 
 
-@author Tiziana Trucco - CSELT S.p.A.
-@version  $Date$ $Revision$  
+ * Since the method provided by the MessageTemplate class does not allow 
+ * to define such a pattern, an application specific Message Template has 
+ * been defined.
+
+ * @author Tiziana Trucco - CSELT S.p.A.
+ * @version  $Date$ $Revision$  
 */
 
 
 public class WaitAgent extends Agent {
 
-  // This class implements the MessageTemplate.MatchExpression interface in order to
-	// provide an application-specific match() method to use in the pattern matching phase.
-	
-	class myMatchExpression implements MessageTemplate.MatchExpression
-	{
-	  
-	  List senders;
+    // This class implements the MessageTemplate.MatchExpression interface in order to
+    // provide an application-specific match() method to use in the pattern matching phase.
+    class myMatchExpression implements MessageTemplate.MatchExpression {
+	List senders;
 		
-		myMatchExpression(List l)
-		{
-				senders = l;
-		}
+	myMatchExpression(List l) {
+	    senders = l;
+	}
 		
-		//This method verifies if the ACLMessage was sent from one of the expected senders. 
-		public boolean match(ACLMessage msg){
+	//This method verifies if the ACLMessage was sent from one of the expected senders. 
+	public boolean match(ACLMessage msg){
 	  		
 	    AID sender = msg.getSender();
 	    String name = sender.getName();
 	    Iterator it_temp = senders.iterator();
 	    boolean out = false;
 	    
-	    while(it_temp.hasNext() && !out){
+	    while(it_temp.hasNext() && !out) {
 	    	String tmp = ((AID)it_temp.next()).getName();
 	    	if(tmp.equalsIgnoreCase(name))
-	    		out = true;
+		    out = true;
 	    }
 	    
 	    return out;
-	    
-	  	}
-	  	
-	  
 	}
+    }
 	
-	//Simple Behaviour that waits for an INFORM message from a set of agents.
-  class WaitBehaviour extends SimpleBehaviour {
+    //Simple Behaviour that waits for messages that match the given template
+    // and reply with an inform message.
+    class WaitBehaviour extends CyclicBehaviour {
   	
-  	private boolean finished = false;
-    private MessageTemplate template;
-    
-    public WaitBehaviour(Agent a, MessageTemplate mt) {
-      super(a);
-      template = mt;  
-    }
+	private MessageTemplate template;
+	
+	public WaitBehaviour(Agent a, MessageTemplate mt) {
+	    super(a);
+	    template = mt;  
+	}
 
-    public void action() {
-    		      
-    		ACLMessage  msg = blockingReceive(template);
-      	
-    		System.out.println("\nReceived a REQUEST message from: " + msg.getSender().getName());
-        ACLMessage reply = msg.createReply();
-        reply.setPerformative(ACLMessage.INFORM);
-        send(reply);
-        System.out.println("\nSending an INFORM message.");
-    	
-    }
-  
-    public boolean done() {
-      return finished;
-    }
-  } //End class WaitBehaviour
+	public void action() {
+	    
+	    ACLMessage  msg = blockingReceive(template);
+	    System.out.println("\nReceived a REQUEST message from: " + msg.getSender().getName());
+
+	    ACLMessage reply = msg.createReply();
+	    reply.setPerformative(ACLMessage.INFORM);
+	    send(reply);
+	    System.out.println("\nSending an INFORM message.");
+	}
+    } //End class WaitBehaviour
     
   
-  protected void setup() {
+    protected void setup() {
   	
   	try{
-  		ArrayList sender = new ArrayList();
-    	System.out.println("\nEnter the agent name, i.e. its globally unique identifier (name@hap), of the expected senders separated by white spaces or tab: ");
-    	BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-    	String agentNames = buff.readLine();
-    	StringTokenizer st = new StringTokenizer(agentNames);
-    	
-    	while(st.hasMoreTokens())
-    	{
-      	String name = st.nextToken();
-      	sender.add(new AID(name, AID.ISGUID));
-    	}
+	    ArrayList sender = new ArrayList();
+	    System.out.println("\nEnter the agent names, i.e. the globally unique identifiers (name@hap), of the expected senders separated by white spaces or tab (example da0@myhost:1099/JADE da1@myhost:1099/JADE): ");
+	    BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+	    String agentNames = buff.readLine();
+	    StringTokenizer st = new StringTokenizer(agentNames);
+	    
+	    while(st.hasMoreTokens()) {
+		String name = st.nextToken();
+		sender.add(new AID(name, AID.ISGUID));
+	    }
     
-    	if(sender.isEmpty())
+	    if(sender.isEmpty())
     		System.out.println("WARNING: Set of senders empty so no message will match the pattern !");
     		
-    	myMatchExpression me = new myMatchExpression(sender);
-    	MessageTemplate myTemplate = new MessageTemplate(me);
+	    myMatchExpression me = new myMatchExpression(sender);
+	    MessageTemplate myTemplate = new MessageTemplate(me);
       
-    	//Examples of using the logic operator AND and the matchPerforamative() method 
-    	//provided by the MessageTemplate class and a user defined MessageTemplate.
-    	MessageTemplate mt = MessageTemplate.and(myTemplate,MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+	    //Examples of using the logic operator AND and the matchPerforamative() method 
+	    //provided by the MessageTemplate class and a user defined MessageTemplate.
+	    MessageTemplate mt = MessageTemplate.and(myTemplate,MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
-    	WaitBehaviour Behaviour = new  WaitBehaviour(this,mt);
-    	addBehaviour(Behaviour);
-  		}catch(java.io.IOException e){
-				e.printStackTrace();  	
+	    WaitBehaviour Behaviour = new  WaitBehaviour(this,mt);
+	    addBehaviour(Behaviour);
+	}catch(java.io.IOException e){
+	    e.printStackTrace();  	
   	}
-  }
-
-	
+    }
 
 }//end class WaitAgent
