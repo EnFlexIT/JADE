@@ -48,7 +48,7 @@ public class MicroStub {
 	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
 		try {
   		disableFlush();
-			byte[] cmd = SerializationEngine.serialize(c);
+  		byte[] cmd = SerializationEngine.serialize(c);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
 			if (pendingCommands.size() > 0) {
 				System.out.println("############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
@@ -96,7 +96,7 @@ public class MicroStub {
 		pendingCommands.addElement(c);
 		int size = pendingCommands.size();
   	if (size > 100 && size < 110) {
-  		logger.log(Logger.INFO,size+" postponed commands");
+  		logger.log(Logger.WARNING,size+" postponed commands");
   	}
 	}
 	
