@@ -5,7 +5,7 @@
 
 TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  protocols/Initiator.java protocols/Responder.java protocols/ProtocolTester.java protocols/ComplexInitiator.java protocols/InitiatorHandler.java protocols/ResponderHandler.java \
-	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java behaviours\TestReceiverBehaviourAgent.java \
+	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java behaviours/TestReceiverBehaviourAgent.java \
 	  subdf/SubDF.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
 	  ontology/EngagerAgent.java ontology/RequesterAgent.java \
