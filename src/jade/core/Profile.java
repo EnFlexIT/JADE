@@ -107,11 +107,7 @@ public abstract class Profile {
 
     /**
      */
-    //protected abstract AgentCache getAgentCache() throws ProfileException;
-
-    /**
-     */
-    //protected abstract MobilityHandler getMobilityHandler() throws ProfileException;
+    protected abstract MobilityManager getMobilityManager() throws ProfileException;
 
     /**
      */
