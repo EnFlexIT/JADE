@@ -65,8 +65,10 @@ class AgentPlatformImpl extends UnicastRemoteObject implements AgentPlatform {
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
     Object o = agentMap.get(agentName);
-    if(o == null) throw new NotFoundException("Failed to find " + agentName);
-    else return (AgentDescriptor)o;
+    if(o == null)
+      throw new NotFoundException("Failed to find " + agentName);
+    else
+      return (AgentDescriptor)o;
   }
 
 }
