@@ -16,7 +16,7 @@
 	   			<LI>register with the DF;</LI>
 	   			<LI>search the DF (he should find himself);</LI>
 	   			<LI>deregister with the DF;</LI>
-			    <LI>searche again the DF (he shouldn't find any agent);</LI>
+			    <LI>search again the DF (he shouldn't find any agent);</LI>
 			    </UL>			
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
