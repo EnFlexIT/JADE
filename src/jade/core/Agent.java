@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.66  1999/09/01 00:14:00  rimassa
+  Added a package-scoped messages() method.
+
   Revision 1.65  1999/08/31 17:19:49  rimassa
   Added complete support for agent migration.
 
@@ -2025,6 +2028,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       if(msg != null) msgQueue.addLast(msg);
       doWake();
     }
+  }
+
+  Iterator messages() {
+    return msgQueue.iterator();
   }
 
 }
