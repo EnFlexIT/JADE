@@ -27,12 +27,12 @@ import jade.lang.acl.*;
  * <p> everytime you receive a message call:
  * <code> StringWriter w = new StringWriter();
  * msg.toText(w);
- * myGui.receivedMessage("("+w.toString()+")"); </code>
+ * myGui.receivedMessage(w.toString()); </code>
  *
  * <p> every time you send a message call:
  * <code> StringWriter w = new StringWriter();
  * msg.toText(w);
- * myGui.sentMessage("("+w.toString()+")"); </code>
+ * myGui.sentMessage(w.toString()); </code>
  */
 public class SentReceivedGUI extends Frame
 {
