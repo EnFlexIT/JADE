@@ -61,7 +61,7 @@ public class Logger{
 	/**
      Print a String in a device dependent way. 
    */
-	public static void println(String s) {
+	public synchronized static void println(String s) {
 		System.out.println(s);
 		
 		/*#MIDP_INCLUDE_BEGIN
