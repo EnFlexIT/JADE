@@ -182,6 +182,14 @@ class MainWindow extends JFrame {
     }
   }
 
+  public boolean showExitDialog(String message) {
+    int n = JOptionPane.showConfirmDialog(this,"Are you really sure to exit ?", message, JOptionPane.YES_NO_OPTION);
+    if(n == JOptionPane.YES_OPTION)
+      return true;
+    else
+      return false;
+  }
+
   private void setUI(String ui) {
     try {
       UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
