@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.49  1999/06/04 07:41:44  rimassa
+  Changed a line to use Starter class instead of jade.Boot class.
+
   Revision 1.48  1999/05/20 13:43:13  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -513,7 +516,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @param name The local name of the agent.
   */
   public void doStart(String name) {
-    AgentContainerImpl thisContainer = jade.Boot.getContainer();
+    AgentContainerImpl thisContainer = Starter.getContainer();
     try {
       thisContainer.createAgent(name, this, AgentContainer.START);
     }
