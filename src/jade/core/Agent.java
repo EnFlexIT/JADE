@@ -57,7 +57,7 @@ import jade.onto.Ontology;
 import jade.onto.OntologyException;
 
 // Concepts from fipa-agent-management ontology
-import jade.domain.FIPAAgentManagement.AID;
+import jade.onto.basic.AID;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
