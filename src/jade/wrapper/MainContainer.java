@@ -54,8 +54,8 @@ public class MainContainer extends AgentContainer {
      @param impl A concrete implementation of a JADE main container.
      @param platformName the name of this platform
    */
-  public MainContainer(AgentContainerImpl impl, String platformName) {
-    super(impl, platformName);
+  public MainContainer(ContainerProxy cp, AgentContainerImpl impl, String platformName) {
+    super(cp, impl, platformName);
   }
 
 }

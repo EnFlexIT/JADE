@@ -58,7 +58,8 @@ import jade.util.Logger;
  */
 public class AgentContainer implements PlatformController {
 
-  private AgentContainerImpl myImpl;
+  private jade.core.AgentContainer myImpl;
+  private ContainerProxy myProxy;
   private String myPlatformName;
   private State platformState = PlatformState.PLATFORM_STATE_VOID;
   private ListenerManager myListenerManager = new ListenerManager();
@@ -76,8 +77,9 @@ public class AgentContainer implements PlatformController {
      @param impl A concrete implementation of a JADE agent container.
      @param platformName the name of the platform
    */
-  public AgentContainer(AgentContainerImpl impl, String platformName) {
-    myImpl = impl;
+  public AgentContainer(ContainerProxy cp, jade.core.AgentContainer impl, String platformName) {
+    myProxy = cp;
+  	myImpl = impl;
     myPlatformName = platformName;
     platformState = PlatformState.PLATFORM_STATE_READY;
   }
@@ -89,16 +91,19 @@ public class AgentContainer implements PlatformController {
    * @throws ControllerException If any probelms occur obtaining this proxy.
    */
   public AgentController getAgent(String localAgentName) throws ControllerException {
-      // FIXME. To check for security permissions
-    if(myImpl == null) {
-      throw new ControllerException("Stale proxy.");
+    if(myImpl == null || myProxy == null) {
+      throw new StaleProxyException();
     }
+      
     AID agentID = new AID(localAgentName, AID.ISLOCALNAME);
-    AgentController a = myImpl.getAgent(agentID);
-    if (a == null) {
+		
+    // Check that the agent exists
+    jade.core.Agent instance = myImpl.acquireLocalAgent(agentID);
+    if (instance == null) {
       throw new ControllerException("Agent " + localAgentName + " not found.");
     } 
-    return a; 
+    myImpl.releaseLocalAgent(agentID);
+    return new AgentController(agentID, myProxy, myImpl);
   }
 
 
@@ -116,21 +121,31 @@ public class AgentContainer implements PlatformController {
      @return A proxy object, allowing to call state-transition forcing
      methods on the real agent instance.*/
   public AgentController createNewAgent(String nickname, String className, Object[] args) throws StaleProxyException {
-    if(myImpl == null)
+    if(myImpl == null || myProxy == null) {
       throw new StaleProxyException();
-    try {
+  	}
+     
+    AID agentID = new AID(nickname, AID.ISLOCALNAME);
+    
+  	try {
+  		myProxy.createAgent(agentID, className, args);
+  		return new AgentController(agentID, myProxy, myImpl);
+  	}
+  	catch (Throwable t) {
+  		throw new StaleProxyException(t);
+  	}
+    /*try {
       jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
       a.setArguments(args);
       AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      myImpl.initAgent(agentID, a, false, (JADEPrincipal)null, (Credentials)null);
+      myImpl.initAgent(agentID, a, null, null);
 
-      Agent result = new Agent(agentID, a);
+      Agent result = new Agent(agentID, myImpl);
       return result;
     }
     catch(Exception e) {
       throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
-    }
-
+    }*/
   }
 
     // HP Patch begin ----------------------------------------------------------------------------------
@@ -143,35 +158,21 @@ public class AgentContainer implements PlatformController {
      * @param anAgent The agent to be added to this agent container.
      * @return An AgentController, allowing to call state-transition forcing methods on the real agent instance.
      */
-    public Agent acceptNewAgent(String nickname, jade.core.Agent anAgent)
-                                          throws StaleProxyException {
-        if (myImpl == null) {
-            throw new StaleProxyException();
-        }
-        AID agentID = new AID(nickname, AID.ISLOCALNAME);
-        try {
-            myImpl.initAgent(agentID, anAgent, false, (JADEPrincipal)null, (Credentials)null);
-        }
-        catch(Exception e) {
-            throw new StaleProxyException(e);
-        }
-        return new Agent(agentID, anAgent);
+    public AgentController acceptNewAgent(String nickname, jade.core.Agent anAgent) throws StaleProxyException {
+	    if (myImpl == null || myProxy == null) {
+	      throw new StaleProxyException();
+	    }
+	      
+      AID agentID = new AID(nickname, AID.ISLOCALNAME);
+      // FIXME: This method skip the security checks!
+      try {
+          myImpl.initAgent(agentID, anAgent, (JADEPrincipal)null, (Credentials)null);
+      }
+      catch(Exception e) {
+          throw new StaleProxyException(e);
+      }
+      return new AgentController(agentID, myProxy, myImpl);
     }
-
-    /**
-     * Kill a particular agent.
-     * @param nickname A platform-unique nickname of the agent to kill.
-
-    public void killAgent(String nickname)
-            throws StaleProxyException, IMTPException, NotFoundException {
-        if (myImpl == null) {
-            throw new StaleProxyException();
-        }
-        AID agentID = new AID(nickname, AID.ISLOCALNAME);
-
-        myImpl.killAgent(agentID);
-    }
-    */
     // HP Patch end ------------------------------------------------------------------------------------
 
 
@@ -179,14 +180,28 @@ public class AgentContainer implements PlatformController {
      Shuts down this container, terminating all the agents running within it.
    */
   public void kill() throws StaleProxyException {
-    if(myImpl == null)
+    if (myImpl == null || myProxy == null) {
       throw new StaleProxyException();
-    myImpl.shutDown();
+    }
+    
+    try {
+    	myProxy.killContainer();
+	    // release resources of this object
+    	myProxy = null;
+	    myImpl = null;
+	    myPlatformName = null;
+	    platformState = PlatformState.PLATFORM_STATE_KILLED;
+	    myListenerManager = null;
+    }
+  	catch (Throwable t) {
+  		throw new StaleProxyException(t);
+  	}
+    /*myImpl.shutDown();
     // release resources of this object
     myImpl = null;
     myPlatformName = null;
     platformState = PlatformState.PLATFORM_STATE_KILLED;
-    myListenerManager = null;
+    myListenerManager = null;*/
   }
 
 
@@ -203,15 +218,23 @@ public class AgentContainer implements PlatformController {
      protocol activation.
    */
   public void installMTP(String address, String className) throws MTPException, StaleProxyException {
-    if(myImpl == null)
+    if (myImpl == null || myProxy == null) {
       throw new StaleProxyException();
+    }
+    
     try {
+    	myProxy.installMTP(address, className);
+    }
+  	catch (Throwable t) {
+  		throw new StaleProxyException(t);
+  	}
+    /*try {
 	throw new IMTPException("Temporary Hack");
 	//      myImpl.installMTP(address, className);
     }
     catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
-    }
+    }*/
   }
 
   /**
@@ -226,15 +249,23 @@ public class AgentContainer implements PlatformController {
      address is currently installed on this container.
    */
   public void uninstallMTP(String address) throws MTPException, NotFoundException, StaleProxyException {
-    if(myImpl == null)
+    if (myImpl == null || myProxy == null) {
       throw new StaleProxyException();
+    }
+    
     try {
+    	myProxy.uninstallMTP(address);
+    }
+  	catch (Throwable t) {
+  		throw new StaleProxyException(t);
+  	}
+    /*try {
 	throw new IMTPException("Temporary Hack");
 	//      myImpl.uninstallMTP(address);
     }
     catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
-    }
+    }*/
   }
 
   /**
@@ -280,14 +311,14 @@ public class AgentContainer implements PlatformController {
   public synchronized void addPlatformListener(Listener aListener) throws ControllerException {
   	//#ALL_EXCLUDE_BEGIN
   	if (myListenerManager.addListener(aListener) == 1) {
-  		myImpl.addPlatformListener(myListenerManager);
+  		//myImpl.addPlatformListener(myListenerManager);
   	}
   	//#ALL_EXCLUDE_END
   }
   public synchronized void removePlatformListener(Listener aListener) throws ControllerException {
   	//#ALL_EXCLUDE_BEGIN
   	if (myListenerManager.removeListener(aListener) == 0) {
-  		myImpl.removePlatformListener(myListenerManager);
+  		//myImpl.removePlatformListener(myListenerManager);
   	}
   	//#ALL_EXCLUDE_END
   }
