@@ -708,6 +708,57 @@ public class ams extends Agent implements AgentManager.Listener {
 
   } // End of SniffAgentOffBehaviour class
 
+
+  private class DebugAgentOnBehaviour extends AMSBehaviour { 
+    public DebugAgentOnBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new DebugAgentOnBehaviour(msg);
+    }
+
+    protected void processAction(Action a) throws FIPAException {
+      DebugOn dbgOn = (DebugOn)a.get_1();
+      try {
+	myPlatform.debugOn(dbgOn.getDebugger(), dbgOn.getCloneOfDebuggedAgents());
+	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+      }
+      catch(UnreachableException ue) {
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+      }
+      catch(NotFoundException nfe) {
+	throw new NotRegistered();
+      }
+    }
+
+  } // End of DebugAgentOnBehaviour class
+
+  private class DebugAgentOffBehaviour extends AMSBehaviour {
+    public DebugAgentOffBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new DebugAgentOffBehaviour(msg);
+    }
+
+    protected void processAction(Action a) throws FIPAException {
+      DebugOff dbgOff = (DebugOff)a.get_1();
+      try {
+	myPlatform.debugOff(dbgOff.getDebugger(), dbgOff.getCloneOfDebuggedAgents());
+	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+      }
+      catch(UnreachableException ue) {
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+      }
+      catch(NotFoundException nfe) {
+	throw new NotRegistered();
+      }
+    }
+
+  } // End of DebugAgentOffBehaviour class
+
   private class InstallMTPBehaviour extends AMSBehaviour {
     public InstallMTPBehaviour(ACLMessage msg) {
       super(msg);
@@ -891,6 +942,8 @@ public class ams extends Agent implements AgentManager.Listener {
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLAGENT, new KillBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLCONTAINER, new KillContainerBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFON, new SniffAgentOnBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.DEBUGOFF, new DebugAgentOffBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.DEBUGON, new DebugAgentOnBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFOFF, new SniffAgentOffBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.INSTALLMTP, new InstallMTPBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.UNINSTALLMTP, new UninstallMTPBehaviour(null));
