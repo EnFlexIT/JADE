@@ -247,7 +247,7 @@
   <!--  __________________________________________________
                             runAutomatic
         __________________________________________________ -->
-  <target name="runAutomatic" description="run immediately and automatically the test suite" depends="compile">
+  <target name="runAutomatic" description="run immediately and automatically the test suite" depends="compile, separate">
    <java classname="test.common.testSuite.TestSuiteAgent" fork="true">
       <sysproperty key="test.common.testSuite.TestSuiteAgent.runAutomatic" value="true"/>
   	  <classpath refid="project.class.path"/>
