@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.43  1999/10/08 08:28:40  rimassa
+  Added some fault tolerance to the platform in dealing with unreachable
+  containers.
+
   Revision 1.42  1999/10/06 08:48:25  rimassa
   Added a printout message when the agent platform is ready to accept
   containers.
@@ -450,6 +454,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       }
       catch(UnreachableException ue) {
 	System.out.println("Replacing a dead agent ...");
+	theAMS.postDeadAgent(ad.getContainerName(), name);
       }
     }
 
@@ -526,7 +531,12 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     Object[] allContainers = c.toArray();
     for(int i = 0; i < allContainers.length; i++) {
       AgentContainer ac = (AgentContainer)allContainers[i];
-      APKillContainer(ac); // This call removes 'ac' from 'container' map and from the collection 'c'
+      try {
+	APKillContainer(ac); // This call removes 'ac' from 'container' map and from the collection 'c'
+      }
+      catch(RemoteException re) {
+	System.out.println("Container is unreachable. Ignoring...");
+      } 
     }
 
     // Kill all non-system agents
@@ -579,16 +589,13 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public void APKillContainer(AgentContainer ac) {
+  public void APKillContainer(AgentContainer ac) throws RemoteException {
     try {
       ac.exit(); // RMI call
     }
     catch(UnmarshalException ue) {
       // FIXME: This is ignored, since we'd need oneway calls to
       // perform exit() remotely
-    }
-    catch(RemoteException re) {
-      re.printStackTrace();
     }
   }
 
@@ -728,9 +735,18 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
     // This call spawns a separate thread in order to avoid deadlock.
     final AgentContainer ac = (AgentContainer)containers.get(containerName);
+    final String cName = containerName;
     Thread auxThread = new Thread(new Runnable() {
       public void run() {
-	APKillContainer(ac);
+	try {
+	  APKillContainer(ac);
+	}
+	catch(RemoteException re) {
+	  System.out.println("Container " + cName + " is unreachable.");
+	  containers.remove(cName);
+	  theAMS.postDeadContainer(cName);
+
+	}
       }
     });
     auxThread.start();
