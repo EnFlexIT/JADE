@@ -255,13 +255,13 @@ public class Boot extends MIDlet {
   public void startApp() throws MIDletStateChangeException {
 
     // System.out.println(getCopyrightNotice());
-    Logger.println("This is JADE - LEAP J2ME kernel v2.1");
+    Logger.println("This is JADE - LEAP J2ME kernel v3.0");
 
     try {
       ProfileImpl p = new ProfileImpl();
 
 
-      Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 2.1"));
+      Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
 
 
       // small trick - moving much memory consuming instruction to the point where it is not so important
