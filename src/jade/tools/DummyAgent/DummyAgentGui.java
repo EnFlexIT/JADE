@@ -102,7 +102,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		// Add the current message editing fields (an AclGui) to the WEST part of the border layout manager
 		currentMsgGui = new AclGui();
-		currentMsgGui.setBorder(new TitledBorder("Current message"));
+		//currentMsgGui.setBorder(new TitledBorder("Current message"));
 		ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 		
 		msg.setSender(agentName);
@@ -262,6 +262,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		{
 			ACLMessage m = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 			m.setSender(agentName);
+	    m.setEnvelope(new jade.domain.FIPAAgentManagement.Envelope());	
 			currentMsgGui.setMsg(m);
 		}
 		// SEND
@@ -371,6 +372,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
 				ACLMessage m = mi.getMessage();
 				ACLMessage reply = m.createReply();
+				reply.setEnvelope(new jade.domain.FIPAAgentManagement.Envelope());
 				//reply.setSender(myAgent.getAID());
 				//currentMsgGui.setMsg(m.createReply());
 				currentMsgGui.setMsg(reply);
