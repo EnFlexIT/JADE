@@ -32,11 +32,16 @@ import jade.core.ContainerID;
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class RemovedMTP {
+public class RemovedMTP implements Event {
+
+  public static final String NAME = "Removed-MTP";
 
   private String address;
   private ContainerID where;
 
+  public String getName() {
+    return NAME;
+  }
 
   public void setAddress(String s) {
     address = s;

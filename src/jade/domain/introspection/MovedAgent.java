@@ -33,12 +33,18 @@ import jade.core.ContainerID;
    @version $Date$ $Revision$
 */
 
-public class MovedAgent {
+public class MovedAgent implements Event {
+
+  public static final String NAME = "Moved-Agent";
 
   private AID agent;
   private ContainerID from;
   private ContainerID to;
 
+
+  public String getName() {
+    return NAME;
+  }
 
   public void setAgent(AID id) {
     agent = id;

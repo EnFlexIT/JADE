@@ -33,10 +33,15 @@ import jade.core.ContainerID;
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class RemovedContainer {
+public class RemovedContainer implements Event {
+
+  public static final String NAME = "Removed-Container";
 
   private ContainerID container;
 
+  public String getName() {
+    return NAME;
+  }
 
   public void setContainer(ContainerID id) {
     container = id;
