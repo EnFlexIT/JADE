@@ -29,7 +29,7 @@ import jade.util.leap.Comparable;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class Timer implements Comparable {
+public class Timer implements Comparable {
 
   private long expireTimeMillis;
   private boolean expired;

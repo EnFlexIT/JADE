@@ -26,6 +26,6 @@ package jade.core;
 /**
 @author Giovanni Caire - TILAB
 */
-interface TimerListener {
+public interface TimerListener {
   void doTimeOut(Timer t);
 }

@@ -31,7 +31,7 @@ import jade.util.leap.SortedSetImpl;
 @version $Date$ $Revision$
 */
 
-class TimerDispatcher implements Runnable {
+public class TimerDispatcher implements Runnable {
 
   private Thread myThread;
   private SortedSet timers = new SortedSetImpl();
@@ -47,16 +47,19 @@ class TimerDispatcher implements Runnable {
     }
   }
 
-  synchronized void add(Timer t) {
+  public synchronized Timer add(Timer t) {
   	while (!timers.add(t)) {
   		t.setExpirationTime(t.expirationTime()+1);
   	}
     // If this is the first timer, wake up the dispatcher thread
-    if(timers.first() == t)
+    if(timers.first() == t) {
       notify();
+    }
+    
+    return t;
   }
 
-  synchronized void remove(Timer t) {
+  public synchronized void remove(Timer t) {
     timers.remove(t);
   }
 
