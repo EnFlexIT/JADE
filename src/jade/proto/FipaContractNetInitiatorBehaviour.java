@@ -566,7 +566,14 @@ public void reset() {
 public void reset(ACLMessage msg, List responders) {
   reset();
   cfpMsg = (ACLMessage)msg.clone();
-  proposerAgents = responders;
+  if (responders != null) 
+      proposerAgents = responders;
+  else {
+      proposerAgents = new ArrayList();
+      Iterator i=msg.getAllReceiver();
+      while (i.hasNext())
+	  proposerAgents.add(i.next());
+  }
 }
 }
 
