@@ -173,8 +173,14 @@ public class AbsContentElementList implements AbsContentElement {
      * @return <code>true</code> if the object is grounded.
      */
     public boolean isGrounded() {
+    	Iterator it = elements.iterator();
+    	while (it.hasNext()) {
+    		AbsContentElement abs = (AbsContentElement) it.next();
+				if (!abs.isGrounded()) {
+					return false;
+				}
+    	}
     	return true;
-    	//FIXME: Not yet implemented
     }
 
     /**

@@ -29,9 +29,6 @@ import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.io.PrintStream;
-//__CLDC_UNSUPPORTED__BEGIN
-import java.util.Arrays;
-//__CLDC_UNSUPPORTED__END
 
 /**
  * Base class for all abstract descriptor classes.
@@ -169,7 +166,6 @@ class AbsObjectImpl implements AbsObject {
       return sb.toString();
     }
     
-//__CLDC_UNSUPPORTED__BEGIN
 		//ADDED BY SANDER FAAS:
 		/**
 	 	 * Returns true if the attribute is equal to
@@ -203,7 +199,7 @@ class AbsObjectImpl implements AbsObject {
     private int f(AbsObjectImpl o, int x)
     {
     	String slotNames[] = o.getNames();
-    	Arrays.sort(slotNames);
+    	sort(slotNames);
     	Vector v = new Vector();
     	for(int i = 0; i < slotNames.length; i++)
     	{
@@ -226,25 +222,19 @@ class AbsObjectImpl implements AbsObject {
 		{
 			return f(o, 2);
 		} 
-//__CLDC_UNSUPPORTED__END
 		
-/*__J2ME_COMPATIBILITY__BEGIN
-    public boolean equals(Object obj)
-    {
-    	if (obj != null) {
-	    	if (obj.getClass().equals(getClass()) ) {
-	    		return obj.hasCode() == hashCode();
-    		}
-    	}
-    	return false;
-    }
-    
-		// FIXME: This way of computing the hashcode returns 2 different values
-		// for two abstract descriptors whose slots have the same values, but 
-		// have been set in different orders
-		public int hashCode() {
-    	return toString().hashCode();
-    }
-__J2ME_COMPATIBILITY__END*/    
+		private void sort(String[] strs) {
+			for (int i = 1; i < strs.length; ++i) {
+				for (int j = i; j > 0 && (strs[j-1].compareTo(strs[j]) > 0); --j) {
+					swap(strs, j, j-1);
+				}
+			}
+		}
+		
+		private void swap(String[] strs, int x, int y) {
+			String t = strs[x];
+			strs[x] = strs[y];
+			strs[y] = t;
+		}
 }
 

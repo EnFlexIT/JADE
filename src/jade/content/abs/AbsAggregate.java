@@ -198,8 +198,14 @@ public class AbsAggregate extends AbsConcept {
      * @return <code>true</code> if the object is grounded.
      */
     public boolean isGrounded() {
+    	Iterator it = elements.iterator();
+    	while (it.hasNext()) {
+    		AbsTerm abs = (AbsTerm) it.next();
+				if (!abs.isGrounded()) {
+					return false;
+				}
+    	}
     	return true;
-    	//FIXME: Not yet implemented
     }
 
     /**
