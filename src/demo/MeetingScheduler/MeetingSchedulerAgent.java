@@ -24,10 +24,6 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Date;
 import java.util.*;
 
 import demo.MeetingScheduler.Ontology.*;
@@ -73,7 +69,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
     registerOntology(MSOntology.NAME, MSOntology.instance());
     registerLanguage(SL0Codec.NAME, new SL0Codec());
     // request the user to insert the password and username
-    (new PasswordDialog(this, getLocalName(), "Enter name and password")).setVisible(true);
+    (new PasswordDialog(this, this.getLocalName())).setVisible(true);
     // when the user has inserted password and username, a GuiEvent will be posted
   }
 
@@ -129,7 +125,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
    **/
   private void startTasks(String userName){
     setUser(userName);
-    mf = new mainFrame(this,getUser(),"Appointment Scheduler" );
+    mf = new mainFrame(this,getUser() + " - Appointment Scheduler" );
     mf.setVisible(true);
     try {
       DFServiceCommunicator.register(this,getDFAgentDescription());
@@ -321,7 +317,7 @@ private Appointment getMyAppointment(Appointment app) {
     } catch (FIPAException e) {
       e.printStackTrace();
       mf.showErrorMessage(e.getMessage());
-      System.out.println(cancelMsg.toString());
+      //System.out.println(cancelMsg.toString());
     }
 }
 
@@ -332,7 +328,7 @@ void removeMyAppointment(Appointment app) {
     mf.showErrorMessage("Someone has requested to cancel an appointment for " + app.getFixedDate().toString()+" but there was no appointment actually");
   } else {
     appointments.remove(key(a.getFixedDate()));
-    mf.calendar1_Action(null);
+    //mf.calendar1_Action(null);
     mf.showErrorMessage("Cancelled Appointment: "+ a.toString());
   }
 }
@@ -340,7 +336,7 @@ void removeMyAppointment(Appointment app) {
   // called by myFipaContractNetInitiatorBehaviour
 void addMyAppointment(Appointment a) {
   appointments.put(key(a.getFixedDate()),a);
-  mf.calendar1_Action(null);	
+  mf.calendar1_Action();	
   mf.showErrorMessage(a.toString());
 }
 
@@ -349,7 +345,11 @@ void addMyAppointment(Appointment a) {
 * This function return the key to be used in the Hashtable
 */
 private String key(Date d) {
-  return ""+d.getYear()+d.getMonth()+d.getDate();
+  Calendar c = Calendar.getInstance();
+  c.setTime(d);
+  return ""+c.get(c.YEAR)+c.get(c.MONTH)+c.get(c.DAY_OF_MONTH);
+  //return ""+d.getYear()+d.getMonth()+d.getDate();
+  //return new String(d.toString());
 }
 
   // it used by mainFrame

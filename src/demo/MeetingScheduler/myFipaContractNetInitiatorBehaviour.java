@@ -23,8 +23,7 @@ Boston, MA  02111-1307, USA.
 package demo.MeetingScheduler;
 
 import java.util.*;
-import java.util.Vector;
-import java.util.Date;
+
 import jade.lang.acl.ACLMessage;
 import jade.core.*;
 import jade.proto.FipaContractNetInitiatorBehaviour;
@@ -73,7 +72,7 @@ public class myFipaContractNetInitiatorBehaviour extends FipaContractNetInitiato
 
 
 public Vector handleProposeMessages(Vector proposals) {
-  System.err.println(myAgent.getLocalName()+": FipacontractNetInitiator is evaluating the proposals");
+    //System.err.println(myAgent.getLocalName()+": FipacontractNetInitiator is evaluating the proposals");
   Vector retMsgs = new Vector(proposals.size());
   ACLMessage msg;
   ArrayList acceptableDates = new ArrayList();
@@ -82,9 +81,14 @@ public Vector handleProposeMessages(Vector proposals) {
   if (proposals.size()==0)
     return null;
 
-  for (Iterator i=pendingApp.getAllPossibleDates(); i.hasNext(); )
-    acceptableDates.add(new Integer(((Date)i.next()).getDate()));
+  Calendar c = Calendar.getInstance();
 
+  for (Iterator i=pendingApp.getAllPossibleDates(); i.hasNext(); ) {
+    //acceptableDates.add(new Integer(((Date)i.next()).getDate()));
+    c.setTime((Date)i.next());
+    acceptableDates.add(new Integer(c.get(c.DATE)));
+    
+}
   for (int i=0; i<proposals.size(); i++) {
     //System.err.println("EvaluateProposals, start round "+i+" acceptableDates = "+acceptableDates.toString());
     msg = (ACLMessage)proposals.elementAt(i);
@@ -94,7 +98,8 @@ public Vector handleProposeMessages(Vector proposals) {
       try {
 	Appointment a = myAgent.extractAppointment(msg);
 	for (Iterator ii=a.getAllPossibleDates(); ii.hasNext(); ) {
-	  Integer day = new Integer(((Date)ii.next()).getDate());
+	  c.setTime((Date)ii.next());
+	  Integer day = new Integer(c.get(c.DATE));
 	  if (acceptableDates.contains(day))
 	    acceptedDates.add(day);
 	}
@@ -118,8 +123,9 @@ public Vector handleProposeMessages(Vector proposals) {
   if (acceptableDates.size() > 0) {
     Date d = new Date();
     int dateNumber = ((Integer)acceptableDates.get(0)).intValue();
-    d.setDate(dateNumber);
-    pendingApp.setFixedDate(d);
+    //d.setDate(dateNumber);
+    c.set(c.DATE , dateNumber);
+    pendingApp.setFixedDate(c.getTime());
     try {
       myAgent.fillAppointment(replyMsg,pendingApp);
     } catch (FIPAException e) {
