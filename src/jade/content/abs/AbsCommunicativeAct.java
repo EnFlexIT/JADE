@@ -26,12 +26,11 @@ package jade.content.abs;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
-import jade.content.CommunicativeAct;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsCommunicativeAct extends AbsGenericAction implements CommunicativeAct {
+public class AbsCommunicativeAct extends AbsObjectImpl implements AbsGenericAction {
 
     /**
      * Construct an Abstract descriptor to hold a communicative act of
@@ -49,11 +48,7 @@ public class AbsCommunicativeAct extends AbsGenericAction implements Communicati
      * @param name The name of the piece of content to be set.
      * @param value The new value of the piece of content.
      */
-    public void set(String name, AbsContentElement value) throws UngroundedException {
-        if (!value.isGrounded()) {
-            throw new UngroundedException();
-        } 
-
+    public void set(String name, AbsContentElement value) {
         super.set(name, value);
     } 
 

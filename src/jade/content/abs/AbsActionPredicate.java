@@ -24,12 +24,10 @@
  */
 package jade.content.abs;
 
-import jade.content.ActionPredicate;
-
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsActionPredicate extends AbsProposition implements ActionPredicate {
+public class AbsActionPredicate extends AbsObjectImpl implements AbsProposition {
 
     /**
      * Construct an Abstract descriptor to hold an action predicate of

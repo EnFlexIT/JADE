@@ -24,8 +24,7 @@
  */
 package jade.content.abs;
 
-import jade.content.onto.*;
-import jade.content.schema.*;
+import jade.content.schema.ContentElementListSchema;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -33,7 +32,7 @@ import jade.util.leap.Iterator;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsContentElementList extends AbsContentElement {
+public class AbsContentElementList extends AbsObjectImpl implements AbsContentElement {
   	private List elements = new ArrayList();
 	
   	/**

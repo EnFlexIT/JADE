@@ -24,12 +24,10 @@
  */
 package jade.content.abs;
 
-import jade.content.Concept;
-
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsConcept extends AbsTerm implements Concept {
+public class AbsConcept extends AbsObjectImpl implements AbsTerm {
 
     /**
      * Construct an Abstract descriptor to hold a concept of

@@ -24,12 +24,10 @@
  */
 package jade.content.abs;
 
-import jade.content.HigherOrderPredicate;
-
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderPredicate extends AbsProposition implements HigherOrderPredicate {
+public class AbsHigherOrderPredicate extends AbsObjectImpl implements AbsProposition {
 
     /**
      * Construct an Abstract descriptor to hold a higher order predicate of

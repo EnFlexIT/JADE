@@ -30,7 +30,7 @@ import jade.content.schema.*;
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPrimitive extends AbsTerm {
+public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
     private Object value = null;
 
     /**

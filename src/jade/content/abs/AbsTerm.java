@@ -24,30 +24,9 @@
  */
 package jade.content.abs;
 
-import jade.content.Term;
-
 /**
+ * Represent an Abstract descriptor that can hold a term
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsTerm extends AbsObject implements Term {
-
-    /**
-     * Construct an Abstract descriptor to hold a term of
-     * the proper type.
-     * @param typeName The name of the type of the term held by this
-     * abstract descriptor.
-     */
-    public AbsTerm(String typeName) {
-        super(typeName);
-    }
-
-    /**
-     * Constructor
-     *
-     */
-    //public AbsTerm() {
-    //    super(TermSchema.BASE_NAME);
-    //}
-
+public interface AbsTerm extends AbsObject {
 }
-

@@ -24,9 +24,6 @@
  */
 package jade.content.abs;
 
-import jade.content.onto.*;
-import jade.content.*;
-import jade.content.schema.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -34,7 +31,7 @@ import jade.util.leap.Iterator;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAggregate extends AbsTerm {
+public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
     private List elements = new ArrayList();
 
     /**
@@ -149,7 +146,7 @@ public class AbsAggregate extends AbsTerm {
         System.out.println("(");
 
         for (int i = 0; i < elements.size(); i++) {
-            ((AbsObject) elements.get(i)).dump(indent + 1);
+            ((AbsObjectImpl) elements.get(i)).dump(indent + 1);
         }
 
         for (int i = 0; i < indent; i++) {

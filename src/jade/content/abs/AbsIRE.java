@@ -29,12 +29,14 @@ import jade.content.schema.*;
 import jade.content.Term;
 
 /**
+ * Represent an Abstract descriptor that can hold an Identifying
+ * Referential Expression (IRE).
  * Note that an IRE is both a content element (as in the case of
  * a QUERY-REF communicative act) and a Term (as in the case of
  * (== (X) (iota ?x P(?x))
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsIRE extends AbsContentElement implements Term {
+public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm {
 
     /**
      * Construct an Abstract descriptor to hold a IRE of
@@ -76,6 +78,15 @@ public class AbsIRE extends AbsContentElement implements Term {
      */
     public AbsProposition getProposition() {
         return (AbsProposition) getAbsObject(IRESchema.PROPOSITION);
+    } 
+
+    /**
+     * Redefine the <code>isGrounded()</code> method in order to 
+     * always return <code>false</code>. Infact an IRE always
+     * includes a variable.
+     */
+    public boolean isGrounded() {
+			return false;
     } 
 
 }

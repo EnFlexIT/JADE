@@ -26,13 +26,8 @@ package jade.content.abs;
 
 import jade.util.leap.*;
 
-import jade.core.AID;
-
-import jade.content.*;
-import jade.content.onto.*;
-import jade.content.schema.*;
-import java.util.Vector;
-import java.util.Enumeration;
+import jade.content.onto.BasicOntology;
+import jade.content.schema.AIDSchema;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -73,13 +68,13 @@ public class AbsAID extends AbsConcept {
 
         System.out.println("(AID ");
 
-				AbsObject abs = getAbsObject(BasicOntology.AID_NAME);
+				AbsObjectImpl abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_NAME);
 				abs.dump(indent+1);
 
-				abs = getAbsObject(BasicOntology.AID_ADDRESSES);
+				abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_ADDRESSES);
 				abs.dump(indent+1);
 
-				abs = getAbsObject(BasicOntology.AID_RESOLVERS);
+				abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_RESOLVERS);
 				abs.dump(indent+1);
 
         for (int i = 0; i < indent; i++) {

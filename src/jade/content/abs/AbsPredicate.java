@@ -24,16 +24,14 @@
  */
 package jade.content.abs;
 
-import jade.content.Predicate;
-
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPredicate extends AbsProposition implements Predicate {
+public class AbsPredicate extends AbsObjectImpl implements AbsProposition {
 
     /**
      * Construct an Abstract descriptor to hold a predicate of
-     * the proper type.
+     * the proper type (e.g. FATHER_OF...).
      * @param typeName The name of the type of the predicate held by 
      * this abstract descriptor.
      */

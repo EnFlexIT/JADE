@@ -24,13 +24,12 @@
  */
 package jade.content.abs;
 
-import jade.content.onto.*;
 import jade.content.schema.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsVariable extends AbsTerm {
+public class AbsVariable extends AbsObjectImpl implements AbsTerm {
 
     /**
      * Construct an Abstract descriptor to hold a variable
@@ -97,6 +96,14 @@ public class AbsVariable extends AbsTerm {
         else {
         	return null;
         }
+    } 
+
+    /**
+     * Redefine the <code>isGrounded()</code> method in order to 
+     * always return <code>false</code>. 
+     */
+    public boolean isGrounded() {
+			return false;
     } 
 
 }
