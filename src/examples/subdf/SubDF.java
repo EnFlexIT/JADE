@@ -63,8 +63,9 @@ public class SubDF extends jade.domain.df {
      AID parentName;
      String insertedparentName = null;
      BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-     System.out.print("Enter parent DF name (ENTER uses platform default DF): ");
+     System.out.print("Example SUBDF -- Enter parent DF name (ENTER uses platform default DF): ");
      insertedparentName = buff.readLine();
+    
      if (insertedparentName.length() != 0)
        parentName=new AID(insertedparentName);
      else
@@ -81,7 +82,7 @@ public class SubDF extends jade.domain.df {
      super.showGui();
 
      DFServiceCommunicator.register(this,parentName,getDescription());
-     addParent(parentName);
+     addParent(parentName,getDescription());
 		
     }catch(InterruptedIOException iioe) {
       doDelete();
