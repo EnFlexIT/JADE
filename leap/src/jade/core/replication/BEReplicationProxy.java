@@ -180,6 +180,26 @@ public class BEReplicationProxy extends Service.SliceProxy implements BEReplicat
 	}
     }
 
+    public void exitReplica() throws IMTPException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_EXITREPLICA, NAME, null);
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
     public void bornAgent(AID name) throws IMTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, NAME, null);

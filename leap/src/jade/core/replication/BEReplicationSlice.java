@@ -90,8 +90,9 @@ public interface BEReplicationSlice extends Service.Slice {
     static final String H_GETLABEL = "4";
     static final String H_ADDREPLICA = "5";
     static final String H_REMOVEREPLICA = "6";
-    static final String H_BORNAGENT = "7";
-    static final String H_DEADAGENT = "8";
+    static final String H_EXITREPLICA = "7";
+    static final String H_BORNAGENT = "8";
+    static final String H_DEADAGENT = "9";
 
     void acceptReplica(String sliceName, String replicaIndex) throws IMTPException;
     void setMaster(String name) throws IMTPException;
@@ -100,6 +101,7 @@ public interface BEReplicationSlice extends Service.Slice {
     String getLabel() throws IMTPException;
     void addReplica(String sliceName) throws IMTPException;
     void removeReplica(String sliceName) throws IMTPException;
+    void exitReplica() throws IMTPException;
 
     void bornAgent(AID name) throws IMTPException;
     void deadAgent(AID name) throws IMTPException;
