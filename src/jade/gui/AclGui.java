@@ -103,12 +103,27 @@ public class AclGui extends JPanel
 	// Controls for ACL message parameter editing
 	static String ADD_NEW_RECEIVER = "Insert receiver"; 
 	
-	AID SenderAID = new AID();
+	/**
+  @serial
+  */
+  AID SenderAID = new AID();
+	/**
+  @serial
+  */
 	AID newAIDSender = null;
 
-	VisualAIDList receiverListPanel;
-	VisualAIDList replyToListPanel;
-	VisualPropertiesList propertiesListPanel;
+	/**
+  @serial
+  */
+  VisualAIDList receiverListPanel;
+	/**
+  @serial
+  */
+  VisualAIDList replyToListPanel;
+	/**
+  @serial
+  */
+  VisualPropertiesList propertiesListPanel;
 	
 	/**
 	@serial
@@ -255,7 +270,10 @@ public class AclGui extends JPanel
 	private static ACLMessage editedMsg;
 
 	
-	private JButton senderButton;
+	/**
+  @serial
+  */
+  private JButton senderButton;
 	
 	/////////////////
 	// CONSTRUCTOR

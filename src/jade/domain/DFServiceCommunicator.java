@@ -323,7 +323,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 
   /**
   * Returns a non-blocking behaviour to request the default DF for a specific action.
-  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see #getNonBlockingBehaviour(Agent,AID,String, DFAgentDescription,SearchConstraints)
   * @see jade.domain.RequestFIPAServiceBehaviour
   */
 
@@ -334,7 +334,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
   /**
   * Returns a non-blocking behaviour to request the default DF for a specific action without specify a DFAgentDescription and 
   * using default search constraints.
-  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see #getNonBlockingBehaviour(Agent,AID,String, DFAgentDescription,SearchConstraints)
   * @see jade.domain.RequestFIPAServiceBehaviour
   */
 
@@ -348,7 +348,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
   /**
   * Returns a non-blocking behaviour to request a DF for a specific action without specifing a DFAgentDescription and 
   * using default search constraints.
-  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see #getNonBlockingBehaviour(Agent,AID,String, DFAgentDescription,SearchConstraints)
   * @see jade.domain.RequestFIPAServiceBehaviour
   */
 
@@ -362,7 +362,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
   /**
   * Returns a non-blocking behaviour to request the default DF for a specific action using default  
   * search constraints.
-  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see #getNonBlockingBehaviour(Agent,AID,String, DFAgentDescription,SearchConstraints)
   * @see jade.domain.RequestFIPAServiceBehaviour
   */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd) throws FIPAException {
@@ -372,7 +372,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 
   /**
   * Returns a non-blocking behaviour to request a DF for a specific action using default search constraints.
-  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see #getNonBlockingBehaviour(Agent,AID,String, DFAgentDescription,SearchConstraints)
   * @see jade.domain.RequestFIPAServiceBehaviour
   */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd) throws FIPAException {

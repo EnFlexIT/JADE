@@ -107,7 +107,13 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   public static abstract class ActionHandler extends Behaviour {
 
+    /**
+    @serial
+    */
     private ACLMessage myRequest;
+    /**
+    @serial
+    */
     private ACLMessage myReply; 
 
     /**

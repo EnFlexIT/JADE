@@ -27,9 +27,10 @@ package jade.domain.FIPAAgentManagement;
 
 /** 
 * This class models a service data type.
-* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+* 
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
+* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 */
 
 import java.util.*;

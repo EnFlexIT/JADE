@@ -39,6 +39,9 @@ public UnrecognisedValue(String value) {
   super("(Unrecognised-value " + value+")");
   s=value;
 }
+/**
+  @serial
+  */
 String s;
 public void set_0(String a){s=a;}
 public String get_0() {return s;}

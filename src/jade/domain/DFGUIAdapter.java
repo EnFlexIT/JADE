@@ -55,7 +55,7 @@ public interface DFGUIAdapter {
 
   
   /**
-  * This method notify an event to the df.
+  * This method notifies an event to the df.
   */
   void postGuiEvent(GuiEvent ev);
   	
@@ -65,7 +65,7 @@ public interface DFGUIAdapter {
   DFAgentDescription getDFAgentDsc(AID name) throws FIPAException;
   
   
-  /*
+  /**
   * This method returns the description of this df used for federation with other dfs.
   */
   DFAgentDescription getDescriptionOfThisDF();

@@ -764,6 +764,9 @@ public class ams extends Agent implements AgentManager.Listener {
       }
   }
   
+  /**
+  @serial
+  */
   private KB agentDescriptions = new KBAbstractImpl() {
       protected boolean match(Object template, Object fact) {
 	try {

@@ -130,7 +130,7 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
     * constructor of the behaviour.
     * In this case the set of agents to which the message is sent is
     * exactly the receivers set in the passed ACLMessage.
-    * @see jade.proto.FipaQueryInitiatorBehaviour#FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
+    * @see #FipaQueryInitiatorBehaviour(Agent , ACLMessage , List )
     */
 public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
   super(a);

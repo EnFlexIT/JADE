@@ -44,18 +44,51 @@ import jade.core.AID;
 public class DFAgentDscDlg extends JDialog 
 {
 	
-	Dialog     dlgParent;
+	/**
+  @serial
+  */
+  Dialog     dlgParent;
+  /**
+  @serial
+  */
   DFAgentDescription dfdAgent;
-	DFAgentDescription out;
-	AID newAID = null;
-	boolean editable;
-	boolean checkSlots;
+	/**
+  @serial
+  */
+  DFAgentDescription out;
+	/**
+  @serial
+  */
+  AID newAID = null;
+	/**
+  @serial
+  */
+  boolean editable;
+	/**
+  @serial
+  */
+  boolean checkSlots;
 	
-	private VisualStringList ontologiesListPanel;
-	private VisualStringList languagesListPanel;
-	private VisualStringList protocolsListPanel;
-	private VisualServicesList servicesListPanel;
-	private JTextField agentName;
+	/**
+  @serial
+  */
+  private VisualStringList ontologiesListPanel;
+	/**
+  @serial
+  */
+  private VisualStringList languagesListPanel;
+	/**
+  @serial
+  */
+  private VisualStringList protocolsListPanel;
+	/**
+  @serial
+  */
+  private VisualServicesList servicesListPanel;
+	/**
+  @serial
+  */
+  private JTextField agentName;
 	
 	// CONSTRUCTORS
 	public DFAgentDscDlg(Frame parent) 

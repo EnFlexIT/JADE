@@ -36,7 +36,10 @@ import javax.swing.JDialog;
 
 public class VisualServicesList extends VisualStringList
 {
-	boolean checkSlots;
+	/**
+  @serial
+  */
+  boolean checkSlots;
 	VisualServicesList(Iterator content)
 	{
 		super(content);

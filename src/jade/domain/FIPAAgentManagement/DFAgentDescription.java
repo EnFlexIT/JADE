@@ -32,7 +32,7 @@ import jade.core.AID;
   *  support to <em>DF</em> agent, holding all informations needed by
   *  <code>DF-agent-description</code> objects in
   *  <code>fipa-agent-management</code> ontology.
-  *  @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+  *  @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
   *  @author Fabio Bellifemine - CSELT S.p.A.
   *  @version $Date$ $Revision$
   *

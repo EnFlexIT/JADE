@@ -33,7 +33,10 @@ package jade.onto;
 */
 public class OntologyException extends Exception {
 
-    private Throwable nested;
+  /**
+  @serial
+  */
+  private Throwable nested;
 
   /**
     Create a new exception object.

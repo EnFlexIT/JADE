@@ -40,6 +40,9 @@ public class UnsupportedFunction extends RefuseException {
     s=func;
   }
 
+/**
+  @serial
+  */
 String s;
 public void set_0(String a){s=a;}
 public String get_0() {return s;}

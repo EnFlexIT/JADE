@@ -40,7 +40,9 @@ public class UnrecognisedParameterValue extends RefuseException {
     s1=parameterName;
     s2=parameterValue;
   }
-
+/**
+  @serial
+  */
 String s1,s2;
 public void set_0(String a){s1=a;setMessage("(unrecognised-parameter-value "+s1+" "+s2+")");}
 public String get_0() {return s1;}

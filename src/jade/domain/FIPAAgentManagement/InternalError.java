@@ -39,7 +39,10 @@ public class InternalError extends FailureException {
   public InternalError() {
     this("unknown-error");
   }
-
+  
+  /**
+  @serial
+  */
   String s1;
 public void set_0(String s){ s1=s; setMessage("(internal-error "+s1+")");}
 public String get_0() {return s1;}

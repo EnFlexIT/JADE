@@ -31,6 +31,9 @@ package jade.domain.FIPAAgentManagement;
 */
 
 public class UnsupportedValue extends NotUnderstoodException {
+/**
+  @serial
+  */
 String s;
 
   public UnsupportedValue() {

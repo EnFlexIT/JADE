@@ -25,7 +25,7 @@ package jade.domain.FIPAAgentManagement;
 
 /**
    Agent platform description.
-   @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+   @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */

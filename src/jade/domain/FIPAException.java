@@ -39,7 +39,13 @@ on its content, i.e. the exception message.
 
 public class FIPAException extends Exception {
 
+	/**
+  @serial
+  */
   protected ACLMessage msg; // can be accessed by subclasses
+  /**
+  @serial
+  */
   private String content;
 
   /**

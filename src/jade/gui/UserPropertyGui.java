@@ -40,10 +40,22 @@ This class provides a gui for the user defined property.
 
 public class UserPropertyGui extends JDialog
  	{
- 		boolean editable;
- 		JTextField nameValue;
- 		JTextField valueValue;
- 		SingleProperty out;
+ 		/**
+    @serial
+    */
+    boolean editable;
+ 		/**
+    @serial
+    */
+    JTextField nameValue;
+ 		/**
+    @serial
+    */
+    JTextField valueValue;
+ 		/**
+    @serial
+    */
+    SingleProperty out;
  		
  		UserPropertyGui()
  		{

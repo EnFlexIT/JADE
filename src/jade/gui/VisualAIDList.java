@@ -40,7 +40,10 @@ import jade.core.AID;
 */
 public class VisualAIDList extends VisualStringList
 {
-	boolean checkSlots;
+	/**
+  @serial
+  */
+  boolean checkSlots;
 	
 	VisualAIDList(Iterator content)
 	{

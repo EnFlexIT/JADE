@@ -639,6 +639,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   private List parents = new ArrayList();
   
+  /**
+  @serial
+  */
   private HashMap dscDFParentMap = new HashMap(); //corrispondence parent --> dfd description (of this df) used to federate.
   /**
 
@@ -799,7 +802,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	 } //end of for
   }
   
-  
+  /**
+  @serial
+  */
   private KB agentDescriptions = new KBAbstractImpl() {
       protected boolean match(Object template, Object fact) {
 
@@ -1099,7 +1104,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	}
 
 	
-	/*
+	/**
 	* This method set the description of the df according to the DFAgentAgentDescription passed.
 	* The programmers can call this method to provide a different initialization of the description of the df they are implemented.
 	* The method is called inside the setup of the agent and set the df description using a default description.
@@ -1116,7 +1121,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	    return thisDF;
 	}
 	
-	/*
+	/**
 	* This method returns the description of this df used to federate with the given parent
 	*/
 	public DFAgentDescription getDescriptionOfThisDF(AID parent)
@@ -1124,7 +1129,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 		return (DFAgentDescription)dscDFParentMap.get(parent);
 	}
 	
-	/*
+	/**
 	* This method can be used to add a parent (a DF with which the this DF is federated). 
 	* @param dfName the parent df (the df with which this df has been registered)
 	* @param dfd the description used by this df to register with the parent.

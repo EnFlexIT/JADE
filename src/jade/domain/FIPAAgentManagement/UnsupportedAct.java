@@ -39,6 +39,10 @@ public class UnsupportedAct extends NotUnderstoodException {
     super("(Unsupported-act "+act+")");
     s=act;
   }
+  
+  /**
+  @serial
+  */
 String s;
 public void set_0(String a){s=a; setMessage("(Unsupported-act "+a+")");}
 public String get_0() {return s;}

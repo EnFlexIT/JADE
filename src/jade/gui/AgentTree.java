@@ -52,6 +52,9 @@ public class AgentTree extends JPanel {
 	*/
   public JTree tree;
   static protected  Icon[] icons;
+  /**
+  @serial
+  */
   private Map mapDescriptor;
 
 
@@ -67,7 +70,10 @@ public class AgentTree extends JPanel {
    @serial
    */
    protected String name;
-   protected boolean chgeIcon=false;
+   /**
+  @serial
+  */
+  protected boolean chgeIcon=false;
 
    public Node(String name) {
      this.name = name;

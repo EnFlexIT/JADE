@@ -416,7 +416,7 @@ public class Boot {
   	
   }
   
-  /*
+  /**
   This method verifies the configuration properties and eventually correct them.
   If both the properties "platform" and "container" are set to true the a platform will 
   be launched an and exception will be thrown.

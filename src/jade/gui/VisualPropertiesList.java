@@ -45,7 +45,10 @@ import java.util.ArrayList;
 
 public class VisualPropertiesList extends VisualStringList
 {
-	private Properties userDefinedSlots;
+	/**
+  @serial
+  */
+  private Properties userDefinedSlots;
 	
 	VisualPropertiesList(Properties content)
 	{

@@ -70,15 +70,42 @@ import jade.BootException;
   static String extension = "conf";
   static String title = "--JADE Properties--";
   
+  /**
+  @serial
+  */
   List propertiesVector; 
+  /**
+  @serial
+  */
   boolean modified;
+  /**
+  @serial
+  */
   File currentDir = null;
+  /**
+  @serial
+  */
   JTextField statusField= new JTextField();
-	JPanel topPanel = new JPanel();
-	JPanel propertyPanel = new JPanel();
-	JPanel buttonPanel = new JPanel();
-	String fileOpened = null;
-	Properties outProp = null;
+	/**
+  @serial
+  */
+  JPanel topPanel = new JPanel();
+	/**
+  @serial
+  */
+  JPanel propertyPanel = new JPanel();
+	/**
+  @serial
+  */
+  JPanel buttonPanel = new JPanel();
+	/**
+  @serial
+  */
+  String fileOpened = null;
+	/**
+  @serial
+  */
+  Properties outProp = null;
  
 	//This class create a JPanel for a single property
  	class singlePanel extends JPanel

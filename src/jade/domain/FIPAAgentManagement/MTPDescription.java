@@ -30,7 +30,7 @@ import java.util.Iterator;
 
 /**
    Description of a message transport protocol.
-   @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+   @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
    @author Fabio Bellifemine - CSELT
    @version $Date$ $Revision$
 

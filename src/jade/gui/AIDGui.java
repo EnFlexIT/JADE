@@ -45,13 +45,34 @@ import jade.domain.FIPAAgentManagement.*;
  
  public class AIDGui extends JDialog{
  	
- 	private boolean editable, checkSlots;
- 	private AID agentAID;
- 	private JTextField nameText;
- 	private VisualStringList addressListPanel;
- 	private VisualAIDList resolverListPanel;
- 	private VisualPropertiesList	propertiesListPanel;
- 	private AID out;
+ 	/**
+  @serial
+  */
+  private boolean editable, checkSlots;
+ 	/**
+  @serial
+  */
+  private AID agentAID;
+ 	/**
+  @serial
+  */
+  private JTextField nameText;
+ 	/**
+  @serial
+  */
+  private VisualStringList addressListPanel;
+ 	/**
+  @serial
+  */
+  private VisualAIDList resolverListPanel;
+ 	/**
+  @serial
+  */
+  private VisualPropertiesList	propertiesListPanel;
+ 	/**
+  @serial
+  */
+  private AID out;
  	
  	public AIDGui()
  	{

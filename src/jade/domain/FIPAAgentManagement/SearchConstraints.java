@@ -26,7 +26,7 @@ package jade.domain.FIPAAgentManagement;
 
 /**
 * This class models a search constraint.
-* @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */

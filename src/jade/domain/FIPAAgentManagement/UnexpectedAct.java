@@ -40,6 +40,10 @@ public UnexpectedAct(String act) {
   super("(Unexpected-act "+act+")");
   s=act;
 }
+
+/**
+  @serial
+  */
 String s;
 public void set_0(String a){s=a;setMessage("(Unexpected-act "+a+")");}
 public String get_0() {return s;}

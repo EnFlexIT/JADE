@@ -60,15 +60,39 @@ If the user needs to show more complex items, can extend this class and override
 
 public class VisualStringList extends JPanel
 {
-	Component owner;
+	/**
+  @serial
+  */
+  Component owner;
 	
-	JList genericList;
-	JScrollPane pane;
-	DefaultListModel listModel;
-	JPopupMenu popUp;
-	JMenuItem editItem;
-	JMenuItem addItem;
-	JMenuItem removeItem;
+	/**
+  @serial
+  */
+  JList genericList;
+	/**
+  @serial
+  */
+  JScrollPane pane;
+	/**
+  @serial
+  */
+  DefaultListModel listModel;
+	/**
+  @serial
+  */
+  JPopupMenu popUp;
+	/**
+  @serial
+  */
+  JMenuItem editItem;
+	/**
+  @serial
+  */
+  JMenuItem addItem;
+	/**
+  @serial
+  */
+  JMenuItem removeItem;
 	
 	static String VIEW_LABEL = "View";
 	static String EDIT_LABEL = "Edit";

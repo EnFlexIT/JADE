@@ -43,8 +43,14 @@ import jade.domain.FIPAAgentManagement.SearchConstraints;
 */
 public class ConstraintDlg extends JDialog
 {
-	JTextField maxDepth,	maxResult ;
-	SearchConstraints constraints = new SearchConstraints();
+	/**
+  @serial
+  */
+  JTextField maxDepth,	maxResult ;
+	/**
+  @serial
+  */
+  SearchConstraints constraints = new SearchConstraints();
 	
 	//CONSTRUCTORS
 	public ConstraintDlg(Frame parent)

@@ -40,16 +40,49 @@ import jade.core.AID;
 
 public class Envelope implements java.io.Serializable {
 
+	/**
+  @serial
+  */
   private List to = new ArrayList();
+  /**
+  @serial
+  */
   private AID from;
+  /**
+  @serial
+  */
   private String comments;
+  /**
+  @serial
+  */
   private String aclRepresentation;
+  /**
+  @serial
+  */
   private String payloadLength;
+  /**
+  @serial
+  */
   private String payloadEncoding;
+  /**
+  @serial
+  */
   private Date date;
+  /**
+  @serial
+  */
   private List encrypted = new ArrayList();
+  /**
+  @serial
+  */
   private List intendedReceiver = new ArrayList();
+  /**
+  @serial
+  */
   private ReceivedObject received;
+  /**
+  @serial
+  */
   private Properties transportBehaviour;
 
   public void addTo(AID id) {
