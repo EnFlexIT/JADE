@@ -59,6 +59,7 @@ pause
 cd ..\RDFCodec
 CALL makeRDF
 CALL makelib
+CALL makeexamples
 echo start compiling the ORBacusMTP add-ons remember to copy the OB.jar and OBNaming.jar into jade\lib
 pause
 cd ..\ORBAcusMTP
@@ -75,17 +76,18 @@ set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%;%JESS60%
 CALL makejadejessprotegeexample
 pause
 echo compile the Test code
-cd src\test
-javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java wrapper\*.java proto\*.java MessageTemplate\*.java
+cd src
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR%;. test\TestAgent.java test\jsp\TestDanielExample.java test\content\*.java test\wrapper\*.java test\proto\*.java test\MessageTemplate\*.java test\common\*.java test\content\tests\*.java test\proto\tests\*.java test\proto\tests\contractNet\*.java test\proto\responderBehaviours\*.java test\proto\responderBehaviours\achieveRE\*.java test\proto\responderBehaviours\contractNet\*.java  
+cd test
 pause
 :SKIPCOMPILATION
 
+REM End compilation task. Start testing task. WorkingDir = src\test
+
 echo Starting the Agent Platform
-START %JAVA% -cp %CLASSPATH% jade.Boot -gui 
+START %JAVA% -cp %CLASSPATH%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -gui -aclcodec jamr.jadeacl.xml.XMLACLCodec;sonera.fipa.acl.BitEffACLCodec 
 echo Press a key when the platform is ready
 pause
-
-REM goto :STARTHERE 
 
 echo Each example will be executed into a remote container. To pass to the
 echo next example, just kill the container (NOT the platform) from the RMA GUI
@@ -135,7 +137,7 @@ echo Try also to clone, migrate and all the lifecycle of the mobile agent
 echo by using the RMA GUI. Try also to create new agents from that RMA GUI.
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.mobile.MobileAgent
 
-echo Running the Ontoloogy example
+echo Running the Ontology example
 echo remind to enter 'a', i.e. the local name of the EngagerAgent
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.ontology.EngagerAgent b:examples.ontology.RequesterAgent
 
@@ -169,7 +171,6 @@ pause shutdown the current Agent Platform before continuing
 cd ..\..\..\demo
 CALL runDemo
 
-REM :STARTHERE
 echo Running the TestAgent (testing the messages)
 echo type as input file testmessages.msg
 cd test
@@ -177,6 +178,7 @@ cd test
 
 echo Running the Test of the Wrapper
 %JAVA% -cp %CLASSPATH% test.wrapper.TestListener
+
 
 echo Running the tests on CL and ontology support for LEAP Codec
 %JAVA% -cp %CLASSPATH% test.content.ContentTesterAgent
@@ -194,8 +196,6 @@ cd ..\..\..\leapTestSuite
 CALL makeTestSuite.bat
 cd ..\jade\src\test
 
-:STARTHERE	
-
 echo Running the behaviours test FIXME (per Giovanni Caire)
 
 echo Running the content test 
@@ -211,8 +211,8 @@ echo Testing the orbacus add-on
 pause Please SHUTDOWN any platform running
 echo starting two platform using ORBacusMTP. Try to send messages between the two platforms using the DummyAgents
 echo Testing also the addRemotePlatform via RMA.
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1200 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:3000/jade) da0:jade.tools.DummyAgent.DummyAgent
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1300 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:4000/jade) da0:jade.tools.DummyAgent.DummyAgent
+START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1200 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:3000/jade) da0:jade.tools.DummyAgent.DummyAgent
+START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1300 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:4000/jade) da0:jade.tools.DummyAgent.DummyAgent
 pause 
 
 echo Testing the HTTP-MTP add-on
@@ -222,7 +222,12 @@ START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\
 START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar jade.Boot -gui -port 1300 -mtp jamr.jademtp.http.MessageTransportProtocol(http://%LOCALHOST%:7779/acc) da0:jade.tools.DummyAgent.DummyAgent
 pause
 
+:STARTHERE	
+
+
 echo FIXME RDFCodec Test
+dir
+START %JAVA% -cp %ALLJADEJARS%;..\..\add-ons\http\lib\sax2\sax2.jar;..\..\lib\rdf-api-2001-19.jar;..\..\add-ons\RDFCodec\classes jade.Boot -gui sender:examples.rdfcontent.Sender receiver:examples.rdfcontent.Receiver
 pause 
 
 pause
