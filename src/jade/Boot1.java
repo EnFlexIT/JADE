@@ -106,24 +106,8 @@ public class Boot1 {
         } 
 
         // Initialize the Profile
-        try {
-            Profile p = new ProfileImpl(args[0]);
-            
-            // Check whether this is the Main Container or a peripheral container
-	        String             isMain = p.getParameter(Profile.MAIN);
-
-    	    if (isMain == null || isMain.equalsIgnoreCase("true")) {
-				Runtime.instance().createMainContainer(p);
-            } 
-            else {
+        Profile p = new ProfileImpl(args[0]);
 				Runtime.instance().createAgentContainer(p);
-            } 
-
-        } 
-        catch (ProfileException pe) {
-            pe.printStackTrace();
-            System.exit(-1);
-        } 
     } 
 
 }
