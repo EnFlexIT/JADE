@@ -197,7 +197,8 @@ public class AgentContainer implements PlatformController {
     if(myImpl == null)
       throw new StaleProxyException();
     try {
-      myImpl.installMTP(address, className);
+	throw new IMTPException("Temporary Hack");
+	//      myImpl.installMTP(address, className);
     }
     catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
@@ -219,7 +220,8 @@ public class AgentContainer implements PlatformController {
     if(myImpl == null)
       throw new StaleProxyException();
     try {
-      myImpl.uninstallMTP(address);
+	throw new IMTPException("Temporary Hack");
+	//      myImpl.uninstallMTP(address);
     }
     catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
