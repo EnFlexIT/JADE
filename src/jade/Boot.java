@@ -120,6 +120,19 @@ public class Boot {
       e.printStackTrace();
     }
 
+    /* FIXME: Temporary code; will go away when a GUI administration is put in
+    System.out.println("Type 'quit' to close the container.");
+    String input = "";
+    byte[] buffer = new byte[10];
+    while(!input.equals("quit")) {
+      int len = System.in.read(buffer);
+      input = new String(buffer,0,len-1);
+    }
+    // Shut down the container
+
+    theContainer.shutDown();
+    */
+
   }
 
   private static void usage(){
