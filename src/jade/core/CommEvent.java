@@ -27,52 +27,21 @@ package jade.core;
 import jade.lang.acl.*;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
 */
-
-/***************************************************************
-
-  Name: CommEvent
-
-  Responsibilities and Collaborations:
-
-  + Objectifies the reception event, embedding the received ACL
-    message.
-    (ACLMessage)
-
-  + Holds a list of recipients agent to allow trasparent message
-    multicasting
-    (AgentGroup)
-
-******************************************************************/
 class CommEvent {
 
-  private ACLMessage  message;
-  private AgentGroup recipients;
+  private ACLMessage message;
 
   public CommEvent(CommBroadcaster source, ACLMessage message) {
     // Message cloning is necessary for intra-VM messaging, since no
     // message serialization is carried out in that case
     this.message = (ACLMessage)message.clone();
-    recipients = null;
-  }
-
-  public CommEvent(CommBroadcaster source, ACLMessage message, AgentGroup group) {
-    this(source, message);
-    recipients = group;
   }
 
   public ACLMessage getMessage() {
     return message;
-  }
-
-  public boolean isMulticast() {
-    return recipients != null;
-  }
-
-  public AgentGroup getRecipients() {
-    return recipients;
   }
 
 }
