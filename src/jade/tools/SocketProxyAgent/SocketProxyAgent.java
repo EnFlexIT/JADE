@@ -512,7 +512,12 @@ class WaitAnswersBehaviour extends SimpleBehaviour {
 
         out.print(msg.toString());
         out.flush();//Added by Sebastien_Siva@hp.com
-        finished = true;
+
+
+	if(msg.getPerformative() == ACLMessage.AGREE)
+	    finished = false;
+	else
+	    finished = true;
     }
 
     /**
