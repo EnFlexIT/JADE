@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Date;
 
 /**
 Javadoc documentation for the file
@@ -457,8 +458,11 @@ public class BasicJessBehaviour extends CyclicBehaviour{
 	msg.addReplyTo((AID)l.get(i));
     }
 
-    if (vv.get(13).stringValue(context) != "nil")
-      msg.setReplyBy(vv.get(13).stringValue(context));
+    if (vv.get(13).stringValue(context) != "nil") {
+				try {
+						msg.setReplyByDate(new Date(Long.parseLong(vv.get(13).stringValue(context))));
+				} catch (Exception e) { /* do not care */ }
+		}
 
     return msg;
   }
@@ -509,7 +513,7 @@ public class BasicJessBehaviour extends CyclicBehaviour{
 	fact = fact + aid.getName();
       }
     }
-    if (!isEmpty(msg.getReplyBy()))      fact=fact+") (reply-by " + msg.getReplyBy();
+    if (msg.getReplyByDate()!=null)      fact=fact+") (reply-by " + msg.getReplyByDate().getTime();
     fact=fact+")))";
     return fact;
 }
