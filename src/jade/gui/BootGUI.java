@@ -158,9 +158,9 @@ import jade.BootException;
  			{
  				valueText = new JTextField();
  				valueText.setBorder(etched);
- 				valueText.setPreferredSize(new Dimension(70,26));
- 				valueText.setMaximumSize(new Dimension(70,26));
-        valueText.setMinimumSize(new Dimension(70,26));
+ 				valueText.setPreferredSize(new Dimension(150,26));
+ 				valueText.setMaximumSize(new Dimension(150,26));
+        valueText.setMinimumSize(new Dimension(150,26));
 
  	      valueText.setText(value);
  		 		valueText.setToolTipText(property.getToolTip());
