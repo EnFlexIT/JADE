@@ -313,6 +313,10 @@ public class MessageTransportProtocol implements MTP {
       cce.printStackTrace();
       throw new MTPException("Address mismatch: this is not a valid IIOP address.");
     }
+ catch(Exception cce2) {
+      cce2.printStackTrace();
+      throw new MTPException("Address mismatch: this is not a valid IIOP address.");
+    }
 
   }
 
