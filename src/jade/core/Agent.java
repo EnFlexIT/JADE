@@ -474,24 +474,21 @@ public class Agent implements Runnable, Serializable
 		return myToolkit.getDefaultDF();
 	}
 
+  private transient MessageQueue msgQueue;
+  private transient AgentToolkit myToolkit;
   //#MIDP_EXCLUDE_BEGIN
   private int       msgQueueMaxSize = 0;
-  private transient MessageQueue msgQueue;
   private transient List o2aQueue;
   private int o2aQueueSize = 0;
   private transient Map o2aLocks;
-  private transient AgentToolkit myToolkit = DummyToolkit.instance();
+  private transient Object suspendLock;
   //#MIDP_EXCLUDE_END
-  /*#MIDP_INCLUDE_BEGIN
-  private transient AgentToolkit    myToolkit;
-	#MIDP_INCLUDE_END*/
   
   private String myName = null;  
   private AID myAID = null;
   private String myHap = null;
 
-  private transient Object stateLock = new Object(); // Used to make state transitions atomic
-  private transient Object suspendLock = new Object(); // Used for agent suspension
+  private transient Object stateLock;
 
   private transient Thread myThread;
   private transient TimerDispatcher theDispatcher;
@@ -554,12 +551,15 @@ public class Agent implements Runnable, Serializable
    */
   public Agent() {
   	//#MIDP_EXCLUDE_BEGIN
+  	myToolkit = DummyToolkit.instance();
+  	o2aLocks = new HashMap();
   	msgQueue = new MessageQueue(msgQueueMaxSize);
+  	suspendLock = new Object();
   	//#MIDP_EXCLUDE_END
   	/*#MIDP_INCLUDE_BEGIN
   	msgQueue = new MessageQueue();
   	#MIDP_INCLUDE_END*/
-  	o2aLocks = new HashMap();
+  	stateLock = new Object(); 
   	pendingTimers = new AssociationTB();
   	myActiveLifeCycle = new ActiveLifeCycle();
   	myLifeCycle = myActiveLifeCycle;
@@ -1255,22 +1255,23 @@ public class Agent implements Runnable, Serializable
 
     o2aQueue.add(o);
 
-    // Reactivate the agent
-    activateAllBehaviours();
-
-    // Synchronize the calling thread on a condition associated to the
-    // object
+    // If we are going to block, then activate behaviours after storing the CondVar object
     if(blocking) {
       CondVar cond = new CondVar();
 
       // Store lock for later, when getO2AObject will be called
       o2aLocks.put(o, cond);
 
+	    // Reactivate the agent
+	    activateAllBehaviours();
+	    
       // Sleep on the condition
       cond.waitOn();
-
     }
-
+    else {
+	    // Reactivate the agent
+	    activateAllBehaviours();
+    }
   }
 
   /**
