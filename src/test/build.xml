@@ -79,6 +79,7 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/proto/contractNetProtoTestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/proto/twoPhTestsList.xml" todir="${dest}/test/proto"/>
+    <copy file="${src}/test/proto/proposeTestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/roundTripTime/roundTripTimeTestsList.xml" todir="${dest}/test/roundTripTime"/>
     <copy file="${src}/test/leap/LEAPTestsList.xml" todir="${dest}/test/leap"/>
   </target>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Initiator and responder in the same agent" skip="false">
+			<TestClassName>test.proto.tests.propose.TestMyselfAsResp</TestClassName>
+			<WhatTest> Tests the normal flow of messages with two responders, but one of them is the initiator agent itself.</WhatTest>
+			<HowWorkTest> All handlers are defined overriding methods.</HowWorkTest>
+			<WhenTestPass> The test passes when it terminates correctly.</WhenTestPass>
+		</Test>		
+	
+		<Test name="Timeout and Out-of-sequence" skip="false">
+			<TestClassName>test.proto.tests.propose.TestTimeoutAndOutOfSeq</TestClassName>
+			<WhatTest> Tests the protocol when a responder does not reply or reply with a wrong message.</WhatTest>
+			<HowWorkTest> 
+				More in details there will be 5 responders:
+				<UL>
+	   			<LI>Responder-0 replies with ACCEPT_PROPOSAL;</LI>
+	   			<LI>Responder-1 replies with REJECT_PROPOSAL;</LI>
+	   			<LI>Responder-2 replies with NOT_UNDERSTOOD;</LI>
+	   			<LI>Responder-3 replies with REQUEST (an out of sequence message);</LI>
+	   			<LI>Responder-4 does not reply at all;</LI>
+			    </UL>
+			    <br></br><em>NOTES: 
+			    <UL>
+	   			<LI>This test also checks that the handleAllResponses handler is properly called;</LI>
+	   			<LI>This test will take ~ 10 sec as the timeout must expire;</LI>
+	   			<LI>All handlers are defined overriding methods.</LI>
+	   			</UL>
+			    </em>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="Register HandleAcceptProposal" skip="false">
+			<TestClassName>test.proto.tests.propose.TestRegisterHandleAcceptProposal</TestClassName>
+			<WhatTest> Tests the registration of a composite behaviour in the HANDLE_ACCEPT_PROPOSAL state.</WhatTest>
+			<HowWorkTest> There will be three responders behaving normally so that the registered state is visited three times.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>		
+	</TestsList>
