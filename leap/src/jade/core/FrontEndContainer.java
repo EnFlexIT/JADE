@@ -43,7 +43,7 @@ import java.util.Enumeration;
 @author Giovanni Caire - TILAB
 */
 
-class FrontEndContainer implements FrontEnd, AgentToolkit {
+class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.FrontEndDispatcher";
 	
@@ -63,6 +63,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	
 	// The AID of the default DF
 	private AID dfAID;
+	
+	// The buffer of messages to be sent to the BackEnd
+	private Vector pending = new Vector(4);
 	
 	// The BackEnd this FrontEndContainer is connected to
 	private BackEnd myBackEnd;
@@ -86,6 +89,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	FrontEndContainer(Properties p) {
 		configProperties = p;
 		
+		// Start the therad for asynchronous message delivery
+		Thread t = new Thread(this);
+		t.start();
+			
 		// Connect to the BackEnd
 		try {
 			String connMgrClass = configProperties.getProperty(CONN_MGR_CLASS_KEY);
@@ -319,7 +326,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 		}
 		// If some receiver is remote --> pass the message to the BackEnd		
 		if (remoteCnt > 0) {
-			try {
+			post(msg, sender.getLocalName());
+			/*try {
 				myBackEnd.messageOut(msg, sender.getLocalName());
 			}
 			catch (IMTPException imtpe) {
@@ -331,7 +339,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 				// indicates an inconsistency between the FrontEnd and the BackEnd
 				// FIXME: recover the inconsistency
 		  	Logger.println(nfe.toString());
-			}
+			}*/
 		}
   }
   
@@ -423,6 +431,46 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
       // Re-throw the exception
       throw e;
     }
+  }
+  
+  private synchronized void post(ACLMessage msg, String sender) {
+  	synchronized(pending) {
+	  	pending.addElement(msg);
+	  	pending.addElement(sender);
+	  	pending.notifyAll();
+  	}
+  }
+  
+  public void run() {
+  	ACLMessage msg = null;
+  	String sender = null;
+  	
+  	while (true) {
+	  	synchronized(pending) {
+	  		while (pending.size() == 0) {
+	  			try {
+		  			pending.wait();
+	  			}
+	  			catch (InterruptedException ie) {
+	  				// Should never happen
+	  				Logger.println(ie.toString());
+	  			}
+	  		}
+	  		msg = (ACLMessage) pending.elementAt(0);
+	  		sender = (String) pending.elementAt(1);
+	  		pending.removeElementAt(1);
+	  		pending.removeElementAt(0);
+	  	}
+	  	
+	  	try {
+		  	myBackEnd.messageOut(msg, sender);
+	  	}
+	  	catch (Exception e) {
+	  		// Should never happen. Note that "NotFound" here is referred 
+	  		// to the sender.
+	  		Logger.println(e.toString());
+	  	}
+  	}
   }
 }
 
