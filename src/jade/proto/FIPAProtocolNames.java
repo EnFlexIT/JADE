@@ -45,4 +45,5 @@ public interface FIPAProtocolNames{
 	public static final String FIPA_PROPOSE = "fipa-propose";
 	
 	public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
+	public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";  
 }

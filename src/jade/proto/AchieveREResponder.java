@@ -172,9 +172,12 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 		}
 		
 		public int onEnd() {
-		    return ret;
+			if (ret != ACLMessage.AGREE) {
+		    AchieveREResponder.this.reset();
+			}
+		  return ret;
 		}
-	    };
+	};
 	b.setDataStore(getDataStore());		
 	registerState(b, SEND_RESPONSE);
 	
@@ -230,9 +233,21 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
        This method allows to change the <code>MessageTemplate</code>
        that defines what messages this FIPARequestResponder will react to and reset the protocol.
     */
+    public void reset() {
+			super.reset();
+			DataStore ds = getDataStore();
+			ds.remove(REQUEST_KEY);
+			ds.remove(RESPONSE_KEY);
+			ds.remove(RESULT_NOTIFICATION_KEY);
+    }
+    
+    /**
+       This method allows to change the <code>MessageTemplate</code>
+       that defines what messages this FIPARequestResponder will react to and reset the protocol.
+    */
     public void reset(MessageTemplate mt) {
-	super.reset();
-	rec.reset(mt, -1, getDataStore(), REQUEST_KEY);
+			this.reset();
+			rec.reset(mt, -1, getDataStore(), REQUEST_KEY);
     }
     
 
