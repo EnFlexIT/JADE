@@ -25,6 +25,13 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import jade.lang.acl.ACLMessage;
+import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+import jade.domain.JADEAgentManagement.ShowGui;
+import jade.lang.sl.SL0Codec;
+import jade.onto.basic.Action;
+import jade.domain.FIPAException;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
    
@@ -35,7 +42,8 @@ class ShowDFGuiAction extends FixedAction
 {
 
   private rma myRMA;
-
+  private ACLMessage msg;
+  
   ShowDFGuiAction(rma anRMA,ActionProcessor actPro ) {
 
      // Note: this class uses the DummyAgentActionIcon just because it
@@ -43,16 +51,24 @@ class ShowDFGuiAction extends FixedAction
 
      super ("DummyAgentActionIcon","Show the DF GUI",actPro);
      myRMA = anRMA;
+     msg = new ACLMessage(ACLMessage.REQUEST);
+     msg.addReceiver(myRMA.getDefaultDF());
+     msg.setOntology(JADEAgentManagementOntology.NAME);
+     msg.setLanguage(SL0Codec.NAME);
+     msg.setProtocol("fipa-request");
+     Action a = new Action();
+     a.set_0(myRMA.getDefaultDF());
+     a.set_1(new ShowGui());
+     List l = new ArrayList();
+     l.add(a);
+     try {
+     	myRMA.fillContent(msg,l);
+     } catch (FIPAException e) {
+     	e.printStackTrace();
+     }
   }
 
    public void doAction() {
-
-     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-     msg.clearAllReceiver();
-     msg.addReceiver(myRMA.getDefaultDF());
-     msg.setOntology("jade-extensions");
-     msg.setProtocol("fipa-request");
-     msg.setContent("(action df (SHOWGUI))");
      myRMA.send(msg);
   }
 
