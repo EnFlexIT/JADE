@@ -60,7 +60,8 @@ public final class SenderBehaviour extends OneShotBehaviour {
   public SenderBehaviour(Agent a, ACLMessage msg) {
     super(a);
     message = msg;
-    message.setSender(myAgent.getAID());
+    if (msg != null)
+	message.setSender(myAgent.getAID());
   }
 
   /**
