@@ -772,17 +772,29 @@ public class BEManagementService extends BaseService {
       cmd.addParam(owner);
 
       try {
+        if (myLogger.isLoggable(Logger.FINE)) {
+          myLogger.log(Logger.FINE, myLogPrefix+"Issuing command " + INCOMING_CONNECTION);
+        }
 	      Object ret = submit(cmd);
 	      if (ret != null) {
 	      	if (ret instanceof Properties) {
+            if (myLogger.isLoggable(Logger.FINER)) {
+              myLogger.log(Logger.FINER, myLogPrefix+"PDPContextProperties for address "+ addr + " owner " + owner + " = " + ret);
+            }
 	      		// PDP Context properties detected
 	      		return (Properties) ret;
 	      	}
 	      	else if (ret instanceof JADESecurityException) {
+            if (myLogger.isLoggable(Logger.FINER)) {
+              myLogger.log(Logger.FINER, myLogPrefix+"Address "+ addr + " owner " + owner + " not authenticated.");
+            }
 	      		// Incoming connection from non-authorized device
 	      		return null;
 	      	}
 	      	else if (ret instanceof Throwable) {
+            if (myLogger.isLoggable(Logger.FINER)) {
+              myLogger.log(Logger.FINER, myLogPrefix+"Error retrieving PDPContextPropert for address "+ addr + " owner " + owner + ". " + ret);
+            }
 	      		// Unexpected exception
 	      		((Throwable) ret).printStackTrace();
 	      		return null;
