@@ -391,21 +391,23 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   		myFrontEnd.exit(false);
   	}
   	catch (IMTPException imtpe) {
-  		// The FrontEnd is disconnected. 
-  		// "Kill" all agent images and force the shutdown of the connection
-  		Enumeration e = agentImages.keys();
-  		while (e.hasMoreElements()) {
-  			AID id = (AID) e.nextElement();
-  			try {
-  				myPlatform.deadAgent(id);
-  			}
-  			catch (Exception ex) {
-  				ex.printStackTrace();
-  			}
-  		}
-  		agentImages.clear();  		
+  		// The FrontEnd is disconnected. Force the shutdown of the connection
   		myConnectionManager.shutdown();
   	}
+  	
+  	// "Kill" all agent images
+		Enumeration e = agentImages.keys();
+		while (e.hasMoreElements()) {
+			AID id = (AID) e.nextElement();
+			try {
+				myPlatform.deadAgent(id);
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		agentImages.clear();
+  	
     shutDown();
 	}
 
