@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:31:29  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.6  1999/02/04 14:47:28  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -35,15 +39,17 @@ import jade.domain.rma;
  */
 public class KillAction extends AMSAbstractAction {
 
-  public KillAction(String label) {
+  private rma myRMA;
+
+  public KillAction(String label, rma anRMA) {
     super ("KillActionIcon", label);
+    myRMA = anRMA;
   }
 
   public void actionPerformed(ActionEvent evt) {
     for (int i=0;i<listeners.size();i++) {
       TreeData current = (TreeData)listeners.elementAt(i);
       String toKill = current.getName();
-      rma myRMA = AMSMainFrame.getRMA();
 
       int level = current.getLevel();
 

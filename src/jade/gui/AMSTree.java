@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/05/19 18:31:26  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.7  1999/02/04 14:47:26  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -30,6 +34,8 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
+import jade.domain.rma;
+
 /** 
  * The Tree listens TreeSelection and PopupMenu events, because we want 
  * have a context menu sensible to Nodes and we want to update the Table 
@@ -46,8 +52,8 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
   private JSplitPane pane;
   private DefaultMutableTreeNode AMSFirstNode;  
   private static int i = 1;
-   
-  public AMSTree() {
+
+  public AMSTree(rma anRMA) {
     table = new TablePanel();
     TreeSelectionModel selModel;
     Font f;
@@ -57,6 +63,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     setLayout(new BorderLayout(10,10));
 
     tree = new JTree();
+
     tree.setFont(f);
     tree.setModel(new AMSTreeModel());
     tree.setLargeModel(false);
@@ -75,7 +82,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     ToolTipManager.sharedInstance().registerComponent(tree);
 
     AddAgentPlatformAction.setTree(this);
-    popup = new AMSPopupMenu (this);
+    popup = new AMSPopupMenu (this, anRMA);
     tree.addTreeSelectionListener(this);
     tree.addMouseListener(new PopupMouser(popup));
     popup.addPopupMenuListener(this);
@@ -213,4 +220,8 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
   public void popupMenuCanceled(PopupMenuEvent e){}
 
 }
+
+
+
+
 

@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/05/19 18:31:24  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.5  1999/02/04 14:47:25  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -26,6 +30,8 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
+import jade.domain.rma;
+
 /**
  * The Context Menu of the GUI
  */
@@ -35,18 +41,18 @@ public class AMSPopupMenu extends JPopupMenu {
   protected AMSAbstractAction act;
   protected PingAction ping = new PingAction();
   protected StartAction start = new StartAction();
-  protected KillAction killAgent = new KillAction("Kill Selected Agents");
-  protected KillAction killContainer = new KillAction("Kill Selected Containers");
-  protected ResumeAction resume = new ResumeAction();	
+  protected KillAction killAgent;
+  protected KillAction killContainer;
+  protected ResumeAction resume;
   protected CustomAction custom = new CustomAction();
   protected getPropertiesAction properties = new getPropertiesAction();
   protected SnifferAction sniffer = new SnifferAction();
-  protected StartNewAgentAction NewAgent = new StartNewAgentAction();
-  protected SuspendAction suspend = new SuspendAction ();
+  protected StartNewAgentAction NewAgent;
+  protected SuspendAction suspend;
   protected AddAgentPlatformAction NewAgentPlatform = new AddAgentPlatformAction();
   private JMenu ActionsMenu;
 
-  public AMSPopupMenu (PopupMenuListener parent) {
+  public AMSPopupMenu (PopupMenuListener parent, rma anRMA) {
     super();
     this.parent = parent;
 
@@ -59,21 +65,26 @@ public class AMSPopupMenu extends JPopupMenu {
     tmp = add(properties);			
     tmp.setIcon(null);
 
+    NewAgent = new StartNewAgentAction(anRMA);
     tmp = ActionsMenu.add(NewAgent);
     tmp.setIcon(null);
 
+    killContainer = new KillAction("Kill Selected Containers", anRMA);
     tmp = ActionsMenu.add(killContainer);
     tmp.setIcon(null);
 
     tmp = ActionsMenu.add(start);
     tmp.setIcon(null);
-		
+
+    killAgent = new KillAction("Kill Selected Agents", anRMA);		
     tmp = ActionsMenu.add(killAgent);
     tmp.setIcon(null);
 
+    suspend = new SuspendAction (anRMA);
     tmp = ActionsMenu.add(suspend);
     tmp.setIcon(null);
-		
+
+    resume = new ResumeAction(anRMA);		
     tmp = ActionsMenu.add(resume);
     tmp.setIcon(null);
 		

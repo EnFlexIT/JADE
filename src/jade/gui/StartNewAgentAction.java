@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:31:32  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.6  1999/02/04 14:47:31  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -40,8 +44,12 @@ import jade.domain.rma;
  */
 
 public class StartNewAgentAction extends AMSAbstractAction {
-  public StartNewAgentAction() {
+
+  private rma myRMA;
+
+  public StartNewAgentAction(rma anRMA) {
     super ("StartNewAgentActionIcon","Start New Agent");
+    myRMA = anRMA;
   }
 
   private int doStartNewAgent(String containerName) {
@@ -52,7 +60,6 @@ public class StartNewAgentAction extends AMSAbstractAction {
       String className = StartDialog.getClassName();
       String container = StartDialog.getContainer();
 
-      rma myRMA = AMSMainFrame.getRMA();
       myRMA.newAgent(agentName, className, container);
     }
     return result;
@@ -110,3 +117,10 @@ class StartException extends Exception
       JOptionPane.showMessageDialog(new JFrame(),ErrorMessage,ErrorPaneTitle,JOptionPane.ERROR_MESSAGE);
     }
 }
+
+
+
+
+
+
+

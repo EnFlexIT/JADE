@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:31:25  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.6  1999/02/04 14:47:25  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -25,6 +29,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import jade.domain.rma;
+
 /**
  * The ToolBar 
  */
@@ -35,7 +41,7 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
   protected JComboBox ShowChoice = new JComboBox ();
   protected AMSTree tree;
 
-  public AMSToolBar (AMSTree treeP) {
+  public AMSToolBar (AMSTree treeP, rma anRMA) {
     super();
     tree = treeP;
     setBorderPainted(true);
@@ -44,11 +50,11 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
 
     addSeparator();
 	
-    addAction(new StartNewAgentAction());
+    addAction(new StartNewAgentAction(anRMA));
     addAction(new StartAction());
-    addAction(new KillAction("Kill Selected Items"));
-    addAction(new SuspendAction());
-    addAction(new ResumeAction());
+    addAction(new KillAction("Kill Selected Items", anRMA));
+    addAction(new SuspendAction(anRMA));
+    addAction(new ResumeAction(anRMA));
     addAction(new PingAction());
 		
     addSeparator();

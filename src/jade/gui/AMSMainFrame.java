@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.12  1999/05/19 18:31:22  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.11  1999/04/13 16:01:10  rimassa
   Added a method to perform asynchronously GUI disposal.
 
@@ -66,37 +70,33 @@ import jade.domain.rma;
  * @version %I%, %G%
  * @see     javax.swing.JFrame
  */
-public class AMSMainFrame extends JFrame {	
-
+public class AMSMainFrame extends JFrame {
+  // FIXME: Static Vector 'listeners' prevents two or more rma within the same JVM 
   private AMSTree tree;
-  private static rma myRMA;
 
   public AMSMainFrame (rma anRMA) {
     super("JADE Remote Agent Management GUI");
-    setJMenuBar(new AMSMenu());
+ 
+    setJMenuBar(new AMSMenu(anRMA));
 
-    tree = new AMSTree();
+    tree = new AMSTree(anRMA);
     setForeground(Color.black);
     setBackground(Color.lightGray);
-    addWindowListener(new WindowCloser());
-    getContentPane().add(new AMSToolBar(tree),"North");
-		
+    addWindowListener(new WindowCloser(anRMA));
+    getContentPane().add(new AMSToolBar(tree, anRMA),"North");
+
     getContentPane().add(tree,"Center");
-    myRMA = anRMA;
 
-  }
-
-  public static rma getRMA() {
-    return myRMA;
   }
 
   /**
-     show the AMSMainfFrame packing and setting its size correctly
+     show the AMSMainFrame packing and setting its size correctly
   */
   public void ShowCorrect() {
     pack();
     setSize(600,400);
     setVisible(true);
+    toFront();
   }
 
   // Perform asynchronous disposal to avoid nasty InterruptedException
@@ -132,7 +132,6 @@ public class AMSMainFrame extends JFrame {
     AMSTreeModel model = tree.getModel();
     MutableTreeNode root = (MutableTreeNode)model.getRoot();
     model.insertNodeInto(node, root, root.getChildCount());
-
   }
 
   public void removeContainer(String name) {

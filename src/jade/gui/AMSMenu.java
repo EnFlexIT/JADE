@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:31:23  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.6  1999/02/04 14:47:25  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -25,12 +29,14 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import jade.domain.rma;
+
 /**
  * The Menu of the GUI
  */
 public class AMSMenu extends JMenuBar {
 
-  public AMSMenu () {
+  public AMSMenu (rma anRMA) {
     super();
 
     AMSAbstractAction act;
@@ -50,15 +56,15 @@ public class AMSMenu extends JMenuBar {
     tmp = new JMenuItem ("Execute Current Script");
     menu.add(tmp);
 
-    act = new CloseRMAAction();
+    act = new CloseRMAAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new ExitAction();
+    act = new ExitAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new ShutDownAction();
+    act = new ShutDownAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
@@ -67,7 +73,7 @@ public class AMSMenu extends JMenuBar {
 
     menu = new JMenu ("Actions");
 
-    act = new StartNewAgentAction();
+    act = new StartNewAgentAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
@@ -75,15 +81,15 @@ public class AMSMenu extends JMenuBar {
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new KillAction("Kill Selected Items");
+    act = new KillAction("Kill Selected Items", anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new SuspendAction();
+    act = new SuspendAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new ResumeAction();
+    act = new ResumeAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 

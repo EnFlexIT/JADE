@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/05/19 18:31:33  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.5  1999/03/03 16:00:03  rimassa
   Implemented action body to really resume suspended agents.
 
@@ -29,8 +33,12 @@ import jade.domain.rma;
  * @see jade.gui.AMSAbstractAction
  */
 public class SuspendAction extends AMSAbstractAction {
-  public SuspendAction() {
+
+  private rma myRMA;
+
+  public SuspendAction(rma anRMA) {
     super ("SuspendActionIcon","Suspend Selected Agents");
+    myRMA = anRMA;
   }
 
     public void actionPerformed(ActionEvent evt) {
@@ -38,7 +46,6 @@ public class SuspendAction extends AMSAbstractAction {
 	TreeData current = (TreeData)listeners.elementAt(i);
 	current.setState(TreeData.SUSPENDED);
 	String toSuspend = current.getName();
-	rma myRMA = AMSMainFrame.getRMA();
 
 	int level = current.getLevel();
 
@@ -53,7 +60,7 @@ public class SuspendAction extends AMSAbstractAction {
 	AMSTreeModel myModel = myRMA.getModel();
 	myModel.nodeChanged(current);
       }
-      //      listeners.removeAllElements();
+      listeners.removeAllElements();
     }
 
 }

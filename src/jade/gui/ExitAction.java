@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:31:28  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.6  1999/02/25 08:42:30  rimassa
   Delegated shutdown to RMA agent insted of relying on finalizers and
   calling System.exit().
@@ -33,12 +37,14 @@ import jade.domain.rma;
  */
 public class ExitAction extends AMSAbstractAction {
 
-  public ExitAction () {
+  private rma myRMA;
+
+  public ExitAction (rma anRMA) {
     super ("ExitActionIcon","Exit this Container");
+    myRMA = anRMA;
   }
 
   public void actionPerformed(ActionEvent evt) {
-    rma myRMA = AMSMainFrame.getRMA();
     myRMA.exit();
   }
 }

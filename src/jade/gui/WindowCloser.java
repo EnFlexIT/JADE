@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/05/19 18:31:34  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.5  1999/02/04 14:47:33  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -29,8 +33,14 @@ import jade.domain.rma;
  * the WindowCLose event.
  */
 public class WindowCloser extends WindowAdapter {
+
+  private rma myRMA;
+
+  public WindowCloser(rma anRMA) {
+    myRMA = anRMA;
+  }
+
   public void windowClosing(WindowEvent e) {
-      rma myRMA = AMSMainFrame.getRMA();
       myRMA.doDelete();
   }
 }

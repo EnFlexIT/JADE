@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/05/19 18:31:31  rimassa
+  Changed various classes to remove static references to RMA agent from GUI
+  components and actions.
+
   Revision 1.3  1999/02/04 14:47:30  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -28,8 +32,11 @@ import jade.domain.rma;
  */
 public class ShutDownAction extends AMSAbstractAction {
 
-  public ShutDownAction () {
+  private rma myRMA;
+
+  public ShutDownAction (rma anRMA) {
     super ("SuspendActionIcon","Shut down Agent Platform");
+    myRMA = anRMA;
   }
 
   public void actionPerformed(ActionEvent evt) {
@@ -37,7 +44,6 @@ public class ShutDownAction extends AMSAbstractAction {
 
     // Ask the RMA to do it, then the AgentPlatform itself
     // uses its shutDown() method.
-    rma myRMA = AMSMainFrame.getRMA();
     myRMA.shutDownPlatform();
 
   }
