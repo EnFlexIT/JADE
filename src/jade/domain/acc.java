@@ -27,7 +27,7 @@ package jade.domain;
 import java.util.Map;
 import java.util.HashMap;
 
-import jade.domain.FIPAAgentManagement.AgentID;
+import jade.domain.FIPAAgentManagement.AID;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -49,7 +49,7 @@ public class acc {
 
   }
 
-  public void forwardMessage(ACLMessage msg, AgentID receivers[]) {
+  public void forwardMessage(ACLMessage msg, AID receivers[]) {
 
     // Steps:
     // 0. Split the operation in a suitable number of single-receiver operations.

@@ -34,15 +34,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.NoSuchElementException;
 import java.util.Map;
 import java.util.HashMap;
 
 import jade.core.*;
 import jade.core.behaviours.*;
 
+import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.AID;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.domain.FIPAAgentManagement.AlreadyRegistered;
+import jade.domain.FIPAAgentManagement.NotRegistered;
+import jade.domain.FIPAAgentManagement.InternalError;
+
+import jade.domain.FIPAAgentManagement.Register;
+import jade.domain.FIPAAgentManagement.Deregister;
+import jade.domain.FIPAAgentManagement.Modify;
+import jade.domain.FIPAAgentManagement.Search;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import jade.onto.Action;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
@@ -63,85 +78,30 @@ public class ams extends Agent {
       extends FipaRequestResponderBehaviour.Action
       implements FipaRequestResponderBehaviour.Factory {
 
-    // This Action will be set by crackMessage()
-    private AgentManagementOntology.AMSAction myAction;
-
-    protected AgentManagementOntology myOntology;
-
-
     protected AMSBehaviour() {
       super(ams.this);
-      myOntology = AgentManagementOntology.instance();
-    }
-
-    protected void checkMandatory(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
-      // Make sure mandatory attributes for the current AMS
-      // action are non-null
-
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.NAME, amsd.getName());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.ADDRESS, amsd.getAddress());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.SIGNATURE, amsd.getSignature());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.APSTATE, amsd.getAPState());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.DELEGATE, amsd.getDelegateAgentName());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.FORWARD, amsd.getForwardAddress());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.OWNERSHIP, amsd.getOwnership());
-
-    }
-
-
-    // This method throws a FIPAException if the attribute is
-    // mandatory for the current AMS action but it is a null object
-    // reference
-    private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
-      if(myOntology.isMandatoryForAMS(myAction.getName(), attributeName) && (attributeValue == null))
-	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE + " " +attributeName);
-    }
-
-    // This method parses the message content and puts
-    // 'FIPA-AMS-description' attribute values in instance
-    // variables. If some error is found a FIPA exception is thrown
-    private void crackMessage() throws FIPAException, NoSuchElementException {
-
-      ACLMessage msg = getRequest();
-      String content = msg.getContent();
-
-      // Obtain an AMS action from message content
-      try {
-	myAction = AgentManagementOntology.AMSAction.fromText(new StringReader(content));
-      }
-      catch(ParseException pe) {
-	// pe.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR+ " :content");
-      }
-      catch(TokenMgrError tme) {
-	// tme.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR+ " :content");
-      }
-
     }
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processAction(AgentManagementOntology.AMSAction a) throws FIPAException;
+    protected abstract void processAction(Action a) throws FIPAException;
 
     public void action() {
 
       try {
-	// Convert message from untyped keyword/value list to a Java
-	// object throwing a FIPAException in case of errors
-	crackMessage();
+
+	ACLMessage msg = getRequest();
+        
+       	// Extract the Action object from the message content
+	List l = extractContent(msg);
+	Action a = (Action)l.get(0);
 
 	// Do real action, deferred to subclasses
-	processAction(myAction);
+	processAction(a);
 
       }
       catch(FIPAException fe) {
-	// fe.printStackTrace();
 	sendRefuse(fe.getMessage());
-      }
-      catch(NoSuchElementException nsee) {
-	// nsee.printStackTrace();
-	sendRefuse(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
     }
@@ -161,67 +121,42 @@ public class ams extends Agent {
   // Behaviour to process a given request, and when seen as
   // Action they process their request and terminate.
 
-  private class AuthBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.Action create() {
-      return new AuthBehaviour();
-    }
-
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-
-      checkMandatory(amsd);
-
-      String agentName = amsd.getName();
-      if(agentName == null)
-	AMSDumpData();
-      else {
-	AMSDumpData();
-      }
-      throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
-    }
-
-  } // End of AuthBehaviour class
-
-
   private class RegBehaviour extends AMSBehaviour {
 
     public FipaRequestResponderBehaviour.Action create() {
       return new RegBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-
-      checkMandatory(amsd);
+    protected void processAction(Action a) throws FIPAException {
+      Register r = (Register)a.getAction();
+      AMSAgentDescription amsd = (AMSAgentDescription)r.get_0();
 
       // This agent was created by some other, which is still
       // waiting for an 'inform' message. Recover the buffered
       // message from the Map and send it back.
       ACLMessage informCreator = (ACLMessage)pendingInforms.remove(amsd.getName());
 
-      // Write new agent data in AMS Agent Table
       try {
-	AMSNewData(amsd);
+	// Write new agent data in AMS Agent Table
+	AMSRegister(amsd);
 	sendAgree();
 	sendInform();
 
 	// Inform agent creator that registration was successful.
 	if(informCreator !=  null) {
-	informCreator.setPerformative(ACLMessage.INFORM);
-	informCreator.setContent("( done ( " + a.getName() + " ) )");
-	send(informCreator);
+	  informCreator.setPerformative(ACLMessage.INFORM);
+	  // informCreator.setContent("( done ( " + a.getName() + " ) )");
+	  send(informCreator);
 	}
-
       }
-      catch(AgentAlreadyRegisteredException aare) {
+      catch(AlreadyRegistered are) {
 	sendAgree();
-	sendFailure(aare.getMessage());
+	sendFailure(are.getMessage());
 
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
 	  informCreator.setPerformative(ACLMessage.FAILURE);
-	  informCreator.setContent("( ( action " + getLocalName() + " " + a.getName() + " ) " + aare.getMessage() + ")");
+	  // informCreator.setContent("( ( action " + getLocalName() + " " + a.getName() + " ) " + aare.getMessage() + ")");
 	  send(informCreator);
 	}
       }
@@ -229,27 +164,21 @@ public class ams extends Agent {
 
   } // End of RegBehaviour class
 
-
   private class DeregBehaviour extends AMSBehaviour {
 
     public FipaRequestResponderBehaviour.Action create() {
       return new DeregBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-
-      checkMandatory(amsd);
-
-      // Remove the agent data from Global Descriptor Table
-      AMSRemoveData(amsd);
+    protected void processAction(Action a) throws FIPAException {
+      Deregister d = (Deregister)a.getAction();
+      AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
+      AMSDeregister(amsd);
       sendAgree();
       sendInform();
-
     }
 
   } // End of DeregBehaviour class
-
 
   private class ModBehaviour extends AMSBehaviour {
 
@@ -257,38 +186,52 @@ public class ams extends Agent {
       return new ModBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-
-      checkMandatory(amsd);
-
-      // Modify agent data from Global Descriptor Table
-      AMSChangeData(amsd);
+    protected void processAction(Action a) throws FIPAException {
+      Modify m = (Modify)a.getAction();
+      AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
+      AMSModify(amsd);
       sendAgree();
       sendInform();
     }
 
   } // End of ModBehaviour class
 
-  private class QueryPPBehaviour extends AMSBehaviour {
+  private class SrchBehaviour extends AMSBehaviour {
 
     public FipaRequestResponderBehaviour.Action create() {
-      return new QueryPPBehaviour();
+      return new SrchBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-      sendAgree();
+    protected void processAction(Action a) throws FIPAException {
+      Search s = (Search)a.getAction();
+      AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
+      SearchConstraints constraints = s.get_1();
+      AMSSearch(amsd, constraints, getReply());
 
-      StringWriter profile = new StringWriter();
-      theProfile.toText(profile);
+    }
+
+  } // End of SrchBehaviour class
+
+  private class GetDescriptionBehaviour extends AMSBehaviour {
+
+    public FipaRequestResponderBehaviour.Action create() {
+      return new GetDescriptionBehaviour();
+    }
+
+    protected void processAction(Action a) throws FIPAException {
+
+      sendAgree();
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
-      reply.setContent(profile.toString());
+      List l = new ArrayList(1);
+      l.add(theProfile);
+      fillContent(reply, l);
       send(reply);
     }
 
-  } // End of QueryPPBehaviour class
+  } // End of GetDescriptionBehaviour class
+
 
   // These Behaviours handle interactions with Remote Management Agent.
 
@@ -317,21 +260,18 @@ public class ams extends Agent {
 	// FIXME: Should parse 'iota ?x ...'
 
 	// Get new RMA name from subscription message
-	String newRMA = current.getSource();
+	AID newRMA = current.getSender();
 
 	// Send back the whole container list.
 	String[] names = myPlatform.containerNames();
 	for(int i = 0; i < names.length; i++) {
 	  String containerName = names[i];
-	  AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
-	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
-	  ev.setContainerName(containerName);
-	  StringWriter w = new StringWriter();
-	  ev.toText(w);
 
-	  RMANotification.removeAllDests();
-	  RMANotification.addDest(newRMA);
-	  RMANotification.setContent(w.toString());
+	  // Create an ontological object corresponding to a sequence<string> ...
+
+	  RMANotification.clearAllReceiver();
+	  RMANotification.addReceiver(newRMA);
+	  RMANotification.setContent("");
 	  send(RMANotification);
 
 	}
@@ -342,31 +282,26 @@ public class ams extends Agent {
           try {
 	    String agentName = names[i];
 	    String containerName = myPlatform.getContainerName(agentName);
-	    String agentAddress = myPlatform.getAddress(agentName); // FIXME: Need to use AMSAgDesc directly
-	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-	    amsd.setName(agentName);
-	    amsd.setAddress(agentAddress);
-	    amsd.setAPState(Agent.AP_ACTIVE);
 
-	    AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	    ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
-	    ev.setContainerName(containerName);
-	    ev.setAgentDescriptor(amsd);
-	    StringWriter w = new StringWriter();
-	    ev.toText(w);
+	    AMSAgentDescription amsd = new AMSAgentDescription();
+	    List l = new ArrayList(1);
+	    l.add(amsd);
 
-	    RMANotification.setContent(w.toString());
-	    RMANotification.removeAllDests();
-	    RMANotification.addDest(newRMA);
+	    fillContent(RMANotification, l);
+	    RMANotification.clearAllReceiver();
+	    RMANotification.addReceiver(newRMA);
 	    send(RMANotification);
 	  }
 	  catch(NotFoundException nfe) {
 	    nfe.printStackTrace();
 	  }
+	  catch(FIPAException fe) {
+	    fe.printStackTrace();
+	  }
 	}
 
-	// Add the new RMA to RMAs agent group.
-	RMAs.addMember(newRMA);
+	// Add the new RMA to RMAs list.
+	RMAs.add(newRMA);
 
       }
       else
@@ -375,6 +310,7 @@ public class ams extends Agent {
     }
 
   } // End of RegisterRMABehaviour class
+
 
   private class DeregisterRMABehaviour extends CyclicBehaviour {
 
@@ -401,7 +337,7 @@ public class ams extends Agent {
 	// FIXME: Should parse 'iota ?x ...'
 
 	// Remove this RMA to RMAs agent group.
-	RMAs.removeMember(current.getSource());
+	RMAs.remove(current.getSender());
 
       }
       else
@@ -423,17 +359,18 @@ public class ams extends Agent {
 	MobilityOntology.Location loc = new MobilityOntology.Location();
 	loc.setName(name);
 	loc.setTransportProtocol("JADE-IPMT");
-	loc.setTransportAddress(getAddress() + "." + name);
+	loc.setTransportAddress(getHap() + "." + name);
 	mobilityMgr.addLocation(name, loc);
 
-	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
-	ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
-	ev.setContainerName(name);
-	ev.setContainerAddr(addr.getHostName());
-	StringWriter w = new StringWriter();
-	ev.toText(w);
-	RMANotification.setContent(w.toString());
-	send(RMANotification, RMAs);
+	// Fill the content with a suitable ontological object
+	RMANotification.setContent("");
+	RMANotification.clearAllReceiver();
+	Iterator rmaIt = RMAs.iterator();
+	while(rmaIt.hasNext())
+	  RMANotification.addReceiver((AID)rmaIt.next());
+
+	send(RMANotification);
+
 	it.remove();
       }
     }
@@ -444,13 +381,15 @@ public class ams extends Agent {
 	String name = (String)it.next();
 	mobilityMgr.removeLocation(name);
 
-	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
-	ev.setKind(AgentManagementOntology.AMSEvent.DEADCONTAINER);
-	ev.setContainerName(name);
-	StringWriter w = new StringWriter();
-	ev.toText(w);
-	RMANotification.setContent(w.toString());
-	send(RMANotification, RMAs);
+	// Fill the content with a suitable ontological object
+	RMANotification.setContent("");
+	RMANotification.clearAllReceiver();
+	Iterator rmaIt = RMAs.iterator();
+	while(rmaIt.hasNext())
+	  RMANotification.addReceiver((AID)rmaIt.next());
+
+	send(RMANotification);
+
 	it.remove();
       }
     }
@@ -459,14 +398,16 @@ public class ams extends Agent {
       Iterator it = newAgentsBuffer.iterator();
       while(it.hasNext()) {
 	AgDesc ad = (AgDesc)it.next();
-	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	ev.setKind(AgentManagementOntology.AMSEvent.NEWAGENT);
-	ev.setContainerName(ad.containerName);
-	ev.setAgentDescriptor(ad.amsd);
-	StringWriter w = new StringWriter();
-	ev.toText(w);
-	RMANotification.setContent(w.toString());
-	send(RMANotification, RMAs);
+
+	// Fill the content with a suitable ontological object
+	RMANotification.setContent("");
+	RMANotification.clearAllReceiver();
+	Iterator rmaIt = RMAs.iterator();
+	while(rmaIt.hasNext())
+	  RMANotification.addReceiver((AID)rmaIt.next());
+
+	send(RMANotification);
+
 	it.remove();
       }
     }
@@ -475,20 +416,17 @@ public class ams extends Agent {
       Iterator it = deadAgentsBuffer.iterator();
       while(it.hasNext()) {
 	AgDesc ad = (AgDesc)it.next();
-	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	ev.setKind(AgentManagementOntology.AMSEvent.DEADAGENT);
-	ev.setContainerName(ad.containerName);
-	ev.setAgentDescriptor(ad.amsd);
 
 	// Remove Agent Descriptor from table
-	String agentName = ad.amsd.getName();
-	descrTable.remove(agentName.toLowerCase());
 
-	StringWriter w = new StringWriter();
-	ev.toText(w);
-	RMANotification.setContent(w.toString());
+	// Fill the content with a suitable ontological object
+	RMANotification.setContent("");
+	RMANotification.clearAllReceiver();
+	Iterator rmaIt = RMAs.iterator();
+	while(rmaIt.hasNext())
+	  RMANotification.addReceiver((AID)rmaIt.next());
 
-	send(RMANotification, RMAs);
+	send(RMANotification);
 	it.remove();
       }
     }
@@ -497,18 +435,15 @@ public class ams extends Agent {
       Iterator it = movedAgentsBuffer.iterator();
       while(it.hasNext()) {
 	MotionDesc md = (MotionDesc)it.next();
-	AgentManagementOntology.AMSMotionEvent ev = new AgentManagementOntology.AMSMotionEvent();
-	ev.setKind(AgentManagementOntology.AMSEvent.MOVEDAGENT);
 
-	ev.setAgentDescriptor(md.desc);
-	ev.setSrc(md.src);
-	ev.setDest(md.dest);
+	// Fill the content with a suitable ontological object
+	RMANotification.setContent("");
+	RMANotification.clearAllReceiver();
+	Iterator rmaIt = RMAs.iterator();
+	while(rmaIt.hasNext())
+	  RMANotification.addReceiver((AID)rmaIt.next());
 
-	StringWriter w = new StringWriter();
-	ev.toText(w);
-	RMANotification.setContent(w.toString());
-
-	send(RMANotification, RMAs);
+	send(RMANotification);
 	it.remove();
       }
     }
@@ -538,14 +473,16 @@ public class ams extends Agent {
       return new KillContainerBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+    protected void processAction(Action a) throws FIPAException {
 
+	/*
       // Obtain container name and ask AgentPlatform to kill it
       AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
       String containerName = kca.getContainerName();
       myPlatform.killContainer(containerName);
       sendAgree();
       sendInform();
+	*/
     }
 
   } // End of KillContainerBehaviour class
@@ -556,8 +493,8 @@ public class ams extends Agent {
       return new CreateBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-
+    protected void processAction(Action a) throws FIPAException {
+	/*
       AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
       String className = caa.getClassName();
       String containerName = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
@@ -579,6 +516,7 @@ public class ams extends Agent {
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
       }
+	*/
     }
 
   } // End of CreateBehaviour class
@@ -589,8 +527,8 @@ public class ams extends Agent {
       return new KillBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-
+    protected void processAction(Action a) throws FIPAException {
+	/*
       // Kill an agent
       AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
       String agentName = kaa.getAgentName();
@@ -606,7 +544,7 @@ public class ams extends Agent {
       catch(NotFoundException nfe) {
 	throw new AgentNotRegisteredException();
       }
-
+	*/
     }
 
   } // End of KillBehaviour class
@@ -618,7 +556,8 @@ public class ams extends Agent {
       return new SniffAgentOnBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+    protected void processAction(Action a) throws FIPAException {
+	/*
       AgentManagementOntology.SniffAgentOnAction saoa = (AgentManagementOntology.SniffAgentOnAction)a;
       try {
 	myPlatform.sniffOn(saoa.getSnifferName(), saoa.getEntireList());
@@ -628,6 +567,7 @@ public class ams extends Agent {
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
       }
+	*/
     }
 
   } // End of SniffAgentOnBehaviour class
@@ -638,7 +578,8 @@ public class ams extends Agent {
       return new SniffAgentOffBehaviour();
     }
 
-    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+    protected void processAction(Action a) throws FIPAException {
+	/*
       AgentManagementOntology.SniffAgentOffAction saoa = (AgentManagementOntology.SniffAgentOffAction)a;
       try {
 	myPlatform.sniffOff(saoa.getSnifferName(), saoa.getEntireList());
@@ -648,6 +589,7 @@ public class ams extends Agent {
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
       }
+	*/
     }
 
   } // End of SniffAgentOffBehaviour class
@@ -655,13 +597,13 @@ public class ams extends Agent {
 
   private static class AgDesc {
 
-    public AgDesc(String s, AgentManagementOntology.AMSAgentDescriptor a) {
+    public AgDesc(String s, AMSAgentDescription a) {
       containerName = s;
       amsd = a;
     }
 
     public String containerName;
-    public AgentManagementOntology.AMSAgentDescriptor amsd;
+    public AMSAgentDescription amsd;
 
   }
 
@@ -679,13 +621,13 @@ public class ams extends Agent {
 
   private static class MotionDesc {
 
-    public MotionDesc(AgentManagementOntology.AMSAgentDescriptor amsd, String s, String d) {
+    public MotionDesc(AMSAgentDescription amsd, String s, String d) {
       desc = amsd;
       src = s;
       dest = d;
     }
 
-    public AgentManagementOntology.AMSAgentDescriptor desc;
+    public AMSAgentDescription desc;
     public String src;
     public String dest;
 
@@ -697,11 +639,6 @@ public class ams extends Agent {
   */
   private AgentManager myPlatform;
 
-  // The table of 'AMS-Agent-Description' data for all the agents
-  /**
-  @serial
-  */
-  private Map descrTable;
 
   // Maintains an association between action names and behaviours
   /**
@@ -740,7 +677,7 @@ public class ams extends Agent {
   /**
   @serial
   */
-  private AgentGroup RMAs;
+  private List RMAs;
 
   // ACL Message to use for RMA notification
   /**
@@ -778,7 +715,7 @@ public class ams extends Agent {
   /**
   @serial
   */
-  private AgentManagementOntology.PlatformProfile theProfile = new AgentManagementOntology.PlatformProfile();
+  private APDescription theProfile = new APDescription();
 
   /**
      This constructor creates a new <em>AMS</em> agent. Since a direct
@@ -789,39 +726,39 @@ public class ams extends Agent {
   */
   public ams(AgentManager ap) {
     myPlatform = ap;
-    descrTable = new HashMap();
 
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
-			  MessageTemplate.MatchOntology("fipa-agent-management"));
+			  MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
     dispatcher = new FipaRequestResponderBehaviour(this, mt);
     mobilityMgr = new MobilityManager(this);
     registerRMA = new RegisterRMABehaviour();
     deregisterRMA = new DeregisterRMABehaviour();
     notifyRMAs = new NotifyRMAsBehaviour();
 
-    RMAs = new AgentGroup();
+    RMAs = new ArrayList();
 
-    RMANotification.setSource(getLocalName());
+    RMANotification.setSender(new AID());
     RMANotification.setLanguage("SL");
     RMANotification.setOntology("jade-agent-management");
-    RMANotification.setReplyTo("RMA-subscription");
+    RMANotification.setInReplyTo("RMA-subscription");
 
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.AUTHENTICATE, new AuthBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.QUERYPLATFORMPROFILE, new QueryPPBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour());
 
+    dispatcher.registerFactory(FIPAAgentManagementOntology.GETDESCRIPTION, new GetDescriptionBehaviour());
+    /*
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTON, new SniffAgentOnBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTOFF, new SniffAgentOffBehaviour());
-
+    */
   }
 
   /**
@@ -831,13 +768,10 @@ public class ams extends Agent {
   protected void setup() {
 
     // Fill Agent Platform Profile with data.
-    theProfile.setPlatformName("cselt.UniPR.JADE");
-    theProfile.setIiopURL(getAddress());
-    theProfile.setDynReg("false");
-    theProfile.setMobility("false");
-    theProfile.setOwnership("CSELT.it");
-    theProfile.setCertificationAuthority("None");
-    theProfile.setFipaVersion("fipa97-part1-v2");
+    theProfile.setName("JADE");
+    theProfile.setDynamic(new Boolean(false));
+    theProfile.setMobility(new Boolean(false));
+    theProfile.setTransportProfile(null);
 
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction
@@ -854,127 +788,35 @@ public class ams extends Agent {
 
   }
 
-  // This one is called in response to a 'register-agent' action
-  private void AMSNewData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException, AgentAlreadyRegisteredException {
-
-    String agentName = amsd.getName();
-    AgentManagementOntology.AMSAgentDescriptor old = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-
-    // FIXME: Should accept foreign agents by checking with the GADT
-
-    if(old != null) {
-      throw new AgentAlreadyRegisteredException();
-    }
-
-    descrTable.put(agentName.toLowerCase(), amsd);
-
+  private void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
+    System.out.println("ams::AMSRegister() called");
   }
 
-  // This one is called in response to a 'modify-agent' action
-  private void AMSChangeData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
-
-    try {
-      String agentName = amsd.getName();
-      AgentManagementOntology.AMSAgentDescriptor toChange = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-      if(toChange == null)
-	throw new AgentNotRegisteredException();
-
-      String address = amsd.getAddress();
-      if(address != null)
-	toChange.setAddress(address);
-      String signature = amsd.getSignature();
-      if(signature != null)
-	toChange.setSignature(signature);
-      String delegateAgentName = amsd.getDelegateAgentName();
-      if(delegateAgentName != null) {
-	toChange.setDelegateAgentName(delegateAgentName);
-	myPlatform.setDelegateAgent(agentName, delegateAgentName);
-      }
-
-      String forwardAddress = amsd.getForwardAddress();
-      if(forwardAddress != null)
-	toChange.setAddress(forwardAddress);
-
-      String ownership = amsd.getOwnership();
-      if(ownership != null)
-	toChange.setOwnership(ownership);
-      String APState = amsd.getAPState();
-      if(APState != null) {
-	AgentManagementOntology o = AgentManagementOntology.instance();
-	int state = o.getAPStateByName(APState);
-	int oldState = o.getAPStateByName(toChange.getAPState());
-	switch(state) {
-	case Agent.AP_SUSPENDED:
-	  myPlatform.suspend(agentName, null);
-	  break;
-	case Agent.AP_WAITING:
-	  myPlatform.wait(agentName, null);
-	  break;
-	case Agent.AP_ACTIVE:
-	  if(oldState == Agent.AP_WAITING)
-	    myPlatform.wake(agentName, null);
-	  else
-	    myPlatform.activate(agentName, null);
-	  break;
-	case Agent.AP_DELETED:
-	  myPlatform.kill(agentName, null);
-	  break;
-	}
-
-	toChange.setAPState(state);
-
-      }
-    }
-    catch(NotFoundException nfe) {
-      throw new AgentNotRegisteredException();
-    }
-    catch(UnreachableException ue) {
-      throw new NoCommunicationMeansException();
-    }
-
+  private void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
+    System.out.println("ams::AMSDeregister() called");
   }
 
-
-  // This one is called in response to a 'deregister-agent' action
-  private void AMSRemoveData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
-    String agentName = amsd.getName();
-    AgentManagementOntology.AMSAgentDescriptor toRemove = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-    if(toRemove == null) {
-      throw new jade.domain.UnableToDeregisterException();
-    }
-    toRemove.setAPState(Agent.AP_DELETED);
-    // This descriptor will be removed from the table after the platform notification
+  private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
+    System.out.println("ams::AMSModify() called");
   }
 
-  private void AMSDumpData() {
-    Iterator descriptors = descrTable.values().iterator();
-    while(descriptors.hasNext()) {
-      AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descriptors.next();
-      amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-    }
+  private void AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
+    System.out.println("ams::AMSSearch() called");
   }
-
-  private void AMSDumpData(String agentName) {
-    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-    amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-  }
-
 
   // This one is called in response to a 'move-agent' action
   void AMSMoveAgent(String agentName, Location where) throws FIPAException {
     try {
       int atPos = agentName.indexOf('@');
       if(atPos == -1)
-        agentName = agentName.concat('@' + getAddress());
+        agentName = agentName.concat('@' + getHap());
       myPlatform.move(agentName, where, "");
     }
     catch(UnreachableException ue) {
-      ue.printStackTrace();
-      throw new NoCommunicationMeansException();
+      throw new InternalError("The container is not reachable");
     }
     catch(NotFoundException nfe) {
-      nfe.printStackTrace();
-      throw new AgentNotRegisteredException();
+      throw new NotRegistered();
     }
   }
 
@@ -983,15 +825,14 @@ public class ams extends Agent {
     try {
       int atPos = agentName.indexOf('@');
       if(atPos == -1)
-        agentName = agentName.concat('@' + getAddress());
+        agentName = agentName.concat('@' + getHap());
       myPlatform.copy(agentName, where, newName, "");
     }
     catch(UnreachableException ue) {
-      throw new NoCommunicationMeansException();
+      throw new InternalError("The container is not reachable");
     }
     catch(NotFoundException nfe) {
-      nfe.printStackTrace();
-      throw new AgentNotRegisteredException();
+      throw new NotRegistered();
     }
   }
 
@@ -1001,45 +842,32 @@ public class ams extends Agent {
     try {
       int atPos = agentName.indexOf('@');
       if(atPos == -1)
-        agentName = agentName.concat('@' + getAddress());
+        agentName = agentName.concat('@' + getHap());
       String containerName = myPlatform.getContainerName(agentName);
       return mobilityMgr.getLocation(containerName);
     }
     catch(NotFoundException nfe) {
       nfe.printStackTrace();
-      throw new AgentNotRegisteredException();
+      throw new NotRegistered();
     }
   }
 
   // This one is called in response to a 'query-platform-locations' action
-  MobilityOntology.Location[] AMSGetPlatformLocations() {
+  MobilityOntology.PlatformLocations AMSGetPlatformLocations() {
     return mobilityMgr.getLocations();
   }
 
   /**
    The AMS must have a special version for this method, or a deadlock will occur.
   */
-  public void registerWithAMS(String signature, int APState, String delegateAgentName,
-		       String forwardAddress, String ownership) {
+  public void registerWithAMS(AMSAgentDescription amsd) {
 
     // Skip all fipa-request protocol and go straight to the target
     
-    try { // FIXME: APState parameter is never used
-      AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-      amsd.setName(getName());
-      amsd.setAddress(getAddress());
-      amsd.setSignature(signature);
-      amsd.setAPState(Agent.AP_ACTIVE);
-      amsd.setDelegateAgentName(delegateAgentName);
-      amsd.setForwardAddress(forwardAddress);
-      amsd.setOwnership(ownership);
-
-      AMSNewData(amsd);
+    try {
+      AMSRegister(amsd);
     }
     // No exception should occur since this is a special case ...
-    catch(AgentAlreadyRegisteredException aare) {
-      aare.printStackTrace();
-    }
     catch(FIPAException fe) {
       fe.printStackTrace();
     }
@@ -1050,12 +878,8 @@ public class ams extends Agent {
     The AMS must have a special version for this method, or a deadlock will occur.
   */
   public void deregisterWithAMS() throws FIPAException {
-      AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-      amsd.setName(getName());
-      amsd.setAddress(getAddress());
-      amsd.setAPState(Agent.AP_ACTIVE);
-
-      AMSRemoveData(amsd);
+    AMSAgentDescription amsd = new AMSAgentDescription(); // Get the standard AMS AID.
+    AMSDeregister(amsd);
   }
 
   // Methods to be called from AgentPlatform to notify AMS of special events
@@ -1083,9 +907,7 @@ public class ams extends Agent {
     application agents.
   */
   public synchronized void postNewAgent(String containerName, String agentName) {
-    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-    amsd.setName(agentName);
-    amsd.setAddress(myPlatform.getAddress(agentName));
+    AMSAgentDescription amsd = new AMSAgentDescription();
     newAgentsBuffer.add(new AgDesc(containerName, amsd));
     doWake();
   }
@@ -1095,7 +917,8 @@ public class ams extends Agent {
     application agents.
   */
   public synchronized void postDeadAgent(String containerName, String agentName) {
-    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    //(AMSAgentDescription)descrTable.get(agentName.toLowerCase());
     deadAgentsBuffer.add(new AgDesc(containerName, amsd));
     doWake();
   }
@@ -1105,7 +928,8 @@ public class ams extends Agent {
     application agents.
   */
   public synchronized void postMovedAgent(String agentName, String src, String dest) {
-    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    //(AMSAgentDescription)descrTable.get(agentName.toLowerCase());
     movedAgentsBuffer.add(new MotionDesc(amsd, src, dest));
     doWake();
   }
