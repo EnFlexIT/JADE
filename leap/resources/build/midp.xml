@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="JADE-LEAP for MIDP" default="jar">
+	<!-- PROPERTIES specific for MIDP -->
+	<property name="src" value="${midp-root}/src"/>
+	<property name="classes" value="${midp-root}/classes"/>
+	<property name="lib" value="${midp-root}/lib"/>
+	<property name="doc" value="${midp-root}/doc"/>
+	<property name="unverified" value="${midp-root}/unverified"/>
+	<property name="parsers" value="${leap-src}/parsers/midp"/>
+	<property name="midp-title" value="${title} v${version} for MIDP"/>
+
+	
+	<!-- INIT -->
+	<target name="do-init" if="midp" 
+	        description="Create the appropriate directories">
+		<mkdir dir="${midp-root}"/>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+		<mkdir dir="${unverified}"/>
+	</target>
+
+	
+	<!-- SETUP -->
+	<target name="do-setup" if="midp" depends="do-init"
+	        description="Setup the build environment">
+	  <!-- 1) Copy JADE sources -->
+	  <copy todir="${src}">
+			<fileset dir="${jade-src}">
+				<include name="**/starlight/**"/>
+
+				<include name="**/jade/**"/>
+				<exclude name="**/jade/content/acl/**"/>
+				<exclude name="**/jade/content/lang/j/**"/>
+				<exclude name="**/jade/core/event/**"/>
+				<exclude name="**/jade/domain/introspection/**"/>
+				<exclude name="**/jade/domain/mobility/**"/>
+				<exclude name="**/jade/domain/DFGUIManagement/**"/>
+				<exclude name="**/jade/imtp/**"/>
+				<exclude name="**/jade/mtp/iiop/**"/>
+				<exclude name="**/jade/tools/**"/>
+				<exclude name="**/jade/wrapper/**"/>
+				<!-- The following files cannot include preprocessor directives. They must be excluded manually -->
+				<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/lang/acl/ACLParser.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
+				<exclude name="**/jade/lang/acl/ParseException.java"/>
+				<exclude name="**/jade/lang/acl/Token.java"/>
+				<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
+				<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParser.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/ParseException.java"/>
+				<exclude name="**/jade/content/lang/sl/Token.java"/>
+				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
+			</fileset>
+		</copy>
+	  <!-- 2) Copy LEAP sources -->
+	  <copy todir="${src}" overwrite="yes">
+			<fileset dir="${leap-src}">
+				<exclude name="**/parsers/**"/>
+			</fileset>
+		</copy>
+	  <!-- 3) Preprocess the whole -->
+	  <pproc basedir="${src}" type="midp"/>
+	</target>
+
+	
+	<!-- RESET -->
+	<target name="do-reset" if="midp"
+	        description="Reset the build environment">
+		<delete dir = "${midp-root}"/>
+	</target>
+
+	
+	<!-- CLEAN -->
+	<target name="do-clean" if="midp"
+	        description="Clean class files">
+		<delete dir = "${classes}"/>
+		<delete dir = "${unverified}"/>
+		<delete dir = "${doc}"/>
+		<delete dir = "${lib}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${unverified}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+	</target>
+
+	
+	<!-- PARSERS -->
+	<target name="do-parsers" if="midp" depends="do-parsers-generate, do-parsers-use-prebuild"
+	        description="Generate SL0 parser from .jj files"/>
+	
+	<target name="do-parsers-generate" if="javacc-home"
+	        description = "Translate .jj files into .java files">
+
+		<!-- Old SL0 Parser -->
+		<javacc target="${src}/jade/lang/sl/SL0Parser.jj"
+		        javacchome="${javacc-home}"/>
+	</target>
+
+	<target name="do-parsers-use-prebuild" unless="javacc-home"
+	        description = "Copy pre-generated parsers from the prebuild dir to the source dir">
+
+  	<echo>javacc-home not set. Using pre build parsers.</echo>
+		<copy todir = "${src}">
+	  	<fileset dir = "${parsers}"/>
+		</copy>
+	</target>
+
+	<target name="do-pgp" if="midp"
+	        description = "Generate prebuild parsers">
+  	<!-- Old SL0 Parser -->
+  	<delete>
+  		<fileset dir="${parsers}/jade/lang/sl">
+  			<include name="**/*.java"/>
+  		</fileset>
+  	</delete>
+		<javacc target="${src}/jade/lang/sl/SL0Parser.jj"
+		        javacchome="${javacc-home}"
+		        outputdirectory="${parsers}/jade/lang/sl"/>
+	</target>
+
+
+	<!-- COMPILE -->
+	<target name="do-compile" if="midp" depends="do-parsers"
+	        description="Compile sources">
+		<javac srcdir="${src}"
+		       destdir="${unverified}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="on"
+		       bootclasspath="${boot-midp-classes}"
+		       target="1.1"/>
+		       
+		<preverify unverified="${unverified}" verified="${classes}"/>
+	</target>
+
+	
+	<!-- JAR -->
+	<target name="do-jar" if="midp" depends="do-compile"
+	        description="Create Jade-leap jar file">
+		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
+		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
+	</target>
+
+	
+	<!-- JAVADOC -->
+	<target name="do-javadoc" if="midp" depends="do-init"
+	        description="Generate javadoc">
+		<javadoc sourcepath="${src}"
+		         destdir="${doc}"
+		         classpath="${classes};${boot-midp-classes}"
+		         doctitle="&lt;h1>${midp-title}&lt;/h1>"
+		         bottom="${javadoc-footer}"
+		         verbose="false"
+		         windowtitle="${midp-title}"
+		         packagenames="jade.*, starlight.* "/>
+	</target>
+
+</project>

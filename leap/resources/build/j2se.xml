@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- All targets within a device.xml file should only depend on the init task in this file.
+     The build.xml file will coordinate the process at that level of targets
+-->
+<project name="JADE-LEAP for J2SE" default="jar">
+	<!-- PROPERTIES specific for J2SE -->
+	<property name="src" value="${j2se-root}/src"/>
+	<property name="classes" value="${j2se-root}/classes"/>
+	<property name="lib" value="${j2se-root}/lib"/>
+	<property name="doc" value="${j2se-root}/doc"/>
+	<property name="parsers" value="${leap-src}/parsers/j2se"/>
+	<property name="j2se-title" value="${title} v${version} for J2SE"/>
+
+	
+	<!-- INIT -->
+	<target name="do-init" if="j2se" 
+	        description="Create the appropriate directories">
+		<mkdir dir="${j2se-root}"/>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+	</target>
+
+	
+	<!-- SETUP -->
+	<target name="do-setup" if="j2se" depends="do-init"
+	        description="Setup the build environment">
+	  <!-- 1) Copy JADE sources -->
+	  <copy todir="${src}">
+			<fileset dir="${jade-src}">
+				<include name="**/FIPA/**"/>
+				<include name="**/starlight/**"/>
+				<include name="**/jade/**"/>
+				<exclude name="**/jade/imtp/**"/>
+			</fileset>
+		</copy>
+	  <!-- 2) Copy LEAP sources -->
+	  <copy todir="${src}" overwrite="yes">
+			<fileset dir="${leap-src}">
+				<include name="**/jade/Boot.java"/>
+				<include name="**/jade/core/ProfileImpl.java"/>
+				<include name="**/jade/imtp/**"/>
+			</fileset>
+		</copy>
+	  <!-- 3) Preprocess the whole -->
+	  <pproc basedir="${src}" type="j2se"/>
+	</target>
+
+	
+	<!-- RESET -->
+	<target name="do-reset" if="j2se"
+	        description="Reset the build environment">
+		<delete dir = "${j2se-root}"/>
+	</target>
+
+	
+	<!-- CLEAN -->
+	<target name="do-clean" if="j2se"
+	        description="Clean class files">
+		<delete dir = "${classes}"/>
+		<delete dir = "${doc}"/>
+		<delete dir = "${lib}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+	</target>
+
+	
+	<!-- PARSERS -->
+	<target name="do-parsers" if="j2se" depends="do-parsers-generate, do-parsers-use-prebuild"
+	        description="Generate ACL and SL parsers from .jj files"/>
+	
+	<target name="do-parsers-generate" if="javacc-home"
+	        description = "Translate .jj files into .java files">
+
+  	<!-- ACL Parser -->
+		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
+		        javacchome="${javacc-home}"/>
+
+  	<!-- SL Parser -->
+		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
+		        javacchome="${javacc-home}"/>
+	</target>
+
+	<target name="do-parsers-use-prebuild" unless="javacc-home"
+	        description = "Copy pre-generated parsers from the prebuild dir to the source dir">
+
+  	<echo>javacc-home not set. Using pre build parsers.</echo>
+		<copy todir = "${src}">
+	  	<fileset dir = "${parsers}"/>
+		</copy>
+	</target>
+
+	<target name="do-pgp" if="j2se"
+	        description = "Generate prebuild parsers">
+  	<!-- ACL Parser -->
+  	<delete>
+  		<fileset dir="${parsers}/jade/lang/acl">
+  			<include name="**/*.java"/>
+  		</fileset>
+  	</delete>
+		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
+		        javacchome="${javacc-home}"
+		        outputdirectory="${parsers}/jade/lang/acl"/>
+
+  	<!-- SL Parser -->
+  	<delete>
+  		<fileset dir="${parsers}/jade/content/lang/sl">
+  			<include name="**/*.java"/>
+  		</fileset>
+  	</delete>
+		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
+		        javacchome="${javacc-home}"
+		        outputdirectory="${parsers}/jade/content/lang/sl"/>
+	</target>
+
+
+	<!-- COMPILE -->
+	<target name="do-compile" if="j2se" depends="do-parsers"
+	        description="Compile sources">
+		<javac srcdir="${src}"
+		       destdir="${classes}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"/>
+		<!-- Ensure the images for the tools are also copied -->
+		<mkdir dir="${classes}/jade/tools/dfgui/images"/>
+		<mkdir dir="${classes}/jade/tools/DummyAgent/images"/>
+		<mkdir dir="${classes}/jade/tools/introspector/gui/images"/>
+		<mkdir dir="${classes}/jade/tools/sniffer/images"/>
+		<mkdir dir="${classes}/jade/tools/rma/images"/>
+		<mkdir dir="${classes}/jade/gui/images"/>
+		<copy todir="${classes}/jade/tools/dfgui/images">
+		    <fileset dir="${src}/jade/tools/dfgui/images" includes="*.gif"/>
+		</copy>
+		<copy todir="${classes}/jade/tools/DummyAgent/images">
+		    <fileset dir="${src}/jade/tools/DummyAgent/images" includes="*.gif"/>
+		</copy>
+		<copy todir="${classes}/jade/tools/introspector/gui/images">
+		    <fileset dir="${src}/jade/tools/introspector/gui/images" includes="*.gif *.jpg"/>
+		</copy>
+		<copy todir="${classes}/jade/tools/sniffer/images">
+		    <fileset dir="${src}/jade/tools/sniffer/images" includes="*.gif *.jpg"/>
+		</copy>
+		<copy todir="${classes}/jade/tools/rma/images">
+		    <fileset dir="${src}/jade/tools/rma/images" includes="*.gif *.jpg"/>
+		</copy>
+		<copy todir="${classes}/jade/gui/images">
+		    <fileset dir="${src}/jade/gui/images" includes="*.gif *.jpg"/>
+		</copy>
+	</target>
+
+	
+	<!-- JAR -->
+	<target name="do-jar" if="j2se" depends="do-compile"
+	        description="Create Jade-leap jar file">
+		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
+		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
+	</target>
+
+	
+	<!-- JAVADOC -->
+	<target name="do-javadoc" if="j2se" depends="do-init"
+	        description="Generate javadoc">
+		<javadoc sourcepath="${src}"
+		         destdir="${doc}"
+		         classpath="${classes}"
+		         doctitle="&lt;h1>${j2se-title}&lt;/h1>"
+		         bottom="${javadoc-footer}"
+		         verbose="false"
+		         windowtitle="${j2se-title}"
+		         packagenames="jade.*, FIPA, starlight.* "/>
+	</target>
+
+</project>

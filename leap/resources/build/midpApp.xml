@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JADE-LEAP" default="build" basedir=".">
+  
+	<!-- PROPERTIES -->
+  <property environment="env"/>
+  <property name="java-home" value="${env.JAVA_HOME}"/>
+  <property name="root"      value="${env.LEAP_HOME}"/>
+	<property file="${root}/buildLEAP.properties"/>
+	
+	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+  <property name="jade-leap" value="${root}/midp/classes"/>
+
+  <property name="src" value="${env.SRC_PATH}"/>
+  <property name="jar" value="${env.JAR_NAME}"/>
+  <property name="manifest" value="${env.MANIFEST}"/>
+	
+  <property name="preprocessed" value="${root}/tmp/preprocessed"/>	
+  <property name="unverified" value="${root}/tmp/unverified"/>	
+  <property name="classes" value="${root}/tmp/classes"/>	
+	
+	<!-- ANT TASK DEFINITIONS -->
+	<taskdef name = "pproc"    classname="leapTools.Preprocessor"/>
+  <taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask"/>
+  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+  
+	<!-- TARGETS -->
+
+	<!-- INIT -->
+	<target name="init"
+	        description="Set time stamp">
+	  <tstamp/>
+		<delete dir = "${preprocessed}" quiet="true"/>
+		<delete dir = "${unverified}" quiet="true"/>
+		<delete dir = "${classes}" quiet="true"/>
+		<mkdir dir="${preprocessed}"/>
+		<mkdir dir="${unverified}"/>
+		<mkdir dir="${classes}"/>
+	</target>
+	
+	
+	<!-- BUILD -->
+	<target name="build" depends="init"
+	        description="Create the application jar file">
+	        
+	  <copy todir="${preprocessed}" overwrite="yes">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</copy>
+		
+	  <pproc basedir="${preprocessed}" type="midp"/>
+		
+		<javac srcdir="${preprocessed}"
+		       destdir="${unverified}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="on"
+		       classpath="${jade-leap}"
+		       bootclasspath="${boot-midp-classes}"
+		       target="1.1"/>
+		       
+		<preverify unverified="${unverified}" verified="${classes}" classpath="${jade-leap}"/>
+		
+	  <copy todir="${classes}">
+			<fileset dir="${jade-leap}">
+			</fileset>
+		</copy>
+		
+		<delete file="${jar}" quiet="true"/>
+		<jar jarfile="${jar}" manifest="${manifest}">
+			<fileset dir="${classes}">
+			</fileset>
+		</jar>
+		
+	</target>	
+</project>

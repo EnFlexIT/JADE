@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JADE-LEAP" default="complete" basedir=".">
+  
+	<!-- PROPERTIES -->
+  <property environment="env"/>
+  <property name="root"      value="${env.LEAP_HOME}"/>
+  <property name="java-home" value="${env.JAVA_HOME}"/>
+	<property file="${root}/buildLEAP.properties"/>
+	
+	<property name="buildfiles" value="."/>
+
+	<!-- JAVA classes -->
+	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
+	<property name="boot-java-1.1-classes" value="${java-1.1-home}/lib/classes.zip"/>
+	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+
+	<!-- Directories -->
+	<property name="jade-src" value="${jade-home}/src"/>
+	<property name="leap-src" value="${root}/src"/>
+	<property name="j2se-root" value="${root}/j2se"/>
+	<property name="pjava-root" value="${root}/pjava"/>
+	<property name="midp-root" value="${root}/midp"/>	
+	<property name="tmp" value="${root}/tmp"/>	
+	
+	<!-- Javadoc Header and Footer -->
+	<property name="title" value="JADE-LEAP"/>
+	<property name="version" value="3.0"/>
+	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
+
+	<!-- ANT TASK DEFINITIONS -->
+	<!-- Preverify -->
+	<taskdef name = "pproc"    classname="leapTools.Preprocessor"/>
+  <taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask"/>
+  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+  
+	<!-- TARGETS -->
+
+	<!-- ******** ENVIRONMENTS ********* -->
+	
+	<!-- J2SE -->
+	<target name        = "j2se"
+	        description = "Set the j2se property --> j2se.xml will be called">
+		<property name = "j2se"  value = "true"/>
+	</target>
+
+	<!-- PJAVA (java-1.1-home must be set) -->
+	<target name        = "pjava"
+	        description = "Set the pjava property --> pjava.xml will be called (unless java-1.1-home is not set)"
+	        depends     = "pjava-do, pjava-dont"/>
+
+	<target name        = "pjava-do"
+	        if          = "java-1.1-home">
+		<property name = "pjava"  value = "true"/>
+	</target>
+
+	<target name        = "pjava-dont"
+	        unless      = "java-1.1-home">
+		<echo>
+		WARNING: 'java-1.1-home' not specified in buildLEAP.properties.
+		         Skipping pjava build.
+		</echo>
+	</target>
+
+
+	<!-- MIDP (j2me-wtk-home must be set) -->
+	<target name        = "midp"
+	        description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"
+	        depends     = "midp-do, midp-dont"/>
+
+	<target name        = "midp-do"
+	        if          = "j2me-wtk-home">
+		<property name = "midp"  value = "true"/>
+	</target>
+
+	<target name        = "midp-dont"
+	        unless      = "j2me-wtk-home">
+		<echo>
+		WARNING: 'j2me-wtk-home' not specified in buildLEAP.properties.
+		         Skipping midp build.
+		</echo>
+	</target>
+
+
+	<!-- ALL -->
+	<target name        = "all"
+	        description = "Set the property for all environments"
+	        depends     = "j2se, pjava, midp"/>
+
+
+	<!-- ******* ACTIONS that can be specified for the above environments ******** -->
+
+	<!-- INIT the jade-leap directory structure for the selected environments -->
+	<target name="init"
+	        description="Set time stamp">
+	  <tstamp/>
+		<mkdir dir="${tmp}"/>
+	</target>
+	
+	
+	<!-- SETUP the build environment for the selected environments -->
+	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp"
+	        description="Setup the build environment using the appropriate {environment}.xml file"/>
+	<target name="setup-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-setup" dir="${buildfiles}"/>
+	</target>	
+	<target name="setup-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-setup" dir="${buildfiles}"/>
+	</target>
+	<target name="setup-midp" if="midp">
+		<ant antfile="midp.xml" target="do-setup" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- RESET the jade-leap directory structure for the selected environments -->
+	<target name="reset" depends="init, reset-j2se, reset-pjava, reset-midp"
+	        description="Reset the directory structure using the appropriate {environment}.xml file"/>
+	<target name="reset-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-reset" dir="${buildfiles}"/>
+	</target>	
+	<target name="reset-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-reset" dir="${buildfiles}"/>
+	</target>
+	<target name="reset-midp" if="midp">
+		<ant antfile="midp.xml" target="do-reset" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- CLEAN class files for the selected environments -->
+	<target name="clean" depends="init, clean-j2se, clean-pjava, clean-midp"
+	        description="Clean class files using the appropriate {environment}.xml file"/>
+	<target name="clean-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-clean" dir="${buildfiles}"/>
+	</target>	
+	<target name="clean-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-clean" dir="${buildfiles}"/>
+	</target>
+	<target name="clean-midp" if="midp">
+		<ant antfile="midp.xml" target="do-clean" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- Generate jade-leap PARSERS for the selected environments -->
+	<target name="parsers" depends="init, parsers-j2se, parsers-pjava, parsers-midp"
+	        description="Generate parsers using the appropriate {environment}.xml file"/>
+	<target name="parsers-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-parsers" dir="${buildfiles}"/>
+	</target>	
+	<target name="parsers-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-parsers" dir="${buildfiles}"/>
+	</target>
+	<target name="parsers-midp" if="midp">
+		<ant antfile="midp.xml" target="do-parsers" dir="${buildfiles}"/>
+	</target>
+
+	<target name="parsers-generate-prebuild" depends="init, pgp-j2se, pgp-pjava, pgp-midp"
+	        description="Generate pre-built parsers using the appropriate {environment}.xml file"/>
+	<target name="pgp-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-pgp" dir="${buildfiles}"/>
+	</target>	
+	<target name="pgp-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-pgp" dir="${buildfiles}"/>
+	</target>
+	<target name="pgp-midp" if="midp">
+		<ant antfile="midp.xml" target="do-pgp" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- COMPILE jade-leap for the selected environments -->
+	<target name="compile" depends="init, compile-j2se, compile-pjava, compile-midp"
+	        description="Compile using the appropriate {environment}.xml file"/>
+	<target name="compile-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-compile" dir="${buildfiles}"/>
+	</target>	
+	<target name="compile-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-compile" dir="${buildfiles}"/>
+	</target>
+	<target name="compile-midp" if="midp">
+		<ant antfile="midp.xml" target="do-compile" dir="${buildfiles}"/>
+	</target>
+
+	
+  <!-- Create jade-leap JAR for the selected environments -->
+	<target name="jar" depends="init, jar-j2se, jar-pjava, jar-midp"
+	        description="Jar using the appropriate {environment}.xml file"/>
+	<target name="jar-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-jar" dir="${buildfiles}"/>
+	</target>	
+	<target name="jar-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-jar" dir="${buildfiles}"/>
+	</target>
+	<target name="jar-midp" if="midp">
+		<ant antfile="midp.xml" target="do-jar" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- Generate JAVADOC for the selected environments -->
+	<target name="javadoc" depends="init, javadoc-j2se, javadoc-pjava, javadoc-midp"
+	        description="JavaDoc using the appropriate {environment}.xml file"/>
+	<target name="javadoc-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-javadoc" dir="${buildfiles}"/>
+	</target>	
+	<target name="javadoc-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-javadoc" dir="${buildfiles}"/>
+	</target>
+	<target name="javadoc-midp" if="midp">
+		<ant antfile="midp.xml" target="do-javadoc" dir="${buildfiles}"/>
+	</target>
+
+	
+	<!-- ******** The COMPLETE build process ********* -->
+	<target name="rebuild" depends="reset, setup, jar"
+	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
+
+	<target name="complete" depends="all, rebuild, javadoc"
+	        description = "Build everything"/>
+
+
+	<!-- ******** JADE-LEAP distribution targets ********* -->
+
+	<!-- Create the JADE-LEAP distribution zip files -->
+	<target name="distrib"
+	        description="Create the LEAP distribution files">
+		<echo> To be implemented </echo>
+	</target>
+
+	<!-- Create the JADE-LEAP snapshot zip files -->
+	<target name="snapshot"
+	        description="Create the LEAP snapshot file">
+		<echo> To be implemented </echo>
+	</target>
+
+
+	<!-- ******** LEAP tools for ant ******** -->
+
+	<target name = "leapTools">
+		<mkdir dir="${tmp}/leapTools"/>
+
+	  <javac srcdir  = "src"
+	         destdir = "${tmp}/leapTools"/>
+
+	  <jar jarfile = "ant/lib/leapTools.jar"
+	       basedir = "${tmp}/leapTools"/>
+		
+	  <delete dir = "${tmp}/leapTools"/>
+  </target>
+
+</project>

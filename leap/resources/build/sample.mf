@@ -1,0 +1,5 @@
+MIDlet-Name: Test
+MIDlet-Vendor: Tilab.
+MIDlet-Version: 1.0
+MicroEdition-Configuration: CLDC-1.0
+MicroEdition-Profile: MIDP-1.0
