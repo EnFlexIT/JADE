@@ -3,11 +3,13 @@
   
 	<!-- PROPERTIES -->
   <property environment="env"/>
-	<property file="buildLEAP.properties"/>
+  <property file="buildLEAP.properties"/>
   <property name="java-home" value="${env.JAVA_HOME}"/>
   <property name="root"      value="."/>
   <property name="jade-home" value="../.."/>
-	
+  <property name="javac.optimize" value="on"/>
+  <property name="javac.debug" value="off"/>
+
 	<property name="buildfiles" value="${root}/resources/build"/>
 
 	<!-- JAVA classes -->
