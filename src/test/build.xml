@@ -27,6 +27,7 @@
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
+    <mkdir dir="classes"/>
   </target>
 
 
@@ -36,14 +37,15 @@
   <target name="compile" depends="init" description="compile the tests">
   	
   	<!-- Compile the java code source files -->
-  	<javac srcdir="src/test" 
+  	<javac srcdir="src" 
   	       destdir="classes" 
   	       optimize="on" 
   	       deprecation="off">
   	  <classpath refid="project.class.path"/>
-  		<exclude name="TestAgent.java"/>
-  		<exclude name="mobility/separate/**"/>
-  		<exclude name="leap/midp/**"/>
+      <include name="test/**"/>
+  		<exclude name="test/TestAgent.java"/>
+  		<exclude name="test/mobility/separate/**"/>
+  		<exclude name="test/leap/midp/**"/>
   	</javac>
   				
   	<!-- RMIC the TSDaemon -->
@@ -238,6 +240,7 @@
       <fileset dir=".." includes="jade/src/test/build.xml"/>
       <fileset dir=".." includes="jade/src/test/testerList.xml"/>
       <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite.pdf"/>
+      <fileset dir=".." includes="jade/doc/index.html"/>
       <fileset dir=".." includes="jade/src/test/common/**"/>
       <fileset dir=".." includes="jade/src/test/interPlatform/**"/>
    </jar>
