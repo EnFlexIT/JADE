@@ -34,6 +34,7 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/proto/Waker.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
 		jade/proto/FipaContractNetResponderBehaviour.java \
+		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/gui/AMSMainFrame.java
 STUBDIR     =	.
 IDLSTUBS    =   _FIPA_Agent_97Stub.java \
