@@ -894,7 +894,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
      **/
     private void notifyFailureToSender(ACLMessage msg, InternalError ie) {
 	//if (the sender is not the AMS and the performative is not FAILURE)
-	if ( (msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE) ) // sanity check to avoid infinte loops
+	if ( (msg.getSender()==null) || ((msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
 	    return;
 	// else send back a failure message
 	ACLMessage failure = msg.createReply();
