@@ -46,6 +46,9 @@ public class TypedAggregateFacet implements Facet {
 		type = s;
 	}
 	
+	public ObjectSchema getType() {
+		return type;
+	}
 	/**
 	   Check whether a given value for the slot this Facet applies
 	   to is valid.
