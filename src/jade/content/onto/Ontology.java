@@ -147,13 +147,12 @@ import jade.content.schema.*;
 public abstract class Ontology {
     protected Ontology     base = null;
     protected String       name = null;
-    protected Introspector introspector = null;
+    //protected Introspector introspector = null;
 
     /**
      * Construct an ontology with a given <code>name</code>
      *
      * @param name identifier of the ontology.
-     *
      */
     public Ontology(String name) {
         this.name = name;
@@ -170,7 +169,7 @@ public abstract class Ontology {
     public Ontology(String name, Ontology base) {
         this.name = name;
         this.base = base;
-        introspector = new ReflectiveIntrospector();
+        //introspector = new ReflectiveIntrospector();
     }
 
     /**
@@ -183,52 +182,183 @@ public abstract class Ontology {
      * @param introspector the introspector.
      *
      */
-    public Ontology(String name, Ontology base, Introspector introspector) {
-        this.name = name;
-        this.base = base;
-        this.introspector = introspector;
-    }
+    //public Ontology(String name, Ontology base, Introspector introspector) {
+    //    this.name = name;
+    //    this.base = base;
+    //    this.introspector = introspector;
+    //}
 
     /**
      * Retrieves the name of the ontology.
-     *
      * @return the name of the ontology.
-     *
      */
     public String getName() {
         return name;
     }
 
-   /**
-     * Converts an abstract descriptor to an object.
+    /**
+     * Adds a schema to the ontology
+     * @param schema the schema to add
+     * @throws OntologyException
+     */
+    public abstract void add(ObjectSchema schema) throws OntologyException;
+    /*{
+        add(schema, null);
+    } */
+
+    /**
+     * Adds a schema to the ontology and associates it to the class
+     * <code>javaClass</code>
      *
-     * @param abs the abstract descriptor.
-     *
-     * @return the object
+     * @param schema the schema.
+     * @param javaClass the concrete class.
      *
      * @throws OntologyException
-     * @throws UngroundedException
+     */
+    public abstract void add(ObjectSchema schema, 
+                    Class javaClass) throws OntologyException;
+    /*{
+        if (schema.getTypeName() == null) {
+            throw new OntologyException("Invalid schema identifier");
+        } 
+
+        elements.put(schema.getTypeName(), schema);
+
+        if (javaClass != null) {
+            classes.put(schema.getTypeName(), javaClass);
+            schemas.put(javaClass, schema);
+        } 
+    } */
+
+    /**
+     * Retrieves the schema associated with <code>name</code>.
+     * @param name the name of the schema in the vocabulary.
+     * @return the schema.
+     * @throws OntologyException
+     */
+    public abstract ObjectSchema getSchema(String name) 
+            throws OntologyException;
+    /*{
+        if (name == null) {
+            throw new OntologyException("Null schema identifier");
+        } 
+
+        ObjectSchema ret = (ObjectSchema) elements.get(name);
+
+        if (ret == null) {
+            if (base != null) {
+                return base.getSchema(name);
+            } 
+
+            throw new OntologyException("Invalid schema identifier");
+        } 
+
+        return ret;
+    } */
+
+    /**
+     * Retrieves the schema associated with <code>javaClass</code>
      *
+     * @param javaClass the Java class
+     *
+     * @return the schema
+     *
+     * @throws OntologyException
+     *
+     */
+    public abstract ObjectSchema getSchema(Class javaClass) 
+            throws OntologyException;
+    /*{
+        if (javaClass == null) {
+            throw new OntologyException("Null schema identifier");
+        } 
+
+        ObjectSchema ret = (ObjectSchema) schemas.get(javaClass);
+
+        if (ret == null) {
+            if (base != null) {
+                return ((FullOntology)base).getSchema(javaClass);
+            } 
+
+            return null;
+        } 
+
+        return ret;
+    } */
+
+    /**
+     * Retrieves the concrete class associated with <code>name</code> in
+     * the vocabulary.
+     *
+     * @param name the name of the schema.
+     *
+     * @return the Java class.
+     *
+     * @throws OntologyException
+     *
+     */
+    public abstract Class getClass(String name) throws OntologyException;
+    /*{
+        if (name == null) {
+            throw new OntologyException("Null schema identifier");
+        } 
+
+        Class ret = (Class) classes.get(name);
+
+        if (ret == null) {
+            if (base != null) {
+                return ((FullOntology)base).getClass(name);
+            } 
+
+            return null;
+        } 
+
+        return ret;
+    } */
+    
+   /**
+     * Converts an abstract descriptor to an object.
+     * @param abs the abstract descriptor.
+     * @return the object
+     * @throws OntologyException
+     * @throws UngroundedException
      * @see fromObject(Object)
      */
-    public Object toObject(AbsObject abs) 
-            throws OntologyException, UngroundedException {
+    public abstract Object toObject(AbsObject abs)
+            throws OntologyException, UngroundedException;
+    /*{
         return introspector.internalise(this, abs);
-    } 
+    } */
 
     /**
      * Converts an object to an abstract descriptor.
-     *
      * @param obj the object
-     *
      * @return the abstract descriptor.
-     *
      * @throws OntologyException
-     *
      * @see toObject(AbsObject)
      */
-    public AbsObject fromObject(Object obj) throws OntologyException {
+    public abstract AbsObject fromObject(Object obj) throws OntologyException;
+    /*{
         return introspector.externalise(this, obj);
-    } 
+    } */
 
+    /**
+       Creates an instance of the proper subclass of 
+       <code>AbsObject</code>
+       @param typeName the type of <code>AbsObject</code> to be
+       returned
+       @throws OntologyException if the given name does not represent
+       a valid type of <code>AbsObject</code>
+     */
+    //public abstract AbsObject getAbsObject(String typeName) throws OntologyException; 
+    
+    /**
+       Checks that a given <code>AbsObject</code> is consistent
+       with this <code>Ontology</code>
+       @param abs the <code>AbsObject</code> that has to be checked
+       @throws OntologyException if the given <code>AbsObject</code>
+       is not consistent with this <code>Ontology</code>
+     */
+    //public abstract check(AbsObject abs) throws OntologyException; 
+    
 }

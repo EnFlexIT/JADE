@@ -32,6 +32,8 @@ import jade.content.schema.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class FullOntology extends Ontology {
+    protected Introspector introspector = null;
+    
     private Hashtable    elements = new Hashtable();
     private Hashtable    classes  = new Hashtable();
     private Hashtable    schemas  = new Hashtable();
@@ -54,8 +56,9 @@ public class FullOntology extends Ontology {
      * @param base base ontology.
      *
      */
-    public FullOntology(String name, FullOntology base) {
+    public FullOntology(String name, Ontology base) {
         super(name, base);
+        introspector = new ReflectiveIntrospector();
     }
 
     /**
@@ -68,8 +71,9 @@ public class FullOntology extends Ontology {
      * @param introspector the introspector.
      *
      */
-    public FullOntology(String name, FullOntology base, Introspector introspector) {
-	super(name, base, introspector);
+    public FullOntology(String name, Ontology base, Introspector introspector) {
+	super(name, base);
+	this.introspector = introspector;
     }
 
     /**
@@ -128,7 +132,7 @@ public class FullOntology extends Ontology {
 
         if (ret == null) {
             if (base != null) {
-                return ((FullOntology)base).getSchema(name);
+                return base.getSchema(name);
             } 
 
             throw new OntologyException("Invalid schema identifier");
@@ -157,7 +161,7 @@ public class FullOntology extends Ontology {
 
         if (ret == null) {
             if (base != null) {
-                return ((FullOntology)base).getSchema(javaClass);
+                return base.getSchema(javaClass);
             } 
 
             return null;
@@ -186,7 +190,7 @@ public class FullOntology extends Ontology {
 
         if (ret == null) {
             if (base != null) {
-                return ((FullOntology)base).getClass(name);
+                return base.getClass(name);
             } 
 
             return null;
@@ -194,4 +198,28 @@ public class FullOntology extends Ontology {
 
         return ret;
     } 
+   /**
+     * Converts an abstract descriptor to an object.
+     * @param abs the abstract descriptor.
+     * @return the object
+     * @throws OntologyException
+     * @throws UngroundedException
+     * @see fromObject(Object)
+     */
+    public Object toObject(AbsObject abs)
+            throws OntologyException, UngroundedException {
+        return introspector.internalise(this, abs);
+    } 
+
+    /**
+     * Converts an object to an abstract descriptor.
+     * @param obj the object
+     * @return the abstract descriptor.
+     * @throws OntologyException
+     * @see toObject(AbsObject)
+     */
+    public AbsObject fromObject(Object obj) throws OntologyException {
+        return introspector.externalise(this, obj);
+    } 
+
 }
