@@ -34,8 +34,8 @@ import jade.domain.FIPAException;
 import jade.lang.acl.*;
 import jade.core.Agent;
 import jade.lang.sl.SL0Codec;
-
-
+import jade.onto.basic.*;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 public class TestAgent extends Agent {
 
 final static String SAMPLEFILE = "examples/ontology/testmessages.msg";
@@ -93,6 +93,8 @@ protected void setup() {
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
       System.out.println(")");
+
+
 
       msg = msg.createReply();
       System.out.println("\nFILLING BACK THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
