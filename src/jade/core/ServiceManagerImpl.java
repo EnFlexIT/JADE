@@ -304,11 +304,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		// Install the service filters
 		Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
 		if(fOut != null) {
-		    myCommandProcessor.addFilter(fOut, Filter.OUTGOING);
+			fOut.setServiceName(svc.getName());
+	    myCommandProcessor.addFilter(fOut, Filter.OUTGOING);
 		}
 		Filter fIn = svc.getCommandFilter(Filter.INCOMING);
 		if(fIn != null) {
-		    myCommandProcessor.addFilter(fIn, Filter.INCOMING);
+			fIn.setServiceName(svc.getName());
+		  myCommandProcessor.addFilter(fIn, Filter.INCOMING);
 		}
 
 		// Install the service sinks
