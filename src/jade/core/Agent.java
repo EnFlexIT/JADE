@@ -644,9 +644,7 @@ public class Agent implements Runnable, Serializable
      Constructor to be used by special "agents" that will never powerUp.
    */
     Agent(AID id) {
-    myName = id.getLocalName();
-    myHap = id.getHap();
-    myAID = id;
+    	setAID(id);
     }
 
     // For persistence service
@@ -755,8 +753,10 @@ public class Agent implements Runnable, Serializable
     return myAID;
   }
 
-  private void setAID(AID id) {
-      myAID = id;
+  void setAID(AID id) {
+    myName = id.getLocalName();
+    myHap = id.getHap();
+    myAID = id;
   }
 
   /**

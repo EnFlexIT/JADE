@@ -234,7 +234,13 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
         AID agentID, Agent instance, 
         JADEPrincipal ownerPrincipal, Credentials ownerCredentials)
       throws NameClashException, IMTPException, NotFoundException, AuthException {
-
+      
+      // Setting the AID and toolkit here is redundant, but 
+      // allows services to retrieve their agent helper correctly
+      // when processing the INFORM_CREATED command.
+      instance.setAID(agentID);
+      instance.setToolkit(this);
+      
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
