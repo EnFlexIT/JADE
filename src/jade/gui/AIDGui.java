@@ -61,6 +61,9 @@ import jade.domain.FIPAAgentManagement.*;
   @serial
   */
   private JTextField nameText;
+  
+  private JCheckBox isLocalName;
+  
  	/**
   @serial
   */
@@ -130,6 +133,12 @@ import jade.domain.FIPAAgentManagement.*;
  	  label.setMinimumSize(new Dimension(80,26));
     label.setMaximumSize(new Dimension(80,26));
     namePanel.add(label);
+    
+    isLocalName = new JCheckBox();
+    isLocalName.setVisible(ed); //if the AID is editable then the checkbox is show otherwise no.
+  	isLocalName.setToolTipText("Select if the name is not a GUID.");
+    
+    namePanel.add(isLocalName);
     nameText = new JTextField();
     nameText.setBackground(Color.white);
     nameText.setText(agentAID.getName());
@@ -195,8 +204,13 @@ import jade.domain.FIPAAgentManagement.*;
     		  				JOptionPane.showMessageDialog(thisGUI,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
     		  				return;
     		  			}				  
- 						  out = new AID();						  
- 						  out.setName(name);
+ 						  out = new AID();
+ 						  
+ 						  if(isLocalName.isSelected())
+ 						  	out.setLocalName(name);
+ 						  else
+ 						  	out.setName(name);
+ 						  	
  						  //addresses
  						  Enumeration addresses = addressListPanel.getContent();
  						  
