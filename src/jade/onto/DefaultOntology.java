@@ -54,6 +54,9 @@ public class DefaultOntology implements Ontology {
     primitiveTypes.add(BINARY_TYPE, (new byte[0]).getClass());
   }
 
+  // Special slot, all actions must have it.
+  private static final TermDescriptor actorSlot = new TermDescriptor(":actor", STRING_TYPE, M);
+
   private Map schemas;
   private Map factories;
 
@@ -82,8 +85,15 @@ public class DefaultOntology implements Ontology {
     FrameSchema fs = new FrameSchema(this, conceptName, kind);
 
     for(int i = 0; i < slots.length; i++) {
+      String n = slots[i].getName();
+      if(n.length() == 0)
+	slots[i].setName("_" + i);
       fs.addTerm(slots[i]);
     }
+
+    // Add a special ':actor' slot for actions
+    if(kind == ACTION_TYPE)
+      fs.addTerm(actorSlot);
 
     addSchemaToTable(conceptName, fs);
 
@@ -98,6 +108,7 @@ public class DefaultOntology implements Ontology {
   }
 
   public Object createObject(Frame f) throws OntologyException {
+
     String roleName = f.getName();
     RoleFactory fac = lookupFactory(roleName);
 
@@ -360,6 +371,10 @@ public class DefaultOntology implements Ontology {
 	setMethod.invoke(concept, new Object[] { slotValue });
 
       }
+      catch(Frame.NoSuchSlotException fnsse) { // Ignore 'No such slot' errors for optional slots
+	if(!desc.isOptional())
+	  throw fnsse;
+      }
       catch(InvocationTargetException ite) {
 	Throwable e = ite.getTargetException();
 	e.printStackTrace();
@@ -382,10 +397,11 @@ public class DefaultOntology implements Ontology {
     Iterator it = fs.subSchemas();
     while(it.hasNext()) {
       TermDescriptor desc = (TermDescriptor)it.next();
-      String name = translateName(desc.getName());
+      String name = desc.getName();
+      String methodName = translateName(name);
 
       // Retrieve the accessor method from the class and call it
-      Method getMethod = findMethodCaseInsensitive("get" + name, c.getMethods());
+      Method getMethod = findMethodCaseInsensitive("get" +methodName, c.getMethods());
       try {
 	Object value = getMethod.invoke(o, new Object[] { });
 
@@ -393,7 +409,7 @@ public class DefaultOntology implements Ontology {
 	if(!desc.isComplex()) { // For elementary terms, just put the Object as a slot
 	  f.putSlot(name, value);
 	}
-	else { // For complex terms, do a name lookup and call this method recursively
+	else { // For complex terms, do a name lookup and call createFrame() recursively
 	  String roleName = desc.getTypeName();
 	  f.putSlot(name, createFrame(value, roleName));
 	}
