@@ -52,7 +52,6 @@ public class Agent implements Runnable, CommBroadcaster {
   public Agent() {
     APState = AP_INITIATED;
     myThread = new Thread(this);
-    myParser = null; // FIXME: Must be initialized with a valid ACL parser
     myScheduler = new Scheduler(this);
   }
 
