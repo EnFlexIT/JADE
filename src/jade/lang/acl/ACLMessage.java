@@ -333,7 +333,7 @@ private int performative; // keeps the performative type of this object
    *    msg.setContentBase64(c.toByteArray());
    *
    * </PRE>   
-   * See also examples.ex7
+   * 
    * @see jade.lang.acl.ACLMessage#getContentBase64()
    * @see jade.lang.acl.ACLMessage#getContent()
    * @see java.io.ObjectOutputStream#writeObject(Object)
@@ -360,13 +360,19 @@ private int performative; // keeps the performative type of this object
   }
 
   /**
-  This methods set the content of this ACLMessage to a Java object.
-  It is not FIPA compliant so its usage is not encouraged.
-  For example:<br>
-  <PRE>
-  ACLMessage msg;
-  msg.setContentObject(new Date());
-  </PRE>
+  * This method sets the content of this ACLMessage to a Java object.
+  * It is not FIPA compliant so its usage is not encouraged.
+  * For example:<br>
+  * <PRE>
+  * ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+  * Date d = new Date(); 
+  * try{
+  *  msg.setContentObject(d);
+  * }catch(IOException e){}
+  * </PRE>
+  *
+  * @param s the object that will be used to set the content of the ACLMessage. 
+  * @exception IOException if an I/O error occurs.
   */
   public void setContentObject(Serializable s) throws IOException
   {
@@ -416,10 +422,21 @@ private int performative; // keeps the performative type of this object
     
   }
   /**
-  This method return the content of a this ACLMessage after decoding according to Base64.
-  It is not FIPA compliant so its usage is not encouraged.
+  * This method returns the content of this ACLMessage after decoding according to Base64.
+  * It is not FIPA compliant so its usage is not encouraged.
+  * For example to read Java objects from the content 
+  * (when they have been written by using the setContentOnbject() method): <br>
+  * <PRE>
+  * ACLMessage msg = blockingReceive();
+  * try{
+  *  Date d = (Date)msg.getContentObject();
+  * }catch(UnreadableException e){}
+  * </PRE>
+  * 
+  * @return the object read from the content of this ACLMessage
+  * @exception UnreadableException when an error occurs during the deconding.
   */
-  public Serializable getContentObject() throws IOException,ClassNotFoundException, UnreadableException
+  public Serializable getContentObject() throws UnreadableException
   {
   	
   		try{
@@ -428,6 +445,10 @@ private int performative; // keeps the performative type of this object
   		  return s;
   		}catch (java.lang.Error e){
   		 throw new UnreadableException(e.getMessage());
+  		}catch (IOException e1){
+  			throw new UnreadableException(e1.getMessage());
+  		}catch(ClassNotFoundException e2){
+  			throw new UnreadableException(e2.getMessage());
   		}
   	
   }
