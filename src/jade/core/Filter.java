@@ -89,9 +89,13 @@ public interface Filter {
 
        @param cmd A <code>Command</code> describing what operation has
        been requested from previous layers (that can be the actual
-       prime source of the command or previous filters in the chain.
+       prime source of the command or previous filters in the chain).
+       @return A boolean value, telling whether the filtered has
+       accepted the copmmand or not. A filter can veto a command by
+       returning <code>false</code> from this method. A vetoed command
+       is immmediately rejected by the command processor.
     */
-    void accept(VerticalCommand cmd);
+    boolean accept(VerticalCommand cmd);
 
 
 }
