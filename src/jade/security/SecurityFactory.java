@@ -29,7 +29,7 @@ import jade.util.Logger;
 
 /**
     This is a factory class for security-related objects.
- 
+
     @author Giosue Vitaglione - Telecom Italia LAB
 	@version $Date$ $Revision$
 */
@@ -65,16 +65,16 @@ abstract public class SecurityFactory {
   private static Profile profile = null; // see NOTE above
 
 
-  /*  Returns the SecurityFactory according the Profile p, 
-   *  The first time this is called, a single instance is created as 
-   *  a singleton. 
+  /*  Returns the SecurityFactory according the Profile p,
+   *  The first time this is called, a single instance is created as
+   *  a singleton.
    *  @seealso#getSecurityFactory()
    */
   static public SecurityFactory getSecurityFactory(Profile p) {
-    String className = p.getParameter(SECURITY_FACTORY_CLASS_KEY, 
+    String className = p.getParameter(SECURITY_FACTORY_CLASS_KEY,
                                       SECURITY_FACTORY_CLASS_DEFAULT);
-    
-    if (singleton != null) {
+
+    if (singleton == null) {
 
       try {
         singleton = (jade.security.SecurityFactory) Class.forName(className).
@@ -135,7 +135,7 @@ public static String getParameter(String key, String defaultVal) {
 
 
 /**
-// password dialog (interface to enter user credentials) 
+// password dialog (interface to enter user credentials)
   public PwdDialog getPwdDialog() {
 
       //default is GUI swing password dialog
@@ -159,10 +159,13 @@ public static String getParameter(String key, String defaultVal) {
 
 
 
-// abstract methods of the factory, follows: 
+// abstract methods of the factory, follows:
 
 abstract public JADEAuthority newJADEAuthority();
+abstract public JADEAccessController newJADEAccessController(
+                  String name, JADEAuthority authority, String policy );
 
-
-
+abstract public JADEPrincipal newJADEPrincipal(SDSIName sdsiname);
+abstract public JADEPrincipal newJADEPrincipal(String string, SDSIName sdsiname1);
+  
 } // end SecurityFactory
