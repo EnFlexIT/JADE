@@ -64,6 +64,7 @@ class StartNewAgentAction extends ContainerAction {
       String agentName = StartDialog.getAgentName();
       String className = StartDialog.getClassName();
       String container = StartDialog.getContainer();
+      String agentUser = StartDialog.getAgentUser ();
       String arguments = StartDialog.getArguments();
      
       if((agentName.trim().length() > 0) && (className.trim().length() >0))
@@ -77,7 +78,7 @@ class StartNewAgentAction extends ContainerAction {
       	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
 	  Enumeration it = helperParser.getCommandLineAgentSpecifiers(al);
 	  Object[] arg = (it.hasMoreElements()?((Specifier)it.nextElement()).getArgs():new Object[0]);
-      	  myRMA.newAgent(agentName, className, arg, container);
+      	  myRMA.newAgent(agentName, className, arg, agentUser, container);
       }
     }
     return result;

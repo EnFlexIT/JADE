@@ -39,10 +39,12 @@ class StartDialog extends JDialog implements ActionListener{
   protected static JTextField className;
   protected static JTextField container;
   protected static JTextField arguments;
+  protected  static JTextField agentUser;
 
   protected static JLabel agentNameL= new JLabel("Agent Name");
   protected static JLabel classNameL= new JLabel("Class Name");
   protected static JLabel argAgentL = new JLabel("Arguments");
+  protected static JLabel agentUserL = new JLabel("User");
   protected static JLabel containerL= new JLabel("Container");
 
   protected static JButton OKButton = new JButton ("OK");
@@ -51,6 +53,7 @@ class StartDialog extends JDialog implements ActionListener{
   protected static String agentNameToolTip = "Name of the Agent to start";
   protected static String classNameToolTip = "Class Name of the Agent to start";
   protected static String argAgentToolTip = "Arguments passed to the agent constructor"; 
+  protected static String agentUserToolTip = "The user under which the agent has to be started";  
   protected static String containerToolTip = "Container on which the Agent will start";
 
   protected static String result  = "";
@@ -75,6 +78,11 @@ class StartDialog extends JDialog implements ActionListener{
     arguments.setToolTipText(argAgentToolTip);
     argAgentL.setToolTipText(argAgentToolTip);
     
+    agentUser = new JTextField();
+    agentUser.setEditable(true);
+    agentUser.setToolTipText(agentUserToolTip);
+    agentUserL.setToolTipText(agentUserToolTip);
+    
     container = new JTextField ("0");
     container.setEditable(true);
     container.setToolTipText(containerToolTip);
@@ -85,7 +93,7 @@ class StartDialog extends JDialog implements ActionListener{
   protected StartDialog (String agentNameP, Frame frame) {
     super(frame,"Insert Start Parameters",true);
 
-    getContentPane().setLayout(new GridLayout(5,2));
+    getContentPane().setLayout(new GridLayout(6,2));
     agentName.setText(agentNameP);
 
     getContentPane().add(agentNameL);
@@ -96,6 +104,9 @@ class StartDialog extends JDialog implements ActionListener{
 
     getContentPane().add(argAgentL);
     getContentPane().add(arguments);
+    
+    getContentPane().add(agentUserL);
+    getContentPane().add(agentUser);
     
     getContentPane().add(containerL);
     getContentPane().add(container);
@@ -112,7 +123,7 @@ class StartDialog extends JDialog implements ActionListener{
   }
 
   public Dimension getPreferredSize () {
-    return (new Dimension(450,150));
+    return (new Dimension(540,150));
   }
 
   public void actionPerformed (ActionEvent evt) {
@@ -143,6 +154,11 @@ class StartDialog extends JDialog implements ActionListener{
   public static String getArguments()
   {
   	return arguments.getText().trim();
+  }
+  
+  public static String getAgentUser ()
+  {
+    return agentUser.getText().trim();
   }
   
   public static String getContainer() {
