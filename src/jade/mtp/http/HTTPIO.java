@@ -306,7 +306,7 @@ public class HTTPIO {
     StringTokenizer st = new StringTokenizer(line);
     try {
 
-      if(!(st.nextToken()).equalsIgnoreCase(POST) ) { 
+      if(!(st.nextToken()).equalsIgnoreCase(POST_STR) ) { 
         if(logger.isLoggable(Logger.WARNING))
         	logger.log(Logger.WARNING,"Malformed POST");
 
@@ -344,7 +344,7 @@ public class HTTPIO {
       if (lowerCaseLine.startsWith(CONTENT_STR.toLowerCase())) {	
         //Process the left part
 
-        if (!(processLine(line).toLowerCase().startsWith(MM))) {
+        if (!(processLine(line).toLowerCase().startsWith(MM_STR))) {
           if(logger.isLoggable(Logger.WARNING))
           	logger.log(Logger.WARNING,"MULTIPART/MIXED");
 

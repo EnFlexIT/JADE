@@ -209,7 +209,7 @@ public class HTTPServer extends Thread {
             //Post the Message to Jade platform	
             synchronized (dispatcher) {
 
-              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.length())) {
+              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.size())) {
                 if(logger.isLoggable(Logger.WARNING))
                 	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
 
