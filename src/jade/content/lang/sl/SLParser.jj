@@ -52,6 +52,7 @@ import jade.content.lang.Codec;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.io.IOException;
 import java.util.Date;
 
 
@@ -59,6 +60,7 @@ import java.util.Date;
 /**
 * SLParser. This same parser embeds also lower profiles of SL, namely SL-0, SL-1 and SL-2.
 * @author Fabio Bellifemine, TILab S.p.A. (formerly CSELT S.p.A.)
+* @author Nicolas Lhuillier (Motorola) (added support for PREFIXBYTELENGTHENCODEDSTRING)
 * @version $Date$ $Revision$
 **/
 class SLParser {
@@ -276,13 +278,16 @@ AbsPrimitive Constant() :
                 }
   | val=Number() 
   | t=<DATETIME> { 
-	try { 
-	  Date d=jade.lang.acl.ISO8601.toDate(t.image);
-	  val = AbsPrimitive.wrap(d);
-	} catch (Exception e) { 
-	  val = AbsPrimitive.wrap(t.image); 
-        }
-	       }
+    try { 
+      Date d=jade.lang.acl.ISO8601.toDate(t.image);
+      val = AbsPrimitive.wrap(d);
+    } catch (Exception e) { 
+      val = AbsPrimitive.wrap(t.image); 
+                 }
+  }
+  | t=<PREFIXBYTELENGTHENCODEDSTRING> {
+    val = AbsPrimitive.wrap(t.image.getBytes());
+                                      }
  )
  {return val;}
 }
@@ -570,6 +575,30 @@ TOKEN:
                 (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
                 (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
                 (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["a"-"z","A"-"Z"])? > 
+| <PREFIXBYTELENGTHENCODEDSTRING :  "#" <INTEGER> "\"" > 
+    {
+      String tmp = matchedToken.image.substring(1,matchedToken.image.length()-1);
+      int numBytes = Integer.parseInt(tmp);
+      if (numBytes < 0) {
+        throw new TokenMgrError("ERROR: PrefixByteLengthEncodedString with length < 0", 
+                                TokenMgrError.STATIC_LEXER_ERROR);
+      }    
+      char[] bytes = new char[numBytes];
+      int i = 0; 
+      
+      while (numBytes-- > 0) 
+        try {
+          bytes[i++] = input_stream.readChar(); 
+        } 
+      catch (IOException e) {
+        System.out.println("IOException during PREFIXBYTELENGTHENCODEDSTRING");
+        throw new TokenMgrError(true, curLexState, input_stream.getEndLine(), 
+                                input_stream.getEndColumn(),input_stream.GetImage(), 
+                                curChar, TokenMgrError.LEXICAL_ERROR);
+      }	
+      // If you want, you can add bytes to matchedToken.image here.
+      matchedToken.image = new String(bytes);
+    }
 }
 
 

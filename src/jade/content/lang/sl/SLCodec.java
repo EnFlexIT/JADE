@@ -51,6 +51,7 @@ import java.io.InputStreamReader; // only for debugging purposes in the main
  * By default the class implements full SL grammar, otherwise the proper
  * value must be used in the constructor.
  * @author Fabio Bellifemine - TILAB 
+ * @author Nicolas Lhuillier - Motorola (added support for byte[] primitive)
  * @version $Date$ $Revision$
  */
 /*#MIDP_INCLUDE_BEGIN
@@ -357,8 +358,11 @@ public class SLCodec extends StringCodec {
 	    return ISO8601.toString((Date)v);
 	else if (v instanceof Number) 
 		  return v.toString();
-  else if (v instanceof byte[])
-  	throw new CodecException("SL_does_not_allow_encoding_sequencesOfBytes");
+  else if (v instanceof byte[]) {
+    // Note: Currently uses Java default charset, may need to use another one 
+    byte[] b = (byte[]) v;
+    return "#"+b.length+"\""+new String(b);
+  }
   else if (v instanceof Boolean) 
 			return v.toString();
 	else {
