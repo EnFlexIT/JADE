@@ -57,7 +57,7 @@ class MessageManager implements TimerListener {
 
     public interface Channel {
 	void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException;
-	void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie, boolean force);
+	void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie);
     }
 
 
@@ -348,7 +348,7 @@ class MessageManager implements TimerListener {
 				if (System.currentTimeMillis() > pm.getDeadline()) {
 				    // If the deadline has expired, don't even try again
 				    Channel ch = pm.getChannel();
-				    ch.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""), false);
+				    ch.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""));
 				}
 				else {
 					// Otherwise schedule again the message for delivery

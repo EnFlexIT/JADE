@@ -1192,16 +1192,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             System.err.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
           }
         }
-        notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()), false);
+        notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
 	    }
     }
     catch(NotFoundException nfe) {
 	    // The receiver does not exist --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()), false);
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
     }
     catch(UnreachableException ue) {
 	    // Can't reach the destination container --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + ue.getMessage()), false);
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + ue.getMessage()));
     }
   }
 
@@ -1255,7 +1255,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * to notify the sender of a message that a failure was reported by
    * the Message Transport Service.
    */
-  public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie, boolean force) {
+  public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
     GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
     cmd.addParam(msg);
     cmd.addParam(receiver);
