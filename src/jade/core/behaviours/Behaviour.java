@@ -109,7 +109,7 @@ public abstract class Behaviour implements Serializable {
        containment hierarchy; when it is <code>NOTIFY_DOWN</code>, the
        event travels downwards.
     */
-    void init(boolean b, int d) {
+    public void init(boolean b, int d) {
       runnable = b;
       direction = d;
     }
@@ -119,7 +119,7 @@ public abstract class Behaviour implements Serializable {
        Read event source.
        @return The <code>Behaviour</code> object which generated this event.
     */
-    Behaviour getSource() {
+    public Behaviour getSource() {
       return Behaviour.this;
     }
 
@@ -138,7 +138,7 @@ public abstract class Behaviour implements Serializable {
        going from a child behaviour to its parent; <code>false</code>
        otherwise.
     */
-    boolean isUpwards() {
+    public boolean isUpwards() {
       return direction == NOTIFY_UP;
     }
 
@@ -339,7 +339,6 @@ public abstract class Behaviour implements Serializable {
      method is to realize multistep cyclic behaviours without needing
      expensive constructions an deletion of objects at each loop
      iteration.
-     This method provides also to clear the dataStore.
      Remind to call super.reset() from the sub-classes.
   */
   public void reset() {
