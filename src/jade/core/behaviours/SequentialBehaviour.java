@@ -111,6 +111,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
+    b.setAgent(myAgent);
   }
   
   /** 

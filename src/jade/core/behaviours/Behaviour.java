@@ -157,7 +157,10 @@ public abstract class Behaviour implements Serializable {
   
   final void setParent(CompositeBehaviour cb) {
   	parent = cb;
-  	myAgent = parent.myAgent;
+	if (parent != null)
+	    myAgent = parent.myAgent;
+	else
+	    myAgent = null;
   }
 
   /**
