@@ -48,6 +48,7 @@ import jade.core.ServiceException;
 import jade.core.Filter;
 import jade.core.Node;
 
+import jade.core.Profile;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
@@ -56,6 +57,7 @@ import jade.core.Location;
 import jade.core.AgentContainerImpl;
 import jade.core.MainContainerImpl;
 
+import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
@@ -147,8 +149,8 @@ public class AgentMobilityService extends BaseService {
     static final boolean       TRANSFER_COMMIT = true;
 
 
-    public AgentMobilityService(AgentContainerImpl ac, ServiceFinder sf) {
-	super(sf);
+    public AgentMobilityService(AgentContainerImpl ac, Profile p) throws ProfileException {
+	super(p);
 
 	myContainer = ac;
 
@@ -245,8 +247,13 @@ public class AgentMobilityService extends BaseService {
 	    return AgentMobilityService.this;
 	}
 
-	public Node getNode() {
-	    return null; // FIXME: To be implemented...
+	public Node getNode() throws ServiceException {
+	    try {
+		return AgentMobilityService.this.getLocalNode();
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
 	}
 
 
