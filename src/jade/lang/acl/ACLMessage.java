@@ -48,22 +48,18 @@ import jade.domain.FIPAAgentManagement.Envelope;
 import starlight.util.Base64;
 
 /**
- * The class ACLMessage implements an ACL message compliant to the <b>FIPA 97</b> specs.
+ * The class ACLMessage implements an ACL message compliant to the <b>FIPA 2000</b> "FIPA ACL Message Structure Specification" (fipa000061) specifications.
  * All parameters are couples <em>keyword: value</em>.
  * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
  * the methods <em>get</em>. <p>
- * Notice that the <em>get</em> methods never
- * return null, rather they return an empty String. <p>
  * The methods <code> setContentObject() </code> and 
  * <code> getContentObject() </code> allow to send
  * serialized Java objects over the content of an ACLMessage.
  * These method are not FIPA compliant so their usage is not encouraged.
- 
- 
- @author Fabio Bellifemine - CSELT
- @version $Date$ $Revision$
-
+ * @author Fabio Bellifemine - CSELT
+ * @version $Date$ $Revision$
+ * @see http://www.fipa.org/specs/fipa00061/XC00061D.html
  */
  
 public class ACLMessage implements Cloneable, Serializable {
@@ -246,19 +242,7 @@ private int performative; // keeps the performative type of this object
     performative = NOT_UNDERSTOOD;
   }
 
-  /**
-    @deprecated It increases the probability of error when the passed
-    String does not belong to the set of performatives supported by
-    FIPA. This constructor creates an ACL message object with the
-    specified type.    To avoid problems, the constructor <code>ACLMessage(int)</code>
-    should be used instead.
-     @param type The type of the communicative act represented by this
-     message.
-     @see jade.lang.acl.ACLMessage#ACLMessage(int type)
-*/
-  public ACLMessage(String type) {
-    performative = performatives.indexOf(type.toUpperCase());
-  }
+
 
 
   /**
