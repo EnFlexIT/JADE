@@ -10,6 +10,10 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - MobileAgent example: fixed bug in dealing with the move message
 - jade.gui.ServiceDescrDlg fixed bug in the visualization of the Properties
   of a ServiceDescription registered with the DF
+- jade.domain.MobilityOntology. removed the actor slot in the classes 
+  MoveAction, QueryPlatformLocation and WhereIsAgent 
+  (as reported by Nicolas Lhuillier, Motorola Labs Paris)
+
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
 ======================================================	

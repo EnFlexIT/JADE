@@ -525,7 +525,6 @@ public class MobilityOntology {
   public static class MoveAction {
 
     private MobileAgentDescription agentToMove;
-    private String actor;
 
     public void set_0(MobileAgentDescription desc) {
       agentToMove = desc;
@@ -533,14 +532,6 @@ public class MobilityOntology {
 
     public MobileAgentDescription get_0() {
       return agentToMove;
-    }
-
-    public void setActor(String a) {
-      actor = a;
-    }
-
-    public String getActor() {
-      return actor;
     }
 
   } // End of MoveAction class
@@ -574,7 +565,6 @@ public class MobilityOntology {
   public static class WhereIsAgentAction {
 
     private AID agentName;
-    private String actor;
 
     public void set_0(AID id) {
       agentName = id;
@@ -582,14 +572,6 @@ public class MobilityOntology {
 
     public AID get_0() {
       return agentName;
-    }
-
-    public void setActor(String a) {
-      actor = a;
-    }
-
-    public String getActor() {
-      return actor;
     }
 
   } // End of WhereIsAgentAction class
@@ -601,16 +583,6 @@ public class MobilityOntology {
     @see jade.onto.Ontology
   */
   public static class QueryPlatformLocationsAction {
-
-    private String actor;
-
-    public void setActor(String a) {
-      actor = a;
-    }
-
-    public String getActor() {
-      return actor;
-    }
 
   } // End of QueryPlatformLocationsAction
 
