@@ -144,8 +144,6 @@ images:
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
 	mkdir -p $(CLSDIR)/jade/gui/help
-	cp $(SRCDIR)/jade/gui/help/DFGUI.html $(CLSDIR)/jade/gui/help/DFGUI.html
-	cp $(SRCDIR)/jade/gui/help/BOOTGUI.html $(CLSDIR)/jade/gui/help/BOOTGUI.html
 
 idlclean:
 	rm -f $(IDLSTUBS)
