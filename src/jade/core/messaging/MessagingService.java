@@ -274,7 +274,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    String className = (String)params[2];
 
 	    MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-	    return targetSlice.installMTP(address, className);
+	    try {
+		return targetSlice.installMTP(address, className);
+	    }
+	    catch(IMTPException imtpe) {
+		targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
+		return targetSlice.installMTP(address, className);
+	    }
 	}
 
 	private void handleUninstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
@@ -283,7 +289,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    ContainerID cid = (ContainerID)params[1];
 
 	    MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-	    targetSlice.uninstallMTP(address);
+	    try {
+		targetSlice.uninstallMTP(address);
+	    }
+	    catch(IMTPException imtpe) {
+		targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
+		targetSlice.uninstallMTP(address);
+	    }
 	}
 
 	private void handleSetPlatformAddresses(VerticalCommand cmd) {
