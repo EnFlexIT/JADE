@@ -22,7 +22,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
-import java.awt.Image;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.Window;
@@ -30,7 +29,6 @@ import java.awt.EventQueue;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.Container;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -42,7 +40,7 @@ import javax.swing.JPanel;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.BoxLayout;
-
+import javax.swing.ImageIcon;
 
 /** 
  * This class is invoked the the user selects the AboutBox item on the menu. A dialog
@@ -59,7 +57,7 @@ public class AboutBoxAction extends MMAbstractAction{
 	private String labelText = "written by Alessandro Beneventi";
 	private JLabel label;
 	
-  String imageFile = "jade/tools/sniffer/images/jadelogo.jpg";
+  String imageFile = "images/jadelogo.jpg";
 	private JButton ok;
 	
 	public AboutBoxAction (SnifferGUI snifferGui){
@@ -72,10 +70,7 @@ public class AboutBoxAction extends MMAbstractAction{
    * and program version.
    */
   public void actionPerformed (ActionEvent evt){   
-        Image image = Toolkit.getDefaultToolkit().getImage(
-                                        imageFile);
-        ImagePanel imagePanel = new ImagePanel(image);
-
+        
         final AboutFrame f = new AboutFrame(myGui,"About...");
         f.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -88,12 +83,14 @@ public class AboutBoxAction extends MMAbstractAction{
 				theCont.setLayout(new BoxLayout(theCont,BoxLayout.Y_AXIS)); //simply remove
            
         
-        //theCont.add(imagePanel, BorderLayout.CENTER);
         label = new JLabel("The Sniffer for");
         //label.setForeground(Color.blue);
         theCont.add(label);
         theCont.setBackground(Color.black);
-        theCont.add(imagePanel);
+        
+        ImageIcon jadelogo = new ImageIcon(getClass().getResource(imageFile));
+        label = new JLabel(jadelogo);
+        theCont.add(label);
         label = new JLabel("Concept & Early Version by Gianluca Tanca");
         // label.setForeground(Color.blue);
         theCont.add(label);
@@ -157,21 +154,5 @@ private class AboutFrame extends JDialog {
 
   }
 }
-
-
-private class ImagePanel extends JPanel {
-    Image image;
-
-    public ImagePanel(Image image) {
-        this.image = image;
-    }
-
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g); //paint background
-				setBackground(Color.black);
-        //Draw image at its natural size first.
-        g.drawImage(image, 0, 0, this); //85x62 image
-    }
-	}
 
 } //End of AboutBoxAction class
