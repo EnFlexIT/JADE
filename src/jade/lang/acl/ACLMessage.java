@@ -35,6 +35,9 @@
 /*
  $Id$
  $Log$
+ Revision 1.7  1998/10/04 15:25:19  rimassa
+ Fixed a bug: an 'if' clause tested the wrong variable.
+
  Revision 1.6  1998/09/28 22:40:44  Giovanni
  Added a 'toText()' method to write an ACLMessage on an arbitrary
  Writer (String, OutputStream, File, ecc.).
@@ -360,7 +363,7 @@ public class ACLMessage implements Cloneable, Serializable {
 	w.write(ONTOLOGY + " " + ontology + " ");
       if(reply_by != null)
 	w.write(REPLY_BY + " " + reply_by + " ");
-      if(ontology != null)
+      if(protocol != null)
 	w.write(PROTOCOL + " " + protocol + " ");
       if(conversation_id != null)
 	w.write(CONVERSATION_ID + " " + conversation_id + " ");
