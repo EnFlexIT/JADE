@@ -28,9 +28,8 @@ import java.util.List;
 import java.util.LinkedList;
 
 import jade.core.AID;
-
-import jade.domain.FIPAAgentManagement.DonePredicate;
-import jade.domain.FIPAAgentManagement.ResultPredicate;
+import jade.onto.basic.*;  // to import Done, Action, ...
+import jade.onto.*;
 
 import jade.lang.Codec;
 
@@ -38,7 +37,7 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.TermDescriptor;
-import jade.onto.RoleFactory;
+import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
 
 /**
@@ -82,8 +81,8 @@ public class JADEAgentManagementOntology {
 
   // Predicates
   public static final String EVENTOCCURRED = "event-occurred";
-  public static final String DONE = "done";
-  public static final String RESULT = "result";
+  //public static final String DONE = "done";
+  //public static final String RESULT = "result";
 
   static {
     initInstance();
@@ -104,125 +103,96 @@ public class JADEAgentManagementOntology {
 
   private static void initInstance() {
     try {
-	theInstance.addFrame(DefaultOntology.NAME_OF_ACTION_FRAME, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor(Ontology.FRAME_TERM, Ontology.ANY_TYPE, Ontology.M)
-	}, new RoleFactory() {
-	     public Object create(Frame f) { return new jade.onto.Action(); }
-	     public Class getClassForRole() { return jade.onto.Action.class; }
-	   });
+	  // Adds the roles of the basic ontology (ACTION, AID,...)
+    	theInstance.joinOntology(BasicOntologyManager.instance());
 
-	theInstance.addFrame(DONE, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M)
-	}, new RoleFactory() {
-	     public Object create(Frame f) {return new DonePredicate(); }
-	     public Class getClassForRole() {return DonePredicate.class;}
-	   });
-
-	theInstance.addFrame(RESULT, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M),
-	  new TermDescriptor(Ontology.ANY_TERM, Ontology.ANY_TYPE, Ontology.M)
-	}, new RoleFactory() {
-	     public Object create(Frame f) {return new ResultPredicate(); }
-	     public Class getClassForRole() {return ResultPredicate.class;}
-	   });
-
-	theInstance.addFrame(AGENTIDENTIFIER, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("addresses", Ontology.SEQUENCE_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("resolvers", Ontology.SEQUENCE_TERM, AGENTIDENTIFIER, Ontology.O)
-	}, new RoleFactory() {
-	     public Object create(Frame f) { return new AID(); }
-	     public Class getClassForRole() { return AID.class; }
-	   });
-
-	theInstance.addFrame(KILLCONTAINER, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("password", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleFactory() {
+	theInstance.addRole(KILLCONTAINER, new SlotDescriptor[] {
+	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new KillContainer(); } 
 	     public Class getClassForRole() { return KillContainer.class; }
 	   });
 
-	theInstance.addFrame(CREATEAGENT, new TermDescriptor[] {	  
-	  new TermDescriptor("agent-name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("class-name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("container-name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("password", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleFactory() {
+	theInstance.addRole(CREATEAGENT, new SlotDescriptor[] {	  
+	  new SlotDescriptor("agent-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new CreateAgent(); } 
 	     public Class getClassForRole() { return CreateAgent.class; }
 	   });
 
-	theInstance.addFrame(KILLAGENT, new TermDescriptor[] {
-	  new TermDescriptor("agent", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor("password", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleFactory() {
+	theInstance.addRole(KILLAGENT, new SlotDescriptor[] {
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new KillAgent(); }
 	     public Class getClassForRole() { return KillAgent.class; }
 	   });
 
-	theInstance.addFrame(SNIFFON, new TermDescriptor[] {
-	  new TermDescriptor("sniffer", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor("sniffed-agents", Ontology.SEQUENCE_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor("password", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleFactory() {
+	theInstance.addRole(SNIFFON, new SlotDescriptor[] {
+	  new SlotDescriptor("sniffer", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new SniffOn(); }
 	     public Class getClassForRole() { return SniffOn.class; }
 	   });
 
-	theInstance.addFrame(SNIFFOFF, new TermDescriptor[] {
-	  new TermDescriptor("sniffer", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor("sniffed-agents", Ontology.SEQUENCE_TERM, AGENTIDENTIFIER, Ontology.M),
-	  new TermDescriptor("password", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleFactory() {
+	theInstance.addRole(SNIFFOFF, new SlotDescriptor[] {
+	  new SlotDescriptor("sniffer", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new SniffOff(); }
 	     public Class getClassForRole() { return SniffOff.class; }
 	   });
 
-	theInstance.addFrame(EVENTOCCURRED, new TermDescriptor[] {
-	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.ANY_TYPE, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(EVENTOCCURRED, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.FRAME_SLOT, DefaultOntology.ANY_TYPE, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) {return new EventOccurred(); }
 	     public Class getClassForRole() {return EventOccurred.class;}
 	   });
 
-	theInstance.addFrame(CONTAINERBORN, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("host", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(CONTAINERBORN, new SlotDescriptor[] {
+	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("host", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new ContainerBorn(); }
 	     public Class getClassForRole() { return ContainerBorn.class; }
 	   });
 
-	theInstance.addFrame(CONTAINERDEAD, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(CONTAINERDEAD, new SlotDescriptor[] {
+	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new ContainerDead(); }
 	     public Class getClassForRole() { return ContainerDead.class; }
 	   });
 
-	theInstance.addFrame(AGENTBORN, new TermDescriptor[] {
-	  new TermDescriptor("container", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("agent", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(AGENTBORN, new SlotDescriptor[] {
+	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new AgentBorn(); }
 	     public Class getClassForRole() { return AgentBorn.class; }
 	   });
 
-	theInstance.addFrame(AGENTDEAD, new TermDescriptor[] {
-	  new TermDescriptor("container", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("agent", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(AGENTDEAD, new SlotDescriptor[] {
+	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new AgentDead(); }
 	     public Class getClassForRole() { return AgentDead.class; }
 	   });
 
-	theInstance.addFrame(AGENTMOVED, new TermDescriptor[] {
-	  new TermDescriptor("from", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("to", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("agent", Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleFactory() {
+	theInstance.addRole(AGENTMOVED, new SlotDescriptor[] {
+	  new SlotDescriptor("from", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("to", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
+	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new AgentMoved(); }
 	     public Class getClassForRole() { return AgentMoved.class; }
 	   });
