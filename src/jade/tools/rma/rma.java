@@ -586,6 +586,53 @@ public class rma extends ToolAgent {
   /**
    Callback method for platform management <em>GUI</em>.
    */
+  public void saveContainer(String  name, String repository) {
+     SaveContainer saveAct = new SaveContainer();
+     saveAct.setContainer(new ContainerID(name, null));
+     saveAct.setRepository(repository);
+
+      try {
+      	Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(saveAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("SaveContainer", requestMsg));
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
+  }
+
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
+  public void loadContainer(String name, String repository) {
+     LoadContainer saveAct = new LoadContainer();
+     saveAct.setContainer(new ContainerID(name, null));
+     saveAct.setRepository(repository);
+
+      try {
+      	Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(saveAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("LoadContainer", requestMsg));
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
+  }
+
+
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void killContainer(String name) {
 
     KillContainer kc = new KillContainer();
