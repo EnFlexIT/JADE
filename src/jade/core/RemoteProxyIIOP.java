@@ -33,7 +33,7 @@ import jade.lang.acl.ACLMessage;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class RemoteProxyIIOP extends RemoteProxy {
+class RemoteProxyIIOP implements RemoteProxy {
 
   private FIPA_Agent_97 ref;
   private String addr;
