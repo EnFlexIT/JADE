@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.39  1999/06/04 07:44:02  rimassa
+  Made package scoped this previously public class.
+
   Revision 1.38  1999/04/13 15:58:55  rimassa
   Added a hack to catch a SocketException arising during RMA shutdown.
 
@@ -164,7 +167,7 @@ import jade.lang.acl.*;
 import FIPA_Agent_97;
 
 
-public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
+class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
 
   private static final int MAP_SIZE = 50;
   private static final float MAP_LOAD_FACTOR = 0.50f;
