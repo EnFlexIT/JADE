@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1999/03/29 10:43:40  rimassa
+  Removed last blocking call from event listener, i.e. on
+  DFAgentDescriptor deregistration.
+
   Revision 1.4  1999/03/14 17:45:36  rimassa
   Decoupled event handler thread from DF agent thread using an event
   queue, avoiding deadlock on agent registration through GUI.
@@ -1024,12 +1028,7 @@ void setAllEditable(boolean tf) {
       myAgent.postRegisterEvent(myAgent.getName(),currentDFAgentDescriptor);
     } else if (usage == DFGUI.DEREGISTER) {
       // currentDFAgentDescriptor already contains the description
-      try {
-	myAgent.deregisterWithDF(myAgent.getName(),currentDFAgentDescriptor);
-      } catch (jade.domain.FIPAException f) {
-	// FIXME far vedere il testo della eccezione su schermo
-	System.err.println("deregisterWithDF Exception: "+f.getMessage());
-      } 
+      myAgent.postDeregisterEvent(myAgent.getName(),currentDFAgentDescriptor);
     } else if (usage == DFGUI.MODIFY) {
       ACLMessage msg = new ACLMessage("request");
       msg.setSource(myAgent.getName());
