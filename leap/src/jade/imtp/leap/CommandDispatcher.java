@@ -36,27 +36,29 @@
 
 package jade.imtp.leap;
 
-import jade.core.AgentContainer;
-import jade.core.MainContainer;
+
+import jade.core.ServiceManager;
 import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.Runtime;
 import jade.core.UnreachableException;
 import jade.mtp.TransportAddress;
+import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 import jade.util.Logger;
 
 /**
- * This class provides a lightweight implementation of a command
+ * This class provides the implementation of a command
  * dispatcher. The command dispatcher misses support for multiple remote
  * objects, multiple ICPs and command routing.
  * 
  * <p>The command dispatcher is based on an implementation written by
  * Michael Watzke and Giovanni Caire (TILAB), 09/11/2000.</p>
  * 
- * @see FullCommandDispatcher
  * @author Tobias Schaefer
  * @version 1.0
  */
@@ -88,41 +90,53 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    */
   protected TransportAddress         routerTA = null;
 
-  /**
-   * The skeleton of the object remotized by this command dispatcher.
-   * It is used when a command is received from a remote JVM.
-   */
-  protected Skeleton                 skeleton;
 
   /**
-   * The objects remotized by this command dispatcher. It is used when
-   * a Stub of a remotized object must be built to be sent to a remote
-   * JVM.
+   * This hashtable maps the IDs of the objects remotized by this
+   * command dispatcher to the skeletons for these objects. It is used
+   * when a command is received from a remote JVM.
    */
-  protected Object                   remoteObject;
+  protected Map skeletons = new HashMap();
 
   /**
-   * The ID of remotized object. Everytime the old remotized object is
-   * replaced by a new one the field is increased.
+   * This hashtable maps the objects remotized by this command
+   * dispatcher to their IDs. It is used when a stub of a remotized
+   * object must be built to be sent to a remote JVM.
    */
-  protected int                      id;
+  protected Map ids = new HashMap();
 
   /**
-   * The ICP object used by this command dispatcher to actually
-   * send/receive data over the network.
+   * A counter that is used for determining IDs for remotized objects.
+   * Everytime a new object is registered by the command dispatcher it
+   * gets the value of this field as ID and the field is increased.
    */
-  protected ICP                      icp;
+  protected int       nextID;
 
   /**
-   * The TransportAddress the ICP managed by this command dispatcher is
-   * listening for commands on.
+   * The pool of ICP objects used by this command dispatcher to
+   * actually send/receive data over the network. It is a table that
+   * associates a <tt>String</tt> representing a protocol (e.g. "http")
+   * to a list of ICPs supporting that protocol.
    */
-  protected TransportAddress         icpTA;
+  protected Map icps = new HashMap();
 
   /**
-   * The URL corresponding to the local TransportAddress.
+   * The transport addresses the ICPs managed by this command
+   * dispatcher are listening for commands on.
    */
-  protected String                   url;
+  protected List      addresses = new ArrayList();
+
+  /**
+   * The URLs corresponding to the local transport addresses.
+   */
+  protected List      urls = new ArrayList();
+
+    /**
+       The stub for the platform service manager. This stub will be
+       shared by all nodes within this Java virtual Machine.
+    */
+    private ServiceManagerStub theSvcMgrStub = null;
+
 
   /**
    * Tries to create a new command dispatcher and returns whether the
@@ -147,13 +161,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     
     String implementation = null;
     // Set CommandDispatcher class name
-    // Default is FullCommandDispatcher in J2SE and PJAVA, CommandDispatcher in MIDP
-    if (p.getParameter(Profile.JVM, Profile.J2SE).equals(Profile.MIDP)) {
-        implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.CommandDispatcher");
-    }
-    else {
-        implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.FullCommandDispatcher");
-    }
+    implementation = p.getParameter(COMMAND_DISPATCHER_CLASS, "jade.imtp.leap.CommandDispatcher");
     
     if (commandDispatcher == null) {
       try {
@@ -200,16 +208,19 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     // container attached to this CommandDispatcher will receive a
     // unique name from the main.
     name = DEFAULT_NAME;
-    id = 1;
+    nextID = 1;
   }
 
-    public ServiceManagerStub getServiceManagerStub(Profile p) throws IMTPException {
-	ServiceManagerStub stub = new ServiceManagerStub();
-	TransportAddress mainTA = initMainTA(p);
-	stub.bind(this);
-	stub.addTA(mainTA);
+    public synchronized ServiceManagerStub getServiceManagerStub(Profile p) throws IMTPException {
+	if(theSvcMgrStub == null) {
 
-	return stub;
+	  theSvcMgrStub = new ServiceManagerStub();
+	  TransportAddress mainTA = initMainTA(p);
+	  theSvcMgrStub.bind(this);
+	  theSvcMgrStub.addTA(mainTA);
+	}
+
+	return theSvcMgrStub;
     }
 
     public ServiceManagerStub getServiceManagerStub(String addr) throws IMTPException {
@@ -231,7 +242,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     public void addAddressToStub(Stub target, String toAdd) {
 	try {
-	    System.out.println("--- Adding address <" + toAdd + "> ---");
 	    TransportAddress ta = stringToAddr(toAdd);
 	    target.addTA(ta);
 	}
@@ -242,7 +252,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     public void removeAddressFromStub(Stub target, String toRemove) {
 	try {
-	    System.out.println("--- Removing address <" + toRemove + "> ---");
 	    TransportAddress ta = stringToAddr(toRemove);
 	    target.removeTA(ta);
 	}
@@ -279,162 +288,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     	}
     }    		
   } 
-
-  /**
-   * Adds (and activates) an ICP to this command dispatcher.
-   * 
-   * @param peer the ICP to add.
-   * @param args the arguments required by the ICP for the activation.
-   * These arguments are ICP specific.
-   */
-  public void addICP(ICP peer, String peerID, Profile p) {
-    try {
-      boolean replace = icp != null;
-
-      // Activate the peer and replace the local address by the
-      // listening address
-      icpTA = (icp = peer).activate(this, peerID, p);
-      url = icp.getProtocol().addrToString(icpTA);
-
-      if (replace) {
-        Logger.println("WARNING : icp has been changed");
-      } 
-    } 
-    catch (ICPException icpe) {
-
-      // Print a warning
-      Logger.println("Error setting ICP "+peer+"["+icpe.getMessage()+"].");
-    } 
-  } 
-
-  /**
-   * Returns the list of local addresses.
-   * 
-   * @return the list of local addresses.
-   */
-  public List getLocalTAs() {
-    ArrayList adresses = new ArrayList();
-    if (icpTA != null) {
-      adresses.add(icpTA);
-    } 
-
-    return adresses;
-  } 
-
-  /**
-   * Returns the list of URLs corresponding to the local addresses.
-   * 
-   * @return the list of URLs corresponding to the local addresses.
-   */
-  public List getLocalURLs() {
-    ArrayList urls = new ArrayList();
-    if (url != null) {
-      urls.add(url);
-    } 
-
-    return urls;
-  } 
-
-  /**
-   * Returns the ID of the specified remotized object.
-   * 
-   * @param remoteObject the object whose ID should be returned.
-   * @return the ID of the reomte object.
-   * @throws RuntimeException if the specified object is not
-   * remotized by this command dispatcher.
-   */
-  public int getID(Object obj) throws IMTPException {
-    if (remoteObject.equals(obj)) {
-      return id;
-    } 
-
-    throw new IMTPException("Specified object is not remotized by this command dispatcher.");
-  } 
-
-  /**
-   * Converts an URL into a transport address using the transport
-   * protocol supported by the ICPs currently installed in the command
-   * dispatcher. If there is no ICP installed to the command dispatcher
-   * or their transport protocols are not able to convert the specified
-   * URL a <tt>DispatcherException</tt> is thrown.
-   * 
-   * @param url a <tt>String</tt> object specifying the URL to convert.
-   * @return the converted URL.
-   * @throws DispatcherException if there is no ICP installed to the
-   * command dispatcher or the transport protocols of the ICPs
-   * are not able to convert the specified URL.
-   */
-  protected TransportAddress stringToAddr(String url) throws DispatcherException {
-
-    // Try to convert the url using the TransportProtocol supported
-    // by this ICP.
-    try {
-      return icp.getProtocol().stringToAddr(url);
-    } 
-    catch (Exception e) {
-      throw new DispatcherException("can't convert URL "+url+'.');
-    } 
-  } 
-
-  /**
-   * Registers the specified skeleton to the command dispatcher.
-   * 
-   * @param skeleton a skeleton to be managed by the command
-   * dispatcher.
-   * @param remoteObject the remote object related to the specified
-   * skeleton.
-   */
-  public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
-    this.skeleton = skeleton;
-    this.remoteObject = remoteObject;
-    id++;
-
-    if (id > 2) {
-      Logger.println("WARNING : remotized object has been changed");
-    } 
-  } 
-
-  /**
-   * Deregisters the specified remote object from the command dispatcher.
-   * 
-   * @param remoteObject the remote object related to the specified
-   * skeleton.
-   */
-  public void deregisterSkeleton(Object remoteObject) {
-    if (this.remoteObject == remoteObject) {
-      skeleton = null;
-      this.remoteObject = null;
-      id = 1;
-    } 
-
-    shutDown();
-  } 
-
-
-
-  public Stub buildLocalStub(Object remoteObject) throws IMTPException {
-
-    if(remoteObject instanceof NodeAdapter) {
-
-	NodeAdapter na = (NodeAdapter)remoteObject;
-	NodeLEAP nl = na.getAdaptee();
-	NodeStub stub;
-	if(nl instanceof NodeStub) {
-	    stub = (NodeStub)nl;
-	}
-	else {
-	    stub = new NodeStub(getID(remoteObject));
-
-	    // Add the local address
-	    stub.addTA(icpTA);
-	}
-
-      return stub;
-    }
-
-    throw new IMTPException("can't create a stub for object " + remoteObject + ".");
-  } 
-
 
   /**
    * This method dispatches the specified command to the first address
@@ -637,34 +490,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   } 
 
   /**
-   * Selects a suitable peer and sends the specified serialized command
-   * to the specified transport address.
-   * 
-   * @param ta the transport addresses where the command should be
-   * sent.
-   * @param commandPayload the serialized command that is to be
-   * sent.
-   * @return a serialized response command from the receiving
-   * container.
-   * @throws UnreachableException if the destination address is not
-   * reachable.
-   */
-  protected byte[] send(TransportAddress ta, byte[] commandPayload) throws UnreachableException {
-
-    // Check if the ICP is suitable for the given TransportAddress
-    if (icp == null ||!icp.getProtocol().getName().equals(ta.getProto())) {
-      throw new UnreachableException("no ICP suitable for protocol "+ta.getProto()+".");
-    } 
-
-    try {
-      return icp.deliverCommand(ta, commandPayload);
-    } 
-    catch (ICPException icpe) {
-      throw new UnreachableException("ICPException delivering command to address "+ta+".");
-    } 
-  } 
-
-  /**
    * Serializes a <tt>Command</tt> object into a <tt>byte</tt> array.
    * 
    * @param command the command to be serialized.
@@ -703,62 +528,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     response.addParam(exception.getMessage());
 
     return response;
-  } 
-
-  /**
-   * Shuts the command dipatcher down and deactivates the local ICPs.
-   */
-  public void shutDown() {
-    try {
-
-      if (icp != null) {
-        // This call interrupts the listening thread of this peer
-        // and waits for its completion.
-        icp.deactivate();
-				icp = null;
-        // DEBUG
-        // System.out.println("ICP deactivated.");
-      } 
-    } 
-    catch (ICPException icpe) {
-
-      // Do nothing as this means that this peer had never been
-      // activated.
-    } 
-  } 
-
-  // /////////////////////////////////////////
-  // ICP.Listener INTERFACE
-  // /////////////////////////////////////////
-
-  /**
-   * Handles a received (still serialized) command object, i.e.
-   * deserialize it and launch processing of the command.
-   * 
-   * @param commandPayload the command to be deserialized and
-   * processed.
-   * @return a <tt>byte</tt> array containing the serialized response
-   * command.
-   * @throws LEAPSerializationException if the command cannot be
-   * (de-)serialized.
-   */
-  public byte[] handleCommand(byte[] commandPayload) throws LEAPSerializationException {
-    try {
-
-      // DEBUG
-      //System.out.println("Received command of type " + deserializeCommand(commandPayload).getCode());
-
-      // Deserialize the incoming command and let the Skeleton
-      // process it.
-      return serializeCommand(skeleton.processCommand(deserializeCommand(commandPayload)));
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-
-      // FIXME. If this throws an exception this is not
-      // handled by the CommandDispatcher
-      return serializeCommand(buildExceptionResponse(new DispatcherException(e.getMessage())));
-    } 
   } 
 
     private TransportAddress initMainTA(Profile p) throws IMTPException {
@@ -800,15 +569,332 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     }
 
-    /***
+  /**
+   * Adds (and activates) an ICP to this command dispatcher.
+   * 
+   * @param peer the ICP to add.
+   * @param args the arguments required by the ICP for the activation.
+   * These arguments are ICP specific.
+   */
+  public void addICP(ICP peer, String peerID, Profile p) {
+    try {
 
-  private MainContainer createMainContainerStub(TransportAddress mainTA) {
-    MainContainerStub stub = new MainContainerStub();
-    stub.bind(this);
-    stub.addTA(mainTA);
+      // Activate the peer.
+      TransportAddress  ta = peer.activate(this, peerID, p);
+
+      // Add the listening address to the list of local addresses.
+      TransportProtocol tp = peer.getProtocol();
+      String            url = tp.addrToString(ta);
+
+      addresses.add(ta);
+      urls.add(url);
+
+      // Put the peer in the table of local ICPs.
+      String proto = tp.getName().toLowerCase();
+      List                  list = (List) icps.get(proto);
+      if (list == null) {
+        icps.put(proto, (list = new ArrayList()));
+      } 
+
+      list.add(peer);
+    } 
+    catch (ICPException icpe) {
+
+      // Print a warning.
+      System.out.println("Error adding ICP "+peer+"["+icpe.getMessage()+"].");
+    } 
+  } 
+
+  /**
+   * Returns the ID of the specified remotized object.
+   * 
+   * @param remoteObject the object whose ID should be returned.
+   * @return the ID of the reomte object.
+   * @throws RuntimeException if the specified object is not
+   * remotized by this command dispatcher.
+   */
+  public int getID(Object remoteObject) throws IMTPException {
+    Integer id = (Integer) ids.get(remoteObject);
+    if (id != null) {
+      return id.intValue();
+    } 
+
+    throw new IMTPException("specified object is not remotized by this command dispatcher.");
+  } 
+
+  /**
+   * Returns the list of local addresses.
+   * 
+   * @return the list of local addresses.
+   */
+  public List getLocalTAs() {
+    return addresses;
+  } 
+
+  /**
+   * Returns the list of URLs corresponding to the local addresses.
+   * 
+   * @return the list of URLs corresponding to the local addresses.
+   */
+  public List getLocalURLs() {
+    return urls;
+  } 
+
+  /**
+   * Converts an URL into a transport address using the transport
+   * protocol supported by the ICPs currently installed in the command
+   * dispatcher. If there is no ICP installed to the command dispatcher
+   * or their transport protocols are not able to convert the specified
+   * URL a <tt>DispatcherException</tt> is thrown.
+   * 
+   * @param url a <tt>String</tt> object specifying the URL to convert.
+   * @return the converted URL.
+   * @throws DispatcherException if there is no ICP installed to the
+   * command dispatcher or the transport protocols of the ICPs
+   * are not able to convert the specified URL.
+   */
+  protected TransportAddress stringToAddr(String url) throws DispatcherException {
+    Iterator peers = icps.values().iterator();
+
+    while (peers.hasNext()) {
+
+      // Try to convert the url using the TransportProtocol
+      // supported by this ICP.
+      try {
+        // There can be more than one peer supporting the same
+        // protocol. Use the first one.
+        return ((ICP) ((List) peers.next()).get(0)).getProtocol().stringToAddr(url);
+      }
+      catch (Throwable t) {
+        // Do nothing and try the next one.
+      } 
+    } 
+
+    // If we reach this point the url can't be converted.
+    throw new DispatcherException("can't convert URL "+url+".");
+  } 
+
+  /**
+   * Registers the specified skeleton to the command dispatcher.
+   * 
+   * @param skeleton a skeleton to be managed by the command
+   * dispatcher.
+   * @param remoteObject the remote object related to the specified
+   * skeleton.
+   */
+  public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
+  	Integer id = null;
+  	if(remoteObject instanceof ServiceManager) {
+	    synchronized(this) {
+		id = new Integer(0);
+		name = "Service-Manager";
+
+		// Since we're exporting a local Service Manager, we
+		// make the SM stub point to the local SM, using our
+		// local transport addresses
+		theSvcMgrStub = new ServiceManagerStub();
+		theSvcMgrStub.bind(this);
+		Iterator it = addresses.iterator();
+		while(it.hasNext()) {
+		    TransportAddress ta = (TransportAddress)it.next();
+		    theSvcMgrStub.addTA(ta);
+		}
+	    }
+  	}
+  	else {
+	    id = new Integer(nextID++);
+  	}
+	skeletons.put(id, skeleton);
+	ids.put(remoteObject, id);
+  }
+
+  /**
+   * Deregisters the specified remote object from the command dispatcher.
+   * 
+   * @param remoteObject the remote object related to the specified
+   * skeleton.
+   */
+  public void deregisterSkeleton(Object remoteObject) {
+    try {
+      skeletons.remove(ids.remove(remoteObject));
+    } 
+    catch (NullPointerException npe) {
+    } 
+
+    if (ids.isEmpty()) {
+      //System.out.println("CommandDispatcher shutting down");
+      shutDown();
+    } 
+  } 
+
+  public Stub buildLocalStub(Object remoteObject) throws IMTPException {
+    Stub stub = null;
+
+    if(remoteObject instanceof NodeAdapter) {
+
+	NodeAdapter na = (NodeAdapter)remoteObject;
+	NodeLEAP nl = na.getAdaptee();
+	if(nl instanceof NodeStub) {
+	    stub = (NodeStub)nl;
+	}
+	else {
+	    stub = new NodeStub(getID(remoteObject));
+
+	    // Add the local addresses.
+	    Iterator it = addresses.iterator();
+
+	    while (it.hasNext()) {
+		stub.addTA((TransportAddress) it.next());
+	    }
+	}
+    }
+    else {
+      throw new IMTPException("can't create a stub for object "+remoteObject+".");
+    }
 
     return stub;
+  }
+
+
+  /**
+   * Selects a suitable peer and sends the specified serialized command
+   * to the specified transport address.
+   * 
+   * @param ta the transport addresses where the command should be
+   * sent.
+   * @param commandPayload the serialized command that is to be
+   * sent.
+   * @return a serialized response command from the receiving
+   * container.
+   * @throws UnreachableException if the destination address is not
+   * reachable.
+   */
+  protected byte[] send(TransportAddress ta, byte[] commandPayload) throws UnreachableException {
+
+    // Get the ICPs suitable for the given TransportAddress.
+    List list = (List) icps.get(ta.getProto().toLowerCase());
+
+    if (list == null) {
+      throw new UnreachableException("no ICP suitable for protocol "+ta.getProto()+".");
+
+    } 
+
+    for (int i = 0; i < list.size(); i++) {
+      try {
+        return ((ICP) list.get(i)).deliverCommand(ta, commandPayload);
+      } 
+      catch (ICPException icpe) {
+        // Print a warning and try next address
+      	System.out.println("Warning: can't deliver command to "+ta+". "+icpe.getMessage());
+      } 
+    } 
+
+    throw new UnreachableException("ICPException delivering command to address "+ta+".");
   } 
-    ***/
+
+  /**
+   * Shuts the command dispatcher down and deactivates the local ICPs.
+   */
+  public void shutDown() {
+    Iterator peersKeys = icps.keySet().iterator();
+
+    while (peersKeys.hasNext()) {
+      List list = (List) icps.remove(peersKeys.next());
+
+      for (int i = 0; i < list.size(); i++) {
+        try {
+
+          // This call interrupts the listening thread of this peer
+          // and waits for its completion.
+          ((ICP) list.get(i)).deactivate();
+
+          // DEBUG
+          // System.out.println("ICP deactivated.");
+        } 
+        catch (ICPException icpe) {
+
+          // Do nothing as this means that this peer had never been
+          // activated.
+        } 
+      } 
+    } 
+  } 
+
+  // /////////////////////////////////////////
+  // ICP.Listener INTERFACE
+  // /////////////////////////////////////////
+
+  /**
+   * Handles a received (still serialized) command object, i.e.
+   * deserialize it and launch processing of the command.
+   * 
+   * @param commandPayload the command to be deserialized and
+   * processed.
+   * @return a <tt>byte</tt> array containing the serialized response
+   * command.
+   * @throws LEAPSerializationException if the command cannot be
+   * (de-)serialized.
+   */
+  public byte[] handleCommand(byte[] commandPayload) throws LEAPSerializationException {
+    try {
+
+      // Deserialize the incoming command.
+      Command command = deserializeCommand(commandPayload);
+      Command response = null;
+
+      // DEBUG
+      // System.out.println("Received command of type " + command.getCode());
+      if (command.getCode() == Command.FORWARD) {
+
+        // DEBUG
+        // System.out.println("Routing command");
+
+        // If this is a FORWARD command then handle it directly.
+        byte[] originalPayload = (byte[]) command.getParamAt(0);
+        List   destTAs = (List) command.getParamAt(1);
+        String origin = (String) command.getParamAt(2);
+
+        if (origin.equals(name)) {
+
+          // The forwarding mechanism is looping.
+          response = 
+            buildExceptionResponse(new UnreachableException("destination unreachable (and forward loop)."));
+        } 
+        else {
+          try {
+            response = dispatchSerializedCommand(destTAs, originalPayload, origin);
+          } 
+          catch (UnreachableException ue) {
+
+            // rsp = buildExceptionResponse("jade.core.UnreachableException", ue.getMessage());
+            response = buildExceptionResponse(ue);
+          } 
+        } 
+      } 
+      else {
+
+        // If this is a normal Command, let the proper Skeleton
+        // process it.
+      	Integer id = new Integer(command.getObjectID());
+      	Skeleton s = (Skeleton) skeletons.get(id);
+      	if (s == null) {
+      		throw new DispatcherException("No skeleton for object-id "+id);
+      	}
+        response = s.processCommand(command);
+      } 
+
+      return serializeCommand(response);
+    } 
+    catch (Exception e) {
+      e.printStackTrace();
+
+      // FIXME. If this throws an exception this is not handled by
+      // the CommandDispatcher.
+      return serializeCommand(buildExceptionResponse(new DispatcherException(e.getMessage())));
+    } 
+  } 
+
+
+
 }
 
