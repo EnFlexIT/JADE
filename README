@@ -183,29 +183,22 @@ BUGS
      present, instead of the complete receiver list. This is not
      strictly a bug, but is probably non compliant.
 
-  2) The Programmer's Guide has not been updated since Version
-     0.975. Please refer to HTML documentation for the new features.
-
-  3) On Solaris 7 with Jdk 1.2, the dialog for viewing or editing ACL
-     messages fills the whole screen, even if if would fit in a much
-     smaller fraction of it.
-
-  4) If more than a single instance of an RMA agent is run within the
+  2) If more than a single instance of an RMA agent is run within the
      same agent container, incorrect behaviour results. Presently,
      willing to run multiple RMA agents on the same JADE platform,
      each one of them must live in a separate agent container.
 
-  5) On Windows 95, sometimes the DummyAgent message list locks up
+  3) On Windows 95, sometimes the DummyAgent message list locks up
      when the first message is sent, the sent message is not shown and
      the list does not accept selections by the user. To unlock it,
      just send again the same message; then the previous message is
      displayed, too, and the list starts its normal operations.
 
-  6) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
+  4) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
      unavailable" appears during platform shutdown, but then the
      process completes without any problems.
 
-  7) When an agent or a container is killed, an exception can arise
+  5) When an agent or a container is killed, an exception can arise
      when Swing tries to remove the item from the container/agent
      tree.
 
