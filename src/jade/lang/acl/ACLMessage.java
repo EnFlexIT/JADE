@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.11  1999/02/04 11:28:26  rimassa
+ Added checks for null object references in modifier methods.
+ Removed redundant code from time handling.
+
  Revision 1.10  1999/02/03 11:53:59  rimassa
  Added a more flexible time handling to use in ':reply-by' ACL message
  field.
@@ -153,51 +157,61 @@ public class ACLMessage implements Cloneable, Serializable {
  * NOTICE: correctness of actual value of parameters is not checked
  */
   public void setSource( String source ) {
-    this.source = new String(source);
+    if (source != null)
+      this.source = new String(source);
   }
 
   public void setDest( String dest ) {
-    this.dest = new String(dest);
+    if (dest != null)
+      this.dest = new String(dest);
   }
 
   public void setType( String type ) {
-    msgType = new String(type);
+    if (type != null)
+      msgType = new String(type);
   }
 
   public void setContent( String content ) {
-    this.content = new String(content);
+    if (content != null)
+      this.content = new String(content);
   }
 
   public void setReplyWith( String reply ) {
-    reply_with = new String(reply);
+    if (reply != null)
+      reply_with = new String(reply);
   }
 
   public void setReplyTo( String reply ) {
-    in_reply_to = new String(reply);
+    if (reply != null)
+      in_reply_to = new String(reply);
   }
   
   public void setEnvelope( String str ) {
-    envelope = new String(str);
+    if (str != null)
+      envelope = new String(str);
   }
 
   public void setLanguage( String str ) {
-    language = new String(str);
+    if (str != null)
+      language = new String(str);
   }
 
   public void setOntology( String str ) {
-    ontology = new String(str);
+    if (str != null)
+      ontology = new String(str);
   }
 
   public void setReplyBy( String str ) {
-    reply_by = new String(str);
-    if (str.equals("*"))  // wildcard
-      reply_byInMillisec = new Date().getTime();
-    else {
-      int m_flag, pos;
-      long millisec;
-      Date data;
-      if(reply_by.substring(0, 1).equals("+")) {
-	m_flag = 1; // add current time
+    if (str != null) {
+      reply_by = new String(str);
+      if (str.equals("*"))  // wildcard
+	reply_byInMillisec = new Date().getTime();
+      else {
+	int m_flag, pos;
+	long millisec;
+	Date data;
+	if(reply_by.substring(0, 1).equals("+")) {
+	  // add current time
 	pos = 1;
 	millisec = Integer.parseInt(reply_by.substring(pos, pos + 4))*365*24*60*60*1000+
 	  Integer.parseInt(reply_by.substring(pos + 4, pos + 6))*30*24*60*60*1000+
@@ -206,40 +220,23 @@ public class ACLMessage implements Cloneable, Serializable {
 	  Integer.parseInt(reply_by.substring(pos + 11, pos + 13))*60*1000+
 	  Integer.parseInt(reply_by.substring(pos + 13, pos + 15))*1000;
 	data = new Date((new Date()).getTime() + millisec);
-      } else if(reply_by.substring(0, 1).equals("-")) {
-	m_flag = -1;  // subtract current time
-	pos = 1;
-	millisec =  Integer.parseInt(reply_by.substring(pos, pos + 4))*365*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 4, pos + 6))*30*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 6, pos + 8))*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 9, pos +11))*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 11, pos + 13))*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 13, pos + 15))*1000;
-	data = new Date((new Date()).getTime() - millisec);
       } else {
-    	m_flag = 0;   // do nothing
     	pos = 0;
-      /* FIXME: Deprecated, so java.util.Calendar is used
-    	data = new Date(...);
-    */
-      GregorianCalendar cal = new GregorianCalendar(
-        Integer.parseInt(reply_by.substring(pos, pos + 4)),
-    		Integer.parseInt(reply_by.substring(pos + 4, pos + 6)),
+	GregorianCalendar cal = new GregorianCalendar(
+						      Integer.parseInt(reply_by.substring(pos, pos + 4)),
+						      Integer.parseInt(reply_by.substring(pos + 4, pos + 6))-1,
     		Integer.parseInt(reply_by.substring(pos + 6, pos + 8)),
-    		Integer.parseInt(reply_by.substring(pos + 9, pos +11)),
-    		Integer.parseInt(reply_by.substring(pos + 11, pos + 13)),
-    		Integer.parseInt(reply_by.substring(pos + 13, pos + 15))
+						      Integer.parseInt(reply_by.substring(pos + 9, pos +11)),
+						      Integer.parseInt(reply_by.substring(pos + 11, pos + 13)),
+						      Integer.parseInt(reply_by.substring(pos + 13, pos + 15))
       );
-      data = cal.getTime();
+	data = cal.getTime();
+      }
+	reply_byInMillisec = data.getTime();
+      } // end of else
     }
-      reply_byInMillisec = data.getTime();
-    } // end of else
-
   }
 
-  public Date getReplyByDate() {
-   return new Date(reply_byInMillisec);
-  }
 
   public void setReplyByDate(Date date) {
    reply_byInMillisec = date.getTime();
@@ -249,11 +246,13 @@ public class ACLMessage implements Cloneable, Serializable {
 
 
   public void setProtocol( String str ) {
-    protocol = new String(str);
+    if (str != null)
+      protocol = new String(str);
   }
 
   public void setConversationId( String str ) {
-    conversation_id = new String(str);
+    if (str != null)
+      conversation_id = new String(str);
   }
 
  /**
@@ -283,6 +282,8 @@ public class ACLMessage implements Cloneable, Serializable {
     return in_reply_to;
   }
 
+
+
   public String getEnvelope() {
     return envelope;
   }
@@ -297,6 +298,10 @@ public class ACLMessage implements Cloneable, Serializable {
 
   public String getReplyBy() {
     return reply_by;
+  }
+
+  public Date getReplyByDate() {
+   return new Date(reply_byInMillisec);
   }
 
   public String getProtocol() {
@@ -468,7 +473,7 @@ public class ACLMessage implements Cloneable, Serializable {
       if(ontology != null)
 	w.write(ONTOLOGY + " " + ontology + "\n");
       if(reply_by != null)
-	w.write(REPLY_BY + " " + reply_by + "\n");
+       w.write(REPLY_BY + " " + reply_by + "\n");
       if(protocol != null)
 	w.write(PROTOCOL + " " + protocol + "\n");
       if(conversation_id != null)
@@ -515,7 +520,7 @@ public class ACLMessage implements Cloneable, Serializable {
   language=null;
   ontology=null;
   reply_by=null;
-  reply_byInMillisec = 0;
+  reply_byInMillisec = new Date().getTime();
   protocol=null;
   conversation_id=null;
  }
