@@ -117,10 +117,10 @@ public ContractNetResponder(Agent a,MessageTemplate mt){
  * if mt is null every message is consumed by this protocol.
  * @param store the DataStore for this protocol
  **/
-public ContractNetResponder(Agent a,MessageTemplate mt,DataStore ds){
+public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
 	super(a);
 
-	setDataStore(ds); 
+	setDataStore(store); 
 		  
   registerDefaultTransition(RECEIVE_CFP_STATE,PREPARE_PROPOSE_STATE);
   registerDefaultTransition(PREPARE_PROPOSE_STATE, SEND_PROPOSE_STATE);

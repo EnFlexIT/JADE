@@ -128,8 +128,8 @@ public class ContractNetInitiator extends FSMBehaviour {
    * Construct for the class by creating a new empty DataStore
    * @see #ContractNetInitiator(Agent, ACLMessage, DataStore)
    **/
-  public ContractNetInitiator(Agent a, ACLMessage msg){
-		this(a,msg,new DataStore());
+  public ContractNetInitiator(Agent a, ACLMessage cfp){
+		this(a, cfp, new DataStore());
   }
 
 	/**
@@ -143,11 +143,11 @@ public class ContractNetInitiator extends FSMBehaviour {
    * @param s The <code>DataStore</code> that will be used by this 
    * <code>ContractNetInitiator</code>
    */
-  public ContractNetInitiator(Agent a, ACLMessage msg, DataStore store) {
+  public ContractNetInitiator(Agent a, ACLMessage cfp, DataStore store) {
 		super(a);
 		
 		setDataStore(store);
-		cfp = msg;
+		this.cfp = cfp;
 		sessions = new HashMap();
 		toBeReset = new String[] {
 			HANDLE_PROPOSE, 
@@ -191,7 +191,7 @@ public class ContractNetInitiator extends FSMBehaviour {
 			public void action() {
 		    DataStore ds = getDataStore();
 		    Vector allCfps = prepareCfps((ACLMessage) ds.get(CFP_KEY));
-		    getDataStore().put(ALL_CFPS_KEY, allCfps);
+		    ds.put(ALL_CFPS_KEY, allCfps);
 			}
 	  };
 		b.setDataStore(getDataStore());		
@@ -205,8 +205,8 @@ public class ContractNetInitiator extends FSMBehaviour {
 		    long minTimeout = -1;
 		    long deadline = -1;
 
-		    DataStore ds = getDataStore();
-		    Vector all = (Vector) ds.get(step == 1 ? ALL_CFPS_KEY : ALL_ACCEPTANCES_KEY);
+		    //DataStore ds = getDataStore();
+		    Vector all = (Vector) getDataStore().get(step == 1 ? ALL_CFPS_KEY : ALL_ACCEPTANCES_KEY);
 		    int cnt = 0; // counter for reply-with
 		    for (Enumeration it = all.elements(); it.hasMoreElements(); ) {
 					ACLMessage msg = (ACLMessage) it.nextElement();
@@ -740,10 +740,10 @@ public class ContractNetInitiator extends FSMBehaviour {
    * reset this behaviour
    * @param msg is the ACLMessage to be sent
    **/
-  public void reset(ACLMessage msg){
+  public void reset(ACLMessage cfp){
 		super.reset();
 		rec.reset(null,-1, getDataStore(),REPLY_KEY);
-		cfp = msg;
+		this.cfp = cfp;
 		step = 1;
 		skipNextRespFlag = false;
   	conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
