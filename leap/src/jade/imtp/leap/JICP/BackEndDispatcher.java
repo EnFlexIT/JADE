@@ -148,11 +148,16 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   }
   
   /**
-     This is called by the JICPServer, but in the case of the BackEndDispatcher
-     it should never happen
+     This is called by the JICPServer. In the case of the BackEndDispatcher
+     it can happen when packets from the front end to the back end
+     are delivered through a separate channel. 
+     @see AsymFrontEndDispatcher#deliver(JICPPacket)
    */
   public JICPPacket handleJICPPacket(JICPPacket p) throws ICPException {
-  	throw new ICPException("Unexpected packet");
+  	servePacket(p);
+  	// No response is returned as the actual response will go back
+  	// through the permanent connection
+  	return null;
   } 
 
   ////////////////////////////////////////////////
@@ -206,7 +211,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	protected JICPPacket handleCommand(JICPPacket cmd) throws Exception {
   	updateReceived(cmd.getLength());
   	byte[] rspData = mySkel.handleCommand(cmd.getData());
-    JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
+    JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
     updateTransmitted(rsp.getLength());
     return rsp;
   }
@@ -262,8 +267,8 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
    * attached to as soon as the FrontEnd container (re)connects.
    * @param s the socket connected to the FrontEnd container
    */
-  public synchronized void setConnection(Socket s) {
-    if (isConnected()) {
+   public synchronized void setConnection(Socket s) {
+   	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
       resetConnection();
