@@ -92,32 +92,6 @@ public class AgentContainer implements PlatformController {
     return a; 
   }
 
-  /**
-     Creates a new JADE agent, running within this container, 
-     @param nickname A platform-unique nickname for the newly created
-     agent. The agent will be given a FIPA compliant agent identifier
-     using the nickname and the ID of the platform it is running on.
-     @param className The fully qualified name of the class that
-     implements the agent.
-     @param args A string array, containing initialization parameters
-     to pass to the new agent. The <code>setArguments()</code> method
-     of the <code>jade.core.Agent</code> class will be called on the
-     new agent with this array as argument.
-     @return A proxy object, allowing to call state-transition forcing
-     methods on the real agent instance.
-     @deprecated The array of agent arguments is now <code>Object[]</code>
-     and no more <code>String[]</code>
-   *
-  public Agent createAgent(String nickname, String className, String[] sargs) throws NotFoundException, StaleProxyException {
-      Object args[];
-      if (sargs != null) {
-	  args = new Object[sargs.length];
-	  for (int i=0; i<sargs.length; i++)
-	      args[i]=sargs[i];
-      } else
-	  args = new Object[0];
-      return createAgent(nickname, className, args);
-  }*/
 
 
 
@@ -131,44 +105,7 @@ public class AgentContainer implements PlatformController {
      @param args An object array, containing initialization parameters
      to pass to the new agent. 
      @return A proxy object, allowing to call state-transition forcing
-     methods on the real agent instance.
-     @deprecated Use createNewAgent and (if needed) downcast the return
-     value from AgentController to Agent instead.
-   *
-  public Agent createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException {
-      if(myImpl == null) 
-	  throw new StaleProxyException();
-    try {
-      jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
-      a.setArguments(args);
-      AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      myImpl.initAgent(agentID, a, false);
-
-      Agent result = new Agent(agentID, a);
-      return result;
-    }
-    catch(ClassNotFoundException cnfe) {
-      throw new NotFoundException("Class "+className+" for agent "+nickname+" was not found."); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
-    }
-    catch(Exception e) {
-	e.printStackTrace();
-      throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
-    }
-
-  }*/
-
-  /**
-     Creates a new JADE agent, running within this container, 
-     @param nickname A platform-unique nickname for the newly created
-     agent. The agent will be given a FIPA compliant agent identifier
-     using the nickname and the ID of the platform it is running on.
-     @param className The fully qualified name of the class that
-     implements the agent.
-     @param args An object array, containing initialization parameters
-     to pass to the new agent. 
-     @return A proxy object, allowing to call state-transition forcing
-     methods on the real agent instance.
-   */
+     methods on the real agent instance.*/
   public AgentController createNewAgent(String nickname, String className, Object[] args) throws StaleProxyException {
     if(myImpl == null)
       throw new StaleProxyException();
@@ -291,9 +228,29 @@ public class AgentContainer implements PlatformController {
 
   /**
    * return the name (i.e. the HAP) of this platform
+   * @deprecated Use getPlatfromName instead.
    **/
   public String getName() { return myPlatformName; }
     
+  /**
+   * @returns the name (i.e. the HAP) of this platform
+   * @see jade.wrapper.AgentContainer#getContainerName()
+   **/
+  public String getPlatformName() {
+    return myPlatformName;
+  }
+
+  /**
+   * @return the name of this platform container
+   * @see jade.wrapper.AgentContainer#getPlatformName()
+   **/
+  public String getContainerName() throws ControllerException {
+    if(myImpl == null) {
+      throw new ControllerException("Stale proxy.");
+    }
+    return myImpl.here().getName();
+  }
+
   public void start() throws ControllerException { 
   }
 
