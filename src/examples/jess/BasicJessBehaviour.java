@@ -10,6 +10,10 @@
  * with the terms of the agreement you entered into with CSELT.
  *
  * @author Fabio Bellifemine - CSELT S.p.A.
+ *
+ * 6/12/98: myagent is now a template and a fact is asserted with deffacts to
+ *          avoid problems with the (reset) jess command.
+ *          removed all deprecated APIs. 
  */
 
 package examples.jess;
@@ -35,7 +39,7 @@ import java.util.Enumeration;
  * <ul>
  * <li> defining the template of an ACLMessage,
  * <li> defining the userfuntion "send" to send ACLMessages,
- * <li> asserting the fact <code>(myname nameofthisagent)</code>,
+ * <li> asserting the fact <code>(MyAgent (name nameofthisagent))</code>,
  * <li> parsing the Jess file passed as a parameter to the constructor.
  * </ul>
  * Then the behaviour loops infinitely by:
@@ -51,7 +55,7 @@ import java.util.Enumeration;
  * <ul>
  * <li> the template of the ACLMessage contains the following slots:
 <code>(deftemplate ACLMessage (slot communicative-act) (slot sender) (multislot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )</code>
- * <li> match the fact <code>(myname nameofthisagent)</code> to know the name of your agent;
+ * <li> match the fact <code>(MyAgent (name nameofthisagent))</code> to know the name of your agent;
  * <li> use the userfunction <code>send</code> to send ACLMessages. 
  * The parameter of <code>send</code> must be a fact-id of type ACLMessage or
  * an ACLMessage itself; There are two styles of usage:
@@ -97,8 +101,9 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
       if (vv.get(0).toString() != "ACLMessage")
 	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
 
-      ACLMessage msg = new ACLMessage();
-      msg.setType(vv.get(3).stringValue());
+      //ACLMessage msg = new ACLMessage();
+      //msg.setType(vv.get(3).stringValue());
+      ACLMessage msg = new ACLMessage(vv.get(3).stringValue());
       if (vv.get(4).stringValue() != "nil")
 	msg.setSource(vv.get(4).stringValue());
       if (vv.get(5).toString() != "nil")
@@ -119,7 +124,8 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 	msg.setOntology(vv.get(12).stringValue());      
       if (vv.get(13).stringValue() != "nil")
 	msg.setContent(vv.get(13).stringValue());
-      msg.dump();
+      // msg.dump();
+      msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       my_agent.send(msg);
 
       return Funcall.TRUE();
@@ -163,10 +169,12 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
       try { 
 	// First I define the ACLMessage template
 	jess.executeCommand("(deftemplate ACLMessage (slot communicative-act) (slot sender) (multislot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )");
+        // Then I define the myagent template
+	jess.executeCommand("(deftemplate MyAgent (slot name))");
 	// Then I add the send function
 	jess.addUserfunction(new JessSend(myAgent));
-	// Then I assert the fact (myname <my-name>)
-	jess.executeCommand("(assert (myname " + myAgent.getName() + "))");
+	// Then I assert the fact (Myagent (name <my-name>))
+	jess.executeCommand("(deffacts MyAgent \"All facts about this agent\" (MyAgent (name " + myAgent.getName() + ")))");
 	// Open the file test.clp
 	FileInputStream fis = new FileInputStream(jessFile);
 	// Create a parser for the file, telling it where to take input
