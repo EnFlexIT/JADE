@@ -76,7 +76,8 @@ public class StartContainer {
     // Build the complete URL of the agent platform from default values and command line options
     String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
     try{
-      AgentContainer theContainer = new AgentContainerImpl(platformURL, agents); // RMI call
+      AgentContainerImpl theContainer = new AgentContainerImpl();
+      theContainer.joinPlatform(platformURL, agents);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while starting Agent Container.");
