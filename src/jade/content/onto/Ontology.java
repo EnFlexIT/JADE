@@ -419,7 +419,7 @@ public class Ontology implements Serializable {
         if (javaClass == null) {
         	throw new OntologyException("No java class associated to type "+abs.getTypeName());
         }
-        //DEBUG System.out.println("Ontology "+getName()+". Class is: "+javaClass.getName());
+       logger.log(Logger.FINE,"Ontology "+getName()+". Class is: "+javaClass.getName());
         		
         // If the Java class is an Abstract descriptor --> just return abs
 	      if (absObjectClass.isAssignableFrom(javaClass)) {
@@ -427,7 +427,7 @@ public class Ontology implements Serializable {
 	      }
         		
     		if (introspector != null) {
-        	//DEBUG System.out.println("Ontology "+getName()+". Try to internalise "+abs+" through "+introspector);
+        	logger.log(Logger.FINE,"Ontology "+getName()+". Try to internalise "+abs+" through "+introspector);
         	return introspector.internalise(abs, schema, javaClass, globalOnto);
     		}
       }
@@ -466,14 +466,14 @@ public class Ontology implements Serializable {
     		
     	// Retrieve the Java class
       Class        javaClass = obj.getClass();            
-      //DEBUG System.out.println("Ontology "+getName()+". Class is: "+javaClass);
+      logger.log(Logger.FINE,"Ontology "+getName()+". Class is: "+javaClass);
         
       // Retrieve the schema
       ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
-      //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
+      logger.log(Logger.FINE,"Ontology "+getName()+". Schema is: "+schema);
       if (schema != null) {        
     		if (introspector != null) {
-        	//DEBUG System.out.println("Ontology "+getName()+". Try to externalise "+obj+" through "+introspector);
+        	logger.log(Logger.FINE,"Ontology "+getName()+". Try to externalise "+obj+" through "+introspector);
         	return introspector.externalise(obj, schema, javaClass, globalOnto);
         }
     	}
