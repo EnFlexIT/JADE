@@ -148,6 +148,8 @@ public class AchieveREInitiator extends FSMBehaviour {
 	
     // The MsgReceiver behaviour used to receive replies 
     private MsgReceiver rec = null;
+    
+    private ACLMessage request;
 	
 	final String conversationID = "C"+Integer.toString(hashCode());
 	final MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
@@ -175,7 +177,9 @@ public class AchieveREInitiator extends FSMBehaviour {
 	super(a);
 		
 	setDataStore(store);
-	initializeDataStore(msg);
+	//initializeDataStore(msg);
+	request = msg;
+	
 
 	// Register the FSM transitions
 	registerDefaultTransition(PREPARE_REQUESTS, SEND_REQUESTS);
@@ -774,10 +778,33 @@ public class AchieveREInitiator extends FSMBehaviour {
     public void reset(ACLMessage msg){
 	super.reset();
 	rec.reset(null,-1, getDataStore(),REPLY_KEY);
-	initializeDataStore(msg);
+	//initializeDataStore(msg);
+	request = msg;
 	allResponsesReceived = false;
     }
 
+    /** 
+       Override the onStart() method to initialize the lists that
+       will keep all the replies in the data store.
+     */
+    public void onStart() {
+    	initializeDataStore(request);
+    }
+    
+    /** 
+       Override the setDataStore() method to initialize propagate this
+       setting to all children.
+     */
+    public void setDataStore(DataStore ds) {
+    	super.setDataStore(ds);
+    	Iterator it = getChildren().iterator();
+    	while (it.hasNext()) {
+    		Behaviour b = (Behaviour) it.next();
+    		b.setDataStore(ds);
+    	}
+    }
+    
+    
     /**
        Initialize the data store. 
      **/
