@@ -296,8 +296,8 @@ class MainWindow extends JFrame {
     Runnable removeIt = new Runnable() {
       public void run() {
 	List addrs = (List)addresses.get(where);
-	addresses.remove(address);
-	if(!addrs.isEmpty())
+	addrs.remove(address);
+	if(addrs.isEmpty())
 	  addresses.remove(where);
 	manageDlg.setData(containerNames, addresses);
       }
