@@ -1,3 +1,25 @@
+MAJOR CHANGES in JADE Snapshot (22nd August 2002) 
+==========================================================================
+GENERAL:
+- replaced all the make files with build files for ant both in JADE and in all
+  the add-ons.
+- improved the capability of the Introspector Agent tool to visualize
+  the agent behaviours.
+- added capability to assign a user-defined name to a remote container 
+  (Alexander Osherenko)
+	
+BUG FIXES:
+- jade.tools.Introspector.gui.BehaviourPanel.java. Fixed bug in file separator.
+  (reported by Karl-Heinz Krempels)
+- jade.proto.Initiator.java. Added sanity check to avoid null pointer exception
+- jade.core.Agent. Improved the exception thrown by getContainerController()
+
+EXAMPLES:
+- Ontology. Reimplemented the example with the new content support and the new
+  interaction protocols 
+- PingAgent. Added capability to log exchanged messages.
+	
+	
 MAJOR CHANGES in JADE 2.6 (18 July 2002) 
 ==========================================================================
 POSSIBLE SOURCES OF MINOR BACKWARD INCOMPATIBILITIES:
