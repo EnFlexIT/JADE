@@ -47,7 +47,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
   @version $Date$ $Revision$
 
 */
-class acc {
+class acc implements MTP.Dispatcher {
 
   public static class NoMoreAddressesException extends NotFoundException {
     NoMoreAddressesException(String msg) {
@@ -57,10 +57,14 @@ class acc {
 
   private Map messageEncodings = new HashMap();
   private Map MTPs = new HashMap();
+  private AgentContainerImpl myContainer;
+  private MainContainer main;
 
-  public acc() {
+  public acc(AgentContainerImpl ac, MainContainer mc) {
     ACLCodec stringCodec = new StringACLCodec();
-    messageEncodings.put(stringCodec.getName(), stringCodec);
+    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+    myContainer = ac;
+    main = mc;
   }
 
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
@@ -103,12 +107,28 @@ class acc {
     env.clearAllIntendedReceiver();
     env.addIntendedReceiver(receiver);
 
+    String comments = env.getComments();
+    if(comments == null)
+      env.setComments("");
+
+    String aclRepresentation = env.getAclRepresentation();
+    if(aclRepresentation == null)
+      env.setAclRepresentation("");
+
+    String payloadLength = env.getPayloadLength();
+    if(payloadLength == null)
+      env.setPayloadLength("-1");
+
+    String payloadEncoding = env.getPayloadEncoding();
+    if(payloadEncoding == null)
+      env.setPayloadEncoding("");
+    
   }
 
   public byte[] encodeMessage(ACLMessage msg) throws NotFoundException {
     Envelope env = msg.getEnvelope();
     String enc = env.getAclRepresentation();
-    ACLCodec codec = (ACLCodec)messageEncodings.get(enc);
+    ACLCodec codec = (ACLCodec)messageEncodings.get(enc.toLowerCase());
     if(codec == null)
       throw new NotFoundException("Unknown ACL encoding: " + enc + ".");
     return codec.encode(msg);
@@ -125,8 +145,20 @@ class acc {
       TransportAddress ta = outGoing.strToAddr(address);
       outGoing.deliver(ta, env, payload);
     }
-    else { // FIXME: Must do message routing...
-      throw new MTP.MTPException("MTP not available in this platform", null);
+    else {
+      // FIXME: Temporary hack...
+      if(myContainer.getName().equals(AgentManager.MAIN_CONTAINER_NAME))
+	throw new MTP.MTPException("MTP not available in this platform");
+      try {
+	main.route(env, payload, address);
+      }
+      catch(java.rmi.RemoteException re) {
+	throw new MTP.MTPException("Main Container unreachable during routing");
+      }
+      catch(NotFoundException nfe) {
+	throw new MTP.MTPException("MTP not available in this platform [after routing]");
+      }
+
     }
 
   }
@@ -136,13 +168,53 @@ class acc {
   }
 
   public TransportAddress addMTP(MTP proto) throws MTP.MTPException {
-    MTPs.put(proto.getName(), proto);
-    return proto.activate();
+    MTPs.put(proto.getName().toLowerCase(), proto);
+    return proto.activate(this);
   }
-
 
   public void shutdown() {
 
+  }
+
+  public void dispatchMessage(Envelope env, byte[] payload) {
+
+    // Decode the message, according to the 'acl-representation' slot
+    String aclRepresentation = env.getAclRepresentation();
+
+    // Default to String representation
+    if(aclRepresentation == null)
+      aclRepresentation = StringACLCodec.NAME;
+
+    ACLCodec codec = (ACLCodec)messageEncodings.get(aclRepresentation.toLowerCase());
+    if(codec == null) {
+      System.out.println("Unknown ACL codec: " + aclRepresentation);
+      return;
+    }
+
+    try {
+      ACLMessage msg = codec.decode(payload);
+
+      // If the 'sender' AID has no addresses, replace it with the
+      // 'from' envelope slot
+      AID sender = msg.getSender();
+      Iterator itSender = sender.getAllAddresses();
+      if(!itSender.hasNext())
+	msg.setSender(env.getFrom());
+
+      Iterator it = env.getAllIntendedReceiver();
+      // If no 'intended-receiver' is present, use the 'to' slot (but
+      // this should not happen).
+      if(!it.hasNext())
+	it = env.getAllTo();
+      while(it.hasNext()) {
+	AID receiver = (AID)it.next();
+	myContainer.unicastPostMessage(msg, receiver);
+      }
+
+    }
+    catch(ACLCodec.CodecException ce) {
+      ce.printStackTrace();
+    }
   }
 
 }
