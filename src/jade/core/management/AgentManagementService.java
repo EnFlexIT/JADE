@@ -181,7 +181,12 @@ public class AgentManagementService extends BaseService {
     }
 
     public Class getHorizontalInterface() {
-	return AgentManagementSlice.class;
+	try {
+	    return Class.forName(NAME + "Slice");
+	}
+	catch(ClassNotFoundException cnfe) {
+	    return null;
+	}
     }
 
     public Slice getLocalSlice() {
@@ -347,6 +352,7 @@ public class AgentManagementService extends BaseService {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
+		agent = null;
 		agent.setArguments(arguments);
 		//#MIDP_EXCLUDE_BEGIN
 		// Set agent principal and certificates

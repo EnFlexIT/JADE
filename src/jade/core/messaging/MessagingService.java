@@ -123,7 +123,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     public Class getHorizontalInterface() {
-	return MessagingSlice.class;
+	try {
+	    return Class.forName(MessagingSlice.NAME + "Slice");
+	}
+	catch(ClassNotFoundException cnfe) {
+	    return null;
+	}
     }
 
     public Slice getLocalSlice() {

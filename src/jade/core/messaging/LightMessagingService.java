@@ -21,6 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
 package jade.core.messaging;
 
 import java.util.Date;
@@ -99,7 +100,12 @@ public class LightMessagingService extends BaseService implements MessageManager
     }
 
     public Class getHorizontalInterface() {
-	return MessagingSlice.class;
+	try {
+	    return Class.forName(MessagingSlice.NAME + "Slice");
+	}
+	catch(ClassNotFoundException cnfe) {
+	    return null;
+	}
     }
 
     public Slice getLocalSlice() {
