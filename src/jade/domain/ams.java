@@ -1001,7 +1001,6 @@ public class ams extends Agent implements AgentManager.Listener {
   }
 
   public void handleNewAddress(String address) {
-      try {
     // Add the new address to the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
     MTPDescription desc = new MTPDescription();
@@ -1022,15 +1021,26 @@ public class ams extends Agent implements AgentManager.Listener {
       AID name = ad.getName();
       name.addAddresses(address);
     }
-      }
-      catch(NullPointerException npe) { npe.printStackTrace(); }
 
   }
 
   public void handleDeadAddress(String address) {
 
-    // FIXME: Remove the dead address from the platform profile
-      
+    // Remove the dead address from the platform profile
+    APTransportDescription mtps = theProfile.getTransportProfile();
+    Iterator it = mtps.getAllAvailableMtps();
+    while(it.hasNext()) {
+      MTPDescription desc = (MTPDescription)it.next();
+      Iterator addresses = desc.getAllAddresses();
+      while(addresses.hasNext()) {
+	// Remove all MTPs that have the 'address' String in their
+	// address list.
+	String nextAddr = (String)addresses.next();
+	if(nextAddr.equalsIgnoreCase(address))
+	  it.remove();
+      }
+    }
+
     // Remove the dead address from all the registered agents
     AID[] agents = myPlatform.agentNames();
     AMSAgentDescription amsd = new AMSAgentDescription();

@@ -35,7 +35,10 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 
+import jade.mtp.InChannel;
+import jade.mtp.OutChannel;
 import jade.mtp.MTP;
+import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -50,7 +53,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
   @version $Date$ $Revision$
 
 */
-class acc implements MTP.Dispatcher {
+class acc implements InChannel.Dispatcher {
 
   public static class NoMoreAddressesException extends NotFoundException {
     NoMoreAddressesException(String msg) {
@@ -59,9 +62,8 @@ class acc implements MTP.Dispatcher {
   }
 
   private Map messageEncodings = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-  private Map localMTPs = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private RoutingTable routes = new RoutingTable();
-  private List addresses = new LinkedList();
+
   private List localAddresses = new LinkedList();
   private AgentContainerImpl myContainer;
 
@@ -76,7 +78,7 @@ class acc implements MTP.Dispatcher {
   * It checks for all the AIDs present in the message and adds the addresses, if not present
   **/
   public void addPlatformAddresses(AID id) {
-    Iterator it = addresses.iterator();
+    Iterator it = routes.getAddresses();
     while(it.hasNext()) {
       String addr = (String)it.next();
       id.addAddresses(addr);
@@ -150,61 +152,21 @@ class acc implements MTP.Dispatcher {
     return codec.encode(msg);
   }
 
-  public void forwardMessage(Envelope env, byte[] payload, String address) throws MTP.MTPException {
-
-    boolean ok = routeMessage(env, payload, address);
-
-    if(!ok) { // Try to find another container who can route the outgoing message
-      String proto = extractProto(address);
-      if(proto == null)
-	throw new MTP.MTPException("Missing protocol delimiter");
-      AgentContainer ac = routes.lookup(proto);
-      if(ac == null)
-	throw new MTP.MTPException("MTP not available in this platform");
-      try {
-	ac.route(env, payload, address);
-      }
-      catch(java.rmi.RemoteException re) {
-	throw new MTP.MTPException("Container unreachable during routing");
-      }
-      catch(NotFoundException nfe) {
-	throw new MTP.MTPException("MTP not available in this platform [after routing]");
-      }
-
-    }
-
-  }
-
-  // This method returns true when a local MTP is found and the
-  // message is delivered.
-  public boolean routeMessage(Object o, byte[] payload, String address) {
-    String proto = extractProto(address);
-    if(proto == null)
-      return false;
-
-    MTP outGoing = (MTP)localMTPs.get(proto);
-    if(outGoing != null) { // A suitable MTP is installed in this container.
-      try {
-	TransportAddress ta = outGoing.strToAddr(address);
-	Envelope env = (Envelope)o;
-	outGoing.deliver(ta, env, payload);
-	return true;
-      }
-      catch(MTP.MTPException mtpe) {
-	return false;
-      }
-    }
+  public void forwardMessage(Envelope env, byte[] payload, String address) throws MTPException {
+    OutChannel out = routes.lookup(address);
+    if(out != null)
+      out.deliver(address, env, payload);
     else
-      return false;
+      throw new MTPException("No suitable MTP found for address " + address + ".");
   }
 
   public AgentProxy getProxy(AID agentID) throws NotFoundException {
     return new ACCProxy(agentID, this);
   }
 
-  public TransportAddress addMTP(MTP proto, String address) throws MTP.MTPException {
+  public TransportAddress addMTP(MTP proto, String address) throws MTPException {
     if(address == null) { // Let the protocol choose the address
-      localMTPs.put(proto.getName(), proto);
+	/*
       if(proto.getName().equalsIgnoreCase("iiop")) {
 	localMTPs.put("ior", proto);
 	localMTPs.put("corbaloc", proto);
@@ -225,13 +187,17 @@ class acc implements MTP.Dispatcher {
 	localMTPs.put("iiop", proto);
 	localMTPs.put("corbaloc", proto);
       }
+	*/
       TransportAddress ta = proto.activate(this);
-      localAddresses.add(proto.addrToStr(ta));
+      address = proto.addrToStr(ta);
+      routes.addLocalMTP(address, proto);
+      localAddresses.add(address); // FIXME: This is for the temporary fault-tolerance support
       return ta;
     }
     else { // Convert the given string into a TransportAddress object and use it
-      TransportAddress ta = proto.strToAddr(address);
-      localMTPs.put(ta.getProto(), proto);
+      routes.addLocalMTP(address, proto);
+      localAddresses.add(address); // FIXME: This is for the temporary fault-tolerance support
+      /*
       if(ta.getProto().equalsIgnoreCase("iiop")) {
 	localMTPs.put("ior", proto);
 	localMTPs.put("corbaloc", proto);
@@ -252,30 +218,54 @@ class acc implements MTP.Dispatcher {
 	localMTPs.put("iiop", proto);
 	localMTPs.put("corbaloc", proto);
       }
+      */
+      TransportAddress ta = proto.strToAddr(address);
       proto.activate(this, ta);
       return ta;
     }
-
   }
 
+  public void removeMTP(String address) throws MTPException {
+    MTP proto = routes.removeLocalMTP(address);
+    if(proto != null) {
+      TransportAddress ta = proto.strToAddr(address);
+      proto.deactivate(ta);
+    }
+    localAddresses.remove(address); // FIXME: This is for temporary fault-tolerance support
+  }
+
+  // FIXME: This info will be cached within the agent platform Smart
+  // Proxy (handling caching and reconnection). Then this method won't
+  // be needed anymore.
   public List getLocalAddresses() {
     return localAddresses;
   }
 
   public void addRoute(String address, AgentContainer ac) {
-    String proto = extractProto(address);
-    routes.addMTP(proto, ac);
-    addresses.add(address);
+    routes.addRemoteMTP(address, ac);
   }
 
   public void removeRoute(String address, AgentContainer ac) {
-    String proto = extractProto(address);
-    routes.removeMTP(proto, ac);
-    addresses.remove(address);
+    routes.removeRemoteMTP(address, ac);
   }
 
   public void shutdown() {
-    // FIXME: To be implemented
+    // Remove all locally installed MTPs
+    while(!localAddresses.isEmpty()) {
+      String addr = (String)localAddresses.get(0);
+      try {
+	myContainer.uninstallMTP(addr);
+      }
+      catch(java.rmi.RemoteException re) {
+	// It should never happen
+	re.printStackTrace();
+      }
+      catch(NotFoundException nfe) {
+	System.out.println("Failed to find MTP [" + addr + "]");
+	nfe.printStackTrace();
+      }
+    }
+
   }
 
   public void dispatchMessage(Envelope env, byte[] payload) {
@@ -317,13 +307,6 @@ class acc implements MTP.Dispatcher {
     catch(ACLCodec.CodecException ce) {
       ce.printStackTrace();
     }
-  }
-
-  private String extractProto(String address) {
-    int colonPos = address.indexOf(':');
-    if(colonPos == -1)
-      return null;
-    return address.substring(0, colonPos);
   }
 
 }
