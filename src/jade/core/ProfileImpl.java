@@ -126,6 +126,13 @@ public class ProfileImpl extends Profile {
   }
 
   /**
+     This is equivalent to <code>ProfileImpl(true)</code>
+   */
+  public ProfileImpl() {
+  	this(true);
+  }
+  
+  /**
    * Create a Profile object initialized with the settings specified
    * in a given property file
    */
