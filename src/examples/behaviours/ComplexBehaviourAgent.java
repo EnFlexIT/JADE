@@ -27,11 +27,10 @@ import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.ComplexBehaviour;
 
 /**
-This is an example of recursive aggregation of complex agent behaviours.
-A complex behaviour is created, composed of some Sequential Behaviours, 
+This is an example of recursive aggregation of composite agent behaviours.
+A composite behaviour is created, composed of some Sequential Behaviours, 
 and OneShot behaviours.
 @author Giovanni Rimassa - Università di Parma
 @version  $Date$ $Revision$  
@@ -58,17 +57,17 @@ public class ComplexBehaviourAgent extends Agent {
 
   protected void setup() {
 
-    ComplexBehaviour myBehaviour1 = new SequentialBehaviour(this) {
+    SequentialBehaviour myBehaviour1 = new SequentialBehaviour(this) {
       
     	protected void postAction() {
       	reset();
       }
     };
 
-    ComplexBehaviour myBehaviour2 = new SequentialBehaviour(this);
+    SequentialBehaviour myBehaviour2 = new SequentialBehaviour(this);
 
-    ComplexBehaviour myBehaviour2_1 = new SequentialBehaviour(this);
-    ComplexBehaviour myBehaviour2_2 = new SequentialBehaviour(this);
+    SequentialBehaviour myBehaviour2_1 = new SequentialBehaviour(this);
+    SequentialBehaviour myBehaviour2_2 = new SequentialBehaviour(this);
 
     myBehaviour2_1.addSubBehaviour(new Behaviour3Step(this,"2.1.1"));
     myBehaviour2_1.addSubBehaviour(new Behaviour3Step(this,"2.1.2"));

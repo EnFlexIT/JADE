@@ -226,7 +226,7 @@ public class RequesterAgent extends Agent {
 					// Create and add a behaviour to request the engager agent to engage
 					// person p in company c following a FIPARequest protocol
 					((HandleEngagementBehaviour) parent).requestBehaviour = new RequestEngagementBehaviour(myAgent, requestMsg);
-					parent.addSubBehaviour(((HandleEngagementBehaviour) parent).requestBehaviour);
+					((SequentialBehaviour) parent).addSubBehaviour(((HandleEngagementBehaviour) parent).requestBehaviour);
 				}
 				else{
 					// Unexpected response received from the engager agent.

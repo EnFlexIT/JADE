@@ -24,19 +24,24 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.behaviours;
 
+import java.util.*;
+
 import jade.core.Agent;
 
 /**
    Composite behaviour with sequential children scheduling. It is a
-   <code>ComplexBehaviour</code> that executes its children behaviours
+   <code>CompositeBehaviour</code> that executes its children behaviours
    in sequential order, and terminates when its last child has ended.
    
    
    @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Caire - Telecom Italia Lab
    @version $Date$ $Revision$
 
 */
-public class SequentialBehaviour extends ComplexBehaviour {
+public class SequentialBehaviour extends CompositeBehaviour {
+	
+  private BehaviourList subBehaviours = new BehaviourList();
 
   /**
      Default constructor. It does not set the owner agent for this
@@ -53,32 +58,56 @@ public class SequentialBehaviour extends ComplexBehaviour {
     super(a);
   }
 
+  protected void scheduleFirst() {
+  	// Schedule the first child
+  	subBehaviours.begin();
+  }
+  	
   /**
-     Sequential policy for children scheduling. This method executes
+     Sequential policy for children scheduling. This method schedules
      children behaviours one at a time, in a FIFO fashion.
-     @see jade.core.behaviours.ComplexBehaviour#bodyAction()
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
   */
-  protected boolean bodyAction() {
-    boolean result = false;
-
-    if(!subBehaviours.isEmpty()) {
-
-      Behaviour b = subBehaviours.getCurrent();
-      b.action();
-      if (b.done()) {
-	result = subBehaviours.next();
-      }
-
+  protected void scheduleNext(boolean currentDone, int currentResult) {
+    if (currentDone) {
+    	// Schedule the next child only if the current one is terminated
+		subBehaviours.next();
     }
-    else {
-      result = true;
-    }
-
-    return result;
-
+  }
+  
+  protected boolean checkTermination(boolean currentDone, int currentResult) {
+  	return (currentDone && subBehaviours.currentIsLast());
   }
 
-
+  protected Behaviour getCurrent() {
+  	return subBehaviours.getCurrent();
+  }
+  
+  protected Collection getChildren() {
+	return subBehaviours.values();
+  }
+  	
+  /** 
+   * Add a sub behaviour to this SequentialBehaviour
+   */
+  public void addSubBehaviour(Behaviour b) {
+    subBehaviours.addElement(b);
+    b.setParent(this);
+  }
+  
+  /** 
+   * Remove a sub behaviour from this SequentialBehaviour
+   */
+  public void removeSubBehaviour(Behaviour b) {
+    boolean rc = subBehaviours.removeElement(b);
+    if(rc) {
+      b.setParent(null);
+    }
+    else {
+      // The specified behaviour was not found. Do nothing
+    }
+  }
+  
   /**
      Handle block/restart notifications. A
      <code>SequentialBehaviour</code> is blocked <em>only</em> when
@@ -88,33 +117,37 @@ public class SequentialBehaviour extends ComplexBehaviour {
      @param rce The event to handle.
   */
   protected void handle(RunnableChangedEvent rce) {
-
-    // For upwards notification from the currently executing
-    // sub-behaviour, copy the runnable state and create a new event
     if(rce.isUpwards()) {
-      if(rce.getSource() == subBehaviours.getCurrent()) {
-	myEvent.init(rce.isRunnable(), NOTIFY_UP);
-	super.handle(myEvent);
+      // Upwards notification
+      if (rce.getSource() == this) {
+      	// If the event is from this behaviour, set the new 
+      	// runnable state and notify upwords.
+      	super.handle(rce);
       }
-      // Ignore the event and pass it on
-      else
-	super.handle(rce);
+      else if (rce.getSource() == getCurrent()) {
+  		// If the event is from the currently executing child, 
+  		// create a new event, set the new runnable state and
+      	// notify upwords.
+		myEvent.init(rce.isRunnable(), NOTIFY_UP);
+		super.handle(myEvent);
+      }
+      else {
+      	// If the event is from another child, just ignore it
+      }
     }
-    // For downwards notifications, always copy the state but
-    // forward to current sub-behaviour only when runnable == true
     else {
-      boolean b = rce.isRunnable();
-      if(b == true)
-	super.handle(rce);
-      else
-	setRunnable(b);
-    }
-
+      // Downwards notifications 
+      // Copy the state and pass it downwords only to the
+      // current child
+	  setRunnable(rce.isRunnable());
+	  Behaviour b  = getCurrent();
+	  if (b != null) {
+	  	b.handle(rce);
+	  }
+    }  	
   }
 
 }
-
-
 
 
 
