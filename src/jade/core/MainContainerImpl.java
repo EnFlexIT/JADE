@@ -113,7 +113,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs) {
 
     // This string will be used to build the GUID for every agent on
     // this platform.
@@ -137,33 +137,38 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
     theACC = new acc(this);
 
-    containers.addContainer(MAIN_CONTAINER_NAME, this);
-    containersProgNo++;
-
     try {
-      String s = installMTP(null, myName, "jade.mtp.iiop.MessageTransportProtocol"); // FIXME: Now hardwired, will become configurable
 
-      try {
-	FileWriter f = new FileWriter("JADEaddresses.txt");
+      containers.addContainer(MAIN_CONTAINER_NAME, this);
+      containersProgNo++;
+
+      FileWriter f = new FileWriter("MTPs-" + myName + ".txt");
+
+      for(int i = 0; i < MTPs.length; i += 2) {
+
+	String className = MTPs[i];
+	String addressURL = MTPs[i+1];
+	if(addressURL.equals(""))
+	  addressURL = null;
+	String s = installMTP(addressURL, className);
+
 	f.write(s, 0, s.length());
 	f.write('\n');
-	f.close();
-      }
-      catch (IOException io) {
-	io.printStackTrace();
+	System.out.println(s);
       }
 
-      System.out.println(s);
+      f.close();
 
     }
-    catch(NotFoundException nfe) {
-      System.out.println("ERROR: Could not initialize IIOP MTP !!!");
-      nfe.printStackTrace();
+
+    catch(RemoteException re) {
+      // This should never happen...
+      re.printStackTrace();
     }
-    catch(UnreachableException ue) {
-      System.out.println("The container is unreachable.");
-      ue.printStackTrace();
+    catch (IOException io) {
+      io.printStackTrace();
     }
+
 
     // Notify platform listeners
     try {
@@ -587,26 +592,32 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // Methods for Message Transport Protocols management
 
 
-  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException {
-    AgentContainer target = containers.getContainer(containerName);
-
+  public void newMTP(String mtpAddress, String containerName) throws RemoteException {
     try {
-      String result = target.installMTP(address, className);
-      platformAddresses.add(result);
-      containers.addAddress(containerName, result);
+      platformAddresses.add(mtpAddress);
+      containers.addAddress(containerName, mtpAddress);
+      AgentContainer target = containers.getContainer(containerName);
 
       // To avoid additions/removals of containers during MTP tables update
       synchronized(containers) {
 	AgentContainer[] allContainers = containers.containers();
 	for(int i = 0; i < allContainers.length; i++) {
 	  AgentContainer ac = allContainers[i];
-	  ac.updateRoutingTable(ADD_RT, result, target);
+	  ac.updateRoutingTable(ADD_RT, mtpAddress, target);
 	}
 
       }
+      postNewAddress(mtpAddress);
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+    }
+  }
 
-      postNewAddress(result);
-
+  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException {
+    AgentContainer target = containers.getContainer(containerName);
+    try {
+      String result = target.installMTP(address, className);
       return result;
     }
     catch(RemoteException re) {
