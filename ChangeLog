@@ -1,4 +1,4 @@
-MAJOR CHANGES in JADE 2.2
+MAJOR CHANGES in future JADE 2.2 (current snapshot $Date$ $Name$)
 ======================================================	
 - Removed bug in jade\mtp\ioop\MessageTransportProtocol.java	
 - The class MessageTemplate has been modified in order to allow the
@@ -44,6 +44,8 @@ MAJOR CHANGES in JADE 2.2
   in order to read/write dates in UTC time (as recommended by FIPA)
 - Fixed bug in ReceiverBehaviour that did not clone correctly the
   received ACLMessage, as reported by Andreas Lauer 
+- When the ACC is not able to deliver an ACLMessage, it sends back to the
+  original sender a FAILURE message, as required by the FIPA specs.
 
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
 =============================================
