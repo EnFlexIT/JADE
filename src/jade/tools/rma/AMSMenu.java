@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/06/22 13:19:22  rimassa
+  Added a menu action to show DF GUI.
+
   Revision 1.3  1999/06/09 13:00:25  rimassa
   Added support for dialog centering with respect to RMA main window.
 
@@ -124,6 +127,10 @@ public class AMSMenu extends JMenuBar {
     tmp.setIcon(null);
 
     act = new DummyAgentAction(anRMA);
+    tmp = menu.add(act);
+    tmp.setIcon(null);
+
+    act = new ShowDFGuiAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
