@@ -437,7 +437,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Notify the platform that the principal of an agent has changed
    */
-	public void changedAgentPrincipal(AID name, Credentials creds) throws IMTPException, NotFoundException {
+  //	public void changedAgentPrincipal(AID name, Credentials creds) throws IMTPException, NotFoundException {
 
 	    /***
 
@@ -484,7 +484,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 	    ***/
 
-	}
+	//}
 	
   /**
      Notify the platform that a new MTP has become active on a given container
@@ -640,6 +640,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			      throw (AuthException)ret;
 			  }
 			  else if (ret instanceof Throwable) {
+          ((Throwable) ret).printStackTrace();
 			  	// In methods called by the AMS to serve agents requests we throw
 			  	// a RuntimeException that will result in a FAILURE message sent
 			  	// back to the requester
