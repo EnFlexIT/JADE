@@ -1265,7 +1265,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 
 
-  public ContainerPrincipal getContainerPrincipal(ContainerID cid) {
+  private ContainerPrincipal getContainerPrincipal(ContainerID cid) {
  	ContainerPrincipal cp = null;
  	try {
 		cp = containers.getPrincipal(cid);

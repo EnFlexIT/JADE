@@ -158,14 +158,14 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+  /*public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
     try {
       return adaptee.getContainerPrincipal(cid);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
-  }
+  }*/
 
   public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
     try {

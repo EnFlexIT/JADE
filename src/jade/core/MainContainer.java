@@ -67,7 +67,7 @@ public interface MainContainer {
 //__SECURITY__BEGIN
     void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException;
     AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException;
-    ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException;
+    //ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException;
     JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException;
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END

@@ -159,9 +159,9 @@ class MainContainerProxy implements Platform {
     public synchronized AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
       return adaptee.getAgentPrincipal(name);
     }
-    public synchronized ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+    /*public synchronized ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
       return adaptee.getContainerPrincipal(cid);
-    }
+    }*/
 //__SECURITY__END
 
     public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {

@@ -271,14 +271,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		this.certs = certs;
 	}
 
-	public ContainerPrincipal getContainerPrincipal() {
+	ContainerPrincipal getContainerPrincipal() {
 		ContainerPrincipal cp = null;
 		cp = (ContainerPrincipal) certs.getIdentityCertificate().getSubject();
 		return cp;
 	}
 
 
-	public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+	/*public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
 		// FIXME: manage the HashMap 'containerPrincipals' as done for 'principals'
 		// see getAgentPrincipal()
 		return myPlatform.getContainerPrincipal(cid);
@@ -286,7 +286,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	public ContainerPrincipal getContainerPrincipal(Location loc) throws IMTPException, NotFoundException {
 		return myPlatform.getContainerPrincipal((ContainerID)loc);
-	}
+	}*/
 
 	public AgentPrincipal getAgentPrincipal(final AID agentID) {
 		AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);

@@ -115,9 +115,9 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     return impl.getAgentPrincipal(name);
   }
 
-  public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws RemoteException, IMTPException, NotFoundException {
+  /*public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws RemoteException, IMTPException, NotFoundException {
     return impl.getContainerPrincipal(cid);
-  }
+  }*/
 
   public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
     impl.newMTP(mtp, cid);
