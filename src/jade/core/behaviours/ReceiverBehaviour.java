@@ -339,69 +339,10 @@ public final class ReceiverBehaviour extends Behaviour {
 
   private void copyInResult(ACLMessage msg) {
     // Copies msg into result
-    result.setPerformative(msg.getPerformative());
-    String s = msg.getContent();
-    if(s != null)
-      result.setContent(s);
-    else
-      result.setContent("");
-    s = msg.getConversationId();
-    if(s != null)
-      result.setConversationId(s);
-    else
-      result.setConversationId("");
-    Iterator dests = msg.getAllReceiver();
-    while(dests.hasNext()) {
-      AID id = (AID)dests.next();
-      result.addReceiver(id);
-    }
-    Iterator replies = msg.getAllReplyTo();
-    while(replies.hasNext()) {
-      AID id = (AID)replies.next();
-      result.addReplyTo(id);
-    }
-    s = msg.getLanguage();
-    if(s != null)
-      result.setLanguage(s);
-    else
-      result.setLanguage("");
-    s = msg.getEncoding();
-    if(s != null)
-      result.setEncoding(s);
-    else
-      result.setEncoding("");
-    s = msg.getOntology();
-    if(s != null)
-      result.setOntology(s);
-    else
-      result.setOntology("");
-    s = msg.getProtocol();
-    if(s != null)
-      result.setProtocol(s);
-    else
-      result.setProtocol("");
-    s = msg.getReplyBy();
-    if(s != null)
-      result.setReplyBy(s);
-    else
-      result.setReplyBy("");
-    s = msg.getInReplyTo();
-    if(s != null)
-      result.setInReplyTo(s);
-    else
-      result.setInReplyTo("");
-    s = msg.getReplyWith();
-    if(s != null)
-      result.setReplyWith(s);
-    else
-      result.setReplyWith("");
-    AID src = msg.getSender();
-    result.setSender(src);
-
-    if(future != null)
-      future.setMessage(result);
-
-    finished = true;
+      result = (ACLMessage)msg.clone();
+      if(future != null)
+	  future.setMessage(result);
+      finished = true;
   }
 
 } // End of ReceiverBehaviour class

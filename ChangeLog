@@ -42,7 +42,8 @@ MAJOR CHANGES in JADE 2.2
   that they handle a wider range of strings 
 - Modified the ISO8601 class by Sayers Craig, HP Labs, Palo Alto, California
   in order to read/write dates in UTC time (as recommended by FIPA)
-
+- Fixed bug in ReceiverBehaviour that did not clone correctly the
+  received ACLMessage, as reported by Andreas Lauer 
 
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
 =============================================
