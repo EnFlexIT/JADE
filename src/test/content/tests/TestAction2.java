@@ -27,34 +27,29 @@ import test.content.Test;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
+import jade.content.lang.*;
 import jade.content.onto.basic.*;
-import examples.content.ecommerceOntology.*;
+import test.content.testOntology.*;
 import java.util.Date;
 
-public class TestContentElementList extends Test{
+public class TestAction2 extends Test{
+	private Codec c = null;
+	
   public String getName() {
-  	return "Content-element-list";
+  	return "BasicOntology.ACTION-with-Concept";
   }
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content composed of more than one content element, i.e. a content element list");
-  	sb.append("\n");
-  	sb.append("NOTE: This also tests the usage of the BasicOntology Action element"); 
+  	StringBuffer sb = new StringBuffer("Tests sending a Concept that represents an action but is not an AgentAction within a BasicOntology.ACTION");
   	return sb.toString();
   }
   public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  	c = a.getContentManager().lookupLanguage(msg.getLanguage());
   	try {
-  		msg.setPerformative(ACLMessage.PROPOSE);
-  		ContentElementList cel = new ContentElementList();
-  		Sell sell = new Sell();
-  		Item i = new Item();
-  		i.setSerialID(35624);
-  		sell.setItem(i);
-  		sell.setBuyer(a.getAID());
-  		sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
-  		Action act = new Action(a.getAID(), sell);
-  		cel.add(act);
-  		cel.add(new TrueProposition());
-  		a.getContentManager().fillContent(msg, cel);
+  		Move m = new Move(new Position(0.05, 13.25));
+  	
+  		Action act = new Action(a.getAID(), m);
+  		
+  		a.getContentManager().fillContent(msg, act);
   		return SEND_MSG;
   	}
   	catch (Throwable t) {

@@ -168,7 +168,7 @@ public class ContentTester extends Agent {
   			public void action() {
   				currentTest = myTestManager.next();
   				System.out.println("\nExecuting TEST: "+currentTest.getName());
-  				System.out.println(currentTest.getDescription());
+  				System.out.println("DESCRIPTION: "+currentTest.getDescription());
   				ret = currentTest.execute(testMsg, myAgent, verbose);
   				if (ret == Test.SEND_MSG) {
   					myAgent.send(testMsg);
@@ -192,7 +192,7 @@ public class ContentTester extends Agent {
   			public void action() {
   				ACLMessage response = receive(mt);
   				if (response != null) {
-  					printTestResult(response.getPerformative() == ACLMessage.INFORM);
+  					printTestResult(currentTest.checkResponse(response) == Test.DONE_PASSED);
   					received = true;
   				}
   				else {
@@ -260,6 +260,9 @@ public class ContentTester extends Agent {
   		"test.content.tests.TestFloat",
   		"test.content.tests.TestDouble",
   		"test.content.tests.TestDate",
+  		"test.content.tests.TestAgentAction",
+  		"test.content.tests.TestAction1",
+  		"test.content.tests.TestAction2",
   		"test.content.tests.TestUnknownSchema",
   		"test.content.tests.TestOntoAID",
   		"test.content.tests.TestSequence",

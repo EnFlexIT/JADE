@@ -27,34 +27,33 @@ import test.content.Test;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
-import jade.content.onto.basic.*;
+import jade.content.lang.*;
 import examples.content.ecommerceOntology.*;
 import java.util.Date;
 
-public class TestContentElementList extends Test{
+public class TestAgentAction extends Test{
+	private Codec c = null;
+	
   public String getName() {
-  	return "Content-element-list";
+  	return "AgentAction-as-content";
   }
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content composed of more than one content element, i.e. a content element list");
+  	StringBuffer sb = new StringBuffer("Tests sending an AgentAction as a content");
   	sb.append("\n");
-  	sb.append("NOTE: This also tests the usage of the BasicOntology Action element"); 
+  	sb.append("NOTE: When using the SL language this test is PASSED if the above operation fails"); 
   	return sb.toString();
   }
   public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  	c = a.getContentManager().lookupLanguage(msg.getLanguage());
   	try {
-  		msg.setPerformative(ACLMessage.PROPOSE);
-  		ContentElementList cel = new ContentElementList();
   		Sell sell = new Sell();
   		Item i = new Item();
   		i.setSerialID(35624);
   		sell.setItem(i);
   		sell.setBuyer(a.getAID());
   		sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
-  		Action act = new Action(a.getAID(), sell);
-  		cel.add(act);
-  		cel.add(new TrueProposition());
-  		a.getContentManager().fillContent(msg, cel);
+  	
+  		a.getContentManager().fillContent(msg, sell);
   		return SEND_MSG;
   	}
   	catch (Throwable t) {
@@ -62,6 +61,20 @@ public class TestContentElementList extends Test{
   			t.printStackTrace();
   		}
   		return DONE_FAILED;
+  	}
+  }
+  
+  public int checkResponse(ACLMessage rsp) {
+  	if (c.getName().startsWith("FIPA-SL")) {
+  		if (rsp.getPerformative() == ACLMessage.INFORM) {
+  			return DONE_FAILED;
+  		}
+  		else {
+  			return DONE_PASSED;
+  		}
+  	}
+  	else {
+  		return super.checkResponse(rsp);
   	}
   }
 }

@@ -45,6 +45,9 @@ public class TestOntology extends Ontology {
   public static final String POSITION_X = "x";
   public static final String POSITION_Y = "y";
   
+  public static final String MOVE = "MOVE";
+  public static final String MOVE_DESTINATION = "destination";
+  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new TestOntology(MusicShopOntology.getInstance());
 	
@@ -61,6 +64,7 @@ public class TestOntology extends Ontology {
     try {
     	add(new PredicateSchema(EXISTS), Exists.class);
     	add(new ConceptSchema(POSITION), Position.class);
+    	add(new ConceptSchema(MOVE), Move.class);
     	
     	PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
     	ps.add(EXISTS_WHAT, (ConceptSchema) ConceptSchema.getBaseSchema());
@@ -68,6 +72,9 @@ public class TestOntology extends Ontology {
     	ConceptSchema cs = (ConceptSchema) getSchema(POSITION);
     	cs.add(POSITION_X, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
     	cs.add(POSITION_Y, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
+
+    	cs = (ConceptSchema) getSchema(MOVE);
+    	cs.add(MOVE_DESTINATION, (ConceptSchema) getSchema(POSITION));
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();

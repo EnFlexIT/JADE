@@ -34,4 +34,13 @@ public abstract class Test {
   public abstract String getName();
   public abstract String getDescription();
   public abstract int execute(ACLMessage msg, Agent a, boolean verbose);
+  public int checkResponse(ACLMessage rsp) {
+  	// Default implementation
+  	if (rsp.getPerformative() == ACLMessage.INFORM) {
+  		return DONE_PASSED;
+  	}
+  	else {
+  		return DONE_FAILED;
+  	}
+  }
 }
