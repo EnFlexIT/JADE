@@ -269,16 +269,12 @@ public class ProfileImpl extends Profile {
     //#MIDP_EXCLUDE_END
 
     //#J2ME_EXCLUDE_BEGIN
-    // Take proper adjustments in case this is the main
-    if (!("false".equalsIgnoreCase(props.getProperty(MAIN)))) {
-	// If no MTP is explicitly specified and the nomtp property is not set
-	// --> add the default IIOP MTP
-	if ((props.getProperty(MTPS) == null) && (props.getProperty("nomtp") == null)) {
-	    props.setProperty(MTPS, "jade.mtp.iiop.MessageTransportProtocol");
-	}
-    }
 
-    if (!getBooleanProperty("nomtp", false)) {
+
+    // If this is a Main Container and the '-nomtp' option is not
+    // given, activate the default IIOP MTP (unless some MTPs have
+    // been directly provided).
+    if(isMain() && !getBooleanProperty("nomtp", false) && (props.getProperty(MTPS) == null)) {
 	Specifier s = new Specifier();
 	s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
 	List l = new ArrayList(1);
