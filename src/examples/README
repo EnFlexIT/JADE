@@ -6,110 +6,128 @@ examples, you must set CLASSPATH environment variable to contain the
 file jade.jar, jadeTools.jar and Base64.jar and the current directory ('.').
 Then change to 'src' directory and refer to the various example agents
 with a fully qualified package name; all example agent classes belong
-to subpackages of 'examples' package: for example, class Agent1 in
-'ex1' subdirectory of 'examples' directory must be started 
+to subpackages of 'examples' package: for example, class ComplexBehaviourAgent
+ in 'behaviours' subdirectory of 'examples' directory must be started 
 by the jade/src directory with:
 
-        java jade.Boot -platform examples.ex1.Agent1
+      java jade.Boot -platform a1:examples.behaviours.ComplexBehaviourAgent
 
 
 The following list describes all the example programs found in
 'src/examples' subdirectories, detailing their features.
 
-'ex1' subdirectory
-==================
 
- - Agent1.class                 An agent with a cyclic behaviour, printing 
-                                a message once in a second. This shows
-                                how an agent behaviour can be defined
-                                in a class implementing
-                                jade.core.Behaviour interface.
 
- - Agent2.class                 An agent which executes a behaviour once 
-                                and then stops. This example shows how a
-                                behaviour can be defined extending
-                                jade.core.SimpleBehaviour class. It
-                                also shows how an agent without active
-                                behaviours is blocked. Besides, the
-                                executed behaviour shows Message
-                                Templates usage.
+'behaviours' subdirectory
+=========================
+This examples shows some examples of agent behaviours.
 
- - Agent3.class                 An agent with a behaviour made of many steps,
-                                with some steps that have sub-steps
+ - ComplexBehaviourAgent.class	An agent with a behaviour made of many 
+				steps,with some steps that have sub-steps
                                 themselves. This examples shows how
-                                jade.core.SequentialBehaviour class
+                                jade.core.behaviours.SequentialBehaviour class
                                 allows the construction of aggregate
                                 behaviours starting from simpler ones,
                                 even with recursive aggregations.
                                 Besides, it shows the cooperative
                                 multitasking presently used for
                                 intra-agent behaviour scheduling.
+ 
+ - WakerAgent.class      	This example shows the usage of the WakerBehaviour. 
+				The agent object, at its setup, adds 2 WakerBehaviours. 
+				The first behaviour wakes up after the given timeout. 
+				The second behaviour wakes up at the given date and time.
+                                When they wake up, the method handleElapsedTimeout() is 
+				executed.
+				Notice that in the first behaviour, the execution of the 
+				method reset(t) makes repetitive the behaviour itself; 
+				that is it wakes up every t milliseconds.
 
- - Agent4.class                 This agent uses both SequentialBehaviour
-                                and NonDeterministicBehaviour classes
-                                to build more complex behaviours from
-                                simpler ones.
 
-
-
-'ex2' subdirectory
-==================
-
- - AgentReceiver.class          This example creates an agent that continously
-                                waits for messages and sends back automated 
-                                replies; it shows how to create a simple
-                                server agent, purely reactive.
-
- - AgentSender.class            This agent works together with AgentReceiver
-                                to build a simple client/server
-                                interaction. The agent asks the user
-                                for a message and an agent name. It
-                                then sends the string to the specified agent.
-                                This example, together with the
-                                previous one, shows how the
-                                distributed Agent Platform allows
-                                message passing between the agents.
-
- - AgentBroadcaster.class       This agent combines message passing with
-                                ComplexBehaviour class to achieve
-                                more complex interactions between agents.
-                                This Agent asks for a string and three
-                                agent names; then it sends the string
-                                to each one of the three agents,
-                                collecting the replies. Eventually, it
-                                prints the concatenation of the three
-                                replies.
-
- - FilebasedSenderAgent.class	This is a simple GUI-based agent. It
-				can read an ACL message from a user
-				specified file and send it to other
-				agents; besides, outgoing and incoming
-				messages are logged in two
-				panels. This agent can be useful for
-				debugging and testing.
-
-'ex3' subdirectory
-==================
-
- - AgentThread.class            An agent that starts a simple conversation
-                                using 'reply-with' and 'reply-to'
-                                message fields to follow a
-                                conversation thread. This example
-                                sheds some light on selective
-                                receive() using MessageTemplate
-                                objects.
-
- - AgentMessageFilter.class     This is the companion of the previous agent;
-                                it receives an incoming message and uses
-                                'reply-with' field to answer the
-                                message in a specific conversation thread.
+ - FSMAgent.class		An agent with two behaviours built like finite state 
+				machines.
 
 
 
-'ex4' subdirectory
-==================
+'Base64' subdirectory
+=====================
+This examples shows how to transport serialized Java object over an ACLMessage.
+You can execute it, for instance, with the following command:
+	
+	java jade.Boot -platform a1:examples.Base64.ObjectWriterAgent
+	a2:examples.ex7.ObjectReaderAgent
 
- - AgentRequester.class         This agent plays initiator role in a
+ - ObjectReaderAgent.class	This agent makes the following task: 
+				1. registers itself with the df as a reader;
+				2. waits a message from its companion, the ObjectWriterAgent; 
+				3. reads the content of the message, knowing a-priori that 
+   				   it is encoded in Base64 and contains a Java object;
+				4. uses the reflection to discover the type of java object
+   				   and calls the toString() method.
+	
+ 
+ - ObjectWriterAgent.class	This agent makes the following task:
+				1. searches in the DF for an ObjectReaderAgent;
+				2. sends an ACLMessage with a content encoded in Base64 to the 
+                                   ObjectReaderAgent.
+
+ - Person.class			This is  just a support class for the object reader
+				and writer agents.
+
+
+
+
+'jess' subdirectory
+===================
+JessAgent is a sample agent that allows the programmer to avoid writing any 
+line of Java code. He can implement everything in CLIPS by using JESS.
+The code IS just the file JadeAgent.clp.
+Every time an ACL message arrives, a new fact is asserted in JESS.
+A function allows to send messages.
+In order to compile this example, JESS is needed. It has been already tested
+with JESS 4.3
+ - BasicJessBehaviour.class
+ - JessAgent.class
+ - JessBehaviour.class
+ - JadeAgent.clp	
+
+
+'mobile' subdirectory
+=====================
+This is an example of mobile agent.
+ - CounterBehaviour.class	The behaviour uses two resources, in particular 
+				the counter cnt and the flag cntEnabled, of the agent object. 
+				It prints its value, increments by one,blocks 
+				for two seconds, and repeats forever. 
+
+
+ - ExecutorBehaviour.class	This is the main behaviour of the Agent. 
+				It serves all the received messages. 
+				In particular,the following expressions are accepted 
+				as content of "request" messages:
+				- (move <destination>)  to move the Agent to another container. 
+			          Example: (move Front-End) or (move Container-1)
+				- (exit) to request the agent to exit
+				- (stop) to stop the counter
+				- (continue) to continue counting
+
+- MobileAgent.class		This is an example of mobile agent. 
+				This class contains the two resources used by the 
+				agent behaviours: the counter cnt and the flag cntEnabled. 
+				At the setup it adds two behaviours to serve the incoming messages and
+				to increment the counter. 
+				In particular, notice the usage of the two methods beforeMove() and
+				afterMove() to execute some application-specific tasks just before 
+				and just after the agent migration takes effect.
+
+
+
+'protocols' subdirectory
+========================
+This example shows the usage of two behaviours provided by JADE 
+that implement the 'fipa-query' protocol and the 'fipa-request' protocol.
+
+ - AgRequestInitiator.class	This agent plays initiator role in a
                                 conversation following standard
                                 'fipa-request' protocol. The example
                                 program shows how more complex
@@ -120,33 +138,36 @@ The following list describes all the example programs found in
                                 behaviours and advanced message
                                 passing.
 
- - AgentResponder.class         The companion agent of AgentRequester.
+ - AgRequestResponder.class	The companion agent of AgRequesteriInitiator.
                                 This agent plays responder role in
                                 'fipa-request' protocol and is able to
                                 manage multiple simultaneous
                                 conversations through
                                 'conversation-id' message field.
 
+ - AgQueryInitiator.class	This agent is the initiator of the FIPAQueryprotocol.
+				You can execute the example with the following command: 
+					java jade.Boot -platform 
+					initiator:examples.ex6.AgQueryInitiator 																																				                                                															                                        responder:examples.ex6.AgQueryResponder
+				and then use the GUI of the initiator to send a query 
+				message to the responder.
+				
+ - AgQueryResponder.class	The companion of the AgQueryInitiator that responds to the 
+				query message.
 
 
-'ex5' subdirectory
-==================
+'receivers' subdirectory
+========================
+This example shows some methods an agent can use to receive a message. 
+ 
+ - AgentSender.class		This agent sends some inform messages.
 
- - amsTester.class              This agent allows a comprehensive testing
-                                of the Agent ManagementSystem of
-                                JADE. When the agent is started, it
-                                asks the user for an action name and
-                                some parameters, then builds a
-                                'fipa-request' conversation with the
-                                AMS using the data gathered from the
-                                user.
+ - AgentReceiver.class 		This agent receives the messages using different kind 
+				of receive methods provided by JADE.
 
- - dfTester.class               This agent is for Directory Facilitator
-                                just the same thing amsTester is for
-                                Agent Management System. It allows the
-                                user to make requests to DF agent
-                                interactively.
 
+'subdf' subdirectory
+====================
  - SubDF.class			This examples shows how to set up multiple
 				Agent Domains by means of a network of
 				connected Directory Facilitator Agents.
@@ -154,43 +175,4 @@ The following list describes all the example programs found in
 				DF, exploiting recursive search capabilities.
 
 
-'ex6' subdirectory
-==================
-This example shows the usage of the FIPAQuery protocol in jade.proto
-AgQueryInit is the initiator of the protocol while AgQueryResp is the
-responder.
-You can execute the example with the following command: 
-java jade.Boot -platform initiator:examples.ex6.AgQueryInit responder:examples.ex6.AgQueryResp
-and then use the GUI of the initiator to send a query message to the responder.
 
-
-'ex7' subdirectory
-==================
-This example shows how to transport serialized Java objects over an ACLMessage.
-You can execute it, for instance, with the following command:
-java jade.Boot -platform a1:examples.ex7.ObjectWriterAgent a2:examples.ex7.ObjectReaderAgent
-- ObjectReaderAgent: the agent registers with the DF and than enters into a 
-loop. In this loop, it waits for the next incoming message, and dumps all
-the Java objects into the message.
-- ObjectWriterAgent: the agent searches in the DF for an ObjectReaderAgent,
-and than sends a message with some Java objects.
-
-
-jess subdirectory
-=================
-JessAgent is a sample agent that allows the programmer to avoid writing any 
-line of Java code. He can implement everything in CLIPS by using JESS.
-The code IS just the file JadeAgent.clp.
-Every time an ACL message arrives, a new fact is asserted in JESS.
-A function allows to send messages.
-In order to compile this example, JESS is needed. It has been already tested
-with JESS 4.3
-
-ex_mobile subdirectory
-======================
-This is a simple mobile agent.
-Send the message 
-(REQUEST :content (move Container-1))
-and the agent moves to Container-1, send again
-(REQUEST :content (move Front-End))
-and it moves to Front-End.
