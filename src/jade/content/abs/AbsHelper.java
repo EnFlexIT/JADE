@@ -157,9 +157,8 @@ public class AbsHelper {
      */
     public static AbsAgentAction externaliseACLMessage(ACLMessage obj, Ontology onto) throws OntologyException {
   		try {
-  			AbsAgentAction absMsg =  new AbsAgentAction(BasicOntology.ACLMSG);
+  			AbsAgentAction absMsg =  new AbsAgentAction(ACLMessage.getPerformative(obj.getPerformative()));
   			
-  			absMsg.set(BasicOntology.ACLMSG_PERFORMATIVE, AbsPrimitive.wrap(obj.getPerformative()));
   			absMsg.set(BasicOntology.ACLMSG_SENDER, (AbsTerm) onto.fromObject(obj.getSender()));
   			// Receivers
   			AbsAggregate recvs = new AbsAggregate(BasicOntology.SEQUENCE);
@@ -291,10 +290,9 @@ public class AbsHelper {
      * @throws OntologyException
      */
     public static OntoACLMessage internaliseACLMessage(AbsAgentAction absMsg, Ontology onto) throws OntologyException {
-      OntoACLMessage ret = new OntoACLMessage();
+      OntoACLMessage ret = new OntoACLMessage(ACLMessage.getInteger(absMsg.getTypeName()));
 
     	try {
-  			ret.setPerformative(absMsg.getInteger(BasicOntology.ACLMSG_PERFORMATIVE)); 
   			ret.setSender((AID) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_SENDER))); 
   			// Receivers
   			ret.clearAllReceiver();

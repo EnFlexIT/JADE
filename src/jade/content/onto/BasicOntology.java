@@ -67,10 +67,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
 
   // Generic concept ACL Message
-  public static final String         ACLMSG = "acl-message";
-  public static final String         ACLMSG_PERFORMATIVE = "performative";
+  public static final String         ACLMSG = "FIPA-ACL-Message";
   public static final String         ACLMSG_SENDER = "sender";
-  public static final String         ACLMSG_RECEIVERS = "receivers";
+  public static final String         ACLMSG_RECEIVERS = "receiver";
   public static final String         ACLMSG_REPLY_TO = "reply-to";
   public static final String         ACLMSG_LANGUAGE = "language";
   public static final String         ACLMSG_ONTOLOGY = "ontology";
@@ -119,25 +118,24 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       aidSchema.add(AID_RESOLVERS, aidSchema, 0, ObjectSchema.UNLIMITED);
       add(aidSchema); 
       
-      // ACLMessage Schema
-      AgentActionSchema msgSchema = new AgentActionSchema(ACLMSG);
-      msgSchema.add(ACLMSG_PERFORMATIVE, (PrimitiveSchema) getSchema(INTEGER));
-      msgSchema.add(ACLMSG_SENDER, (ConceptSchema) getSchema(AID), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_RECEIVERS, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
-      msgSchema.add(ACLMSG_REPLY_TO, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
-      msgSchema.add(ACLMSG_LANGUAGE, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_ONTOLOGY, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_PROTOCOL, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_IN_REPLY_TO, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_REPLY_WITH, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_CONVERSATION_ID, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_REPLY_BY, (PrimitiveSchema) getSchema(DATE), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_CONTENT, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_BYTE_SEQUENCE_CONTENT, (PrimitiveSchema) getSchema(BYTE_SEQUENCE), ObjectSchema.OPTIONAL);
-      msgSchema.add(ACLMSG_ENCODING, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+      // AID Schema
+	    AgentActionSchema msgSchema = new AgentActionSchema(ACLMSG);
+	    msgSchema.add(ACLMSG_SENDER, (ConceptSchema) getSchema(AID), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_RECEIVERS, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
+	    msgSchema.add(ACLMSG_REPLY_TO, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
+	    msgSchema.add(ACLMSG_LANGUAGE, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_ONTOLOGY, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_PROTOCOL, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_IN_REPLY_TO, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_REPLY_WITH, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_CONVERSATION_ID, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_REPLY_BY, (PrimitiveSchema) getSchema(DATE), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_CONTENT, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_BYTE_SEQUENCE_CONTENT, (PrimitiveSchema) getSchema(BYTE_SEQUENCE), ObjectSchema.OPTIONAL);
+	    msgSchema.add(ACLMSG_ENCODING, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
       add(msgSchema); 
       
-      // TRUE_PROPOSITION schema
+	    // TRUE_PROPOSITION schema
       PredicateSchema truePropSchema = new PredicateSchema(TRUE_PROPOSITION);
       add(truePropSchema);
 
@@ -247,7 +245,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	    	return a;
 	    }
 			// ACLMESSAGE
-	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.ACLMSG)) { 
+	    if (ACLMessage.getInteger(abs.getTypeName()) != -1) { 
 				return AbsHelper.internaliseACLMessage((AbsAgentAction) abs, referenceOnto);
 	    }
 	    			
@@ -368,4 +366,32 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
     }
 	}
   
+  /**
+   * Redefine the <code>getSchema()</code> method to take into 
+   * account ACL performatives. 
+   * @param name the name of the schema in the vocabulary.
+   * @return the schema or <code>null</code> if the schema is not found.
+   * @throws OntologyException 
+   */
+  public ObjectSchema getSchema(String name) throws OntologyException {
+  	ObjectSchema ret = super.getSchema(name);
+  	if (ret == null) {
+  		int perf = ACLMessage.getInteger(name);
+  		if (perf != -1) {
+  			ret = createMsgSchema(name);
+  		}
+  	}
+  	return ret;
+  }
+
+  /**
+     Note that we don't want to keep 22 different schemas for the 22 
+     FIPA communicative acts --> We generate the schemas for communicative
+     acts on the fly as needed.
+   */
+  private ObjectSchema createMsgSchema(String performative) throws OntologyException {
+    AgentActionSchema msgSchema = new AgentActionSchema(performative);
+    msgSchema.addSuperSchema((AgentActionSchema) getSchema(ACLMSG));
+    return msgSchema;
+  }
 }
