@@ -72,10 +72,8 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/abs/AbsProposition.java \
 		jade/content/abs/AbsTerm.java \
 		jade/content/abs/AbsVariable.java \
-		jade/content/abs/AbsEquals.java \
 		jade/content/abs/AbsHelper.java \
 		jade/content/acl/Inform.java \
-		jade/content/acl/QueryRef.java \
 		jade/content/acl/Request.java \
 		jade/content/acl/CommunicativeActBase.java \
 		jade/content/ActionPredicate.java \
@@ -87,14 +85,10 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/ContentManager.java \
 		jade/content/GenericAction.java \
 		jade/content/HigherOrderPredicate.java \
-		jade/content/IRE.java \
-		jade/content/KeyValuePair.java \
+		jade/content/OntoAID.java \
 		jade/content/Predicate.java \
 		jade/content/Proposition.java \
-		jade/content/QuantifiedVariable.java \
-		jade/content/Quantifier.java \
 		jade/content/Term.java \
-		jade/content/Variable.java
 
 ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
@@ -102,14 +96,18 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/onto/ACLOntology.java \
 		jade/content/onto/BasicOntology.java \
 		jade/content/onto/Introspector.java \
+		jade/content/onto/Introspectable.java \
 		jade/content/onto/Ontology.java \
 		jade/content/onto/OntologyException.java \
 		jade/content/onto/ReflectiveIntrospector.java \
+		jade/content/onto/MicroIntrospector.java \
+		jade/content/onto/BasicIntrospector.java \
 		jade/content/onto/UngroundedException.java \
-		jade/content/onto/FullOntology.java \
+		jade/content/onto/UnknownSchemaException.java \
 		jade/content/schema/ActionPredicateSchema.java \
 		jade/content/schema/AgentActionSchema.java \
 		jade/content/schema/AggregateSchema.java \
+		jade/content/schema/AIDSchema.java \
 		jade/content/schema/CommunicativeActSchema.java \
 		jade/content/schema/ConceptSchema.java \
 		jade/content/schema/ContentElementListSchema.java \
@@ -123,8 +121,10 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/schema/PropositionSchema.java \
 		jade/content/schema/TermSchema.java \
 		jade/content/schema/VariableSchema.java \
-		jade/content/schema/EqualsSchema.java \
-		jade/content/Equals.java
+		jade/content/onto/basic/Done.java \
+		jade/content/onto/basic/Equals.java \
+		jade/content/onto/basic/Result.java \
+		jade/content/onto/basic/TrueProposition.java \
 
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
