@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -18,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-**************************************************************
+**************************************************************/
 
 package jade.applet;
 
@@ -128,12 +129,20 @@ public String getLocalName() {
   return "df";
 }
 
+  public void postCloseGuiEvent(Object g) {
+    a.destroy(); 
+  }
+
+  public void postExitEvent(Object g) {
+    a.destroy(); 
+  }
+
   /**
    * registers an agent descriptor with the DF
    * @param parentName is not used
    * @param dfd is the agent descriptor
    */
-public void postRegisterEvent(String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
+public void postRegisterEvent(Object source, String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
   try {
     StringWriter w = new StringWriter();
     w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (register (:df-description ");
@@ -159,7 +168,7 @@ public void postRegisterEvent(String parentName, AgentManagementOntology.DFAgent
    * @param parentName is not used
    * @param dfd is the agent descriptor
    */
-public void postDeregisterEvent(String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
+public void postDeregisterEvent(Object source, String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
   try {
     StringWriter w = new StringWriter();
     w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (deregister  (:df-description ");
@@ -181,12 +190,16 @@ public void postDeregisterEvent(String parentName, AgentManagementOntology.DFAge
     
 }
 
+  public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+    gui.showErrorMsg("Modify not yet implemented via applet");
+  }
+
   /**
    * returns all the agent descriptors registered with the DF.
    * So far, there is a bug and only the agents in "active" state are
    * returned.
    */
-public Enumeration getDFAgentDescriptors() {
+public Enumeration getAllDFAgentDsc() {
   try {
     StringWriter w = new StringWriter();
     w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (search (:df-description (:df-state active)) (:df-depth Max 1)))) "); // FIXME ricevo solo gli agenti active
@@ -215,7 +228,10 @@ public Enumeration getDFAgentDescriptors() {
   return (new Hashtable()).elements();
 }
 
-
+  public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException {
+    gui.showErrorMsg("getDFAgentDSC not yet implemented !"); 
+    return null;
+  }
 }
 
 

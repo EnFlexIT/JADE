@@ -1,5 +1,7 @@
+
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -20,7 +22,6 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.domain;
 
 import java.lang.reflect.Method;
@@ -40,6 +41,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.proto.FipaRequestResponderBehaviour;
+import jade.gui.GuiAgent;
+import jade.gui.GuiEvent;
 import jade.gui.DFGUI;
 import jade.gui.GUI2DFCommunicatorInterface;
 
@@ -58,13 +61,12 @@ import jade.gui.GUI2DFCommunicatorInterface;
   In order to show the GUI, you should simply send the following message
   to each DF agent: <code>(request :content (action DFName (SHOWGUI))
   :ontology jade-extensions :protocol fipa-request)</code>
-  
-  Javadoc documentation for the file
+ 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
 */
-public class df extends Agent implements GUI2DFCommunicatorInterface {
+public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
   private abstract class DFBehaviour
     extends FipaRequestResponderBehaviour.Action 
@@ -103,12 +105,12 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	// pe.printStackTrace();
+	pe.printStackTrace();
 	// System.out.println("DF ParseException with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	// tme.printStackTrace();
+	tme.printStackTrace();
 	// System.out.println("DF TokenMgrError with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
@@ -426,39 +428,43 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
 
     }
 
-
   } // End of SrchBehaviour class
 
-  private class ShowGUIBehaviour 
-   extends FipaRequestResponderBehaviour.Action 
-   implements FipaRequestResponderBehaviour.Factory {
 
-    protected ShowGUIBehaviour() {
-      super(df.this);
-    }
+  private class ShowGUIBehaviour extends FipaRequestResponderBehaviour.Action 
+                                 implements FipaRequestResponderBehaviour.Factory 
+  {
+  	protected ShowGUIBehaviour() 
+	{
+      	super(df.this);
+  	}
 
-    public FipaRequestResponderBehaviour.Action create() {
-      return new ShowGUIBehaviour();
-    }
+  	public FipaRequestResponderBehaviour.Action create() 
+  	{
+      	return new ShowGUIBehaviour();
+  	}
 
-   public void action () { 
-      //      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
-      //      DFRegister(dfd);
-      sendAgree();
-      if (gui == null) {
-	//GUI2DFCommunicator dfc = new GUI2DFCommunicator(myAgent);
-	gui = new DFGUI(df.this);
-	gui.setVisible(true);
-	sendInform();
-      } else
-	sendFailure("Gui_is_being_shown_already");
-    }
+  	public void action () 
+  	{ 
+      	sendAgree();
+      	if (gui == null) 
+  		{
+			gui = new DFGUI((GUI2DFCommunicatorInterface) (df.this));
+			gui.refresh();
+			gui.setVisible(true);
+			sendInform();
+  		} 
+  		else
+			sendFailure("Gui_is_being_shown_already");
+  	}
       
-      public boolean done() {
-	return true;
+      public boolean done() 
+  	{
+		return true;
       }
 
-      public void reset() {
+      public void reset() 
+  	{
       }
   } // End of ShowGUIBehaviour class
 
@@ -538,11 +544,6 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
   private AgentGroup parents = new AgentGroup();
 
   private DFGUI gui;
-  private Vector eventQueue = new Vector();
-
-  public Enumeration getDFAgentDescriptors() {
-    return descriptors.elements();
-  }
 
   /**
     This constructor creates a new <em>DF</em> agent. This can be used
@@ -588,48 +589,10 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
     addBehaviour(dispatcher);
     addBehaviour(guiActivator);
 
-    // Add an event listener behaviour
-    addBehaviour(new CyclicBehaviour() {
-      public void action() {
-        if(!eventQueue.isEmpty()) {
-	  try {
-	    GUIEvent re = (GUIEvent)eventQueue.remove(0);
-	    switch(re.getKind()) {
-	    case GUIEvent.EV_REG:
-	      if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
-		// Register with yourself directly, avoiding deadlock
-		DFRegister(re.dfd);
-	      }
-	      else {
-		// Follow ordinary 'fipa-request' protocol
-		registerWithDF(re.dfName, re.dfd);
-	      }
-	      break;
-	    case GUIEvent.EV_DEREG:
-	      if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
-		// Deregister with yourself directly, avoiding deadlock
-		DFDeregister(re.dfd);
-	      }
-	      else {
-		// Follow ordinary 'fipa-request' protocol
-		deregisterWithDF(re.dfName, re.dfd);
-	      }
-	      break;
-	    }
-	  }
-	  catch(ArrayIndexOutOfBoundsException aioobe) { // Cannot happen
-	    aioobe.printStackTrace();
-	  }
-	  catch(FIPAException fe) {
-	    fe.printStackTrace();
-	  }
-	}
-	else {
-	  block();
-	}
-      }
-    });
-  }
+  }  // End of method setup()
+
+		
+
 
   /**
     Cleanup <em>DF</em> on exit. This method performs all necessary
@@ -689,6 +652,10 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
 	subDFs.put(dfd.getName(), dfd);
       }
     }
+
+    // UPDATE GUI IF OPENED
+    if (gui != null)
+      gui.refresh();
   }
 
     // PP
@@ -700,6 +667,10 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
 
     // Update sub-DF table if needed
     subDFs.remove(dfd.getName());
+    
+    // UPDATE GUI IF OPENED
+    if (gui != null)
+      gui.refresh();
   }
 
     // PP
@@ -744,7 +715,10 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
     if(s != null)
       toChange.setDFState(s);
 
-  }
+    // UPDATE GUI IF OPENED
+    if (gui != null)
+      gui.refresh();
+ }
 
   
   // These two String arrays hold the field names of
@@ -919,37 +893,128 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
     return true;
   }
 
-  private class GUIEvent {
+  
+	/////////////////////////////////
+	// GUI HANDLING
 
-    public static final int EV_REG = 1;
-    public static final int EV_DEREG = 2;
+	// DF GUI EVENT 
+	private class DFGuiEvent extends GuiEvent
+	{
+		public static final int REGISTER = 1001;
+		public static final int DEREGISTER = 1002;
+		public static final int MODIFY = 1003;
+	
+		public String dfName;
+		public AgentManagementOntology.DFAgentDescriptor dfd;
 
-    private int myKind;
-    public String dfName;
-    public AgentManagementOntology.DFAgentDescriptor dfd;
+		public DFGuiEvent(Object source, int type, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
+		{
+			super(source, type);
+			this.dfName = dfName;
+			this.dfd =dfd;
+		}
+	}
+		
+	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT DATA MODIFICATIONS 	
+	public void postRegisterEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
+	{
+		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.REGISTER, dfName, dfd);
+		postGuiEvent(ev);
+	}
+	
+	public void postDeregisterEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
+	{
+		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.DEREGISTER, dfName, dfd);
+		postGuiEvent(ev);
+	}
 
-    public GUIEvent(int kind, String n, AgentManagementOntology.DFAgentDescriptor ad) {
-      myKind = kind;
-      dfName = n;
-      dfd = ad;
-    }
+	public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
+	{
+		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.MODIFY, dfName, dfd);
+		postGuiEvent(ev);
+	}
 
-    public int getKind() {
-      return myKind;
-    }
+	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
+	protected void onGuiEvent(GuiEvent ev)
+	{
+		try
+		{
+			DFGuiEvent e;
+			switch(ev.getType()) 
+			{
+			case DFGuiEvent.EXIT:
+				gui.disposeAsync();
+				gui = null;
+				doDelete();
+				break;
+			case DFGuiEvent.CLOSEGUI:
+				gui.disposeAsync();
+				gui = null;
+				break;
+			case DFGuiEvent.REGISTER:
+				e = (DFGuiEvent) ev;
+				if (e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				{
+					// Register an agent with this DF
+					DFRegister(e.dfd);
+				}
+				else 
+				{
+					// Register an agent with another DF. 
+					// The agent to be registered should be this DF --> FEDERATE
+					registerWithDF(e.dfName, e.dfd);
+				}
+				break;
+			case DFGuiEvent.DEREGISTER:
+				e = (DFGuiEvent) ev;
+				if(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				{
+					// Deregister an agent with this DF
+					DFDeregister(e.dfd);
+				}
+				else 
+				{
+					// Deregister an agent with another DF. 
+					// The agent to be deregistered should be this DF --> DEFEDERATE
+					deregisterWithDF(e.dfName, e.dfd);
+				}
+				break;
+			case DFGuiEvent.MODIFY:
+				e = (DFGuiEvent) ev;
+				if(e.dfName.equalsIgnoreCase(getName()) || e.dfName.equalsIgnoreCase(getLocalName())) 
+				{
+					// Modify the description of an agent with this DF
+					DFModify(e.dfd);
+				}
+				else 
+				{
+					// Modify the description of an agent with another DF
+					// The agent whose description has to be modified should be this DF --> MODIFY FEDERATION
+					modifyDFData(e.dfName, e.dfd);
+				}
+				break;
+			} // END of switch
+		} // END of try
+		catch(FIPAException fe) 
+		{
+			fe.printStackTrace();
+		}
+	}
 
-  }
+	////////////////////////////////////////////////
+	// Methods used by the DF GUI to get the DF data
+	public Enumeration getAllDFAgentDsc() 
+	{
+		return descriptors.elements();
+	}
 
-  public void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-    eventQueue.addElement(new GUIEvent(GUIEvent.EV_REG, dfName, dfd));
-    doWake();
-  }
-
-  public void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-    eventQueue.addElement(new GUIEvent(GUIEvent.EV_DEREG, dfName, dfd));
-    doWake();
-  }
-
+	public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException
+	{
+		AgentManagementOntology.DFAgentDescriptor dsc = (AgentManagementOntology.DFAgentDescriptor) descriptors.get(name);
+		if(dsc == null)
+			throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
+		return(dsc);
+	}
 }
 
 
