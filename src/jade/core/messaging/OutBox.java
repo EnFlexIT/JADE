@@ -35,11 +35,11 @@ class OutBox {
 	 * This method is executed by an agent's thread requesting to deliver 
 	 * a new message.
 	 */
-	synchronized void addLast(AID receiverID, ACLMessage msg){
+	synchronized void addLast(AID receiverID, ACLMessage msg, MessageManager.Channel ch) {
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b == null){
 			// There is no Box of messages for this receiver yet. Create a new one 
-			b = new Box(receiverID);
+			b = new Box(receiverID, ch);
 			messagesByReceiver.put(receiverID, b);
 			messagesByOrder.add(b);
 		}
@@ -85,7 +85,7 @@ class OutBox {
 				// Just do nothing
 			}
 		}
-		PendingMsg pm = new PendingMsg(b.removeFirst(), b.getReceiver(), -1);
+		PendingMsg pm = new PendingMsg(b.removeFirst(), b.getReceiver(), b.getChannel(), -1);
 	 	return pm;
 	}
 	
@@ -134,18 +134,24 @@ class OutBox {
 	 * a single receiver
 	 */
 	private class Box {
-		private final AID receiver;
-		private boolean busy;
-		private final List messages;
+	    private final AID receiver;
+	    private boolean busy;
+	    private MessageManager.Channel channel;  
+	    private final List messages;
 		
-		public Box(AID r){
+		public Box(AID r, MessageManager.Channel ch) {
 			receiver = r;
+			channel = ch;
 			busy = false;
 			messages = new LinkedList(); 
 		}
 		
 		private AID getReceiver() {
 			return receiver;
+		}
+
+	        private MessageManager.Channel getChannel() {
+		    return channel;
 		}
 		
 		private void setBusy(boolean b){
