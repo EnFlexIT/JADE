@@ -41,8 +41,8 @@ import jade.core.*;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
-import jade.domain.FIPAServiceCommunicator;
-import jade.domain.AMSServiceCommunicator;
+//import jade.domain.FIPAServiceCommunicator;
+//import jade.domain.AMSServiceCommunicator;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
