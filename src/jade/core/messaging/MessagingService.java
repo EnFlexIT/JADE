@@ -127,8 +127,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     public static final String MAIN_SLICE = "Main-Container";
 
 
-    public MessagingService(AgentContainerImpl ac, ServiceFinder sf, Profile p) {
-	super(sf);
+    public MessagingService(AgentContainerImpl ac, Profile p) throws ProfileException {
+	super(p);
 
 	myContainer = ac;
 	cachedSlices = new HashMap();
@@ -307,10 +307,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    return MessagingService.this;
 	}
 
-	public Node getNode() {
-	    return null; // FIXME: To be implemented...
+	public Node getNode() throws ServiceException {
+	    try {
+		return MessagingService.this.getLocalNode();
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
 	}
-
 
 
 	// Implementation of the service-specific horizontal interface MessagingSlice
@@ -477,7 +481,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
 		    MessagingSlice slice = (MessagingSlice)slices[i];
-		    if(!localSlice.equals(slice)) {
+		    String sliceName = slice.getNode().getName();
+		    if(!sliceName.equals(cid.getName())) {
 			slice.addRoute(mtp, cid.getName());
 		    }
 		}
@@ -928,6 +933,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // The local slice for this service
     private ServiceComponent localSlice;
+
+    // The node for the local slice of this service
+    private Node localNode;
 
     // The cached AID -> MessagingSlice associations
     private Map cachedSlices;
