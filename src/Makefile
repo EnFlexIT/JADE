@@ -184,7 +184,7 @@ batch:
 	echo 'xcopy /I jade\gui\help\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 
-	echo '$(STUBGEN) -classpath $(CLSDIR) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
+	echo '$(STUBGEN) -classpath ..\classes -d ..\classes $(STUBS)' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'cd ..' >> $(BATCH_ALL)
 
