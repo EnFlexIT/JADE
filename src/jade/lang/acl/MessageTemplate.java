@@ -39,8 +39,18 @@ import jade.core.AID;
    A pattern for matching incoming ACL messages. This class allows to
    build complex slot patterns to select ACL messages. These patterns
    can then be used in <code>receive()</code> operations.
-   @see jade.core.Agent#receive(MessageTemplate mt)
+
+   This class provide one method for each attribute of an ACLMessage, 
+   that can be combined using the logic operators to create more complex 
+   patterns.
+   A user can also create an application-specific pattern. 
+   In this case he has to implement the MatchExpression interface,
+   writing the application specific <code>match()</code> method. 
+   Then an instance of that class can be used as parameter of the MessageTemplate
+   constructor to define the application specific MessageTemaplate.
+    
    
+   @see jade.core.Agent#receive(MessageTemplate mt)
    
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -66,12 +76,20 @@ public class MessageTemplate implements Serializable {
     "ReplyTo"
   };
 
-  private static interface MatchExpression {
+  /**
+  This interface must be overriden in order to define an application 
+  specific MessageTemplate.
+  In particular in the method <code> match()</code> the programmer
+  should realize the necessary checks on the ACLMessage in order 
+  to return <b>true</b> if the message match with the application 
+  specific requirements <b>false</b> otherwise.
+  */
+
+  public static interface MatchExpression extends Serializable{
     boolean match(ACLMessage msg);
-    void toText(Writer w);
   }
 
-  private static class AndExpression implements MatchExpression, Serializable {
+  private static class AndExpression implements MatchExpression {
 
     private MatchExpression op1;
     private MatchExpression op2;
@@ -85,7 +103,7 @@ public class MessageTemplate implements Serializable {
       return op1.match(msg) && op2.match(msg);
     }
 
-    public void toText(Writer w) {
+  /*public void toText(Writer w) {
       try {
 	w.write("( ");
 	op1.toText(w);
@@ -96,11 +114,11 @@ public class MessageTemplate implements Serializable {
       catch(IOException ioe) {
 	ioe.printStackTrace();
       }
-    }
+    }*/
 
   } // End of AndExpression class
 
-  private static class OrExpression implements MatchExpression, Serializable {
+  private static class OrExpression implements MatchExpression{
 
     private MatchExpression op1;
     private MatchExpression op2;
@@ -114,7 +132,7 @@ public class MessageTemplate implements Serializable {
       return op1.match(msg) || op2.match(msg);
     }
 
-    public void toText(Writer w) {
+    /*public void toText(Writer w) {
       try {
 	w.write("( ");
 	op1.toText(w);
@@ -125,11 +143,11 @@ public class MessageTemplate implements Serializable {
       catch(IOException ioe) {
 	ioe.printStackTrace();
       }
-    }
+    }*/
 
   } // End of OrExpression class
 
-  private static class NotExpression implements MatchExpression, Serializable {
+  private static class NotExpression implements MatchExpression{
     private MatchExpression op;
 
     public NotExpression(MatchExpression e) {
@@ -140,7 +158,7 @@ public class MessageTemplate implements Serializable {
       return ! op.match(msg);
     }
 
-    public void toText(Writer w) {
+    /*public void toText(Writer w) {
       try {
 	w.write(" NOT ");
 	op.toText(w);
@@ -148,11 +166,11 @@ public class MessageTemplate implements Serializable {
       catch(IOException ioe) {
 	ioe.printStackTrace();
       }
-    }
+    }*/
 
   } // End of NotExpression class
 
-  private static class Literal implements MatchExpression, Serializable {
+  private static class Literal implements MatchExpression{
 
     private class WildCardedMessage {
       private boolean hasPerformative;
@@ -253,7 +271,7 @@ public class MessageTemplate implements Serializable {
 
     }
 
-    public void toText(Writer w) { // FIXME: This method just prints out the String slots.
+    /*public void toText(Writer w) { // FIXME: This method just prints out the String slots.
       try {
 	w.write("(\n");
 	for(int i = 0; i < stringFields.length; i++) {
@@ -277,7 +295,7 @@ public class MessageTemplate implements Serializable {
 	ioe.printStackTrace();
       }
 
-    }
+    }*/
 
   } // End of Literal class
 
@@ -324,10 +342,13 @@ public class MessageTemplate implements Serializable {
     return msg;
   }
 
+  
+  
+  /** Public constructor to use when the user needs to define 
+  an application specific pattern.	 
+  */
 
-  // Private constructor: use static factory methods to create message
-  // templates.
-  private MessageTemplate(MatchExpression e) {
+  public MessageTemplate(MatchExpression e) {
     toMatch = e;
   }
 
