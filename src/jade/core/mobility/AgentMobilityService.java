@@ -47,6 +47,7 @@ import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 
@@ -88,58 +89,16 @@ import jade.util.leap.HashMap;
 */
 public class AgentMobilityService extends BaseService {
 
-    /**
-       The name of this service.
-    */
-    public static final String NAME = "jade.core.mobility.AgentMobility";
 
-    /**
-       This command name represents the <code>move-agent</code>
-       action.
-       This command object represents only the <i>first half</i> of
-       the complete agent migration process. Even if this command is
-       accepted by the kernel, there is no guarantee that the
-       requested mogration will ever happen. Only when the
-       <code>InformMoved</code> command is issued can one assume that
-       the agent migration has taken place.
-    */
-    public static final String REQUEST_MOVE = "Request-Move";
 
-    /**
-       This command name represents the <code>clone-agent</code>
-       action.
-       This command object represents only the <i>first half</i> of
-       the complete agent clonation process. Even if this command is
-       accepted by the kernel, there is no guarantee that the
-       requested clonation will ever happen. Only when the
-       <code>InformCloned</code> command is issued can one assume that
-       the agent clonation has taken place.
-    */
-    public static final String REQUEST_CLONE = "Request-Clone";
-
-    /**
-       This command is issued by an agent that has just migrated.
-       The agent migration can either be an autonomous move of the
-       agent or the outcome of a previously issued
-       <code>RequestMove</code> command. In the second case, this
-       command represents only the <i>second half</i> of the complete
-       agent migration process.
-    */
-    public static final String INFORM_MOVED = "Inform-Moved";
-
-    /**
-       This command is issued by an agent that has just cloned itself.
-       The agent clonation can either be an autonomous move of the
-       agent or the outcome of a previously issued
-       <code>RequestClone</code> command. In the second case, this
-       command represents only the <i>second half</i> of the complete
-       agent clonation process.
-    */
-    public static final String INFORM_CLONED = "Inform-Cloned";
-
+    private static final String[] OWNED_COMMANDS = new String[] {
+	AgentMobilitySlice.REQUEST_MOVE,
+	AgentMobilitySlice.REQUEST_CLONE,
+	AgentMobilitySlice.INFORM_MOVED,
+	AgentMobilitySlice.INFORM_CLONED
+    };
 
     public static final String MAIN_SLICE = "Main-Container";
-
 
     static final boolean MIGRATION = false;
     static final boolean CLONING = true;
@@ -165,7 +124,7 @@ public class AgentMobilityService extends BaseService {
     }
 
     public String getName() {
-	return NAME;
+	return AgentMobilitySlice.NAME;
     }
 
     public Class getHorizontalInterface() {
@@ -177,8 +136,22 @@ public class AgentMobilityService extends BaseService {
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return localSlice;
+	if(direction == Filter.OUTGOING) {
+	    return localSlice;
+	}
+	else {
+	    return null;
+	}
     }
+
+    public Sink getCommandSink(boolean side) {
+	return null;
+    }
+
+    public String[] getOwnedCommands() {
+	return OWNED_COMMANDS;
+    }
+
 
     /**
        Inner mix-in class for this service: this class receives
@@ -196,16 +169,16 @@ public class AgentMobilityService extends BaseService {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(REQUEST_MOVE)) {
+		if(name.equals(AgentMobilitySlice.REQUEST_MOVE)) {
 		    handleRequestMove(cmd);
 		}
-		else if(name.equals(REQUEST_CLONE)) {
+		else if(name.equals(AgentMobilitySlice.REQUEST_CLONE)) {
 		    handleRequestClone(cmd);
 		}
-		else if(name.equals(INFORM_MOVED)) {
+		else if(name.equals(AgentMobilitySlice.INFORM_MOVED)) {
 		    handleInformMoved(cmd);
 		}
-		else if(name.equals(INFORM_CLONED)) {
+		else if(name.equals(AgentMobilitySlice.INFORM_CLONED)) {
 		    handleInformCloned(cmd);
 		}
 	    }
