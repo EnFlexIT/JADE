@@ -44,6 +44,22 @@ public class AID implements Cloneable, Comparable, Serializable {
   private List resolvers = new ArrayList();
   private Properties userDefSlots = new Properties();
 
+
+  /**
+   * Constructs an Agent-Identifier whose slot name is set to an empty string
+   */
+  public AID() {
+    this("");
+  }
+
+  /** constructor for an Agent-identifier
+   * @param guid is the Globally Unique identifer for the agent. The slot name
+   * assumes that value in the constructed object. 
+   */
+  public AID(String guid) {
+    name =guid;
+  }
+
   public void setName(String n){
     name = n;
   }
