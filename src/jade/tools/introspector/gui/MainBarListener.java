@@ -57,16 +57,16 @@ public class MainBarListener implements ActionListener{
         else mainWnd.setBehaviourPanelVisible(false);
         break;
       case 4://kill
-        System.out.println("kill agent");
+        System.out.println("kill agent: Not yet implemented");
         break;
       case 5://suspend
-        System.out.println("suspend agent");
+        System.out.println("suspend agent: Not yet implemented");
         break;
       case 6://wakeup
-        System.out.println("WakeUp agent");
+        System.out.println("WakeUp agent: Not yet implemented");
         break;
       case 7://wait
-        System.out.println("wait agent");
+        System.out.println("wait agent: Not yet implemented");
         break;
     }
   }
