@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.tools.introspector.gui;
 
 import jade.core.BehaviourID;
+import jade.core.behaviours.Behaviour;
 import jade.domain.introspection.AddedBehaviour;
 import jade.domain.introspection.RemovedBehaviour;
 import jade.domain.introspection.ChangedBehaviourState;
@@ -41,89 +42,103 @@ import java.lang.reflect.*;
  @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
  */
 public class TreeUpdater implements Runnable {
-    private boolean current;
-    private boolean add;
+    
     private BehaviourID behaviour;
-    private DefaultTreeModel model;
     private BehaviourPanel gui;
-    private JTree behaviourTree;
-
+    private int action;
+    private boolean blocked;
+    
+    private static final int ADD_NODE       = 0;
+    private static final int REMOVE_NODE    = 1;
+    private static final int CHANGE_NODE    = 2;
+    
     public TreeUpdater(AddedBehaviour b, BehaviourPanel bp) {
         behaviour = b.getBehaviour();
         gui = bp;
-        behaviourTree = bp.getBehaviourTree();
-        model = (DefaultTreeModel)behaviourTree.getModel();
-        add = true;
-        current = false;
+        action = ADD_NODE;
+        blocked = false;
     }
     
     public TreeUpdater(RemovedBehaviour b, BehaviourPanel bp) {
         behaviour = b.getBehaviour();
         gui=bp;
-        behaviourTree = bp.getBehaviourTree();
-        model=(DefaultTreeModel)behaviourTree.getModel();
-        add = false;
-        current = false;
+        action = REMOVE_NODE;
+        blocked = false;
     }
     
     public TreeUpdater(ChangedBehaviourState b, BehaviourPanel bp) {
         behaviour = b.getBehaviour();
         gui=bp;
-        behaviourTree = bp.getBehaviourTree();
-        model=(DefaultTreeModel)behaviourTree.getModel();
-        add = false;
-        current = true;
-    }
-
-    public static void description(JTextArea t, BehaviourID b){
-        t.setText(b.getName());
-    }
-
-    public void createTree(DefaultMutableTreeNode r,Iterator v){
-        while(v.hasNext()){
-            BehaviourID b=(BehaviourID)v.next();
-            DefaultMutableTreeNode rc=new DefaultMutableTreeNode(b);
-            
-            if (!b.isSimple()) {
-                createTree(rc,b.getAllChildren());
-            }
-            
-            r.add(rc);
+        action = CHANGE_NODE;
+        
+        if (b.getTo().equals(Behaviour.STATE_BLOCKED)) {
+            blocked = true;
+        } else {
+            blocked = false;
         }
     }
 
-    public void run()
-    {
-        boolean bFound = false;
+    public void createTree(DefaultMutableTreeNode r, Iterator v) {
+        while(v.hasNext()){
+            BehaviourID b=(BehaviourID)v.next();
+            DefaultMutableTreeNode rc = new DefaultMutableTreeNode(new BehaviourTreeNode(b, blocked));
+            if (!b.isSimple()) {
+                createTree(rc,b.getAllChildren());
+            }
+            r.add(rc);
+        }
+    }
         
+    public void run() {
+        
+        JTree tree = gui.getBehaviourTree();
+        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
         DefaultMutableTreeNode root=(DefaultMutableTreeNode)model.getRoot();
-
-        if (current)
+        
+        if (action == CHANGE_NODE)
         {
-            behaviourTree.clearSelection();
+            boolean bFound = false;
+            
+            tree.clearSelection();
             Enumeration e=root.breadthFirstEnumeration();
-            if(e.hasMoreElements())
+            
+            // Skip over the first element (the behaviours folder)
+            if (e.hasMoreElements())
                 e.nextElement();
-
+            
             while(e.hasMoreElements())
             {
                 DefaultMutableTreeNode node =(DefaultMutableTreeNode)e.nextElement();
-                BehaviourID b=(BehaviourID) node.getUserObject();
+                BehaviourTreeNode bNode = (BehaviourTreeNode)node.getUserObject();
+                BehaviourID b = bNode.getBehaviour();
+
                 if (b.equals(behaviour))
                 {
                     Object[]o=node.getPath();
                     TreePath tp= new TreePath(o);
-                    behaviourTree.setSelectionPath(tp);
-                    this.description(gui.getBehaviourText(),b);
+                    tree.setSelectionPath(tp);
+                    description(gui.getBehaviourText(), b);
+                    
+                    // Update the blocked status.
+                    if ((blocked && !bNode.isBlocked()) ||
+                        (!blocked && bNode.isBlocked())) {
+                        bNode.setBlocked(blocked);
+                        model.nodeChanged(node);
+                    }
+
                     bFound = true;
                     break;
                 }
             }
+            
+            // If we didn't find the node in the tree, add it now.
+            if (!bFound)
+                action = ADD_NODE;
         }
 
-        if (add || !bFound)
+        if (action == ADD_NODE)
         {
-            DefaultMutableTreeNode beh=new DefaultMutableTreeNode(behaviour);
+            DefaultMutableTreeNode beh = new DefaultMutableTreeNode(new BehaviourTreeNode(behaviour, blocked));
 
             if (!behaviour.isSimple()) {
                 createTree(beh, behaviour.getAllChildren());
@@ -131,19 +146,24 @@ public class TreeUpdater implements Runnable {
 
             model.insertNodeInto(beh,root,model.getChildCount(root));
         }
-        else if (!add)
+        
+        if (action == REMOVE_NODE)
         {
             Enumeration e=root.breadthFirstEnumeration();
             e.nextElement();
             while(e.hasMoreElements())
             {
                 DefaultMutableTreeNode node =(DefaultMutableTreeNode)e.nextElement();
-                BehaviourID b=(BehaviourID)node.getUserObject();
-                if (b.equals(behaviour)){
+                BehaviourTreeNode b = (BehaviourTreeNode)node.getUserObject();
+                if (b.getBehaviour().equals(behaviour)){
                     model.removeNodeFromParent(node);
                     break;
                 }
             }
         }
+    }
+    
+    public static void description (JTextArea t, BehaviourID b){
+        t.setText(b.getName());
     }
 }

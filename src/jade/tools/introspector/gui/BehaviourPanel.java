@@ -40,12 +40,15 @@ public class BehaviourPanel extends JSplitPane{
   private JScrollPane textScroll;
   private JPanel treePanel;
   private TreeMouseListener treeListener;
-
+  private Icon runningIcon;
+  private Icon blockedIcon;
+  
   public BehaviourPanel(DefaultTreeModel model ){
     super();
     behaviourTree=new JTree(model);
     treeListener = new TreeMouseListener(this);
     behaviourTree.addMouseListener(treeListener);
+    behaviourTree.setCellRenderer(new BehaviourCellRenderer());
     this.build();
   }
 
@@ -58,9 +61,17 @@ public class BehaviourPanel extends JSplitPane{
 
     treePanel.setLayout(new BorderLayout());
 
+    runningIcon = new ImageIcon(getClass().getResource("images\\behaviour.gif"));
+    blockedIcon = new ImageIcon(getClass().getResource("images\\blocked.gif"));
+    
     //behaviorTree.addMouseListener(new TreeListener);
     behaviourTree.putClientProperty("JTree.lineStyle","Angled");
     behaviourTree.setShowsRootHandles(true);
+    
+    DefaultTreeCellRenderer rend = (DefaultTreeCellRenderer)behaviourTree.getCellRenderer();
+    rend.setLeafIcon(runningIcon);
+    rend.setOpenIcon(runningIcon);
+    rend.setClosedIcon(runningIcon);
 
     treePanel.add(behaviourTree,BorderLayout.CENTER);
 
@@ -74,8 +85,7 @@ public class BehaviourPanel extends JSplitPane{
     this.add(textScroll,JSplitPane.RIGHT);
 
     this.setContinuousLayout(true);
-    this.setDividerLocation(200);
-
+    this.setDividerLocation(200);    
   }
 
   public JTree getBehaviourTree(){
@@ -85,5 +95,55 @@ public class BehaviourPanel extends JSplitPane{
   public JTextArea getBehaviourText(){
     return text;
   }
+      
+  /**
+   * The BehaviourCellRenderer class manages rendering nodes in the
+   * behaviour tree.
+   */
+  class BehaviourCellRenderer extends DefaultTreeCellRenderer {
+          
+    public Component getTreeCellRendererComponent(JTree tree,
+                                                  Object value,
+                                                  boolean sel,
+                                                  boolean expanded,
+                                                  boolean leaf,
+                                                  int row,
+                                                  boolean hasFocus) {
+        
+        // Try to cast the object to a default mutable tree node.
+        // If we succeed, try to cast the user object to a behaviour
+        // tree node. If this succeeds, check the status of the object.
+        try
+        {
+            DefaultMutableTreeNode mut = (DefaultMutableTreeNode)value;
+            BehaviourTreeNode node = (BehaviourTreeNode)mut.getUserObject();
+            
+            if (node.isBlocked()) {
+                changeIcon(blockedIcon);
+            } else {
+                changeIcon(runningIcon);
+            }
+        }
+        catch(Exception e)
+        {
+            setLeafIcon(getDefaultLeafIcon());
+            setOpenIcon(getDefaultOpenIcon());
+            setClosedIcon(getDefaultClosedIcon());
+        }
+            
+        return super.getTreeCellRendererComponent(tree,
+                                                  value,
+                                                  sel,
+                                                  expanded, 
+                                                  leaf,
+                                                  row,
+                                                  hasFocus);
+    }
 
+    private void changeIcon(Icon ico) {
+        setOpenIcon(ico);
+        setLeafIcon(ico);
+        setClosedIcon(ico);
+    }
+  }        
 }

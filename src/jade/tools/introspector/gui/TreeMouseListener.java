@@ -61,8 +61,8 @@ class TreeMouseListener implements MouseListener{
         DefaultMutableTreeNode t=
               (DefaultMutableTreeNode) path.getLastPathComponent();
         if(!t.isRoot()){
-          BehaviourID b = (BehaviourID)t.getUserObject();
-          TreeUpdater.description(parent.getBehaviourText(), b);
+            BehaviourTreeNode b = (BehaviourTreeNode)t.getUserObject();
+            TreeUpdater.description(parent.getBehaviourText(), b.getBehaviour());
         }
       }
     }
