@@ -38,10 +38,10 @@ import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.ConnectionListener;
 import jade.util.leap.Properties;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
 
 import java.io.*;
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
  * Class declaration
@@ -172,13 +172,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
   /**
      Make this BIFEDispatcher terminate.
-     Note that this method is not synchronized so that, if there is a 
-     problem and a Thread hangs in the dispatch method (e.g. waiting
-     for a response), the shutdown procedure can go on in any way. The
-     synchronized block within writePacket() ensures that we don't
-     write two packets at the same time on the same connection.
 	 */
-  public void shutdown() {
+  public synchronized void shutdown() {
   	active = false;
   	
   	terminator = Thread.currentThread();
@@ -406,6 +401,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  }
   } // END of inner class InputManager
 
+  /**
+     Close the current InputManager (if any) and start a new one
+   */
   private synchronized void refreshInp() {
   	// Avoid 2 refresh at the same time
   	if (!refreshingInput && active) {
@@ -423,7 +421,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	myInputManager.start();
   	}
   }
-  		
+  	
+  /**
+     Close the current outConnection (if any) and starts a new thread
+     that asynchronously tries to restore it.
+   */
   private synchronized void refreshOut() {
   	// Close the outConnection
   	if (outConnection != null) {
@@ -519,7 +521,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	}
   
   private String[] parseBackEndAddresses(String addressesText) {
-    ArrayList addrs = new ArrayList();
+    Vector addrs = new Vector();
 
     if(addressesText != null && !addressesText.equals("")) {
 	// Copy the string with the specifiers into an array of char
@@ -544,7 +546,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
         	if (tmp.length() > 0) {
 		    // Add the Address to the list
-		    addrs.add(tmp);
+		    addrs.addElement(tmp);
         	}
 
         	// Create the StringBuffer to hold the next specifier
@@ -559,14 +561,14 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
     	if(tmp.length() > 0) {
 	    // Add the Address to the list
-	    addrs.add(tmp);
+	    addrs.addElement(tmp);
     	}
     }
 
     // Convert the list into an array of strings
     String[] result = new String[addrs.size()];
     for(int i = 0; i < result.length; i++) {
-			result[i] = (String)addrs.get(i);
+			result[i] = (String)addrs.elementAt(i);
     }
 
     return result;
@@ -574,16 +576,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   }
   
   
-  ////////////////////////////////////////
-  // Keep-alive mechanism management
-  ////////////////////////////////////////
   private void writePacket(JICPPacket pkt, Connection c) throws IOException {
-  	// This synchronization block avoids writing the peer termination notification 
-  	// together with a normal command or a keep alive. In fact shutdown() is
-  	// not synchronized.
-  	synchronized (c) {
-	  	c.writePacket(pkt);
-  	}
+  	c.writePacket(pkt);
   	if (Thread.currentThread() == terminator) {
   		myInputManager.close();
   	}
@@ -591,7 +585,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	updateKeepAlive();
   	}
   }
-  	
+  
+  ////////////////////////////////////////
+  // Keep-alive mechanism management
+  ////////////////////////////////////////
+  
   // Mutual exclusion with doTimeOut()
   private synchronized void updateKeepAlive() {
   	if (keepAliveTime > 0) {
