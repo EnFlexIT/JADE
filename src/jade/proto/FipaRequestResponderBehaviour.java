@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/06/16 11:18:05  rimassa
+  Fixed a bug, causing a NullPointerException when a received ACL
+  message had null content.
+
   Revision 1.3  1999/05/20 13:43:19  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -274,7 +278,13 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       // Start reading message content and spawn a suitable
       // Behaviour according to action kind
 
-      StringTokenizer st = new StringTokenizer(msg.getContent()," \t\n\r()",false);
+      String content = msg.getContent();
+      if(content == null) {
+	sendNotUnderstood(reply);
+	return;
+      }
+
+      StringTokenizer st = new StringTokenizer(content," \t\n\r()",false);
 
       String token = st.nextToken();
       if(token.equalsIgnoreCase("action")) {
