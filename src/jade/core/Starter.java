@@ -88,8 +88,21 @@ public class Starter {
       else {
 	theContainer = new AgentContainerImpl();
       }
+
       theContainer.joinPlatform(platformID, agents, MTPs);
 
+    }
+    catch(ConnectException ce) {
+      // This one is thrown when trying to bind in an RMIRegistry that
+      // is not on the current host
+      System.out.println("ERROR: trying to bind to a remote RMI registry.");
+      System.out.println("If you want to start a JADE main container:");
+      System.out.println("  Make sure the specified host name or IP address belongs to the local machine.");
+      System.out.println("  Please use '-host' and/or '-port' options to setup JADE host and port.");
+      System.out.println("If you want to start a JADE non-main container: ");
+      System.out.println("  Use the '-container' option, then use '-host' and '-port' to specify the ");
+      System.out.println("  location of the main container you want to connect to.");
+      System.exit(1);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while starting JADE Runtime System.");
