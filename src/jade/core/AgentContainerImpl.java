@@ -188,8 +188,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
    /**
-    *   Creates a generic command for asking the creation
-    *   of a new agent.
     */
    public void initAgent(
         AID agentID, Agent instance, boolean startIt,
@@ -204,7 +202,24 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.setPrincipal( creator );
       cmd.setCredentials( creds);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof NameClashException) {
+      		throw ((NameClashException) ret);
+      	}
+      	else if (ret instanceof IMTPException) {
+      		throw ((IMTPException) ret);
+      	}
+      	else if (ret instanceof NotFoundException) {
+      		throw ((NotFoundException) ret);
+      	}
+      	else if (ret instanceof AuthException) {
+      		throw ((AuthException) ret);
+      	}
+      	else if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public void setOwnerPrincipal(JADEPrincipal p) {
@@ -423,9 +438,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				  String serviceClass = s.getClassName();
 				  startService(serviceClass);
 	      }
-	      catch(ServiceException se) {
+	      catch(Exception e) {
 		  		System.out.println("Error starting service "+s.getClassName());
-				  se.printStackTrace();
+				  e.printStackTrace();
 	      }
 		  }
   	}
@@ -504,7 +519,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Perform the initial setup from the profile
 	  init();
 
-	  // Connect the local bode to the platform and activate the basic services 
+	  // Connect the local node to the platform and activate the basic services 
 	  startNode();
 
       }
@@ -528,12 +543,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
       
       // Start additional services as specified in the profile
-      try {
-      	startAdditionalServices();
-      }
-      catch (Exception e) {
-      	e.printStackTrace();
-      }
+    	startAdditionalServices();
       
       // Create and activate agents that must be launched at bootstrap
       try {
@@ -666,41 +676,46 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return myID;
   }
 
-    public void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
-      Iterator it = msg.getAllIntendedReceiver();
-      while (it.hasNext()){
-        AID receiver = (AID)it.next();
-        GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
-        cmd.addParam(sender);
-        cmd.addParam(new GenericMessage((ACLMessage)msg.clone()));
-        cmd.addParam(receiver);
-        Object lastException = myCommandProcessor.processOutgoing(cmd);
-
-        /*if((lastException != null) && (lastException instanceof AuthException)) {
-          throw (AuthException)lastException;
-        }*/
+  public void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
+    Iterator it = msg.getAllIntendedReceiver();
+    while (it.hasNext()){
+      AID receiver = (AID)it.next();
+      GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
+      cmd.addParam(sender);
+      cmd.addParam(new GenericMessage((ACLMessage)msg.clone()));
+      cmd.addParam(receiver);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
       }
-
     }
 
-    //#MIDP_EXCLUDE_BEGIN
-    public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
+  }
 
-	/*AgentPrincipal target = getAgentPrincipal(msg.getSender());
+  //#MIDP_EXCLUDE_BEGIN
+  public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
 
-	// --- This code could go into a Security Service, intercepting the agent creation...
-
-	authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
-
-	// --- End of Security code
-	*/
-
-	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, null);
-	cmd.addParam(msg);
-	cmd.addParam(agentID);
-
-	myCommandProcessor.processOutgoing(cmd);
-
+		/*AgentPrincipal target = getAgentPrincipal(msg.getSender());
+	
+		// --- This code could go into a Security Service, intercepting the agent creation...
+	
+		authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
+	
+		// --- End of Security code
+		*/
+	
+		GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, null);
+		cmd.addParam(msg);
+		cmd.addParam(agentID);
+	
+		Object ret = myCommandProcessor.processOutgoing(cmd);
+	  if (ret != null) {
+	  	if (ret instanceof Throwable) {
+	  		((Throwable) ret).printStackTrace();
+	  	}
+	  }
   }
   //#MIDP_EXCLUDE_END
 
@@ -711,7 +726,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+  	if (ret instanceof Throwable) {
+  		((Throwable) ret).printStackTrace();
+  	}
+  }
 
   }
   //#MIDP_EXCLUDE_END
@@ -722,7 +742,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(b);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
   //#MIDP_EXCLUDE_END
 
@@ -732,7 +757,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(b);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
   //#MIDP_EXCLUDE_END
 
@@ -744,7 +774,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(from);
       cmd.addParam(to);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
   //#MIDP_EXCLUDE_END
 
@@ -775,8 +810,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(from);
       cmd.addParam(to);
-      myCommandProcessor.processOutgoing(cmd);
-
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public void handleStart(String localName, Agent instance) {
@@ -792,7 +831,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void handleEnd(AID agentID) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   // FIXME: Needed due to the Persistence Service being an add-on
@@ -800,7 +844,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand("Save-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof ServiceException) {
+      		throw ((ServiceException) ret);
+      	}
+      	else if (ret instanceof NotFoundException) {
+      		throw ((NotFoundException) ret);
+      	}
+      	else if (ret instanceof IMTPException) {
+      		throw ((IMTPException) ret);
+      	}
+      	else if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   // FIXME: Needed due to the Persistence Service being an add-on
@@ -808,7 +866,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand("Reload-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof ServiceException) {
+      		throw ((ServiceException) ret);
+      	}
+      	else if (ret instanceof NotFoundException) {
+      		throw ((NotFoundException) ret);
+      	}
+      	else if (ret instanceof IMTPException) {
+      		throw ((IMTPException) ret);
+      	}
+      	else if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   // FIXME: Needed due to the Persistence Service being an add-on
@@ -817,13 +889,32 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(repository);
       cmd.addParam(bufferContainer);
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof ServiceException) {
+      		throw ((ServiceException) ret);
+      	}
+      	else if (ret instanceof NotFoundException) {
+      		throw ((NotFoundException) ret);
+      	}
+      	else if (ret instanceof IMTPException) {
+      		throw ((IMTPException) ret);
+      	}
+      	else if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public void setPlatformAddresses(AID id) {
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(id);
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public AID getAMS() {

@@ -616,14 +616,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.ADD_TOOL, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(tool);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public void removeTool(AID tool) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REMOVE_TOOL, jade.core.management.AgentManagementSlice.NAME, null);
-	cmd.addParam(tool);
+			cmd.addParam(tool);
 
-	myCommandProcessor.processOutgoing(cmd);
+			Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
 
@@ -656,21 +666,26 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(ownership);
       cmd.addParam(certs);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
-	  }
-	  if(result instanceof NameClashException) {
-	      throw (NameClashException)result;
-	  }
-	  if(result instanceof UnreachableException) {
-	      ((Throwable)result).printStackTrace();
-	      throw (UnreachableException)result;
-	  }
-	  if(result instanceof AuthException) {
-	      throw (AuthException)result;
-	  }
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof NameClashException) {
+			      throw (NameClashException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+			  else if (ret instanceof AuthException) {
+			      throw (AuthException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+			  	// In methods called by the AMS to serve agents requests we throw
+			  	// a RuntimeException that will result in a FAILURE message sent
+			  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
       }
   }
 
@@ -691,7 +706,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_KILL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof AuthException) {
+	      throw (AuthException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	      throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
     }
 
     /**
@@ -710,7 +742,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_SUSPENDED));
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof AuthException) {
+	      throw (AuthException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	  		throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
     }
 
     /**
@@ -729,7 +778,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof AuthException) {
+	      throw (AuthException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	      throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
     }
 
 
@@ -741,7 +807,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_WAITING));
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	      throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
     }
 
     /**
@@ -752,7 +832,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	      throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
   }
 
     /**
@@ -780,7 +874,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 
-	myCommandProcessor.processOutgoing(cmd);
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+  if (ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
+	  }
+	  else if (ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
+	  }
+	  else if (ret instanceof AuthException) {
+	      throw (AuthException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+	      throw new RuntimeException(((Throwable) ret).getMessage());
+	  }
+  }
 
     }
 
@@ -809,20 +920,25 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	cmd.addParam(where);
 	cmd.addParam(newName);
 
-	Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
+	Object ret = myCommandProcessor.processOutgoing(cmd);
+      if(ret != null) {
+	  if(ret instanceof NotFoundException) {
+	      throw (NotFoundException)ret;
 	  }
-	  if(result instanceof NameClashException) {
-	      throw (NameClashException)result;
+	  else if(ret instanceof NameClashException) {
+	      throw (NameClashException)ret;
 	  }
-	  if(result instanceof UnreachableException) {
-	      ((Throwable)result).printStackTrace();
-	      throw (UnreachableException)result;
+	  else if(ret instanceof UnreachableException) {
+	      throw (UnreachableException)ret;
 	  }
-	  if(result instanceof AuthException) {
-	      throw (AuthException)result;
+	  else if(ret instanceof AuthException) {
+	      throw (AuthException)ret;
+	  }
+	  else if (ret instanceof Throwable) {
+		  	// In methods called by the AMS to serve agents requests we throw
+		  	// a RuntimeException that will result in a FAILURE message sent
+		  	// back to the requester
+		  	throw new RuntimeException(((Throwable) ret).getMessage());
 	  }
       }
 
@@ -831,33 +947,33 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /** 
 	Kill a given container
     */
-    public void killContainer(final ContainerID cid) throws NotFoundException, AuthException {
+    public void killContainer(ContainerID cid) throws NotFoundException, AuthException {
 
-	// --- This code should go into the Security Service ---
+			// --- This code should go into the Security Service ---
+		
+			// Check permissions
+			authority.checkAction(Authority.CONTAINER_KILL, getPrincipal(cid), null);
+		
+			// --- End of code that should go into the Security Service ---
 
-	// Check permissions
-	authority.checkAction(Authority.CONTAINER_KILL, getPrincipal(cid), null);
-
-	// --- End of code that should go into the Security Service ---
-
-
-	// Do the action in a separate thread to avoid deadlock (we
-	// need again full permissions to start a thread)
-	try {
-	    authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() {
 			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 			cmd.addParam(cid);
-			myCommandProcessor.processOutgoing(cmd);
+			Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof AuthException) {
+			      throw (AuthException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
 
-			return null;
-		    }
-		});
-	}
-	catch (Exception e) {
-	    // Should never happen
-	    e.printStackTrace();
-	}
     }
 
     /**
@@ -912,20 +1028,26 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(cid);
       cmd.addParam(className);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+	      else if (ret instanceof MTPException) {
+		  		throw (MTPException)ret;
+	      }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
 
-      if(result instanceof NotFoundException) {
-	  throw (NotFoundException)result;
-      }
-      if(result instanceof UnreachableException) {
-	  throw (UnreachableException)result;
-      }
-      if(result instanceof MTPException) {
-	  throw (MTPException)result;
-      }
-
-
-      MTPDescriptor dsc = (MTPDescriptor)result;
+      MTPDescriptor dsc = (MTPDescriptor)ret;
       /***
       System.out.println("--- New MTP ---");
       System.out.println("Name: " + dsc.getName());
@@ -940,7 +1062,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       ***/
 
 
-      return (MTPDescriptor)result;
+      return dsc;
   }
 
   /** 
@@ -952,13 +1074,31 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(address);
       cmd.addParam(cid);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+	      else if (ret instanceof MTPException) {
+		  		throw (MTPException)ret;
+	      }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
   }
 
   /**
      Change the principal of an agent
    */
 	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
+		/*
 		// Check permissions	
 		authority.checkAction(Authority.AGENT_TAKE, getPrincipal(agentID), null);
 
@@ -981,7 +1121,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 
@@ -993,15 +1133,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(snifferName);
       cmd.addParam(toBeSniffed);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
-	  }
-	  if(result instanceof UnreachableException) {
-	      throw (UnreachableException)result;
-	  }
-      }
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
 
   }
 
@@ -1013,15 +1159,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(snifferName);
       cmd.addParam(notToBeSniffed);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
-	  }
-	  if(result instanceof UnreachableException) {
-	      throw (UnreachableException)result;
-	  }
-      }
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
   }
 
   /**
@@ -1032,15 +1184,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(debuggerName);
       cmd.addParam(toBeDebugged);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
-	  }
-	  if(result instanceof UnreachableException) {
-	      throw (UnreachableException)result;
-	  }
-      }
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
   }
 
   /**
@@ -1051,15 +1209,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       cmd.addParam(debuggerName);
       cmd.addParam(notToBeDebugged);
 
-      Object result = myCommandProcessor.processOutgoing(cmd);
-      if(result != null) {
-	  if(result instanceof NotFoundException) {
-	      throw (NotFoundException)result;
-	  }
-	  if(result instanceof UnreachableException) {
-	      throw (UnreachableException)result;
-	  }
-      }
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+		  if (ret != null) {
+			  if(ret instanceof NotFoundException) {
+			      throw (NotFoundException)ret;
+			  }
+			  else if (ret instanceof UnreachableException) {
+			      throw (UnreachableException)ret;
+			  }
+			  else if (ret instanceof Throwable) {
+				  	// In methods called by the AMS to serve agents requests we throw
+				  	// a RuntimeException that will result in a FAILURE message sent
+				  	// back to the requester
+			      throw new RuntimeException(((Throwable) ret).getMessage());
+			  }
+		  }
   }
 
   /**
@@ -1326,14 +1490,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_ADDED, jade.core.replication.AddressNotificationSlice.NAME, null);
       cmd.addParam(smAddr);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
   public void removeServiceManagerAddress(String smAddr) {
       GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_REMOVED, jade.core.replication.AddressNotificationSlice.NAME, null);
       cmd.addParam(smAddr);
 
-      myCommandProcessor.processOutgoing(cmd);
+      Object ret = myCommandProcessor.processOutgoing(cmd);
+      if (ret != null) {
+      	if (ret instanceof Throwable) {
+      		((Throwable) ret).printStackTrace();
+      	}
+      }
   }
 
 

@@ -166,7 +166,10 @@ public class AgentManagementService extends BaseService {
 		    handleRemoveTool(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
+	    catch (Throwable t) {
+	    	cmd.setReturnValue(t);
+	    }
+	    /*catch(IMTPException imtpe) {
 		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
 	    }
 	    catch(NotFoundException nfe) {
@@ -180,7 +183,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	    catch(ServiceException se) {
 		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
-	    }
+	    }*/
 	}
 
 
@@ -198,19 +201,24 @@ public class AgentManagementService extends BaseService {
 
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
-		AID agentID = new AID(name, AID.ISLOCALNAME);
-		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-		try {
-		    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
-		}
-		catch(IMTPException imtpe) {
-		    // Try to get a newer slice and repeat...
-		    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-		    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
-		}
+				AID agentID = new AID(name, AID.ISLOCALNAME);
+				AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+				if (targetSlice != null) {
+					try {
+					    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+					}
+					catch(IMTPException imtpe) {
+					    // Try to get a newer slice and repeat...
+					    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+					    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+					}
+				}
+				else {
+					throw new NotFoundException("Container "+cid.getName()+" not found");
+				}
 	    }
 	    else {
-		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+				// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
 	    }
 	}
 
@@ -270,6 +278,7 @@ public class AgentManagementService extends BaseService {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
+		// Note that since getContainerID() succeeded, targetSlice can't be null
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 		try {
 		    targetSlice.killAgent(agentID);
@@ -305,6 +314,7 @@ public class AgentManagementService extends BaseService {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
+		// Note that since getContainerID() succeeded, targetSlice can't be null
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 		try {
 		    targetSlice.changeAgentState(agentID, newState);
@@ -415,7 +425,9 @@ public class AgentManagementService extends BaseService {
 	    // Forward to the correct slice
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 	    try {
-		targetSlice.exitContainer();
+	    	if (targetSlice != null) {
+					targetSlice.exitContainer();
+	    	}
 	    }
 	    catch(IMTPException imtpe) {
 				// Try to get a newer slice and repeat...
@@ -489,7 +501,10 @@ public class AgentManagementService extends BaseService {
 		    handleKillContainer(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
+	    catch (Throwable t) {
+	    	cmd.setReturnValue(t);
+	    }
+	    /*catch(IMTPException imtpe) {
 		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
 	    }
 	    catch(NotFoundException nfe) {
@@ -503,7 +518,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	    catch(ServiceException se) {
 		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
-	    }
+	    }*/
 
 	}
 

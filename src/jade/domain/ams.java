@@ -253,7 +253,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				    public void run() {
 							try {
 								//myPlatform.create(agentName, className, args, container, ownership, agentCerts);
-                                                                myPlatform.create(agentName, className, args, container, null, null);
+                myPlatform.create(agentName, className, args, container, null, null);
 							}
 							catch (UnreachableException ue) {
 						    // Send failure notification to the requester if any
@@ -271,6 +271,10 @@ public class ams extends Agent implements AgentManager.Listener {
 							catch (NameClashException nce) {
 						    // Send failure notification to the requester if any
 	    					sendFailureNotification(ca, agentID, new AlreadyRegistered());
+							}
+							catch (Throwable t) {
+						    // Send failure notification to the requester if any
+	    					sendFailureNotification(ca, agentID, new InternalError(t.getMessage()));
 							}
 				    }
 					};
@@ -423,6 +427,10 @@ public class ams extends Agent implements AgentManager.Listener {
 				catch(NotFoundException nfe) {
 				    // Send failure notification to the requester if any
 				    sendFailureNotification(kc, cid, new InternalError("Container not found. "+nfe.getMessage()));
+				}
+				catch(Throwable t) {
+				    // Send failure notification to the requester if any
+				    sendFailureNotification(kc, cid, new InternalError(t.getMessage()));
 				}
 			    }
 			};
