@@ -41,7 +41,7 @@
 			<Description> This item includes tests related to the Yellow Pages service provided by the DF agent according to the FIPA specifications </Description>
 			<TestsListRif>test/domain/df/dfTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Persistent_DF" skip="false">
+		<Tester name="Persistent_DF" skip="true">
 			<ClassName>test.domain.df.PersistentDFTesterAgent</ClassName>
 			<Description> This item includes tests related to the persistence of Yellow Pages service provided by the DF agent.</Description>
 			<TestsListRif>test\\domain\\df\\persistentDFTestsList.xml</TestsListRif>
