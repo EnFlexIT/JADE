@@ -591,6 +591,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		if (className != null) {
   		JICPMediator m = (JICPMediator) Class.forName(className).newInstance();
   		mergeProperties(p, leapProps);
+  		myLogger.log(Logger.FINE, "Initializing mediator "+id+" with properties "+p);
   		m.init(this, id, p);
   		return m;
 		}
