@@ -61,6 +61,7 @@ public class MessageTemplate {
 					       "Source",
 					       "Type"
   };
+
   private ACLMessage template;
 
   // Creates an ACL message with all fields set to the special,
@@ -68,18 +69,32 @@ public class MessageTemplate {
   private static ACLMessage allWildCard() {
     ACLMessage msg = new ACLMessage();
 
-    msg.setSource(wildCard);
-    msg.setDest(wildCard);
-    msg.setType(wildCard);
-    msg.setContent(wildCard);
-    msg.setReplyWith(wildCard);
-    msg.setReplyTo(wildCard);
-    msg.setEnvelope(wildCard);
-    msg.setLanguage(wildCard);
-    msg.setOntology(wildCard);
-    msg.setReplyBy(wildCard);
-    msg.setProtocol(wildCard);
-    msg.setConversationId(wildCard);
+    Class ACLMessageClass = msg.getClass();
+
+    Method setValue = null;
+    String name = null;
+
+    // Formal parameter type for set<name>() method call
+    Class[] paramType = { wildCard.getClass() };
+
+    // Actual parameter for set<name>() method call
+    Object[] param = { wildCard };
+
+    for(int i = 0; i<fieldNames.length; i++) {
+      name = fieldNames[i];
+    
+      try {
+	// This means: msg.set<name>(param)
+	setValue = ACLMessageClass.getMethod("set"+name, paramType);
+	setValue.invoke(msg, param);
+      }
+      catch(Exception e) {
+	e.printStackTrace();
+      }
+
+    }
+
+    msg.dump();
 
     return msg;
   }
