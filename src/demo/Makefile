@@ -7,7 +7,7 @@ all: MeetingSchedulerAgent
 
 MeetingSchedulerAgent:
 	@echo Making Meeting Scheduler application
-	$(JC) $(JFLAGS) -classpath $(CLASSPATH):$(SRCDIR):$(CLSDIR):$(DEMODIR)/MeetingScheduler/components.jar $(DEMODIR)/MeetingScheduler/MeetingSchedulerAgent.java
+	$(JC) $(JFLAGS) -classpath $(CLASSPATH):$(SRCDIR):$(CLSDIR):$(DEMODIR)/MeetingScheduler/CalendarBean.jar $(DEMODIR)/MeetingScheduler/MeetingSchedulerAgent.java
 
 clean:
 	rm -f `find . -name '*~' -print`
@@ -15,7 +15,7 @@ clean:
 
 batch:
 	echo 'cd ..\demo' >> $(BATCH_EXAMPLES)
-	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -classpath %CLASSPATH%;..\..\src;..\..\classes;MeetingScheduler\components.jar MeetingScheduler\MeetingSchedulerAgent.java' >> $(BATCH_EXAMPLES)
+	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -classpath %CLASSPATH%;..\..\src;..\..\classes;MeetingScheduler\CalendarBean.jar MeetingScheduler\MeetingSchedulerAgent.java' >> $(BATCH_EXAMPLES)
 	echo >> $(BATCH_EXAMPLES)
 	echo 'cd ..\..' >> $(BATCH_EXAMPLES)
 
