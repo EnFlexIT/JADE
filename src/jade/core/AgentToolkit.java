@@ -45,7 +45,7 @@ interface AgentToolkit {
   void handleMove(AID agentID, Location where);
   void handleClone(AID agentID, Location where, String newName);
   void handleSend(ACLMessage msg) throws AuthException;
-  void handlePosted(AID agentID, ACLMessage msg);
+  void handlePosted(AID agentID, ACLMessage msg) throws AuthException;
   void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
 //__SECURITY__BEGIN

@@ -1890,10 +1890,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myScheduler.remove(b);
   }
 
+	/*
+	//!!!
 	class SendAction implements jade.security.PrivilegedExceptionAction, jade.util.leap.Serializable {
 		ACLMessage msg;
 		
-		public SendAction() {
+		public SendAction(ACLMessage msg) {
+			this.msg = msg;
 		}
 		
 		public void setMessage(ACLMessage msg) {
@@ -1907,6 +1910,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	}
 	
 	SendAction sendAction = new SendAction();
+	*/
 
 	/**
 		Send an <b>ACL</b> message to another agent. This methods sends
@@ -1927,8 +1931,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		try {
 			// Notify send
-			sendAction.setMessage(msg);
-			doPrivileged(sendAction);
+			doPrivileged(new jade.security.PrivilegedExceptionAction() {
+				public Object run() throws AuthException {
+					notifySend(msg);
+					return null;
+				}
+			});
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1958,7 +1966,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				    doPrivileged(new ReceiveAction(currentMessage));
 				}
 				catch (Exception e) {
-				    e.printStackTrace();
+					e.printStackTrace();
 					//!!! discard the message
 					return receive();
 				}
@@ -1988,8 +1996,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				if (pattern == null || pattern.match(cursor)) {
 					try {
 						messages.remove(); //!!! msgQueue.remove(msg);
-						notifyReceived(cursor);
 						// Notify receive
+						notifyReceived(cursor);
 						/*doPrivileged(new jade.security.PrivilegedExceptionAction() {
 							public Object run() throws AuthException {
 								notifyReceived(cursor);
@@ -2156,7 +2164,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   // Notify toolkit that a message was posted in the message queue
-  private void notifyPosted(ACLMessage msg) {
+  private void notifyPosted(ACLMessage msg) throws AuthException {
     myToolkit.handlePosted(myAID, msg);
   }
 
@@ -2206,50 +2214,60 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myScheduler.restartAll();
   }
 
+	/**
+		Put a received message into the agent message queue. The message
+		is put at the back end of the queue. This method is called by
+		JADE runtime system when a message arrives, but can also be used
+		by an agent, and is just the same as sending a message to oneself
+		(though slightly faster).
+		@param msg The ACL message to put in the queue.
+		@see jade.core.Agent#send(ACLMessage msg)
+	*/
+	public final void postMessage(final ACLMessage msg) {
+		synchronized (waitLock) {
+			/*
+			try {
+				java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
+				f.write("waitLock taken in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
+				f.write(msg.toString());
+				f.close();
+			}
+			catch(java.io.IOException ioe) {
+				System.out.println(ioe.getMessage());
+			}
+			*/
 
-  /**
-     Put a received message into the agent message queue. The message
-     is put at the back end of the queue. This method is called by
-     JADE runtime system when a message arrives, but can also be used
-     by an agent, and is just the same as sending a message to oneself
-     (though slightly faster).
-     @param msg The ACL message to put in the queue.
-     @see jade.core.Agent#send(ACLMessage msg)
-  */
-  public final void postMessage (ACLMessage msg) {
-    synchronized(waitLock) {
-      /*
-      try {
-	java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
-	f.write("waitLock taken in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
-	f.write(msg.toString());
-	f.close();
-      }
-      catch(java.io.IOException ioe) {
-	  System.out.println(ioe.getMessage());
-      }
-      */
+			if (msg != null) {
+				try {
+					doPrivileged(new PrivilegedExceptionAction() {
+						public Object run() throws AuthException {
+							// notification appens first so, if an exception
+							// is thrown, then message isn't appended to queue
+							notifyPosted(msg);
+							msgQueue.addLast(msg);
+							return null;
+						}
+					});
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			doWake();
+			messageCounter++;
+		}
 
-      if(msg != null) {
-	msgQueue.addLast(msg);
-	notifyPosted(msg);
-      }
-      doWake();
-      messageCounter++;
-    }
-
-    /*
-    try {
-      java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
-      f.write("waitLock dropped in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
-      f.close();
-    }
-    catch(java.io.IOException ioe) {
-      System.out.println(ioe.getMessage());
-    }
-    */
-
-  }
+		/*
+		try {
+			java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
+			f.write("waitLock dropped in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
+			f.close();
+		}
+		catch(java.io.IOException ioe) {
+			System.out.println(ioe.getMessage());
+		}
+		*/
+	}
 
   Iterator messages() {
     return msgQueue.iterator();

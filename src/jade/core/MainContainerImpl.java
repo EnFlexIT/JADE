@@ -669,8 +669,10 @@ class MainContainerImpl implements Platform, AgentManager {
 		AgentPrincipal ap;
 		AgentDescriptor ad = platformAgents.get(agentID);
 
-		if (ad == null)
-			throw new NotFoundException("getPrincipal() failed to find " + agentID.getName());
+		if (ad == null) {
+			//!!! throw new NotFoundException("getPrincipal() failed to find " + agentID.getName());
+			return authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+		}
 		else {
 			ad.lock();
 			ap = ad.getPrincipal();

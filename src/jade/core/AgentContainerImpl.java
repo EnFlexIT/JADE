@@ -748,7 +748,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			throw lastException;
 	}
 
-  public void handlePosted(AID agentID, ACLMessage msg) {
+  public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
+    AgentPrincipal target = getAgentPrincipal(msg.getSender());
+    authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
     //firePostedMessage(msg, agentID);
     myNotificationManager.fireEvent(NotificationManager.POSTED_MESSAGE,
     	new Object[]{msg, agentID});
