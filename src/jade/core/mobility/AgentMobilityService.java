@@ -570,6 +570,7 @@ public class AgentMobilityService extends BaseService {
 	Agent a = myContainer.acquireLocalAgent(agentID);
 	if (a == null) {
 	    System.out.println("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
+	    myContainer.abortMigration(a);
 	    return;
 	}
 	String proto = where.getProtocol();
