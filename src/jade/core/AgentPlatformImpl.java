@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -208,7 +211,13 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     containers.put(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME, this);
 
     // Notify AMS
-    theAMS.postNewContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
+    try {
+      InetAddress netAddr = InetAddress.getLocalHost();
+      theAMS.postNewContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME, netAddr);
+    }
+    catch(UnknownHostException uhe) {
+      uhe.printStackTrace();
+    }
 
     Agent a = theAMS;
     a.powerUp(AMS_NAME, platformAddress, systemAgentsThreads);
@@ -287,7 +296,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public String addContainer(AgentContainer ac) throws RemoteException {
+  public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
 
     String name = AgentManagementOntology.PlatformProfile.AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
     containers.put(name, ac);
@@ -298,7 +307,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     t.start();
 
     // Notify AMS
-    theAMS.postNewContainer(name);
+    theAMS.postNewContainer(name, addr);
 
     // Return the name given to the new container
     return name;
@@ -396,6 +405,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     // Commit transaction and notify AMS
     ad.lock();
     ad.setProxy(new RemoteProxyRMI(destAC));
+    ad.setContainerName(dest);
     theAMS.postMovedAgent(agentName, src, dest);
     ad.unlock();
     return true;
@@ -541,22 +551,29 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public void move(String agentName, String containerName, String password ) throws NotFoundException, UnreachableException {
-    // FIXME: Not implemented
-    // Lookup the container for 'agentName', throwing NotFoundException on failure
-    // Tell the src container to send the agent code and data to the dest container
-    // Update GADT to reflect new agent location
-  }
-
-  public void copy(String agentName, String containerName, String newAgentName, String password) throws NotFoundException, UnreachableException {
+  public void move(String agentName, Location where, String password) throws NotFoundException, UnreachableException {
     // Retrieve the container for the original agent
     AgentContainer src = getContainerFromAgent(agentName);
     try {
       int atPos = agentName.indexOf('@');
       if(atPos != -1)
-	agentName = agentName.substring(0,atPos);
+	agentName = agentName.substring(0, atPos);
+      src.moveAgent(agentName, where);
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
 
-      src.copyAgent(agentName, containerName, newAgentName); // RMI call
+  public void copy(String agentName, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException {
+    // Retrieve the container for the original agent
+    AgentContainer src = getContainerFromAgent(agentName);
+    try {
+      int atPos = agentName.indexOf('@');
+      if(atPos != -1)
+	agentName = agentName.substring(0, atPos);
+
+      src.copyAgent(agentName, where, newAgentName); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
