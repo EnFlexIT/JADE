@@ -61,8 +61,8 @@ public class BehaviourPanel extends JSplitPane{
 
     treePanel.setLayout(new BorderLayout());
 
-    runningIcon = new ImageIcon(getClass().getResource("images\\behaviour.gif"));
-    blockedIcon = new ImageIcon(getClass().getResource("images\\blocked.gif"));
+    runningIcon = new ImageIcon(getClass().getResource("images/behaviour.gif"));
+    blockedIcon = new ImageIcon(getClass().getResource("images/blocked.gif"));
     
     //behaviorTree.addMouseListener(new TreeListener);
     behaviourTree.putClientProperty("JTree.lineStyle","Angled");
