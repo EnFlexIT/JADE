@@ -850,7 +850,7 @@ public class AchieveREInitiator extends FSMBehaviour {
     /**
        Inner class Session
     */
-    class Session {
+    class Session implements jade.util.leap.Serializable {
 	private int state = INIT;
 	/**
 	   return true if the session is terminated.
