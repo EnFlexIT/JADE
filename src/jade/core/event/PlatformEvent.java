@@ -25,9 +25,6 @@ package jade.core.event;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-//__SECURITY__BEGIN
-import jade.security.JADEPrincipal;
-//__SECURITY__END
 
 /**
  * This class represents an event related to the platform life cycle
@@ -42,8 +39,6 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
 
   public static final int ADDED_CONTAINER = 1;
   public static final int REMOVED_CONTAINER = 2;
-  //public static final int BORN_AGENT = 3;
-  //public static final int DEAD_AGENT = 4;
   public static final int MOVED_AGENT = 5;
   public static final int SUSPENDED_AGENT = 6;
   public static final int RESUMED_AGENT = 7;
@@ -52,14 +47,11 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   public static final int FROZEN_AGENT = 10;
   public static final int THAWED_AGENT = 11;
 
-  //private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
   private String myPlatformName = null;  // the name of the platform that generated this event
   private AID agent = null;
-//__SECURITY__BEGIN
-  private JADEPrincipal oldPrincipal = null;
-  private JADEPrincipal newPrincipal = null;
-//__SECURITY__END
+  private String oldOwnership = null;
+  private String newOwnership = null;
 
   /**
    * This constructor is used to create a PlatformEvent when a container is
@@ -88,7 +80,6 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    */
   public PlatformEvent(int id, ContainerID eventSource) {
     super(id, eventSource);
-    //myID = id;
     if(!isContainerBD()) {
       throw new InternalError("Bad event kind: it must be a container related kind.");
     }
@@ -126,7 +117,6 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    */
   public PlatformEvent(int id, AID aid, ContainerID eventSource) {
     super(id, eventSource);
-    //myID = id;
     if(!isAgentBD()) {
       throw new InternalError("Bad event kind: it must be an agent related kind.");
     }
@@ -153,7 +143,6 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    */
   public PlatformEvent(AID aid, ContainerID eventSource, ContainerID to) {
     super(MOVED_AGENT, eventSource);
-    //myID = MOVED_AGENT;
     agent = aid;
     newContainer = to;
   }
@@ -166,15 +155,12 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
     }
     //#APIDOC_EXCLUDE_END
 
-//__SECURITY__BEGIN
-  public PlatformEvent(int id, AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
+  public PlatformEvent(int id, AID aid, ContainerID eventSource, String oldOwnership, String newOwnership) {
     super(id, eventSource);
-    //myID = id;
     agent = aid;
-    oldPrincipal = from;
-    newPrincipal = to;
+    this.oldOwnership = oldOwnership;
+    this.newOwnership = newOwnership;
   }
-//__SECURITY__END
 
   /**
    * Returns the {@link jade.core.ContainerID ContainerID} of the event source.
@@ -230,15 +216,13 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
     return agent;
   }
 
-//__SECURITY__BEGIN
-  public JADEPrincipal getOldPrincipal() {
-    return oldPrincipal;
+  public String getOldOwnership() {
+    return oldOwnership;
   }
 
-  public JADEPrincipal getNewPrincipal() {
-    return newPrincipal;
+  public String getNewOwnership() {
+    return newOwnership;
   }
-//__SECURITY__END
 
   /**
    * Returns a boolean to indicate if the event type is either
@@ -347,15 +331,15 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
               break;
 //__SECURITY__BEGIN
           case CHANGED_AGENT_PRINCIPAL:
-              buf.append("changed agent principal: ").append(agent)
+              buf.append("changed agent ownership: ").append(agent)
               .append(" in: ").append(getSource())
-              .append(" from: ").append(oldPrincipal)
-              .append(" to: ").append(newPrincipal);
+              .append(" from: ").append(oldOwnership)
+              .append(" to: ").append(newOwnership);
               break;
           case CHANGED_CONTAINER_PRINCIPAL:
-              buf.append("changed container principal: ").append(getSource())
-              .append(" from: ").append(oldPrincipal)
-              .append(" to: ").append(newPrincipal);
+              buf.append("changed container ownership: ").append(getSource())
+              .append(" from: ").append(oldOwnership)
+              .append(" to: ").append(newOwnership);
               break;
 //__SECURITY__END
           default:
