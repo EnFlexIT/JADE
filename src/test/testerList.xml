@@ -21,7 +21,7 @@
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\content\\SLOperatorTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Inter Platform Communication" skip="true">
+		<Tester name="Inter Platform Communication" skip="false">
 			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\interPlatform\\interPlatformTestsList.xml</TestsListRif>
@@ -61,7 +61,7 @@
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\proto\\achieveRETestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Communication performance & scalability" skip="false">
+		<Tester name="Communication performance and scalability" skip="false">
 			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\roundTripTime\\roundTripTimeTestsList.xml</TestsListRif>

@@ -3,45 +3,44 @@
 	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
 	]>
 	<TestsList> 
-		<Test name="Normal flow with 1 responder" skip="false">
-			<TestClassName>test.proto.tests.contractNet.TestNormal1Resp</TestClassName>
-			<WhatTest> Tests the normal flow of messages with a single responder.</WhatTest>
-			<HowWorkTest>All handlers are defined overriding methods.</HowWorkTest>
-			<WhenTestPass> The test passes if the execution terminates correctly... </WhenTestPass>
+		<Test name="Round trip time - single container" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT1Container</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in the same container</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in the same container, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
 		</Test>		
-		<Test name="Mixed flow with N responders" skip="false">
-			<TestClassName>test.proto.tests.contractNet.TestMixedNResp</TestClassName>
-			<WhatTest> Tests a mixed flow of messages with N responder behaving differently.</WhatTest>
-			<HowWorkTest> 
-				More in details:
-				<UL>
-	   			<LI>Resp0 reacts with NOT_UNDERSTOOD;</LI>
-	   			<LI>Resp1 reacts with REFUSE;</LI>
-	   			<LI>Resp2 reacts with INFORM;</LI>
-			    <LI>Resp3 reacts with REQUEST;</LI>
-			    <LI>Resp4 does not react at all;</LI>
-			    <LI>Resp5 reacts with PROPOSE and then INFORM</LI>
-				<LI>Resp6 reacts with PROPOSE and then FAILURE;</LI>
-	   			<LI>Resp7 reacts with PROPOSE and then REQUEST;</LI>
-			    <LI>Resp8 reacts with PROPOSE and then nothing;</LI>
-			    <LI>Resp9 does not exist;</LI>
-			    </UL>
-			    <br></br><em>NOTES: All handlers are defined overriding methods. This test will take about 20 sec.</em>			
-		    </HowWorkTest>
-			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		<Test name="Round trip time - two containers" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Containers</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different containers belonging to the same platform and active on the same host</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different container, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
 		</Test>		
-		<Test name="Mixed flow with N responders 2 rounds" skip="false">
-			<TestClassName>test.proto.tests.contractNet.TestMixedNResp2Rounds</TestClassName>
-			<WhatTest> See <b>Mixed flow with N responders</b>, but performs the test 2 times.</WhatTest>
-			<HowWorkTest> 
-				This is achieved by registering a new ContractNetInitiator in the HANDLE_ALL_RESULT_NOTIFICAIONS state.
-				<br></br>In this way we test:
-				<UL>
-	   			<LI>The repetitive behaviour of the responders;</LI>
-	   			<LI>Registering a composite behaviour as a state of the protocol;</LI>
-				</UL>				
-			    <br></br><em>NOTES: This test will take about 40 sec.</em>			
-			</HowWorkTest>
-			<WhenTestPass> The test pass when Ping agent answers correctly... </WhenTestPass>
+		<Test name="Round trip time - two containers two hosts" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Containers2Hosts</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different containers belonging to the same platform and active on two different hosts.
+				<br></br>
+				NOTE: The Test suite remote daemon (test.common.remote.TSDaemon) must be active on another host for this test to succeed.</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different container on a different host, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
+		</Test>		
+		<Test name="Round trip time - two platforms IIOP" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Platforms2HostsIIOP</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different platforms running on two different hosts and communicating by means of the IIOP MTP.
+				<br></br>
+				NOTE: The Test suite remote daemon (test.common.remote.TSDaemon) must be active on another host for this test to succeed.</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different platform, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
 		</Test>		
 	</TestsList>
