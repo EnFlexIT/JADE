@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import jade.util.leap.Iterator;
 import java.net.URL;
+import jade.util.Logger;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -75,10 +76,14 @@ public class rma extends ToolAgent {
 
   private APDescription myPlatformProfile;
 
+    //logging
+    private static Logger logger = Logger.getMyLogger(rma.class.getName());
+
   // Sends requests to the AMS
     private class AMSClientBehaviour extends SimpleAchieveREInitiator {
 
     private String actionName;
+    
 
 	public AMSClientBehaviour(String an, ACLMessage request) {
 	    super(rma.this, request);
@@ -95,7 +100,7 @@ public class rma extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-	//System.out.println("AGREE received"+reply);
+	logger.log(Logger.FINE,"AGREE received"+reply);
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -103,7 +108,7 @@ public class rma extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-	//System.out.println("INFORM received"+reply);
+	logger.log(Logger.FINE,"INFORM received"+reply);
     }
 
   } // End of AMSClientBehaviour class
@@ -117,7 +122,7 @@ public class rma extends ToolAgent {
     	}
 
     	protected void handleInform(ACLMessage msg){
-    		//System.out.println("arrived a new APDescription");
+    		logger.log(Logger.FINE,"arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
     			Result r =(Result)getContentManager().extractContent(msg);
@@ -145,7 +150,7 @@ public class rma extends ToolAgent {
     	}
 
     	protected void handleInform(ACLMessage msg){
-	    //System.out.println("arrived a new agents from a remote platform");
+	    logger.log(Logger.FINE,"arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
     			Result r = (Result)getContentManager().extractContent(msg);
@@ -914,7 +919,7 @@ public class rma extends ToolAgent {
 
   //this method sends a request to a remote AMS to know the APDescription of a remote Platform
   public void addRemotePlatform(AID remoteAMS){
-      //System.out.println("AddRemotePlatform"+remoteAMS.toString());
+      logger.log(Logger.FINE,"AddRemotePlatform"+remoteAMS.toString());
   	try{
 
   		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
@@ -972,7 +977,7 @@ public class rma extends ToolAgent {
     			String amsName = "ams@" + APDesc.getName();
 
     			if(amsName.equalsIgnoreCase(getAMS().getName())){
-    				System.out.println("ERROR: Action not allowed.");
+    				logger.log(Logger.WARNING,"ERROR: Action not allowed.");
     			}
     				else
     			{

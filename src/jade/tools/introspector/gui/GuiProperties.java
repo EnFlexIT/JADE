@@ -30,6 +30,8 @@ import javax.swing.UIDefaults;
 import javax.swing.Icon;
 import java.util.Properties;
 
+import jade.util.Logger;
+
   /**
    Javadoc documentation for the file
    @author Tiziana Trucco
@@ -47,6 +49,9 @@ public class GuiProperties{
   protected static UIDefaults MyDefaults;
   protected static GuiProperties foo = new GuiProperties();
   public static final String ImagePath = "";
+  //loging
+  private static Logger logger = Logger.getMyLogger(GuiProperties.class.getName());
+  
    static{
     Object[] icons = {
      "Introspector.readyIcon",LookAndFeel.makeIcon(foo.getClass(), "images/behaviour.gif"),
@@ -59,7 +64,7 @@ public class GuiProperties{
    public static final Icon getIcon(String key){
     Icon i = MyDefaults.getIcon(key);
         if (i == null){
-	  	System.out.println("Mistake with Icon");
+	  	logger.log(Logger.WARNING,"Mistake with Icon");
 		// System.exit(-1);
 		  return null;
 		}

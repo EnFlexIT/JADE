@@ -48,7 +48,6 @@ class AddRemotePlatformFromURLAction extends FixedAction
 
    public void doAction() {
     
-   	//System.out.println("Add remote platform form URL");
    	StringDlg URLDialog = new StringDlg(main,"Insert the URL that contains the APDescripition of the Remote Plaform:");
    	String url = URLDialog.editString("");
    	if (url != null)

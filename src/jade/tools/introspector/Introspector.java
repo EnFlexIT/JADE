@@ -71,6 +71,7 @@ import jade.tools.ToolAgent;
 import jade.tools.introspector.gui.IntrospectorGUI;
 import jade.tools.introspector.gui.MainWindow;
 
+import jade.util.Logger;
 
 /*
   This class represents the Introspector Agent. This agent registers
@@ -86,9 +87,13 @@ public class Introspector extends ToolAgent {
 
     private Hashtable preload = null;
 
+    //logging service
+    private static Logger logger = Logger.getMyLogger(Introspector.class.getName());
+
     private class AMSRequester extends SimpleAchieveREInitiator {
 
     private String actionName;
+    
 
       public AMSRequester(String an, ACLMessage request) {
           super(Introspector.this, request);
@@ -104,7 +109,7 @@ public class Introspector extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      // System.out.println("AGREE received");
+      logger.log(Logger.FINEST,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -112,7 +117,7 @@ public class Introspector extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      // System.out.println("INFORM received");
+      logger.log(Logger.FINEST,"INFORM received");
     }
 
   } // End of AMSRequester class
@@ -395,7 +400,7 @@ public class Introspector extends ToolAgent {
       catch(Exception fe) {
     	// When the AMS replies the tool notifier is no longer registered.
     	// But we don't care as we are exiting
-      //System.out.println(e.getMessage());
+      logger.log(Logger.WARNING,fe.getMessage());
       }
     }
 
@@ -538,7 +543,7 @@ public class Introspector extends ToolAgent {
 	  EventRecord er = o.getWhat();
 	  Event ev = er.getWhat();
 	  // DEBUG
-	  //System.out.println("Received event "+ev);
+	  logger.log(Logger.FINEST,"Received event "+ev);
     if (message.getReplyWith() != null) {
     	// A reply is expected --> put relevant information into the
     	// pendingReplies Map

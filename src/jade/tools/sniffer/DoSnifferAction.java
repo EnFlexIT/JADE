@@ -27,6 +27,7 @@ package jade.tools.sniffer;
 import jade.gui.AgentTree;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.Logger;
 
    /**
    Javadoc documentation for the file
@@ -85,7 +86,7 @@ private List sniffedAgents=new ArrayList();
    index=nameAgent.indexOf("@");
    if (index != -1) return nameAgent.substring(0,index);
    else {
-     System.out.println("The agent's name is not correct");
+      Logger.getMyLogger(this.getClass().getName()).log(Logger.WARNING,"The agent's name is not correct");
      return null;
    }
   }

@@ -27,6 +27,7 @@ package jade.tools.sniffer;
 import jade.gui.AgentTree;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.Logger;
 
   /**
    Javadoc documentation for the file
@@ -49,6 +50,7 @@ public class DoNotSnifferAction extends AgentAction {
  private Sniffer mySniffer;
  private List   noSniffedAgents=new ArrayList();
  private Agent agent;
+ 
 
  public DoNotSnifferAction(ActionProcessor actPro, MainPanel mainPanel, Sniffer mySniffer) {
   super ("DoNotSnifferActionIcon","Do not sniff this agent(s)",actPro);
@@ -72,7 +74,7 @@ public class DoNotSnifferAction extends AgentAction {
   index=nameAgent.indexOf("@");
    if (index != -1) return nameAgent.substring(0,index);
     else {
-      System.out.println("The agent's name is not correct");
+      Logger.getMyLogger(this.getClass().getName()).log(Logger.WARNING,"The agent's name is not correct");
     return null;
    }
  }

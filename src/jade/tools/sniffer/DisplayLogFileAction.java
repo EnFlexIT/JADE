@@ -31,6 +31,7 @@ import java.util.Vector;
 import java.io.Serializable;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import jade.util.Logger;
 
    /**
    Javadoc documentation for the file
@@ -52,6 +53,7 @@ import java.io.ObjectInputStream;
 public class DisplayLogFileAction extends FixedAction {
 
  private MainPanel mainPanel;
+ private static Logger logger = Logger.getMyLogger(DisplayLogFileAction.class.getName());
 
   public DisplayLogFileAction(ActionProcessor actPro,MainPanel mainPanel ){
    super ("DisplayLogFileActionIcon","Open Snapshot File",actPro);
@@ -69,10 +71,10 @@ public class DisplayLogFileAction extends FixedAction {
       mainPanel.panelcan.canvAgent.setAgentList((AgentList)p.readObject());
       mainPanel.panelcan.canvMess.setMessageList((MessageList)p.readObject());
       p.close();
-      System.out.println("Snapshot File Read.");
+      logger.log(Logger.CONFIG,"Snapshot File Read.");
     }
    } catch (Exception e){
-	     System.out.println("Error Reading Snapshot File" + e);
+	     logger.log(Logger.WARNING,"Error Reading Snapshot File" + e);
      }
    }
 

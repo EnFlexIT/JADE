@@ -30,6 +30,7 @@ import java.awt.event.*;
 import jade.tools.introspector.Introspector;
 import jade.tools.introspector.Sensor;
 import jade.util.Event;
+import jade.util.Logger;
 
 /**
    This class listens to the events fired by the main menu bar.
@@ -40,6 +41,8 @@ import jade.util.Event;
 public class MainBarListener implements ActionListener{
   private MainWindow mainWnd;
   private Sensor introspectorSensor;
+  
+  private static Logger logger = Logger.getMyLogger(MainBarListener.class.getName());
 
   public MainBarListener(MainWindow main, Sensor s){
     mainWnd=main;
@@ -63,16 +66,16 @@ public class MainBarListener implements ActionListener{
         else mainWnd.setBehaviourPanelVisible(false);
         break;
       case 4://kill
-        System.out.println("kill agent: Not yet implemented");
+        logger.log(Logger.INFO,"kill agent: Not yet implemented");
         break;
       case 5://suspend
-        System.out.println("suspend agent: Not yet implemented");
+        logger.log(Logger.INFO,"suspend agent: Not yet implemented");
         break;
       case 6://wakeup
-        System.out.println("WakeUp agent: Not yet implemented");
+        logger.log(Logger.INFO,"WakeUp agent: Not yet implemented");
         break;
       case 7://wait
-        System.out.println("wait agent: Not yet implemented");
+        logger.log(Logger.INFO,"wait agent: Not yet implemented");
         break;
       case 8://Step
       	introspectorSensor.post(new Event(Introspector.STEP_EVENT, mainWnd));
