@@ -26,23 +26,27 @@ package jade.imtp.leap.sms;
 //#J2ME_EXCLUDE_FILE
 
 import jade.imtp.leap.JICP.*;
+import jade.imtp.leap.nio.NIOBEDispatcher;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 
 import java.net.*;
-
 import java.io.*;
 
 /**
- * Class declaration
- * @author Giovanni Caire - TILAB
+   BackEnd side dispatcher class that extends <code>NIOBEDispatcher</code>
+   and uses SMS to perform OUT-of-bound notifications to the FrontEnd
+   when the connection (currently dropped) must be re-established.
+   @see SMSFEDispatcher
+   @author Giovanni Caire - TILAB
  */
-public class SMSBEDispatcher extends BIBEDispatcher implements Constants {
+public class SMSBEDispatcher extends NIOBEDispatcher {
 
-	private int smsPort = SMS_PORT_DEFAULT;
-	private boolean connectionDropped = false;
 	private SMSManager theSMSManager; 
+	private int smsPort;
 	private String msisdn;
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
   public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
   	// Get the msisdn
@@ -53,70 +57,34 @@ public class SMSBEDispatcher extends BIBEDispatcher implements Constants {
   	// Get the singleton SMSManager
 		theSMSManager = SMSManager.getInstance(props);
 		if (theSMSManager == null) {
-			throw new ICPException("Cannot attach to the SMSManager");
+			throw new ICPException("Cannot connect to the SMSManager");
 		}
 		super.init(mgr, id, props);
   }
   
-  /**
-   */
-  public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {  	
-  	connectionDropped = false;
-  	return super.handleIncomingConnection(c, pkt, addr, port);
-  } 
+	protected void handleDropDown(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+		super.handleDropDown(c, pkt, addr, port);
+
+		// Read the SMS port
+		try {
+			String portStr = new String(pkt.getData());
+			smsPort = Integer.parseInt(portStr);
+			myLogger.log(Logger.CONFIG, "OUT-of-bound notification param: msisdn="+msisdn+" port="+smsPort);
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.SEVERE, "Cannot get FE port for OUT-of-bound notifications via SMS!!!!!!! "+e);
+			e.printStackTrace();
+		}
+	}
 
   /**
+     Request the FE to refresh the connection.
    */
-  public void tick(long currentTime) {
-  	if (!connectionDropped) {
-  		super.tick(currentTime);
-  	}
-  }
-  
-  /**
-   */
-  public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
-		System.out.println("dispatch() called. connectionDropped is "+connectionDropped+" flush is "+flush);
-  	if (connectionDropped) {
-	  	// Move from DROPPED state to DISCONNECTED state to avoid 
-	  	// sending more SMS if other calls to dispatch() occurs 
-	  	connectionDropped = false;
-  		System.out.println("Activating connection refresh");
-	  	requestRefresh();
-  		throw new ICPException("Connection dropped");
-  	}
-  	else {
-  		return super.dispatch(payload, flush);
-  	}  	
-  }
-
-  /**
-   */
-  protected JICPPacket handlePacket(JICPPacket pkt) {
-  	if (pkt.getType() == DROP_DOWN_TYPE) {
-  		System.out.println("DROP_DOWN request received");
-  		// Read the SMS port
-  		try {
-	  		smsPort = Integer.parseInt(new String(pkt.getData()));
-  		}
-  		catch (NumberFormatException nfe) {
-  			nfe.printStackTrace();
-  		}
-  		inpHolder.resetConnection(true);
-  		outHolder.resetConnection();
-  		connectionDropped = true;
-  		return null;
-  	}
-  	else {
-  		return super.handlePacket(pkt);
-  	}
-  }
-  			
-  private void requestRefresh() {
+  protected void requestRefresh() {
   	if (msisdn.startsWith("39")) {
   		msisdn = "+"+msisdn;
   	}
   	theSMSManager.sendTextMessage(msisdn, smsPort, null);
-  }
+  }  
 }
 
