@@ -1,7 +1,10 @@
 /*
   $Log$
+  Revision 1.5  1998/10/10 19:14:34  rimassa
+  Fixed some compilation errors. Now the class compiles and runs.
+
   Revision 1.4  1998/10/05 20:16:04  Giovanni
-  Mde 'final' ReceiverBehaviour class.
+  Made 'final' ReceiverBehaviour class.
 
   Revision 1.3  1998/10/04 18:01:13  rimassa
   Added a 'Log:' field to every source file.
@@ -11,6 +14,7 @@
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 public final class ReceiverBehaviour extends Behaviour {
 
@@ -40,7 +44,7 @@ public final class ReceiverBehaviour extends Behaviour {
     if(template == null)
       msg = myAgent.receive();
     else
-      msg = myAgent.receive(mt);
+      msg = myAgent.receive(template);
 
     if(msg == null) {
       block();
