@@ -30,16 +30,15 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.content.ContentManager;
+/*import jade.content.ContentManager;
 import jade.content.lang.StringCodec;
 import jade.content.lang.sl.SLCodec;
-
-import jade.domain.FIPANames;
-import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
-
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
+*/
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.FIPAManagementVocabulary;
 
 import java.util.Date;
 
@@ -69,9 +68,9 @@ public class FIPAServiceCommunicator {
     request.addReceiver(receiver);
     request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-    request.setOntology(FIPAManagementOntology.NAME);
-    request.setReplyWith("rw"+sender.getName()+(new Date()).getTime());
-    request.setConversationId("conv"+sender.getName()+(new Date()).getTime());
+    request.setOntology(FIPAManagementVocabulary.NAME);
+    request.setReplyWith("rw"+sender.getName()+System.currentTimeMillis());
+    request.setConversationId("conv"+sender.getName()+System.currentTimeMillis());
     return request;
   }
   
@@ -97,14 +96,51 @@ public class FIPAServiceCommunicator {
    * the protocol succeeded, otherwise it throws an Exception
    */
   public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request) throws FIPAException {
-
-    // If the request message does not have a ':reply-with' slot set
+  	return doFipaRequestClient(a, request, 0);
+  }
+  
+  public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request, long timeout) throws FIPAException {
+  	// If the request message does not have a ':reply-with' slot set
     if (request.getReplyWith() == null) 
-      request.setReplyWith("rw"+a.getLocalName()+(new Date()).getTime());
+      request.setReplyWith("rw"+a.getLocalName()+System.currentTimeMillis());
 
+		long sendTime = System.currentTimeMillis();
     a.send(request);
     MessageTemplate mt = MessageTemplate.MatchInReplyTo(request.getReplyWith());
-    ACLMessage reply = a.blockingReceive(mt);
+    
+		ACLMessage reply = a.blockingReceive(mt, timeout);
+		
+		if(reply != null) {
+			if (reply.getPerformative() == ACLMessage.INFORM) {
+				return reply;
+			}
+			if (reply.getPerformative() == ACLMessage.AGREE){
+				// We received an AGREE --> Go back waiting for the INFORM unless 
+				// a timeout was set and it is expired.
+				if (timeout > 0) {
+					long agreeTime = System.currentTimeMillis();
+					timeout -= (agreeTime - sendTime);
+					if (timeout <= 0) {
+						return null;
+					}
+				}
+				reply = a.blockingReceive(mt, timeout);
+			}
+			if(reply != null) {
+				if (reply.getPerformative() == ACLMessage.INFORM){
+					return reply;
+				}
+				else {
+					// We received a REFUSE, NOT_UNDERSTOOD, FAILURE or OUT_OF_SEQUENCE --> ERROR
+					throw new FIPAException(reply.getContent());
+				}
+			}
+		}
+		// The timeout has expired
+		return null;
+    
+    /*
+    ACLMessage reply = a.blockingReceive(mt, deadline);
     if(reply.getPerformative() == ACLMessage.AGREE) {
       reply =  a.blockingReceive(mt);
       if(reply.getPerformative() != ACLMessage.INFORM) {
@@ -116,6 +152,7 @@ public class FIPAServiceCommunicator {
       return reply;
     else 
       throw new FIPAException(reply.getContent());
+    */
   }
 
 
