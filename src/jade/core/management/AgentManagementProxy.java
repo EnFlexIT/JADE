@@ -87,10 +87,12 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	}
     }
 
-    public void killAgent(AID agentID) throws IMTPException, NotFoundException {
+    public void killAgent(AID agentID, Command sourceCmd) throws IMTPException, NotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_KILLAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
+	    cmd.setPrincipal(sourceCmd.getPrincipal());
+	    cmd.setCredentials(sourceCmd.getCredentials());
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -170,10 +172,12 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	}
     }
 
-    public void deadAgent(AID name) throws IMTPException, NotFoundException {
+    public void deadAgent(AID name, Command sourceCmd) throws IMTPException, NotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_DEADAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
+	    cmd.setPrincipal(sourceCmd.getPrincipal());
+	    cmd.setCredentials(sourceCmd.getCredentials());
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

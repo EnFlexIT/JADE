@@ -215,12 +215,12 @@ public class AgentManagementService extends BaseService {
 		// Note that since getContainerID() succeeded, targetSlice can't be null
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 		try {
-		    targetSlice.killAgent(agentID);
+		    targetSlice.killAgent(agentID, cmd);
 		}
 		catch(IMTPException imtpe) {
 		    // Try to get a newer slice and repeat...
 		    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-		    targetSlice.killAgent(agentID);
+		    targetSlice.killAgent(agentID, cmd);
 		}
 	    }
 	    else {
@@ -287,12 +287,12 @@ public class AgentManagementService extends BaseService {
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 	    try {
-		mainSlice.deadAgent(target);
+		mainSlice.deadAgent(target, cmd);
 	    }
 	    catch(IMTPException imtpe) {
 		// Try to get a newer slice and repeat...
 		mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-		mainSlice.deadAgent(target);
+		mainSlice.deadAgent(target, cmd);
 	    }
 	}
 
