@@ -194,6 +194,11 @@ public class MessageTemplate {
   }
 
 
+  // Dumps a MessageTemplate
+  public void dump() {
+    template.dump();
+  }
+
   // Boolean operation on message templates.
 
   public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
