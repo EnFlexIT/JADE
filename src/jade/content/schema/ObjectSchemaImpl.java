@@ -538,7 +538,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     			Vector v = (Vector)facets.get(caseInsensitiveSlotName);
 	    		if (v!=null) {
 	    			temp = new Facet[v.size()];
-	    			for (int i=0; i<v.size()-1; i++)
+	    			for (int i=0; i<v.size(); i++)
 	    				temp[i] = (Facet)v.elementAt(i);
 				}
 			}
