@@ -963,7 +963,7 @@ private int performative; // keeps the performative type of this object
       }
       if(content != null)
 	if(content.length() > 0)
-	  w.write(CONTENT + " \"" + escape(content) + " \"\n");
+	  w.write(CONTENT + " \"" + escape(content) + "\" \n");
       if(reply_with != null)
 	if(reply_with.length() > 0)
 	  w.write(REPLY_WITH + " " + reply_with + "\n");
