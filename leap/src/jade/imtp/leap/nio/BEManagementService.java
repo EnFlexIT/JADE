@@ -1,3 +1,26 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 package jade.imtp.leap.nio;
 
 //#J2ME_EXCLUDE_FILE
@@ -6,6 +29,8 @@ import jade.core.Profile;
 import jade.core.Specifier;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.core.ServiceHelper;
+import jade.core.Agent;
 import jade.security.JADESecurityException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
@@ -90,6 +115,7 @@ public class BEManagementService extends BaseService {
  
   private Hashtable servers = new Hashtable(2);
   private Ticker myTicker;
+  private ServiceHelper myHelper;
   
   // The list of addresses considered malicious. Connections from
   // these addresses will be rejected.
@@ -164,6 +190,17 @@ public class BEManagementService extends BaseService {
 			((IOEventServer) ss[i]).shutdown();
 		}
 	}
+	
+	/**
+	   Retrieve the helper of this Service
+	 */
+  public ServiceHelper getHelper(Agent a) {
+  	if (myHelper == null) {
+  		myHelper = new BEManagementHelperImpl();
+  	}
+  	return myHelper;
+  }
+  
 	
 	/**
 	   Inner class IOEventServer.
@@ -430,6 +467,7 @@ public class BEManagementService extends BaseService {
 			
 			        // Create a new Mediator
 			        Properties p = parseProperties(new String(pkt.getData()));
+			        p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 			        
 			        String owner = p.getProperty(JICPProtocol.OWNER_KEY);
 			        myLogger.log(Logger.INFO, myLogPrefix+" Owner = "+owner);
@@ -465,7 +503,7 @@ public class BEManagementService extends BaseService {
 						  	id = msisdn;
 						  	if (id == null) {
 						      // Construct a default id using the string representation of the server's TCP endpoint
-						      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+						      id = "BE-"+getLocalHost() + '_' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
 						  	}
 						  }
 						  
@@ -652,9 +690,9 @@ public class BEManagementService extends BaseService {
 			catch (Exception ex) {}
     }
     
-	  private NIOMediator getFromID(String recipientID) {
-      if (recipientID != null) {
-		  	return (NIOMediator) mediators.get(recipientID);
+	  public NIOMediator getFromID(String id) {
+      if (id != null) {
+		  	return (NIOMediator) mediators.get(id);
       }
       return null;
 	  }
@@ -980,6 +1018,40 @@ public class BEManagementService extends BaseService {
   } // END of inner class Ticker
 
 	
+  /**
+     Inner class BEManagementHelperImpl.
+     Implementation class for the BEManagementHelper.
+   */
+  private class BEManagementHelperImpl implements BEManagementHelper {
+    public void init( Agent a ) {
+    	// Just do nothing;
+    }
+    
+    public String getProperty(String containerName, String key) {
+    	String value = null;
+    	NIOMediator mediator = findMediatorGlobally(containerName);
+    	if (mediator != null) {
+    		Properties pp = mediator.getProperties();
+    		if (pp != null) {
+    			value = pp.getProperty(key);
+    		}
+    	}
+    	return value;
+    }
+    
+    private NIOMediator findMediatorGlobally(String id) {
+			Object[] ss = servers.values().toArray();
+			for (int i = 0; i < ss.length; ++i) {
+				NIOMediator m = ((IOEventServer) ss[i]).getFromID(id);
+				if (m != null) {
+					return m;
+				}
+			}
+    	return null;
+    }
+  } // END of inner class BEManagementHelperImpl
+  
+  	
 	///////////////////////////////////////
   // Utility methods
   ///////////////////////////////////////
