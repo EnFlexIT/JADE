@@ -143,19 +143,8 @@ public class MessageTransportProtocol implements MTP {
   
   public TransportAddress activate(InChannel.Dispatcher disp, Profile p)
     throws MTPException {
-    try {
-	    //Create default HTTPAddress on port 7778  	
-      HTTPAddress ta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),IN_PORT);
-      //Active the new HTTPAddress 
-	    activate(disp,ta,p);
-	    return ta;
-    }
-    catch( UnknownHostException ukhexc ) {
-      throw new MTPException("Cannot activate MTP on default address: Unknown Host");
-    }
-    catch( MalformedURLException mexc ) {
-      throw new MTPException("Cannot activate MTP on default address: Malformed URL");
-    }
+    //Active the new HTTPAddress 
+    return activateServer(disp,null,p);
   }
   
   /**
@@ -177,13 +166,34 @@ public class MessageTransportProtocol implements MTP {
    * </UL>
    * Note that all these parameters must be prefixed with "jade_mtp_http_".
    */
-  public void activate(InChannel.Dispatcher disp, TransportAddress ta, Profile p) 
+  public void activate(InChannel.Dispatcher disp, TransportAddress ta, Profile p) throws MTPException { 
+		activateServer(disp, ta, p);
+  }
+  
+  private TransportAddress activateServer(InChannel.Dispatcher disp, TransportAddress ta, Profile p) 
     throws MTPException { 
     //Comprobation of correct HTTPAddress
-    int port = IN_PORT;
+    int port = -1;
+    boolean changePortIfBusy = false;
     String saxClass = null;
+    HTTPAddress hta = null;
     try {
-      HTTPAddress hta = (HTTPAddress)ta;
+			if (ta != null) {    	
+	      hta = (HTTPAddress)ta;
+			}
+			else {
+				try {
+			    // Create default HTTPAddress on port 7778  	
+		      hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),IN_PORT);
+		      changePortIfBusy = true;
+				}
+		    catch( UnknownHostException ukhexc ) {
+		      throw new MTPException("Cannot activate MTP on default address: Unknown Host");
+		    }
+		    catch( MalformedURLException mexc ) {
+		      throw new MTPException("Cannot activate MTP on default address: Malformed URL");
+		    }
+			}
       port = hta.getPortNo();
       if((port <= 0) || (port > 65535)) {
         throw new MTPException("Invalid port number "+ta.getPort());
@@ -230,11 +240,16 @@ public class MessageTransportProtocol implements MTP {
     //Creation of the Server
     try {	    
       //Create object server 
-      HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout); 
+      HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy); 
+      int actualPort = srv.getLocalPort();
+      if (actualPort != port) {
+	      hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort);
+      }	
       //Save the reference to HTTPServer
-      addr2srv.put(ta.toString(),srv);
+      addr2srv.put(hta.toString(),srv);
       //Execute server	
       srv.start();
+      return hta;
     } 
     catch( Exception e ) {
       throw new MTPException("While activating MTP got exception "+e);

@@ -75,7 +75,7 @@ public class HTTPServer extends Thread {
   boolean active = true;
 	
 	/** Constructor: Store the information*/
-	public HTTPServer(int p, InChannel.Dispatcher d, int m, String s, int t) 
+	public HTTPServer(int p, InChannel.Dispatcher d, int m, String s, int t, boolean changePortIfBusy) 
     throws IOException { 
     port       = p;
     dispatcher = d;
@@ -85,7 +85,18 @@ public class HTTPServer extends Thread {
       CODEC = s;
     }
     timeout = t;
-    server = new ServerSocket(port);
+    try {
+	    server = new ServerSocket(port);
+    }
+    catch (IOException ioe) {
+    	if (changePortIfBusy) {
+    		// The specified port is busy. Let the system find a free one
+    		server = new ServerSocket(0);
+    	}
+    	else {
+    		throw ioe;
+    	}
+    }
 	}
 	
   /** 
@@ -104,6 +115,10 @@ public class HTTPServer extends Thread {
     catch(Exception e) {
       // Does nothing as we asked to close
     }
+  }
+  
+  int getLocalPort() {
+  	return server.getLocalPort();
   }
   
   void addThread(ServerThread st) { 
