@@ -72,6 +72,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   private boolean active = true;
   private boolean waitingForFlush = false;
   private boolean refreshingInput = false;
+  private boolean refreshingOutput = false;
+  private byte lastSid = 0x0f;
   private int outCnt = 0;
   private Thread terminator;
   
@@ -159,7 +161,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    owner = props.getProperty("owner");
 
 	    outConnection = createBackEnd();
-	    log("Connection OK", 1);
 
 	    // Start the InputManager dealing with incoming commands
 	    refreshInp();
@@ -219,6 +220,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
     if (owner != null) {
 		  appendProp(sb, "owner", owner);
     }
+    appendProp(sb, "outcnt", String.valueOf(outCnt));
+    appendProp(sb, "lastsid", String.valueOf(lastSid));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
     // Try first with the current transport address, then with the various backup addresses
@@ -234,7 +237,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  }
 	
 		  try {
-	      log("Connecting to jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	      log("Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
 	      JICPConnection con = new JICPConnection(mediatorTA);
 	      writePacket(pkt, con);
 	      pkt = con.readPacket();
@@ -248,6 +251,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
+	    		log("BackEnd OK", 1);
 				  return con;	      
 	      }
 	      else {
@@ -323,7 +327,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   // but are declared externally since they must "survive" when 
   // an InputManager is replaced
   private JICPPacket lastResponse = null;
-  private byte lastSid = 0x10;
   private int cnt = 0;
   
   /**
@@ -371,7 +374,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 						}
 						else {
 							// Incoming command
-		      		log("Incoming command received "+sid, 3);
+		      		log("Incoming command received "+sid+" pkt-type="+pkt.getType(), 3);
 							byte[] rspData = mySkel.handleCommand(pkt.getData());
 		      		log("Incoming command served "+ sid, 3);
 						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
@@ -443,21 +446,25 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      that asynchronously tries to restore it.
    */
   private synchronized void refreshOut() {
-  	// Close the outConnection
-  	if (outConnection != null) {
-  		try {
-  			outConnection.close();
-  		}
-  		catch (Exception e) {}
-  		outConnection = null;
-			if (myInputManager.isConnected() && myConnectionListener != null) {
-				myConnectionListener.handleDisconnection();
-			}
+  	// Avoid having two refreshing processes at the same time
+  	if (!refreshingOutput) {
+	  	// Close the outConnection
+	  	if (outConnection != null) {
+	  		try {
+	  			outConnection.close();
+	  		}
+	  		catch (Exception e) {}
+	  		outConnection = null;
+				if (myInputManager.isConnected() && myConnectionListener != null) {
+					myConnectionListener.handleDisconnection();
+				}
+	  	}
+	  	
+	  	// Asynchronously try to recreate the outConnection
+  		refreshingOutput = true;
+			Thread t = new Thread(this);
+			t.start();
   	}
-  	
-  	// Asynchronously try to recreate the outConnection
-		Thread t = new Thread(this);
-		t.start();
   }
 	
   /**
@@ -465,10 +472,12 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
    */
 	public void run() {
 		connect(OUT);
+		refreshingOutput = false;
 	}
 	
 
   private void connect(byte type) {
+  	int jicpErrorCnt = 0;
   	int cnt = 0;
   	long startTime = System.currentTimeMillis();
   	while (active) {
@@ -479,7 +488,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	writePacket(pkt, c);
 		  	pkt = c.readPacket();
 			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-		      // The JICPServer didn't find my Mediator anymore. There was probably 
+		  		c.close();
+		  		// The JICPServer didn't find my Mediator anymore. There was probably 
 			  	// a fault. Try to recreate the BackEnd
 			  	if (type == OUT) {
 			  		// BackEnd recreation is attempted only when restoring the 
@@ -495,6 +505,12 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				  	catch (IMTPException imtpe) { 
 				      handleError();
 				  	}
+			  	}
+			  	else {
+		  			// In case the outConnection still appears to be OK, refresh it
+			  		refreshOut();
+			  		// Then behave as if there was an IOException --> go to sleep for a while and try again
+		  			throw new IOException();
 			  	}
 			  }
 			  else {
@@ -635,26 +651,31 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
   
-  // Mutual exclusion with updateKeepAlive() and dispatch()
+  // Mutual exclusion with updateKeepAlive() 
   public synchronized void doTimeOut(Timer t) {
   	if (t == kaTimer) { 
-  		// Send a keep-alive packet to the BackEnd
-  		if (outConnection != null) {
-  			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-  			try {
-	  			writePacket(pkt, outConnection);
-	  			pkt = outConnection.readPacket();
-	  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
-	  				// The BackEnd is considering the input connection no longer valid
-	  				refreshInp();
-	  			}	  				
-  			}
-  			catch (IOException ioe) {
-  				log("KA error "+ioe.toString(), 2);
-  				refreshOut();
-  			}
-  		}
+  		sendKeepAlive();
   	}
+  }
+  
+  // Mutual exclusion with dispatch()
+  private synchronized void sendKeepAlive() {
+		// Send a keep-alive packet to the BackEnd
+		if (outConnection != null) {
+			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+			try {
+  			writePacket(pkt, outConnection);
+  			pkt = outConnection.readPacket();
+  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+  				// The BackEnd is considering the input connection no longer valid
+  				refreshInp();
+  			}	  				
+			}
+			catch (IOException ioe) {
+				log("KA error "+ioe.toString(), 2);
+				refreshOut();
+			}
+		}
   }
   	
   /**

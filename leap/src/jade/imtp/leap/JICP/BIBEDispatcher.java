@@ -65,6 +65,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private JICPServer        myJICPServer;
   private String            myID;
 
+  private byte lastSid = 0x10;
   private int inpCnt = 0;
   private boolean active = true;
 
@@ -102,7 +103,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
       // Use default (1)
   	}
   	// Override FrontEnd verbosity
-  	verbosity = 2;
   	myLogger = new Logger(myID, verbosity);
 
   	// Max disconnection time
@@ -118,6 +118,25 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
     try {
     	keepAliveTime = Long.parseLong(props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    
+    // inpCnt
+    try {
+    	inpCnt = (Integer.parseInt(props.getProperty("lastsid")) + 1) & 0x0f;
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    
+    // lastSid
+    try {
+    	lastSid = (byte) (Integer.parseInt(props.getProperty("outcnt")) -1);
+    	if (lastSid < 0) {
+    		lastSid = 0x0f;
+    	}
     }
     catch (Exception e) {
     	// Keep default
@@ -397,7 +416,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   //////////////////////////////////////////////////
   public void run() {
   	JICPPacket lastResponse = null;
-  	byte lastSid = 0x10;
   	int status = 0;
   	
 		myLogger.log("BIBEDispatcher thread started", 2);
