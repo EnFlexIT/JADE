@@ -1260,7 +1260,6 @@ public class ams extends Agent implements AgentManager.Listener {
     application agents.
   */
   public synchronized void addedMTP(MTPEvent ev) {
-
     Channel ch = ev.getChannel();
     ContainerID cid = ev.getPlace();
     String address = ch.getAddress();
@@ -1289,14 +1288,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AID name = ad.getName();
       name.addAddresses(address);
     }
-
-    /*
-    //Notify the update of the APDescription...
-    PlatformDescription ap = new PlatformDescription();
-    ap.setPlatform(theProfile);
-    eventQueue.add(ap);
-    */
-
+    
     // Generate a suitable AMS event
     AddedMTP amtp = new AddedMTP();
     amtp.setAddress(address);
@@ -1305,12 +1297,19 @@ public class ams extends Agent implements AgentManager.Listener {
     EventRecord er = new EventRecord(amtp, here());
     er.setWhen(ev.getTime());
     eventQueue.add(er);
+
+    //Notify the update of the APDescription...
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(theProfile);
+    er = new EventRecord(ap, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+
     doWake();
 
   }
 
-  /**
-    Post an event to the AMS agent. This method must not be used by
+  /**    Post an event to the AMS agent. This method must not be used by
     application agents.
   */
   public synchronized void removedMTP(MTPEvent ev) {
@@ -1356,6 +1355,14 @@ public class ams extends Agent implements AgentManager.Listener {
     EventRecord er = new EventRecord(rmtp, here());
     er.setWhen(ev.getTime());
     eventQueue.add(er);
+
+    //Notify the update of the APDescription...
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(theProfile);
+    er = new EventRecord(ap, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+
     doWake();
 
   }
@@ -1370,10 +1377,10 @@ public class ams extends Agent implements AgentManager.Listener {
   	 //Write the APDescription file.
     try{
     	FileWriter f = new FileWriter("APDescription.txt");
-    
-    	theProfile.toText(f);
-	  	//f.write(s, 0, s.length());
-	  	f.write('\n');
+	f.write(theProfile.toString());
+	//f.write(s, 0, s.length());
+	f.write('\n');
+	f.flush();
     	f.close();
     }catch(java.io.IOException ioe){ioe.printStackTrace();}
     
