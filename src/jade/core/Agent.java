@@ -27,19 +27,34 @@ import jade.lang.acl.*;
 ****************************************************************/
 public class Agent implements Runnable, CommBroadcaster {
 
-  // Agent Platform Life-Cycle states
-  protected static final int AP_INITIATED = 1;
-  protected static final int AP_ACTIVE = 2;
-  protected static final int AP_SUSPENDED = 3;
-  protected static final int AP_WAITING = 4;
-  protected static final int AP_DELETED = -1;
 
+  // Agent Platform Life-Cycle states -- Package-level visibility
+
+  static final int AP_MIN = -1;   // Hand-made type checking
+  static final int AP_INITIATED = 1;
+  static final int AP_ACTIVE = 2;
+  static final int AP_SUSPENDED = 3;
+  static final int AP_WAITING = 4;
+  static final int AP_DELETED = 5;
+  static final int AP_MAX = 6;    // Hand-made type checking
+
+
+  // Domain Life-Cycle states -- Package-level visibility
+
+  static final int D_MIN = 9;     // Hand-made type checking
+  static final int D_ACTIVE = 10;
+  static final int D_SUSPENDED = 20;
+  static final int D_RETIRED = 30;
+  static final int D_UNKNOWN = 40;
+  static final int D_MAX = 41;    // Hand-made type checking
 
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
 
 
   protected String myName = null;
+  protected String myAddress = null;
+
   protected Thread myThread;
   protected Scheduler myScheduler;
   protected ACLMessage currentMessage;
@@ -62,10 +77,13 @@ public class Agent implements Runnable, CommBroadcaster {
 
   // State transition methods for Agent Platform Life-Cycle
 
-  public void doStart(String name) { // Transition from Initiated to Active
+  public void doStart(String name, String platformAddress) { // Transition from Initiated to Active
 
+    // Register this agent with platform AMS and start its embedded
+    // thread
     myName = new String(name);
-    APState = AP_ACTIVE;
+    myAddress = new String(name + "@" + platformAddress);
+
     myThread.start();
 
   }
@@ -105,6 +123,8 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   public final void run() {
+
+    registerWithAMS(null,null,null,Agent.AP_ACTIVE);
 
     setup();
 
@@ -226,6 +246,48 @@ public class Agent implements Runnable, CommBroadcaster {
     return msg;
   }
 
+
+  // Register yourself with platform AMS
+  public void registerWithAMS(String signature, String delegateAgent,
+			      String forwardAddress, int APState) {
+
+    String replyString = myName + "-ams-registration";
+
+    ACLMessage request = new ACLMessage();
+
+    request.setType("request");
+    request.setSource(myName);
+    request.setDest("ams");
+    request.setLanguage("SL0");
+    request.setOntology("fipa-agent-management");
+    request.setProtocol("fipa-request");
+    request.setReplyWith(replyString);
+
+    // Put mandatory attributes in content string
+    String content = "( action ams ( register-agent (" +
+      " :agent-name " + myName +
+      " :address " + myAddress +
+      " :ap-state active"; // FIXME: 'APState argument is ignored
+
+    // Add optional attributes if presents
+    if(signature != null)
+      content = content.concat(" :signature " + signature);
+
+    if(delegateAgent != null)
+      content = content.concat(" :delegate-agent " + delegateAgent);
+
+    if(forwardAddress != null)
+      content = content.concat(" :forward-address " + forwardAddress);
+
+    content = content.concat(") ) )");
+
+    request.setContent(content);
+
+    send(request);
+
+    ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
+
+  }
 
 
   // Event handling methods
