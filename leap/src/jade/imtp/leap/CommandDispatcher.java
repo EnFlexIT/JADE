@@ -334,8 +334,14 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   } 
 
   private boolean isLocal(List destTAs) {
-  	// FIXME: to be implemented 
-  	return false;
+  	try {
+  		TransportAddress ta1 = (TransportAddress) addresses.get(0);
+  		TransportAddress ta2 = (TransportAddress) destTAs.get(0);
+  		return (ta1.getHost().equals(ta2.getHost()) && ta1.getPort().equals(ta2.getPort()));
+  	}
+  	catch (Exception e) {
+	  	return false;
+  	}
   }
   
   /**

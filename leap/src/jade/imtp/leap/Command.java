@@ -81,7 +81,7 @@ public class Command {
     public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
 
 
-  static final int        OK = 1;
+  public static final int        OK = 1;
   static final int        ERROR = 2;
   static final int        FORWARD = 37;
 
