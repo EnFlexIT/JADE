@@ -99,6 +99,13 @@ public interface PlatformController
     public void kill() throws ControllerException;
 
     /**
+     * Get agent proxy to local agent given its name.
+     * @param localAgentName The short local name of the desired agent.
+     * @throws ControllerException If any probelms occur obtaining this proxy.
+     */
+    public AgentController getAgent(String localAgentName) throws ControllerException;
+
+    /**
      * Create a new agent.
      * @param nickName The name of the agent.
      * @param className The class implementing the agent.

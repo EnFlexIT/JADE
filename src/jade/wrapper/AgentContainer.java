@@ -10,8 +10,7 @@ modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation, 
 version 2.1 of the License. 
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This library is distributed in the hope that it will be usefubut WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
@@ -74,6 +73,25 @@ public class AgentContainer implements PlatformController {
     platformState = PlatformState.PLATFORM_STATE_READY;
   }
 
+
+  /**
+   * Get agent proxy to local agent given its name.
+   * @param localAgentName The short local name of the desired agent.
+   * @throws ControllerException If any probelms occur obtaining this proxy.
+   */
+  public AgentController getAgent(String localAgentName) throws ControllerException {
+      // FIXME. To check for security permissions
+    if(myImpl == null) {
+      throw new ControllerException("Stale proxy.");
+    }
+    AID agentID = new AID(localAgentName, AID.ISLOCALNAME);
+    AgentController a = myImpl.getAgent(agentID);
+    if (a == null) {
+      throw new ControllerException("Agent " + localAgentName + " not found.");
+    } 
+    return a; 
+  }
+
   /**
      Creates a new JADE agent, running within this container, 
      @param nickname A platform-unique nickname for the newly created
@@ -118,8 +136,8 @@ public class AgentContainer implements PlatformController {
      value from AgentController to Agent instead.
    */
   public Agent createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException {
-    if(myImpl == null)
-      throw new StaleProxyException();
+      if(myImpl == null) 
+	  throw new StaleProxyException();
     try {
       jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
       a.setArguments(args);
@@ -133,6 +151,7 @@ public class AgentContainer implements PlatformController {
       throw new NotFoundException("Class "+className+" for agent "+nickname+" was not found."); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
     catch(Exception e) {
+	e.printStackTrace();
       throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
 

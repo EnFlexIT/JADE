@@ -62,7 +62,7 @@ public class Agent implements AgentController {
      @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
      @param a A real JADE agent, that will be wrapped by this proxy.
    */
-  Agent(AID id, jade.core.Agent a) {
+  public Agent(AID id, jade.core.Agent a) {
     agentID = id;
     adaptee = a;
   }

@@ -123,6 +123,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     myProfile = p;
   }
 
+  /**
+   * Get the agentcontroller for a local agent given its AID.
+   * @param agentID The agentID of the desired agent.
+   * @see jade.wrapper.PlatformController#getAgent(String)
+   * @since JADE2.6
+   */
+  public jade.wrapper.AgentController getAgent(AID agentID) {
+      // This method is called by jade.wrapper.AgentContainer
+      // FIXME. To check for security permissions
+      Agent agent = localAgents.acquire(agentID);
+      localAgents.release(agentID);
+      if (agent != null)
+	  return new jade.wrapper.Agent(agentID, agent); 
+      else
+	  return null;
+  }
 
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
