@@ -242,13 +242,16 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
 
     private void removeRemoteContainer(ContainerID cid) {
+
+	// Eradicate all MTPs installed on the dead container (this
+	// requires that the container is still present in the
+	// Container Table)
+	removeAllMTPs(cid);
+
 	containers.removeContainer(cid);
 
 	// Eradicate all the entries for agents living on the dead container
 	removeAllAgents(cid);
-
-	// Eradicate all MTPs installed on the dead container
-	removeAllMTPs(cid);
 
 	// Notify listeners
 	fireRemovedContainer(cid);
@@ -1564,7 +1567,22 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
 
     private void removeAllMTPs(ContainerID cid) {
-	// FIXME: To be implemented
+	try {
+	    List l = containers.getMTPs(cid);
+	    Object[] objs = l.toArray();
+	    for(int i = 0; i < objs.length; i++) {
+		MTPDescriptor mtp = (MTPDescriptor)objs[i];
+		try {
+		    deadMTP(mtp, cid);
+		}
+		catch(IMTPException imtpe) {
+		    imtpe.printStackTrace();
+		}
+	    }
+	}
+	catch(NotFoundException nfe) {
+	    nfe.printStackTrace();
+	}
     }
 
     public void lockEntryForAgent(AID agentID) {
