@@ -107,7 +107,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	AgentImage previous = (AgentImage) agentImages.put(id, image);
   	try {
   		ContainerID cid = (ContainerID) here();
-	  	myPlatform.bornAgent(id, cid, image.getCertificateFolder());
+		//	  	myPlatform.bornAgent(id, cid, image.getCertificateFolder());
 	  	image.setToolkit(this);
 	  	// Prepare platform info to return if necessary
 	  	String[] info = null;
@@ -142,6 +142,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	AID id = new AID(name, AID.ISLOCALNAME);
   	AgentImage image = (AgentImage) agentImages.remove(id);
   	if (image != null) {
+	    /***
   		try {
 	  		myPlatform.deadAgent(id);
   		}
@@ -149,6 +150,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   			// There is nothing we can do
   			e.printStackTrace();
   		}
+	    ***/
   	}
   }
   
@@ -309,6 +311,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      dispatch has already taken place in the FrontEnd (see messageOut()).
    */
   public void dispatch(final ACLMessage msg, final AID receiverID) throws IMTPException, NotFoundException {
+
+      /***
   	// Try first in the real LADT
   	try {
   		super.dispatch(msg, receiverID);
@@ -353,6 +357,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				throw new NotFoundException("DispatchMessage failed to find " + receiverID);
 	  	}
   	}
+      ***/
   }
   
   /**
@@ -399,12 +404,14 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		Enumeration e = agentImages.keys();
 		while (e.hasMoreElements()) {
 			AID id = (AID) e.nextElement();
+			/***
 			try {
 				myPlatform.deadAgent(id);
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();
 			}
+			***/
 		}
 		agentImages.clear();
   	
@@ -414,6 +421,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   /**
    */
 	void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
+	    /***
 		// If the message was sent by an agent living on the FrontEnd, the
 		// FAILURE has to be notified only if the receiver does not live
 		// on the FrontEnd too. In this case in fact the message has
@@ -424,6 +432,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			}
 		}
 		super.notifyFailureToSender(msg, receiver, ie);
+
+	    ***/
 	}
 	
 	/**
