@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/03/14 17:45:36  rimassa
+  Decoupled event handler thread from DF agent thread using an event
+  queue, avoiding deadlock on agent registration through GUI.
+
   Revision 1.3  1999/02/14 23:19:22  rimassa
   Changed getName() calls to getLocalName() where appropriate.
 
@@ -223,7 +227,7 @@ public DFGUI() {
   } 
 
   void miExit_Action(java.awt.event.ActionEvent event) {
-    // FIXME: add a window to ask are you sure the defulat DF is mandatory!?
+    // FIXME: add a window to ask are you sure the default DF is mandatory!?
     dispose();
     agent.doDelete();
 
@@ -311,12 +315,8 @@ public DFGUI() {
 	    sd.setFixedProps("(list (implemented-by CSELT) (version 0.94))");
 	    dfd.addAgentService(sd);
         
-	    try {
-	       String parentName = textFieldDFname.getText(); 
-	       agent.registerWithDF(parentName, dfd);
-	    } catch (jade.domain.FIPAException f) {
-	        showErrorMsg("registerWithDF Exception: "+f.getMessage());
-	    }
+	    String parentName = textFieldDFname.getText(); 
+	    agent.postRegisterEvent(parentName, dfd);
 
 	//{{CONNECTION
 	// Hide the TextField
@@ -668,7 +668,7 @@ class agentDescriptionFrame extends Frame
     * to actually send messages
     * this DFGUI (REGISTER, MODIFY, VIEW, DEREGISTER)
     */
-	public agentDescriptionFrame(String title, Enumeration data, int useFor, Agent thisAgent) {
+	public agentDescriptionFrame(String title, Enumeration data, int useFor, df thisAgent) {
 	    this(title);
 	    myAgent = thisAgent;
 	    usage = useFor;
@@ -849,8 +849,8 @@ void setAllEditable(boolean tf) {
   int         usage = 0; // this class variable indicates for what usage the
 	                   // frame has been created
  
-  Agent       myAgent; // pointer to the agent to send messages
-	
+  df       myAgent; // pointer to the agent to send messages
+       
 	//{{DECLARE_CONTROLS
 	java.awt.Label label1;
 	java.awt.Label label2;
@@ -1021,12 +1021,7 @@ void setAllEditable(boolean tf) {
       if (textField3.getText().length() > 0) currentDFAgentDescriptor.addAddress(textField3.getText());
       if (textField13.getText().length() > 0) currentDFAgentDescriptor.addInteractionProtocol(textField13.getText());
       addAgentService();
-      try {
-	myAgent.registerWithDF(myAgent.getName(),currentDFAgentDescriptor);
-      } catch (jade.domain.FIPAException f) {
-	// FIXME far vedere il testo della eccezione su schermo
-	System.err.println("registerWithDF Exception: "+f.getMessage());
-      }  
+      myAgent.postRegisterEvent(myAgent.getName(),currentDFAgentDescriptor);
     } else if (usage == DFGUI.DEREGISTER) {
       // currentDFAgentDescriptor already contains the description
       try {
@@ -1034,7 +1029,7 @@ void setAllEditable(boolean tf) {
       } catch (jade.domain.FIPAException f) {
 	// FIXME far vedere il testo della eccezione su schermo
 	System.err.println("deregisterWithDF Exception: "+f.getMessage());
-      }  
+      } 
     } else if (usage == DFGUI.MODIFY) {
       ACLMessage msg = new ACLMessage("request");
       msg.setSource(myAgent.getName());
