@@ -143,6 +143,7 @@ images:
 	cp -R $(SRCDIR)/jade/tools/sniffer/images $(CLSDIR)/jade/tools/sniffer
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
+	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
 	mkdir -p $(CLSDIR)/jade/gui/help
 
 idlclean:
@@ -170,6 +171,7 @@ batch:
 	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\dfgui\images ..\classes\jade\tools\dfgui\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\rma\images ..\classes\jade\tools\rma\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
 
 	echo >> $(BATCH_ALL)
