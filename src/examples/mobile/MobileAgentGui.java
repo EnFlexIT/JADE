@@ -37,7 +37,7 @@ import java.util.*;
 import java.io.*;
 
 import jade.core.*;
-import jade.domain.MobilityOntology;
+import jade.domain.mobility.*;
 import jade.gui.GuiEvent;
 
 /**

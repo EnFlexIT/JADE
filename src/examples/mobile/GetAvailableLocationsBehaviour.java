@@ -21,8 +21,6 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package examples.mobile;
 
 import jade.util.leap.*;
@@ -30,16 +28,18 @@ import jade.util.leap.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 
-import jade.domain.MobilityOntology;
-import jade.domain.FIPAException;
+import jade.domain.JADEAgentManagement.*;
+import jade.domain.mobility.MobilityOntology;
+import jade.domain.FIPANames;
 
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 
 import jade.core.*;
-import jade.onto.OntologyException;
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 
   /*
    * This behaviour extends SimpleAchieveREInitiator in order
@@ -55,25 +55,23 @@ public class GetAvailableLocationsBehaviour extends SimpleAchieveREInitiator {
  
    public GetAvailableLocationsBehaviour(MobileAgent a) {
      // call the constructor of FipaRequestInitiatorBehaviour
-       super(a, new ACLMessage(ACLMessage.REQUEST));
+     super(a, new ACLMessage(ACLMessage.REQUEST));
      request = (ACLMessage)getDataStore().get(REQUEST_KEY);
      // fills all parameters of the request ACLMessage
      request.clearAllReceiver();
      request.addReceiver(a.getAMS());
-     request.setLanguage(SL0Codec.NAME);
+     request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
      request.setOntology(MobilityOntology.NAME);
      request.setProtocol("fipa-request");
      // creates the content of the ACLMessage
      try {
        Action action = new Action();
        action.setActor(a.getAMS());
-       action.setAction(new MobilityOntology.QueryPlatformLocationsAction());
-       List tuple = new ArrayList();
-       tuple.add(action);
-       a.fillMsgContent(request, tuple);
+       action.setAction(new QueryPlatformLocationsAction());
+       a.getContentManager().fillContent(request, action);
      }
-     catch(FIPAException fe) {
-       fe.printStackTrace();
+     catch(Exception fe) {
+	      fe.printStackTrace();
      }
      // creates the Message Template
      // template = MessageTemplate.and(MessageTemplate.MatchOntology(MobilityOntology.NAME),template);
@@ -101,10 +99,9 @@ public class GetAvailableLocationsBehaviour extends SimpleAchieveREInitiator {
      String content = inform.getContent();
      //System.out.println(inform.toString());
      try {
-       List tuple = myAgent.extractMsgContent(inform);
-       ResultPredicate r = (ResultPredicate)tuple.get(0);
+       Result results = (Result)myAgent.getContentManager().extractContent(inform);
        //update the GUI
-       ((MobileAgent)myAgent).gui.updateLocations(r.getAll_1());
+       ((MobileAgent)myAgent).gui.updateLocations(results.getItems().iterator());
      }
      catch(Exception e) {
        e.printStackTrace();

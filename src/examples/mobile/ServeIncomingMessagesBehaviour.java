@@ -30,11 +30,9 @@ import java.util.StringTokenizer;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.MobilityOntology;
-import jade.domain.FIPAException;
+import jade.domain.mobility.*;
 
 import jade.lang.acl.*;
-import jade.lang.sl.SL0Codec;
 
 /**
 This behaviour of the Agent serves all the received messages. In particular,

@@ -21,8 +21,6 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package examples.mobile;
 
 import java.util.Vector;
@@ -33,17 +31,16 @@ import java.util.Iterator;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.MobilityOntology;
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
+import jade.domain.mobility.*;
+import jade.domain.FIPANames;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-
 
 
 /**
@@ -84,9 +81,9 @@ public class MobileAgent extends GuiAgent {
 
 	public void setup() {
 	  // register the SL0 content language
-	  registerLanguage(SL0Codec.NAME, new SL0Codec());
+	  getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 	  // register the mobility ontology
-	  registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+	  getContentManager().registerOntology(MobilityOntology.getInstance());
 
 	  // creates and shows the GUI
 	  gui = new MobileAgentGui(this);
@@ -179,20 +176,17 @@ protected void afterClone() {
 			
      // Register again SL0 content language and JADE mobility ontology,
      // since they don't migrate.
-     registerLanguage(SL0Codec.NAME, new SL0Codec());
-     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());		
+     getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+	 getContentManager().registerOntology(MobilityOntology.getInstance());
      // get the list of available locations from the AMS.
      // FIXME. This list might be stored in the Agent and migrates with it.
      addBehaviour(new GetAvailableLocationsBehaviour(this));
    }
-	
-
 
 	/////////////////////////////////
 	// GUI HANDLING
 		
-	
-	
+
 	// AGENT OPERATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
 	{
