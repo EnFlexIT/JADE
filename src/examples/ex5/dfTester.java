@@ -101,41 +101,50 @@ public class dfTester extends Agent {
 
       System.out.print(":agent-name ");
       len = System.in.read(buffer);
-      dfd.setName(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.setName(new String(buffer,0,len-1));
 
       System.out.print(":agent-address ");
       len = System.in.read(buffer);
-      dfd.addAddress(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.addAddress(new String(buffer,0,len-1));
 
       System.out.print(":agent-type ");
       len = System.in.read(buffer);
-      dfd.setType(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.setType(new String(buffer,0,len-1));
 
       System.out.print(":interaction-protocols ");
       len = System.in.read(buffer);
-      dfd.addInteractionProtocol(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.addInteractionProtocol(new String(buffer,0,len-1));
 
       System.out.print(":ontology ");
       len = System.in.read(buffer);
-      dfd.setOntology(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.setOntology(new String(buffer,0,len-1));
 
       System.out.print(":ownership ");
       len = System.in.read(buffer);
-      dfd.setOwnership(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.setOwnership(new String(buffer,0,len-1));
 
       System.out.print(":df-state ");
       len = System.in.read(buffer);
-      dfd.setDFState(new String(buffer,0,len-1));
+      if(len > 1)
+	dfd.setDFState(new String(buffer,0,len-1));
 
       System.out.print(":agent-services ");
       len = System.in.read(buffer);
-      String servicesText = new String(buffer,0,len-1);
-      try {
-	AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
-	dfd.addService(sd);
-      }
-      catch(jade.domain.ParseException jdpe) {
-	jdpe.printStackTrace();
+      if(len > 1) {
+	String servicesText = new String(buffer,0,len-1);
+	try {
+	  AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
+	  dfd.addService(sd);
+	}
+	catch(jade.domain.ParseException jdpe) {
+	  jdpe.printStackTrace();
+	}
       }
 
       System.out.println("");

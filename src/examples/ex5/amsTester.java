@@ -68,10 +68,8 @@ public class amsTester extends Agent {
   private abstract class ReceiveBehaviour extends SimpleBehaviour {
 
     protected boolean finished = false;
-    protected amsTester myAgent;
 
-    protected ReceiveBehaviour(amsTester a) {
-      myAgent = a;
+    protected ReceiveBehaviour() {
     }
 
     public abstract void action();
@@ -142,37 +140,37 @@ public class amsTester extends Agent {
 
     ComplexBehaviour receive1stReply = NonDeterministicBehaviour.createWhenAny(this);
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"not-understood");
+	ACLMessage msg = Receiver.receive(amsTester.this, "not-understood");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"refuse");
+	ACLMessage msg = Receiver.receive(amsTester.this,"refuse");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"agree");
+	ACLMessage msg = Receiver.receive(amsTester.this,"agree");
 	if(msg != null)
-	  myAgent.receiveAgree(msg);
+	  receiveAgree(msg);
 	finished = (msg != null);
       }
 
@@ -185,29 +183,28 @@ public class amsTester extends Agent {
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
-	amsTester a = (amsTester)myAgent;
-	if(a.agreed()) {
+	if(agreed()) {
 	  
-	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(a);
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(amsTester.this);
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"failure");
+	      ACLMessage msg = Receiver.receive(amsTester.this,"failure");
 	      if(msg != null)
-		myAgent.handleFailure(msg);
+		handleFailure(msg);
 	      finished = (msg != null);
 	    }
 
 	  });
 
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"inform");
+	      ACLMessage msg = Receiver.receive(amsTester.this,"inform");
 	      if(msg != null)
-		myAgent.handleInform(msg);
+		handleInform(msg);
 	      finished = (msg != null);
 	    }
 

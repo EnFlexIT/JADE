@@ -42,7 +42,6 @@ public class AgentSender extends Agent {
           ioe.printStackTrace();
         }
 
-	//        doDelete(); // Terminates the agent
       }
 
     });

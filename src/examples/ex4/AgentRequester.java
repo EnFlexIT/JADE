@@ -12,36 +12,36 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 
-class Receiver {
-
-  // Utility class with private constructor -- do not instantiate.
-  private Receiver() {
-  }
-
-  public static final ACLMessage receive(AgentRequester a,String messageType) {
-    
-    // Receive <messageType> message from peer
-
-    MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
-    MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
-    MessageTemplate mt3 = MessageTemplate.MatchSource(a.getPeer());
-    MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
-
-    MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-    MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
-
-    MessageTemplate mt = MessageTemplate.and(mt12, mt34);
-
-    ACLMessage msg = a.receive(mt);
-
-    return msg;
-
-  }
-
-} // End of Receiver
-
-
 public class AgentRequester extends Agent {
+
+  private static class Receiver {
+
+    // Utility class with private constructor -- do not instantiate.
+    private Receiver() {
+    }
+
+    public static final ACLMessage receive(AgentRequester a, String messageType) {
+    
+      // Receive <messageType> message from peer
+
+      MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
+      MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
+      MessageTemplate mt3 = MessageTemplate.MatchSource(a.getPeer());
+      MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
+
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+      MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
+
+      MessageTemplate mt = MessageTemplate.and(mt12, mt34);
+
+      ACLMessage msg = a.receive(mt);
+
+      return msg;
+
+    }
+
+  } // End of Receiver class
+
 
   // Used to generate conversation IDs.
   private int convCounter = 0;
@@ -61,10 +61,8 @@ public class AgentRequester extends Agent {
   private abstract class ReceiveBehaviour extends SimpleBehaviour {
 
     protected boolean finished = false;
-    protected AgentRequester myAgent;
 
-    protected ReceiveBehaviour(AgentRequester a) {
-      myAgent = a;
+    protected ReceiveBehaviour() {
     }
 
     public abstract void action();
@@ -98,48 +96,45 @@ public class AgentRequester extends Agent {
       public void action() {
 
 	// Send a 'request' message to peer
-        AgentRequester a = (AgentRequester)myAgent;
-
-	System.out.println("Sending 'request' message to: " + a.getPeer());
-
-	a.sendRequest();
+	System.out.println("Sending 'request' message to: " + getPeer());
+	sendRequest();
 
       }
     });
 
     ComplexBehaviour receive1stReply = NonDeterministicBehaviour.createWhenAny(this);
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"not-understood");
+	ACLMessage msg = Receiver.receive(AgentRequester.this, "not-understood");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"refuse");
+	ACLMessage msg = Receiver.receive(AgentRequester.this, "refuse");
 	if(msg != null)
-	  myAgent.dumpMessage(msg);
+	  dumpMessage(msg);
 	finished = (msg != null);
       }
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour(this) {
+    receive1stReply.addBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"agree");
+	ACLMessage msg = Receiver.receive(AgentRequester.this, "agree");
 	if(msg != null)
-	  myAgent.receiveAgree(msg);
+	  receiveAgree(msg);
 	finished = (msg != null);
       }
 
@@ -152,36 +147,35 @@ public class AgentRequester extends Agent {
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
-	AgentRequester a = (AgentRequester)myAgent;
-	if(a.agreed()) {
+	if(agreed()) {
 	  
-	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(a);
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(AgentRequester.this);
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"failure");
+	      ACLMessage msg = Receiver.receive(AgentRequester.this, "failure");
 	      if(msg != null)
-		myAgent.handleFailure(msg);
+		handleFailure(msg);
 	      finished = (msg != null);
 	    }
 
 	  });
 
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour(a) {
+	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"inform");
+	      ACLMessage msg = Receiver.receive(AgentRequester.this, "inform");
 	      if(msg != null)
-		myAgent.handleInform(msg);
+		handleInform(msg);
 	      finished = (msg != null);
 	    }
 
 	  });
 
 	  // Schedules next behaviour for execution
-	  myAgent.addBehaviour(receiveAfterAgree);
+	  addBehaviour(receiveAfterAgree);
 	}
 
 	else

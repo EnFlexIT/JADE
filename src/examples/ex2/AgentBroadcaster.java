@@ -19,15 +19,14 @@ public class AgentBroadcaster extends Agent {
 
   private class BehaviourElement extends SimpleBehaviour {
 
-    private AgentBroadcaster myAgent;
     private ACLMessage myMessage;
     private boolean msgSent = false;
     private boolean replyReceived = false;
 
 
-    public BehaviourElement(AgentBroadcaster a, String source, String dest, String content) {
-      myAgent = a;
+    public BehaviourElement(String source, String dest, String content) {
       myMessage = new ACLMessage();
+      myMessage.setType("request");
       myMessage.setSource(source);
       myMessage.setContent(content);
       myMessage.setDest(dest);
@@ -36,14 +35,14 @@ public class AgentBroadcaster extends Agent {
     public void action() {
       if(msgSent == false) {
 	System.out.println("Sending to " + myMessage.getDest());
-	myAgent.send(myMessage);
+	send(myMessage);
 	msgSent = true;
       }
       else {
-	ACLMessage reply = myAgent.receive();
+	ACLMessage reply = receive();
 	if(reply != null) {
 	  System.out.println("Received reply");
-	  myAgent.appendMessage(reply);
+	  appendMessage(reply);
 	  replyReceived = true;
 	}
       }
@@ -75,11 +74,11 @@ public class AgentBroadcaster extends Agent {
 	  String dest3 = new String(buffer,0,len-1);
 
 	  ACLMessage msg = new ACLMessage();
-	  String source = myAgent.getName();
+	  String source = getName();
 
-	  addBehaviour(new BehaviourElement((AgentBroadcaster)myAgent,source,dest1,content));
-	  addBehaviour(new BehaviourElement((AgentBroadcaster)myAgent,source,dest2,content));
-	  addBehaviour(new BehaviourElement((AgentBroadcaster)myAgent,source,dest3,content));
+	  addBehaviour(new BehaviourElement(source,dest1,content));
+	  addBehaviour(new BehaviourElement(source,dest2,content));
+	  addBehaviour(new BehaviourElement(source,dest3,content));
 	}
 	catch(IOException ioe) {
 	  ioe.printStackTrace();
@@ -88,9 +87,8 @@ public class AgentBroadcaster extends Agent {
 
       protected void postAction() {
 	System.out.println("Post-Action");
-	AgentBroadcaster a = (AgentBroadcaster)myAgent;
-	a.dumpMessage();
-	myAgent.doDelete(); // Terminates the agent
+	dumpMessage();
+	doDelete(); // Terminates the agent
       }
 
     };

@@ -20,13 +20,12 @@ public class AgentResponder extends Agent {
 
       private ACLMessage message;
 
-      public SendBehaviour(AgentResponder a, ACLMessage msg) {
-	super(a);
+      public SendBehaviour(ACLMessage msg) {
 	message = msg;
       }
 
       public void action() {
-	this.myAgent.send(message);
+	send(message);
 	message.dump();
       }
 
@@ -34,13 +33,11 @@ public class AgentResponder extends Agent {
 
 
     private boolean finished = false;
-    private AgentResponder myAgent;
     private String myPeer;
     private String myConvId;
 
 
-    public ResponderBehaviour(AgentResponder a, ACLMessage msg) {
-      myAgent = a;
+    public ResponderBehaviour(ACLMessage msg) {
       myPeer = msg.getSource();
       myConvId = msg.getConversationId();
     }
@@ -53,7 +50,7 @@ public class AgentResponder extends Agent {
       // failure probability.
 
       ACLMessage reply = new ACLMessage();
-      reply.setSource(myAgent.getName());
+      reply.setSource(getName());
       reply.setDest(myPeer);
       reply.setProtocol("fipa-request");
       reply.setConversationId(myConvId);
@@ -64,7 +61,7 @@ public class AgentResponder extends Agent {
 	// Reply with 'not-understood'
 	reply.setType("not-understood");
 	reply.dump();
-	myAgent.send(reply);
+	send(reply);
       }
       else if(chance < 0.5) {
 	// Reply with 'refuse'
@@ -72,13 +69,13 @@ public class AgentResponder extends Agent {
 	reply.setLanguage("\"Plain Text\"");
 	reply.setContent("I'm too busy at the moment. Retry later.");
 	reply.dump();
-	myAgent.send(reply);
+	send(reply);
       }
       else {
 	// Reply with 'agree' and schedule next message
 	reply.setType("agree");
 	reply.dump();
-	myAgent.send(reply);
+	send(reply);
 
 	chance = Math.random();
 	if(chance < 0.4) {
@@ -98,7 +95,7 @@ public class AgentResponder extends Agent {
 	// Schedule a new behaviour to send the message, thereby
 	// allowing other behaviours to run between the two send()
 	// operations.
-	myAgent.addBehaviour(new SendBehaviour(myAgent,reply));
+	addBehaviour(new SendBehaviour(reply));
 
       }
 
@@ -118,11 +115,9 @@ public class AgentResponder extends Agent {
   // spawns a ResponderBehaviour to handle them.
   private class MultipleBehaviour extends CyclicBehaviour {
 
-    private AgentResponder myAgent;
     MessageTemplate pattern;
 
-    public MultipleBehaviour(AgentResponder a) {
-      myAgent = a;
+    public MultipleBehaviour() {
 
       MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
       MessageTemplate mt2 = MessageTemplate.MatchType("request");
@@ -133,24 +128,23 @@ public class AgentResponder extends Agent {
 
     public void action() {
 
-      ACLMessage request = myAgent.receive(pattern);
+      ACLMessage request = receive(pattern);
 
       if(request != null) {
 	System.out.println("Received: ");
 	request.dump();
-	myAgent.addBehaviour(new ResponderBehaviour(myAgent, request));
+	addBehaviour(new ResponderBehaviour(request));
       }
 
-      // Uncomment the following two lines and no CPU time will be wasted
-      //      else
-      //      block();
+      // With the following two lines no CPU time will be wasted
+      else
+	block();
     }
-
 
   }
 
   protected void setup() {
-    addBehaviour(new MultipleBehaviour(this));
+    addBehaviour(new MultipleBehaviour());
   }
 
 

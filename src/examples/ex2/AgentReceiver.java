@@ -16,16 +16,16 @@ public class AgentReceiver extends Agent {
 
       public void action() {
         System.out.println("Now receiving (blocking style)...");
-        ACLMessage msg = myAgent.blockingReceive();
+        ACLMessage msg = blockingReceive();
         msg.dump();
         System.out.println("Sending back reply to sender ...");
         ACLMessage reply = new ACLMessage();
         reply.setType("inform");
-        reply.setSource(myAgent.getName());
+        reply.setSource(getName());
         reply.setDest(msg.getSource());
         reply.setContent("\"Thank you for calling, " + msg.getSource() + "\"");
         //reply.dump();
-        myAgent.send(reply);
+        send(reply);
       }
 
     });
