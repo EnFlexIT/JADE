@@ -37,8 +37,9 @@ import jade.onto.RoleFactory;
 import jade.onto.OntologyException;
 
 /**
-@author Fabio Bellifemine - CSELT S.p.A.
-@version $Date$ $Revision$
+   Javadoc documentation for the file
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
 */
 
 /**
@@ -94,9 +95,10 @@ public class FIPAAgentManagementOntology {
   public static final String MISSINGARGUMENT = "missing-argument";
   public static final String UNEXPECTEDARGUMENT = "unexpected-argument";
   public static final String UNEXPECTEDARGUMENTCOUNT = "unexpected-argument-count";
-  public static final String MISSINGPARAMETER = "missing-parameter";
-  public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
-  public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
+  public static final String MISSINGATTRIBUTE = "missing-attribute";
+  public static final String UNEXPECTEDATTRIBUTE = "unexpected-attribute";
+  public static final String UNRECOGNISEDATTRIBUTEVALUE = "unrecognised-attribute-value";
+
   // Failure Exception Propositions
   public static final String ALREADYREGISTERED = "already-registered";
   public static final String NOTREGISTERED = "not-registered";
@@ -191,8 +193,8 @@ public class FIPAAgentManagementOntology {
 	    new TermDescriptor("mobility", Ontology.STRING_TYPE, Ontology.O),
             new TermDescriptor("transport-profile", Ontology.CONCEPT_TYPE, APTRANSPORTDESCRIPTION, Ontology.O),
 	}, new RoleFactory() {
-	     public Object create(Frame f) { return new AgentPlatformDescription(); } 
-	     public Class getClassForRole() { return AgentPlatformDescription.class; }
+	     public Object create(Frame f) { return new APDescription(); } 
+	     public Class getClassForRole() { return APDescription.class; }
 	   });
 
 	theInstance.addFrame(APTRANSPORTDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
@@ -327,28 +329,28 @@ public class FIPAAgentManagementOntology {
 	     public Class getClassForRole() { return UnexpectedArgumentCount.class;}
 	   });
 
-	theInstance.addFrame(MISSINGPARAMETER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(MISSINGATTRIBUTE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) { return new MissingParameter(); }
-	     public Class getClassForRole() { return MissingParameter.class;}
+	     public Object create(Frame f) { return new MissingAttribute(); }
+	     public Class getClassForRole() { return MissingAttribute.class;}
 	   });
 
-	theInstance.addFrame(UNEXPECTEDPARAMETER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(UNEXPECTEDATTRIBUTE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) {return new UnexpectedParameter(); }
-	     public Class getClassForRole() {return UnexpectedParameter.class;}
+	     public Object create(Frame f) {return new UnexpectedAttribute(); }
+	     public Class getClassForRole() {return UnexpectedAttribute.class;}
 	   });
 
-	theInstance.addFrame(UNRECOGNISEDPARAMETERVALUE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(UNRECOGNISEDATTRIBUTEVALUE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) {return new UnrecognisedParameterValue(); }
-	     public Class getClassForRole() {return UnrecognisedParameterValue.class;}
+	     public Object create(Frame f) {return new UnrecognisedAttributeValue(); }
+	     public Class getClassForRole() {return UnrecognisedAttributeValue.class;}
 	   });
 
 	theInstance.addFrame(ALREADYREGISTERED, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
