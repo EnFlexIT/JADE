@@ -45,7 +45,7 @@ public class TestQuantifiers extends Test{
   
   public String getDescription() {
   	StringBuffer sb = new StringBuffer("Tests a content including the EXISTS and FORALL operators\n");
-  	sb.append("The content tested looks like: (exists ?x (forall ?y (CLOSE ?x ?y) ) )");
+  	sb.append("The content tested looks like: (forall ?x (exists ?y (CLOSE ?x ?y) ) )");
   	return sb.toString();
   }
   
