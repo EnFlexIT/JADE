@@ -37,7 +37,10 @@ import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
+import java.io.ObjectStreamException;
 //#MIDP_EXCLUDE_END
+
+import jade.util.leap.Serializable;
 
 /**
  * This class provides a uniform way to produce logging printouts
@@ -109,7 +112,8 @@ import java.util.logging.Level;
 public class Logger
 //#J2ME_EXCLUDE_BEGIN
 		extends java.util.logging.Logger
-//#J2ME_EXCLUDE_END
+//#J2ME_EXCLUDE_END 
+		implements Serializable
 { 
 	
 	//#J2ME_EXCLUDE_BEGIN
@@ -159,7 +163,27 @@ public class Logger
     */
 	private Logger(String name,String resourceBundleName){
 		super(name,resourceBundleName);		
+	}	
+	
+	//////////////////////////////////////////////
+	// This section is for serialization purposes
+	//////////////////////////////////////////////
+	private Object writeReplace() throws ObjectStreamException {
+		return new DummyLogger(getName());
 	}
+	
+	private static class DummyLogger implements Serializable {
+		private String name;
+		
+		public DummyLogger(String n) {
+			name = n;
+		}
+		
+		private Object readResolve() throws ObjectStreamException {
+			return new Logger(name, null);
+		}
+	}
+	//////////////////////////////////////////////
 	//#J2ME_EXCLUDE_END
 
 	/**
