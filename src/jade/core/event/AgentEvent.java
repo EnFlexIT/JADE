@@ -24,6 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core.event;
 
 import jade.core.AID;
+import jade.core.BehaviourID;
+import jade.core.ContainerID;
+import jade.core.AgentState;
 
 /**
    This class represents an event related to the agent life-cycle and
@@ -34,15 +37,77 @@ import jade.core.AID;
  */
 public class AgentEvent extends JADEEvent {
 
-  private AID source;
+  public static final int CHANGED_AGENT_STATE = 1;
+  public static final int ADDED_BEHAVIOUR = 2;
+  public static final int REMOVED_BEHAVIOUR = 3;
+  public static final int CHANGED_BEHAVIOUR_STATE = 4;
 
-  public AgentEvent(AID id) {
-    super(null); // FIXME: must put the location for the current container...
-    source = id;
+  private int myID;
+
+  private AID agent;
+  private BehaviourID behaviour;
+  private AgentState from;
+  private AgentState to;
+
+  public AgentEvent(int id, AID aid, AgentState f, AgentState t, ContainerID cid) {
+    super(cid);
+    myID = id;
+    if(!isChangedAgentState()) {
+      throw new InternalError("Bad Event kind: it must be a 'changed-agent-state' event.");
+    }
+    agent = aid;
+    behaviour = null;
+    from = f;
+    to = t;
   }
 
-  public AID getSource() {
-    return source;
+  public AgentEvent(int id, AID aid, BehaviourID bid, ContainerID cid) {
+    super(cid);
+    myID = id;
+    if(isChangedAgentState() || isChangedBehaviourState()) {
+      throw new InternalError("Bad Event kind: it must be an 'added/removed-behaviour' event.");
+    }
+    agent = aid;
+    behaviour = bid;
+    from = null;
+    to = null;
+  }
+
+  public AgentEvent(int id, AID aid, BehaviourID bid, String f, String t, ContainerID cid) {
+    super(cid);
+    myID = id;
+    if(!isChangedBehaviourState()) {
+      throw new InternalError("Bad Event kind: it must be a 'changed-behaviour-state' event.");
+    }
+
+    agent = aid;
+    behaviour = bid;
+    // FIXME: set old and new behaviour states...
+
+  }
+
+  public AID getAgent() {
+    return agent;
+  }
+
+  public BehaviourID getBehaviour() {
+    return behaviour;
+  }
+
+  public AgentState getFrom() {
+    return from;
+  }
+
+  public AgentState getTo() {
+    return to;
+  }
+
+  private boolean isChangedAgentState() {
+    return myID == CHANGED_AGENT_STATE; 
+  }
+
+  private boolean isChangedBehaviourState() {
+    return myID == CHANGED_BEHAVIOUR_STATE;
   }
 
 }
