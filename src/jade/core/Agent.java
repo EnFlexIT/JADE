@@ -1767,9 +1767,16 @@ public class Agent implements Runnable, Serializable
 
 	//#MIDP_EXCLUDE_BEGIN
   /**
-    Actions to perform before moving. This empty placeholder method can be
-    overridden by user defined agents to execute some actions just before
-    leaving an agent container for a migration.
+   * This empty placeholder shall be overridden by user defined agents 
+   * to execute some actions before the original agent instance on the 
+   * source container is stopped (e.g. releasing local resources such 
+   * as a GUI).<br>
+   * <b>IMPORTANT:</b> At this point, it is ensured that the move process
+   * is successful and that a moved agent instance has been created on the 
+   * destination container 
+   * Therefore setting the value of a class field in this method will have
+   * no impact on the moved agent instance. Such parameters must indeed be 
+   * set <b>before</b> the <code>doMove()</code> method is called.
     <br>
     <b>NOT available in MIDP</b>
     <br>
@@ -1787,12 +1794,13 @@ public class Agent implements Runnable, Serializable
   protected void afterMove() {}
 
   /**
-    Actions to perform before cloning. This empty placeholder method can be
-    overridden by user defined agents to execute some actions just before
-    copying an agent to another agent container.
-    <br>
-    <b>NOT available in MIDP</b>
-    <br>
+   * This empty placeholder method shall be overridden by user defined agents 
+   * to execute some actions before copying an agent to another agent container.
+   * <br>
+   * <b>NOT available in MIDP</b>
+   * <br>
+   * @see beforeMove()
+   * @see afterClone()
   */
   protected void beforeClone() {}
 
