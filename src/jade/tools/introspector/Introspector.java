@@ -279,28 +279,12 @@ public class Introspector extends ToolAgent {
 			myGUI.addWindow(m);
 			windowMap.put(name, m);
 		
-			stepByStepAgents.add(name);
+			// Enable the following instruction if you want STEP_BY_STEP to 
+			// be the default debug mode
+			//stepByStepAgents.add(name);
 			
 			requestDebugOn(name);
     }
-/*      try {
-
-	ACLMessage msg = getRequest();
-	DebugOn dbgOn = new DebugOn();
-	dbgOn.setDebugger(getAID());
-	dbgOn.addDebuggedAgents(name);
-	Action a = new Action();
-	a.setActor(getAMS());
-	a.setAction(dbgOn);
-	
-	getContentManager().fillContent(msg, a);
-
-	addBehaviour(new AMSRequester("DebugOn", msg));
-      }
-      catch(Exception fe) {
-		fe.printStackTrace();
-      }
-    }*/
   }
 
   private void requestDebugOn(AID name) {
@@ -524,6 +508,7 @@ public class Introspector extends ToolAgent {
       if(message != null) {
         AID name = message.getSender();
 	try{
+		System.out.println("Parsing message "+message);
 	  Occurred o = (Occurred)getContentManager().extractContent(message);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
@@ -602,4 +587,48 @@ public class Introspector extends ToolAgent {
 		}
   }
   
+  /** 
+ 	   The doDelete() method is re-defined because if the Introspector is
+ 	   killed while it is debugging the AMS a deadlock occurs. In fact, 
+ 	   while exiting, the Introspector can't make the debugged agents 
+ 	   proceed. At the same time however the Introspector can't proceed as it 
+ 	   is waiting for the answer to its AMS deregistration
+ 	 */
+  public void doDelete() {
+  	AID amsId = getAMS();
+  	if (windowMap.containsKey(amsId)) {
+      try {
+				final MainWindow m = (MainWindow)windowMap.get(amsId);
+				myGUI.closeInternal(m);
+				windowMap.remove(amsId);
+			
+				stepByStepAgents.remove(amsId);
+				slowAgents.remove(amsId);
+				proceed(amsId);
+			
+				ACLMessage msg = getRequest();
+				DebugOff dbgOff = new DebugOff();
+				dbgOff.setDebugger(getAID());
+				dbgOff.addDebuggedAgents(amsId);
+				Action a = new Action();
+				a.setActor(getAMS());
+				a.setAction(dbgOff);
+				
+				getContentManager().fillContent(msg, a);
+			
+				addBehaviour(new AMSRequester("DebugOff", msg) {
+					public int onEnd() {
+						myAgent.doDelete();
+						return 0;
+					}
+				} );
+      }
+      catch(Exception fe) {
+				fe.printStackTrace();
+      }
+  	}
+  	else {
+	  	super.doDelete();
+  	}
+  }
 }
