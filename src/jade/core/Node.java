@@ -38,6 +38,7 @@ import jade.util.leap.Serializable;
 */
 public interface Node extends Serializable {
 
+    void setName(String name);
     String getName();
 
     void ping(boolean hang) throws IMTPException;
