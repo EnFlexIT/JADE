@@ -17,6 +17,10 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
   - Catched exception in initfromIOR 
   - Matched the ServiceDescription also against the user-defined properties
 - Added the JadeJessProtege example kindly provided by Oliver Hoffmann.
+- Modified the class jade.core.AID that now represents only GUID. Some 
+  user applications might need to modify the code and call the constructor
+  AID(localName, AID.ISLOCALNAME) instead of the old constructor.
+	
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
 ======================================================	
