@@ -31,7 +31,6 @@ import jade.security.JADESecurityException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.*;
-import jade.security.dummy.*;
 //#MIDP_EXCLUDE_END
 
 import java.util.Hashtable;
@@ -79,10 +78,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	// Flag indicating that the shutdown procedure is in place
 	private boolean exiting = false;
-
-	//#MIDP_EXCLUDE_BEGIN
-	private Authority authority = new DummyAuthority();
-	//#MIDP_EXCLUDE_END
 
 	/**
 	   Construct a FrontEndContainer and connect to the BackEnd.
@@ -411,10 +406,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
   
   public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
-  }
-  
-  public Authority getAuthority() {
-  	return authority; 
   }
   //#MIDP_EXCLUDE_END
   

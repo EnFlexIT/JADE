@@ -53,7 +53,6 @@ import jade.util.leap.List;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 import jade.security.*;
-import jade.security.dummy.*;
 import jade.imtp.leap.JICP.JICPAddress;
 import jade.imtp.leap.http.HTTPAddress;
 
@@ -212,14 +211,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
         else if (o instanceof Service.SliceProxy) {      // SliceProxy
           writeByte(Serializer.SLICEPROXY_ID);
           serializeSliceProxy((Service.SliceProxy) o);
-        }
-        else if (o instanceof DummyCertificate) {        // DummyCertificate
-          writeByte(Serializer.DUMMYCERTIFICATE_ID);
-          serializeDummyCertificate((DummyCertificate) o);
-        }
-        else if (o instanceof DummyPrincipal) {          // DummyPrincipal
-          writeByte(Serializer.DUMMYPRINCIPAL_ID);
-          serializeDummyPrincipal((DummyPrincipal) o);
         }
         else if(o instanceof Throwable) {                   // Throwable
           writeByte(Serializer.THROWABLE_ID);
@@ -914,22 +905,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
     writeObject(p.getValue());    
   }
     
-  /**
-   */   
-  private void serializeDummyCertificate(DummyCertificate dc)
-    throws LEAPSerializationException {
-    writeObject(dc.getSubject());
-    writeDate(dc.getNotBefore());
-    writeDate(dc.getNotAfter());
-  }
-
-  /**
-   */   
-  private void serializeDummyPrincipal(DummyPrincipal dp)
-    throws LEAPSerializationException {
-    writeString(dp.getName());
-  }
-
     
   private void serializeThrowable(Throwable t) throws LEAPSerializationException {
     writeString(t.getClass().getName());

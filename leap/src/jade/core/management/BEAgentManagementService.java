@@ -51,10 +51,8 @@ import jade.core.NameClashException;
 import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
-import jade.security.Authority;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
-//import jade.security.IdentityCertificate;
 import jade.security.JADESecurityException;
 
 import jade.util.leap.Map;

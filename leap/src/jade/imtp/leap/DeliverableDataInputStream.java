@@ -50,7 +50,6 @@ import jade.util.leap.ArrayList;
 import java.util.Enumeration;
 import jade.mtp.MTPDescriptor;
 import jade.security.*;
-import jade.security.dummy.*;
 import jade.imtp.leap.JICP.JICPAddress;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.http.HTTPAddress;
@@ -153,10 +152,6 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeJICPAddress();
                 case Serializer.HTTPADDRESS_ID:
                     return deserializeHTTPAddress();
-                case Serializer.DUMMYCERTIFICATE_ID:
-                    return deserializeDummyCertificate();
-                case Serializer.DUMMYPRINCIPAL_ID:
-                    return deserializeDummyPrincipal();
 								case Serializer.THROWABLE_ID:
 								    return deserializeThrowable();
 								case Serializer.PROPERTY_ID:
@@ -829,19 +824,6 @@ class DeliverableDataInputStream extends DataInputStream {
         
         return new HTTPAddress(host, port, file, anchor);
     } 
-
-    private DummyCertificate deserializeDummyCertificate() throws LEAPSerializationException {
-        DummyCertificate dc = new DummyCertificate();
-        dc.setSubject((JADEPrincipal) readObject());
-        dc.setNotBefore(readDate());
-        dc.setNotAfter(readDate());
-        return dc;
-    } 
-    
-    private DummyPrincipal deserializeDummyPrincipal() throws LEAPSerializationException {
-        String name = readString();
-        return new DummyPrincipal(name);  
-    }
 
     private Throwable deserializeThrowable() throws LEAPSerializationException {
 	String className = readString();
