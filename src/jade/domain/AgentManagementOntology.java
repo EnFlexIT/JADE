@@ -475,6 +475,37 @@ public class AgentManagementOntology {
   } // End of DFAgentDescriptor class
 
 
+  public static class Constraint {
+    String name;
+    String fn;
+    int arg;
+
+    public void setName(String s) {
+      name = s;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setFn(String s) {
+      fn = s;
+    }
+
+    public String getFn() {
+      return fn;
+    }
+
+    public void setArg(int i) {
+      arg = i;
+    }
+
+    public int getArg() {
+      return arg;
+    }
+
+  }
+
   public static interface Action {
 
     public void setName(String name);
@@ -487,10 +518,10 @@ public class AgentManagementOntology {
 
     // These String constants are the names of the actions supported
     // by AMS agent
-    static final String AUTHENTICATE = "authenticate";
-    static final String REGISTERAGENT = "register-agent";
-    static final String DEREGISTERAGENT = "deregister-agent";
-    static final String MODIFYAGENT = "modify-agent";
+    public static final String AUTHENTICATE = "authenticate";
+    public static final String REGISTERAGENT = "register-agent";
+    public static final String DEREGISTERAGENT = "deregister-agent";
+    public static final String MODIFYAGENT = "modify-agent";
 
     static final String ARGNAME = ":ams-description";
 
@@ -539,10 +570,10 @@ public class AgentManagementOntology {
 
     // These String constants are the names of the actions supported
     // by DF agent
-    static final String REGISTER = "register";
-    static final String DEREGISTER = "deregister";
-    static final String MODIFY = "modify";
-    static final String SEARCH = "search";
+    public static final String REGISTER = "register";
+    public static final String DEREGISTER = "deregister";
+    public static final String MODIFY = "modify";
+    public static final String SEARCH = "search";
 
     static final String ARGNAME = ":df-description";
 
@@ -587,8 +618,48 @@ public class AgentManagementOntology {
 
   } // End of DFAction class
 
+  public static class DFSearchAction extends DFAction {
+
+    private Vector constraints = new Vector();
+
+    public void addConstraint(Constraint c) {
+      constraints.addElement(c);
+    }
+
+    public void removeConstraints() {
+      constraints.removeAllElements();
+    }
+
+    public Enumeration getConstraints() {
+      return constraints.elements();
+    }
+
+    public void toText(Writer w) {
+      try {
+	Constraint c = null;
+	w.write("( " + getName() + " ");
+	w.write("( " + ARGNAME + " ");
+	getArg().toText(w);
+	w.write(" )");
+	Enumeration e = getConstraints();
+	while(e.hasMoreElements()) {
+	  c = (Constraint) e.nextElement();
+	  w.write("( ");
+	  w.write(c.getName() + " " + c.getFn() + " " + c.getArg());
+	  w.write(" )");
+	}
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of DFSearchAction class
+
   public static class ACCAction implements Action {
-    static final String FORWARD = "forward";
+    public static final String FORWARD = "forward";
     static final String ARGNAME = "";
 
     private static Hashtable actions = new Hashtable(1, 1.0f);
@@ -619,8 +690,8 @@ public class AgentManagementOntology {
     public void toText(Writer w) {
       try {
 	w.write("( " + name + " ");
+	arg.toText(w);
 	w.write(" )");
-	//	arg.toText(w);
 	w.flush();
       }
       catch(IOException ioe) {
