@@ -41,7 +41,8 @@ import jade.core.Agent;
 */
 public class SequentialBehaviour extends CompositeBehaviour {
 	
-  private BehaviourList subBehaviours = new BehaviourList();
+  private List subBehaviours = new ArrayList();
+  int current = 0;
 
   /**
      Default constructor. It does not set the owner agent for this
@@ -64,7 +65,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
   */
   protected void scheduleFirst() {
   	// Schedule the first child
-  	subBehaviours.begin();
+  	current = 0;
   }
   	
   /**
@@ -75,7 +76,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
   protected void scheduleNext(boolean currentDone, int currentResult) {
     if (currentDone) {
     	// Schedule the next child only if the current one is terminated
-		subBehaviours.next();
+			current++;
     }
   }
   
@@ -85,7 +86,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.CompositeBehaviour#checkTermination
   */
   protected boolean checkTermination(boolean currentDone, int currentResult) {
-  	return (currentDone && subBehaviours.currentIsLast());
+  	return (currentDone && current >= (subBehaviours.size()-1));
   }
 
   /** 
@@ -93,7 +94,11 @@ public class SequentialBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.CompositeBehaviour#getCurrent
   */
   protected Behaviour getCurrent() {
-  	return subBehaviours.getCurrent();
+  	Behaviour b = null;
+  	if (subBehaviours.size() > current) {
+  		b = (Behaviour) subBehaviours.get(current);
+  	}
+  	return b;
   }
   
   /**
@@ -102,14 +107,14 @@ public class SequentialBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.CompositeBehaviour#getChildren
   */
   public Collection getChildren() {
-	return subBehaviours;
+		return subBehaviours;
   }
   	
   /** 
      Add a sub behaviour to this <code>SequentialBehaviour</code>
   */
   public void addSubBehaviour(Behaviour b) {
-    subBehaviours.addElement(b);
+    subBehaviours.add(b);
     b.setParent(this);
     b.setAgent(myAgent);
   }
@@ -118,7 +123,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
      Remove a sub behaviour from this <code>SequentialBehaviour</code>
   */
   public void removeSubBehaviour(Behaviour b) {
-    boolean rc = subBehaviours.removeElement(b);
+    boolean rc = subBehaviours.remove(b);
     if(rc) {
       b.setParent(null);
     }
@@ -165,7 +170,10 @@ public class SequentialBehaviour extends CompositeBehaviour {
 	  }
     }  	
   }
-
+  
+  public void skipNext() {
+  	current = subBehaviours.size();
+  }
 }
 
 

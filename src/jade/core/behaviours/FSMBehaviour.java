@@ -139,7 +139,27 @@ public class FSMBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.Behaviour#onEnd()
   */
   public void registerTransition(String s1, String s2, int event) {
-  	theTransitionTable.addTransition(s1, s2, event);
+  	theTransitionTable.addTransition(s1, s2, event, null);
+  }
+  	
+  /** 
+     Register a transition in the FSM defining the policy for
+     children scheduling of this <code>FSMBehaviour</code>. 
+     When this transition is fired the states indicated in the
+     <code>toBeReset</code> parameter are reset. This is
+     particularly useful for transitions that lead to states that
+     have already been visited.
+     @param s1 The name of the state this transition starts from
+     @param s2 The name of the state this transition leads to
+     @param event The termination event that fires this transition
+     as returned by the <code>onEnd()</code> method of the 
+     <code>Behaviour</code> representing state s1.
+     @param toBeReset An array of strings including the names of 
+     the states to be reset.
+     @see jade.core.behaviours.Behaviour#onEnd()
+  */
+  public void registerTransition(String s1, String s2, int event, String[] toBeReset) {
+  	theTransitionTable.addTransition(s1, s2, event, toBeReset);
   }
   	
   /** 
@@ -151,7 +171,25 @@ public class FSMBehaviour extends CompositeBehaviour {
      @param s2 The name of the state this transition leads to
   */
   public void registerDefaultTransition(String s1, String s2) {
-    theTransitionTable.addDefaultTransition(s1, s2);
+    theTransitionTable.addDefaultTransition(s1, s2, null);
+  }
+  	
+  /** 
+     Register a default transition in the FSM defining the policy for
+     children scheduling of this <code>FSMBehaviour</code>.
+     This transition will be fired when state s1 terminates with 
+     an event that is not explicitly associated to any transition. 
+     When this transition is fired the states indicated in the
+     <code>toBeReset</code> parameter are reset. This is
+     particularly useful for transitions that lead to states that
+     have already been visited.
+     @param s1 The name of the state this transition starts from
+     @param s2 The name of the state this transition leads to
+     @param toBeReset An array of strings including the names of 
+     the states to be reset.
+  */
+  public void registerDefaultTransition(String s1, String s2, String[] toBeReset) {
+    theTransitionTable.addDefaultTransition(s1, s2, toBeReset);
   }
   	
   /** 
@@ -241,7 +279,8 @@ public class FSMBehaviour extends CompositeBehaviour {
   			else {
   				// Normal case: use the TransitionTable to select the next state
 				 	Transition t = theTransitionTable.getTransition(currentName, currentResult);
-					currentName = t.dest;
+					resetStates(t.toBeReset);
+				 	currentName = t.dest;
   			}
 				current = getState(currentName);
 				if (current == null) {
@@ -366,7 +405,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   class TransitionTable implements Serializable {
   	private Hashtable transitions = new Hashtable();
   	
-  	void addTransition(String s1, String s2, int event) {
+  	void addTransition(String s1, String s2, int event, String[] toBeReset) {
   		TransitionsFromState tfs = null;
   		
   		if (!transitions.containsKey(s1)) {
@@ -377,10 +416,10 @@ public class FSMBehaviour extends CompositeBehaviour {
   			tfs = (TransitionsFromState) transitions.get(s1);
   		}
   		
-  		tfs.put(new Integer(event), new Transition(s2));
+  		tfs.put(new Integer(event), new Transition(s2, toBeReset));
   	}
   	
-  	void addDefaultTransition(String s1, String s2) {
+  	void addDefaultTransition(String s1, String s2, String[] toBeReset) {
   		TransitionsFromState tfs = null;
   		
   		if (!transitions.containsKey(s1)) {
@@ -391,7 +430,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   			tfs = (TransitionsFromState) transitions.get(s1);
   		}
   		
-  		tfs.setDefaultTransition(new Transition(s2));
+  		tfs.setDefaultTransition(new Transition(s2, toBeReset));
   	}
   		
   	Transition getTransition(String s, int event) {
@@ -403,9 +442,11 @@ public class FSMBehaviour extends CompositeBehaviour {
   
   class Transition implements Serializable {
   	private String dest;
+  	private String[] toBeReset;
   	
-  	public Transition(String d) {
+  	public Transition(String d, String[] rs) {
   		dest = d;
+  		toBeReset = rs;
   	}
   }
   
