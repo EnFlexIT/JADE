@@ -25,8 +25,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
-import jade.domain.FIPAAgentManagement.Envelope;
-
 /**
    Abstract interface for Message Transport Protocols
 
@@ -34,103 +32,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
    @version $Date$ $Revision$
 
 */
-public interface MTP {
-
-  /**
-     Callback interface to be notified of message arrivals over this
-     Message Transport Protocol.
-   */
-  public static interface Dispatcher {
-    void dispatchMessage(Envelope env, byte[] payload);
-  }
-
-  /**
-     Generic exception class for MTP errors.
-   */
-  public static class MTPException extends Exception {
-
-    /**
-       @serial
-    */
-    private Throwable nested;
-
-    /**
-       Constructor for exception class.
-       @param msg A message detailing the cause of the exception.
-     */
-    public MTPException(String msg) {
-      this(msg, null);
-    }
-
-    /**
-       Constructor for exception class.
-       @param msg A message detailing the cause of the exception.
-       @param t The exception wrapped by this object.
-     */
-    public MTPException(String msg, Throwable t) {
-      super(msg);
-      nested = t;
-    }
-
-    /**
-      Reads the exception wrapped by this object.
-      @return the <code>Throwable</code> object that is the exception thrown by
-      the concrete MTP subsystem.
-    */
-    public Throwable getNested() {
-      return nested;
-    }
-
-  } // End of MTPException class.
-
-
-  /**
-     Activates an MTP handler for incoming messages on a default
-     address.
-     @return A <code>TransportAddress</code>, corresponding to the
-     chosen default address.
-     @exception MTPException Thrown if some MTP initialization error
-     occurs.
-  */
-  TransportAddress activate(Dispatcher disp) throws MTPException;
-
-  /**
-     Activates an MTP handler for incoming messages on a specific
-     address.
-     @param ta A <code>TransportAddress</code> object, representing
-     the transport address to listen to.
-     @exception MTPException Thrown if some MTP initialization error
-     occurs.
-   */
-  void activate(Dispatcher disp, TransportAddress ta) throws MTPException;
-
-  /**
-     Deactivates the MTP handler listening at a given transport
-     address.
-     @param ta The <code>TransportAddress</code> object the handle to
-     close is listening to.
-     @exception MTPException Thrown if some MTP cleanup error occurs.
-   */
-  void deactivate(TransportAddress ta) throws MTPException;
-
-  /**
-     Deactivates all the MTP handlers.
-     @exception MTPException Thrown if some MTP cleanup error occurs.
-   */
-  void deactivate() throws MTPException;
-
-  /**
-     Delivers to the specified address an ACL message, encoded in some
-     concrete message representation, using the given envelope as a
-     transmission header.
-     @param ta The transport address to deliver the message to. It
-     must be a valid address for this MTP.
-     @param env The message envelope, containing various fields
-     related to message recipients, encoding, and timestamping.
-     @payload The byte sequence that contains the encoded ACL message.
-     @exception MTPException Thrown if some MTP delivery error occurs.
-   */
-  void deliver(TransportAddress ta, Envelope env, byte[] payload) throws MTPException;
+public interface MTP extends InChannel, OutChannel {
 
   /**
      Converts a string representing a valid address in this MTP to a
