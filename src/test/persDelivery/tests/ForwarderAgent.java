@@ -6,6 +6,7 @@ import jade.core.ContainerID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 /**
    ForwarderAgent
@@ -24,16 +25,16 @@ public class ForwarderAgent extends Agent {
   			public void action() {
   				ACLMessage msg = myAgent.receive();
   				if (msg != null) {
-						msg.clearAllReceiver();
-  					if (msg.getSender().equals(tester)) {
-  						// Forward the message to the receiver;
-  						msg.addReceiver(receiver);
-  					}
-  					else {
-  						// Forward the message to the tester
-  						msg.addReceiver(tester);
-  					}
-						msg.setSender(myAgent.getAID());
+            Envelope env = msg.getEnvelope();
+            AID forwardee = (msg.getSender().equals(tester))?receiver:tester;
+            if (env==null){
+              msg.clearAllReceiver();
+              msg.addReceiver(forwardee);
+            } else {
+              env.clearAllTo();
+              env.addTo(forwardee);
+            }
+						//msg.setSender(myAgent.getAID());
 						myAgent.send(msg);
   				}
   				else {
