@@ -31,7 +31,7 @@ import jade.lang.acl.ACLMessage;
 ****************************************************************/
 public class ams extends Agent { // FIXME: Must become a Singleton
 
-  private abstract class AMSBehaviour extends SimpleBehaviour implements BehaviourPrototype {
+  private abstract class AMSBehaviour extends OneShotBehaviour implements BehaviourPrototype {
 
     // This String will be set by subclasses
     private String myActionName;
@@ -377,7 +377,7 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     
     try {
       myPlatform.AMSNewData(myName, myAddress, signature, delegateAgent,
-			    forwardAddress, "initiated");
+			    forwardAddress, "active");
     }
     // No exception should occur since this is a special case ...
     catch(AgentAlreadyRegisteredException aare) {
