@@ -35,6 +35,23 @@ import jade.core.Agent;
    each child represents a state in the FSM.
    The class provides methods to register states (sub-behaviours) and 
    transitions that defines how sub-behaviours will be scheduled.
+   <p> At a minimum, the following steps are needed in order to properly
+   define a <code>FSMBehaviour</code>:
+   <ul>
+   <li> register a single Behaviour as the initial state of the FSM by calling
+   the method <code>registerFirstState</code>;
+   <li> register one or more Behaviours as the final states of the FSM
+   by calling the method <code>registerLastState</code>;
+   <li> register one or more Behaviours as the intermediate states of the FSM
+   by calling the method <code>registerState</code>;
+   <li> for each state of the FSM, register the transitions to the other
+   states by calling the method <code>registerTransition</code>;
+   <li> the method <code>registerDefaultTransition</code> is also useful
+   in order to register a default transition from a state to another state
+   independently on the termination event of the source state.
+   </ul>
+   A number of other methods are available in this class for generic
+   tasks, such as getting the current state or the name of a state, ...
    @see jade.core.behaviours.SequentialBehaviour
    @see jade.core.behaviours.ParallelBehaviour
    
