@@ -8,7 +8,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - ACLMessage: deprecated the two methods setReplyBy and getReplyBy. The
   methods getReplyByDate and setReplyByDate should be used instead.
 - MobileAgent example: fixed bug in dealing with the move message
-
+- jade.gui.ServiceDescrDlg fixed bug in the visualization of the Properties
+  of a ServiceDescription registered with the DF
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
 ======================================================	

@@ -195,7 +195,7 @@ public class ServiceDscDlg extends JDialog
 		while(temp.hasNext())
 		{
 			Property singleProp = (Property)temp.next();
-			props.setProperty(singleProp.getName(),(String)singleProp.getValue());
+			props.setProperty(singleProp.getName(),singleProp.getValue().toString());
 		}
     propertiesListPanel = new VisualPropertiesList(props,getOwner());
     propertiesListPanel.setDimension(new Dimension(350,40));
