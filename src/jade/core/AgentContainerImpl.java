@@ -407,12 +407,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  }
 
 	  // Install the main container replication service, if needed
-	  boolean isMain = myProfile.getParameter(Profile.MAIN, "").equals("true");
-	  if(isMain) {
+	  String isMain = myProfile.getParameter(Profile.MAIN, null);
+	  if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
 	      startService("jade.core.replication.MainReplicationService");
 	  }
 
-	  //#MIDP_EXCLUDE_END
+	  // #MIDP_EXCLUDE_END
 
       }
       catch (IMTPException imtpe) {
