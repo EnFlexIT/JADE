@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/04/08 12:00:51  rimassa
+  Changed clone() method to correctly implement a deep copy.
+
   Revision 1.10  1999/04/06 00:09:34  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -101,9 +104,10 @@ public class AgentGroup implements Cloneable, Serializable {
      This instance must then be cast to (AgentGroup) type.
   */
   public synchronized Object clone() {
-    Object result;
+    AgentGroup result;
     try {
-      result = super.clone();
+      result = (AgentGroup)super.clone();
+      result.memberNames = (Vector)memberNames.clone(); // Deep copy
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen

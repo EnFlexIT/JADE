@@ -34,6 +34,9 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.17  1999/04/08 12:01:21  rimassa
+ Changed clone() method to correctly implement a deep copy.
+
  Revision 1.16  1999/04/06 13:24:46  rimassa
  Fixed a wrong link in Javadoc comments.
 
@@ -713,10 +716,11 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public synchronized Object clone() {
 
-    Object result;
+    ACLMessage result;
 
     try {
-      result = super.clone();
+      result = (ACLMessage)super.clone();
+      result.dests = getDests(); // Deep copy
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen
