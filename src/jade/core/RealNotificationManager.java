@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.util.SynchList;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
@@ -46,6 +47,8 @@ import jade.tools.ToolNotifier; // FIXME: This should not be imported
 import jade.security.AgentPrincipal;
 //__SECURITY__END
 
+import java.util.Hashtable;
+
 /** 
    Full implementation of the <code>NotificationManager</code> 
    interface
@@ -57,20 +60,14 @@ class RealNotificationManager implements NotificationManager {
   private AgentContainerImpl myContainer;
   private LADT localAgents;
   
-  private List messageListeners;
-  private List agentListeners;
-  // This lock is used to synchronize operations on the message
-  // listeners list. Using lazy processing (the list is set to null
-  // when empty) the space overhead is reduced, even with this lock
-  // object (an empty LinkedList holds three null pointers).
-  private Object messageListenersLock = new Object();
-  
-  // This lock is used to synchronize operations on the agent
-  // listeners list. Using lazy processing (the list is set to null
-  // when empty) the space overhead is reduced, even with this lock
-  // object (an empty LinkedList holds three null pointers).
-  private Object agentListenersLock = new Object();
+  private SynchList messageListeners = new SynchList();
+  private SynchList agentListeners = new SynchList();
 
+  // This maps a debugged agent into the list of debuggers that are 
+  // currently debugging it. It is used to know when an agent is no longer
+  // debugged by any debugger.
+  private Hashtable debuggers = new Hashtable();
+  
   /** 
      Constructor
    */
@@ -79,7 +76,6 @@ class RealNotificationManager implements NotificationManager {
   
   public void initialize(AgentContainerImpl ac, LADT ladt) {
   	myContainer = ac;
-  	//myID = (ContainerID) myContainer.here();
   	localAgents = ladt;
   }
   
@@ -87,11 +83,7 @@ class RealNotificationManager implements NotificationManager {
   public void enableSniffer(AID snifferName, AID toBeSniffed) {
 
     ToolNotifier tn = findNotifier(snifferName);
-    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
-      removeMessageListener(tn);
-      tn = null;
-    }
-    if(tn == null) { // New sniffer
+    if(tn == null) { // Need a new notifier 
       tn = new ToolNotifier(snifferName);
       AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
@@ -103,30 +95,23 @@ class RealNotificationManager implements NotificationManager {
       }
     }
     tn.addObservedAgent(toBeSniffed);
-
   }
   
   public void disableSniffer(AID snifferName, AID notToBeSniffed) {
     ToolNotifier tn = findNotifier(snifferName);
-    if(tn != null) { // The sniffer must be here
+    if(tn != null) { 
       tn.removeObservedAgent(notToBeSniffed);
       if(tn.isEmpty()) {
-		removeMessageListener(tn);
-		tn.doDelete();
+				removeMessageListener(tn);
+				tn.doDelete();
       }
     }
-
   }
 
   public void enableDebugger(AID debuggerName, AID toBeDebugged) {
     ToolNotifier tn = findNotifier(debuggerName);
-    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
-      removeMessageListener(tn);
-      // removeAgentListener(tn);
-      tn = null;
-    }
-    if(tn == null) { // New debugger
-      tn = new ToolNotifier(debuggerName);
+    if(tn == null) { // Need a new notifier
+    	tn = new ToolNotifier(debuggerName);
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
 	      myContainer.initAgent(id, tn, AgentContainer.START);
@@ -138,15 +123,28 @@ class RealNotificationManager implements NotificationManager {
       }
     }
     tn.addObservedAgent(toBeDebugged);
+    
+    synchronized (debuggers) {
+	    List l = (List) debuggers.get(toBeDebugged);
+  	  if (l == null) {
+    		l = new LinkedList();
+    		debuggers.put(toBeDebugged, l);
+    	}
+    	if (!l.contains(debuggerName)) {
+    		l.add(debuggerName);
+    	}
+    }
 
-    //  FIXME: Need to send a complete, transactional snapshot of the
-    //  agent state.
     Agent a = localAgents.acquire(toBeDebugged);
     AgentState as = a.getAgentState();
     Scheduler s = a.getScheduler();
+    a.setGenerateBehaviourEvents(true);
     localAgents.release(toBeDebugged);
+    
+    // Notify current agent state
     fireChangedAgentState(toBeDebugged, as, as);
-    // Mutual exclusion with Scheduler.add(), remove()...
+    // Notify currently loaded behaviour (mutual exclusion with 
+    // Scheduler.add(), remove()...)
     synchronized (s) {
     	Iterator it = s.readyBehaviours.iterator();
     	while (it.hasNext()) {
@@ -163,35 +161,52 @@ class RealNotificationManager implements NotificationManager {
     		BehaviourID bid = new BehaviourID(b);
 				AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, toBeDebugged, bid, myID());
     		tn.addedBehaviour(ev);
-				ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, toBeDebugged, bid, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED, myID());
+				ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, toBeDebugged, bid, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED, myID());
     		tn.changedBehaviourState(ev);
     	}
     }
-    	
-		
+    // Notify essages currently pending in the message queue
+    // FIXME: To be implemented
   }
 
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) {
     ToolNotifier tn = findNotifier(debuggerName);
-    if(tn != null) { // The debugger must be here
+    if(tn != null) { 
       tn.removeObservedAgent(notToBeDebugged);
       if(tn.isEmpty()) {
-		removeMessageListener(tn);
-		removeAgentListener(tn);
-		tn.doDelete();
+				removeMessageListener(tn);
+				removeAgentListener(tn);
+				tn.doDelete();
       }
+    }
+    
+    boolean resetGenerateBehaviourEvents = true;
+    synchronized (debuggers) {
+	    List l = (List) debuggers.get(notToBeDebugged);
+  	  if (l != null) {
+    		l.remove(debuggerName);
+    		if (l.size() > 0) {
+    			// There is still at least 1 debugger debugging the agent 
+    			// Do not stop generation of behaviour events
+    			resetGenerateBehaviourEvents = false;
+    		}
+    		else {
+    			debuggers.remove(notToBeDebugged);
+    		}
+    	}
+    }
+    
+    if (resetGenerateBehaviourEvents) {
+    	Agent a = localAgents.acquire(notToBeDebugged);
+    	if (a != null) {
+    		a.setGenerateBehaviourEvents(false);
+    	}
+    	localAgents.release(notToBeDebugged);
     }
   }
 
   
   // NOTIFICATION METHODS
-  // TO BE DISCUSSED: Would it be possible to have a single notification 
-  // method
-  // public void fireEvent(int type, Object[] param)
-  // and a number of constants SENT_MESSAGE, POSTED_MESSAGE ...
-  // On the basis of the type (one of the above constants) the parameters
-  // are properly casted.
-  
   public void fireEvent(int eventType, Object[] param) {
   	try {
   		switch (eventType) {
@@ -236,87 +251,118 @@ class RealNotificationManager implements NotificationManager {
   		
   // PRIVATE MANAGEMENT METHODS
   private void fireSentMessage(ACLMessage msg, AID sender) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-		MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID());
-		for(int i = 0; i < messageListeners.size(); i++) {
-	  		MessageListener l = (MessageListener)messageListeners.get(i);
-	  		l.sentMessage(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = messageListeners.startScanning();
+    if (l != null) {
+			MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		MessageListener ml = (MessageListener) it.next();
+	  		ml.sentMessage(ev);
+    	}
+    	messageListeners.stopScanning();
+    }	
   }
 
   private void firePostedMessage(ACLMessage msg, AID receiver) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-		MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID());
-		for(int i = 0; i < messageListeners.size(); i++) {
-	  		MessageListener l = (MessageListener)messageListeners.get(i);
-	  		l.postedMessage(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = messageListeners.startScanning();
+    if (l != null) {
+			MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		MessageListener ml = (MessageListener) it.next();
+	  		ml.postedMessage(ev);
+    	}
+    	messageListeners.stopScanning();
+    }	
   }
 
   private void fireReceivedMessage(ACLMessage msg, AID receiver) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-		MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID());
-		for(int i = 0; i < messageListeners.size(); i++) {
-	  		MessageListener l = (MessageListener)messageListeners.get(i);
-	  		l.receivedMessage(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = messageListeners.startScanning();
+    if (l != null) {
+			MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		MessageListener ml = (MessageListener) it.next();
+	  		ml.receivedMessage(ev);
+    	}
+    	messageListeners.stopScanning();
+    }	
   }
 
   private void fireRoutedMessage(ACLMessage msg, Channel from, Channel to) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-		MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID());
-		for(int i = 0; i < messageListeners.size(); i++) {
-	  		MessageListener l = (MessageListener)messageListeners.get(i);
-	  		l.routedMessage(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = messageListeners.startScanning();
+    if (l != null) {
+			MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		MessageListener ml = (MessageListener) it.next();
+	  		ml.routedMessage(ev);
+    	}
+    	messageListeners.stopScanning();
+    }	
   }
 
   private void fireAddedBehaviour(AID agentID, Behaviour b) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-		AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
-		for(int i = 0; i < agentListeners.size(); i++) {
-	  		AgentListener l = (AgentListener)agentListeners.get(i);
-            l.addedBehaviour(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = agentListeners.startScanning();
+    if (l != null) {
+    	AgentEvent ev = null;
+    	if (b == b.root()) {
+    		// The behaviour has been added to the Agent
+				ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+    	}
+    	else {
+    		// The behaviour is actually a new child that has been added to a CompositeBehaviour
+				//FIXME: TO be done
+    		//ev = new AgentEvent(AgentEvent.ADDED_SUB_BEHAVIOUR, agentID, new BehaviourID(b.getParent()), new BehaviourID(b), myID());
+    	}
+    	
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		AgentListener al = (AgentListener) it.next();
+	  		al.addedBehaviour(ev);
+    	}
+    	agentListeners.stopScanning();
+    }	
   }
 
 private void fireRemovedBehaviour(AID agentID, Behaviour b) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-		AgentEvent ev = new AgentEvent(AgentEvent.REMOVED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
-		for(int i = 0; i < agentListeners.size(); i++) {
-	  		AgentListener l = (AgentListener)agentListeners.get(i);
-            l.removedBehaviour(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = agentListeners.startScanning();
+    if (l != null) {
+			AgentEvent ev = new AgentEvent(AgentEvent.REMOVED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		AgentListener al = (AgentListener) it.next();
+	  		al.removedBehaviour(ev);
+    	}
+    	agentListeners.stopScanning();
+    }	
   }
 
   private void fireChangedBehaviourState(AID agentID, Behaviour b, String from, String to) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-		AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, agentID, new BehaviourID(b), from, to, myID());
-		for(int i = 0; i < agentListeners.size(); i++) {
-	  		AgentListener l = (AgentListener)agentListeners.get(i);
-            l.changedBehaviourState(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = agentListeners.startScanning();
+    if (l != null) {
+			AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, agentID, new BehaviourID(b), from, to, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		AgentListener al = (AgentListener) it.next();
+	  		al.changedBehaviourState(ev);
+    	}
+    	agentListeners.stopScanning();
+    }	
   }
   
 
@@ -324,82 +370,87 @@ private void fireRemovedBehaviour(AID agentID, Behaviour b) {
 
 //__SECURITY__BEGIN
   private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-        AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_PRINCIPAL, agentID, from, to, myID());
-          for(int i = 0; i < agentListeners.size(); i++) {
-    	    AgentListener l = (AgentListener)agentListeners.get(i);
-  	      l.changedAgentPrincipal(ev);
-	      }
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = agentListeners.startScanning();
+    if (l != null) {
+      AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_PRINCIPAL, agentID, from, to, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		AgentListener al = (AgentListener) it.next();
+	  		al.changedAgentPrincipal(ev);
+    	}
+    	agentListeners.stopScanning();
+    }	
   }
 //__SECURITY__END
 
   private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-		AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID());
-		for(int i = 0; i < agentListeners.size(); i++) {
-	  		AgentListener l = (AgentListener)agentListeners.get(i);
-	  		l.changedAgentState(ev);
-		}
-      }
-    }
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+    List l = agentListeners.startScanning();
+    if (l != null) {
+			AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID());
+    	Iterator it = l.iterator();
+    	while (it.hasNext()) {
+	  		AgentListener al = (AgentListener) it.next();
+	  		al.changedAgentState(ev);
+    	}
+    	agentListeners.stopScanning();
+    }	
   }
   
-    //FIXME Maybe this should be synchronized on messageListeners
   private ToolNotifier findNotifier(AID observerName) {
-    if(messageListeners == null)
-      return null;
-    Iterator it = messageListeners.iterator();
-    while(it.hasNext()) {
-      Object obj = it.next();
-      if(obj instanceof ToolNotifier) {
-	ToolNotifier tn = (ToolNotifier)obj;
-	AID id = tn.getObserver();
-	if(id.equals(observerName))
-	  return tn;
-      }
+    ToolNotifier tn = null;
+    // Note that if a ToolNotifier exists it must be among the messageListeners
+    // --> There is no need to search it also among the agentListeners.
+		List l = messageListeners.startScanning();
+		if (l != null) {
+	  	Iterator it = l.iterator();
+	  	while(it.hasNext()) {
+	    	Object obj = it.next();
+	    	if(obj instanceof ToolNotifier) {
+	    		ToolNotifier tni = (ToolNotifier) obj;
+					AID id = tni.getObserver();
+					if(id.equals(observerName)) {
+	  				tn = tni;
+	  				break;
+	    		}
+	  		}
+	  	}
+			messageListeners.stopScanning();
+		}
+  	
+    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
+      removeMessageListener(tn);
+      removeAgentListener(tn);
+      tn = null;
     }
-    return null;
-
+		return tn;
   }
 
-  private void addMessageListener(MessageListener l) {
-    synchronized(messageListenersLock) {
-      if(messageListeners == null)
-		messageListeners = new LinkedList();
-      messageListeners.add(l);
-    }
+  private void addMessageListener(MessageListener ml) {
+    List l = messageListeners.startModifying();
+    l.add(ml);
+    messageListeners.stopModifying();
   }
 
-  private void removeMessageListener(MessageListener l) {
-    synchronized(messageListenersLock) {
-      if(messageListeners != null) {
-		messageListeners.remove(l);
-		if(messageListeners.isEmpty())
-	  	messageListeners = null;
-      }
-    }
+  private void removeMessageListener(MessageListener ml) {
+    List l = messageListeners.startModifying();
+    l.remove(ml);
+    messageListeners.stopModifying();    
   }
 
-  private void addAgentListener(AgentListener l) {
-    synchronized(agentListenersLock) {
-      if(agentListeners == null)
-	agentListeners = new LinkedList();
-      agentListeners.add(l);
-    }
+  private void addAgentListener(AgentListener al) {
+    List l = agentListeners.startModifying();
+    l.add(al);
+    agentListeners.stopModifying();    
   }
 
-  private void removeAgentListener(AgentListener l) {
-    synchronized(agentListenersLock) {
-      if(agentListeners != null) {
-	agentListeners.remove(l);
-	if(agentListeners.isEmpty())
-	  agentListeners = null;
-      }
-    }
+  private void removeAgentListener(AgentListener al) {
+    List l = agentListeners.startModifying();
+    l.remove(al);
+    agentListeners.stopModifying();    
   }
 
   private ContainerID myID() {
