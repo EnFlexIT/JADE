@@ -35,14 +35,18 @@ import java.net.*;
 import java.util.Hashtable;
 
 /**
- * This class allows retrieving configuration-dependent classes.
+ * This class allows the JADE core to retrieve configuration-dependent classes
+ * and boot parameters.
+ * <p>
+ * Take care of using different instances of this class when launching
+ * different containers/main-containers on the same JVM otherwise
+ * they would conflict!
  * 
  * @author  Federico Bergenti
  * @author  Giovanni Caire - TILAB
  * @author  Giovanni Rimassa - Universita` di Parma
  * @version 1.0, 22/11/00
  * 
- * @see jade.util.leap.LEAPProperties
  */
 public class ProfileImpl extends Profile {
 
@@ -56,6 +60,9 @@ public class ProfileImpl extends Profile {
 
   /**
    * Creates a Profile implementation with the default configuration
+   * for launching a main-container on the localhost, 
+   * RMI internal Message Transport Protocol, port number 1099,
+   * iiop MTP.
    */
   public ProfileImpl() {
     props = new LEAPProperties();
@@ -68,6 +75,11 @@ public class ProfileImpl extends Profile {
       props.setProperty(MAIN_HOST, host);
       props.setProperty(MAIN_PORT, "1099");
       props.setProperty(PLATFORM_ID, host+":1099/JADE");
+      Specifier s = new Specifier();
+      s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
+      List l = new ArrayList(1);
+      l.add(s);
+      props.put(MTPS, l);
     } 
     catch (UnknownHostException uhe) {
       uhe.printStackTrace();
@@ -77,13 +89,24 @@ public class ProfileImpl extends Profile {
     } 
   }
 
- 	public ProfileImpl(String host, String port, String platformID) {
+    /**
+     * This constructor creates a default Profile for launching a platform.
+     * @param host is the name of the host where the main-container should
+     * be listen to. A null value means use the default (i.e. localhost)
+     * @param port is the port number where the main-container should be
+     * listen
+     * for other containers. A negative value should be used for using
+     * the default port number.
+     * @param platformID is the synbolic name of the platform, if
+     * different from default. A null value means use the default 
+     * (i.e. localhost)
+     **/
+     public ProfileImpl(String host, int port, String platformID) {
      	this(); // Call default constructor
-     	props.setProperty(MAIN, "false");
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
-     	if(port != null)
-       		props.setProperty(MAIN_PORT, port);
+     	if(port < 0)
+       		props.setProperty(MAIN_PORT, Integer.toString(port));
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
      	else {
@@ -94,10 +117,10 @@ public class ProfileImpl extends Profile {
  	}
       
   /**
-   * Method declaration
+   * Assign the given value to the given property name.
    *
-   * @param key
-   * @param value
+   * @param key is the property name
+   * @param value is the property value
    *
    * @see
    */
@@ -106,10 +129,10 @@ public class ProfileImpl extends Profile {
   } 
 
   /**
-   * Method declaration
+   * Assign the given property value to the given property name
    *
-   * @param key
-   * @param value
+   * @param key is the property name
+   * @param value is the property value
    *
    * @see
    */
@@ -267,5 +290,8 @@ public class ProfileImpl extends Profile {
     return l;
   } 
 
+    public String toString() {
+	return "(Profile "+props.toString()+")";
+    }
 }
 
