@@ -25,7 +25,7 @@ package jade.imtp.leap.JICP;
 
 //#J2ME_EXCLUDE_FILE
 
-import jade.core.AgentManager;
+import jade.core.AgentContainer;
 import jade.core.BackEndContainer;
 import jade.core.BEConnectionManager;
 import jade.core.BackEnd;
@@ -132,7 +132,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	myContainer = new BackEndContainer(props, this);
 			// Check that the BackEndContainer has successfully joined the platform
 			ContainerID cid = (ContainerID) myContainer.here();
-			if (cid == null || cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
+			if (cid == null || cid.getName().equals(AgentContainer.UNNAMED_CONTAINER_NAME)) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
