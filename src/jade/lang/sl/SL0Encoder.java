@@ -33,7 +33,7 @@ import jade.onto.OntologyException;
 import jade.onto.TermDescriptor;
 
 /**
-  Javadoc documentation for the file
+  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
  */
@@ -95,7 +95,8 @@ class SL0Encoder {
     String actor = (String)f.getSlot(":actor");
     w.write("( action " + actor + " ");
     w.write("( " + name + " ");
-    for(int i = 1; i < terms.length; i++) {
+   
+    for(int i = 0; i < terms.length - 1; i++) {  
       TermDescriptor current = terms[i];
       Object slotValue = f.getSlot(i);
       if(current.isComplex()) {
