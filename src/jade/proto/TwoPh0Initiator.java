@@ -399,7 +399,6 @@ public class TwoPh0Initiator extends Initiator {
      * @return true if reply is compliant with flow of protocol, false otherwise
      */
     protected final boolean checkInSequence(ACLMessage reply) {
-      System.out.println("**** Received message "+ACLMessage.getPerformative(reply.getPerformative()));
       boolean ret = false;
       String inReplyTo = reply.getInReplyTo();
       Session s = (Session) sessions.get(inReplyTo);
