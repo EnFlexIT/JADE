@@ -109,7 +109,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			{
 			    String destination = st.nextToken();
 			    System.out.println();
-			    Location dest = new jade.domain.MobilityOntology.Location(destination, myAgent.getHap());
+			    Location dest = new jade.core.ContainerID(destination, null);
 			    System.out.println("They requested me to go to " + destination);
 				// Set reply sentence
 				replySentence = new String("\"OK moving to " + destination+" \"");
