@@ -123,7 +123,8 @@ public final String CFP_KEY = "__CFP_key" + hashCode();
  * key to retrieve from the DataStore of the behaviour the ACLMessage 
  *	object sent as a response to the initiator CFP.
  **/
-public final String PROPOSE_KEY = "__Propose" + hashCode();
+public final String RESPONSE_KEY = "__Response" + hashCode();
+public final String PROPOSE_KEY = RESPONSE_KEY;
 
 /** 
  * key to retrieve from the DataStore of the behaviour the ACLMessage 
@@ -164,7 +165,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 	    catch (RefuseException re) {
 		response = re.getACLMessage();
 	    }
-	    ds.put(fsm.PROPOSE_KEY, response);
+	    ds.put(fsm.RESPONSE_KEY, response);
 	}
 
     } // End of PreparePropose class
@@ -184,7 +185,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 
 	    ContractNetResponder fsm = (ContractNetResponder)getParent();
 	    DataStore ds = getDataStore();
-	    ACLMessage propose = (ACLMessage)ds.get(fsm.PROPOSE_KEY);
+	    ACLMessage propose = (ACLMessage)ds.get(fsm.RESPONSE_KEY);
 	    if(propose == null) {
 		return;
 	    }
@@ -217,7 +218,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 	    ContractNetResponder fsm = (ContractNetResponder)getParent();
 	    DataStore ds = getDataStore();
 	    ACLMessage cfp = (ACLMessage) ds.get(fsm.CFP_KEY);
-	    ACLMessage propose = (ACLMessage) ds.get(fsm.PROPOSE_KEY);
+	    ACLMessage propose = (ACLMessage) ds.get(fsm.RESPONSE_KEY);
 	    ACLMessage accept = (ACLMessage) ds.get(fsm.PROPOSE_ACCEPTANCE_KEY);
 	    ACLMessage resNotification = null;
 	    try {
@@ -299,7 +300,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 	registerDSState(b, PREPARE_PROPOSE_STATE);
 
 	// SEND_PROPOSE
-	b = new ReplySender(myAgent,PROPOSE_KEY,CFP_KEY);
+	b = new ReplySender(myAgent,RESPONSE_KEY,CFP_KEY);
 	registerDSState(b, SEND_PROPOSE_STATE);
 
 	// RECEIVE_ACCEPT
@@ -320,7 +321,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 		public void action() {
 		    DataStore ds = getDataStore();
 		    ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-		    ACLMessage propose = (ACLMessage) ds.get(PROPOSE_KEY);
+		    ACLMessage propose = (ACLMessage) ds.get(RESPONSE_KEY);
 		    ACLMessage reject = (ACLMessage) ds.get(PROPOSE_ACCEPTANCE_KEY);
 
 		    handleRejectProposal(cfp,propose,reject); 
@@ -338,7 +339,7 @@ public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode
 				public void action() {
 		  	  DataStore ds = getDataStore();
 		    	ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-		    	ACLMessage propose = (ACLMessage) ds.get(PROPOSE_KEY);
+		    	ACLMessage propose = (ACLMessage) ds.get(RESPONSE_KEY);
 		    	ACLMessage outMsg = (ACLMessage) ds.get(PROPOSE_ACCEPTANCE_KEY);
 				    handleOutOfSequence(cfp,propose,outMsg); 
  				}
@@ -412,7 +413,7 @@ protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propos
    DataStore of this current behaviour.
    The registered behaviour can find the sent and receivet messages 
    within the datastore 
-   at the keys: <code>CFP_KEY</code>, <code>PROPOSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
+   at the keys: <code>CFP_KEY</code>, <code>RESPONSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
    @param b the Behaviour that will handle this state
   **/
 public void registerHandleRejectProposal(Behaviour b){
@@ -457,7 +458,7 @@ public void registerPrepareResultNotification(Behaviour b) {
    This method also set the  data store of the registered <code>Behaviour</code> to the
    DataStore of this current behaviour.
    The registered behaviour can found the send and received message in the datastore 
-   at the keys: <code>CFP_KEY</code>, <code>PROPOSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
+   at the keys: <code>CFP_KEY</code>, <code>RESPONSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
    @param b the Behaviour that will handle this state
   **/
 public void registerHandleOutOfSequnece(Behaviour b) {
@@ -512,7 +513,7 @@ public void registerHandleOutOfSequnece(Behaviour b) {
 		DataStore ds = getDataStore();
 		ds.remove(CFP_KEY);
 		ds.remove(PROPOSE_ACCEPTANCE_KEY);
-		ds.remove(PROPOSE_KEY);
+		ds.remove(RESPONSE_KEY);
 		ds.remove(RESULT_NOTIFICATION_KEY);
   }
     
