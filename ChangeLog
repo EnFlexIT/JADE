@@ -1,35 +1,74 @@
-MAJOR CHANGES in the snapshot of 23 March 2004
+MAJOR CHANGES in JADE 3.2 (EXPECTED 17 July 2004)  (LAST UPDATE 5th July, Fabio)
 ==========================================================================
 GENERAL IMPROVEMENTS:
+- Added new security add-on
+- Added ThreadedBehaviour, a behaviour that is executed in itw own thread of execution
+- FSMBehaviour: Added method to handle FSM inconsistencies
+- Reimplemented the logging support by using java.logging.
+- Added new tool, LoggerManager, launchable via RMA GUI. It allows to 
+  modify the logging level at run-time.
+- HTTP is now the default MTP instead of IIOP (Joan Amedtler)
+- Added support for byte[ ] in SL codec
+- Added PersistenceService with support for agent save, load, reload, 
+  freeze and thaw on relational database. The PersistenceService is based
+  on Hybernate and is included in the Persistence add-on.
+  Documentation is still missing.
+  - Added doXXX methods in the Agent class to support persistence-related 
+    actions.
+  - Added proper buttons and menu items in the RMA to activate the 
+    persistence-related actions.
+  - Modified jade.util.leap classes to be persistent.
+  - JADE tools made persistent
+  - Added persistence ontology
 - Added a new generic ontology, called SerializableOntology, that allows to manage
   generic serializable objects. As a consequence, the DF is now able to deal with
   generic serializable properties.
 - Improved the fault-tolerance of a split container
-- Added ThreadedBehaviour, a behaviour that is executed in itw own thread of execution
-- FSMBehaviour: Added method to handle FSM inconsistecies
-- Added support for different payload encodings according to the charset passed in the 
-  "PayloadEncoding" slot of the envelope (Bug 109)
-- Added support for byte[ ] in SL codec
-- Improved the build process of LEAP
+- ProfileImpl handles both dots '.' and underscores '_' in config parameter keys.
+- introduction of the PLatformManager and the restructuration of the IMTPManager
+- Added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
+
  
 BUG FIXES:
+- migrated the bug tracking system from jitter-bug to mantis
 - Contract-net example: fixed bug on handleRejectProposal()
 - Fixed a bug related to envelopes in inter-container communication.
-- fix to blockingReceive() when executed from a separate Thread
+- fix to blockingReceive(): when executed from a separate Thread generated an infinte loop
 - Fixed bug #122 reported by Carl Timmer: bad dealing of numerical ServiceDescription 
   properties.
 - Fixed bug #108 reported by Ian Dickinson: bad dealing of numerical expressions in
   ACLParser.
 - Fixed bug: messages sent in the takeDown() method were not delivered.
-- Some bug fixing in the Persistence Services, 
-  also added management of the 'owned' flag within SavedAgent entities.
 - SL: managed the cases When 'true' or 'false' are the values of an AbsPrimitive that 
   wraps a String, 
+- Added AlreadyRegistered predicate in JADEManagementOntology.
+- Added sanity check when delivering a message to an agent whose 
+  container has just disappeared in the meanwhile.
+- New containers were not notified about currently installed MTPs: fixed.
+- Fixed bug #127: the ProfileImpl for a container was badly initialized and a new MTP 
+  was instantiated. 
+- Fixed bug #120: the AMS aid did not return transport addresses
+- Added support for different payload encodings according to the charset passed in the 
+  "PayloadEncoding" slot of the envelope (Bug 109)
 
 ADD-ONS:
+- LEAP:
+  - Modified to handle any version of the Wireless Tool Kit (including most recent versions)
+  - Improved fault-tolerance
+  - Added hooks for integrating a RadiusManager.
+  - Improved the build process 
+  - Added LEAP BackEnd configuration support through property file.	
 - Released the Test Suite Framework as a new add-on
 - HTTP MTP: Various bug fixing
 - Improved the JADE-Servlet tutorial (Fabien Gandon)
+- Released new security add-on
+- Improved the Protege bean-generator by adding support for OWL (Chris Van Aart)
+  and by fixing a bug that generated bad ontology java class with some slot names.
+- new HSM (Hierarchical State Machine) add-on (University of California at
+  Santa Cruz and the University of Utah)
+
+DOCUMENTATION:
+- Programmer's Guide: Added section on fipa-subscribe IP (Edward Curry)
 
 OTHERS:
 - SLParser made transient since it is not serializable
@@ -37,46 +76,27 @@ OTHERS:
   Added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
 - Added -use option to the javadoc
 - Number of improvements to the MessagingService
-- Moved MAIN_CONTAINER_NAME constant in AgentContainer interface
-
-
-MAJOR CHANGES in this snapshot (2 February 2004)
-==========================================================================
-GENERAL IMPROVEMENTS:
-- Added PersistenceService with support for agent save, load, reload, 
-	freeze and thaw on relational database. The PersistenceService is based
-	on Hybernate and is included in the Persistence add-on.
-	Documentation is still missing.
-	- Added doXXX methods in the Agent class to support persistence-related 
-	actions.
-	- Added proper buttons and menu items in the RMA to activate the 
-	persistence-related actions.
-	- Modified jade.util.leap classes to be persistent.
-	- JADE tools made persistent
-	- Added persistence ontology
-- Added LEAP BackEnd configuration support through property file.	
-
-BUG FIXES:
-- Added AlreadyRegistered predicate in JADEManagementOntology.
-- Added sanity check when delivering a message to an agent whose 
-	container has just disappeared in the meanwhile.
-- New containers were not notified about currently installed MTPs: fixed.
-- Modified SLCodec to correctly handle boolean values
-- PersistentDelivery Service didn't handle message expiration correctly: fixed	
-OTHERS:
 - Added Credentials interface
 - Added SDSIName interface
 - Added ServiceHelper interface to support services access from agents
 - Harmonized logging mechanism in services.
 - Modified sink selection on the basis of the command service instead 
-	of the command name.
+  of the command name.
 - Added handleMessage() callback method in MsgReceiver behaviour.
 - Modified so that it does not throw an exception when an MTP s 
-	activated with an user-supplied address. Rather, it ignores the supplied 
-	address and modifies it to suit the one automatically chosen by the ORB.
-	
-	
-	
+  activated with an user-supplied address. Rather, it ignores the supplied 
+  address and modifies it to suit the one automatically chosen by the ORB.
+- Modified Sniffer and Introspector tools to accept requests to sniff agents (Sven Lilenthal)
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- removed the default no-arg constructor of ProfileImpl. All calls must be replaced
+  with new ProfileImpl(<boolean>)
+- Moved MAIN_CONTAINER_NAME constant in AgentContainer interface
+- jade.proto.ContractNetResponder: replaced PROPOSE_KEY with RESPONSE_KEY
+- reorganized package jade.wrapper by removing some unused interfaces:
+  - the signature of the method Runtime.createMainContainer() now returns an Agentcontainer instead of a MainContainer
+
 
 MAJOR CHANGES in JADE 3.1 (16 December 2003)  
 ==========================================================================
