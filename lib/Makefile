@@ -5,6 +5,7 @@
 
 AR = jar
 ARFLAGS = cvf
+MANIFESTARFLAGS = cmf jade.mf
 
 all:
 	@echo Making library ...
@@ -13,8 +14,8 @@ all:
 	rm -rf jade/tools/applet; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
 	rm -rf jade/tools; \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) *.class jade; \
-	rm -rf jade *.class; \
+	$(AR) $(MANIFESTARFLAGS) $(LIBDIR)/$(LIBNAME) FIPA jade; \
+	rm -rf jade FIPA; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBBASE64NAME) starlight; \
 	rm -rf starlight; \
 	cd $(LIBDIR)
@@ -41,10 +42,11 @@ batch:
 	echo 'rmdir /S /Q jade\tools' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y jade\tools' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
-	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBNAME) *.class jade' >> $(BATCH_LIB)
+	echo '$(AR) $(MANIFESTARFLAGS) ..\lib\$(LIBNAME) *.class jade' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y  jade' >> $(BATCH_LIB)  # For Win 95/98
-	echo 'del *.class' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q  FIPA' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y  FIPA' >> $(BATCH_LIB)  # For Win 95/98
 	echo >> $(BATCH_LIB)
 	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBBASE64NAME) starlight' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For NT 4
@@ -53,4 +55,6 @@ batch:
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBTOOLSNAME)' >> $(BATCH_CLEAN)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBNAME)' >> $(BATCH_CLEAN)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBBASE64NAME)' >> $(BATCH_CLEAN)
+
+
 
