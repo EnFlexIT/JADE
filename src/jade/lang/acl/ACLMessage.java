@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.14  1999/03/09 13:23:24  rimassa
+ Added a 'getFirstDest()' method and made older, deprecated 'getDest()'
+ method call it.
+
  Revision 1.13  1999/03/07 22:56:47  rimassa
  Deprecated getMessage() method.
  Added support for more agent names in ':receiver' slot. Now methods
@@ -273,15 +277,19 @@ public class ACLMessage implements Cloneable, Serializable {
   @see jade.lang.acl.ACLMessage#getDests() 
  */
   public String getDest() {
-    Enumeration e = dests.getMembers();
-    String dest = null;
-    if(e.hasMoreElements())
-      dest = (String)e.nextElement();
-    return dest;
+    return getFirstDest();
   }
 
   public AgentGroup getDests() {
     return (AgentGroup)dests.clone();
+  }
+
+  public String getFirstDest() {
+    Enumeration e = dests.getMembers();
+    if(e.hasMoreElements())
+      return (String)e.nextElement();
+    else
+      return null;
   }
 
   public String getSource() {
