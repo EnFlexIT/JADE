@@ -1647,11 +1647,23 @@ public class Agent implements Runnable, Serializable {
 	    myScheduler.remove(currentBehaviour);
 	    currentBehaviour = null;
 	  }
-	  else if(!currentBehaviour.isRunnable()) {
-	    // Remove blocked behaviour from ready behaviours queue
-	    // and put it in blocked behaviours queue
-	    myScheduler.block(currentBehaviour);
-	    currentBehaviour = null;
+	  else {
+	      synchronized(myScheduler) {
+		  // Need syncrhonzied block (Crais Sayers, HP): What if
+		  // 1) it checks to see if its runnable, sees its not,
+		  //    so it begins to enter the body of the if clause
+		  // 2) meanwhile, in another thread, a message arrives, so
+		  //    the behaviour is restarted and moved to the ready list.
+		  // 3) now back in the first thread, the agent executes the
+		  //    body of the if clause and, by calling block(), moves
+		  //   the behaviour back to the blocked list.
+		  if(!currentBehaviour.isRunnable()) {
+		      // Remove blocked behaviour from ready behaviours queue
+		      // and put it in blocked behaviours queue
+		      myScheduler.block(currentBehaviour);
+		      currentBehaviour = null;
+		  }
+	      }
 	  }
 	  break;
 	}
