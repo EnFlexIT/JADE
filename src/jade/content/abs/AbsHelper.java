@@ -166,14 +166,18 @@ public class AbsHelper {
   			while (it.hasNext()) {
   				recvs.add((AbsTerm) onto.fromObject(it.next()));
   			}
-  			absMsg.set(BasicOntology.ACLMSG_RECEIVERS, recvs);
+  			if (recvs.size() > 0) {
+	  			absMsg.set(BasicOntology.ACLMSG_RECEIVERS, recvs);
+  			}
   			// Reply_to
   			AbsAggregate repls = new AbsAggregate(BasicOntology.SEQUENCE);
   			it = obj.getAllReplyTo();
   			while (it.hasNext()) {
   				repls.add((AbsTerm) onto.fromObject(it.next()));
   			}
-  			absMsg.set(BasicOntology.ACLMSG_REPLY_TO, repls);
+  			if (repls.size() > 0) {
+  				absMsg.set(BasicOntology.ACLMSG_REPLY_TO, repls);
+  			}
   		
   			absMsg.set(BasicOntology.ACLMSG_LANGUAGE, obj.getLanguage());
   			absMsg.set(BasicOntology.ACLMSG_ONTOLOGY, obj.getOntology());
@@ -297,16 +301,20 @@ public class AbsHelper {
   			// Receivers
   			ret.clearAllReceiver();
   			List l = (List) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_RECEIVERS));
-  			Iterator it = l.iterator();
-  			while (it.hasNext()) {
-  				ret.addReceiver((AID) it.next());
+  			if (l != null) {
+	  			Iterator it = l.iterator();
+	  			while (it.hasNext()) {
+	  				ret.addReceiver((AID) it.next());
+	  			}
   			}
   			// ReplyTo
   			ret.clearAllReplyTo();
   			l = (List) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_REPLY_TO));
-  			it = l.iterator();
-  			while (it.hasNext()) {
-  				ret.addReplyTo((AID) it.next());
+  			if (l != null) {
+	  			Iterator it = l.iterator();
+	  			while (it.hasNext()) {
+	  				ret.addReplyTo((AID) it.next());
+	  			}
   			}
   			ret.setLanguage(absMsg.getString(BasicOntology.ACLMSG_LANGUAGE)); 
   			ret.setOntology(absMsg.getString(BasicOntology.ACLMSG_ONTOLOGY)); 
