@@ -26,6 +26,9 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import javax.swing.tree.TreeModel;
+
+import jade.core.AID;
+
 import jade.gui.AgentTree;
 import jade.gui.AgentTreeModel;
 
@@ -48,8 +51,10 @@ import jade.gui.AgentTreeModel;
     node.setState("Running");
     node.changeIcon(1);
     String toResume = node.getName();
+    AID agentID = new AID();
+    agentID.setName(toResume);
 
-    //myRMA.resumeAgent(toResume);
+    myRMA.resumeAgent(agentID);
     AgentTreeModel myModel = myRMA.getModel();
     myModel.nodeChanged(node);
   }
