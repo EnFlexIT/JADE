@@ -216,6 +216,15 @@ public class AID implements Comparable, Serializable {
     userDefSlots.setProperty(key, value);
   }
 
+  /**
+  * To remove a user defined slot.
+  * @param key the name of the property
+  * @return true if the property has been found and removed, false otherwise
+  */
+  public boolean removeUserDefinedSlot(String key){
+    return (userDefSlots.remove(key) != null);
+  }
+
   
   /**
   * Returns an array of string containing all the addresses of the agent
