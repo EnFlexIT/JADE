@@ -46,12 +46,11 @@ import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.FailureException;
 
-import jade.tools.ToolAgent;
-
 import jade.domain.introspection.IntrospectionOntology;
 import jade.domain.introspection.Event;
 import jade.domain.introspection.DeadAgent;
 import jade.domain.introspection.MovedAgent;
+import jade.domain.introspection.AMSSubscriber;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -64,28 +63,54 @@ import chat.ontology.*;
    chat and inform them when someone joins/leaves the chat.
    @author Giovanni Caire - TILAB
  */
-public class ChatManagerAgent extends ToolAgent implements SubscriptionManager {
+public class ChatManagerAgent extends Agent implements SubscriptionManager {
 	private Map participants = new HashMap();
 	private Codec codec = new SLCodec();
 	private Ontology onto = ChatOntology.getInstance();
+	private AMSSubscriber myAMSSubscriber;
 	
-  protected void toolSetup() {  	
+  protected void setup() {
+  	// Prepare to accept subscriptions from chat participants
 		getContentManager().registerLanguage(codec);
 		getContentManager().registerOntology(onto);
 		
-	  addBehaviour(new AMSSubscriber());
-	  
 	  MessageTemplate sTemplate = MessageTemplate.and(
 	  	MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE),
 	  	MessageTemplate.and(
 	  		MessageTemplate.MatchLanguage(codec.getName()),
 	  		MessageTemplate.MatchOntology(onto.getName()) ) );
 	  addBehaviour(new SubscriptionResponder(this, sTemplate, this));
+
+	  // Register to the AMS to detect when chat participants suddenly die
+	  myAMSSubscriber = new AMSSubscriber() {
+	  	protected void installHandlers(Map handlersTable) {
+	    	// Fill the event handler table. We are only interested in the
+	  		// DEADAGENT event
+	      handlersTable.put(IntrospectionOntology.DEADAGENT, new EventHandler() {
+	      	public void handle(Event ev) {
+		    		DeadAgent da = (DeadAgent)ev;
+		    		AID id = da.getAgent();
+	    			// If the agent was attending the chat --> notify all
+		    		// other participants that it has just left.
+		    		if (participants.containsKey(id)) {
+		    			try {
+			    			deregister((Subscription) participants.get(id));
+		    			}
+		    			catch (Exception e) {
+		    				//Should never happen
+		    				e.printStackTrace();
+		    			}
+		    		}
+	      	}
+	      });
+	    }
+	  };
+	  addBehaviour(myAMSSubscriber);
   }
 
-  protected void toolTakeDown() {
+  protected void takeDown() {
   	// Unsubscribe from the AMS
-    send(getCancel());
+    send(myAMSSubscriber.getCancel());
     //FIXME: should inform current participants if any
   }
   
@@ -162,43 +187,4 @@ public class ChatManagerAgent extends ToolAgent implements SubscriptionManager {
 		}
 		return false;
 	}
-	
-  /**
-     Inner class AMSSubscriber.
-     Subscribe to the AMS as a ToolAgent and handle platform event
-     notifications
-   */
-  private class AMSSubscriber extends AMSListenerBehaviour {
-  	public void onStart() {
-  		myAgent.send(getSubscribe());
-  	}
-  	
-  	protected void installHandlers(Map handlersTable) {
-    	// Fill the event handler table. We are only interested in the
-  		// DEADAGENT event
-      handlersTable.put(IntrospectionOntology.DEADAGENT, new EventHandler() {
-      	public void handle(Event ev) {
-	    		DeadAgent da = (DeadAgent)ev;
-	    		AID id = da.getAgent();
-    			// If the agent was attending the chat --> notify all
-	    		// other participants that it has just left.
-	    		if (participants.containsKey(id)) {
-	    			try {
-		    			deregister((Subscription) participants.get(id));
-	    			}
-	    			catch (Exception e) {
-	    				//Should never happen
-	    				e.printStackTrace();
-	    			}
-	    		}
-      	}
-      });
-    } // END of installHandlers() method
-  	
-  } // END of inner class AMSSubscriber 
-  
-  // Workaround for bug in JDK1.2.2
-  protected ACLMessage getSubscribe() {
-  	return super.getSubscribe();
-  }
 }
