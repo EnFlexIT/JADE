@@ -66,7 +66,9 @@ public abstract class ToolAgent extends Agent {
 
 
   // Used by AMSListenerBehaviour
-  protected static interface EventHandler {
+  // FIXME. This interface should have been declared protected. However JDK1.2.2 complains and
+  // requires it to be declared public.
+  public static interface EventHandler {
     void handle(Event ev);
   }
 
