@@ -221,15 +221,15 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
 
        Iterator it = ml.getMessages();
        int AllReceiver = 0;  
-       int receiverForAMessage = 0;
        while(it.hasNext()) {
          Message mess = (Message)it.next();
          String senderName = mess.getSender().getName();    
          xSource = otherCanv.al.getPos(senderName);
-         receiverForAMessage = 0;
-         for(Iterator i = mess.getAllReceiver(); i.hasNext();) {
-       	   receiverForAMessage++;
-       	   String receiverName = ((AID)i.next()).getName();
+         //int receiverForAMessage = 0;
+         //for(Iterator i = mess.getAllReceiver(); i.hasNext();) {
+       	   //receiverForAMessage++;
+       	   //String receiverName = ((AID)i.next()).getName();
+         String receiverName = mess.getUnicastReceiver().getName();
            xDest = otherCanv.al.getPos(receiverName);
        
            x1 = mess.getInitSeg(xSource);
@@ -334,8 +334,9 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
            // disegno freccetta del receiver
            g.drawPolygon(xCoords,yCoords,3);
            g.fillPolygon(xCoords,yCoords,3);
-         }
-         AllReceiver = AllReceiver+receiverForAMessage;
+         //}
+         AllReceiver++;
+         //AllReceiver = AllReceiver+receiverForAMessage;
        } // while
 
        int msgNum = ml.size();
@@ -347,13 +348,14 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
          int counter = 0;
          for(Iterator i = ml.getMessages(); i.hasNext(); ) {
          	Message msg = (Message)i.next();
-         	int singleMsgCounter =0;
-         	for(Iterator j = msg.getAllReceiver(); j.hasNext(); )
-         	{  j.next();
-         	   singleMsgCounter++;
-                   msg.setMessageNumber(counter + singleMsgCounter);
-         	}
-          counter = counter + singleMsgCounter;        
+         	//int singleMsgCounter =0;
+         	//for(Iterator j = msg.getAllReceiver(); j.hasNext(); )
+         	//{  j.next();
+         	//   singleMsgCounter++;
+          //         msg.setMessageNumber(counter + singleMsgCounter);
+         	//}
+          //counter = counter + singleMsgCounter;        
+         	msg.setMessageNumber(counter++);
          }
          g.drawLine(x+xOffset,1,x+xOffset,timeUnitWidth*(counter+1));
        }
@@ -478,9 +480,10 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
      Message mess = (Message)it.next();
      String senderName = mess.getSender().getName();
      
-     for(Iterator i = mess.getAllReceiver();i.hasNext(); )
-     {
-     	String receiverName = ((AID)i.next()).getName();
+     //for(Iterator i = mess.getAllReceiver();i.hasNext(); )
+     //{
+     	//String receiverName = ((AID)i.next()).getName();
+     	String receiverName = mess.getUnicastReceiver().getName();
       x1 = mess.getInitSeg(otherCanv.al.getPos(senderName));
       x2 = mess.getEndSeg(otherCanv.al.getPos(receiverName));
       y = mess.getOrdSeg(j++);
@@ -496,7 +499,7 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
 	       return mess;
        }
       }
-     }//for
+     //}//for
    }//while
 
    return null;

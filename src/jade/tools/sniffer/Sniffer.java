@@ -205,25 +205,28 @@ public class Sniffer extends ToolAgent {
 	  Occurred o = (Occurred)getContentManager().extractContent(current);
 	  EventRecord er = o.getWhat();
 	  Event ev = er.getWhat();
-	  String content;
-	  Envelope env;
+	  String content = null;
+	  Envelope env = null;
+	  AID unicastReceiver = null;
 	  if(ev instanceof SentMessage) { 
 	    content = ((SentMessage)ev).getMessage().getPayload();
 	    env = ((SentMessage)ev).getMessage().getEnvelope();
+	    unicastReceiver = ((SentMessage)ev).getReceiver();
 	  } else if(ev instanceof PostedMessage) {
 	    content = ((PostedMessage)ev).getMessage().getPayload();
 	    env = ((PostedMessage)ev).getMessage().getEnvelope();
+	    unicastReceiver = ((PostedMessage)ev).getReceiver();
 	  } else return;
 
 	  ACLCodec codec = new StringACLCodec();
-    String charset;  
+    String charset = null;  
     if ((env == null) ||
         ((charset = env.getPayloadEncoding()) == null)) {
       charset = ACLCodec.DEFAULT_CHARSET;
     }
 	  ACLMessage tmp = codec.decode(content.getBytes(charset),charset);
 	  tmp.setEnvelope(env);
-	  Message msg = new Message(tmp);
+	  Message msg = new Message(tmp, unicastReceiver);
     
 	  // If this is a 'posted-message' event and the sender is
 	  // currently under sniff, then the message was already
@@ -622,7 +625,7 @@ public class Sniffer extends ToolAgent {
   }
 
 /**
- * This method add an AMSBehaviour the perform a request to the AMS for sniffing/unsniffing list of agents.
+ * This method adds an AMSClientBehaviour that performs a request to the AMS for sniffing/unsniffing list of agents.
  **/
  public void sniffMsg(List agents, boolean onFlag) {
       ACLMessage request = getSniffMsg(agents,onFlag);
@@ -632,7 +635,7 @@ public class Sniffer extends ToolAgent {
  }
   /**
    * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
-   * agent to be sniffed/unsniffed. The internal list of sniffed agents is also
+   * agents to be sniffed/unsniffed. The internal list of sniffed agents is also
    * updated.
    *
    * @param agentVect vector containing TreeData item representing the agents

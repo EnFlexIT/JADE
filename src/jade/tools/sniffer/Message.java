@@ -45,6 +45,8 @@ import jade.util.leap.Properties;
 
 public class Message extends jade.lang.acl.ACLMessage implements Serializable {
 
+	private AID unicastReceiver;
+	
   private int x1,x2,y;
   private int xCoords[] = new int[3];
   private int yCoords[] = new int[3];
@@ -57,6 +59,7 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
   private int xD = 0;
   private int messageNumber=0;
 
+  /* TO BE REMOVED
   public Message(AID s, AID r){
 
     super(ACLMessage.INFORM);
@@ -64,18 +67,18 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     this.setSender(s);
     this.clearAllReceiver();
     this.addReceiver(r);
-  }
+  }*/
 
-  public Message(ACLMessage msg) {
+  public Message(ACLMessage msg, AID r) {
 
     super(msg.getPerformative());
+    
+    unicastReceiver = r;
+    
     this.clearAllReceiver();
     for (Iterator i=msg.getAllReceiver(); i.hasNext(); )
       this.addReceiver((AID)i.next());
 
-    //Iterator it = msg.getAllReceiver();
-    //AID id = (AID)it.next();
-    //this.addReceiver(id);
     this.setSender(msg.getSender());
     this.setContent(msg.getContent());
     this.setReplyWith(msg.getReplyWith());
@@ -94,6 +97,10 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     }
   }
 
+  public AID getUnicastReceiver() {
+  	return unicastReceiver;
+  }
+  
   public int getInitSeg(int xS){
     x1 = xS * step + offset+4;
     return x1;
