@@ -23,22 +23,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
+import jade.util.WrapperException;
+
 /**
   Generic exception class for MTP errors.
 */
-public class MTPException extends Exception {
-
-  /**
-     @serial
-  */
-  private Throwable nested;
+public class MTPException extends WrapperException {
 
   /**
      Constructor for exception class.
      @param msg A message detailing the cause of the exception.
    */
   public MTPException(String msg) {
-    this(msg, null);
+    super(msg);
   }
 
   /**
@@ -47,17 +44,7 @@ public class MTPException extends Exception {
      @param t The exception wrapped by this object.
   */
   public MTPException(String msg, Throwable t) {
-    super(msg);
-    nested = t;
-  }
-
-  /**
-     Reads the exception wrapped by this object.
-     @return the <code>Throwable</code> object that is the exception thrown by
-     the concrete MTP subsystem.
-  */
-  public Throwable getNested() {
-    return nested;
+    super(msg, t);
   }
 
 }
