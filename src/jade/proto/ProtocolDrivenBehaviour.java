@@ -1,6 +1,6 @@
 package jade.proto;
 
-import jade.core.Behaviour;
+import jade.core.*;
 
 /**************************************************************
 
@@ -19,14 +19,48 @@ import jade.core.Behaviour;
 ****************************************************************/
 public class ProtocolDrivenBehaviour implements Behaviour {
 
-  ProtocolDrivenBehaviour() {
+  private boolean starting = true;
+  private boolean finished = false;
+
+  private Agent myAgent;
+  private Interaction myInteraction;
+  private NonDeterministicBehaviour currentBehaviours;
+
+
+  public ProtocolDrivenBehaviour(Agent a, Interaction i) {
+    myAgent = a;
+    myInteraction = i;
+    currentBehaviours = new NonDeterministicBehaviour(myAgent);
+
   }
 
+
+  // TODO: Starting code must distinguish the role. When initiator it
+  // must send the first message to peers; when responder, it must
+  // receive the first message and read the peer and convId from it.
+
+  // TODO: Suitable sub-behaviours must be written. A
+  // receiveSubBehaviour receives the message expected in a given CA,
+  // invokes the message handler and advances interaction state
+  // corresponding to message sender. A sendSubBehaviour clones the
+  // message of a given CA, invokes the message handler and advances
+  // interaction state corresponding to message destination.
+
   public void execute() {
+
+    if(starting) {
+      // Do initialization stuff, according to whether playing
+      // initiator or responder role.
+      starting = false;
+    }
+
+    // Schedules currently active behaviours.
+    currentBehaviours.execute();
+
   }
 
   public boolean done() {
-    return true; // FIXME: To be implemented
+    return finished;
   }
 
 }
