@@ -22,7 +22,7 @@
   'propose' message to the same sender and retract the just arrived message"
  ?m <- (ACLMessage (communicative-act cfp) (sender ?s) (content ?c))
  =>
- (send (assert (ACLMessage (communicative-act propose) (receiver ?s) (content ?c))))
+(send (assert (ACLMessage (communicative-act propose) (receiver ?s) (content ?c))))
  (retract ?m)
 )
 
