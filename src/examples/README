@@ -47,6 +47,10 @@ This examples shows some examples of agent behaviours.
  - FSMAgent.class		An agent with two behaviours built like finite state 
 				machines.
 
+ - TestReceiverBehaviourAgent	This agent shows the usage of the 
+                                ReceiverBehaviour, the WakerBehaviour, and
+                                the SimpleBehavoiour.
+
 
 
 'Base64' subdirectory
