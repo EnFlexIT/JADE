@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.14  1999/11/10 09:34:06  rimassaJade
+  Added a method to remove a group member regardless of case and agent
+  address.
+
   Revision 1.13  1999/10/08 08:26:34  rimassa
   Added an explanatory comments for a behaviour change (case
   sensitiveness).
@@ -72,10 +76,38 @@ public class AgentGroup implements Cloneable, Serializable {
   /**
      Removes an agent from this group. 
      @param name The agent name (case-sensitive) to remove from this group.
+     * @see removeMemberAddressAndCaseInsensitive(String name)
    */
   public void removeMember(String name) {
      memberNames.removeElement(name);
   }
+
+  /**
+   * Removes an agent from this group.
+   * This version of the method is case-insensitive and also 
+   * address-insensitive (i.e. it considers only the part of the name before 
+   * the '@' character)
+   */
+public void removeMemberAddressAndCaseInsensitive(String name) {
+  String localName;
+  int    ind;
+  if ( (ind=name.indexOf('@')) > -1) 
+    localName = name.substring(0,ind);
+  else
+    localName = name; 
+  String tmp;
+  for (int i=0; i<memberNames.size(); i++) {
+    if (name.equalsIgnoreCase( (String)memberNames.elementAt(i))) 
+      { memberNames.remove(i); return; }
+    else {
+      tmp = (String)memberNames.elementAt(i);
+      if ( (ind=tmp.indexOf('@')) > -1) 
+	tmp = tmp.substring(0,ind);
+      if (localName.equalsIgnoreCase(tmp))
+	{ memberNames.remove(i); return; }
+    }
+  }
+}
 
   /**
      Empties this agent group.
