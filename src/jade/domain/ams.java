@@ -221,6 +221,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			final String ownership = getAgentOwnership(requester);
 		
 			Authority authority = getAuthority();
+                  /*
 			AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, ownership);
 		  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 			IdentityCertificate identity = authority.createIdentityCertificate();
@@ -245,13 +246,14 @@ public class ams extends Agent implements AgentManager.Listener {
 			}
 
 			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
-	
+	*/
 	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
 		    public Object run() throws Exception /*throws UnreachableException, AuthException, NotFoundException, NameClashException*/ {
 					Thread auxThread = new Thread() {
 				    public void run() {
 							try {
-								myPlatform.create(agentName, className, args, container, ownership, agentCerts);
+								//myPlatform.create(agentName, className, args, container, ownership, agentCerts);
+                                                                myPlatform.create(agentName, className, args, container, null, null);
 							}
 							catch (UnreachableException ue) {
 						    // Send failure notification to the requester if any
@@ -275,7 +277,7 @@ public class ams extends Agent implements AgentManager.Listener {
 					auxThread.start();
 					return null;
 		    }
-			}, requesterCredentials);
+			}, null); //requesterCredentials);
 		}
 		catch(CertificateException ce) {
 			throw new Unauthorised();
