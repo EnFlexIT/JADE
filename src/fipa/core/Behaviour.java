@@ -1,6 +1,6 @@
 /*
   $Id$
- */
+  */
 
 package fipa.core;
 
@@ -18,6 +18,8 @@ package fipa.core;
 ******************************************************************/
 public interface Behaviour {
 
-  public void execute();
+  public void execute(); // Runs the behaviour
+
+  public boolean done(); // returns true if the behaviour has completely executed
 
 }
