@@ -1,9 +1,12 @@
 /*
- * $Log$
- * Revision 1.10  1998/10/04 18:00:57  rimassa
- * Added a 'Log:' field to every source file.
- *
- */
+  $Log$
+  Revision 1.11  1998/10/05 20:13:51  Giovanni
+  Made every agent name table is case insensitive, according to FIPA
+  specification.
+
+  Revision 1.10  1998/10/04 18:00:57  rimassa
+  Added a 'Log:' field to every source file.
+  */
 
 package jade.core;
 
@@ -117,7 +120,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       agent.addCommListener(this);
 
       // Insert new agent into local agents table
-      localAgents.put(agentName,agent);
+      localAgents.put(agentName.toLowerCase(),agent);
 
       desc.setDemux(myDispatcher);
 
@@ -135,7 +138,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     String currentName = null;
     while(nameList.hasMoreElements()) {
       currentName = (String)nameList.nextElement();
-      agent = (Agent)localAgents.get(currentName);
+      agent = (Agent)localAgents.get(currentName.toLowerCase());
       agent.doStart(currentName, platformAddress);
     }
   }
@@ -188,7 +191,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     String receiverName = msg.getDest();
 
     // Look up in local agents.
-    Agent receiver = (Agent)localAgents.get(receiverName);
+    Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
 
     if(receiver != null)
       receiver.postMessage(msg);
@@ -203,12 +206,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   private void postRemote(ACLMessage msg, String receiverName) {
 
     // Look first in descriptor cache
-    AgentDescriptor desc = (AgentDescriptor)remoteAgentsCache.get(receiverName);
+    AgentDescriptor desc = (AgentDescriptor)remoteAgentsCache.get(receiverName.toLowerCase());
     try {
 
       if(desc == null) { // Cache miss :-( . Ask agent platform and update agent cache
 	desc = myPlatform.lookup(receiverName); // RMI call
-	remoteAgentsCache.put(receiverName,desc);  // FIXME: The cache grows indefinitely ...
+	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
       }
       MessageDispatcher md = desc.getDemux();
       md.dispatch(msg); // RMI call
