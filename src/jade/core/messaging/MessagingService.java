@@ -172,7 +172,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    MessagingSlice cachedSlice = (MessagingSlice)cachedSlices.get(receiverID);
 		    if(cachedSlice != null) { // Cache hit :-)
 			try {
-			    System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
+			    //System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
 			    cachedSlice.dispatchLocally(msg, receiverID);
 			}
 			catch(IMTPException imtpe) {
@@ -185,7 +185,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 		    }
 		    else { // Cache miss :-(
-			System.out.println("--- Cache Miss for AID [" + receiverID.getLocalName() + "] ---");
+			//System.out.println("--- Cache Miss for AID [" + receiverID.getLocalName() + "] ---");
 			deliverUntilOK(msg, receiverID);
 		    }
 		}
