@@ -56,7 +56,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	    if(terminating) {
 		throw new IMTPException("Dead node");
 	    }
-	    return myNode.serve(cmd);
+	    return myNode.serveHorizontalCommand(cmd);
 	}
 	catch(ServiceException se) {
 	    throw new IMTPException("Service Error", se);
