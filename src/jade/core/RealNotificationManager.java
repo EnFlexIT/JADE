@@ -242,7 +242,7 @@ class RealNotificationManager implements NotificationManager {
   private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
     synchronized(messageListenersLock) {
       if(agentListeners != null) {
-        AgentEvent ev = new AgentEvent(agentID, myID(), from, to);
+        AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_PRINCIPAL, agentID, from, to, myID());
           for(int i = 0; i < agentListeners.size(); i++) {
     	    AgentListener l = (AgentListener)agentListeners.get(i);
   	      l.changedAgentPrincipal(ev);

@@ -28,10 +28,12 @@ import java.util.Date;
 
 public interface IdentityCertificate {
 	
-	public void setSubject(BasicPrincipal subject);
-	public BasicPrincipal getSubject();
+	public void setSubject(JADEPrincipal subject);
+	public JADEPrincipal getSubject();
+	
 	public void setNotBefore(Date notBefore);
 	public Date getNotBefore();
+	
 	public void setNotAfter(Date notAfter);
 	public Date getNotAfter();
 	

@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -23,21 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-/**
-	The <code>AuthorizationException</code> is a subclass of
-	AuthException. Exceptions of this class are thrown
-	for authentication failures.
-	
-	@author Michele Tomaiuolo - Universita` di Parma
-	@version $Date$ $Revision$
-*/
-public class AuthenticationException extends AuthException {
+import jade.core.ContainerID;
 
-	/**
-		Creates a new AuthenticationException.
-		@param msg The message of the exception.
-	*/
-	public AuthenticationException(String msg) {
-		super(msg);
-	}
+
+public interface ContainerPrincipal extends JADEPrincipal {
+	
+	public void init(ContainerID containerID, UserPrincipal user);
+	public ContainerID getContainerID();
+	public UserPrincipal getUser();
+
 }

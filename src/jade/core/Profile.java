@@ -63,6 +63,11 @@ public abstract class Profile {
    */
   public static final String MAIN_PORT = "main-port";
 
+  public static final String MAINAUTH_CLASS = "main-auth";
+  public static final String AUTHORITY_CLASS = "authority";
+  public static final String POLICY_FILE = "policy";
+  public static final String PASSWD_FILE = "passwd";
+
   /**
      This constant is the name of the property whose value contains
      the unique platform ID of a JADE platform. Agent GUIDs in JADE

@@ -35,13 +35,13 @@ import jade.security.AgentPrincipal;
    @version $Date$ $Revision$
 */
 
-public class ChangedAgentPrincipal implements Event {
+public class ChangedAgentOwnership implements Event {
 
-  public static final String NAME = "Changed-Agent-Principal";
+  public static final String NAME = "Changed-Agent-Ownership";
 
   private AID agent;
-  private AgentPrincipal oldPrincipal;
-  private AgentPrincipal newPrincipal;
+  private String from;
+  private String to;
 
   private ContainerID where;
   
@@ -61,20 +61,20 @@ public class ChangedAgentPrincipal implements Event {
     return agent;
   }
 
-  public void setOldPrincipal(AgentPrincipal p) {
-    oldPrincipal = p;
+  public void setFrom(String o) {
+    from = o;
   }
 
-  public AgentPrincipal getOldPrincipal() {
-    return oldPrincipal;
+  public String getFrom() {
+    return from;
   }
 
-  public void setNewPrincipal(AgentPrincipal p) {
-    newPrincipal = p;
+  public void setTo(String o) {
+    to = o;
   }
 
-  public AgentPrincipal getNewPrincipal() {
-    return newPrincipal;
+  public String getTo() {
+    return to;
   }
 
   public String getName() {

@@ -71,12 +71,15 @@ public class AgentEvent extends JADEEvent {
   }
 
 //__SECURITY__BEGIN
-  public AgentEvent(AID aid, ContainerID cid, AgentPrincipal from, AgentPrincipal to) {
+  public AgentEvent(int id, AID aid, AgentPrincipal f, AgentPrincipal t, ContainerID cid) {
     super(cid);
-    myID = CHANGED_AGENT_PRINCIPAL;
+    myID = id;
+    if(!isChangedAgentPrincipal()) {
+      throw new InternalError("Bad Event kind: it must be a 'changed-agent-principal' event.");
+    }
     agent = aid;
-    oldPrincipal = from;
-    newPrincipal = to;
+    oldPrincipal = f;
+    newPrincipal = t;
   }
 //__SECURITY__END
 

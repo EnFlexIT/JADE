@@ -113,21 +113,32 @@ class MainContainerImpl implements Platform, AgentManager {
 	  }
 
 	  try {
-	    authority = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
-			authority.setName("main-authority");
-		  authority.init(p);
+	  	String type = p.getParameter(Profile.MAINAUTH_CLASS);
+	    if (type != null) {
+	    	authority = (Authority)Class.forName(type).newInstance();
+				authority.setName("main-authority");
+			  authority.init(p);
+			}
 	  }
 	  catch (Exception e1) {
-	    System.out.println("PlatformAuthority not found");
-		  try {
-		    authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
+	  	e1.printStackTrace();
+	  }
+	  
+	  try {
+	    if (authority == null) {
+		    authority = new jade.security.DummyAuthority();
 				authority.setName("main-authority");
 	  		authority.init(p);
-		  }
-			catch (Exception e2) {
-		    e2.printStackTrace();
-		  }
+	  	}
 	  }
+		catch (Exception e2) {
+	    e2.printStackTrace();
+	  }
+	  
+  }
+  
+  public Authority getAuthority() {
+  	return authority;
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
@@ -639,23 +650,26 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 //__SECURITY__BEGIN
-  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthException {
-    try {
-      IdentityCertificate identity = authority.createIdentityCertificate();
-      DelegationCertificate delegation = authority.createDelegationCertificate();
-      if (identity != null && delegation != null) {
-        identity.setSubject(new AgentPrincipal(user, agentID));
-        delegation.setSubject(new AgentPrincipal(user, agentID));
-        authority.authenticateUser(identity, delegation, passwd);
-      }
-
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.changeAgentPrincipal(agentID, identity, delegation);
-      
-      //!!! delega all'ams
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
+	public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException {
+		if (delegation != null) {
+			//!!! delega all'ams
+			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+			amsDelegation.setSubject(theAMS.getPrincipal());
+			for (Iterator i = delegation.getPermissions(); i.hasNext(); ) {
+				amsDelegation.addPermission(i.next());
+			}
+			authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
+			theAMS.addDelegation(agentID, amsDelegation);
+		}
+		
+		if (identity != null && delegation != null) {
+			try {
+	      AgentContainer ac = getContainerFromAgent(agentID);
+  	    ac.changeAgentPrincipal(agentID, identity, delegation);
+    	}
+    	catch (IMTPException re) {
+      	throw new UnreachableException(re.getMessage());
+    	}
     }
   }
 //__SECURITY__END

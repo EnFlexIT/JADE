@@ -35,6 +35,7 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
 //__SECURITY__BEGIN
+import jade.security.Authority;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
 import jade.security.AuthException;
@@ -81,8 +82,9 @@ public interface AgentManager {
   void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
 
 //__SECURITY__BEGIN
-  //void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException
-  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthException;
+  void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, UnreachableException, AuthException;
+  //void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthException;
+  Authority getAuthority();
 //__SECURITY__END
 
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;

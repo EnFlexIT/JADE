@@ -25,78 +25,11 @@ package jade.security;
 
 import jade.core.AID;
 
-import jade.util.leap.Serializable;
 
+public interface AgentPrincipal extends JADEPrincipal {
 
-/**
-
-	This class represents principals associated to agents.
-
-	@author Michele Tomaiuolo - Universita` di Parma
-	@version $Date$ $Revision$
-*/
-public class AgentPrincipal extends BasicPrincipal implements Serializable {
-
-	public AgentPrincipal() {
-		super();
-	}
-
-	public AgentPrincipal(String name) {
-		super(name);
-	}
-
-	public AgentPrincipal(UserPrincipal user, AID agentID) {
-		super(user.getName() + "." + encode(agentID.getName()));
-	}
-	
-	public AID getAgentID() {
-		return new AID(decode(getShortName()), AID.ISGUID);
-	}
-	
-	public UserPrincipal getUser() {
-		return new UserPrincipal(getParentName());
-	}
-	
-	/**
-		Encodes the name according to the conventions used for
-		HTML texts, i.e. chars which are not letters or digits
-		are represented as <code>&#D;</code>, where <code>D</code>
-		is the decimal unicode value of the char.
-		@param name The name of the principal to process.
-		@return The name of a principal, with encoded symbols.
-	*/
-	public static String encode(String name) {
-		StringBuffer buffer = new StringBuffer();
-//__CLDC_UNSUPPORTED__BEGIN 
-		for (int i = 0; i < name.length(); i++) {
-			char c = name.charAt(i);
-			if ( Character.isLetterOrDigit(c) ) {
-				buffer.append(c);
-			}
-			else {
-				//buffer.append("&#" + ((int)c) + ";");
-				buffer.append("[" + ((int)c) + "]");
-			}
-		}
-//__CLDC_UNSUPPORTED__END
-		return buffer.toString();
-	}
-
-	public static String decode(String name) {
-		StringBuffer buffer = new StringBuffer();
-		for (int i = 0; i < name.length(); i++) {
-			char c = name.charAt(i);
-			if (name.charAt(i) == '[') {
-				int j = name.indexOf(']', i+1);
-				char decoded = (char)Integer.parseInt(name.substring(i+1, j));
-				buffer.append(decoded);
-				i = j;
-			}
-			else {
-				buffer.append(c);
-			}
-		}
-		return buffer.toString();
-	}
+	public void init(AID agentID, UserPrincipal user);
+	public AID getAgentID();
+	public UserPrincipal getUser();
 
 }

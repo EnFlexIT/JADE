@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -23,15 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.util.Date;
-
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
+import jade.security.leap.Principal;
 
 
-public class DelegationCertificateImpl extends BasicCertificateImpl implements DelegationCertificate {
-	
-	public DelegationCertificateImpl() {
-  }
+public interface JADEPrincipal extends Principal {
+
+	public static final String NONE = "none";
+
+
+	public void init(String name);
+	public String getName();
 
 }

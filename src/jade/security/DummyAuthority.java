@@ -23,68 +23,33 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+import jade.security.leap.PrivilegedAction;
+
 import jade.core.Profile;
 
 
-/**
-	The <code>Authority</code> class is an abstract class which represents
-	the authorities of the platform. It has methods for signing certificates
-	and for verifying their validity.
-	
-	@author Michele Tomaiuolo - Universita` di Parma
-	@version $Date$ $Revision$
-*/
 public class DummyAuthority implements Authority {
 
-  int serial = 1;
-  String name = null;
-  
-	/**
-		Set the name of the authority.
-		@param name The name of the authority.
-	*/
+	int serial = 1;
+	String name = null;
+	
 	public void setName(String name) {
 		this.name = name;
 	}
 	
-	/**
-		Returns the name of the authority.
-		@return the name of the authority.
-	*/
 	public String getName() {
 		return name;
 	}
 	
-  public void init(Profile profile) {
-  }
-    
-	/**
-		Checks the validity of a given certificate.
-		The period of validity is tested, as well as the integrity
-		(verified using the carried signature as proof).
-		@param cert The certificate to verify.
-		@throws AuthenticationException if the certificate is not
-			integer or is out of its validity period.
-	*/
+	public void init(Profile profile) {
+	}
+		
 	public void verify(IdentityCertificate cert) throws AuthException {
 	}
 		
 	public void verify(DelegationCertificate cert) throws AuthException {
 	}
 		
-	/**
-		Signs a new certificate. The certificates presented with the
-		<code>subj</code> param are verified and the permissions to
-		certify are matched against the possessed ones.
-		The period of validity is tested, as well as the integrity
-		(verified using the carried signature as proof).
-		@param cert The certificate to sign.
-		@param subj The subject containing the initial certificates.
-		@throws AuthorizationException if the permissions are not owned
-			or delegation modes are violated.
-		@throws AuthenticationException if the certificates have some
-			inconsistence or are out of validity.
-	*/
 	public void sign(IdentityCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
@@ -95,18 +60,30 @@ public class DummyAuthority implements Authority {
 	}
 
 	public Object doAs(PrivilegedAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
-	  return action.run();
+		return action.run();
 	}
 	
 	public void checkPermission(String type, String name, String actions) throws AuthException {
 	}
 	
+	public AgentPrincipal createAgentPrincipal(){
+		return new DummyPrincipal();
+	}
+
+	public ContainerPrincipal createContainerPrincipal() {
+		return new DummyPrincipal();
+	}
+	
+	public UserPrincipal createUserPrincipal() {
+		return new DummyPrincipal();
+	}
+	
 	public IdentityCertificate createIdentityCertificate() {
-	  return null;
+		return null;
 	}
 
 	public DelegationCertificate createDelegationCertificate() {
-	  return null;
+		return null;
 	}
 	
 }

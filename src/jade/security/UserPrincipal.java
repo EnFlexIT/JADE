@@ -23,31 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import jade.util.leap.Serializable;
 
-
-/**
-  This class represents principals associated to users.
-
-  @author Michele Tomaiuolo - Universita` di Parma
-  @version $Date$ $Revision$
-*/
-public class UserPrincipal extends BasicPrincipal implements Serializable {
-
-  public UserPrincipal() {
-    super();
-  }
-
-  public UserPrincipal(String name) {
-    super(name);
-  }
-  
-  public UserPrincipal getParentUser() {
-    String parentName = getParentName();
-    if (parentName != null)
-      return new UserPrincipal(parentName);
-    else
-      return null;
-	}
-
+public interface UserPrincipal extends JADEPrincipal {
 }

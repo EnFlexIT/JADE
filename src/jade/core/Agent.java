@@ -435,8 +435,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   
 //__SECURITY__BEGIN
   private Authority authority;
-  private String ownership = jade.security.BasicPrincipal.NONE;
-  private AgentPrincipal principal = new AgentPrincipal();
+  private String ownership = jade.security.JADEPrincipal.NONE;
+  private AgentPrincipal principal = null;
   private IdentityCertificate identity = null;
   private DelegationCertificate delegation = null;
 //__SECURITY__END
@@ -955,7 +955,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public AgentPrincipal getPrincipal() {
     AgentPrincipal p;
     synchronized(principalLock) {
-      p = new AgentPrincipal(principal.getName());
+      p = getAuthority().createAgentPrincipal();
+      p.init(principal.getName());
     }
     return p;
   }

@@ -121,6 +121,31 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     // Set up attributes for agents thread group
     //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
+
+	  // create and init container-authority
+	  try {
+	  	String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
+	    if (type != null) {
+	    	authority = (Authority)Class.forName(type).newInstance();
+	    	authority.setName("container-authority");
+	    	authority.init(myProfile);
+			}
+	  }
+	  catch (Exception e1) {
+	  	e1.printStackTrace();
+	  }
+	  
+	  try {
+	    if (authority == null) {
+	    	authority = new jade.security.DummyAuthority();
+	    	authority.setName("container-authority");
+	    	authority.init(myProfile);
+	  	}
+	  }
+		catch (Exception e2) {
+	    e2.printStackTrace();
+	  }
+	  
   }
 
 
@@ -497,15 +522,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       
       ownership = System.getProperty("jade.security.ownership");
       if (ownership == null)
-        ownership = jade.security.BasicPrincipal.NONE;
+        ownership = jade.security.JADEPrincipal.NONE;
 
       int dot2 = ownership.indexOf(':');
       if (dot2 != -1) {
-        user = new UserPrincipal(ownership.substring(0, dot2));
-        passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+  	    user = authority.createUserPrincipal();
+    	  user.init(ownership.substring(0, dot2));
+      	passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
       }
       else {
-        user = new UserPrincipal(ownership);
+        user = authority.createUserPrincipal();
+        user.init(ownership);
         passwd = new byte[] {};
       }
 
@@ -533,24 +560,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       Runtime.instance().endContainer();
       return;
     }
-
-	  // create and init container-authority
-	  try {
-	    authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
-	    authority.setName("container-authority");
-	    authority.init(myProfile);
-	  }
-	  catch (Exception e1) {
-	    System.out.println("ContainerAuthority not found");
-		  try {
-		    authority = (Authority)Class.forName("jade.security.DummyAuthority").newInstance();
-	  	  authority.setName("container-authority");
-	    	authority.init(myProfile);
-	  	}
-	  	catch (Exception e2) {
-	    	e2.printStackTrace();
-	  	}
-	  }
 
     // Create and activate agents that must be launched at bootstrap
     try {

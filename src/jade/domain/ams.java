@@ -454,13 +454,13 @@ public class ams extends Agent implements AgentManager.Listener {
       amsd.setName(agentName);
       amsd = (AMSAgentDescription)agentDescriptions.search(amsd).get(0);
     
-	    ChangedAgentPrincipal cap = new ChangedAgentPrincipal();
-	    cap.setAgent(agentName);
-	    cap.setOldPrincipal(new AgentPrincipal());
-	    cap.setNewPrincipal(new AgentPrincipal(amsd.getOwnership()));
-	    cap.setWhere(cid);
+	    ChangedAgentOwnership cao = new ChangedAgentOwnership();
+	    cao.setAgent(agentName);
+	    cao.setFrom(AgentPrincipal.NONE);
+	    cao.setTo(amsd.getOwnership());
+	    cao.setWhere(cid);
 
-	    EventRecord er = new EventRecord(cap, here());
+	    EventRecord er = new EventRecord(cao, here());
 	    Occurred o = new Occurred();
 	    o.set_0(er);
 
@@ -654,7 +654,7 @@ public class ams extends Agent implements AgentManager.Listener {
       sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
       try {
-	myPlatform.create(agentName, className, arguments, container, jade.security.BasicPrincipal.NONE); //!!!
+	myPlatform.create(agentName, className, arguments, container, jade.security.JADEPrincipal.NONE); //!!!
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.
@@ -935,6 +935,11 @@ public class ams extends Agent implements AgentManager.Listener {
   /**
   @serial
   */
+  private Map delegations = new HashMap();
+
+  /**
+  @serial
+  */
   private APDescription theProfile = new APDescription();
 
   /**
@@ -1036,8 +1041,15 @@ public class ams extends Agent implements AgentManager.Listener {
     addBehaviour(notifyTools);
 
   }
+	
+	public Authority getAuthority() {
+		return myPlatform.getAuthority();
+	}
+	
+	public void addDelegation(AID agentID, DelegationCertificate delegation) {
+		delegations.put(agentID, delegation);
+	}
 
-  
   /**
   * checks that all the mandatory slots for a register/modify/deregister action
   * are present.
@@ -1110,35 +1122,48 @@ public class ams extends Agent implements AgentManager.Listener {
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException, AuthException {
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
     AID id = amsd.getName();
+    AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(id);
+    if (old != null) {
+      agentDescriptions.register(id, old);
+      throw new NotRegistered();
+    }
+
     String[] addresses = myPlatform.platformAddresses();
     for(int i = 0; i < addresses.length; i++)
       id.addAddresses(addresses[i]);
 
-
     try {
-      Object old = agentDescriptions.deregister(id);
-      if (old != null) {
-        throw new AlreadyRegistered();
+    	Authority authority = getAuthority();
+
+      String ownership = amsd.getOwnership();
+      UserPrincipal user = null;
+      byte[] word = null;
+      int dot2 = ownership.indexOf(':');
+      if (dot2 != -1) {
+        user = authority.createUserPrincipal();
+        user.init(ownership.substring(0, dot2));
+        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
       }
       else {
-        String ownership = amsd.getOwnership();
-        UserPrincipal user = null;
-        byte[] word = null;
-        int dot2 = ownership.indexOf(':');
-        if (dot2 != -1) {
-          user = new UserPrincipal(ownership.substring(0, dot2));
-          word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-        }
-        else {
-          user = new UserPrincipal(ownership);
-          word = new byte[] {};
-        }
-
-        myPlatform.changeAgentPrincipal(id, user, word);
-        
-        amsd.setOwnership(user.getName());
-        agentDescriptions.register(id, amsd);
+        user = authority.createUserPrincipal();
+        user.init(ownership);
+        word = new byte[] {};
       }
+
+      IdentityCertificate identity = authority.createIdentityCertificate();
+      DelegationCertificate delegation = authority.createDelegationCertificate();
+      if (identity != null && delegation != null) {
+      	AgentPrincipal ap = authority.createAgentPrincipal();
+      	ap.init(id, user);
+        identity.setSubject(ap);
+        delegation.setSubject(ap);
+        authority.authenticateUser(identity, delegation, word);
+
+	      myPlatform.changeAgentPrincipal(id, identity, delegation);
+	    }
+
+      amsd.setOwnership(user.getName());
+      agentDescriptions.register(id, amsd);
     }
     catch (NotFoundException nfe) {
       nfe.printStackTrace();
@@ -1162,19 +1187,33 @@ public class ams extends Agent implements AgentManager.Listener {
     AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
     if (old == null)
       throw new NotRegistered();
-    agentDescriptions.register(amsd.getName(), amsd);
+
     try {
-      String ownership = amsd.getOwnership();
-      int dot2 = ownership.indexOf(':');
-      String username = dot2 != -1 ? ownership.substring(0, dot2) : ownership;
-      String password = dot2 != -1 ? ownership.substring(dot2 + 1, ownership.length()) : "";
+    	// modify agent state
       if (!old.getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
-        myPlatform.suspend(amsd.getName(),  "");
+        myPlatform.suspend(amsd.getName(), "");
       if (old.getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
-        myPlatform.activate(amsd.getName(),  "");
+        myPlatform.activate(amsd.getName(), "");
+      old.setState(amsd.getState());
+
 //__SECURITY__BEGIN        
-      if (!old.getOwnership().equalsIgnoreCase(amsd.getOwnership()))
-        myPlatform.changeAgentPrincipal(amsd.getName(), new UserPrincipal(username), password.getBytes());
+    	// modify agent ownership
+      String ownership = amsd.getOwnership();
+      UserPrincipal user = null;
+      byte[] word = null;
+      int dot2 = ownership.indexOf(':');
+      if (dot2 != -1) {
+        user = getAuthority().createUserPrincipal();
+        user.init(ownership.substring(0, dot2));
+        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+      }
+      else {
+        user = getAuthority().createUserPrincipal();
+        user.init(ownership);
+        word = new byte[] {};
+      }
+      myPlatform.changeAgentPrincipal(amsd.getName(), null, null); //!!!
+      old.setOwnership(user.getName());
 //__SECURITY__END
     }
     catch (NotFoundException nfe) {
@@ -1183,6 +1222,12 @@ public class ams extends Agent implements AgentManager.Listener {
     catch (UnreachableException ue) {
       ue.printStackTrace();
     }
+    catch (AuthException ae) {
+	    agentDescriptions.register(old.getName(), old);
+      throw ae;
+    }
+
+    agentDescriptions.register(old.getName(), old);
   }
 
   private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
@@ -1364,7 +1409,6 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-//__SECURITY__BEGIN
   /**
     Post an event to the AMS agent. This method must not be used by
     application agents.
@@ -1373,23 +1417,24 @@ public class ams extends Agent implements AgentManager.Listener {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
 
-    // Registry needs an update here!!!
+    // Registry needs an update here!!! ???
+    /*
     AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(agentID);
-    amsd.setOwnership(ev.getNewPrincipal().getName());
+    amsd.setOwnership(ev.getNewOwnership());
     agentDescriptions.register(amsd.getName(), amsd);
     
-    ChangedAgentPrincipal cap = new ChangedAgentPrincipal();
-    cap.setAgent(agentID);
-    cap.setWhere(cid);
-    cap.setOldPrincipal(ev.getOldPrincipal());
-    cap.setNewPrincipal(ev.getNewPrincipal());
+    ChangedAgentOwnership cao = new ChangedAgentOwnership();
+    cao.setAgent(agentID);
+    cao.setFrom(ev.getOldPrincipal().getName());
+    cao.setTo(ev.getNewPrincipal().getName());
+    cao.setWhere(cid);
 
     EventRecord er = new EventRecord(cap, here());
     er.setWhen(ev.getTime());
     eventQueue.add(er);
     doWake();
+    */
   }
-//__SECURITY__END
 
   /**
     Post an event to the AMS agent. This method must not be used by

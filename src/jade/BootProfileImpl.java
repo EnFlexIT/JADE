@@ -56,15 +56,19 @@ public class BootProfileImpl extends ProfileImpl {
 
     public static final String ACLCODEC_KEY = "aclcodec";
     public static final String AGENTS_KEY = "agents";
+    public static final String AUTHORITY_KEY = "authority";
+    public static final String CONF_KEY = "conf";
     public static final String CONTAINER_KEY = "container";
     public static final String DUMP_KEY = "dump";
     public static final String GUI_KEY = "gui";
     public static final String HELP_KEY = "help";
     public static final String HOST_KEY = "host";
-    public static final String CONF_KEY = "conf";
+    public static final String MAINAUTH_KEY = "mainauth";
     public static final String MTP_KEY = "mtp";
     public static final String NOMTP_KEY = "nomtp";
     public static final String NAME_KEY = "name";
+    public static final String PASSWD_KEY = "passwd";
+    public static final String POLICY_KEY = "policy";
     public static final String PORT_KEY = "port";
     public static final String VERSION_KEY = "version";
 
@@ -136,6 +140,26 @@ public class BootProfileImpl extends ProfileImpl {
         value = argProp.getProperty(CONTAINER_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.MAIN, value);
+        }
+
+        value = argProp.getProperty(AUTHORITY_KEY);
+        if (value != null) {
+            profileProp.setProperty(Profile.AUTHORITY_CLASS, value);
+        }
+
+        value = argProp.getProperty(MAINAUTH_KEY);
+        if (value != null) {
+            profileProp.setProperty(Profile.MAINAUTH_CLASS, value);
+        }
+
+        value = argProp.getProperty(POLICY_KEY);
+        if (value != null) {
+            profileProp.setProperty(Profile.POLICY_FILE, value);
+        }
+
+        value = argProp.getProperty(PASSWD_KEY);
+        if (value != null) {
+            profileProp.setProperty(Profile.PASSWD_FILE, value);
         }
 
         String host = argProp.getProperty(HOST_KEY);
