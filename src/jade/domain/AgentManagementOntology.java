@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.27  1999/08/31 17:25:55  rimassa
+  Added AMSMotionEvent inner class to represent AMS notifications of
+  moved agents.
+
   Revision 1.26  1999/07/19 00:08:45  rimassa
   Added support for a Java representation of a FIPA 98 compliant
   platform profile ontology object.
@@ -1064,8 +1068,9 @@ public class AgentManagementOntology {
     public static final int DEADCONTAINER = 1;
     public static final int NEWAGENT = 2;
     public static final int DEADAGENT = 3;
+    public static final int MOVEDAGENT = 4;
 
-    protected static final String[] eventNames = { "new-container", "dead-container", "new-agent", "dead-agent" };
+    protected static final String[] eventNames = { "new-container", "dead-container", "new-agent", "dead-agent", "moved-agent" };
 
     private int kind;
 
@@ -1113,7 +1118,7 @@ public class AgentManagementOntology {
 
   public static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
 
-    private AMSAgentDescriptor agentDescriptor;
+    protected AMSAgentDescriptor agentDescriptor;
 
     public void toText(Writer w) {
       try {
@@ -1156,6 +1161,76 @@ public class AgentManagementOntology {
 
     public AMSAgentDescriptor getAgentDescriptor() {
       return agentDescriptor;
+    }
+
+  }
+
+  public static class AMSMotionEvent extends AMSAgentEvent {
+
+    private String src;
+    private String dest;
+
+
+    public void addProperty(String name, String value) {
+      if(name.equalsIgnoreCase(":from")) {
+	setSrc(value);
+      }
+      else if(name.equalsIgnoreCase(":to")) {
+	setDest(value);
+      }
+      else super.addProperty(name, value);
+    }
+
+    public String getProperty(String name) {
+      if(name.equalsIgnoreCase(":from"))
+	return getSrc();
+      else if(name.equalsIgnoreCase(":to"))
+	return getDest();
+      else
+	return super.getProperty(name);
+    }
+
+    public void removeProperty(String name) {
+      if(name.equalsIgnoreCase(":from"))
+	setSrc(null);
+      else if(name.equalsIgnoreCase(":to"))
+	setDest(null);
+      else
+        super.removeProperty(name);
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( ");
+	w.write(eventNames[getKind()] + " ( :agent-properties ");
+	w.write(" ( :from " + getSrc() + " ) ");
+	w.write(" ( :to " + getDest() + " ) ");
+	w.write(" ) ");
+	w.write("( " + AMSAction.ARGNAME + " ");
+	agentDescriptor.toText(w);
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+    public void setSrc(String s) {
+      src = s;
+    }
+
+    public String getSrc() {
+      return src;
+    }
+
+    public void setDest(String d) {
+      dest = d;
+    }
+
+    public String getDest() {
+      return dest;
     }
 
   }
