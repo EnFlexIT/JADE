@@ -26,7 +26,6 @@ package test.leap.tests;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
-import jade.util.Logger;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
@@ -69,14 +68,14 @@ public class ParticipantAgent extends Agent {
 				// Check if we have finished
 				if (outCnt == nMessages) {
 					if (incCnt >= nMessages) {
-						Logger.println(myAgent.getLocalName()+": completed successfully");
+						System.out.println(myAgent.getLocalName()+": completed successfully");
 						testOK = true;
 						notifyTester();
 					}
 					myAgent.removeBehaviour(this);
 				}
 				else if (outCnt == halfMessages) {
-					Logger.println(myAgent.getLocalName()+": "+outCnt+" messages sent");
+					System.out.println(myAgent.getLocalName()+": "+outCnt+" messages sent");
 				}	
 			}
 		} );
@@ -89,30 +88,31 @@ public class ParticipantAgent extends Agent {
 					AID sender = msg.getSender();
 					if (sender.equals(lightAgent)) {
 						int val = Integer.parseInt(msg.getContent());
+						System.out.println(myAgent.getLocalName()+": Received message N."+val);
 						if (val == incCnt+1) {
 							incCnt = val;
 							// Check if we have finished
 							if (incCnt == nMessages) {
 								if (outCnt == nMessages) {
-									Logger.println(myAgent.getLocalName()+": completed successfully");
+									System.out.println(myAgent.getLocalName()+": completed successfully");
 									testOK = true;
 									notifyTester();
 								}
 							}
 							else if (incCnt == halfMessages) {
-								Logger.println(myAgent.getLocalName()+": "+incCnt+" messages received");
+								System.out.println(myAgent.getLocalName()+": "+incCnt+" messages received");
 							}
 							else if (incCnt > nMessages) {
-								Logger.println(myAgent.getLocalName()+": message received beyond limit "+val);
+								System.out.println(myAgent.getLocalName()+": message received beyond limit "+val);
 							}
 						}
 						else {
-							Logger.println(myAgent.getLocalName()+": Error receiving message from light agent "+sender.getLocalName()+". Expected # "+String.valueOf(incCnt+1)+", found # "+val);
+							System.out.println(myAgent.getLocalName()+": Error receiving message from light agent "+sender.getLocalName()+". Expected # "+String.valueOf(incCnt+1)+", found # "+val);
 							notifyTester();
 						}
 					}
 					else {
-						Logger.println(myAgent.getLocalName()+": Unexpected message received from "+sender.getLocalName());
+						System.out.println(myAgent.getLocalName()+": Unexpected message received from "+sender.getLocalName());
 					}
 				}
 				else {
