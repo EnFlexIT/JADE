@@ -25,6 +25,7 @@
 package jade.content;
 
 /**
+ * Interface representing a generic content element
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface ContentElement {}

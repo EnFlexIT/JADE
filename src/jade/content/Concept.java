@@ -25,6 +25,8 @@
 package jade.content;
 
 /**
+ * Generic interface to be implemented by classes associated to concepts
+ * in an ontology
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface Concept extends Term {}
