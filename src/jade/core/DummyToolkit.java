@@ -29,11 +29,8 @@ import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
 //__SECURITY__BEGIN
 import jade.security.JADEPrincipal;
-import jade.security.Authority;
 import jade.security.JADESecurityException;
-import jade.security.DelegationCertificate;
 import jade.security.Credentials;
-import jade.security.dummy.DummyAuthority;
 //__SECURITY__END
 
 /**
@@ -79,13 +76,6 @@ final class DummyToolkit implements AgentToolkit {
   	public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials) {
   		return null;
   	}
-  		
-    //__SECURITY__BEGIN
-    public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal from, Credentials creds) {}
-    public Authority getAuthority() {
-        return new DummyAuthority();
-    } 
-    //__SECURITY__END
     
     public void setPlatformAddresses(AID id) {}
     
