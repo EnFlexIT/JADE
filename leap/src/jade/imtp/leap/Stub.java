@@ -87,11 +87,11 @@ class Stub {
   } 
 
   protected void removeTA(TransportAddress ta) {
-      boolean found = remoteTAs.remove(ta);
-      if(!found) {
-	  System.out.println(">>> Address not found [" + ta.toString() + "] <<<");
-      }
-      System.out.println(">>> There are " + remoteTAs.size() + " addresses left <<<");
+      remoteTAs.remove(ta);
+  }
+
+  protected void clearTAs() {
+      remoteTAs.clear();
   }
 
   /**
