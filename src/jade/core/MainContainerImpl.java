@@ -45,8 +45,11 @@ import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.Set;
 
+import jade.core.behaviours.Behaviour;
+
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;
+import jade.core.mobility.AgentMobilityHelper;
 
 import jade.domain.ams;
 import jade.domain.df;
@@ -313,6 +316,13 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     }
 
+    void installAMSBehaviour(Behaviour b) {
+	theAMS.addBehaviour(b);
+    }
+
+    void uninstallAMSBehaviour(Behaviour b) {
+	theAMS.removeBehaviour(b);
+    }
 
   public String getPlatformName() {
     return platformID;
@@ -412,11 +422,48 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     	amsd.setState(AMSAgentDescription.ACTIVE);
     }
     ContainerID cid = ad.getContainerID();
-		platformAgents.release(name);
+    platformAgents.release(name);
 
     // Notify listeners
     fireResumedAgent(cid, name);
   }
+
+  /**
+     Notify the platform that an agent has just frozen
+   */
+  public void frozenAgent(AID name, ContainerID bufferContainer) throws NotFoundException {
+      AgentDescriptor ad = platformAgents.acquire(name);
+      if (ad == null)
+	  throw new NotFoundException("FrozenAgent failed to find " + name);
+      AMSAgentDescription amsd = ad.getDescription();
+      if (amsd != null) {
+	  amsd.setState(AMSAgentDescription.SUSPENDED);
+      }
+      ContainerID cid = ad.getContainerID();
+      platformAgents.release(name);
+		
+      // Notify listeners
+      fireFrozenAgent(cid, name, bufferContainer);
+  }
+
+  /**
+     Notify the platform that an agent has just thawed
+   */
+  public void thawedAgent(AID name, ContainerID bufferContainer) throws NotFoundException {
+      AgentDescriptor ad = platformAgents.acquire(name);
+      if (ad == null)
+	  throw new NotFoundException("ThawedAgent failed to find " + name);
+      AMSAgentDescription amsd = ad.getDescription();
+      if (amsd != null) {
+	  amsd.setState(AMSAgentDescription.ACTIVE);
+      }
+      ContainerID cid = ad.getContainerID();
+      platformAgents.release(name);
+		
+      // Notify listeners
+      fireThawedAgent(cid, name, bufferContainer);
+  }
+
 
   /**
      Notify the platform that the principal of an agent has changed
@@ -725,7 +772,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.REQUEST_MOVE, jade.core.mobility.AgentMobilitySlice.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_MOVE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 
@@ -753,7 +800,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.REQUEST_CLONE, jade.core.mobility.AgentMobilitySlice.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_CLONE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 	cmd.addParam(newName);
@@ -1499,6 +1546,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.resumedAgent(ev);
+    }
+  }
+
+  private void fireFrozenAgent(ContainerID cid, AID agentID, ContainerID bufferContainer) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.FROZEN_AGENT, agentID, cid, bufferContainer);
+
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.frozenAgent(ev);
+    }
+  }
+
+  private void fireThawedAgent(ContainerID cid, AID agentID, ContainerID bufferContainer) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.THAWED_AGENT, agentID, cid, bufferContainer);
+
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.thawedAgent(ev);
     }
   }
 
