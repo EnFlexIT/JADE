@@ -27,16 +27,8 @@ import jade.core.Agent;
 import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-import jade.core.AID;
 import jade.wrapper.*;
-import jade.domain.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.lang.acl.*;
-import jade.proto.*;
-import jade.content.*;
-import jade.content.onto.*;
-import jade.content.lang.*;
-import jade.content.lang.sl.*;
+
 
 import test.common.*;
 
@@ -44,11 +36,13 @@ import test.common.*;
 /**
  * @author Giovanni Caire - TILAB
  * @author Elisabetta Cortese - TILAB
+ * @author Roland Mungenast - Profactor
  */
 public class PersistentDFTesterAgent extends TesterAgent {
 	// keys for group arguments
 	public static final String DB_URL_KEY = "db-url";
 	public static final String DB_DRIVER_KEY = "db-driver";
+	public static final String DB_DEFAULT_KEY = "db-default";
 	public static final String PERSISTENT_DF_CONTAINER_KEY = "container";
 		
 	protected TestGroup getTestGroup() {
@@ -59,11 +53,17 @@ public class PersistentDFTesterAgent extends TesterAgent {
 		    // Read group arguments
 		  	String url = (String) getArgument(DB_URL_KEY);
 		  	String driver = (String) getArgument(DB_DRIVER_KEY);
+			String dbDefault = (String) getArgument(DB_DEFAULT_KEY);
   	
 				// Kill the default DF and activate a persistent DF
 				TestUtility.killAgent(a, a.getDefaultDF());
-				jc = TestUtility.launchJadeInstance("Persistent", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -jade_domain_df_verbosity 2 -jade_domain_df_db-url "+url+" -jade_domain_df_db-driver "+driver, new String[] {});
-		  	TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), jc.getContainerName());
+				jc = TestUtility.launchJadeInstance("Persistent", null, "-container -host "+TestUtility.getLocalHostName()
+				+ " -port "+String.valueOf(Test.DEFAULT_PORT)
+				+ " -jade_domain_df_verbosity 2 -jade_domain_df_db-url "+url 
+				+ " -jade_domain_df_db-driver "+driver
+				+ " -jade_domain_df_db-default "+dbDefault, new String[] {});
+		  	
+			TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), jc.getContainerName());
 		  	setArgument(PERSISTENT_DF_CONTAINER_KEY, jc.getContainerName());
 			}
 			
@@ -79,7 +79,9 @@ public class PersistentDFTesterAgent extends TesterAgent {
 				}
 			}
 		};
-		tg.specifyArgument(DB_URL_KEY, "DB URL", "jdbc:odbc:dfdb");
+		
+		tg.specifyArgument(DB_DEFAULT_KEY, "Use Default DB", "true");
+		tg.specifyArgument(DB_URL_KEY, "DB URL", null);
 		tg.specifyArgument(DB_DRIVER_KEY, "DB Driver", null);
 			
 		return tg;
