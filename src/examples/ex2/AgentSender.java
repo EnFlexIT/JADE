@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/03/31 15:54:30  rimassa
+  Added correct handling of IOException.
+
   Revision 1.10  1999/03/30 13:35:15  rimassa
   Changed some getName() calls to getLocalName().
 
@@ -22,6 +25,7 @@ package examples.ex2;
 import java.io.StringReader;
 import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
+import java.io.InterruptedIOException;
 import java.io.IOException;
 
 import jade.core.*;
@@ -53,6 +57,9 @@ public class AgentSender extends Agent {
 	  System.out.println(getLocalName()+ " received the following ACLMessage: " );
 	  reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
         }
+	catch(InterruptedIOException iioe) {
+	  doDelete();
+	}
         catch(IOException ioe) {
           ioe.printStackTrace();
         }
