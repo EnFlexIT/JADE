@@ -1,6 +1,12 @@
+/*
+  $Id$
+*/
+
 package jade.proto;
 
 import java.util.Hashtable;
+
+import jade.core.AgentGroup;
 
 /**************************************************************
 
@@ -26,9 +32,12 @@ import java.util.Hashtable;
 public class Interaction {
 
   int myRole;
+  Protocol myProtocol;
   AgentGroup myPeers;
-  CommunicativeAction currentCA;
   String conversationId;
+
+  // Hashtable holding the current interaction state for every peer agent.
+  private Hashtable currentState = new Hashtable();
 
   // MessageHandler and MessageSelector associated to each CA
   private Hashtable handlers = new Hashtable();
@@ -38,21 +47,24 @@ public class Interaction {
   // Private constructor. Use static Factory Methods instead.
   private Interaction(Protocol p, int role) {
     myRole = role;
-    myPartners = new AgentGroup();
+    myProtocol = p;
+    myPeers = new AgentGroup();
     conversationId = null;
-    currentCA = p.getStart();
   }
 
 
   // A couple of static Factory Methods to create an Interaction
   // object with the two different roles for the active Agent.
 
-  public static Interaction createInitiator(Protocol p) {
-    return new Interaction(p, Protocol.initiator);
+  public static Interaction createInitiator(Protocol p, AgentGroup peers, String convId) {
+    Interaction i = new Interaction(p, Protocol.initiatorRole);
+    i.myPeers = peers; // FIXME: Would a clone() be better ?
+    i.conversationId = new String(convId);
+    return i;
   }
 
   public static Interaction createResponder(Protocol p) {
-    return new Interaction(p, Protocol.responder);
+    return new Interaction(p, Protocol.responderRole);
   }
 
 
@@ -61,10 +73,12 @@ public class Interaction {
 
   public void addPeer(String name) {
     myPeers.addMember(name);
+    currentState.put(name, myProtocol.getStart());
   }
 
   public void removePeer(String name) {
     myPeers.removeMember(name);
+    currentState.remove(name);
   }
 
 
