@@ -3,7 +3,7 @@ JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
-This work has been partially supported by the IST-1999-10211 LEAP Project
+The updating of this file to JADE 2.0 has been partially supported by the IST-1999-10211 LEAP Project
 
 GNU Lesser General Public License
 
@@ -63,7 +63,10 @@ public class MessageTransportProtocol implements MTP {
     public void message(FipaMessage aFipaMessage) {
       FIPA.Envelope[] envelopes = aFipaMessage.messageEnvelopes;
       byte[] payload = aFipaMessage.messageBody;
-
+      
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" RECEIVED IIOP MESSAGE"+
+      	new String(payload));
+    
       Envelope env = new Envelope();
 
       // Read all the envelopes sequentially, so that later slots
@@ -248,7 +251,9 @@ public class MessageTransportProtocol implements MTP {
 					       IDLuserDefinedProperties);
 
       FipaMessage msg = new FipaMessage(new FIPA.Envelope[] { IDLenv }, payload);
-      objRef.message(msg); 
+      objRef.message(msg);
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" SENT IIOP MESSAGE TO ADDRESS iiop://"+
+      	addr.getHost()+":"+addr.getPort()+".\n"+ new String(payload));
     }
     catch(ClassCastException cce) {
       cce.printStackTrace();
@@ -354,6 +359,7 @@ public class MessageTransportProtocol implements MTP {
 	throw new MTP.MTPException("Invalid string prefix");
     }
 
+    
     private void initFromIOR(String s) throws MTP.MTPException {
 
       // Store stringified IOR
