@@ -475,7 +475,7 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> matching the given
      value.
      @deprecated Use MatchReceiver(AID[]) instead
-  */
+  *
   public static MessageTemplate MatchReceiver(java.util.List values) {
       AID[] v=null;
       if (values != null) {
@@ -484,7 +484,7 @@ public class MessageTemplate implements Serializable {
 	      v[i]=(AID)values.get(i);
       }
     return MatchReceiver(v);
-  }
+  }*/
   //#ALL_EXCLUDE_END
 
   /**
@@ -541,7 +541,7 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> matching the given
      value.
      @deprecated Use MatchReplyTo(AID[])
-  */
+  *
   public static MessageTemplate MatchReplyTo(java.util.List values) {
       AID[] v=null;
       if (values != null) {
@@ -550,7 +550,7 @@ public class MessageTemplate implements Serializable {
 	      v[i]=(AID)values.get(i);
       }
     return MatchReplyTo(v);
-  }
+  }*/
   //#ALL_EXCLUDE_END
 
   /**
@@ -606,10 +606,10 @@ public class MessageTemplate implements Serializable {
      value.
      @see jade.lang.acl.MessageTemplate#MatchReplyByDate(Date)
      @deprecated use the method <code> MatchReplyByDate</code>
-  */
+  *
   public static MessageTemplate MatchReplyBy(String value) {
       return new MessageTemplate(new Literal(value,REPLY_BY));
-  }
+  }*/
 
     /**
        This <em>Factory Method</em> returns a message template that

@@ -107,7 +107,7 @@ public class AgentContainer implements PlatformController {
      methods on the real agent instance.
      @deprecated The array of agent arguments is now <code>Object[]</code>
      and no more <code>String[]</code>
-   */
+   *
   public Agent createAgent(String nickname, String className, String[] sargs) throws NotFoundException, StaleProxyException {
       Object args[];
       if (sargs != null) {
@@ -117,7 +117,7 @@ public class AgentContainer implements PlatformController {
       } else
 	  args = new Object[0];
       return createAgent(nickname, className, args);
-  }
+  }*/
 
 
 
@@ -134,7 +134,7 @@ public class AgentContainer implements PlatformController {
      methods on the real agent instance.
      @deprecated Use createNewAgent and (if needed) downcast the return
      value from AgentController to Agent instead.
-   */
+   *
   public Agent createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException {
       if(myImpl == null) 
 	  throw new StaleProxyException();
@@ -155,7 +155,7 @@ public class AgentContainer implements PlatformController {
       throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
 
-  }
+  }*/
 
   /**
      Creates a new JADE agent, running within this container, 

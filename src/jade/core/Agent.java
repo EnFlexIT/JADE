@@ -514,7 +514,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   * @param args an array of string (as passed on the command line - Unix-like syntax).
   * @deprecated use the method <code>getArguments</code> instead
   */
-    public void setArguments(String args[]) {}
+    //public void setArguments(String args[]) {}
   //#MIDP_EXCLUDE_END
   
     private transient Object[] arguments = null;  // array of arguments
@@ -526,12 +526,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	// I have declared the method final otherwise getArguments would not work!
 	arguments=args;
   //#MIDP_EXCLUDE_BEGIN
-	if (arguments != null) { //FIXME. This code goes away with the depcreated setArguments(String[]) method
+	/*if (arguments != null) { //FIXME. This code goes away with the depcreated setArguments(String[]) method
 	    String sargs[] = new String[args.length];
 	    for (int i=0; i<args.length; i++)
 		sargs[i]=(args[i]==null?null:args[i].toString());
 	    setArguments(sargs);
-	}
+	}*/
   //#MIDP_EXCLUDE_END
     }
 

@@ -228,7 +228,7 @@ public abstract class CompositeBehaviour extends Behaviour {
      @see jade.core.behaviours.Behaviour#onStart()
   */
   public void onStart() {
-  	preAction();
+  	//preAction();
   }
   
   /**
@@ -238,7 +238,7 @@ public abstract class CompositeBehaviour extends Behaviour {
      @see jade.core.behaviours.Behaviour#onEnd()
   */
   public int onEnd() {
-  	postAction();
+  	//postAction();
   	return 0;
   }
   
@@ -265,9 +265,9 @@ public abstract class CompositeBehaviour extends Behaviour {
      executed just once before starting children
      scheduling. Therefore, it acts as a prolog to the composite
      task represented by this <code>CompositeBehaviour</code>.
-  */
+  *
   protected void preAction() {
-  }
+  }*/
 
   /**
      @deprecated Use <code>onEnd()</code> instead.
@@ -275,7 +275,7 @@ public abstract class CompositeBehaviour extends Behaviour {
      invoked just once after this behaviour has ended. Therefore,
      it acts as an epilog for the composite task represented by this
      <code>CompositeBehaviour</code>. 
-  */
+  *
   protected void postAction() {
-  }  
+  }*/  
 }

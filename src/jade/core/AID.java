@@ -313,7 +313,7 @@ public class AID implements Comparable, Serializable {
    * This method is called from ACLMessage in order to create
    * the String encoding of an ACLMessage.
    * @deprecated replaced by the method toString
-   */
+   *
   public void toText(Writer w) {
   try {
       w.write(toString());
@@ -321,7 +321,7 @@ public class AID implements Comparable, Serializable {
   } catch(IOException ioe) {
     ioe.printStackTrace();
   }
-  }
+  }*/
 
 
 

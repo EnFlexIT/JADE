@@ -121,10 +121,10 @@ public class Agent implements AgentController {
     /**
      * @see #kill
      * @deprecated this method is here for backward compatibility, use kill instead
-     **/
+     **
     public void delete() throws StaleProxyException {
 	kill();
-    }
+    }*/
   /**
      Triggers a state transition from <b>ACTIVE</b> to
      <b>DELETED</b>. This call also stops the internal agent thread

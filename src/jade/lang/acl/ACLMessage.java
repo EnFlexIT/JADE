@@ -231,11 +231,11 @@ private int performative; // keeps the performative type of this object
   /**
   Returns the list of the communicative acts.
   @deprecated Use getAllPerformativeNames() instead
-  */
+  *
   public static java.util.List getAllPerformatives()
   {
   	return ((ArrayList) performatives).toList();
-  }
+  }*/
   //#ALL_EXCLUDE_END
   
   /**
@@ -553,7 +553,7 @@ private int performative; // keeps the performative type of this object
      be used that guarantees avoiding problems. If the passed
      parameter represents a wrong date, this method silently converts
      its value to null.
-  */
+  *
   public void setReplyBy(String str) {
     if (str != null) {
       try {
@@ -564,7 +564,7 @@ private int performative; // keeps the performative type of this object
     } else {
       reply_byInMillisec = 0; 
     }
-  }	
+  }*/	
   //#MIDP_EXCLUDE_END
 
   /**
@@ -927,7 +927,7 @@ private int performative; // keeps the performative type of this object
      @param w A <code>Writer</code> object to write the message onto.
      @deprecated the <code>toString</code> method should be used instead
      of this method.
-  */
+  *
   public void toText(Writer w) {
       try {
 	  w.write(toString());
@@ -935,7 +935,7 @@ private int performative; // keeps the performative type of this object
       } catch(IOException ioe) {
 	  ioe.printStackTrace();
       }
-  }
+  }*/
 
   /**
      Convert an ACL message to its string representation. This method

@@ -229,14 +229,16 @@ public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
 					if(propose==null) return;
 					long t_out;
 					Date reply_by=propose.getReplyByDate();
-					if(reply_by==null) t_out=-1;
+					if(reply_by==null) t_out=MsgReceiver.INFINITE;
 					else t_out=reply_by.getTime();
 					MessageTemplate mtemplate=MessageTemplate.and(					          			
 										MessageTemplate.MatchConversationId(propose.getConversationId()),
 										MessageTemplate.MatchInReplyTo(propose.getReplyWith())
 									 );
 																
-					set(mtemplate,t_out,ds,PROPOSE_ACCEPTANCE_KEY);
+					//set(mtemplate,t_out,ds,PROPOSE_ACCEPTANCE_KEY);
+					setDeadline(t_out);
+					setTemplate(mtemplate);
 	  }
 	};
 	registerDSState(accept_rec,WAIT_ACCEPTANCE_STATE);
