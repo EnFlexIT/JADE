@@ -58,8 +58,10 @@ public interface Service {
 
 	   @returns The node where this service slice is actually
 	   running.
+	   @throws ServiceException If some problems occur in
+	   retrieving the local node.
 	*/
-	Node getNode();
+	Node getNode() throws ServiceException;
 
     }
 
