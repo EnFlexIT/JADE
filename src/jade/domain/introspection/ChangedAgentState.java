@@ -33,12 +33,18 @@ import jade.core.AgentState;
    @version $Date$ $Revision$
 */
 
-public class ChangedAgentState {
+public class ChangedAgentState implements Event {
+
+  public static final String NAME = "Changed-Agent-State";
 
   private AID agent;
   private AgentState from;
   private AgentState to;
 
+
+  public String getName() {
+    return NAME;
+  }
 
   public void setAgent(AID id) {
     agent = id;

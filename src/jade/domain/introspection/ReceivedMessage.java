@@ -33,11 +33,17 @@ import jade.core.AID;
    @version $Date$ $Revision$
 */
 
-public class ReceivedMessage {
+public class ReceivedMessage implements Event {
+
+  public static final String NAME = "Received-Message";
 
   private AID receiver;
   private ACLMessage message;
 
+
+  public String getName() {
+    return NAME;
+  }
 
   public void setMessage(ACLMessage msg) {
     message = msg;
