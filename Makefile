@@ -27,6 +27,7 @@ JFLAGS = -deprecation -O -d $(CLSDIR)
 BATCH_DIST = $(ROOTDIR)/makedist.bat
 BATCH_ALL = $(ROOTDIR)/makejade.bat
 BATCH_EXAMPLES = $(ROOTDIR)/makeexamples.bat
+BATCH_JESSEXAMPLE = $(ROOTDIR)/makejessexample.bat
 BATCH_DOC = $(ROOTDIR)/makedoc.bat
 BATCH_LIB = $(ROOTDIR)/makelib.bat
 BATCH_CLEAN = $(ROOTDIR)/clean.bat
@@ -53,6 +54,7 @@ export JFLAGS
 
 export BATCH_ALL
 export BATCH_EXAMPLES
+export BATCH_JESSEXAMPLE
 export BATCH_DOC
 export BATCH_LIB
 export BATCH_CLEAN
@@ -77,6 +79,10 @@ examples: $(CLSDIR)
 	cd $(DEMODIR); $(MAKE) all
 	@echo Examples and demo applications built.
 
+jessexample: $(CLSDIR)
+	cd $(EXAMPLESDIR)/jess; $(MAKE) all
+	@echo Jess example built.
+
 clean:
 	rm -f `find . -name '*~'`
 	rm -f `find . -name '#*#'`
@@ -94,6 +100,7 @@ realclean: clean
 	rm -f $(BATCH_ALL)
 	rm -f $(BATCH_DIST)
 	rm -f $(BATCH_EXAMPLES)
+	rm -f $(BATCH_JESSEXAMPLE)
 	rm -f $(BATCH_DOC)
 	rm -f $(BATCH_LIB)
 	rm -f $(BATCH_CLEAN)
@@ -169,6 +176,7 @@ batch: $(CLSDIR) $(DOCDIR)
 
 	cd $(SRCDIR); $(MAKE) batch
 	cd $(EXAMPLESDIR); $(MAKE) batch
+	cd $(EXAMPLESDIR)/jess; $(MAKE) batch
 	cd $(DEMODIR); $(MAKE) batch
 	cd $(DOCDIR); $(MAKE) batch
 	cd $(LIBDIR); $(MAKE) batch
