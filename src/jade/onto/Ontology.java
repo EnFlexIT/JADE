@@ -227,10 +227,6 @@ public interface Ontology {
     of all its slots.
     @param conceptName The name of this concept role (names are case
     preserving but the match is case insensitive).
-    @param kind Tells whether the Frame represents an <i><b>Concept</b></i>,
-    an <i><b>Action</b></i>, or a <i><b>Predicate</b></i> in this ontology.
-    Use the three constants in Ontology interface to select one among the three
-    options.
     @param slots An array of descriptors; each one of them describes a
     slot of the frame, providing:
     <ul>
@@ -239,21 +235,14 @@ public interface Ontology {
     <li> The optionality of the slot (i.e. whether a value is required or not).
     <li> The position of the slot (implicitly defined by the position in the array).
     </ul>
-    @see jade.onto.Ontology#CONCEPT_TYPE
-    @see jade.onto.Ontology#ACTION_TYPE
-    @see jade.onto.Ontology#PREDICATE_TYPE
   */
-  void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException;
+  void addFrame(String conceptName, TermDescriptor[] slots) throws OntologyException;
 
   /**
     Adds a new concept role to the ontology, defined by the structure
     of all its slots.
     @param conceptName The name of this concept role (names are case
     preserving but the match is case insensitive).
-    @param kind Tells whether the Frame represents an <i><b>Concept</b></i>,
-    an <i><b>Action</b></i>, or a <i><b>Predicate</b></i> in this ontology.
-    Use the three constants in Ontology interface to select one among the three
-    options.
     @param slots An array of descriptors; each one of them describes a
     slot of the frame, providing:
     <ul>
@@ -264,11 +253,8 @@ public interface Ontology {
     </ul>
     @param rf A <code>Factory</code> object, which will be used to
     create user defined Java objects playing the given role.
-    @see jade.onto.Ontology#CONCEPT_TYPE
-    @see jade.onto.Ontology#ACTION_TYPE
-    @see jade.onto.Ontology#PREDICATE_TYPE
  */
-  void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException;
+  void addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf) throws OntologyException;
 
   /**
      Creates a Java object representing a given concept, getting the
@@ -337,8 +323,7 @@ public interface Ontology {
 
   /**
     Returns the array of <code>TermDescriptor</code> objects that
-    represent the elements of the given ontological role (concept,
-    action or predicate).
+    represent the elements of the given ontological role. 
     @param roleName The name of the ontological role to examine.
     @return The descriptors for the selected ontology role.
     @see jade.onto.TermDescriptor

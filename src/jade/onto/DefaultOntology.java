@@ -95,14 +95,11 @@ public final class DefaultOntology implements Ontology {
   /**
     Adds a new frame to this ontology, without an user defined Java class to
     represent it.
-    @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots)
+    @see jade.onto.Ontology#addFrame(String conceptName, TermDescriptor[] slots)
   */
-  public void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException {
+  public void addFrame(String conceptName, TermDescriptor[] slots) throws OntologyException {
 
-    if(kind != CONCEPT_TYPE) 
-      throw new OntologyException("Error: Unknown kind of Frame requested");
-
-    FrameSchema fs = new FrameSchema(this, conceptName, kind);
+    FrameSchema fs = new FrameSchema(this, conceptName);
 
     for(int i = 0; i < slots.length; i++) {
       String n = slots[i].getName();
@@ -118,10 +115,10 @@ public final class DefaultOntology implements Ontology {
   /**
     Adds a new frame to this ontology, with an user defined Java class to
     represent it.
-    @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
+    @see jade.onto.Ontology#addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf)
   */  
-  public void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException {
-    addFrame(conceptName, kind, slots);
+  public void addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf) throws OntologyException {
+    addFrame(conceptName, slots);
 
     Class c = rf.getClassForRole();
     checkClass(conceptName, c);
@@ -175,8 +172,8 @@ public final class DefaultOntology implements Ontology {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
       throw new OntologyException("Internal error: inconsistency between schema and class table");
-    if(!fs.isConcept())
-      throw new OntologyException("The role " + roleName + " is not a concept in this ontology.");
+    //if(!fs.isConcept())
+    //  throw new OntologyException("The role " + roleName + " is not a concept in this ontology.");
 
     Frame f = new Frame(roleName);
     buildFromObject(f, fs, o, theConceptClass);
@@ -254,7 +251,7 @@ public final class DefaultOntology implements Ontology {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
       throw new OntologyException("No schema was found for " + roleName + "role.");
-    return fs.isConcept();
+    return true; 
   }
 
 

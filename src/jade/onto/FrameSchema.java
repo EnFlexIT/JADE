@@ -49,14 +49,12 @@ class FrameSchema implements Cloneable, Serializable {
   }
 
   private Ontology myOntology;
-  private int functorKind;
   private Name myName;
   private List terms;
 
 
-  public FrameSchema(Ontology o, String n, int kind) {
+  public FrameSchema(Ontology o, String n) {
     myOntology = o;
-    functorKind = kind;
     myName = new Name(n);
     terms = new ArrayList();
   }
@@ -69,9 +67,6 @@ class FrameSchema implements Cloneable, Serializable {
     terms.add(td);
   }
 
-  public boolean isConcept() {
-    return functorKind == Ontology.CONCEPT_TYPE;
-  }
 
 
   public void checkAgainst(Frame f) throws OntologyException {
@@ -132,8 +127,6 @@ class FrameSchema implements Cloneable, Serializable {
 	  break;
 	}
 	case Ontology.CONCEPT_TYPE: {
-	  //case Ontology.ACTION_TYPE:
-	  //case Ontology.PREDICATE_TYPE: {
 	  if(!(o instanceof Frame))
 	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CONCEPT_TYPE]); 
 	  myOntology.check((Frame)o);
