@@ -25,15 +25,17 @@ package jade.tools.rma;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-
+import java.io.BufferedReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.io.InputStreamReader;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Iterator;
+import java.net.URL;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -122,13 +124,14 @@ public class rma extends Agent {
     		//System.out.println("arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),new SL0Codec(),FIPAAgentManagementOntology.instance()); 
+    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),lookupLanguage(msg.getLanguage()),lookupOntology(msg.getOntology())); 
+
     			Iterator i = r.getAll_1();
     			APDescription APDesc = (APDescription)i.next();
     			if(APDesc != null){
     			myGUI.addRemotePlatform();
     			myGUI.addRemoteAMS(sender,APDesc);}
-    		}catch(FIPAException e){
+    		}catch(jade.domain.FIPAException e){
     		e.printStackTrace();
     		}
     	}
@@ -145,7 +148,7 @@ public class rma extends Agent {
 	    //System.out.println("arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),new SL0Codec(),FIPAAgentManagementOntology.instance()); 
+    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),lookupLanguage(msg.getLanguage()),lookupOntology(msg.getOntology())); 
     			Iterator i = r.getAll_1();
     			myGUI.addRemoteAgentsToRemoteAMS(sender,i);
     		}catch(FIPAException e){
@@ -689,6 +692,60 @@ public class rma extends Agent {
   		}
   	}catch(FIPAException e){
   		e.printStackTrace();
+  	}
+  }
+  
+  
+  public void addRemotePlatformFromURL(String url){
+  
+  	try{
+  		URL AP_URL = new URL(url);
+    	BufferedReader in = new BufferedReader(new InputStreamReader(AP_URL.openStream()));
+
+    	String inputLine = in.readLine();
+			
+			//to parse the APDescription it is put in a Dummy ACLMessage 
+     	ACLMessage dummyMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+     	dummyMsg.setOntology(FIPAAgentManagementOntology.NAME);
+     	dummyMsg.setLanguage(SL0Codec.NAME);
+     	String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (set " + inputLine +" ) ) )";
+     	dummyMsg.setContent(content);
+     	try{
+     	
+     	ResultPredicate r = FIPAServiceCommunicator.extractContent(dummyMsg.getContent(),lookupLanguage(dummyMsg.getLanguage()),lookupOntology(dummyMsg.getOntology())); 
+     	
+    	Iterator i = r.getAll_1();
+    	
+    	APDescription APDesc = (APDescription)i.next();
+   
+    	if(APDesc != null){
+    			myGUI.addRemotePlatform();
+    			AID ams = new AID("ams@" + APDesc.getName());
+    			Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
+    			
+    			while(TP.hasNext())
+    			{
+    				MTPDescription mtp = (MTPDescription)TP.next();
+    				Iterator add = mtp.getAllAddresses();
+    				while(add.hasNext())
+    				{
+    					String address = (String)add.next();
+    					ams.addAddresses(address);
+    				}
+    			}
+    	
+    			myGUI.addRemoteAMS(ams,APDesc);
+    	}
+     	
+     	}catch(jade.domain.FIPAException e){
+     	
+     	e.printStackTrace();}
+    
+    	in.close();
+  	}catch(java.net.MalformedURLException e){
+  		e.printStackTrace();
+  	}catch(java.io.IOException ioe){
+  	ioe.printStackTrace();
   	}
   }
   

@@ -85,6 +85,7 @@ import jade.gui.AboutJadeAction;
     
     menu =new JMenu("Remote Platforms");
     paintM(true,(RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORMFROMURL_ACTION));
     menu.addSeparator();
     paintM(true,(RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.REFRESHAPDESCRIPTION_ACTION));

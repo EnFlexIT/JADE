@@ -57,6 +57,7 @@ class ActionProcessor {
      public static final String  MOVEAGENT_ACTION="Migrate Agent";
      public static final String  CLONEAGENT_ACTION="Clone Agent";
      public static final String  ADDREMOTEPLATFORM_ACTION ="Add Remote Platform";
+     public static final String  ADDREMOTEPLATFORMFROMURL_ACTION = "Add Remote Platform form URL"; 
      public static final String  VIEWPLATFORM_ACTION ="View AP Description";
      public static final String  REFRESHAPDESCRIPTION_ACTION = "Refresh AP Description";
      public static final String  REMOVEREMOTEAMS_ACTION = "Remove Remote Platform";
@@ -85,6 +86,7 @@ class ActionProcessor {
       actions.put(REFRESHAPDESCRIPTION_ACTION, new RefreshAPDescriptionAction(anRma,this));
       actions.put(REMOVEREMOTEAMS_ACTION,new RemoveRemoteAMSAction(anRma,this));
       actions.put(REFRESHAMSAGENT_ACTION, new RefreshAMSAgentAction(anRma,this));
+      actions.put(ADDREMOTEPLATFORMFROMURL_ACTION, new AddRemotePlatformFromURLAction(anRma,this,mWnd));
       
 } // End builder
 
