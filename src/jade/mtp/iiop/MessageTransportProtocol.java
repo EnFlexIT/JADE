@@ -319,6 +319,17 @@ public class MessageTransportProtocol implements MTP {
 
 } // End of class MessageTransportProtocol
 
+/**
+This class represents an IIOP address.
+Three syntaxes are allowed for an IIOP address (all case-insensitive):
+<code>
+IIOPAddress ::= "ior:" (HexDigit HexDigit+)
+              | "iiop://" "ior:" (HexDigit HexDigit)+
+              | "iiop://" HostName ":" portNumber "/" objectKey
+ObjectKey = WORD 
+</code>
+Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first and second case, instead, the indianess information is contained within the IOR definition. 
+**/
   class IIOPAddress implements TransportAddress {
 
     public static final byte BIG_ENDIAN = 0;
@@ -341,20 +352,24 @@ public class MessageTransportProtocol implements MTP {
     public IIOPAddress(ORB anOrb, FIPA.MTS objRef) throws MTP.MTPException {
       orb = anOrb;
       String s = orb.object_to_string(objRef);
-      if(s.toUpperCase().startsWith("IOR:"))
+      if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop://"))
+      else if(s.toLowerCase().startsWith("iiop://ior:"))
 	initFromIOR(s.substring(7));
+      else if(s.toLowerCase().startsWith("iiop:"))
+	initFromURL(s, BIG_ENDIAN);
       else
 	throw new MTP.MTPException("Invalid string prefix");
     }
 
     public IIOPAddress(ORB anOrb, String s) throws MTP.MTPException {
       orb = anOrb;
-      if(s.toUpperCase().startsWith("IOR:"))
+      if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop://"))
+      else if(s.toLowerCase().startsWith("iiop://ior:"))
 	initFromIOR(s.substring(7));
+      else if(s.toLowerCase().startsWith("iiop:"))
+	initFromURL(s, BIG_ENDIAN);
       else
 	throw new MTP.MTPException("Invalid string prefix");
     }
