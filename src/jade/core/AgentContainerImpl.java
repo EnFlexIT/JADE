@@ -37,8 +37,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 
-import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 import java.lang.reflect.*;
 
 import java.util.Iterator;
@@ -123,7 +121,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
-  AgentContainerImpl(Profile p) throws RemoteException {
+  AgentContainerImpl(Profile p) throws IMTPException {
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
@@ -135,7 +133,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Interface AgentContainer implementation
 
-  public void createAgent(AID agentID, String className, String[] args, boolean startIt) throws InvocationException {
+  public void createAgent(AID agentID, String className, String[] args, boolean startIt) throws IMTPException {
 
     Agent agent = null;
     try {
@@ -153,7 +151,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     initAgent(agentID, agent, startIt);
   }
 
-  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws InvocationException {
+  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
 
     final AgentContainer ac = classSite;
 
@@ -195,7 +193,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Accepts the fully qualified class name as parameter and searches
   // the class file in the classpath
-  public byte[] fetchClassFile(String name) throws InvocationException, ClassNotFoundException {
+  public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
     name = name.replace( '.' , '/') + ".class";
     InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
     if (classStream == null) 
@@ -227,67 +225,67 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	localAgents.remove(agentID);
 	localAgents.put(agentID,previous);
       }
-      catch(RemoteException re) {
+      catch(IMTPException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
 	re.printStackTrace();
       }
     }
   }
 
-  public void suspendAgent(AID agentID) throws InvocationException, NotFoundException {
+  public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent == null)
       throw new NotFoundException("SuspendAgent failed to find " + agentID);
     agent.doSuspend();
   }
 
-  public void resumeAgent(AID agentID) throws InvocationException, NotFoundException {
+  public void resumeAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent == null)
       throw new NotFoundException("ResumeAgent failed to find " + agentID);
     agent.doActivate();
   }
 
-  public void waitAgent(AID agentID) throws InvocationException, NotFoundException {
+  public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent==null)
       throw new NotFoundException("WaitAgent failed to find " + agentID);
     agent.doWait();
   }
 
-  public void wakeAgent(AID agentID) throws InvocationException, NotFoundException {
+  public void wakeAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent==null)
       throw new NotFoundException("WakeAgent failed to find " + agentID);
     agent.doWake();
   }
 
-  public void moveAgent(AID agentID, Location where) throws InvocationException, NotFoundException {
+  public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent==null)
       throw new NotFoundException("MoveAgent failed to find " + agentID);
     agent.doMove(where);
   }
 
-  public void copyAgent(AID agentID, Location where, String newName) throws InvocationException, NotFoundException {
+  public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent == null)
       throw new NotFoundException("CopyAgent failed to find " + agentID);
     agent.doClone(where, newName);
   }
 
-  public void killAgent(AID agentID) throws InvocationException, NotFoundException {
+  public void killAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentID);
     agent.doDelete();
   }
 
-  public void exit() throws InvocationException {
+  public void exit() throws IMTPException {
     shutDown();
   }
 
-  public void postTransferResult(AID agentID, boolean result, List messages) throws InvocationException, NotFoundException {
+  public void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
     synchronized(localAgents) {
       Agent agent = localAgents.get(agentID);
       if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
@@ -308,7 +306,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     @param snifferName The Agent ID of the sniffer to send messages to.
     @param toBeSniffed The <code>AID</code> of the agent to be sniffed
   **/
-  public void enableSniffer(AID snifferName, AID toBeSniffed) throws InvocationException {
+  public void enableSniffer(AID snifferName, AID toBeSniffed) throws IMTPException {
 
     ToolNotifier tn = findNotifier(snifferName);
     if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
@@ -330,7 +328,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     @param snifferName The Agent ID of the sniffer to send messages to.
     @param notToBeSniffed The <code>AID</code> of the agent to stop sniffing
   **/
-  public void disableSniffer(AID snifferName, AID notToBeSniffed) throws InvocationException {
+  public void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException {
     ToolNotifier tn = findNotifier(snifferName);
     if(tn != null) { // The sniffer must be here
       tn.removeObservedAgent(notToBeSniffed);
@@ -347,7 +345,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     @param debuggerName The Agent ID of the debugger to send messages to.
     @param toBeDebugged The <code>AID</code> of the agent to start debugging.
   **/
-  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws InvocationException {
+  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
       removeMessageListener(tn);
@@ -375,7 +373,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     @param debuggerName The Agent ID of the debugger to send messages to.
     @param notToBeDebugged The <code>AID</code> of the agent to stop debugging.
   **/
-  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws InvocationException {
+  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn != null) { // The debugger must be here
       tn.removeObservedAgent(notToBeDebugged);
@@ -387,7 +385,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
   }
 
-  public void dispatch(ACLMessage msg, AID receiverID) throws InvocationException, NotFoundException {
+  public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 
     // Mutual exclusion with handleMove() method
     synchronized(localAgents) {
@@ -402,7 +400,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   }
 
-  public void ping(boolean hang) throws InvocationException {
+  public void ping(boolean hang) throws IMTPException {
     if(hang) {
       synchronized(pingLock) {
 	try {
@@ -436,7 +434,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   }
 
-  public String installMTP(String address, String className) throws InvocationException, MTPException {
+  public String installMTP(String address, String className) throws IMTPException, MTPException {
     try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
@@ -456,12 +454,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
   }
 
-  public void uninstallMTP(String address) throws InvocationException, NotFoundException, MTPException {
+  public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
     theACC.removeMTP(address);
     myMain.deadMTP(address, myID);
   }
 
-  public void updateRoutingTable(int op, String address, AgentContainer ac) throws InvocationException {
+  public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
     switch(op) {
     case ADD_RT:
       theACC.addRoute(address, ac);
@@ -473,7 +471,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   }
 
-  public void routeOut(ACLMessage msg, AID receiver, String address) throws InvocationException, MTPException {
+  public void routeOut(ACLMessage msg, AID receiver, String address) throws IMTPException, MTPException {
     theACC.forwardMessage(msg, receiver, address);
   }
 
@@ -526,7 +524,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
       f.close();
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       System.err.println("Communication failure while contacting agent platform.");
       re.printStackTrace();
       Runtime.instance().endContainer();
@@ -568,7 +566,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
         RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
         myMain.bornAgent(agentID, rp, myID);
       }
-      catch(RemoteException re) { // It should never happen
+      catch(IMTPException re) { // It should never happen
         re.printStackTrace();
       }
       catch(NameClashException nce) {
@@ -600,7 +598,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	String addr = addresses[i];
 	uninstallMTP(addr);
       }
-      catch(RemoteException re) {
+      catch(IMTPException re) {
 	// It should never happen
 	System.out.println("ERROR: Remote Exception thrown for a local call.");
       }
@@ -641,7 +639,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // complete.
       unexportObject(this, true);
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       re.printStackTrace();
     }
 
@@ -748,7 +746,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       myMain.deadAgent(agentID); // RMI call
       cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       re.printStackTrace();
     }
     catch(NotFoundException nfe) {
@@ -814,7 +812,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	  ac.postTransferResult(agentID, transferResult, messages);
 	}
       }
-      catch(RemoteException re) {
+      catch(IMTPException re) {
 	re.printStackTrace();
 	// FIXME: Complete undo on exception
 	Agent a = localAgents.get(agentID);
@@ -860,7 +858,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       ac.createAgent(newID, bytes, classSite, START);
 
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       re.printStackTrace();
     }
     catch(NotFoundException nfe) {
@@ -998,7 +996,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
         try {
 	  result = myMain.getProxy(id); // RMI call
 	}
-	catch(RemoteException re) {
+	catch(IMTPException re) {
 	  System.out.println("Communication error while contacting agent platform");
 	  System.out.print("Trying to reconnect... ");
 	  try {
@@ -1006,7 +1004,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	    result = myMain.getProxy(id); // RMI call
 	    System.out.println("OK.");
 	  }
-	  catch(RemoteException rex) {
+	  catch(IMTPException rex) {
 	    throw new NotFoundException("The Main Container is unreachable (again).");
 	  }
 	}
@@ -1066,7 +1064,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       }
 
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       System.out.println("The Main Container is down again. Aborting this send operation.");
       throw new NotFoundException("The Main Container is unreachable.");
     }

@@ -31,25 +31,25 @@ package jade.core;
 
 interface MainContainer {
 
-    void register(AgentContainerImpl ac, ContainerID cid) throws InvocationException;
+    void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException;
 
-    void deregister(AgentContainer ac) throws InvocationException;
+    void deregister(AgentContainer ac) throws IMTPException;
 
-    String getPlatformName() throws InvocationException;
+    String getPlatformName() throws IMTPException;
 
-    String addContainer(AgentContainer ac, ContainerID cid) throws InvocationException;
-    void removeContainer(ContainerID cid) throws InvocationException;
+    String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException;
+    void removeContainer(ContainerID cid) throws IMTPException;
 
-    AgentContainer lookup(ContainerID cid) throws InvocationException, NotFoundException;
+    AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws InvocationException, NameClashException;
-    void deadAgent(AID name) throws InvocationException, NotFoundException;
+    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws IMTPException, NameClashException;
+    void deadAgent(AID name) throws IMTPException, NotFoundException;
 
-    void newMTP(String mtpAddress, ContainerID cid) throws InvocationException;
-    void deadMTP(String mtpAddress, ContainerID cid) throws InvocationException;
+    void newMTP(String mtpAddress, ContainerID cid) throws IMTPException;
+    void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException;
 
-    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws InvocationException, NotFoundException;
+    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException;
 
-    RemoteProxy getProxy(AID id) throws InvocationException, NotFoundException;
+    RemoteProxy getProxy(AID id) throws IMTPException, NotFoundException;
 
 }

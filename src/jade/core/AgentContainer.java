@@ -45,36 +45,36 @@ interface AgentContainer {
   static final int ADD_RT = 1;
   static final int DEL_RT = 2;
 
-  void createAgent(AID agentID, String className,String arguments[], boolean startIt) throws InvocationException;
-  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws InvocationException;
-  byte[] fetchClassFile(String name) throws InvocationException, ClassNotFoundException;
+  void createAgent(AID agentID, String className,String arguments[], boolean startIt) throws IMTPException;
+  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException;
+  byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
-  void suspendAgent(AID agentID) throws InvocationException, NotFoundException;
-  void resumeAgent(AID agentID) throws InvocationException, NotFoundException;
+  void suspendAgent(AID agentID) throws IMTPException, NotFoundException;
+  void resumeAgent(AID agentID) throws IMTPException, NotFoundException;
 
-  void waitAgent(AID agentID) throws InvocationException, NotFoundException;
-  void wakeAgent(AID agentID) throws InvocationException, NotFoundException;
+  void waitAgent(AID agentID) throws IMTPException, NotFoundException;
+  void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
 
-  void moveAgent(AID agentID, Location where) throws InvocationException, NotFoundException;
-  void copyAgent(AID agentID, Location where, String newName) throws InvocationException, NotFoundException;
+  void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
+  void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;
 
-  void killAgent(AID agentID) throws InvocationException, NotFoundException;
-  void exit() throws InvocationException;
+  void killAgent(AID agentID) throws IMTPException, NotFoundException;
+  void exit() throws IMTPException;
 
-  void postTransferResult(AID agentID, boolean result, List messages) throws InvocationException, NotFoundException;
-  void dispatch(ACLMessage msg, AID receiverID) throws InvocationException, NotFoundException;
-  void ping(boolean hang) throws InvocationException;
+  void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;
+  void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException;
+  void ping(boolean hang) throws IMTPException;
 
-  String installMTP(String address, String className) throws InvocationException, MTPException;
-  void uninstallMTP(String address) throws InvocationException, NotFoundException, MTPException;
+  String installMTP(String address, String className) throws IMTPException, MTPException;
+  void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException;
 
-  void updateRoutingTable(int op, String address, AgentContainer ac) throws InvocationException;
-  void routeOut(ACLMessage msg, AID receiver, String address) throws InvocationException, MTPException;
+  void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException;
+  void routeOut(ACLMessage msg, AID receiver, String address) throws IMTPException, MTPException;
 
-  void enableSniffer(AID snifferName , AID toBeSniffed) throws InvocationException;
-  void disableSniffer(AID snifferName, AID notToBeSniffed) throws InvocationException;
+  void enableSniffer(AID snifferName , AID toBeSniffed) throws IMTPException;
+  void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException;
 
-  void enableDebugger(AID debuggerName , AID toBeDebugged) throws InvocationException;
-  void disableDebugger(AID debuggerName, AID notToBeDebugged) throws InvocationException;
+  void enableDebugger(AID debuggerName , AID toBeDebugged) throws IMTPException;
+  void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException;
 
 }
