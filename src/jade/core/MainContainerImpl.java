@@ -54,8 +54,10 @@ import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__BEGIN
 import jade.security.Authority;
 import jade.security.PlatformAuthority;
+//__JADE_ONLY__END
 
 
 /**
@@ -102,8 +104,10 @@ class MainContainerImpl implements Platform, AgentManager {
     		throw new ProfileException("Can't set PlatformID");
     	}
 	  }
+//__JADE_ONLY__BEGIN
 	  PlatformAuthority auth = new PlatformAuthority("main-auth", System.getProperty("jade.security.passwd"));
 	  Authority.setAuthority(auth);
+//__JADE_ONLY__END
   }
 
   public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
