@@ -58,26 +58,34 @@ public class APTransportDescription {
     return mtps.iterator();
   
   }
+
+    public String toString() {
+	StringBuffer str = new StringBuffer("( ap-transport-description ");
+	if(mtps.size() > 0) {
+	    str.append(" :available-mtps (set ");
+	    for(int i=0; i<mtps.size(); i++){
+		try{
+		    str.append(((MTPDescription)mtps.get(i)).toString());
+		}catch(IndexOutOfBoundsException iob){iob.printStackTrace();}
+		str.append(" ");
+	    }
+	    str.append(")");
+	}
+	str.append(")");
+	return str.toString();
+    }
+
+    /**
+     * @deprecated the <code>toString</code> method should be used instead
+     * of this method.
+     **/
 public void toText(Writer w) {
-  try {
-    w.write("( ap-transport-description ");
-    if(mtps.size() > 0)
-    	w.write(" :available-mtps (set ");
-    	
-    for(int i=0; i<mtps.size(); i++){
-    	try{
-    		((MTPDescription)mtps.get(i)).toText(w);
-    	}catch(IndexOutOfBoundsException iob){iob.printStackTrace();}
-    	w.write(" ");
-  	}
-  	if(mtps.size() >0)
-  		w.write(")");
-    
-    w.write(")");
-    w.flush();
-  } catch(IOException ioe) {
-    ioe.printStackTrace();
-  }
+      try {
+	  w.write(toString());
+	  w.flush();
+      } catch(IOException ioe) {
+	  ioe.printStackTrace();
+      }
 }
 
 }

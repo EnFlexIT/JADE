@@ -195,12 +195,10 @@ class MainContainerProxy implements Platform {
       if(i > 100) { // Watchdog counter...
 	System.out.println("===================================================================");
 	System.out.println(" Possible livelock in message dispatching:");
-	System.out.println(" Receiver is:");
-	receiverID.toText(new java.io.OutputStreamWriter(System.out));
+	System.out.println(" Receiver is:"+receiverID);
 	System.out.println();
 	System.out.println();
-	System.out.println(" Message is:");
-	msg.toText(new java.io.OutputStreamWriter(System.out));
+	System.out.println(" Message is:"+msg);
 	System.out.println();
 	System.out.println();
 	System.out.println("===================================================================");

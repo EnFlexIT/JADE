@@ -74,7 +74,7 @@ public class ACLParser {
     while (true) {
       try {
 	ACLMessage result = parser.Message();
-	result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+	System.out.println(result);
       }
       catch(ParseException pe) {
 	pe.printStackTrace();

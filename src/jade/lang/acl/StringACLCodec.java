@@ -86,7 +86,11 @@ public class StringACLCodec implements ACLCodec {
    @ param msg is the ACLMessage to encode and write into
    */
   public void write(ACLMessage msg) {
-    msg.toText(out);
+      try {
+	  out.write(msg.toString());
+      } catch (IOException ioe) {
+	  ioe.printStackTrace();
+      }
   }
 
   /**
@@ -94,9 +98,7 @@ public class StringACLCodec implements ACLCodec {
    */
   public byte[] encode(ACLMessage msg) {
     try {
-      StringWriter w = new StringWriter();
-      msg.toText(w);
-      String s = w.toString();
+      String s = msg.toString();
       return s.getBytes("US-ASCII");
     }
     catch(IOException ioe) {

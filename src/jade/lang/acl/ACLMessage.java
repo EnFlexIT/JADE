@@ -921,72 +921,16 @@ private int performative; // keeps the performative type of this object
      string. This method allows to write a string representation of an
      <code>ACLMessage</code> object onto a character stream.
      @param w A <code>Writer</code> object to write the message onto.
+     @deprecated the <code>toString</code> method should be used instead
+     of this method.
   */
   public void toText(Writer w) {
-    try {
-      w.write("(");
-      w.write(getPerformative(getPerformative()) + "\n");
-      if (source != null) {
-	w.write(SENDER + " ");
-	source.toText(w);
-	w.write("\n");
+      try {
+	  w.write(toString());
+	  w.flush();
+      } catch(IOException ioe) {
+	  ioe.printStackTrace();
       }
-      if (dests.size() > 0) {
-	w.write(RECEIVER + " (set ");
-	Iterator it = dests.iterator();
-	while(it.hasNext()) {
-	  ((AID)it.next()).toText(w);
-	  w.write(" ");
-	}
-	w.write(")\n");
-      }
-      if (reply_to.size() > 0) {
-	w.write(REPLY_TO + " (set \n");
-	Iterator it = reply_to.iterator();
-	while(it.hasNext()) {
-	  ((AID)it.next()).toText(w);
-	  w.write(" ");
-	}
-	w.write(")\n");
-      }
-      if(content != null)
-	if(content.length() > 0)
-	  w.write(CONTENT + " \"" + escape(content) + "\" \n");
-      if(reply_with != null)
-	if(reply_with.length() > 0)
-	  w.write(REPLY_WITH + " " + reply_with + "\n");
-      if(in_reply_to != null)
-	if(in_reply_to.length() > 0)
-	  w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
-      if(encoding != null)
-	if(encoding.length() > 0)
-	  w.write(ENCODING + " " + encoding + "\n");
-      if(language != null)
-	if(language.length() > 0)
-	  w.write(LANGUAGE + " " + language + "\n");
-      if(ontology != null)
-	if(ontology.length() > 0)
-	  w.write(ONTOLOGY + " " + ontology + "\n");
-      if(reply_byInMillisec != 0)
-	  w.write(REPLY_BY + " " + ISO8601.toString(new Date(reply_byInMillisec)) + "\n");
-      if(protocol != null)
-	if(protocol.length() > 0)
-	  w.write(PROTOCOL + " " + protocol + "\n");
-      if(conversation_id != null)
-	if(conversation_id.length() > 0)
-	  w.write(CONVERSATION_ID + " " + conversation_id + "\n");
-      Enumeration e = userDefProps.propertyNames();
-      String tmp;
-      while (e.hasMoreElements()) {
-	tmp = (String)e.nextElement();
-	w.write(" " + tmp + " " + userDefProps.getProperty(tmp) + "\n");
-      }
-      w.write(")");
-      w.flush();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
   }
 
   /**
@@ -1019,10 +963,52 @@ private int performative; // keeps the performative type of this object
     
   */
   public String toString(){
-    StringWriter text = new StringWriter();
-    toText(text);
-    return text.toString();
+      StringBuffer str = new StringBuffer("(");
+      str.append(getPerformative(getPerformative()) + "\n");
+      if (source != null) 
+	str.append(SENDER + " "+ source.toString()+"\n");
+      if (dests.size() > 0) {
+	str.append(RECEIVER + " (set ");
+	Iterator it = dests.iterator();
+	while(it.hasNext()) 
+	  str.append(it.next().toString()+" ");
+	str.append(")\n");
+      }
+      if (reply_to.size() > 0) {
+	str.append(REPLY_TO + " (set \n");
+	Iterator it = reply_to.iterator();
+	while(it.hasNext()) 
+	  str.append(it.next().toString()+" ");
+	str.append(")\n");
+      }
+      if ( (content != null) && (content.length() > 0) )
+	      str.append(CONTENT + " \"" + escape(content) + "\" \n");
+      if ( (reply_with != null) && (reply_with.length() > 0) )
+	      str.append(REPLY_WITH + " " + reply_with + "\n");
+      if ( (in_reply_to != null) && (in_reply_to.length() > 0) )
+	      str.append(IN_REPLY_TO + " " + in_reply_to + "\n");
+      if ( (encoding != null) && (encoding.length() > 0) )
+	  str.append(ENCODING + " " + encoding + "\n");
+      if ( (language != null) && (language.length() > 0) )
+	  str.append(LANGUAGE + " " + language + "\n");
+      if ( (ontology != null) && (ontology.length() > 0) )
+	  str.append(ONTOLOGY + " " + ontology + "\n");
+      if (reply_byInMillisec != 0)
+	  str.append(REPLY_BY + " " + ISO8601.toString(new Date(reply_byInMillisec)) + "\n");
+      if ( (protocol != null) && (protocol.length() > 0) )
+	  str.append(PROTOCOL + " " + protocol + "\n");
+      if ( (conversation_id != null) && (conversation_id.length() > 0) )
+	  str.append(CONVERSATION_ID + " " + conversation_id + "\n");
+      Enumeration e = userDefProps.propertyNames();
+      String tmp;
+      while (e.hasMoreElements()) {
+	tmp = (String)e.nextElement();
+	str.append(" " + tmp + " " + userDefProps.getProperty(tmp) + "\n");
+      }
+      str.append(")");
+      return str.toString();
   }
+
 
  /**
   * Resets all the message slots.

@@ -230,9 +230,12 @@ class DummyAgentGui extends JFrame
 
 				  try
 			  	{
-					  StringACLCodec codec = new StringACLCodec(null,new FileWriter(fileName));
+				    FileWriter f = new FileWriter(fileName);
+					  StringACLCodec codec = new StringACLCodec(null,f);
 				  	ACLMessage ACLmsg = currentMsgGui.getMsg();
-				  	codec.write(ACLmsg); 
+				  	codec.write(ACLmsg);
+					f.close();
+					
 				  }
 				  catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
 				  catch(IOException e4) { System.out.println("IO Exception"); }

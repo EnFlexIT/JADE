@@ -1736,7 +1736,7 @@ public class Agent implements Runnable, Serializable {
       try {
 	java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
 	f.write("waitLock taken in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
-	msg.toText(f);
+	f.write(msg.toString());
 	f.close();
       }
       catch(java.io.IOException ioe) {

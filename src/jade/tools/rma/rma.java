@@ -101,7 +101,7 @@ public class rma extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      // System.out.println("AGREE received");
+	//System.out.println("AGREE received"+reply);
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -109,7 +109,7 @@ public class rma extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      // System.out.println("INFORM received");
+	//System.out.println("INFORM received"+reply);
     }
 
   } // End of AMSClientBehaviour class

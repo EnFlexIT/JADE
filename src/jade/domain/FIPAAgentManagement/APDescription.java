@@ -69,29 +69,35 @@ public class APDescription {
   public APTransportDescription getTransportProfile() {
     return transportProfile;
   }
-  
-  public void toText(Writer w) {
-  try {
-    w.write("( ap-description ");
-    if ((name!=null)&&(name.length()>0))
-      w.write(" :name " + name);
-  
-    w.write(" :dynamic "+ dynamic);
-    	
-    w.write(" :mobility " + mobility);
-    
-    if(transportProfile != null)
-    	{
-    		w.write(" :transport-profile ");
-    	  transportProfile.toText(w);
+
+    /**
+     * @return an SL0-like String representation of this object 
+     **/
+    public String toString() {
+	StringBuffer str = new StringBuffer("( ap-description ");
+	if ((name!=null)&&(name.length()>0))
+	    str.append(" :name " + name);
+	str.append(" :dynamic "+ dynamic);
+	str.append(" :mobility " + mobility);
+        if(transportProfile != null) {
+	    str.append(" :transport-profile ");
+	    str.append(transportProfile.toString());
     	}
-    		
-    	
-    w.write(")");
-    w.flush();
-  } catch(IOException ioe) {
-    ioe.printStackTrace();
+	str.append(")");
+    	return str.toString();
+    }
+
+    /**
+     * @deprecated the <code>toString</code> method should be used instead
+     * of this method.
+     **/  
+  public void toText(Writer w) {
+      try {
+	  w.write(toString());
+	  w.flush();
+      } catch(IOException ioe) {
+	  ioe.printStackTrace();
+      }
   }
-	}
 
 }

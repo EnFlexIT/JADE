@@ -323,7 +323,6 @@ class MainContainerImpl implements Platform, AgentManager {
   private void fireAddedMTP(String address, ContainerID cid) {
     Channel ch = new Channel("FIXME: missing channel name", "FIXME: missing channel protocol", address);
     MTPEvent ev = new MTPEvent(MTPEvent.ADDED_MTP, cid, ch);
-
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.addedMTP(ev);

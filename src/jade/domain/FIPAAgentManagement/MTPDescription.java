@@ -74,31 +74,38 @@ public class MTPDescription {
   public Iterator getAllAddresses() {
     return addresses.iterator();
   }
-  
+ 
+
+
+    public String toString() {
+	StringBuffer str = new StringBuffer("( mtp-description ");
+        if((profile != null) && (profile.length()>0))
+	    str.append(" :profile "+ profile);
+	if ((name!=null)&&(name.length()>0))
+	    str.append(" :mtp-name " + name);
+	if (addresses.size()>0) {
+	    str.append(" :addresses (sequence ");
+	    for (int i=0; i<addresses.size(); i++)
+		try {
+		    str.append((String)addresses.get(i) + " ");
+		} catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+	    str.append(")");
+	}
+	str.append(")");
+	return str.toString();
+    }
+    
+/**
+     * @deprecated the <code>toString</code> method should be used instead
+     * of this method.
+     **/  
   public void toText(Writer w) {
-  try {
-    w.write("( mtp-description ");
-    
-    if((profile != null) && (profile.length()>0))
-    	w.write(" :profile "+ profile);
-    	
-    if ((name!=null)&&(name.length()>0))
-      w.write(" :mtp-name " + name);
-    
-    if (addresses.size()>0)
-      w.write(" :addresses (sequence ");
-    for (int i=0; i<addresses.size(); i++)
       try {
-				w.write((String)addresses.get(i) + " ");
-      } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
-    if (addresses.size()>0)
-      w.write(")");
-    
-    w.write(")");
-    w.flush();
-  } catch(IOException ioe) {
-    ioe.printStackTrace();
-  }
+	  w.write(toString());
+	  w.flush();
+      } catch(IOException ioe) {
+	  ioe.printStackTrace();
+      }
 }
 
 

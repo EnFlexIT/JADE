@@ -104,19 +104,6 @@ public class MessageTemplate implements Serializable {
       return op1.match(msg) && op2.match(msg);
     }
 
-  /*public void toText(Writer w) {
-      try {
-	w.write("( ");
-	op1.toText(w);
-	w.write(" AND ");
-	op2.toText(w);
-	w.write(" )");
-      }
-      catch(IOException ioe) {
-	ioe.printStackTrace();
-      }
-    }*/
-
   } // End of AndExpression class
 
   private static class OrExpression implements MatchExpression{
@@ -133,18 +120,6 @@ public class MessageTemplate implements Serializable {
       return op1.match(msg) || op2.match(msg);
     }
 
-    /*public void toText(Writer w) {
-      try {
-	w.write("( ");
-	op1.toText(w);
-	w.write(" OR ");
-	op2.toText(w);
-	w.write(" )");
-      }
-      catch(IOException ioe) {
-	ioe.printStackTrace();
-      }
-    }*/
 
   } // End of OrExpression class
 
@@ -158,16 +133,6 @@ public class MessageTemplate implements Serializable {
     public boolean match(ACLMessage msg) {
       return ! op.match(msg);
     }
-
-    /*public void toText(Writer w) {
-      try {
-	w.write(" NOT ");
-	op.toText(w);
-      }
-      catch(IOException ioe) {
-	ioe.printStackTrace();
-      }
-    }*/
 
   } // End of NotExpression class
 
@@ -271,32 +236,6 @@ public class MessageTemplate implements Serializable {
       return true;
 
     }
-
-    /*public void toText(Writer w) { // FIXME: This method just prints out the String slots.
-      try {
-	w.write("(\n");
-	for(int i = 0; i < stringFields.length; i++) {
-	  String name = stringFields[i];
-	  String value = null;
-	  try {
-	    ACLMessage msg = template.getMsg();
-	    Method getValue = ACLMessage.class.getMethod("get" + name, new Class[] { });
-	    // This means: s1 = msg.get<value>();
-	    value = (String)getValue.invoke(msg, new Object[] { });
-	  }
-	  catch(Exception e) {
-	    e.printStackTrace();
-	  }
-	  if(value != null)
-	    w.write(" :" + name + " == " + value + "\n");
-	}
-	w.write(")\n");
-      }
-      catch(IOException ioe) {
-	ioe.printStackTrace();
-      }
-
-    }*/
 
   } // End of Literal class
 
