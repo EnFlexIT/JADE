@@ -706,45 +706,49 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
   
-  // Mutual exclusion with updateKeepAlive() 
-  public synchronized void doTimeOut(Timer t) {
-  	if (t == kaTimer) { 
-  		sendKeepAlive();
+  public void doTimeOut(Timer t) {
+  	startWatchDog(outConnection); // [WATCHDOG] 
+	  // Mutual exclusion with updateKeepAlive()
+  	synchronized (this) {
+	  	if (t == kaTimer) { 
+	  		sendKeepAlive();
+	  	}
+	  	else {
+				stopWatchDog(); // [WATCHDOG] 
+			}
   	}
   }
   
+  // This is executed within a synchronized block --> Mutual exclusion
+  // with dispatch() is guaranteed.
   protected void sendKeepAlive() {
-  	// [WATCHDOG] startWatchDog(outConnection);
-	  // Mutual exclusion with dispatch()
-  	synchronized (this) {
-			// Send a keep-alive packet to the BackEnd
-			if (outConnection != null) {
-				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-				try {
-					if (myLogger.isLoggable(Logger.ALL)) {
-			  		myLogger.log(Logger.ALL, "Writing KA.");
-					}
-	  			writePacket(pkt, outConnection);
-	  			pkt = outConnection.readPacket();
-		  		// [WATCHDOG] stopWatchDog();
-	  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
-	  				// The BackEnd is considering the input connection no longer valid
-	  				refreshInp();
-	  			}	  				
+		// Send a keep-alive packet to the BackEnd
+		if (outConnection != null) {
+			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+			try {
+				if (myLogger.isLoggable(Logger.ALL)) {
+		  		myLogger.log(Logger.ALL, "Writing KA.");
 				}
-				catch (IOException ioe) {
-		  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
-		  		// [WATCHDOG] stopWatchDog();
-					refreshOut();
-				}
+  			writePacket(pkt, outConnection);
+  			pkt = outConnection.readPacket();
+	  		stopWatchDog(); // [WATCHDOG] 
+  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+  				// The BackEnd is considering the input connection no longer valid
+  				refreshInp();
+  			}	  				
 			}
-			else {
-				// [WATCHDOG] stopWatchDog();
+			catch (IOException ioe) {
+	  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
+	  		stopWatchDog(); // [WATCHDOG] 
+				refreshOut();
 			}
-  	}
+		}
+		else {
+			stopWatchDog(); // [WATCHDOG] 
+		}
   }  
   
-  /* [WATCHDOG] 
+  /* [WATCHDOG] */
   private Object watchDogLock = new Object();
   private Thread watchDogThread = null;
   private boolean done = false;
@@ -759,7 +763,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  			synchronized (watchDogLock) {
 			  			try {
 			  				if (!done) {
-				  				watchDogLock.wait(RESPONSE_TIMEOUT); 
+				  				watchDogLock.wait(2*RESPONSE_TIMEOUT); 
 					  			if (!done) {
 					  				// Timeout expired
 					  				myLogger.log(Logger.WARNING, "WatchDog: timer expired.");
@@ -777,11 +781,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  				myLogger.log(Logger.WARNING, "WatchDog: Unexpected Exception "+e);
 			  			}
 			  			watchDogThread = null;
-		  				myLogger.log(Logger.INFO, "WatchDog: terminated.");
+		  				myLogger.log(Logger.ALL, "WatchDog: terminated.");
 		  			}		  			
 		  		}
 		  	};
-				myLogger.log(Logger.INFO, "Starting WatchDog thread.");
+				myLogger.log(Logger.ALL, "Starting WatchDog thread.");
 		  	watchDogThread.start();
   		}
   	}
@@ -793,7 +797,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		watchDogLock.notifyAll();
   	}
   }
-  */
+  // [WATCHDOG]
   
   private JICPConnection openConnection(TransportAddress ta, int timeout) throws IOException {
   	if (myConnectionListener != null) {
