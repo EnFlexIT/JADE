@@ -15,7 +15,10 @@ ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
 EXECS       = 	jade/Boot.java
-ROOTCLASSES =	jade/core/ComplexBehaviour.java jade/core/SimpleBehaviour.java
+ROOTCLASSES =	jade/core/ComplexBehaviour.java \
+		jade/core/NonDeterministicBehaviour.java \
+		jade/core/SimpleBehaviour.java \
+		jade/core/SequentialBehaviour.java
 STUBDIR     =	.
 STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.MessageDispatcherImpl \
