@@ -206,9 +206,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
      This is called by the JICPServer when a JICP CREATE_MEDIATOR or
      CONNECT_MEDIATOR is received.
    */
-  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
-  	System.out.println("CAZZZZOZOOOOOOOOOOOO");
-  	
+  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {  	
   	boolean inp = false;
   	byte[] data = pkt.getData();
   	if (data.length == 1) {
