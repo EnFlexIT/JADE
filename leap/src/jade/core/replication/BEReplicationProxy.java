@@ -38,10 +38,6 @@ import jade.core.NameClashException;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
-import jade.security.AuthException;
-
-
 /**
    The remote proxy for the JADE kernel-level service managing
    the back-end container replication subsystem installed in the platform.

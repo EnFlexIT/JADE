@@ -59,9 +59,6 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
-import jade.security.IdentityCertificate;
-import jade.security.ContainerPrincipal;
 import jade.security.AuthException;
 
 import jade.util.leap.List;

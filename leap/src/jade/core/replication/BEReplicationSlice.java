@@ -36,10 +36,6 @@ import jade.core.NotFoundException;
 
 import jade.mtp.MTPDescriptor;
 
-import jade.security.CertificateFolder;
-import jade.security.AuthException;
-
-
 /**
    The horizontal interface for the JADE kernel-level service managing
    the back-end container replication subsystem installed in the platform.
