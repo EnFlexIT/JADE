@@ -27,56 +27,60 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
-import java.util.Enumeration;
-import java.util.Date;
-
 import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 
-import jade.proto.SubscriptionResponder;
 import jade.core.AID;
-import jade.content.ContentManager;
-import jade.content.abs.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.KBManagement.*;
-import jade.domain.FIPANames;
 
 /**
  * @author Elisabetta Cortese - TILab
  *
  */
 class DFMemKB extends MemKB{
-	
-	public DFMemKB(){
-		super();
+
+  boolean entriesToDelete = false; // gets true if there's at least one entry to delete for the method clean
+  
+  /**
+   * Constructor
+   * @param maxResultLimit JADE internal limit for maximum number of search results
+   */
+	public DFMemKB(int maxResultLimit){
+		super(maxResultLimit);
 		clean();
 	}
 
-	public DFMemKB(int max){
-		super();
-		maxResults = max;
-		clean();
-	}
 
-	
+  protected Object insert(Object name, Object fact) {
+    DFAgentDescription desc = (DFAgentDescription)fact;
+    if (desc.getLeaseTime() != null ) {
+        entriesToDelete = true;
+    }
+  	return super.insert(name, fact);
+  }
+
 	/**
 	   Scan the facts and remove those whose lease time has expired.
 	 */
 	protected void clean(){
-		ArrayList toBeRemoved = new ArrayList();
-		Iterator iter = facts.values().iterator();		
-		while(iter.hasNext()){
-			DFAgentDescription dfd = (DFAgentDescription) iter.next();
-			if(dfd.checkLeaseTimeExpired()) {
-				toBeRemoved.add(dfd.getName());
-			}
-		}
-		iter = toBeRemoved.iterator();
-		while (iter.hasNext()) {
-			facts.remove((AID) iter.next());
-		}
+	    
+	  if (entriesToDelete) { 
+	    ArrayList toBeRemoved = new ArrayList();
+		  Iterator iter = facts.values().iterator();		
+		  while(iter.hasNext()){
+			  DFAgentDescription dfd = (DFAgentDescription) iter.next();
+			  if(dfd.checkLeaseTimeExpired()) {
+				  toBeRemoved.add(dfd.getName());
+			  }
+		  }
+		  iter = toBeRemoved.iterator();
+		  while (iter.hasNext()) {
+			  facts.remove((AID) iter.next());
+		  }
+	  }
 	}
 
 	// match

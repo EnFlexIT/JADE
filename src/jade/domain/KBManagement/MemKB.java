@@ -29,20 +29,16 @@ package jade.domain.KBManagement;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
 import jade.util.Logger;
 
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.Property;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import jade.lang.acl.ACLMessage;
 import jade.proto.SubscriptionResponder;
@@ -61,13 +57,13 @@ public abstract class MemKB extends KB {
 	protected int currentReg = 0;
 	protected SubscriptionResponder sr;
 
-	protected static int maxResults = -1;
 	protected final static int MAX_REGISTER_WITHOUT_CLEAN = 100;
 
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-
-	public MemKB(){
-
+	
+	
+	public MemKB(int maxResultLimit) {
+	    super(maxResultLimit);
 	}
 
 	protected Object insert(Object name, Object fact) {
@@ -89,11 +85,11 @@ public abstract class MemKB extends KB {
 
 	protected abstract void clean();
 
-	public List search(Object template) {
+	public List search(Object template, int maxResults) {
 		List result = new ArrayList();
 	    Iterator it = facts.values().iterator();
 		int found = 0;
-	    while(it.hasNext() && (found < maxResults || maxResults < 0)) {
+	    while(it.hasNext() && (found < maxResults)) {
 	        Object fact = it.next();
 		    if(match(template, fact)){
 				result.add(fact);

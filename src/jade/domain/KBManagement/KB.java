@@ -27,8 +27,6 @@ package jade.domain.KBManagement;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.content.ContentManager;
-import jade.content.abs.AbsIRE;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.proto.SubscriptionResponder;
 import jade.util.leap.List;
@@ -48,7 +46,11 @@ public abstract class KB {
 	protected LeaseManager lm;
 	protected SubscriptionResponder sr;
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-
+  private int maxResultLimit = -1;
+	
+	public KB(int maxResultLimit) {
+	  this.maxResultLimit = maxResultLimit;
+	}
 	
 	public void setSubscriptionResponder(SubscriptionResponder sResp){
 		sr = sResp;
@@ -87,7 +89,12 @@ public abstract class KB {
 		
 	protected abstract Object insert(Object name, Object fact);
 	protected abstract Object remove(Object name);
-	public abstract List search(Object template);
+	
+	public List search(Object template) {
+	    return search(template, maxResultLimit);
+	}
+	
+	public abstract List search(Object template, int maxResult);
 	  
 	public abstract void subscribe(Object aclMessage, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
 	public abstract Enumeration getSubscriptions();

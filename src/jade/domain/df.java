@@ -39,9 +39,6 @@ import jade.util.Logger;
 import java.net.InetAddress;
 
 import jade.core.AID;
-import jade.core.Agent;
-import jade.core.Profile;
-import jade.core.ProfileImpl;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAAgentManagement.*;
@@ -52,7 +49,6 @@ import jade.domain.DFGUIManagement.*;
 import jade.domain.DFGUIManagement.GetDescription; // Explicitly imported to avoid conflict with FIPA management ontology
 //#PJAVA_EXCLUDE_BEGIN
 import jade.domain.introspection.AMSSubscriber;
-import jade.domain.introspection.AMSSubscriber.EventHandler;
 import jade.domain.introspection.Event;
 import jade.domain.introspection.IntrospectionVocabulary;
 import jade.domain.introspection.DeadAgent;
@@ -67,14 +63,11 @@ import jade.gui.GuiEvent;
 
 import jade.proto.SubscriptionResponder;
 import jade.proto.AchieveREInitiator;
-import jade.proto.SimpleAchieveREInitiator;
 
 import jade.content.*;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;
-import jade.content.onto.*;
 import jade.content.onto.basic.*;
-import jade.content.abs.*;
 
 /**
   Standard <em>Directory Facilitator</em> agent. This class implements
@@ -188,6 +181,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private static final String DB_URL = "jade_domain_df_db-url";
   private static final String DB_USERNAME = "jade_domain_df_db-username";
   private static final String DB_PASSWORD = "jade_domain_df_db-password";
+  private static final String KB_FACTORY = "jade_domain_df_kb_factory";
+  private static final String HSQLDB = "jade_domain_df_db-default";
 
   // Limit of searchConstraints.maxresult
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
@@ -222,7 +217,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
     This method starts all behaviours needed by <em>DF</em> agent to
     perform its role within <em><b>JADE</b></em> agent platform.
    */
-  protected void setup() {
+	protected void setup() {
+      
 		//#PJAVA_EXCLUDE_BEGIN
 		// Read configuration:
 		// If an argument is specified, it indicates the name of a properties
@@ -238,6 +234,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		String dbDriver = getProperty(DB_DRIVER, null);
 		String dbUsername = getProperty(DB_USERNAME, null);
 		String dbPassword = getProperty(DB_PASSWORD, null);
+		String kbFactClass = getProperty(KB_FACTORY, null);
+		String hsqldb = getProperty(HSQLDB, null);
+		DFKBFactory kbFactory = new DFKBFactory();
 		
 		Object[] args = this.getArguments();
 		if(args != null && args.length > 0) {
@@ -251,6 +250,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				dbDriver = p.getProperty(DB_DRIVER, dbDriver);
 				dbUsername = p.getProperty(DB_USERNAME, dbUsername);
 				dbPassword = p.getProperty(DB_PASSWORD, dbPassword);
+				kbFactClass = p.getProperty(KB_FACTORY, kbFactClass);
+				hsqldb = p.getProperty(HSQLDB, hsqldb);
 			}
 			catch (Exception e) {
 				if(logger.isLoggable(Logger.SEVERE))
@@ -291,7 +292,47 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	// Instantiate the knowledge base 
 		if(logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG,"DF KB configuration:");
-		if (dbUrl != null) {
+		
+    // Load class factory (if specified by the user)
+    if (kbFactClass != null) {
+      Class c = null;
+      try {
+       c = Class.forName(kbFactClass);
+       Object o = c.newInstance();
+       if (o instanceof DFKBFactory) {
+         kbFactory = (DFKBFactory)o;
+       } else {
+         if(logger.isLoggable(Logger.SEVERE))
+          logger.log(Logger.SEVERE,"The class " + c.getName() + " is not a valid class factory for the DF.");
+       }
+       
+      } catch (Exception e) {
+        if(logger.isLoggable(Logger.SEVERE))
+          logger.log(Logger.SEVERE,"Error loading class " + c.getName(), e);
+      }
+      
+      if(logger.isLoggable(Logger.CONFIG)){
+        logger.log(Logger.CONFIG,"- KB class factory = " + kbFactory.getClass().getName());
+      }
+    }
+    
+    // persistent KB
+    
+    if (Boolean.valueOf(hsqldb).booleanValue()) {
+      if(logger.isLoggable(Logger.CONFIG)){
+        logger.log(Logger.CONFIG,"- Type = persistent");
+         logger.log(Logger.CONFIG,"- Using internal HSQL database");
+      }
+      try {
+        agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, null, null, null, null);
+      }
+      catch (Exception e) {
+        if(logger.isLoggable(Logger.SEVERE))
+          logger.log(Logger.SEVERE,"Error creating persistent KB based on HSQLDB ["+e+"]. Use a volatile KB.");
+      }
+    }
+    
+    if (agentDescriptions == null && dbUrl != null) {
 			if(logger.isLoggable(Logger.CONFIG)){
 				logger.log(Logger.CONFIG,"- Type = persistent");
 				logger.log(Logger.CONFIG,"- DB url = "+dbUrl);
@@ -300,7 +341,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				logger.log(Logger.CONFIG,"- DB password = "+dbPassword);
 			}
 			try {
-	  			agentDescriptions = new DFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
+	  			agentDescriptions = kbFactory.getDFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
 			}
 			catch (Exception e) {
 				if(logger.isLoggable(Logger.SEVERE))
@@ -308,11 +349,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				e.printStackTrace();
 			}
 		}
-		if (agentDescriptions == null) {
-			if(logger.isLoggable(Logger.CONFIG))
-				logger.log(Logger.CONFIG,"- Type = volatile");
-			agentDescriptions = new DFMemKB(maxResultLimit);
+    
+    // volatile KB
+    
+    	if (agentDescriptions == null) {
+      if(logger.isLoggable(Logger.CONFIG))
+        logger.log(Logger.CONFIG,"- Type = volatile");
+			agentDescriptions = kbFactory.getDFMemKB(maxResultLimit);
 		}
+    
 		if(logger.isLoggable(Logger.CONFIG)){
 			logger.log(Logger.CONFIG,"- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"));
 			logger.log(Logger.CONFIG,"- Max search result = "+maxResultLimit);
@@ -663,7 +708,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
 	
 	//checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
-	Object old = agentDescriptions.register(dfd.getName(), dfd);
+  Object old = agentDescriptions.register(dfd.getName(), dfd);
 	if(old != null)
 	    throw new AlreadyRegistered();
 	
@@ -726,9 +771,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
     }
 
-  List DFSearch(DFAgentDescription dfd, SearchConstraints constraints) {
-    // Search has no mandatory slots
-    return agentDescriptions.search(dfd);
+  List DFSearch(DFAgentDescription dfd, int maxResults) {
+    return agentDescriptions.search(dfd, maxResults);
   }
 	
         
@@ -742,7 +786,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
 	void registerAction(Register r, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) r.getDescription();
-		
+    
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, true);
     	if(logger.isLoggable(Logger.CONFIG))
@@ -807,21 +851,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
     // Avoid loops in searching on federated DFs
 		checkSearchId(constraints.getSearchId());
-		
-		// Search locally
-    result = DFSearch(dfd, constraints);
+
+    int maxResult = getActualMaxResults(constraints); 
+    
+    //  Search locally
+    result = DFSearch(dfd, maxResult);
     
     // Note that if the local search produced more results than
     // required, we don't even consider the recursive search 
     // regardless of the maxDepth parameter.
-    int maxResult = getActualMaxResults(constraints); 
-    if(result.size() >= maxResult) {
-      // More results than required have been found, remove the unwanted results
-      for (int i=maxResult; i<result.size(); i++) {
-        result.remove(i);
-    	}
-    } 
-    else {
+    if(result.size() < maxResult) {
+        
       // Check if the search has to be propagated
   		Long maxDepth = constraints.getMaxDepth();
   		if ( (children.size() > 0) && (maxDepth != null) && (maxDepth.intValue() > 0) ) {

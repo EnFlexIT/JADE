@@ -28,13 +28,8 @@ package jade.domain.KBManagement;
 //#J2ME_EXCLUDE_FILE
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
-import jade.proto.SubscriptionResponder;
 
 /**
  * This class provides an abstract implementation of the 
@@ -59,31 +54,58 @@ public abstract class DBKB extends KB {
 	// se il driver  l'indirizzo sono stati
 	// forniti in input alla piattaforma usa 
 	// questo costruttore
-	public DBKB(String url) throws SQLException {
-		setDBConnection(null, url, null, null);
+	public DBKB(String url, int maxResultLimit) throws SQLException {
+		super(maxResultLimit);
+    loadDBDriver(null);
+	  setDBConnection(null, url, null, null);
 	}
 
-	public DBKB(String drv, String url) throws SQLException {
-		setDBConnection(drv, url, null, null);
+	public DBKB(String drv, String url, int maxResultLimit) throws SQLException {
+		super(maxResultLimit);
+    loadDBDriver(drv);
+    setDBConnection(drv, url, null, null);
 	}
 
-	public DBKB(String drv, String url, String user, String passwd) throws SQLException {
-		setDBConnection(drv, url, user, passwd);
+	public DBKB(String drv, String url, String user, String passwd, int maxResultLimit) throws SQLException {
+		super(maxResultLimit);
+    loadDBDriver(drv);
+    setDBConnection(drv, url, user, passwd);
+    setup();
 	}
+  
+  
 
-	private void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
-		// Load DB driver
-		try {
-			if(drv != null) {
-				if(!drv.equals("null"))
-					driver = drv;
-			}
-			Class.forName(driver).newInstance();
-		}
-		catch(Exception e){
-			throw new SQLException("Error loading driver "+driver+". "+e);
-		}
-		
+  /**
+   * Loads an JDBC driver
+   * @param drv dirver name or <code>null</code> </ br>
+   * if the default JDBC-ODBC driver should be used
+   * @throws SQLException if the driver cannot be loaded
+   */
+  protected void loadDBDriver(String drv) throws SQLException {
+    //  Load DB driver
+    try {
+      if(drv != null) {
+        if(!drv.equals("null"))
+          driver = drv;
+      }
+      Class.forName(driver).newInstance();
+    }
+    catch(Exception e){
+      throw new SQLException("Error loading driver "+driver+". "+e);
+    }
+  }
+  
+  /**
+   * Establishes a new connection to the database and stores a reference in the
+   * local attribute <code>conn</code>
+   * @param drv database driver
+   * @param url database URL
+   * @param user database user
+   * @param passwd database password
+   * @throws SQLException if a database access error occurs
+   */
+	protected void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
+    
 		// Connect to the DB
 		if (user != null) {
 			conn = DriverManager.getConnection(url, user, passwd);
@@ -91,9 +113,6 @@ public abstract class DBKB extends KB {
 		else {
 			conn = DriverManager.getConnection(url);
 		}
-		
-		// Initialize the DB
-		setup();
 	}
 	
 	
