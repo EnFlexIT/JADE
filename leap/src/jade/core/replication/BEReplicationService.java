@@ -89,7 +89,6 @@ public class BEReplicationService extends BaseService {
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	super.init(ac, p);
-
 	myContainer = (BackEndContainer)ac;
 
 	myMediatorID = p.getParameter(Profile.BE_MEDIATOR_ID, null);
@@ -149,7 +148,6 @@ public class BEReplicationService extends BaseService {
     public void boot(Profile p) throws ServiceException {
 
 	try {
-
 	    // Create an empty list
 	    includeAll = new LinkedList();
 
@@ -565,7 +563,6 @@ public class BEReplicationService extends BaseService {
 	}
 
 	private void setReplicas(String[] replicas, boolean[] status) throws IMTPException, ServiceException {
-
 	    myReplicas = new ReplicaInfo[replicas.length];
 	    for(int i = 0; i < replicas.length; i++) {
 		try {
@@ -791,7 +788,7 @@ public class BEReplicationService extends BaseService {
 
     // Service specific data
 
-    private ReplicaInfo[] myReplicas;
+    private ReplicaInfo[] myReplicas = new ReplicaInfo[0];
     private ReplicaMonitor myMonitor;
 
     private List includeAll;
@@ -818,7 +815,7 @@ public class BEReplicationService extends BaseService {
 
     private void broadcastToReplicas(HorizontalCommand cmd, List excludeList) throws IMTPException, ServiceException {
 
-	String localNodeName = getLocalNode().getName();
+  	String localNodeName = getLocalNode().getName();
 	for(int i = 0; i < myReplicas.length; i++) {
 	    BEReplicationSlice slice = myReplicas[i].getSlice();
 	    boolean reachable = myReplicas[i].isReachable();
