@@ -84,7 +84,7 @@ class AbsObjectImpl implements AbsObject {
      * abstract descriptor.
      * @param name The name of the attribute.
      * @return value The value of the attribute.
-     * @see AbsObject#getAbsObject(String)
+     * @see AbsObject#getAbsObject()
      */
     public AbsObject getAbsObject(String name) {
         return (AbsObject) elements.get(new CaseInsensitiveString(name));
@@ -206,6 +206,7 @@ class AbsObjectImpl implements AbsObject {
     		v.addElement(new Integer(slotNames[i].hashCode()));
     		v.addElement(new Integer(o.getAbsObject(slotNames[i]).hashCode()));
     	}
+    	v.addElement(new Integer(o.getTypeName().hashCode()));
 
    		int sum = 0;
    		int counter = 0;
