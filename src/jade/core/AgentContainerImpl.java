@@ -732,7 +732,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	public void handleSend(ACLMessage msg) throws AuthException {
 
 		AgentPrincipal target1 = getAgentPrincipal(msg.getSender());
+		//System.out.println("AgContImpl:  target1="+target1);
+		//System.out.println("AgContImpl:  msg="+msg);
 		authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
+		
 
 		AuthException lastException = null;
 
