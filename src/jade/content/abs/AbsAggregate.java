@@ -215,9 +215,9 @@ public class AbsAggregate extends AbsConcept {
     	return elements.size();
     }
 
-    public void dump() {
+    /*public void dump() {
       dump(0, System.out);
-    }
+    }*/
  
     public String toString() {
     	StringBuffer sb = new StringBuffer("(");

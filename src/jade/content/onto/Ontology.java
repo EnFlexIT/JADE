@@ -320,9 +320,9 @@ public class Ontology {
 				return null;
 			}
 			
-			if (!abs.isGrounded()) {
+			/*if (!abs.isGrounded()) {
 				throw new UngroundedException();
-			}
+			}*/
 			
   		try {
   			return toObject(abs, abs.getTypeName().toLowerCase(), this);
@@ -332,6 +332,17 @@ public class Ontology {
       	// (i.e. is unknown in the reference ontology and all its base
       	// ontologies) --> throw a generic OntologyException
       	throw new OntologyException("No schema found for type "+abs.getTypeName());
+      } 
+      catch (OntologyException oe) {
+      	// This ontology can have been thrown as the Abs descriptor is
+      	// ungrounded. In this case an UngroundedException must be thrown.
+      	// Note that we don't check ungrouding before to speed up performances
+				if (!abs.isGrounded()) {
+					throw new UngroundedException();
+				}
+				else {
+      		throw oe;
+				}
       } 
   	}
   	

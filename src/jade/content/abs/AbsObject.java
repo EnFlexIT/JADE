@@ -67,6 +67,6 @@ public interface AbsObject extends Serializable {
     /**
      * @deprecated Use <code>toString()</code> instead
      */
-    public void dump();
+    /*public void dump();*/
 }
 
