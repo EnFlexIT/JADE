@@ -39,7 +39,7 @@ import jade.core.behaviours.*;
 public class GuiAgent extends Agent
 {
 	private Vector guiEventQueue;
-	private transient Object guiEventQueueLock;
+	private Boolean guiEventQueueLock;
 
 	////////////////////////
 	// GUI HANDLER BEHAVIOUR
@@ -84,7 +84,7 @@ public class GuiAgent extends Agent
 	{
 		super();
 		guiEventQueue = new Vector();
-		guiEventQueueLock = new Object();
+		guiEventQueueLock = new Boolean(true);
 
 		// Add the GUI handler behaviour
 		Behaviour b = new GuiHandlerBehaviour();
