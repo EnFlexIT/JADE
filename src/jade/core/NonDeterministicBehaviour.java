@@ -4,6 +4,8 @@
 
 package jade.core;
 
+import java.util.Hashtable;
+
 /**************************************************************
 
   Name: NonDeterministicBehaviour
@@ -25,8 +27,8 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   private int whenToStop;
 
-  private int terminatedSubBehaviours = 0;
-
+  private int terminatedSubBehaviours;
+  private Hashtable blockedChildren = new Hashtable(); 
 
   private boolean evalCondition() {
 
@@ -75,6 +77,66 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
     return evalCondition();
 
+  }
+
+
+  // Handle notifications of runnable/not-runnable transitions
+  protected void handle(RunnableChangedEvent rce) {
+
+    // For upwards notification from sub-behaviours, copy the runnable
+    // state and create a new event
+    if(rce.isUpwards()) {
+      Behaviour b = rce.getSource();
+      // Handle the case where a child becomes runnable after being in
+      // blocked state. In this case, forward the event only if *all*
+      // the children were blocked and thus also 'this' was not
+      // runnable
+      if(rce.isRunnable()) {
+	Object rc = blockedChildren.remove(b);
+	// If (the child was in blocked children table) and (this
+	// NonDeterministicBehaviour was itself blocked)
+	if( (rc != null) && !isRunnable() ) {
+	  myEvent.init(true, NOTIFY_UP);
+	  super.handle(myEvent);
+	}
+	else
+	  super.handle(rce);
+      }
+      // Handle the case where a child becomes blocked. If this means
+      // that *all* children are now blocked, then the
+      // NonDeterministicBehaviour becomes not runnable, too
+      else {
+	Object rc = blockedChildren.put(b, b);
+	// If (the child was not in blocked children table already)
+	// and (with the addition of this child all sub-behaviours are
+	// blocked)
+	if( (rc == null) && (blockedChildren.size() == subBehaviours.size()) ) {
+	  myEvent.init(false, NOTIFY_UP);
+	  super.handle(myEvent);
+	}
+	else
+	  ; // Do nothing because other sub-behaviours are still active
+      }
+    }
+    // For downwards notifications, always copy the state but
+    // forward to sub-behaviours only when runnable == true
+    else {
+      boolean b = rce.isRunnable();
+      if(b == true)
+	super.handle(rce);
+      else
+	setRunnable(b);
+    }
+
+  }
+
+
+  // An overridden version of block() is necessary to allow upwards
+  // notification without introducing further branches in handle()
+  // method code
+  public void block() {
+    myEvent.init(false, NOTIFY_UP);
+    super.handle(myEvent);
   }
 
 
