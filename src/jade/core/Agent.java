@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.51  1999/06/08 15:48:50  rimassa
+  Added a timeout version of blockingReceive() methods.
+
   Revision 1.50  1999/06/04 12:03:48  rimassa
   Removed global lock in setup() method, since the GUI problem turned to
   be unrelated.
@@ -619,13 +622,25 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.Agent#doWake()
   */
   public void doWait() {
+    doWait(0);
+  }
+
+  /**
+     Make a state transition from <em>active</em> to <em>waiting</em>
+     within Agent Platform Life Cycle. This method adds a timeout to
+     the other <code>blockingReceive()</code> version.
+     @param millis The timeout value, in milliseconds.
+     @see jade.core.Agent#doWait()
+  */
+  public void doWait(long millis) {
     synchronized(stateLock) {
       if(myAPState == AP_ACTIVE)
 	myAPState = AP_WAITING;
     }
     if(myAPState == AP_WAITING) {
       if(myThread.equals(Thread.currentThread())) {
-	waitUntilWake();
+	waitUntilWake(millis);
+	myAPState = AP_ACTIVE;
       }
     }
   }
@@ -754,7 +769,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       // Check for Agent state changes
       switch(myAPState) {
       case AP_WAITING:
-	waitUntilWake();
+	waitUntilWake(0);
 	break;
       case AP_SUSPENDED:
 	waitUntilActivate();
@@ -784,11 +799,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  private void waitUntilWake() {
+  private void waitUntilWake(long millis) {
     synchronized(waitLock) {
       while(myAPState == AP_WAITING) {
 	try {
-	  waitLock.wait(); // Blocks on waiting state monitor
+	  waitLock.wait(millis); // Blocks on waiting state monitor
 	}
 	catch(InterruptedException ie) {
 	  myAPState = AP_DELETED;
@@ -953,9 +968,21 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive() {
+    return blockingReceive(0);
+  }
+
+  /**
+     Receives an <b>ACL</b> message from the agent message queue,
+     waiting at most a specified amount of time.
+     @param millis The maximum amount of time to wait for the message.
+     @return A new ACL message, or <code>null</code> if the specified
+     amount of time passes without any message reception.
+   */
+  public final ACLMessage blockingReceive(long millis) {
     ACLMessage msg = receive();
     while(msg == null) {
-      doWait();
+      doWait(millis);
+      System.out.println("Expired...");
       msg = receive();
     }
     return msg;
@@ -978,9 +1005,27 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
+    return blockingReceive(pattern, 0);
+  }
+
+
+  /**
+     Receives an <b>ACL</b> message matching a given message template,
+     waiting at most a specified time.
+
+     @param pattern A message template to match received messages
+     against.
+     @param millis The amount of time to wait for the message, in
+     milliseconds.
+     @return A new ACL message matching the given template, or
+     <code>null</code> if no suitable message was received within
+     <code>millis</code> milliseconds.
+     @see jade.core.Agent#blockingReceive()
+  */
+  public final ACLMessage blockingReceive(MessageTemplate pattern, long millis) {
     ACLMessage msg = receive(pattern);
     while(msg == null) {
-      doWait();
+      doWait(millis);
       msg = receive(pattern);
     }
     return msg;
