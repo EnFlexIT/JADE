@@ -60,6 +60,8 @@ public class JICPProtocol extends TransportProtocol {
   public static final byte          COMMAND_TYPE = 0;
   /** ID code for packets carrying IMTP responses */
   public static final byte          RESPONSE_TYPE = 1;
+  /** ID code for packets carrying keep-alive  */
+  public static final byte          KEEP_ALIVE_TYPE = 2;
   /** ID code for packets carrying requests to get the local address */
   public static final byte          GET_ADDRESS_TYPE = 21;
   /** ID code for packets carrying requests to create a Mediator */
@@ -75,13 +77,15 @@ public class JICPProtocol extends TransportProtocol {
    */
   public static final byte DEFAULT_INFO = 0;                  // All bits = 0
   public static final byte COMPRESSED_INFO = 1;               // bit 1 == 1
-  public static final byte REFRESH_INFO = COMPRESSED_INFO; 
   public static final byte RECIPIENT_ID_PRESENT_INFO = 2;     // bit 2 == 1
   public static final byte SESSION_ID_PRESENT_INFO = 4;       // bit 3 == 1
   public static final byte DATA_PRESENT_INFO = 8;             // bit 4 == 1
-  public static final byte BLOCKING_IMTP_PING_INFO = 16;      // bit 5 == 1
-  public static final byte NON_BLOCKING_IMTP_PING_INFO = 32;  // bit 6 == 1
+  public static final byte RECONNECT_INFO = 16;               // bit 5 == 1 
+  public static final byte OK_INFO = 32;                      // bit 6 == 1
   public static final byte TERMINATED_INFO = 64;              // bit 7 == 1
+  // Always distinguished from the context
+  public static final byte BLOCKING_IMTP_PING_INFO = RECONNECT_INFO;
+  public static final byte NON_BLOCKING_IMTP_PING_INFO = OK_INFO;  
 
   /**
    * Default recipient ID
@@ -93,6 +97,7 @@ public class JICPProtocol extends TransportProtocol {
    */
   public static final long DEFAULT_MAX_DISCONNECTION_TIME = 600000; // 10 min
   public static final long DEFAULT_RETRY_TIME = 10000;              // 10 sec
+  public static final long DEFAULT_KEEP_ALIVE_TIME = 60000;         // 1 min
 
   /**
    * Configuration keys
@@ -103,6 +108,7 @@ public class JICPProtocol extends TransportProtocol {
   public static final String UNREACHABLE_KEY = "unreachable";
   public static final String RECONNECTION_RETRY_TIME_KEY = "reconnection-retry-time";
   public static final String MAX_DISCONNECTION_TIME_KEY = "max-disconnection-time";
+  public static final String KEEP_ALIVE_TIME_KEY = "keep-alive-time";
   public static final String MEDIATOR_CLASS_KEY = "mediator-class";
   	
   private static JICPProtocol theInstance = new JICPProtocol();
