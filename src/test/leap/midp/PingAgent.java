@@ -32,8 +32,8 @@ import jade.util.Logger;
    @author Giovanni Caire - TILAB
  */
 public class PingAgent extends Agent {
-	protected void setup() {
-		addBehaviour(new CyclicBehaviour(this) {
+		protected void setup() { 
+			addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if (msg != null) {
