@@ -35,9 +35,9 @@ import java.io.Serializable;
  * Creates a serialized snapshot of the agents and sniffed messages in both canvases for
  * later recall.
  *
- * @see jade.Sniffer.MMAbstractAction
- * @see jade.Sniffer.AgentList
- * @see jade.Sniffer.MessageList
+ * @see jade.tools.sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.AgentList
+ * @see jade.tools.sniffer.MessageList
  *
  * @author Gianluca Tanca
  * @version $Date$ $Revision$
