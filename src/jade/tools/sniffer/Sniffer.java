@@ -192,7 +192,7 @@ public class Sniffer extends ToolAgent {
       if(current != null) {
 	try {
 	  Occurred o = (Occurred)getContentManager().extractContent(current);
-	  EventRecord er = o.get_0();
+	  EventRecord er = o.getWhat();
 	  Event ev = er.getWhat();
 	  String content;
 	  Envelope env;

@@ -193,7 +193,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    EventRecord er = new EventRecord(ac, here());
 	    Occurred o = new Occurred();
-	    o.set_0(er);
+	    o.setWhat(er);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -221,7 +221,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    EventRecord er = new EventRecord(ba, here());
 	    Occurred o = new Occurred();
-	    o.set_0(er);
+	    o.setWhat(er);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -243,7 +243,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    EventRecord er = new EventRecord(amtp, here());
 	    Occurred o = new Occurred();
-	    o.set_0(er);
+	    o.setWhat(er);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -262,7 +262,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	   EventRecord er = new EventRecord(ap,here());
 	   Occurred o = new Occurred();
-	   o.set_0(er);
+	   o.setWhat(er);
 
 	   toolNotification.clearAllReceiver();
 	   toolNotification.addReceiver(newTool);
@@ -517,15 +517,12 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	  // Write the event into the notification message
 	  EventRecord er = (EventRecord)it.next();
-	  o.set_0(er);
+	  o.setWhat(er);
 
           // Handle the event, updating AMS knowledge bases
           Event ev = er.getWhat();
           handleEvent(ev);
 
-	  // -- Filippo
-	  //List l = new ArrayList(1);
-	  //l.add(o);
     try {
 	    getContentManager().fillContent(toolNotification, o);
 	  }

@@ -506,7 +506,7 @@ public class Introspector extends ToolAgent {
         AID name = message.getSender();
 	try{
 	  Occurred o = (Occurred)getContentManager().extractContent(message);
-	  EventRecord er = o.get_0();
+	  EventRecord er = o.getWhat();
 	  Event ev = er.getWhat();
 	  // DEBUG
 	  //System.out.println("Received event "+ev);

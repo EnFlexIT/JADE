@@ -122,12 +122,9 @@ public class DFService extends FIPAServiceCommunicator {
 
     // Build a DF action object for the request
     Register r = new Register();
-//    r.set_0(dfd);
     r.setDescription(dfd);
 
     Action act = new Action();
-//    act.set_0(dfName);
-//    act.set_1(r);
     act.setActor(dfName);
     act.setAction(r);
     synchronized (cm) {
@@ -173,12 +170,9 @@ public class DFService extends FIPAServiceCommunicator {
       dfd.setName(a.getAID());
     // Build a DF action object for the request
     Deregister d = new Deregister();
-//    d.set_0(dfd);
     d.setDescription(dfd);
 
     Action act = new Action();
-//    act.set_0(dfName);
-//    act.set_1(d);
     act.setActor(dfName);
     act.setAction(d);
     synchronized (cm) {
@@ -251,12 +245,9 @@ public class DFService extends FIPAServiceCommunicator {
     checkIsValid(dfd);
     // Build a DF action object for the request
     Modify m = new Modify();
-//    m.set_0(dfd);
     m.setDescription(dfd);
 
     Action act = new Action();
-//    act.set_0(dfName);
-//    act.set_1(m);
     act.setActor(dfName);
     act.setAction(m);
     synchronized (cm) {

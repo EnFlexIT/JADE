@@ -140,7 +140,7 @@ class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
 		  		System.out.println(e);
 		  	}
 	 	} else if(action instanceof WhereIsAgentAction){
-		    AID agentN = ((WhereIsAgentAction)action).get_0();
+		    AID agentN = ((WhereIsAgentAction)action).getAgentIdentifier();
 		    Location where = myAgent.AMSWhereIsAgent(agentN, request.getSender());
 		    Result r = new Result();
 		    r.setAction(SLAction);

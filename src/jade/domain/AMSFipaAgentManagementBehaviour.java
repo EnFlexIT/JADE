@@ -102,7 +102,7 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	    res.setPerformative(ACLMessage.INFORM);
 	    
 	    if(action instanceof Register){
-		agentDescription = (AMSAgentDescription)((Register)action).get_0();
+		agentDescription = (AMSAgentDescription)((Register)action).getDescription();
 		try{
 		
 		    myAgent.AMSRegisterAction(SLAction,agentDescription,request.getSender(),request.getOntology());
@@ -118,7 +118,7 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	    }
 	    else if(action instanceof Deregister){
 		//performs a DEREGISTER
-		agentDescription = (AMSAgentDescription)((Deregister)action).get_0();
+		agentDescription = (AMSAgentDescription)((Deregister)action).getDescription();
 		try{
 		    myAgent.AMSDeregister(agentDescription,request.getSender());
 		    res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
@@ -133,7 +133,7 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	    }
 	    else if(action instanceof Modify){
 		//performs a MODIFY
-		agentDescription = (AMSAgentDescription)((Modify)action).get_0();
+		agentDescription = (AMSAgentDescription)((Modify)action).getDescription();
 		try{
 		    myAgent.AMSModify(agentDescription,request.getSender());
 		    res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
@@ -148,8 +148,8 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	    }
 	    else if(action instanceof Search){
 		//performs a SEARCH
-		agentDescription = (AMSAgentDescription)((Search)action).get_0();
-		SearchConstraints constraints = ((Search)action).get_1();
+		agentDescription = (AMSAgentDescription)((Search)action).getDescription();
+		SearchConstraints constraints = ((Search)action).getConstraints();
 		try{
 		
 		    List result = myAgent.AMSSearch(agentDescription,constraints,request,request.getSender());

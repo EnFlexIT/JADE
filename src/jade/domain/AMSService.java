@@ -123,8 +123,6 @@ since <b>AMS</b> registration and
     r.setDescription(amsd);
 
     Action act = new Action();
-//    act.set_0(AMSName);
-//    act.set_1(r);
 
     act.setActor(AMSName);
     act.setAction(r);
@@ -173,13 +171,9 @@ since <b>AMS</b> registration and
       amsd.setState(AMSAgentDescription.ACTIVE);
     // Build a AMS action object for the request
     Deregister d = new Deregister();
-//    d.set_0(amsd);
     d.setDescription(amsd);
 
     Action act = new Action();
-//    act.set_0(AMSName);
-//    act.set_1(d);
-
     act.setActor(AMSName);
     act.setAction(d);
 
@@ -248,12 +242,9 @@ The AID of the AMS is defaulted to the AMS of this platform.
     checkIsValid(amsd);
     // Build a AMS action object for the request
     Modify m = new Modify();
-//    m.set_0(amsd);
     m.setDescription(amsd);
 
     Action act = new Action();
-//    act.set_0(AMSName);
-//    act.set_1(m);
     act.setActor(AMSName);
     act.setAction(m);
 
