@@ -920,22 +920,6 @@ private int performative; // keeps the performative type of this object
   }
 
   //#MIDP_EXCLUDE_BEGIN
-  /**
-     Writes an ACL message object on a stream as a character
-     string. This method allows to write a string representation of an
-     <code>ACLMessage</code> object onto a character stream.
-     @param w A <code>Writer</code> object to write the message onto.
-     @deprecated the <code>toString</code> method should be used instead
-     of this method.
-  *
-  public void toText(Writer w) {
-      try {
-	  w.write(toString());
-	  w.flush();
-      } catch(IOException ioe) {
-	  ioe.printStackTrace();
-      }
-  }*/
 
   /**
      Convert an ACL message to its string representation. This method
