@@ -1,4 +1,4 @@
-README file for JADE, Version 0.6
+README file for JADE, Version 0.71
 
 INTRODUCTION
 ============
@@ -11,7 +11,7 @@ according to FIPA standard specifications.
 LICENSE
 =======
 
-???
+
 
 
 SYSTEM REQUIREMENTS
@@ -19,7 +19,8 @@ SYSTEM REQUIREMENTS
 
 To build the framework a complete Java programming environment is
 needed. At least a Java Development Kit version 1.1 is required, due
-to Remote Method Invocation (RMI) API usage.
+to Remote Method Invocation (RMI) API usage. Besides, JavaCC 0.8pre is
+needed to generate Java code from grammar description files.
 
 
 INSTALLATION AND TEST
@@ -34,36 +35,44 @@ starting with JADE; from that directory, you can type
 
 - make lib		To create a compressed file in 'lib' directory, containing all compiled classes.
 
-- make docs		To create HTML documentation for the framework in 'doc' directory.
+- make doc		To create HTML documentation for the framework in 'doc' directory.
 
-- make test		To build example programs.
+- make examples		To build example programs.
 
-- make all		Performs 'make lib', 'make doc' and 'make test'
+- make all		Performs 'make lib', 'make doc' and 'make examples'
 
 
-After compiling, one can run the example programs in 'test'
+After compiling, one can run the example programs in 'src/examples'
 subdirectory; remember to set CLASSPATH environment variable to
-include the zip file in 'lib' directory and the current directory.
+include the zip file in 'lib' directory and the current directory,
+then change to 'src' directory.
 
 The Agent Platform uses Java RMI, so one has to start the RMI registry
-on the same host the Agent Platform will run on.
+on the same host the Agent Platform will run on. Be careful to set a
+suitable CLASSPATH (i.e. including both the zip file with compiled
+classes and the current directory) *also* in the command shell where
+you start the RMI registry, otherwise you will get a
+'ClassNotFoundException' during 'Naming.bind()' operation.
 
 To run the Agent Platform, one must issue the command:
 
-	java jade.core.StartPlatform
+	java jade.Boot -platform [options] [Agent list]
 
 Use -h option to get a list of command line arguments.
 
-To actually start some agents, one must create and run one or more
+To start some agents on additional hosts, one must create and run more
 Agent Containers; these components connect themselves with the main
 Agent Platform, resulting in a distributed system that seems a single
 Agent Platform from outside.
 
 An Agent Container can be started using the command:
 
-	java jade.core.StartContainer [options] [agent list]
+	java jade.Boot [options] [Agent list]
 
-Again, using -h command-line option explains program usage.
+Again, using -h command-line option explains program usage. As can be
+seen from above, the same command is issued in the two cases, with the
+'-platform' command-line switch used to choose between an ordinary
+Agent Container and the global Agent Platform.
 
 Using command-line options, users can state host name and port number
 where the main Agent Platform resides, and the name with which it is
@@ -143,9 +152,22 @@ BUGS
 TODO
 ====
 
+ - Add system-level agents to fully support FIPA 97 specification:
+   Agent Communication Channel, Agent Management System and Directory
+   Facilitator.
+
+ - Add support for standard and user defined interaction protocols.
+
+ - Add support for message content language parsing.
+
+ - Add support for message ontology checking.
+
+ - Add support for platform administration and direct agent
+   manipulation through a GUI.
 
 CONTACT
 =======
+
 
 
 
