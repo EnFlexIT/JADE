@@ -17,7 +17,7 @@ as soon as available.
 Your feedback as users is very important to us. Please, if you have new 
 requirements that you would like to see implemented or if you have examples 
 of usage or if you discover some bugs, send us information.
-Check the website http://sharon.cselt.it/projects/jade 
+Check the website http://jade.cselt.it/
 for how to report bugs and send suggestions.  
 
 SYSTEM REQUIREMENTS
@@ -66,7 +66,7 @@ the full system.
 ========================
 All the software is distributed under the LGPL license limitations. 
 It can be downloaded from the JADE web site 
-http://sharon.cselt.it/projects/jade. Five compressed files are available:
+http://jade.cselt.it/ Five compressed files are available:
 1. the source code of JADE
 2. the source code of the examples
 3. the documentation, including the javadoc of the JADE API and 
