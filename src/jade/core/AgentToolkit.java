@@ -39,4 +39,6 @@ interface AgentToolkit {
   void handleMove(AID agentID, Location where);
   void handleClone(AID agentID, Location where, String newName);
   void handleSend(ACLMessage msg);
+  void handlePosted(AID agentID, ACLMessage msg);
+  void handleReceived(AID agentID, ACLMessage msg);
 }
