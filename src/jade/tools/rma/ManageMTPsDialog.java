@@ -85,9 +85,23 @@ public class ManageMTPsDialog extends JDialog {
         containers = new javax.swing.JList(EMPTY_LIST);
         addresses = new javax.swing.JList(EMPTY_LIST);
         buttons = new javax.swing.JPanel();
-        addMTP = new javax.swing.JButton(addMTPAction);
+        addMTP = new javax.swing.JButton();
 
-        removeMTP = new javax.swing.JButton(removeMTPAction);
+	// Manually configure this JButton with its Action object, for
+	// JDK 1.2 compatibility
+	addMTP.setText((String)addMTPAction.getValue(Action.NAME));
+	addMTP.setIcon((Icon)addMTPAction.getValue(Action.SMALL_ICON));
+	addMTP.setToolTipText((String)addMTPAction.getValue(Action.SHORT_DESCRIPTION));
+	addMTP.addActionListener(addMTPAction);
+
+        removeMTP = new javax.swing.JButton();
+
+	// Manually configure this JButton with its Action object, for
+	// JDK 1.2 compatibility
+	removeMTP.setText((String)removeMTPAction.getValue(Action.NAME));
+	removeMTP.setIcon((Icon)removeMTPAction.getValue(Action.SMALL_ICON));
+	removeMTP.setToolTipText((String)removeMTPAction.getValue(Action.SHORT_DESCRIPTION));
+	removeMTP.addActionListener(removeMTPAction);
 
         closeDlg = new javax.swing.JButton();
         
