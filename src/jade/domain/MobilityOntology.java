@@ -29,6 +29,8 @@ package jade.domain;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 import jade.lang.Codec;
 
@@ -38,8 +40,8 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
-import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
+import jade.onto.Name;
 
 import jade.onto.basic.*;
 
@@ -119,9 +121,6 @@ public class MobilityOntology {
 
   private static Ontology theInstance = new DefaultOntology();
 
-  static {
-    initInstance();
-  }
 
   /**
      This method grants access to the unique instance of JADE mobility
@@ -135,104 +134,80 @@ public class MobilityOntology {
 
   private MobilityOntology() {
   }
-
+  static { // must be at the end of the file, otherwise it does not work
+    initInstance();
+  }
   private static void initInstance() {
   	try{
 			// Adds the roles of the basic ontology (ACTION, AID,...)
     	theInstance.joinOntology(BasicOntology.instance());
 
-  		theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
+	theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("destination", Ontology.FRAME_SLOT, LOCATION, Ontology.M),
 	  new SlotDescriptor("agent-profile", Ontology.FRAME_SLOT, MOBILE_AGENT_PROFILE, Ontology.O),
 	  new SlotDescriptor("agent-version", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("signature", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MobileAgentDescription(); }
-	     public Class getClassForRole() { return MobileAgentDescription.class; }
-	   });
+	}, MobileAgentDescription.class);
 
 	theInstance.addRole(MOBILE_AGENT_PROFILE, new SlotDescriptor[] {
 	  new SlotDescriptor("system", Ontology.FRAME_SLOT, MOBILE_AGENT_SYSTEM, Ontology.O),
 	  new SlotDescriptor("language", Ontology.FRAME_SLOT, MOBILE_AGENT_LANGUAGE, Ontology.O),
           new SlotDescriptor("os", Ontology.FRAME_SLOT, MOBILE_AGENT_OS, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MobileAgentProfile(); }
-	     public Class getClassForRole() { return MobileAgentProfile.class; }
-	   });
+	}, MobileAgentProfile.class); 
 
 	theInstance.addRole(MOBILE_AGENT_SYSTEM, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("major-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.M),
 	  new SlotDescriptor("minor-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  new SlotDescriptor("dependencies", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MobileAgentSystem(); }
-	     public Class getClassForRole() { return MobileAgentSystem.class; }
-	   });
+	}, MobileAgentSystem.class); 
 
 	theInstance.addRole(MOBILE_AGENT_LANGUAGE, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("major-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.M),
 	  new SlotDescriptor("minor-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  new SlotDescriptor("dependencies", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MobileAgentLanguage(); }
-	     public Class getClassForRole() { return MobileAgentLanguage.class; }
-	   });
+	}, MobileAgentLanguage.class);
 
 	theInstance.addRole(MOBILE_AGENT_OS, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("major-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.M),
 	  new SlotDescriptor("minor-version", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  new SlotDescriptor("dependencies", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MobileAgentOS(); }
-	     public Class getClassForRole() { return MobileAgentOS.class; }
-	   });
+	}, MobileAgentOS.class);
 
 	theInstance.addRole(LOCATION, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("transport-protocol", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("transport-address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Location(); } // FIXME: use Indexed Creation
-	     public Class getClassForRole() { return Location.class; }
-	   });
+	}, Location.class);
 
 	theInstance.addRole(MOVE, new SlotDescriptor[] {
 	    new SlotDescriptor(Ontology.FRAME_SLOT, MOBILE_AGENT_DESCRIPTION, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MoveAction(); }
-	     public Class getClassForRole() { return MoveAction.class; }
-	   });
+	}, MoveAction.class);
 
 	theInstance.addRole(CLONE, new SlotDescriptor[] {
 	    new SlotDescriptor(Ontology.FRAME_SLOT, MOBILE_AGENT_DESCRIPTION, Ontology.M),
 	    new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new CloneAction(); }
-	     public Class getClassForRole() { return CloneAction.class; }
-	   });
+	}, CloneAction.class);
 
 	theInstance.addRole(WHERE_IS, new SlotDescriptor[] {
 	    new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER , Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new WhereIsAgentAction(); }
-	     public Class getClassForRole() { return WhereIsAgentAction.class; }
-	   });
+	}, WhereIsAgentAction.class);
 
 	theInstance.addRole(QUERY_PLATFORM_LOCATIONS, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new QueryPlatformLocationsAction(); }
-	     public Class getClassForRole() { return QueryPlatformLocationsAction.class; }
-	   });
+	}, QueryPlatformLocationsAction.class);
 
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
     }
   }
+
+
+
+
 
   /**
     This class represent the ':mobile-agent-description' concept in JADE
@@ -638,5 +613,6 @@ public class MobilityOntology {
     }
 
   } // End of QueryPlatformLocationsAction
+
 
 }

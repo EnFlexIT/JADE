@@ -26,6 +26,8 @@ package jade.domain.JADEAgentManagement;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
 
 import jade.core.AID;
 import jade.onto.basic.*;  // to import Done, Action, ...
@@ -83,9 +85,6 @@ public class JADEAgentManagementOntology {
   
   
   
-  static {
-    initInstance();
-  }
 
   /**
      This method grants access to the unique instance of the
@@ -100,6 +99,10 @@ public class JADEAgentManagementOntology {
   private JADEAgentManagementOntology() {
   }
 
+  static { 
+    initInstance();
+  }
+
   private static void initInstance() {
     try {
 	  // Adds the roles of the basic ontology (ACTION, AID,...)
@@ -108,10 +111,7 @@ public class JADEAgentManagementOntology {
 	theInstance.addRole(KILLCONTAINER, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new KillContainer(); } 
-	     public Class getClassForRole() { return KillContainer.class; }
-	   });
+	}, KillContainer.class);
 
 	theInstance.addRole(CREATEAGENT, new SlotDescriptor[] {	  
 	  new SlotDescriptor("agent-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
@@ -119,94 +119,63 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("arguments",Ontology.SET_SLOT,Ontology.ANY_TYPE, Ontology.O),	
 	  new SlotDescriptor("container-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new CreateAgent(); } 
-	     public Class getClassForRole() { return CreateAgent.class; }
-	   });
+	}, CreateAgent.class);
 
 	theInstance.addRole(KILLAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new KillAgent(); }
-	     public Class getClassForRole() { return KillAgent.class; }
-	   });
+	}, KillAgent.class);
 
 	theInstance.addRole(SNIFFON, new SlotDescriptor[] {
 	  new SlotDescriptor("sniffer", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new SniffOn(); }
-	     public Class getClassForRole() { return SniffOn.class; }
-	   });
+	}, SniffOn.class);
 
 	theInstance.addRole(SNIFFOFF, new SlotDescriptor[] {
 	  new SlotDescriptor("sniffer", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new SniffOff(); }
-	     public Class getClassForRole() { return SniffOff.class; }
-	   });
+	}, SniffOff.class);
 	   
-  theInstance.addRole(SHOWGUI, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new ShowGui();}
-	     public Class getClassForRole() { return ShowGui.class; }
-	   });
+	theInstance.addRole(SHOWGUI, new SlotDescriptor[] {
+	}, ShowGui.class);
 	   
 	theInstance.addRole(EVENTOCCURRED, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.FRAME_SLOT, DefaultOntology.ANY_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new EventOccurred(); }
-	     public Class getClassForRole() {return EventOccurred.class;}
-	   });
+	}, EventOccurred.class);
 
 	theInstance.addRole(CONTAINERBORN, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("host", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new ContainerBorn(); }
-	     public Class getClassForRole() { return ContainerBorn.class; }
-	   });
+	}, ContainerBorn.class); 
 
 	theInstance.addRole(CONTAINERDEAD, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new ContainerDead(); }
-	     public Class getClassForRole() { return ContainerDead.class; }
-	   });
+	}, ContainerDead.class); 
 
 	theInstance.addRole(AGENTBORN, new SlotDescriptor[] {
 	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AgentBorn(); }
-	     public Class getClassForRole() { return AgentBorn.class; }
-	   });
+	}, AgentBorn.class); 
 
 	theInstance.addRole(AGENTDEAD, new SlotDescriptor[] {
 	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AgentDead(); }
-	     public Class getClassForRole() { return AgentDead.class; }
-	   });
+	}, AgentDead.class); 
 
 	theInstance.addRole(AGENTMOVED, new SlotDescriptor[] {
 	  new SlotDescriptor("from", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("to", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AgentMoved(); }
-	     public Class getClassForRole() { return AgentMoved.class; }
-	   });
+	}, AgentMoved.class); 
 
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
     }
   } //end of initInstance
+
+
 
 }

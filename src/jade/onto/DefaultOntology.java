@@ -31,6 +31,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.*;
 
+import jade.onto.JadeMetaOntology.*;
+
+import jade.lang.sl.SL0Codec;
+import jade.lang.Codec.CodecException;
+
+
 /**
   A simple implementation of the <code>Ontology</code> interface. Instances of
   this class keeps all the ontology data in memory, and don't support an
@@ -41,43 +47,15 @@ import java.text.*;
 */
 public final class DefaultOntology implements Ontology {
 
-	private final static String BEGIN_ONTOLOGY_TAG = "ONTOLOGY";
-	private final static String END_ONTOLOGY_TAG = "END-ONTOLOGY";
-	private final static String ONTOLOGY_NAME_TAG = "ONTOLOGY-NAME";
-	private final static String BEGIN_ROLE_TAG = "ROLE";
-	private final static String END_ROLE_TAG = "END-ROLE";
-	private final static String ROLE_NAME_TAG = "ROLE-NAME";
-	private final static String ROLE_FACTORY_TAG = "ROLE-ENTITY-FACTORY";
-	private final static String BEGIN_SLOT_TAG = "SLOT";
-	private final static String END_SLOT_TAG = "END-SLOT";
-	private final static String SLOT_NAME_TAG = "SLOT-NAME";
-	private final static String SLOT_CATEGORY_TAG = "SLOT-CATEGORY";
-	private final static String SLOT_TYPE_TAG = "SLOT-TYPE";
-	private final static String SLOT_PRESENCE_TAG = "SLOT-PRESENCE";
-	
-	private final static int INIT_STATE = 1;
-	private final static int PARSE_ONTOLOGY_BEGIN_STATE = 2;
-	private final static int PARSE_ONTOLOGY_ROLES_STATE = 3;
-	private final static int PARSE_ROLE_BEGIN_STATE = 4;
-	private final static int PARSE_ROLE_SLOTS_STATE = 5;
-	private final static int PARSE_ROLE_END_STATE = 6;
-	private final static int PARSE_SLOT_BEGIN_STATE = 7;
-	private final static int PARSE_SLOT_NAME_OK_STATE = 8;
-	private final static int PARSE_SLOT_CATEGORY_OK_STATE = 9;
-	private final static int PARSE_SLOT_TYPE_OK_STATE = 10;
-	private final static int PARSE_SLOT_END_STATE = 11;
-	private final static int END_STATE = 12;
-	private final static int ERROR_STATE = 13;
-
 	private Map schemas;
-  private Map factories;
+  private Map roleClasses;
 
   /**
     Default constructor.
   */
   public DefaultOntology() {
     schemas = new HashMap();
-    factories = new HashMap();
+    roleClasses = new HashMap();
   }
 
   // Raw interface, exposes Frame Schemas directly.
@@ -87,9 +65,6 @@ public final class DefaultOntology implements Ontology {
     return (FrameSchema)schemas.get(new Name(name));
   }
 
-  RoleEntityFactory lookupFactory(String name) {
-    return (RoleEntityFactory)factories.get(new Name(name));
-  }
 
   /**
     Adds a new role to this ontology, without a user defined Java class to
@@ -97,11 +72,11 @@ public final class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots)
   */
   public void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException {
-		// Checks whether a role with this name already exists in the ontology
-  	if (schemas.containsKey(new Name(roleName)))
-			throw new OntologyException("A role with name \""+roleName+"\" already exists in the ontology");
+    // Checks whether a role with this name already exists in the ontology
+    if (lookupSchema(roleName) != null)
+      throw new OntologyException("A role with name \""+roleName+"\" already exists in the ontology");
   	
-		// Adds the new role
+    // Adds the new role
     FrameSchema fs = new FrameSchema(this, roleName);
 
     for(int i = 0; i < slots.length; i++) {
@@ -118,25 +93,17 @@ public final class DefaultOntology implements Ontology {
   /**
     Adds a new role to this ontology, with a user defined Java class to
     represent it.
-    @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref)
+    @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots, Class c)
   */  
-  public void addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref) throws OntologyException {
+  public void addRole(String roleName, SlotDescriptor[] slots, Class newClass) throws OntologyException {
     // Checks whether the user defined class representing the role already represents another role in the ontology
-    Class newClass = ref.getClassForRole();
-    Iterator i = factories.values().iterator();
-  	while (i.hasNext()){
-  		RoleEntityFactory fac = (RoleEntityFactory) i.next();
-  		Class c = fac.getClassForRole();
-  		if (newClass.equals(c))
-				throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in the ontology");
-  	}
-  	
-  	// Adds the role to the ontology
-  	addRole(roleName, slots);
-
-  	// Registers the factory of objects of the user defined class representing the role
+    if (roleClasses.containsValue(newClass))
+      throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in this ontology");
+    // Adds the role to the ontology
+    addRole(roleName, slots);
+    // Registers the user defined class representing the role
     checkClass(roleName, newClass);
-    addFactoryToTable(roleName, ref);
+    roleClasses.put(new Name(roleName), newClass);
   }
 
   /**
@@ -145,36 +112,18 @@ public final class DefaultOntology implements Ontology {
     be added
     @see jade.onto.Ontology#joinOntology(Ontology o)
   */
-  public void joinOntology(Ontology o) throws OntologyException
-  {
-  	// Gets the names of all roles in the ontology to join
-  	List roleNames = o.getVocabulary();
-	  Iterator i = roleNames.iterator();
-	  
-	  // For each role try to add it to the current ontology
-	  while (i.hasNext()){
-	  	String name = (String) (i.next());
-	  	// DEBUG: System.out.println("Try to add role \""+name+"\"");
-			SlotDescriptor[] slots = o.getSlots(name);
-			RoleEntityFactory fac = null;
-			boolean hasFactoryFlag;
-			try{
-				fac = o.getFactory(name);
-				// If no exception has been thrown --> the role has a factory associated to it
-				hasFactoryFlag = true; 
-			}
-			catch (OntologyException oe){
-				// If an exception has been thrown --> the role does not have a factory associated to it
-				hasFactoryFlag = false; 
-			}
-			try{
-			if (hasFactoryFlag)
-				addRole(name, slots, fac);
-			else
-				addRole(name, slots);
-			}
-			catch (OntologyException oe){oe.printStackTrace();}
-	  }		
+  public void joinOntology(Ontology o) throws OntologyException {
+    // Gets the names of all roles in the ontology to join
+    for (Iterator i=o.getVocabulary().iterator(); i.hasNext(); ) {
+      // For each role try to add it to the current ontology
+      String name = (String) i.next();
+      SlotDescriptor[] slots = o.getSlots(name);
+      Class c = o.getClassForRole(name);
+      if (c != null)
+	addRole(name, slots, c);
+      else
+	addRole(name, slots);
+    }
   }
   	
 
@@ -196,14 +145,11 @@ public final class DefaultOntology implements Ontology {
   private Object createSingleObject(Frame f) throws OntologyException {
 
       String roleName = f.getName();
-      RoleEntityFactory fac = lookupFactory(roleName);
+      Class c = getClassForRole(roleName);
+      if(c == null)
+	throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
 
-      if(fac == null)
-				throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
-
-      Class c = fac.getClassForRole();
-
-      Object o = fac.create(f);
+      Object o = create(f);
       return initObject(f, o, c);
   }
 
@@ -213,11 +159,9 @@ public final class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#createFrame(Object o, String roleName)
   */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
-    RoleEntityFactory fac = lookupFactory(roleName);
-    if(fac == null)
+    Class theRoleClass = getClassForRole(roleName);
+    if (theRoleClass == null)
       throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
-
-    Class theRoleClass = fac.getClassForRole();
     if(!theRoleClass.isInstance(o))
       throw new OntologyException("The object <" + o + "> is not an instance of " + theRoleClass.getName() + " class.");
 
@@ -256,12 +200,9 @@ public final class DefaultOntology implements Ontology {
      * - FOR EACH mandatory slot S
      *   - The getS method of the class o is an instance of must not return 'null'
      */
-
-    RoleEntityFactory fac = lookupFactory(roleName);
-    if(fac == null)
+    Class theRoleClass = getClassForRole(roleName);
+    if (theRoleClass == null)
       throw new OntologyException("No class able to represent " + roleName + " role.");
-
-    Class theRoleClass = fac.getClassForRole();
     if(!theRoleClass.isInstance(o))
       throw new OntologyException("The object is not an instance of " + theRoleClass.getName() + " class.");
 
@@ -313,31 +254,29 @@ public final class DefaultOntology implements Ontology {
   }
 
   /** 
-  	@return the name of the role represented by the passed class as 
-  	registered in this ontology
-  	@throws OntologyException if no role is found for this class
+    @return the name of the role represented by the passed class as 
+    registered in this ontology
+    @throws OntologyException if no role is found for this class
     @see jade.onto.Ontology#getRoleName(Class c)
   **/
-	public String getRoleName(Class c) throws OntologyException{
-  	Set s = factories.entrySet(); // each element of the Set is a Map.Entry
-  	Iterator i = s.iterator();
-  	while (i.hasNext()) {
-    	Map.Entry element = (Map.Entry)i.next();
-    	// element.getValue() returns a RoleFactory
-    	if (c.equals(((RoleEntityFactory)element.getValue()).getClassForRole()))
-      	return ((Name)element.getKey()).toString();
-  	}
-  	throw new OntologyException("No rolename registered in the ontology for class "+c.getName());
-	}
+  public String getRoleName(Class c) throws OntologyException{
+    for (Iterator i=roleClasses.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry elem = (Map.Entry)i.next();
+      if (c.equals((Class)elem.getValue())) 
+      	return ((Name)elem.getKey()).toString();
+    } 
+    // if this instruction is executed, then no class has been found
+    throw new OntologyException("No rolename registered in this ontology for class "+c.getName());
+  }
   
-	/** 
-  	@return a <code>List</code> including the names of all the roles
-  	in the ontology, i.e. the Vocabulary used by the ontology
+  /** 
+    @return a <code>List</code> including the names of all the roles
+    in the ontology, i.e. the Vocabulary used by the ontology
     @see jade.onto.Ontology#getVocabulary()
-  */
+    **/
   public List getVocabulary(){
-  	// The Vocabulary is the list of the names of the roles in the ontology;
-  	// role names are stored as Name while we want to return them as String
+    // The Vocabulary is the list of the names of the roles in the ontology;
+    // role names are stored as Name while we want to return them as String
   	List vocabulary = new ArrayList();
   	Iterator i = schemas.keySet().iterator();
   	while (i.hasNext()){
@@ -347,21 +286,20 @@ public final class DefaultOntology implements Ontology {
   	return vocabulary;	
   }
   
-  /** 
-  	Returns the factory for instances of the user defined class
-  	representing a given role
-  	@param roleName The name of the ontological role.
-  	@return the factory for instances of the user defined class
-  	representing a given role
-    @throws OntologyException if no role is found with the specified name
-    or if a factory is not registered for the role
-    @see jade.onto.Ontology#getFactory(String roleName)
-  */
-  public RoleEntityFactory getFactory(String roleName) throws OntologyException{
-    if (!factories.containsKey(new Name(roleName)))
- 			throw new OntologyException("No role with name \""+roleName+"\" has a factory registered");
 
- 		return (RoleEntityFactory) factories.get(new Name(roleName));
+
+
+
+  /**
+    Provides the Java class associated with this ontological role. This class is
+    usually the class used by the <code>create()</code> method to instantiate
+    objects. A useful technique is returning an interface or an abstract class,
+    while using concrete subclasses to create objects.
+    @param a string representing the name of the ontological role
+    @return the Java class that plays this ontological role (e.g. <code>DFAgentDescription.class</code>
+  */
+  public Class getClassForRole(String roleName) {
+    return (Class) roleClasses.get(new Name(roleName));
   }
   
 
@@ -514,64 +452,62 @@ public final class DefaultOntology implements Ontology {
       // System.out.println("checkClass. SlotDescriptor="+desc.toString());
       String slotName = translateName(desc.getName());
       try {
-				// Check for correct set and get methods for the current
-				// descriptor and retrieve the implementation type.
-				Class implType;
-				//if ((desc.getType() == SET_SLOT) || (desc.getType() == SEQUENCE_SLOT))
-				if (desc.isSet())
-	  			implType = checkGetAndSet2(slotName, c);
-				else
-	  			implType = checkGetAndSet(slotName, c);
-	  		// System.out.println("- implType class is: "+implType.getName());
+	// Check for correct set and get methods for the current
+	// descriptor and retrieve the implementation type.
+	Class implType;
+	//if ((desc.getType() == SET_SLOT) || (desc.getType() == SEQUENCE_SLOT))
+	if (desc.isSet())
+	  implType = checkGetAndSet2(slotName, c);
+	else
+	  implType = checkGetAndSet(slotName, c);
+	// System.out.println("- implType class is: "+implType.getName());
 
-				// If the descriptor is a complex slot (i.e. its values are instances of a 
-				// role) and some class C is registered for that role,
-				// then the implementation type must be a supertype of C.
-				if(desc.isComplex() || desc.isSet()) { //DUBBIO Non dovrebbe essere if (!desc.hasPrimitiveTypes())
-	  			RoleEntityFactory fac = lookupFactory(desc.getType());
-	  			if(fac != null) {
-	    			Class complex = fac.getClassForRole();
-	  				// System.out.println("- complex class is: "+complex.getName());
-	    			if(!implType.isAssignableFrom(complex))
-	      			throw new OntologyException("Wrong class: the " + desc.getName() + " role is represented by " + complex + " class, which is not a subtype of " + implType + " class.");
-	  			}
-				}
-				else {	// Check that the returned type is compatible with the one dictated by the SlotDescriptor
-					Class slotType = null;
-	  			try {
-	    			slotType = Class.forName(desc.getType()); 
-	  				// System.out.println("- primitive class is: "+primitive.getName());
-	    			if(!implType.isAssignableFrom(slotType))
-	      			throw new OntologyException("1 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
-	  			} 
-	  			catch (Exception e) {
-	  				// The check might have failed because the compared types are arrays.
-	  				// In this case in fact Class.forName() does not work.
-	  				// Let's try also this case
-	  				try{
-	  					String type = desc.getType();
-	  					Class componentImplType = implType.getComponentType();
-	  					if (type.endsWith("[]") && componentImplType != null){
-	  						String componentType = type.substring(0, type.length() - 2); 
-	  						slotType = Class.forName(componentType);
-	  						if (!componentImplType.isAssignableFrom(slotType)) 
-	    						throw new OntologyException("2 Wrong class: the primitive slot " + desc.getName() + " is of type "+ componentImplType + "[], but must be a subtype of " + slotType + "[].");
-	  					}
-	  					else
-	    					throw new OntologyException("3 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
-	  				}
-	  				catch (Exception e1) {
-	      			throw new OntologyException("4 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + desc.getType() + ".");
-	  				}
-	  			}
-				}
+	// If the descriptor is a complex slot (i.e. its values are instances of a 
+	// role) and some class C is registered for that role,
+	// then the implementation type must be a supertype of C.
+	if(desc.isComplex() || desc.isSet()) { //DUBBIO Non dovrebbe essere if (!desc.hasPrimitiveTypes())
+	  Class complex = getClassForRole(desc.getType());
+	  if (complex != null) {
+	    // System.out.println("- complex class is: "+complex.getName());
+	    if(!implType.isAssignableFrom(complex))
+	      throw new OntologyException("Wrong class: the " + desc.getName() + " role is represented by " + complex + " class, which is not a subtype of " + implType + " class.");
+	  }
+	} else {	// Check that the returned type is compatible with the one dictated by the SlotDescriptor
+	  Class slotType = null;
+	  try {
+	    slotType = Class.forName(desc.getType()); 
+	    // System.out.println("- primitive class is: "+primitive.getName());
+	    if(!implType.isAssignableFrom(slotType))
+	      throw new OntologyException("1 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
+	  } 
+	  catch (Exception e) {
+	    // The check might have failed because the compared types are arrays.
+	    // In this case in fact Class.forName() does not work.
+	    // Let's try also this case
+	    try{
+	      String type = desc.getType();
+	      Class componentImplType = implType.getComponentType();
+	      if (type.endsWith("[]") && componentImplType != null){
+		String componentType = type.substring(0, type.length() - 2); 
+		slotType = Class.forName(componentType);
+		if (!componentImplType.isAssignableFrom(slotType)) 
+		  throw new OntologyException("2 Wrong class: the primitive slot " + desc.getName() + " is of type "+ componentImplType + "[], but must be a subtype of " + slotType + "[].");
+	      }
+	      else
+		throw new OntologyException("3 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
+	    }
+	    catch (Exception e1) {
+	      throw new OntologyException("4 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + desc.getType() + ".");
+	    }
+	  }
+	}
       }
       catch(SecurityException se) {
-				throw new OntologyException("Wrong class: some required method is not accessible."); 
+	throw new OntologyException("Wrong class: some required method is not accessible."); 
       }
-
+      
     }
-
+    
   }
 
 
@@ -795,9 +731,6 @@ public final class DefaultOntology implements Ontology {
   }
 
 
-  private void addFactoryToTable(String roleName, RoleEntityFactory fac) {
-    factories.put(new Name(roleName), fac);
-  }
 
 
   private Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
@@ -810,332 +743,130 @@ public final class DefaultOntology implements Ontology {
     throw new OntologyException("Method " + name + " not found in class "+c.getName());
   }
   
-  /**
-    Initializes this DefaultOntology object from a text including an ontology
-    according to the format described hereafter.
-    
-    ONTOLOGY
-    ONTOLOGY-NAME <name>
-    
-    	ROLE
-    	ROLE-NAME <name>
-    
-    		SLOT
-    		[SLOT-NAME <name>]
-    		SLOT-CATEGORY <category> // Must be one among Ontology.FRAME_SLOT ....
-    		SLOT-TYPE <type>         // Must be one among Ontology.SLOT_TYPE ....
-    		SLOT-PRESENCE <presence> // Must be M or O
-    		END-SLOT // This block can be repeated n times
-    		
-    	[ROLE-ENTITY-FACTORY <factory>]
-    	
-    	END-ROLE // This block can be repeated n times
-    	
-    END-ONTOLOGY
-    
-    It should be noticed that if a Factory is specified for a given role, 
-    that Factory must have an accessible constructor with no parameters.
-    
-    @param inp The <code>BufferedReader</code> where to read text from.
-    @return The name of the ontology
-    @see toText(BufferedWriter out)
-  */  
-  public String fromText(BufferedReader inp) throws IOException, ParseException, OntologyException {
-  	StringBuffer sb = new StringBuffer();
-  	String line = inp.readLine();
-  	while (line != null) {
-  		sb.append(" " + line);
-  		line = inp.readLine();
-  	}
-	 	StringTokenizer st = new StringTokenizer(sb.toString(), " \t");
-	 	
-	 	String ontologyName = null;
-	 	int state = INIT_STATE;
-	 	while (state != END_STATE) {
-	 		try {
-	 			String token = st.nextToken();
-	 			switch (state) {
-	 			case INIT_STATE:
-	 				if (token.equals(BEGIN_ONTOLOGY_TAG))
-	 					state = PARSE_ONTOLOGY_BEGIN_STATE;
-	 				else
-						throw new ParseException("State PARSE_ONTOLOGY_BEGIN_STATE: Unexpected token " + token, 0);
-	 				break;
-	 				
-				case PARSE_ONTOLOGY_BEGIN_STATE:
-					if (token.equals(ONTOLOGY_NAME_TAG)) {
-	 					ontologyName = st.nextToken();
-	 					state = PARSE_ONTOLOGY_ROLES_STATE;
-	 				}
-	 				else 
-						throw new ParseException("State PARSE_ONTOLOGY_BEGIN_STATE: Unexpected token " + token, 0);
-	 				break;
-	 				
-				case PARSE_ONTOLOGY_ROLES_STATE:
-					if (token.equals(BEGIN_ROLE_TAG))
-						parseRole(st); 
-						// does not change the state
-					else if (token.equals(END_ONTOLOGY_TAG))
-						state = END_STATE;
-					else
-						throw new ParseException("State PARSE_ONTOLOGY_ROLES_STATE: Unexpected token " + token, 0);
-					break;
-					
-				default:
-					throw new ParseException("Unknown parsing state after token " + token, 0);
-	 			} // END of switch
-	 			
-	 		} // END of try
-	 		catch (NoSuchElementException nsee) {
-	 			throw new ParseException("End of stream reached before parsing termination", 0);
-	 		}
-	 	} // END of while
-	 	
-	 	return ontologyName;
-  }
-  
-  private void parseRole(StringTokenizer st) throws ParseException, NoSuchElementException, OntologyException {
-  	String roleName = null;
-  	List slots = new ArrayList(); 
-  	RoleEntityFactory ref = null;
-  	
-  	int state = PARSE_ROLE_BEGIN_STATE;
-  	boolean stopFlag = false;
-  	while (!stopFlag) {
-  		String token = st.nextToken();
-  		switch(state) {
-			case PARSE_ROLE_BEGIN_STATE: 
-				if (token.equals(ROLE_NAME_TAG)) {
-					roleName = st.nextToken();
-					state = PARSE_ROLE_SLOTS_STATE;
-				}
-				else
-					throw new ParseException("State PARSE_ROLE_BEGIN_STATE: Unexpected token" + token, 0);
-				break;
 
-			case PARSE_ROLE_SLOTS_STATE: 
-				if (token.equals(BEGIN_SLOT_TAG)){
-					SlotDescriptor dsc = parseSlot(st, roleName);
-					slots.add(dsc);
-					// Does not change state
-				}
-				else if (token.equals(ROLE_FACTORY_TAG)) {
-					String refName = st.nextToken();
-					try {
-						Class c = Class.forName(refName);
-						ref = (RoleEntityFactory) (c.newInstance());
-					}
-					catch (IllegalAccessException iae) {
-						throw new ParseException("State PARSE_ROLE_SLOTS_STATE: RoleEntityFactory " + refName + " for role " + roleName + " does not have an accessible constructor", 0);
-					}
-					catch (Exception e) {
-						throw new ParseException("State PARSE_ROLE_SLOTS_STATE: RoleEntityFactory " + refName + " for role " + roleName + " cannot be loaded or instantiated", 0);
-					}
-					state = PARSE_ROLE_END_STATE;
-				}
-				else if (token.equals(END_ROLE_TAG))
-					stopFlag = true;
-				else
-					throw new ParseException("State PARSE_ROLE_SLOTS_STATE: Unexpected token " + token + " parsing role " + roleName, 0);
-				break;
-
-			case PARSE_ROLE_END_STATE:
-				if (token.equals(END_ROLE_TAG))
-					stopFlag = true;
-				else
-					throw new ParseException("State PARSE_ROLE_END_STATE: Unexpected token " + token + " parsing role " + roleName, 0);		
-				break;
-				
-			default:
-				throw new ParseException("Unknown parsing state after token " + token, 0);
-  		} // END of switch
-  		
-  	} // END of while
-  	
-  	// Add the role to the ontology
-  	SlotDescriptor[] tmp = new SlotDescriptor[slots.size()];
-  	Iterator it = slots.iterator();
-  	int i = 0;
-  	while (it.hasNext())
-  		tmp[i++] = (SlotDescriptor) it.next();
-  	if (ref != null)
-  		addRole(roleName, tmp, ref);
-  	else
-  		addRole(roleName, tmp);
-  
-  	return;
-  }
-  
-  private SlotDescriptor parseSlot(StringTokenizer st, String roleName) throws ParseException, NoSuchElementException{
-  	String slotName = null;
-  	int slotCategory = 0;
-  	String slotType = null;
-  	boolean isOptional = false;
-  	
-  	int state = PARSE_SLOT_BEGIN_STATE;
-  	boolean stopFlag = false;
-  	while (!stopFlag) {
-  		String token = st.nextToken();
-  		switch(state) {
-			case PARSE_SLOT_BEGIN_STATE:
-				if (token.equals(SLOT_NAME_TAG)) {
-					slotName = st.nextToken();
-					state = PARSE_SLOT_NAME_OK_STATE;
-				}
-				else if (token.equals(SLOT_CATEGORY_TAG)){
-					Integer ii = new Integer(st.nextToken());
-					slotCategory = ii.intValue();
-					state = PARSE_SLOT_CATEGORY_OK_STATE;
-				}
-				else
-					throw new ParseException("State PARSE_SLOT_BEGIN_STATE: Unexpected token " + token + " parsing role " + roleName, 0);
-  			break;
-  			
-			case PARSE_SLOT_NAME_OK_STATE:
-				if (token.equals(SLOT_CATEGORY_TAG)){
-					Integer ii = new Integer(st.nextToken());
-					slotCategory = ii.intValue();
-					state = PARSE_SLOT_CATEGORY_OK_STATE;
-				}
-				else
-					throw new ParseException("State PARSE_SLOT_NAME_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
-				break;
-				
-			case PARSE_SLOT_CATEGORY_OK_STATE:
-				if (token.equals(SLOT_TYPE_TAG)){
-					slotType = st.nextToken();
-					state = PARSE_SLOT_TYPE_OK_STATE;
-				}
-				else 
-					throw new ParseException("State PARSE_SLOT_CATEGORY_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
-				break;
-				
-			case PARSE_SLOT_TYPE_OK_STATE:
-				if (token.equals(SLOT_PRESENCE_TAG)){
-					String tmp = st.nextToken();
-					isOptional = (tmp.equalsIgnoreCase("O"));
-					state = PARSE_SLOT_END_STATE;
-				}
-				else
-					throw new ParseException("State PARSE_SLOT_TYPE_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
-				break;
-				
-			case PARSE_SLOT_END_STATE:
-				if (token.equals(END_SLOT_TAG))
-					stopFlag = true;
-				else
-					throw new ParseException("State PARSE_SLOT_END_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
-				break;
-				
-			default:
-				throw new ParseException("Unknown parsing state after token " + token, 0);
-				
-  		} // END of switch
-  		
-  	} // END of while
-  	
-  	SlotDescriptor dsc = null;
-  	if (slotName != null)
-  		dsc = new SlotDescriptor(slotName, slotCategory, slotType, isOptional);
-  	else
-  		dsc = new SlotDescriptor(slotCategory, slotType, isOptional);
-  	
-  	return dsc;
-  }
-  
   /**
-    Writes the ontology represented by this Ontology object as a text formatted
-    according to the following syntax.
-    ONTOLOGY
-    ONTOLOGY-NAME <name>
-    
-    	ROLE
-    	ROLE-NAME <name>
-    
-    		SLOT
-    		[SLOT-NAME <name>]
-    		SLOT-CATEGORY <category> // Must be one among Ontology.FRAME_SLOT ....
-    		SLOT-TYPE <type>         // Must be one among Ontology.SLOT_TYPE ....
-    		SLOT-PRESENCE <presence> // Must be M or O
-    		END-SLOT // This block can be repeated n times
-    		
-    	[ROLE-ENTITY-FACTORY <factory>]
-    	
-    	END-ROLE // This block can be repeated n times
-    	
-    END-ONTOLOGY
-    
-    @param ontologyName This <code>String</code> will be used as the ontology name.
-    @param out The <code>BufferedWriter</code> where to write text into.
-    @see fromText(BufferedReader inp)
-  */  
-  public void toText(String ontologyName, BufferedWriter out) throws IOException {
-  	// Ontology BEGIN TAG
-  	out.write(BEGIN_ONTOLOGY_TAG);
-  	out.newLine();
-  	// Ontology Name
-  	out.write(ONTOLOGY_NAME_TAG + " " + ontologyName);
-  	out.newLine();
-  	
-  	// Loop on roles
-  	Iterator i = schemas.values().iterator();
-  	while (i.hasNext()) {
-  		FrameSchema fs = (FrameSchema) i.next();
-  		String roleName = fs.getName();
-  		// Role BEGIN TAG
-  		out.write(BEGIN_ROLE_TAG);
-  		out.newLine();
-  		// Role Name
-			out.write(ROLE_NAME_TAG + " " + roleName);
-  		out.newLine();
-	  	
-	  	// Loop on slots
-	  	Iterator j = fs.subSchemas();
-	  	while (j.hasNext()) {
-	  		SlotDescriptor dsc = (SlotDescriptor) j.next();
-	  		// Slot BEGIN TAG
-	  		out.write(BEGIN_SLOT_TAG);
-	  		out.newLine();
-  			// Slot Name
-	  		if (!(dsc.getName().equals("") || dsc.getName().startsWith(Frame.UNNAMEDPREFIX) ) ) {
-	  			out.write(SLOT_NAME_TAG + " " + dsc.getName());
-  				out.newLine();
-	  		}
-	  		// Slot Category
-	  		out.write(SLOT_CATEGORY_TAG + " " + dsc.getCategory());
-  			out.newLine();
-	  		// Slot Type
-	  		out.write(SLOT_TYPE_TAG + " " + dsc.getType());
-  			out.newLine();
-	  		// Slot Presence
-	  		if (dsc.isOptional())
-	  			out.write(SLOT_PRESENCE_TAG + " O");
-	  		else
-	  			out.write(SLOT_PRESENCE_TAG + " M");
-  			out.newLine();
-	  		// Slot END TAG
-	  		out.write(END_SLOT_TAG);
-  			out.newLine();
-	  			
-	  	} // END loop on slots
-	  	
-	  	// Role Entity Factory
-    	if (factories.containsKey(new Name(roleName))) {
-    		RoleEntityFactory fac = lookupFactory(roleName);
-    		out.write(ROLE_FACTORY_TAG + " " + fac.getClass().getName());
-  			out.newLine();
-    	}
-	  	// Role END TAG
-	  	out.write(END_ROLE_TAG);
-  		out.newLine();
-	  	
-  	} // END loop on roles
-  	
-  	// Ontology END TAG
-  	out.write(END_ONTOLOGY_TAG);
-  	out.newLine();
-  	
-  	out.flush();
-  	out.close();
+   * @see Ontology.fromSL0String(String)
+  **/
+  public String fromSL0String(String str) throws CodecException, OntologyException {
+    Ontology meta = JADEMetaOntology.instance();
+    schemas.clear();
+    roleClasses.clear();
+    List l = (new SL0Codec()).decode(str, meta); 
+    AnOntology o = (AnOntology)meta.createObject(l).get(0);
+    fromMetaOntologyRepresentation(o);
+    return o.getName(); 
   }
+
+  /**
+    @see Ontology.fromMetaOntologyRepresentation(AnOntology)
+    **/
+  public void fromMetaOntologyRepresentation(AnOntology o) throws OntologyException {
+    for (Iterator i=o.getAllRoles(); i.hasNext(); ) { //iteration on roles
+      Role r = (Role)i.next();
+      ArrayList slots = new ArrayList();
+      for (Iterator j=r.getAllSlots(); j.hasNext(); ) { //iteration on slots
+	Slot s = (Slot)j.next();
+	SlotDescriptor sd;
+	if (s.getName() != null) 
+	  sd = new SlotDescriptor(s.getName(), s.getCategory().intValue(), s.getType(), s.getPresence().booleanValue());
+	else
+	  sd = new SlotDescriptor(s.getCategory().intValue(), s.getType(), s.getPresence().booleanValue());
+	slots.add(sd);
+      } //end iteration on slots
+      SlotDescriptor[] sdarray = new SlotDescriptor[slots.size()];
+      slots.toArray(sdarray);
+      if (r.getClassName() == null)
+	addRole(r.getName(),sdarray);
+      else 
+	try {
+	  addRole(r.getName(), sdarray, Class.forName(r.getClassName()));
+	} catch (ClassNotFoundException e) {
+	  System.out.println("WARNING: ClassNotFoundException in adding role "+r.getName()+" to the ontology. The role has been then added without any class");
+	  addRole(r.getName(), sdarray);
+	}
+    } // end iteration on roles
+  }
+  
+
+  /**
+   * Return a String representing this ontology Object by calling
+   * the method <code>toSL0String()</code> and catching any exception.
+   * Notice that this method ignores the name of the ontology and, therefore,
+   * the method <code>toSL0String()</code> should be preferred, instead.
+   * @return the String representing this ontology, or null if any
+   * exception occurs.
+  **/
+  public String toString() {
+    try {
+      return toSL0String("unknownOntologyName");
+    } catch (OntologyException o) {
+      o.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+    @see Ontology.toMetaOntologyRepresentation(String)
+    **/
+  public AnOntology toMetaOntologyRepresentation (String ontologyName){
+    AnOntology o = new AnOntology();
+    if ((ontologyName == null) || (ontologyName.trim().equals("")))
+      o.setName("unknownOntologyName");
+    else
+      o.setName(ontologyName);
+    
+    // Loop on roles
+    for (Iterator i=schemas.values().iterator(); i.hasNext(); ) {
+      FrameSchema fs = (FrameSchema) i.next();
+      String roleName = fs.getName();
+      Role r = new Role();
+      r.setName(roleName);
+      Class c = getClassForRole(roleName);
+      if (c != null) 
+	r.setClassName(c.getName());
+      // Loop on slots
+      for (Iterator j = fs.subSchemas(); j.hasNext(); ) {
+	SlotDescriptor dsc = (SlotDescriptor) j.next();
+	Slot s = new Slot();
+	// Slot Name
+	if (!(dsc.getName().equals("") || dsc.getName().startsWith(Frame.UNNAMEDPREFIX) ) ) 
+	  s.setName(dsc.getName());
+	// Slot Category
+	s.setCategory(new Long(dsc.getCategory()));
+	// Slot Type
+	s.setType(dsc.getType());
+	// Slot Presence
+	s.setPresence(new Boolean(dsc.isOptional()));
+	r.addSlots(s);
+      } // END loop on slots
+      o.addRoles(r);
+    } // END loop on roles
+    return o;
+  }
+
+  /**
+    Writes the ontology represented by this Ontology object as an
+    SL-0 expression. 
+    @see Ontology.toSL0String() 
+  */  
+  public String toSL0String(String ontologyName) throws OntologyException {
+    AnOntology o = toMetaOntologyRepresentation(ontologyName);
+    Ontology meta = JADEMetaOntology.instance();
+    String s;
+    List l = new ArrayList(1);
+    l.add(meta.createFrame(o, meta.getRoleName(o.getClass())));
+    s = (new SL0Codec()).encode(l, meta); 
+    return(s);
+  }
+
+
+
+  public Object create(Frame f) throws OntologyException {
+    try {
+      return getClassForRole(f.getName()).newInstance();
+    } catch (Exception e) {
+      throw new OntologyException(e.getMessage()); 
+    }
+  }
+
 }

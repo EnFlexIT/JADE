@@ -26,6 +26,8 @@ package jade.domain.FIPAAgentManagement;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
 
 import jade.lang.Codec;
 
@@ -33,8 +35,8 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
-import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
+import jade.onto.Name;
 
 import jade.onto.basic.*;
 import java.util.Iterator;
@@ -126,9 +128,6 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
   //public static final String DONE = "done";
   //public static final String RESULT = "result";
 
-  static {
-    initInstance();
-  }
 
   /**
      This method grants access to the unique instance of the
@@ -143,23 +142,24 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
   private FIPAAgentManagementOntology() {
   }
 
+  static { 
+    initInstance();
+  }
+  
   private static void initInstance() {
     try {
-			// Adds the roles of the basic ontology (ACTION, AID,...)
-    	theInstance.joinOntology(BasicOntology.instance());
-    	
-	theInstance.addRole(DFAGENTDESCRIPTION, new SlotDescriptor[] {
+      // Adds the roles of the basic ontology (ACTION, AID,...)
+      theInstance.joinOntology(BasicOntology.instance());
+
+      theInstance.addRole(DFAGENTDESCRIPTION, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
           new SlotDescriptor("services", Ontology.SET_SLOT, SERVICEDESCRIPTION, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("languages", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new DFAgentDescription(); }
-	     public Class getClassForRole() { return DFAgentDescription.class; }
-	   });
+	}, DFAgentDescription.class); 
 
-	theInstance.addRole(SERVICEDESCRIPTION, new SlotDescriptor[] {
+      theInstance.addRole(SERVICEDESCRIPTION, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("type", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -167,195 +167,117 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("properties", Ontology.SET_SLOT, PROPERTY, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new ServiceDescription(); }
-	     public Class getClassForRole() { return ServiceDescription.class;}
-	   });
+	}, ServiceDescription.class); 
 
-	theInstance.addRole(SEARCHCONSTRAINTS, new SlotDescriptor[] {
+      theInstance.addRole(SEARCHCONSTRAINTS, new SlotDescriptor[] {
 	  new SlotDescriptor("max-depth", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O),
 	  new SlotDescriptor("max-results", Ontology.PRIMITIVE_SLOT, Ontology.LONG_TYPE, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new SearchConstraints(); }
-	     public Class getClassForRole() { return SearchConstraints.class; }
-	   });
+	}, SearchConstraints.class); 
 
-	theInstance.addRole(AMSAGENTDESCRIPTION, new SlotDescriptor[] {
+      theInstance.addRole(AMSAGENTDESCRIPTION, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
 	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AMSAgentDescription();}
-	     public Class getClassForRole() { return AMSAgentDescription.class; }
-	   });
+	}, AMSAgentDescription.class); 
 
-	theInstance.addRole(APDESCRIPTION, new SlotDescriptor[] {
+      theInstance.addRole(APDESCRIPTION, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("dynamic", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
 	    new SlotDescriptor("mobility", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
             new SlotDescriptor("transport-profile", Ontology.FRAME_SLOT, APTRANSPORTDESCRIPTION, Ontology.O),
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new APDescription(); } 
-	     public Class getClassForRole() { return APDescription.class; }
-	   });
+	}, APDescription.class); 
 
-	theInstance.addRole(APTRANSPORTDESCRIPTION, new SlotDescriptor[] {
+      theInstance.addRole(APTRANSPORTDESCRIPTION, new SlotDescriptor[] {
 	    new SlotDescriptor("available-mtps", Ontology.SET_SLOT, MTPDESCRIPTION, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new APTransportDescription(); } 
-	     public Class getClassForRole() { return APTransportDescription.class; }
-	   });
+	}, APTransportDescription.class); 
 
-	theInstance.addRole(MTPDESCRIPTION, new SlotDescriptor[] {
+      theInstance.addRole(MTPDESCRIPTION, new SlotDescriptor[] {
 	    new SlotDescriptor("profile", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	    new SlotDescriptor("mtp-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	    new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MTPDescription(); } 
-	     public Class getClassForRole() { return MTPDescription.class; }
-	   });
+	}, MTPDescription.class); 
 
-	theInstance.addRole(PROPERTY, new SlotDescriptor[] {
+      theInstance.addRole(PROPERTY, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("value", Ontology.ANY_SLOT, Ontology.ANY_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Property(); } 
-	     public Class getClassForRole() { return Property.class; }
-	   });
+	}, Property.class); 
 
-	theInstance.addRole(REGISTER, new SlotDescriptor[] {
+      theInstance.addRole(REGISTER, new SlotDescriptor[] {
 	  // This can both be a DFAgentDescription and an AMSAgentDescription
 	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE,Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Register(); } 
-	     public Class getClassForRole() { return Register.class; }
-	   });
+	}, Register.class); 
 
-	theInstance.addRole(DEREGISTER, new SlotDescriptor[] {	  
+      theInstance.addRole(DEREGISTER, new SlotDescriptor[] {	  
 	  // This can both be a DFAgentDescription and an AMSAgentDescription
 	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE,Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Deregister(); } 
-	     public Class getClassForRole() { return Deregister.class; }
-	   });
+	}, Deregister.class); 
 
-	theInstance.addRole(MODIFY, new SlotDescriptor[] {
+      theInstance.addRole(MODIFY, new SlotDescriptor[] {
 	  // This can both be a DFAgentDescription and an AMSAgentDescription
 	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE,Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Modify(); } 
-	     public Class getClassForRole() { return Modify.class; }
-	   });
+	}, Modify.class); 
 
-	theInstance.addRole(SEARCH, new SlotDescriptor[] {
+      theInstance.addRole(SEARCH, new SlotDescriptor[] {
 	  // This can both be a DFAgentDescription and an AMSAgentDescription
 	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE,Ontology.M), 
 	  new SlotDescriptor(Ontology.FRAME_SLOT, SEARCHCONSTRAINTS, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Search(); } 
-	     public Class getClassForRole() { return Search.class; }
-	   });
+	}, Search.class); 
 
-	theInstance.addRole(GETDESCRIPTION, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new GetDescription(); } 
-	     public Class getClassForRole() { return GetDescription.class; }
-	   });
+      theInstance.addRole(GETDESCRIPTION, new SlotDescriptor[] {
+	}, GetDescription.class); 
 
-	theInstance.addRole(QUIT, new SlotDescriptor[] {
+      theInstance.addRole(QUIT, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Quit(); } 
-	     public Class getClassForRole() { return Quit.class; }
-	   });
+	}, Quit.class); 
 
-
-	theInstance.addRole(UNSUPPORTEDACT, new SlotDescriptor[] {
+      theInstance.addRole(UNSUPPORTEDACT, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnsupportedAct(); } 
-	     public Class getClassForRole() { return UnsupportedAct.class; }
-	   });
+	}, UnsupportedAct.class); 
 
-	theInstance.addRole(UNEXPECTEDACT, new SlotDescriptor[] {
+      theInstance.addRole(UNEXPECTEDACT, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnexpectedAct(); } 
-	     public Class getClassForRole() { return UnexpectedAct.class; }
-	   });
+	}, UnexpectedAct.class); 
 
-	theInstance.addRole(UNSUPPORTEDVALUE, new SlotDescriptor[] {
+      theInstance.addRole(UNSUPPORTEDVALUE, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnsupportedValue(); } 
-	     public Class getClassForRole() { return UnsupportedValue.class; }
-	   });
+	}, UnsupportedValue.class); 
 
-	theInstance.addRole(UNRECOGNISEDVALUE, new SlotDescriptor[] {
+      theInstance.addRole(UNRECOGNISEDVALUE, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnrecognisedValue(); } 
-	     public Class getClassForRole() { return UnrecognisedValue.class; }
-	   });
+	}, UnrecognisedValue.class); 
 
-	theInstance.addRole(UNAUTHORISED, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new Unauthorised(); } 
-	     public Class getClassForRole() { return Unauthorised.class; }
-	   });
+      theInstance.addRole(UNAUTHORISED, new SlotDescriptor[] {
+	}, Unauthorised.class); 
 
-	theInstance.addRole(UNSUPPORTEDFUNCTION, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnsupportedFunction(); } 
-	     public Class getClassForRole() { return UnsupportedFunction.class; }
-	   });
+      theInstance.addRole(UNSUPPORTEDFUNCTION, new SlotDescriptor[] {
+	new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	  }, UnsupportedFunction.class);
 
-	theInstance.addRole(MISSINGPARAMETER, new SlotDescriptor[] {
+      theInstance.addRole(MISSINGPARAMETER, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MissingParameter(); }
-	     public Class getClassForRole() { return MissingParameter.class;}
-	   });
+	}, MissingParameter.class); 
 
-	theInstance.addRole(UNEXPECTEDPARAMETER, new SlotDescriptor[] {
+      theInstance.addRole(UNEXPECTEDPARAMETER, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new UnexpectedParameter(); }
-	     public Class getClassForRole() {return UnexpectedParameter.class;}
-	   });
+	}, UnexpectedParameter.class); 
 
-
-	theInstance.addRole(UNRECOGNISEDPARAMETERVALUE, new SlotDescriptor[] {
+      theInstance.addRole(UNRECOGNISEDPARAMETERVALUE, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new UnrecognisedParameterValue(); }
-	     public Class getClassForRole() {return UnrecognisedParameterValue.class;}
-	   });
+	}, UnrecognisedParameterValue.class); 
 
-	theInstance.addRole(ALREADYREGISTERED, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AlreadyRegistered(); } 
-	     public Class getClassForRole() { return AlreadyRegistered.class; }
-	   });
+      theInstance.addRole(ALREADYREGISTERED, new SlotDescriptor[] {
+	}, AlreadyRegistered.class); 
 
-	theInstance.addRole(NOTREGISTERED, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new NotRegistered(); } 
-	     public Class getClassForRole() { return NotRegistered.class; }
-	   });
+      theInstance.addRole(NOTREGISTERED, new SlotDescriptor[] {
+	}, NotRegistered.class); 
 
-	theInstance.addRole(INTERNALERROR, new SlotDescriptor[] {
+      theInstance.addRole(INTERNALERROR, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new InternalError(); } 
-	     public Class getClassForRole() { return InternalError.class; }
-	   });
+	}, InternalError.class); 
 
-	   	   
 	/** DEBUG: PRINT VOCABULARY
 	  List voc = theInstance.getVocabulary();
 	  Iterator i = voc.iterator();
@@ -367,5 +289,7 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
       oe.printStackTrace();
     }
   } //end of initInstance
+
+
 
 }

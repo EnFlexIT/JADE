@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto;
 import java.util.List;
+import jade.lang.Codec.CodecException;
+import jade.onto.JadeMetaOntology.AnOntology;
 
 /**
 	An application specific ontology is represented by a properly initialized
@@ -258,10 +260,6 @@ public interface Ontology {
   static final String ANY_TYPE = "java.lang.Object";
 
 
-  /** Symbolic constant identifying a slot representing an actor **/ 
-  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
-  /** Symbolic constant identifying a slot representing an action **/ 
-  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
   /** Symbolic constant identifying a frame representing a set **/ 
   public static String NAME_OF_SET_FRAME = "set";
   /** Symbolic constant identifying a frame representing a sequence **/ 
@@ -338,11 +336,11 @@ public interface Ontology {
     <li> The optionality of the slot (i.e. whether a value is required or not).
     <li> The position of the slot (implicitly defined by the position in the array).
     </ul>
-    @param ref A <code>Factory</code> object, which will be used to
-    create application specific Java objects representing instances of the role that
+    @param ref the <code>Class</code> which will be used to create
+    application specific Java objects representing instances of the role that
     is being added.
  */
-  void addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref) throws OntologyException;
+  void addRole(String roleName, SlotDescriptor[] slots, Class c) throws OntologyException;
 
   /**
     Adds to this ontology all roles included into another ontology 
@@ -439,15 +437,63 @@ public interface Ontology {
   */
   List getVocabulary();
   
-  /** 
-  	Returns the factory for instances of the user defined class
-  	representing a given role
-  	@param roleName The name of the ontological role.
-  	@return the factory for instances of the user defined class
-  	representing a given role
-    @throws OntologyException if no role is found with the specified name
-    or if a factory is not registered for the role
+  /**
+    Creates an object, starting from a given frame. This method can just create
+    the object ignoring its argument, or it can use the frame to select the
+    concrete class to instantiate.
+    @param f A frame containing initialization data for the object.
+    @return A Java object, instance of the proper class (either the class
+    returned by <code>getClassForRole()</code>, or one of its subclasses).
   */
-  RoleEntityFactory getFactory(String roleName) throws OntologyException; 
-  
+  Object create(Frame f) throws OntologyException;
+
+  /**
+    Provides the Java class associated with this ontological role. This class is
+    usually the class used by the <code>create()</code> method to instantiate
+    objects. A useful technique is returning an interface or an abstract class,
+    while using concrete subclasses to create objects.
+    @param a string representing the name of the ontological role
+    @return the Java class that plays this ontological role (e.g. <code>DFAgentDescription.class</code>, null if no class has been registered for this role.
+  */
+  Class getClassForRole(String roleName); 
+
+  /**
+   * This method initialized this ontology object on the basis of its
+   * representation as an SL-0 expression.
+   * This expression is based on the JADE-Meta-Ontology encoded in the
+   * package <code>jade.onto.JadeMetaOntology</code
+   * @param str is the SL-0 expression representing this ontology 
+   * @return the name of the ontology
+   * @see toSL0String()
+   * @see jade.lang.sl.SL0Codec
+   * @see jade.onto.JadeMetaOntology.JADEMetaOntology
+  **/
+  String fromSL0String(String str) throws CodecException, OntologyException;
+
+  /**
+   * This method encodes the current ontology according to the SL-0 syntax
+   * and the JADE-meta-ontology ontology.
+   * @param ontologyName the name of this ontology
+   * @return a String that is an SL-0 expression representing this ontology
+   * @see fromSL0String(String)
+   * @see jade.lang.sl.SL0Codec
+   * @see jade.onto.JadeMetaOntology.JADEMetaOntology
+  **/
+  public String toSL0String(String ontologyName) throws OntologyException;
+
+  /**
+   * Return an object representing this ontology in terms of the
+   * JADE-Meta-Ontology and that is suitable to be encoded as a String and,
+   * for instance, become the content of an ACLMessage.
+   * @param ontologyName is the name of this ontology. It cannot be either
+   * null or an empty String.
+   * @return a JADE-Meta-Ontology
+  **/
+  public AnOntology toMetaOntologyRepresentation(String ontologyName);
+
+  /**
+   * Initialize this ontology based on the passed meta-ontology
+   * @param o is a JADE-Meta-Ontology
+  **/
+  public void fromMetaOntologyRepresentation(AnOntology o) throws OntologyException;
 }
