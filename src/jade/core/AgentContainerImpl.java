@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.22  1998/11/09 22:12:25  Giovanni
+  Added AgentContainer interface's exit() method implementation to allow
+  shutting down an AgentContainer remotely.
+
   Revision 1.21  1998/11/09 00:05:31  rimassa
   Now when an AgentContainer terminates and its shutDown() method is
   called each agent is killed and the AgentContainer waits for its
@@ -185,6 +189,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentName);
     agent.doDelete();
+  }
+
+  public void exit() throws RemoteException {
+    System.exit(0);
   }
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
