@@ -10,22 +10,16 @@ according to FIPA standard specifications.
 
 LICENSE
 =======
+see file License.
 
-THE SOFTWARE CAN BE USED ONLY FOR THE PROJECTS THAT HAVE BEEN NEGOTIATED
-WITH CSELT. 
-YOU HAVE ALREADY AGREED TO SIGN AN AGREEMENT WITH CSELT WHERE YOU COMMIT TO: 
-- NOT TO DISCLOSE THE SOFTWARE, AND ANY SOFTWARE DETAIL, TO ANYONE ELSE;
-- NOT TO USE THE SOFTWARE OUTSIDE THE DECLARED PROJECT;
-- NOT TO REVERSE ENGINEER ANY MODULE OF THE SOFTWARE.
+FEEDBACK
+=======
+As you know already, this is still an on-going project. 
+We are still working on the framework and new versions will be distributed asap.
+Your feedback as users is very important to us. Please, if you have new 
+requirements that you would like to see implemented or if you have examples 
+of usage or if you discover some bugs, send me information. 
 
-I'm sending the software to you before the agreement 
-has been signed explicitly. However, it is our intention that this email binds you to 
-the above agreements. If you feel unable to accept these agreements then you should NOT 
-use the software in any way. 
-
-Your feedback as users is very important to us. Please, if you have new requirements that 
-you would like to see implemented or if you have examples of usage or if you discover some 
-bugs, send me information. 
 
 
 SYSTEM REQUIREMENTS
