@@ -36,7 +36,6 @@ class TimerDispatcher implements Runnable {
   private Thread myThread;
   private SortedSet timers = new TreeSet();
   private boolean active;
-  private int useCount = 0;
 
   TimerDispatcher() {
     active = true;
@@ -120,17 +119,27 @@ class TimerDispatcher implements Runnable {
     // System.out.println("Timer Dispatcher shutting down ...");
   }
 
-  public synchronized void start() {
-    if(useCount == 0)
+  public void start() {
+    synchronized(myThread) {
       myThread.start();
-    ++useCount;
+    }
   }
 
-  public synchronized void stop() {
-    --useCount;
-    if(useCount == 0) {
-      active = false;
-      myThread.interrupt();
+  public void stop() {
+    synchronized(myThread) {
+      if(Thread.currentThread().equals(myThread)) {
+	System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
+      }
+      else {
+	active = false;
+	myThread.interrupt();
+	try {
+	  myThread.join();
+	}
+	catch (InterruptedException ignore) {
+	  // Do nothing
+	}
+      }
     }
   }
 
