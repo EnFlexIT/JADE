@@ -95,9 +95,9 @@
 			<HowWorkTest> Test the usage of an OntoAID where a Concept is required.</HowWorkTest>
 			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
 		</Test>		
-		<Test name="Sequence" skip="false">
+		<Test name="Sequence,True_As_A_String" skip="false">
 			<TestClassName>test.content.tests.TestSequence</TestClassName>
-			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<WhatTest> Tests a ACLMessage content. It also tests the codec capability of distinguishing between the string "true" and the boolean true.</WhatTest>
 			<HowWorkTest> It includes a concept with an aggregate attribute of type SEQUENCE.</HowWorkTest>
 			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
 		</Test>		

@@ -48,7 +48,10 @@ public class TestSequence extends Test{
   			protected ACLMessage prepareMessage() throws Exception {
 					CD cd = new CD();
 					cd.setSerialID(11111);
-					cd.setTitle("Synchronicity");
+					// set true as a value in order to stress the codec.
+					// the codec should be able to distinguish between "true" as
+					// as a string and true as a boolean
+					cd.setTitle("true"); 
 					List tracks = new ArrayList();
 					Track t = new Track();
 					t.setName(T1);
