@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/02/16 08:09:34  rimassa
+  Removed a fixed FIXME.
+
   Revision 1.8  1999/02/03 10:54:28  rimassa
   Added some missing parentheses to ACC reply messages.
 
@@ -71,7 +74,6 @@ public class acc extends Agent {
 
 	// Make sure destination agent is registered with platform AMS
 	String destName = toForward.getDest();
-	// FIXME: Add existence check ...
 
 	// Forward message
 	send(toForward);

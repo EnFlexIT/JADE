@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/02/16 08:07:07  rimassa
+  Removed a fixed FIXME.
+
   Revision 1.6  1998/10/30 18:18:48  rimassa
   Added an abstract reset() method to restore a Behaviour's initial
   state.
@@ -105,8 +108,6 @@ public abstract class Behaviour {
     }
   }
 
-
-  // FIXME: These two methods have package access, but it's still to be decided ...
 
   // Sets the runnable/not-runnable state
   void setRunnable(boolean runnable) {
