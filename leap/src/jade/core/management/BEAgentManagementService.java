@@ -174,14 +174,12 @@ public class BEAgentManagementService extends BaseService {
 
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
-            String ownership = "";
 	    // If an actual agent instance was passed as second
 	    // argument, then this agent has to be started within the
 	    // Back-End container.
-	    if((params.length > 2) && (params[1] instanceof Agent) && (params[2] instanceof Boolean))  {
+	    if((params.length > 1) && (params[1] instanceof Agent))  {
 		Agent instance = (Agent)params[1];
-		boolean startIt = ((Boolean)params[2]).booleanValue();
-		createAgentOnBE(agentID, instance, startIt, ownership, cmd);
+		createAgentOnBE(agentID, instance, cmd);
 	    }
 	    else {
 
@@ -189,16 +187,6 @@ public class BEAgentManagementService extends BaseService {
 		if (image == null) {
 		    // The agent spontaneously born on the FrontEnd --> its image still has to be created
 		    image = myContainer.createAgentImage(agentID);
-		    /* Create and set security information
-		    try {
-			CertificateFolder certs = myContainer.createCertificateFolder(agentID);
-			image.setPrincipal(certs);
-			image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
-		    }
-		    catch (AuthException ae) {
-			// Should never happen
-			ae.printStackTrace();
-		    }*/
 		}
 
 		// Add the agent image to the table
@@ -210,11 +198,11 @@ public class BEAgentManagementService extends BaseService {
 
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		    try {
-			mainSlice.bornAgent(agentID, cid, ownership, cmd);
+			mainSlice.bornAgent(agentID, cid, cmd);
 		    }
 		    catch(IMTPException imtpe) {
 			mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
-			mainSlice.bornAgent(agentID, cid, ownership, cmd);
+			mainSlice.bornAgent(agentID, cid, cmd);
 		    }
 		}
 		catch (Exception e) {
@@ -237,12 +225,12 @@ public class BEAgentManagementService extends BaseService {
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 	    try {
-		mainSlice.deadAgent(target);
+		mainSlice.deadAgent(target, cmd);
 	    }
 	    catch(IMTPException imtpe) {
 		// Try to get a newer slice and repeat...
 		mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-		mainSlice.deadAgent(target);
+		mainSlice.deadAgent(target, cmd);
 	    }
 
 	    // Remove the dead agent from the agent images
@@ -306,31 +294,22 @@ public class BEAgentManagementService extends BaseService {
 	    }
 	}
 
-	private void createAgentOnBE(AID target, Agent instance, boolean startIt,String ownership,VerticalCommand cmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+	private void createAgentOnBE(AID target, Agent instance, VerticalCommand cmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
 	    // Connect the new instance to the local container
 	    Agent old = myContainer.addLocalAgent(target, instance);
 
 	    try {
-
-	    Credentials creds = null;
-		//CertificateFolder agentCerts = instance.getCertificateFolder();
-		if(startIt) {
-
 		    // Notify the main container through its slice
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 		    try {
-			mainSlice.bornAgent(target, myContainer.getID(), ownership, cmd);
+					mainSlice.bornAgent(target, myContainer.getID(), cmd);
 		    }
 		    catch(IMTPException imtpe) {
-			// Try to get a newer slice and repeat...
-			mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-			mainSlice.bornAgent(target, myContainer.getID(), ownership, cmd);
+					// Try to get a newer slice and repeat...
+					mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+					mainSlice.bornAgent(target, myContainer.getID(), cmd);
 		    }
-
-		    // Actually start the agent thread
-		    myContainer.powerUpLocalAgent(target);
-		}
 	    }
 	    catch(NameClashException nce) {
 		myContainer.removeLocalAgent(target);
