@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.13  1998/10/26 22:38:44  Giovanni
+  Modified AMS Behaviour for action 'create-agent': now the syntax of
+  the "Proposal for an extension of the Agent Management specifications"
+  is used in 'create-agent' action content.
+
   Revision 1.12  1998/10/26 00:08:47  rimassa
   Added two new Behaviours to support new 'create-agent' and
   'kill-agent' actions. Some modifications to AMSBehaviour abstract base
@@ -340,7 +345,11 @@ public class ams extends Agent {
 
       AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
       String className = caa.getClassName();
-      int containerID = caa.getContainerID();
+      String prop = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
+
+      int containerID = 0;
+      if(prop != null)
+	containerID = Integer.parseInt(prop);
 
       // Create a new agent
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
