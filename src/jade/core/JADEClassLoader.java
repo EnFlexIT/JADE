@@ -31,19 +31,21 @@ package jade.core;
  */
 class JADEClassLoader extends ClassLoader {
 
-  private AgentContainer classServer;
+	private AgentContainer classServer;
+	private int verbosity;
 
-  public JADEClassLoader(AgentContainer ac) {
+  public JADEClassLoader(AgentContainer ac, int v) {
   	//#PJAVA_EXCLUDE_BEGIN
     super(Thread.currentThread().getContextClassLoader());
   	//#PJAVA_EXCLUDE_END
     classServer = ac;
+    verbosity = v;
   }
 
   protected Class findClass(String name) throws ClassNotFoundException {
     byte[] classFile;
 
-    // System.out.println("JADEClassLoader: findClass: " + name);
+    log("Remote retrieval of class "+name, 4);
 
     try {
       classFile = classServer.fetchClassFile(name);
@@ -85,4 +87,10 @@ class JADEClassLoader extends ClassLoader {
   	return c;
 	}  	
 	#PJAVA_INCLUDE_END*/
+	
+  private void log(String s, int level) {
+  	if (verbosity >= level) {
+	  	System.out.println("JCC-log: "+s);
+  	}
+  }  
 }

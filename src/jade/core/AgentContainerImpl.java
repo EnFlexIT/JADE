@@ -181,9 +181,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	catch (AuthException e) {
   		throw e;
   	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  		throw new IMTPException("Exception in createAgent",e); 
+  	catch (Throwable t) {
+  		t.printStackTrace();
+  		throw new IMTPException("Exception in createAgent",t); 
   	}
   }
 
@@ -407,7 +407,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 		// DEBUG
 		//Runtime.instance().debug(receiverID.getLocalName(), "incoming message received by container: "+Runtime.instance().stringify(msg));
-
+  	
     Agent receiver = localAgents.acquire(receiverID);
     if(receiver == null) {
 			//Runtime.instance().debug(receiverID.getLocalName(), "Not found on this container");

@@ -94,7 +94,7 @@ class RealMobilityManager implements MobilityManager {
             JADEClassLoader cl = (JADEClassLoader) loaders.get(ac);
 
             if (cl == null) {
-                cl = new JADEClassLoader(ac);
+                cl = new JADEClassLoader(ac, verbosity);
                 loaders.put(ac, cl);
             } 
             Class c = cl.loadClass(v.getName());
