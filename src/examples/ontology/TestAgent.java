@@ -24,13 +24,15 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
-import java.util.List;
+import java.util.*;
+import java.io.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.lang.acl.*;
 import jade.core.*;
 import jade.lang.sl.*;
+import jade.onto.*;
 
 public class TestAgent extends Agent {
 
@@ -41,28 +43,58 @@ protected void setup() {
   // register the ontology used by application
   registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
 	
-  System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology.");
-  System.out.println("Send it an ACL message, whose language parameter is set to FIPA-SL0 and whose ontology parameter is set to fipa-agent-management. USE STDIN.");
+  System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology all together.");
+  System.out.println("It is an application (i.e. do not need to run a JADE Agent Platform).");
+  System.out.println("The application reads from the file examples/ontology/testmessages.msg a sequence of ACL messages, whose language parameter is set to FIPA-SL0 and whose ontology parameter is set to fipa-agent-management.");
 
-  ACLParser parser = new ACLParser(System.in);
+  try {
+    ACLParser parser = new ACLParser(new FileReader("examples/ontology/testmessages.msg")); //System.in);
   ACLMessage msg;
   while (true) {  
     try {
+      System.out.println("\nREADING NEXT MESSAGE FROM THE FILE ...");
       msg = parser.Message();
+      System.out.println("  read the following message:\n"+msg.toString());
+      System.out.println("\nEXTRACTING THE CONTENT AND CREATING A LIST OF JAVA OBJECTS ...");
       List l=extractContent(msg);
+      System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
-	System.out.println(l.get(i).getClass().toString());
+	System.out.print(l.get(i).getClass().toString()+" ");
+      System.out.println(")");
+
       msg = msg.createReply();
-      msg.setPerformative(ACLMessage.INFORM);
-      msg.setContent("(true)");
-      System.out.println(msg.toString());
+      System.out.println("\nFILLING BACK THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
+      fillContent(msg,l);
+      System.out.println("  created the following message:\n"+msg.toString());
+
+      System.out.println("\nDOUBLE CHECK BY EXTRACTING THE CONTENT AGAIN ...");
+      l=extractContent(msg);
+      System.out.print("  created the following classes: (");
+      for (int i=0; i<l.size(); i++)
+	System.out.print(l.get(i).getClass().toString()+" ");
+      System.out.println(")");
+
+      System.out.println("\n FINAL CHECK BY FILLING AGAIN THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
+      fillContent(msg,l);
+      System.out.println(" created the following message:\n"+msg.toString());
+
+    } catch (OntologyException e) {
+      e.printStackTrace();
     } catch (FIPAException e) {
       e.printStackTrace();
+      System.exit(0);
     } catch (jade.lang.acl.ParseException e) {
       e.printStackTrace();
+      System.exit(0);
     }
   }
+  } catch (FileNotFoundException e) {
+    e.printStackTrace();
+  }
+
 }
+
+
 
 public static void main(String args[]) {
   TestAgent a = new TestAgent();
