@@ -186,11 +186,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @see jade.core.behaviours.Behaviour#block(long millis)
   */
   public void restartLater(Behaviour b, long millis) {
-    if(millis == 0)
-      return;
+    if (millis <= 0) 
+    	return;
     Timer t = new Timer(System.currentTimeMillis() + millis, this);
-    t = theDispatcher.add(t);
-    pendingTimers.addPair(b, t);
+    // The following block of code must be synchronized with the operations
+  	// carried out by the TimerDispatcher. In fact it could be the case that
+  	// 1) A behaviour blocks for a very short time --> A Timer is added
+    // to the TimerDispatcher
+  	// 2) The Timer immediately expires and the TimerDispatcher try to 
+    // restart the behaviour before the pair (b, t) is added to the 
+    // pendingTimers of this agent.
+  	synchronized (theDispatcher) {
+	    t = theDispatcher.add(t);
+  	  pendingTimers.addPair(b, t);
+    }
   }
 
   /**
@@ -203,6 +212,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     Behaviour b = pendingTimers.getPeer(t);
     if(b != null) {
       b.restart();
+    }
+    else {
+    	System.out.println("Warning: No mapping found for expired timer "+t.expirationTime());
     }
   }
 

@@ -55,7 +55,6 @@ public class TimerDispatcher implements Runnable {
     if(timers.first() == t) {
       notify();
     }
-    
     return t;
   }
 

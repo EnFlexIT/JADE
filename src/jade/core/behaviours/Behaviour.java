@@ -347,8 +347,15 @@ public abstract class Behaviour implements Serializable {
      @see jade.core.behaviours.Behaviour#block()
   */
   public void block(long millis) {
+  	// Note that it is important to block the behaviour before
+  	// adding a Timer to restart it in a millis time. In fact if
+  	// the two operations are cerried out the other way around, it 
+  	// could happen that the Timer expires before the block() 
+  	// operation is executed --> The TimerDispatcher thread restarts
+  	// the behaviour (that has not blocked yet) and just after the
+  	// behaviour blocks.
+  	block();
     myAgent.restartLater(this, millis);
-    block();
   }
 
   /**
