@@ -907,9 +907,15 @@ public class AclGui extends JPanel
 
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
-		if (parent != null)
-			tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, 
-			                       parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
+		if (parent != null) {
+		  int locx = parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2;
+		  if (locx < 0)
+		    locx = 0;
+		  int locy = parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2;
+		  if (locy < 0)
+		    locy = 0;
+		  tempAclDlg.setLocation(locx,locy);
+		}
 		tempAclDlg.show();
 	}
 
