@@ -13,7 +13,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - jade.domain.MobilityOntology. removed the actor slot in the classes 
   MoveAction, QueryPlatformLocation and WhereIsAgent 
   (as reported by Nicolas Lhuillier, Motorola Labs Paris)
-
+- Catched exception in initfromIOR in order to pass the FIPA Compliance Test
+  of Motorola.
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
 ======================================================	
