@@ -34,6 +34,7 @@ import jade.util.BasicProperties;
 import java.io.IOException;
 import java.net.*;
 import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * This class allows the JADE core to retrieve configuration-dependent classes
@@ -416,7 +417,12 @@ public class ProfileImpl extends Profile {
     String    specsLine = getParameter(key, null);
 
     try {
-    	return Specifier.parseSpecifierList(specsLine);
+    	Vector v = Specifier.parseSpecifierList(specsLine);
+			// convert the vector into an arraylist (notice that using the vector allows to avoid class loading of ArrayList)
+			List l1 = new ArrayList(v.size());
+			for (int i=0; i<v.size(); i++)
+					l1.add(v.elementAt(i));
+			return l1;
     }
     catch (Exception e) {
     	throw new ProfileException("Error parsing specifier list "+specsLine+". "+e.getMessage());
