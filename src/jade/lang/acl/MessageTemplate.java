@@ -4,6 +4,7 @@
 
 package jade.lang.acl;
 
+import java.lang.reflect.Method;
 import java.util.Hashtable;
 
 /**************************************************************
@@ -44,6 +45,22 @@ public class MessageTemplate {
   //        }
 
   private static final String wildCard = "*";
+
+  // Names of the various fields of an ACL messages.
+  // Used to build the names of get()/set() methods.
+  private static final String[] fieldNames = { "Content",
+					       "ConversationId",
+					       "Dest",
+					       "Envelope",
+					       "Language",
+					       "Ontology",
+					       "Protocol",
+					       "ReplyBy",
+					       "ReplyTo",
+					       "ReplyWith",
+					       "Source",
+					       "Type"
+  };
   private ACLMessage template;
 
   // Creates an ACL message with all fields set to the special,
@@ -160,96 +177,123 @@ public class MessageTemplate {
 
   // Boolean operation on message templates.
 
-  public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) {
-      // FIXME: To be implemented
-    return null;
-  }
+  public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
+    MessageTemplate result = new MessageTemplate();
 
-  public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
-      // FIXME: To be implemented
-    return null;
-  }
+    ACLMessage m1 = op1.template;
+    ACLMessage m2 = op2.template;
+    ACLMessage m3 = result.template;
+    String name = null;
+    String s1 = null;
+    String s2 = null;
 
+    Class ACLMessageClass = m1.getClass();
 
-  // Pattern matching with an ACL message
-  public boolean match(ACLMessage msg) {
+    // Used to hold the classes of the formal parameters of
+    // get<name>() and set<name>() methods.
+    Class[] noClass = new Class[0];
+    Class[] stringClass = { new String().getClass() };
 
-    boolean matchingResult = true;
-    String s = template.getSource();
-    if((!s.equals(wildCard))&&(!s.equals(msg.getSource()))) {
-      matchingResult = false;
-    }
-    else {
-      //  System.out.println("Source matched");
-      s = template.getDest();
-      if((!s.equals(wildCard))&&(!s.equals(msg.getDest())))
-	matchingResult = false;
-      else {
-	//  System.out.println("Dest matched");
-	s = template.getType();
-	if((!s.equals(wildCard))&&(!s.equals(msg.getType())))
-	  matchingResult = false;
-	else {
-	  // System.out.println("Type matched");
-	  s = template.getContent();
-	  if((!s.equals(wildCard))&&(!s.equals(msg.getContent())))
-	    matchingResult = false;
-	  else {
-	    // System.out.println("Content matched");
-	    s = template.getReplyWith();
-	    if((!s.equals(wildCard))&&(!s.equals(msg.getReplyWith())))
-	      matchingResult = false;
-	    else {
-	      // System.out.println("ReplyWith matched");
-	      s = template.getReplyTo();
-	      if((!s.equals(wildCard))&&(!s.equals(msg.getReplyTo())))
-		matchingResult = false;
-	      else {
-		// System.out.println("ReplyTo matched");
-		s = template.getEnvelope();
-		if((!s.equals(wildCard))&&(!s.equals(msg.getEnvelope())))
-		  matchingResult = false;
-		else {
-		  // System.out.println("Envelope matched");
-		  s = template.getLanguage();
-		  if((!s.equals(wildCard))&&(!s.equals(msg.getLanguage())))
-		    matchingResult = false;
-		  else {
-		    // System.out.println("Language matched");
-		    s = template.getOntology();
-		    if((!s.equals(wildCard))&&(!s.equals(msg.getOntology())))
-		      matchingResult = false;
-		    else {
-		      // System.out.println("Ontology matched");
-		      s = template.getReplyBy();
-		      if((!s.equals(wildCard))&&(!s.equals(msg.getReplyBy())))
-			matchingResult = false;
-		      else {
-			// System.out.println("ReplyBy matched");
-			s = template.getProtocol();
-			if((!s.equals(wildCard))&&(!s.equals(msg.getProtocol())))
-			  matchingResult = false;
-			else {
-			  // System.out.println("Protocol matched");
-			  s = template.getConversationId();
-			  if((!s.equals(wildCard))&&(!s.equals(msg.getConversationId())))
-			    matchingResult = false;
-			  //			  else
-			  // System.out.println("ConversationId matched");
-			}
-		      }
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
+    // Used to hold actual parameters of get<name>() and set<name>()
+    // methods.
+    Object[] noParams = new Object[0];
+    Object[] oneParam = new Object[1];
+
+    Method getValue = null;
+    Method setValue = null;
+
+    // Use Reflection API to scan all the fields of ACL message.
+
+    for(int i = 0; i<fieldNames.length;i++) {
+      name = fieldNames[i];
+      try {
+	// Process 'name' field of ACL message
+	getValue = ACLMessageClass.getMethod("get"+name, noClass);
+	setValue = ACLMessageClass.getMethod("set"+name, stringClass);
+
+	// Invokes get<name>() methods on m1 and m2, putting results in
+	// s1 and s2 respectively.
+	s1 = (String)getValue.invoke(m1, noParams);
+	s2 = (String)getValue.invoke(m2, noParams);
+
+	if(s1.equals(wildCard) && !s2.equals(wildCard)) {
+	  // This means: m3.set<value>(s2)
+	  oneParam[0] = s2;
+	  setValue.invoke(m3, oneParam);
 	}
+	if(!s1.equals(wildCard) && s2.equals(wildCard)) {
+	  // This means: m3.set<value>(s1);
+	  oneParam[0] = s1;
+	  setValue.invoke(m3, oneParam);
+	}
+	if(!s1.equals(wildCard) && !s2.equals(wildCard)) 
+	  if(s1.equals(s2)) {
+	    // This means:  m3.set<value>(s1);
+	    oneParam[0] = s1;
+	    setValue.invoke(m3, oneParam);
+	  }
+	  else
+	    throw new IllegalArgumentException("and: operands are in contradiction");
+      }
+      catch(Exception e) {
+	e.printStackTrace();
       }
     }
 
-    return matchingResult;
+    return result;
+  }
+
+  // FIXME: Not implemented, and maybe it's even meaningless ...
+  public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
+    MessageTemplate result = new MessageTemplate();
+    return result;
+  }
+
+
+  // Pattern matching with an ACL message -- now uses Reflection API
+  // to avoid code duplication.
+  public boolean match(ACLMessage msg) {
+
+    Class ACLMessageClass = msg.getClass();
+
+    // Used to hold the classes of the formal parameters of
+    // get<name>() methods.
+    Class[] noClass = new Class[0];
+
+    // Used to hold actual parameters of get<name>() methods.
+    Object[] noParams = new Object[0];
+
+    Method getValue = null;
+
+    String s1 = null;
+    String s2 = null;
+
+    boolean result = true;
+    for(int i = 0; i<fieldNames.length; i++) {
+      String name = fieldNames[i];
+
+      try {
+	getValue = ACLMessageClass.getMethod("get"+name, noClass);
+
+	// This means: s1 = template.get<value>();
+	s1 = (String)getValue.invoke(template, noParams);
+
+	// This means: s2 = msg.get<value>();
+	s2 = (String)getValue.invoke(msg, noParams);
+
+	if((!(s1.equals(wildCard))&&(!s1.equals(s2)))) {
+	  result = false;
+	  break; // Exit for loop
+	}
+      }
+      catch(Exception e) {
+	e.printStackTrace();
+      }
+    }
+
+    return result;
 
   }
+
 
 }
