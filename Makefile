@@ -15,6 +15,7 @@ CLSDIR  = $(ROOTDIR)/classes
 LIBDIR  = $(ROOTDIR)/lib
 LIBNAME = jade.jar
 LIBTOOLSNAME = jadeTools.jar
+LIBIIOPNAME = iiop.jar
 LIBBASE64NAME = Base64.jar
 LIBAPPLETNAME = appletArchive.jar
 EXAMPLESDIR = $(SRCDIR)/examples
@@ -44,6 +45,7 @@ export CLSDIR
 export LIBDIR
 export LIBNAME
 export LIBTOOLSNAME
+export LIBIIOPNAME
 export LIBBASE64NAME
 export LIBAPPLETNAME
 export EXAMPLESDIR

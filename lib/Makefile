@@ -14,14 +14,18 @@ all:
 	rm -rf jade/tools/applet; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
 	rm -rf jade/tools; \
-	$(AR) $(MANIFESTARFLAGS) $(LIBDIR)/$(LIBNAME) FIPA jade; \
-	rm -rf jade FIPA; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBIIOPNAME) jade/mtp/iiop FIPA; \
+	rm -rf jade/tools FIPA; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) jade; \
+	rm -rf jade; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBBASE64NAME) starlight; \
 	rm -rf starlight; \
 	cd $(LIBDIR)
 
 clean:
+	rm -f $(LIBDIR)/$(LIBAPPLETNAME)
 	rm -f $(LIBDIR)/$(LIBTOOLSNAME)
+	rm -f $(LIBDIR)/$(LIBIIOPNAME)
 	rm -f $(LIBDIR)/$(LIBNAME)
 	rm -f $(LIBDIR)/$(LIBBASE64NAME)
 	rm -f `find . -name '*~' -print`
@@ -37,16 +41,20 @@ batch:
 	echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
 	echo '@REM Not distributed for this version $(AR) $(ARFLAGS) ..\lib\$(LIBAPPLETNAME) jade\core\AgentGroup.class jade\core\IIOPAddress*.class jade\core\IIOPFormatException.class jade\domain\AgentManagementOntology*.class jade\domain\AgentManagementParser*.class jade\domain\*Exception.class jade\domain\ASCII_CharStream.class jade\domain\Token*.class jade\gui\AboutJadeAction*.class jade\gui\AgentNameTableModel.class jade\gui\ConstraintDlg*.class jade\gui\DFAgentDscDlg*.class jade\gui\DFGUI*.class jade\gui\GUI2DFCommunicatorInterface.class jade\gui\IntRetValue.class jade\gui\ServiceDsc*.class jade\gui\StringDlg*.class jade\gui\TreeHelp*.class jade\gui\GuiEvent.class jade\gui\images jade\gui\help\*.html jade\lang\acl\*.class jade\onto\*.class jade\tools\applet\*.class ' >> $(BATCH_LIB)
 	echo >> $(BATCH_LIB)
-	# echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
+# echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
 	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBTOOLSNAME) jade\tools' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q jade\tools' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y jade\tools' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
-	echo '$(AR) $(MANIFESTARFLAGS) ..\lib\$(LIBNAME)  jade FIPA' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y  jade' >> $(BATCH_LIB)  # For Win 95/98
+	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBIIOPNAME) jade\mtp\iiop FIPA' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q jade\mtp\iiop' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y jade\mtp\iiop' >> $(BATCH_LIB)  # For Win 95/98
 	echo 'rmdir /S /Q  FIPA' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y  FIPA' >> $(BATCH_LIB)  # For Win 95/98
+	echo >> $(BATCH_LIB)
+	echo '$(AR) $(MANIFESTARFLAGS) ..\lib\$(LIBNAME)  jade' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y  jade' >> $(BATCH_LIB)  # For Win 95/98
 	echo >> $(BATCH_LIB)
 	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBBASE64NAME) starlight' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For NT 4
