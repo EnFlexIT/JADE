@@ -70,7 +70,6 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
-import jade.core.UnreachableException;
 
 import jade.lang.acl.ACLMessage;
 
@@ -377,16 +376,11 @@ public class AgentMobilityService extends BaseService {
 
 		}
 		else {
-				//log("Error transferring identity of agent " + agentID, 1);
-                                if(logger.isLoggable(Logger.WARNING))
-                                  logger.log(Logger.WARNING,"Error transferring identity of agent " + agentID);
+        logger.log(Logger.WARNING,"Error transferring identity of agent " + agentID);
 
 				a.restoreBufferedState();
 		    dest.handleTransferResult(agentID, transferResult, messages);
-				//log("Migration of agent " + agentID + "aborted", 1);
-                                if(logger.isLoggable(Logger.WARNING))
-                                  logger.log(Logger.WARNING,"Migration of agent " + agentID + "aborted");
-
+        logger.log(Logger.WARNING,"Migration of agent " + agentID + "aborted");
 		}
 	    }
 	    catch (IOException ioe) {
@@ -578,17 +572,8 @@ public class AgentMobilityService extends BaseService {
 		    handleInformCloned(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during agent cloning", imtpe));
-	    }
-	    catch(JADESecurityException ae) {
-		cmd.setReturnValue(ae);
-	    }
-	    catch(NotFoundException nfe) {
-		cmd.setReturnValue(nfe);
-	    }
-	    catch(NameClashException nce) {
-		cmd.setReturnValue(nce);
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 	}
 
@@ -899,9 +884,8 @@ public class AgentMobilityService extends BaseService {
 	    if (classStream == null) {
 		// In PJAVA for some misterious reason getSystemResourceAsStream()
 		// does not work --> Try to do it by hand
-		//log("Class not found as a system resource. Try manually", 5);
-                if(logger.isLoggable(Logger.WARNING))
-                  logger.log(Logger.WARNING,"Class not found as a system resource. Try manually");
+    if(logger.isLoggable(Logger.FINER))
+      logger.log(Logger.FINER,"Class not found as a system resource. Try manually");
 
 		String currentCp = System.getProperty("java.class.path");
 		StringTokenizer st = new StringTokenizer(currentCp, ";");
