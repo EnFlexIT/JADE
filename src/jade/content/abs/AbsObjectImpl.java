@@ -173,7 +173,7 @@ public class AbsObjectImpl implements AbsObject {
      * Calculates the hashcode according to a formula based on the 
      * slot names and values taken in an lexicographical order
      */
-    private int f(AbsObjectImpl o, int x)
+    private final int f(AbsObjectImpl o, int x)
     {
     	String slotNames[] = o.getNames();
     	sort(slotNames);
@@ -196,12 +196,12 @@ public class AbsObjectImpl implements AbsObject {
    		return sum;
     }
     
-		private int f(AbsObjectImpl o)
+		private final int f(AbsObjectImpl o)
 		{
 			return f(o, 2);
 		} 
 		
-		private void sort(String[] strs) {
+		private final void sort(String[] strs) {
 			for (int i = 1; i < strs.length; ++i) {
 				for (int j = i; j > 0 && (strs[j-1].compareTo(strs[j]) > 0); --j) {
 					swap(strs, j, j-1);
@@ -209,7 +209,7 @@ public class AbsObjectImpl implements AbsObject {
 			}
 		}
 		
-		private void swap(String[] strs, int x, int y) {
+		private final void swap(String[] strs, int x, int y) {
 			String t = strs[x];
 			strs[x] = strs[y];
 			strs[y] = t;
