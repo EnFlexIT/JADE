@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1999/03/09 13:21:14  rimassa
+  Removed calls to deprecated ACLMessage methods getDest() and
+  setDest().
+  Removed hardwired name for front end container.
+
   Revision 1.13  1999/03/07 22:52:36  rimassa
   Added a printout in a catch() block for ParseException.
 
@@ -176,7 +181,8 @@ public class rma extends Agent {
     // Fill ACL messages fields
 
     AMSSubscription.setSource(getLocalName());
-    AMSSubscription.setDest("AMS");
+    AMSSubscription.removeAllDests();
+    AMSSubscription.addDest("AMS");
     AMSSubscription.setLanguage("SL");
     AMSSubscription.setOntology("jade-agent-management");
     AMSSubscription.setReplyWith("RMA-subscription");
@@ -189,7 +195,8 @@ public class rma extends Agent {
     AMSSubscription.setContent(content);
 
     AMSCancellation.setSource(getLocalName());
-    AMSCancellation.setDest("AMS");
+    AMSCancellation.removeAllDests();
+    AMSCancellation.addDest("AMS");
     AMSCancellation.setLanguage("SL");
     AMSCancellation.setOntology("jade-agent-management");
     AMSCancellation.setReplyWith("RMA-cancellation");
@@ -198,7 +205,8 @@ public class rma extends Agent {
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
     requestMsg.setSource(getLocalName());
-    requestMsg.setDest("AMS");
+    requestMsg.removeAllDests();
+    requestMsg.addDest("AMS");
     requestMsg.setProtocol("fipa-request");
     requestMsg.setOntology("fipa-agent-management");
     requestMsg.setLanguage("SL0");
@@ -239,7 +247,7 @@ public class rma extends Agent {
       agentName = agentName.concat('@' + getAddress());
 
     if(containerName.equals(""))
-      containerName = "Container-0";
+      containerName = AgentPlatform.MAIN_CONTAINER_NAME;
 
     amsd.setName(agentName);
 
@@ -340,7 +348,7 @@ public class rma extends Agent {
 
   public void shutDownPlatform() {
 
-    killContainer("Container-0"); // FIXME: Container name is hardwired within RMA
+    killContainer(AgentPlatform.MAIN_CONTAINER_NAME);
 
   }
 
