@@ -104,4 +104,5 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
 
   // Exception Predicates
   public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.NOTREGISTERED;
+  public static final String ALREADYREGISTERED = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.ALREADYREGISTERED;
 }

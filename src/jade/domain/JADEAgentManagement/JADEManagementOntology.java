@@ -28,6 +28,7 @@ import jade.content.onto.*;
 import jade.content.schema.*;
 import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import jade.domain.FIPAAgentManagement.NotRegistered;
+import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 
 /**
    This class represents the JADE-Agent-Management-ontology i.e. the set of
@@ -60,7 +61,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     //#MIDP_EXCLUDE_END
     	
 		/*#MIDP_INCLUDE_BEGIN    	
-  	super(NAME, BasicOntology.getInstance(), null);
+  	super(NAME, ExceptionOntology.getInstance(), null);
    	#MIDP_INCLUDE_END*/
 
     try {
@@ -70,7 +71,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new ConceptSchema(LOCATION));
 
     	// AgentActions definitions
-	add(new AgentActionSchema(SHUTDOWNPLATFORM), ShutdownPlatform.class);
+    	add(new AgentActionSchema(SHUTDOWNPLATFORM), ShutdownPlatform.class);
     	add(new AgentActionSchema(KILLCONTAINER), KillContainer.class);
     	add(new AgentActionSchema(CREATEAGENT), CreateAgent.class);
     	add(new AgentActionSchema(KILLAGENT), KillAgent.class);
@@ -86,15 +87,17 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new AgentActionSchema(QUERY_PLATFORM_LOCATIONS), QueryPlatformLocationsAction.class);
 
     	// Predicates definitions
-    	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
+	  	add(new PredicateSchema(ALREADYREGISTERED), AlreadyRegistered.class);
+	  	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
     	//#MIDP_EXCLUDE_END
     	
 			/*#MIDP_INCLUDE_BEGIN    	
     	// Concepts definitions
     	add(new ConceptSchema(CONTAINERID));
+    	add(new ConceptSchema(LOCATION));
     	
     	// AgentActions definitions
-	add(new AgentActionSchema(SHUTDOWNPLATFORM));
+    	add(new AgentActionSchema(SHUTDOWNPLATFORM));
     	add(new AgentActionSchema(KILLCONTAINER));
     	add(new AgentActionSchema(CREATEAGENT));
     	add(new AgentActionSchema(KILLAGENT));
@@ -105,16 +108,12 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new AgentActionSchema(DEBUGON));
     	add(new AgentActionSchema(DEBUGOFF));
     	add(new AgentActionSchema(SHOWGUI));
+    	add(new AgentActionSchema(WHEREISAGENT));
+    	add(new AgentActionSchema(QUERYAGENTSONLOCATION));
+    	add(new AgentActionSchema(QUERY_PLATFORM_LOCATIONS));
 
-    	// Predicates definitions
-    	add(new PredicateSchema(UNSUPPORTEDVALUE));
-    	add(new PredicateSchema(UNRECOGNISEDVALUE));
-    	add(new PredicateSchema(UNSUPPORTEDFUNCTION));
-    	add(new PredicateSchema(MISSINGPARAMETER));
-    	add(new PredicateSchema(UNEXPECTEDPARAMETER));
-    	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
-    	add(new PredicateSchema(NOTREGISTERED));
-    	add(new PredicateSchema(INTERNALERROR));
+	  	add(new PredicateSchema(ALREADYREGISTERED));
+	  	add(new PredicateSchema(NOTREGISTERED));
    		#MIDP_INCLUDE_END*/
    		
    		// Slots definitions
