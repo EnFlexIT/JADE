@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * JADE - Java Agent DEvelopment Framework is a framework to develop

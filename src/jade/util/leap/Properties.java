@@ -1,21 +1,40 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-/*
- * $header: $
- * <TODO>Put the LEAP HEADER and footer</TODO>
- */
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 package jade.util.leap;
 
-import java.io.*;
-import java.util.Properties;
-
-// import jade.util.leap.*;
+import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
 
 /**
- * J2SE implementation of the LEAPProperties.
+ * J2SE implementation of the Properties.
  */
-public class LEAPProperties extends Properties 
-    implements LEAPSerializable {
+public class Properties extends java.util.Properties 
+    implements Serializable {
 
     /**
      * The default resource file path.
@@ -33,7 +52,7 @@ public class LEAPProperties extends Properties
      * Constructor declaration
      *
      */
-    public LEAPProperties() {
+    public Properties() {
         super();
 
         RESOURCE_PATH = DEFAULT_RESOURCE_PATH;
@@ -42,7 +61,7 @@ public class LEAPProperties extends Properties
     /**
      * Creates an empty property list.
      */
-    public LEAPProperties(String fileName) {
+    public Properties(String fileName) {
         super();
 
         RESOURCE_PATH = fileName;
@@ -99,12 +118,12 @@ public class LEAPProperties extends Properties
     /*
      * public static void main(String[] args) {
      * try{
-     * LEAPProperties props = new LEAPProperties();
+     * Properties props = new Properties();
      * props.setProperty( "screen", "120x60" );
      * props.setProperty( "memory", "1MB" );
      * props.setProperty( "other.property", "Can be a string..." );
      * props.store();
-     * LEAPProperties others = new LEAPProperties();
+     * Properties others = new Properties();
      * others.load();
      * System.out.println( others.get( "other.property" ) );
      * } catch( IOException ioe ){

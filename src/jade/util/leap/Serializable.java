@@ -24,10 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * The LEAP version of the <quote>Set</quote> interface.
- * An unordered collection that contains no duplicate elements.
+ * J2SE version of the &qote;Serializable&qote; interface.
  * 
- * @see java.util.Set (J2SE)
+ * @see java.io.Serializable
  */
-public interface Set extends Collection {}
+public interface Serializable extends java.io.Serializable {}
 

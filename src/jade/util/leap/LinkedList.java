@@ -1,14 +1,31 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-/**
- * LEAP license header to be added
- * SUN license header to be added (?)
- */
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 package jade.util.leap;
 
-// import java.util.LinkedList;
-// import java.util.Iterator;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -21,11 +38,13 @@ import java.util.Enumeration;
  * 
  * @see java.util.LinkedList
  */
-public class LinkedList implements List, LEAPSerializable {
+public class LinkedList implements List, Serializable {
     private transient java.util.LinkedList realHiddenList = null;
     private Vector                         hiddenList;
-    private static final long              serialVersionUID = 
-        3487495895819394L;
+    
+    // This is needed to ensure compatibility with the J2ME version of 
+    // this class in serialization/deserialization operations
+    private static final long              serialVersionUID = 3487495895819394L;
 
     /**
      * Default Constructor, creates an empty List
@@ -179,13 +198,9 @@ public class LinkedList implements List, LEAPSerializable {
     // }
 
     /**
-     * Method declaration
-     *
-     * @param out
-     *
-     * @throws IOException
-     *
-     * @see
+       A customized writeObject() method is needed to ensure compatibility with  
+       the J2ME version of this class in serialization/deserialization 
+       operations
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
         hiddenList = new Vector();
@@ -200,14 +215,9 @@ public class LinkedList implements List, LEAPSerializable {
     } 
 
     /**
-     * Method declaration
-     *
-     * @param in
-     *
-     * @throws ClassNotFoundException
-     * @throws IOException
-     *
-     * @see
+       A customized readObject() method is needed to ensure compatibility with  
+       the J2ME version of this class in serialization/deserialization 
+       operations
      */
     private void readObject(ObjectInputStream in) 
             throws IOException, ClassNotFoundException {
