@@ -32,28 +32,17 @@ import test.common.*;
 
 /**
  */
-public class ContractNetTesterAgent extends Agent {
-	protected void setup() {
+public class ContractNetTesterAgent extends TesterAgent {
+	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup(new String[] {
-			"test.proto.tests.achieveRE.TestMyselfAsResp",
 			"test.proto.tests.contractNet.TestNormal1Resp",
 			"test.proto.tests.contractNet.TestMixedNResp",
 			"test.proto.tests.contractNet.TestMixedNResp2Rounds"
 		});
 		
-		addBehaviour(new TestGroupExecutor(this, tg) {
-			public int onEnd() {
-				myAgent.doDelete();
-				return 0;
-			}
-		} );
-	}	
-		
-	protected void takeDown() {
-		System.out.println("Exit...");
+		return tg;
 	}
-	
-	
+		
 	// Main method that allows launching this test as a stand-alone program	
 	public static void main(String[] args) {
 		try {

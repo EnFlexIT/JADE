@@ -34,12 +34,11 @@ import jade.content.onto.*;
 import jade.content.lang.*;
 
 import test.content.testOntology.TestOntology;
+import test.common.TestUtility;
 
 public class Responder extends CyclicBehaviour {
 	public static final String TEST_CONVERSATION = "_Test_";
 	public static final String TEST_RESPONSE_ID = "_Response_";
-	
-	private boolean verbose = true;
 	
   private MessageTemplate mt = MessageTemplate.and(
   	MessageTemplate.MatchConversationId(TEST_CONVERSATION),
@@ -71,28 +70,22 @@ public class Responder extends CyclicBehaviour {
   }
   	
   private void handleContent(ACLMessage msg) throws Throwable {
-  	if (verbose) {
-  		System.out.println("Received content is:");
-  	}
+  	TestUtility.log("Received content is:");
   	try {
   		ContentElement ce = myAgent.getContentManager().extractContent(msg);
-  		if (verbose) {
-  			System.out.println(ce);
-  			System.out.println("Its representation as an abstract descriptor is:");
-  			try {
-	  			Ontology o = myAgent.getContentManager().getOntology(msg);
-  				System.out.println(o.fromObject(ce));
-  			}
-  			catch (Exception e) {
-  				e.printStackTrace();
-  			}
+  		TestUtility.log(ce);
+  		TestUtility.log("Its representation as an abstract descriptor is:");
+  		try {
+	  		Ontology o = myAgent.getContentManager().getOntology(msg);
+  			TestUtility.log(o.fromObject(ce));
+  		}
+  		catch (Exception e) {
+  			e.printStackTrace();
   		}
   	}
   	catch (UngroundedException ue) {
   		AbsContentElement ace = myAgent.getContentManager().extractAbsContent(msg);
-  		if (verbose) {
-  			System.out.println(ace);
-  		}
+  		TestUtility.log(ace);
   	}
   }
 }  

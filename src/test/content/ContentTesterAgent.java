@@ -35,13 +35,14 @@ import jade.content.*;
 import jade.content.lang.*;
 
 import test.common.*;
+import test.common.agentConfigurationOntology.*;
 import test.content.testOntology.TestOntology;
 
-public class ContentTesterAgent extends Agent {
+public class ContentTesterAgent extends TesterAgent {
 	
 	private static final String RESPONDER_NAME = "responder";
 	
-	protected void setup() {
+	protected TestGroup getTestGroup() {		
 		TestGroup tg = new TestGroup(new String[] {
   		"test.content.tests.TestInt",
   		"test.content.tests.TestLong",
@@ -89,21 +90,9 @@ public class ContentTesterAgent extends Agent {
     		a.getContentManager().registerOntology(TestOntology.getInstance());
     		
     		// Create and configure a responder agent
-				resp = TestUtility.createResponder(a, RESPONDER_NAME);
-    		TestUtility.addBehaviour(a, resp, "test.content.LanguageLoader");
+				resp = TestUtility.createTarget(a, RESPONDER_NAME);
 				TestUtility.addBehaviour(a, resp, "test.content.Responder");
-				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-				request.addReceiver(resp);
-				request.setConversationId(LanguageLoader.LANGUAGE_LOADER_CONVERSATION);
-				request.setReplyWith(new String("rw"+hashCode()));
-				request.setLanguage(codecClassName);
-				try {
-	    		// Send message and collect reply
-  	  		FIPAServiceCommunicator.doFipaRequestClient(a, request);
-				}
-				catch (Exception e) {
-    			throw new TestException("Error loading codec "+codecClassName+" in responder agent", e);
-				}					
+				TestUtility.forceAction(a, resp, new LoadLanguage(null, codecClassName));
 
 				// Prepare the message that will be used in all tests
 				ACLMessage msg  = new ACLMessage(ACLMessage.INFORM);
@@ -117,7 +106,7 @@ public class ContentTesterAgent extends Agent {
 			
 			public void shutdown(Agent a) {
 				try {
-					TestUtility.killResponder(a, resp);
+					TestUtility.killTarget(a, resp);
 				}
 				catch (TestException te) {
 					te.printStackTrace();
@@ -125,19 +114,8 @@ public class ContentTesterAgent extends Agent {
 			}
 		};
 				
-		
-		addBehaviour(new TestGroupExecutor(this, tg) {
-			public int onEnd() {
-				myAgent.doDelete();
-				return 0;
-			}
-		} );
-	}	
-		
-	protected void takeDown() {
-		System.out.println("Exit...");
+		return tg;
 	}
-	
 	
 	// Main method that allows launching this test as a stand-alone program	
 	public static void main(String[] args) {

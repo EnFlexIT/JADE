@@ -57,7 +57,7 @@ public class TestCreateAgent extends Test {
     			Vector v = new Vector();
     			CreateAgent ca = new CreateAgent();
     			ca.setAgentName(TARGET);
-    			ca.setClassName(TestUtility.RESPONDER_CLASS_NAME);
+    			ca.setClassName(TestUtility.TARGET_CLASS_NAME);
     			ca.setContainer((ContainerID) myAgent.here());
     			Action action = new Action(Agent.getAMS(), ca);
     			try {
@@ -78,7 +78,7 @@ public class TestCreateAgent extends Test {
     					return false;
     				}
     				// Kill the target agent thus checking that it was actually there
-    				TestUtility.killResponder(myAgent, new AID(TARGET, AID.ISLOCALNAME));
+    				TestUtility.killTarget(myAgent, new AID(TARGET, AID.ISLOCALNAME));
     				return true;
     			}
     			catch (Exception e) {

@@ -34,22 +34,17 @@ import test.common.TestUtility;
 /**
    @author Giovanni Caire - TILAB
  */
-public class AgreeInformReplier extends AchieveREResponder {
-	public AgreeInformReplier() {
+public class FailureReplier extends AchieveREResponder {
+	public FailureReplier() {
 		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-		TestUtility.log(myAgent.getName()+": prepare response");
-  	ACLMessage response = request.createReply();
-		response.setPerformative(ACLMessage.AGREE);
-		return response;
+		return null;
   }
 
 	protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
 		TestUtility.log(myAgent.getName()+": prepare result notification");
-		ACLMessage resNotif = request.createReply();
-		resNotif.setPerformative(ACLMessage.INFORM);
-		return resNotif;
+		throw new FailureException("Simulated failure"); 
 	}
 }

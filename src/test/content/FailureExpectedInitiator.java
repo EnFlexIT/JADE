@@ -31,17 +31,16 @@ import jade.content.onto.OntologyException;
 import jade.content.lang.Codec.CodecException;
 
 import test.common.Test;
+import test.common.TestUtility;
 
 public abstract class FailureExpectedInitiator extends OneShotBehaviour {
 
 	private String resultKey;
-	private boolean verbose;
 	
   public FailureExpectedInitiator(Agent a, DataStore ds, String key) {
   	super(a);
   	setDataStore(ds);
   	resultKey = key;
-  	verbose = false;
   }
   
   public void action() {
@@ -50,24 +49,18 @@ public abstract class FailureExpectedInitiator extends OneShotBehaviour {
   	}
   	catch (OntologyException oe) {
   		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
-  		if (verbose) {
-  			oe.printStackTrace();
-  		}
-  		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+  		TestUtility.log(oe);
+	 		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
   		return;
   	}
   	catch (CodecException ce) {
   		System.out.println("Codec exception thrown as expected: "+ce.getMessage());
-  		if (verbose) {
-  			ce.printStackTrace();
-  		}
+  		TestUtility.log(ce);
   		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
   		return;
   	}
   	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
+  		TestUtility.log(t);
   	}
   	getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
   }

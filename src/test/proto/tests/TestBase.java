@@ -42,7 +42,7 @@ public abstract class TestBase extends Test {
   	responders = new AID[responderBehaviours.length];
   	for (int i = 0; i < responderBehaviours.length; ++i) {
   		String resp = new String(RESPONDER_NAME+i);
-  		AID id = TestUtility.createResponder(a, resp);
+  		AID id = TestUtility.createTarget(a, resp);
   		TestUtility.addBehaviour(a, id, responderBehaviours[i]);
   		msg.addReceiver(id);
   		responders[i] = id;
@@ -52,17 +52,16 @@ public abstract class TestBase extends Test {
   public void clean(Agent a) {
   	try {
   		for (int i = 0; i < responders.length; ++i) {
-  			TestUtility.killResponder(a, responders[i]);
+  			TestUtility.killTarget(a, responders[i]);
   		}
   	}
   	catch (Exception e) {
   		e.printStackTrace();
   	}
   	// Wait a bit to give agents time to actually terminate.
-  	// FIXME: The problem is that killing an agent is an operation 
-  	// that should be requested to the AMS and not to the agent 
-  	// itself. Otherwise, when the request protocol completes the 
-  	// agent is still alive.
+  	// FIXME: The problem is that currently the AMS, when requested
+  	// to kill an agent notifies the requester without waiting for
+  	// the killed agent to actually terminate.
   	try {
   		Thread.sleep(500);
   	}

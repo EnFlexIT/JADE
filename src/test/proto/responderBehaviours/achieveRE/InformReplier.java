@@ -34,16 +34,13 @@ import test.common.TestUtility;
 /**
    @author Giovanni Caire - TILAB
  */
-public class AgreeInformReplier extends AchieveREResponder {
-	public AgreeInformReplier() {
+public class InformReplier extends AchieveREResponder {
+	public InformReplier() {
 		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-		TestUtility.log(myAgent.getName()+": prepare response");
-  	ACLMessage response = request.createReply();
-		response.setPerformative(ACLMessage.AGREE);
-		return response;
+		return null;
   }
 
 	protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {

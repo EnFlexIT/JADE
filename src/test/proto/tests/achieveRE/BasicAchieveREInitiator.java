@@ -49,8 +49,6 @@ public class BasicAchieveREInitiator extends AchieveREInitiator {
 	private long waitingTime;
   private int[] expected;
   
-  private boolean verbose = true;
-  
 	public BasicAchieveREInitiator(Agent a, ACLMessage msg, DataStore ds, String key, long waitingTime, int[] expected) {
 		super(a, msg, ds);
 		this.key = key;
@@ -70,50 +68,38 @@ public class BasicAchieveREInitiator extends AchieveREInitiator {
   }
   		
   protected void handleAgree(ACLMessage agree) {
-  	if (verbose) {
-  		System.out.println("AGREE received. Message is");
-  		System.out.println(agree);
-  	}
+  	TestUtility.log("AGREE received. Message is");
+  	TestUtility.log(agree);
   	agreeCnt++;
   }
   		
   protected void handleRefuse(ACLMessage refuse) {
-  	if (verbose) {
-  		System.out.println("REFUSE received. Message is");
-  		System.out.println(refuse);
-  	}
+  	TestUtility.log("REFUSE received. Message is");
+  	TestUtility.log(refuse);
   	refuseCnt++;
   }
   		
   protected void handleNotUnderstood(ACLMessage notUnderstood) {
-  	if (verbose) {
-  		System.out.println("NOT_UNDERSTOOD received. Message is");
-  		System.out.println(notUnderstood);
-  	}
+  	TestUtility.log("NOT_UNDERSTOOD received. Message is");
+  	TestUtility.log(notUnderstood);
   	notUnderstoodCnt++;
 	}
   		
   protected void handleInform(ACLMessage inform) {
-  	if (verbose) {
-  		System.out.println("INFORM received. Message is");
-  		System.out.println(inform);
-  	}
+  	TestUtility.log("INFORM received. Message is");
+  	TestUtility.log(inform);
   	informCnt++;
   }
   	
   protected void handleFailure(ACLMessage failure) {
-  	if (verbose) {
-  		System.out.println("FAILURE received. Message is");
-  		System.out.println(failure);
-  	}
+  	TestUtility.log("FAILURE received. Message is");
+  	TestUtility.log(failure);
   	failureCnt++;
   }
   		
   protected void handleOutOfSequence(ACLMessage msg) {
-  	if (verbose) {
-  		System.out.println("OUT_OF_SEQUENCE received. Message is");
-  		System.out.println(msg);
-  	}
+  	TestUtility.log("OUT_OF_SEQUENCE received. Message is");
+  	TestUtility.log(msg);
   	outOfSeqCnt++;
   }
   		
