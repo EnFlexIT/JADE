@@ -211,6 +211,54 @@ class Scheduler implements Serializable {
     return b;
   }
 
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // Helper method for persistence service
+    public synchronized Behaviour[] getBehaviours() {
+
+	Behaviour[] result = new Behaviour[blockedBehaviours.size() + readyBehaviours.size()];
+	Iterator itReady = readyBehaviours.iterator();
+	Iterator itBlocked = blockedBehaviours.iterator();
+	for(int i = 0; i < result.length; i++) {
+	    Behaviour b = null;
+	    if(itReady.hasNext()) {
+		b = (Behaviour)itReady.next();
+	    }
+	    else {
+		b = (Behaviour)itBlocked.next();
+	    }
+
+	    result[i] = b;
+
+	}
+
+	return result;
+    }
+
+    // Helper method for persistence service
+    public void setBehaviours(Behaviour[] behaviours) {
+
+	readyBehaviours.clear();
+	blockedBehaviours.clear();
+
+	for(int i = 0; i < behaviours.length; i++) {
+	    Behaviour b = behaviours[i];
+	    if(b.isRunnable()) {
+		readyBehaviours.add(b);
+	    }
+	    else {
+		blockedBehaviours.add(b);
+	    }
+	}
+
+	// The current index is not saved when persisting an agent
+	currentIndex = 0;
+    }
+
+    //#MIDP_EXCLUDE_END
+
+
   // Removes a specified behaviour from the blocked queue.
   private boolean removeFromBlocked(Behaviour b) {
 		//#MIDP_EXCLUDE_BEGIN
