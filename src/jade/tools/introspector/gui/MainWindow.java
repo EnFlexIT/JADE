@@ -34,8 +34,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Vector;
 
 import jade.core.AID;
-import jade.util.Sensor;
 import jade.tools.introspector.Introspector;
+import jade.tools.introspector.Sensor;
 
 /**
    Main Window class.

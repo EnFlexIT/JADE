@@ -39,9 +39,6 @@ import java.util.HashSet;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.util.Sensor;
-import jade.util.SensorManager;
-
 import jade.tools.introspector.gui.IntrospectorGUI;
 
 import jade.domain.FIPAException;

@@ -28,7 +28,7 @@ import javax.swing.*;
 import java.awt.event.*;
 
 import jade.tools.introspector.Introspector;
-import jade.util.Sensor;
+import jade.tools.introspector.Sensor;
 import jade.util.Event;
 
 /**
