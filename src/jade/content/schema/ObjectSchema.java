@@ -230,6 +230,10 @@ public abstract class ObjectSchema {
   	 */
   	protected abstract boolean descendsFrom(ObjectSchema s);
   	
+  	/**
+     * Get the facets defined upon a slot of the objectschema.
+     * @param slotName The name of the slot which the facets are related to.
+    */
   	public abstract Facet[] getFacets(String slotName);
   			  	
 }
