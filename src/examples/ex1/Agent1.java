@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/08/10 15:24:47  rimassa
+  Added a simple statement do make the agent clone itself on startup.
+
   Revision 1.4  1999/05/20 14:12:32  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -49,7 +52,11 @@ public class Agent1 extends Agent {
     addBehaviour(new Behaviour1("First"));
     addBehaviour(new Behaviour1("Second"));
     addBehaviour(new Behaviour1("Third"));
-
+    addBehaviour(new OneShotBehaviour(this) {
+      public void action() {
+	doClone("Front-End", getLocalName() + "x");
+      }
+    });
   }
 
 }
