@@ -516,9 +516,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
     }
-    catch(IMTPException re) {
-      System.err.println("Communication failure while contacting agent platform.");
-      re.printStackTrace();
+    catch(IMTPException imtpe) {
+      System.err.println("Communication failure while contacting agent platform: "+imtpe.getMessage());
+      imtpe.printStackTrace();
       Runtime.instance().endContainer();
       return;
     }

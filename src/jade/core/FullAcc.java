@@ -282,7 +282,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
   }
 
   public void forwardMessage(ACLMessage msg, AID receiver, String address) throws MTPException {
-
+  	
     AID aid = msg.getSender();
     if(aid == null) {
       System.out.println("ERROR: null message sender. Aborting message dispatch...");

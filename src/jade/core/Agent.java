@@ -1106,7 +1106,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public void doSuspend() {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE) && !terminating) {
+      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_SUSPENDED);
       }
