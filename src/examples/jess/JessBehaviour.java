@@ -44,7 +44,7 @@ import java.util.Enumeration;
  * Notice for programmers of the Jess .clp file:
  * <ul>
  * <li> the template of the ACLMessage contains the following slots:
-<code>(deftemplate ACLMessage (slot communicative-act) (slot sender) (slot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )</code>
+<code>(deftemplate ACLMessage (slot communicative-act) (slot sender) (multislot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )</code>
  * <li> match the fact <code>(myname nameofthisagent)</code> to know the name of your agent;
  * <li> use the userfunction <code>send</code> to send ACLMessages. 
  * The parameter of <code>send</code> must be a fact-id of type ACLMessage or
@@ -62,8 +62,8 @@ import java.util.Enumeration;
  * Look at the sample file test.clp that is shipped with this example.
  */
 
-public class JessBehaviour extends SimpleBehaviour {
-
+public class JessBehaviour extends Behaviour{
+  
   /**
    * This class implements the Jess userfunction to send ACLMessages
    * directly from Jess.
@@ -86,44 +86,46 @@ public class JessBehaviour extends SimpleBehaviour {
       // " type=" + vv.get(i).type());
       //}
       if (vv.get(1).type() != RU.FACT_ID)
-        throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
+	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
       vv=context.expandFact(findFactByID(context.engine(),vv.get(1).intValue())); 
       if (vv.get(0).toString() != "ACLMessage")
-        throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
+	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
 
       ACLMessage msg = new ACLMessage();
       msg.setType(vv.get(3).stringValue());
       if (vv.get(4).stringValue() != "nil")
-        msg.setSource(vv.get(4).stringValue());
-      if (vv.get(5).stringValue() != "nil")
-        msg.setDest(vv.get(5).stringValue());
+	msg.setSource(vv.get(4).stringValue());
+      if (vv.get(5).toString() != "nil") {
+	System.out.println("sono qui");
+	msg.setDest(vv.get(5).toString());
+      }
       if (vv.get(6).stringValue() != "nil")
-        msg.setReplyWith(vv.get(6).stringValue());
+	msg.setReplyWith(vv.get(6).stringValue());
       if (vv.get(7).stringValue() != "nil")
-        msg.setReplyTo(vv.get(7).stringValue());
+	msg.setReplyTo(vv.get(7).stringValue());
       if (vv.get(8).stringValue() != "nil")
-        msg.setEnvelope(vv.get(8).stringValue());
+	msg.setEnvelope(vv.get(8).stringValue());
       if (vv.get(9).stringValue() != "nil")
-        msg.setConversationId(vv.get(9).stringValue());
+	msg.setConversationId(vv.get(9).stringValue());
       if (vv.get(10).stringValue() != "nil")
-        msg.setProtocol(vv.get(10).stringValue());
+	msg.setProtocol(vv.get(10).stringValue());
       if (vv.get(11).stringValue() != "nil")
-        msg.setLanguage(vv.get(11).stringValue());
+	msg.setLanguage(vv.get(11).stringValue());
       if (vv.get(12).stringValue() != "nil")
-        msg.setOntology(vv.get(12).stringValue());      
+	msg.setOntology(vv.get(12).stringValue());      
       if (vv.get(13).stringValue() != "nil")
-        msg.setContent(vv.get(13).stringValue());
+	msg.setContent(vv.get(13).stringValue());
       msg.dump();
       my_agent.send(msg);
 
       return Funcall.TRUE();
     }
 
-    // Unfortunately, Jess has already this method but it is not defined public
+    // Unfortunatelly, Jess has already this method but it is not defined public
     //  therefore I reimplemented it. It might suffer in future from changes to Jess.
     private ValueVector findFactByID(Rete r, int id) throws ReteException {
       for (Enumeration e=r.listFacts(); e.hasMoreElements();) {
-        ValueVector f = (ValueVector) e.nextElement();
+	ValueVector f = (ValueVector) e.nextElement();
         if (f.get(RU.ID).factIDValue() == id)
           return  f;
       }
@@ -134,10 +136,10 @@ public class JessBehaviour extends SimpleBehaviour {
 
   
   // class variables
-  Rete  jess;                   // holds the pointer to jess
-  Agent myAgent;                // holds the pointer to this agent
-  int   m_maxJessPasses = 0;    // holds the maximum number of Jess passes for each run
-  int executedPasses=-1;        // to count the number of Jess passes in the previous run
+  Rete  jess; 			// holds the pointer to jess
+  Agent myAgent; 		// holds the pointer to this agent
+  int   m_maxJessPasses = 0; 	// holds the maximum number of Jess passes for each run
+  int executedPasses=-1; 	// to count the number of Jess passes in the previous run
   
   /**
    * Creates a <code>JessBehaviour</code> instance
@@ -152,20 +154,20 @@ public class JessBehaviour extends SimpleBehaviour {
       // Create a Jess engine
       jess = new Rete(nd);
       try { 
-        // First I define the ACLMessage template
-        jess.executeCommand("(deftemplate ACLMessage (slot communicative-act) (slot sender) (slot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )");
-        // Then I add the send function
-        jess.addUserfunction(new JessSend(myAgent));
-        // Then I assert the fact (myname <my-name>)
-        jess.executeCommand("(assert (myname " + myAgent.getName() + "))");
-        // Open the file test.clp
-        FileInputStream fis = new FileInputStream(jessFile);
-        // Create a parser for the file, telling it where to take input
-        // from and which engine to send the results to
-        Jesp j = new Jesp(fis, jess);
-        // parse and execute one construct, without printing a prompt
-        j.parse(false); 
-      } catch (ReteException re)          { System.out.println(re); }
+	// First I define the ACLMessage template
+	jess.executeCommand("(deftemplate ACLMessage (slot communicative-act) (slot sender) (multislot receiver) (slot reply-with) (slot in-reply-to) (slot envelope) (slot conversation-id) (slot protocol) (slot language) (slot ontology) (slot content) )");
+	// Then I add the send function
+	jess.addUserfunction(new JessSend(myAgent));
+	// Then I assert the fact (myname <my-name>)
+	jess.executeCommand("(assert (myname " + myAgent.getName() + "))");
+	// Open the file test.clp
+	FileInputStream fis = new FileInputStream(jessFile);
+	// Create a parser for the file, telling it where to take input
+	// from and which engine to send the results to
+	Jesp j = new Jesp(fis, jess);
+	// parse and execute one construct, without printing a prompt
+	j.parse(false); 
+      } catch (ReteException re) 	  { System.out.println(re); }
       catch (FileNotFoundException e) { System.out.println(e); }
     }
  
@@ -185,7 +187,7 @@ public class JessBehaviour extends SimpleBehaviour {
   /**
    * executes the behaviour
    */
-  public void action() {
+  public void execute() {
     ACLMessage msg;     // to keep the ACLMessage
 
     // wait a message
@@ -204,8 +206,8 @@ public class JessBehaviour extends SimpleBehaviour {
       // jess.executeCommand("(facts)");
       System.out.println("Running Jess");
       if (m_maxJessPasses > 0) { 
-        executedPasses=jess.run(m_maxJessPasses);
-        System.out.println("Jess has executed "+executedPasses+" passes");
+	executedPasses=jess.run(m_maxJessPasses);
+	System.out.println("Jess has executed "+executedPasses+" passes");
       }
       else jess.run();
     } catch (ReteException re) {
@@ -226,7 +228,11 @@ public class JessBehaviour extends SimpleBehaviour {
   
   /**
    * asserts a fact representing an ACLMessage in Jess. It is called after
-   * the arrival of a message.
+   * the arrival of a message. 
+   * If the message content starts with the character "(", that is it is
+   * an Expression, then the <code>assert</code> method converts it into
+   * a String and the appropriate parsing functionality must be implemented
+   * directly in Jess.
    */
   private void assert(ACLMessage msg) {
     String     fact;
@@ -235,7 +241,11 @@ public class JessBehaviour extends SimpleBehaviour {
     // I create a string that asserts the template fact
     fact = "(assert (ACLMessage (receiver " + msg.getDest() + ") (communicative-act " + msg.getType();     
     if (msg.getSource() != null)         fact = fact + ") (sender " + msg.getSource();   
-    if (msg.getContent() != null)        fact = fact + ") (content " + msg.getContent();
+    if (msg.getContent() != null) {
+      if ((msg.getContent()).charAt(0) == '(')
+	                                 fact = fact + ") (content \"" + msg.getContent() + "\"";
+      else 	                         fact = fact + ") (content " + msg.getContent();
+    }
     if (msg.getReplyWith() != null)      fact=fact+") (reply-with " + msg.getReplyWith();
     if (msg.getReplyTo() != null)        fact=fact+") (in-reply-to " + msg.getReplyTo();   
     if (msg.getEnvelope() != null)       fact=fact+") (envelope " + msg.getEnvelope();    
@@ -246,9 +256,14 @@ public class JessBehaviour extends SimpleBehaviour {
     if (msg.getConversationId() != null) fact=fact+") (conversation-id " + msg.getConversationId(); 
     fact=fact+")))";
     // finally, I execute the Jess assert command
-    try                         { jess.executeCommand(fact); }
-    catch (ReteException re)    { re.printStackTrace((jess.display()).stderr()); }
+    try 			{ jess.executeCommand(fact); }
+    catch (ReteException re) 	{ re.printStackTrace((jess.display()).stderr()); }
   } // end assert
 } // end JessBehaviour
+
+
+
+
+
 
 

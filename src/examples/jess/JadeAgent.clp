@@ -1,28 +1,6 @@
-/**
- * This is a simple sample JADE Agent that embeds a Jess engine.
- * It instantiates and adds only one behaviour. This behaviour is JessBehaviour
- * that only asserts messages when they arrive and use Jess as a reasoning tool
- * This agent executes the Jess code in the file examples/jess/JadeAgent.clp
- */
-public class JessAgent extends Agent {
-
-  /** 
-   * adds the JessBehaviour and that's all.
-   */
-  protected void setup() {
-    // add the behaviour
-    // 1 is the number of steps that must be executed at each run of
-    // the Jess engine before giving back the control to the Java code
-    addBehaviour(new JessBehaviour(this,"examples/jess/JadeAgent.clp",1)); 
-  }
-}
-
-
-
-
 ; Remind that the ACLMessage has been defined with the following template:
 ; (deftemplate ACLMessage 
-;              (slot communicative-act) (slot sender) (slot receiver) 
+;              (slot communicative-act) (slot sender) (multislot receiver) 
 ;              (slot reply-with) (slot in-reply-to) (slot envelope) 
 ;              (slot conversation-id) (slot protocol) 
 ;              (slot language) (slot ontology) (slot content) )
@@ -42,9 +20,9 @@ public class JessAgent extends Agent {
 (defrule proposal
  "When a 'cfp' message arrives from an agent ?s, this rule asserts a 
   'propose' message to the same sender and retract the just arrived message"
- ?m <- (ACLMessage (communicative-act cfp) (sender ?s))
+ ?m <- (ACLMessage (communicative-act cfp) (sender ?s) (content ?c))
  =>
- (send (assert (ACLMessage (communicative-act propose) (receiver ?s))))
+ (send (assert (ACLMessage (communicative-act propose) (receiver ?s) (content ?c))))
  (retract ?m)
 )
 
@@ -65,6 +43,11 @@ public class JessAgent extends Agent {
 ; if you put run here, Jess is run before waiting for a message arrival,
 ; if you do not put (run here, the agent waits before for the arrival of the 
 ; first message and then runs Jess.
+
+
+
+
+
 
 
 
