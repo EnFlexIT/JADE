@@ -101,16 +101,21 @@ public class Agent implements Runnable, Serializable
   /**
      Inner class AssociationTB.
      This class manages bidirectional associations between Timer and
-     Behaviour objects, using hash tables. This class is fully
-     synchronized because it is accessed both by agent internal thread
-     and high priority Timer Dispatcher thread.
+     Behaviour objects, using hash tables. This class is 
+     synchronized with the operations
+		 carried out by the TimerDispatcher. It allows also to avoid a deadlock when:
+		 1) A behaviour blocks for a very short time --> A Timer is added
+		 to the TimerDispatcher
+		 2) The Timer immediately expires and the TimerDispatcher try to 
+		 restart the behaviour before the pair (b, t) is added to the 
+		 pendingTimers of this agent.
    */
   private class AssociationTB {
       private Hashtable BtoT = new Hashtable();
       private Hashtable TtoB = new Hashtable();
 
       public void clear() {
-
+					synchronized (theDispatcher) {
 	  Enumeration e = timers();
 	  while (e.hasMoreElements()) {
 	      Timer t = (Timer) e.nextElement();
@@ -126,15 +131,16 @@ public class Agent implements Runnable, Serializable
 	  persistentPendingTimers.clear();
 
 	  //#J2ME_EXCLUDE_END
-
+					} //end synch
       }
 
-      public synchronized void addPair(Behaviour b, Timer t) {
+      public void addPair(Behaviour b, Timer t) {
 	  TBPair pair = new TBPair(Agent.this, t, b);
 	  addPair(pair);
       }
 
-      public synchronized void addPair(TBPair pair) {
+      public void addPair(TBPair pair) {
+					synchronized (theDispatcher) {
 	  if(pair.getOwner() == null) {
 	      pair.setOwner(Agent.this);
 	  }
@@ -159,9 +165,11 @@ public class Agent implements Runnable, Serializable
 	  // For persistence service
 	  persistentPendingTimers.add(pair);
 	  //#J2ME_EXCLUDE_END
+					} //end synch
       }
 
-      public synchronized void removeMapping(Behaviour b) {
+      public void removeMapping(Behaviour b) {
+					synchronized (theDispatcher) {
 	  TBPair pair = (TBPair)BtoT.remove(b);
 	  if(pair != null) {
 	      TtoB.remove(pair.getTimer());
@@ -173,25 +181,12 @@ public class Agent implements Runnable, Serializable
 
 	      theDispatcher.remove(pair.getTimer());
 	  }
+					} //end synch
       }
 
-      public synchronized void removeMapping(Timer t) {
-	  TBPair pair = (TBPair)TtoB.remove(t);
-	  if(pair != null) {
-	      BtoT.remove(pair.getBehaviour());
 
-	      //#J2ME_EXCLUDE_BEGIN
-
-	      // For persistence service
-	      persistentPendingTimers.remove(pair);
-
-	      //#J2ME_EXCLUDE_END
-
-	      theDispatcher.remove(pair.getTimer());
-	  }
-      }
-
-      public synchronized Timer getPeer(Behaviour b) {
+      public Timer getPeer(Behaviour b) {
+					// this is not synchronized because BtoT is an Hashtable (that is already synch!)
 	  TBPair pair = (TBPair)BtoT.get(b);
 	  if(pair != null) {
 	      return pair.getTimer();
@@ -201,7 +196,8 @@ public class Agent implements Runnable, Serializable
 	  }
       }
 
-      public synchronized Behaviour getPeer(Timer t) {
+      public Behaviour getPeer(Timer t) {
+					// this is not synchronized because BtoT is an Hashtable (that is already synch!)
 	  TBPair pair = (TBPair)TtoB.get(t);
 	  if(pair != null) {
 	      return pair.getBehaviour();
@@ -211,9 +207,10 @@ public class Agent implements Runnable, Serializable
 	  }
       }
 
-      public synchronized Enumeration timers() {
+      private Enumeration timers() {
 	  return TtoB.keys();
       }
+
 
   } // End of inner class AssociationTB 
 
@@ -323,16 +320,7 @@ public class Agent implements Runnable, Serializable
     if (millis <= 0) 
     	return;
     Timer t = new Timer(System.currentTimeMillis() + millis, this);
-    // The following block of code must be synchronized with the operations
-  	// carried out by the TimerDispatcher. In fact it could be the case that
-  	// 1) A behaviour blocks for a very short time --> A Timer is added
-    // to the TimerDispatcher
-  	// 2) The Timer immediately expires and the TimerDispatcher try to 
-    // restart the behaviour before the pair (b, t) is added to the 
-    // pendingTimers of this agent.
-  	synchronized (theDispatcher) {
-	    pendingTimers.addPair(b, t);
-    }
+		pendingTimers.addPair(b, t);
   }
 
   /**
@@ -365,7 +353,7 @@ public class Agent implements Runnable, Serializable
   public void notifyRestarted(Behaviour b) {
     Timer t = pendingTimers.getPeer(b);
     if(t != null) {
-      pendingTimers.removeMapping(b);
+				pendingTimers.removeMapping(b);
     }
 
     // Did this restart() cause the root behaviour to become runnable ?
