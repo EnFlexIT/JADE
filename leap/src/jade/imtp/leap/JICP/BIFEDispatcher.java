@@ -53,6 +53,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	protected static final byte INP = (byte) 1;
 	protected static final byte OUT = (byte) 0;
 	
+	private static final int RESPONSE_TIMEOUT = 30000;
+	
 	private static final String MSISDN = "msisdn";
 	
 	protected String myMediatorClass = "jade.imtp.leap.JICP.BIBEDispatcher";
@@ -166,6 +168,20 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    	myLogger.log(Logger.FINE, "Keep-alive time="+keepAliveTime);
 	    }
 
+	    // Retrieve the ConnectionListener if any
+	    try {
+	    	Object obj = props.get("connection-listener");
+	    	if (obj instanceof ConnectionListener) {
+	    		myConnectionListener = (ConnectionListener) obj;
+	    	}
+	    	else {
+		    	myConnectionListener = (ConnectionListener) Class.forName(obj.toString()).newInstance();
+	    	}
+	    }
+	    catch (Exception e) {
+	    	// Just ignore it
+	    }
+		    
 	    // Create the BackEnd stub and the FrontEnd skeleton
 	    myStub = new BackEndStub(this);
 	    mySkel = new FrontEndSkel(fe);
@@ -247,7 +263,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  try {
 	    	myLogger.log(Logger.INFO, "Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort());
 
-	      JICPConnection con = openConnection(mediatorTA);
+	      JICPConnection con = openConnection(mediatorTA, RESPONSE_TIMEOUT);
 
 	      writePacket(pkt, con);
 
@@ -266,7 +282,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				  return con;	      
 	      }
 	      else {
-		    	myLogger.log(Logger.INFO, "Mediator error: "+replyMsg);
+		    	myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
 			  	if (myConnectionListener != null && replyMsg != null && replyMsg.equals("Not authorized")) {
 						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED);
 			  	}
@@ -313,11 +329,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
 	  	pkt.setSessionID((byte) outCnt);
 	  	try {
-	  		// WATCHDOG startWatchDog("Dispatch");
 		  	writePacket(pkt, outConnection);
 		  	status = 1;
 		  	pkt = outConnection.readPacket();
-	  		// WATCHDOG stopWatchDog();
 		  	if (pkt.getSessionID() != outCnt) {
 		  		pkt = outConnection.readPacket();
 		  	}
@@ -339,7 +353,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	catch (IOException ioe) {
 	  		// Can't reach the BackEnd. 
   			myLogger.log(Logger.WARNING, "IOException OC["+status+"]"+ioe);
-	  		// WATCHDOG stopWatchDog();
   			refreshOut();
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
@@ -364,25 +377,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	private Connection myConnection = null;
   	
 	  public void run() {
-	  	if (cnt == 0) {
-		  	// Give precedence to the Thread that is creating the BackEnd
-		  	Thread.yield();
-		  	
-		    // Retrieve the ConnectionListener if any
-		    try {
-		    	Object obj = props.get("connection-listener");
-		    	if (obj instanceof ConnectionListener) {
-		    		myConnectionListener = (ConnectionListener) obj;
-		    	}
-		    	else {
-			    	myConnectionListener = (ConnectionListener) Class.forName(obj.toString()).newInstance();
-		    	}
-		    }
-		    catch (Exception e) {
-		    	// Just ignore it
-		    }
-	  	}
-	    
 	  	myId = cnt++;
   		if (myLogger.isLoggable(Logger.INFO)) {
   			myLogger.log(Logger.INFO, "IM-"+myId+" started");
@@ -526,7 +520,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  		if (myLogger.isLoggable(Logger.INFO)) {
 	  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")");
 	  		}
-		  	Connection c = openConnection(mediatorTA);
+	  		int t = (type == OUT ? RESPONSE_TIMEOUT : -1);
+		  	Connection c = openConnection(mediatorTA, t);
 		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
 		  	writePacket(pkt, c);
 		  	pkt = c.readPacket();
@@ -718,80 +713,99 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
   
-  // Mutual exclusion with dispatch()
-  protected synchronized void sendKeepAlive() {
-		// Send a keep-alive packet to the BackEnd
-		if (outConnection != null) {
-			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-			try {
-	  		// WATCHDOG startWatchDog("KeepAlive");
-  			writePacket(pkt, outConnection);
-  			pkt = outConnection.readPacket();
-	  		// WATCHDOG stopWatchDog();
-  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
-  				// The BackEnd is considering the input connection no longer valid
-  				refreshInp();
-  			}	  				
+  protected void sendKeepAlive() {
+  	// [WATCHDOG] startWatchDog(outConnection);
+	  // Mutual exclusion with dispatch()
+  	synchronized (this) {
+			// Send a keep-alive packet to the BackEnd
+			if (outConnection != null) {
+				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+				try {
+					if (myLogger.isLoggable(Logger.ALL)) {
+			  		myLogger.log(Logger.ALL, "Writing KA.");
+					}
+	  			writePacket(pkt, outConnection);
+	  			pkt = outConnection.readPacket();
+		  		// [WATCHDOG] stopWatchDog();
+	  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+	  				// The BackEnd is considering the input connection no longer valid
+	  				refreshInp();
+	  			}	  				
+				}
+				catch (IOException ioe) {
+		  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
+		  		// [WATCHDOG] stopWatchDog();
+					refreshOut();
+				}
 			}
-			catch (IOException ioe) {
-	  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
-	  		// WATCHDOG stopWatchDog();
-				refreshOut();
+			else {
+				// [WATCHDOG] stopWatchDog();
 			}
-		}
+  	}
   }  
   
-  /* WATCHDOG
+  /* [WATCHDOG] 
   private Object watchDogLock = new Object();
+  private Thread watchDogThread = null;
   private boolean done = false;
   
-  private void startWatchDog(final String type) {
-  	done = false;
-  	Thread t = new Thread() {
-  		public void run() {
-  			synchronized (watchDogLock) {
-	  			try {
-	  				if (!done) {
-		  				watchDogLock.wait(600000); // 10 minutes
-			  			if (!done) {
-			  				// Timeout
-			  				myLogger.log(Logger.WARNING, "StartWatchDog "+type+" timeout expired");
+  private void startWatchDog(final Connection c) {
+  	synchronized (watchDogLock) {
+  		// If a watch dog is already active, don't start another one.
+  		if (watchDogThread == null) {
+		  	done = false;
+		  	watchDogThread = new Thread() {
+		  		public void run() {
+		  			synchronized (watchDogLock) {
+			  			try {
+			  				if (!done) {
+				  				watchDogLock.wait(RESPONSE_TIMEOUT); 
+					  			if (!done) {
+					  				// Timeout expired
+					  				myLogger.log(Logger.WARNING, "WatchDog: timer expired.");
+					  				try {
+					  					c.close();
+						  				myLogger.log(Logger.INFO, "WatchDog: connection closed.");
+					  				}
+					  				catch (IOException ioe) {
+						  				myLogger.log(Logger.WARNING, "WatchDog: IOException closing connection.");
+					  				}
+					  			}
+			  				}
 			  			}
-	  				}
-	  			}
-	  			catch (Exception e) {
-	  				myLogger.log(Logger.WARNING, "StartWatchDog "+e);
-	  			}
-	  			watchDogLock.notifyAll();
-  			}	
+			  			catch (Exception e) {
+			  				myLogger.log(Logger.WARNING, "WatchDog: Unexpected Exception "+e);
+			  			}
+			  			watchDogThread = null;
+		  				myLogger.log(Logger.INFO, "WatchDog: terminated.");
+		  			}		  			
+		  		}
+		  	};
+				myLogger.log(Logger.INFO, "Starting WatchDog thread.");
+		  	watchDogThread.start();
   		}
-  	};
-  	t.start();
+  	}
   }
   
   private void stopWatchDog() {
   	synchronized (watchDogLock) {
-  		if (!done) {
-	  		done = true;
-	  		watchDogLock.notifyAll();
-	  		
-	  		// Wait for the watch dog thread to complete
-	  		try {
-		  		watchDogLock.wait();
-	  		}
-	  		catch (Exception e) {
-					myLogger.log(Logger.WARNING, "StopWatchDog "+e);
-	  		}
-  		}
+  		done = true;
+  		watchDogLock.notifyAll();
   	}
   }
-  WATCHDOG */
+  */
   
-  private JICPConnection openConnection(TransportAddress ta) throws IOException {
+  private JICPConnection openConnection(TransportAddress ta, int timeout) throws IOException {
   	if (myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION);
   	}
-  	return new JICPConnection(ta);
+  	JICPConnection c = new JICPConnection(ta);
+  	//#MIDP_EXCLUDE_BEGIN
+  	if (timeout > 0) {
+  		c.setReadTimeout(timeout);
+  	}
+  	//#MIDP_EXCLUDE_END
+  	return c;
   }
   
   private void handleBENotFound() {
