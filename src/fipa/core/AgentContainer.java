@@ -22,38 +22,32 @@ import java.util.*;
   + Creates agents on the local Java VM, and starts the communication thread.
     (Agent, MessageDispatcher)
 
-  + Connects each newly created agent and the communication thread, to
+  + Connects each newly created agent and the message dispatcher, to
     allow event-based interaction between the two.
     (Agent, MessageDispatcher)
 
-  + Holds RMI object references for all the other agent containers of the platform.
+  + Holds RMI object references for all the other message dispatcher of the platform.
+    (MessageDispatcher)
 
-  + Routes outgoing messages to the suitable communication thread, caching
+  + Routes outgoing messages to the suitable message dispatcher, caching
     remote agent addresses.
     (Agent, AgentDescriptor, MessageDispatcher)
 
 **************************************************************************************/
-public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
+class AgentContainer implements CommListener {
 
-  private readInputThread           r;
-  private int                       port;
-  private String                    host;
-  private boolean                   hasACCMaster;
-  private boolean                   hasAMSMaster;
+  private readInputThread r; // FIXME: Check with Paolo whether it is still needed
+
+  private Hashtable agents = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+
+  private static final int MAP_SIZE = 20;
+  private static final float MAP_LOAD_FACTOR = 0.50f;
 
   public static void main( String[] args ) {
 
-    Vector          agents = new Vector(); // FIXME: An hashtable would be better
-
-    String os      = new String( System.getProperty("os.name") );
-    String file = new String();
-    if( os.equals("Windows NT") ) file = new String("file:///");
-    else                          file = new String("file://");
-    String userdir = new String( file+System.getProperty("user.dir") + "/");
+    Vector agentNames = new Vector();
 
     try{
-
-      codeBase     = new URL( userdir.replace( '\\', '/' ) );
 
       int n = 0;
       while( n < args.length ){
@@ -76,61 +70,43 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
        while( n < args.length ) System.out.print(args[n++] + " ");
        System.out.println();
     }
-    AcentContainer theContainer = new AgentContainer(agents, args);
+    AgentContainer theContainer = new AgentContainer(agents, args);
 
   }
 
-  public AgentContainer( Vector agents, String[] args ) {
+  public AgentContainer( Vector agentNames, String[] args ) {
 
     Agent agent = null;
 
     r = new readInputThread();
     r.setPriority( Thread.MIN_PRIORITY );
     r.start();
-    r.addCommListener( this );
+    r.addCommListener(this);
 
-    hasACCMaster = false;
-    hasAMSMaster = false;
-    for( int i=0; i<agents.size(); i++ ) {
-      String s = (String)agents.elementAt(i);
-      if( s.equalsIgnoreCase("acc") ) hasACCMaster = true;
-      if( s.equalsIgnoreCase("ams") ) hasAMSMaster = true;
-    }
-
-    MessageDispatcher proxy;
-    if( !hasAMSMaster ) {
-      proxy = new MessageDispatcher();
-      proxy.start();
+    MessageDispatcher proxy = new MessageDispatcherImpl();
 
       for( int i=0; i<agents.size(); i++ ) {
-	String agentName = (String)agents.elementAt(i);
+	String agentName = (String)agentNames.elementAt(i);
 	System.out.println("new agent: " + agentName);
 	try {
-	  agent = (Agent)Class.forName(new String("Agents."+agentName.toLowerCase())).newInstance();
-	  agent.play( host, port, relativeURL, false, args );
-	} catch( Exception e ){
+	  agent = (Agent)Class.forName(new String(agentName.toLowerCase())).newInstance();
+	  agent.activate(args); // FIXME: Check with FIPA specs for agent lifecycle
+	} 
+	catch( Exception e ){
 	  e.printStackTrace();
 	}
 	proxy.addAgent( agent );
 	proxy.addCommListener( agent );
-	agent.addCommListener( proxy );
+	agent.addCommListener(this);
       }
-    } else {
-      try {
-	while( true ){
-	  System.out.println("Accepting connections ...");
-	  new ams( PORT, sock, addresses, sockets );
-	}
-      } catch( IOException ioe ) {
-	ioe.printStackTrace();
-      }
-    }
-
   }
 
   public void CommHandle( CommEvent event ) {
-    System.out.println(event.getSource());
-    System.out.println(event.getCommand());
+    // Get ACL message from the event.
+    // Look up in local agents.
+    // If it fails, look up in remote agents.
+    // If it fails again, ask the Agent Platform.
+    // If still fails, raise NotFound exception.
   }
 
   private static void usage(){
