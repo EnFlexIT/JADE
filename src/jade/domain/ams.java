@@ -1136,33 +1136,35 @@ public class ams extends Agent implements AgentManager.Listener {
     	Authority authority = getAuthority();
 
       String ownership = amsd.getOwnership();
-      UserPrincipal user = null;
-      byte[] word = null;
-      int dot2 = ownership.indexOf(':');
-      if (dot2 != -1) {
-        user = authority.createUserPrincipal();
-        user.init(ownership.substring(0, dot2));
-        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-      }
-      else {
-        user = authority.createUserPrincipal();
-        user.init(ownership);
-        word = new byte[] {};
-      }
+      if (ownership != null) {
+	  UserPrincipal user = null;
+	  byte[] word = null;
+	  int dot2 = ownership.indexOf(':');
+	  if (dot2 != -1) {
+	      user = authority.createUserPrincipal();
+	      user.init(ownership.substring(0, dot2));
+	      word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+	  }
+	  else {
+	      user = authority.createUserPrincipal();
+	      user.init(ownership);
+	      word = new byte[] {};
+	  }
 
-      IdentityCertificate identity = authority.createIdentityCertificate();
-      DelegationCertificate delegation = authority.createDelegationCertificate();
-      if (identity != null && delegation != null) {
-      	AgentPrincipal ap = authority.createAgentPrincipal();
-      	ap.init(id, user);
-        identity.setSubject(ap);
-        delegation.setSubject(ap);
-        authority.authenticateUser(identity, delegation, word);
+	  IdentityCertificate identity = authority.createIdentityCertificate();
+	  DelegationCertificate delegation = authority.createDelegationCertificate();
+	  if (identity != null && delegation != null) {
+	      AgentPrincipal ap = authority.createAgentPrincipal();
+	      ap.init(id, user);
+	      identity.setSubject(ap);
+	      delegation.setSubject(ap);
+	      authority.authenticateUser(identity, delegation, word);
 
 	      myPlatform.changeAgentPrincipal(id, identity, delegation);
 	    }
 
-      amsd.setOwnership(user.getName());
+	  amsd.setOwnership(user.getName());
+      }
       agentDescriptions.register(id, amsd);
     }
     catch (NotFoundException nfe) {
@@ -1199,21 +1201,23 @@ public class ams extends Agent implements AgentManager.Listener {
 //__SECURITY__BEGIN        
     	// modify agent ownership
       String ownership = amsd.getOwnership();
-      UserPrincipal user = null;
-      byte[] word = null;
-      int dot2 = ownership.indexOf(':');
-      if (dot2 != -1) {
-        user = getAuthority().createUserPrincipal();
-        user.init(ownership.substring(0, dot2));
-        word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+      if (ownership != null) {
+	  UserPrincipal user = null;
+	  byte[] word = null;
+	  int dot2 = ownership.indexOf(':');
+	  if (dot2 != -1) {
+	      user = getAuthority().createUserPrincipal();
+	      user.init(ownership.substring(0, dot2));
+	      word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+	  }
+	  else {
+	      user = getAuthority().createUserPrincipal();
+	      user.init(ownership);
+	      word = new byte[] {};
+	  }
+	  myPlatform.changeAgentPrincipal(amsd.getName(), null, null); //!!!
+	  old.setOwnership(user.getName()); //FIXME Should this instruction be amsd.setOwnership instead of old.set...?
       }
-      else {
-        user = getAuthority().createUserPrincipal();
-        user.init(ownership);
-        word = new byte[] {};
-      }
-      myPlatform.changeAgentPrincipal(amsd.getName(), null, null); //!!!
-      old.setOwnership(user.getName());
 //__SECURITY__END
     }
     catch (NotFoundException nfe) {
@@ -1227,7 +1231,7 @@ public class ams extends Agent implements AgentManager.Listener {
       throw ae;
     }
 
-    agentDescriptions.register(old.getName(), old);
+    agentDescriptions.register(amsd.getName(), amsd);
   }
 
   private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
