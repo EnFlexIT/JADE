@@ -193,7 +193,7 @@ public class MessageTransportProtocol implements MTP {
       AID from = env.getFrom();
       Iterator itFrom = from.getAllAddresses();
       if(!itFrom.hasNext())
-	from.addAddresses("iiop://" + addrToStr(ta));
+	from.addAddresses(addrToStr(ta));
 
       FIPA.AgentID[] IDLfrom = new FIPA.AgentID[] { marshalAID(from) };
 
