@@ -21,8 +21,8 @@
 ;*****************************************************************/
 
 ;/**
-;Javadoc documentation for the file
-;@author Giovanni Rimassa - Universita` di Parma
+;
+;@author Fabio Bellifemine - CSELT S.p.A
 ;@version $Date$ $Revision$
 ;*/
 ;
