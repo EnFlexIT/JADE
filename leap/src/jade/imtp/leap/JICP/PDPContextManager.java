@@ -27,7 +27,7 @@ import jade.util.leap.Properties;
 
 import java.net.InetAddress;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 public interface PDPContextManager {
 	public static final String MSISDN = "msisdn";
