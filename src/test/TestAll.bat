@@ -1,23 +1,27 @@
 echo modify the following line and set the default compiler and JVM to be 1.2
 set PATH=c:\MyPrograms\jdk1.2.2\bin;%PATH%
-echo check now that the JVM is actually 1.2
-java -version
-echo check that idlj will not be launched and the FIPa classes will remain clean
-idlj
 
+java -version
+pause check now that the JVM is actually 1.2. Otherwise abort the testing
+
+idlj
+pause check that idlj is an unrecognized command such that the FIPa classes will remain clean. Otherwise abort the testing
+
+echo modify the following 3 lines to set your classpath
 REM set CLASSPATH=..\..\lib\jade.jar;..\..\lib\jadeTools.jar;..\..\lib\iiop.jar;..\..\lib\Base64.jar;..\..\classes
 set JESS51=c:\myprograms\jess51
 set CLASSPATH=..\..\classes;%JESS51%
+set JADEJAR=..\..\lib\jade.jar
 
 goto :SKIPCOMPILATION
-echo compile the Test code
-javac -d ..\..\classes -classpath ..\..\classes TestAgent.java jsp\TestDanielExample.java
 echo compile JADE and the examples
 cd ..\..
 CALL makejade
 CALL makeexamples
 CALL makejessexample
-cd src\test
+cd ..\test
+echo compile the Test code
+javac -d ..\..\classes -classpath ..\..\classes TestAgent.java jsp\TestDanielExample.java
 
 :SKIPCOMPILATION
 
@@ -41,8 +45,6 @@ java -cp %CLASSPATH% examples.inprocess.InProcessTest
 java -cp %CLASSPATH% examples.inprocess.InProcessTest -container
 
 echo Running JadeJessProtege example FIXME
-
-:STARTHERE
 
 echo Running jess example
 cd ..
@@ -83,17 +85,22 @@ START java -cp %CLASSPATH% jade.Boot -container subDF:examples.subdf.SubDF
 echo Running the thanksAgent example
 java -cp %CLASSPATH% jade.Boot -container t:examples.thanksAgent.ThanksAgent
 
+:STARTHERE
+
 echo Running the demo
+pause shutdown the current Agent Platform before continuing
 cd ..\demo\MeetingScheduler
 CALL run
 
 echo Running the TestAgent (testing the messages)
 echo type as input file testmessages.msg
+cd test
 java -cp %CLASSPATH% test.TestAgent
 
 echo Running the LEAP Testsuite 
 cd ..\..\..\leapTestSuite
-makeTestSuite.bat
+CALL makeTestSuite.bat
+cd ..\jade\src\test
 
 echo Running the behaviours test FIXME (per Giovanni Caire)
 
@@ -106,3 +113,10 @@ echo Testing the HTTP-MTP add-on FIXME (per Tiziana)
 echo Testing the XML ACLCodec add-on FIXME (per Tiziana)
 
 echo Testing the bit-efficient ACLCodec add-on FIXME (per Tiziana)
+
+echo Test inter-platform communication FIXME
+
+echo Test if calling jade.jar works. Just the RMA GUI must appear properly
+cd ..\..
+CALL makelib
+java -cp %JADEJAR% jade.Boot -nomtp rma2:jade.tools.rma.rma
