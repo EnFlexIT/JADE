@@ -1582,7 +1582,6 @@ public class Agent implements Runnable, Serializable {
       */
 
       if(msg != null) msgQueue.addLast(msg);
-      msg.toText(new java.io.OutputStreamWriter(System.out));
       doWake();
       messageCounter++;
     }
