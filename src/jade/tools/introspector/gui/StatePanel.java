@@ -84,7 +84,7 @@ public class StatePanel extends JPanel {
     JPanel ledPanel = new JPanel();
     ledPanel.setLayout(new BoxLayout(ledPanel, BoxLayout.Y_AXIS));
     ledPanel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
-    ledPanel.setBorder(BorderFactory.createTitledBorder(line, "Current State", TitledBorder.CENTER, TitledBorder.TOP, new Font("Monospaced", Font.BOLD, 10)));
+    ledPanel.setBorder(BorderFactory.createTitledBorder(line, "Current State", TitledBorder.CENTER, TitledBorder.TOP, new Font("Dialog", Font.BOLD, 10)));
 
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
