@@ -45,27 +45,33 @@ class JADEClassLoader extends ClassLoader {
   protected Class findClass(String name) throws ClassNotFoundException {
     byte[] classFile;
 
-    log("Remote retrieval of class "+name, 4);
-
     try {
+    	log("Remote retrieval of code for class "+name, 4);
       classFile = classServer.fetchClassFile(name);
     }
     catch (IMTPException re) {
-      throw new ClassNotFoundException();
+      throw new ClassNotFoundException(name);
     } 
 
-    if (classFile != null) {
-      return defineClass(null, classFile, 0, classFile.length);
+    if (classFile != null) {           	
+    	log("Code of class "+name+" retrieved. Length is "+classFile.length, 4);
+      return defineClass(name, classFile, 0, classFile.length);
     }
     else
-      throw new ClassNotFoundException();
+      throw new ClassNotFoundException(name);
   }
   
-  /*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
   protected Class loadClass(String name,	
     	                    boolean resolve) throws ClassNotFoundException {
+  
+    Class c;
+    log("Loading class "+name, 5);
+    //#PJAVA_EXCLUDE_BEGIN
+    c = super.loadClass(name, resolve);
+    //#PJAVA_EXCLUDE_END
+    /*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
   	// 1) Try to see if the class has already been loaded
-  	Class c = findLoadedClass(name);
+  	c = findLoadedClass(name);
   	
 		// 2) Try to load the class using the system class loader
   	if (c == null) {
@@ -84,9 +90,11 @@ class JADEClassLoader extends ClassLoader {
   	if (resolve) {
   		resolveClass(c);
   	}
+		#PJAVA_INCLUDE_END*/
+    
+		log("Class "+name+" loaded", 5);
   	return c;
 	}  	
-	#PJAVA_INCLUDE_END*/
 	
   private void log(String s, int level) {
   	if (verbosity >= level) {
