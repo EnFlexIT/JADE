@@ -1,5 +1,16 @@
 /*
   $Log$
+  Revision 1.13  1998/10/11 19:32:30  rimassa
+  In method bornAgent() a sensible strategy has been implemented to
+  recover from agent name collisions. When a new agent has a name
+  already present in Global Agent Table, a name clash exception is
+  raised, unless the old agent's container crashed, in which case the
+  newer agent simply replaces the older one.
+  Now lookup() method is able to distinguish between an unknown agent
+  and an agent whose container has crashed, writing a suitable error
+  message in the NotFoundException it raises.
+  Fixed a missing toLowerCase().
+
   Revision 1.12  1998/10/07 22:16:21  Giovanni
   Changed code in various places to make agent descriptor tables
   case-insensitive. Now upper or lower case in agent names and addresses
@@ -113,23 +124,44 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     containers.removeElement(ac);
   }
 
-  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException {
+  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
     System.out.println("Born agent " + name);
-    platformAgents.put(name, desc);
+    Object old = platformAgents.put(name.toLowerCase(), desc);
+
+    // If there's already an agent with name 'name' throw a name clash
+    // exception unless the old agent's container is dead.
+    if(old != null) {
+      AgentDescriptor ad = (AgentDescriptor)old;
+      MessageDispatcher md = ad.getDemux();
+      try {
+	md.ping(); // Make sure container is alive, then raise a name clash exception
+	throw new NameClashException("Agent " + name + " already present in the platform ");
+      }
+      catch(RemoteException re) {
+	System.out.println("Replacing a dead agent ...");
+      }
+    }
   }
 
   public void deadAgent(String name) throws RemoteException {
     System.out.println("Dead agent " + name);
-    platformAgents.remove(name);
-    // FIXME: Must update all container caches
+    platformAgents.remove(name.toLowerCase());
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-    Object o = platformAgents.get(agentName.toLowerCase());
-    if(o == null)
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null)
       throw new NotFoundException("Failed to find " + agentName);
-    else
-      return (AgentDescriptor)o;
+    else {
+      MessageDispatcher md = ad.getDemux();
+      try {
+	md.ping();
+      }
+      catch(RemoteException re) {
+	throw new NotFoundException("Container for " + agentName + " is unreachable");
+      }
+      return ad;
+    }
   }
 
 
@@ -180,8 +212,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     try {
       // Extract the agent name from the beginning to the '@'
-      agentName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+      String simpleName = agentName.substring(0,agentName.indexOf('@'));
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
