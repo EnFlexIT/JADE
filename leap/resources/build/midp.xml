@@ -131,6 +131,7 @@
 		         packagenames="jade.*, starlight.* "/>
 	</target>
 
+				<!-- To be removed -->
         <target name="do-apidoc" depends="do-setup"
             description="Generate filtered javadoc">
             

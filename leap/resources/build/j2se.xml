@@ -144,9 +144,23 @@
             
             <!-- 2) Copy JADE sources -->
             <copy todir="${filtered.src}" overwrite="yes">
-                    <fileset dir="${src}"/>
+                    <fileset dir="${src}">
+                    	<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
+                    	<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
+                    	<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+                    	<exclude name="**/jade/content/lang/sl/Token.java"/>
+                    	<exclude name="**/jade/content/lang/sl/ParseException.java"/>
+                    	<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
+
+                    	<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
+                    	<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
+                    	<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
+                    	<exclude name="**/jade/lang/acl/Token.java"/>
+                    	<exclude name="**/jade/lang/acl/ParseException.java"/>
+                    	<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
+                    </fileset>
             </copy>
-            
+           
             <!-- 3) Preprocess-->
             <pproc basedir="${filtered.src}" type="apidoc"/>
         
@@ -158,10 +172,13 @@
                      bottom="${javadoc-footer}"
                      verbose="false"
                      windowtitle="${j2se-title}"
-                     packagenames="jade.*, starlight.* "
+                     packagenames="jade.*"
+                     excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.introspection, jade.domain.KBManagement, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
+                     <!--
+                     Reacher documentation: Need to remove APIDOC exclude from AgentState, BehaviourID and Agent state-value constants
                      excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.applet, jade.tools.dfgui, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.gui, jade.tools.rma, jade.tools.sniffer, jade.tools.testagent.*"/>
-
-            <!-- 5) Remove filtered src-->
+                     -->
+            <!-- 5) Remove filtered src -->
             <delete dir="${filtered.src}"/>
         </target>
 
