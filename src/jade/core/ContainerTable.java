@@ -130,20 +130,23 @@ class ContainerTable {
   }
 
   synchronized boolean waitUntilEmpty(long timeout) {
+		long time = System.currentTimeMillis();
+		long deadline = time + timeout;
   	try {
 	    while(!entries.isEmpty()) {
-	      wait(timeout);
-	      if (!entries.isEmpty()) {
+	    	if (timeout > 0 && time >= deadline) {
+	    		// Timeout expired
 	      	myLogger.log(Logger.WARNING, "Some entries still present in container table");
-	      	return false;
-	      }
+	    		break;
+	    	}
+	      wait(deadline - time);
+	      time = System.currentTimeMillis();
 		  }
   	}
   	catch (InterruptedException ie) {
     	myLogger.log(Logger.WARNING, "Interrupted while waiting for container table to be empty");
-    	return false;
   	}
-  	return true;  	
+  	return entries.isEmpty();  
   }
 
 }
