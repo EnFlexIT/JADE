@@ -95,7 +95,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	/*#CUSTOMJ2SE_INCLUDE_BEGIN
   	verbosity = 4;
   	#CUSTOMJ2SE_INCLUDE_END*/
-  	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
+  	myLogger = new Logger(myID, verbosity);
   	
   	// Max disconnection time
     long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;

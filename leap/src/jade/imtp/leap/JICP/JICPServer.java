@@ -86,7 +86,7 @@ public class JICPServer extends Thread {
     cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
-  	myLogger = new Logger("JICPServer", 2, "HH:mm:ss", true);
+  	myLogger = new Logger("JICPServer", 2);
 		
     try {
     	localHost = InetAddress.getLocalHost(); 

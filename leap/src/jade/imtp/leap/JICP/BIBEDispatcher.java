@@ -102,7 +102,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	/*#CUSTOMJ2SE_INCLUDE_BEGIN
   	verbosity = 4;
   	#CUSTOMJ2SE_INCLUDE_END*/
-  	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
+  	myLogger = new Logger(myID, verbosity);
 
   	// Max disconnection time
     maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
