@@ -30,19 +30,20 @@ package examples.ontology.employment;
 public class Address {
 	
 	private String 	_street;					// Street name
-	private int     _number;          // Street number
+	private Long    _number;          // Street number
 	private String 	_city;						// City
 	
+	// Methods required to use this class to represent the ADDRESS role
 	public void setStreet(String street) {
 		_street=street;
 	}
 	public String getStreet() {
 		return _street;
 	}
-	public void setNumber(int number) {
+	public void setNumber(Long number) {
 		_number=number;
 	}
-	public int getNumber() {
+	public Long getNumber() {
 		return _number;
 	}
 	public void setCity(String city) {
@@ -50,5 +51,16 @@ public class Address {
 	}
 	public String getCity() {
 		return _city;
+	}
+	
+	// Other application specific methods
+	public boolean equals(Address a){
+		if (!_street.equalsIgnoreCase(a.getStreet()))
+			return false;
+		if (_number.longValue() != a.getNumber().longValue())
+			return false;
+		if (!_city.equalsIgnoreCase(a.getCity()))
+			return false;
+		return true;
 	}
 }

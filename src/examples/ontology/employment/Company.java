@@ -32,6 +32,7 @@ public class Company {
 	private String 	_name;						//Company's name
 	private Address	_address;					//Headquarter's address
 	
+	// Methods required to use this class to represent the COMPANY role
 	public void setName(String name) {
 		_name=name;
 	}
@@ -43,5 +44,10 @@ public class Company {
 	}
 	public Address getAddress() {
 		return _address;
+	}
+	
+	// Other application specific methods
+	public boolean equals(Company c){
+		return (_name.equalsIgnoreCase(c.getName()));
 	}
 }
