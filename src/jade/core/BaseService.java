@@ -174,16 +174,61 @@ public abstract class BaseService implements Service {
 	}
     }
 
-    // this should be properly implemented
-    // by the services that have helpers
+    /** 
+       This should be properly implemented
+       by the services that have filters.
+     */
+    public Filter getCommandFilter(boolean direction) {
+         return null;
+    }
+
+    /** 
+       This should be properly implemented
+       by the services that have sinks.
+     */
+    public Sink getCommandSink(boolean direction) {
+         return null;
+    }
+
+    /** 
+       This should be properly implemented
+       by the services that owns vertival commands.
+     */
+    public String[] getOwnedCommands() {
+         return null;
+    }
+
+    /** 
+       This should be properly implemented
+       by the services that have non-empty slices.
+     */
+    public Class getHorizontalInterface() {
+         return null;
+    }
+
+    /** 
+       This should be properly implemented
+       by the services that have non-empty slices.
+     */
+	  public Service.Slice getLocalSlice() {
+			return null;
+	  }
+	  
+    /** 
+       This should be properly implemented
+       by the services that have helpers.
+     */
     public ServiceHelper getHelper(Agent a) {
          return null;
     }
 
-    // This will be overridden by services that provide an AMS-level
-    // access to (some of) their features
+    /** 
+       This should be properly implemented
+       by the services that require a service specific Behaviour 
+       running in the AMS.
+     */
     public Behaviour getAMSBehaviour() {
-	return null;
+			return null;
     }
 
     public void boot(Profile p) throws ServiceException {
