@@ -85,13 +85,7 @@ import jade.security.PrivilegedExceptionAction;
    @version $Date$ $Revision$
 
 */
-class MainContainerImpl implements MainContainer, Platform, AgentManager {
-
-    static final String MAIN_CONTAINER_NAME = "Main-Container";
-    static final String AUX_CONTAINER_NAME = "Container-";
-
-    // this variable holds a progressive number just used to name new containers
-    private static int containersProgNo = 0;
+public class MainContainerImpl implements MainContainer, AgentManager {
 
     // The two mandatory system agents.
     private ams theAMS;
@@ -102,7 +96,6 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
     // FIXME: Temporary Hack
     private CommandProcessor myCommandProcessor;
-    private ServiceManagerImpl myServiceManagerImpl;
 
     private List platformListeners = new LinkedList();
     private List platformAddresses = new LinkedList();
@@ -112,14 +105,10 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
     private Authority authority;
     private Profile myProfile;
 
-    MainContainerImpl(Profile p) throws ProfileException {
+    public MainContainerImpl(Profile p) throws ProfileException {
 	myProfile = p;
 	myIMTPManager = p.getIMTPManager();
 	myCommandProcessor = p.getCommandProcessor();
-
-	// FIXME: The association between MainContainerImpl and ServiceManagerImpl need be clarified...
-	myServiceManagerImpl = (ServiceManagerImpl)myProfile.getServiceManager();
-	myServiceManagerImpl.setMain(this);
 
 	platformID = p.getParameter(Profile.PLATFORM_ID, null);
 	if (platformID == null || platformID.equals("")) {
@@ -175,8 +164,6 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	String username = desc.getPrincipalName();
 	byte[] password = desc.getPrincipalPwd();
 
-	cid.setName(MAIN_CONTAINER_NAME);
-
 	// Authenticate user
 	ContainerPrincipal principal = getAuthority().createContainerPrincipal(cid, username);
 	CertificateFolder certs = authority.authenticate(principal, password);
@@ -190,16 +177,17 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// Add the calling container as the main container
 	containers.addContainer(cid, node, principal);
-	containersProgNo++;
 
     }
 
-    public void removeLocalContainer() throws IMTPException {
+    public void removeLocalContainer(ContainerID cid) throws IMTPException {
 	// Deregister yourself as a container
-	containers.removeContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
+	containers.removeContainer(cid);
 
 	// Kill every other container
 	ContainerID[] allContainers = containers.names();
+
+	/***
 	for(int i = 0; i < allContainers.length; i++) {
 	    ContainerID targetID = allContainers[i];
 	    try {
@@ -216,6 +204,8 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// Make sure all containers are succesfully removed from the table...
 	containers.waitUntilEmpty();
+
+	***/
 
 	// Stop the Default DF
 	Agent systemAgent = defaultDF;
@@ -238,23 +228,6 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	ContainerID cid = desc.getContainer();
 	String username = desc.getPrincipalName();
 	byte[] password = desc.getPrincipalPwd();
-
-	// Set the container name
-	if (cid.getName().equals("No-Name")) { // no name => assign a new name
-	    String name = AUX_CONTAINER_NAME + containersProgNo;
-	    containersProgNo++;
-	    cid.setName(name);
-	} else { // if this name exists already, assign a new name
-	    try {
-		containers.getContainerNode(cid);
-		String name = cid.getName() + containersProgNo;
-		containersProgNo++;
-		cid.setName(name);
-	    }
-	    catch (NotFoundException nfe) { 
-		// no container with this name exists, ok, go on.
-	    }
-	}
 
 	// Authenticate user
 	ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
@@ -317,13 +290,14 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
     private void removeRemoteContainer(ContainerID cid) {
 	containers.removeContainer(cid);
 
+	// Eradicate all the entries for agents living on the dead container
+	removeAllAgents(cid);
+
 	// Notify listeners
 	fireRemovedContainer(cid);
     }
 
-    // Start the AMS and the Default DF
-    public void startSystemAgents(AgentContainerImpl ac) throws IMTPException, NotFoundException, AuthException {
-
+    public void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
 	ContainerID cid = ac.getID();
 	ContainerPrincipal cp = containers.getPrincipal(cid);
 	String agentOwnership = cp.getOwnership();
@@ -347,6 +321,15 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	//	CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
 	CertificateFolder dfCerts = authority.authenticate(dfPrincipal, new byte[] {}); // FIXME: Temporary Hack
 	defaultDF.setPrincipal(dfCerts);
+
+	if(startThem) {
+	    startSystemAgents(ac);
+	}
+
+    }
+
+    // Start the AMS and the Default DF
+    public void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
 
 	try {
 	    ac.initAgent(ac.getAMS(), theAMS, AgentContainerImpl.CREATE_AND_START);
@@ -1311,51 +1294,6 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	 	}
 	 	return cp;
   }
-  
-  private void handleCrash(ContainerID crashedID) {
-    // If a container has crashed all its agents
-    // appear to be still alive in the GADT --> Clean them 
-      AID[] allIds = platformAgents.keys();
-
-      for (int i = 0; i < allIds.length; ++i) {
-	  AID    id = allIds[i];
-	  AgentDescriptor ad = platformAgents.acquire(id);
-	  ContainerID cid = ad.getContainerID();
-
-	  if (crashedID.equals(cid)) {
-	      // This agent was living in the container that has crashed
-	      // --> It must be cleaned
-	      platformAgents.remove(id);
-	      fireDeadAgent(crashedID, id);
-	  } 
-	  else {
-	      platformAgents.release(id);
-	  }
-      } 
-  	
-      // Also notify listeners and other containers that the MTPs that 
-      // were active on the crashed container are no longer available
-      try {
-	  ContainerID[] names = containers.names();
-	  Node crashed = containers.getContainerNode(crashedID);
-	  List mtps = containers.getMTPs(crashedID);
-	  Iterator it = mtps.iterator();
-	  while (it.hasNext()) {
-	      MTPDescriptor dsc = (MTPDescriptor) it.next();
-	      fireRemovedMTP(dsc, crashedID);
-	      for (int i = 0; i < names.length; ++i) {
-		  if (!crashedID.equals(names[i])) {
-		      // AgentContainer ac = containers.getContainer(names[i]);
-		      //  					ac.updateRoutingTable(AgentContainer.DEL_RT, dsc, crashed);
-		  }
-	      }
-	  }
-      }
-      catch (Exception e) {
-	  // Just print a warning
-	  System.out.println("Error cleaning MTPs of crashed container");
-      }
-  }
 
   private boolean match(AMSAgentDescription templateDesc, AMSAgentDescription factDesc) {
 		try {
@@ -1547,6 +1485,24 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       l.removedMTP(ev);
    }
   }
+
+    private void removeAllAgents(ContainerID cid) {
+	String name = cid.getName();
+	AID[] allIDs = platformAgents.keys();
+	for(int i = 0; i < allIDs.length; i++) {
+	    AgentDescriptor ad = platformAgents.acquire(allIDs[i]);
+	    ContainerID id = ad.getContainerID();
+	    platformAgents.release(allIDs[i]);
+	    if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
+		try {
+		    deadAgent(allIDs[i]);
+		}
+		catch(NotFoundException nfe) {
+		    nfe.printStackTrace();
+		}
+	    }
+	}
+    }
 
     public void lockEntryForAgent(AID agentID) {
 	platformAgents.acquire(agentID);
