@@ -49,6 +49,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/AchieveREResponder.java \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
+		jade/proto/SubscriptionInitiator.java \
 		jade/proto/states/HandlerSelector.java \
 		jade/security/dummy/DummyAuthority.java \
 		jade/tools/rma/rma.java \

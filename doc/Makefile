@@ -56,15 +56,7 @@ API_FILES1 = 	jade/Boot.java \
 		jade/core/event/PlatformEvent.java \
 		jade/core/event/PlatformListener.java
 
-API_FILES2 =	jade/domain/DFGUIManagement/DFAppletManagementOntology.java \
-		jade/domain/DFGUIManagement/DeregisterFrom.java \
-		jade/domain/DFGUIManagement/Federate.java \
-		jade/domain/DFGUIManagement/GetDefaultDescription.java \
-		jade/domain/DFGUIManagement/GetDescriptionUsed.java \
-		jade/domain/DFGUIManagement/GetParent.java \
-		jade/domain/DFGUIManagement/ModifyOn.java \
-		jade/domain/DFGUIManagement/RegisterWith.java \
-		jade/domain/DFGUIManagement/SearchOn.java \
+API_FILES2 =	jade/domain/DFGUIManagement/*.java \
 		jade/domain/package.html \
 		jade/domain/AMSServiceCommunicator.java \
 		jade/domain/DFGUIAdapter.java \
@@ -74,67 +66,15 @@ API_FILES2 =	jade/domain/DFGUIManagement/DFAppletManagementOntology.java \
 		jade/domain/FIPANames.java \
 		jade/domain/FIPAServiceCommunicator.java \
 		jade/domain/MobilityOntology.java \
+		jade/domain/mobility/*.java \
 		jade/domain/RequestFIPAServiceBehaviour.java
 
 API_FILES3 =	jade/domain/FIPAAgentManagement/package.html \
-		jade/domain/FIPAAgentManagement/AMSAgentDescription.java \
-		jade/domain/FIPAAgentManagement/APDescription.java \
-		jade/domain/FIPAAgentManagement/APTransportDescription.java \
-		jade/domain/FIPAAgentManagement/AlreadyRegistered.java \
-		jade/domain/FIPAAgentManagement/DFAgentDescription.java \
-		jade/domain/FIPAAgentManagement/Deregister.java \
-		jade/domain/FIPAAgentManagement/Envelope.java \
-		jade/domain/FIPAAgentManagement/FIPAAgentManagementOntology.java \
-		jade/domain/FIPAAgentManagement/FailureException.java \
-		jade/domain/FIPAAgentManagement/GetDescription.java \
-		jade/domain/FIPAAgentManagement/InternalError.java \
-		jade/domain/FIPAAgentManagement/MTPDescription.java \
-		jade/domain/FIPAAgentManagement/MissingParameter.java \
-		jade/domain/FIPAAgentManagement/Modify.java \
-		jade/domain/FIPAAgentManagement/NotRegistered.java \
-		jade/domain/FIPAAgentManagement/NotUnderstoodException.java \
-		jade/domain/FIPAAgentManagement/Property.java \
-		jade/domain/FIPAAgentManagement/Quit.java \
-		jade/domain/FIPAAgentManagement/ReceivedObject.java \
-		jade/domain/FIPAAgentManagement/RefuseException.java \
-		jade/domain/FIPAAgentManagement/Register.java \
-		jade/domain/FIPAAgentManagement/Search.java \
-		jade/domain/FIPAAgentManagement/SearchConstraints.java \
-		jade/domain/FIPAAgentManagement/ServiceDescription.java \
-		jade/domain/FIPAAgentManagement/Unauthorised.java \
-		jade/domain/FIPAAgentManagement/UnexpectedAct.java \
-		jade/domain/FIPAAgentManagement/UnexpectedParameter.java \
-		jade/domain/FIPAAgentManagement/UnrecognisedParameterValue.java \
-		jade/domain/FIPAAgentManagement/UnrecognisedValue.java \
-		jade/domain/FIPAAgentManagement/UnsupportedAct.java \
-		jade/domain/FIPAAgentManagement/UnsupportedFunction.java \
-		jade/domain/FIPAAgentManagement/UnsupportedValue.java
+		jade/domain/FIPAAgentManagement/*.java 
 
 API_FILES4 =	jade/domain/JADEAgentManagement/*.java \
 		jade/domain/introspection/package.html \
-		jade/domain/introspection/ACLMessage.java \
-		jade/domain/introspection/AddedBehaviour.java \
-		jade/domain/introspection/AddedContainer.java \
-		jade/domain/introspection/AddedMTP.java \
-		jade/domain/introspection/BornAgent.java \
-		jade/domain/introspection/ChangedAgentState.java \
-		jade/domain/introspection/ChangedBehaviourState.java \
-		jade/domain/introspection/DeadAgent.java \
-		jade/domain/introspection/Event.java \
-		jade/domain/introspection/EventRecord.java \
-		jade/domain/introspection/JADEIntrospectionOntology.java \
-		jade/domain/introspection/MovedAgent.java \
-		jade/domain/introspection/Occurred.java \
-		jade/domain/introspection/PlatformDescription.java \
-		jade/domain/introspection/PostedMessage.java \
-		jade/domain/introspection/ReceivedMessage.java \
-		jade/domain/introspection/RemovedBehaviour.java \
-		jade/domain/introspection/RemovedContainer.java \
-		jade/domain/introspection/RemovedMTP.java \
-		jade/domain/introspection/RoutedMessage.java \
-		jade/domain/introspection/SentMessage.java \
-		jade/domain/introspection/StartNotify.java \
-		jade/domain/introspection/StopNotify.java \
+		jade/domain/introspection/*.java \
 		jade/domain/AMSService.java \
 		jade/domain/DFService.java
 
@@ -201,7 +141,6 @@ API_FILES5 =	jade/gui/package.html \
 API_FILES6 =	jade/proto/package.html \
 		jade/proto/states/package.html \
 		jade/proto/states/*.java \
-		jade/proto/states/MsgReceiver.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
 		jade/proto/SimpleAchieveREInitiator.java \
@@ -210,6 +149,8 @@ API_FILES6 =	jade/proto/package.html \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
 		jade/proto/Initiator.java \
+		jade/proto/SubscriptionInitiator.java \
+		jade/proto/SubscriptionResponder.java \
 		jade/proto/FIPAProtocolNames.java \
 		jade/tools/DummyAgent/package.html \
 		jade/tools/DummyAgent/DummyAgent.java \
