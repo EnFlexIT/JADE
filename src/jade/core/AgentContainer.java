@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.15  1999/08/31 17:20:37  rimassa
+ * Added a couple of constant definitions to support agent migration.
+ *
  * Revision 1.14  1999/08/27 15:41:51  rimassa
  * Made some interface changes to better support agent migration.
  *
@@ -48,6 +51,9 @@ interface AgentContainer extends Remote {
   static final boolean NOSTART = false;
   static final boolean START = true;
 
+  static final boolean TRANSFER_ABORT = false;
+  static final boolean TRANSFER_COMMIT = true;
+
   void createAgent(String agentName, String className, boolean startIt) throws RemoteException;
   void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException;
 
@@ -63,6 +69,7 @@ interface AgentContainer extends Remote {
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
 
+  void postTransferResult(String agentName, boolean result) throws RemoteException, NotFoundException;
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException;
   void ping() throws RemoteException;
 
