@@ -108,5 +108,11 @@ public interface Map {
      * @see java.util.Map
      */
     int size();
+    
+    /**
+     * Remove all mappings from this map.
+     * @see java.util.Map
+     */
+    void clear();
 }
 
