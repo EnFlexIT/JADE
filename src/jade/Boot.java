@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1999/02/03 09:38:41  rimassa
+  Commented out deprecated method call 'System.runFinalizersOnExit(true)'.
+  Delegated IIOP platform address creation to AgentPlatform class.
+
   Revision 1.12  1998/12/20 02:03:49  rimassa
   Modified '-version' command line option handling. Now some better
   formatting is used on CVS strings before printing them.
@@ -179,12 +183,8 @@ public class Boot {
     }
 
     // This will run all finalization code when this Java VM ends.
-    System.runFinalizersOnExit(true);
+    // System.runFinalizersOnExit(true);  // DEPRECATED 
 
-    // Build the complete URL of the agent platform from default
-    // values and command line options, both for RMI and IIOP calls.
-    String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
-    String platformIIOP = "iiop://" + platformHost + ":" + platformPort + "/" + "acc";
     try{
 
       // If '-gui' option is given, add 'RMA:jade.domain.rma' to
@@ -195,9 +195,13 @@ public class Boot {
 	agents.insertElementAt(new String("jade.domain.rma"), 1);
       }
 
+    // Build the complete URL of the agent platform from default
+    // values and command line options, for use with RMI calls.
+    String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
+
       AgentContainerImpl theContainer = null;
       if(isPlatform) {
-	theContainer = new AgentPlatformImpl();
+	theContainer = new AgentPlatformImpl(args);
 
 	// Create an embedded RMI Registry within the platform and
 	// bind the Agent Platform to it
@@ -207,9 +211,9 @@ public class Boot {
 
       }
       else {
-	theContainer = new AgentContainerImpl();
+	theContainer = new AgentContainerImpl(args);
       }
-      theContainer.joinPlatform(platformRMI, platformIIOP, agents);
+      theContainer.joinPlatform(platformRMI, agents);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while starting Agent Container.");
