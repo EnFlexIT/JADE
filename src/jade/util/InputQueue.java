@@ -87,7 +87,7 @@ public class InputQueue {
 	}			
 
         public synchronized void clear() {
-	    queue.clear();
+	    queue.removeAllElements();
 	}
 
 }
