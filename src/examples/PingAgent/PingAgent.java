@@ -26,7 +26,7 @@ package examples.PingAgent;
 import java.util.Date;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.BufferedWriter;
+import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
 
 import jade.core.*;
@@ -41,8 +41,8 @@ import jade.domain.FIPAException;
 This agent implements a simple Ping Agent. 
 First of all the agent registers itself with the DF of the platform and 
 then waits for ACLMessages.
-If arrives a QUERY_REF message with the string "ping" as content then it replies 
-with an INFORM message whose content will be the string "pong". 
+If  a QUERY_REF or QUER_IF message arrives that contains the string "ping" within the content 
+then it replies with an INFORM message whose content will be the string "(pong)". 
 If it receives a NOT_UNDERSTOOD message no reply is sent. 
 For any other message received it replies with a NOT_UNDERSTOOD message.
 The exchanged message are written in a log file whose name is the local name of the agent.
@@ -54,7 +54,7 @@ The exchanged message are written in a log file whose name is the local name of 
 
 public class PingAgent extends Agent {
 
-	BufferedWriter logFile;
+	PrintWriter logFile;
 	
   class WaitPingAndReplyBehaviour extends SimpleBehaviour {
 
@@ -71,38 +71,36 @@ public class PingAgent extends Agent {
       if(msg != null){
       	if(msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD)
       	{
-      		log("\nReceived the following message: "+ msg.toString());
-      		log("\nNo reply message sent.");
+      		log("Received the following message: "+ msg.toString());
+      		log("No reply message sent.");
       	}
       	else{
-      		log("\nReceived the following message: "+ msg.toString());
+      		log("Received the following message: "+ msg.toString());
       		ACLMessage reply = msg.createReply();
       	
-      		if(msg.getPerformative()== ACLMessage.QUERY_REF)
+      		if((msg.getPerformative()== ACLMessage.QUERY_REF)||(msg.getPerformative()== ACLMessage.QUERY_IF))
       		{
       		  String content = msg.getContent();
-      	    if (content != null)
-      		  	if(content.equalsIgnoreCase("ping"))
+      	    if ((content != null) && (content.indexOf("ping") != -1))
       					{
       						reply.setPerformative(ACLMessage.INFORM);
-      				  	reply.setContent("pong");
+      				  	reply.setContent("(pong)");
       					}
       				else
       			  	{
       			  		reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-      			  		reply.setContent("( uncorrect content for a ping message )");
+      			  		reply.setContent("( UnexpectedContent (expected ping))");
       			  	}
-      			else
-      			{
-      				reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-      			  reply.setContent("( uncorrect content for a ping message )");
-      			}
-      			 
+      			
       		}
       		else
-      		reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+      		{
+      			reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+      			reply.setContent("( (Unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+") ( expected (query-ref :content ping)))");
+
+      		}
        	      		
-      		log("\nReplied with the following message: "+ reply.toString());
+      		log("Replied with the following message: "+ reply.toString());
           send(reply);
       	}
       }else{
@@ -135,8 +133,8 @@ public class PingAgent extends Agent {
     	}
 
     	try{
-    		logFile = new BufferedWriter(new FileWriter(getLocalName()+".log"));
-    		log("\nAgent: " + getName() + " born on " + new Date());
+    		logFile = new PrintWriter(new FileWriter(getLocalName()+".log",true));
+    		log("Agent: " + getName() + " born");
   			WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
     		addBehaviour(PingBehaviour);
     	}catch(IOException e){
@@ -146,13 +144,9 @@ public class PingAgent extends Agent {
   }
 
 	public synchronized void log(String str) {
-  	try {
-    	logFile.write(str,0,str.length());
-    	logFile.flush();
-  	} catch (IOException e) {
-    	e.printStackTrace();
-    	doDelete();
-  	}
+      	
+		logFile.println((new Date()).toString()+ " - " + str);
+    logFile.flush();
 	}
 
 }//end class PingAgent
