@@ -90,6 +90,7 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/sl/SLCodec.java \
 		jade/content/onto/ACLOntology.java \
 		jade/content/onto/BasicOntology.java \
+		jade/content/onto/BCReflectiveIntrospector.java \
 		jade/content/onto/Introspector.java \
 		jade/content/onto/Introspectable.java \
 		jade/content/onto/Ontology.java \
