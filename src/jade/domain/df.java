@@ -72,7 +72,7 @@ public class df extends Agent {
       // Remove 'action df' from content string
       content = content.substring(content.indexOf("df") + 2); // FIXME: DF could crash for a bad msg
 
-      // Obtain an DF action from message content
+      // Obtain a DF action from message content
       try {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
