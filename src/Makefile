@@ -34,8 +34,8 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
 		jade/tools/sniffer/Sniffer.java \
-#		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
-#		jade/tools/applet/DFApplet.java \
+		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
+		jade/tools/applet/DFApplet.java \
 		starlight/util/Base64.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
