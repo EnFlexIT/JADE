@@ -32,17 +32,17 @@ import javax.swing.*;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.FIPAException;
 import jade.domain.MobilityOntology;
-
-import jade.onto.OntologyException;
-
 import jade.lang.Codec;
+import jade.lang.sl.SL0Codec;
+
+import jade.gui.GuiAgent;
+import jade.gui.GuiEvent;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.lang.sl.SL0Codec;
+
 
 
 /**
@@ -56,55 +56,24 @@ the agent migration takes effect.
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */
-public class MobileAgent extends Agent {
-	int     cnt;
-	boolean cntEnabled;
+public class MobileAgent extends GuiAgent {
+  int     cnt;   // this is the counter
+  boolean cntEnabled;  // this flag indicates if counting is enabled
+  protected MobileAgentGui gui;  // this is the gui
+  Location nextSite;  // this variable holds the destination site
 
 	public void setup() {
-	  System.out.println("Hallo! Now I'm here");
+	  // register the SL0 content language
 	  registerLanguage(SL0Codec.NAME, new SL0Codec());
+	  // register the mobility ontology
 	  registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
 
-	  System.out.println("The available locations on this platform are:");
+	  // creates and shows the GUI
+	  gui = new MobileAgentGui(this);
+	  gui.showCorrect();
 
-	  ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-	  request.addDest("AMS");
-	  request.setLanguage(SL0Codec.NAME);
-	  request.setOntology(MobilityOntology.NAME);
-	  request.setProtocol("fipa-request");
-	  try {
-	    MobilityOntology.QueryPlatformLocationsAction action = new MobilityOntology.QueryPlatformLocationsAction();
-	    action.setActor("AMS");
-	    fillContent(request, action, MobilityOntology.QUERY_PLATFORM_LOCATIONS);
-	  }
-	  catch(FIPAException fe) {
-	    fe.printStackTrace();
-	  }
-
-	  send(request);
-	  ACLMessage agree = blockingReceive(MessageTemplate.MatchPerformative(ACLMessage.AGREE));
-	  ACLMessage inform = blockingReceive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-	  String content = inform.getContent();
-	  System.out.println("Content:");
-	  System.out.println(content);
-	  try {
-	    Codec c = lookupLanguage(SL0Codec.NAME);
-	    MobilityOntology.Location[] list = MobilityOntology.parseLocationsList(c, content);
-	    for(int j = 0; j < list.length; j++) {
-	      Location l = list[j];
-	      System.out.println("Location description [" + (j + 1) + "]");
-	      System.out.println("[Name]:  " + l.getName());
-	      System.out.println("[Proto]: " + l.getProtocol());
-	      System.out.println("[Addr]:  " + l.getAddress());
-	      System.out.println();
-	    }
-	  }
-	  catch(OntologyException oe) {
-	    oe.printStackTrace();
-	  }
-	  catch(Codec.CodecException cce) {
-	    cce.printStackTrace();
-	  }
+	  // get the list of available locations and show it in the GUI
+	  addBehaviour(new GetAvailableLocationsBehaviour(this));
 
 	  cnt = 0;
 	  cntEnabled = true;
@@ -117,14 +86,18 @@ public class MobileAgent extends Agent {
 	  addBehaviour(b2);	
 	}
 
+
 	protected void beforeMove() 
 	{
-		System.out.println("Bye!");
+		gui.dispose();
+		System.out.println(getLocalName()+" is now moving elsewhere.");
 	}
 
 	protected void afterMove() 
 	{
-		System.out.println("Hallo! Now I'm here");
+		System.out.println(getLocalName()+" is just arrived to this location.");
+		gui.addVisitedSite(nextSite);
+		gui.showCorrect();
 
 		// Register again SL0 content language and JADE mobility ontology,
 		// since they don't migrate.
@@ -132,4 +105,48 @@ public class MobileAgent extends Agent {
 		registerOntology(MobilityOntology.NAME, MobilityOntology.instance());		
 	}
 	
+
+
+	/////////////////////////////////
+	// GUI HANDLING
+
+	// MOBILE GUI EVENT 
+	private class MobGuiEvent extends GuiEvent
+	{
+		public static final int MOVE = 1001;
+		public Location destination;
+
+		public MobGuiEvent(Object source, int type, Location dest)
+		{
+			super(source, type);
+			this.destination = dest;
+		}
+	}
+		
+	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT OPERATIONS 	
+	public void postMoveEvent(Object source, Location dest)
+	{
+		MobGuiEvent ev = new MobGuiEvent(source, MobGuiEvent.MOVE, dest);
+		postGuiEvent(ev);
+	}
+	
+	// AGENT OPERATIONS FOLLOWING GUI EVENTS
+	protected void onGuiEvent(GuiEvent ev)
+	{
+		switch(ev.getType()) 
+		{
+		case MobGuiEvent.EXIT:
+			gui.dispose();
+			gui = null;
+			doDelete();
+			break;
+		case MobGuiEvent.MOVE:
+			nextSite = (Location)(((MobGuiEvent)ev).destination);
+			doMove(nextSite);
+			break;
+		}
+	}
+
 }
+
+
