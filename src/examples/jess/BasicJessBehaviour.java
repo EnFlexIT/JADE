@@ -86,7 +86,7 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
     // The name method returns the name by which the function appears in Jess
     public String name() { return("send"); }
     
-    public Value call (ValueVector vv, Context context) throws ReteException {
+    public Value call(ValueVector vv, Context context) throws ReteException {
       //      for (int i=0; i<vv.size(); i++) {
       // System.out.println(" parameter " + i + "=" + vv.get(i).toString() +  
       // " type=" + vv.get(i).type());
