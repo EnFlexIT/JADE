@@ -343,7 +343,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
     public Service findService(String key) throws IMTPException, ServiceException {
 	ServiceEntry e = (ServiceEntry)services.get(key);
-	return e.getService();
+	if(e == null) {
+	    return null;
+	}
+	else {
+	    return e.getService();
+	}
     }
 
     public Service.Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
@@ -651,7 +656,6 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     }
 
     private void doActivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
-
 	String name = desc.getName();
 	Service svc = desc.getService();
 	ServiceEntry e = (ServiceEntry)services.get(name);
