@@ -46,7 +46,8 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		starlight/util/Base64.java \
 		jade/imtp/rmi/MainContainerRMIImpl.java \
 		jade/imtp/rmi/RMIIMTPManager.java \
-		jade/content/abs/AbsAID.java \
+
+ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/abs/AbsActionPredicate.java \
 		jade/content/abs/AbsAgentAction.java \
 		jade/content/abs/AbsAggregate.java \
@@ -85,8 +86,9 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/content/QuantifiedVariable.java \
 		jade/content/Quantifier.java \
 		jade/content/Term.java \
-		jade/content/Variable.java \
-		jade/content/lang/j/JCodec.java \
+		jade/content/Variable.java
+
+ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
 		jade/content/lang/Codec.java \
 		jade/content/onto/ACLOntology.java \
@@ -208,7 +210,7 @@ $(SL0CLASSES): $(SL0SPEC)
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
-	$(JC) -classpath $(CLSDIR):$(SRCDIR) $(JFLAGS) $(ROOTCLASSES)
+	$(JC) -classpath $(CLSDIR):$(SRCDIR) $(JFLAGS) $(ROOTCLASSES) $(ROOTCLASSES2) $(ROOTCLASSES3)
 
 stubs:
 	$(STUBGEN) -classpath $(CLSDIR):$(SRCDIR) -d $(CLSDIR) $(STUBS)
@@ -247,6 +249,8 @@ batch:
 	echo >> $(BATCH_ALL)
 	echo '$(JC) -classpath . $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
 	echo '$(JC) -classpath .;$(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
+	echo '$(JC) -classpath .;$(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES2))' >> $(BATCH_ALL)
+	echo '$(JC) -classpath .;$(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES3))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
