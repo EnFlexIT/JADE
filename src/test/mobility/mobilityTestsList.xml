@@ -39,7 +39,7 @@
 		</Test>
 		
 		<Test name="Clone big agent" skip="false">
-			<TestClassName>test.mobility.tests.CloneBigAgent</TestClassName>
+			<TestClassName>test.mobility.tests.TestCloneBigAgent</TestClassName>
 			<WhatTest> Test agent cloning and the transfer of an agent whose status includes a big amount of data.
 			</WhatTest>
 			<HowWorkTest> A Vector of 100000 10-byte-long elements (total 1MByte) is created. Then the TesterAgent itself is cloned on a remote container. 
