@@ -121,7 +121,7 @@ public class Runtime {
       int portNumber = Integer.parseInt(port);
 
       Registry theRegistry = LocateRegistry.createRegistry(portNumber);
-      Naming.bind(platformRMI, mc);
+      Naming.bind(platformRMI, new jade.imtp.rmi.MainContainerRMIImpl(mc));
       String[] empty = new String[] { };
       impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
