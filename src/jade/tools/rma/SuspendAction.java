@@ -23,15 +23,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
+import jade.core.AID;
+
 import jade.gui.AgentTree;
 import jade.gui.AgentTreeModel;
 
-/**
-   
+/**   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-class SuspendAction extends  AgentAction {
+class SuspendAction extends AgentAction {
 
   private rma myRMA;
 
@@ -39,12 +40,15 @@ class SuspendAction extends  AgentAction {
     super ("SuspendActionIcon","Suspend",actPro);
     myRMA = anRMA;
   }
+
   public void doAction(AgentTree.AgentNode node ) {
     node.setState("Suspended");
     node.changeIcon(0);
     String toSuspend = node.getName();
+    AID agentID = new AID();
+    agentID.setName(toSuspend);
 
-    // myRMA.suspendAgent(toSuspend);
+    myRMA.suspendAgent(agentID);
     AgentTreeModel myModel = myRMA.getModel();
     myModel.nodeChanged(node);
 
