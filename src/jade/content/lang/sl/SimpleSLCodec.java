@@ -219,8 +219,8 @@ class SimpleSLCodec extends StringCodec {
   	AbsObject abs = null;
   	p.consumeChar('(');
   	String name = p.consumeWord();
-  	log("Parse complex descriptor: "+name);
-  	++indent;
+  	//log("Parse complex descriptor: "+name);
+  	//++indent;
   	try {
 	  	ObjectSchema s = o.getSchema(name);
   		abs = s.newInstance();
@@ -240,7 +240,7 @@ class SimpleSLCodec extends StringCodec {
   	catch (Throwable t) {
   		throw new CodecException("Unexpeceted error parsing "+name, t);
   	}
-  	indent--;
+  	//indent--;
   	p.consumeChar(')');
   	return abs;
   }
@@ -290,7 +290,7 @@ class SimpleSLCodec extends StringCodec {
 
   private AbsObject parseSimple(Parser p) throws CodecException {
   	String val = p.consumeElement();
-  	log("Parse simple descriptor: "+val+". Next is "+p.next());
+  	//log("Parse simple descriptor: "+val+". Next is "+p.next());
   	// Integer
   	try {
   		return AbsPrimitive.wrap(Long.parseLong(val));
