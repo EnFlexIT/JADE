@@ -16,8 +16,22 @@ import java.io.Serializable;
 class AgentDescriptor implements Serializable {
 
   private String name;
-  private AgentContainer container;
+  private MessageDispatcher demux;
   // Current address
   // Current life cycle state
+
+  public AgentDescriptor(String s, MessageDispatcher md) {
+    name = s;
+    demux = md;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public MessageDispatcher getDemux() {
+    return demux;
+  }
+
 }
 
