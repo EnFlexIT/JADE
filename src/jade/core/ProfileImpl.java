@@ -63,8 +63,6 @@ public class ProfileImpl extends Profile {
   // functionalities among the bootstrap properties.
   private static final String RESOURCE = "resource";
 
-  private static final String IMTP = "imtp";
-
   //#APIDOC_EXCLUDE_BEGIN
   public static final int DEFAULT_PORT = 1099;
   //#APIDOC_EXCLUDE_END

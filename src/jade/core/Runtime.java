@@ -39,7 +39,7 @@ import jade.util.Logger;
    included in the <code>jade.wrapper</code> package.</li>
    <li> Single-container: Only one container can be executed in the
    local JVM. This modality is activated by means of the 
-   <code>startUp()</code> and <code>shutDown()<code> methods</li>
+   <code>startUp()</code> and <code>shutDown()</code> methods</li>
    </ul>
    Once a modality has been activated (by calling one of the above
    methods) calling one of the methods for the other modality cause

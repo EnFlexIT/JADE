@@ -85,89 +85,6 @@ public abstract class Profile {
   */
   public static final String LOCAL_SERVICE_MANAGER = "backupmain";
 
-  /**
-     This constant is the name of the property whose value contains
-     the name of the application-specific class that will be installed
-     on the local container as a filter for undelivered ACL
-     messages(only when using JADE Persistent-Delivery kernel
-     service).
-  */
-  public static final String PERSISTENT_DELIVERY_FILTER = "persistent-delivery-filter";
-
-  /**
-     This constant is the name of the property whose value contains an
-     integer representing how often (in milliseconds) JADE will try to
-     send again previously undelivered ACL messages which have been
-     buffered (only when using JADE Persistent-Delivery kernel
-     service).
-  */
-  public static final String PERSISTENT_DELIVERY_SENDFAILUREPERIOD = "persistent-delivery-sendfailureperiod";
-
-  /**
-     This constant is the name of the property whose value contains
-     the storage method used to persist undelivered ACL messages (only
-     when using JADE Persistent-Delivery kernel service).
-     The supported values for this profile parameter are:
-     <ul>
-     <li><b>file</b> - A directory tree on the local filesystem is used.</li>
-     </ul>
-     If this property is not specified when starting the
-     Persistent-Delivery kernel service, undelivered ACL messages ae
-     kept in memory and not persisted at all.
-  */
-  public static final String PERSISTENT_DELIVERY_STORAGEMETHOD = "persistent-delivery-storagemethod";
-
-  /**
-     This constant is the name of the property whose value contains
-     the root of the directory tree that is used to persist
-     undelivered ACL messages (only when using JADE
-     Persistent-Delivery kernel service with the <i>file</i> storage
-     method).
-  */
-  public static final String PERSISTENT_DELIVERY_BASEDIR = "persistent-delivery-basedir";
-
-  /**
-   * This constant is the name of the property which, when it is set,
-   * tells the system to use UDP based failure monitoring 
-   * instead of the default monitoring.
-   */
-  public static final String UDP_MONITORING = "udpmonitoring";
-  
-  /**
-   * This constant is the name of the property whose value contains an
-   * integer representing the time interval (in milliseconds) in which a simple
-   * container sends UDP ping messages to the Main Container 
-   * (This property is only used in combination with
-   * <code>UDP_MONITORING</code> for a simple container)
-   */
-  public static final String UDP_MONITORING_PING_DELAY = "udpmonitoring_ping_delay";
- 
-  /**
-   * This constant is the name of the property whose value contains an
-   * integer representing the port number where the Main Container is
-   * listening for UDP pings. (This property is only used in combination with
-   * <code>UDP_MONITORING</code> for a main container)
-   */
-  public static final String UDP_MONITORING_PORT = "udpmonitoring_port"; 
-  
-  /**
-   * This constant is the name of the property whose value contains an
-   * integer representing the maximum time (in milliseconds) the main container 
-   * waits for a ping message.
-   * (This property is only used in combination with
-   * <code>UDP_MONITORING</code> for a main container)
-   */
-  public static final String UDP_MONITORING_PING_DELAY_LIMIT = "udpmonitoring_ping_delay_limit";
-
-  /**
-   * This constant is the name of the property whose value contains an
-   * integer representing the maximum time a node can stay unreachable after it gets removed
-   * from the platform.
-   * (This property is only used in combination with
-   * <code>UDP_MONITORING</code> for a main container)
-   */
-  public static final String UDP_MONITORING_UNREACHABLE_LIMIT = "udpmonitoring_unreachable_limit";
-  
   //#APIDOC_EXCLUDE_BEGIN
   public static final String MASTER_NODE_NAME = "master-node-name";
   public static final String BE_BASE_NAME = "be-base-name";
@@ -175,10 +92,6 @@ public abstract class Profile {
   public static final String BE_REPLICA_INDEX = "be-replica-index";
   public static final String BE_MEDIATOR_ID = "be-mediator-id";
 
-  //public static final String MAINAUTH_CLASS = "main-auth";
-  //public static final String AUTHORITY_CLASS = "authority";
-  //public static final String POLICY_FILE = "java.security.policy";
-  //public static final String PASSWD_FILE = "jade.security.passwd";
   public static final String OWNER = "owner";
 
   // On J2SE and pJava, install mobility and notification services by default
