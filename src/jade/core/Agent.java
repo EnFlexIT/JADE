@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.54  1999/06/09 16:13:16  rimassa
+  Added an empty restartLater() method.
+
   Revision 1.53  1999/06/09 12:53:54  rimassa
   Completed implementation of blockingReceive() with timeouts. Now
   elapsed time is correctly tracked to handle spurious wakeups.
@@ -502,6 +505,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public int getQueueSize() {
     return msgQueue.getMaxSize();
+  }
+
+
+  /**
+     Schedules a restart for a behaviour, after a certain amount of
+     time has passed.
+  */
+  public void restartLater(Behaviour b, long millis) {
+
   }
 
   /**
