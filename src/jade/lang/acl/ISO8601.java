@@ -131,12 +131,13 @@ public class ISO8601 {
     private static char minus = '-';
     private static String z = "Z";
     private static char t = 'T';
-    private static int year = 365*24*60*60*1000;
-    private static int month = 30*24*60*60*1000;
-    private static int day = 24*60*60*1000;
-    private static int hour = 60*60*1000;
-    private static int minute = 60*1000;
-    private static int sec = 1000;
+    // 
+    private final static long year = 365*24*60*60*1000L;
+    private final static long month = 30*24*60*60*1000L;
+    private final static long day = 24*60*60*1000;
+    private final static long hour = 60*60*1000;
+    private final static long minute = 60*1000;
+    private final static long sec = 1000;
 
   /**
    * This method converts a FIPA DateTime token to a <code>java.util.Date</code>.  
@@ -150,12 +151,15 @@ public synchronized static Date toDate(String dateTimeToken) throws Exception {
     char sign = dateTimeToken.charAt(0);
     if ( (sign == plus) || (sign == minus) ) {
 	// convert a relative time into an absolute time
-	long millisec = Integer.parseInt(dateTimeToken.substring(1, 5)) * year +
-	  Integer.parseInt(dateTimeToken.substring(5, 7))* month +
-	  Integer.parseInt(dateTimeToken.substring(7, 9))* day +
-	  Integer.parseInt(dateTimeToken.substring(10, 12)) * hour +
-	  Integer.parseInt(dateTimeToken.substring(12, 14)) * minute +
-	  Integer.parseInt(dateTimeToken.substring(14, 16)) * sec;
+	long millisec = Long.parseLong(dateTimeToken.substring(1, 5)) * year +
+	  Long.parseLong(dateTimeToken.substring(5, 7))* month +
+	  Long.parseLong(dateTimeToken.substring(7, 9))* day +
+	  Long.parseLong(dateTimeToken.substring(10, 12)) * hour +
+	  Long.parseLong(dateTimeToken.substring(12, 14)) * minute +
+	  Long.parseLong(dateTimeToken.substring(14, 16)) * sec;
+	System.out.println("sign="+sign+" millisec="+millisec);
+	System.out.println(year+" "+month+" "+day+" "+hour);
+	System.out.println("currentTime="+System.currentTimeMillis());
 	millisec = System.currentTimeMillis() + (sign == plus ? millisec : (-millisec));
 	return(new Date(millisec));
     }        
