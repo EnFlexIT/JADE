@@ -77,9 +77,6 @@ import jade.util.leap.LinkedList;
 public class NotificationService extends BaseService {
 
 
-    public static final String MAIN_SLICE = "Main-Container";
-
-
     /**
        The name of this service.
     */

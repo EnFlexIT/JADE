@@ -229,7 +229,7 @@ public class AgentManagementService extends BaseService {
 	      #MIDP_INCLUDE_END*/
 
 	    // Notify the main container through its slice
-	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 	    mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
 
 	    // Actually start the agent thread
@@ -300,7 +300,7 @@ public class AgentManagementService extends BaseService {
 	    myContainer.removeLocalAgent(target);
 
 	    // Notify the main container through its slice
-	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 	    mainSlice.deadAgent(target);
 	}
 
@@ -314,7 +314,7 @@ public class AgentManagementService extends BaseService {
 	    if (to.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
 		try {
 		    // Notify the main container through its slice
-		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		    mainSlice.suspendedAgent(target);
 		}
 		catch(IMTPException re) {
@@ -330,7 +330,7 @@ public class AgentManagementService extends BaseService {
 	    else if (from.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
 		try {
 		    // Notify the main container through its slice
-		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		    mainSlice.resumedAgent(target);
 		}
 		catch(IMTPException re) {
@@ -757,7 +757,7 @@ public class AgentManagementService extends BaseService {
 	    if(startIt) {
 
 		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
 
 		// Actually start the agent thread

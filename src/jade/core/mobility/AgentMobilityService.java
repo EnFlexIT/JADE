@@ -98,7 +98,6 @@ public class AgentMobilityService extends BaseService {
 	AgentMobilitySlice.INFORM_CLONED
     };
 
-    public static final String MAIN_SLICE = "Main-Container";
 
     static final boolean MIGRATION = false;
     static final boolean CLONING = true;

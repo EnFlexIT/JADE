@@ -138,8 +138,6 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String KILL_CONTAINER = "Kill-Container";
 
 
-    static final String MAIN_SLICE = "Main-Container";
-
     static final boolean CREATE_AND_START = true;
     static final boolean CREATE_ONLY = false;
 

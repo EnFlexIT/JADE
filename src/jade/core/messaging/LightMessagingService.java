@@ -77,8 +77,6 @@ import jade.util.leap.Iterator;
 */
 public class LightMessagingService extends BaseService implements MessageManager.Channel {
 
-    public static final String MAIN_SLICE = "Main-Container";
-
     private static final String[] OWNED_COMMANDS = new String[] {
 	MessagingSlice.SEND_MESSAGE,
 	MessagingSlice.INSTALL_MTP,

@@ -100,8 +100,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     } // End of UnknownACLEncodingException class
 
 
-    public static final String MAIN_SLICE = "Main-Container";
-
     private static final String[] OWNED_COMMANDS = new String[] {
 	MessagingSlice.SEND_MESSAGE,
 	MessagingSlice.INSTALL_MTP,
@@ -555,9 +553,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	    }
 	    catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
 		throw new UnreachableException("Unreachable network node", imtpe);
 	    }
 	    catch(ServiceException se) {
+		se.printStackTrace();
 		throw new UnreachableException("Unreachable service slice:", se);
 	    }
 	}
@@ -567,7 +567,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    do {
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
 		ContainerID cid = mainSlice.getAgentLocation(receiverID);
-
 		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 		try {
 		    targetSlice.dispatchLocally(msg, receiverID);
@@ -647,12 +646,24 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    ContainerID cid = (ContainerID)params[1];
 
 		    newMTP(mtp, cid);
+
+		    GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
+		    gCmd.addParam(mtp);
+		    gCmd.addParam(cid);
+
+		    result = gCmd;
 		}
 		else if(cmdName.equals(MessagingSlice.H_DEADMTP)) {
 		    MTPDescriptor mtp = (MTPDescriptor)params[0];
 		    ContainerID cid = (ContainerID)params[1];
 
 		    deadMTP(mtp, cid);
+
+		    GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
+		    gCmd.addParam(mtp);
+		    gCmd.addParam(cid);
+
+		    result = gCmd;
 		}
 		else if(cmdName.equals(MessagingSlice.H_ADDROUTE)) {
 		    MTPDescriptor mtp = (MTPDescriptor)params[0];
