@@ -33,7 +33,15 @@ MAJOR CHANGES in JADE 2.2
        filtered out). I.e. agentfoo inform propose.
     9) When you click a message, more information appears in the message window
        at the bottom.
- 
+- Integrated the following modification to the SL0Parser/SL0Encoder 
+  provided by Sayers Craig, HP Labs, Palo Alto, California:
+  Noticed that when using Jade's SL0 encoder/parser, 
+  some strings are written as words when they should probably be quoted, and 
+  that encode/decode are not always exact inverses of each other.
+  We've modified the SL0encoder and the SL0parser so
+  that they handle a wider range of strings 
+- Modified the ISO8601 class by Sayers Craig, HP Labs, Palo Alto, California
+  in order to read/write dates in UTC time (as recommended by FIPA)
 
 
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
