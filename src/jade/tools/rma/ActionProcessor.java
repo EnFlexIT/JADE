@@ -128,6 +128,9 @@ class ActionProcessor {
 				 (action instanceof DummyAgentAction || action instanceof SnifferAction)	
 				 	containerAct(null);
 				else
+				if(action instanceof PlatformAction)
+					JOptionPane.showMessageDialog(new JFrame(), "You must select a platform","Error", JOptionPane.ERROR_MESSAGE);
+					else
 				  JOptionPane.showMessageDialog(new JFrame(), "You must select an agent-platform or a agent-container in the Tree","Start Procedure Error", JOptionPane.ERROR_MESSAGE);
 			
        }
