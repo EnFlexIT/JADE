@@ -26,21 +26,26 @@ package jade.domain;
 //#MIDP_EXCLUDE_FILE
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Vector;
 
 import jade.util.leap.HashMap;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
+import jade.util.leap.Properties;
+
 import java.net.InetAddress;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.KBManagement.*;
 import jade.domain.DFGUIManagement.*;
 
 
@@ -77,6 +82,7 @@ import jade.content.abs.*;
  
   @author Giovanni Rimassa - Universita` di Parma
   @author Tiziana Trucco - TILAB S.p.A.
+  @author Elisabetta Cortese - TILAB S.p.A.
   @version $Date$ $Revision$
 
 */
@@ -300,17 +306,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	  ACLMessage inform = request.createReply();      
           inform.setPerformative(ACLMessage.INFORM);
 
-	  List tmp = new ArrayList();
-	  tmp.add(thisDF);
-	  Result rs = new Result(a, tmp);
-	  try {
-	  	getContentManager().fillContent(inform, rs);
-		}
-		catch (Exception e) {
-		  throw new FIPAException(e.getMessage());
-		}
-
-	  return inform;
+		  List tmp = new ArrayList();
+		  tmp.add(thisDF);
+		  Result rs = new Result(a, tmp);
+		  try {
+		  	getContentManager().fillContent(inform, rs);
+  		  }catch (Exception e) {
+			  throw new FIPAException(e.getMessage());
+	  	  }
+		  return inform;
 	  
 	  }catch(FIPAException e) { //FIXME no exception predicate in the DFApplet ontology
 	   throw new InternalError("Impossible_to_provide_the_needed_information");
@@ -403,16 +407,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   //This behaviour allows the federation of this df with another df required by the APPLET
   private class FederateWithBehaviour extends SequentialBehaviour {
-
     			
       FederateWithBehaviour(Action action, ACLMessage msg)
       {
 	  super(df.this);
-
 	  String token = DFAppletOntology.FEDERATEWITH;
  			
 	  try{
-	    	      
 	      Federate f = (Federate)action.getAction(); 	
 	      AID parentDF = (AID)f.getParentDF();
 	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
@@ -432,9 +433,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      msg.setContent(createExceptionalMsgContent(action, e)); 
 	      send(failure);
 	  }
-	  
       }
-      
   }//end FederateWithBehaviour
     
     
@@ -468,8 +467,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
 
     protected void deregisterFromAction(Action a, ACLMessage request){
-	DeregisterFromBehaviour dfb = new DeregisterFromBehaviour(a,request);
-	addBehaviour(dfb);
+		DeregisterFromBehaviour dfb = new DeregisterFromBehaviour(a,request);
+		addBehaviour(dfb);
     }
    
   //This behaviour allow the applet to required the df to deregister itself from a parent of the federation
@@ -535,23 +534,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      send(failure); 
 	      System.err.println(e.getMessage());
 	  }
-	  
       }
      
   } // End of RegisterWithBehaviour
   
     protected void modifyOnAction(Action a, ACLMessage request){
-	ModifyOnBehaviour mob = new ModifyOnBehaviour(a, request);
-	addBehaviour(mob);
+		ModifyOnBehaviour mob = new ModifyOnBehaviour(a, request);
+		addBehaviour(mob);
     }
 
   //This behaviour allow the applet to require the df to modify the DFAgentDescription of an agent register with another df
   private class ModifyOnBehaviour extends SequentialBehaviour{
-
-      
       ModifyOnBehaviour(Action a, ACLMessage msg){
 	  String token = DFAppletOntology.MODIFYON;
-
 	  try{
 
 	      ModifyOn mod = (ModifyOn)a.getAction(); 	
@@ -576,8 +571,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   } // End of ModifyOnBehaviour
   
     protected void searchOnAction(Action a, ACLMessage request){
-	SearchOnBehaviour sob = new SearchOnBehaviour(a,request);
-	addBehaviour(sob);
+		SearchOnBehaviour sob = new SearchOnBehaviour(a,request);
+		addBehaviour(sob);
     }
   
 //this class is  used to request an agent to perform a search. Used for the applet.
@@ -585,10 +580,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
       
       SearchOnBehaviour(Action a, ACLMessage msg)
       {
-	  
-	 String token = DFAppletOntology.SEARCHON;
-
-	  try{
+		 String token = DFAppletOntology.SEARCHON;
+		  try{
 	      SearchOn s = (SearchOn)a.getAction(); 	
 	      AID df = s.getDf();
 	      DFAgentDescription dfd = s.getDescription();
@@ -600,7 +593,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	      
-	  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
+		  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
 	      //FIXME: send a failure
 	      // send a failure
 	      ACLMessage failure = msg.createReply();
@@ -608,9 +601,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      failure.setContent(createExceptionalMsgContent(a, e)); 
 	      send(failure); 
 	      System.err.println(e.getMessage());
-	  }
+	  	}
       }
-      		
   } // End of SearchOnBehaviour
 
   /**
@@ -706,7 +698,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
   			e.printStackTrace();
   			}
   		}
-
   	}
   	
   	protected void handleRefuse(ACLMessage msg)
@@ -758,9 +749,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
    */
   private class DFSubscriptionResponder extends SubscriptionResponder {	
   	private static final String HANDLE_CANCEL = "Handle-cancel";
-      public SubscriptionManager mySubscriptionManager = null; // patch to allow compiling with JDK1.2
+    public SubscriptionManager mySubscriptionManager = null; // patch to allow compiling with JDK1.2
+
 		DFSubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm) {
 	    super(a, MessageTemplate.or(mt, MessageTemplate.MatchPerformative(ACLMessage.CANCEL)), sm);
+
 	    mySubscriptionManager = sm;
 	    registerTransition(RECEIVE_SUBSCRIPTION, HANDLE_CANCEL, ACLMessage.CANCEL);
 	    registerDefaultTransition(HANDLE_CANCEL, RECEIVE_SUBSCRIPTION);
@@ -786,146 +779,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		}
   }
 		
-  /******************************/
-  /***  Subscription Manager  ***/
-  /******************************/
-  
-  private class SubscriptionManagerImpl implements SubscriptionResponder.SubscriptionManager{
-  	// Maps DFD templates with cuples (Subscription, iota).
-  	Hashtable subscriptions = new Hashtable();
-  	
-  	public boolean register(SubscriptionResponder.Subscription sub) throws RefuseException, NotUnderstoodException{
-  
-			DFAgentDescription dfdTemplate = null;
-			SearchConstraints constraints = null;
-			AbsIRE absIota = null;
-			
-			//System.out.println("DF Registering subscription. Message is");
-			//System.out.println(sub.getMessage());
-  		try{
-  			// Get DFD template and search constraints from the subscription message 
-				ACLMessage subMessage = sub.getMessage();
-				absIota = (AbsIRE) getContentManager().extractAbsContent(subMessage);
-				AbsPredicate absResult = absIota.getProposition();
-				AbsAgentAction absAction = (AbsAgentAction) absResult.getAbsObject(BasicOntology.RESULT_ACTION);
-				AbsAgentAction absSearch = (AbsAgentAction) absAction.getAbsObject(BasicOntology.ACTION_ACTION);
-				Search search = (Search) FIPAManagementOntology.getInstance().toObject(absSearch);
-				
-				dfdTemplate = (DFAgentDescription) search.getDescription();
-				constraints = search.getConstraints();
-			
-				// Register the Subscription
-				subscriptions.put(dfdTemplate, new Object[] {sub, absIota});				
-		
-  		}
-  		catch(Exception e){
-  			throw new NotUnderstoodException(e.getMessage());
-  		}
-  		
-  		
-  		// Search for DFDs that already match the specified template
-			List results = agentDescriptions.search(dfdTemplate);	
-			// If some DFD matches the template, notify the subscribed agent 
-			if(results.size() > 0){
-				// If there are more matching DFD than MAX_RESULT, then remove the DFD in eccess
-				Long maxResult = constraints.getMaxResults();						
-				if(maxResult != null) {						
-					if(results.size() >= maxResult.intValue()){
-						// More results than required have been found, put in list the first MAX_RESULT results
-						ArrayList list = new ArrayList();
-						int j = 0;
-						for(Iterator i = results.iterator();i.hasNext()&& j < maxResult.intValue();j++){
-							list.add(i.next()); 
-						}
-						results=list;
-					}
-				}
-				
-				//System.out.println("DF search found "+results.size()+" results");
-				notify(sub, results, absIota);
-				return true;
-			}
-			return false;
-  	}
-
-  	// degeregister the subscritpion from hashtable
-  	public void deregister( SubscriptionResponder.Subscription sub ) throws RefuseException, NotUnderstoodException {
-			Enumeration e = subscriptions.keys();
-			while(e.hasMoreElements()){
-				DFAgentDescription dfd = (DFAgentDescription)e.nextElement();
-				Object[] oo = (Object[])subscriptions.get(dfd);
-				SubscriptionResponder.Subscription s = (SubscriptionResponder.Subscription) oo[0];
-				if((s.getMessage().getConversationId()).equals(sub.getMessage().getConversationId())){
-					subscriptions.remove(dfd);	
-					break;
-				}
-			}		
-  	}
-  	
-  	// Handle new registrations/modifications by notifying subscribed agents
-  	// if necessary
-		void handleChange(DFAgentDescription dfd) {
-			Enumeration e = subscriptions.keys();
-			while (e.hasMoreElements()) {
-				DFAgentDescription template = (DFAgentDescription) e.nextElement();
-				if (((KBAbstractImpl)agentDescriptions).match(template, dfd)) {
-					List results = new ArrayList();
-					results.add(dfd);
-					Object[] tmp = (Object[]) subscriptions.get(template);
-					SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) tmp[0];
-					AbsIRE absIota = (AbsIRE) tmp[1];
-					notify(sub, results, absIota);
-				}
-			}
-		}
-  	
-		private void notify(SubscriptionResponder.Subscription sub, List results, AbsIRE absIota) {
-			try {
-				ACLMessage notification = sub.getMessage().createReply();
-				notification.setPerformative(ACLMessage.INFORM);
-				AbsPredicate absEquals = new AbsPredicate(SLVocabulary.EQUALS);
-				absEquals.set(SLVocabulary.EQUALS_LEFT, absIota);
-				absEquals.set(SLVocabulary.EQUALS_RIGHT, FIPAManagementOntology.getInstance().fromObject(results));
-			
-				getContentManager().fillContent(notification, absEquals);
-				//pass to Subscription the message to send
-				sub.notify(notification);
-			}
-			catch (Exception e) {
-				//FIXME: Check whether a FAILURE message should be sent back.				
-			}
-		}
-		
-  }  // END of inner class SubscriptionManagerImpl
     
-  private static int NUMBER_OF_AGENT_FOUND = 1000;
-
-
-   
-   /**
-  @serial
-  */
   private List children = new ArrayList();
-  /**
-  @serial
-  */
-
   private List parents = new ArrayList();
-  
-  /**
-  @serial
-  */
   private HashMap dscDFParentMap = new HashMap(); //corrispondence parent --> dfd description (of this df) used to federate.
-  /**
-
-  @serial
-  */
   private DFGUIInterface gui;
 
-  // Current description of the df
-  /**
-  @serial
-  */
+  // Current description of this df
   private DFAgentDescription thisDF = null;
   
   private Codec codec = new SLCodec();
@@ -935,62 +795,146 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private DFAppletManagementBehaviour appletRequestResponder;
   private DFSubscriptionResponder dfSubscriptionResponder;
   
- 	private SubscriptionManagerImpl subManager = new SubscriptionManagerImpl();
+  // Configuration parameter keys
+  private static final String VERBOSITY = "jade.domain.df.verbosity";
+  private static final String DB_DRIVER = "jade.domain.df.db-driver";
+  private static final String DB_URL = "jade.domain.df.db-url";
+  private static final String DB_USERNAME = "jade.domain.df.db-username";
+  private static final String DB_PASSWORD = "jade.domain.df.db-password";
+	private static final String MAX_RESULTS = "jade.domain.df.maxres";
+
+  private static final String DEFAULT_MAX_RESULTS = "10";
+  
+  private int verbosity = 0; 
+
+	private KB agentDescriptions = null;
+	private KBSubscriptionManager subManager = null;	
+  
 
   /**
-    This constructor creates a new <em>DF</em> agent. This can be used
-    to create additional <em>DF</em> agents, beyond the default one
-    created by <em><b>JADE</b></em> on platform startup.
-  */
-  public df() {
+    This method starts all behaviours needed by <em>DF</em> agent to
+    perform its role within <em><b>JADE</b></em> agent platform.
+   */
+  protected void setup() {
+		// Set verbosity level
+  	try {
+  		verbosity = Integer.parseInt(getProperty(VERBOSITY, "0"));
+  	}
+  	catch (Exception e) {
+  		// Keep default (0)
+  	}
+  	
+		Object[] args = this.getArguments();
+	
+		// Read configuration:
+		// If an argument is specified, it indicates the name of a properties
+		// file where to read DF configuration from. Otherwise configuration 
+		// properties are read from the Profile	
+		String sMaxResults = null;
+		String dbUrl = null;
+		String dbDriver = null;
+		String dbUsername = null;
+		String dbPassword = null;
+		
+		if(args != null && args.length > 0) {
+			Properties p = new Properties();
+			try {
+				p.load((String) args[0]);
+				sMaxResults = p.getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
+				dbUrl = p.getProperty(DB_URL, null);
+				dbDriver = p.getProperty(DB_DRIVER, null);
+				dbUsername = p.getProperty(DB_USERNAME, null);
+				dbPassword = p.getProperty(DB_PASSWORD, null);
+			}
+			catch (Exception e) {
+				log("Error loading configuration from file "+args[0]+" ["+e+"]. Use all defaults", 0);
+			}
+		}
+		else {
+			
+			sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
+			dbUrl = getProperty(DB_URL, null);
+			dbDriver = getProperty(DB_DRIVER, null);
+			dbUsername = getProperty(DB_USERNAME, null);
+			dbPassword = getProperty(DB_PASSWORD, null);
+		
+			
+		}
+		int maxResult = Integer.parseInt(DEFAULT_MAX_RESULTS);
+  	try {
+  		maxResult = Integer.parseInt(sMaxResults);
+  	}
+  	catch (Exception e) {
+  		// Keep default
+  	}
+				
+  	// Instantiate the knowledge base 
+		log("DF KB configuration:", 2);
+		log("- Max search result = "+maxResult, 2);
+		if (dbUrl != null) {
+			log("- Type = persistent", 2);
+			log("- DB url = "+dbUrl, 2);
+			log("- DB driver = "+dbDriver, 2);
+			log("- DB username = "+dbUsername, 2);
+			log("- DB password = "+dbPassword, 2);
+			try {
+	  			agentDescriptions = new DFDBKB(maxResult, dbDriver, dbUrl, dbUsername, dbPassword);
+			}
+			catch (Exception e) {
+				log("Error creating persistent KB ["+e+"]. Use a volatile KB.", 0);
+			}
+		}
+		if (agentDescriptions == null) {
+			log("- Type = volatile", 2);
+			agentDescriptions = new DFMemKB(maxResult);
+		}
+	
+		// Initiate the SubscriptionManager used by the DF 
+		subManager = new KBSubscriptionManager(agentDescriptions);	
+		subManager.setContentManager(getContentManager());
+
+    // Register languages and ontologies
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(DFAppletOntology.getInstance());
+
+		// Create and add behaviours
   	MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
   	MessageTemplate mt1 = null;
   	
     // Behaviour dealing with FIPA management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
     fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
+    addBehaviour(fipaRequestResponder);
 
     // Behaviour dealing with JADE management actions
     mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(JADEManagementOntology.getInstance().getName()));
     jadeRequestResponder = new DFJadeAgentManagementBehaviour(this, mt1);
+    addBehaviour(jadeRequestResponder);
 
     // Behaviour dealing with DFApplet management actions
     mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(DFAppletOntology.getInstance().getName()));
     appletRequestResponder = new DFAppletManagementBehaviour(this, mt1);
+    addBehaviour(appletRequestResponder);
 
 		// Behaviour dealing with subscriptions
 		mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
     dfSubscriptionResponder = new DFSubscriptionResponder(this, mt1, subManager);
-
-  }
-
-  /**
-    This method starts all behaviours needed by <em>DF</em> agent to
-    perform its role within <em><b>JADE</b></em> agent platform.
-  */
-  protected void setup() {
-    // register the codec of the language
-    //registerLanguage(SL0Codec.NAME,new SL0Codec());	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
-		
-    // register the ontologies
-    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
-    getContentManager().registerOntology(JADEManagementOntology.getInstance());
-    getContentManager().registerOntology(DFAppletOntology.getInstance());
-
-    // Add behaviours
-    addBehaviour(fipaRequestResponder);
-    addBehaviour(jadeRequestResponder);
-    addBehaviour(appletRequestResponder);
     addBehaviour(dfSubscriptionResponder);
-    
+		    
     // Set the DFDescription of thie DF
     setDescriptionOfThisDF(getDefaultDescription());
-   
+
+		// Set lease policy and subscription responder to the knowledge base  
+		agentDescriptions.setLeaseManager(new DFLeaseManager());
+		agentDescriptions.setSubscriptionResponder(dfSubscriptionResponder);
   }  // End of method setup()
+
+
 
   /**
     Cleanup <em>DF</em> on exit. This method performs all necessary
@@ -1055,7 +999,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
   public boolean showGui() {
    if (gui == null) 
   		{
-		 
   			try{
   				Class c = Class.forName("jade.tools.dfgui.DFGUI");
   			  gui = (DFGUIInterface)c.newInstance();
@@ -1076,8 +1019,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
  
    return false;
   }
-   
- 
 
 
   private boolean isADF(DFAgentDescription dfd) {
@@ -1123,98 +1064,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	 } //end of for
   }
   
-  /**
-  @serial
-  */
-  private KB agentDescriptions = new KBAbstractImpl() {
-      protected boolean match(Object template, Object fact) {
-
-	try {
-	  DFAgentDescription templateDesc = (DFAgentDescription)template;
-	  DFAgentDescription factDesc = (DFAgentDescription)fact;
-
-	  // Match name
-	  AID id1 = templateDesc.getName();
-	  if(id1 != null) {
-	    AID id2 = factDesc.getName();
-	    if((id2 == null) || (!matchAID(id1, id2)))
-	      return false;
-	  }
-
-	  // Match protocol set
-	  Iterator itTemplate = templateDesc.getAllProtocols();
-	  while(itTemplate.hasNext()) {
-	    String templateProto = (String)itTemplate.next();
-	    boolean found = false;
-	    Iterator itFact = factDesc.getAllProtocols();
-	    while(!found && itFact.hasNext()) {
-	      String factProto = (String)itFact.next();
-	      found = templateProto.equalsIgnoreCase(factProto);
-	    }
-	    if(!found)
-	      return false;
-	  }
-
-	  // Match ontologies set
-	  itTemplate = templateDesc.getAllOntologies();
-	  while(itTemplate.hasNext()) {
-	    String templateOnto = (String)itTemplate.next();
-	    boolean found = false;
-	    Iterator itFact = factDesc.getAllOntologies();
-	    while(!found && itFact.hasNext()) {
-	      String factOnto = (String)itFact.next();
-	      found = templateOnto.equalsIgnoreCase(factOnto);
-	    }
-	    if(!found)
-	      return false;
-	  }
-
-	  // Match languages set
-	  itTemplate = templateDesc.getAllLanguages();
-	  while(itTemplate.hasNext()) {
-	    String templateLang = (String)itTemplate.next();
-	    boolean found = false;
-	    Iterator itFact = factDesc.getAllLanguages();
-	    while(!found && itFact.hasNext()) {
-	      String factLang = (String)itFact.next();
-	      found = templateLang.equalsIgnoreCase(factLang);
-	    }
-	    if(!found)
-	      return false;
-	  }
-
-	  // Match services set
-	  itTemplate = templateDesc.getAllServices();
-	  while(itTemplate.hasNext()) {
-	    ServiceDescription templateSvc = (ServiceDescription)itTemplate.next();
-	    boolean found = false;
-	    Iterator itFact = factDesc.getAllServices();
-	    while(!found && itFact.hasNext()) {
-	      ServiceDescription factSvc = (ServiceDescription)itFact.next();
-	      found = matchServiceDesc(templateSvc, factSvc);
-	    }
-	    if(!found)
-	      return false;
-	  }
-
-	  return true;
-	}
-	catch(ClassCastException cce) {
-	  return false;
-	}
-      }
-    };
-
-       
+  
+  private String kbResource ="default";
+  
     void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
 	
 	//checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
-	
 	Object old = agentDescriptions.register(dfd.getName(), dfd);
 	if(old != null)
 	    throw new AlreadyRegistered();
 	
-	if (isADF(dfd)) {
+	if(isADF(dfd)) {
 	    children.add(dfd.getName());
 	    try {
     		gui.addChildren(dfd.getName());
@@ -1231,53 +1091,48 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
 
     //this method is called into the prepareResponse of the DFFipaAgentManagementBehaviour to perform a Deregister action
-    
     void DFDeregister(DFAgentDescription dfd) throws NotRegistered {
 	//checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
-      
       Object old = agentDescriptions.deregister(dfd.getName());
+
       if(old == null)
-	  throw new NotRegistered();
+	  	throw new NotRegistered();
       
       
       if (children.remove(dfd.getName()))
-	  try {
-	      gui.removeChildren(dfd.getName());
-	  } catch (Exception e) {}
+		  try {
+		      gui.removeChildren(dfd.getName());
+		  } catch (Exception e) {}
       try{ 
-	  // refresh the GUI if shown, exception thrown if the GUI was not shown
-	  // this refresh must be here, otherwise the GUI is not synchronized with 
-	  // registration/deregistration made without using the GUI
-	  gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-	  gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
+		  // refresh the GUI if shown, exception thrown if the GUI was not shown
+		  // this refresh must be here, otherwise the GUI is not synchronized with 
+		  // registration/deregistration made without using the GUI
+		  gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+		  gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
       }catch(Exception e1){}	
     }
     
-
     
     void DFModify(DFAgentDescription dfd) throws NotRegistered {
 	//	checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+		Object old = agentDescriptions.deregister(dfd.getName());
+		if(old == null)
+		    throw new NotRegistered();
+		agentDescriptions.register(dfd.getName(), dfd);    
+		// for subscription
+		subManager.handleChange(dfd);
 	
-	Object old = agentDescriptions.deregister(dfd.getName());
-	if(old == null)
-	    throw new NotRegistered();
-	agentDescriptions.register(dfd.getName(), dfd);    
-	// for subscription
-	subManager.handleChange(dfd);
-
-	try{
-	    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
-	    gui.addAgentDesc(dfd.getName());
-	    gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
-	}catch(Exception e){}
-	
+		try{
+		    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
+		    gui.addAgentDesc(dfd.getName());
+		    gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
+		}catch(Exception e){}
+		
     }
 
   List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply){
     // Search has no mandatory slots
-  	
     return agentDescriptions.search(dfd);
-    
   }
 	
 	// GUI EVENTS
@@ -1435,6 +1290,22 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
 	
 	/**
+	 * This method set the kbResource variable to inform the DF
+	 * what kind of knoledge base (hashmap or database) it must use
+	 * to store its DFAgentDescriptions
+	 * If resourceName==none the the DF will use default: HashMap;
+	 * otherwise resourceName will be the file name where are the
+	 * configuration to use the DB 
+	 */
+	/*public void setKBResource(String resourceName){
+		
+		System.out.println("RISORSA UTILIZZATA DEFAULT: "+kbResource);
+		if(!resourceName.equalsIgnoreCase("none"))
+			kbResource = resourceName;
+		System.out.println("RISORSA UTILIZZATA: "+kbResource);
+	}*/
+	
+	/**
 	* This method set the description of the df according to the DFAgentDescription passed.
 	* The programmers can call this method to provide a different initialization of the description of the df they are implementing.
 	* The method is called inside the setup of the agent and set the df description using a default description.
@@ -1483,9 +1354,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		if(gui != null) //the gui can be null is this method is called in order to manage a request from the df applet
 		  gui.removeParent(dfName);
 		dscDFParentMap.remove(dfName);
-
 	}
-  
-
 	
+  private void log(String s, int level) {
+  	if (verbosity >= level) {
+	  	System.out.println("DF-log: "+s);
+  	}
+  }
+  
 }
