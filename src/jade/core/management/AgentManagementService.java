@@ -189,7 +189,7 @@ public class AgentManagementService extends BaseService {
 	}
     }
 
-    public Slice getLocalSlice() {
+    public Service.Slice getLocalSlice() {
 	return localSlice;
     }
 
@@ -352,7 +352,6 @@ public class AgentManagementService extends BaseService {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
-		agent = null;
 		agent.setArguments(arguments);
 		//#MIDP_EXCLUDE_BEGIN
 		// Set agent principal and certificates
@@ -516,8 +515,18 @@ public class AgentManagementService extends BaseService {
 	//#MIDP_EXCLUDE_END
 
 	/*#MIDP_INCLUDE_BEGIN
-	  CertificateFolder agentCerts = new CertificateFolder();
-	  #MIDP_INCLUDE_END*/
+	CertificateFolder agentCerts = new CertificateFolder();
+
+	Authority authority = myContainer.getAuthority();
+
+	if(agentCerts.getIdentityCertificate() == null) {
+	    AgentPrincipal principal = authority.createAgentPrincipal(target, AgentPrincipal.NONE);
+	    IdentityCertificate identity = authority.createIdentityCertificate();
+	    identity.setSubject(principal);
+	    authority.sign(identity, agentCerts);
+	    agentCerts.setIdentityCertificate(identity);
+	}
+	#MIDP_INCLUDE_END*/
 
 	// Notify the main container through its slice
 	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
@@ -660,6 +669,16 @@ public class AgentManagementService extends BaseService {
 
 	    /*#MIDP_INCLUDE_BEGIN
 	    CertificateFolder agentCerts = new CertificateFolder();
+
+	    Authority authority = myContainer.getAuthority();
+
+	    if(agentCerts.getIdentityCertificate() == null) {
+	        AgentPrincipal principal = authority.createAgentPrincipal(target, AgentPrincipal.NONE);
+		IdentityCertificate identity = authority.createIdentityCertificate();
+		identity.setSubject(principal);
+		authority.sign(identity, agentCerts);
+		agentCerts.setIdentityCertificate(identity);
+	    }
 	    #MIDP_INCLUDE_END*/
 
 	    if(startIt) {
