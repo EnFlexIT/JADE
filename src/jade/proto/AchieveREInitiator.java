@@ -35,6 +35,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Serializable;
 
 /**
  * This is a single homogeneous and effective implementation of
@@ -86,7 +87,7 @@ import jade.util.leap.ArrayList;
  * @author Tiziana Trucco - TILab
  * @version $Date$ $Revision$
  **/
-public class AchieveREInitiator extends FSMBehaviour {
+public class AchieveREInitiator extends Initiator {
 	
     // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
     //using the same data store the new values overrides the old one. 
@@ -94,18 +95,18 @@ public class AchieveREInitiator extends FSMBehaviour {
      * key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object passed in the constructor of the class.
      **/
-    public final String REQUEST_KEY = "__request" + hashCode();
+    public final String REQUEST_KEY = INITIATION_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been sent.
      **/
-    public final String ALL_REQUESTS_KEY = "__all-requests" +hashCode();
+    public final String ALL_REQUESTS_KEY = ALL_INITIATIONS_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the last
      * ACLMessage object that has been received (null if the timeout
      * expired). 
      **/
-    public final String REPLY_KEY = "__reply" + hashCode();
+    public final String REPLY_KEY = REPLY_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been received as response.
@@ -117,48 +118,20 @@ public class AchieveREInitiator extends FSMBehaviour {
      **/
     public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
-    // FSM states names
-    private static final String PREPARE_REQUESTS = "Prepare-requests";
-    private static final String SEND_REQUESTS = "Send-requests";
-    private static final String RECEIVE_REPLY = "Receive-reply";
-    private static final String CHECK_REPLY = "Check-reply";
-    private static final String HANDLE_NOT_UNDERSTOOD = "Handle-not-understood";
-    private static final String HANDLE_AGREE = "Handle-agree";
-    private static final String HANDLE_REFUSE = "Handle-refuse";
-    private static final String HANDLE_INFORM = "Handle-inform";
-    private static final String HANDLE_FAILURE = "Handle-failure";
-    private static final String HANDLE_OUT_OF_SEQ = "Handle-out-of-seq";
-    private static final String CHECK_ALL_REPLIES_RECEIVED = "Check-all-replies-received";
+    // FSM states names specific to the Achieve-RE protocol 
     private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
     private static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
-    private static final String DUMMY_FINAL = "Dummy-final";
+    private static final String CHECK_AGAIN = "Check-again";
 	
     // States exit values
     private static final int ALL_RESPONSES_RECEIVED = 1;
     private static final int ALL_RESULT_NOTIFICATIONS_RECEIVED = 2;
 	
-    // Session states
-    private static final int INIT = 0;
-    private static final int POSITIVE_RESPONSE_RECEIVED = 1;
-    private static final int NEGATIVE_RESPONSE_RECEIVED = 2;
-    private static final int RESULT_NOTIFICATION_RECEIVED = 3;
-		
-    // This maps the AID of each responder to a Session object 
-    // holding the status of the protocol as far as that responder
-    // is concerned
-    private Map sessions = null;	
-	
-    // Boolean flag indicating when all expected responses have been received
+    // If set to true all expected responses have been received
     private boolean allResponsesReceived = false;
+    // If set to true the timeout expiration has already been handled
+		private boolean timeoutAlreadyHandled = false;
 	
-    // The MsgReceiver behaviour used to receive replies 
-    private MsgReceiver rec = null;
-    
-    private ACLMessage request;
-	
-	String conversationID = null; 
-	MessageTemplate mt = null; 
-    
     /**
      * Construct for the class by creating a new empty DataStore
      * @see #AchieveREInitiator(Agent, ACLMessage, DataStore)
@@ -182,328 +155,25 @@ public class AchieveREInitiator extends FSMBehaviour {
      * <code>AchieveREInitiator</code>
      */
     public AchieveREInitiator(Agent a, ACLMessage msg, DataStore store) {
-	super(a);
-		
-	setDataStore(store);
-	//initializeDataStore(msg);
-	request = msg;
-	
+	super(a, msg, store);
 
-	// Register the FSM transitions
-	registerDefaultTransition(PREPARE_REQUESTS, SEND_REQUESTS);
-	registerTransition(SEND_REQUESTS, DUMMY_FINAL, 0); // Exit the protocol if no request message is sent
-	registerDefaultTransition(SEND_REQUESTS, RECEIVE_REPLY);
-	//registerTransition(RECEIVE_REPLY, HANDLE_ALL_RESPONSES, MsgReceiver.TIMEOUT_EXPIRED); 
-	registerTransition(RECEIVE_REPLY, CHECK_ALL_REPLIES_RECEIVED, MsgReceiver.TIMEOUT_EXPIRED); 
-	registerDefaultTransition(RECEIVE_REPLY, CHECK_REPLY);
-	registerTransition(CHECK_REPLY, HANDLE_AGREE, ACLMessage.AGREE);		
-	registerTransition(CHECK_REPLY, HANDLE_REFUSE, ACLMessage.REFUSE);		
-	registerTransition(CHECK_REPLY, HANDLE_NOT_UNDERSTOOD, ACLMessage.NOT_UNDERSTOOD);		
-	registerTransition(CHECK_REPLY, HANDLE_INFORM, ACLMessage.INFORM);		
-	registerTransition(CHECK_REPLY, HANDLE_FAILURE, ACLMessage.FAILURE);		
-	registerDefaultTransition(CHECK_REPLY, HANDLE_OUT_OF_SEQ);		
-	registerDefaultTransition(HANDLE_AGREE, CHECK_ALL_REPLIES_RECEIVED);
-	registerDefaultTransition(HANDLE_REFUSE, CHECK_ALL_REPLIES_RECEIVED);
-	registerDefaultTransition(HANDLE_NOT_UNDERSTOOD, CHECK_ALL_REPLIES_RECEIVED);
-	registerDefaultTransition(HANDLE_INFORM, CHECK_ALL_REPLIES_RECEIVED);
-	registerDefaultTransition(HANDLE_FAILURE, CHECK_ALL_REPLIES_RECEIVED);
-	registerDefaultTransition(HANDLE_OUT_OF_SEQ, RECEIVE_REPLY);
-	registerTransition(CHECK_ALL_REPLIES_RECEIVED, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
-	registerTransition(CHECK_ALL_REPLIES_RECEIVED, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
-	registerDefaultTransition(CHECK_ALL_REPLIES_RECEIVED, RECEIVE_REPLY);
-	registerDefaultTransition(HANDLE_ALL_RESPONSES, CHECK_ALL_REPLIES_RECEIVED);
+	// Register the FSM transitions specific to the Achieve-RE protocol
+	registerTransition(CHECK_IN_SEQ, HANDLE_POSITIVE_RESPONSE, ACLMessage.AGREE);		
+	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
+	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
+	registerDefaultTransition(HANDLE_ALL_RESPONSES, CHECK_AGAIN);
+	registerTransition(CHECK_AGAIN, HANDLE_ALL_RESULT_NOTIFICATIONS, 0);
+	registerDefaultTransition(CHECK_AGAIN, RECEIVE_REPLY);
 			
-	// Create and register the states that make up the FSM
+	// Create and register the states specific to the Achieve-RE protocol
 	Behaviour b = null;
-	// PREPARE_REQUESTS
-	b = new OneShotBehaviour(myAgent) {
-			
-		public void action() {
-		    DataStore ds = getDataStore();
-		    Vector allReq = prepareRequests((ACLMessage) ds.get(REQUEST_KEY));
-		    getDataStore().put(ALL_REQUESTS_KEY, allReq);
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerFirstState(b, PREPARE_REQUESTS);
-		
-	// SEND_REQUESTS
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    long currentTime = System.currentTimeMillis();
-		    long minTimeout = -1;
-		    long deadline = -1;
-
-		    sessions = new HashMap();
-		    
-		    DataStore ds = getDataStore();
-		    Vector allReq = (Vector) ds.get(ALL_REQUESTS_KEY);
-		    int cnt = 0; // counter for reply-with
-		    for (Enumeration it=allReq.elements(); it.hasMoreElements(); ) {
-			ACLMessage request = (ACLMessage) it.nextElement();
-			if (request != null) {
-			    // Update the list of sessions on the basis of the receivers
-			    // FIXME: Maybe this should take the envelope into account first
-			    
-			    // set the conversation-id. A single conv-id for all the messages in
-			    // this protocol must be used, such that the right MessageTemplate
-			    // can be later created.
-			    if (request.getConversationId() == null) 
-				conversationID = "C"+hashCode()+"_"+System.currentTimeMillis();
-			    else
-				conversationID = request.getConversationId();
-			    mt = MessageTemplate.MatchConversationId(conversationID);
-			    request.setConversationId(conversationID);
-
-			    ACLMessage toSend = (ACLMessage)request.clone();
-			    for (Iterator receivers = request.getAllReceiver(); receivers.hasNext(); ) {
-				toSend.clearAllReceiver();
-				AID r = (AID)receivers.next();
-				toSend.addReceiver(r);
-				String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
-				toSend.setReplyWith(sessionKey);
-				sessions.put(sessionKey, new Session());
-				if (r.equals(myAgent.getAID())) {
-					// If myAgent is among the receivers (strange case, but can happen)
-					// then modify the MessageTemplate to avoid intercepting the request
-					// as if it was a reply
-					mt = MessageTemplate.and(
-						mt,
-						MessageTemplate.not(MessageTemplate.MatchCustom(toSend, true)));
-				}
-				myAgent.send(toSend);
-				cnt++;
-			    }
-			  
-			    // Update the timeout (if any) used to wait for replies according
-			    // to the reply-by field
-			    // get the miminum  
-			    Date d = request.getReplyByDate();
-			    if (d != null) {
-				long timeout = d.getTime()- currentTime;
-				if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-				    minTimeout = timeout;
-				    deadline = d.getTime();
-				}
-			    }
-			}
-		    }
-		    // Finally set the MessageTemplate and timeout used in the next state 
-		    // to accept replies
-		    rec.set(mt,deadline,getDataStore(),REPLY_KEY);
-		}	
-		
-		public int onEnd() {
-		    // If no session is in place (no request has been sent) 
-		    // the protocol will terminate
-		    return sessions.size();
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, SEND_REQUESTS);
-	
-	// RECEIVE_REPLY
-	rec = new MsgReceiver(myAgent,null,-1, getDataStore(), REPLY_KEY);
-	registerState(rec, RECEIVE_REPLY);
-	
-	// CHECK_REPLY
-	b = new OneShotBehaviour(myAgent) {
-		int ret;
-		
-		public void action() {
-		    ret = -1;
-		    DataStore ds = getDataStore();
-		    ACLMessage reply = (ACLMessage) ds.get(REPLY_KEY);
-		    String inReplyTo = reply.getInReplyTo();
-		    Session s = (Session) sessions.get(inReplyTo);
-		    if (s != null) {
-			int perf = reply.getPerformative();
-			if (s.update(perf)) {
-			    // The reply is compliant to the protocol 
-			    switch (s.getState()) {
-			    case POSITIVE_RESPONSE_RECEIVED:
-			    case NEGATIVE_RESPONSE_RECEIVED:
-				// The reply is a response
-				ret = perf;
-				Vector allRsp = (Vector) ds.get(ALL_RESPONSES_KEY);
-				allRsp.addElement(reply);
-				break;
-			    case RESULT_NOTIFICATION_RECEIVED:
-				// The reply is a resultNotification
-				ret = perf;
-				Vector allNot = (Vector) ds.get(ALL_RESULT_NOTIFICATIONS_KEY);
-				allNot.addElement(reply);
-				break;
-			    default:
-				// Something went wrong. Just do nothing and  
-				// we will go to the HANDLE_OUT_OF_SEQ state
-			    }
-			    // If the session is completed then remove it.
-			    if (s.isCompleted()) {
-				sessions.remove(inReplyTo);
-			    }
-			}
-		    }
-		}
-		
-		public int onEnd() {
-		    return ret;
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, CHECK_REPLY);
-	
-	// HANDLE_AGREE
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleAgree((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_AGREE);
-	
-	// HANDLE_REFUSE
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleRefuse((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_REFUSE);
-		
-	// HANDLE_NOT_UNDERSTOOD
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleNotUnderstood((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_NOT_UNDERSTOOD);
-	
-	// HANDLE_INFORM
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleInform((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_INFORM);
-	
-	// HANDLE_FAILURE
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleFailure((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_FAILURE);
-	
-	// HANDLE_OUT_OF_SEQ
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleOutOfSequence((ACLMessage) getDataStore().get(REPLY_KEY));
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_OUT_OF_SEQ);
-	
-	// CHECK_ALL_REPLIES_RECEIVED
-	b = new OneShotBehaviour(myAgent) {
-		int ret;
-		boolean timeoutExpired = false;
-
-		public void action() {
-		    ret = -1;
-		    //int perf = ((ACLMessage) (getDataStore().get(REPLY_KEY))).getPerformative();
-		    ACLMessage msg1 = (ACLMessage) getDataStore().get(REPLY_KEY);
-		    if (timeoutExpired) {
-		    	// Previous states were RECEIVE_REPLY -> CHECK_ALL_REPLIES_RECEIVED -> HANDLE_ALL_RESPONSES
-			 		if (sessions.size() == 0) {
-			    	ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
-			 		}
-					// if there are still sessions, then return -1
-		    } 
-		    else if (msg1 == null) {
-		    	// Previous state was RECEIVE_REPLY ECEIVED --> timeout has expired 
-					timeoutExpired = true;
-					// consider now that all the responses have been received
-					allResponsesReceived = true;
-					//reset the MsgReceiver state to an infinite timeout
-		    	rec.set(mt,-1,getDataStore(),REPLY_KEY);
-			
-					ret = ALL_RESPONSES_RECEIVED;
-					// remove all the sessions for which no response has been received
-					List sessionsToRemove = new ArrayList(sessions.size());
-					for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
-			    	Object key = i.next();
-			    	Session s = (Session)sessions.get(key);
-			    	if ( s.getState() == INIT ) {
-				  		sessionsToRemove.add(key);
-			    	}
-					}
-					for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); ) {
-						sessions.remove(i.next());
-					}
-					sessionsToRemove=null;  //frees memory	
-		  	}
-		  	else {
-					int perf = msg1.getPerformative();
-					if (isResponse(perf) && !allResponsesReceived) {
-			    	// The current reply is a response.
-			    	// Check if all responses have been received (this is the 
-			    	// case when no active session is still in the INIT state).
-			    	allResponsesReceived = true;
-			    	Iterator it = sessions.values().iterator();
-			    	while (it.hasNext()) {
-							Session s = (Session) it.next();
-							if (s.getState() == INIT) {
-				    		allResponsesReceived = false;
-				    		break;
-							}
-			    	}
-			    	if (allResponsesReceived) {
-							//set the Msgreceiver to an infite timeout.
-		        	rec.set(mt,-1,getDataStore(),REPLY_KEY);
-				  		ret = ALL_RESPONSES_RECEIVED;
-			    	}
-					}
-					else {
-			    	// If the current reply is a response it has already been
-			    	// considered. Now check if all result notifications have
-			    	// been received (this is the case when there are no active
-			    	// sessions).
-			    	if (sessions.size() == 0) {
-							ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
-			    	}
-					} 
-		  	}		
-		}
-		
-		public int onEnd() {
-		    return ret;
-		}
-		public void reset() {
-		    super.reset();
-		    timeoutExpired=false;
-		}
-	    };
-	b.setDataStore(getDataStore());		
-	registerState(b, CHECK_ALL_REPLIES_RECEIVED);
-	
 	// HANDLE_ALL_RESPONSES
 	b = new OneShotBehaviour(myAgent) {
 		
 		public void action() {
 		    handleAllResponses((Vector) getDataStore().get(ALL_RESPONSES_KEY));
 		}
-	    };
+	};
 	b.setDataStore(getDataStore());		
 	registerState(b, HANDLE_ALL_RESPONSES);
 	
@@ -513,17 +183,181 @@ public class AchieveREInitiator extends FSMBehaviour {
 		public void action() {
 		    handleAllResultNotifications((Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY));
 		}
-	    };
+	};
 	b.setDataStore(getDataStore());		
 	registerLastState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
 	
-	// DUMMY_FINAL
+	// CHECK_AGAIN
 	b = new OneShotBehaviour(myAgent) {
-		public void action() {}
-	    };
-	registerLastState(b, DUMMY_FINAL);
+		public void action() {
+		}
+		public int onEnd() {
+			return sessions.size();
+		}
+	};
+	b.setDataStore(getDataStore());		
+	registerState(b, CHECK_AGAIN);
     }
 
+    /**
+     */    
+    protected Vector prepareInitiations(ACLMessage initiation) {
+    	return prepareRequests(initiation);
+    }
+    
+    /**
+       Create and initialize the Sessions and sends the initiation messages
+     */    
+    protected void sendInitiations(Vector initiations) {
+			long currentTime = System.currentTimeMillis();
+			long minTimeout = -1;
+			long deadline = -1;
+
+			String conversationID = createConvId(initiations);
+			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
+		  int cnt = 0; // counter of sessions
+		  for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
+				ACLMessage request = (ACLMessage) e.nextElement();
+				if (request != null) {
+			    // Update the list of sessions on the basis of the receivers
+			    // FIXME: Maybe this should take the envelope into account first
+			    
+			    ACLMessage toSend = (ACLMessage)request.clone();
+			    toSend.setConversationId(conversationID);
+			    for (Iterator receivers = request.getAllReceiver(); receivers.hasNext(); ) {
+						toSend.clearAllReceiver();
+						AID r = (AID)receivers.next();
+						toSend.addReceiver(r);
+						String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
+						toSend.setReplyWith(sessionKey);
+						sessions.put(sessionKey, new Session());
+						adjustReplyTemplate(toSend);
+						myAgent.send(toSend);
+						cnt++;
+			    }
+			  
+			    // Update the timeout (if any) used to wait for replies according
+			    // to the reply-by field
+			    // get the miminum  
+			    Date d = request.getReplyByDate();
+			    if (d != null) {
+						long timeout = d.getTime()- currentTime;
+						if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
+				    	minTimeout = timeout;
+				    	deadline = d.getTime();
+						}
+			    }
+				}
+		  }
+		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY state 
+		  // to accept replies
+		  replyReceiver.set(replyTemplate, deadline, getDataStore(), REPLY_KEY);
+    }
+    
+    /**
+       Check whether a reply is in-sequence and update the appropriate Session
+     */    
+    protected boolean checkInSequence(ACLMessage reply) {
+			String inReplyTo = reply.getInReplyTo();
+			Session s = (Session) sessions.get(inReplyTo);
+			if (s != null) {
+				int perf = reply.getPerformative();
+				if (s.update(perf)) {
+			    // The reply is compliant to the protocol 
+			    switch (s.getState()) {
+			    case Session.POSITIVE_RESPONSE_RECEIVED:
+			    case Session.NEGATIVE_RESPONSE_RECEIVED:
+						// The reply is a response
+						Vector allRsp = (Vector) getDataStore().get(ALL_RESPONSES_KEY);
+						allRsp.addElement(reply);
+						break;
+			    case Session.RESULT_NOTIFICATION_RECEIVED:
+						// The reply is a resultNotification
+						Vector allNotif = (Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY);
+						allNotif.addElement(reply);
+						break;
+			    default:
+						// Something went wrong. Return false --> we will go to the HANDLE_OUT_OF_SEQ state
+			    	return false;
+			    }
+			    // If the session is completed then remove it.
+			    if (s.isCompleted()) {
+						sessions.remove(inReplyTo);
+			    }
+			    return true;
+				}
+			}
+			return false;
+    }
+    
+    /**
+     */
+    protected void handlePositiveResponse(ACLMessage positiveResp) {
+    	handleAgree(positiveResp);
+    }
+    
+    /**
+       Check the status of the sessions after the reception of the last reply
+       or the expiration of the timeout
+     */    
+    protected int checkSessions(ACLMessage reply) {
+			int ret = -1;
+		  if (reply == null) {
+		    // Timeout has just expired 
+				// No further responses will be accepted
+				allResponsesReceived = true;
+				ret = ALL_RESPONSES_RECEIVED;
+				// Remove all the sessions for which no response has been received yet
+				List sessionsToRemove = new ArrayList(sessions.size());
+				for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
+			    Object key = i.next();
+			    Session s = (Session)sessions.get(key);
+			    if ( s.getState() == Session.INIT ) {
+				  	sessionsToRemove.add(key);
+			    }
+				}
+				for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); ) {
+					sessions.remove(i.next());
+				}
+				sessionsToRemove=null;  //frees memory	
+					
+				//Reset the MsgReceiver state to an infinite timeout
+		    replyReceiver.set(replyTemplate, -1, getDataStore(), REPLY_KEY);
+		  }
+		  else {
+				int perf = reply.getPerformative();
+				if (Session.isResponse(perf)) {
+			    // The current reply is a response.
+			    // Check if all responses have been received (this is the 
+			    // case when no active session is still in the INIT state).
+			    allResponsesReceived = true;
+			    Iterator it = sessions.values().iterator();
+			    while (it.hasNext()) {
+						Session s = (Session) it.next();
+						if (s.getState() == Session.INIT) {
+				    	allResponsesReceived = false;
+				    	break;
+						}
+			    }
+			    if (allResponsesReceived) {
+						//set an infite timeout to the replyReceiver.
+		        replyReceiver.set(replyTemplate, -1, getDataStore(), REPLY_KEY);
+				  	ret = ALL_RESPONSES_RECEIVED;
+			    }
+				}
+				else {
+			    // The current reply is a result notification
+			    // Check if all result notifications have
+			    // been received (this is the case when there are no active
+			    // sessions).
+			    if (sessions.size() == 0) {
+			    	ret = (allResponsesReceived ? ALL_RESULT_NOTIFICATIONS_RECEIVED : ALL_RESPONSES_RECEIVED);
+			    }
+				} 
+		  }
+		  return ret;
+    }
+    
     /**
      * This method must return the vector of ACLMessage objects to be
      * sent. It is called in the first state of this protocol.
@@ -660,8 +494,7 @@ public class AchieveREInitiator extends FSMBehaviour {
        @param b the Behaviour that will handle this state
     */
     public void registerPrepareRequests(Behaviour b) {
-	registerState(b, PREPARE_REQUESTS);
-	b.setDataStore(getDataStore());
+    	registerPrepareInitiations(b);
     }
     
     /**
@@ -678,80 +511,7 @@ public class AchieveREInitiator extends FSMBehaviour {
        @param b the Behaviour that will handle this state
     */
     public void registerHandleAgree(Behaviour b) {
-	registerState(b, HANDLE_AGREE);
-	b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_REFUSE state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>refuse</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleRefuse(Behaviour b) {
-	registerState(b, HANDLE_REFUSE);
-	b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_NOT_UNDERSTOOD state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>not-understood</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleNotUnderstood(Behaviour b) {
-	registerState(b, HANDLE_NOT_UNDERSTOOD);
-	b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_INFORM state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>inform</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleInform(Behaviour b) {
-	registerState(b, HANDLE_INFORM);
-	b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_FAILURE state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>failure</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleFailure(Behaviour b) {
-	registerState(b, HANDLE_FAILURE);
-	b.setDataStore(getDataStore());
+    	registerHandlePositiveResponse(b);
     }
     
     /**
@@ -790,72 +550,46 @@ public class AchieveREInitiator extends FSMBehaviour {
 	b.setDataStore(getDataStore());
     }
     
-    //FIXME: define a registerhandler also for OutOfSequence state
     //FIXME: call handleAgree and handleAllResponses also when
     // the INFORM/FAILURE is received before or by skipping the AGREE 
-    /**
-     * reset this behaviour by putting a null ACLMessage as message
-     * to be sent
-     **/
-    public void reset(){
-	reset(null);
-    }
-
     /**
      * reset this behaviour
      * @param msg is the ACLMessage to be sent
      **/
     public void reset(ACLMessage msg){
-	super.reset();
-	rec.reset(null,-1, getDataStore(),REPLY_KEY);
-	//initializeDataStore(msg);
-	request = msg;
+	super.reset(msg);
 	allResponsesReceived = false;
   }
 
-    /** 
-       Override the onStart() method to initialize the vectors that
-       will keep all the replies in the data store.
-     */
-    public void onStart() {
-    	initializeDataStore(request);
-    }
-    
-    /** 
-       Override the setDataStore() method to initialize propagate this
-       setting to all children.
-     */
-    public void setDataStore(DataStore ds) {
-    	super.setDataStore(ds);
-    	Iterator it = getChildren().iterator();
-    	while (it.hasNext()) {
-    		Behaviour b = (Behaviour) it.next();
-    		b.setDataStore(ds);
-    	}
-    }
-    
     
     /**
        Initialize the data store. 
      **/
-    private void initializeDataStore(ACLMessage msg){
-	Vector l = new Vector();
-	getDataStore().put(ALL_RESPONSES_KEY, l);
-	l = new Vector();
-	getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, l);
-	
-	getDataStore().put(REQUEST_KEY, msg);
-
+    protected void initializeDataStore(ACLMessage msg){
+    	super.initializeDataStore(msg);
+			Vector l = new Vector();
+			getDataStore().put(ALL_RESPONSES_KEY, l);
+			l = new Vector();
+			getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, l);
     }
+    
     /**
        Inner class Session
-    */
-    class Session implements jade.util.leap.Serializable {
+     */
+    private static class Session implements Serializable {
+  // Session states
+	static final int INIT = 0;
+	static final int POSITIVE_RESPONSE_RECEIVED = 1;
+	static final int NEGATIVE_RESPONSE_RECEIVED = 2;
+	static final int RESULT_NOTIFICATION_RECEIVED = 3;
+		
 	private int state = INIT;
+	
 	/**
-	   return true if the session is terminated.
-	 **/
-	public boolean update(int perf) {
+	   return true if the received performative is valid with respect to
+	   the current session state.
+	 */
+	boolean update(int perf) {
 	    switch (state) {
 	    case INIT:
 		switch (perf) {
@@ -887,19 +621,20 @@ public class AchieveREInitiator extends FSMBehaviour {
 	    }
 	}
 	
-	public int getState() {
+	int getState() {
 	    return state;
 	}
 	
-	public boolean isCompleted() {
+	boolean isCompleted() {
 	    return (state == NEGATIVE_RESPONSE_RECEIVED || state == RESULT_NOTIFICATION_RECEIVED);
 	}
+	
+	static boolean isResponse(int perf) {
+	    return (perf == ACLMessage.AGREE || perf == ACLMessage.REFUSE || perf == ACLMessage.NOT_UNDERSTOOD);
+	}
+   
     } // End of inner class Session
     
-    private boolean isResponse(int perf) {
-	return (perf == ACLMessage.AGREE || perf == ACLMessage.REFUSE || perf == ACLMessage.NOT_UNDERSTOOD);
-    }
-   
 }
 	
 		
