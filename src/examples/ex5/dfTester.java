@@ -1,6 +1,9 @@
 /*
 
   $Log$
+  Revision 1.15  1999/02/03 15:34:09  rimassa
+  Horrible hack to deal with CR/LF vs. LF. It should be fixed...
+
   Revision 1.14  1998/12/07 23:37:24  rimassa
   Added support for search constraints and for multiple DFs. Now dfTester
   is a complete FIPA 98 client for Directory Facilitators.
@@ -88,14 +91,14 @@ public class dfTester extends Agent {
 	  System.out.println("Enter DF agent action to perform: (register, deregister, modify, search) ");
 	  len = System.in.read(buffer);
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-	  String actionName = new String(buffer,0,len-1);
+          String actionName = new String(buffer,0,len-2);
 
 	  System.out.println("Enter DF name (ENTER uses platform default DF)");
 	  len = System.in.read(buffer);
 
 	  String dfName = "df";
-	  if(len > 1)
-	    dfName = new String(buffer,0,len-1);
+          if(len > 2)
+            dfName = new String(buffer,0,len-2);
 
 	  System.out.println("Enter values for parameters (ENTER leaves them blank)");
 
@@ -103,14 +106,14 @@ public class dfTester extends Agent {
 	  String address = null;
 	  System.out.print(":agent-name (e.g. Peter; mandatory for 'register') ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    name = new String(buffer,0,len-1);
+          if(len > 2)
+            name = new String(buffer,0,len-2);
 
 	  System.out.println(":agent-address (e.g. iiop://fipa.org:50/acc)");
 	  System.out.print("  (mandatory for 'register') ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    address = new String(buffer,0,len-1);
+          if(len > 2)
+            address = new String(buffer,0,len-2);
 
 	  if(address != null) {
 	    if(name != null)
@@ -120,60 +123,60 @@ public class dfTester extends Agent {
 
 	  System.out.print(":agent-type (mandatory for 'register') ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    dfd.setType(new String(buffer,0,len-1));
+          if(len > 2)
+            dfd.setType(new String(buffer,0,len-2));
 
 	  System.out.println(":interaction-protocols ");
 	  System.out.print("  protocol name (ENTER to end) ");
 	  len = System.in.read(buffer);
-	  while(len > 1) {
-	    dfd.addInteractionProtocol(new String(buffer,0,len-1));
+          while(len > 2) {
+            dfd.addInteractionProtocol(new String(buffer,0,len-2));
 	    System.out.print("  protocol name (ENTER to end) ");
 	    len = System.in.read(buffer);
 	  }
 
 	  System.out.print(":ontology ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    dfd.setOntology(new String(buffer,0,len-1));
+          if(len > 2)
+            dfd.setOntology(new String(buffer,0,len-2));
 
 	  System.out.print(":ownership (mandatory for 'register') ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    dfd.setOwnership(new String(buffer,0,len-1));
+          if(len > 2)
+            dfd.setOwnership(new String(buffer,0,len-2));
 
 	  System.out.print(":df-state (active, suspended, retired; mandatory for 'register') ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
-	    dfd.setDFState(new String(buffer,0,len-1));
+          if(len > 2)
+            dfd.setDFState(new String(buffer,0,len-2));
 
 	  System.out.println(":agent-services ");
 	  System.out.println(":service-description (leave name blank to end)");
 	  System.out.print("  :service-name ");
 	  len = System.in.read(buffer);
-	  while(len > 1) {
+          while(len > 2) {
 	    AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
-	    sd.setName(new String(buffer,0,len-1));
+            sd.setName(new String(buffer,0,len-2));
 	    System.out.print("  :service-type ");
 	    len = System.in.read(buffer);
-	    if(len > 1)
-	      sd.setType(new String(buffer,0,len-1));
+            if(len > 2)
+              sd.setType(new String(buffer,0,len-2));
 	    System.out.print("  :service-ontology ");
 	    len = System.in.read(buffer);
-	    if(len > 1)
-	      sd.setOntology(new String(buffer,0,len-1));
+            if(len > 2)
+              sd.setOntology(new String(buffer,0,len-2));
 	    System.out.print("  :fixed-properties ");
 	    len = System.in.read(buffer);
-	    if(len > 1)
-	      sd.setFixedProps(new String(buffer,0,len-1));
+            if(len > 2)
+              sd.setFixedProps(new String(buffer,0,len-2));
 	    System.out.print("  :negotiable-properties ");
 	    len = System.in.read(buffer);
-	    if(len > 1)
-	      sd.setNegotiableProps(new String(buffer,0,len-1));
+            if(len > 2)
+              sd.setNegotiableProps(new String(buffer,0,len-2));
 	    System.out.print("  :communication-properties ");
 	    len = System.in.read(buffer);
-	    if(len > 1)
-	      sd.setCommunicationProps(new String(buffer,0,len-1));
+            if(len > 2)
+              sd.setCommunicationProps(new String(buffer,0,len-2));
 
 	    dfd.addAgentService(sd);
 
@@ -191,23 +194,23 @@ public class dfTester extends Agent {
 	    System.out.print("  ENTER to end: ");
 	    len = System.in.read(buffer);
 	    Vector constraints = null;
-	    while(len > 1) {
+            while(len > 2) {
 	      if(constraints == null)
 		constraints = new Vector();
 	      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-	      c.setName(new String(buffer,0,len-1));
+              c.setName(new String(buffer,0,len-2));
 	      System.out.print("  Constraint function ('Min', 'Max' or 'Exactly'): ");
 	      len = System.in.read(buffer);
-	      if(len > 1)
-		c.setFn(new String(buffer,0,len-1));
+              if(len > 2)
+                c.setFn(new String(buffer,0,len-2));
 	      else
 		c.setFn("Exactly");
 	      System.out.print("  Constraint argument (a positive integer): ");
 	      len = System.in.read(buffer);
-	      if(len > 1)
-		c.setArg(Integer.parseInt(new String(buffer,0,len-1)));
+              if(len > 2)
+                c.setArg(Integer.parseInt(new String(buffer,0,len-2)));
 	      else
-		c.setArg(1);
+                c.setArg(1);
 
 	      constraints.addElement(c);
 
