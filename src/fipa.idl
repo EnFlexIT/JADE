@@ -1,29 +1,30 @@
-/* ****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+/////////////////////////////////////////////////////////////////////
+//
+// JADE - Java Agent DEvelopment Framework is a framework to develop 
+// multi-agent systems in compliance with the FIPA specifications.
+// Copyright (C) 2000 CSELT S.p.A. 
+//
+// GNU Lesser General Public License
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation, 
+// version 2.1 of the License. 
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the
+// Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+// Boston, MA  02111-1307, USA.
+//
+/////////////////////////////////////////////////////////////////////
 
-GNU Lesser General Public License
+//  FIPA 2000 compliant IDL interface.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-**************************************************************** */
-
-/*
-  FIPA 2000 compliant IDL interface.
- */
 module FIPA {
 
   // No need for an URL struct, since it's only put in the
@@ -42,7 +43,7 @@ module FIPA {
 
   struct AgentID {  // Agent Identifier
     string name;
-    sequence<AgentID>  addresses;
+    sequence<URL>  addresses;
     sequence<AgentID>  resolvers;
     sequence<Property> userDefinedProperties;
   };
@@ -78,19 +79,25 @@ module FIPA {
 
   typedef  sequence<Property> TransportBehaviourType;
 
+  // Using bounded sequences with size of 1 to model optional slots
+  typedef sequence<AgentID, 1> OptAgentID;
+  typedef sequence<DateTime, 1> OptDateTime;
+  typedef sequence<TransportBehaviourType, 1> OptTransportBehaviourType;
+  typedef sequence<ReceivedObject, 1> OptReceivedObject;
+
   struct Envelope {
-    AgentIDs               to;
-    AgentID                from;
-    string                 comments;
-    string                 aclRepresentation;
-    long                   payloadLength;
-    string                 payloadEncoding;
-    DateTime               date;
-    strings                encrypted;
-    AgentIDs               intendedReceiver;
-    ReceivedObject         received;
-    TransportBehaviourType transportBehaviour;
-    sequence<Property>     userDefinedProperties; // user-defined properties
+    AgentIDs to;
+    OptAgentID from;
+    string comments;
+    string aclRepresentation;
+    long payloadLength;
+    string payloadEncoding;
+    OptDateTime date;
+    strings encrypted;
+    AgentIDs intendedReceiver;
+    OptReceivedObject received;
+    OptTransportBehaviourType transportBehaviour;
+    sequence<Property> userDefinedProperties; // user-defined properties
   };
 
   typedef sequence<Envelope> Envelopes;
