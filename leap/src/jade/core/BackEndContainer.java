@@ -117,8 +117,19 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
 
-      protected void startBasicServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
-	  // Create the agent management service
+      protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+	  // Register with the platform 
+	  // This call can modify the name of this container
+	  myServiceManager.addNode(myNodeDescriptor, new ServiceDescriptor[0]);
+
+	  // Activate all the container fundamental services
+	  startService("jade.core.management.BEAgentManagementService");
+	  //#MIDP_EXCLUDE_BEGIN
+	  startService("jade.core.messaging.MessagingService");
+	  //#MIDP_EXCLUDE_END
+    
+      	
+    /* Create the agent management service
 	  jade.core.management.BEAgentManagementService agentManagement = new jade.core.management.BEAgentManagementService();
 	  agentManagement.init(this, myProfile);
 
@@ -140,7 +151,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  messaging.boot(myProfile);
 
 	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
-	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
+	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);*/
 
       }
 
