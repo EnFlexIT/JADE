@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.29  1998/12/01 23:35:55  rimassa
+  Changed a method name from 'modifyDFRegistration()' to
+  'modifyDFData()'.
+  Added a clause to insert a ':df-depth Exactly 1' search constraint
+  when no one is given.
+
   Revision 1.28  1998/11/30 00:15:34  rimassa
   Completed API to use FIPA system agents: now all 'refuse' and
   'failure' reply messages are unmarshaled into Java exceptions.
@@ -678,7 +684,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Modify registration data with a DF
-  public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+  public void modifyDFData(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-modify";
     ACLMessage request = FipaRequestMessage(dfName, replyString);
@@ -720,6 +726,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
     else {
       // Put constraints into action
+      Enumeration e = constraints.elements();
+      while(e.hasMoreElements()) {
+	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)e.nextElement();
+	a.addConstraint(c);
+      }
     }
 
     // Convert it to a String and write it in content field of the request
