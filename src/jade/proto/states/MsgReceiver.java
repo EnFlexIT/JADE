@@ -97,7 +97,9 @@ public class MsgReceiver extends SimpleBehaviour {
 
 	public void action() {
 		if (interrupted) {
-			getDataStore().put(receivedMsgKey, null); 
+			if (receivedMsgKey != null) {
+				getDataStore().put(receivedMsgKey, null);
+			}
 			ret = INTERRUPTED;
 			return;
 		}
