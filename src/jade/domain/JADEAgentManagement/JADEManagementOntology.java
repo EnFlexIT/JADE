@@ -153,9 +153,16 @@ public class JADEManagementOntology extends Ontology {
    * Constructor
    */
   private JADEManagementOntology() {
+    //__CLDC_UNSUPPORTED__BEGIN
   	super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
+    //__CLDC_UNSUPPORTED__END
+    	
+		/*__J2ME_COMPATIBILITY__BEGIN    	
+  	super(NAME, BasicOntology.getInstance(), null);
+   	__J2ME_COMPATIBILITY__END*/
 
     try {
+    	//__CLDC_UNSUPPORTED__BEGIN
     	// Concepts definitions
     	add(new ConceptSchema(CONTAINERID), ContainerID.class);
     	
@@ -180,8 +187,36 @@ public class JADEManagementOntology extends Ontology {
     	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE), UnrecognisedParameterValue.class);
     	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
     	add(new PredicateSchema(INTERNALERROR), jade.domain.FIPAAgentManagement.InternalError.class);
+    	//__CLDC_UNSUPPORTED__END
     	
-    	// Slots definitions
+			/*__J2ME_COMPATIBILITY__BEGIN    	
+    	// Concepts definitions
+    	add(new ConceptSchema(CONTAINERID));
+    	
+    	// AgentActions definitions
+    	add(new AgentActionSchema(KILLCONTAINER));
+    	add(new AgentActionSchema(CREATEAGENT));
+    	add(new AgentActionSchema(KILLAGENT));
+    	add(new AgentActionSchema(INSTALLMTP));
+    	add(new AgentActionSchema(UNINSTALLMTP));
+    	add(new AgentActionSchema(SNIFFON));
+    	add(new AgentActionSchema(SNIFFOFF));
+    	add(new AgentActionSchema(DEBUGON));
+    	add(new AgentActionSchema(DEBUGOFF));
+    	add(new AgentActionSchema(SHOWGUI));
+
+    	// Predicates definitions
+    	add(new PredicateSchema(UNSUPPORTEDVALUE));
+    	add(new PredicateSchema(UNRECOGNISEDVALUE));
+    	add(new PredicateSchema(UNSUPPORTEDFUNCTION));
+    	add(new PredicateSchema(MISSINGPARAMETER));
+    	add(new PredicateSchema(UNEXPECTEDPARAMETER));
+    	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
+    	add(new PredicateSchema(NOTREGISTERED));
+    	add(new PredicateSchema(INTERNALERROR));
+   		__J2ME_COMPATIBILITY__END*/
+   		
+   		// Slots definitions
     	ConceptSchema cs = (ConceptSchema) getSchema(CONTAINERID);
     	cs.add(CONTAINERID_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
     	cs.add(CONTAINERID_ADDRESS, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
