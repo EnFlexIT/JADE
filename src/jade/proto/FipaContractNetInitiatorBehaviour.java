@@ -230,7 +230,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       // Here the receive() has really read a message
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
-      waitedAgents.removeMember(msg.getSource());
+      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
 	state=2;
@@ -324,7 +324,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
-      waitedAgents.removeMember(msg.getSource());
+      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) 
 	state=5;
@@ -480,6 +480,8 @@ public void reset() {
   state = 0;  // state of the protocol
   finished=false; // true when done()
   hasBeenReset = true;
+  msgProposals = new Vector();
+  msgFinal = new Vector();
 }
 
 

@@ -119,7 +119,7 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       //      System.err.println("FipaQueryInitiatorBehaviour: receive");
       //msg.dump();
 
-      waitedAgents.removeMember(msg.getSource());
+      waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
       //      System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
       	state=2;
