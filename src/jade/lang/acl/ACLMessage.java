@@ -299,10 +299,10 @@ private int performative; // keeps the performative type of this object
    * In order to transport serialized Java objects,
    * or arbitrary sequence of bytes (i.e. something different from 
    * a Java <code>String</code>) over an ACL message, it is suggested to use
-   * the method <code>ACLMessage.setContentBase64()</code> instead. 
+   * the method <code>ACLMessage.setContentObject()</code> instead. 
    * @param content The new value for the slot.
    * @see jade.lang.acl.ACLMessage#getContent()
-   * @see jade.lang.acl.ACLMessage#setContentBase64(byte[])
+   * @see jade.lang.acl.ACLMessage#setContentObject(Serializable)
    */
   public void setContent( String content ) {
     if (content != null)
@@ -665,10 +665,10 @@ private int performative; // keeps the performative type of this object
    * It is sometimes useful to transport serialized Java objects,
    * or arbitrary sequence of bytes (i.e. something different from 
    * a Java <code>String</code>) over an ACL message. See
-   * getContentbase64(). 
+   * getContentObject(). 
    * @return The value of <code>:content</code> slot.
    * @see jade.lang.acl.ACLMessage#setContent(String).
-   * @see jade.lang.acl.ACLMessage#getContentBase64().
+   * @see jade.lang.acl.ACLMessage#getContentObject(Serializable).
    * @see java.io.ObjectInputStream
   */
   public String getContent() {
