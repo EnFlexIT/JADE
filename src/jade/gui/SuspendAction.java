@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/03/03 16:00:03  rimassa
+  Implemented action body to really resume suspended agents.
+
   Revision 1.4  1999/02/04 14:47:31  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -14,34 +17,44 @@
 package jade.gui;
 
 import javax.swing.*;
+import javax.swing.tree.TreeModel;
 import java.awt.event.*;
 import java.awt.*;
 import java.lang.*;
+
+import jade.domain.rma;
 
 /**
  * SuspendAction suspends selected agents
  * @see jade.gui.AMSAbstractAction
  */
-public class SuspendAction extends AMSAbstractAction
-{
-	public SuspendAction()
-	{
-		super ("SuspendActionIcon","Suspend Selected Agents");
+public class SuspendAction extends AMSAbstractAction {
+  public SuspendAction() {
+    super ("SuspendActionIcon","Suspend Selected Agents");
+  }
+
+    public void actionPerformed(ActionEvent evt) {
+      for (int i=0;i<listeners.size();i++) {
+	TreeData current = (TreeData)listeners.elementAt(i);
+	current.setState(TreeData.SUSPENDED);
+	String toSuspend = current.getName();
+	rma myRMA = AMSMainFrame.getRMA();
+
+	int level = current.getLevel();
+
+	switch(level) {
+	case TreeData.AGENT:
+	  myRMA.suspendAgent(toSuspend);
+	  break;
+	case TreeData.CONTAINER:
+	  myRMA.suspendContainer(toSuspend);
+	  break;
 	}
-
-	public void actionPerformed(ActionEvent evt)
-    {
-        for (int i=0;i<listeners.size();i++)
-		{
-			System.out.print(ActionName);
-			System.out.print(listeners.elementAt(i).toString());
-			if (listeners.elementAt(i) instanceof TreeData)
-				( (TreeData)listeners.elementAt(i)).setState(TreeData.SUSPENDED);
-			System.out.println();
-		}
-		listeners.removeAllElements();
+	AMSTreeModel myModel = myRMA.getModel();
+	myModel.nodeChanged(current);
+      }
+      //      listeners.removeAllElements();
     }
-
 
 }
 
