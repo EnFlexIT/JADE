@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.22  1999/02/03 10:13:58  rimassa
+  Added server side CORBA support: now the AgentPlatform contains a
+  CORBA object implementation for FIPA_Agent_97 IDL interface.
+  During platform startup, the IOR or the URL for that CORBA object
+  implementation is stored as the IIOP address of the whole agent
+  platform.
+  Modified addContainer() method to comply with new AgentPLatform
+  interface.
+
   Revision 1.21  1998/11/15 23:03:33  rimassa
   Removed old printed messages about system agents, since now the Remote
   Agent Management GUI shows all agents present on the platform.
@@ -68,7 +77,10 @@
 package jade.core;
 
 import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -85,6 +97,10 @@ import jade.domain.FIPAException;
 import jade.domain.NoCommunicationMeansException;
 import jade.domain.AgentAlreadyRegisteredException;
 
+import jade.lang.acl.ACLMessage;
+
+import _FIPA_Agent_97ImplBase;
+
 public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
 
   // Initial size of containers hash table
@@ -97,11 +113,28 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
 
   private ams theAMS;
-  private acc theACC;
   private df defaultDF;
+
+  // For now ACC agent and ACC CORBA server are different objects and run
+  // within different threads of control.
+  private acc theACC;
+  private InComingIIOP frontEndACC;
 
   private Hashtable containers = new Hashtable(CONTAINERS_SIZE);
   private Hashtable platformAgents = new Hashtable(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
+
+  private class InComingIIOP extends _FIPA_Agent_97ImplBase {
+    public void message(String acl_message) {
+
+      System.out.println(acl_message);
+      // Recover ACL message object from String
+      ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));
+
+      // Create and handle a suitable communication event
+      CommEvent ev = new CommEvent(theACC, msg);
+      CommHandle(ev);
+    }
+  }
 
   private void initAMS() {
 
@@ -134,6 +167,31 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     platformAgents.put("acc", desc);
 
+    // Setup CORBA server
+    frontEndACC = new InComingIIOP();
+    myORB.connect(frontEndACC);
+
+    // Generate and store IIOP URL for the platform
+    try {
+      OutGoingIIOP dummyChannel = new OutGoingIIOP(myORB, frontEndACC);
+      platformAddress = dummyChannel.getIOR();
+      System.out.println(platformAddress);
+      // FIXME: for Seoul we have decided to write the IOR on a file
+      try {
+      	FileWriter f = new FileWriter("CSELT.IOR");
+      	f.write(platformAddress,0,platformAddress.length());
+      	f.close();
+      }
+      catch (IOException io) {
+      	io.printStackTrace();
+      }
+    }
+    catch(IIOPFormatException iiopfe) {
+      System.err.println("FATAL ERROR: Could not create IIOP server for the platform");
+      iiopfe.printStackTrace();
+      System.exit(0);
+    }
+
   }
 
   private void initDF() {
@@ -165,20 +223,25 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     return name;
   }
 
-  public AgentPlatformImpl() throws RemoteException {
+  public AgentPlatformImpl(String args[]) throws RemoteException {
+    super(args);
     initAMS();
     initACC();
     initDF();
   }
 
 
-  public void addContainer(AgentContainer ac) throws RemoteException {
-    
+  public String addContainer(AgentContainer ac) throws RemoteException {
+
     String name = "Container-" + new Integer(containers.size()).toString();
     containers.put(name, ac);
 
     // Notify AMS
     theAMS.postNewContainer(name);
+
+    // Return IIOP URL for the platform
+    return platformAddress;
+
   }
 
   public void removeContainer(AgentContainer ac) throws RemoteException {
@@ -190,7 +253,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
-    Object old = platformAgents.put(name.toLowerCase(), desc);
+    java.lang.Object old = platformAgents.put(name.toLowerCase(), desc);
 
     // If there's already an agent with name 'name' throw a name clash
     // exception unless the old agent's container is dead.
