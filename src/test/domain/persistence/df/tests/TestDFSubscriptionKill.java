@@ -149,8 +149,8 @@ public class TestDFSubscriptionKill extends Test {
 				cancel.addReceiver(df1);
 				cancel.setLanguage(codec.getName());
 				cancel.setOntology(FIPAManagementOntology.getInstance().getName());
-				ACLMessage subscriptionMsg = (ACLMessage) si.getDataStore().get(df1);				
-				Action act = new Action(df1, OntoACLMessage.wrap(subscriptionMsg));
+				ACLMessage subscriptionMsg1 = (ACLMessage) si.getDataStore().get(df1);				
+				Action act = new Action(df1, OntoACLMessage.wrap(subscriptionMsg1));
 				try {
 					myAgent.getContentManager().fillContent(cancel, act);
 				}
@@ -169,16 +169,16 @@ public class TestDFSubscriptionKill extends Test {
   	pb.addSubBehaviour(new TickerBehaviour(a, 5000) {
   		
   		protected void onTick() {
-				DFAgentDescription dfd = null; 			
+				DFAgentDescription dfd1 = null; 			
 				switch (getTickCount()) {
   			case 1:
   				// Register 2nd DFD (matching)
-  				dfd = new DFAgentDescription();
-  				dfd.setName(new AID("a2", AID.ISLOCALNAME));
-  				dfd.addServices(TestDFHelper.getSampleSD1());
+  				dfd1 = new DFAgentDescription();
+  				dfd1.setName(new AID("a2", AID.ISLOCALNAME));
+  				dfd1.addServices(TestDFHelper.getSampleSD1());
   				try {
   					l.log("Registering a matching DFD. A notification should be received.");
-	  				DFService.register(myAgent, df1, dfd);
+	  				DFService.register(myAgent, df1, dfd1);
   				}
   				catch (FIPAException fe) {
   					System.out.println("Error registering 2nd DFD with the DF.");
@@ -203,12 +203,12 @@ public class TestDFSubscriptionKill extends Test {
   				break;
   			case 3:
   				// Register 3rd DFD (not matching)
-  				dfd = new DFAgentDescription();
-  				dfd.setName(new AID("a3", AID.ISLOCALNAME));
-  				dfd.addServices(TestDFHelper.getSampleSD2());
+  				dfd1 = new DFAgentDescription();
+  				dfd1.setName(new AID("a3", AID.ISLOCALNAME));
+  				dfd1.addServices(TestDFHelper.getSampleSD2());
   				try {
   					l.log("Registering a NON-matching DFD. No notification should be received");
-	  				DFService.register(myAgent, df1, dfd);
+	  				DFService.register(myAgent, df1, dfd1);
   				}
   				catch (FIPAException fe) {
   					System.out.println("Error registering 3rd DFD with the DF.");
@@ -218,10 +218,10 @@ public class TestDFSubscriptionKill extends Test {
   				break;
   			case 4:
   				// Modify 2nd DFD (still matching)
-  				dfd = TestDFHelper.getSampleDFD(new AID("a2", AID.ISLOCALNAME));
+  				dfd1 = TestDFHelper.getSampleDFD(new AID("a2", AID.ISLOCALNAME));
   				try {
   					l.log("Modifying a matching DFD into another matching DFD. A notification should be received");
-	  				DFService.modify(myAgent, df1, dfd);
+	  				DFService.modify(myAgent, df1, dfd1);
   				}
   				catch (FIPAException fe) {
   					System.out.println("Error modifying 2nd DFD with the DF.");
@@ -231,10 +231,10 @@ public class TestDFSubscriptionKill extends Test {
   				break;
   			case 5:
   				// Modify 3nd DFD (now matching)
-  				dfd = TestDFHelper.getSampleDFD(new AID("a3", AID.ISLOCALNAME));
+  				dfd1 = TestDFHelper.getSampleDFD(new AID("a3", AID.ISLOCALNAME));
   				try {
   					l.log("Modifying a NON-matching DFD into a matching DFD. A notification should be received");
-	  				DFService.modify(myAgent, df1, dfd);
+	  				DFService.modify(myAgent, df1, dfd1);
   				}
   				catch (FIPAException fe) {
   					System.out.println("Error modifying 3rd DFD with the DF.");
