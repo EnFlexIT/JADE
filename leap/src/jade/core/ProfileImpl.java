@@ -53,11 +53,10 @@ public class ProfileImpl extends Profile {
   // Keys to retrieve the implementation classes for configurable
   // functionalities among the bootstrap properties.
   private static final String RESOURCE = "resource";
-  private static final String MOBILITY = "mobility";
-  private static final String NOTIFICATION = "notification";
 	//#MIDP_EXCLUDE_END
   private static final String IMTP = "imtp";
-  
+  private static final int DEFAULT_PORT = 1099;
+
   private Properties          props = null;
  
   private ServiceManager myServiceManager = null;
@@ -124,10 +123,9 @@ public class ProfileImpl extends Profile {
    	if(platformID != null) { 
      		props.setProperty(PLATFORM_ID, platformID);
    	}
-   	
    	init();
- 	}
- 	
+  }
+
   /**
    * Create a Profile object initialized with
    * the settings specified in the <code>Properties</code> object
@@ -154,7 +152,37 @@ public class ProfileImpl extends Profile {
   		props.setProperty(MAIN, "false");
   		#MIDP_INCLUDE_END*/
   	}
-  	
+
+	// Set reasonable defaults for MAIN_HOST, MAIN_PORT and PLATFORM_ID properties
+
+	String h = props.getProperty(MAIN_HOST);
+	if(h == null) {
+	    try {
+		//#MIDP_EXCLUDE_BEGIN
+		h = java.net.InetAddress.getLocalHost().getHostName();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		h = "localhost";
+		#MIDP_INCLUDE_END*/
+	    }
+	    catch(Exception e) {
+		throw new ProfileException("Could not retrieve the default local host name");
+	    }
+	    props.setProperty(MAIN_HOST, h);
+	}
+
+	String p = props.getProperty(MAIN_PORT);
+	if(p == null) {
+	    p = Integer.toString(DEFAULT_PORT);
+	    props.setProperty(MAIN_PORT, p);
+	}
+
+	String id = props.getProperty(PLATFORM_ID);
+	if(id == null) {
+	    props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
+	}
+
+
   	//#MIDP_EXCLUDE_BEGIN
     // Set agents as a list to handle the "gui" option
     List   l = getSpecifiers(AGENTS);
@@ -181,6 +209,7 @@ public class ProfileImpl extends Profile {
     }
     //#PJAVA_EXCLUDE_END
   	//#MIDP_EXCLUDE_END
+
   }
 
 
