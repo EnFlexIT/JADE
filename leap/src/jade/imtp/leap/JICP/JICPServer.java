@@ -273,7 +273,7 @@ class JICPServer extends Thread {
           	return;
           }
           else {
-          	reply = new JICPPacket(JICPProtocol.ERROR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null);
+          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
           }	
           break;
 
