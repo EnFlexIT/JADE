@@ -410,6 +410,7 @@ public class FSMBehaviour extends CompositeBehaviour {
    */
   class TransitionTable implements Serializable {
   	private Hashtable transitions = new Hashtable();
+  	private static final long     serialVersionUID = 3487495895819003L;
   	
   	void addTransition(String s1, String s2, int event, String[] toBeReset) {
   		TransitionsFromState tfs = null;
@@ -449,6 +450,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   class Transition implements Serializable {
   	private String dest;
   	private String[] toBeReset;
+  	private static final long     serialVersionUID = 3487495895819004L;
   	
   	public Transition(String d, String[] rs) {
   		dest = d;
@@ -458,6 +460,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   
   class TransitionsFromState extends Hashtable {
   	private Transition defaultTransition = null;
+  	private static final long     serialVersionUID = 3487495895819005L;
   	
   	void setDefaultTransition(Transition dt) {
   		defaultTransition = dt;
