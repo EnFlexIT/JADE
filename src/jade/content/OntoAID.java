@@ -32,25 +32,45 @@ import jade.util.leap.Iterator;
  */
 public class OntoAID extends AID implements Concept {
 
+  /**
+   * Constructs an ontological Agent-Identifier whose slot name is 
+   * set to an empty string
+   * @see AID#AID()
+   */
 	public OntoAID() {
 		super();
 	}
 	
-	public OntoAID(String guid) {
-		super(guid);
-	}
-	
+  /** 
+   * Constructor for an ontological Agent-identifier
+   * @param name is the value for the slot name for the agent. 
+   * @param isGUID indicates if the passed <code>name</code>
+   * is already a globally unique identifier or not. Two
+   * constants <code>ISGUID</code>, <code>ISLOCALNAME</code>
+   * have also been defined for setting a value for this parameter.
+   * If the name is a local name, then the HAP (Home Agent Platform)
+   * is concatenated to the name, separated by  "@".
+   * @see AID#AID(String, boolean)
+   */
 	public OntoAID(String name, boolean isGUID) {
 		super(name, isGUID);
 	}
 	
+	/** 
+	 * Create an ontological Agent identifier that wraps an existing 
+	 * <code>AID</code>.
+	 * @param id the <code>AID</code>to be wrapped. If <code>id</code>
+	 * is already an ontological agent identifier no new object is 
+	 * created and <code>id</code> is returned with the resolvers 
+	 * (if any) properly wrapped.
+	 */
 	public static OntoAID wrap(AID id) {
 		OntoAID wrapper = null;
 		if (id instanceof OntoAID) {
 			wrapper = (OntoAID) id;
 		}
 		else {
-			wrapper = new OntoAID(id.getName());
+			wrapper = new OntoAID(id.getName(), ISGUID);
 			Iterator it = id.getAllAddresses();
 			while (it.hasNext()) {
 				wrapper.addAddresses((String) it.next());
