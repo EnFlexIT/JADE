@@ -38,7 +38,8 @@ import jade.mtp.TransportAddress;
 import jade.imtp.leap.TransportProtocol;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
-import jade.util.leap.List;
+
+import java.util.Vector;
 
 /**
  * Class declaration
@@ -80,17 +81,17 @@ public class HTTPProtocol extends TransportProtocol {
   /**
    */
   public TransportAddress stringToAddr(String s) throws ICPException {
-    List   addressFields = parseURL(s);
-    String protocol = (String) addressFields.get(0);
+    Vector  addressFields = parseURL(s);
+    String protocol = (String) addressFields.elementAt(0);
 
     if (!NAME.equals(protocol)) {
       throw new ICPException("Unexpected protocol \""+protocol+"\" when \""+NAME+"\" was expected.");
     } 
 
-    String host = (String) addressFields.get(1);
-    String port = (String) addressFields.get(2);
-    String file = (String) addressFields.get(3);
-    String anchor = (String) addressFields.get(4);
+    String host = (String) addressFields.elementAt(1);
+    String port = (String) addressFields.elementAt(2);
+    String file = (String) addressFields.elementAt(3);
+    String anchor = (String) addressFields.elementAt(4);
 
     return new HTTPAddress(host, port, file, anchor);
   } 

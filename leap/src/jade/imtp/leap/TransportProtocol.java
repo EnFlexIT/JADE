@@ -35,8 +35,7 @@
 package jade.imtp.leap;
 
 import jade.mtp.TransportAddress;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
+import java.util.Vector;
 
 /**
  * Interface declaration
@@ -44,6 +43,10 @@ import jade.util.leap.ArrayList;
  * @author Giovanni Caire - TILAB
  */
 public abstract class TransportProtocol {
+
+		private static final char SLASH = '/';
+    private static final char COLON = ':';
+    private static final char DIESIS = '#';
 
   /**
    * FIXME: should throw a dedicated exception
@@ -72,7 +75,7 @@ public abstract class TransportProtocol {
   /**
    * FIXME: should throw a dedicated exception
    */
-  protected List parseURL(String url) throws ICPException {
+  protected Vector parseURL(String url) throws ICPException {
     if (url == null) {
       throw new ICPException("Null URL");
     } 
@@ -86,19 +89,19 @@ public abstract class TransportProtocol {
     int    fieldEnd;
 
     // Protocol
-    fieldEnd = url.indexOf(':', fieldStart);
+    fieldEnd = url.indexOf(COLON, fieldStart);
 
-    if (fieldEnd > 0 && url.charAt(fieldEnd+1) == '/' && url.charAt(fieldEnd+2) == '/') {
+    if (fieldEnd > 0 && url.charAt(fieldEnd+1) == SLASH && url.charAt(fieldEnd+2) == SLASH) {
       protocol = url.substring(fieldStart, fieldEnd);
     } 
     else {
-      throw new ICPException("Incorrect URL: "+url+".");
+      throw new ICPException("Invalid URL: "+url+".");
     } 
 
     fieldStart = fieldEnd+3;
 
     // Host
-    fieldEnd = url.indexOf(':', fieldStart);
+    fieldEnd = url.indexOf(COLON, fieldStart);
 
     if (fieldEnd > 0) {
 
@@ -107,7 +110,7 @@ public abstract class TransportProtocol {
       fieldStart = fieldEnd+1;
 
       // Port
-      fieldEnd = url.indexOf('/', fieldStart);
+      fieldEnd = url.indexOf(SLASH, fieldStart);
 
       if (fieldEnd > 0) {
 
@@ -116,7 +119,7 @@ public abstract class TransportProtocol {
         fieldStart = fieldEnd+1;
 
         // File
-        fieldEnd = url.indexOf('#', fieldStart);
+        fieldEnd = url.indexOf(DIESIS, fieldStart);
 
         if (fieldEnd > 0) {
 
@@ -142,7 +145,7 @@ public abstract class TransportProtocol {
     else {
 
       // No port is specified after the host
-      fieldEnd = url.indexOf('/', fieldStart);
+      fieldEnd = url.indexOf(SLASH, fieldStart);
 
       if (fieldEnd > 0) {
 
@@ -151,7 +154,7 @@ public abstract class TransportProtocol {
         fieldStart = fieldEnd+1;
 
         // File
-        fieldEnd = url.indexOf('#', fieldStart);
+        fieldEnd = url.indexOf(DIESIS, fieldStart);
 
         if (fieldEnd > 0) {
 
@@ -175,13 +178,13 @@ public abstract class TransportProtocol {
       } 
     } 
 
-    List urlFields = new ArrayList();
+    Vector urlFields = new Vector(5);
 
-    urlFields.add(protocol);
-    urlFields.add(host);
-    urlFields.add(port);
-    urlFields.add(file);
-    urlFields.add(anchor);
+    urlFields.addElement(protocol);
+    urlFields.addElement(host);
+    urlFields.addElement(port);
+    urlFields.addElement(file);
+    urlFields.addElement(anchor);
 
     return urlFields;
   } 

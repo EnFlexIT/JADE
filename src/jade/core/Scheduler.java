@@ -24,10 +24,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.util.Vector;
+
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
-
+import jade.util.leap.EnumIterator;
 import jade.util.leap.Serializable;
 
 import jade.core.behaviours.Behaviour;
@@ -55,15 +57,17 @@ import jade.core.behaviours.Behaviour;
 ****************************************************************/
 class Scheduler implements Serializable {
 
-  /**
-     @serial
-  */
-  protected List readyBehaviours = new LinkedList();
 
-  /**
-     @serial
-  */
+		//#MIDP_EXCLUDE_BEGIN
+  protected List readyBehaviours = new LinkedList();
   protected List blockedBehaviours = new LinkedList();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+  protected Vector readyBehaviours = new Vector();
+  protected Vector blockedBehaviours = new Vector();
+			#MIDP_INCLUDE_END*/
+
+
 
   /**
      @serial
@@ -85,7 +89,12 @@ class Scheduler implements Serializable {
   // If the behaviours queue was empty notifies the embedded thread of
   // the owner agent that a behaviour is now available.
   public synchronized void add(Behaviour b) {
+		//#MIDP_EXCLUDE_BEGIN
     readyBehaviours.add(b);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    readyBehaviours.addElement(b);
+			#MIDP_INCLUDE_END*/
     notify();
     //#MIDP_EXCLUDE_BEGIN
     owner.notifyAddBehaviour(b);
@@ -95,7 +104,12 @@ class Scheduler implements Serializable {
   // Moves a behaviour from the ready queue to the sleeping queue.
   public synchronized void block(Behaviour b) {
     if (removeFromReady(b)) {
+		//#MIDP_EXCLUDE_BEGIN
 	    blockedBehaviours.add(b);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+	    blockedBehaviours.addElement(b);
+			#MIDP_INCLUDE_END*/
     	//#MIDP_EXCLUDE_BEGIN
     	owner.notifyChangeBehaviourState(b, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED);
     	//#MIDP_EXCLUDE_END
@@ -105,7 +119,12 @@ class Scheduler implements Serializable {
   // Moves a behaviour from the sleeping queue to the ready queue.
   public synchronized void restart(Behaviour b) {
     if (removeFromBlocked(b)) {
+		//#MIDP_EXCLUDE_BEGIN
 	    readyBehaviours.add(b);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+	    readyBehaviours.addElement(b);
+			#MIDP_INCLUDE_END*/
     	notify();
     	//#MIDP_EXCLUDE_BEGIN
     	owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_READY);
@@ -129,7 +148,12 @@ class Scheduler implements Serializable {
 
     Behaviour[] behaviours = new Behaviour[readyBehaviours.size()];
     int counter = 0;
+		//#MIDP_EXCLUDE_BEGIN
     for(Iterator it = readyBehaviours.iterator(); it.hasNext();)
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    for(Iterator it = new EnumIterator(readyBehaviours.elements()); it.hasNext();)
+			#MIDP_INCLUDE_END*/
 	behaviours[counter++] = (Behaviour)it.next();
 
     for(int i = 0; i < behaviours.length; i++) {
@@ -139,7 +163,12 @@ class Scheduler implements Serializable {
     
     behaviours = new Behaviour[blockedBehaviours.size()];
     counter = 0;
+		//#MIDP_EXCLUDE_BEGIN
     for(Iterator it = blockedBehaviours.iterator(); it.hasNext();)
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    for(Iterator it = new EnumIterator(blockedBehaviours.elements()); it.hasNext();)
+			#MIDP_INCLUDE_END*/
 	behaviours[counter++] = (Behaviour)it.next();
 
     for(int i = 0; i < behaviours.length; i++) {
@@ -172,14 +201,24 @@ class Scheduler implements Serializable {
       owner.idle();
     }
 
+		//#MIDP_EXCLUDE_BEGIN
     Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    Behaviour b = (Behaviour)readyBehaviours.elementAt(currentIndex);
+			#MIDP_INCLUDE_END*/
     currentIndex = (currentIndex + 1) % readyBehaviours.size();
     return b;
   }
 
   // Removes a specified behaviour from the blocked queue.
   private boolean removeFromBlocked(Behaviour b) {
+		//#MIDP_EXCLUDE_BEGIN
     return blockedBehaviours.remove(b);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return blockedBehaviours.removeElement(b);
+			#MIDP_INCLUDE_END*/
   }
 
   // Removes a specified behaviour from the ready queue.
@@ -189,7 +228,12 @@ class Scheduler implements Serializable {
   private boolean removeFromReady(Behaviour b) {
     int index = readyBehaviours.indexOf(b);
     if(index != -1) {
+		//#MIDP_EXCLUDE_BEGIN
       readyBehaviours.remove(b);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+      readyBehaviours.removeElement(b);
+			#MIDP_INCLUDE_END*/
       if(index < currentIndex)
 	    --currentIndex;
       //if(currentIndex < 0)

@@ -38,6 +38,7 @@ import java.lang.ClassNotFoundException;
 
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Vector;
 
 import jade.util.leap.Serializable;
 import jade.util.leap.List;
@@ -45,6 +46,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.leap.EmptyIterator;
+import jade.util.leap.EnumIterator;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -135,6 +137,7 @@ public class ACLMessage implements Serializable {
 @serial
 */
 private int performative; // keeps the performative type of this object
+		//#CUSTOM_EXCLUDE_BEGIN
     /** This array of Strings keeps the names of the performatives **/
   private static final String[] performatives = new String[22];
   static { // initialization of the Vector of performatives
@@ -161,7 +164,7 @@ private int performative; // keeps the performative type of this object
     performatives[PROXY]="PROXY";
     performatives[PROPAGATE]="PROPAGATE";
   }
-
+		//#CUSTOM_EXCLUDE_END
 
  
   /**
@@ -173,15 +176,17 @@ private int performative; // keeps the performative type of this object
     * used by this class **/
     private static final int RECEIVERS_EXPECTED_SIZE = 1;
     private static final int REPLYTO_EXPECTED_SIZE = 1;
-  /**
-  @serial
-  */
-  private ArrayList dests = new ArrayList(RECEIVERS_EXPECTED_SIZE);
 
-  /**
-  @serial
-  */
+		//#MIDP_EXCLUDE_BEGIN
+  private ArrayList dests = new ArrayList(RECEIVERS_EXPECTED_SIZE);
   private ArrayList reply_to = null; 
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+  private Vector dests = new Vector(RECEIVERS_EXPECTED_SIZE);
+  private Vector reply_to = null; 
+			#MIDP_INCLUDE_END*/
+
+
 
   /**
   @serial
@@ -237,7 +242,6 @@ private int performative; // keeps the performative type of this object
   private Properties userDefProps = null; 
 	//#CUSTOM_EXCLUDE_BEGIN
   private Envelope messageEnvelope;
-	//#CUSTOM_EXCLUDE_END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.
@@ -246,6 +250,7 @@ private int performative; // keeps the performative type of this object
   {
       return performatives;
   }
+	//#CUSTOM_EXCLUDE_END
   
   /**
      @deprecated Since every ACL Message must have a message type, you
@@ -288,7 +293,12 @@ private int performative; // keeps the performative type of this object
   */
   public void addReceiver(AID r) {
     if(r != null)
+		//#MIDP_EXCLUDE_BEGIN
       dests.add(r);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+      dests.addElement(r);
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -300,7 +310,12 @@ private int performative; // keeps the performative type of this object
   */
   public boolean removeReceiver(AID r) {
     if (r != null)
+		//#MIDP_EXCLUDE_BEGIN
       return dests.remove(r);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+      return dests.removeElement(r);
+			#MIDP_INCLUDE_END*/
     else
       return false;
   }
@@ -311,7 +326,12 @@ private int performative; // keeps the performative type of this object
      value.</em> 
   */
   public void clearAllReceiver() {
+		//#MIDP_EXCLUDE_BEGIN
     dests.clear();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    dests.removeAllElements();
+			#MIDP_INCLUDE_END*/
   }
 
 
@@ -323,8 +343,14 @@ private int performative; // keeps the performative type of this object
   */
   public void addReplyTo(AID dest) {
 		if (dest != null) { 
+		//#MIDP_EXCLUDE_BEGIN
 			reply_to = (reply_to == null ? new ArrayList(REPLYTO_EXPECTED_SIZE) : reply_to);
 			reply_to.add(dest);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			reply_to = (reply_to == null ? new Vector(REPLYTO_EXPECTED_SIZE) : reply_to);
+			reply_to.addElement(dest);
+			#MIDP_INCLUDE_END*/
 		}
   }
 
@@ -336,8 +362,13 @@ private int performative; // keeps the performative type of this object
      @return true if the AID has been found and removed, false otherwise
   */
   public boolean removeReplyTo(AID dest) {
-		if ((dest != null) && (reply_to != null) ) 
+		if ((dest != null) && (reply_to != null) )
+			//#MIDP_EXCLUDE_BEGIN
       return reply_to.remove(dest);
+		  //#MIDP_EXCLUDE_END
+ 		  /*#MIDP_INCLUDE_BEGIN
+      return reply_to.removeElement(dest);
+			#MIDP_INCLUDE_END*/ 
     else
       return false;
   }
@@ -349,7 +380,12 @@ private int performative; // keeps the performative type of this object
   */
   public void clearAllReplyTo() {
     if (reply_to != null)
+		//#MIDP_EXCLUDE_BEGIN
 			reply_to.clear();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			reply_to.removeAllElements();
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -557,7 +593,12 @@ private int performative; // keeps the performative type of this object
      receiver agents for this message.
   */
   public Iterator getAllReceiver() {
+		//#MIDP_EXCLUDE_BEGIN
     return dests.iterator();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return new EnumIterator(dests.elements());
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -569,7 +610,12 @@ private int performative; // keeps the performative type of this object
 			if (reply_to == null)
 					return EmptyIterator.getInstance();
 			else
+					//#MIDP_EXCLUDE_BEGIN
 					return reply_to.iterator();
+					//#MIDP_EXCLUDE_END
+					/*#MIDP_INCLUDE_BEGIN
+					return new EnumIterator(reply_to.elements());
+						#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -581,17 +627,23 @@ private int performative; // keeps the performative type of this object
 			return source;
   }
 
+		private static final String UNSUPPORTED = "Unsupported";
   /**
     Returns the string corresponding to the integer for the performative
     @return the string corresponding to the integer for the performative; 
     "NOT-UNDERSTOOD" if the integer is out of range.
   */
   public static String getPerformative(int perf){
+			//#CUSTOM_EXCLUDE_BEGIN
     try {
       return performatives[perf];
     } catch (Exception e) {
       return performatives[NOT_UNDERSTOOD];
     }
+		//#CUSTOM_EXCLUDE_END
+		/*#CUSTOM_INCLUDE_BEGIN
+			throw new RuntimeException(UNSUPPORTED);
+			#CUSTOM_INCLUDE_END*/
   }
     
   /**
@@ -600,12 +652,19 @@ private int performative; // keeps the performative type of this object
   */
   public static int getInteger(String perf)
   {
+		//#CUSTOM_EXCLUDE_BEGIN
       String tmp = perf.toUpperCase();
       for (int i=0; i<performatives.length; i++)
 	  if (performatives[i].equals(tmp))
 	      return i;
       return -1;
+		//#CUSTOM_EXCLUDE_END
+		/*#CUSTOM_INCLUDE_BEGIN
+			throw new RuntimeException(UNSUPPORTED);
+			#CUSTOM_INCLUDE_END*/
     }
+
+
 
   /**
    * return the integer representing the performative of this object
@@ -839,7 +898,12 @@ private int performative; // keeps the performative type of this object
   public void setDefaultEnvelope() {
     messageEnvelope = new Envelope();
     messageEnvelope.setFrom(source);
+		//#MIDP_EXCLUDE_BEGIN
     Iterator it = dests.iterator();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    Iterator it = new EnumIterator(dests.elements());
+			#MIDP_INCLUDE_END*/
     while(it.hasNext())
       messageEnvelope.addTo((AID)it.next());
     //#MIDP_EXCLUDE_BEGIN
@@ -922,10 +986,14 @@ private int performative; // keeps the performative type of this object
 	  	result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
 	  //#CUSTOM_EXCLUDE_END
-    result.dests = (ArrayList) dests.clone();
-    if (reply_to != null)
-		result.reply_to = (ArrayList) reply_to.clone();
-
+    result.dests = new Vector(dests.size());
+		for (int i=0; i<dests.size(); i++)
+		   result.dests.addElement(dests.elementAt(i));
+    if (reply_to != null) {
+       result.reply_to = new Vector(reply_to.size());
+   		 for (int i=0; i<reply_to.size(); i++)
+		       result.reply_to.addElement(reply_to.elementAt(i));
+		}
     return result;
   } 
   #MIDP_INCLUDE_END*/
@@ -935,9 +1003,16 @@ private int performative; // keeps the performative type of this object
  */
  public void reset() {
   source = null;
+	//#MIDP_EXCLUDE_BEGIN
   dests.clear();
   if (reply_to != null)
 			reply_to.clear();
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+  dests.removeAllElements();
+  if (reply_to != null)
+			reply_to.removeAllElements();
+	 #MIDP_INCLUDE_END*/
   performative = NOT_UNDERSTOOD;
   content = null;
   byteSequenceContent = null;

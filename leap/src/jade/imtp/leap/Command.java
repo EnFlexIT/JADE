@@ -35,12 +35,10 @@
 package jade.imtp.leap;
 
 import jade.core.*;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
 import java.io.IOException;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Vector;
 
 /**
  * The <code>Command</code> object is used to represent a platform command.
@@ -143,7 +141,7 @@ public class Command {
   /**
    * This list represents the argument list of this platform command.
    */
-  private List            commandParameters;
+  private Vector            commandParameters;
 
   /**
    */
@@ -167,7 +165,7 @@ public class Command {
 		commandCode = code;
 		objectID = DUMMY_ID;
 		if (commandParameters != null) {
-			commandParameters.clear();
+			commandParameters.removeAllElements();
 		}
 	}
   
@@ -203,9 +201,9 @@ public class Command {
    */
   void addParam(Object param) {
   	if (commandParameters == null) {
-  		commandParameters = new ArrayList();
+  		commandParameters = new Vector();
   	}
-    commandParameters.add(param);
+    commandParameters.addElement(param);
   } 
 
   /**
@@ -230,7 +228,7 @@ public class Command {
   		throw new IndexOutOfBoundsException(String.valueOf(index));
   	}
   	else {
-	    return commandParameters.get(index);
+	    return commandParameters.elementAt(index);
   	}
   } 
 

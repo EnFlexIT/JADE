@@ -20,9 +20,8 @@
  */
 package jade.core;
 
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  * This class represent a specifier and collects
@@ -101,8 +100,8 @@ public class Specifier {
 
   /**
    */
-  public static List parseSpecifierList(String specsLine) throws Exception {
-    ArrayList specs = new ArrayList();
+  public static Vector parseSpecifierList(String specsLine) throws Exception {
+    Vector specs = new Vector();
     
     if (specsLine != null && !specsLine.equals("")) {
 	    // Copy the string with the specifiers into an array of char
@@ -129,7 +128,7 @@ public class Specifier {
           	Specifier s = parseSpecifier(tmp, ',');
 
           	// Add the Specifier to the list
-          	specs.add(s);
+          	specs.addElement(s);
         	} 
 
         	// Create the StringBuffer to hold the next specifier
@@ -146,7 +145,7 @@ public class Specifier {
       	Specifier s = parseSpecifier(tmp, ',');
 
       	// Add the Specifier to the list
-      	specs.add(s);
+      	specs.addElement(s);
     	} 
     }
   	return specs;
@@ -215,14 +214,14 @@ public class Specifier {
   /**
    */
   private static String[] parseArguments(String args, char argsDelimiter) {
-    List argList = new ArrayList();
+    Vector argList = new Vector();
     int  argStart = 0;
     int  argEnd = args.indexOf(argsDelimiter);
 
     while (argEnd >= 0) {
       String arg = args.substring(argStart, argEnd);
 
-      argList.add(arg.trim());
+      argList.addElement(arg.trim());
 
       argStart = argEnd+1;
       argEnd = args.indexOf(argsDelimiter, argStart);
@@ -231,13 +230,13 @@ public class Specifier {
     // Last argument
     String arg = args.substring(argStart, args.length());
 
-    argList.add(arg.trim());
+    argList.addElement(arg.trim());
 
     // Convert the List into an Array
     String arguments[] = new String[argList.size()];
     int    i = 0;
 
-    for (Iterator it = argList.iterator(); it.hasNext(); arguments[i++] = (String) it.next());
+    for (Enumeration e = argList.elements(); e.hasMoreElements(); arguments[i++] = (String) e.nextElement());
 
     return arguments;
   } 

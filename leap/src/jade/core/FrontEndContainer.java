@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
-import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.Logger;
@@ -104,13 +103,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
 		}
 		catch (IMTPException imtpe) {
-		  Logger.println("IMTP error. "+imtpe);
+		  Logger.println("IMTP error "+imtpe);
 			imtpe.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
 		}
 		catch (Exception e) {
-		  Logger.println("Unexpected error. "+e);
+		  Logger.println("Unexpected error "+e);
 			e.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
@@ -120,15 +119,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		String agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
 		try {
 			// Create all agents without starting them
-			List specs = Specifier.parseSpecifierList(agents);
-			Iterator it = specs.iterator();
-			while (it.hasNext()) {
-				Specifier s = (Specifier) it.next();
+			Vector specs = Specifier.parseSpecifierList(agents);
+			for (Enumeration en=specs.elements(); en.hasMoreElements(); ) {
+				Specifier s = (Specifier) en.nextElement();
 				try {
 					initAgent(s.getName(), s.getClassName(), s.getArgs());
 				}
 				catch (Exception e) {
-		  		Logger.println("Exception creating new agent. "+e);
+		  		Logger.println("Exception creating new agent "+e);
 				}
 			}
 			
@@ -144,7 +142,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		catch (Exception e1) {
-		  Logger.println("Exception parsing agent specifiers. "+e1);
+		  Logger.println("Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
 	}

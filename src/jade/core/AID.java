@@ -34,7 +34,10 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
+import jade.util.leap.EnumIterator;
+
 import java.util.Enumeration;
+import java.util.Vector;
 
 /**
  This class represents a JADE Agent Identifier. JADE internal agent
@@ -53,21 +56,21 @@ public class AID implements Comparable, Serializable {
     //#CUSTOM_EXCLUDE_BEGIN
     private static final int EXPECTED_RESOLVERS_SIZE = 0;
     //#CUSTOM_EXCLUDE_END
-  /**
-  @serial
-  */
+
+	//#MIDP_EXCLUDE_BEGIN
   private List addresses = new ArrayList(EXPECTED_ADDRESSES_SIZE);
-  //#CUSTOM_EXCLUDE_BEGIN
-  /**
-  @serial
-  */
   private List resolvers = new ArrayList(EXPECTED_RESOLVERS_SIZE);
-  
-  /**
-  @serial
-  */
+  private Properties userDefSlots = new Properties();
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+  private Vector addresses = new Vector(EXPECTED_ADDRESSES_SIZE);
+	//#CUSTOM_EXCLUDE_BEGIN
+  private Vector resolvers = new Vector(EXPECTED_RESOLVERS_SIZE);
   private Properties userDefSlots = new Properties();
   //#CUSTOM_EXCLUDE_END
+		#MIDP_INCLUDE_END*/
+
+ 
 
   /**
    * Constructs an Agent-Identifier whose slot name is set to an empty string
@@ -166,7 +169,12 @@ public class AID implements Comparable, Serializable {
   */
   public void addAddresses(String url) {
   	if (!addresses.contains(url)) {
+		//#MIDP_EXCLUDE_BEGIN
 	    addresses.add(url);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+	    addresses.addElement(url);
+			#MIDP_INCLUDE_END*/
   	}
   }
 
@@ -176,14 +184,24 @@ public class AID implements Comparable, Serializable {
   * @return true if the addres has been found and removed, false otherwise.
   */
   public boolean removeAddresses(String url) {
+		//#MIDP_EXCLUDE_BEGIN
     return addresses.remove(url);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return addresses.removeElement(url);
+			#MIDP_INCLUDE_END*/
   }
   
   /**
   * To remove all addresses of the agent
   */
   public void clearAllAddresses(){
+			//#MIDP_EXCLUDE_BEGIN
     addresses.clear();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    addresses.removeAllElements();
+		#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -191,7 +209,12 @@ public class AID implements Comparable, Serializable {
   * @see jade.util.leap.Iterator
   */
   public Iterator getAllAddresses(){
+		//#MIDP_EXCLUDE_BEGIN
     return addresses.iterator();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return new EnumIterator(addresses.elements());
+			#MIDP_INCLUDE_END*/
   }
 
   //#CUSTOM_EXCLUDE_BEGIN
@@ -200,7 +223,12 @@ public class AID implements Comparable, Serializable {
   * resolution services for the agent can be contacted) 
   */
   public void addResolvers(AID aid){
+		//#MIDP_EXCLUDE_BEGIN
     resolvers.add(aid);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    resolvers.addElement(aid);
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -209,14 +237,24 @@ public class AID implements Comparable, Serializable {
   * @return true if the resolver has been found and removed, false otherwise.
   */
   public boolean removeResolvers(AID aid){
+		//#MIDP_EXCLUDE_BEGIN
     return resolvers.remove(aid);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return resolvers.removeElement(aid);
+			#MIDP_INCLUDE_END*/
   }
 
   /**
   * To remove all resolvers.
   */
   public void clearAllResolvers(){
+		//#MIDP_EXCLUDE_BEGIN
     resolvers.clear();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    resolvers.removeAllElements();
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -224,7 +262,12 @@ public class AID implements Comparable, Serializable {
   * @see jade.util.leap.Iterator
   */
   public Iterator getAllResolvers() {
+		//#MIDP_EXCLUDE_BEGIN
     return resolvers.iterator();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return new EnumIterator(resolvers.elements());
+			#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -249,9 +292,15 @@ public class AID implements Comparable, Serializable {
   * Returns an array of string containing all the addresses of the agent
   */
   public String[] getAddressesArray() {
-    Object[] objs = addresses.toArray();
-    String[] result = new String[objs.length];
-    System.arraycopy(objs, 0, result, 0, objs.length);
+		//#MIDP_EXCLUDE_BEGIN
+			Object[] objs = addresses.toArray();
+			String[] result = new String[objs.length];
+			System.arraycopy(objs, 0, result, 0, objs.length); 
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			String[] result = new String[addresses.size()];
+			addresses.copyInto(result);
+			#MIDP_INCLUDE_END*/
     return result;
   }
 
@@ -259,9 +308,15 @@ public class AID implements Comparable, Serializable {
   * Returns an array containing all the AIDs of the resolvers.
   */
   public AID[] getResolversArray() {
-    Object[] objs = resolvers.toArray();
-    AID[] result = new AID[objs.length];
-    System.arraycopy(objs, 0, result, 0, objs.length);
+		//#MIDP_EXCLUDE_BEGIN
+			Object[] objs = resolvers.toArray();
+			AID[] result = new AID[objs.length];
+			System.arraycopy(objs, 0, result, 0, objs.length); 
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			AID[] result = new AID[resolvers.size()];
+			resolvers.copyInto(result);
+			#MIDP_INCLUDE_END*/
     return result;
   }
 
@@ -291,7 +346,12 @@ public class AID implements Comparable, Serializable {
 	    s.append(" :addresses (sequence ");
 	for (int i=0; i<addresses.size(); i++)
 	    try {
+					//#MIDP_EXCLUDE_BEGIN
 				s.append((String)addresses.get(i));
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+				s.append((String)addresses.elementAt(i));
+					#MIDP_INCLUDE_END*/
 				s.append(" ");
 	    } 
 	    catch (IndexOutOfBoundsException e) {e.printStackTrace();}
@@ -301,7 +361,12 @@ public class AID implements Comparable, Serializable {
 	    s.append(" :resolvers (sequence ");
 	for (int i=0; i<resolvers.size(); i++) { 
 	    try {
+					//#MIDP_EXCLUDE_BEGIN
 				s.append(resolvers.get(i).toString());
+					//#MIDP_EXCLUDE_END
+					/*#MIDP_INCLUDE_BEGIN
+				s.append(resolvers.elementAt(i).toString());
+						#MIDP_INCLUDE_END*/
 	    } 
 	    catch (IndexOutOfBoundsException e) {e.printStackTrace();}
 	    s.append(" ");
@@ -328,9 +393,23 @@ public class AID implements Comparable, Serializable {
     public synchronized Object clone() {
         AID      result = new AID(this.name, ISGUID);
 
+				//#MIDP_EXCLUDE_BEGIN
         result.addresses = (ArrayList)((ArrayList)addresses).clone();
-				//#CUSTOM_EXCLUDE_BEGIN
         result.resolvers = (ArrayList)((ArrayList)resolvers).clone();
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+        result.addresses = new Vector(addresses.size());
+				for (int i=0; i<addresses.size(); i++)
+				   result.addresses.addElement(addresses.elementAt(i));
+				//#CUSTOM_EXCLUDE_BEGIN
+        result.resolvers = new Vector(resolvers.size());
+				for (int i=0; i<resolvers.size(); i++)
+				   result.resolvers.addElement(resolvers.elementAt(i));
+				//#CUSTOM_EXCLUDE_END
+					#MIDP_INCLUDE_END*/
+
+
+				//#CUSTOM_EXCLUDE_BEGIN
 
         // Copying user defined slots
         //Enumeration enum = userDefSlots.propertyNames();

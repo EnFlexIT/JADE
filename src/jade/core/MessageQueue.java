@@ -25,6 +25,9 @@ package jade.core;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.LinkedList;
+import jade.util.leap.EnumIterator;
+
+import java.util.Vector;
 
 import jade.lang.acl.ACLMessage;
 
@@ -34,29 +37,24 @@ import jade.lang.acl.ACLMessage;
 */
 class MessageQueue {
 
-  // This class is sent onto the stream in place of the MessageQueue;
-  // when read and resolved, it yields a new MessageQueue with the
-  // same maximum size as the original one.
-  /*private static class Memento implements Serializable {
-    private int size;
-
-    public Memento(int sz) {
-      size = sz;
-    }
-
-    private Object readResolve() throws java.io.ObjectStreamException {
-      return new MessageQueue(size);
-    }
-
-  }
-  */
-
+	//#MIDP_EXCLUDE_BEGIN
+	// In MIDP we use Vector instead of jade.util.leap.LinkedList as the latter has been implemented in terms of the first
   private LinkedList list;
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+  private Vector list;
+	#MIDP_INCLUDE_END*/
+ 
   private int maxSize;
 
   public MessageQueue(int size) {
     maxSize = size;
+		//#MIDP_EXCLUDE_BEGIN
     list = new LinkedList();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    list = new Vector();
+			#MIDP_INCLUDE_END*/
   }
 
   public boolean isEmpty() {
@@ -65,7 +63,7 @@ class MessageQueue {
 
   public void setMaxSize(int newSize) throws IllegalArgumentException {
     if(newSize < 0)
-      throw new IllegalArgumentException("Negative message queue size is not allowed.");
+      throw new IllegalArgumentException("Invalid MsgQueue size");
     maxSize = newSize;
   }
 
@@ -82,35 +80,62 @@ class MessageQueue {
     }
 
   public void addFirst(ACLMessage msg) {
-    if((maxSize != 0) && (list.size() >= maxSize))
-      list.removeFirst(); // FIFO replacement policy
-    list.addFirst(msg);
+			if((maxSize != 0) && (list.size() >= maxSize)) {
+		//#MIDP_EXCLUDE_BEGIN
+					list.removeFirst(); // FIFO replacement policy
+			}
+			list.addFirst(msg);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			    list.setElementAt(msg,0);
+      } else
+          list.insertElementAt(msg,0);
+			#MIDP_INCLUDE_END*/
   }
 
   public void addLast(ACLMessage msg) {
     if((maxSize != 0) && (list.size() >= maxSize)){
-      list.removeFirst(); // FIFO replacement policy
-      System.err.println("WARNING: a message has been lost by an agent because of the FIFO replacement policy of its message queue.\n Notice that, under some circumstances, this might not be the proper expected behaviour and the size of the queue needs to be increased. Check the method Agent.setQueueSize()");
-      }
+		//#MIDP_EXCLUDE_BEGIN
+				list.removeFirst(); // FIFO replacement policy
+				System.err.println("WARNING: a message has been lost by an agent because of the FIFO replacement policy of its message queue.\n Notice that, under some circumstances, this might not be the proper expected behaviour and the size of the queue needs to be increased. Check the method Agent.setQueueSize()");
+		}
     list.addLast(msg);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+			   list.removeElementAt(0);
+    } 
+    list.addElement(msg);
+		#MIDP_INCLUDE_END*/
   }
 
   public ACLMessage removeFirst() {
+		//#MIDP_EXCLUDE_BEGIN
     return (ACLMessage)list.removeFirst();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    ACLMessage msg = (ACLMessage)list.firstElement();
+    list.removeElementAt(0);
+    return msg;
+		#MIDP_INCLUDE_END*/
   }
 
   public boolean remove(ACLMessage item) {
+		//#MIDP_EXCLUDE_BEGIN
     return list.remove(item);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return list.removeElement(item);
+			#MIDP_INCLUDE_END*/
   }
 
   public Iterator iterator() {
+		//#MIDP_EXCLUDE_BEGIN
     return list.iterator();
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    return new EnumIterator(list.elements());
+			#MIDP_INCLUDE_END*/
   }
 
-  // This class is serialized by sending only its current size
-  /*private Object writeReplace() throws java.io.ObjectStreamException {
-    return new Memento(maxSize);
-  }
-	*/
 	
 }

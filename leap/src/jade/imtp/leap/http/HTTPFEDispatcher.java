@@ -37,8 +37,8 @@ import jade.imtp.leap.ConnectionListener;
 import jade.imtp.leap.JICP.*;
 
 import jade.util.leap.Properties;
-import jade.util.leap.ArrayList;
 
+import java.util.Vector;
 import java.io.*;
 
 
@@ -575,7 +575,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
 
   private String[] parseBackEndAddresses(String addressesText) {
-    ArrayList addrs = new ArrayList();
+    Vector addrs = new Vector();
 
     if(addressesText != null && !addressesText.equals("")) {
 	// Copy the string with the specifiers into an array of char
@@ -600,7 +600,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
         	if (tmp.length() > 0) {
 		    // Add the Address to the list
-		    addrs.add(tmp);
+		    addrs.addElement(tmp);
         	}
 
         	// Create the StringBuffer to hold the next specifier
@@ -615,14 +615,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
     	if(tmp.length() > 0) {
 	    // Add the Address to the list
-	    addrs.add(tmp);
+	    addrs.addElement(tmp);
     	}
     }
 
     // Convert the list into an array of strings
     String[] result = new String[addrs.size()];
     for(int i = 0; i < result.length; i++) {
-	result[i] = (String)addrs.get(i);
+	result[i] = (String)addrs.elementAt(i);
     }
 
     return result;
