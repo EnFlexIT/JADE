@@ -172,7 +172,7 @@ public class BrowserLauncher {
 	 */
 	private static String errorMessage;
 
-	public static String jadeURL ="http://sharon.cselt.it/projects/jade";
+	public static String jadeURL ="http://jade.cselt.it/";
 	/**
 	 * An initialization block that determines the operating system and loads the necessary
 	 * runtime data.

@@ -198,7 +198,7 @@ public class AboutJadeAction extends AbstractAction
 	  gridbag.setConstraints(label,c);
 		theCont.add(label);
 					
-	  label = new JLabel("http://sharon.cselt.it/projects/jade");
+	  label = new JLabel("http://jade.cselt.it/");
 	  label.setForeground(dark_blue);
 	  c.gridx = 0;
 		c.gridy = 9;

@@ -164,7 +164,7 @@ public class Boot {
     dollarPos = CVSdate.lastIndexOf('$');
     String date = CVSdate.substring(colonPos + 1, dollarPos);
     date = date.trim();
-    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://sharon.cselt.it/projects/jade\n");
+    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
    }
 
   /**
