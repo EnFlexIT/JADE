@@ -106,6 +106,8 @@ class BackEndManager {
   }
   
   public void shutDown() {
+  	theInstance = null;
+  	
     try {
     	// Deregister services locally
 			myServiceManager.removeNode(myNodeDescriptor);
