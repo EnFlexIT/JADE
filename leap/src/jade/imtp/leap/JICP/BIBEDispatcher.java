@@ -227,6 +227,9 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
    		outHolder.setConnection(c);
    	}
 
+  	// Update keep-alive info
+  	lastReceivedTime = System.currentTimeMillis();
+  	
     // On reconnections, a back end container becomes the master node
     if((pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) && (!myContainer.isMaster())) {
     	myContainer.becomeMaster();
@@ -477,7 +480,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private JICPPacket readPacket(Connection c) throws IOException {
   	JICPPacket pkt = c.readPacket();
   	// Update keep-alive info
-  	lastReceivedTime =System.currentTimeMillis();
+  	lastReceivedTime = System.currentTimeMillis();
   	return pkt;
   }
   	
