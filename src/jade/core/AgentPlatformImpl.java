@@ -38,6 +38,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void deadAgent(String name) throws RemoteException {
     System.out.println("Dead agent " + name);
     platformAgents.remove(name);
+    // FIXME: Must update all container caches
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
