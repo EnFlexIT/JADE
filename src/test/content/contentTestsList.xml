@@ -176,4 +176,10 @@
 			<HowWorkTest> It including a predicate where slots values have been set in a mixed order.</HowWorkTest>
 			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
 		</Test>		
+		<Test name="Multiple Inheritance" skip="false">
+			<TestClassName>test.content.tests.TestMultipleInheritance</TestClassName>
+			<WhatTest> Tests a content refering to an ontology including multiple inheritance among concepts.</WhatTest>
+			<HowWorkTest> </HowWorkTest>
+			<WhenTestPass> The test passes if all the expected values are found and no exception is fired.</WhenTestPass>
+		</Test>		
 	</TestsList>

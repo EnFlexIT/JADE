@@ -111,7 +111,7 @@ public class TestOntology extends Ontology {
     	
     	cs = (ConceptSchema) getSchema(LOCATION);
     	cs.add(LOCATION_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING));
-    	cs.add(LOCATION_POSITION, (ConceptSchema) getSchema(POSITION));
+    	cs.add(LOCATION_POSITION, (ConceptSchema) getSchema(POSITION));    
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();
