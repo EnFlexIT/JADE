@@ -11,7 +11,10 @@ TARGETS = ex1/Agent1.java ex1/Agent2.java ex1/Agent3.java ex1/Agent4.java \
 	  ex4/AgentRequester.java ex4/AgentResponder.java \
 	  ex5/amsTester.java ex5/dfTester.java ex5/SubDF.java ex5/MobileAgent.java \
 	  ex6/AgQueryInit.java ex6/AgQueryResp.java \
-	  ex7/ObjectReaderAgent.java ex7/ObjectWriterAgent.java ex7/OntologyTest.java
+	  ex7/ObjectReaderAgent.java ex7/ObjectWriterAgent.java ex7/OntologyTest.java \
+	  ex8/WakerExampleAgent.java \
+          jess/JessAgent.java \
+          ex_mobile/MobileAgent.java
 
 all: 
 	@echo Making test examples
