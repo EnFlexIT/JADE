@@ -24,9 +24,10 @@ Agent@= listeners@protected Vector listeners =
 Agent@- mainLoop@private void mainLoop() {
 Agent@= msgQueue@protected Vector msgQueue =
 Agent@= myName@protected String myName =
-Agent@= myParser@private ACLParser myParser =
+Agent@= myParser@protected ACLParser myParser =
 Agent@= myScheduler@protected Scheduler myScheduler;
 Agent@= myThread@protected Thread myThread;
+Agent@- parse@public ACLMessage parse(Reader text) {
 Agent@- postMessage@public final synchronized void postMessage (ACLMessage msg) {
 Agent@- receive@public final ACLMessage receive() {
 Agent@- removeBehaviour@public void removeBehaviour(Behaviour b) {
@@ -363,3 +364,219 @@ Scheduler@= idleBehaviour@private static Behaviour idleBehaviour =
 Scheduler@= owner@private Agent owner;
 Scheduler@- remove@public void remove(Behaviour b) {
 Scheduler@- schedule@public synchronized Behaviour schedule() {
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ACLParser.java
+ACLParser@+ ACLParser@public ACLParser(ACLParserTokenManager tm) {
+ACLParser@+ ACLParser@public ACLParser(java.io.Reader stream) {
+ACLParser@+ ACLParser@public ACLParser(java.io.InputStream stream) {
+ACLParser@- AgentName@final public String AgentName() throws ParseException {
+ACLParser@- ByteLengthEncodedString@final public String ByteLengthEncodedString() throws ParseException {
+ACLParser@- DateTimeToken@final public String DateTimeToken() throws ParseException {
+ACLParser@- Digit@final public String Digit() throws ParseException {
+ACLParser@- Expression@final public String Expression() throws ParseException {
+ACLParser@- Float@final public String Float() throws ParseException {
+ACLParser@- Integer@final public String Integer() throws ParseException {
+ACLParser@- KeyValuePair@final public String KeyValuePair() throws ParseException {
+ACLParser@- KeyValuePairList@final public String KeyValuePairList() throws ParseException {
+ACLParser@- Message@final public ACLMessage Message() throws ParseException {
+ACLParser@- MessageParameter@final public void MessageParameter() throws ParseException {
+ACLParser@- MessageType@final public void MessageType() throws ParseException {
+ACLParser@- Number@final public String Number() throws ParseException {
+ACLParser@- ReInit@public void ReInit(ACLParserTokenManager tm) {
+ACLParser@- ReInit@public void ReInit(java.io.Reader stream) {
+ACLParser@- ReInit@public void ReInit(java.io.InputStream stream) {
+ACLParser@- RecipientExpr@final public String RecipientExpr() throws ParseException {
+ACLParser@- StringLiteral@final public String StringLiteral() throws ParseException {
+ACLParser@- Stringa@final public String Stringa() throws ParseException {
+ACLParser@- Word@final public String Word() throws ParseException {
+ACLParser@- create@public static ACLParser create() {
+ACLParser@- disable_tracing@final public void disable_tracing() {
+ACLParser@- enable_tracing@final public void enable_tracing() {
+ACLParser@- generateParseException@final public ParseException generateParseException() {
+ACLParser@- getNextToken@final public Token getNextToken() {
+ACLParser@- getToken@final public Token getToken(int index) {
+ACLParser@- jj_consume_token@final private Token jj_consume_token(int kind) throws ParseException {
+ACLParser@= jj_expentries@private java.util.Vector jj_expentries =
+ACLParser@= jj_expentry@private int[] jj_expentry;
+ACLParser@= jj_gen@private int jj_gen;
+ACLParser@= jj_input_stream@ASCII_CharStream jj_input_stream;
+ACLParser@= jj_kind@private int jj_kind =
+ACLParser@= jj_la1@final private int[] jj_la1 =
+ACLParser@= jj_la1_0@final private int[] jj_la1_0 =
+ACLParser@= jj_la1_1@final private int[] jj_la1_1 =
+ACLParser@- jj_ntk@final private int jj_ntk() {
+ACLParser@= jj_ntk@private int jj_ntk;
+ACLParser@- main@public static void main(String args[]) {
+ACLParser@= msg@ACLMessage msg =
+ACLParser@- parse@public ACLMessage parse(Reader text) throws ParseException {
+ACLParser@= token_source@public ACLParserTokenManager token_source;
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ACLParserConstants.java
+ACLParserConstants@= CONTENT@int CONTENT =
+ACLParserConstants@= CONTENTSTATE@int CONTENTSTATE =
+ACLParserConstants@= CONVERSATION_ID@int CONVERSATION_ID =
+ACLParserConstants@= DATETIME@int DATETIME =
+ACLParserConstants@= DEFAULT@int DEFAULT =
+ACLParserConstants@= DIGIT@int DIGIT =
+ACLParserConstants@= END@int END =
+ACLParserConstants@= ENVELOPE@int ENVELOPE =
+ACLParserConstants@= EOF@int EOF =
+ACLParserConstants@= FLOATONE@int FLOATONE =
+ACLParserConstants@= FLOATTWO@int FLOATTWO =
+ACLParserConstants@= INTEGER@int INTEGER =
+ACLParserConstants@= IN_REPLY_TO@int IN_REPLY_TO =
+ACLParserConstants@= LANGUAGE@int LANGUAGE =
+ACLParserConstants@= LBRACE@int LBRACE =
+ACLParserConstants@= MESSAGEPARAMETERSTATE@int MESSAGEPARAMETERSTATE =
+ACLParserConstants@= MESSAGETYPE@int MESSAGETYPE =
+ACLParserConstants@= MESSAGETYPESTATE@int MESSAGETYPESTATE =
+ACLParserConstants@= ONTOLOGY@int ONTOLOGY =
+ACLParserConstants@= PREFIXBYTELENGTHENCODEDSTRING@int PREFIXBYTELENGTHENCODEDSTRING =
+ACLParserConstants@= PROTOCOL@int PROTOCOL =
+ACLParserConstants@= RBRACE@int RBRACE =
+ACLParserConstants@= RECEIVER@int RECEIVER =
+ACLParserConstants@= REPLY_BY@int REPLY_BY =
+ACLParserConstants@= REPLY_WITH@int REPLY_WITH =
+ACLParserConstants@= SENDER@int SENDER =
+ACLParserConstants@= START@int START =
+ACLParserConstants@= STRINGLITERAL@int STRINGLITERAL =
+ACLParserConstants@= WORD@int WORD =
+ACLParserConstants@= tokenImage@String[] tokenImage =
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ACLParserTokenManager.java
+ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream, int lexState) {
+ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream) {
+ACLParserTokenManager@- ReInit@public void ReInit(ASCII_CharStream stream, int lexState) {
+ACLParserTokenManager@- ReInit@public void ReInit(ASCII_CharStream stream) {
+ACLParserTokenManager@- ReInitRounds@private final void ReInitRounds() {
+ACLParserTokenManager@- SwitchTo@public void SwitchTo(int lexState) {
+ACLParserTokenManager@- TokenLexicalActions@final void TokenLexicalActions(Token matchedToken) {
+ACLParserTokenManager@= curChar@protected char curChar;
+ACLParserTokenManager@= curLexState@int curLexState =
+ACLParserTokenManager@= defaultLexState@int defaultLexState =
+ACLParserTokenManager@- getNextToken@public final Token getNextToken() {
+ACLParserTokenManager@= image@StringBuffer image;
+ACLParserTokenManager@= input_stream@private ASCII_CharStream input_stream;
+ACLParserTokenManager@- jjAddStates@private final void jjAddStates(int start, int end) {
+ACLParserTokenManager@- jjCheckNAdd@private final void jjCheckNAdd(int state) {
+ACLParserTokenManager@- jjCheckNAddStates@private final void jjCheckNAddStates(int start) {
+ACLParserTokenManager@- jjCheckNAddStates@private final void jjCheckNAddStates(int start, int end) {
+ACLParserTokenManager@- jjCheckNAddTwoStates@private final void jjCheckNAddTwoStates(int state1, int state2) {
+ACLParserTokenManager@- jjFillToken@private final Token jjFillToken() {
+ACLParserTokenManager@- jjMoveNfa_1@private final int jjMoveNfa_1(int startState, int curPos) {
+ACLParserTokenManager@- jjMoveNfa_3@private final int jjMoveNfa_3(int startState, int curPos) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa0_0@private final int jjMoveStringLiteralDfa0_0() {
+ACLParserTokenManager@- jjMoveStringLiteralDfa0_1@private final int jjMoveStringLiteralDfa0_1() {
+ACLParserTokenManager@- jjMoveStringLiteralDfa0_2@private final int jjMoveStringLiteralDfa0_2() {
+ACLParserTokenManager@- jjMoveStringLiteralDfa0_3@private final int jjMoveStringLiteralDfa0_3() {
+ACLParserTokenManager@- jjMoveStringLiteralDfa10_2@private final int jjMoveStringLiteralDfa10_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa11_2@private final int jjMoveStringLiteralDfa11_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa12_2@private final int jjMoveStringLiteralDfa12_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa13_2@private final int jjMoveStringLiteralDfa13_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa14_2@private final int jjMoveStringLiteralDfa14_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa15_2@private final int jjMoveStringLiteralDfa15_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa1_2@private final int jjMoveStringLiteralDfa1_2(long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa2_2@private final int jjMoveStringLiteralDfa2_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa3_2@private final int jjMoveStringLiteralDfa3_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa4_2@private final int jjMoveStringLiteralDfa4_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa5_2@private final int jjMoveStringLiteralDfa5_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa6_2@private final int jjMoveStringLiteralDfa6_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa7_2@private final int jjMoveStringLiteralDfa7_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa8_2@private final int jjMoveStringLiteralDfa8_2(long old0, long active0) {
+ACLParserTokenManager@- jjMoveStringLiteralDfa9_2@private final int jjMoveStringLiteralDfa9_2(long old0, long active0) {
+ACLParserTokenManager@- jjStartNfaWithStates_1@private final int jjStartNfaWithStates_1(int pos, int kind, int state) {
+ACLParserTokenManager@- jjStartNfaWithStates_3@private final int jjStartNfaWithStates_3(int pos, int kind, int state) {
+ACLParserTokenManager@- jjStartNfa_1@private final int jjStartNfa_1(int pos, long active0) {
+ACLParserTokenManager@- jjStartNfa_3@private final int jjStartNfa_3(int pos, long active0) {
+ACLParserTokenManager@- jjStopAtPos@private final int jjStopAtPos(int pos, int kind) {
+ACLParserTokenManager@- jjStopStringLiteralDfa_1@private final int jjStopStringLiteralDfa_1(int pos, long active0) {
+ACLParserTokenManager@- jjStopStringLiteralDfa_3@private final int jjStopStringLiteralDfa_3(int pos, long active0) {
+ACLParserTokenManager@= jjbitVec0@static final long[] jjbitVec0 =
+ACLParserTokenManager@= jjimageLen@int jjimageLen;
+ACLParserTokenManager@= jjmatchedKind@int jjmatchedKind;
+ACLParserTokenManager@= jjmatchedPos@int jjmatchedPos;
+ACLParserTokenManager@= jjnewLexState@public static final int[] jjnewLexState =
+ACLParserTokenManager@= jjnewStateCnt@int jjnewStateCnt;
+ACLParserTokenManager@= jjnextStates@static final int[] jjnextStates =
+ACLParserTokenManager@= jjround@int jjround;
+ACLParserTokenManager@= jjrounds@private final int[] jjrounds =
+ACLParserTokenManager@= jjstateSet@private final int[] jjstateSet =
+ACLParserTokenManager@= jjstrLiteralImages@public static final String[] jjstrLiteralImages =
+ACLParserTokenManager@= jjtoSkip@static final long[] jjtoSkip =
+ACLParserTokenManager@= jjtoToken@static final long[] jjtoToken =
+ACLParserTokenManager@= lengthOfMatch@int lengthOfMatch;
+ACLParserTokenManager@= lexStateNames@public static final String[] lexStateNames =
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ASCII_CharStream.java
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn) {
+ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@- BeginToken@public final char BeginToken() throws java.io.IOException {
+ASCII_CharStream@- Done@public void Done() {
+ASCII_CharStream@- ExpandBuff@private final void ExpandBuff(boolean wrapAround) {
+ASCII_CharStream@- FillBuff@private final void FillBuff() throws java.io.IOException {
+ASCII_CharStream@- GetImage@public final String GetImage() {
+ASCII_CharStream@- GetSuffix@public final char[] GetSuffix(int len) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.InputStream dstream, int startline, int startcolumn) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.Reader dstream, int startline, int startcolumn) {
+ASCII_CharStream@- ReInit@public void ReInit(java.io.Reader dstream, int startline, int startcolumn, int buffersize) {
+ASCII_CharStream@- UpdateLineColumn@private final void UpdateLineColumn(char c) {
+ASCII_CharStream@- adjustBeginLineColumn@public void adjustBeginLineColumn(int newLine, int newCol) {
+ASCII_CharStream@= available@int available;
+ASCII_CharStream@- backup@public final void backup(int amount) {
+ASCII_CharStream@= bufcolumn@private int bufcolumn[];
+ASCII_CharStream@= buffer@private char[] buffer;
+ASCII_CharStream@= bufline@private int bufline[];
+ASCII_CharStream@= bufpos@public int bufpos =
+ASCII_CharStream@= bufsize@int bufsize;
+ASCII_CharStream@= column@private int column =
+ASCII_CharStream@- getBeginColumn@public final int getBeginColumn() {
+ASCII_CharStream@- getBeginLine@public final int getBeginLine() {
+ASCII_CharStream@- getColumn@public final int getColumn() {
+ASCII_CharStream@- getEndColumn@public final int getEndColumn() {
+ASCII_CharStream@- getEndLine@public final int getEndLine() {
+ASCII_CharStream@- getLine@public final int getLine() {
+ASCII_CharStream@= inBuf@private int inBuf =
+ASCII_CharStream@= inputStream@private java.io.Reader inputStream;
+ASCII_CharStream@= line@private int line =
+ASCII_CharStream@= maxNextCharInd@private int maxNextCharInd =
+ASCII_CharStream@= prevCharIsCR@private boolean prevCharIsCR =
+ASCII_CharStream@= prevCharIsLF@private boolean prevCharIsLF =
+ASCII_CharStream@- readChar@public final char readChar() throws java.io.IOException {
+ASCII_CharStream@= staticFlag@public static final boolean staticFlag =
+ASCII_CharStream@= tokenBegin@int tokenBegin;
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ParseException.java
+ParseException@+ ParseException@public ParseException(String message) {
+ParseException@+ ParseException@public ParseException() {
+ParseException@+ ParseException@public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal, String[] tokenImageVal ) {
+ParseException@- add_escapes@protected String add_escapes(String str) {
+ParseException@= currentToken@public Token currentToken;
+ParseException@= eol@protected String eol =
+ParseException@= expectedTokenSequences@public int[][] expectedTokenSequences;
+ParseException@- getMessage@public String getMessage() {
+ParseException@= specialConstructor@protected boolean specialConstructor;
+ParseException@= tokenImage@public String[] tokenImage;
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/Token.java
+Token@= image@public String image;
+Token@= kind@public int kind;
+Token@- newToken@public static final Token newToken(int ofKind) {
+Token@= next@public Token next;
+Token@= specialToken@public Token specialToken;
+Token@- toString@public final String toString() {
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/TokenMgrError.java
+TokenMgrError@= INVALID_LEXICAL_STATE@static final int INVALID_LEXICAL_STATE =
+TokenMgrError@= LEXICAL_ERROR@static final int LEXICAL_ERROR =
+TokenMgrError@= LOOP_DETECTED@static final int LOOP_DETECTED =
+TokenMgrError@- LexicalError@private static final String LexicalError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar) {
+TokenMgrError@= STATIC_LEXER_ERROR@static final int STATIC_LEXER_ERROR =
+TokenMgrError@+ TokenMgrError@public TokenMgrError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar, int reason) {
+TokenMgrError@+ TokenMgrError@public TokenMgrError(String message, int reason) {
+TokenMgrError@+ TokenMgrError@public TokenMgrError() {
+TokenMgrError@- addEscapes@protected static final String addEscapes(String str) {
+TokenMgrError@= errorCode@int errorCode;
+TokenMgrError@- getMessage@public String getMessage() {
