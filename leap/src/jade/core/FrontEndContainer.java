@@ -419,7 +419,19 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   //#MIDP_EXCLUDE_END
   
   public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
-	return null;
+		String helperClassName = configProperties.getProperty(serviceName);
+		if (helperClassName != null) {
+			try {
+	  		ServiceHelper sh = (ServiceHelper) Class.forName(helperClassName).newInstance();
+	  		return sh;
+			}
+			catch (Throwable t) {
+				throw new ServiceException("Error creating helper for service "+serviceName, t);
+			}
+		}
+		else {
+			throw new ServiceException("Missing helper class name for service "+serviceName);
+		}
   }
 
   
