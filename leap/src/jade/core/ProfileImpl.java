@@ -182,6 +182,12 @@ public class ProfileImpl extends Profile {
 	    props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
 	}
 
+	// Set a default for the service list, if not set
+	String services = props.getProperty(SERVICES);
+	if(services == null) {
+	    props.setProperty(SERVICES, DEFAULT_SERVICES);
+	}
+
 
   	//#MIDP_EXCLUDE_BEGIN
     // Set agents as a list to handle the "gui" option
