@@ -31,7 +31,7 @@ import jade.util.leap.List;
  * @author  Federico Bergenti
  * @version 1.0, 22/11/00
  */
-public class DummyMobilityManager implements MobilityManager {
+class DummyMobilityManager implements MobilityManager {
 
     private static String exceptionMsg = "Agent Mobility and Cloning not supported by this container.";    
     /**
