@@ -1,16 +1,12 @@
 # Makefile for JADE project - src directory
 
 # The following targets are not file names
-.PHONY: all clean idlclean
+.PHONY: all parsers classes stubs images realclean idlclean jjclean
 
-export MAKE = make
-export IDLCC = idltojava -fno-cpp
-export STUBGEN = rmic
-export PARSERGEN = javacc
-
-export JC = javac
-export JFLAGS = -deprecation
-
+MAKE = make
+IDLCC = idltojava -fno-cpp
+STUBGEN = rmic
+PARSERGEN = javacc
 
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
@@ -44,7 +40,30 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java
 
-STUBDIR     =	.
+ACLCLASSES = 	jade/lang/acl/ACLParser.java \
+		jade/lang/acl/ACLParserConstants.java \
+		jade/lang/acl/ACLParserTokenManager.java \
+		jade/lang/acl/ASCII_CharStream.java \
+		jade/lang/acl/ParseException.java \
+		jade/lang/acl/Token.java \
+		jade/lang/acl/TokenMgrError.java
+
+AGENTMANCLASSES = jade/domain/AgentManagementParser.java \
+		jade/domain/AgentManagementParserConstants.java \
+		jade/domain/AgentManagementParserTokenManager.java \
+		jade/domain/ASCII_CharStream.java \
+		jade/domain/ParseException.java \
+		jade/domain/Token.java \
+		jade/domain/TokenMgrError.java 
+
+SL0CLASSES =	jade/lang/sl/SL0Parser.java \
+		jade/lang/sl/SL0ParserConstants.java \
+		jade/lang/sl/SL0ParserTokenManager.java \
+		jade/lang/sl/ASCII_UCodeESC_CharStream.java \
+		jade/lang/sl/ParseException.java \
+		jade/lang/sl/Token.java \
+		jade/lang/sl/TokenMgrError.java
+
 IDLSTUBS    =   _FIPA_Agent_97Stub.java \
 		FIPA_Agent_97.java \
 		FIPA_Agent_97Holder.java \
@@ -55,7 +74,7 @@ STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.AgentPlatformImpl
 
 
-all: $(IDLSTUBS) parsers classes stubs
+all: $(IDLSTUBS) parsers classes stubs images
 	@echo
 	@echo Build complete.
 	@echo
@@ -66,13 +85,22 @@ _%Stub.java %.java %Holder.java %Helper.java _%ImplBase.java: %.idl
 parsers: ACLParser AgentManParser SL0Parser
 	@echo Parsers generated
 
-ACLParser:
+ACLParser: $(ACLCLASSES)
+	@echo ACL Parser generated.
+
+AgentManParser: $(AGENTMANCLASSES)
+	@echo Parser for fipa-agent-management ontology generated.
+
+SL0Parser: $(SL0CLASSES)
+	@echo SL0 Parser generated.
+
+$(ACLCLASSES): $(ACLSPEC)
 	$(PARSERGEN) $(ACLFLAGS) $(ACLSPEC)
 
-AgentManParser:
+$(AGENTMANCLASSES): $(AGENTMANSPEC)
 	$(PARSERGEN) $(AGENTMANFLAGS) $(AGENTMANSPEC)
 
-SL0Parser:
+$(SL0CLASSES): $(SL0SPEC)
 	$(PARSERGEN) $(SL0FLAGS) $(SL0SPEC)
 
 classes:
@@ -80,8 +108,15 @@ classes:
 	$(JC) $(JFLAGS) $(ROOTCLASSES)
 
 stubs:
-	@set CLASSPATH=$(SRCDIR); export CLASSPATH; \
-	$(STUBGEN) -d $(STUBDIR) $(STUBS)
+	$(STUBGEN) -d $(CLSDIR) $(STUBS)
+
+images:
+	mkdir -p $(CLSDIR)/jade/tools/DummyAgent
+	mkdir -p $(CLSDIR)/jade/tools/rma
+	mkdir -p $(CLSDIR)/jade/tools/sniffer
+	cp -R $(SRCDIR)/jade/tools/DummyAgent/images $(CLSDIR)/jade/tools/DummyAgent
+	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
+	cp -R $(SRCDIR)/jade/tools/sniffer/images $(CLSDIR)/jade/tools/sniffer
 
 idlclean:
 	rm -f _FIPA_Agent_97Stub.java
@@ -90,37 +125,8 @@ idlclean:
 	rm -f FIPA_Agent_97Helper.java
 	rm -f _FIPA_Agent_97ImplBase.java
 
-
-
-clean:
-	rm -f `find . -name '*~' -print`
-	rm -f `find . -name '#*#' -print`
-	rm -f `find . -name '*.class' -print`
-
-	rm -f jade/lang/acl/ACLParser.java
-	rm -f jade/lang/acl/ACLParserConstants.java
-	rm -f jade/lang/acl/ACLParserTokenManager.java
-	rm -f jade/lang/acl/ASCII_CharStream.java
-	rm -f jade/lang/acl/ParseException.java
-	rm -f jade/lang/acl/Token.java
-	rm -f jade/lang/acl/TokenMgrError.java
-
-	rm -f jade/lang/sl/SL0Parser.java
-	rm -f jade/lang/sl/SL0ParserConstants.java
-	rm -f jade/lang/sl/SL0ParserTokenManager.java
-	rm -f jade/lang/sl/ASCII_UCodeESC_CharStream.java
-	rm -f jade/lang/sl/ParseException.java
-	rm -f jade/lang/sl/Token.java
-	rm -f jade/lang/sl/TokenMgrError.java
-
-	rm -f jade/domain/AgentManagementParser.java
-	rm -f jade/domain/AgentManagementParserConstants.java
-	rm -f jade/domain/AgentManagementParserTokenManager.java
-	rm -f jade/domain/ASCII_CharStream.java
-	rm -f jade/domain/ParseException.java
-	rm -f jade/domain/Token.java
-	rm -f jade/domain/TokenMgrError.java
-
-
-
+jjclean:
+	rm -f $(ACLCLASSES)
+	rm -f $(AGENTMANCLASSES)
+	rm -f $(SL0CLASSES)
 
