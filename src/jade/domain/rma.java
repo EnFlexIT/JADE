@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.16  1999/03/30 08:33:44  rimassa
+  Added a new behaviour to correctly follow standard 'fipa-request'
+  protocol when dealing with the AMS agent.
+
   Revision 1.15  1999/03/10 06:58:13  rimassa
   Removed some debugging printouts.
 
@@ -76,6 +80,7 @@ import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.gui.*;
+import jade.proto.FipaRequestInitiatorBehaviour;
 
 /**************************************************************
 
@@ -97,6 +102,43 @@ public class rma extends Agent {
   private ACLMessage AMSCancellation = new ACLMessage("cancel");
   private ACLMessage requestMsg = new ACLMessage("request");
 
+  // Sends requests to the AMS
+  private class AMSClientBehaviour extends FipaRequestInitiatorBehaviour {
+
+    private String actionName;
+
+    public AMSClientBehaviour(String an, ACLMessage request) {
+      super(rma.this, request,
+	    MessageTemplate.and(MessageTemplate.MatchOntology("fipa-agent-management"),
+				MessageTemplate.MatchLanguage("SL0")
+				)
+	    );
+      actionName = an;
+    }
+
+    protected void handleNotUnderstood(ACLMessage reply) {
+      System.out.println("NOT-UNDERSTOOD received by RMA during " + actionName);
+    }
+
+    protected void handleRefuse(ACLMessage reply) {
+      System.out.println("REFUSE received by RMA during " + actionName);
+    }
+
+    protected void handleAgree(ACLMessage reply) {
+      // System.out.println("AGREE received");
+    }
+
+    protected void handleFailure(ACLMessage reply) {
+      System.out.println("FAILURE received by RMA during " + actionName);
+    }
+
+    protected void handleInform(ACLMessage reply) {
+      // System.out.println("INFORM received");
+    }
+
+  }
+
+  // Receives notifications by AMS
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
     private MessageTemplate listenTemplate;
@@ -261,9 +303,7 @@ public class rma extends Agent {
     caa.toText(createText);
     requestMsg.setContent(createText.toString());
 
-    send(requestMsg);
-
-    // FIXME: Should do a complete 'fipa-request' protocol
+    addBehaviour(new AMSClientBehaviour("CreateAgent", requestMsg));
 
   }
 
@@ -284,12 +324,12 @@ public class rma extends Agent {
     requestMsg.setContent(suspendText.toString());
     send(requestMsg);
 
-    // FIXME: Should do a complete 'fipa-request' protocol
+    addBehaviour(new AMSClientBehaviour("SuspendAgent", requestMsg));
 
   }
 
   public void suspendContainer(String name) {
-
+    // FIXME: Not implemented
   }
 
   public void resumeAgent(String name) {
@@ -309,8 +349,7 @@ public class rma extends Agent {
     requestMsg.setContent(resumeText.toString());
     send(requestMsg);
 
-    // FIXME: Should do a complete 'fipa-request' protocol
-
+    addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
   }
 
   public void resumeContainer(String name) {
@@ -326,7 +365,7 @@ public class rma extends Agent {
 
     send(requestMsg);
 
-    // FIXME: Should do a complete 'fipa-request' protocol
+    addBehaviour(new AMSClientBehaviour("KillAgent", requestMsg));
 
   }
 
@@ -340,7 +379,7 @@ public class rma extends Agent {
 
     send(requestMsg);
 
-    // FIXME: Should do a complete 'fipa-request' protocol
+    addBehaviour(new AMSClientBehaviour("KillContainer", requestMsg));
 
   }
 
