@@ -117,22 +117,11 @@ public class DefaultOntology implements Ontology {
   }
 
   public void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException {
-    int realKind;
-    switch(kind) {
-    case CONCEPT:
-      realKind = CONCEPT_TYPE;
-      break;
-    case ACTION:
-      realKind = ACTION_TYPE;
-      break;
-    case PREDICATE:
-      realKind = PREDICATE_TYPE;
-      break;
-    default:
-      throw new OntologyException("Error: Unknown kind of Frame requested");
-    }
 
-    FrameSchema fs = new FrameSchema(this, conceptName, realKind);
+    if((kind != CONCEPT_TYPE) && (kind != ACTION_TYPE) && (kind != PREDICATE_TYPE))
+      throw new OntologyException("Error: Unknown kind of Frame requested");
+
+    FrameSchema fs = new FrameSchema(this, conceptName, kind);
 
     for(int i = 0; i < slots.length; i++) {
       fs.addTerm(slots[i]);
@@ -292,16 +281,22 @@ public class DefaultOntology implements Ontology {
 
   public boolean isConcept(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
+    if(fs == null)
+      throw new OntologyException("No schema was found for " + roleName + "role.");
     return fs.isConcept();
   }
 
   public boolean isAction(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
+    if(fs == null)
+      throw new OntologyException("No schema was found for " + roleName + "role.");
     return fs.isAction();
   }
 
   public boolean isPredicate(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
+    if(fs == null)
+      throw new OntologyException("No schema was found for " + roleName + "role.");
     return fs.isPredicate();
   }
 
