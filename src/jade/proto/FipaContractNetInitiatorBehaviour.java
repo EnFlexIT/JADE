@@ -224,9 +224,9 @@ protected ACLMessage cfpMsg;
 	tmpmsg.setConversationId(cfpMsg.getConversationId());
 	tmpmsg.setProtocol("FIPA-Contract-Net");
 	myAgent.send(tmpmsg);
-	System.err.println("FipaContractNetInitiatorBehaviour: send");
-	tmpmsg.dump();
-	System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+	//System.err.println("FipaContractNetInitiatorBehaviour: send");
+	//tmpmsg.dump();
+	//System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       }
       template = MessageTemplate.MatchReplyTo(replyWith);
       wakeMsg = new ACLMessage("inform");
@@ -243,10 +243,10 @@ protected ACLMessage cfpMsg;
 	block();
 	return;
       }
-      System.err.println("FipaContractNetInitiatorBehaviour: receive");
-      msg.dump();
+      //System.err.println("FipaContractNetInitiatorBehaviour: receive");
+      //msg.dump();
       waitedAgents.removeMember(msg.getSource());
-      System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
 	waker.stop();
 	state=5;

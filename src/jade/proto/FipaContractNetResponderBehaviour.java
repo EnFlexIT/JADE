@@ -133,8 +133,8 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
 	block();
 	return;
       }
-      System.err.println("FipaContractNetResponderBehaviour: receive");
-      cfpMsg.dump();
+      //System.err.println("FipaContractNetResponderBehaviour: receive");
+      //cfpMsg.dump();
       state = 1;
       break;
     }
@@ -156,8 +156,8 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
 	proposeMsg.setReplyWith("ContractNetResponder"+(new Date()).getTime());
       template = MessageTemplate.MatchReplyTo(proposeMsg.getReplyWith());
       myAgent.send(proposeMsg);
-      System.err.println("FipaContractNetResponderBehaviour: send");
-      proposeMsg.dump();
+      //System.err.println("FipaContractNetResponderBehaviour: send");
+      //proposeMsg.dump();
       if (! proposeMsg.getType().equalsIgnoreCase("propose"))
 	reset();
       else {
@@ -179,15 +179,15 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
 	block();
 	return;
       } else if (acceptMsg.getType().equalsIgnoreCase("accept-proposal")) {
-	System.err.println("FipaContractNetResponderBehaviour: receive");
+	//System.err.println("FipaContractNetResponderBehaviour: receive");
 	waker.stop();
-	acceptMsg.dump();
+	//acceptMsg.dump();
 	state = 4;
 	informMsg = AcceptedProposal(acceptMsg);
       } else if (acceptMsg.getType().equalsIgnoreCase("reject-proposal")) {
 	waker.stop();
-	System.err.println("FipaContractNetResponderBehaviour: receive");
-	acceptMsg.dump();
+	//System.err.println("FipaContractNetResponderBehaviour: receive");
+	//acceptMsg.dump();
 	RejectedProposal(acceptMsg);
 	reset();
       } else if (acceptMsg.getConversationId() == null) {
@@ -206,8 +206,8 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
       informMsg.setProtocol("FIPA-Contract-Net");
       informMsg.setConversationId(acceptMsg.getConversationId());
       myAgent.send(informMsg);
-      System.err.println("FipaContractNetResponderBehaviour: send");
-      informMsg.dump();
+      //System.err.println("FipaContractNetResponderBehaviour: send");
+      //informMsg.dump();
       reset();
       break;
     }
