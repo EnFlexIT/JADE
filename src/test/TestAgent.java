@@ -122,7 +122,7 @@ protected void setup() {
       System.out.println("  read the following message:\n"+msg.toString());
       codec.write(msg);
       System.out.println("\nEXTRACTING THE CONTENT AND CREATING A LIST OF JAVA OBJECTS ...");
-      List l=extractContent2(msg);
+      List l=extractMsgContent(msg);
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
@@ -132,18 +132,18 @@ protected void setup() {
 
       msg = msg.createReply();
       System.out.println("\nFILLING BACK THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
-      fillContent2(msg,l);
+      fillMsgContent(msg,l);
       System.out.println("  created the following message:\n"+msg.toString());
 
       System.out.println("\nDOUBLE CHECK BY EXTRACTING THE CONTENT AGAIN ...");
-      l=extractContent2(msg);
+      l=extractMsgContent(msg);
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
       System.out.println(")");
 
       System.out.println("\n FINAL CHECK BY FILLING AGAIN THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
-      fillContent2(msg,l);
+      fillMsgContent(msg,l);
       System.out.println(" created the following message:\n"+msg.toString());
 
     } catch (FIPAException e) {
