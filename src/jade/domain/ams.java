@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.25  1999/02/25 08:34:57  rimassa
+  Changed direct access to 'myName' and 'myAddress' instance variables
+  to accessor methods call.
+  Changed ams constructor not to require a name anymore.
+  Added a customized 'deregisterWithAMS() method to avoid deadlocking on
+  agent shutdown.
+
   Revision 1.24  1999/02/15 11:45:56  rimassa
   Removed a fixed FIXME.
 
@@ -339,6 +346,7 @@ public class ams extends Agent {
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       sendAgree(myReply);
       sendInform(myReply);
+
     }
 
   } // End of DeregBehaviour class
@@ -714,9 +722,8 @@ public class ams extends Agent {
   private Vector newAgentsBuffer = new Vector();
   private Vector deadAgentsBuffer = new Vector();
 
-  public ams(AgentPlatformImpl ap, String name) {
+  public ams(AgentPlatformImpl ap) {
     myPlatform = ap;
-    myName = name;
 
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
@@ -728,7 +735,7 @@ public class ams extends Agent {
 
     RMAs = new AgentGroup();
 
-    RMANotification.setSource(myName);
+    RMANotification.setSource(getLocalName());
     RMANotification.setLanguage("SL");
     RMANotification.setOntology("jade-agent-management");
     RMANotification.setReplyTo("RMA-subscription");
@@ -769,7 +776,7 @@ public class ams extends Agent {
     // Skip all fipa-request protocol and go straight to the target
     
     try { // FIXME: APState parameter is never used
-      myPlatform.AMSNewData(myName + '@' + myAddress, myAddress, signature, "active", delegateAgentName,
+      myPlatform.AMSNewData(getName(), getAddress(), signature, "active", delegateAgentName,
 			    forwardAddress, ownership);
     }
     // No exception should occur since this is a special case ...
@@ -782,6 +789,10 @@ public class ams extends Agent {
 
   }
 
+  // The AMS must have a special version for this method, or a deadlock will occur...
+  public void deregisterWithAMS() throws FIPAException {
+    myPlatform.AMSRemoveData(getName(), getAddress(), null, "active", null, null, null);
+  }
 
   // Methods to be called from AgentPlatform to notify AMS of special events
 
