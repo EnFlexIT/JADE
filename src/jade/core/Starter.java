@@ -44,13 +44,6 @@ public class Starter {
   private Starter() {
   }
 
-  // The singleton Agent Container
-  private static AgentContainerImpl theContainer;
-
-  static AgentContainerImpl getContainer() {
-    return theContainer;
-  }
-
   /**
      Starts up a suitable JADE runtime system, according to its
      parameters.
@@ -68,9 +61,10 @@ public class Starter {
      @param args Command line arguments, used by CORBA ORB.
   */
   public static void startUp(boolean isPlatform, String platformID, String host, int port, Iterator agents, String[] MTPs,String[] ACLCodecs ) {
+      AgentContainerImpl theContainer;
 
       try{
-	  String platformRMI = "rmi://" + host+":"+port+"/JADE";
+	  String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
 	  if(isPlatform) {
 	      theContainer = new MainContainerImpl(platformID);
