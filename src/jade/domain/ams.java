@@ -100,8 +100,8 @@ public class ams extends Agent implements AgentManager.Listener {
      **/
     protected String createAgreeContent(Action a) {
 	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
-	temp.setLanguage(SL0Codec.NAME);
-	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	temp.setLanguage(getRequest().getLanguage());
+	temp.setOntology(getRequest().getOntology());
 	List l = new ArrayList(2);
 	if (a == null) {
 	    a = new Action();
@@ -170,9 +170,9 @@ public class ams extends Agent implements AgentManager.Listener {
        Writes the <code>Done</code> predicate for the specific action
        into the result <code>String</code> object, encoded in SL0.
      */
-    protected String doneAction(Action a, String ontoName) throws FIPAException {
+    protected String doneAction(Action a) throws FIPAException {
       try {
-	Ontology o = lookupOntology(ontoName);
+	Ontology o = lookupOntology(getRequest().getOntology());
 	DonePredicate dp = new DonePredicate();
 	dp.set_0(a);
 	Frame f = o.createFrame(dp, BasicOntology.DONE);
@@ -225,27 +225,23 @@ public class ams extends Agent implements AgentManager.Listener {
 
       //The message in pendingInforms can be registered with only the localName 
       //without the platformID
-      if(informCreator == null)
-        {
-        	String name = amsd.getName().getName();
-      		int atPos = name.lastIndexOf('@');
-    			if(atPos > 0)
-          {
-          	name = name.substring(0, atPos);
-						informCreator = (ACLMessage)pendingInforms.remove(name);
-          }
-        }
+      if(informCreator == null) {
+	String name = amsd.getName().getName();
+	int atPos = name.lastIndexOf('@');
+	if(atPos > 0) {
+	  name = name.substring(0, atPos);
+	  informCreator = (ACLMessage)pendingInforms.remove(name);
+	}
+      }
 
       try {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
 	sendReply(ACLMessage.AGREE,createAgreeContent(a));
-	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.INFORM, doneAction(a));
 
 	// Inform agent creator that registration was successful.
 	if(informCreator !=  null) {
-	  informCreator.setPerformative(ACLMessage.INFORM);
-	  // informCreator.setContent("( done ( " + a.getName() + " ) )");
 	  send(informCreator);
 	}
       }
@@ -277,7 +273,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
       sendReply(ACLMessage.AGREE, createAgreeContent(a));
-      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
+      sendReply(ACLMessage.INFORM,doneAction(a));
     }
 
   } // End of DeregBehaviour class
@@ -295,7 +291,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
       sendReply(ACLMessage.AGREE, createAgreeContent(a));
-      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
+      sendReply(ACLMessage.INFORM,doneAction(a));
     }
 
   } // End of ModBehaviour class
@@ -579,9 +575,8 @@ public class ams extends Agent implements AgentManager.Listener {
       KillContainer kc = (KillContainer)a.get_1();
       ContainerID cid = kc.getContainer();
       myPlatform.killContainer(cid);
-      //sendReply(ACLMessage.AGREE, " (true)");
-      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
-
+      sendReply(ACLMessage.AGREE, createAgreeContent(a));
+      sendReply(ACLMessage.INFORM,doneAction(a));
     }
 
   } // End of KillContainerBehaviour class
@@ -609,7 +604,7 @@ public class ams extends Agent implements AgentManager.Listener {
       for(int n = 0; n< listArg.size(); n++)
        	arguments[n] = (String)listArg.get(n);
 
-      //sendReply(ACLMessage.AGREE, "(true)");
+      sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
       try {
 	myPlatform.create(agentName, className, arguments, container);
@@ -618,6 +613,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	// AMS. The new agent's name will be used as the key in the map.
 	ACLMessage reply = getReply();
 	reply = (ACLMessage)reply.clone();
+	reply.setPerformative(ACLMessage.INFORM);
+	reply.setContent(doneAction(a));
 
 	pendingInforms.put(agentName, reply);
       }
@@ -645,8 +642,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
       try {
 	myPlatform.kill(agentID, password);
-	//sendReply(ACLMessage.AGREE, "( true )");
-	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -672,7 +669,8 @@ public class ams extends Agent implements AgentManager.Listener {
       SniffOn so = (SniffOn)a.get_1();
       try {
 	myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
-	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -696,7 +694,8 @@ public class ams extends Agent implements AgentManager.Listener {
       SniffOff so = (SniffOff)a.get_1();
       try {
 	myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
-	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM,doneAction(a));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -722,7 +721,8 @@ public class ams extends Agent implements AgentManager.Listener {
       DebugOn dbgOn = (DebugOn)a.get_1();
       try {
 	myPlatform.debugOn(dbgOn.getDebugger(), dbgOn.getCloneOfDebuggedAgents());
-	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -747,7 +747,8 @@ public class ams extends Agent implements AgentManager.Listener {
       DebugOff dbgOff = (DebugOff)a.get_1();
       try {
 	myPlatform.debugOff(dbgOff.getDebugger(), dbgOff.getCloneOfDebuggedAgents());
-	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -771,7 +772,8 @@ public class ams extends Agent implements AgentManager.Listener {
       InstallMTP imtp = (InstallMTP)a.get_1();
       try {
 	myPlatform.installMTP(imtp.getAddress(), imtp.getContainer(), imtp.getClassName());
-	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(NotFoundException nfe) {
 	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
@@ -798,7 +800,8 @@ public class ams extends Agent implements AgentManager.Listener {
       UninstallMTP umtp = (UninstallMTP)a.get_1();
       try {
 	myPlatform.uninstallMTP(umtp.getAddress(), umtp.getContainer());
-	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.INFORM, doneAction(a));
       }
       catch(NotFoundException nfe) {
 	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
@@ -1341,16 +1344,6 @@ public class ams extends Agent implements AgentManager.Listener {
       AID name = desc.getName();
       name.removeAddresses(address);
     }
-
-    /*
-    //Notify the update of the APDescription...
-    PlatformDescription ap = new PlatformDescription();
-    ap.setPlatform(theProfile);
-
-    EventRecord er = new EventRecord(ap, here());
-    er.setWhen(ev.getTime());
-    eventQueue.add(er);
-    */
 
     // Generate a suitable AMS event
     RemovedMTP rmtp = new RemovedMTP();
