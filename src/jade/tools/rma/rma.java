@@ -43,6 +43,7 @@ import jade.core.behaviours.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
+import jade.domain.persistence.*;
 import jade.domain.mobility.*;
 import jade.domain.FIPANames;
 import jade.gui.AgentTreeModel;
@@ -245,6 +246,26 @@ public class rma extends ToolAgent {
 	        }
         });
 
+        handlersTable.put(IntrospectionVocabulary.FROZENAGENT, new EventHandler() {
+          public void handle(Event ev) {
+      	    FrozenAgent fa = (FrozenAgent)ev;
+      	    String oldContainer = fa.getWhere().getName();
+	    String newContainer = fa.getBufferContainer().getName();
+      	    AID agent = fa.getAgent();
+      	    myGUI.modifyFrozenAgent(oldContainer, newContainer, agent);
+	        }
+        });
+
+        handlersTable.put(IntrospectionVocabulary.THAWEDAGENT, new EventHandler() {
+          public void handle(Event ev) {
+      	    ThawedAgent ta = (ThawedAgent)ev;
+      	    String oldContainer = ta.getWhere().getName();
+	    String newContainer = ta.getBufferContainer().getName();
+      	    AID agent = ta.getAgent();
+      	    myGUI.modifyThawedAgent(oldContainer, newContainer, agent);
+	        }
+        });
+
         handlersTable.put(IntrospectionVocabulary.CHANGEDAGENTOWNERSHIP, new EventHandler() {
           public void handle(Event ev) {
           	ChangedAgentOwnership cao = (ChangedAgentOwnership)ev;
@@ -260,9 +281,8 @@ public class rma extends ToolAgent {
 	    MovedAgent ma = (MovedAgent)ev;
 	    AID agent = ma.getAgent();
 	    ContainerID from = ma.getFrom();
-	    myGUI.removeAgent(from.getName(), agent);
 	    ContainerID to = ma.getTo();
-	    myGUI.addAgent(to.getName(), agent);
+	    myGUI.moveAgent(from.getName(), to.getName(), agent);
 	  }
         });
 
@@ -306,6 +326,7 @@ public class rma extends ToolAgent {
 
     // Register the supported ontologies
     getContentManager().registerOntology(MobilityOntology.getInstance());
+    getContentManager().registerOntology(PersistenceOntology.getInstance());
 
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
@@ -338,17 +359,73 @@ public class rma extends ToolAgent {
     }
   }
 
-  protected void beforeClone() {
+  protected void beforeMove() {
+      super.beforeMove();
+
+      myGUI.disposeAsync();
+      send(getCancel());
+  }
+
+  protected void afterMove() {
+      super.afterMove();
+
+      getContentManager().registerOntology(MobilityOntology.getInstance());
+      getContentManager().registerOntology(PersistenceOntology.getInstance());
+
+      myGUI = new MainWindow(this);
+      myGUI.ShowCorrect();
+
+      // Make the AMS send back the whole container list
+      send(getSubscribe());
+
   }
 
   protected void afterClone() {
-    // Add yourself to the RMA list
-    ACLMessage AMSSubscription = getSubscribe();
-    AMSSubscription.setSender(getAID());
-    send(AMSSubscription);
-    myGUI = new MainWindow(this);
-    myGUI.ShowCorrect();
+      super.afterClone();
+
+      getContentManager().registerOntology(MobilityOntology.getInstance());
+      getContentManager().registerOntology(PersistenceOntology.getInstance());
+
+      // Add yourself to the RMA list
+      ACLMessage AMSSubscription = getSubscribe();
+      send(AMSSubscription);
+      myGUI = new MainWindow(this);
+      myGUI.ShowCorrect();
   }
+
+  protected void afterLoad() {
+      super.afterLoad();
+
+      getContentManager().registerOntology(MobilityOntology.getInstance());
+      getContentManager().registerOntology(PersistenceOntology.getInstance());
+
+      // Add yourself to the RMA list
+      ACLMessage AMSSubscription = getSubscribe();
+      send(AMSSubscription);
+      myGUI = new MainWindow(this);
+      myGUI.ShowCorrect();
+  }
+
+  protected void beforeFreeze() {
+      super.beforeFreeze();
+
+      myGUI.disposeAsync();
+      send(getCancel());
+  }
+
+  protected void afterThaw() {
+      super.afterThaw();
+
+      getContentManager().registerOntology(MobilityOntology.getInstance());
+      getContentManager().registerOntology(PersistenceOntology.getInstance());
+
+      myGUI = new MainWindow(this);
+      myGUI.ShowCorrect();
+
+      // Make the AMS send back the whole container list
+      send(getSubscribe());
+  }
+
 
   /**
    Callback method for platform management <em>GUI</em>.
@@ -534,7 +611,6 @@ public class rma extends ToolAgent {
   /**
   Callback method for platform management
   */
-
   public void moveAgent(AID name, String container)
   {
      MoveAction moveAct = new MoveAction();
@@ -587,6 +663,106 @@ public class rma extends ToolAgent {
   	} catch(Exception fe) {
   		fe.printStackTrace();
   	}
+  }
+
+  /**
+  Callback method for platform management
+  */
+  public void saveAgent(AID name, String repository)
+  {
+     SaveAgent saveAct = new SaveAgent();
+     saveAct.setAgent(name);
+     saveAct.setRepository(repository);
+
+      try {
+      	Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(saveAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("SaveAgent", requestMsg));
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
+  }
+
+  /**
+  Callback method for platform management
+  */
+  public void loadAgent(AID name, String repository, String container)
+  {
+     LoadAgent loadAct = new LoadAgent();
+     loadAct.setAgent(name);
+     loadAct.setRepository(repository);
+     ContainerID where = new ContainerID(container, null);
+     loadAct.setWhere(where);
+
+      try {
+	  Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(loadAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("LoadAgent", requestMsg));
+
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
+  }
+
+  /**
+  Callback method for platform management
+  */
+  public void freezeAgent(AID name, String repository)
+  {
+     FreezeAgent freezeAct = new FreezeAgent();
+     freezeAct.setAgent(name);
+     freezeAct.setRepository(repository);
+
+      try {
+      	Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(freezeAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("FreezeAgent", requestMsg));
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
+  }
+
+  /**
+  Callback method for platform management
+  */
+  public void thawAgent(AID name, String repository, ContainerID newContainer)
+  {
+     ThawAgent thawAct = new ThawAgent();
+     thawAct.setAgent(name);
+     thawAct.setRepository(repository);
+     thawAct.setNewContainer(newContainer);
+
+      try {
+      	Action a = new Action();
+     	  a.setActor(getAMS());
+     	  a.setAction(thawAct);
+
+	  ACLMessage requestMsg = getRequest();
+     	  requestMsg.setOntology(PersistenceVocabulary.NAME);
+     	  getContentManager().fillContent(requestMsg, a);
+     	  addBehaviour(new AMSClientBehaviour("ThawAgent", requestMsg));
+      }
+      catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
   }
 
   /**
