@@ -46,7 +46,7 @@ import java.io.ByteArrayOutputStream;
  * The <code>Command</code> object is used to represent a platform command.
  * @author Michael Watzke
  * @author Steffen Rusitschka
- * @version 1.0, 09/11/2000
+ * @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
 public class Command {
 
@@ -59,10 +59,51 @@ public class Command {
   /**
    * Command identifier code for response command.
    */
+
+    // Lower limit for service and node management related commands
+    static final int SERVICE_BASE = 0;
+
+    // Service management related command IDs
+    static final int GET_PLATFORM_NAME = 1;
+    static final int ADD_NODE = 2;
+    static final int REMOVE_NODE = 3;
+    static final int ACTIVATE_SERVICE = 4;
+    static final int DEACTIVATE_SERVICE = 5;
+    static final int FIND_SLICE_NODE = 6;
+    static final int FIND_ALL_NODES = 7;
+    static final int ACCEPT_COMMAND = 8;
+    static final int PING_NODE = 9;
+    static final int EXIT_NODE = 10;
+
+
+    // Lower limit for agent management related commands
+    static final int AGENT_MANAGEMENT_BASE = 100;
+
+    // Agent management related command IDs
+
+
+    // Lower limit for messaging related commands
+    static final int MESSAGING_BASE = 200;
+
+    // Messaging related command IDs
+
+
+    // Lower limit for agent mobility related commands
+    static final int AGENT_MOBILITY_BASE = 300;
+
+    // Agent mobility related command IDs
+
+
+    // Lower limit for event notification related commands
+    static final int NOTIFICATION_BASE = 400;
+
+    // Service management related command IDs
+
+
   static final int        NO_OPERATION = 0;
   static final int        OK = 1;
   static final int        ERROR = 2;
-  static final int        GET_PLATFORM_NAME = 3;
+    //  static final int        GET_PLATFORM_NAME = 3;
   static final int        ADD_CONTAINER = 4;
   static final int        REMOVE_CONTAINER = 5;
   static final int        LOOKUP = 6;
