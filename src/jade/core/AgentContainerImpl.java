@@ -290,43 +290,22 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  protected String getCorrectName(String name) {
-    String correctName = null;
-    /*
-    int atPos = name.indexOf('@');
-    if ( atPos == -1 ) {
-      // it is a local name: we simply force lowercase
-      correctName = name.toLowerCase();
-    }
-    else {
-      String agentAddress = name.substring(atPos+1,name.length());
-      // System.out.println("Address: " + agentAddress);
-      if (agentAddress.equalsIgnoreCase(platformAddress)) {
-	correctName = name.substring(0,atPos).toLowerCase();
-      }
-      else {
-	correctName = name.toLowerCase();
-      }
-    }
-    */
-    return correctName;
-  }
-
   /**
     @param toBeSniffer is an Iterator over the AIDs of agents to be sniffed
   **/
   public void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException {
     // In the SniffedAgents hashmap the key is the agent name and the value 
     // is a list containing the sniffer names for that agent 
-  	Iterator iOnToBeSniffed = toBeSniffed.iterator();
-  	for ( ;iOnToBeSniffed.hasNext(); ) {
+    Iterator iOnToBeSniffed = toBeSniffed.iterator();
+    while(iOnToBeSniffed.hasNext()) {
       AID aid = (AID)iOnToBeSniffed.next();
       ArrayList l;
       if (SniffedAgents.containsKey(aid)) {
 	l = (ArrayList)SniffedAgents.get(aid);
 	if (!l.contains(snifferName))
 	  l.add(snifferName);
-      } else {
+      }
+      else {
 	l = new ArrayList(1);
 	l.add(snifferName);
 	SniffedAgents.put(aid,l);
@@ -338,8 +317,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   public void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException {
     // In the SniffedAgents hashmap the key is the agent name and the value 
     // is a list containing the sniffer names for that agent 
-  	Iterator iOnNotToBeSniffed = notToBeSniffed.iterator();
-    for ( ;iOnNotToBeSniffed.hasNext(); ) {
+    Iterator iOnNotToBeSniffed = notToBeSniffed.iterator();
+    while(iOnNotToBeSniffed.hasNext()) {
       AID aid = (AID)iOnNotToBeSniffed.next();
       ArrayList l;
       if (SniffedAgents.containsKey(aid)) {
@@ -511,7 +490,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
       SniffedMessage.setSender(null);
       SniffedMessage.setContent(theMsg.toString());
       SniffedMessage.setOntology("sniffed-message");
-      unicastPostMessage(SniffedMessage,currentSniffer);	    
+      unicastPostMessage(SniffedMessage,currentSniffer);
     }
   }
 
@@ -781,6 +760,29 @@ private List getSniffer(AID id, java.util.Map theMap) {
       catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
 	ok = false;
       }
+      /*
+      i++;
+      if(i > 100) { // Watchdog counter...
+	System.out.println("===================================================================");
+	System.out.println(" Possible livelock in message dispatching:");
+	System.out.println(" Receiver is:");
+	receiverID.toText(new java.io.OutputStreamWriter(System.out));
+	System.out.println();
+	System.out.println();
+	System.out.println(" Message is:");
+	msg.toText(new java.io.OutputStreamWriter(System.out));
+	System.out.println();
+	System.out.println();
+	System.out.println("===================================================================");
+	try {
+	  Thread.sleep(3000);
+	}
+	catch(InterruptedException ie) {
+	  System.out.println("Interrupted !!!");
+	}
+	return;
+      }
+      */
     } while(!ok);
   }
 
