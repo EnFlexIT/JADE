@@ -24,6 +24,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+/**
+* This class models a search constraint.
+* @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
 public class SearchConstraints {
 
 private Long max_depth = null; 
@@ -52,4 +58,3 @@ public void setMaxResults(Long l) {
     return max_results;
   }
 }
-

@@ -26,6 +26,13 @@ package jade.domain.FIPAAgentManagement;
 
 import jade.core.AID;
 
+/**
+* This class implements a concept of the fipa-agent-management ontology
+* representing the description of an AMSAgent.
+* @see jade.domain.FIPAAgentManagement.FIPAAgentMangementOntology
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
 public class AMSAgentDescription {
 
 public static final String INITIATED = "initiated";

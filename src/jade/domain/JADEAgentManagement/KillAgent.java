@@ -27,7 +27,7 @@ package jade.domain.JADEAgentManagement;
 import jade.core.AID;
 
 /**
-   Javadoc documentation for the file
+
    @author Giovanni Rimassa -  Universita` di Parma
    @version $Date$ $Revision$
 */

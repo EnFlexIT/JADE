@@ -23,6 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+/**
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
+
 public class AlreadyRegistered extends FailureException {
 
   public AlreadyRegistered() {

@@ -32,7 +32,7 @@ import java.util.Iterator;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
-// Common base class for AMS and DF Knowledge Base
+/** Common base class for AMS and DF Knowledge Base*/
 abstract class KBAbstractImpl implements KB {
 
   private Map facts = new HashMap();

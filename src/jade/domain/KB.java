@@ -25,7 +25,7 @@ package jade.domain;
 
 import java.util.List;
 
-// Interface for AMS and DF Knowledge Base
+/** Interface for AMS and DF Knowledge Base*/
 interface KB {
   Object register(Object name, Object fact);
   Object deregister(Object name);

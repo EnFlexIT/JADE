@@ -34,7 +34,7 @@ import jade.onto.*;
 import jade.lang.Codec;
 
 /**
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa -  Universita` di Parma
    @version $Date$ $Revision$
 */

@@ -150,11 +150,18 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     doFipaRequestClient(a,request);
   }
 
-
+  /**
+  Deregister a AMSAgentDescription from the <b>AMS</b> agent of the platform.
+  @see jade.domain.AMSServiceCommunicator#deregister(Agent , AID , AMSAgentDescription) 
+  */
   public static void deregister(Agent a, AMSAgentDescription amsd) throws FIPAException {
     deregister(a,a.getAMS(),amsd);
   }
 
+  /**
+  Deregister an agent from an <b>AMS</b> agent.
+  @see jade.domain.AMSServiceCommunicator#deregister(Agent , AID , AMSAgentDescription) 
+  */
   public static void deregister(Agent a, AID AMSName) throws FIPAException {
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(a.getAID());
@@ -268,16 +275,29 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     return l; 
   }
 
-
+  /**
+  * Searches for data contained within the default <b>AMS</b> agent.
+  * @see #search(Agent, AID, AMSDescription, SearchConstraints)
+  */
 
   public static List search(Agent a, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
     return search(a,a.getAMS(),amsd,constraints);
   }
+  
+  /**
+  * Searches for data contained within the default <b>AMS</b> agent using default search constraints.
+  * @see #search(Agent, AID, AMSDescription, SearchConstraints)
+  */
 
   public static List search(Agent a, AMSAgentDescription amsd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return search(a,a.getAMS(),amsd,constraints);
   }
+
+  /**
+  * Searches for data contained within the <b>AMS</b> agent using default search constraints.
+  * @see #search(Agent, AID, AMSDescription, SearchConstraints)
+  */
 
   public static List search(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
@@ -285,15 +305,31 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
   }
 
 
+  /**
+  Returns a non-blocking behaviour to request the AMS for a specific action.
+  @param a the agent requesting the service
+  @param AMSName the AMS involved
+  @param actionName the action requested
+  @param amsd the AMSAgentDescription
+  @param constraints the search constraints to used (for a search operation).
+  */
 
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID AMSName, String actionName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
     return new RequestFIPAServiceBehaviour(a,AMSName,actionName,amsd,constraints);
   }
 
+  /**
+  Returns a non-blocking behaviour to request the AMS of the platform for a specific action.
+  @see jade.domain.AMSServiceCimmunicator#RequestFIPAServiceBehaviour(Agent, AID,String,AMSAgentDescription,SearchConstraints)
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
     return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
-
+  
+  /**
+  Returns a non-blocking behaviour to request the AMS of the platform for a specific action.
+  @see jade.domain.AMSServiceCimmunicator#RequestFIPAServiceBehaviour(Agent, AID,String,AMSAgentDescription,SearchConstraints)
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName) throws FIPAException {
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(a.getAID());
@@ -301,6 +337,10 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
 
+  /**
+  Returns a non-blocking behaviour to request an AMS agent  for a specific action.
+  @see jade.domain.AMSServiceCimmunicator#RequestFIPAServiceBehaviour(Agent, AID,String,AMSAgentDescription,SearchConstraints)
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName) throws FIPAException {
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(a.getAID());
@@ -308,11 +348,19 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     return getNonBlockingBehaviour(a,dfName,actionName,amsd,constraints);
   }
 
+  /**
+  Returns a non-blocking behaviour to request the AMS of the platform for a specific action.
+  @see jade.domain.AMSServiceCimmunicator#RequestFIPAServiceBehaviour(Agent, AID,String,AMSAgentDescription,SearchConstraints)
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, AMSAgentDescription amsd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
 
+  /**
+  Returns a non-blocking behaviour to request an AMS agent for a specific action.
+  @see jade.domain.AMSServiceCimmunicator#RequestFIPAServiceBehaviour(Agent, AID,String,AMSAgentDescription,SearchConstraints)
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, AMSAgentDescription amsd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,dfName,actionName,amsd,constraints);

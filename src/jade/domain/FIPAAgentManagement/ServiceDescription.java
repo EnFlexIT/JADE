@@ -25,6 +25,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+/** 
+* This class models a service data type.
+* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
+
 import java.util.*;
 
   public class ServiceDescription {

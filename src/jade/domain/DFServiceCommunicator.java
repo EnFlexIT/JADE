@@ -146,17 +146,28 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
     doFipaRequestClient(a,request);
   }
 
-
+/**
+* Deregisters a <code>DFAgentDescription</code> with the default DF
+* @see #deregister(Agent,AID,DFAgentDescription)
+*/
   public static void deregister(Agent a, DFAgentDescription dfd) throws FIPAException {
     deregister(a,a.getDefaultDF(),dfd);
   }
 
+  /**
+  * Deregister an <code>Agent</code> from a given df.
+  * @see #deregister(Agent,AID,DFAgentDescription)
+  */
   public static void deregister(Agent a, AID dfName) throws FIPAException {
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(a.getAID());
     deregister(a,dfName,dfd);
   }
 
+  /**
+  * Deregister a <code>Agent</code>with the default df.
+  * @see #deregister(Agent, AID,DFAgentDescription)
+  */
   public static void deregister(Agent a) throws FIPAException {
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(a.getAID());
@@ -203,6 +214,11 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
     doFipaRequestClient(a,request);
   }
 
+  /**
+  * Modifies data contained within a the <b>default DF</b>
+  * agent.
+  * @see #modify(Agent,AID,DFAgentDescription)
+  */
   public static void modify(Agent a, DFAgentDescription dfd) throws FIPAException {
     modify(a,a.getDefaultDF(),dfd);
   }
@@ -264,29 +280,63 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
     return l; 
   }
 
-
+ /**
+ * Searches for data contained within a <b> default DF</b> agent.
+ * @see #search(Agent,AID,DFAgentDescription,SearchConstraints)
+ */
 
   public static List search(Agent a, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
     return search(a,a.getDefaultDF(),dfd,constraints);
   }
 
+  /**
+  * Searches for data contained within a <b> default DF</b> agent using default search constraints.
+  * @see #search(Agent,AID,DFAgentDescription,SearchConstraints)
+  */
   public static List search(Agent a, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return search(a,a.getDefaultDF(),dfd,constraints);
   }
 
+  /**
+  * Searches for data contained in a <b>DF</b> using default search constraints.
+  * @see #search(Agent, AID,DFAgentDescription,SearchConstraints)
+  */
   public static List search(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return search(a,dfName,dfd,constraints);
   }
 
+  /**
+  * Returns a non-blocking behaviour to request a df for a specific action.
+  * @param a the agent requestion the action
+  * @param dfName the GUIID of the <b>DF</b> to request the action
+  * @param action the action required
+  * @param dfd a DFAgentDescription
+  * @param constraints search constraints to used when request a search action
+  * @return A <code>RequestFIPAServiceBehaviour</code>
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
     return new RequestFIPAServiceBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
+  /**
+  * Returns a non-blocking behaviour to request the default DF for a specific action.
+  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
+
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
     return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
+  
+  /**
+  * Returns a non-blocking behaviour to request the default DF for a specific action without specify a DFAgentDescription and 
+  * using default search constraints.
+  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
 
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName) throws FIPAException {
     DFAgentDescription dfd = new DFAgentDescription();
@@ -294,6 +344,13 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
+ 
+  /**
+  * Returns a non-blocking behaviour to request a DF for a specific action without specifing a DFAgentDescription and 
+  * using default search constraints.
+  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
 
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName) throws FIPAException {
     DFAgentDescription dfd = new DFAgentDescription();
@@ -301,16 +358,26 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
-
+  
+  /**
+  * Returns a non-blocking behaviour to request the default DF for a specific action using default  
+  * search constraints.
+  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
+  /**
+  * Returns a non-blocking behaviour to request a DF for a specific action using default search constraints.
+  * @see #RequestFIPAServiceBehaviour(Agetn,AID,DFAgentDescription,String,SearchConstraints)
+  * @see jade.domain.RequestFIPAServiceBehaviour
+  */
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
 }
-

@@ -23,6 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+/** 
+* This class models an envelope.
+* @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;

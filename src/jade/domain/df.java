@@ -1057,7 +1057,9 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	}
 
 	
-	// This method returns the descriptor of an agent registered with the df.
+	/**
+	This method returns the descriptor of an agent registered with the df.
+	*/
 	public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException
 	{
 	  DFAgentDescription template = new DFAgentDescription();

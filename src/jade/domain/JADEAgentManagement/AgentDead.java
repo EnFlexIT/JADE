@@ -29,7 +29,7 @@ import jade.core.AID;
 import jade.domain.AMSEvent;
 
 /**
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa -  Universita` di Parma
    @version $Date$ $Revision$
 */

@@ -40,7 +40,7 @@ import jade.onto.basic.*;
 import java.util.Iterator;
 
 /**
-   Javadoc documentation for the file
+   
    @author Fabio Bellifemine - CSELT S.p.A.
    @version $Date$ $Revision$
 */
@@ -58,6 +58,22 @@ import java.util.Iterator;
    of this
    ontology and a new couple of set/get methods to the Java class representing
    that frame.
+   Every class implementing a concept of the fipa-agent-management ontology is a 
+   simple collection of attributes, with public methods to read and write them, 
+   according to the frame based model that represents FIPA fipa-agent-management 
+   ontology concepts.
+   The following convention has been used. 
+   For each attribute of the class, named attrName and of type attrType, 
+   two cases are possible:
+   1) The attribute type is a single value; then it can be read with attrType getAttrName() 
+      and written with void setAttrName(attrType a), where every call to setAttrName() 
+      overwrites any previous value of the attribute.
+   2) The attribute type is a set or a sequence of values; then there is 
+      an void addAttrName(attrType a) method to insert a new value and 
+      a void clearAllAttrName() method to remove all the values (the list becomes empty). 
+      Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
+      that allows the programmer to walk through the List and cast its elements to the appropriate type.
+
  */
 public class FIPAAgentManagementOntology {
 

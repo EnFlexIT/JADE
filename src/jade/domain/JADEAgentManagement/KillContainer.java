@@ -25,7 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.JADEAgentManagement;
 
 /**
-   Javadoc documentation for the file
+  
    @author Giovanni Rimassa -  Universita` di Parma
    @version $Date$ $Revision$
 */

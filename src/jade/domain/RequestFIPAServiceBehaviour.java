@@ -217,6 +217,10 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     return lastMsg;
   }
 
+  /**
+  * This method returns a list representing the result of a search operation.
+  * @throws jade.domain.FIPAException, #NotYetReady
+  */
   public List getSearchResult() throws FIPAException,NotYetReady {
     if (notYetReady)
       throw new NotYetReady();
@@ -231,4 +235,3 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   }
     
 }
-
