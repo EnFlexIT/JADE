@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -23,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 
   /**
    Javadoc documentation for the file
@@ -44,7 +46,7 @@ public class PopSniffAgent extends AbstractPopup {
 
 private PopupAgent popAg;
 private Sniffer mySniffer;
-private Vector sniffedAgent=new Vector();;
+private List sniffedAgent = new LinkedList();
 private MMCanvas canvAgent;
 
  public PopSniffAgent(PopupAgent popAg,Sniffer mySniffer,MMCanvas canvAgent) {
@@ -54,12 +56,12 @@ private MMCanvas canvAgent;
    this.canvAgent=canvAgent;
  }
  public void actionPerformed(ActionEvent avt) {
-   if (!canvAgent.isPresent(popAg.agent.agentName))
+   if (!canvAgent.isPresent(popAg.agent.getName()))
      canvAgent.addAgent(popAg.agent);   // add Agent in the Canvas
      canvAgent.rAgfromNoSniffVector(popAg.agent);
-     sniffedAgent.addElement(popAg.agent);
+     sniffedAgent.add(popAg.agent);
      mySniffer.sniffMsg(sniffedAgent,Sniffer.SNIFF_ON);   // Sniff the Agents
-     sniffedAgent.removeAllElements();
+     sniffedAgent.clear();
    }
 
 } // End of class PopSniffAgent

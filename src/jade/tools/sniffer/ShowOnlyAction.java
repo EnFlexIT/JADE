@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -23,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import jade.gui.AgentTree;
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 
   /**
    Javadoc documentation for the file
@@ -44,7 +46,7 @@ public class ShowOnlyAction extends AgentAction {
 
  private MainPanel mainPanel;
  private Sniffer mySniffer;
- private Vector  noSniffedAgents=new Vector();
+ private List noSniffedAgents = new LinkedList();
  private Agent agent;
 
  public ShowOnlyAction(ActionProcessor actPro, MainPanel mainPanel, Sniffer mySniffer) {
@@ -54,29 +56,18 @@ public class ShowOnlyAction extends AgentAction {
  }
 
  public void doAction(AgentTree.AgentNode node ) {
-  String realName;
-  realName=checkString(node.getName());
-  agent=new Agent(realName);
-  noSniffedAgents.addElement(agent);
-  if (!mainPanel.panelcan.canvAgent.isPresent(realName))
-       mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
+  String name = node.getName();
+  agent = new Agent(name);
+  noSniffedAgents.add(agent);
+  if(!mainPanel.panelcan.canvAgent.isPresent(name))
+      mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
   mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(agent);
  }
 
- public void sendAgentVector() {
-  mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
-  noSniffedAgents.removeAllElements();
+ public void sendAgents() {
+  mySniffer.sniffMsg(noSniffedAgents, Sniffer.SNIFF_OFF);   // Do not sniff the Agents
+  noSniffedAgents.clear();
  }
 
- private String checkString(String nameAgent) {
-  int index;
-  index=nameAgent.indexOf("@");
-   if (index != -1) return nameAgent.substring(0,index);
-    else {
-      System.out.println("The agent's name is not correct");
-      System.exit(-1);
-    return null;
-   }
- }
 
 } // End of class ShowOnlyAction

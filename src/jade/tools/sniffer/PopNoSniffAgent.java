@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -23,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 
    /**
    Javadoc documentation for the file
@@ -43,7 +45,7 @@ import java.util.Vector;
 public class PopNoSniffAgent extends AbstractPopup {
  private PopupAgent popAg;
  private Sniffer mySniffer;
- private Vector noSniffAgent=new Vector();
+ private List noSniffAgent=new LinkedList();
  private MMCanvas canvAgent;
 
  public PopNoSniffAgent(PopupAgent popAg,Sniffer mySniffer,MMCanvas canvAgent) {
@@ -54,10 +56,10 @@ public class PopNoSniffAgent extends AbstractPopup {
  }
 
  public void actionPerformed(ActionEvent avt) {
-   noSniffAgent.addElement(popAg.agent);
-   canvAgent.removeAgent(popAg.agent.agentName);
+   noSniffAgent.add(popAg.agent);
+   canvAgent.removeAgent(popAg.agent.getName());
    mySniffer.sniffMsg(noSniffAgent,Sniffer.SNIFF_OFF);
-   noSniffAgent.removeAllElements();
+   noSniffAgent.clear();
  }
 
 } // End of class PopNoSniffAgent

@@ -45,7 +45,7 @@ import jade.gui.AgentTree;
   }
 
   public abstract void doAction(AgentTree.AgentNode node);
-  public abstract void sendAgentVector();
+  public abstract void sendAgents();
 
 }  // End of AgentAction
 

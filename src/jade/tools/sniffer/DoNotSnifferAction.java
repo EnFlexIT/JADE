@@ -24,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import jade.gui.AgentTree;
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 
   /**
    Javadoc documentation for the file
@@ -45,37 +46,26 @@ public class DoNotSnifferAction extends AgentAction {
 
  private MainPanel mainPanel;
  private Sniffer mySniffer;
- private Vector  noSniffedAgents=new Vector();
+ private List  noSniffedAgents = new LinkedList();
  private Agent agent;
 
  public DoNotSnifferAction(ActionProcessor actPro, MainPanel mainPanel, Sniffer mySniffer) {
-  super ("DoNotSnifferActionIcon","Do not sniff this agent(s)",actPro);
+  super("DoNotSnifferActionIcon", "Do not sniff this agent(s)", actPro);
   this.mySniffer=mySniffer;
   this.mainPanel=mainPanel;
  }
 
- public void doAction(AgentTree.AgentNode node ) {
-  String realName;
-  realName=checkString(node.getName());
-  agent=new Agent(realName);
-  noSniffedAgents.addElement(agent);
-  mainPanel.panelcan.canvAgent.removeAgent(agent.agentName);
+ public void doAction(AgentTree.AgentNode node) {
+  if(!noSniffedAgents.contains(agent)) {
+    agent = new Agent(node.getName());
+    noSniffedAgents.add(agent);
+    mainPanel.panelcan.canvAgent.removeAgent(agent.getName());
+  }
  }
 
- public void sendAgentVector() {
-  mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
-  noSniffedAgents.removeAllElements();
- }
-
- private String checkString(String nameAgent) {
-  int index;
-  index=nameAgent.indexOf("@");
-   if (index != -1) return nameAgent.substring(0,index);
-    else {
-      System.out.println("The agent's name is not correct");
-      System.exit(-1);
-    return null;
-   }
+ public void sendAgents() {
+  mySniffer.sniffMsg(noSniffedAgents, Sniffer.SNIFF_OFF);   // Sniff the Agents
+  noSniffedAgents.clear();
  }
 
 } // End of class DoNotSnifferAction

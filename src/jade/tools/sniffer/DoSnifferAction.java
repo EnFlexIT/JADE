@@ -24,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import jade.gui.AgentTree;
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 
    /**
    Javadoc documentation for the file
@@ -45,45 +46,34 @@ public class DoSnifferAction extends AgentAction{
 private MainPanel mainPanel;
 private Agent agent;
 private Sniffer mySniffer;
-private Vector sniffedAgents=new Vector();
+private List sniffedAgents = new LinkedList();
 
  public DoSnifferAction(ActionProcessor actPro,MainPanel mainPanel,Sniffer mySniffer ) {
-   super("DoSnifferActionIcon","Do sniff this agent(s)",actPro);
+   super("DoSnifferActionIcon","Do sniff this agent(s)", actPro);
    this.mainPanel=mainPanel;
    this.mySniffer=mySniffer;
  }
 
   public void doAction(AgentTree.AgentNode node){
-   String realName;
 
      //Check if the agent is in the canvas
+     String name = node.getName();
+     agent = new Agent(name);
 
-     realName=checkString(node.getName());
-     agent=new Agent(realName);
+     if(!sniffedAgents.contains(agent)) {
+       if(!mainPanel.panelcan.canvAgent.isPresent(name))
+	 mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
 
-     if (!mainPanel.panelcan.canvAgent.isPresent(realName))
-       mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
+       mainPanel.panelcan.canvAgent.rAgfromNoSniffVector(new Agent(name));
+     }
 
-     mainPanel.panelcan.canvAgent.rAgfromNoSniffVector(new Agent(realName));
-
-     sniffedAgents.addElement(agent);
+     sniffedAgents.add(agent);
   }
 
-  public void sendAgentVector() {
-   mySniffer.sniffMsg(sniffedAgents,Sniffer.SNIFF_ON);   // Sniff the Agents
-   sniffedAgents.removeAllElements();
+  public void sendAgents() {
+   mySniffer.sniffMsg(sniffedAgents, Sniffer.SNIFF_ON);   // Sniff the Agents
+   sniffedAgents.clear();
   }
 
-  private String checkString(String nameAgent) {
-   int index;
-
-   index=nameAgent.indexOf("@");
-   if (index != -1) return nameAgent.substring(0,index);
-   else {
-     System.out.println("The agent's name is not correct");
-     System.exit(-1);
-     return null;
-   }
-  }
 
 } // End of class DoSnifferAction

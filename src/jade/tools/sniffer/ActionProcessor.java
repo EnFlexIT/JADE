@@ -87,7 +87,7 @@ import javax.swing.tree.TreePath;
          agentAct(now);
        }
        agentAction=(AgentAction) act;
-       agentAction.sendAgentVector();
+       agentAction.sendAgents();
      }
    }
 

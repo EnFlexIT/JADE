@@ -36,6 +36,8 @@ import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 import java.net.InetAddress;
 
+import jade.core.AID;
+
   /**
    Javadoc documentation for the file
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -59,122 +61,121 @@ public class MainWindow extends JFrame {
   private PopupMenuAgent popA;
   private Sniffer mySniffer;
 
-  public MainWindow(Sniffer mySniffer){
-   super("Sniffer");
-     this.mySniffer=mySniffer;
-     mainPanel = new MainPanel(mySniffer, this);
-     actPro=new ActionProcessor(mySniffer,mainPanel);
-     setJMenuBar(new MainMenu(this,actPro));
-     popA=new PopupMenuAgent(actPro);
-     setForeground(Color.black);
-     setBackground(Color.lightGray);
-     addWindowListener(new ProgramCloser());
+  public MainWindow(Sniffer mySniffer) {
+    super("Sniffer");
+    this.mySniffer = mySniffer;
+    mainPanel = new MainPanel(mySniffer, this);
+    actPro = new ActionProcessor(mySniffer,mainPanel);
+    setJMenuBar(new MainMenu(this,actPro));
+    popA = new PopupMenuAgent(actPro);
+    setForeground(Color.black);
+    setBackground(Color.lightGray);
+    addWindowListener(new ProgramCloser());
 
-     getContentPane().add(new ToolBar(actPro),"North");
-     getContentPane().add(mainPanel,"Center");
- }
-
-
- public void ShowCorrect(){
-  pack();
-  setSize(new Dimension(500,500));
-  this.setVisible(true);
-  toFront();
- }
-
-
- /**
- * Tells the Agent Tree to add a container.
- *
- * @param	cont name of the container to be added
- */
-
- public void addContainer(final String name, final InetAddress addr) {
-  Runnable addIt = new Runnable() {
-   public void run() {
+    getContentPane().add(new ToolBar(actPro), "North");
+    getContentPane().add(mainPanel, "Center");
+    mainPanel.treeAgent.register("FIPAAGENT", popA, "images/runtree.gif");
     mainPanel.treeAgent.register("FIPACONTAINER",null,"images/TreeClosed.gif");
-    MutableTreeNode node = mainPanel.treeAgent.createNewNode(name,0);
-    mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
-   }
-  };
-  SwingUtilities.invokeLater(addIt);
- }
+  }
+
+
+  public void ShowCorrect() {
+    pack();
+    setSize(new Dimension(500,500));
+    this.setVisible(true);
+    toFront();
+  }
+
+
+  /**
+   * Tells the Agent Tree to add a container.
+   *
+   * @param	cont name of the container to be added
+   */
+  public void addContainer(final String name, final InetAddress addr) {
+    Runnable addIt = new Runnable() {
+      public void run() {
+
+	MutableTreeNode node = mainPanel.treeAgent.createNewNode(name,0);
+	mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
+  }
 
  /**
- * Tells the Agent Tree to remove a specified container.
- *
- * @param	cont name of the container to be removed
- */
+  * Tells the Agent Tree to remove a specified container.
+  *
+  * @param cont name of the container to be removed
+  */
+  public void removeContainer(final String name) {
+    Runnable removeIt = new Runnable() {
+      public void run() {
+	mainPanel.treeAgent.removeContainerNode(name);
+      }
+    };
+    SwingUtilities.invokeLater(removeIt);
+  }
 
- public void removeContainer(final String name) {
-  Runnable removeIt = new Runnable() {
-   public void run() {
-    mainPanel.treeAgent.removeContainerNode(name);
-   }
-  };
-  SwingUtilities.invokeLater(removeIt);
- }
+  /**
+   * Tells the Agent Tree to add an agent.
+   *
+   * @param	cont name of the container to contain the new agent
+   * @param name name of the agent to be created
+   * @param addr address of the agent to be created
+   * @param comm comment (usually type of the agent)
+   */
+  public void addAgent(final String containerName, final AID agentID) {
+    Runnable addIt = new Runnable() {
+      public void run() {
+	String agentName = agentID.getName();
+	AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName, 1);
+	mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
+  }
 
- /**
- * Tells the Agent Tree to add an agent.
- *
- * @param	cont name of the container to contain the new agent
- * @param name name of the agent to be created
- * @param addr address of the agent to be created
- * @param comm comment (usually type of the agent)
- */
+  /**
+   * Tells the Agent Tree to remove a specified agent.
+   *
+   * @param	cont name of the container containing the agent
+   * @param name name of the agent to be removed
+   */
+  public void removeAgent(final String containerName, final AID agentID) {
+    Runnable removeIt = new Runnable() {
+      public void run() {
+	String agentName = agentID.getName();
+	mainPanel.treeAgent.removeAgentNode(containerName,agentName);
+      }
+    };
+    SwingUtilities.invokeLater(removeIt);
+  }
 
- public void addAgent(final String containerName, final String agentName, final String agentAddress, String type){
-  Runnable addIt = new Runnable() {
-   public void run() {
-    mainPanel.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-    AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName,1);
-    mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node,containerName,agentName,agentAddress,"FIPAAGENT");
-   }
-  };
- SwingUtilities.invokeLater(addIt);
- }
+  /**
+   * Displays a dialog box with the error string.
+   *
+   * @param	errMsg error message to print
+   */
+  public void showError(String errMsg) {
+    JOptionPane.showMessageDialog(null, errMsg, "Error", JOptionPane.ERROR_MESSAGE);
+  }
 
- /**
- * Tells the Agent Tree to remove a specified agent.
- *
- * @param	cont name of the container containing the agent
- * @param name name of the agent to be removed
- */
+  public Dimension getPreferredSize() {
+    return new Dimension(500,500);
+  }
 
- public void removeAgent(final String containerName, final String agentName){
-  Runnable removeIt = new Runnable() {
-   public void run() {
-    mainPanel.treeAgent.removeAgentNode(containerName,agentName);
-   }
-  };
-  SwingUtilities.invokeLater(removeIt);
- }
-
- /**
- * Displays a dialog box with the error string.
- *
- * @param	errMsg error message to print
- */
-
- public void showError(String errMsg){
-  JOptionPane.showMessageDialog(null, errMsg, "Error", JOptionPane.ERROR_MESSAGE);
- }
-
- public Dimension getPreferredSize() {
-  return new Dimension(500,500);
- }
-
- private void setUI(String ui) {
-  try {
-   UIManager.setLookAndFeel("javax.swing.plaf."+ui);
-   SwingUtilities.updateComponentTreeUI(this);
-   pack();
-  } catch(Exception e){
-     System.out.println(e);
-     e.printStackTrace(System.out);
+  private void setUI(String ui) {
+    try {
+      UIManager.setLookAndFeel("javax.swing.plaf."+ui);
+      SwingUtilities.updateComponentTreeUI(this);
+      pack();
     }
- }
+    catch(Exception e) {
+      System.out.println(e);
+      e.printStackTrace(System.out);
+    }
+  }
 
  /**
   enables Motif L&F
