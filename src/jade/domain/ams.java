@@ -69,7 +69,6 @@ import jade.content.onto.basic.Action;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
@@ -276,15 +275,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		final ContainerID where = (ContainerID) dsc.getDestination();
 		final String newName = ca.getNewName();
 		logger.log(Logger.CONFIG,"Agent "+requester+" requesting Clone-agent "+agentID+" on container "+where);
-	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
-					myPlatform.copy(agentID, where, newName);
-					//return null;
-		    //}
-			//}, requesterCredentials);
+			myPlatform.copy(agentID, where, newName);
 		}
 		catch(AuthException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action CloneAgent");
@@ -311,15 +304,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		final AID agentID = dsc.getName();
 		final ContainerID where = (ContainerID) dsc.getDestination();
 		logger.log(Logger.FINE,"Agent "+requester+" requesting Move-agent "+agentID+" on container "+where);
-	  //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws UnreachableException, AuthException, NotFoundException {
-					myPlatform.move(agentID, where);
-					//return null;
-		    //}
-			//}, requesterCredentials);
+			myPlatform.move(agentID, where);
 		}
 		catch(AuthException ae) {
 			logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action MoveAgent");
@@ -341,12 +328,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	void killContainerAction(final KillContainer kc, final AID requester) throws FIPAException {
     final ContainerID cid = kc.getContainer();
 		logger.log(Logger.FINE,"Agent "+requester+" requesting Kill-container "+cid);
-    //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
-    //try {
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws Exception /*throws AuthException, NotFoundException*/ {
-
 			Thread auxThread = new Thread() {
 			    public void run() {
 				try {
@@ -369,25 +351,12 @@ public class ams extends Agent implements AgentManager.Listener {
 			};
 
 			auxThread.start();
-			//return null;
-		    //}
-		//}, requesterCredentials);
-    //}
-    //catch(Exception e) {
-		//	e.printStackTrace();
-    //	throw new InternalError("Unexpected exception. "+e.getMessage());   
-    //}
 	}
 
 	// SHUTDOWN PLATFORM
 	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester) throws FIPAException {
 	    logger.log(Logger.FINE,"Agent "+requester+" requesting Shutdown-platform ");
-	    //CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
-	    //try{
-		//getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-			//public Object run() throws AuthException, NotFoundException {
-
 			    Thread auxThread = new Thread() {
 			        public void run() {
 				    try {
@@ -400,21 +369,6 @@ public class ams extends Agent implements AgentManager.Listener {
 			    };
 
 			    auxThread.start();
-			    //return null;
-			//}
-		    //}, requesterCredentials);
-	    //}
-	    /*catch(AuthException ae) {
-		log("Agent "+requester.getName()+" does not have permission to perform action Shutdown-Platform", 0);
-		throw new Unauthorised();
-	    }
-	    catch(NotFoundException nfe) {
-		throw new InternalError("Container not found. "+nfe.getMessage());   
-	    }
-	    catch(Exception e) {
-		e.printStackTrace();
-		throw new InternalError("Unexpected exception. "+e.getMessage());   
-	    }*/
 	}
 	
 	// INSTALL MTP
@@ -570,16 +524,9 @@ public class ams extends Agent implements AgentManager.Listener {
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
-    
-  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws AlreadyRegistered, AuthException {
-	    		myPlatform.amsRegister(amsd);
-					//return null;
-		    //}
-			//}, requesterCredentials);
+  		myPlatform.amsRegister(amsd);
 		}
 		catch(AlreadyRegistered ar) {
 			throw ar;
@@ -603,16 +550,9 @@ public class ams extends Agent implements AgentManager.Listener {
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
-    
-  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws NotRegistered, AuthException {
-	    		myPlatform.amsDeregister(amsd);
-					//return null;
-		    //}
-			//}, requesterCredentials);
+  		myPlatform.amsDeregister(amsd);
 		}
 		catch(NotRegistered nr) {
 			throw nr;
@@ -637,16 +577,9 @@ public class ams extends Agent implements AgentManager.Listener {
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
-    
-  	//CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws NotRegistered, NotFoundException, UnreachableException, AuthException {
-	    		myPlatform.amsModify(amsd);
-					//return null;
-		    //}
-			//}, requesterCredentials);
+  		myPlatform.amsModify(amsd);
 		}
 		catch(NotRegistered nr) {
 			throw nr;
@@ -1361,14 +1294,6 @@ public class ams extends Agent implements AgentManager.Listener {
   // Utility methods
   //////////////////////////////////////////////////
  
-  /**
-     Redefine the getAuthority() method to return the platform main 
-     authority
-   */
-	public Authority getAuthority() {
-		return myPlatform.getAuthority();
-	}
-
 	/**
 	   Return the ownership of a container
 	 */
