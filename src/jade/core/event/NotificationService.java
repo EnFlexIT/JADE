@@ -83,9 +83,6 @@ public class NotificationService extends BaseService {
     static final String NAME = "jade.core.event.Notification";
 
     private static final String[] OWNED_COMMANDS = new String[] {
-	NotificationSlice.ADD_TOOL,
-	NotificationSlice.REMOVE_TOOL,
-	NotificationSlice.GET_TOOLS,
 	NotificationSlice.SNIFF_ON,
 	NotificationSlice.SNIFF_OFF,
 	NotificationSlice.DEBUG_ON,
@@ -159,13 +156,7 @@ public class NotificationService extends BaseService {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(ADD_TOOL)) {
-		    handleAddTool(cmd);
-		}
-		else if(name.equals(REMOVE_TOOL)) {
-		    handleRemoveTool(cmd);
-		}
-		else if(name.equals(SNIFF_ON)) {
+		if(name.equals(SNIFF_ON)) {
 		    handleSniffOn(cmd);
 		}
 		if(name.equals(SNIFF_OFF)) {
@@ -469,32 +460,6 @@ public class NotificationService extends BaseService {
 
 
 	// Vertical command handler methods
-
-	private void handleAddTool(VerticalCommand cmd) {
-	    Object[] params = cmd.getParams();
-	    AID tool = (AID)params[0];
-
-	    MainContainer impl = myContainer.getMain();
-	    if(impl != null) {
-		impl.toolAdded(tool);
-	    }
-	    else {
-		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	    }
-	}
-
-	private void handleRemoveTool(VerticalCommand cmd) {
-	    Object[] params = cmd.getParams();
-	    AID tool = (AID)params[0];
-
-	    MainContainer impl = myContainer.getMain();
-	    if(impl != null) {
-		impl.toolRemoved(tool);
-	    }
-	    else {
-		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	    }
-	}
 
 	private void handleSniffOn(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
 	    Object[] params = cmd.getParams();

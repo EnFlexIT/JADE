@@ -560,14 +560,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   //////////////////////////////////////////////////////////////////////
 
   public void addTool(AID tool) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.ADD_TOOL, jade.core.event.NotificationSlice.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.ADD_TOOL, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(tool);
 
       myCommandProcessor.processOutgoing(cmd);
   }
 
   public void removeTool(AID tool) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.REMOVE_TOOL, jade.core.event.NotificationSlice.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REMOVE_TOOL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(tool);
 
 	myCommandProcessor.processOutgoing(cmd);

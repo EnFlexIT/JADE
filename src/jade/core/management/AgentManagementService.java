@@ -76,7 +76,9 @@ public class AgentManagementService extends BaseService {
 	AgentManagementSlice.INFORM_CREATED,
 	AgentManagementSlice.INFORM_KILLED,
 	AgentManagementSlice.INFORM_STATE_CHANGED,
-	AgentManagementSlice.KILL_CONTAINER
+	AgentManagementSlice.KILL_CONTAINER,
+	AgentManagementSlice.ADD_TOOL,
+	AgentManagementSlice.REMOVE_TOOL
     };
 
 
@@ -156,6 +158,12 @@ public class AgentManagementService extends BaseService {
 		}
 		else if(name.equals(AgentManagementSlice.KILL_CONTAINER)) {
 		    handleKillContainer(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.ADD_TOOL)) {
+		    handleAddTool(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.REMOVE_TOOL)) {
+		    handleRemoveTool(cmd);
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -415,6 +423,33 @@ public class AgentManagementService extends BaseService {
 	    }
 
 	}
+
+	private void handleAddTool(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		impl.toolAdded(tool);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleRemoveTool(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		impl.toolRemoved(tool);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
 
     } // End of CommandSourceSink class
 

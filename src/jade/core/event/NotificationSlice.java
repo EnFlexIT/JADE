@@ -47,24 +47,6 @@ public interface NotificationSlice extends Service.Slice {
     static final String NAME = "jade.core.event.Notification";
 
     /**
-       This command name represents the action of adding a new tool to
-       the platform.
-    */
-    static final String ADD_TOOL = "Add-Tool";
-
-    /**
-       This command name represents the action of removing an
-       existing tool from the platform.
-    */
-    static final String REMOVE_TOOL = "Remove-Tool";
-
-    /**
-       This command name represents the action of retrieving the list
-       of tool names.
-    */
-    static final String GET_TOOLS = "Get-Tools";
-
-    /**
        This command name represents the action of activating an
        instance of the Sniffer agent.
     */

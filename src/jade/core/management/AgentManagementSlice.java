@@ -137,6 +137,19 @@ public interface AgentManagementSlice extends Service.Slice {
     */
     static final String KILL_CONTAINER = "Kill-Container";
 
+    /**
+       This command name represents the action of adding a new tool to
+       the platform.
+    */
+    static final String ADD_TOOL = "Add-Tool";
+
+    /**
+       This command name represents the action of removing an
+       existing tool from the platform.
+    */
+    static final String REMOVE_TOOL = "Remove-Tool";
+
+
 
     static final boolean CREATE_AND_START = true;
     static final boolean CREATE_ONLY = false;

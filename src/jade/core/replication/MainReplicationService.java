@@ -186,10 +186,10 @@ public class MainReplicationService extends BaseService {
 	    try {
 		String name = cmd.getName();
 
-		if(name.equals(jade.core.event.NotificationSlice.ADD_TOOL)) {
+		if(name.equals(jade.core.management.AgentManagementSlice.ADD_TOOL)) {
 		    handleNewTool(cmd);
 		}
-		else if(name.equals(jade.core.event.NotificationSlice.REMOVE_TOOL)) {
+		else if(name.equals(jade.core.management.AgentManagementSlice.REMOVE_TOOL)) {
 		    handleDeadTool(cmd);
 		}
 	    }
