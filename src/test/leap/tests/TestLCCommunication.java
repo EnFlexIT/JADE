@@ -55,7 +55,12 @@ public class TestLCCommunication extends Test {
 		// MIDP container name as group argument
 		lightContainerName = (String) getGroupArgument(LEAPTesterAgent.LIGHT_CONTAINER_KEY);
 
-		final SequentialBehaviour sb = new SequentialBehaviour(a);
+		final SequentialBehaviour sb = new SequentialBehaviour(a) {
+			public int onEnd() {
+				store.put(key, new Integer(ret));
+				return 0;
+			}
+		};
 		
 		// Step 1: Create the ping agent on the light container
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
@@ -158,21 +163,7 @@ public class TestLCCommunication extends Test {
 			}
 		} );
 
-  	Behaviour wb = new WakerBehaviour(a, 30000) {
-  		protected void handleElapsedTimeout() {
-  			l.log("Timeout expired.");
-  		}
-  	};
-  	
-  	ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ANY) {
-  		public int onEnd() {
-	  		store.put(key, new Integer(ret));
-	  		return 0;
-  		}
-  	};
-  	pb.addSubBehaviour(sb);
-  	pb.addSubBehaviour(wb);
-  	return pb;
+  	return sb;
   }
 }
 
