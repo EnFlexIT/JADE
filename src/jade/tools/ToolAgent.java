@@ -139,14 +139,18 @@ public abstract class ToolAgent extends Agent {
      setup. Subclasses must use this method the same way ordinary
      agents use their <code>setup()</code> method.
    */
-  protected abstract void toolSetup();
+  protected void toolSetup() {
+
+  }
 
   /**
      This method is invoked just before the generic agent
      takedown. Subclasses must use this method the same way ordinary
      agents use their <code>takeDown()</code> method.
    */
-  protected abstract void toolTakeDown();
+  protected void toolTakeDown() {
+
+  }
 
 
   protected ACLMessage getSubscribe() {
@@ -169,7 +173,7 @@ public abstract class ToolAgent extends Agent {
     registerOntology(JADEIntrospectionOntology.NAME, JADEIntrospectionOntology.instance());
 
     // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());	
+    registerLanguage(SL0Codec.NAME, new SL0Codec());
 
     // Fill ACL messages fields
 
