@@ -37,21 +37,21 @@ import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import javax.microedition.rms.*;
 
+import java.util.Vector;
+
 /**
    Utility MIDlet that visualize the output previously written using 
-   <code>Logger.println()</code>
+   <code>jade.util.Logger</code>
    @author Giovanni Caire - TILAB
  */
 public class OutputViewer extends MIDlet implements CommandListener {
 	private static final String OUTPUT = "OUTPUT";
   
-  private static final Command exitCommand = new Command("Exit", Command.EXIT, 1);
-  private static final Command clearCommand = new Command("Clear", Command.SCREEN, 1);
-  private static final Command okCommand = new Command("OK", Command.OK, 1);
-  private Display                       display;
-  private String                        recordStoreName;
-  private Form                          form, error;
-
+  private final Command clearCommand = new Command("Clear", Command.SCREEN, 1);
+  private final Command tailCommand = new Command("Tail", Command.SCREEN, 1);
+  private Display display;
+  private Form myForm;
+  
   /**
    */
   public OutputViewer() {
@@ -61,14 +61,18 @@ public class OutputViewer extends MIDlet implements CommandListener {
   /**
    */
   public void startApp() {
-    form = new Form(OUTPUT);
-    form.addCommand(exitCommand);
-    form.addCommand(clearCommand);
-    form.setCommandListener(this);
-    display.setCurrent(form);    
-    readOutput();
+  	refresh();
+    readAll();
   }
 
+  private void refresh() {
+    myForm = new Form(OUTPUT);
+    myForm.addCommand(tailCommand);
+    myForm.addCommand(clearCommand);
+    myForm.setCommandListener(this);
+    display.setCurrent(myForm);    
+  }
+  
   /**
    */
   public void pauseApp() {
@@ -82,28 +86,25 @@ public class OutputViewer extends MIDlet implements CommandListener {
   /**
    */
   public void commandAction(Command c, Displayable d) {
-    if (c == exitCommand) {
-    	notifyDestroyed();
-    }
-    if (c == clearCommand) {
-    	try {
-	    	Class.forName("jade.util.Logger");    	
-		  	int size = form.size();
-				for (int i = 0; i < size; ++i) {
-					form.delete(0);
-				}
-		    display.setCurrent(form);
-    	}
-    	catch (Exception e) {
-    		showError("Cannot clear output. "+e.getMessage());
-    	}
-    }
-    if (c == okCommand) {
-    	display.setCurrent(form);
-    }
+  	if (d == myForm) {
+	    if (c == clearCommand) {
+	    	try {
+	    		// This will delete the OUTPUT RecordStore
+		    	Class.forName("jade.util.Logger");    	
+		    	refresh();
+	    	}
+	    	catch (Exception e) {
+	    		showError("Cannot clear output. "+e.getMessage());
+	    	}
+	    }
+	    else if (c == tailCommand) {
+	    	refresh();
+	    	readTail();
+	    }
+  	}
   }
   
-  private void readOutput() {
+  private void readAll() {
 		RecordStore rs = null;
     RecordEnumeration rse = null;
   	try {
@@ -111,12 +112,40 @@ public class OutputViewer extends MIDlet implements CommandListener {
 			for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
 				byte[] bb = rse.nextRecord();
    			StringItem line = new StringItem(null, new String(bb));
-   			form.append(line);
+   			myForm.append(line);
    		}
   	}
   	catch (Exception e) {
   		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
-  	} finally {
+  	} 
+  	finally {
+				try {
+            if (rse != null) rse.destroy();
+						if (rs != null)  rs.closeRecordStore();
+				} catch (Exception any) {
+				}
+		}
+  }
+  
+  private void readTail() {
+		RecordStore rs = null;
+    RecordEnumeration rse = null;
+    Vector v = new Vector();
+  	try {
+  		rs = RecordStore.openRecordStore(OUTPUT, true);
+			for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
+				byte[] bb = rse.nextRecord();
+   			StringItem line = new StringItem(null, new String(bb));
+   			v.addElement(line);
+   		}
+   		for (int i = v.size();i > (v.size() - 10) && i > 0; --i) {
+   			myForm.append((StringItem) v.elementAt(i-1));
+   		}
+  	}
+  	catch (Exception e) {
+  		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
+  	} 
+  	finally {
 				try {
             if (rse != null) rse.destroy();
 						if (rs != null)  rs.closeRecordStore();
@@ -126,11 +155,8 @@ public class OutputViewer extends MIDlet implements CommandListener {
   }
   
   private void showError(String msg) {
-		error = new Form("ERROR");
-  	form.append(new StringItem(null, msg));
-		error.addCommand(okCommand);
-		error.setCommandListener(this);
-		display.setCurrent(error);
+  	Alert alert = new Alert("ERROR", msg, null, AlertType.ERROR);
+		display.setCurrent(alert);
   }
 }
 
