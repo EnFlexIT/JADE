@@ -458,7 +458,7 @@ public class ProfileImpl extends Profile {
     String    specsLine = getParameter(key, null);
     try {
     	Vector v = Specifier.parseSpecifierList(specsLine);
-			// convert the vector into an arraylist (notice that using the vector allows to avoid class loading of ArrayList
+			// convert the vector into an arraylist (notice that using the vector allows to avoid class loading of ArrayList)
 			List l1 = new ArrayList(v.size());
 			for (int i=0; i<v.size(); i++)
 					l1.add(v.elementAt(i));
