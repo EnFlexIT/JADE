@@ -193,7 +193,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd.
   		if (outConnection != null) {
-	    	myLogger.log(Logger.FINE, "Sending termination notification");
+	    	myLogger.log(Logger.INFO, "Sending termination notification");
 	  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	  		try {
 	  			writePacket(pkt, outConnection);
@@ -203,7 +203,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  			// When the BackEnd receives the termination notification,
 	  			// it just closes the connection --> we always have this
 	  			// exception
-		    	myLogger.log(Logger.FINE, "BackEnd closed");
+		    	myLogger.log(Logger.INFO, "BackEnd closed");
 	  		}
   		}
   	} 		
@@ -267,6 +267,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	      }
 	      else {
 		    	myLogger.log(Logger.INFO, "Mediator error: "+replyMsg);
+			  	if (myConnectionListener != null && replyMsg != null && replyMsg.equals("Not authorized")) {
+						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED);
+			  	}
 	      }
 		  }
 		  catch (IOException ioe) {
@@ -381,8 +384,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	    
 	  	myId = cnt++;
-  		if (myLogger.isLoggable(Logger.CONFIG)) {
-  			myLogger.log(Logger.CONFIG, "IM-"+myId+" started");
+  		if (myLogger.isLoggable(Logger.INFO)) {
+  			myLogger.log(Logger.INFO, "IM-"+myId+" started");
   		}
 	  	
 	  	int status = 0;
@@ -436,8 +439,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				}
   		}
   		
-  		if (myLogger.isLoggable(Logger.CONFIG)) {
-  			myLogger.log(Logger.CONFIG, "IM-"+myId+" terminated");
+  		if (myLogger.isLoggable(Logger.INFO)) {
+  			myLogger.log(Logger.INFO, "IM-"+myId+" terminated");
   		}
 	  }
 	  
