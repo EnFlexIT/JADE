@@ -101,6 +101,7 @@ public class BEReplicationService extends BaseService {
 
 	// Create the command filters
 	outFilter = new OutgoingCommandFilter();
+	inFilter = new IncomingCommandFilter();
 
     }
 
@@ -126,7 +127,7 @@ public class BEReplicationService extends BaseService {
 	    return outFilter;
 	}
 	else {
-	    return null;
+	    return inFilter;
 	}
     }
 
@@ -302,6 +303,55 @@ public class BEReplicationService extends BaseService {
     } // End of OutgoingCommandFilter class
 
 
+    private class IncomingCommandFilter implements Filter {
+
+	public void accept(VerticalCommand cmd) {
+
+	    try {
+		String name = cmd.getName();
+
+		if(name.equals(jade.core.management.AgentManagementSlice.KILL_CONTAINER)) {
+		    handleKillMasterReplica(cmd);
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(imtpe);
+	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(se);
+	    }
+	}
+
+	private void handleKillMasterReplica(VerticalCommand cmd) throws IMTPException, ServiceException {
+
+	    // If this is the master replica, shutdown all the other replicas
+	    if(masterSliceName.equals(getLocalNode().getName())) {
+
+		// Broadcast a 'exitReplica()' method (exclude yourself)
+		GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_EXITREPLICA, BEReplicationSlice.NAME, null);
+		broadcastToReplicas(hCmd, excludeMyself);
+	    }
+	}
+
+	public void setBlocking(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+    	public boolean isBlocking() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+	public void setSkipping(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+	public boolean isSkipping() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+    } // End of IncomingCommandFilter class
+
+
     private class ServiceComponent implements Service.Slice, NodeEventListener {
 
 	public ServiceComponent(Profile p) {
@@ -370,6 +420,9 @@ public class BEReplicationService extends BaseService {
 		else if(cmdName.equals(BEReplicationSlice.H_REMOVEREPLICA)) {
 		    String name = (String)params[0];
 		    removeReplica(name);
+		}
+		else if(cmdName.equals(BEReplicationSlice.H_EXITREPLICA)) {
+		    exitReplica();
 		}
 		else if(cmdName.equals(BEReplicationSlice.H_BORNAGENT)) {
 		    AID name = (AID)params[0];
@@ -486,6 +539,10 @@ public class BEReplicationService extends BaseService {
 		myReplicaIndex = Integer.toString(myIndex);
 	    }
 
+	}
+
+	private void exitReplica() throws IMTPException {
+	    myContainer.shutDown();
 	}
 
 	private void bornAgent(AID name) {
@@ -605,6 +662,7 @@ public class BEReplicationService extends BaseService {
     private ServiceComponent localSlice;
 
     private Filter outFilter;
+    private Filter inFilter;
 
     private Sink sourceSink;
 
