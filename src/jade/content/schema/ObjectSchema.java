@@ -33,6 +33,7 @@ import jade.content.schema.facets.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class ObjectSchema {
     private class SlotDescriptor {
@@ -52,11 +53,20 @@ public class ObjectSchema {
 
     }
     
-    // Optionality values
+    /** 
+       Canstant value indicating that a slot in a schema is mandatory,
+       i.e. its value must not be null
+     */
     public static final int MANDATORY = 0;
+    /** 
+       Canstant value indicating that a slot in a schema is optional,
+       i.e. its value can be null
+     */
     public static final int OPTIONAL = 1;
-    
-    // Unlimited cardinality
+    /** 
+       Canstant value indicating that a slot in a schema has an 
+       infinite maximum cardinality
+     */
     public static final int UNLIMITED = -1;
     
     private Hashtable       slots = new Hashtable();

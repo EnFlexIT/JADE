@@ -50,11 +50,11 @@ import jade.core.CaseInsensitiveString;
  * An ontology is characterized by:
  * <ul>
  * <li>one name;
- * <li>one base ontology that it extends;
- * <li>a set of <i>element schemata</i>.
+ * <li>one (or more) base ontology that it extends;
+ * <li>a set of <i>element schemas</i>.
  * </ul>
- * Element schemata are objects describing the structure of concepts, actions, 
- * predicate, etc. that are allowed in messages. For example, 
+ * Element schemas are objects describing the structure of concepts, actions, 
+ * and predicates. that are allowed in messages. For example, 
  * <code>People</code> ontology contains an element schema called 
  * <code>Person</code>. This schema states that a <code>Person</code> is
  * characterized by a <code>name</code> and by an <code>address</code>:
@@ -66,12 +66,11 @@ import jade.core.CaseInsensitiveString;
  * where <code>PERSON<code>, <code>NAME</code> and <code>ADDRESS</code> are
  * string constants. When you register your schema with the ontology, such
  * constants become part of the vocabulary of the ontology.<br>
- * Schemata that describe concepts support inheritance (this is not true for
- * all other schemata, e.g., predicates, actions, etc.). You can define the
+ * Schemas that describe concepts support inheritance. You can define the
  * concept <code>Man</code> as a refinement of the concept <code>Person</code>:
  * <code>
  * ConceptSchema manSchema = new ConceptSchema(MAN);
- * manSchema.addSuperClass(personSchema);
+ * manSchema.addSuperSchema(personSchema);
  * </code>
  * Each element schema can be associated with a Java class to map elements of
  * the ontology that comply with a schema with Java objects of that class. The
@@ -100,24 +99,24 @@ import jade.core.CaseInsensitiveString;
  * }
  * </code>
  * When sending/receiving messages you can represent your content in terms of
- * objects belonging to classes that the ontology associates with schemata.<br>
+ * objects belonging to classes that the ontology associates with schemas.<br>
  * As the previous example suggests, you cannot use objects of class
  * <code>Person</code> when asking for the value of some attribute, e.g., when 
  * asking for the value of <code>address</code>. Basically, the problem is that
- * you cannot 'assign' a variable to an attribute of an object, i.e., 
+ * you cannot 'assign' a variable to an attribute of an object, i.e. 
  * you cannot write something like: 
  * <code>person.setName(new Variable("X"))</code>.<br>
  * In order to solve this problem, you can describe your content in terms of
  * <i>abstract descriptors</i>. An abstract descriptor is an
  * object that reifies an element of the ontology.
- * The following is the definition of the abstract
- * descriptor for the concept <code>Person</code>:
+ * The following is the creation of an abstract
+ * descriptor for a concept of type <code>Man</code>:
  * <code>
- * AbsConcept absPerson = new AbsConcept(MAN);
- * absPerson.setSlot(NAME,    "John");
- * absPerson.setSlot(ADDRESS, absAddress);
+ * AbsConcept absMan = new AbsConcept(MAN);
+ * absMan.setSlot(NAME,    "John");
+ * absMan.setSlot(ADDRESS, absAddress);
  * </code>
- * where <code>absAddress</code> is the abstract descriptor for the Mary's 
+ * where <code>absAddress</code> is the abstract descriptor for John's 
  * address:
  * <code>
  * AbsConcept absAddress = new AbsConcept(ADDRESS);
@@ -125,23 +124,20 @@ import jade.core.CaseInsensitiveString;
  * </code>
  * Objects of class <code>Ontology</code> allows you to:
  * <ul>
- * <li>register schemata with associated (i) a mandatory terms of the 
- *     vocabulary and, e.g., <code>NAME</code> (ii) an optional Java class, 
- *     e.g., <code>Person</code>;
+ * <li>register schemas with associated (i) a mandatory term of the 
+ *     vocabulary e.g. <code>NAME</code> and (ii) an optional Java class, 
+ *     e.g. <code>Person</code>;
  * <li>retrieve the registered information through various keys.
  * </ul>
- * The framework provides two ontologies that you can use for building your
+ * The framework already provides two ontologies that you can use for building your
  * application-specific ontologies:
  * <ul>
  * <li><code>BasicOntology</code>: that provides all basic elements, i.e., 
  *     primitive data types, aggregate types, etc.
- * <li><code>ACLOntology</code>: that extends the <code>BasicOntology</code> to
- *     provide the elements that the semantics of the FIPA ACL mandates, e.g., 
- *     the <code>Done</code> modality, variables with an associated 
- *     cardinality, etc.
+ * <li><code>ACLOntology</code>: that extends the <code>BasicOntology</code> and
+ *     provides the elements corresponding to the FIPA ACL performatives
  * </ul>
- * Application-specific ontologies should be implemented extending the 
- * <code>ACLOntology</code>. 
+ * Application-specific ontologies should be implemented extending one of them 
 
  * @see jade.content.Concept
  * @see jade.content.abs.AbsConcept
@@ -149,6 +145,7 @@ import jade.core.CaseInsensitiveString;
  * @see jade.content.onto.ACLOntology
  * @see jade.content.onto.BasicOntology
  * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
 public class Ontology {
 	  private static final String DEFAULT_INTROSPECTOR_CLASS = "jade.content.onto.ReflectiveIntrospector";
