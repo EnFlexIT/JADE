@@ -408,60 +408,66 @@ public class AchieveREInitiator extends FSMBehaviour {
 		    //int perf = ((ACLMessage) (getDataStore().get(REPLY_KEY))).getPerformative();
 		    ACLMessage msg1 = (ACLMessage) getDataStore().get(REPLY_KEY);
 		    if (timeoutExpired) {
-			if (sessions.size() == 0)
-			    ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
-			// if there are still sessions, then return -1
-		    } else if(msg1 == null){
-			//timeout was expired.
-			timeoutExpired = true;
-			// consider now that all the responses have been received
-			allResponsesReceived = true;
-			//reset the MsgReceiver state to an infinite timeout
-		    rec.set(mt,-1,getDataStore(),REPLY_KEY);
+		    	// Previous states were RECEIVE_REPLY -> CHECK_ALL_REPLIES_RECEIVED -> HANDLE_ALL_RESPONSES
+			 		if (sessions.size() == 0) {
+			    	ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
+			 		}
+					// if there are still sessions, then return -1
+		    } 
+		    else if (msg1 == null) {
+		    	// Previous state was RECEIVE_REPLY ECEIVED --> timeout has expired 
+					timeoutExpired = true;
+					// consider now that all the responses have been received
+					allResponsesReceived = true;
+					//reset the MsgReceiver state to an infinite timeout
+		    	rec.set(mt,-1,getDataStore(),REPLY_KEY);
 			
-			ret = ALL_RESPONSES_RECEIVED;
-			// remove all the sessions for which no response has been received
-			List sessionsToRemove = new ArrayList(sessions.size());
-			for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
-			    Object key = i.next();
-			    Session s = (Session)sessions.get(key);
-			    if ( s.getState() == INIT )
-				  sessionsToRemove.add(key);
-			}
-			for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); )
-				sessions.remove(i.next());
-			sessionsToRemove=null;  //frees memory	
-		    }else{
-			int perf = msg1.getPerformative();
-			if (isResponse(perf) && !allResponsesReceived) {
-			    // The current reply is a response.
-			    // Check if all responses have been received (this is the 
-			    // case when no active session is still in the INIT state).
-			    allResponsesReceived = true;
-			    Iterator it = sessions.values().iterator();
-			    while (it.hasNext()) {
-				Session s = (Session) it.next();
-				if (s.getState() == INIT) {
-				    allResponsesReceived = false;
-				    break;
-				}
-			    }
-			    if (allResponsesReceived) {
-					//set the Msgreceiver to an infite timeout.
-		          rec.set(mt,-1,getDataStore(),REPLY_KEY);
-				  ret = ALL_RESPONSES_RECEIVED;
-			    }
-			}
-			else {
-			    // If the current reply is a response it has already been
-			    // considered. Now check if all result notifications have
-			    // been received (this is the case when there are no active
-			    // sessions).
-			    if (sessions.size() == 0) {
-				ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
-			    }
-			} 
-		    }		
+					ret = ALL_RESPONSES_RECEIVED;
+					// remove all the sessions for which no response has been received
+					List sessionsToRemove = new ArrayList(sessions.size());
+					for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
+			    	Object key = i.next();
+			    	Session s = (Session)sessions.get(key);
+			    	if ( s.getState() == INIT ) {
+				  		sessionsToRemove.add(key);
+			    	}
+					}
+					for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); ) {
+						sessions.remove(i.next());
+					}
+					sessionsToRemove=null;  //frees memory	
+		  	}
+		  	else {
+					int perf = msg1.getPerformative();
+					if (isResponse(perf) && !allResponsesReceived) {
+			    	// The current reply is a response.
+			    	// Check if all responses have been received (this is the 
+			    	// case when no active session is still in the INIT state).
+			    	allResponsesReceived = true;
+			    	Iterator it = sessions.values().iterator();
+			    	while (it.hasNext()) {
+							Session s = (Session) it.next();
+							if (s.getState() == INIT) {
+				    		allResponsesReceived = false;
+				    		break;
+							}
+			    	}
+			    	if (allResponsesReceived) {
+							//set the Msgreceiver to an infite timeout.
+		        	rec.set(mt,-1,getDataStore(),REPLY_KEY);
+				  		ret = ALL_RESPONSES_RECEIVED;
+			    	}
+					}
+					else {
+			    	// If the current reply is a response it has already been
+			    	// considered. Now check if all result notifications have
+			    	// been received (this is the case when there are no active
+			    	// sessions).
+			    	if (sessions.size() == 0) {
+							ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
+			    	}
+					} 
+		  	}		
 		}
 		
 		public int onEnd() {
