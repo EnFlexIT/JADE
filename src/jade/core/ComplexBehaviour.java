@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.8  1998/10/30 18:22:36  rimassa
+  Added an implementation of 'reset()' method: a ComplexBehaviour can
+  reset itself by changing some state variables, by moving at the
+  beginning the cursor of its children list and by recursively calling
+  reset() for every child.
+
   Revision 1.7  1998/10/04 18:01:06  rimassa
   Added a 'Log:' field to every source file.
 
@@ -168,6 +174,23 @@ public abstract class ComplexBehaviour extends Behaviour {
 
   public boolean done() {
     return finished;
+  }
+
+  public void reset() {
+
+    subBehaviours.begin();
+
+    Behaviour b = subBehaviours.getCurrent();
+    while(b != null) {
+      b.reset();
+      subBehaviours.next();
+      b = subBehaviours.getCurrent();
+    }
+
+    subBehaviours.begin();
+    starting = true;
+    finished = false;
+
   }
 
   public void addBehaviour(Behaviour b) {
