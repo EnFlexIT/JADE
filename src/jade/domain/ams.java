@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.35  1999/07/13 19:54:23  rimassa
+  Changed AMS implementation to hold inside all the AMS Agent
+  Descriptors for the agents of the platform.
+
   Revision 1.34  1999/06/06 21:52:28  rimassa
   Modified 'create-agent' action to notify an agent's creator when a
   subsequent AMS registration fails.
@@ -110,6 +114,8 @@ package jade.domain;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -254,9 +260,9 @@ public class ams extends Agent {
 
       String agentName = amsd.getName();
       if(agentName != null)
-	myPlatform.AMSDumpData(agentName);
+	AMSDumpData();
       else
-	myPlatform.AMSDumpData();
+	AMSDumpData();
 
       throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
     }
@@ -282,8 +288,7 @@ public class ams extends Agent {
 
       // Write new agent data in Global Agent Descriptor Table
       try {
-	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
-			      amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
+	AMSNewData(amsd);
 	sendAgree();
 	sendInform();
 
@@ -323,8 +328,7 @@ public class ams extends Agent {
       checkMandatory(amsd);
 
       // Remove the agent data from Global Descriptor Table
-      myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
-			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
+      AMSRemoveData(amsd);
       sendAgree();
       sendInform();
 
@@ -345,8 +349,7 @@ public class ams extends Agent {
       checkMandatory(amsd);
 
       // Modify agent data from Global Descriptor Table
-      myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
-			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
+      AMSChangeData(amsd);
       sendAgree();
       sendInform();
     }
@@ -384,7 +387,7 @@ public class ams extends Agent {
 	String newRMA = current.getSource();
 
 	// Send back the whole container list.
-	Set s = myPlatform.AMSContainerNames();
+	Set s = myPlatform.containerNames();
 	Iterator i = s.iterator();
 	while(i.hasNext()) {
 	  String containerName = (String)i.next();
@@ -394,20 +397,21 @@ public class ams extends Agent {
 	  StringWriter w = new StringWriter();
 	  ev.toText(w);
 
-	  RMANotification.setDest(newRMA);
+	  RMANotification.removeAllDests();
+	  RMANotification.addDest(newRMA);
 	  RMANotification.setContent(w.toString());
 	  send(RMANotification);
 
 	}
 
 	// Send all agent names, along with their container name.
-	s = myPlatform.AMSAgentNames();
+	s = myPlatform.agentNames();
 	i = s.iterator();
 	while(i.hasNext()) {
           try {
 	    String agentName = (String)i.next();
-	    String containerName = myPlatform.AMSGetContainerName(agentName);
-	    String agentAddress = myPlatform.AMSGetAddress(agentName); // FIXME: Need to use AMSAgDesc directly
+	    String containerName = myPlatform.getContainerName(agentName);
+	    String agentAddress = myPlatform.getAddress(agentName); // FIXME: Need to use AMSAgDesc directly
 	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 	    amsd.setName(agentName);
 	    amsd.setAddress(agentAddress);
@@ -421,11 +425,12 @@ public class ams extends Agent {
 	    ev.toText(w);
 
 	    RMANotification.setContent(w.toString());
-	    RMANotification.setDest(newRMA);
+	    RMANotification.removeAllDests();
+	    RMANotification.addDest(newRMA);
 	    send(RMANotification);
 	  }
-	  catch(FIPAException fe) {
-	    fe.printStackTrace();
+	  catch(NotFoundException nfe) {
+	    nfe.printStackTrace();
 	  }
 	}
 
@@ -532,6 +537,11 @@ public class ams extends Agent {
 	ev.setKind(AgentManagementOntology.AMSContainerEvent.DEADAGENT);
 	ev.setContainerName(ad.containerName);
 	ev.setAgentDescriptor(ad.amsd);
+
+	// Remove Agent Descriptor from table
+	String agentName = ad.amsd.getName();
+	descrTable.remove(agentName.toLowerCase());
+
 	StringWriter w = new StringWriter();
 	ev.toText(w);
 	RMANotification.setContent(w.toString());
@@ -570,7 +580,7 @@ public class ams extends Agent {
       // Obtain container name and ask AgentPlatform to kill it
       AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
       String containerName = kca.getContainerName();
-      myPlatform.AMSKillContainer(containerName);
+      myPlatform.killContainer(containerName);
       sendAgree();
       sendInform();
     }
@@ -593,18 +603,19 @@ public class ams extends Agent {
 
       // Create a new agent
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-      myPlatform.AMSCreateAgent(amsd.getName(), className, containerName);
+      try {
+	myPlatform.createAgent(amsd.getName(), className, containerName);
+	// An 'inform Done' message will be sent to the requester only
+	// when the newly created agent will register itself with the
+	// AMS. The new agent's name will be used as the key in the map.
+	ACLMessage reply = getReply();
+	reply = (ACLMessage)reply.clone();
 
-      // An 'inform Done' message will be sent to the requester only
-      // when the newly created agent will register itself with the
-      // AMS. The new agent's name will be used as the key in the map.
-      ACLMessage reply = getReply();
-      reply = (ACLMessage)reply.clone();
-
-      pendingInforms.put(amsd.getName(), reply);
-
-      //      sendInform();
-
+	pendingInforms.put(amsd.getName(), reply);
+      }
+      catch(UnreachableException ue) {
+	throw new NoCommunicationMeansException();
+      }
     }
 
   } // End of CreateBehaviour class
@@ -621,11 +632,17 @@ public class ams extends Agent {
       AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
       String agentName = kaa.getAgentName();
       String password = kaa.getPassword();
-
-      myPlatform.AMSKillAgent(agentName, password);
-
-      sendAgree();
-      sendInform();
+      try {
+	myPlatform.kill(agentName, password);
+	sendAgree();
+	sendInform();
+      }
+      catch(UnreachableException ue) {
+	throw new NoCommunicationMeansException();
+      }
+      catch(NotFoundException nfe) {
+	throw new AgentNotRegisteredException();
+      }
 
     }
 
@@ -646,6 +663,9 @@ public class ams extends Agent {
 
   // The AgentPlatform where information about agents is stored 
   private AgentManager myPlatform;
+
+  // The table of 'AMS-Agent-Description' data for all the agents
+  private Map descrTable;
 
   // Maintains an association between action names and behaviours
   private FipaRequestResponderBehaviour dispatcher;
@@ -685,6 +705,7 @@ public class ams extends Agent {
   */
   public ams(AgentManager ap) {
     myPlatform = ap;
+    descrTable = new HashMap();
 
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
@@ -733,6 +754,107 @@ public class ams extends Agent {
 
   }
 
+  // This one is called in response to a 'register-agent' action
+  private void AMSNewData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException, AgentAlreadyRegisteredException {
+
+    String agentName = amsd.getName();
+    AgentManagementOntology.AMSAgentDescriptor old = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+
+    // FIXME: Should accept foreign agents by checking with the GADT
+
+    if(old != null) {
+      throw new AgentAlreadyRegisteredException();
+    }
+
+    descrTable.put(agentName.toLowerCase(), amsd);
+
+  }
+
+  // This one is called in response to a 'modify-agent' action
+  private void AMSChangeData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+
+    try {
+      String agentName = amsd.getName();
+      AgentManagementOntology.AMSAgentDescriptor toChange = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+      if(toChange == null)
+	throw new AgentNotRegisteredException();
+
+      String address = amsd.getAddress();
+      if(address != null)
+	toChange.setAddress(address);
+      String signature = amsd.getSignature();
+      if(signature != null)
+	toChange.setSignature(signature);
+      String delegateAgentName = amsd.getDelegateAgentName();
+      if(delegateAgentName != null)
+	toChange.setDelegateAgentName(delegateAgentName);
+      String forwardAddress = amsd.getForwardAddress();
+      if(forwardAddress != null)
+	toChange.setAddress(forwardAddress);
+      String ownership = amsd.getOwnership();
+      if(ownership != null)
+	toChange.setOwnership(ownership);
+      String APState = amsd.getAPState();
+      if(APState != null) {
+	AgentManagementOntology o = AgentManagementOntology.instance();
+	int state = o.getAPStateByName(APState);
+	int oldState = o.getAPStateByName(toChange.getAPState());
+	switch(state) {
+	case Agent.AP_SUSPENDED:
+	  myPlatform.suspend(agentName, null);
+	  break;
+	case Agent.AP_WAITING:
+	  myPlatform.wait(agentName, null);
+	  break;
+	case Agent.AP_ACTIVE:
+	  if(oldState == Agent.AP_WAITING)
+	    myPlatform.wake(agentName, null);
+	  else
+	    myPlatform.activate(agentName, null);
+	  break;
+	case Agent.AP_DELETED:
+	  myPlatform.kill(agentName, null);
+	  break;
+	}
+
+	toChange.setAPState(state);
+
+      }
+    }
+    catch(NotFoundException nfe) {
+      throw new AgentNotRegisteredException();
+    }
+    catch(UnreachableException ue) {
+      throw new NoCommunicationMeansException();
+    }
+
+  }
+
+
+  // This one is called in response to a 'deregister-agent' action
+  private void AMSRemoveData(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+    String agentName = amsd.getName();
+    AgentManagementOntology.AMSAgentDescriptor toRemove = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+    if(toRemove == null) {
+      throw new jade.domain.UnableToDeregisterException();
+    }
+    toRemove.setAPState(Agent.AP_DELETED);
+    // This descriptor will be removed from the table after the platform notification
+  }
+
+  private void AMSDumpData() {
+    Iterator descriptors = descrTable.values().iterator();
+    while(descriptors.hasNext()) {
+      AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descriptors.next();
+      amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    }
+  }
+
+  private void AMSDumpData(String agentName) {
+    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+    amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+  }
+
 
   /**
    The AMS must have a special version for this method, or a deadlock will occur.
@@ -743,8 +865,16 @@ public class ams extends Agent {
     // Skip all fipa-request protocol and go straight to the target
     
     try { // FIXME: APState parameter is never used
-      myPlatform.AMSNewData(getName(), getAddress(), signature, "active", delegateAgentName,
-			    forwardAddress, ownership);
+      AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+      amsd.setName(getName());
+      amsd.setAddress(getAddress());
+      amsd.setSignature(signature);
+      amsd.setAPState(Agent.AP_ACTIVE);
+      amsd.setDelegateAgentName(delegateAgentName);
+      amsd.setForwardAddress(forwardAddress);
+      amsd.setOwnership(ownership);
+
+      AMSNewData(amsd);
     }
     // No exception should occur since this is a special case ...
     catch(AgentAlreadyRegisteredException aare) {
@@ -760,7 +890,12 @@ public class ams extends Agent {
     The AMS must have a special version for this method, or a deadlock will occur.
   */
   public void deregisterWithAMS() throws FIPAException {
-    myPlatform.AMSRemoveData(getName(), getAddress(), null, "active", null, null, null);
+      AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+      amsd.setName(getName());
+      amsd.setAddress(getAddress());
+      amsd.setAPState(Agent.AP_ACTIVE);
+
+      AMSRemoveData(amsd);
   }
 
   // Methods to be called from AgentPlatform to notify AMS of special events
@@ -787,7 +922,9 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postNewAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+  public synchronized void postNewAgent(String containerName, String agentName) {
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+    amsd.setName(agentName);
     newAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
@@ -796,7 +933,8 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postDeadAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+  public synchronized void postDeadAgent(String containerName, String agentName) {
+    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
     deadAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
