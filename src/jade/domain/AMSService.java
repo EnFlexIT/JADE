@@ -23,12 +23,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.util.leap.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+
+//import jade.content.lang.sl.SimpleSLTokenizer;
+//import jade.content.lang.sl.SL0Vocabulary;
 
 import jade.content.*;
 import jade.content.lang.*;
