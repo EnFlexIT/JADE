@@ -1,34 +1,24 @@
-/*
-  $Log$
-  Revision 1.2  1999/09/03 10:42:49  rimassa
-  Some minor graphical adjustments.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.1  1999/09/02 15:06:10  rimassa
-  Abstract interface for GUI/DF interaction.
+GNU Lesser General Public License
 
-  Revision 1.12  1999/07/02 14:34:16  bellifemine
-  Versione 1.0 di JADE
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.8  1999/06/22 13:16:17  rimassa
-  Added a method to perform asynchronous disposal of the DF GUI.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.7  1999/04/06 16:11:46  rimassa
-  Reimplemented DF GUI using Swing.
-
-  Revision 1.4  1999/03/14 17:45:36  rimassa
-  Decoupled event handler thread from DF agent thread using an event
-  queue, avoiding deadlock on agent registration through GUI.
-
-  Revision 1.3  1999/02/14 23:19:22  rimassa
-  Changed getName() calls to getLocalName() where appropriate.
-
-  Revision 1.2  1999/02/04 13:25:02  rimassa
-  Removed some debugging code.
-
-  Revision 1.1  1999/02/03 15:36:55  rimassa
-  A class working as a GUI for DF agents.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.gui;
 
@@ -46,6 +36,12 @@ import java.net.UnknownHostException;
 //import jade.lang.acl.*;
 import jade.domain.AgentManagementOntology; 
 import jade.gui.GUI2DFCommunicatorInterface;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Caire - CSELT S.p.A
+@version $Date$ $Revision$
+*/
 
 public class DFGUI extends JFrame {
 

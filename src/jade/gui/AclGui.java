@@ -1,24 +1,25 @@
-///////////////////////////////////////////////////////////////
-//   
-//   /     /  ___/  ___/   / /_   _/ 
-//  /  /--/___  /  ___/   /_/ / / /   
-// /_____/_____/_____/_____/_/_/_/
-// 
-// -----------------------------------------------------------
-// PROJECT:   DUMMY AGENT	
-// FILE NAME: AclGui.java	
-// CONTENT:   This file includes the definition of the AclGui class
-//            that provides 
-//            - a JPanel (that can be normally added to a Container) with 
-//              the controls required to input/display an ACL message
-//            - methods to get and set the ACL message displayed in the panel
-//            - static methods to show and edit an ACL Message in a temporary
-//              modal JDialog.
-// AUTHORS:	  Giovanni Caire	
-// RELEASE:	  4.0	
-// MODIFIED:  22/04/1999	
-// 
-//////////////////////////////////////////////////////////////
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 
 package jade.gui;
@@ -33,6 +34,12 @@ import java.util.*;
 // Import required Jade classes
 import jade.core.*;
 import jade.lang.acl.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Caire - CSELT S.p.A
+@version $Date$ $Revision$
+*/
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 
