@@ -12,8 +12,15 @@
  * @author Fabio Bellifemine - CSELT S.p.A.
  *
  * $Log$
- * Revision 1.6  1999/03/09 13:49:52  rimassa
- * Commented oud some debugging printouts.
+ * Revision 1.7  1999/04/06 00:08:07  rimassa
+ * New version by Fabio.
+ *
+ * Revision 1.7  1999/03/31 20:54:49  rimassa
+ * New version received from Fabio.
+ *
+ * Revision 1.13  1999/03/31 08:06:06  bellifemine
+ * The ACLMessage content is quoted before Jess assertion and then unquoted before
+ * Jess send.
  *
  * Revision 1.12  1999/02/25 17:26:05  bellifemine
  * Versione 0.975 inviata da Giovanni il 25/2/99 + FipaContractNetResponderBehaviour.java mio
@@ -134,8 +141,10 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 	msg.setLanguage(vv.get(11).stringValue());
       if (vv.get(12).stringValue() != "nil")
 	msg.setOntology(vv.get(12).stringValue());      
-      if (vv.get(13).stringValue() != "nil") 
-	msg.setContent(vv.get(13).stringValue());
+      if (vv.get(13).stringValue() != "nil") {
+	//FIXME undo replace chars of JessBehaviour.java. Needs to be done better
+	msg.setContent(unquote(vv.get(13).stringValue()));
+      }
 
       //msg.dump();
       //msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
@@ -143,6 +152,7 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 
       return Funcall.TRUE();
     }
+
 
     // Unfortunatelly, Jess has already this method but it is not defined public
     //  therefore I reimplemented it. It might suffer in future from changes to Jess.
@@ -225,17 +235,16 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
     if (executedPasses < m_maxJessPasses) {
       System.out.println(myAgent.getName()+ " is blocked to wait a message...");
       msg = myAgent.blockingReceive();
+      // assert the fact message in Jess
+      assert(JessString(msg));
     } else {
       System.out.println(myAgent.getName()+ " is checking if there is a message...");
       msg = myAgent.receive();
     }
-    // msg.dump();
-    // assert the fact message in Jess
-    assert(JessString(msg));
+
     // run jess 
     try {
       // jess.executeCommand("(facts)");
-      System.out.println("Running Jess");
       if (m_maxJessPasses > 0) { 
 	executedPasses=jess.run(m_maxJessPasses);
 	System.out.println("Jess has executed "+executedPasses+" passes");
@@ -263,6 +272,81 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
     try 		     { jess.executeCommand(fact); }
     catch (ReteException re) { re.printStackTrace((jess.display()).stderr()); }
   } 
+
+
+
+  /*
+   * replace a char in a String with a String
+   * It is used to convert all the quotation marks in backslash quote
+   * before asserting the content of a message in Jess.
+   * @return the new String
+   */
+public String stringReplace(String str, char oldChar, String s) {
+  int len = str.length();
+  int i = 0; int j=0;  int k=0;
+  char[] val = new char[len];
+  str.getChars(0,len,val,0); // put chars into val
+  char buf[] = new char[len*s.length()];
+
+  while (i < len) {
+    if (val[i] == oldChar) {
+      s.getChars(0,s.length(),buf,j);
+      j+=s.length();
+    } else { 
+      buf[j]=val[i];
+      j++;
+    }
+    i++;
+  }
+  return new String(buf, 0, j);
+}
+
+  /**
+   * Remove the first and the last character of the string 
+   * (if it is a quotation mark) and convert all backslash quote in quote
+   * It is used to convert a Jess content into an ACL message content.
+   */
+public String unquote(String str) {
+  String t1= str.trim();
+  if (t1.startsWith("\"")) 
+    t1 = t1.substring(1);
+  if (t1.endsWith("\"")) 
+    t1 = t1.substring(0,t1.length()-1);
+  int len = t1.length();
+  int i = 0; int j=0;  int k=0;
+  char[] val = new char[len];
+  t1.getChars(0,len,val,0); // put chars into val
+  char buf[] = new char[len];
+
+  boolean maybe = false;
+  while (i < len) {
+    if (maybe) {
+      if (val[i] == '\"') 
+	j--;
+      buf[j] = val[i];
+      maybe=false;
+      i++; 
+      j++;
+    } else {
+      if (val[i] == '\\') {
+	maybe=true;
+      }
+      buf[j] = val[i];
+      i++; j++;
+    }
+  }
+  return new String(buf, 0, j);
+}
+
+  /**
+   * Insert the first and the last character of the string as a quotation mark
+   * Replace all the quote characters into backslash quote.
+   * It is used to convert an ACL message content into a Jess content.
+   */
+public String quote(java.lang.String str) {
+  //replace all chars " in \ "
+  return "\"" + stringReplace(str,'"',"\\\"") + "\""; 
+}
 
 } // end JessBehaviour
 
