@@ -55,6 +55,6 @@ interface ServiceManagerRMI extends Remote {
     Service.Slice findSlice(String serviceKey, String sliceKey) throws RemoteException, ServiceException;
     Vector findAllSlices(String serviceKey) throws RemoteException, ServiceException;
    
-    void adopt(Node n) throws RemoteException;
+    void adopt(Node n, Node[] children) throws RemoteException;
     void ping() throws RemoteException;    
 }

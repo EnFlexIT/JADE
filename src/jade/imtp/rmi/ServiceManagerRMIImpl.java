@@ -153,9 +153,9 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
   }
   
-  public void adopt(Node n) throws RemoteException {
+  public void adopt(Node n, Node[] children) throws RemoteException {
 		try {
-		    impl.adopt(n);
+		    impl.adopt(n, children);
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
