@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.18  1999/04/06 16:12:30  rimassa
+  Added a check on InterruptedException during dispose().
+
   Revision 1.17  1999/04/06 00:09:57  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -281,7 +284,12 @@ public class rma extends Agent {
   public void takeDown() {
     send(AMSCancellation);
     myGUI.setVisible(false);
-    myGUI.dispose();
+    try {
+      myGUI.dispose();
+    }
+    catch(InterruptedException ie) {
+      // Do nothing, since it's time to die...
+    }
   }
 
 
