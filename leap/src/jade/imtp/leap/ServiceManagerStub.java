@@ -213,10 +213,11 @@ class ServiceManagerStub extends Stub {
 	}
     }
 
-    public void ping() throws IMTPException {
+    public void adopt(Node n) throws IMTPException {
 	try {
 
-	    Command cmd = new Command(Command.SERVICE_MANAGER_PING, remoteID);
+	    Command cmd = new Command(Command.SERVICE_MANAGER_ADOPT, remoteID);
+	    cmd.addParam(n);
 
 	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 
