@@ -36,6 +36,8 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
+import jade.core.Profile;
+import jade.core.IMTPManager;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.util.Logger;
@@ -64,6 +66,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
  
 	private int      state = LISTENING;
 	
+	private String host;
   private ServerSocket server;
   private ICP.Listener cmdListener;
   
@@ -77,19 +80,67 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 
   private ConnectionFactory connFactory;
   
-  private InetAddress localHost;
-
 	private Logger myLogger;
 	
   /**
    * Constructor declaration
    */
-  public JICPServer(int port, boolean changePortIfBusy, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
+  public JICPServer(Profile p, JICPPeer myPeer, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
     cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
   	myLogger = Logger.getMyLogger(getClass().getName());
-		
+
+
+  	StringBuffer sb = null;
+		int idLength;
+		String peerID = myPeer.getID();
+		if (peerID != null) {
+  		sb = new StringBuffer(peerID);
+			sb.append('-');
+			idLength = sb.length();
+		}
+		else {
+			sb = new StringBuffer();
+			idLength = 0;
+		}
+			
+		// Local host
+		sb.append(JICPProtocol.LOCAL_HOST_KEY);
+		host = p.getParameter(sb.toString(), null);
+		if (host == null) {
+			// Local host not specified --> try to get it using JICP GET_ADDRESS
+			sb.setLength(idLength);
+			sb.append(JICPProtocol.REMOTE_URL_KEY);
+			String remoteURL = p.getParameter(sb.toString(), null);
+			if (remoteURL != null) {
+				host = myPeer.getAddress(remoteURL);
+			}
+  		else {
+  			// Retrieve local host automatically
+  			host = Profile.getDefaultNetworkName();
+  		}
+		}
+			
+		// Local port: a peripheral container can change it if busy...
+    int port = JICPProtocol.DEFAULT_PORT;
+		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true);
+		sb.setLength(idLength);
+		sb.append(JICPProtocol.LOCAL_PORT_KEY);
+		String strPort = p.getParameter(sb.toString(), null);
+    try {
+      port = Integer.parseInt(strPort);
+    } 
+    catch (Exception e) {
+      // Try to use the Peer-ID as the port number
+    	try {
+    		port = Integer.parseInt(peerID);
+    	}
+    	catch (Exception e1) {
+    		// Keep default
+    	}
+    } 
+	  	
 		// Read the LEAP configuration properties
 		try {
 			leapProps.load(LEAP_PROPERTIES_FILE);
@@ -112,31 +163,19 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 			}
 		}
 		
-    try {
-    	localHost = InetAddress.getLocalHost(); 
-      server = new ServerSocket(port);
-    } 
-    catch (IOException ioe) {
-    	if (changePortIfBusy) {
-    		// The specified port is busy. Let the system find a free one
-    		try {
-      		server = new ServerSocket(0);
-    		}
-    		catch (IOException ioe2) {
-      		throw new ICPException("Problems initializing server socket. No free port found");
-				}
-    	}
-    	else {
-	      throw new ICPException("I/O error opening server socket on port "+port);
-    	}
-    } 
-
+		// Create the ServerSocket
+		server = myPeer.getServerSocket(host, port, changePortIfBusy);
+		
     setDaemon(true);
     setName("JICPServer-"+getLocalPort());
   }
 
   public int getLocalPort() {
   	return server.getLocalPort();
+  }
+  
+  public String getLocalHost() {
+  	return host;
   }
   
   /**
@@ -221,6 +260,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
    * Called by a Mediator to notify that it is no longer active
    */
   public void deregisterMediator(String id) {
+  	System.out.println("Deregistering mediator "+id);
     mediators.remove(id);
   } 
   
@@ -366,7 +406,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  	id = msisdn;
 					  	if (id == null) {
 					      // Construct a default id using the string representation of the server's TCP endpoint
-					      id = "BE-"+localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+					      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
 					  	}
 					  }
 					  
@@ -375,9 +415,9 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  // using the MSISDN the new name is equals to the old one.
 					  if (id.equals(msisdn)) {
 					  	JICPMediator old = (JICPMediator) mediators.get(id);
-	    				myLogger.log(Logger.INFO,"Killing old mediator "+id);
 					  	if (old != null) {
 					  		// This is a zombie mediator --> kill it
+	    					myLogger.log(Logger.INFO,"Killing old mediator "+id);
 					  		old.kill();
 					  		// Be sure the zombie container has been removed
 					  		waitABit(1000);
@@ -389,6 +429,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, pkt, addr, port);
+				  	System.out.println("Reregistering mediator "+id);
 	          mediators.put(id, m);
 	          
 	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
@@ -471,9 +512,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
         try {
           if (closeConnection) {
             // Close connection
-		        if (!addr.equals(localHost)) {
-	          	myLogger.log(Logger.INFO,"Closing connection with "+addr+":"+port);
-		        }
+          	myLogger.log(Logger.FINEST,"Closing connection with "+addr+":"+port);
           	c.close();
           } 
         } 
