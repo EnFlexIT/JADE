@@ -208,7 +208,8 @@ public class Sniffer extends jade.core.Agent {
 	  AMSEvent ev = eo.getEvent();
 	  String eventName = ev.getEventName();
 	  EventHandler h = (EventHandler)handlers.get(eventName);
-	  h.handle(ev);
+	  if(h != null)
+	    h.handle(ev);
 	}
 	catch(FIPAException fe) {
 	  fe.printStackTrace();
