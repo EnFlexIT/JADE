@@ -173,33 +173,43 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	* connection open.
 	*/
 	public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
-		if (connectionDropped) {
-			droppedToDisconnected();
+		checkTerminatedInfo(pkt);
+		
+		if (peerActive) {
+			if (connectionDropped) {
+				droppedToDisconnected();
+			}
+	  	
+	  	// Update keep-alive info
+	  	lastReceivedTime = System.currentTimeMillis();
+	  	
+	  	boolean inp = false;
+	  	byte[] data = pkt.getData();
+	  	if (data.length == 1) {
+	  		inp = (data[0] == 1);
+	  	}
+	   	if (inp) {
+	   		inpManager.setConnection(c);
+	   		if (myLogger.isLoggable(Logger.CONFIG)) {
+	   			myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd");
+	   		}
+	   		((NIOJICPConnection) c).configureBlocking();
+	   	}
+	   	else {
+	   		outManager.setConnection(c);
+	   		if (myLogger.isLoggable(Logger.CONFIG)) {
+	   			myLogger.log(Logger.CONFIG, myID+": New OUT Connection establishd");
+	   		}
+	   	}
+	
+	    return true;
 		}
-  	
-  	// Update keep-alive info
-  	lastReceivedTime = System.currentTimeMillis();
-  	
-  	boolean inp = false;
-  	byte[] data = pkt.getData();
-  	if (data.length == 1) {
-  		inp = (data[0] == 1);
-  	}
-   	if (inp) {
-   		inpManager.setConnection(c);
-   		if (myLogger.isLoggable(Logger.CONFIG)) {
-   			myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd");
-   		}
-   		((NIOJICPConnection) c).configureBlocking();
-   	}
-   	else {
-   		outManager.setConnection(c);
-   		if (myLogger.isLoggable(Logger.CONFIG)) {
-   			myLogger.log(Logger.CONFIG, myID+": New OUT Connection establishd");
-   		}
-   	}
-
-    return true;
+		else {
+  		// The remote FrontEnd has terminated spontaneously -->
+  		// Kill the above container (this will also kill this NIOBEDispatcher).
+  		kill();
+  		return false;
+		}
 	}
 	
 	/**
@@ -393,8 +403,8 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
      Handle a connection DROP_DOWN request from the FE.
    */
 	protected void handleDropDown(Connection c, JICPPacket pkt, InetAddress addr, int port) {
-		if (myLogger.isLoggable(Logger.CONFIG)) {
-			myLogger.log(Logger.CONFIG,  myID+": DROP_DOWN request received.");
+		if (myLogger.isLoggable(Logger.INFO)) {
+			myLogger.log(Logger.INFO,  myID+": DROP_DOWN request received.");
 		}
 		
 		JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
