@@ -266,7 +266,7 @@ public class BEManagementService extends BaseService {
 				leapProps.load(fileName);
 			}
 			catch (Exception e) {
-				myLogger.log(Logger.FINE, myLogPrefix+"Can't read LEAP property file "+fileName+". "+e);
+				myLogger.log(Logger.CONFIG, myLogPrefix+"Can't read LEAP property file "+fileName+". Keep default. ["+e+"]");
 				// Ignore: no back end properties specified
 			}
 			
@@ -280,7 +280,7 @@ public class BEManagementService extends BaseService {
 					myPDPContextManager.registerListener(this);
 				}
 				catch (Throwable t) {
-					myLogger.log(Logger.WARNING, myLogPrefix+" Cannot load PDPContext manager "+pdpContextManagerClass);
+					myLogger.log(Logger.WARNING, myLogPrefix+"Cannot load PDPContext manager "+pdpContextManagerClass);
 					t.printStackTrace();
 					myPDPContextManager = null;
 				}
@@ -470,7 +470,9 @@ public class BEManagementService extends BaseService {
 			        p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 			        
 			        String owner = p.getProperty(JICPProtocol.OWNER_KEY);
-			        myLogger.log(Logger.INFO, myLogPrefix+" Owner = "+owner);
+			        if(myLogger.isLoggable(Logger.CONFIG)) {
+			        	myLogger.log(Logger.CONFIG, myLogPrefix+"Owner = "+owner);
+			        }
 			        
 			        // If there is a PDPContextManager add the PDP context properties
 			        if (myPDPContextManager != null) {
@@ -538,7 +540,7 @@ public class BEManagementService extends BaseService {
 			        reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 		      	}
 		      	else {
-		      		myLogger.log(Logger.WARNING, myLogPrefix+" CREATE_MEDIATOR request received on a connection already linked to an existing mediator");
+		      		myLogger.log(Logger.WARNING, myLogPrefix+"CREATE_MEDIATOR request received on a connection already linked to an existing mediator");
 		        	reply = new JICPPacket("Unexpected packet type", null);
 		      	}
 		      	break;
@@ -572,7 +574,7 @@ public class BEManagementService extends BaseService {
 			        // Retrieve the mediator to connect to
 			        mediator = getFromID(recipientID);
 			        
-			        if (mediator != null) {
+			        if (mediator != null && mediator.getID() != null) {
 			        	closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
 								if (!closeConnection) {
 									// The mediator wants to keep this connection open --> associate 
@@ -587,7 +589,7 @@ public class BEManagementService extends BaseService {
 			        }
 		      	}
 		      	else {
-		      		myLogger.log(Logger.WARNING, myLogPrefix+" CONNECT_MEDIATOR request received on a connection already linked to an existing mediator");
+		      		myLogger.log(Logger.WARNING, myLogPrefix+"CONNECT_MEDIATOR request received on a connection already linked to an existing mediator");
 		        	reply = new JICPPacket("Unexpected packet type", null);
 		      	}
 		        break;
@@ -606,7 +608,7 @@ public class BEManagementService extends BaseService {
 		          reply = mediator.handleJICPPacket(connection, pkt, address, port);
 		        } 
 		        else {
-		      		myLogger.log(Logger.WARNING, myLogPrefix+" No mediator for incoming packet of type "+type);
+		      		myLogger.log(Logger.WARNING, myLogPrefix+"No mediator for incoming packet of type "+type);
 		        	if (type == JICPProtocol.COMMAND_TYPE) {
 			        	reply = new JICPPacket("Mediator not found", null);
 		        	}
@@ -616,7 +618,7 @@ public class BEManagementService extends BaseService {
       }
       catch (Exception e) {
       	// Error handling the received packet
-    		myLogger.log(Logger.WARNING, myLogPrefix+"Error handling incoming packet");
+    		myLogger.log(Logger.WARNING, myLogPrefix+"Error handling incoming packet. "+e);
       	e.printStackTrace();
       	// If the incoming packet was a request, send back a generic error response
         if (type == JICPProtocol.COMMAND_TYPE ||
@@ -880,7 +882,7 @@ public class BEManagementService extends BaseService {
 	      }
 	      catch (Exception e) {
 	      	if (state == ACTIVE_STATE) {
-	        	myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Error selecting next IO event. ");
+	        	myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Error selecting next IO event. "+e);
 	          e.printStackTrace();
 	
 	          // Abort
@@ -925,10 +927,10 @@ public class BEManagementService extends BaseService {
 		  	lm.register(sc);
 	  	}
 	  	catch (JADESecurityException jse) {
-	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Connection attempt from malicious address "+jse.getMessage());
+	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Connection attempt from malicious address "+jse.getMessage());
 	  	}
 	  	catch (Exception e) {
-	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Error accepting incoming connection");
+	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Error accepting incoming connection. "+e);
 	  		e.printStackTrace();
 	  	}
 	  }
@@ -958,7 +960,7 @@ public class BEManagementService extends BaseService {
 		  			//System.out.println(Thread.currentThread().getName()+": Done");
 	  			}
 			  	catch (Exception e) {
-			  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Error registering socket channel for asynchronous IO");
+			  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Error registering socket channel for asynchronous IO. "+e);
 			  		e.printStackTrace();
 			  	}
 	  		}
