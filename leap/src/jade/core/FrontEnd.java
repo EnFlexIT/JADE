@@ -30,6 +30,14 @@ import jade.lang.acl.ACLMessage;
 */
 
 public interface FrontEnd {
+
+  /**
+     This constant is the name of the property whose value contains
+     the list of addresses where a contaner Front End can contact its
+     Back End.
+  */
+  static final String REMOTE_BACK_END_ADDRESSES = "beaddrs";
+
 	/**
 	   Request the FrontEnd container to create a new agent.
 	   @param name The name of the new agent.
