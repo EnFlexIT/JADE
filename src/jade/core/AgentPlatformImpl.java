@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  1999/02/04 12:57:07  rimassa
+  Added a 'FIXME:' reminder.
+
   Revision 1.22  1999/02/03 10:13:58  rimassa
   Added server side CORBA support: now the AgentPlatform contains a
   CORBA object implementation for FIPA_Agent_97 IDL interface.
@@ -418,6 +421,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     try {
       // Extract the agent name from the beginning to the '@'
+      // FIXME: Platform crash on missing '@'
       String simpleName = agentName.substring(0,agentName.indexOf('@'));
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
       if(ad == null)
