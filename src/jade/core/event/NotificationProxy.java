@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
+//#J2ME_EXCLUDE_FILE
+
+
 import jade.core.Node;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -42,7 +45,7 @@ public class NotificationProxy extends Service.SliceProxy implements Notificatio
 
     public void sniffOn(AID snifferName, AID targetName) throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_SNIFFON, NotificationService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_SNIFFON, NotificationSlice.NAME, null);
 	    cmd.addParam(snifferName);
 	    cmd.addParam(targetName);
 
@@ -65,7 +68,7 @@ public class NotificationProxy extends Service.SliceProxy implements Notificatio
 
     public void sniffOff(AID snifferName, AID targetName) throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_SNIFFOFF, NotificationService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_SNIFFOFF, NotificationSlice.NAME, null);
 	    cmd.addParam(snifferName);
 	    cmd.addParam(targetName);
 
@@ -88,7 +91,7 @@ public class NotificationProxy extends Service.SliceProxy implements Notificatio
 
     public void debugOn(AID introspectorName, AID targetName) throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_DEBUGON, NotificationService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_DEBUGON, NotificationSlice.NAME, null);
 	    cmd.addParam(introspectorName);
 	    cmd.addParam(targetName);
 
@@ -111,7 +114,7 @@ public class NotificationProxy extends Service.SliceProxy implements Notificatio
 
     public void debugOff(AID introspectorName, AID targetName) throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_DEBUGOFF, NotificationService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_DEBUGOFF, NotificationSlice.NAME, null);
 	    cmd.addParam(introspectorName);
 	    cmd.addParam(targetName);
 

@@ -23,6 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
+
+//#MIDP_EXCLUDE_FILE
+
+
 import jade.core.Service;
 import jade.core.AID;
 import jade.core.IMTPException;
@@ -35,6 +39,80 @@ import jade.core.IMTPException;
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
 public interface NotificationSlice extends Service.Slice {
+
+
+    /**
+       The name of this service.
+    */
+    static final String NAME = "jade.core.event.Notification";
+
+    /**
+       This command name represents the action of activating an
+       instance of the Sniffer agent.
+    */
+    static final String SNIFF_ON = "Sniff-On";
+
+    /**
+       This command name represents the action of deactivating a
+       previously started instance of the Sniffer agent.
+    */
+    static final String SNIFF_OFF = "Sniff-Off";
+
+    /**
+       This command name represents the action of activating an
+       instance of the Introspector agent.
+    */
+    static final String DEBUG_ON = "Debug-On";
+
+    /**
+       This command name represents the action of deactivating a
+       previously started instance of the Introspector agent.
+    */
+    static final String DEBUG_OFF = "Debug-Off";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>MessagePosted</code> event.
+    */
+    static final String NOTIFY_POSTED = "Notify-Posted";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>MessageReceived</code> event.
+    */
+    static final String NOTIFY_RECEIVED = "Notify-Received";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedAgentState</code> event.
+    */
+    static final String NOTIFY_CHANGED_AGENT_STATE = "Notify-Changed-Agent-State";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedAgentPrincipal</code> event.
+    */
+    static final String NOTIFY_CHANGED_AGENT_PRINCIPAL = "Notify-Changed-Agent-Principal";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>BehaviourAdded</code> event.
+    */
+    static final String NOTIFY_BEHAVIOUR_ADDED = "Notify-BehaviourAdded";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>BehaviourRemoved</code> event.
+    */
+    static final String NOTIFY_BEHAVIOUR_REMOVED = "Notify-Behaviour-Removed";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedBehaviourState</code> event.
+    */
+    static final String NOTIFY_CHANGED_BEHAVIOUR_STATE = "Notify-Changed-Behaviour-State";
+
+
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_SNIFFON = "1";
