@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.20  1999/04/13 16:00:25  rimassa
+  Changed GUI destruction and made it occur asynchronously.
+
   Revision 1.19  1999/04/07 11:42:10  rimassa
   Removed wrong exception handler from takeDown() method. Fixed a bug
   where ACL request messages were sent twice to the AMS.
@@ -288,7 +291,7 @@ public class rma extends Agent {
   public void takeDown() {
     send(AMSCancellation);
     myGUI.setVisible(false);
-    myGUI.dispose();
+    myGUI.disposeAsync();
   }
 
 
