@@ -4,7 +4,7 @@ MIDlet-1: JADE-split, , jade.MicroBoot
 MIDlet-2: JADE-standalone, , jade.Boot
 MIDlet-3: Config, , jade.util.leap.Config
 MIDlet-4: View-output, , jade.util.leap.OutputViewer
-MIDlet-LEAP-conf: config
+MIDlet-LEAP-conf: jad
 MIDlet-Name: JADE-LEAP
 MIDlet-Vendor: TILAB
 MIDlet-Version: 3.0
