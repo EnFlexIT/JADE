@@ -217,7 +217,8 @@ abstract class Initiator extends FSMBehaviour {
 	b = new OneShotBehaviour(myAgent) {
   	private static final long     serialVersionUID = 3487495895818010L;
   	
-		public void action() {}
+		public void action() {
+		}
 	};
 	registerLastState(b, DUMMY_FINAL);
     }
@@ -225,11 +226,7 @@ abstract class Initiator extends FSMBehaviour {
     /**
        Specialize (if necessary) the initiation message for each receiver
      */    
-    protected abstract Vector prepareInitiations(ACLMessage initiation);
-    /**
-       Create and initialize the Sessions and sends the initiation messages
-     */    
-    protected abstract void sendInitiations(Vector initiations);
+    protected abstract Vector prepareInitiations(ACLMessage initiation);    
     /**
        Check whether a reply is in-sequence and update the appropriate Session
      */    
@@ -247,6 +244,67 @@ abstract class Initiator extends FSMBehaviour {
 		   - The state has an "internal memory"
      */
     protected abstract String[] getToBeReset();
+    
+    /**
+       Return a ProtocolSession object to manage replies to a given 
+       initiation message
+     */
+  	protected abstract ProtocolSession getSession(ACLMessage msg, int sessionIndex);
+  	
+    /**
+       Create and initialize the Sessions and sends the initiation messages
+     */    
+    protected void sendInitiations(Vector initiations) {
+			long currentTime = System.currentTimeMillis();
+			long minTimeout = -1;
+			long deadline = -1;
+
+			String conversationID = createConvId(initiations);
+			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
+		  int cnt = 0; // counter of sessions
+		  for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
+				ACLMessage initiation = (ACLMessage) e.nextElement();
+				if (initiation != null) {
+			    // Update the list of sessions on the basis of the receivers
+			    // FIXME: Maybe this should take the envelope into account first
+			    
+			    for (Iterator receivers = initiation.getAllReceiver(); receivers.hasNext(); ) {
+				    ACLMessage toSend = (ACLMessage)initiation.clone();
+				    toSend.setConversationId(conversationID);
+						toSend.clearAllReceiver();
+						AID r = (AID)receivers.next();
+						toSend.addReceiver(r);
+						ProtocolSession ps = getSession(toSend, cnt);
+						if (ps != null) {
+							String sessionKey = ps.getId();
+							if (sessionKey == null) {
+								sessionKey = "R" + System.currentTimeMillis()+  "_" + Integer.toString(cnt);
+							}
+							toSend.setReplyWith(sessionKey);
+							sessions.put(sessionKey, ps);
+							adjustReplyTemplate(toSend);
+							cnt++;
+						}
+						myAgent.send(toSend);
+			    }
+			  
+			    // Update the timeout (if any) used to wait for replies according
+			    // to the reply-by field: get the miminum.  
+			    Date d = initiation.getReplyByDate();
+			    if (d != null) {
+						long timeout = d.getTime()- currentTime;
+						if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
+				    	minTimeout = timeout;
+				    	deadline = d.getTime();
+						}
+			    }
+				}
+		  }
+		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
+		  // state to accept replies
+		  replyReceiver.setTemplate(replyTemplate);
+		  replyReceiver.setDeadline(deadline);
+    }    
     //#APIDOC_EXCLUDE_END
     
     /**
@@ -362,9 +420,16 @@ abstract class Initiator extends FSMBehaviour {
      * @param msg is the ACLMessage to be sent
      **/
     public void reset(ACLMessage msg){
-			super.reset();
-			replyReceiver.reset(null, MsgReceiver.INFINITE, getDataStore(),REPLY_K);
 			initiation = msg;
+			reinit();
+			super.reset();
+    }
+    
+	  /**
+	     Re-initialize the internal state without performing a complete reset.
+	   */
+    protected void reinit() {
+			replyReceiver.reset(null, MsgReceiver.INFINITE, getDataStore(),REPLY_K);
 			sessions.clear(); 
 			DataStore ds = getDataStore();
 			ds.remove(INITIATION_K);
@@ -437,6 +502,16 @@ abstract class Initiator extends FSMBehaviour {
 					MessageTemplate.not(MessageTemplate.MatchCustom(msg, true)));
 			}
     }
+    
+    
+    /**
+       Inner interface Session
+     */
+    protected interface ProtocolSession {
+    	String getId();
+			boolean update(int perf);
+			int getState();
+			boolean isCompleted();
+    }
     //#APIDOC_EXCLUDE_END
-
 }

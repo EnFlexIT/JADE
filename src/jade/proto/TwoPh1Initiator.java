@@ -91,17 +91,12 @@ public class TwoPh1Initiator extends Initiator {
   private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
 
   private static final int ALL_RESPONSES_RECEIVED = 1;
-  /* Data store input key */
-  //private String inputKey = null;
   
   /* Data store output key */
   private String outputKey = null;
-  /* QueryIfs messages still pending (i.e. for which it doesn't still received a response */
-  //private Vector ph1Pendings = new Vector();
+  
   private int totSessions;
 
-  private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
-  private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
 
     /**
      * Constructs a <code>TwoPh1Initiator</code> behaviour.
@@ -392,56 +387,13 @@ public class TwoPh1Initiator extends Initiator {
      * @param initiations vector prepared in PREPARE_QUERYIFS state
      */
     protected final void sendInitiations(Vector initiations) {
-      long currentTime = System.currentTimeMillis();
-      long minTimeout = -1;
-      long deadline = -1;
-        
-      Vector pendings = new Vector();
-			String conversationID = createConvId(initiations);
-			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
-			
-		  totSessions = 0; // counter of sessions
-      for(Enumeration e = initiations.elements(); e.hasMoreElements();) {
-          ACLMessage msg = (ACLMessage) e.nextElement();
-          if (msg != null) {
-              for(Iterator receivers = msg.getAllReceiver(); receivers.hasNext();) {
-	              ACLMessage toSend = (ACLMessage) msg.clone();
-	              //toSend.setProtocol(JADE_TWO_PHASE_COMMIT);
-	              toSend.setConversationId(conversationID);
-                toSend.clearAllReceiver();
-                AID r = (AID) receivers.next();
-                toSend.addReceiver(r);
-								String sessionKey = "R" + hashCode()+  "_" + Integer.toString(totSessions) + "_PH1";
-                //String sessionKey = "R_" + r.getName() + "_PH1";
-                toSend.setReplyWith(sessionKey);
-                /* Creates an object Session for all receivers */
-                sessions.put(sessionKey, new Session());
-                /* If initiator coincides with receiver */
-                adjustReplyTemplate(toSend);
-                myAgent.send(toSend);
-                pendings.add(toSend);
-                totSessions++;
-              }
-              
-					    // Update the timeout (if any) used to wait for replies according
-					    // to the reply-by field: get the miminum.
-              Date d = msg.getReplyByDate();
-              if(d != null) {
-                  long timeout = d.getTime() - currentTime;
-                  if(timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-                      minTimeout = timeout;
-                      deadline = d.getTime();
-                  }
-              }
-          }
-      }
-		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
-		  // state to accept replies, and store the Vector of pending CFPs
-      replyReceiver.setTemplate(replyTemplate);
-      replyReceiver.setDeadline(deadline);
-      getDataStore().put(ALL_PENDINGS_KEY, pendings);
+      getDataStore().put(ALL_PENDINGS_KEY, new Vector());
+      
+      super.sendInitiations(initiations);
+      
+      totSessions = sessions.size();
     }
-
+    
     /**
      * Check whether a reply is in-sequence and than update the appropriate Session
      * and removes corresponding queryif from vector of pendings.
@@ -566,19 +518,33 @@ public class TwoPh1Initiator extends Initiator {
     //#APIDOC_EXCLUDE_END
     		
     		
-    public void reset(ACLMessage queryIf) {
-        super.reset(queryIf);
-    }
-
+    
+  protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
+    Vector pendings = (Vector) getDataStore().get(ALL_PENDINGS_KEY);
+    pendings.add(msg);
+		
+  	return new Session("R" + hashCode()+  "_" + Integer.toString(sessionIndex) + "_" + TwoPhConstants.PH1);
+  }
+  
     /**
      * Inner class Session
      */
-    class Session implements Serializable {
+    class Session implements ProtocolSession, Serializable {
         // Session states 
         static final int INIT = 0;
         static final int REPLY_RECEIVED = 1;
 
         private int state = INIT;
+        private String myId;
+
+        public Session(String id) {
+        	myId = id;
+        }
+        
+				public String getId() {
+					return myId;
+				}
+				
 
         /**
          * Return true if received ACLMessage is consistent with the protocol.

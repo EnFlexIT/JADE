@@ -119,12 +119,12 @@ public class AchieveREInitiator extends Initiator {
     public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
     // FSM states names specific to the Achieve-RE protocol 
-    private static final String HANDLE_AGREE = "Handle-agree";
-    private static final String HANDLE_REFUSE = "Handle-refuse";
-    private static final String HANDLE_INFORM = "Handle-inform";
-    private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
-    private static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
-    private static final String CHECK_AGAIN = "Check-again";
+    protected static final String HANDLE_AGREE = "Handle-agree";
+    protected static final String HANDLE_REFUSE = "Handle-refuse";
+    protected static final String HANDLE_INFORM = "Handle-inform";
+    protected static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
+    protected static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
+    protected static final String CHECK_AGAIN = "Check-again";
 	
     // States exit values
     private static final int ALL_RESPONSES_RECEIVED = 1;
@@ -243,55 +243,6 @@ public class AchieveREInitiator extends Initiator {
      */    
     protected Vector prepareInitiations(ACLMessage initiation) {
     	return prepareRequests(initiation);
-    }
-    
-    /**
-       Create and initialize the Sessions and sends the initiation messages
-     */    
-    protected void sendInitiations(Vector initiations) {
-			long currentTime = System.currentTimeMillis();
-			long minTimeout = -1;
-			long deadline = -1;
-
-			String conversationID = createConvId(initiations);
-			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
-		  int cnt = 0; // counter of sessions
-		  for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
-				ACLMessage request = (ACLMessage) e.nextElement();
-				if (request != null) {
-			    // Update the list of sessions on the basis of the receivers
-			    // FIXME: Maybe this should take the envelope into account first
-			    
-			    ACLMessage toSend = (ACLMessage)request.clone();
-			    toSend.setConversationId(conversationID);
-			    for (Iterator receivers = request.getAllReceiver(); receivers.hasNext(); ) {
-						toSend.clearAllReceiver();
-						AID r = (AID)receivers.next();
-						toSend.addReceiver(r);
-						String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
-						toSend.setReplyWith(sessionKey);
-						sessions.put(sessionKey, new Session());
-						adjustReplyTemplate(toSend);
-						myAgent.send(toSend);
-						cnt++;
-			    }
-			  
-			    // Update the timeout (if any) used to wait for replies according
-			    // to the reply-by field: get the miminum.  
-			    Date d = request.getReplyByDate();
-			    if (d != null) {
-						long timeout = d.getTime()- currentTime;
-						if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-				    	minTimeout = timeout;
-				    	deadline = d.getTime();
-						}
-			    }
-				}
-		  }
-		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
-		  // state to accept replies
-		  replyReceiver.setTemplate(replyTemplate);
-		  replyReceiver.setDeadline(deadline);
     }
     
     /**
@@ -603,18 +554,10 @@ public class AchieveREInitiator extends Initiator {
     
     /**
      * reset this behaviour
-     * @param msg is the ACLMessage to be sent
      **/
-    public void reset(ACLMessage msg){
-	super.reset(msg);
-	allResponsesReceived = false; 
-  }
-
-    /**
-     * reset this behaviour
-     **/
-    public void reset(){
-			reset(null);
+    protected void reinit() {
+			allResponsesReceived = false;
+			super.reinit();
   	}
 
     
@@ -631,10 +574,14 @@ public class AchieveREInitiator extends Initiator {
     }
      //#APIDOC_EXCLUDE_END
    
+  protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
+  	return new Session();
+  }
+  
     /**
        Inner class Session
      */
-    private static class Session implements Serializable {
+    private static class Session implements ProtocolSession, Serializable {
   // Session states
 	static final int INIT = 0;
 	static final int POSITIVE_RESPONSE_RECEIVED = 1;
@@ -643,11 +590,15 @@ public class AchieveREInitiator extends Initiator {
 		
 	private int state = INIT;
 	
+	public String getId() {
+		return null;
+	}
+	
 	/**
 	   return true if the received performative is valid with respect to
 	   the current session state.
 	 */
-	boolean update(int perf) {
+	public boolean update(int perf) {
 	    switch (state) {
 	    case INIT:
 		switch (perf) {
@@ -679,11 +630,11 @@ public class AchieveREInitiator extends Initiator {
 	    }
 	}
 	
-	int getState() {
+	public int getState() {
 	    return state;
 	}
 	
-	boolean isCompleted() {
+	public boolean isCompleted() {
 	    return (state == NEGATIVE_RESPONSE_RECEIVED || state == RESULT_NOTIFICATION_RECEIVED);
 	}
 	

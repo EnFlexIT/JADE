@@ -83,11 +83,7 @@ public class TwoPh2Initiator extends Initiator {
     private static final int OLD_RESPONSE = 1000;
     private static final int ALL_RESPONSES_RECEIVED = 1;
 
-    private int totSessions;
     
-    private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
-    private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
-
     /**
      * Constructs a <code>TwoPh2Initiator</code> behaviour.
      * @param a The agent performing the protocol.
@@ -131,8 +127,8 @@ public class TwoPh2Initiator extends Initiator {
             public void action() {
                 ACLMessage reply = (ACLMessage) getDataStore().get(REPLY_K);
                 String inReplyTo = reply.getInReplyTo();
-                String phase = inReplyTo.substring(inReplyTo.length() - 3);
-                if (phase.equals("PH0") || phase.equals("PH1")) {
+                String phase = inReplyTo.substring(inReplyTo.length() - 3);;
+                if (phase.equals(TwoPhConstants.PH0) || phase.equals(TwoPhConstants.PH1)) {
                 	// The reply belongs to a previous phase 
                 	oldResponse(reply);
                 	ret = OLD_RESPONSE;
@@ -338,54 +334,11 @@ public class TwoPh2Initiator extends Initiator {
      * @param initiations vector prepared in PREPARE_ACCEPTANCES state
      */
     protected final void sendInitiations(Vector initiations) {
-      long currentTime = System.currentTimeMillis();
-      long minTimeout = -1;
-      long deadline = -1;
-        
-      Vector pendings = new Vector();
-			String conversationID = createConvId(initiations);
-			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
-
-		  totSessions = 0; // counter of sessions
-      for(Enumeration e = initiations.elements(); e.hasMoreElements();) {
-          ACLMessage msg = (ACLMessage) e.nextElement();
-          if (msg != null) {
-              for(Iterator receivers = msg.getAllReceiver(); receivers.hasNext();) {
-	              ACLMessage toSend = (ACLMessage) msg.clone();
-	              toSend.setConversationId(conversationID);
-                toSend.clearAllReceiver();
-                AID r = (AID) receivers.next();
-                toSend.addReceiver(r);
-								String sessionKey = "R" + hashCode()+  "_" + Integer.toString(totSessions) + "_PH2";
-                toSend.setReplyWith(sessionKey);
-                /* Creates an object Session for all receivers */
-                sessions.put(sessionKey, new Session());
-                /* If initiator coincides with receiver */
-                adjustReplyTemplate(toSend);
-                myAgent.send(toSend);
-                pendings.add(toSend);
-                totSessions++;
-              }
-              
-					    // Update the timeout (if any) used to wait for replies according
-					    // to the reply-by field: get the miminum.
-              Date d = msg.getReplyByDate();
-              if(d != null) {
-                  long timeout = d.getTime() - currentTime;
-                  if(timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-                      minTimeout = timeout;
-                      deadline = d.getTime();
-                  }
-              }
-          }
-      }
-		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
-		  // state to accept replies, and store the Vector of pending CFPs
-      replyReceiver.setTemplate(replyTemplate);
-      replyReceiver.setDeadline(deadline);
-      getDataStore().put(ALL_PENDINGS_KEY, pendings);
+      getDataStore().put(ALL_PENDINGS_KEY, new Vector());
+      
+      super.sendInitiations(initiations);
     }
-
+    
     /**
      * Check whether a reply is in-sequence and than update the appropriate Session
      * and removes corresponding accept/reject-proposal from vector of pendings.
@@ -466,20 +419,33 @@ public class TwoPh2Initiator extends Initiator {
     }
     //#APIDOC_EXCLUDE_END
 
-    public void reset(ACLMessage cfp) {
-        super.reset(cfp);
-    }
-
+    
+  protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
+    Vector pendings = (Vector) getDataStore().get(ALL_PENDINGS_KEY);
+    pendings.add(msg);
+		
+  	return new Session("R" + hashCode()+  "_" + Integer.toString(sessionIndex) + "_" + TwoPhConstants.PH2);
+  }
+  
     /**
      * Inner class Session
      */
-    class Session implements Serializable {
+    class Session implements ProtocolSession, Serializable {
         // Possible Session states 
         static final int INIT = 0;
         static final int REPLY_RECEIVED = 1;
 
         private int state = INIT;
+        private String myId;
 
+        public Session(String id) {
+        	myId = id;
+        }
+        
+				public String getId() {
+					return myId;
+				}
+				
         /**
          * Return true if received ACLMessage is consistent with the protocol.
          * @param perf

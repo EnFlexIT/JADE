@@ -287,6 +287,19 @@ public class ContractNetInitiator extends Initiator {
      Create and initialize the Sessions and sends the initiation messages
    */    
   protected void sendInitiations(Vector initiations) {
+		// By default the initiations parameter points to the Vector of the CFPs. 
+		// However at step 2 we need to deal with the acceptances
+		if (step == 2) {
+			initiations = (Vector) getDataStore().get(ALL_ACCEPTANCES_KEY);
+		}
+		
+		super.sendInitiations(initiations);
+  }
+  
+  /**
+     Create and initialize the Sessions and sends the initiation messages
+   *    
+  protected void sendInitiations(Vector initiations) {
 		long currentTime = System.currentTimeMillis();
 		long minTimeout = -1;
 		long deadline = -1;
@@ -341,7 +354,7 @@ public class ContractNetInitiator extends Initiator {
 	  // state to accept replies
 	  replyReceiver.setTemplate(replyTemplate);
 	  replyReceiver.setDeadline(deadline);
-  }
+  }*/
   
   /**
      Check whether a reply is in-sequence and update the appropriate Session
@@ -620,14 +633,10 @@ public class ContractNetInitiator extends Initiator {
   	skipNextRespFlag = true;
   }
   
-  /**
-   * reset this behaviour
-   * @param msg is the ACLMessage to be sent
-   **/
-  public void reset(ACLMessage cfp){
-		super.reset(cfp);
+  protected void reinit() {
 		step = 1;
 		skipNextRespFlag = false;
+		super.reinit();
   }
 
   //#APIDOC_EXCLUDE_BEGIN
@@ -647,10 +656,22 @@ public class ContractNetInitiator extends Initiator {
   //#APIDOC_EXCLUDE_END
         
   
+  protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
+  	if (msg.getPerformative() == ACLMessage.CFP) {
+  		return new Session(1);
+  	}
+  	else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+  		return new Session(2);
+  	}
+  	else {
+  		return null;
+  	}
+  }
+  		
   /**
      Inner class Session
    */
-  class Session implements Serializable {
+  class Session implements ProtocolSession, Serializable {
   	// Session states
   	static final int INIT = 0;
   	static final int REPLY_RECEIVED = 1;
@@ -660,6 +681,10 @@ public class ContractNetInitiator extends Initiator {
 		
 		public Session(int step) {
 			this.step = step;
+		}
+		
+		public String getId() {
+			return null;
 		}
 		
 		/** Return true if received ACLMessage is consistent with the protocol */

@@ -46,4 +46,8 @@ public interface TwoPhConstants {
     public static final int ALL_CONFIRM_OR_INFORM = 2;
     public static final int SOME_DISCONFIRM = 3;
     public static final int PH1_TIMEOUT_EXPIRED = MsgReceiver.TIMEOUT_EXPIRED;
+    
+    public static final String PH0 = "PH0";
+    public static final String PH1 = "PH1";
+    public static final String PH2 = "PH2";
 }

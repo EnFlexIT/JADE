@@ -226,7 +226,7 @@ public class SubscriptionInitiator extends Initiator {
        Create and initialize the Sessions and sends the initiation messages.
        This method is called internally by the framework and is not intended 
        to be called by the user
-     */    
+     *    
     protected void sendInitiations(Vector initiations) {
 			long currentTime = System.currentTimeMillis();
 			long minTimeout = -1;
@@ -274,7 +274,7 @@ public class SubscriptionInitiator extends Initiator {
 		  // state to accept replies
 		  replyReceiver.setTemplate(replyTemplate);
 		  replyReceiver.setDeadline(deadline);
-    }
+    }*/
     
     /**
        Check whether a reply is in-sequence and update the appropriate Session.
@@ -656,12 +656,10 @@ public class SubscriptionInitiator extends Initiator {
     }
     
     /**
-     * reset this behaviour
-     * @param msg is the ACLMessage to be sent
      **/
-    public void reset(ACLMessage msg){
-	super.reset(msg);
+    protected void reinit(){
 	allResponsesReceived = false;
+	super.reinit();
   }
 
     
@@ -678,10 +676,19 @@ public class SubscriptionInitiator extends Initiator {
     }
   	//#APIDOC_EXCLUDE_END
     
+    
+  protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
+		// Store the subscription message actually sent. It can 
+		// be useful to retrieve it to create the CANCEL message
+		getDataStore().put((AID) msg.getAllReceiver().next(), msg);
+		
+  	return new Session();
+  }
+  
     /**
        Inner class Session
      */
-    private static class Session implements Serializable {
+    private static class Session implements ProtocolSession, Serializable {
   // Session states
 	static final int INIT = 0;
 	static final int POSITIVE_RESPONSE_RECEIVED = 1;
@@ -691,11 +698,15 @@ public class SubscriptionInitiator extends Initiator {
 	private int state = INIT;
 	private boolean cancelled = false;
 	
+	public String getId() {
+		return null;
+	}
+	
 	/**
 	   return true if the received performative is valid with respect to
 	   the current session state.
 	 */
-	boolean update(int perf) {
+	public boolean update(int perf) {
 	    switch (state) {
 	    case INIT:
 		switch (perf) {
@@ -728,11 +739,11 @@ public class SubscriptionInitiator extends Initiator {
 	    }
 	}
 	
-	int getState() {
+	public int getState() {
 	    return state;
 	}
 	
-	boolean isCompleted() {
+	public boolean isCompleted() {
 	    return (state == NEGATIVE_RESPONSE_RECEIVED);
 	}
 
