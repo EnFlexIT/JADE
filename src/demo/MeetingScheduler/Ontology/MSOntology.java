@@ -56,17 +56,17 @@ public class MSOntology {
   private static void initInstance() {
     try {
       // Adds the roles of the basic ontology (ACTION, AID,...)
-      theInstance.joinOntology(BasicOntologyManager.instance());
+      theInstance.joinOntology(BasicOntology.instance());
       theInstance.addRole(PERSON, new SlotDescriptor[] {
 	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	new SlotDescriptor("AID", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O),
-	new SlotDescriptor("DFName", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O)
+	new SlotDescriptor("AID", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
+	new SlotDescriptor("DFName", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O)
 	  }, new RoleEntityFactory() {
              public Object create(Frame f) { return new Person(); }
 	     public Class getClassForRole() { return Person.class; }
 	  });
       theInstance.addRole(APPOINTMENT, new SlotDescriptor[] {
-	new SlotDescriptor("inviter", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
+	new SlotDescriptor("inviter", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	new SlotDescriptor("description", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	new SlotDescriptor("starting-on", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
 	new SlotDescriptor("ending-with", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
