@@ -80,10 +80,9 @@ import jade.util.leap.Iterator;
 */
 public class BEReplicationService extends BaseService {
 
-    private static final boolean EXCLUDE_MYSELF = false;
-    private static final boolean INCLUDE_MYSELF = true;
-
     private static final String[] OWNED_COMMANDS = new String[] {
+	BEReplicationSlice.BECOME_MASTER,
+	BEReplicationSlice.IS_MASTER
     };
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
@@ -96,6 +95,9 @@ public class BEReplicationService extends BaseService {
 
 	// Create a local slice
 	localSlice = new ServiceComponent(p);
+
+	// Create the command sinks
+	sourceSink = new CommandSourceSink();
 
 	// Create the command filters
 	outFilter = new OutgoingCommandFilter();
@@ -129,7 +131,12 @@ public class BEReplicationService extends BaseService {
     }
 
     public Sink getCommandSink(boolean side) {
-	return null;
+	if(side == Sink.COMMAND_SOURCE) {
+	    return sourceSink;
+	}
+	else {
+	    return null;
+	}
     }
 
     public String[] getOwnedCommands() {
@@ -140,6 +147,12 @@ public class BEReplicationService extends BaseService {
 
 	try {
 
+	    // Create an empty list
+	    includeAll = new LinkedList();
+
+	    // Create a singleton list 
+	    excludeMyself = new LinkedList();
+	    excludeMyself.add(getLocalNode().getName());
 	    if(myReplicaIndex.equals("0")) {
 
 		// This is the master slice: initialize the replicas
@@ -147,8 +160,9 @@ public class BEReplicationService extends BaseService {
 		// replicas through acceptReplica() calls...
 
 		expectedReplicas = Integer.parseInt(p.getParameter(BackEndContainer.BE_REPLICAS_SIZE, "0"));
-		myReplicasArray = new String[expectedReplicas];
-
+		myReplicasArray = new String[expectedReplicas + 1];
+		masterSliceName = getLocalNode().getName();
+		myReplicasArray[0] = masterSliceName;
 	    }
 	    else {
 
@@ -172,6 +186,43 @@ public class BEReplicationService extends BaseService {
 	}
 
     }
+
+
+    private class CommandSourceSink implements Sink {
+
+	public void consume(VerticalCommand cmd) {
+	    try {
+		String name = cmd.getName();
+		if(name.equals(BEReplicationSlice.BECOME_MASTER)) {
+		    handleBecomeMaster(cmd);
+		}
+		else if(name.equals(BEReplicationSlice.IS_MASTER)) {
+		    cmd.setReturnValue(new Boolean(handleIsMaster(cmd)));
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
+	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
+	    }
+	}
+
+
+	// Vertical command handler methods
+
+	private void handleBecomeMaster(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_SETMASTER, BEReplicationSlice.NAME, null);
+	    hCmd.addParam(getLocalNode().getName());
+	    broadcastToReplicas(hCmd, includeAll);
+	}
+
+	private boolean handleIsMaster(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    return masterSliceName.equals(getLocalNode().getName());
+	}
+
+
+    } // End of OutgoingCommandSink class
 
 
     private class OutgoingCommandFilter implements Filter {
@@ -215,7 +266,7 @@ public class BEReplicationService extends BaseService {
 	    GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_BORNAGENT, BEReplicationSlice.NAME, null);
 	    hCmd.addParam(agentID);
 
-	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+	    broadcastToReplicas(hCmd, excludeMyself);
 	}
 
 
@@ -228,7 +279,7 @@ public class BEReplicationService extends BaseService {
 	    GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_DEADAGENT, BEReplicationSlice.NAME, null);
 	    hCmd.addParam(agentID);
 
-	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+	    broadcastToReplicas(hCmd, excludeMyself);
 	}
 
 	public void setBlocking(boolean newState) {
@@ -258,22 +309,15 @@ public class BEReplicationService extends BaseService {
 
 	private void attachTo(BEReplicationSlice slice) throws IMTPException, ServiceException {
 
-	    System.out.println("##### " + getLocalNode().getName() + " -> " + slice.getNode().getName() + " #####");
-
 	    // Stop the previous monitor, if any
 	    if(nodeMonitor != null) {
 		nodeMonitor.stop();
 	    }
 
-	    /***
-	    // Store the label of the monitored slice
-	    monitoredLabel = label;
-
 	    // Avoid monitoring yourself
-	    if(monitoredLabel == myLabel) {
+	    if(getLocalNode().getName().equals(slice.getNode().getName())) {
 		return;
 	    }
-	    ***/
 
 	    // Set up a failure monitor on the target slice...
 	    nodeMonitor = new NodeFailureMonitor(slice.getNode(), this);
@@ -307,6 +351,10 @@ public class BEReplicationService extends BaseService {
 		    String sliceName = (String)params[0];
 		    String replicaIndex = (String)params[1];
 		    acceptReplica(sliceName, replicaIndex);
+		}
+		else if(cmdName.equals(BEReplicationSlice.H_SETMASTER)) {
+		    String name = (String)params[0];
+		    setMaster(name);
 		}
 		else if(cmdName.equals(BEReplicationSlice.H_SETREPLICAS)) {
 		    String[] replicas = (String[])params[0];
@@ -345,9 +393,7 @@ public class BEReplicationService extends BaseService {
 
 
 	private void acceptReplica(String sliceName, String replicaIndex) throws IMTPException, ServiceException {
-	    System.out.println("##### " + getLocalNode().getName() + " accepting replica [" + replicaIndex + "] #####");
-	    try {
-	    int idx = Integer.parseInt(replicaIndex) - 1;
+	    int idx = Integer.parseInt(replicaIndex);
 	    myReplicasArray[idx] = sliceName;
 	    expectedReplicas--;
 
@@ -358,7 +404,7 @@ public class BEReplicationService extends BaseService {
 		setReplicas(myReplicasArray);
 
 		// Broadcast the replica list to all of them
-		for(int i = 0; i < myReplicasArray.length; i++) {
+		for(int i = 1; i < myReplicasArray.length; i++) {
 		    BEReplicationSlice slice = (BEReplicationSlice)getSlice(myReplicasArray[i]);
 		    try {
 			slice.setReplicas(myReplicasArray);
@@ -370,7 +416,10 @@ public class BEReplicationService extends BaseService {
 		    }
 		}
 	    }
-	    } catch(Throwable t) { t.printStackTrace(); }
+	}
+
+	private void setMaster(String name) throws IMTPException {
+	    masterSliceName = name;
 	}
 
 	private void setReplicas(String[] replicas) throws IMTPException {
@@ -387,17 +436,13 @@ public class BEReplicationService extends BaseService {
 	    }
 
 	    // Start monitoring your neighbour for failure...
-	    int idx = Integer.parseInt(myReplicaIndex) - 1;
+	    int idx = Integer.parseInt(myReplicaIndex);
 	    BEReplicationSlice targetSlice;
 	    try {
-		switch(idx + 1) {
+		switch(idx) {
 		case 0:
-		    // Master node: monitor the last replica
+		    // First replica: monitor the last replica
 		    targetSlice = (BEReplicationSlice)myReplicas.get(myReplicas.size() - 1);
-		    break;
-		case 1:
-		    // First replica: monitor the master node
-		    targetSlice = (BEReplicationSlice)getSlice(masterSliceName);
 		    break;
 		default:
 		    // Any other: monitor the immediately previous one
@@ -431,33 +476,16 @@ public class BEReplicationService extends BaseService {
 
 	private void removeReplica(String name) throws IMTPException {
 
-	    try {
-		if(masterSliceName.equals(name)) {
-		    // The master slice is dead: update the master slice
-		    // name and decrement your index
-		    BEReplicationSlice newMaster = (BEReplicationSlice)myReplicas.remove(0);
-		    masterSliceName = newMaster.getNode().getName();
-		    int myIndex = Integer.parseInt(myReplicaIndex);
-		    myIndex--;
-		    myReplicaIndex = Integer.toString(myIndex);
+	    // A replica slice is dead
+	    int index = findReplicaIndex(name);
+	    myReplicas.remove(index);
 
-		    System.out.println("### Master slice is dead: new master is <" + masterSliceName + "> ###");
-		}
-		else {
-		    // A replica slice is dead
-		    int index = findReplicaIndex(name);
-		    int myIndex = Integer.parseInt(myReplicaIndex);
-		    if(index < myIndex) {
-			myIndex--;
-			myReplicaIndex = Integer.toString(myIndex);
-		    }
+	    int myIndex = Integer.parseInt(myReplicaIndex);
+	    if(index < myIndex) {
+		myIndex--;
+		myReplicaIndex = Integer.toString(myIndex);
+	    }
 
-		    System.out.println("### Replica slice <" + name + "> is dead: my new index is <" + myReplicaIndex + "> ###");
-		}
-	    }
-	    catch(ServiceException se) {
-		throw new IMTPException("Service error", se);
-	    }
 	}
 
 	private void bornAgent(AID name) {
@@ -472,11 +500,12 @@ public class BEReplicationService extends BaseService {
 	public void dumpReplicas() {
 	    try {
 		System.out.println("--- " + getLocalNode().getName() + "[" + myReplicaIndex + "] ---");
+		System.out.println("--- Master replica is: " + masterSliceName + " ---");
 		System.out.println("--- Replica list ---");
 		Object[] slices = myReplicas.toArray();
 		for(int i = 0; i < slices.length; i++) {
 		    BEReplicationSlice slice = (BEReplicationSlice)slices[i];
-		    System.out.println("----- " + slice.getNode().getName() + "[" + (i + 1) + "] -----");
+		    System.out.println("----- " + slice.getNode().getName() + "[" + i + "] -----");
 		}
 		System.out.println("--- End ---");
 	    }
@@ -492,36 +521,41 @@ public class BEReplicationService extends BaseService {
 	}
 
 	public void nodeRemoved(Node n) {
-
-	    System.out.println("--- Slice <" + n.getName() + "> is dead ---");
-
 	    try {
 
 		String sliceName = n.getName();
 
-		// Broadcast a 'removeReplica()' method (exclude yourself from bcast)
+		List l = new LinkedList();
+		l.add(getLocalNode().getName());
+		l.add(n.getName());
+
+		// Broadcast a 'removeReplica()' method (exclude yourself and the dead node from bcast)
 		GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_REMOVEREPLICA, BEReplicationSlice.NAME, null);
 		hCmd.addParam(sliceName);
-		broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+		broadcastToReplicas(hCmd, l);
 
 		removeReplica(sliceName);
 
 
-
 		// -- Attach to the new neighbour slice...
-		BEReplicationSlice newSlice = (BEReplicationSlice)myReplicas.get(monitoredLabel);
-		attachTo(newSlice);
+		int idx = Integer.parseInt(myReplicaIndex);
+		BEReplicationSlice targetSlice;
 
-		/***************
-
-		if((oldLabel != 0) && (myLabel == 0)) {
-		    System.out.println("-- I'm the new leader ---");
-
-		    myContainer.becomeLeader();
-
+		switch(idx) {
+		case 0:
+		    // First replica: monitor the last replica, if there is one
+		    if(myReplicas.isEmpty()) {
+			return;
+		    }
+		    targetSlice = (BEReplicationSlice)myReplicas.get(myReplicas.size() - 1);
+		    break;
+		default:
+		    // Any other: monitor the immediately previous one
+		    targetSlice = (BEReplicationSlice)myReplicas.get(idx - 1);
+		    break;
 		}
 
-		*********/
+		attachTo(targetSlice);
 
 	    }
 	    catch(IMTPException imtpe) {
@@ -561,8 +595,6 @@ public class BEReplicationService extends BaseService {
 	// The active object monitoring the remote node
 	private NodeFailureMonitor nodeMonitor;
 
-	// The integer label of the monitored slice
-	private int monitoredLabel;
 
     } // End of ServiceComponent class
 
@@ -574,11 +606,14 @@ public class BEReplicationService extends BaseService {
 
     private Filter outFilter;
 
+    private Sink sourceSink;
 
 
     // Service specific data
 
     private final List myReplicas = new LinkedList();
+    private List includeAll;
+    private List excludeMyself;
 
     private String myMediatorID;
     private String myReplicaIndex;
@@ -588,7 +623,7 @@ public class BEReplicationService extends BaseService {
     private String[] myReplicasArray;
 
 
-    private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
+    private void broadcastToReplicas(HorizontalCommand cmd, List excludeList) throws IMTPException, ServiceException {
 
 	Object[] slices = myReplicas.toArray();
 
@@ -597,8 +632,15 @@ public class BEReplicationService extends BaseService {
 	    BEReplicationSlice slice = (BEReplicationSlice)slices[i];
 
 	    String sliceName = slice.getNode().getName();
-	    if(includeSelf || !sliceName.equals(localNodeName)) {
+	    if(excludeList.indexOf(sliceName) == -1) {
 		slice.serve(cmd);
+
+		// Check the command return value for exceptions
+		Object ret = cmd.getReturnValue();
+		if((ret != null) && (ret instanceof Throwable)) {
+		    Throwable t = (Throwable)ret;
+		    System.out.println("### Exception in broadcasting to slice " + sliceName + ": " + t.getMessage() + " ###");
+		}
 	    }
 	}
 
