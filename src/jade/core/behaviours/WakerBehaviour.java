@@ -140,7 +140,7 @@ protected abstract void handleElapsedTimeout();
    * This method must be called to reset the behaviour and starts again
    * @param wakeupDate is the new time when the task must be executed again
    */
-protected void reset(Date wakeupDate) {
+public void reset(Date wakeupDate) {
   super.reset();
   wakeupTime = wakeupDate.getTime();
   state = 0;
@@ -149,13 +149,11 @@ protected void reset(Date wakeupDate) {
 
   /**
    * This method must be called to reset the behaviour and starts again
-   * @param wakeupDate is the new time when the task must be executed again
+   * @param timeout indicates in how many milliseconds from now the behaviour
+   * must be waken up again. 
    */
-protected void reset(long timeout) {
-  super.reset();
-  wakeupTime = System.currentTimeMillis() + timeout;
-  state = 0;
-  finished = false;
+public void reset(long timeout) {
+  reset(new Date(System.currentTimeMillis() + timeout));
 }
 
 public boolean done() {

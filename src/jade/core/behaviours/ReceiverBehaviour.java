@@ -334,6 +334,7 @@ public final class ReceiverBehaviour extends Behaviour {
     }
     timeToWait = timeOut;
     blockingTime = 0;
+    super.reset();
   }
 
   private void copyInResult(ACLMessage msg) {

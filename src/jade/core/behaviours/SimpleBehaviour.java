@@ -54,11 +54,10 @@ public abstract class SimpleBehaviour extends Behaviour {
   }    
 
   /**
-     Resets a <code>SimpleBehaviour</code>. This method does nothing,
-     but concrete subclasses can override it with specific code to put
-     an object back into its starting state.
+     Resets a <code>SimpleBehaviour</code>. 
   */
   public void reset() {
+    super.reset();
   }
 
 }

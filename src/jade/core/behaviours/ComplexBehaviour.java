@@ -326,7 +326,7 @@ public abstract class ComplexBehaviour extends Behaviour {
     subBehaviours.begin();
     starting = true;
     finished = false;
-
+    super.reset();
   }
 
   /**

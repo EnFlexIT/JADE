@@ -205,8 +205,11 @@ public abstract class Behaviour implements Serializable {
      method is to realize multistep cyclic behaviours without needing
      expensive constructions an deletion of objects at each loop
      iteration.
+     Remind to call super.reset() from the sub-classes.
   */
-  public abstract void reset();
+  public void reset() {
+    restart();
+  }
 
   /**
      Handler for block/restart events. This method handles
