@@ -629,6 +629,21 @@ class DeliverableDataOutputStream extends DataOutputStream {
 	}
     }
 
+    private void writeNode(Node n) throws LEAPSerializationException {
+        try {
+            if (n != null) {
+                writeBoolean(true);     // Presence flag true
+                serializeNode(n);
+            } 
+            else {
+                writeBoolean(false);    // Presence flag false
+            } 
+        } 
+        catch (IOException ioe) {
+            throw new LEAPSerializationException("Error serializing Node[]");
+        } 
+    }
+
     private void serializeNodeStub(NodeStub ns) throws LEAPSerializationException {
 	try {
 	    // Write the remote ID, uniquely identifying this node
@@ -653,7 +668,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
 	    writeInt(nodes.length);
 
 	    for (int i = 0; i < nodes.length; i++) {
-		serializeNode(nodes[i]);
+		writeNode(nodes[i]);
 	    }
         } 
         catch (IOException ioe) {
