@@ -42,7 +42,8 @@ import jade.util.leap.Iterator;
  **/
 
 public class ReplySender extends OneShotBehaviour{
-
+	
+		public static final int NO_REPLY_SENT = -1;
 		private int ret;
 		private String ResponseKey,RequestKey;
 
@@ -72,7 +73,7 @@ public ReplySender(Agent a,String key_response,String key_request){
 }
 	
 public void onStart(){
-	ret=-1;
+	ret=NO_REPLY_SENT;
 }
 
 
