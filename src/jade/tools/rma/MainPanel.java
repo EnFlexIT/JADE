@@ -80,8 +80,9 @@ class MainPanel extends JPanel
     //To allow single selection on the tree.
     //  treeAgent.tree.getSelectionModel().setSelectionMode
     //  (javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION);
+    
    
-    pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,treeAgent.tree,table.createTable());
+    pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,new JScrollPane(treeAgent.tree),table.createTable());
     pan.setContinuousLayout(true);
 
     add(pan);
