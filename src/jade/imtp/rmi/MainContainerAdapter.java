@@ -28,7 +28,6 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 
 import jade.core.AgentContainer;
-//import jade.core.AgentContainerImpl;
 import jade.core.MainContainer;
 import jade.core.AgentProxy;
 import jade.core.AID;
@@ -38,6 +37,7 @@ import jade.core.NameClashException;
 import jade.core.IMTPException;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -58,9 +58,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     throw new IMTPException("This method cannot be called on an adapter.");
   }  
 	*/
-  public void newMTP(String mtpAddress, ContainerID cid) throws IMTPException {
+  public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
-      adaptee.newMTP(mtpAddress, cid);
+      adaptee.newMTP(mtp, cid);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -131,9 +131,10 @@ public class MainContainerAdapter implements MainContainer, Serializable {
       throw new NotFoundException("This method cannot be called on an adapter.");
   }
 	*/
-  public void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException {
+
+  public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
-      adaptee.deadMTP(mtpAddress, cid);
+      adaptee.deadMTP(mtp, cid);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

@@ -38,6 +38,7 @@ import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -144,7 +145,7 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
   
-  public String installMTP(String address, String className) throws IMTPException, MTPException {
+  public MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException {
     try {
       return adaptee.installMTP(address, className);
     }
@@ -234,9 +235,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
+  public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException {
     try {
-      adaptee.updateRoutingTable(op, address, manager.getRMIStub(ac));
+      adaptee.updateRoutingTable(op, mtp, manager.getRMIStub(ac));
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

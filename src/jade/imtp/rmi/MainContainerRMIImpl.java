@@ -35,6 +35,8 @@ import jade.core.NotFoundException;
 import jade.core.NameClashException;
 import jade.core.AgentProxy;
 
+import jade.mtp.MTPDescriptor;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -55,8 +57,8 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       return manager.getRMIStub(ac);
     }
 
-    public void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException {
-      impl.deadMTP(mtpAddress, cid);
+    public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
+      impl.deadMTP(mtp, cid);
     }
 
     public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
@@ -88,8 +90,8 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.deadAgent(name);
     }
     
-    public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException {
-      impl.newMTP(mtpAddress, cid);
+    public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
+      impl.newMTP(mtp, cid);
     }
     
 }

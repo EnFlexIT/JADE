@@ -36,6 +36,7 @@ import jade.core.IMTPException;
 import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -53,7 +54,7 @@ interface AgentContainerRMI extends Remote {
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException;
     public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws RemoteException, IMTPException;
     public void killAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
-    public String installMTP(String address, String className) throws RemoteException, MTPException, IMTPException;
+    public MTPDescriptor installMTP(String address, String className) throws RemoteException, MTPException, IMTPException;
     public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException, IMTPException;
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
@@ -63,7 +64,7 @@ interface AgentContainerRMI extends Remote {
     public void routeOut(ACLMessage msg, AID receiver, String address) throws RemoteException, MTPException, IMTPException;
     public void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException, IMTPException;
     public void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException, IMTPException;
-    public void updateRoutingTable(int op, String address, AgentContainerRMI ac) throws RemoteException, IMTPException;
+    public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainerRMI ac) throws RemoteException, IMTPException;
     public void ping(boolean hang) throws RemoteException, IMTPException;
     
 }

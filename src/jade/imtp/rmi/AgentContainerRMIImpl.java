@@ -37,6 +37,7 @@ import jade.core.IMTPException;
 import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -77,7 +78,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.suspendAgent(agentID);
     }
     
-    public String installMTP(String address, String className) throws RemoteException, MTPException, IMTPException {
+    public MTPDescriptor installMTP(String address, String className) throws RemoteException, MTPException, IMTPException {
       return impl.installMTP(address, className);
     }
     
@@ -111,9 +112,9 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.moveAgent(agentID, where);
     }
 
-    public void updateRoutingTable(int op, String address, AgentContainerRMI ac) throws RemoteException, IMTPException {
+    public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainerRMI ac) throws RemoteException, IMTPException {
       AgentContainer cont = manager.getAdapter(ac);
-      impl.updateRoutingTable(op, address, cont);
+      impl.updateRoutingTable(op, mtp, cont);
     }
 
     public void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException, IMTPException {
