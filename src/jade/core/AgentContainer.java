@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.10  1999/03/17 12:49:45  rimassa
+ * Removed an obsolete method.
+ *
  * Revision 1.9  1999/03/03 16:08:31  rimassa
  * Added remote methods to suspend and resume an agent.
  *
@@ -47,7 +50,5 @@ public interface AgentContainer extends Remote {
 
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
   void ping() throws RemoteException;
-
-  void invalidateCacheEntry(String key) throws RemoteException;
 
 }
