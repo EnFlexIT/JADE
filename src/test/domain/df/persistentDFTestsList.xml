@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="DF Service" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFService</TestClassName>
+			<WhatTest> Tests accessing the DF agent by means of the DFService utility class.</WhatTest>
+			<HowWorkTest> 
+				The test uses the DFService class to:
+				<UL>
+	   			<LI>register with the DF;</LI>
+	   			<LI>search the DF (he should find himself);</LI>
+	   			<LI>deregister with the DF;</LI>
+			    <LI>searche again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="DF Lease Time" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFLeaseTime</TestClassName>
+			<WhatTest> Tests lease time functionality of the DF agent.</WhatTest>
+			<HowWorkTest> 
+				The test uses the DFService class to:
+				<UL>
+	   			<LI>register with the DF with lease time with current time + 10 seconds;</LI>
+	   			<LI>search the DF (he should find itself);</LI>
+	   			<LI>block itself for 10 seconds;</LI>
+			    <LI>search again the DF (he shouldn't find any agent);</LI>
+				</UL>			
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="Light DF Service" skip="true">
+			<TestClassName>test.domain.df.tests.TestLightDFService</TestClassName>
+			<WhatTest> Tests accessing the DF agent by means of the LightDFService utility class.</WhatTest>
+			<HowWorkTest> 
+				The test uses the LightDFService class to:
+				<UL>
+	   			<LI>register with the DF;</LI>
+	   			<LI>search the DF (he should find himself);</LI>
+	   			<LI>deregister with the DF;</LI>
+			    <LI>searche again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="FIPA Management Onto DF" skip="false">
+			<TestClassName>test.domain.df.tests.TestFIPAManagementOntology_DF</TestClassName>
+			<WhatTest> Tests actions in the FIPAManagementOntology related to the DF.</WhatTest>
+			<HowWorkTest> 
+				The test uses the FIPA management ontology to:
+				<UL>
+	   			<LI>register with the DF;</LI>
+	   			<LI>search the DF (he should find himself);</LI>
+	   			<LI>deregister with the DF;</LI>
+			    <LI>searche again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="Fedaration" skip="false">
+			<TestClassName>test.domain.df.tests.TestFederation</TestClassName>
+			<WhatTest> Tests DF federation and recursive search on federated DF.</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>Create another DF agent called DF1</LI>
+	   			<LI>Register a DFD on DF1</LI>
+	   		</UL>
+	   		<br><b>Actual Test</b></br>
+	   		<UL>
+	   			<LI>Request DF1 to federate with the default DF</LI>
+			    <LI>Searches the default DF specifying maxDepth == 1 (he should find 1 agent);</LI>
+			  </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="Search Until Found" skip="false">
+			<TestClassName>test.domain.df.tests.TestSearchUntilFound</TestClassName>
+			<WhatTest> Tests the searchUntilFound() method of the DFService class.</WhatTest>
+			<HowWorkTest> 
+				The test performs the following operations:
+				<UL>
+	   			<LI>registers DFD1 with the DF</LI>
+	   			<LI>launches another agent that will register a DFD2 after 5 sec and DFD12 after other 10 sec</LI>
+	   			<LI>calls searchUntilFound(template1 matching DFD1) (this should immediately return DFD1)</LI>
+			    <LI>calls searchUntilFound(template2 matching DFD2) (this should return DFD2 as soos as the other agent registers DFD2);</LI>
+			    <LI>calls searchUntilFound(template3 not matching, timeout == 5 sec) (this should return null when the timeout expires);</LI>
+			    <LI>waits some time to check that no further notifications are received from the DF.</LI>
+			  </UL>			
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="DF Subscription" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFSubscription</TestClassName>
+			<WhatTest> Tests the subscription service supported by the JADE DF.</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>register a DFD with the DF</LI>
+	   			</UL>
+	   			<br><b>Actual Test</b></br>
+	   			<UL>
+	   			<LI>subscribe to the DF (should immediately get back a notification);</LI>
+			    <LI>After 5 sec register 2nd DFD (matching) with the DF (should get back another notification;</LI>
+			    <LI>After 10 sec register 3rd DFD (not matching) with the DF (should not get back anything;</LI>
+			    <LI>After 15 sec modify 2nd DFD (still matching) with the DF (should get back another notification;</LI>
+			    <LI>After 20 sec modify 3rd DFD (now matching) with the DF (should get back another notification;</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+			</Test>		
+		<Test name="Multiple Subscriptions" skip="false">
+			<TestClassName>test.domain.df.tests.TestMultipleSubscriptions</TestClassName>
+			<WhatTest> Tests the case in which 2 or more agents subscribed to the DF.</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				Launches 3 agents that subscribe to the DF to receive notifications.
+				<br><b>Actual test</b></br>
+				Registers a DFD matching the template specified by the subscribed agents.
+				Then waits for INFORM messages from the subscribed agents who are expected 
+				to forward to the tester agent the notifications they receive from the DF.
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent gets an INFORM message from each subscriber within a 10 sec.timeout.</WhenTestPass>
+		</Test>
+		<Test name="Recursive Search" skip="true">
+			<TestClassName>test.domain.df.tests.TestRecursiveSearch</TestClassName>
+			<WhatTest>Test recursive search perfomed on a federation of DFs.
+				The parameters tested are max-depth, max-result as defined in: Fipa Agent 
+				Management Specification - SC00023J.
+				<br>Note that to execute this test you have to the package 
+				jade.misc in classpath as it makes use of the DFFedarator agent.
+				(..\jade\add-ons\misc).</br>			
+		</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				Seven DF agents are created and some of them register themselves to other DFs such 
+				that the resulting graph of DFs has the following arcs:
+				<br>arc1 = (df5,df6) (read as df5  is registered on df6)</br>
+				<br>arc2 = (df4,df5)</br>
+				<br>arc3 = (df2,df4)</br>
+				<br>arc4 = (df2,df4)</br>
+				<br>arc5 = (df3,df1)</br>
+				<br>arc6 = (df1,df2)</br>
+				<br>arc7 = (df1,df)</br>
+				<br><b>Actual Test</b></br>
+				<br>After the federation has been created some agents are registered:</br>
+				<br>df6 = {a14}</br>
+				<br>df5 = {a13}</br>
+				<br>df4 = {a11,a12}</br>
+				<br>df2 = {a2,a3,a4}</br>
+				<br>df3 = {a5,a6,a7,a8,a9,a10}</br>
+				<br>df1 = {a1}</br>
+				<br>df ={}</br>
+				<br>where each agent offers different services (use DF gui to have more details).
+				The test performs different queries changening the value of the parametes like
+				max-depth, max-results and serivce type.</br>
+				<br>See the log of the test for more details on query search and
+				its results.</br>
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if the different queires obtain the expected results and no
+					exception is thrown.
+obtained by the DFService.search()</WhenTestPass>
+		</Test>
+			<Test name="RegistrationRenewer Behaviour" skip="false">
+			<TestClassName>test.domain.df.tests.TestRegistrationRenewer</TestClassName>
+			<WhatTest>The behaviour jade.domain.DFRegistrationRenewer is used to keep registered a DFAgentDescription if the leasetime requested 
+is greater than the leasetime assigned to the DFAgentDescription
+			</WhatTest>
+			<HowWorkTest>
+			Create an agent with AID 'RenewerAgent'. The agent registers itself for 5000ms and than it
+uses the behaviour jade.domain.RegistrationRenewerBehaviour to keep itself registered for other 10000ms. 
+In parallel the TesterAgent performs several searches in order to test if the agent is still kept registered.
+		  </HowWorkTest>
+			<WhenTestPass>After 15000ms the agent 'RenewerAgent" deregisters itself.</WhenTestPass>
+		</Test>		
+		<Test name="DF Persistence" skip="false">
+			<TestClassName>test.domain.df.tests.TestPersistence</TestClassName>
+			<WhatTest> Tests if the subscription service is supported by the persistent JADE DF, 
+					   you can execute this test only when you use persistent Knowledge Base, like DB.<br>
+					   By default the test uses <b>sun.jdbc.odbc.JdbcOdbcDriver</b> driver and expected
+					   url parameter. If you wish change this configuration, you can use configuration 
+					   button of the toolbar to set new arguments.</br>
+			</WhatTest>
+			<HowWorkTest> 
+				<br><b>Create phase</b></br>
+				<UL>
+	   			<LI>create new DF (df1) in a separate container</LI>
+	   			</UL>
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>register a DFD with that DF</LI>
+	   			</UL>
+	   			<br><b>Actual Test</b></br>
+	   			<UL>
+	   			<LI>subscribe to that DF (should immediately get back a notification);</LI>
+			    <LI>After 5 sec register 2nd DFD (matching) with that DF (should get back another notification;</LI>
+			    <LI>After 10 sec kill df1 agent after that create df1 agent;</LI>
+			    <LI>After 15 sec register 3rd DFD (not matching) with that DF (should not get back anything;</LI>
+			    <LI>After 20 sec modify 2nd DFD (still matching) with that DF (should get back another notification;</LI>
+			    <LI>After 25 sec modify 3rd DFD (now matching) with that DF (should get back another notification;</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+			</Test>		
+		
+	</TestsList>
+

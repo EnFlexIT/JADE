@@ -21,12 +21,12 @@
 			<Description> This item includes tests related to the usage of the SL operators such as logical operators (AND, OR, NOT) and modal operators (B, I, U).</Description>
 			<TestsListRif>test/content/SLOperatorTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Inter Platform Communication" skip="true">
+		<Tester name="Inter Platform Communication" skip="false">
 			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
 			<Description> This item includes tests related to agent communication across different platforms. </Description>
 			<TestsListRif>test/interPlatform/interPlatformTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Behaviours block/restart" skip="true">
+		<Tester name="Behaviours block/restart" skip="false">
 			<ClassName>test.behaviours.BlockTimeoutTesterAgent</ClassName>
 			<Description> This item includes tests aimed at stressing the behaviour block/restart mechanism </Description>
 			<TestsListRif>test/behaviours/blockTimeOutTestsList.xml</TestsListRif>
@@ -46,17 +46,17 @@
 			<Description> This item includes tests related to the Yellow Pages service provided by the DF agent according to the FIPA specifications </Description>
 			<TestsListRif>test/domain/df/dfTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Persistence_DF" skip="false">
-			<ClassName>test.domain.persistence.df.PersistenceDFTesterAgent</ClassName>
+		<Tester name="Persistent_DF" skip="false">
+			<ClassName>test.domain.df.PersistentDFTesterAgent</ClassName>
 			<Description> This item includes tests related to the persistence of Yellow Pages service provided by the DF agent.</Description>
-			<TestsListRif>test\\domain\\persistence\\df\\persistenceDFTestsList.xml</TestsListRif>
+			<TestsListRif>test\\domain\\df\\persistentDFTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="JADE Management Ontology" skip="false">
 			<ClassName>test.domain.JADEManagementOntologyTesterAgent</ClassName>
 			<Description> This item includes tests related to the actions included in the JADEManagementOntology such as CreateAgent and KillAgent </Description>
 			<TestsListRif>test/domain/jadeManagementOntoTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Mobility" skip="true">
+		<Tester name="Mobility" skip="false">
 			<ClassName>test.mobility.MobilityTesterAgent</ClassName>
 			<Description> This item includes tests related to agent mobility </Description>
 			<TestsListRif>test/mobility/mobilityTestsList.xml</TestsListRif>
