@@ -49,6 +49,8 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   public static final int RESUMED_AGENT = 7;
   public static final int CHANGED_AGENT_PRINCIPAL = 8;
   public static final int CHANGED_CONTAINER_PRINCIPAL = 9;
+  public static final int FROZEN_AGENT = 10;
+  public static final int THAWED_AGENT = 11;
 
   //private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
@@ -156,6 +158,14 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
     newContainer = to;
   }
 
+    //#APIDOC_EXCLUDE_BEGIN
+    public PlatformEvent(int id, AID aid, ContainerID from, ContainerID to) {
+	super(id, from);
+	agent = aid;
+	newContainer = to;
+    }
+    //#APIDOC_EXCLUDE_END
+
 //__SECURITY__BEGIN
   public PlatformEvent(int id, AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
     super(id, eventSource);
@@ -255,7 +265,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    */
   public boolean isAgentBD() {
     return (type == BORN_AGENT) || (type == DEAD_AGENT) ||
-        (type == SUSPENDED_AGENT) || (type == RESUMED_AGENT);
+        (type == SUSPENDED_AGENT) || (type == RESUMED_AGENT) || (type == FROZEN_AGENT);
   }
   
   /**
