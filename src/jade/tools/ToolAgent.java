@@ -42,8 +42,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.sl.SL0Codec;
 
-import jade.proto.FipaRequestInitiatorBehaviour;
-
 
 /**
 
