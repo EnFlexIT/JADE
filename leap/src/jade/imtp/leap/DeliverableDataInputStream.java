@@ -100,14 +100,14 @@ class DeliverableDataInputStream extends DataInputStream {
                 switch (id) {
                     // Directly handle deserialization of classes that must be
                     // deserialized more frequently
+		case Serializer.HORIZONTALCOMMAND_ID:
+		    return deserializeHorizontalCommand();
                 case Serializer.ACL_ID:
                     return deserializeACL();
                 case Serializer.AID_ID:
                     return deserializeAID();
                 case Serializer.STRING_ID:
                     return readUTF();
-                case Serializer.REMOTEPROXY_ID:
-                    return deserializeProxy();
                 case Serializer.CONTAINERID_ID:
                     return deserializeContainerID();
                 case Serializer.BOOLEAN_ID:
@@ -122,10 +122,12 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeVector();
                 case Serializer.MTPDESCRIPTOR_ID:
                     return deserializeMTPDescriptor();
-                case Serializer.CONTAINERSTUB_ID:
-                    return deserializeContainerStub();
-                case Serializer.MAINSTUB_ID:
-                    return deserializeMainStub();
+                case Serializer.NODEDESCRIPTOR_ID:
+                    return deserializeNodeDescriptor();
+                case Serializer.NODE_ID:
+                    return deserializeNode();
+                case Serializer.NODEARRAY_ID:
+                    return deserializeNodeArray();
                 case Serializer.ENVELOPE_ID:
                     return deserializeEnvelope();
                 case Serializer.ARRAYLIST_ID:
@@ -162,6 +164,9 @@ class DeliverableDataInputStream extends DataInputStream {
         catch (IOException e) {
             throw new LEAPSerializationException("I/O Error Deserializing a generic object");
         } 
+	catch(LEAPSerializationException leapse) {
+	    throw leapse; // Let this one through
+	}
         catch (Exception e) {
             throw new LEAPSerializationException("Error creating (de)Serializer: "+e);
         } 
@@ -343,14 +348,29 @@ class DeliverableDataInputStream extends DataInputStream {
         return sa;
     } 
 
-    /**
-     */
-    private RemoteContainerProxy deserializeProxy() throws IOException, LEAPSerializationException {
-        AID            receiver = readAID();
-        AgentContainer remoteContainer = (AgentContainer) readObject();
 
-        return new RemoteContainerProxy(remoteContainer, receiver);
-    } 
+    private HorizontalCommand deserializeHorizontalCommand() throws LEAPSerializationException {
+	try {
+	    // Read the mandatory command name and command service
+	    String name = readUTF();
+	    String service = readUTF();
+
+	    // Read the optional command interaction
+	    String interaction = readString();
+
+	    // Create the command and add all the read parameters to it
+	    GenericCommand result = new GenericCommand(name, service, interaction);
+	    int sz = readInt();
+	    for(int i = 0; i < sz; i++) {
+		result.addParam(readObject());
+	    }
+
+	    return result;
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing horizontal command");
+	}
+    }
 
     /**
      */
@@ -487,44 +507,132 @@ class DeliverableDataInputStream extends DataInputStream {
         } 
     } 
  
-    private AgentContainerStub deserializeContainerStub() throws LEAPSerializationException {
-        try {
-            AgentContainerStub acs = new AgentContainerStub();
-            acs.remoteID = readInt();
-            int cnt = readInt();
-            for (int i = 0; i < cnt; ++i) {
-                acs.remoteTAs.add(readObject());
-            } 
-            acs.bind(myStubHelper);
-            return acs;
-        } 
-        catch (IOException ioe) {
-            throw new LEAPSerializationException("Error deserializing AgentContainerStub");
-        }    
+    private NodeDescriptor deserializeNodeDescriptor() throws LEAPSerializationException {
+	try {
+
+	    String name = readUTF();
+	    Node node = deserializeNode();
+
+	    ContainerID cid = null;
+	    boolean present = readBoolean();
+	    if(present) {
+		cid = deserializeContainerID();
+	    }
+
+	    String principalName = readString();
+
+	    byte[] principalPwd = null;
+	    present = readBoolean();
+	    if(present) {
+		principalPwd = deserializeByteArray();
+	    }
+
+	    if(cid != null) {
+		return new NodeDescriptor(cid, node, principalName, principalPwd);
+	    }
+	    else {
+		return new NodeDescriptor(name, node);
+	    }
+
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing NodeDescriptor");
+	}
     }
 
-    private MainContainerStub deserializeMainStub() throws LEAPSerializationException {
-        try {
-            MainContainerStub mcs = new MainContainerStub();
-            mcs.remoteID = readInt();
-            int cnt = readInt();
-            for (int i = 0; i < cnt; ++i) {
-                mcs.remoteTAs.add(readObject());
-            }
-            mcs.bind(myStubHelper);
-            return mcs;
-        } 
-        catch (IOException ioe) {
-            throw new LEAPSerializationException("Error deserializing MainContainerStub");
-        }    
+    private Node deserializeNode() throws LEAPSerializationException {
+
+	try {
+	    String name = readString();
+
+	    byte b = readByte();
+	    if(b != Serializer.NODESTUB_ID) {
+		throw new LEAPSerializationException("Node stub magic number not found");
+	    }
+	    NodeStub stub = deserializeNodeStub();
+	    return new NodeAdapter(name, stub);
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing Node");
+	}
     }
- 
+
+    private NodeStub deserializeNodeStub() throws LEAPSerializationException {
+	try {
+	    NodeStub ns = new NodeStub();
+
+	    // Read the remote ID uniquely identifying the node
+	    ns.remoteID = readInt();
+
+	    // Read all the node transport addresses
+	    int sz = readInt();
+	    for(int i = 0; i < sz; i++) {
+		ns.remoteTAs.add(readObject());
+	    }
+
+	    ns.bind(myStubHelper);
+	    return ns;
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing Node stub");
+	}
+    }
+
+    private Node readNode() throws LEAPSerializationException {
+	try {
+	    boolean presenceFlag = readBoolean();
+
+	    if(presenceFlag) {
+		return deserializeNode();
+	    }
+	    else {
+		return null;
+	    }
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing Node");
+	}
+    }
+
+    private Node[] deserializeNodeArray() throws LEAPSerializationException {
+
+	try {
+	    Node[] nodes = new Node[readInt()];
+
+	    for(int i = 0; i < nodes.length; i++) {
+		nodes[i] = readNode();
+	    }
+
+	    return nodes;
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error deserializing Node[]");
+	}
+
+    }
+
+    public Node[] readNodeArray() throws LEAPSerializationException {
+        try {
+            boolean presenceFlag = readBoolean();
+
+            if (presenceFlag) {
+                return deserializeNodeArray();
+            } 
+            else {
+                return null;
+            } 
+        } 
+        catch (IOException e) {
+            throw new LEAPSerializationException("Error deserializing Node[]");
+        } 
+    } 
+
     private Envelope deserializeEnvelope() throws LEAPSerializationException {
         try {
             Envelope e = new Envelope();
             while (readBoolean()) {
                 e.addTo(deserializeAID());
-            } 
+            }
 
             e.setFrom(readAID());
             e.setComments(readString());
