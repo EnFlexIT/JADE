@@ -27,9 +27,9 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 import jade.lang.acl.ACLMessage;
-//import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
+import jade.mtp.MTPDescriptor;
 
 /**
  * Light implementation of the ACC. This class simply requests the
@@ -91,7 +91,7 @@ class LightAcc implements acc {
     /**
      * @see acc#addMTP()
      */
-    public String addMTP(String mtpClassName, 
+    public MTPDescriptor addMTP(String mtpClassName, 
                                    String address) throws MTPException {
         // Throws an exception as this operation is not supported in
         // this ACC implementation
@@ -101,8 +101,9 @@ class LightAcc implements acc {
     /**
      * @see acc#addMTP()
      */
-    public void removeMTP(String address) throws MTPException {
-    	// Just do nothing 
+    public MTPDescriptor removeMTP(String address) throws MTPException {
+      // Just do nothing 
+      return null;
     } 
 
     /**
@@ -115,24 +116,16 @@ class LightAcc implements acc {
     }
     
     /**
-     * @see acc#getLocalAddresses()
-     */
-    public List getLocalAddresses() {
-        // Return an empty list
-        return new ArrayList();
-    } 
-
-    /**
      * @see acc#addRoute()
      */
-    public void addRoute(String address, AgentContainer ac) {
+    public void addRoute(MTPDescriptor mtp, AgentContainer ac) {
         // Just do nothing
     } 
 
     /**
      * @see acc#removeRoute()
      */
-    public void removeRoute(String address, AgentContainer ac) {
+    public void removeRoute(MTPDescriptor mtp, AgentContainer ac) {
         // Just do nothing
     } 
 
