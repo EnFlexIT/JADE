@@ -469,6 +469,21 @@ public class rma extends ToolAgent {
     if(containerName.equals(""))
       containerName = AgentContainer.MAIN_CONTAINER_NAME;
 
+    // fill the create action with the intended agent owner
+    jade.security.JADEPrincipal rmaOwner = null;
+    jade.security.Credentials rmaCredentials = null;
+    try {
+      jade.security.CredentialsHelper ch = (jade.security.CredentialsHelper) getHelper("jade.core.security.Security");
+      // get RMA's owner
+      if (ch!=null) {  rmaCredentials = ch.getCredentials();    }
+      if (rmaCredentials!=null) {  rmaOwner = rmaCredentials.getOwner();    }
+    }
+    catch (ServiceException se) { // Security service not present. Owner is null. 
+    }
+    // it is requested the creation of an agent 
+    // with the same owner of the RMA
+    ca.setOwner( rmaOwner );
+
     ca.setAgentName(agentName);
     ca.setClassName(className);
     ca.setContainer(new ContainerID(containerName, null));
