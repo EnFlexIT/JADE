@@ -521,13 +521,17 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * receiver. Unfortunatelly, this default implementation cannot be 
    * provided by this behaviour because there exist no such a universal
    * special symbol.
+   * Instead, the provided default implementation returns the passed
+   * <code>cfpContent</code> argument without any modification at all.
    * @param cfpContent this is the content of the cfp message that was passed
    * in the constructor of the behaviour
    * @param receiver this is the AID of the receiver agent to which this 
    * content is destinated
    * @return the actual content to be sent to this receiver
    */
-  public abstract String createCfpContent(String cfpContent, AID receiver);
+public String createCfpContent(String cfpContent, AID receiver) {
+  return cfpContent;
+}
 
 
   /**
