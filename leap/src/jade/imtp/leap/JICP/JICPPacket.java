@@ -226,13 +226,13 @@ public class JICPPacket {
     out.write(info);
 
     // Write the session ID if present
-    if (sessionID >= 0) {
+    if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
       out.write(sessionID);
       cnt++;
     }
 
     // Write recipient ID only if != null
-    if (recipientID != null) {
+    if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
     	out.write(recipientID.length());
     	out.write(recipientID.getBytes());
     	cnt += (1 + recipientID.length());
@@ -326,8 +326,18 @@ public class JICPPacket {
   	return (byte) i;
   }
   
-  public int getLength() {      
-  	return (2 + (sessionID >= 0 ? 1 : 0) + (recipientID != null ? 1+recipientID.length() : 0) + (data != null ? 2+data.length : 0));
+  public int getLength() {
+  	int cnt = 2;
+    if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+    	cnt++;
+    }
+    if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+    	cnt += (1 + recipientID.getBytes().length);
+    }
+    if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+    	cnt += (2 + data.length);
+    }
+    return cnt;
   }
 }
 
