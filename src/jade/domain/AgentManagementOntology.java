@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1998/11/09 00:16:22  rimassa
+  Uniformed syntax for different kinds of AMS related ontology objects:
+  now a property list is used both in AMSAgentEvent class and in
+  CreateAgentAction class.
+
   Revision 1.13  1998/11/05 23:33:22  rimassa
   Added some String constants and toText() method for CreateAgentAction
   and KillAgentAction inner classes.
@@ -546,6 +551,12 @@ public class AgentManagementOntology {
 
   }
 
+  public static interface PropertyContainer {
+    void addProperty(String name, String value);
+    String getProperty(String name);
+    public void removeProperty(String name);
+  }
+
   public static interface Action {
 
     public void setName(String name);
@@ -608,7 +619,7 @@ public class AgentManagementOntology {
 
   } // End of AMSAction class
 
-  public static class CreateAgentAction extends AMSAction {
+  public static class CreateAgentAction extends AMSAction implements PropertyContainer {
 
     public static final String AGENTCODE = ":agent-code";
     public static final String AGENTPROPERTIES = ":agent-properties";
@@ -763,14 +774,16 @@ public class AgentManagementOntology {
 
   }
 
-  public static class AMSAgentEvent extends AMSContainerEvent {
+  public static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
 
     private AMSAgentDescriptor agentDescriptor;
 
     public void toText(Writer w) {
       try {
 	w.write("( ");
-	w.write(eventNames[kind] + " ( :container " + containerName + " ) ");
+	w.write(eventNames[kind] + " ( :agent-properties ");
+	w.write(" ( :container " + containerName + " ) ");
+	w.write(" ) ");
 	w.write("( " + AMSAction.ARGNAME + " ");
 	agentDescriptor.toText(w);
 	w.write(" )");
@@ -780,6 +793,24 @@ public class AgentManagementOntology {
       catch(IOException ioe) {
 	ioe.printStackTrace();
       }
+    }
+
+    public void addProperty(String name, String value) {
+      if(name.equalsIgnoreCase(":container")) {
+	setContainerName(value);
+      }
+    }
+
+    public String getProperty(String name) {
+      if(name.equalsIgnoreCase(":container"))
+	return getContainerName();
+      else
+	return null;
+    }
+
+    public void removeProperty(String name) {
+      if(name.equalsIgnoreCase(":container"))
+	setContainerName(null);
     }
 
     public void setAgentDescriptor(AMSAgentDescriptor amsd) {
