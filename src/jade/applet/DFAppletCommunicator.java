@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 **************************************************************/
 
-package jade.applet;
+package jade.tools.applet;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLParser;
@@ -130,10 +130,12 @@ public String getLocalName() {
 }
 
   public void postCloseGuiEvent(Object g) {
+    gui.dispose();
     a.destroy(); 
   }
 
   public void postExitEvent(Object g) {
+    gui.dispose();
     a.destroy(); 
   }
 
@@ -148,13 +150,13 @@ public void postRegisterEvent(Object source, String parentName, AgentManagementO
     w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (register (:df-description ");
     dfd.toText(w);
     w.write("))))");
-    //System.out.println(w.toString());
+    System.out.println(w.toString());
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage();
-    //System.err.println("Received the message"+msg.toString());
+    System.err.println("Received the message"+msg.toString());
     if ("agree".equalsIgnoreCase(msg.getType())) {
       msg=receiveMessage();
-      //System.err.println("Received the message"+msg.toString());
+      System.err.println("Received the message"+msg.toString());
       if (! "inform".equalsIgnoreCase(msg.getType())) 
 	gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
     } else gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());

@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.applet;
+package jade.tools.applet;
 
 import jade.gui.*;
 import java.applet.Applet;
@@ -41,7 +41,6 @@ public class DFApplet extends Applet {
 
   public void init() {
     DFAppletCommunicator dfc = new DFAppletCommunicator(this);
-    //GUI2DFCommunicatorInterface dfc = new DFAppletCommunicator(this);
     DFGUI gui = new DFGUI(dfc);
     dfc.setGUI(gui);
     gui.setVisible(true);
