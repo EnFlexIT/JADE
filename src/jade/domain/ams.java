@@ -111,7 +111,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	l.add(a);
 	l.add(new TrueProposition());
 	try {
-	    fillContent2(temp,l);
+	    fillMsgContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return "( true )";
 	}
@@ -140,7 +140,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	l.add(a);
 	l.add(e);
 	try {
-	    fillContent2(temp,l);
+	    fillMsgContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return e.getMessage();
 	}
@@ -156,7 +156,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	Action a = null;
 	try {
 	ACLMessage msg = getRequest();
-	List l = myAgent.extractContent2(msg);
+	List l = myAgent.extractMsgContent(msg);
 	a = (Action)l.get(0);
 	// Do real action, deferred to subclasses
 	processAction(a);
@@ -318,7 +318,7 @@ public class ams extends Agent implements AgentManager.Listener {
       	r.add_1(l.get(i));
       l.clear();
       l.add(r);
-      fillContent2(msg,l); 
+      fillMsgContent(msg,l); 
       send(msg);
     }
 
@@ -343,7 +343,7 @@ public class ams extends Agent implements AgentManager.Listener {
       rp.add_1(theProfile);
       ArrayList list = new ArrayList(1);
       list.add(rp);
-      fillContent2(reply,list);
+      fillMsgContent(reply,list);
       send(reply);
     }
 
@@ -399,7 +399,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillContent2(toolNotification, l);
+	    fillMsgContent(toolNotification, l);
 
 	    send(toolNotification);
 
@@ -425,7 +425,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillContent2(toolNotification, l);
+	    fillMsgContent(toolNotification, l);
 
 	    send(toolNotification);
 	  }
@@ -446,7 +446,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillContent2(toolNotification, l);
+	    fillMsgContent(toolNotification, l);
 
 	    send(toolNotification);
 	  }
@@ -463,7 +463,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	   l.add(o);
 	   toolNotification.clearAllReceiver();
 	   toolNotification.addReceiver(newTool);
-	   fillContent2(toolNotification, l);
+	   fillMsgContent(toolNotification, l);
 	   send(toolNotification);
 	 
 	  // Add the new tool to tools list.
@@ -539,7 +539,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  List l = new ArrayList(1);
 	  l.add(o);
 	  try {
-	    fillContent2(toolNotification, l);
+	    fillMsgContent(toolNotification, l);
 	  }
 	  catch(FIPAException fe) {
 	    fe.printStackTrace();

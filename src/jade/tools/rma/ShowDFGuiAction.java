@@ -62,7 +62,7 @@ class ShowDFGuiAction extends FixedAction
      List l = new ArrayList();
      l.add(a);
      try {
-     	myRMA.fillContent2(msg,l);
+     	myRMA.fillMsgContent(msg,l);
      } catch (FIPAException e) {
      	e.printStackTrace();
      }

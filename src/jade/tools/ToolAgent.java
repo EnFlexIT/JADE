@@ -113,7 +113,7 @@ public abstract class ToolAgent extends Agent {
       if(current != null) {
 	// Handle 'inform' messages from the AMS
   try {
-	  List l = extractContent2(current);
+	  List l = extractMsgContent(current);
 	  Occurred o = (Occurred)l.get(0);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();

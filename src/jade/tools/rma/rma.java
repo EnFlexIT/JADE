@@ -124,7 +124,7 @@ public class rma extends ToolAgent {
     		//System.out.println("arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r =(ResultPredicate) extractContent2(msg).get(0); 
+    			ResultPredicate r =(ResultPredicate) extractMsgContent(msg).get(0); 
 
     			Iterator i = r.getAll_1();
     			APDescription APDesc = (APDescription)i.next();
@@ -152,7 +152,7 @@ public class rma extends ToolAgent {
 	    //System.out.println("arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = (ResultPredicate)extractContent2(msg).get(0);
+    			ResultPredicate r = (ResultPredicate)extractMsgContent(msg).get(0);
     			Iterator i = r.getAll_1();
     			myGUI.addRemoteAgentsToRemotePlatform(platform,i);
     		}catch(FIPAException e){
@@ -345,7 +345,7 @@ public class rma extends ToolAgent {
 
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("CreateAgent", requestMsg));
     }
     catch(FIPAException fe) {
@@ -373,7 +373,7 @@ public class rma extends ToolAgent {
 
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("SuspendAgent", requestMsg));
     }
     catch(FIPAException fe) {
@@ -409,7 +409,7 @@ public class rma extends ToolAgent {
 
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
     }
     catch(FIPAException fe) {
@@ -442,7 +442,7 @@ public class rma extends ToolAgent {
 
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("KillAgent", requestMsg));
     }
     catch(FIPAException fe) {
@@ -469,7 +469,7 @@ public class rma extends ToolAgent {
 
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("KillContainer", requestMsg));
     }
     catch(FIPAException fe) {
@@ -500,7 +500,7 @@ public class rma extends ToolAgent {
      	  l.add(a);
 	  ACLMessage requestMsg = getRequest();
      	  requestMsg.setOntology(MobilityOntology.NAME);
-     	  fillContent2(requestMsg,l);
+     	  fillMsgContent(requestMsg,l);
      	  addBehaviour(new AMSClientBehaviour("MoveAgent",requestMsg));
      	  
       }catch(FIPAException fe){fe.printStackTrace();}
@@ -527,7 +527,7 @@ public class rma extends ToolAgent {
   		l.add(a);
 		ACLMessage requestMsg = getRequest();
   		requestMsg.setOntology(MobilityOntology.NAME);
-  		fillContent2(requestMsg,l);
+  		fillMsgContent(requestMsg,l);
   		addBehaviour(new AMSClientBehaviour("CloneAgent",requestMsg));
   		
   	}catch(FIPAException fe){fe.printStackTrace();}
@@ -562,7 +562,7 @@ public class rma extends ToolAgent {
 
 	ACLMessage requestMsg = getRequest();
 	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	fillContent2(requestMsg, l);
+	fillMsgContent(requestMsg, l);
 	addBehaviour(new AMSClientBehaviour("InstallMTP", requestMsg));
       }
       catch(FIPAException fe) {
@@ -585,7 +585,7 @@ public class rma extends ToolAgent {
 
 	ACLMessage requestMsg = getRequest();
 	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	fillContent2(requestMsg, l);
+	fillMsgContent(requestMsg, l);
 	addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
       }
       catch(FIPAException fe) {
@@ -616,7 +616,7 @@ public class rma extends ToolAgent {
     		a.set_0(remoteAMS);
     		a.set_1(action);
     		l.add(a);
-    		fillContent2(requestMsg,l);
+    		fillMsgContent(requestMsg,l);
     		addBehaviour(new handleAddRemotePlatformBehaviour("GetDescription",requestMsg));
   		
   	}catch(FIPAException e){
@@ -641,7 +641,7 @@ public class rma extends ToolAgent {
      	dummyMsg.setContent(content);
      	try{
      	
-     	ResultPredicate r = (ResultPredicate)extractContent2(dummyMsg).get(0);
+     	ResultPredicate r = (ResultPredicate)extractMsgContent(dummyMsg).get(0);
      	
     	Iterator i = r.getAll_1();
     	
@@ -719,7 +719,7 @@ public class rma extends ToolAgent {
 
     	List l = new ArrayList(1);
 			l.add(act);
-			fillContent2(request,l);
+			fillMsgContent(request,l);
 			
 			addBehaviour(new handleRefreshRemoteAgentBehaviour ("search",request,platform));
 			
@@ -742,7 +742,7 @@ public class rma extends ToolAgent {
   		l.add(a);
 		ACLMessage requestMsg = getRequest();
   		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillContent2(requestMsg, l);
+      fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("Register", requestMsg));
 
   	}catch(FIPAException e){e.printStackTrace();}

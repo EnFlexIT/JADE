@@ -227,7 +227,7 @@ public class Introspector extends ToolAgent {
 	a.set_1(dbgOn);
 	List l = new ArrayList(1);
 	l.add(a);
-	fillContent2(msg, l);
+	fillMsgContent(msg, l);
 
 	addBehaviour(new AMSRequester("DebugOn", msg));
       }
@@ -258,7 +258,7 @@ public class Introspector extends ToolAgent {
 	a.set_1(dbgOff);
 	List l = new ArrayList(1);
 	l.add(a);
-	fillContent2(msg, l);
+	fillMsgContent(msg, l);
 
 	addBehaviour(new AMSRequester("DebugOff", msg));
       }
@@ -292,7 +292,7 @@ public class Introspector extends ToolAgent {
       List l = new ArrayList(1);
       l.add(a);
       try {
-	fillContent2(msg, l);
+	fillMsgContent(msg, l);
 	FIPAServiceCommunicator.doFipaRequestClient(this, msg);
       }
       catch(FIPAException fe) {
@@ -410,7 +410,7 @@ public class Introspector extends ToolAgent {
       if(message != null) {
         AID name = message.getSender();
 	try{
-          List l = extractContent2(message);
+          List l = extractMsgContent(message);
 	  Occurred o = (Occurred)l.get(0);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();

@@ -216,7 +216,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   protected String getActionName(ACLMessage msg) throws NotUnderstoodException, RefuseException {
     try {
-      List l = myAgent.extractContent2(msg);
+      List l = myAgent.extractMsgContent(msg);
       Action a = (Action)l.get(0);
       // Use the ontology to discover the action name
       Ontology o = myAgent.lookupOntology(msg.getOntology());

@@ -118,7 +118,7 @@ class MobilityManager {
       Object o;
       ACLMessage msg = getRequest();
       try {
-	List l = theAMS.extractContent2(msg);
+	List l = theAMS.extractMsgContent(msg);
 	Action a = (Action)l.get(0);
 	sendReply(ACLMessage.AGREE,"(true)");
 	try {
@@ -197,7 +197,7 @@ class MobilityManager {
       r.add_1(where);
       List l = new ArrayList(1);
       l.add(r);
-      theAMS.fillContent2(reply, l);
+      theAMS.fillMsgContent(reply, l);
       theAMS.send(reply);
     }
 
@@ -221,7 +221,7 @@ class MobilityManager {
       	r.add_1(locations.next());
       List l = new ArrayList();
       l.add(r);
-      theAMS.fillContent2(reply,l); 
+      theAMS.fillMsgContent(reply,l); 
       theAMS.send(reply);
     }
 
