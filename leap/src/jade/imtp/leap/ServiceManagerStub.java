@@ -83,7 +83,7 @@ class ServiceManagerStub extends Stub {
 	}
     }
 
-    public String addNode(NodeDescriptor desc, String[] svcNames, String[] svcInterfaces) throws IMTPException, ServiceException, AuthException {
+    public String addNode(NodeDescriptor desc, String[] svcNames, String[] svcInterfaces, boolean propagate) throws IMTPException, ServiceException, AuthException {
 
 	try {
 
@@ -93,6 +93,7 @@ class ServiceManagerStub extends Stub {
 	    cmd.addParam(desc);
 	    cmd.addParam(svcNames);
 	    cmd.addParam(svcInterfaces);
+	    cmd.addParam(new Boolean(propagate));
 
 	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 
@@ -112,12 +113,13 @@ class ServiceManagerStub extends Stub {
 	}
     }
 
-    public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
+    public void removeNode(NodeDescriptor desc, boolean propagate) throws IMTPException, ServiceException {
 	try {
 
 	    // First, deregister this node with the service manager
 	    Command cmd = new Command(Command.REMOVE_NODE, remoteID);
 	    cmd.addParam(desc);
+	    cmd.addParam(new Boolean(propagate));
 	    Command res = theDispatcher.dispatchCommand(remoteTAs, cmd);
 
 	    // Check whether an exception occurred in the remote container
@@ -131,7 +133,7 @@ class ServiceManagerStub extends Stub {
 	}
     }
 
-    public void activateService(String svcName, Class itf, NodeDescriptor where) throws IMTPException, ServiceException {
+    public void activateService(String svcName, Class itf, NodeDescriptor where, boolean propagate) throws IMTPException, ServiceException {
 	try {
 
 	    // Activate the service with the remote Service Manager
@@ -139,6 +141,7 @@ class ServiceManagerStub extends Stub {
 	    cmd.addParam(svcName);
 	    cmd.addParam(itf.getName());
 	    cmd.addParam(where);
+	    cmd.addParam(new Boolean(propagate));
 
 	    Command res = theDispatcher.dispatchCommand(remoteTAs, cmd);
 
@@ -154,7 +157,7 @@ class ServiceManagerStub extends Stub {
 	}
     }
 
-    public void deactivateService(String name, NodeDescriptor desc) throws IMTPException, ServiceException {
+    public void deactivateService(String name, NodeDescriptor desc, boolean propagate) throws IMTPException, ServiceException {
 	// FIXME: To be implemented
 
 	// Remove the slice of the service corresponding to the calling node...
@@ -201,6 +204,68 @@ class ServiceManagerStub extends Stub {
 	    checkResult(result, new String[] { });
 
 	    return (Node[])result.getParamAt(0);
+	}
+	catch (DispatcherException de) {
+	    throw new IMTPException(DISP_ERROR_MSG, de);
+	}
+	catch (UnreachableException ue) {
+	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+	}
+    }
+
+    public void ping() throws IMTPException {
+	try {
+
+	    Command cmd = new Command(Command.SERVICE_MANAGER_PING, remoteID);
+
+	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+
+	    // Check whether an exception occurred in the remote container
+	    checkResult(result, new String[] { });
+
+	}
+	catch (DispatcherException de) {
+	    throw new IMTPException(DISP_ERROR_MSG, de);
+	}
+	catch (UnreachableException ue) {
+	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+	}
+    }
+
+    public String[] addReplica(String addr) throws IMTPException {
+	try {
+
+	    // Find all the nodes with the help of the remote Service Manager
+	    Command cmd = new Command(Command.SERVICE_MANAGER_ADD_REPLICA, remoteID);
+	    cmd.addParam(addr);
+
+	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+
+	    // Check whether an exception occurred in the remote container
+	    checkResult(result, new String[] { });
+
+	    return (String[])result.getParamAt(0);
+	}
+	catch (DispatcherException de) {
+	    throw new IMTPException(DISP_ERROR_MSG, de);
+	}
+	catch (UnreachableException ue) {
+	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+	}
+    }
+
+    public void updateCounters(int nodeCnt, int mainCnt) throws IMTPException {
+	try {
+
+	    Command cmd = new Command(Command.SERVICE_MANAGER_UPDATE_COUNTERS, remoteID);
+	    cmd.addParam(new Integer(nodeCnt));
+	    cmd.addParam(new Integer(mainCnt));
+
+	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+
+	    // Check whether an exception occurred in the remote container
+	    checkResult(result, new String[] { });
+
 	}
 	catch (DispatcherException de) {
 	    throw new IMTPException(DISP_ERROR_MSG, de);
