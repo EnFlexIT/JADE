@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/02/03 10:05:44  rimassa
+  Changed addContainer() signature: now it returns a String containing
+  the IIOP address (in IOR or URL format).
+
   Revision 1.7  1998/11/03 00:28:56  rimassa
   Added an exeption specification to deadAgent() method.
 
@@ -34,7 +38,7 @@ import java.rmi.RemoteException;
 
 ************************************************************************/
 public interface AgentPlatform extends AgentContainer {
-  public void addContainer(AgentContainer ac) throws RemoteException;
+  public String addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(AgentContainer ac) throws RemoteException;
 
   public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
