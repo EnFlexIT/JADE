@@ -84,6 +84,16 @@ public interface IntrospectionVocabulary {
   public static final String RESUMEDAGENT_AGENT = "agent";
   public static final String RESUMEDAGENT_WHERE = "where";
 
+  public static final String FROZENAGENT = "frozen-agent";
+  public static final String FROZENAGENT_AGENT = "agent";
+  public static final String FROZENAGENT_WHERE = "where";
+  public static final String FROZENAGENT_BUFFERCONTAINER = "buffer-container";
+
+  public static final String THAWEDAGENT = "thawed-agent";
+  public static final String THAWEDAGENT_AGENT = "agent";
+  public static final String THAWEDAGENT_WHERE = "where";
+  public static final String THAWEDAGENT_BUFFERCONTAINER = "buffer-container";
+
   public static final String CHANGEDAGENTOWNERSHIP = "changed-agent-ownership";
   public static final String CHANGEDAGENTOWNERSHIP_AGENT = "agent";
   public static final String CHANGEDAGENTOWNERSHIP_FROM = "from";

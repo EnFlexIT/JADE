@@ -106,6 +106,8 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
   		add(new ConceptSchema(DEADAGENT), DeadAgent.class);
   		add(new ConceptSchema(SUSPENDEDAGENT), SuspendedAgent.class);
   		add(new ConceptSchema(RESUMEDAGENT), ResumedAgent.class);
+		add(new ConceptSchema(FROZENAGENT), FrozenAgent.class);
+		add(new ConceptSchema(THAWEDAGENT), ThawedAgent.class);
   		add(new ConceptSchema(CHANGEDAGENTOWNERSHIP), ChangedAgentOwnership.class);
   		add(new ConceptSchema(MOVEDAGENT), MovedAgent.class);
   		add(new ConceptSchema(CHANGEDAGENTSTATE), ChangedAgentState.class);
@@ -199,6 +201,16 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		cs = (ConceptSchema)getSchema(RESUMEDAGENT);
 		cs.add(RESUMEDAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(RESUMEDAGENT_WHERE, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
+
+		cs = (ConceptSchema)getSchema(FROZENAGENT);
+		cs.add(FROZENAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));
+		cs.add(FROZENAGENT_WHERE, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
+		cs.add(FROZENAGENT_BUFFERCONTAINER, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
+
+		cs = (ConceptSchema)getSchema(THAWEDAGENT);
+		cs.add(THAWEDAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));
+		cs.add(THAWEDAGENT_WHERE, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
+		cs.add(THAWEDAGENT_BUFFERCONTAINER, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
 
 		cs = (ConceptSchema)getSchema(CHANGEDAGENTOWNERSHIP);
 		cs.add(CHANGEDAGENTOWNERSHIP_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));	
