@@ -82,8 +82,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   CommandProcessor myCommandProcessor;
 
   // The agent platform this container belongs to
-  private Platform myPlatform;
-  private MainContainer myMainContainer;
+  private MainContainerImpl myMainContainer; // FIXME: It should go away
 
   // The IMTP manager, used to access IMTP-dependent functionalities
   private IMTPManager myIMTPManager;
@@ -98,6 +97,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private ResourceManager myResourceManager;
   
   private ContainerID myID;
+  private NodeDescriptor myNodeDescriptor;
 
   private String username = null;
   private byte[] password = null;
@@ -261,16 +261,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  myServiceManager = myProfile.getServiceManager();
 	  myServiceFinder = myProfile.getServiceFinder();
 
-          // Get the Main
-          myPlatform = myProfile.getPlatform();
-
-	  // FIXME: A single reference for MainContainer and Platform would be better
-	  if(myPlatform instanceof MainContainer) {
-	      myMainContainer = (MainContainer)myPlatform;
-	  }
-	  else {
-	      myMainContainer = null;
-	  }
+	  // FIXME: It should probably go away...
+	  myMainContainer = myProfile.getMain();
 
           // Create and init container-authority
           try {
@@ -320,7 +312,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // the name for this container is got from the Profile, if exists
 	  // "No-name" is needed because the NAME is mandatory in the Ontology
           myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME,
-							"No-Name"), addr);
+							AgentManager.UNNAMED_CONTAINER_NAME), addr);
 
           // Acquire username and password
 	  //#MIDP_EXCLUDE_BEGIN
@@ -357,7 +349,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  messaging.init(this, myProfile);
 
-	  NodeDescriptor localDesc = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
+	  myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
 	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
 	      new ServiceDescriptor(messaging.getName(), messaging)
@@ -365,7 +357,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  // Register with the platform and activate all the container fundamental services
 	  // This call can modify the name of this container
-	  myServiceManager.addNode(localDesc, baseServices);
+	  myServiceManager.addNode(myNodeDescriptor, baseServices);
 
 
 	  //#MIDP_EXCLUDE_BEGIN
@@ -382,17 +374,25 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  //#J2ME_EXCLUDE_BEGIN
 
+
 	  startService("jade.core.event.NotificationService");
 
 	  //#J2ME_EXCLUDE_END
 
 
-	  if(myPlatform != null) {
-	      myPlatform.startSystemAgents(this);
-	  }
-
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
+
+	  if(myMainContainer != null) {
+	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null) == null);
+	      myMainContainer.initSystemAgents(this, startThem);
+	  }
+
+	  // Install the main container replication service, if needed
+	  boolean isMain = myProfile.getParameter(Profile.MAIN, "").equals("true");
+	  if(isMain) {
+	      startService("jade.core.replication.MainReplicationService");
+	  }
 
       }
       catch (IMTPException imtpe) {
@@ -513,9 +513,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
 
-	if(myPlatform != null) {
-	    myPlatform.removeLocalContainer();
+	myServiceManager.removeNode(myNodeDescriptor);
+
+	/***
+	if(myMainContainer != null) {
+	    myMainContainer.removeLocalContainer(myID);
 	}
+	***/
 
 	myIMTPManager.unexportServiceManager(myServiceManager);
 	myIMTPManager.disconnect(myID);
@@ -524,12 +528,16 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();
     }
+    catch(ServiceException se) {
+	se.printStackTrace();
+    }
 
     // Releases Thread resources
     myResourceManager.releaseResources();
-    
+
     // Notify the JADE Runtime that the container has terminated execution
     endContainer();
+
   }
 
   // calls Runtime.instance().endContainer()
@@ -549,7 +557,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 
-	////////////////////////////////////////////
+  ////////////////////////////////////////////
   // AgentToolkit interface implementation
   ////////////////////////////////////////////
 
@@ -920,6 +928,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	return myMainContainer;
     }
 
+    public ServiceManager getServiceManager() {
+	return myServiceManager;
+    }
+
+    public ServiceFinder getServiceFinder() {
+	return myServiceFinder;
+    }
+
     // Utility method to start a kernel service
     private void startService(String name) throws ServiceException {
 
@@ -928,7 +944,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    Class svcClass = Class.forName(name);
 	    Service svc = (Service)svcClass.newInstance();
 	    svc.init(this, myProfile);
-	    
+
 	    myServiceManager.activateService(new ServiceDescriptor(svc.getName(), svc));
 	    svc.boot(myProfile);
 	}
@@ -941,6 +957,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
     }
 
+    public void becomeLeader() {
+	try {
+	    myMainContainer.startSystemAgents(this);
+	}
+	catch(Exception e) {
+	    e.printStackTrace();
+	}
+    }
+
 
 //#ALL_EXCLUDE_BEGIN  
   //FIXME: These methods have been added to support 
@@ -948,12 +973,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // with minimum effort. They will possibly be removed in a 
   // future (more general) implementation
   public void addPlatformListener(AgentManager.Listener l) throws ClassCastException {
-  	AgentManager m = (AgentManager) myPlatform;
+  	AgentManager m = (AgentManager) myMainContainer;
   	m.addListener(l);
   }
 
   public void removePlatformListener(AgentManager.Listener l) throws ClassCastException {
-  	AgentManager m = (AgentManager) myPlatform;
+  	AgentManager m = (AgentManager) myMainContainer;
   	m.removeListener(l);
   }
 //#ALL_EXCLUDE_END  
