@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/10/30 18:18:48  rimassa
+  Added an abstract reset() method to restore a Behaviour's initial
+  state.
+
   Revision 1.5  1998/10/04 18:01:02  rimassa
   Added a 'Log:' field to every source file.
 
@@ -85,8 +89,11 @@ public abstract class Behaviour {
   // Runs the behaviour
   public abstract void action();
 
-  // returns true if the behaviour has completely executed
+  // Returns true if the behaviour has completely executed
   public abstract boolean done();
+
+  // Restores Behaviour initial state
+  public abstract void reset();
 
   // This method handles notification by copying its runnable state and
   // then by simply forwarding the events when it is travelling
