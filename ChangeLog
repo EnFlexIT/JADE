@@ -25,11 +25,34 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - jade.security
 - added support for Object2Agent Communication (see 
   jade.core.Agent.putO2AObject and jade.wrapper.Agent.putO2AObject)
+- support to content
+  - added new class OntoAID that wraps a jade.core.AID 
+  - ContentElementList, AbsContentElementList and AbsAggregate
+    Now all these classes have methods with the same names as the methods in 
+    the jade.util.leap.List interface
+  - Introspectable Interface
+    This interface has to be implemented by Ontology classes that are to be 
+    used in J2ME where the ReflectiveIntrospector is not available and the 
+    MicroIntrospector (also added to the repository) has to be used.
+  - AbsPrimitive
+    The constructor AbsPrimitive(String type, Object value) is no longer 
+    available as it can lead to errors. Use the static methods wrap() instead.
+  - AbsObject
+    The method set(String name, AbsObject value) is no longer available as it 
+    can lead to errors. Use the static method of the Ontology class 
+    setAttribute() instead
+  - FullOntology
+    This class does no longer exist. Use Ontology instead.
+  - Now it is possible for an ontology to extend more than just one ontology.
+  - The Introspector used by an ontology tries to convert Java objects to/from 
+    abstract descriptors only for schemas defined in the ontology that uses it
+    (and not also in base ontologies)
 
+	
 BUG FIX
 - the ACLMessage class is now able to properly deal with a content encoded
-  as a Sequence of bytes
-- corrected the name of the HTTP-MTP
+  as a Sequence of bytes. The bit-efficient ACLCodec has been consequently
+  modified
 - the DF did not set its addresses in its DFAgentDescrption provided
   to the federated DF
 - Agent.getAID() did not set the list of platform addresses in the
@@ -41,9 +64,11 @@ BUG FIX
 - Fixed StackOverflow bug in AbsCommunicativeact (as reported by Habin Lee, bug #63)
 - Improved handling of errors in remote creation of moving agents
 - Made LEAPCodec compilable in pJava
-- Fixed bug in HTTP-MTP when dealing with intended-receiver list 
-  (as reported by Jerome Picault, Motorola)
-- Made more robust the HTTP-MTP with a number of sanity checks (Ion Constantinescu)
+- HTTP-MTP Add-on
+  - Fixed bug in HTTP-MTP when dealing with intended-receiver list 
+    (as reported by Jerome Picault, Motorola)
+  - Made more robust the HTTP-MTP with a number of sanity checks (Ion Constantinescu)
+  - fixed the MTP Name
 
 EXAMPLES
 - added party example kindly provided by Ian Dickinson (HP Bristol)
