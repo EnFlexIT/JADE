@@ -335,10 +335,9 @@ public class AgentMobilityService extends BaseService {
 		}
 
 		transferState = 3;
-		log("Identity of agent " + agentID + " correctly transferred", 1);
                         
 		if (transferResult == TRANSFER_COMMIT) {
-
+				log("Identity of agent " + agentID + " correctly transferred", 1);
 		    // Send received messages to the destination container. Note that
 		    // there is no synchronization problem as the agent is locked in the LADT
 		    myContainer.fillListFromMessageQueue(messages, a);
@@ -350,13 +349,14 @@ public class AgentMobilityService extends BaseService {
 		    // with its removal from the LADT
 		    myContainer.commitMigration(a);
 		    sites.remove(a);
+				log("Agent " + agentID + " correctly activated on destination container", 1);
 		}
-
 		else {
+				log("Error transferring identity of agent " + agentID, 1);
 		    myContainer.abortMigration(a);
 		    dest.handleTransferResult(agentID, transferResult, messages);
+				log("Migration of agent " + agentID + "aborted", 1);
 		}
-		log("Agent " + agentID + " correctly activated on destination container", 1);
 	    }
 	    catch (IOException ioe) {
 		// Error in agent serialization
@@ -899,6 +899,7 @@ public class AgentMobilityService extends BaseService {
 	}
 
 	private boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
+		log("Transferring identity of agent "+agentID+" from "+src.getName()+" to "+dest.getName(), 2);
 
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
@@ -908,7 +909,6 @@ public class AgentMobilityService extends BaseService {
 		try {
 		    AgentMobilitySlice srcSlice = (AgentMobilitySlice)getSlice(src.getName());
 		    AgentMobilitySlice destSlice = (AgentMobilitySlice)getSlice(dest.getName());
-
 		    boolean srcReady = false;
 		    boolean destReady = false;
 
@@ -919,6 +919,7 @@ public class AgentMobilityService extends BaseService {
 			srcSlice = (AgentMobilitySlice)getFreshSlice(src.getName());
 			srcReady = srcSlice.prepare();
 		    }
+				log("Source "+src.getName()+" "+srcReady, 2);
 
 		    try {
 			destReady = destSlice.prepare();
@@ -927,6 +928,7 @@ public class AgentMobilityService extends BaseService {
 			destSlice = (AgentMobilitySlice)getFreshSlice(dest.getName());
 			destReady = destSlice.prepare();
 		    }
+				log("Destination "+dest.getName()+" "+destReady, 2);
 
 		    if(!srcReady || !destReady) {
 			// Problems on a participant slice: abort transaction
@@ -935,6 +937,7 @@ public class AgentMobilityService extends BaseService {
 		}
 		catch(Exception e) {
 		    // Link failure: abort transaction
+				log("Link failure!", 2);
 		    return false;
 		}
 		finally {
@@ -948,6 +951,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	    else {
 		// Do nothing for now, but could also use another slice as transaction coordinator...
+		log("Not a main!", 2);
 		return false;
 	    }
 	}
