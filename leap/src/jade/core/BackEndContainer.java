@@ -37,6 +37,8 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.security.*;
 
+import jade.core.messaging.*;
+
 import java.util.StringTokenizer;
 import java.util.Enumeration;
 
@@ -396,6 +398,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
       //agentImages.clear();
 		
+      myFrontEnd = null;
       super.shutDown();
   }
 
@@ -559,11 +562,12 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	while (it.hasNext()) {
 		try {
 			ACLMessage msg = (ACLMessage) it.next();
-			handleSend(msg, msg.getSender());
+			ServiceFinder myFinder = getServiceFinder();
+			MessagingService msgSvc = (MessagingService) myFinder.findService(MessagingSlice.NAME);
+			msgSvc.notifyFailureToSender(new GenericMessage(msg), id, new InternalError("Agent dead"));  
     }
     catch (Exception e) {
-    	// This should never happen
-    	e.printStackTrace();
+    	System.out.println("Cannot send AMS FAILURE. "+e);
     }
 	}
 	return img;
