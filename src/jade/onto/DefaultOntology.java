@@ -290,11 +290,25 @@ public class DefaultOntology implements Ontology {
 
   }
 
+  public boolean isConcept(String roleName) throws OntologyException {
+    FrameSchema fs = lookupSchema(roleName);
+    return fs.isConcept();
+  }
+
+  public boolean isAction(String roleName) throws OntologyException {
+    FrameSchema fs = lookupSchema(roleName);
+    return fs.isAction();
+  }
+
+  public boolean isPredicate(String roleName) throws OntologyException {
+    FrameSchema fs = lookupSchema(roleName);
+    return fs.isPredicate();
+  }
+
   public TermDescriptor[] getTerms(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
     return fs.termsArray();
   }
-
 
 
 
