@@ -347,7 +347,7 @@ public class PersistentDeliveryService extends BaseService {
 	    GenericMessage msg = (GenericMessage)params[0];//FIXME: check object type
 	    AID receiver = (AID)params[1];
     	ACLMessage acl = msg.getACLMessage();
-		  log("Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName(), 2);
+		  log("Processing failed message "+MessageManager.stringify(msg)+" for agent "+receiver.getName(), 2);
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
 	    
@@ -359,13 +359,13 @@ public class PersistentDeliveryService extends BaseService {
 		    boolean accepted = slice.storeMessage(null, msg, receiver);
 
 		    if(accepted) {
-		    	log("Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
+		    	log("Message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
-			log("Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
+			log("Error trying to store message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -544,10 +544,10 @@ public class PersistentDeliveryService extends BaseService {
 		if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) { 
 			try {
 			    if (firstTime) {
-			    	log("Storing message\n"+msg+"\nDue date is "+dueDate, 1);
+			    	log("Storing message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+". Due date is "+dueDate, 1);
 			    }
 			    else {
-			    	log("Re-Storing message\n"+msg+"\nDue date is "+dueDate, 2);
+			    	log("Re-Storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate, 4);
 			    }
 			    myManager.storeMessage(storeName, msg, receiver);
 			    return true;
