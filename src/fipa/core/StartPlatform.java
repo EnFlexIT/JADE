@@ -1,3 +1,7 @@
+/*
+  $Id$
+*/
+
 package fipa.core;
 
 import java.rmi.*;
@@ -9,15 +13,15 @@ public class StartPlatform {
     AgentPlatform thePlatform = null;
 
     // Default values for binding to the RMI registry
-    String PlatformName = "FEPF";
-    String PlatformHost = "localhost";
-    String PlatformPort = ":1099"
-    String PlatformURL = "rmi://" + PlatformHost + PlatformPort + "/" + PlatformName;
+    String platformName = "FEPF";
+    String platformHost = "localhost";
+    String platformPort = "1099";
+    String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
 
     /* FIXME: Add command line options handling.
-       -n name
-       -h host
-       -p port
+       -host host
+       -port port
+       -name name
     */
 
     try {
@@ -25,17 +29,20 @@ public class StartPlatform {
       Naming.bind(platformURL, thePlatform);
     }
     catch(AlreadyBoundException abe) {
-      System.err.print("Some other Agent Platform is already active on this host, using the name " + PlatformName);
-      System.err.print(" and the port " + PlatformPort);
+      System.err.print("Some other Agent Platform is already active on this host, using the name " + platformName);
+      System.err.print(" and the port " + platformPort);
       System.exit(1);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while starting Agent Platform.");
-      System.exit(1);
+      re.printStackTrace();
     }
     catch(Exception e) {
       System.err.println("Some other error while starting AgentPlatform");
-      System.exit(1);
+      e.printStackTrace();
     }
+
+    System.out.println("Agent Platform started.");
   }
+
 }
