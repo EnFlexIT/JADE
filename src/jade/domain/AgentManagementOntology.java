@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.11  1998/11/02 01:59:41  rimassa
+  Added inner classes to represent AMS notifications of various events
+  (container creation and deletion, new agents, ecc.).
+
   Revision 1.10  1998/10/31 16:39:37  rimassa
   Completed the definition of KillAgentAction inner class, to represent
   'kill-agent' AMS action instances.
@@ -643,6 +647,57 @@ public class AgentManagementOntology {
 
     public String getPassword() {
       return password;
+    }
+
+  }
+
+  public static abstract class AMSEvent {
+
+    public static final String NEWCONTAINER = "new-container";
+    public static final String DEADCONTAINER = "dead-container";
+    public static final String NEWAGENT = "new-agent";
+    public static final String DEADAGENT = "dead-agent";
+
+    private String kind;
+
+    public static AMSEvent fromText(Reader r) throws ParseException, TokenMgrError {
+      return AgentManagementOntology.parser.parseAMSEvent(r);
+    }
+
+    public void setKind(String k) {
+      kind = k;
+    }
+
+    public String getKind() {
+      return kind;
+    }
+
+  }
+
+  public static class AMSContainerEvent extends AMSEvent {
+
+    private String containerName;
+
+    public void setContainerName(String cn) {
+      containerName = cn;
+    }
+
+    public String getContainerName() {
+      return containerName;
+    }
+
+  }
+
+  public static class AMSAgentEvent extends AMSContainerEvent {
+
+    private AMSAgentDescriptor agentDescriptor;
+
+    public void setAgentDescriptor(AMSAgentDescriptor amsd) {
+      agentDescriptor = amsd;
+    }
+
+    public AMSAgentDescriptor getAgentDescriptor() {
+      return agentDescriptor;
     }
 
   }
