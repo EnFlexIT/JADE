@@ -28,6 +28,7 @@ package jade.imtp.leap;
 import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
+import jade.core.PostponedException;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -66,12 +67,17 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public void killAgent(String name) throws NotFoundException, IMTPException {
   	Command c = new Command(FrontEndSkel.KILL_AGENT);
   	c.addParam(name);
-		Command r = executeRemotely(c, -1);
-		if (r != null && r.getCode() == Command.ERROR) {
-			// One of the expected exceptions occurred in the remote FrontEnd
-			// --> It must be a NotFoundException --> throw it
-			throw new NotFoundException((String) r.getParamAt(2));
-		}
+  	Command r = executeRemotely(c, -1);
+  	if (r != null) {
+			if (r.getCode() == Command.ERROR) {
+				// One of the expected exceptions occurred in the remote FrontEnd
+				// --> It must be a NotFoundException --> throw it
+				throw new NotFoundException((String) r.getParamAt(2));
+			}
+  	}
+  	else {
+  		throw new PostponedException();
+  	}
   }
   
   /**
@@ -80,11 +86,16 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.SUSPEND_AGENT);
   	c.addParam(name);
 		Command r = executeRemotely(c, -1);
-		if (r != null && r.getCode() == Command.ERROR) {
-			// One of the expected exceptions occurred in the remote FrontEnd
-			// --> It must be a NotFoundException --> throw it
-			throw new NotFoundException((String) r.getParamAt(2));
+		if (r != null) {
+			if (r.getCode() == Command.ERROR) {
+				// One of the expected exceptions occurred in the remote FrontEnd
+				// --> It must be a NotFoundException --> throw it
+				throw new NotFoundException((String) r.getParamAt(2));
+			}
 		}
+  	else {
+  		throw new PostponedException();
+  	}	
   }
   
   /**
@@ -93,11 +104,16 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.RESUME_AGENT);
   	c.addParam(name);
 		Command r = executeRemotely(c, -1);
-		if (r != null && r.getCode() == Command.ERROR) {
-			// One of the expected exceptions occurred in the remote FrontEnd
-			// --> It must be a NotFoundException --> throw it
-			throw new NotFoundException((String) r.getParamAt(2));
+		if (r != null) {
+			if (r.getCode() == Command.ERROR) {
+				// One of the expected exceptions occurred in the remote FrontEnd
+				// --> It must be a NotFoundException --> throw it
+				throw new NotFoundException((String) r.getParamAt(2));
+			}
 		}
+  	else {
+  		throw new PostponedException();
+  	}	
   }
   
   /**
@@ -106,9 +122,9 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.MESSAGE_IN);
   	c.addParam(msg);
   	c.addParam(receiver);
-  	//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_IN");
 		Command r = executeRemotely(c, -1);
-  	//Logger.println(Thread.currentThread().getName()+": MESSAGE_IN executed");
+		// We don't even throw PostponedException here since that 
+		// is completely transparent to the rest of the platform. 
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote FrontEnd
 			// --> It must be a NotFoundException --> throw it
@@ -162,7 +178,7 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   
   /**
      Inner class AddressedMessage.
-   */
+   *
   private static class AddressedMessage extends ACLMessage {
   	private AID receiver;
   	private ACLMessage wrapped;
@@ -215,10 +231,9 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 			return wrapper; 
 		}
 		
-		/**
-		   Redefines the getAllIntendedReceiver() method in order to return 
-		   the receiver.
-		 */
+		
+		// Redefines the getAllIntendedReceiver() method in order to return 
+		// the receiver.
   	public Iterator getAllIntendedReceiver() {
   		List l = new ArrayList(1);
   		l.add(receiver);
@@ -228,6 +243,6 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	public synchronized Object clone() {
   		return wrapped;
   	}
-  }  // END of inner class AddressedMessage
+  }  // END of inner class AddressedMessage */
 }
 
