@@ -99,7 +99,7 @@ public class GuiAgent extends Agent
 
 	///////////////////////////////////////////////////////////////
 	// PROTECTED METHODS TO POST AND GET A GUI EVENT FROM THE QUEUE
-	protected void postGuiEvent(GuiEvent e)
+	public void postGuiEvent(GuiEvent e)
 	{
 		synchronized(guiEventQueueLock)
 		{
@@ -128,3 +128,5 @@ public class GuiAgent extends Agent
 	{
 	}		
 }
+
+
