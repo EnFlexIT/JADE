@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,25 +29,33 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
-import jade.lang.Codec;
-import jade.onto.Ontology;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+
+import jade.content.onto.Ontology;
+
 import jade.domain.DFGUIManagement.*;
 import jade.core.AID;
 import jade.lang.acl.ACLParser;
 import jade.lang.acl.ACLMessage;
-import jade.onto.basic.Action;
-import jade.onto.OntologyException;
-import jade.onto.Frame;
+
+import jade.content.abs.AbsContentElement;
+import jade.content.onto.basic.Action;
+import jade.content.onto.OntologyException;
+
+import jade.domain.FIPANames;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.lang.sl.SL0Codec;
-import jade.onto.basic.ResultPredicate;
+
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.Result;
+
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.tools.dfgui.DFGUI;
 
 /**
-* This class extends the AppletRequestProto in order to request 
+* This class extends the AppletRequestProto in order to request
 * the df for an applet action.
 * @author Tiziana Trucco - CSELT S.p.A.
 * @version $Date$ $Revision$
@@ -56,7 +64,7 @@ import jade.tools.dfgui.DFGUI;
 
 public class JADEAppletRequestProto extends AppletRequestProto
 {
-  
+
 	public static class NotYetReady extends Exception
   {
   	NotYetReady()
@@ -68,18 +76,18 @@ public class JADEAppletRequestProto extends AppletRequestProto
 
 	Codec c;
 	String action;
-	private static Ontology o = DFAppletManagementOntology.instance();
+	private static Ontology o = DFAppletOntology.getInstance();
 	AID receiver;
 	AID parent;
 	DFGUI gui;
 	DFAppletCommunicator dfApplet;
 	ACLMessage lastMsg;
-	
+
 	/**
 	@param out
 	@param parser
 	@param sender the sender of the message
-	@param receiver the receiver of the message 
+	@param receiver the receiver of the message
 	@param actionName the action requested
 	@param parentDF the df to wich request an action (used for federate action)
 	*/
@@ -93,41 +101,41 @@ public class JADEAppletRequestProto extends AppletRequestProto
     //request.setSender(sender);
     request.addReceiver(receiver);
     request.setProtocol("fipa-request");
-    request.setLanguage(SL0Codec.NAME);
-    request.setOntology(DFAppletManagementOntology.NAME);
+    request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+    request.setOntology(DFAppletOntology.NAME);
     request.setReplyWith("rw"+(new Date()).getTime());
     request.setConversationId("conv"+(new Date()).getTime());
-    
+
     this.reqMsg = (ACLMessage)request.clone();
     this.action = actionName;
     this.receiver = receiver;
     this.parent = (AID)parentDF;
-   
+
     Action act = new Action();
-    act.set_0(receiver); 
+    act.setActor(receiver);
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.FEDERATEWITH))
     {
-    
+
     	Federate action = new Federate();
     	action.setParentDF(parentDF);
       action.setChildrenDF(description);
 
-    	act.set_1(action);
-    
+    	act.setAction(action);
+
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETDEFAULTDESCRIPTION))
-    	act.set_1(new GetDefaultDescription());
-    	
-    else 
+    	act.setAction(new GetDefaultDescription());
+
+    else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETPARENT))
-    	act.set_1(new GetParent());
+    	act.setAction(new GetParent());
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETDESCRIPTIONUSED))
     {
       GetDescriptionUsed action = new GetDescriptionUsed();
       action.setParentDF(parentDF);
-      act.set_1(action);
+      act.setAction(action);
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.DEREGISTERFROM))
@@ -135,8 +143,8 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	DeregisterFrom action = new DeregisterFrom();
     	action.setParentDF(parentDF);
     	action.setChildrenDF(description);
-    	
-    	act.set_1(action);
+
+    	act.setAction(action);
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.REGISTERWITH))
@@ -144,8 +152,8 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	RegisterWith action = new RegisterWith();
     	action.setDf((AID)parentDF);
     	action.setDescription((DFAgentDescription)description);
-    	
-    	act.set_1(action);
+
+    	act.setAction(action);
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
@@ -154,8 +162,8 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	action.setDf((AID)parentDF);
     	action.setDescription((DFAgentDescription)description);
     	action.setConstraints(constraints);
-    	
-    	act.set_1(action);
+
+    	act.setAction(action);
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletManagementOntology.MODIFYON))
@@ -163,41 +171,34 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	ModifyOn action = new ModifyOn();
     	action.setDf((AID)parentDF);
     	action.setDescription((DFAgentDescription)description);
-    	
-    	act.set_1(action);
+
+    	act.setAction(action);
     }
     else
     throw new UnsupportedFunction();
-    
+
 
      // initialize SL0 Codec and FIPAAgentManagementOntology
      //FIXME for applet I have not the agent c = sender.lookupLanguage(SL0Codec.NAME);
      //if (c == null)
-       c = new SL0Codec();
+       c = new SLCodec();
 
      // Write the action in the :content slot of the request
      List content = new ArrayList();
      content.add(act);
-     
-    try {
-      List l = new ArrayList();
-      Frame f;
-      for (int i=0; i<content.size(); i++) {
-	     f = o.createFrame(content.get(i), o.getRoleName(content.get(i).getClass()));
-	     l.add(f);
-      }
-      String s = c.encode(l, o);
+
+     try {
+      String s = ((SLCodec)c).encode(o, (AbsContentElement)o.fromObject(act));
       this.reqMsg.setContent(s);
-    }
-    catch(OntologyException oe) {
+    } catch(OntologyException oe) {
       oe.printStackTrace();
       throw new FIPAException("Ontology error: " + oe.getMessage());
-    }catch(Exception e)
+    } catch(Exception e)
     {
     	e.printStackTrace();
     }
 
-         
+
 	}
 
 	JADEAppletRequestProto(DFAppletCommunicator communicator,AID receiver, String actionName,Object description,Object parentDF) throws FIPAException
@@ -205,7 +206,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
 		this(communicator,receiver,actionName,description, parentDF,null);
 	}
 
-	
+
 	/**
 	returns the results of an action requested.
 	*/
@@ -215,14 +216,14 @@ public class JADEAppletRequestProto extends AppletRequestProto
   		throw new NotYetReady();
   	if(lastMsg.getPerformative() != ACLMessage.INFORM)
   		throw new FIPAException(lastMsg);
-  		
-  	ResultPredicate r = AppletRequestProto.extractContent(lastMsg.getContent(),c,o); 
-    Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
-    List l = new ArrayList(); 
+
+  	Result r = AppletRequestProto.extractContent(lastMsg.getContent(),(SLCodec)c,o);
+    Iterator i = r.getItems().iterator(); //this is the set of DFAgentDescription
+    List l = new ArrayList();
     while (i.hasNext())
      l.add(i.next());
     return l;
-    
+
   }
 	protected void handleAgree(ACLMessage msg)
    	{
@@ -231,16 +232,16 @@ public class JADEAppletRequestProto extends AppletRequestProto
    			gui.showStatusMsg("Process your request & waiting for result...");
    		}catch(Exception e){}
    	}
-   	
+
    	protected void handleInform(ACLMessage msg)
    	{
    		try{
    	      notYetReady = false;
    				lastMsg = (ACLMessage)msg.clone();
    				if(this.action.equalsIgnoreCase(DFAppletManagementOntology.FEDERATEWITH))
-   				   {	
+   				   {
    				   	  gui.showStatusMsg("Request processed. Ready for new  request.");
-   				   	  gui.addParent(this.parent); 	 
+   				   	  gui.addParent(this.parent);
    				   }
    				 else
    				 if(this.action.equalsIgnoreCase(DFAppletManagementOntology.GETDEFAULTDESCRIPTION))
@@ -248,13 +249,13 @@ public class JADEAppletRequestProto extends AppletRequestProto
    				 	//UPDATE the thisDf variable.
    				  try{
    				  	List result = getResult();
-   				  	dfApplet.setDescription((DFAgentDescription)result.get(0)); 
+   				  	dfApplet.setDescription((DFAgentDescription)result.get(0));
    				  }catch(NotYetReady nyr){
    				  	//FIXME: what should happen in this case ?
    				   nyr.printStackTrace();
    				  }
    				 }
-   				 else 
+   				 else
    				 if(this.action.equalsIgnoreCase(DFAppletManagementOntology.GETPARENT))
              	gui.showStatusMsg("Request processed. Ready for new Request.");
            else
@@ -275,12 +276,12 @@ public class JADEAppletRequestProto extends AppletRequestProto
            else
            if(this.action.equalsIgnoreCase(DFAppletManagementOntology.MODIFYON))
              gui.showStatusMsg("Request processed. Ready for new request.");
-           
+
    		}catch(Exception e){
    		e.printStackTrace();
    		}
    	}
-   	
+
    	protected void handleFailure(ACLMessage msg)
    	{
    	  try{
@@ -292,19 +293,19 @@ public class JADEAppletRequestProto extends AppletRequestProto
    	  e.printStackTrace();
    	  }
    	}
-   	
-   
+
+
    	protected void handleNotUnderstood(ACLMessage msg)
     {
       notYetReady = false;
       lastMsg = (ACLMessage)msg.clone();
     }
-    
+
    	protected void handleOtherMessage(ACLMessage msg){}
-   
+
    	protected void handleRefuse(ACLMessage msg){
    	  notYetReady = false;
    	  lastMsg = (ACLMessage)msg.clone();
    	}
-  
+
 }
