@@ -149,13 +149,22 @@ public class ProfileImpl extends Profile {
      * (i.e. localhost)
      **/
      public ProfileImpl(String host, int port, String platformID) {
-     	this(); // Call default constructor
+			// create the object props
+      //#ALL_EXCLUDE_BEGIN
+      props = new jade.util.BasicProperties();
+      //#ALL_EXCLUDE_END
+      /*#ALL_INCLUDE_BEGIN
+			props = new Properties();
+      #ALL_INCLUDE_END*/
+			// set the passed properties
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
      	if(port > 0)
        		setIntProperty(MAIN_PORT, port);
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
+			// calls the method init to adjust all the other parameters
+			init();
  	}
 
 
