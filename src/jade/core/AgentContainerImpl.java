@@ -885,6 +885,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return localAgents;
   }
   
+//__CLDC_UNSUPPORTED__BEGIN  
   //FIXME: These methods have been added to support 
   // PlatformListener registration from the In-process-interface
   // with minimum effort. They will possibly be removed in a 
@@ -898,4 +899,5 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	AgentManager m = (AgentManager) myPlatform;
   	m.removeListener(l);
   }
+//__CLDC_UNSUPPORTED__END  
 }
