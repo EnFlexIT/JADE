@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.behaviours;
 
 import jade.util.leap.Iterator;
+import jade.util.leap.Serializable;
 
 import jade.core.Agent;
 
@@ -105,7 +106,7 @@ public final class ReceiverBehaviour extends Behaviour {
 
   }
 
-  private static class MessageFuture implements Handle {
+  private static class MessageFuture implements Handle, Serializable {
 
     private static final int OK = 0;
     private static final int NOT_YET = 1;
