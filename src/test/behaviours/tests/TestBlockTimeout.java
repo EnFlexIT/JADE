@@ -27,6 +27,7 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import test.common.*;
+import test.behaviours.BlockTimeoutTesterAgent;
 
 /**
    @author Giovanni Caire - TILAB
@@ -37,12 +38,16 @@ public class TestBlockTimeout extends Test {
 	private static final String SENDER_CLASS = "test.behaviours.SeqSender";
 	private static final String RECEIVER_CLASS = "test.behaviours.SeqReceiver";
 
-	private static final int DEFAULT_N_AGENTS = 4;
+	/*private static final int DEFAULT_N_AGENTS = 4;
 	private static final int DEFAULT_N_MESSAGES = 100;
 	private static final long DEFAULT_SHORTEST_PERIOD = 5; 
 	private int nAgents = DEFAULT_N_AGENTS;
 	private int nMessages = DEFAULT_N_MESSAGES;
-	private long shortestPeriod = DEFAULT_SHORTEST_PERIOD;
+	private long shortestPeriod = DEFAULT_SHORTEST_PERIOD;*/
+	private int nAgents;
+	private int nMessages;
+	private long shortestPeriod;
+	private long timeoutIncrease;
   private ACLMessage startMsg = new ACLMessage(ACLMessage.INFORM);
 	private RemoteController rc;
 	
@@ -62,7 +67,7 @@ public class TestBlockTimeout extends Test {
   		final DataStore store = ds;
   		final String key = resultKey;
   		
-  		// Get arguments
+  		/* Get arguments
 	  	Object[] args = getGroupArguments();
     	if (args != null && args.length > 0) {
     		// Number of senders/receivers
@@ -75,7 +80,13 @@ public class TestBlockTimeout extends Test {
 	      		shortestPeriod = Long.parseLong((String) args[2]);
       		}
       	}
-    	} 
+    	}*/
+    	
+    	// Get arguments
+    	nAgents = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_AGENTS_NAME));
+    	nMessages = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_MESSAGES_NAME));
+    	shortestPeriod = Long.parseLong((String) getGroupArgument(BlockTimeoutTesterAgent.PERIOD_NAME));
+    	timeoutIncrease = Long.parseLong((String) getGroupArgument(BlockTimeoutTesterAgent.TIMEOUT_INCREASE_NAME));
 
     	// Launch a peripheral container
 	    rc = TestUtility.launchJadeInstance("Container", null, "-container -port 8888", new String[] {});
@@ -106,7 +117,9 @@ public class TestBlockTimeout extends Test {
     			if (msg != null) {
     				cnt++;
     			}
-    			block();
+    			else {
+	    			block();
+    			}
     		}
     	
     		public boolean done() {
@@ -119,8 +132,9 @@ public class TestBlockTimeout extends Test {
     		}
     	};
     	
-    	long timeout = 2*(shortestPeriod >= 10 ? shortestPeriod : 10)*nAgents*nMessages;
-    	Behaviour b2 = new TickerBehaviour(a, timeout) {
+    	long r = 2 + (nAgents / 10);
+    	long timeout = r*(shortestPeriod >= 10 ? shortestPeriod : 10)*nAgents*nMessages;
+    	Behaviour b2 = new TickerBehaviour(a, timeout+timeoutIncrease) {
     		public void onTick() {
 					store.put(key, new Integer(Test.TEST_FAILED));
 					stop();

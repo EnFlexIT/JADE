@@ -50,8 +50,9 @@ public class TestCreateAgent extends Test {
   }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Object[] args = getGroupArguments();
-  		ACLMessage msg = (ACLMessage) args[0];
+  		//Object[] args = getGroupArguments();
+  		//ACLMessage msg = (ACLMessage) args[0];
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(JADEManagementOntologyTesterAgent.INFORM_MSG_NAME);;
   		Behaviour b = new SuccessExpectedInitiator(a, msg, ds, resultKey) {
     		protected Vector prepareRequests(ACLMessage request) {
     			Vector v = new Vector();

@@ -41,6 +41,9 @@ import jade.content.lang.sl.*;
 import test.common.*;
 
 public class JADEManagementOntologyTesterAgent extends TesterAgent {
+	// Names and default values for group arguments
+	public static final String INFORM_MSG_NAME = "inform-msg";
+	
 	private static final String TEST_CONVERSATION = "Test-conversation";
 	private static final String TEST_RESPONSE_ID = "Test-response";
 	
@@ -66,7 +69,7 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
     		msg.setProtocol(FIPAProtocolNames.FIPA_REQUEST);
   			msg.setConversationId(TEST_CONVERSATION);
   			msg.setReplyWith(TEST_RESPONSE_ID);
-				setArguments(new Object[] {msg});
+				setArgument(INFORM_MSG_NAME, msg);
 			}
 			
 		};
