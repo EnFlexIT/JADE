@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1999/02/14 23:25:31  rimassa
+  Changed addBehaviour() calls to addSubBehaviour() calls where
+  appropriate.
+
   Revision 1.8  1998/12/08 00:11:31  rimassa
   Removed handmade parsing of message content; now updated
   fromText() method is used from various AMS actions.
@@ -191,10 +195,10 @@ public class rma extends Agent {
     newAgentMsg.setLanguage("SL0");
 
     // Send 'subscribe' message to the AMS
-    AMSSubscribe.addBehaviour(new SenderBehaviour(this, AMSSubscription));
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, AMSSubscription));
 
     // Handle incoming 'inform' messages
-    AMSSubscribe.addBehaviour(new AMSListenerBehaviour());
+    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour());
 
     // Schedule Behaviour for execution
     addBehaviour(AMSSubscribe);

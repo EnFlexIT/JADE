@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.3  1999/02/14 23:20:56  rimassa
+  Changed addBehaviour() calls to addSubBehaviour() calls where
+  appropriate.
+
   Revision 1.2  1999/02/03 10:38:42  rimassa
   Made class constructor public, since this class is to be used from
   application code.
@@ -65,7 +69,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
 
 
     firstReceive = NonDeterministicBehaviour.createWhenAny(client);
-    firstReceive.addBehaviour(new SimpleBehaviour(client) {
+    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
 
       private boolean finished = false;
       public void action() {
@@ -88,7 +92,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
       }
 
     });
-    firstReceive.addBehaviour(new SimpleBehaviour(client) {
+    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
 
       private boolean finished = false;
       public void action() {
@@ -111,7 +115,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
       }
 
     });
-    firstReceive.addBehaviour(new SimpleBehaviour(client) {
+    firstReceive.addSubBehaviour(new SimpleBehaviour(client) {
 
       private boolean finished = false;
       public void action() {
@@ -120,7 +124,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
 	if(msg != null) {
 	  handleAgree(msg);
 	  // Add a second NonDeterministicBehaviour to the main behaviour
-	  FipaRequestClientBehaviour.this.addBehaviour(secondReceive);
+	  FipaRequestClientBehaviour.this.addSubBehaviour(secondReceive);
 	  finished = true;
 	}
 	else
@@ -140,7 +144,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
     });
 
     secondReceive = NonDeterministicBehaviour.createWhenAny(client);
-    secondReceive.addBehaviour(new SimpleBehaviour(client) {
+    secondReceive.addSubBehaviour(new SimpleBehaviour(client) {
       private boolean finished = false;
       public void action() {
 	// Receive 'failure'
@@ -162,7 +166,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
       }
 
     });
-    secondReceive.addBehaviour(new SimpleBehaviour(client) {
+    secondReceive.addSubBehaviour(new SimpleBehaviour(client) {
       private boolean finished = false;
       public void action() {
 	// Receive 'inform'
@@ -186,8 +190,8 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
     });
 
 
-    addBehaviour(new SenderBehaviour(client, request));
-    addBehaviour(firstReceive);      
+    addSubBehaviour(new SenderBehaviour(client, request));
+    addSubBehaviour(firstReceive);      
 
   }
 
