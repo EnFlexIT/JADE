@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.19  1998/10/11 19:11:13  rimassa
+  Written methods to access Directory Facilitator and removed some dead
+  code.
+
   Revision 1.18  1998/10/07 22:13:12  Giovanni
   Added a correct prototype to DF access methods in Agent class.
 
@@ -417,10 +421,8 @@ public class Agent implements Runnable, CommBroadcaster {
 				
     String replyString = myName + "-ams-registration";
     ACLMessage request = FipaRequestMessage("ams", replyString);
-    AgentManagementOntology o = AgentManagementOntology.instance();
 
     // Build an AMS action object for the request
-
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
@@ -435,7 +437,6 @@ public class Agent implements Runnable, CommBroadcaster {
     a.setArg(amsd);
 
     // Convert it to a String and write it in content field of the request
-
     StringWriter text = new StringWriter();
     a.toText(text);
     request.setContent("( action ams " + text + " )");
@@ -448,7 +449,7 @@ public class Agent implements Runnable, CommBroadcaster {
   // Authenticate yourself with platform AMS
   public void authenticateWithAMS(String signature, int APState, String delegateAgent,
 				  String forwardAddress, String ownership) throws FIPAException {
-
+    // FIXME: Not implemented
   }
 
   // Deregister yourself with platform AMS
@@ -459,10 +460,7 @@ public class Agent implements Runnable, CommBroadcaster {
     // Get a semi-complete request message
     ACLMessage request = FipaRequestMessage("ams", replyString);
     
-
     // Build an AMS action object for the request
-
-    AgentManagementOntology o = AgentManagementOntology.instance();
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
@@ -470,9 +468,7 @@ public class Agent implements Runnable, CommBroadcaster {
     a.setName(AgentManagementOntology.AMSAction.DEREGISTERAGENT);
     a.setArg(amsd);
 
-
     // Convert it to a String and write it in content field of the request
-
     StringWriter text = new StringWriter();
     a.toText(text);
     request.setContent("( action ams " + text + " )");
@@ -488,10 +484,8 @@ public class Agent implements Runnable, CommBroadcaster {
 
     String replyString = myName + "-ams-modify";
     ACLMessage request = FipaRequestMessage("ams", replyString);
-    AgentManagementOntology o = AgentManagementOntology.instance();
 
     // Build an AMS action object for the request
-
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
@@ -506,7 +500,6 @@ public class Agent implements Runnable, CommBroadcaster {
     a.setArg(amsd);
 
     // Convert it to a String and write it in content field of the request
-
     StringWriter text = new StringWriter();
     a.toText(text);
     request.setContent("( action ams " + text + " )");
@@ -520,17 +513,13 @@ public class Agent implements Runnable, CommBroadcaster {
 
     String replyString = myName + "-acc-forward";
     ACLMessage request = FipaRequestMessage("acc", replyString);
-    AgentManagementOntology o = AgentManagementOntology.instance();
-
 
     // Build an ACC action object for the request
-
     AgentManagementOntology.ACCAction a = new AgentManagementOntology.ACCAction();
     a.setName(AgentManagementOntology.ACCAction.FORWARD);
     a.setArg(msg);
 
     // Convert it to a String and write it in content field of the request
-
     StringWriter text = new StringWriter();
     a.toText(text);
     request.setContent("( action acc " + text + " )");
@@ -544,6 +533,20 @@ public class Agent implements Runnable, CommBroadcaster {
   public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
 
     String replyString = myName + "-df-register";
+    ACLMessage request = FipaRequestMessage(dfName, replyString);
+
+    // Build a DF action object for the request
+    AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
+    a.setName(AgentManagementOntology.DFAction.REGISTER);
+    a.setArg(dfd);
+
+    // Convert it to a String and write it in content field of the request
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action " + dfName + " ( " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
 
   }
 
@@ -551,6 +554,20 @@ public class Agent implements Runnable, CommBroadcaster {
   public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
 
     String replyString = myName + "-df-deregister";
+    ACLMessage request = FipaRequestMessage(dfName, replyString);
+    
+    // Build a DF action object for the request
+    AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
+    a.setName(AgentManagementOntology.DFAction.DEREGISTER);
+    a.setArg(dfd);
+
+    // Convert it to a String and write it in content field of the request
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action " + dfName + " ( " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
 
   }
 
@@ -558,13 +575,41 @@ public class Agent implements Runnable, CommBroadcaster {
   public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
 
     String replyString = myName + "-df-modify";
+    ACLMessage request = FipaRequestMessage(dfName, replyString);
+
+    // Build a DF action object for the request
+    AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
+    a.setName(AgentManagementOntology.DFAction.MODIFY);
+    a.setArg(dfd);
+
+    // Convert it to a String and write it in content field of the request
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action " + dfName + " ( " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
 
   }
 
   // Search a DF for information
-  public void searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) { // FIXME: Constraints still missing
 
     String replyString = myName + "-df-search";
+    ACLMessage request = FipaRequestMessage(dfName, replyString);
+
+    // Build a DF action object for the request
+    AgentManagementOntology.DFAction a = new AgentManagementOntology.DFSearchAction();
+    a.setName(AgentManagementOntology.DFAction.SEARCH);
+    a.setArg(dfd);
+
+    // Convert it to a String and write it in content field of the request
+    StringWriter text = new StringWriter();
+    a.toText(text);
+    request.setContent("( action " + dfName + " ( " + text + " )");
+
+    // Send message and collect reply
+    doFipaRequestClient(request, replyString);
 
   }
 
