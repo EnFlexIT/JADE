@@ -4,10 +4,8 @@
 
 package fipa.core;
 
-import java.net.*;
-import java.io.*;
-import java.util.*;
-import java.applet.*;
+import java.util.Enumeration;
+import java.util.Vector;
 import java.lang.reflect.*;
 
 import fipa.lang.acl.*;
@@ -21,7 +19,7 @@ import fipa.lang.acl.*;
   + Abstract placeholder for user-defined agents.
 
   + Provides primitives for sending and receiving messages.
-    (ACLmessage)
+    (ACLMessage)
 
   + Schedules and executes complex behaviours.
     (Behaviour)
@@ -51,56 +49,32 @@ import fipa.lang.acl.*;
  * 
  * @version 2.0 5/98
  * */
-public abstract class Agent implements Runnable, CommBroadcaster {
+public class Agent implements Runnable, CommBroadcaster { // FIXME: Should be abstract ?
 
-/**
- * Pending messages queue
- */
-  protected Vector       msgQueue;
+  protected Vector msgQueue = new Vector();
+  protected Vector listeners = new Vector();
+  protected Vector actions = new Vector();
 
-  protected aclMessage   lastMessage;
+  protected ACLMessage   currentMessage;
+  protected String       myName;
+  protected Thread       myThread;
+  protected boolean      isActive = false;
 
-  ACLParser parser = null;
+  private ACLParser parser = null; // FIXME: Must be initialized with a valid ACL parser
 
+  public void activate(String name) { // FIXME: Check with FIPA specs for agent lifecycle
 
-  protected    boolean      isApplet;
-
-  protected    Thread       myThread;
-
-  protected    boolean      isActive = false;
-
-  protected    Vector       actions;
-
-  protected    String[]     args;
-
-  protected    String       myName;
-  protected    String       myService;
-
-
-  public void activate(String[] args) { // FIXME: Check with FIPA specs for agent lifecycle
-
-    this.args = args;
-
-    listeners = new Vector();
-
-    msgQueue = new Vector();
-    actions  = new Vector();
+    myName = new String(name);
 
     isActive = true;
-
-    services = new Vector(); // FIXME: Maybe it's not needed
-
     myThread = new Thread(this);
     myThread.start();
+
   }
 
-  protected void local_startup() {}
+  protected void localStartup() {}
 
-  public void run() {
-
-    int ret;
-    Class[] params = new Class[0];
-    Object[] args  = new Object[0];
+  public final void run() {
 
     local_startup();
 
@@ -121,7 +95,7 @@ public abstract class Agent implements Runnable, CommBroadcaster {
     while( isActive && actions.size() > 0 ) {
       for( int i=0; i<actions.size(); i++ ) {
 	String s = (String)actions.elementAt(i);
-	System.out.println(agentName + ": invoking " + s);
+	System.out.println(myName + ": invoking " + s);
 	try{
 	  Method m = this.getClass().getMethod(s, params); // FIXME: Change Method to Behaviour
 	  try{
@@ -151,28 +125,47 @@ public abstract class Agent implements Runnable, CommBroadcaster {
 
   }
 
-  public void addLightTask( String task ) {
-    actions.addElement( task );
+  public void addBehaviour(Behaviour b) {
+    actions.addElement(b);
   }
 
-/**
- * Serve per il parsing dei messaggi.
- * Ogni agente si deve implementare il proprio.
- */
-  protected void parseMsg( aclMessage msg ) {}
-
-/**
- * Metodo per spedire un aclMessage.
- * @param msg Il messaggio da spedire.
- * @see aclMessage
- */
-  public void send( aclMessage msg ) {
-
-    CommEvent event = new CommEvent( this, msg );
-    processCommEvent( event );
-
+  public void removeBehaviour(Behaviour b) {
+    // FIXME: To be implemented
   }
 
+  // Event based message sending -- serialized object
+  protected final void send(ACLMessage msg) {
+    CommEvent event = new CommEvent(this, msg);
+    Enumeration e = listeners.elements();
+    while(e.hasMoreElements()) {
+      CommListener l = (CommListener)e.nextElement();
+      l.CommHandle(event);
+    }
+  }
+
+  // Event based message sending -- plain string
+  protected final void send(String msg) {
+    // FIXME: To be implemented
+  }
+
+  // Blocking receive
+  protected final ACLMessage receive() {
+    if(msgQueue.isEmpty()) {
+      try {
+	wait();
+      }
+      catch(InterruptedException ie) {
+	// Do nothing
+      }
+    }
+    ACLMessage msg = (ACLMessage)msgQueue.firstElement();
+    currentMessage = msg;
+    msgQueue.removeElementAt(0);
+    return msg;
+  }
+
+
+  // FIXME: Check with Paolo whether this is still needed.
 /**
  * Metodo per fare il match fra un messaggio ed una serie di campi dati.
  * @param msg E' il messaggio da controllare
@@ -180,8 +173,8 @@ public abstract class Agent implements Runnable, CommBroadcaster {
  * @see aclMessage
  * @return Ritorna falso se il messaggio e' sbagliato.
  */
+  /*
   public boolean verifyMsg( aclMessage msg, String source, String type, String content, String reply ) {
-    // FIXME: Check with Paolo whether this is still needed...
     String mySource  = msg.getSource();
     String myType    = msg.getType();
     String myContent = msg.getContent();
@@ -199,7 +192,9 @@ public abstract class Agent implements Runnable, CommBroadcaster {
     return true;
 
   }
+  */
 
+  // FIXME: Check with Paolo whether this is still needed...
 /**
  * Metodo per ricevere un messaggio con determinati campi.
  * Prima vengono controllati i messaggi non consumati nella coda msgQueue.
@@ -209,8 +204,8 @@ public abstract class Agent implements Runnable, CommBroadcaster {
  * @see aclMessage
  * @return Ritorna il messaggio corretto oppure null.
  */
+  /*
   public synchronized aclMessage receiveIf( String source, String type, String content, String reply ) {
-    // FIXME: Check with Paolo whether this is still needed...
     aclMessage msg = null;
     for( int i=0; i<msgQueue.size(); i++ ) {
       msg = (aclMessage)msgQueue.elementAt(i);
@@ -224,28 +219,17 @@ public abstract class Agent implements Runnable, CommBroadcaster {
     return msg;
 
   }
+  */
 
-  public void addCommListener(CommListener l) {
+  public final void addCommListener(CommListener l) {
     listeners.addElement(l);
   }
 
-  public void removeCommListener(CommListener l) {
+  public final void removeCommListener(CommListener l) {
     listeners.removeElement(l);
   }
 
-  public void processCommEvent(CommEvent event) {
-
-    Enumeration e = listeners.elements();
-    while( e.hasMoreElements() ) {
-      CommListener l = (CommListener)e.nextElement();
-      l.CommHandle(event);
-    }
-
-  }
-
-  public synchronized void localCommChanged(CommEvent event) {}
-
-  public synchronized void postMessage (ACLmessage msg) {
+  public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
     System.out.println("Agent: receiving from " + msg.getSource());
     notify();
