@@ -379,7 +379,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   }
 
-  protected void startBasicServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+  protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Register with the platform 
 	  // This call can modify the name of this container
 	  myServiceManager.addNode(myNodeDescriptor, new ServiceDescriptor[0]);
@@ -464,6 +464,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
    // Such credentials are used in joinPlatform() to create agents at start-up time.
    private void authenticateOwner() {
  
+   	principal = new jade.security.dummy.DummyPrincipal();
+   	initialCred = new jade.security.dummy.DummyCredentials();
      // ToDo: create vcomd AUTHENTICATE_USER
      // send it to the cmd processor
      // handle exceptions
@@ -524,8 +526,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Perform the initial setup from the profile
 	  init();
 
-	  // Activate the basic services and connect to the platform
-	  startBasicServices();
+    // Authenticate the user that is creating this container 
+    authenticateOwner();
+
+	  // Connect the local bode to the platform and activate the basic services 
+	  startNode();
 
       }
       catch (IMTPException imtpe) {
@@ -555,12 +560,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	e.printStackTrace();
       }
       
-      // Authenticate the user that is creating this container 
-      authenticateOwner();
-
-      // here we should have 'principal' and 'initialCred' set, 
-      // if any authentication module was used.
-
 
       // Create and activate agents that must be launched at bootstrap
       try {
