@@ -5,7 +5,7 @@
 package fipa.core;
 
 import java.awt.AWTEvent;
-
+import fipa.lang.acl.*;
 
 /***************************************************************
 
@@ -15,21 +15,22 @@ import java.awt.AWTEvent;
 
   + Objectifies the reception event, embedding the received ACL
     message.
-    (ACLmessage)
+    (ACLMessage)
 
 ******************************************************************/
 public class CommEvent extends AWTEvent {
 
   private String      command;
-  private aclMessage  message;
+  private ACLMessage  message;
 
+  // FIXME: Check with Paolo whether this is still needed
   public CommEvent(CommBroadcaster source, String command) {
     super(source, -1);
     if(command != null) this.command = new String(command);
     else this.command = null;
   }
 
-  public CommEvent(CommBroadcaster source, aclMessage message) {
+  public CommEvent(CommBroadcaster source, ACLMessage message) {
     super(source, -1);
     this.message = message;
   }
@@ -38,7 +39,7 @@ public class CommEvent extends AWTEvent {
     return command;
   }
 
-  public aclMessage getMessage() {
+  public ACLMessage getMessage() {
     return message;
   }
 
