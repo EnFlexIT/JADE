@@ -38,9 +38,11 @@ class StartDialog extends JDialog implements ActionListener{
   protected static JTextField agentName;
   protected static JTextField className;
   protected static JTextField container;
+  protected static JTextField arguments;
 
   protected static JLabel agentNameL= new JLabel("Agent Name");
   protected static JLabel classNameL= new JLabel("Class Name");
+  protected static JLabel argAgentL = new JLabel("Arguments");
   protected static JLabel containerL= new JLabel("Container");
 
   protected static JButton OKButton = new JButton ("OK");
@@ -48,6 +50,7 @@ class StartDialog extends JDialog implements ActionListener{
 
   protected static String agentNameToolTip = "Name of the Agent to start";
   protected static String classNameToolTip = "Class Name of the Agent to start";
+  protected static String argAgentToolTip = "Arguments passed to the agent constructor"; 
   protected static String containerToolTip = "Container on which the Agent will start";
 
   protected static String result  = "";
@@ -67,6 +70,11 @@ class StartDialog extends JDialog implements ActionListener{
     className.setToolTipText(classNameToolTip);
     classNameL.setToolTipText(classNameToolTip);
 
+    arguments = new JTextField();
+    arguments.setEditable(true);
+    arguments.setToolTipText(argAgentToolTip);
+    argAgentL.setToolTipText(argAgentToolTip);
+    
     container = new JTextField ("0");
     container.setEditable(true);
     container.setToolTipText(containerToolTip);
@@ -77,7 +85,7 @@ class StartDialog extends JDialog implements ActionListener{
   protected StartDialog (String agentNameP, Frame frame) {
     super(frame,"Insert Start Parameters",true);
 
-    getContentPane().setLayout(new GridLayout(4,2));
+    getContentPane().setLayout(new GridLayout(5,2));
     agentName.setText(agentNameP);
 
     getContentPane().add(agentNameL);
@@ -86,6 +94,9 @@ class StartDialog extends JDialog implements ActionListener{
     getContentPane().add(classNameL);
     getContentPane().add(className);
 
+    getContentPane().add(argAgentL);
+    getContentPane().add(arguments);
+    
     getContentPane().add(containerL);
     getContentPane().add(container);
 
@@ -129,6 +140,11 @@ class StartDialog extends JDialog implements ActionListener{
     return className.getText();
   }
 
+  public static String getArguments()
+  {
+  	return arguments.getText().trim();
+  }
+  
   public static String getContainer() {
     return container.getText();
   }

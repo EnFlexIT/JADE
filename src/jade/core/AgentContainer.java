@@ -45,7 +45,7 @@ interface AgentContainer extends Remote {
   static final boolean TRANSFER_ABORT = false;
   static final boolean TRANSFER_COMMIT = true;
 
-  void createAgent(AID agentID, String className, boolean startIt) throws RemoteException;
+  void createAgent(AID agentID, String className,String arguments[], boolean startIt) throws RemoteException;
   void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException;
   byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException;
 

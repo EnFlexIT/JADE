@@ -63,7 +63,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   String getContainerName(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String containerName) throws UnreachableException;
+  void create(String agentName, String className, String arguments[],String containerName) throws UnreachableException;
 
   void killContainer(String containerName);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;

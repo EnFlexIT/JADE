@@ -314,7 +314,7 @@ public class rma extends Agent {
   /**
    Callback method for platform management <em>GUI</em>.
    */
-  public void newAgent(String agentName, String className, String containerName) {
+  public void newAgent(String agentName, String className, String arg[], String containerName) {
 
     CreateAgent ca = new CreateAgent();
 
@@ -324,7 +324,9 @@ public class rma extends Agent {
     ca.setAgentName(agentName);
     ca.setClassName(className);
     ca.setContainerName(containerName);
-
+    for(int i = 0; i<arg.length ; i++)
+    	ca.addArguments((Object)arg[i]);
+    
     try {
       Action a = new Action();
       a.set_0(getAMS());

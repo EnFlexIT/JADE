@@ -27,7 +27,7 @@ package jade.core;
 import java.rmi.*;
 import java.rmi.registry.*;
 
-import java.util.List;
+import java.util.Iterator;
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -63,12 +63,12 @@ public class Starter {
      of the agents to fire up during JADE startup.
      @param args Command line arguments, used by CORBA ORB.
   */
-  public static void startUp(boolean isPlatform, String platformID, List agents, String args[]) {
+  public static void startUp(boolean isPlatform, String platformID, Iterator agents) {
 
     try{
 
       if(isPlatform) {
-	theContainer = new MainContainerImpl(args);
+	theContainer = new MainContainerImpl();
 
 	// Create an embedded RMI Registry within the platform and
 	// bind the Agent Platform to it
@@ -86,7 +86,7 @@ public class Starter {
 
       }
       else {
-	theContainer = new AgentContainerImpl(args);
+	theContainer = new AgentContainerImpl();
       }
       theContainer.joinPlatform(platformID, agents);
 

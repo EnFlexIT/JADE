@@ -64,7 +64,7 @@ public class JADEAgentManagementOntology {
   public static final String AGENTBORN = "agent-born";
   public static final String AGENTDEAD = "agent-dead";
   public static final String AGENTMOVED = "agent-moved";
-
+  
   // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
   public static final String CREATEAGENT = "create-agent";
@@ -74,12 +74,15 @@ public class JADEAgentManagementOntology {
   
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
-  
+
   // Predicates
   public static final String EVENTOCCURRED = "event-occurred";
   //public static final String DONE = "done";
   //public static final String RESULT = "result";
 
+  
+  
+  
   static {
     initInstance();
   }
@@ -113,6 +116,7 @@ public class JADEAgentManagementOntology {
 	theInstance.addRole(CREATEAGENT, new SlotDescriptor[] {	  
 	  new SlotDescriptor("agent-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("arguments",Ontology.SET_SLOT,Ontology.ANY_TYPE, Ontology.O),	
 	  new SlotDescriptor("container-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleEntityFactory() {
@@ -151,7 +155,7 @@ public class JADEAgentManagementOntology {
 	     public Object create(Frame f) { return new ShowGui();}
 	     public Class getClassForRole() { return ShowGui.class; }
 	   });
-
+	   
 	theInstance.addRole(EVENTOCCURRED, new SlotDescriptor[] {
 	  new SlotDescriptor(Ontology.FRAME_SLOT, DefaultOntology.ANY_TYPE, Ontology.M)
 	}, new RoleEntityFactory() {

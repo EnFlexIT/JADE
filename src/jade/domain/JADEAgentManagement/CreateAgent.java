@@ -30,13 +30,18 @@ package jade.domain.JADEAgentManagement;
    @version $Date$ $Revision$
 */
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 public class CreateAgent {
 
   private String agentName;
   private String className;
   private String containerName;
   private String password;
-
+  private List arguments = new ArrayList();
+  
   public void setAgentName(String an) {
     agentName = an;
   }
@@ -68,5 +73,17 @@ public class CreateAgent {
   public String getPassword() {
     return password;
   }
-
+  
+  
+  public void addArguments(Object a)
+  {
+    arguments.add(a);
+  }
+  
+  
+  public Iterator getAllArguments()
+  {
+  	
+  	return arguments.iterator();
+  }
 }

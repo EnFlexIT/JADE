@@ -500,11 +500,19 @@ public class ams extends Agent implements AgentManager.Listener {
       String agentName = ca.getAgentName();
       String className = ca.getClassName();
       String containerName = ca.getContainerName();
+      Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
+      //create the array of string
+      ArrayList listArg = new ArrayList();
+      while(arg.hasNext())
+       	listArg.add(arg.next().toString());
+      String[] arguments = new String[listArg.size()];
+      for(int n = 0; n< listArg.size(); n++)
+       	arguments[n] = (String)listArg.get(n);
 
       //sendReply(ACLMessage.AGREE, "(true)");
 
       try {
-	myPlatform.create(agentName, className, containerName);
+	myPlatform.create(agentName, className, arguments, containerName);
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.

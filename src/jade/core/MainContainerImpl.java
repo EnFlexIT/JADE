@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -67,8 +68,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   private Map containers = Collections.synchronizedMap(new HashMap(CONTAINERS_SIZE));
   private GADT platformAgents = new GADT();
 
-  public MainContainerImpl(String args[]) throws RemoteException {
-    super(args);
+  public MainContainerImpl() throws RemoteException {
+    super();
     myName = MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
   }
@@ -127,7 +128,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
-  public void joinPlatform(String pID, List agentNamesAndClasses) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers) {
 
     // This string will be used to build the GUID for every agent on
     // this platform.
@@ -197,19 +198,32 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     a = defaultDF;
     a.powerUp(Agent.DEFAULT_DF, systemAgentsThreads);
 
-    for(int i = 0; i < agentNamesAndClasses.size(); i += 2) {
-      String agentName = (String)agentNamesAndClasses.get(i);
-      String agentClass = (String)agentNamesAndClasses.get(i+1);
-      try {
-	AID id = globalAID(agentName);
-	createAgent(id, agentClass, START);
-      }
-      catch(RemoteException re) {
-	// It should never happen ...
-	re.printStackTrace();
-      }
+    while(agentSpecifiers.hasNext()) 
+    {
+      Iterator i = ((List)agentSpecifiers.next()).iterator();
+    	String agentName =(String)i.next();
+    	String agentClass = (String)i.next();
+      List tmp = new ArrayList(); 
+    	for ( ; i.hasNext(); )	         
+    	  tmp.add((String)i.next());
+    	  
+      //verify is possible to use toArray() on tmp
+    	int size = tmp.size();
+      String arguments[] = new String[size];
+      Iterator it = tmp.iterator();
+      for(int n = 0; it.hasNext(); n++)
+        arguments[n] = (String)it.next();
 
+ 
+    	AID agentID = globalAID(agentName);
+      try {
+	      createAgent(agentID, agentClass,arguments, START);
+      }
+      catch(RemoteException re) { // It should never happen
+	      re.printStackTrace();
+      }
     }
+
 
     System.out.println("Agent Platform ready to accept new containers...");
 
@@ -596,7 +610,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(String agentName, String className, String containerName) throws UnreachableException {
+  public void create(String agentName, String className, String args[],String containerName) throws UnreachableException {
     try {
       AgentContainer ac;
       // If no name is given, the agent is started on the MainContainer itself
@@ -609,7 +623,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       if(ac == null)
 	ac = this;
       AID id = globalAID(agentName);
-      ac.createAgent(id, className, START); // RMI call
+      ac.createAgent(id, className, args,START); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());

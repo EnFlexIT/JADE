@@ -41,7 +41,7 @@ class SnifferAction extends FixedAction {
   }
 
   public void doAction() {
-    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer", new String());
+    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer",new String[0], new String());
     progressiveNumber++;
   }
 

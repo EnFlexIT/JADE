@@ -37,7 +37,7 @@ import java.net.MalformedURLException;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
-
+import java.lang.reflect.*;
 
 import java.util.Iterator;
 import java.util.List;
@@ -94,7 +94,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
   private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
 
-  public AgentContainerImpl(String args[]) throws RemoteException {
+  public AgentContainerImpl() throws RemoteException {
 
     // Configure Java runtime system to put the whole host address in RMI messages
     try {
@@ -124,15 +124,32 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // Interface AgentContainer implementation
 
-  public void createAgent(AID agentID, String className, boolean startIt) throws RemoteException {
+  public void createAgent(AID agentID, String className,String[] args, boolean startIt) throws RemoteException {
 
     Agent agent = null;
     try {
-      agent = (Agent)Class.forName(new String(className)).newInstance();
+    	if(args.length == 0) //no arguments
+        agent = (Agent)Class.forName(new String(className)).newInstance();
+      else
+        {
+        	Class agentDefinition = Class.forName(new String(className));
+          Class[] stringArgsClass = new Class[]{ String[].class };
+          Constructor[] constr = agentDefinition.getConstructors();
+      
+      	  Constructor stringArgsConstructor = agentDefinition.getConstructor(stringArgsClass);
+
+      	  Object[] objArg = new Object[] {args};
+    
+        	agent = (Agent)stringArgsConstructor.newInstance(objArg);
+        }  
     }
     catch(ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
       return;
+    }catch(java.lang.NoSuchMethodException nsme){
+    
+    	System.err.println("Not found an appropriate construcotor for agent " + agentID +" class "+className);
+    	return;
     }
     catch( Exception e ){
       e.printStackTrace();
@@ -360,7 +377,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  public void joinPlatform(String pID, List agentNamesAndClasses) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers) {
 
     // This string will be used to build the GUID for every agent on this platform.
     platformID = pID;
@@ -394,27 +411,39 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
        b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from MainContainer)
        c) AgentContainer 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
 
-       agentNamesAndClasses is a List of String containing, orderly, the name of an agent and the name of Agent
-       concrete subclass which implements that agent.
+       agentSpecifiers is a List of List.Every list contains ,orderly, th a agent name the agent class and the arguments (if any).
     */
-    for(int i=0; i < agentNamesAndClasses.size(); i += 2) {
-      String agentName = (String)agentNamesAndClasses.get(i);
-      String agentClass = (String)agentNamesAndClasses.get(i+1);
-
-      AID agentID = globalAID(agentName);
+    
+      while(agentSpecifiers.hasNext()) 
+    {
+      Iterator i = ((List)agentSpecifiers.next()).iterator();
+    	String agentName =(String)i.next();
+    	String agentClass = (String)i.next();
+      List tmp = new ArrayList(); 
+    	for ( ; i.hasNext(); )	         
+    	  tmp.add((String)i.next());
+    	  
+      //Create the String[] args to pass to the createAgent method  
+    	int size = tmp.size();
+      String arguments[] = new String[size];
+      Iterator it = tmp.iterator();
+      for(int n = 0; it.hasNext(); n++)
+        arguments[n] = (String)it.next();
+      
+    	AID agentID = globalAID(agentName);
       try {
-	createAgent(agentID, agentClass, NOSTART);
-	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
-	myPlatform.bornAgent(agentID, rp, myName);
+	      createAgent(agentID, agentClass, arguments, NOSTART);
+	      RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
+	      myPlatform.bornAgent(agentID, rp, myName);
       }
       catch(RemoteException re) { // It should never happen
-	re.printStackTrace();
+	      re.printStackTrace();
       }
       catch(NameClashException nce) {
-	System.out.println("Agent name already in use: "+nce.getMessage());
-	localAgents.remove(agentID);
+	    System.out.println("Agent name already in use: "+nce.getMessage());
+	    localAgents.remove(agentID);
       }
-
+	
     }
 
     // Now activate all agents (this call starts their embedded threads)

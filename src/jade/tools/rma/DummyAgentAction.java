@@ -51,7 +51,7 @@ import jade.gui.AgentTree;
    	String containerName = new String();
    	if(node != null)
    	  	containerName = node.getName();
-      myRMA.newAgent("da"+progressiveNumber, "jade.tools.DummyAgent.DummyAgent", containerName);
+      myRMA.newAgent("da"+progressiveNumber, "jade.tools.DummyAgent.DummyAgent", new String[0], containerName);
       progressiveNumber++;
      }
 

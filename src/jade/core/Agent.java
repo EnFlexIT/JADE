@@ -440,6 +440,16 @@ public class Agent implements Runnable, Serializable {
   }
 
   /**
+  Constructor with arguments
+  @param args an array of string as passed on the command line
+  */
+  public Agent(String[] args)
+  {
+	  this();
+	  
+  }
+
+  /**
      Method to query the agent local name.
      @return A <code>String</code> containing the local agent name
      (e.g. <em>peter</em>).
