@@ -97,12 +97,6 @@ class ContainerTable {
 
   private Map entries = new HashMap(CONTAINERS_SIZE);
 
-
-  public synchronized void addContainer(ContainerID cid, Node n) {
-    Entry e = new Entry(n);
-    entries.put(cid, e);
-  }
-
   public synchronized void addContainer(ContainerID cid, Node n, JADEPrincipal cp, Credentials cr) {
     Entry e = new Entry(n, cp, cr);
     entries.put(cid, e);
