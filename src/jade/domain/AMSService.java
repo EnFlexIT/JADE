@@ -29,11 +29,15 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
-import jade.onto.Ontology;
+
+import jade.content.*;
+import jade.content.lang.*;
+import jade.content.lang.sl.*;
+import jade.content.lang.Codec.*;
+import jade.content.onto.Ontology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
+import jade.content.onto.OntologyException;
 
 /**
  * This class provides a set of static methods to communicate with
@@ -66,19 +70,26 @@ import jade.onto.Ontology;
   @version $Date$ $Revision$ 
  **/
 public class AMSService extends FIPAServiceCommunicator {
-  private static Codec c = new SL0Codec();
-  private static Ontology o = FIPAAgentManagementOntology.instance();
 
+  private static Codec c = new SLCodec();
+  private static Ontology o = FIPAManagementOntology.getInstance();
+  private static ContentManager cm = new ContentManager();
+  static {
+	  cm.registerLanguage(c, "FIPA-SL0");
+		cm.registerOntology(o);
+  }
+  
   /**
    * check that the <code>AMSAgentDescription</code> contains the mandatory
    * slots, i.e. the agent name and the agent state. 
    * @throw a MissingParameter exception is it is not valid
    */
   static void checkIsValid(AMSAgentDescription amsd) throws MissingParameter {
+    // FIXME: use FIPAManagementOntology constants instead of Strings  
     if (amsd.getName()==null) 
-      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+      throw new MissingParameter(FIPAManagementOntology.AMSAGENTDESCRIPTION, "name");
     if (amsd.getState()==null) 
-      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
+      throw new MissingParameter(FIPAManagementOntology.AMSAGENTDESCRIPTION, "state");
   }
 
   /**
@@ -109,15 +120,22 @@ since <b>AMS</b> registration and
 
     // Build a AMS action object for the request
     Register r = new Register();
-    r.set_0(amsd);
+    r.setDescription(amsd);
 
     Action act = new Action();
-    act.set_0(AMSName);
-    act.set_1(r);
+//    act.set_0(AMSName);
+//    act.set_1(r);
 
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+    act.setActor(AMSName);
+    act.setAction(r);
+
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
 
     // Send message and collect reply
@@ -155,15 +173,23 @@ since <b>AMS</b> registration and
       amsd.setState(AMSAgentDescription.ACTIVE);
     // Build a AMS action object for the request
     Deregister d = new Deregister();
-    d.set_0(amsd);
+//    d.set_0(amsd);
+    d.setDescription(amsd);
 
     Action act = new Action();
-    act.set_0(AMSName);
-    act.set_1(d);
+//    act.set_0(AMSName);
+//    act.set_1(d);
 
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+    act.setActor(AMSName);
+    act.setAction(d);
+
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
 
     // Send message and collect reply
@@ -222,15 +248,22 @@ The AID of the AMS is defaulted to the AMS of this platform.
     checkIsValid(amsd);
     // Build a AMS action object for the request
     Modify m = new Modify();
-    m.set_0(amsd);
+//    m.set_0(amsd);
+    m.setDescription(amsd);
 
     Action act = new Action();
-    act.set_0(AMSName);
-    act.set_1(m);
+//    act.set_0(AMSName);
+//    act.set_1(m);
+    act.setActor(AMSName);
+    act.setAction(m);
 
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
 
     // Send message and collect reply
@@ -267,40 +300,50 @@ The AID of the AMS is defaulted to the AMS of this platform.
 
     // Build a AMS action object for the request
     Search s = new Search();
-    s.set_0(amsd);
-    s.set_1(constraints);
+    s.setDescription(amsd);
+    s.setConstraints(constraints);
 
     Action act = new Action();
-    act.set_0(AMSName);
-    act.set_1(s);
+		act.setActor(AMSName);
+    act.setAction(s);
 
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
 
     // Send message and collect reply
     ACLMessage inform = doFipaRequestClient(a,request);
+    
+    Result r = null;
+    synchronized (cm) {
+			try{
+	    	r = (Result) cm.extractContent( inform );
+    	}
+			catch(Exception e){
+				throw new FIPAException("Error decoding INFORM content. "+e);
+			}
+    }
+		
+    return toArray(r.getItems());
+	}
 
-    ResultPredicate r = null;
-    synchronized(c) { //must be synchronized because this is a static method
-      r = extractContent(inform.getContent(),c,o);
-    }
-    Iterator i = r.getAll_1(); //this is the set of AMSAgentDescription
-    int j = 0;
-    while (i.hasNext()) {
-    	i.next();
-      ++j;
-    }
-    AMSAgentDescription[] result = new AMSAgentDescription[j];
-    i = r.getAll_1();
-    j = 0; 
-    while (i.hasNext()) {
-    	result[j++] = (AMSAgentDescription) i.next();
-    }
-    return result;
+  private static AMSAgentDescription[] toArray(List l) throws FIPAException {
+		try {
+    	AMSAgentDescription[] items = new AMSAgentDescription[l.size()];
+			for(int i = 0; i < l.size(); i++){
+				items[i] = (AMSAgentDescription)l.get(i);
+			}
+			return items;
+		}
+		catch (ClassCastException cce) {
+			throw new FIPAException("Found items are not AMSAgentDescriptions. "+cce);
+		}
   }
-
 
   /**
    * searches with the default AMS

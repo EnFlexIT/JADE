@@ -28,13 +28,23 @@ import jade.util.leap.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.core.Agent;
 import jade.core.AID;
+
 import jade.lang.acl.ACLMessage;
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
-import jade.onto.OntologyException;
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
-import jade.onto.Ontology;
+import jade.lang.acl.MessageTemplate;
+
+import jade.content.*;
+import jade.content.lang.*;
+import jade.content.lang.sl.*;
+import jade.content.lang.Codec.*;
+import jade.content.onto.Ontology;
+import jade.content.onto.BasicOntology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
+import jade.content.abs.*;
+import jade.content.onto.OntologyException;
+
+import java.util.Date;
+
 
 /**
  * This class provides a set of static methods to communicate with
@@ -54,14 +64,21 @@ import jade.onto.Ontology;
  * added to the queue of the agent behaviours, as usual, by using 
  * <code>Agent.addBehaviour()</code>. 
  * @author Fabio Bellifemine (CSELT S.p.A.)
+ * @author Elisabetta Cortese (TiLab S.p.A.)
   @version $Date$ $Revision$ 
  * 
  **/
 public class DFService extends FIPAServiceCommunicator {
 
-  private static Codec c = new SL0Codec();
-  private static Ontology o = FIPAAgentManagementOntology.instance();
-
+  private static Codec c = new SLCodec();
+  private static Ontology o = FIPAManagementOntology.getInstance();
+  private static ContentManager cm = new ContentManager();
+  static {
+	  cm.registerLanguage(c, "FIPA-SL0");
+	  cm.registerLanguage(c, "FIPA-SL"); // The subscription message uses full SL
+		cm.registerOntology(o);
+  }
+  
   /**
    * check that the <code>DFAgentDescription</code> contains the mandatory
    * slots, i.e. the agent name and, for each servicedescription, the
@@ -69,21 +86,22 @@ public class DFService extends FIPAServiceCommunicator {
    * @throw a MissingParameter exception is it is not valid
    */
   static void checkIsValid(DFAgentDescription dfd) throws MissingParameter {
-    if (dfd.getName()==null) 
-      throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+    // FIXME: use FIPAManagementOntology constants instead of Strings  
+  	if (dfd.getName()==null) 
+      throw new MissingParameter(FIPAManagementOntology.DFAGENTDESCRIPTION, "name");
     Iterator i = dfd.getAllServices();
     ServiceDescription sd;
     while (i.hasNext()) {
       sd = (ServiceDescription)i.next();
       if (sd.getName() == null)
-	throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+	throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, "name");
       if (sd.getType() == null)
-	throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+	throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, "type");
     }
   }
 
   /**
-     Register a DFDescriptiont with a <b>DF</b> agent. 
+     Register a DFDescription with a <b>DF</b> agent. 
      @param a is the Agent performing the registration (it is needed in order
      to send/receive messages
      @param dfName The AID of the <b>DF</b> agent to register with.
@@ -104,14 +122,27 @@ public class DFService extends FIPAServiceCommunicator {
 
     // Build a DF action object for the request
     Register r = new Register();
-    r.set_0(dfd);
+//    r.set_0(dfd);
+    r.setDescription(dfd);
 
     Action act = new Action();
-    act.set_0(dfName);
-    act.set_1(r);
-    synchronized(c) { //must be synchronized because this is a static method
-      request.setContent(encode(act,c,o));
+//    act.set_0(dfName);
+//    act.set_1(r);
+    act.setActor(dfName);
+    act.setAction(r);
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
+
+    
+//    synchronized(c) { //must be synchronized because this is a static method
+//      request.setContent(encode(act,c,o));
+//    }
     // Send message and collect reply
     doFipaRequestClient(a,request);
   }
@@ -142,15 +173,27 @@ public class DFService extends FIPAServiceCommunicator {
       dfd.setName(a.getAID());
     // Build a DF action object for the request
     Deregister d = new Deregister();
-    d.set_0(dfd);
+//    d.set_0(dfd);
+    d.setDescription(dfd);
 
     Action act = new Action();
-    act.set_0(dfName);
-    act.set_1(d);
-
-    synchronized(c) { //must be synchronized because this is a static method
-      request.setContent(encode(act,c,o));
+//    act.set_0(dfName);
+//    act.set_1(d);
+    act.setActor(dfName);
+    act.setAction(d);
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
+		
+
+//    synchronized(c) { //must be synchronized because this is a static method
+//      request.setContent(encode(act,c,o));
+//    }
 
     // Send message and collect reply
     doFipaRequestClient(a,request);
@@ -208,16 +251,26 @@ public class DFService extends FIPAServiceCommunicator {
     checkIsValid(dfd);
     // Build a DF action object for the request
     Modify m = new Modify();
-    m.set_0(dfd);
+//    m.set_0(dfd);
+    m.setDescription(dfd);
 
     Action act = new Action();
-    act.set_0(dfName);
-    act.set_1(m);
-
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+//    act.set_0(dfName);
+//    act.set_1(m);
+    act.setActor(dfName);
+    act.setAction(m);
+    synchronized (cm) {
+			try{    
+				cm.fillContent(request, act);
+			}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
+//    synchronized(c) { //must be synchronized because this is a static method
+//      // Write the action in the :content slot of the request
+//      request.setContent(encode(act,c,o));
+//    }
 
     // Send message and collect reply
     doFipaRequestClient(a,request);
@@ -253,38 +306,50 @@ public class DFService extends FIPAServiceCommunicator {
 
     // Build a DF action object for the request
     Search s = new Search();
-    s.set_0(dfd);
-    s.set_1(constraints);
+    s.setDescription(dfd);
+    s.setConstraints(constraints);
 
     Action act = new Action();
-    act.set_0(dfName);
-    act.set_1(s);
+    act.setActor(dfName);
+    act.setAction(s);
 
-    synchronized(c) { //must be synchronized because this is a static method
-      // Write the action in the :content slot of the request
-      request.setContent(encode(act,c,o));
+    synchronized (cm) {
+			try{
+				cm.fillContent(request, act);
+    	}
+			catch(Exception e){
+				throw new FIPAException("Error encoding REQUEST content. "+e);
+			}
     }
+	
+	  // Send message and collect reply
+	  ACLMessage inform = doFipaRequestClient(a,request);
 
-    // Send message and collect reply
-    ACLMessage inform = doFipaRequestClient(a,request);
+	  // Parse the content and returns the items found as an array
+		Result r = null;	
+    synchronized (cm) {
+			try{
+	    	r = (Result) cm.extractContent( inform );
+    	}
+			catch(Exception e){
+				throw new FIPAException("Error decoding INFORM content. "+e);
+			}
+    }
+		
+    return toArray(r.getItems());
+  }
 
-    ResultPredicate r = null;
-    synchronized(c) { //must be synchronized because this is a static method
-      r = extractContent(inform.getContent(),c,o);
-    }
-    Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
-    int j = 0;
-    while (i.hasNext()) {
-    	i.next();
-      ++j;
-    }
-    DFAgentDescription[] result = new DFAgentDescription[j];
-    i = r.getAll_1();
-    j = 0; 
-    while (i.hasNext()) {
-    	result[j++] = (DFAgentDescription) i.next();
-    }
-    return result;
+  private static DFAgentDescription[] toArray(List l) throws FIPAException {
+		try {
+    	DFAgentDescription[] items = new DFAgentDescription[l.size()];
+			for(int i = 0; i < l.size(); i++){
+				items[i] = (DFAgentDescription)l.get(i);
+			}
+			return items;
+		}
+		catch (ClassCastException cce) {
+			throw new FIPAException("Found items are not DFAgentDescriptions. "+cce);
+		}
   }
 
 
@@ -315,6 +380,136 @@ public class DFService extends FIPAServiceCommunicator {
   public static DFAgentDescription[] search(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
     return search(a,dfName,dfd,constraints);
+  }
+
+
+  // SUBSCRIPTION related methods
+
+  /** 
+     Utility method that allows easily creating the message that has to 
+     be sent to the DF to subscribe to receive notifications when a new 
+     DF agent description matching the indicated template is registererd
+     with the DF. This method can be fruitfully used in combination with 
+     the <code>SubscriptionInitiator</code> protocol.
+     @param a The agent that is subscribing to the DF
+     @param dfName The AID of the <b>DF</b> agent to subscribe to.
+     @param template A <code>DFAgentDescription</code> object that is used 
+     as a template to identify DF description that will be notified
+     @param constraints The constraints to limit the number of results to be
+     notified.
+     @return the subscription message.
+     @see jade.proto.SubscriptionInitiator
+   */
+  public static ACLMessage getSubscriptionMessage(Agent a, AID dfName, DFAgentDescription template, SearchConstraints constraints) throws FIPAException {
+    ACLMessage subscribe = new ACLMessage(ACLMessage.SUBSCRIBE);
+    subscribe.setSender(a.getAID());
+    subscribe.addReceiver(dfName);
+    subscribe.setProtocol("fipa-subscribe");
+    subscribe.setLanguage(c.getName());
+    subscribe.setOntology(o.getName());
+ 
+ 		AbsVariable x = new AbsVariable("x", FIPAManagementVocabulary.DFAGENTDESCRIPTION);
+
+    // Build a DF action object for the request
+    Search s = new Search();
+    s.setDescription(template);
+    s.setConstraints(constraints);
+
+		Action actSearch = new Action();
+		actSearch.setActor(dfName);
+		actSearch.setAction(s);
+	
+		AbsPredicate results = new AbsPredicate(BasicOntology.RESULT);
+		results.set(BasicOntology.RESULT_ITEMS, x);
+		
+		synchronized (cm) {
+			try {
+				results.set(BasicOntology.RESULT_ACTION, o.fromObject(actSearch));
+	
+				AbsIRE iota = new AbsIRE(SLVocabulary.IOTA);
+				iota.setVariable(x);
+				iota.setProposition(results);
+	
+				cm.fillContent(subscribe, iota);
+			}
+			catch (Exception e) {
+				throw new FIPAException("Error creating subscription message. "+e);
+			}
+		}
+    return subscribe;
+  }
+  
+  /** 
+  	 Searches the DF and remains blocked until a result is found or the
+  	 specified timeout has expired.
+     @param a The agent that is performing the search
+     @param dfName The AID of the <b>DF</b> agent where to search into.
+     @param template A <code>DFAgentDescription</code> object that is used 
+     as a template to identify the DF descriptions to search for.  
+     @param constraints The constraints to limit the number of results to be
+     sent back.
+     @param timeout The maximum amount of time that we want to remain blocked 
+     waiting for results.
+     @return The DF agent descriptions matching the specified template or 
+     <code>null</code> if the timeout expires.
+   */
+  public static DFAgentDescription[] searchUntilFound(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints, long timeout) throws FIPAException {
+    
+    ACLMessage subscribe = getSubscriptionMessage(a, dfName, dfd, constraints);
+
+		// set conv-id and reply-with field
+		String replyWith ="rw"+a.getName()+(new Date()).getTime();
+		String convId = "conv"+a.getName()+(new Date()).getTime();
+    subscribe.setReplyWith( replyWith );
+    subscribe.setConversationId( convId );
+
+		a.send(subscribe);
+		DFAgentDescription[] result = waitForResults(a, timeout, replyWith, convId);
+
+		// FIXME: SEND the CANCEL message
+
+		return result;
+  }
+  
+  private static DFAgentDescription[] waitForResults(Agent a, long timeout, String replyWith, String convId) throws FIPAException {
+		MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchConversationId(convId),MessageTemplate.MatchInReplyTo(replyWith));
+		long sendTime = System.currentTimeMillis();
+		ACLMessage reply = a.blockingReceive(mt, timeout);
+		
+		if(reply != null) {
+			if (reply.getPerformative() == ACLMessage.AGREE){
+				// We received an AGREE --> Go back waiting for the INFORM unless the time is over.
+				long agreeTime = System.currentTimeMillis();
+				timeout -= (agreeTime - sendTime);
+				if (timeout <= 0) {
+					return null;
+				}
+				reply = a.blockingReceive(mt, timeout);
+			}
+			if(reply != null) {
+				if (reply.getPerformative() == ACLMessage.INFORM){
+					// We received the INFORM --> Parse it and return the result
+					List items = null;
+					try{
+						synchronized (cm) {
+							AbsPredicate absEquals = (AbsPredicate) cm.extractAbsContent( reply );
+							items = (List) o.toObject( absEquals.getAbsTerm(SLVocabulary.EQUALS_RIGHT) );
+						}
+					}
+					catch(Exception e){
+						throw new FIPAException("Error decoding INFORM content. "+e);
+					}
+					
+					return toArray(items);
+				}
+				else {
+					// We received a REFUSE, NOT_UNDERSTOOD, FAILURE or OUT_OF_SEQUENCE --> ERROR
+					throw new FIPAException(reply.getContent());
+				}
+			}
+		}
+		// The timeout has expired
+		return null;
   }
 
 

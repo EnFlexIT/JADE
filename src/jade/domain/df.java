@@ -762,8 +762,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			SearchConstraints constraints = null;
 			AbsIRE absIota = null;
 			
-			System.out.println("DF Registering subscription. Message is");
-			System.out.println(sub.getMessage());
+			//System.out.println("DF Registering subscription. Message is");
+			//System.out.println(sub.getMessage());
   		try{
   			// Get DFD template and search constraints from the subscription message 
 				ACLMessage subMessage = sub.getMessage();
@@ -781,12 +781,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
   		}
   		catch(Exception e){
-
-			e.printStackTrace();
   			throw new NotUnderstoodException(e.getMessage());
   		}
   		
-			// Search for DFDs that already match the specified template
+  		
+  		// Search for DFDs that already match the specified template
 			List results = agentDescriptions.search(dfdTemplate);	
 			// If some DFD matches the template, notify the subscribed agent 
 			if(results.size() > 0){
@@ -804,7 +803,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					}
 				}
 				
-				System.out.println("DF search found "+results.size()+" results");
+				//System.out.println("DF search found "+results.size()+" results");
 				notify(sub, results, absIota);
 				return true;
 			}

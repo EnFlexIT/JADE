@@ -530,7 +530,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  // -- Filippo
 	  //List l = new ArrayList(1);
 	  //l.add(o);
-	  try {
+    try {
 	    getContentManager().fillContent(toolNotification, o);
 	  }
 	  /*catch(FIPAException fe) {

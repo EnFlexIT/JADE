@@ -185,6 +185,12 @@ public class MobilityOntology {
 	    new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 	}, ContainerID.class);
 
+	theInstance.addRole("container-ID", new SlotDescriptor[] {
+	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	    new SlotDescriptor("protocol", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	    new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, BCLocation.class);
+
 	theInstance.addRole(MOVE, new SlotDescriptor[] {
 	    new SlotDescriptor(Ontology.FRAME_SLOT, MOBILE_AGENT_DESCRIPTION, Ontology.M)
 	}, MoveAction.class);
@@ -514,5 +520,15 @@ public class MobilityOntology {
 
   } // End of QueryPlatformLocationsAction
 
+  public static class BCLocation extends ContainerID {
+	  // This class is serialized by sending normal ContainerID
+	  public ContainerID toCid() {
+	  	ContainerID cid = new ContainerID();
+	    cid.setName(getName());
+	    cid.setAddress(getAddress());
+	    cid.setProtocol(getProtocol());
+	  	return cid;
+	  }
+  }
 
 }
