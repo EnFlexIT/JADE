@@ -38,32 +38,37 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   private static final float MAP_LOAD_FACTOR = 0.50f;
 
   // Local agents, indexed by agent name
-  private Hashtable localAgents = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+  protected Hashtable localAgents = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
   // Remote agents cache, indexed by agent name
   private Hashtable remoteAgentsCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
   // The message dispatcher of this container
-  private MessageDispatcherImpl myDispatcher;
+  protected MessageDispatcherImpl myDispatcher;
 
   // The agent platform this container belongs to
   private AgentPlatform myPlatform;
 
+  // IIOP address of the platform, will be used for inter-platform communications
+  protected String platformAddress;
+
+
   public AgentContainerImpl() throws RemoteException {
+    myDispatcher = new MessageDispatcherImpl(localAgents);
   }
 
-  public void joinPlatform(String platformURL, Vector agentNamesAndClasses) {
+  public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
 
     Agent agent = null;
     AgentDescriptor desc = new AgentDescriptor();
 
+    platformAddress = platformIIOP;
 
 
     // Retrieve agent platform from RMI registry and register as agent container
     try {
-      myDispatcher = new MessageDispatcherImpl(localAgents);
-      myPlatform = (AgentPlatform) Naming.lookup(platformURL);
-      myPlatform.addContainer(this);
+      myPlatform = (AgentPlatform) Naming.lookup(platformRMI);
+      myPlatform.addContainer(this); // RMI call
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -107,8 +112,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Insert new agent into local agents table
       localAgents.put(agentName,agent);
 
-      // Build an agent descriptor and send it to the centralized agent table
-      desc.set(agentName,myDispatcher);
+      desc.setName(agentName);
+      desc.setDemux(myDispatcher);
+      desc.setAPState(Agent.AP_INITIATED);
+
       try {
 	myPlatform.bornAgent(desc); // RMI call
       }
@@ -124,7 +131,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     while(nameList.hasMoreElements()) {
       currentName = (String)nameList.nextElement();
       agent = (Agent)localAgents.get(currentName);
-      agent.doStart(currentName);
+      agent.doStart(currentName, platformAddress);
     }
   }
 
