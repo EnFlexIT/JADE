@@ -190,12 +190,134 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
      (instances of that class) can be accomplished by this introspector.
      @param schema The schema of the ontological element
      @param javaClass The java class associated to the ontologcal element
+     @param onto The Ontology that uses this Introspector
      @throws OntologyException if the java class does not have the correct 
      structure
    */
-  public void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException {
-  	// FIXME: Not yet implemented
+  public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
+  	String[] slotNames = schema.getNames();
+    
+    for (int i = 0; i < slotNames.length; ++i) {
+    	String sName = slotNames[i];
+      ObjectSchema slotSchema = schema.getSchema(sName);
+      String mName = translateName(sName);
+      try {
+				// Check for correct set and get methods for the current
+				// slot and retrieve the implementation type for values.
+				Class slotGetSetClass;
+				if (slotSchema instanceof AggregateSchema)
+				  slotGetSetClass = checkGetAndSet2(mName, javaClass);
+				else
+				  slotGetSetClass = checkGetAndSet(mName, javaClass);
+				// If slotSchema is a complex schema and some class C is registered 
+				// for that schema, then the implementation class must be a supertype 
+				// of C.
+				if(!(slotSchema instanceof PrimitiveSchema)) { 
+	  			Class slotClass = onto.getClassForElement(slotSchema.getTypeName());
+	  			if (slotClass != null) {
+	    			if(!slotGetSetClass.isAssignableFrom(slotClass)) {
+	      			throw new OntologyException("Wrong class for schema: "+schema.getTypeName()+". Slot "+sName+": expected class="+slotClass+", Get/Set method class="+slotGetSetClass);
+	    			}
+	  			}
+				} 
+				else {	
+					// The slot has a primitive type
+					String type = slotSchema.getTypeName();
+					if (type.equals(BasicOntology.STRING)) {
+						if (!slotGetSetClass.isAssignableFrom(String.class)) { 
+	      			throw new OntologyException("Wrong class for schema: "+schema.getTypeName()+". Slot "+sName+": expected class="+String.class+", Get/Set method class="+slotGetSetClass);
+						}
+					}
+					else if (type.equals(BasicOntology.INTEGER)) {
+						if ((!slotGetSetClass.equals(Integer.TYPE)) &&
+							  (!slotGetSetClass.equals(Integer.class)) &&
+							  (!slotGetSetClass.equals(Long.TYPE)) &&
+							  (!slotGetSetClass.equals(Long.class)) ) { 
+	      			throw new OntologyException("Wrong class for schema: "+schema.getTypeName()+". Slot "+sName+": expected class=INTEGER, Get/Set method class="+slotGetSetClass);
+						}
+					}
+				}
+      }
+      catch(Exception e) {
+				throw new OntologyException("Wrong class for schema: "+schema.getTypeName()+". Slot "+sName+": unexpected error. "+e.getMessage()); 
+      }
+    }
   }
     
+  /**
+   */
+  private Class checkGetAndSet(String name, Class c) throws OntologyException {
+    Class result;
+    Method getMethod = findMethodCaseInsensitive("get" + name, c);
+    Method setMethod = findMethodCaseInsensitive("set" + name, c);
+
+    // Make sure "get" method takes no arguments.
+    Class[] getParams = getMethod.getParameterTypes();
+    if(getParams.length > 0)
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must take no arguments.");
+
+    // Now find a matching set method.
+    result = getMethod.getReturnType();
+
+    Class[] setParams = setMethod.getParameterTypes();
+    if((setParams.length != 1) || (!setParams[0].equals(result)))
+      throw new OntologyException("Wrong class: method " +  setMethod.getName() + "() must take a single argument of type " + result.getName() + ".");
+    Class setReturn = setMethod.getReturnType();
+    if(!setReturn.equals(Void.TYPE))
+      throw new OntologyException("Wrong class: method " +  setMethod.getName() + "() must return void.");
+
+    return result;
+  }
+  
+  /**
+   */
+  private Class checkGetAndSet2(String name, Class c) throws OntologyException {
+    Method getMethod = findMethodCaseInsensitive("getAll" + name, c);
+    Method addMethod = findMethodCaseInsensitive("add" + name, c);
+    Class result = getArgumentType(addMethod,0);  
+
+    // check "get" method 
+    if (getArgumentLength(getMethod) != 0)
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must take no arguments.");
+    // MODIFIED by GC
+    // The return value of the getAllXXX() method of the user defined class 
+    // must be a jade.util.leap.Iterator or a super-class/interface of it -->
+    // OK if it is a java.util.Iterator.
+    if (!(getReturnType(getMethod)).isAssignableFrom(jade.util.leap.Iterator.class))
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a jade.util.leap.Iterator." + getReturnType(getMethod).toString());
+
+    // check 'add' method 
+    if (getArgumentLength(addMethod) != 1)
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() must take one argument.");
+    if (!getArgumentType(addMethod,0).equals(result))
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() has the wrong argument type.");
+    if (!getReturnType(addMethod).equals(Void.TYPE))
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() must return a void.");
+
+    return result;
+  }
+  
+  /**
+    @ return the Class of the argument type number no. of the method m
+   */
+  private Class getArgumentType(Method m, int no) {
+    Class[] setParams = m.getParameterTypes();
+    return setParams[no];
+  }
+  
+  /**
+   * @return the number of arguments of the method m
+   */
+  private int getArgumentLength(Method m) {
+    Class[] getParams = m.getParameterTypes();
+    return getParams.length;
+  }
+
+  /**
+    @ return the Class of the return type of the method m
+   */
+  private Class getReturnType(Method m) {
+    return m.getReturnType();
+  }
 }
 

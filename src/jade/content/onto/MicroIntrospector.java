@@ -108,10 +108,11 @@ public class MicroIntrospector implements Introspector {
        <code>Introspectable</code>
        @param schema The schema of the ontological element
        @param javaClass The java class associated to the ontologcal element
+       @param onto The Ontology that uses this Introspector
        @throws OntologyException if the java class does not have the correct 
        structure
      */
-    public void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException {
+    public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
     	// FIXME: Not yet implemented
     }
 }

@@ -262,7 +262,7 @@ public class Ontology {
             classes.put(s, javaClass);
             if (!absObjectClass.isAssignableFrom(javaClass)) {
 							if (introspector != null) {
-	    					introspector.checkClass(schema, javaClass);
+	    					introspector.checkClass(schema, javaClass, this);
 							}
             	schemas.put(javaClass, schema);
             }
@@ -419,12 +419,13 @@ public class Ontology {
 
     /**
      * Retrieves the concrete class associated with <code>name</code> in
-     * the vocabulary. The search is not extended to the base ontologies
+     * the vocabulary. The search is extended to the base ontologies
      * @param name the name of the schema.
-     * @return the Java class.
-     * @throws OntologyException
+     * @return the Java class or null if no schema called <code>name</code>
+     * is found or if no class is associated to that schema.
+     * @throws OntologyException if name is null
      */
-    Class getClassForElement(String name) throws OntologyException {
+    public Class getClassForElement(String name) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
         } 

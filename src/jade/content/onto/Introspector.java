@@ -72,9 +72,10 @@ public interface Introspector {
        (instances of that class) can be accomplished by this introspector.
        @param schema The schema of the ontological element
        @param javaClass The java class associated to the ontologcal element
+       @param onto The Ontology that uses this Introspector
        @throws OntologyException if the java class does not have the correct 
        structure
      */
-    void checkClass(ObjectSchema schema, Class javaClass) throws OntologyException;
+    void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException;
 }
 
