@@ -26,7 +26,7 @@ options {
 //  CHOICE_AMBIGUITY_CHECK = 2;
 //  OTHER_AMBIGUITY_CHECK = 1;
   STATIC = false;
-  DEBUG_PARSER = true;
+//  DEBUG_PARSER = true;
 //  DEBUG_LOOKAHEAD = true;
 //  DEBUG_TOKEN_MANAGER = true;
   ERROR_REPORTING = true;
@@ -175,8 +175,10 @@ Object Term():
  ( obj = String() 
  | obj = Number() 
  | t = <DATETIME> { obj=new String(t.image);}
- | <LBRACE> s=String() {obj = new Frame(s);}
-            (FunctionalTermParams((Frame)obj))? <RBRACE>
+ | <LBRACE> ( s=String() {obj = new Frame(s);}
+              (FunctionalTermParams((Frame)obj))?
+            | obj=ActionExpression()
+            ) <RBRACE>
  )
   { return obj; }
 }
@@ -207,7 +209,8 @@ void FunctionalTermParams(Frame result):
 }
 
 /**
-Notice that this production, as a side effect, also adds a slot to result
+Notice that this production, as a side effect, also adds a slot to result.
+The initial char ':' is removed from the slotName
 **/
 void Parameter(Frame result):
 {
@@ -216,7 +219,7 @@ void Parameter(Frame result):
 }
 {
   name = <PARAMETERNAME> value = Term() 
-  { result.putSlot(name.image, value); }
+  { result.putSlot(name.image.substring(1), value); }
 }
 
 /**
