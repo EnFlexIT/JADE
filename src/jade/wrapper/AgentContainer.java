@@ -272,7 +272,7 @@ public class AgentContainer implements PlatformController {
   public String getName() { return myPlatformName; }
     
   public void start() throws ControllerException { 
-  };
+  }
 
   public void suspend() throws ControllerException {
 		throw new ControllerException("Not_Yet_Implemented");
