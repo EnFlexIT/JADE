@@ -1,194 +1,24 @@
-/*
-  $Log$
-  Revision 1.46  2000/02/23 18:09:24  trucco
-  added log incoming and outgoing IIOP messages
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.45  2000/01/21 14:39:23  rimassaJade
-  Changed containerNames() and agentNames() signature and implementation
-  to reflect changes made in AgentManager interface. This should have
-  removed a race condition between the Agent Platform and the AMS.
+GNU Lesser General Public License
 
-  Revision 1.44  1999/11/08 15:19:41  rimassaJade
-  Added sniffOn() and sniffOff() methods to control message sniffing.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.43  1999/10/08 08:28:40  rimassa
-  Added some fault tolerance to the platform in dealing with unreachable
-  containers.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.42  1999/10/06 08:48:25  rimassa
-  Added a printout message when the agent platform is ready to accept
-  containers.
-  Added the creation of a file containing the IIOP URL for the agent
-  platform.
-
-  Revision 1.41  1999/09/02 14:59:01  rimassa
-  Handled new ParseException exception from ACLMessage.fromText().
-
-  Revision 1.40  1999/08/31 17:23:57  rimassa
-  Added a method to transfer agent identity between two agent
-  containers.
-
-  Revision 1.39  1999/08/27 15:44:43  rimassa
-  Added Agent Descriptor locking in GADT lookup, to support
-  transactional agent migration.
-
-  Revision 1.38  1999/08/10 15:32:56  rimassa
-  Added implementation for lookup() method, and changed some method names.
-
-  Revision 1.37  1999/07/19 00:04:42  rimassa
-  Added an empty moveAgent() method.
-
-  Revision 1.36  1999/07/13 19:23:52  rimassa
-  Implemented the revised AgentManager interface.
-  Separated Platform Agent Descriptors from AMS Agent Descriptors. Now
-  the AMS holds its own data about the agents.
-  Removed all AMS related methods, implementing AMS actions.
-
-  Revision 1.35  1999/06/04 07:48:07  rimassa
-  Made package scoped this previously public class. Changed package
-  scoping when using some String constants.
-
-  Revision 1.34  1999/04/07 11:40:12  rimassa
-  Fixed code indentation.
-
-  Revision 1.33  1999/03/29 10:40:58  rimassa
-  Fixed a bug raising a ConcurrentModificationException during Agent
-  Platform shutdown.
-  Made system agents (ACC, AMS and Default DF) run at a higher priority
-  with respect to user agents.
-
-  Revision 1.32  1999/03/24 12:19:02  rimassa
-  Ported most data structures to the newer Java 2 Collection framework.
-
-  Revision 1.31  1999/03/17 13:04:56  rimassa
-  Many changes to support new proxy based design. Now platform agent
-  table is indexed by the complete agent GUID and not just the local
-  agent name. So even foreign or mobile agents can now register
-  themselves with the platform.
-
-  Revision 1.30  1999/03/15 15:25:39  rimassa
-  Changed priority for system agents.
-
-  Revision 1.29  1999/03/09 13:30:14  rimassa
-  Used String constants for system agent names.
-  Completely redesigned AgentPlatform startup: now system agents (AMS,
-  ACC and default DF) run in a separate ThreadGroup.
-  Added a custom joinPlatform() method to perform specific
-  initialization.
-  Now removeContainer() takes a String argument and no more an
-  AgentContainer.
-
-  Revision 1.28  1999/03/07 22:51:43  rimassa
-  Added a debugging printout.
-
-  Revision 1.27  1999/03/03 16:07:45  rimassa
-  Added a getContainerFromAgent() method.
-  Added methods to dispatch a suspend()/resume() request to the
-  appropriate agent container.
-  Improved method naming, distinguishing between AMS and AP.
-
-  Revision 1.26  1999/02/25 08:26:12  rimassa
-  Removed useless FIXME.
-  Clarified various error messages appearing when an agent was not
-  found.
-  Completely redesigned platform shutdown procedure. Now it works like
-  this:
-    - Remove front end container from container list.
-    - Shutdown all other container.
-    - Kill all non system agents on front end container.
-    - Kill default DF.
-    - Kill ACC.
-    - Kill AMS.
-    - Disconnect platform IIOP server.
-
-  Fixed a nasty deadlock problem: now AMSKillContainer spawns a separate
-  thread calling RMI method AgentContainer.exit(), so the AMS is free to
-  answer to 'deregister' messages from about-to-die agents.
-
-  Revision 1.25  1999/02/15 11:43:21  rimassa
-  Fixed a bug: a case sensitive comparison was incorrectly made on agent
-  name during deregistration with AMS agent.
-
-  Revision 1.24  1999/02/14 23:13:34  rimassa
-  Removed an useless printout. Changed IOR file name from 'CSELT.IOR' to
-  'JADE.IOR'.
-
-  Revision 1.23  1999/02/04 12:57:07  rimassa
-  Added a 'FIXME:' reminder.
-
-  Revision 1.22  1999/02/03 10:13:58  rimassa
-  Added server side CORBA support: now the AgentPlatform contains a
-  CORBA object implementation for FIPA_Agent_97 IDL interface.
-  During platform startup, the IOR or the URL for that CORBA object
-  implementation is stored as the IIOP address of the whole agent
-  platform.
-  Modified addContainer() method to comply with new AgentPLatform
-  interface.
-
-  Revision 1.21  1998/11/15 23:03:33  rimassa
-  Removed old printed messages about system agents, since now the Remote
-  Agent Management GUI shows all agents present on the platform.
-  Added a new AMSKillContainer method to be used from AMS agent to
-  terminate Agent Containers.
-
-  Revision 1.20  1998/11/09 22:15:58  Giovanni
-  Added an overridden version of AgentContainerImpl shutDown() method:
-  an AgentPlatform firstly shuts itself down as an ordinary
-  AgentContainer (i.e. it removes itself from container list), then
-  calls exit() remote method for every other AgentContainer in the
-  platform, thereby completely terminating the Agent Platform.
-
-  Revision 1.19  1998/11/09 00:13:46  rimassa
-  Container list now is an Hashtable instead of a Vector, indexed by a
-  String, which is used also as container name in RMA GUI; various
-  changes throughout the code to support the new data structure.
-  Added some public methods for the AMS to use, such as a method to
-  obtain an Enumeration of container names or agent names.
-
-  Revision 1.18  1998/11/03 00:30:25  rimassa
-  Added AMS notifications for new agents and dead agents.
-
-  Revision 1.17  1998/11/02 01:58:23  rimassa
-  Removed every reference to deleted MessageDispatcher class; now
-  AgentContainer is directly responsible for message dispatching.
-  Added AMS notifications when an AgentContainer is created or
-  deleted.
-
-  Revision 1.16  1998/10/31 16:33:36  rimassa
-  Changed AMSKillAgent() prototype, since now it accept also a password
-  String (ignored for now).
-  Fixed a tiny bug in AMSKillAgent(): 'agentName' was to be
-  'simpleName'.
-
-  Revision 1.15  1998/10/26 00:00:30  rimassa
-  Added some methods for AMS to use in platform administration. When the
-  AMS wants to create or kill an agent it relies on methods such as
-  AMSCreateAgent() and AMSKillAgent() to actually do the job.
-
-  Revision 1.14  1998/10/14 21:24:11  Giovanni
-  Added a line to restore platform state when a new agent has a name
-  clashing with a previous agent's name.
-
-  Revision 1.13  1998/10/11 19:32:30  rimassa
-  In method bornAgent() a sensible strategy has been implemented to
-  recover from agent name collisions. When a new agent has a name
-  already present in Global Agent Table, a name clash exception is
-  raised, unless the old agent's container crashed, in which case the
-  newer agent simply replaces the older one.
-  Now lookup() method is able to distinguish between an unknown agent
-  and an agent whose container has crashed, writing a suitable error
-  message in the NotFoundException it raises.
-  Fixed a missing toLowerCase().
-
-  Revision 1.12  1998/10/07 22:16:21  Giovanni
-  Changed code in various places to make agent descriptor tables
-  case-insensitive. Now upper or lower case in agent names and addresses
-  make no more difference; this is to comply with FIPA specification.
-
-  Revision 1.11  1998/10/04 18:01:01  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core;
 
