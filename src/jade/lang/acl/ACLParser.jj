@@ -35,6 +35,10 @@
 /* 
  *
  * $Log$
+ * Revision 1.5  1998/10/18 16:05:01  rimassa
+ * Changed code to avoid using ACLMessage dump() method and default
+ * constructor, since these two are now deprecated.
+ *
  * Revision 1.4  1998/10/04 18:02:10  rimassa
  * Added a 'Log:' field to every source file.
  *
@@ -87,7 +91,7 @@ package jade.lang.acl;
 import java.io.*;
 
 public class ACLParser {
-  ACLMessage msg = new ACLMessage();
+  ACLMessage msg = new ACLMessage("");
 
   public static void main(String args[]) throws ParseException {
     ACLParser parser = new ACLParser(System.in);
@@ -95,7 +99,7 @@ public class ACLParser {
     while (true) {
       try {
 	ACLMessage result = parser.Message();
-	result.dump(); 
+	result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       }
       catch(ParseException pe) {
 	pe.printStackTrace();
