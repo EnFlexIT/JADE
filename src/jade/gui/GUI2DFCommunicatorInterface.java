@@ -35,6 +35,7 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 import java.util.Enumeration;
+import java.util.Vector;
 
 public interface GUI2DFCommunicatorInterface {
 
@@ -83,7 +84,15 @@ public interface GUI2DFCommunicatorInterface {
    */
   public void postSearchEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd); 
   
+  /**
+  * This method federate the df with another df indicated
+  */
   public void postFederateEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  
+  /**
+  * This method searches acconding to the specificated constraints
+  */
+  public void postSearchWithConstraintEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraint);
   
   /**
   * this method returns all the agent descriptions registered with the DF
@@ -91,14 +100,22 @@ public interface GUI2DFCommunicatorInterface {
   public abstract Enumeration getAllDFAgentDsc();
 
   /**
-   * this method returns the agent description registered with the DF given the agent name
+   * this method returns the agent description of an agent registered with the DF given the agent name
    */
   public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException;
+  
+  // this method returns the descriptor of an agent result of a search
+  public AgentManagementOntology.DFAgentDescriptor getDFAgentSearchDsc(String name) throws FIPAException;
   
   public Enumeration getParents();
   
   public Enumeration getChildren();
   
+  /**
+  * This method returns the constraints for the search operation
+  */
+  public Vector getConstraints();
+
   public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF();
   
   
