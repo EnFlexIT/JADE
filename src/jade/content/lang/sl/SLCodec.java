@@ -194,7 +194,7 @@ public class SLCodec extends StringCodec {
 		str.append(" ");
 		try {
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[0])));
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("A UnaryLogicalOp requires a formula argument",e);
 		}
 	    } else if (slOnto.isBinaryLogicalOp(propositionSymbol)) {
@@ -205,7 +205,7 @@ public class SLCodec extends StringCodec {
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[0])));
 		    str.append(" ");
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("A BinaryLogicalOp requires 2 formula arguments",e);
 		}
 	    } else if (slOnto.isQuantifier(propositionSymbol)) {
@@ -216,7 +216,7 @@ public class SLCodec extends StringCodec {
 		    str.append(toString((AbsVariable)val.getAbsObject(slotNames[0]))); //FIXME. The hypothesis is that the first slot is the variable
 		    str.append(" ");
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("A Quantifier requires a variable and a formula arguments",e);
 		}
 	    } else if (slOnto.isModalOp(propositionSymbol)) {
@@ -227,7 +227,7 @@ public class SLCodec extends StringCodec {
 		    str.append(toString((AbsConcept)val.getAbsObject(slotNames[0])));
 		    str.append(" ");
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("A ModalOp requires a concept and a formula arguments",e);
 		}
 	    } else if (slOnto.isActionOp(propositionSymbol)) {
@@ -240,7 +240,7 @@ public class SLCodec extends StringCodec {
 			str.append(" ");
 			str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
 		    }
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("An ActionOp requires an actionexpression and (optionally) a formula arguments",e);
 		}
 	    } else if (slOnto.isBinaryTermOp(propositionSymbol)) {
@@ -251,21 +251,15 @@ public class SLCodec extends StringCodec {
 		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[0])));
 		    str.append(" ");
 		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[1])));
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 		    throw new CodecException("A BinaryTermOp requires 2 term arguments",e);
 		}
 	    } else {
 		str.append(encode(propositionSymbol));
 	    	// Predicate in the ontology
 		try {
-				for (int i=0; i<slotNames.length; i++) {
-			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
-			if (t != null) {
-				str.append(" ");
-				str.append(toString(t));
-			}
-		    }
-		} catch (Exception e) {
+			encodeSlotsByOrder(val, slotNames, str);
+		} catch (RuntimeException e) {
 		    throw new CodecException("SL allows predicates with term arguments only",e);
 		}
 	    }
@@ -288,38 +282,50 @@ public class SLCodec extends StringCodec {
 	    return "?"+encode(var.substring(1));
     }
 
-
+		private boolean encodeByOrder = false;
+    
     private String toString(AbsConcept val) throws CodecException {
 	String functionSymbol = val.getTypeName();
 	StringBuffer str = new StringBuffer("(");
 	String[] slotNames = getSlotNames(val);
-	if (slOnto.isSLFunctionWithoutSlotNames(functionSymbol)) { //functionSymbol Term*
-	    str.append(functionSymbol);
+	if (slOnto.isSLFunctionWithoutSlotNames(functionSymbol)) { 
+			// A Functional operator of the SL language (ACTION, + ...)
+			// The form is: functionSymbol Term*
+			str.append(functionSymbol);
 	    try {
-		for (int i=0; i<slotNames.length; i++) {
-			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
-			if (t != null) {
-				str.append(" ");
-				str.append(toString(t));
-			}
-		}
-	    } catch (Exception e) {
+	    	// The ACTION operator requires a particular encoding as the term that
+	    	// indicates the actual action to be performed should be encoded by order
+	    	if (functionSymbol.equals(SL0Vocabulary.ACTION)) {
+	    		// actor
+		    	str.append(" ");
+		    	str.append(toString((AbsConcept)val.getAbsObject(slotNames[0])));
+		    	// action
+		    	str.append(" ");
+		    	encodeByOrder = true; 
+		    	str.append(toString((AbsTerm)val.getAbsObject(slotNames[1])));
+	    	}
+	    	else {	
+	    		encodeSlotsByOrder(val, slotNames, str);
+	    	}
+	    } catch (RuntimeException e) {
 		throw new CodecException("A FunctionalOperator requires 1 or 2 Term arguments",e);
 	    }
-	} else { //functionSymbol Parameter*
+	} else if (encodeByOrder) {
+			// A term in the ontology used to indicate an action within the ACTION 
+			// operator. The form is: functionSymbol Term*
+			encodeByOrder = false;
 	    str.append(encode(functionSymbol));
 	    try {
-		if (slotNames != null) 
-		    for (int i=0; i<slotNames.length; i++) {
-			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
-			if (t != null) {
-				str.append(" :");
-				str.append(encode(slotNames[i]));
-				str.append(" ");
-				str.append(toString(t));
-			}
-		    }
-	    } catch (Exception e) {
+	    	encodeSlotsByOrder(val, slotNames, str);
+	    } catch (RuntimeException e) {
+		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
+	    }
+	} else { 
+			// A generic term in the ontology. The form is: functionSymbol Parameter*
+	    str.append(encode(functionSymbol));
+	    try {
+	    	encodeSlotsByName(val, slotNames, str);
+	    } catch (RuntimeException e) {
 		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
 	    }
 	}
@@ -466,5 +472,44 @@ public class SLCodec extends StringCodec {
 			return slotNames;
 		}
     
+    /**
+     * Encode the slots of an abstract descriptor by order, i.e. 
+     * without writing the slot names. Also take into account that, in
+     * order to ensure a correct parsing, empty slots can only occur at 
+     * the end.
+     */
+    private void encodeSlotsByOrder(AbsObject val, String[] slotNames, StringBuffer str) throws CodecException {
+			boolean lastSlotEmpty = false;
+			for (int i=0; i<slotNames.length; i++) {
+				AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
+				if (t != null) {
+					if (lastSlotEmpty) {
+						throw new CodecException("Non-empty slot "+slotNames[i]+" follows empty slot "+slotNames[i-1]);
+					}
+					str.append(" ");
+					str.append(toString(t));
+				}
+				else {
+					lastSlotEmpty = true;
+				}
+		  }
+    }
+    
+    /**
+     * Encode the slots of an abstract descriptor by name, i.e. 
+     * writing for each non-empty slot the slot name followed by the
+     * slot value.
+     */
+    private void encodeSlotsByName(AbsObject val, String[] slotNames, StringBuffer str) throws CodecException {
+		  for (int i=0; i<slotNames.length; i++) {
+				AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
+				if (t != null) {
+					str.append(" :");
+					str.append(encode(slotNames[i]));
+					str.append(" ");
+					str.append(toString(t));
+				}
+		  }
+    }
 }
 
