@@ -56,6 +56,7 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
@@ -102,6 +103,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private static final String[] OWNED_COMMANDS = new String[] {
 	MessagingSlice.SEND_MESSAGE,
+	MessagingSlice.NOTIFY_FAILURE,
 	MessagingSlice.INSTALL_MTP,
 	MessagingSlice.UNINSTALL_MTP,
 	MessagingSlice.NEW_MTP,
@@ -180,7 +182,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
 		    handleSendMessage(cmd);
 		}
-		if(name.equals(MessagingSlice.INSTALL_MTP)) {
+		else if(name.equals(MessagingSlice.NOTIFY_FAILURE)) {
+		    handleNotifyFailure(cmd);
+		}
+		else if(name.equals(MessagingSlice.INSTALL_MTP)) {
 		    Object result = handleInstallMTP(cmd);
 		    cmd.setReturnValue(result);
 		}
@@ -216,7 +221,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	// Vertical command handler methods
 
-	public void handleSendMessage(VerticalCommand cmd) throws AuthException {
+	private void handleSendMessage(VerticalCommand cmd) throws AuthException {
 	    Object[] params = cmd.getParams();
 	    ACLMessage msg = (ACLMessage)params[0];
 	    AID sender = (AID)params[1];
@@ -270,6 +275,54 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	    if(lastException != null)
 		throw lastException;
+	}
+
+	private void handleNotifyFailure(VerticalCommand cmd) throws AuthException {
+
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID receiver = (AID)params[1];
+	    InternalError ie = (InternalError)params[2];	    
+
+	    // If (the sender is not the AMS and the performative is not FAILURE)
+	    if((msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinite loops
+		return;
+
+	    // Send back a failure message
+	    final ACLMessage failure = msg.createReply();
+	    failure.setPerformative(ACLMessage.FAILURE);
+	    //System.err.println(failure.toString());
+	    final AID theAMS = myContainer.getAMS();
+	    failure.setSender(theAMS);
+	    failure.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+
+	    // FIXME: the content is not completely correct, but that should
+	    // also avoid creating wrong content
+	    String content = "( (action " + msg.getSender().toString();
+	    content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
+	    failure.setContent(content);
+
+	    try {
+		Authority authority = myContainer.getAuthority();
+		authority.doPrivileged(new PrivilegedExceptionAction() {
+			public Object run() {
+			    try {
+				GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+				cmd.addParam(failure);
+				cmd.addParam(theAMS);
+				submit(cmd);
+			    }
+			    catch(ServiceException se) {
+				// It should never happen
+				se.printStackTrace();
+			    }
+			    return null; // nothing to return
+			}
+		    });
+	    } catch(Exception e) {
+		// should be never thrown
+		e.printStackTrace();
+	    }
 	}
 
 	private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
@@ -1064,75 +1117,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
      * the Message Transport Service.
      */
     public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force) {
-
-	// If (the sender is not the AMS and the performative is not FAILURE)
-	if ( (msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinite loops
-	    return;
-
-
-	if(!force) {
-
-	    // Leverage the Persistent Delivery Service if it is installed
-	    try {
-		persistentDeliveryService = myContainer.getServiceFinder().findService(PersistentDeliverySlice.NAME);
-		if(persistentDeliveryService != null) {
-
-		    // Create a suitable command and, if the undelivered message is stored, return
-		    GenericCommand cmd = new GenericCommand(PersistentDeliverySlice.STORE_UNDELIVERED_MESSAGE, PersistentDeliverySlice.NAME, null);
-		    cmd.addParam(msg);
-		    cmd.addParam(receiver);
-
-		    Boolean stored = (Boolean)persistentDeliveryService.submit(cmd);
-		    if(stored.equals(Boolean.TRUE)) {
-			return;
-		    }
-		}
-	    }
-	    catch(Exception e) {
-		e.printStackTrace();
-	    }
-	}
-
-	// Send back a failure message
-	final ACLMessage failure = msg.createReply();
-	failure.setPerformative(ACLMessage.FAILURE);
-	//System.err.println(failure.toString());
-	final AID theAMS = myContainer.getAMS();
-	failure.setSender(theAMS);
-
-	// FIXME: the content is not completely correct, but that should
-	// also avoid creating wrong content
-	String content = "( (action " + msg.getSender().toString();
-	content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
-	failure.setContent(content);
+	GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
+	cmd.addParam(msg);
+	cmd.addParam(receiver);
+	cmd.addParam(ie);
 
 	try {
-	    Authority authority = myContainer.getAuthority();
-	    authority.doPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() {
-			try {
-			    // FIXME: Having a custom code path to send failure notifications would be better...
-			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-			    cmd.addParam(failure);
-			    cmd.addParam(theAMS);
-			    senderSink.handleSendMessage(cmd);
-			} catch (AuthException ae) {
-			    // it does not have permission to notify the failure 
-			    // it never happens if the policy file gives 
-			    // enough permission to the jade.jar 
-			    System.out.println( ae.getMessage() );
-			}
-			return null; // nothing to return
-		    }
-		});
-	} catch(Exception e) {
-	    // should be never thrown
-	    e.printStackTrace();
+	    submit(cmd);
+	}
+	catch(ServiceException se) {
+	    // It should never happen
+	    se.printStackTrace();
 	}
     }
-
-
-
 
 
     public void prepareEnvelope(ACLMessage msg, AID receiver) {
