@@ -17,6 +17,7 @@ SL0SPEC     =   jade/lang/sl/SL0Parser.jj
 EXECS       = 	jade/Boot.java jade/core/Runtime.java
 IDLSPEC     =   fipa.idl
 ROOTCLASSES =	jade/core/FullAcc.java \
+		jade/core/RealMobilityManager.java \
 		jade/core/behaviours/CompositeBehaviour.java \
 		jade/core/behaviours/NonDeterministicBehaviour.java \
 		jade/core/behaviours/SequentialBehaviour.java \
