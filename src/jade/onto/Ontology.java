@@ -30,7 +30,7 @@ import java.util.List;
 	In the adopted approach, a generic item included in an ontology is called 
 	a <b>role</b>. For instance the concepts <i>Company<i> and <i>Person</i>, the 
 	predicate <i>WorfsFor</i> and	the action <i>Engage</i> can be <b>roles</b> 
-	in an ontology dealing with employes.<br>
+	in an ontology dealing with employees.<br>
   Each ontological role is characterised by a <b>name</b> and a structure
 	defined in terms of a number of <b>slots</b>. For instance the <i>Person</i> role
 	will have the name "person" and some slots describing the person's first name, 
@@ -273,7 +273,7 @@ public interface Ontology {
     </ul>
   */
   void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException;
-
+  
   /**
     Adds a new role to the ontology, defined by the structure
     of all its slots.
@@ -293,6 +293,13 @@ public interface Ontology {
     is being added.
  */
   void addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref) throws OntologyException;
+
+  /**
+    Adds to this ontology all roles included into another ontology 
+    @param o The <code>Ontology</code> object whose roles will 
+    be added
+  */
+  void joinOntology(Ontology o) throws OntologyException;
 
   /**
      Creates a Java object representing an instance of a given role, getting the
@@ -372,4 +379,22 @@ public interface Ontology {
     @throws OntologyException if no role is found for this class
   */
   String getRoleName(Class c) throws OntologyException; 
+  
+  /**
+  	@return a <code>List</code> including the names of all the roles
+  	in the ontology, i.e. the Vocabulary used by the ontology
+  */
+  List getVocabulary();
+  
+  /** 
+  	Returns the factory for instances of the user defined class
+  	representing a given role
+  	@param roleName The name of the ontological role.
+  	@return the factory for instances of the user defined class
+  	representing a given role
+    @throws OntologyException if no role is found with the specified name
+    or if a factory is not registered for the role
+  */
+  RoleEntityFactory getFactory(String roleName) throws OntologyException; 
+  
 }

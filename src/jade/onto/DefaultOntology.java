@@ -66,7 +66,11 @@ public final class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots)
   */
   public void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException {
-
+		// Checks whether a role with this name already exists in the ontology
+  	if (schemas.containsKey(new Name(roleName)))
+			throw new OntologyException("A role with name \""+roleName+"\" already exists in the ontology");
+  	
+		// Adds the new role
     FrameSchema fs = new FrameSchema(this, roleName);
 
     for(int i = 0; i < slots.length; i++) {
@@ -79,20 +83,68 @@ public final class DefaultOntology implements Ontology {
     addSchemaToTable(roleName, fs);
 
   }
-
+  
   /**
     Adds a new role to this ontology, with a user defined Java class to
     represent it.
     @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref)
   */  
   public void addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref) throws OntologyException {
-    addRole(roleName, slots);
+    // Checks whether the user defined class representing the role already represents another role in the ontology
+    Class newClass = ref.getClassForRole();
+    Iterator i = factories.values().iterator();
+  	while (i.hasNext()){
+  		RoleEntityFactory fac = (RoleEntityFactory) i.next();
+  		Class c = fac.getClassForRole();
+  		if (newClass.equals(c))
+				throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in the ontology");
+  	}
+  	
+  	// Adds the role to the ontology
+  	addRole(roleName, slots);
 
-    Class c = ref.getClassForRole();
-    checkClass(roleName, c);
+  	// Registers the factory of objects of the user defined class representing the role
+    checkClass(roleName, newClass);
     addFactoryToTable(roleName, ref);
   }
 
+  /**
+    Adds to this ontology all roles included into another ontology 
+    @param o The <code>Ontology</code> object whose roles will 
+    be added
+  */
+  public void joinOntology(Ontology o) throws OntologyException
+  {
+  	// Gets the names of all roles in the ontology to join
+  	List roleNames = o.getVocabulary();
+	  Iterator i = roleNames.iterator();
+	  
+	  // For each role try to add it to the current ontology
+	  while (i.hasNext()){
+	  	String name = (String) (i.next());
+	  	// DEBUG: System.out.println("Try to add role \""+name+"\"");
+			SlotDescriptor[] slots = o.getSlots(name);
+			RoleEntityFactory fac = null;
+			boolean hasFactoryFlag;
+			try{
+				fac = o.getFactory(name);
+				// If no exception has been thrown --> the role has a factory associated to it
+				hasFactoryFlag = true; 
+			}
+			catch (OntologyException oe){
+				// If an exception has been thrown --> the role does not have a factory associated to it
+				hasFactoryFlag = false; 
+			}
+			try{
+			if (hasFactoryFlag)
+				addRole(name, slots, fac);
+			else
+				addRole(name, slots);
+			}
+			catch (OntologyException oe){oe.printStackTrace();}
+	  }		
+  }
+  	
 
   /**
     Creates a List of Java objects from the given list of frame.
@@ -241,6 +293,41 @@ public final class DefaultOntology implements Ontology {
   	}
   	throw new OntologyException("No rolename registered in the ontology for class "+c.getName());
 	}
+  
+	/** 
+  	@return a <code>List</code> including the names of all the roles
+  	in the ontology, i.e. the Vocabulary used by the ontology
+    @see jade.onto.Ontology#getVocabulary()
+  */
+  public List getVocabulary(){
+  	// The Vocabulary is the list of the names of the roles in the ontology;
+  	// role names are stored as Name while we want to return them as String
+  	List vocabulary = new ArrayList();
+  	Iterator i = schemas.keySet().iterator();
+  	while (i.hasNext()){
+  		String roleNameAsString = ((Name) (i.next())).toString();
+  		vocabulary.add(roleNameAsString);
+  	}
+  	return vocabulary;	
+  }
+  
+  /** 
+  	Returns the factory for instances of the user defined class
+  	representing a given role
+  	@param roleName The name of the ontological role.
+  	@return the factory for instances of the user defined class
+  	representing a given role
+    @throws OntologyException if no role is found with the specified name
+    or if a factory is not registered for the role
+    @see jade.onto.Ontology#getFactory(String roleName)
+  */
+  public RoleEntityFactory getFactory(String roleName) throws OntologyException{
+    if (!factories.containsKey(new Name(roleName)))
+ 			throw new OntologyException("No role with name \""+roleName+"\" has a factory registered");
+
+ 		return (RoleEntityFactory) factories.get(new Name(roleName));
+  }
+  
 
 
   // Private methods.
