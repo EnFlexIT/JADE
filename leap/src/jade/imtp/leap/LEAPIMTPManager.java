@@ -527,11 +527,12 @@ public class LEAPIMTPManager implements IMTPManager {
 	  };
 
 	  // Add all the additional addresses to the Service Manager Proxy...
+	  String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
 	  List smAddrs = theProfile.getSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES);
 	  Iterator smIt = smAddrs.iterator();
 	  while(smIt.hasNext()) {
 	      Specifier spec = (Specifier)smIt.next();
-	      String smAddr = "jicp://" + spec.toString();
+	      String smAddr = mainProto+"://" + spec.toString();
 	      myServiceManagerProxy.addAddress(smAddr);
 	  }
 
