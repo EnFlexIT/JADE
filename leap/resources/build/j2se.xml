@@ -7,6 +7,8 @@
 	<property name="lib" value="${j2se-root}/lib"/>
 	<property name="doc" value="${j2se-root}/doc"/>
 	<property name="j2se-title" value="${title} v${version} for J2SE"/>
+	<property name="apidoc-title" value="JADE v${version} API"/>
+	<property name="apidoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://jade.cselt.it&quot; target=top>JADE&lt;/a>&lt;/i>&lt;/center>"/>
 
         <!--Filtered src directory property--> 
         <property name="filtered.src" location="${j2se-root}/filtered/src"/>
@@ -168,10 +170,10 @@
             <javadoc sourcepath="${filtered.src}"
                      destdir="${doc}"
                      classpath="${classes}"
-                     doctitle="&lt;h1>${j2se-title}&lt;/h1>"
-                     bottom="${javadoc-footer}"
+                     doctitle="&lt;h1>${apidoc-title}&lt;/h1>"
+                     bottom="${apidoc-footer}"
                      verbose="false"
-                     windowtitle="${j2se-title}"
+                     windowtitle="${apidoc-title}"
                      packagenames="jade.*"
                      excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.introspection, jade.domain.KBManagement, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
                      <!--
