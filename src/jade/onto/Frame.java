@@ -94,24 +94,5 @@ public class Frame {
     return slotsByPosition.iterator();
   }
 
-  public void dump() {
-    System.out.println("Frame: " + myName);
-    Iterator i = slotsByName.entrySet().iterator();
-    while(i.hasNext()) {
-      Map.Entry e = (Map.Entry)i.next();
-      Name name = (Name)e.getKey();
-      Object slot = e.getValue();
-      System.out.print("( " + name + " ");
-      if(slot instanceof Frame) {
-	Frame f = (Frame)slot;
-	f.dump();
-      }
-      else
-	System.out.print(slot.toString());
-
-      System.out.println(" )");
-    }
-  }
-
 }
 
