@@ -131,6 +131,8 @@ public interface GUI2DFCommunicatorInterface {
 
   public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF();
   
-  
-	
+  /*
+  * This method refresh the GUI for the applet
+  */
+  public void postRefreshAppletGuiEvent(Object source);	
 }
