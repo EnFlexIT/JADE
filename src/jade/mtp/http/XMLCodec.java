@@ -36,6 +36,7 @@ Boston, MA  02111-1307, USA.
  * @author MARISM-A Development group ( marisma-info@ccd.uab.es )
  * @version 0.1
  * @author Nicolas Lhuillier
+ * @author Joan Ametller
  * @version 1.0
  */
 
@@ -57,6 +58,7 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.core.AID;
 import jade.util.Logger;
 
+import starlight.util.Base64;
 
 public class XMLCodec extends DefaultHandler {
     
@@ -88,6 +90,10 @@ public class XMLCodec extends DefaultHandler {
   public final static String RECEIVED_ATTR = "value";
   public final static String PROP_TAG = "user-defined";
   public final static String PROP_ATTR = "href";
+  public final static String PROP_ATTR_TYPE = "type";
+  public final static String PROP_STRING_TYPE ="string";
+  public final static String PROP_BYTE_TYPE="byte-array";
+  public final static String PROP_SER_TYPE="serialized";
   public final static String OT = "<";
   public final static String ET = "</";
   public final static String CT = ">";
@@ -99,7 +105,8 @@ public class XMLCodec extends DefaultHandler {
   private AID            aid = null;
   private Property       prop = null;
   // Accumulate parsed text
-  private StringBuffer   accumulator;  
+  private StringBuffer   accumulator;
+  private String         propType;  
   //logging
   private static Logger logger = Logger.getMyLogger(XMLCodec.class.getName());
 
@@ -154,28 +161,62 @@ public class XMLCodec extends DefaultHandler {
   
   /** 
    * A user-defined property (String name, Object value) is encoded the following way:
-   * <user-defined href="name">value</user-defined>
-   * FIXME: How should we encode the object?
+   * <user-defined href="name" type="type">value</user-defined>
+   * 
    */
   private static void encodeProp(StringBuffer sb, Property p) {
     String v = null;
     Object o = p.getValue();
+    String type = PROP_STRING_TYPE;
     if (o instanceof String) {
       v = (String)o;
     }
     else if (o instanceof byte[]) {
-      v = new String((byte[])o);
+      type = PROP_BYTE_TYPE;
+      v = new String(Base64.encode((byte[])o));
     }
     else if (o instanceof Serializable) {
-      // TODO serialize this object
+      type = PROP_SER_TYPE;
+      try{
+	  ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	  ObjectOutputStream oos = new ObjectOutputStream(bos);
+	  oos.writeObject(o);
+	  oos.close();
+	  byte[] bytes = bos.toByteArray();
+	  if(bytes != null)
+	      v = new String(Base64.encode(bytes));
+      }catch(IOException ioe){
+	  return;
+      }
     }
     else {
       return;
     }
     sb.append(OT).append(PROP_TAG).append(" ");
-    sb.append(PROP_ATTR).append("=\"").append(p.getName()).append("\"").append(CT);
+    sb.append(PROP_ATTR).append("=\"").append(p.getName()).append("\" ");
+    sb.append(PROP_ATTR_TYPE).append("=\"").append(type).append("\"");
+    sb.append(CT);
     sb.append(v);
     sb.append(ET).append(PROP_TAG).append(CT);
+  }
+
+  private void decodeProp(StringBuffer acc, Property p) {
+    if(propType.equals(PROP_SER_TYPE)){
+      try{
+        char[] serdata = acc.toString().toCharArray();
+        ObjectInputStream ois = new ObjectInputStream( 
+          new ByteArrayInputStream(Base64.decode(serdata)));
+        p.setValue(ois.readObject());
+      }catch(Exception e){
+	  // nothing, we leave value of this property as null;
+      }
+    }else if(propType.equals(PROP_BYTE_TYPE)){
+      char[] bytes = acc.toString().toCharArray();
+      p.setValue(Base64.decode(bytes));
+    }else{
+      p.setValue(acc.toString());
+    }
+    propType = null;
   }
 
   private static void encodeOneLineTag(StringBuffer sb, String tag1, String tag2, String value) {
@@ -347,6 +388,7 @@ public class XMLCodec extends DefaultHandler {
       prop = new Property();
       env.addProperties(prop); 
       prop.setName(attributes.getValue(PROP_ATTR));
+      propType = attributes.getValue(PROP_ATTR_TYPE);
     }
   }
   
@@ -377,7 +419,8 @@ public class XMLCodec extends DefaultHandler {
       env.setDate(new BasicFipaDateTime(accumulator.toString()).getTime());
     }
     else if (PROP_TAG.equalsIgnoreCase(localName)) {
-      prop.setValue(accumulator.toString());
+      decodeProp(accumulator, prop);
+      //prop.setValue(accumulator.toString());
     }
     /* 
        // Not sure it is still in FIPA
