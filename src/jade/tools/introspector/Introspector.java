@@ -116,17 +116,8 @@ public class Introspector extends ToolAgent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-  public void toolSetup() {
-
-    ACLMessage msg = getRequest();
-    msg.setOntology(JADEAgentManagementOntology.NAME);
-
-    // Send 'subscribe' message to the AMS
-    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
-
-    // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
-
+  class IntrospectorAMSListenerBehaviour extends AMSListenerBehaviour {
+  	
       protected void installHandlers(Map handlersTable) {
 
 	handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
@@ -193,9 +184,19 @@ public class Introspector extends ToolAgent {
         });
 
       } // End of installHandlers() method
+  }
 
-    });
+  public void toolSetup() {
 
+    ACLMessage msg = getRequest();
+    msg.setOntology(JADEAgentManagementOntology.NAME);
+
+    // Send 'subscribe' message to the AMS
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
+
+    // Handle incoming 'inform' messages
+    AMSSubscribe.addSubBehaviour(new IntrospectorAMSListenerBehaviour());
+    
     // Schedule Behaviour for execution
     addBehaviour(AMSSubscribe);
     addBehaviour(new IntrospectionListenerBehaviour());
@@ -203,6 +204,7 @@ public class Introspector extends ToolAgent {
     // Show Graphical User Interface
     myGUI = new IntrospectorGUI(this);
     myGUI.setVisible(true);
+
   }
 
   /*
