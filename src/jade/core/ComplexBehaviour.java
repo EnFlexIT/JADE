@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1998/10/31 12:58:56  rimassa
+  Made 'protected' the former 'private' inner class BehaviourList.
+
   Revision 1.8  1998/10/30 18:22:36  rimassa
   Added an implementation of 'reset()' method: a ComplexBehaviour can
   reset itself by changing some state variables, by moving at the
@@ -34,7 +37,7 @@ import java.util.Stack;
 public abstract class ComplexBehaviour extends Behaviour {
 
   // Inner class to implement a singly linked list of behaviours
-  private class BehaviourList {
+  protected class BehaviourList {
 
     private class Node {
       public Behaviour item;
