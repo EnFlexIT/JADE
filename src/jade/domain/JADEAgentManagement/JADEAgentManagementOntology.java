@@ -66,6 +66,8 @@ public class JADEAgentManagementOntology {
   public static final String AGENTBORN = "agent-born";
   public static final String AGENTDEAD = "agent-dead";
   public static final String AGENTMOVED = "agent-moved";
+  public static final String NEWMTP = "new-mtp";
+  public static final String DEADMTP = "dead-mtp";
   
   // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
@@ -181,7 +183,17 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("from", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("to", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, AgentMoved.class); 
+	}, AgentMoved.class);
+
+	theInstance.addRole(NEWMTP, new SlotDescriptor[] {
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("where", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, NewMTP.class);
+
+	theInstance.addRole(DEADMTP, new SlotDescriptor[] {
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("where", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, DeadMTP.class);
 
     }
     catch(OntologyException oe) {
