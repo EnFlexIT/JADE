@@ -102,6 +102,24 @@ public abstract class Profile {
   public static final String AGENTS = "agents";
 
   /**
+     This constants is the name of the property whose value contains
+     the list of kernel-level services that have to be launched at
+     bootstrap time
+  */
+  public static final String SERVICES = "services";
+
+  // On J2SE and pJava, install mobility and notification services by default
+  //#MIDP_EXCLUDE_BEGIN
+  public static final String DEFAULT_SERVICES = "jade.core.mobility.AgentMobilityService;jade.core.event.NotificationService";
+  //#MIDP_EXCLUDE_END
+
+  // On MIDP, no additional services are installed by default
+  /*#MIDP_INCLUDE_BEGIN
+  public static final String DEFAULT_SERVICES = "";
+  #MIDP_INCLUDE_END*/
+
+
+  /**
      This constant is the name of the property whose value contains the
      list of addresses through which the platform <i>Service
      Manager</i> can be reached.
