@@ -43,7 +43,6 @@ import java.util.Enumeration;
 */
 
 class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
-	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.BIFEDispatcher";
 	
 	// The table of local agents
@@ -94,13 +93,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			
 		// Connect to the BackEnd
 		try {
-			String connMgrClass = configProperties.getProperty(CONN_MGR_CLASS_KEY);
+			String connMgrClass = configProperties.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY);
 			if (connMgrClass == null) {
 				connMgrClass = CONN_MGR_CLASS_DEFAULT;
 			}
 			
 			myConnectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
+			System.out.println(configProperties.getProperty("local-hosy")+"  "+configProperties.getProperty("mediator-id"));
 		}
 		catch (IMTPException imtpe) {
 		  Logger.println("IMTP error "+imtpe);

@@ -39,20 +39,33 @@ import jade.util.Logger;
 */
 public class MicroRuntime {
 
-        /**
-	   String constant to represent the agent list key in the
-	   configuration properties used when starting JADE Front End.
-	*/
+  /**
+	   The configuration property key that maps to the list of agents 
+	   that have to be activated at boostrap.
+	 */
 	public static final String AGENTS_KEY = "agents";
 
+  /**
+	   The configuration property key that maps to the host where to connect to
+	   the JADE mediator.
+	 */
+	public static final String HOST_KEY = "host";	
+	
+  /**
+	   The configuration property key that maps to the port where to connect to
+	   the JADE mediator.
+	 */
+	public static final String PORT_KEY = "port";	
+	
+  //#APIDOC_EXCLUDE_BEGIN
+	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 
-        //#APIDOC_EXCLUDE_BEGIN
 	public static final String JVM_KEY = "jvm";
 
 	public static final String J2SE = "j2se";
 	public static final String PJAVA = "pjava";
 	public static final String MIDP = "midp";
-        //#APIDOC_EXCLUDE_END
+  //#APIDOC_EXCLUDE_END
 
 	private static Runnable terminator;
 	private static FrontEnd myFrontEnd;
