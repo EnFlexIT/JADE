@@ -9,10 +9,11 @@
   <property environment="env"/>
   <path id="project.class.path">
     <!--pathelement path="${env.CLASSPATH}"/-->
+    <pathelement location="add-ons/leap/j2se/classes"/>
+    <pathelement location="classes"/>
     <fileset dir="lib">
         <include name="*.jar"/>
     </fileset>
-    <pathelement location="classes"/>
   </path>
 
 
@@ -98,9 +99,16 @@
   	  <classpath refid="project.class.path"/>
     </javac> 
   	<delete file="src/test/separate.jar" quiet="true"/>
+  	<delete file="src/test/separate-behaviours.jar" quiet="true"/>
 		<jar jarfile="src/test/separate.jar">
 			<fileset dir="classes">
   			<include name="**/test/mobility/separate/**"/>
+  			<exclude name="**/test/mobility/separate/behaviours/**"/>
+			</fileset>
+		</jar>
+		<jar jarfile="src/test/separate-behaviours.jar">
+			<fileset dir="classes">
+  			<include name="**/test/mobility/separate/behaviours/**"/>
 			</fileset>
 		</jar>
 		
