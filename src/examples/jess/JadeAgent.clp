@@ -32,8 +32,9 @@
 ;              (slot communicative-act) (slot sender) (multislot receiver) 
 ;              (slot reply-with) (slot in-reply-to) (slot envelope) 
 ;              (slot conversation-id) (slot protocol) 
-;              (slot language) (slot ontology) (slot content) )
-; refer to Fipa97 Part 2 (www.cselt.it/fipa) for the description of the 
+;              (slot language) (slot ontology) (slot content) 
+;              (slot encoding) (multislot reply-to) (slot reply-by))
+; refer to Fipa2000 (www.fipa.org) for the description of the 
 ; ACLMessage parameters.
 ;
 ; Remind that Jade has also asserted for you the fact 

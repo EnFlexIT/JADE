@@ -34,7 +34,7 @@ Javadoc documentation for the file
 
 /**
  * This is a simple sample JADE Agent that embeds a Jess engine.
- * It instantiates and adds only one behaviour. This behaviour is JessBehaviour
+ * It instantiates and adds only one behaviour. This behaviour is BasicJessBehaviour
  * that only asserts messages when they arrive and use Jess as a reasoning tool
  * This agent executes the Jess code in the file examples/jess/JadeAgent.clp
  */
@@ -47,7 +47,7 @@ public class JessAgent extends Agent {
     // add the behaviour
     // 1 is the number of steps that must be executed at each run of
     // the Jess engine before giving back the control to the Java code
-    addBehaviour(new JessBehaviour(this,"examples/jess/JadeAgent.clp",1)); 
+    addBehaviour(new BasicJessBehaviour(this,"examples/jess/JadeAgent.clp",1)); 
   }
 }
 
