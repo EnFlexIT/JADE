@@ -1764,8 +1764,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	      }
 	  }
 	  break;
+	  
 	  // Now give CPU control to other agents
-	  Thread.yield();
+	  // !!!MICHELE: I've got a cvs conflict here
+	  // Thread.yield();
 	}
       }
       catch(AgentInMotionError aime) {
