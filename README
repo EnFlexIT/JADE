@@ -109,6 +109,35 @@ each example program behaviour:
 NEW FEATURES
 ============
 
+Version 0.99b2:
+
+ - Moved all behaviours in a separate package. Now they are in
+   jade.core.behaviours package. User application must be updated to
+   either 'import jade.core.behaviours.*' or the individual behaviours
+   they use.
+
+ - Moved RMA agent in a different package; now the Remote Management
+   Agent has class named jade.tools.rma.rma . It can still be started
+   with '-gui' command line option.
+
+ - Multiple RMAs can be started on the same platform; they can be
+   given any name and still perform their functions.
+
+ - When requesting AMS actions via an RMA, if a 'refuse' or a
+   'failure' message is received, a suitable error dialog pops out,
+   allowing to view the ACL message.
+
+ - Fixed a bug in RMA graphical user interface, which sometimes caused
+   a deadlock on platform startup.
+
+ - When an ACL message has an empty ':sender' slot, JADE puts the
+   sender agent name in it automatically.
+
+ - Added a new tool agent: jade.tools.DummyAgent.DummyAgent, allowing
+   ACL messages manipulations through a GUI. This agent can be either
+   started from an RMA or directly, since is an ordinary agent.
+
+
 Version 0.99b1:
 
  - Javadoc-generated HTML documentation for all JADE public classes.
@@ -117,7 +146,7 @@ Version 0.99b1:
    jade.proto.FipaRequestInitiatorBehaviour and a new
    FipaRequestResponderBehaviour has been added in jade.proto package.
 
- - ACL messages now can have many agent names in :receiver slot. This
+ - ACL messages now can have many agent names in ':receiver' slot. This
    required making some changes to ACLMessage interface. Please see
    HTML documentation for ACLMessage class.
 
@@ -132,24 +161,34 @@ Version 0.99b1:
 BUGS
 ====
 
-  1) During startup with both '-platform' and '-gui' options, sometimes
-     a deadlock occurs and neither the DF GUI nor the RMA GUI appear.
-     This bug will be elimintated in a future release by making the DF
-     GUI a part of RMA GUI, so that will be only one main window on startup.
-
-  2) During shutdown, sometimes an InterruptedException stack trace is dumped
-     standard error. This is a problem with AWT internals; in fact the generated
-     exception is correctly handled by AWT code and no bad consequences arise for
-     JADE, apart from the stack printout.
-
-  3) When an ACL message has more than one agent in its :receiver
-     field, every agent in the list receives a copy ohf that message,
-     but in the :receiver slot of the copy only that agent name is
+  1) When an ACL message has more than one agent in its ':receiver'
+     field, every agent in the list receives a copy of that message,
+     but in the ':receiver' slot of the copy only that agent name is
      present, instead of the complete receiver list. This is not
      strictly a bug, but is probably non compliant.
 
-  4) The Programmer's Guide has not been updated since Version
+  2) The Programmer's Guide has not been updated since Version
      0.975. Please refer to HTML documentation for the new features.
+
+  3) On Solaris 7 with Jdk 1.2, the dialog for viewing or editing ACL
+     messages fills the whole screen, even if if would fit in a much
+     smaller fraction of it.
+
+  4) If more than a single instance of an RMA agent is run within the
+     same agent container, incorrect behaviour results. Presently,
+     willing to run multiple RMA agents on the same JADE platform,
+     each one of them must live in a separate agent container.
+
+  5) On Windows 95, sometimes the DummyAgent message list locks up
+     when the first message is sent, the sent message is not shown and
+     the list does not accept selections by the user. To unlock it,
+     just send again the same message; then the previous message is
+     displayed, too, and the list starts its normal operations.
+
+  6) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
+     unavailable" appears during platform shutdown, but then the
+     process completes without any problems.
+
 
 TODO
 ====
