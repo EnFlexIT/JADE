@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/03/10 06:56:20  rimassa
+  Changed superclass name from 'FipaRequestClientBehaviour' to
+  'FipaRequestInitiatorBehaviour'.
+
   Revision 1.3  1999/03/09 13:05:06  rimassa
   A minor change to avoid using deprecated 'ACLMessage.getDest()' calls.
 
@@ -27,7 +31,9 @@ import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-public class SearchDFBehaviour extends FipaRequestClientBehaviour {
+import jade.proto.FipaRequestInitiatorBehaviour;
+
+public class SearchDFBehaviour extends FipaRequestInitiatorBehaviour {
 
   private static final MessageTemplate mt = 
     MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
