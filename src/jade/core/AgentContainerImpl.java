@@ -378,10 +378,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
 	  // Create the agent management service
-	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService(this, myServiceFinder);
+	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService(this, myProfile);
 
 	  // Create the messaging service
-	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService(this, myServiceFinder, myProfile);
+	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService(this, myProfile);
 
 
 	  NodeDescriptor localDesc = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
@@ -400,7 +400,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  if(enableMobility) {
 
 	      // Separately create and activate the (optional) mobility service
-	      jade.core.mobility.AgentMobilityService agMob = new jade.core.mobility.AgentMobilityService(this, myServiceFinder);
+	      jade.core.mobility.AgentMobilityService agMob = new jade.core.mobility.AgentMobilityService(this, myProfile);
 	      myServiceManager.activateService(new ServiceDescriptor(agMob.getName(), agMob));
 	  }
 
