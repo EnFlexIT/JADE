@@ -139,19 +139,10 @@ public class Agent implements Runnable, Serializable {
       return (Behaviour)TtoB.get(t);
     }
 
-  }
-
-  private static TimerDispatcher theDispatcher;
-
-  static void setDispatcher(TimerDispatcher td) {
-    if(theDispatcher == null) {
-      theDispatcher = td;
-      theDispatcher.start();
+    public synchronized Iterator timers() {
+      return TtoB.keySet().iterator();
     }
-  }
 
-  static void stopDispatcher() {
-    theDispatcher.stop();
   }
 
   /**
@@ -371,7 +362,8 @@ public class Agent implements Runnable, Serializable {
   private transient Object suspendLock = new Object(); // Used for agent suspension
 
   private transient Thread myThread;
-  
+  private transient TimerDispatcher theDispatcher;
+
   /**
   @serial
   */
@@ -429,6 +421,8 @@ public class Agent implements Runnable, Serializable {
   public Agent() {
     setState(AP_INITIATED);
     myScheduler = new Scheduler(this);
+    Runtime rt = Runtime.instance();
+    theDispatcher = rt.getTimerDispatcher();
   }
 
   /**
@@ -1225,6 +1219,7 @@ public class Agent implements Runnable, Serializable {
     pendingTimers = new AssociationTB();
     languages = new HashMap();
     ontologies = new HashMap();
+    theDispatcher = Runtime.instance().getTimerDispatcher();
   }
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
@@ -1377,6 +1372,14 @@ public class Agent implements Runnable, Serializable {
     catch(FIPAException fe) {
       fe.printStackTrace();
     }
+
+    // Remove all pending timers
+    Iterator it = pendingTimers.timers();
+    while(it.hasNext()) {
+      Timer t = (Timer)it.next();
+      theDispatcher.remove(t);
+    }
+
     notifyDestruction();
   }
 
