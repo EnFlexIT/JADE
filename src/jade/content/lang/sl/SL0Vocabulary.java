@@ -38,7 +38,7 @@ public interface SL0Vocabulary {
   public static final String         AID_ADDRESSES = "addresses";
   public static final String         AID_RESOLVERS = "resolvers";
 
-  public static final String         ACLMSG = "FIPA-ACL-Message";
+  public static final String         ACLMSG = "fipa-acl-message";
   public static final String         ACLMSG_PERFORMATIVE = "performative";
   public static final String         ACLMSG_SENDER = "sender";
   public static final String         ACLMSG_RECEIVERS = "receivers";

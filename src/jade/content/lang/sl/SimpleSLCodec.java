@@ -161,7 +161,6 @@ class SimpleSLCodec extends StringCodec {
 	    return false; // words must have at least one character
 		}
 		
-		//String illegalFirstChar = new String("#0123456789:-?"); 
 		if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 ) {
 	    return false;
 		}
@@ -183,17 +182,17 @@ class SimpleSLCodec extends StringCodec {
    * @throws CodecException
    */
   public AbsContentElement decode(Ontology ontology, String content) throws CodecException {
-  	Parser p = new Parser(content);
+  	SimpleSLTokenizer p = new SimpleSLTokenizer(content);
   	try {
 	  	p.consumeChar('(');
   		AbsContentElement abs = (AbsContentElement) parse(p, ontology);
-  		if (!p.next().equals(")")) {
+  		if (!p.nextToken().equals(")")) {
   			AbsContentElementList l = new AbsContentElementList();
 	  		l.add(abs);
   			do {
   				AbsContentElement abs1 = (AbsContentElement) parse(p, ontology);
   				l.add(abs1);
-  			} while (!p.next().equals(")"));
+  			} while (!p.nextToken().equals(")"));
   			abs = l;
   		}
   		p.consumeChar(')');
@@ -204,9 +203,9 @@ class SimpleSLCodec extends StringCodec {
   	}
   }
   
-  private AbsObject parse(Parser p, Ontology o) throws CodecException {
+  private AbsObject parse(SimpleSLTokenizer p, Ontology o) throws CodecException {
   	AbsObject abs = null;
-  	if (p.next().startsWith("(")) {
+  	if (p.nextToken().startsWith("(")) {
   		abs = parseComplex(p, o);
   	}
   	else {
@@ -215,19 +214,19 @@ class SimpleSLCodec extends StringCodec {
   	return abs;
   }
 
-  private AbsObject parseComplex(Parser p, Ontology o) throws CodecException {
+  private AbsObject parseComplex(SimpleSLTokenizer p, Ontology o) throws CodecException {
   	AbsObject abs = null;
   	p.consumeChar('(');
-  	String name = p.consumeWord();
-  	//log("Parse complex descriptor: "+name);
-  	//++indent;
+  	String name = p.getElement();
+  	log("Parse complex descriptor: "+name);
+  	++indent;
   	try {
 	  	ObjectSchema s = o.getSchema(name);
   		abs = s.newInstance();
   		if (abs instanceof AbsAggregate) {
   			fillAggregate((AbsAggregate) abs, p, o);
   		}
-  		else if (p.next().startsWith(":")) {
+  		else if (p.nextToken().startsWith(":")) {
   			fillSlotsByName((AbsConcept) abs, p, o);
   		}
   		else {
@@ -240,15 +239,16 @@ class SimpleSLCodec extends StringCodec {
   	catch (Throwable t) {
   		throw new CodecException("Unexpeceted error parsing "+name, t);
   	}
-  	//indent--;
+  	indent--;
   	p.consumeChar(')');
+  	log(abs.toString());
   	return abs;
   }
   		
-  private void fillSlotsByOrder(AbsObject abs, ObjectSchema s, Parser p, Ontology o) throws CodecException {
+  private void fillSlotsByOrder(AbsObject abs, ObjectSchema s, SimpleSLTokenizer p, Ontology o) throws CodecException {
   	String[] slotNames = s.getNames();
   	int i = 0;
-  	while (!p.next().startsWith(")")) {
+  	while (!p.nextToken().startsWith(")")) {
   		AbsObject val = parse(p, o);
   		try {
 	  		AbsHelper.setAttribute(abs, slotNames[i], val);
@@ -260,10 +260,9 @@ class SimpleSLCodec extends StringCodec {
   	}
   }
 
-  private void fillSlotsByName(AbsConcept abs, Parser p, Ontology o) throws CodecException {
-  	while (!p.next().startsWith(")")) {
-  		// No need to check again that the slot name starts with :
-  		String slotName = p.consumeWord().substring(1);
+  private void fillSlotsByName(AbsConcept abs, SimpleSLTokenizer p, Ontology o) throws CodecException {
+  	while (!p.nextToken().startsWith(")")) {
+  		String slotName = p.getElement();
   		try {
 	  		AbsTerm val = (AbsTerm) parse(p, o);
 	  		abs.set(slotName, val);
@@ -274,9 +273,9 @@ class SimpleSLCodec extends StringCodec {
   	}
   }
 
-  private void fillAggregate(AbsAggregate abs, Parser p, Ontology o) throws CodecException {
+  private void fillAggregate(AbsAggregate abs, SimpleSLTokenizer p, Ontology o) throws CodecException {
   	int i = 0;
-  	while (!p.next().startsWith(")")) {
+  	while (!p.nextToken().startsWith(")")) {
   		try {
   			AbsTerm val = (AbsTerm) parse(p, o);
 	  		abs.add(val);
@@ -288,10 +287,9 @@ class SimpleSLCodec extends StringCodec {
   	}
   }
 
-  private AbsObject parseSimple(Parser p) throws CodecException {
-  	String val = p.consumeElement();
-  	//log("Parse simple descriptor: "+val+". Next is "+p.next());
-  	// Integer
+  private AbsObject parseSimple(SimpleSLTokenizer p) throws CodecException {
+  	String val = p.getElement();
+  	log("Parse simple descriptor: "+val+". Next is "+p.nextToken());
   	try {
   		return AbsPrimitive.wrap(Long.parseLong(val));
   	}
@@ -346,7 +344,7 @@ class SimpleSLCodec extends StringCodec {
 
   /**
      Inner class Parser
-   */
+   *
   class Parser {
   	private String content;
   	private int current = 0;
@@ -415,12 +413,13 @@ class SimpleSLCodec extends StringCodec {
   		return (c == ' ' || c == '\t' || c == '\n');
   	}
   }
+  */
   
   private void log(String s) {
-  	/*for (int i = 0; i < indent; ++i) {
+  	for (int i = 0; i < indent; ++i) {
   		System.out.print("  ");
   	}
-  	System.out.println(s);*/
+  	System.out.println(s);
   }
   
   public Ontology getInnerOntology() {
