@@ -140,7 +140,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     waitUntilConnected();
 		log("Peer activation OK ");
 
-    return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);;
+    return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);
   } 
 
   /**
@@ -230,7 +230,12 @@ public class JICPBMPeer extends EndPoint implements ICP {
     }
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request
-    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, String.valueOf(maxDisconnectionTime).getBytes());
+    	StringBuffer sb = new StringBuffer(JICPProtocol.MEDIATOR_CLASS_KEY);
+    	sb.append("=jade.imtp.leap.JICP.Mediator;");
+    	sb.append(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
+    	sb.append('=');
+    	sb.append(maxDisconnectionTime);
+    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, sb.toString().getBytes());
 		}    	
     pkt.writeTo(out);
 
@@ -238,7 +243,8 @@ public class JICPBMPeer extends EndPoint implements ICP {
     pkt = JICPPacket.readFrom(inp);
     if (pkt.getDataType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
-			errorMsg = new String(pkt.getData());
+    	byte[] data = pkt.getData();
+    	errorMsg = (data != null ? new String(data) : null);
     	throw new ICP.ICPException(errorMsg);
     } 
 		if (!mediatorAlive) {

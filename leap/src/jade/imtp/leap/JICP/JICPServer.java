@@ -38,11 +38,14 @@ package jade.imtp.leap.JICP;
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
+import jade.util.leap.Properties;
+
 import java.io.*;
 import java.net.*;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 /**
  * Class declaration
@@ -222,7 +225,7 @@ class JICPServer extends Thread {
           } 
           else {
             // The recipient is one of the mediators
-            Mediator m = (Mediator) mediators.get(recipientID);
+            JICPMediator m = (JICPMediator) mediators.get(recipientID);
             if (m != null) {
               reply = m.handleJICPPacket(request);
             } 
@@ -242,11 +245,11 @@ class JICPServer extends Thread {
         case JICPProtocol.CREATE_MEDIATOR_TYPE:
           // Starts a new Mediator and sends back its ID
           address = socket.getInetAddress().getHostAddress();
-          String s = new String(request.getData());
-          long maxDisconnectionTime = Long.parseLong(s);          
           String   id = String.valueOf(mediatorCnt++);
-          log("Received a CREATE_MEDIATOR request from "+address+". New Mediator ID is "+id+". Max disconnection time is "+maxDisconnectionTime, 1);
-          Mediator m = new Mediator(JICPServer.this, id, maxDisconnectionTime);
+          log("Received a CREATE_MEDIATOR request from "+address+". New Mediator ID is "+id+".", 1);
+          String s = new String(request.getData());
+          Properties p = parseProperties(s);
+          JICPMediator m = startMediator(id, p);
         	m.setConnection(socket);
           mediators.put(id, m);
           reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, id.getBytes());
@@ -259,7 +262,7 @@ class JICPServer extends Thread {
           address = socket.getInetAddress().getHostAddress();
           recipientID = request.getRecipientID();
           log("Received a CONNECT_MEDIATOR request from "+address+". Mediator ID is "+recipientID, 1);
-          m = (Mediator) mediators.get(recipientID);
+          m = (JICPMediator) mediators.get(recipientID);
           if (m != null) {
           	reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null);
           	// Directly send back the response and don't close the socket,
@@ -323,6 +326,31 @@ class JICPServer extends Thread {
 
   }
 
+  private Properties parseProperties(String s) throws ICP.ICPException {
+  	StringTokenizer st = new StringTokenizer(s, "=;");
+  	Properties p = new Properties();
+  	while (st.hasMoreTokens()) {
+  		String key = st.nextToken();
+  		if (!st.hasMoreTokens()) {
+  			throw new ICP.ICPException("Wrong initialization properties format.");
+  		}
+  		p.setProperty(key, st.nextToken());
+  	}
+  	return p;
+  }
+  
+  private JICPMediator startMediator(String id, Properties p) throws Exception {
+		String className = p.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
+		if (className != null) {
+  		JICPMediator m = (JICPMediator) Class.forName(className).newInstance();
+  		m.init(this, id, p);
+  		return m;
+		}
+		else {
+			throw new ICP.ICPException("No JICPMediator class specified.");
+		}
+  }
+  
   /**
    */
   static void log(String s) {

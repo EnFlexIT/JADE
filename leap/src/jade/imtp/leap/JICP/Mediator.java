@@ -41,6 +41,7 @@ import java.net.*;
 import java.util.*;
 import jade.imtp.leap.Command;
 import jade.imtp.leap.ICP;
+import jade.util.leap.Properties;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
 import jade.core.TimerListener;
@@ -51,12 +52,7 @@ import jade.core.Runtime;
  * @author Jerome Picault - Motorola Labs
  * @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */
-public class Mediator extends EndPoint {
-	// Mediator shut down modes
-	static final int NORMAL = 1;
-	static final int EXPIRED = 0;
-	static final int KILLED = -1;
-	
+public class Mediator extends EndPoint implements JICPMediator {
   private long              maxDisconnectionTime;
 
   // Lock for handling blocking PING
@@ -69,21 +65,34 @@ public class Mediator extends EndPoint {
   private Connection        conn;
   private boolean           newConnectionReady = false;
 
+  static int                verbosity = 2;
+
   /**
    * Constructor declaration
    */
-  public Mediator(JICPServer srv, String id, long m) throws IOException {
+  public Mediator() { 
+  }
+
+  /**
+     Initialize this JICPMediator
+   */
+  public void init(JICPServer srv, String id, Properties props) throws ICP.ICPException {
     myJICPServer = srv;
     myID = id;
-    maxDisconnectionTime = m;
+    try {
+	    maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
+    }
+    catch (NumberFormatException nfe) {
+    	log("Error parsing max-disconnection-time.");
+    	throw new ICP.ICPException("Error parsing max-disconnection-time.");
+    }
 
     start();
 
     //initCnt();
-    
-    log("Created Mediator v5.0. ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
-  }
-
+    log("Created Mediator v5.1. ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
+  }  
+  
   /**
    * Make this Mediator terminate
    * This can be called:
@@ -246,7 +255,7 @@ public class Mediator extends EndPoint {
         log("InterruptedException while waiting for mediated container to (re)connect", 1);
       } 
     } 
-    // If we get here there is a new connection ready --> Pass it to the EndPoint
+    // If we get here there is a new connection ready --> Pass the connection to the EndPoint
     try {
 	    setConnection(conn);
     	newConnectionReady = false;
@@ -271,7 +280,7 @@ public class Mediator extends EndPoint {
    * as soon as the mediated container (re)connects.
    * @param s the socket connected to the mediated container
    */
-  synchronized void setConnection(Socket s) {
+  public synchronized void setConnection(Socket s) {
     if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.

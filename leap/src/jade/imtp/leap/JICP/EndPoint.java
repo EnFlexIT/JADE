@@ -53,7 +53,7 @@ public abstract class EndPoint extends Thread {
   
 
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
-  private static int       verbosity = 2;
+  private static int       verbosity = 1;
 
   /**
    * Constructor declaration
