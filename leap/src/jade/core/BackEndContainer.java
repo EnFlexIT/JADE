@@ -123,6 +123,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
 
+	  startService("jade.core.event.NotificationService");
 	  // Start the Back-End replication service
 	  startService("jade.core.replication.BEReplicationService");
 
