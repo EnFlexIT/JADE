@@ -33,6 +33,7 @@
 				
 				<exclude name="**/jade/content/acl/**"/>
 				<exclude name="**/jade/content/lang/j/**"/>
+				<exclude name="**/jade/core/mobility/**"/>
 				<exclude name="**/jade/core/event/**"/>
 				<exclude name="**/jade/domain/introspection/**"/>
 				<exclude name="**/jade/domain/mobility/**"/>
