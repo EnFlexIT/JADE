@@ -112,6 +112,7 @@ abstract class Initiator extends FSMBehaviour {
 	registerTransition(SEND_INITIATIONS, DUMMY_FINAL, 0); // Exit the protocol if no initiation message is sent
 	registerDefaultTransition(SEND_INITIATIONS, RECEIVE_REPLY);
 	registerTransition(RECEIVE_REPLY, CHECK_SESSIONS, MsgReceiver.TIMEOUT_EXPIRED); 
+	registerTransition(RECEIVE_REPLY, CHECK_SESSIONS, MsgReceiver.INTERRUPTED); 
 	registerDefaultTransition(RECEIVE_REPLY, CHECK_IN_SEQ);
 	registerTransition(CHECK_IN_SEQ, HANDLE_REFUSE, ACLMessage.REFUSE);		
 	registerTransition(CHECK_IN_SEQ, HANDLE_NOT_UNDERSTOOD, ACLMessage.NOT_UNDERSTOOD);		
@@ -156,7 +157,7 @@ abstract class Initiator extends FSMBehaviour {
 	registerState(b, SEND_INITIATIONS);
 	
 	// RECEIVE_REPLY
-	replyReceiver = new MsgReceiver(myAgent,null,-1, getDataStore(), REPLY_K);
+	replyReceiver = new MsgReceiver(myAgent, null, MsgReceiver.INFINITE, getDataStore(), REPLY_K);
 	registerState(replyReceiver, RECEIVE_REPLY);
 	
 	// CHECK_IN_SEQ
@@ -414,7 +415,7 @@ abstract class Initiator extends FSMBehaviour {
      **/
     public void reset(ACLMessage msg){
 			super.reset();
-			replyReceiver.reset(null,-1, getDataStore(),REPLY_K);
+			replyReceiver.reset(null, MsgReceiver.INFINITE, getDataStore(),REPLY_K);
 			initiation = msg;
 			sessions.clear();
   	}
@@ -454,7 +455,7 @@ abstract class Initiator extends FSMBehaviour {
     	String convId = null;
 		  if (msgs.size() > 0) {
 		  	ACLMessage msg = (ACLMessage) msgs.elementAt(0);
-				if ((msg == null) || (msg.getConversationId() == null)) {
+				if (msg.getConversationId() == null) {
 					convId = "C"+hashCode()+"_"+System.currentTimeMillis();
 				}
 			  else {

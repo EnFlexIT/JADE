@@ -199,9 +199,8 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
     } 
     
     /**
-       This method allows to change the <code>MessageTemplate</code>
-       that defines what messages this FIPARequestResponder will react to and reset the protocol.
-    */
+       Reset this behaviour.
+     */
     public void reset() {
 			super.reset();
 			DataStore ds = getDataStore();

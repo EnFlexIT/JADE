@@ -39,7 +39,7 @@ import jade.util.leap.Serializable;
 
 /**
  * This is a single homogeneous and effective implementation of
- * all the FIPA-Request-like interaction protocols defined by FIPA,
+ * all the FIPA-Subscribe-like interaction protocols defined by FIPA,
  * that is all those protocols where the initiator sends a single message
  * (i.e. it performs a single communicative act) within the scope
  * of an interaction protocol in order to verify if the RE (Rational
@@ -83,11 +83,8 @@ import jade.util.leap.Serializable;
  * <br> One message for every receiver is sent instead of a single
  * message for all the receivers. </i>
  * @author Giovanni Caire - TILab
- * @author Fabio Bellifemine - TILab
- * @author Tiziana Trucco - TILab
- * @version $Date$ $Revision$
  **/
-public class AchieveREInitiator extends Initiator {
+public class SubscriptionInitiator extends Initiator {
 	
     // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
     //using the same data store the new values overrides the old one. 
@@ -95,12 +92,12 @@ public class AchieveREInitiator extends Initiator {
      * key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object passed in the constructor of the class.
      **/
-    public final String REQUEST_KEY = INITIATION_K;
+    public final String SUBSCRIPTION_KEY = INITIATION_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been sent.
      **/
-    public final String ALL_REQUESTS_KEY = ALL_INITIATIONS_K;
+    public final String ALL_SUBSCRIPTIONS_KEY = ALL_INITIATIONS_K;
     /** 
      * key to retrieve from the DataStore of the behaviour the last
      * ACLMessage object that has been received (null if the timeout
@@ -112,58 +109,52 @@ public class AchieveREInitiator extends Initiator {
      * ACLMessage objects that have been received as response.
      **/
     public final String ALL_RESPONSES_KEY = "__all-responses" + hashCode();
-    /** 
-     * key to retrieve from the DataStore of the behaviour the vector of
-     * ACLMessage objects that have been received as result notifications.
-     **/
-    public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
- 
-    // FSM states names specific to the Achieve-RE protocol 
+
+    // FSM states names specific to the Subscription protocol 
     private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
-    private static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
     private static final String CHECK_AGAIN = "Check-again";
 	
     // States exit values
     private static final int ALL_RESPONSES_RECEIVED = 1;
-    private static final int ALL_RESULT_NOTIFICATIONS_RECEIVED = 2;
+    private static final int ABORTED = 2;
 	
     // If set to true all expected responses have been received
     private boolean allResponsesReceived = false;
 	
     /**
-     * Construct an <code>AchieveREInitiator</code> with an empty DataStore
-     * @see #AchieveREInitiator(Agent, ACLMessage, DataStore)
+     * Construct a <code>SubscriptionInitiator</code> with an empty DataStore
+     * @see #SubscriptionInitiator(Agent, ACLMessage, DataStore)
      **/
-    public AchieveREInitiator(Agent a, ACLMessage msg){
-	this(a,msg,new DataStore());
+    public SubscriptionInitiator(Agent a, ACLMessage msg){
+			this(a,msg,new DataStore());
     }
 
     /**
-     * Construct an <code>AchieveREInitiator</code> with a given DataStore
+     * Construct a <code>SubscriptionInitiator</code> with a given DataStore
      * @param a The agent performing the protocol
      * @param msg The message that must be used to initiate the protocol.
      * Notice that the default implementation of the 
-     * <code>prepareRequest()</code>
+     * <code>prepareSubscription()</code>
      * method returns
      * an array composed of only this message.
      * The values of the slot 
      * <code>reply-with</code> is ignored and a different value is assigned
      * automatically by this class for each receiver.
      * @param store The <code>DataStore</code> that will be used by this 
-     * <code>AchieveREInitiator</code>
+     * <code>SubscriptionInitiator</code>
      */
-    public AchieveREInitiator(Agent a, ACLMessage msg, DataStore store) {
+    public SubscriptionInitiator(Agent a, ACLMessage msg, DataStore store) {
 	super(a, msg, store);
 
 	// Register the FSM transitions specific to the Achieve-RE protocol
 	registerTransition(CHECK_IN_SEQ, HANDLE_POSITIVE_RESPONSE, ACLMessage.AGREE);		
 	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
-	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
+	registerTransition(CHECK_SESSIONS, DUMMY_FINAL, ABORTED);
 	registerDefaultTransition(HANDLE_ALL_RESPONSES, CHECK_AGAIN);
-	registerTransition(CHECK_AGAIN, HANDLE_ALL_RESULT_NOTIFICATIONS, 0);
+	registerTransition(CHECK_AGAIN, DUMMY_FINAL, 0);
 	registerDefaultTransition(CHECK_AGAIN, RECEIVE_REPLY, toBeReset);
 			
-	// Create and register the states specific to the Achieve-RE protocol
+	// Create and register the states specific to the Subscription protocol
 	Behaviour b = null;
 	// HANDLE_ALL_RESPONSES
 	b = new OneShotBehaviour(myAgent) {
@@ -174,16 +165,6 @@ public class AchieveREInitiator extends Initiator {
 	};
 	b.setDataStore(getDataStore());		
 	registerState(b, HANDLE_ALL_RESPONSES);
-	
-	// HANDLE_ALL_RESULT_NOTIFICATIONS
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    handleAllResultNotifications((Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY));
-		}
-	};
-	b.setDataStore(getDataStore());		
-	registerLastState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
 	
 	// CHECK_AGAIN
 	b = new OneShotBehaviour(myAgent) {
@@ -200,7 +181,7 @@ public class AchieveREInitiator extends Initiator {
     /**
      */    
     protected Vector prepareInitiations(ACLMessage initiation) {
-    	return prepareRequests(initiation);
+    	return prepareSubscriptions(initiation);
     }
     
     /**
@@ -215,14 +196,14 @@ public class AchieveREInitiator extends Initiator {
 			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
 		  int cnt = 0; // counter of sessions
 		  for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
-				ACLMessage request = (ACLMessage) e.nextElement();
-				if (request != null) {
+				ACLMessage subscription = (ACLMessage) e.nextElement();
+				if (subscription != null) {
 			    // Update the list of sessions on the basis of the receivers
 			    // FIXME: Maybe this should take the envelope into account first
 			    
-			    ACLMessage toSend = (ACLMessage)request.clone();
+			    ACLMessage toSend = (ACLMessage)subscription.clone();
 			    toSend.setConversationId(conversationID);
-			    for (Iterator receivers = request.getAllReceiver(); receivers.hasNext(); ) {
+			    for (Iterator receivers = subscription.getAllReceiver(); receivers.hasNext(); ) {
 						toSend.clearAllReceiver();
 						AID r = (AID)receivers.next();
 						toSend.addReceiver(r);
@@ -235,9 +216,8 @@ public class AchieveREInitiator extends Initiator {
 			    }
 			  
 			    // Update the timeout (if any) used to wait for replies according
-			    // to the reply-by field
-			    // get the miminum  
-			    Date d = request.getReplyByDate();
+			    // to the reply-by field. Get the miminum  
+			    Date d = subscription.getReplyByDate();
 			    if (d != null) {
 						long timeout = d.getTime()- currentTime;
 						if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
@@ -270,10 +250,8 @@ public class AchieveREInitiator extends Initiator {
 						Vector allRsp = (Vector) getDataStore().get(ALL_RESPONSES_KEY);
 						allRsp.addElement(reply);
 						break;
-			    case Session.RESULT_NOTIFICATION_RECEIVED:
-						// The reply is a resultNotification
-						Vector allNotif = (Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY);
-						allNotif.addElement(reply);
+			    case Session.NOTIFICATION_RECEIVED:
+			    	// Nothing to do
 						break;
 			    default:
 						// Something went wrong. Return false --> we will go to the HANDLE_OUT_OF_SEQ state
@@ -342,10 +320,10 @@ public class AchieveREInitiator extends Initiator {
 		    }
 	  	}
 	  	else {
-		    // Check whether all result notifications have been received 
-	  		// (this is the case when there are no active sessions).
 		    if (sessions.size() == 0) {
-		    	ret = ALL_RESULT_NOTIFICATIONS_RECEIVED;
+		    	// We reach this point when we were interrupted after all responses  
+		    	// had been received --> Terminate
+		    	ret = ABORTED;
 		    }
 			}
 		  return ret;
@@ -358,15 +336,15 @@ public class AchieveREInitiator extends Initiator {
      * passed in the constructor. Programmers might prefer to override
      * this method in order to return a vector of objects for 1:N conversations
      * or also to prepare the messages during the execution of the behaviour.
-     * @param request the ACLMessage object passed in the constructor
+     * @param subscription the ACLMessage object passed in the constructor
      * @return a Vector of ACLMessage objects.
      * The values of the slot 
      * <code>reply-with</code> is ignored and a different value is assigned
      *  automatically by this class for each receiver.
      **/    
-    protected Vector prepareRequests(ACLMessage request) {
+    protected Vector prepareSubscriptions(ACLMessage subscription) {
 	Vector l = new Vector(1);
-	l.addElement(request);
+	l.addElement(subscription);
 	return l;
     }
     
@@ -454,32 +432,15 @@ public class AchieveREInitiator extends Initiator {
     }
     
     /**
-     * This method is called when all the result notification messages 
-     * have been
-     * collected. 
-     * By result notification message we intend here all the <code>inform, 
-     * failure</code> received messages, which are not
-     * not out-of-sequence according
-     * to the protocol rules.
-     * This default implementation does nothing; programmers might
-     * wish to override the method in case they need to react to this event
-     * by analysing all the messages in just one call.
-     * @param resultNodifications the Vector of ACLMessage object received 
-     **/
-    protected void handleAllResultNotifications(Vector resultNotifications) {
-    }
-    
-    
-    /**
        This method allows to register a user defined <code>Behaviour</code>
-       in the PREPARE_REQUESTS state. 
+       in the PREPARE_SUBSCRIPTIONS state. 
        This behaviour would override the homonymous method.
        This method also set the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        It is responsibility of the registered behaviour to put the
        Vector of ACLMessage objects to be sent 
-       into the datastore at the <code>ALL_REQUESTS_KEY</code>
+       into the datastore at the <code>ALL_SUBSCRIPTIONS_KEY</code>
        key.
        The values of the slot 
        <code>reply-with</code> is ignored and a different value is assigned
@@ -524,25 +485,7 @@ public class AchieveREInitiator extends Initiator {
 	registerState(b, HANDLE_ALL_RESPONSES);
 	b.setDataStore(getDataStore());
     }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_ALL_RESULT_NOTIFICATIONS state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the Vector of ACLMessage objects, received as a result notification,
-       from the datastore at the <code>ALL_RESULT_NOTIFICATIONS_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleAllResultNotifications(Behaviour b) {
-	registerState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
-	b.setDataStore(getDataStore());
-    }
-    
+        
     //FIXME: Need to call handleAgree also when
     // the INFORM/FAILURE is received before or by skipping the AGREE? 
     /**
@@ -562,8 +505,6 @@ public class AchieveREInitiator extends Initiator {
     	super.initializeDataStore(msg);
 			Vector l = new Vector();
 			getDataStore().put(ALL_RESPONSES_KEY, l);
-			l = new Vector();
-			getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, l);
     }
     
     /**
@@ -574,7 +515,7 @@ public class AchieveREInitiator extends Initiator {
 	static final int INIT = 0;
 	static final int POSITIVE_RESPONSE_RECEIVED = 1;
 	static final int NEGATIVE_RESPONSE_RECEIVED = 2;
-	static final int RESULT_NOTIFICATION_RECEIVED = 3;
+	static final int NOTIFICATION_RECEIVED = 3;
 		
 	private int state = INIT;
 	
@@ -595,16 +536,17 @@ public class AchieveREInitiator extends Initiator {
 		    return true;
 		case ACLMessage.INFORM:
 		case ACLMessage.FAILURE:
-		    state = RESULT_NOTIFICATION_RECEIVED;
+		    state = NOTIFICATION_RECEIVED;
 		    return true;
 		default:
 		    return false;
 		}
 	    case POSITIVE_RESPONSE_RECEIVED:
+	    case NOTIFICATION_RECEIVED:
 		switch (perf) {
 		case ACLMessage.INFORM:
 		case ACLMessage.FAILURE:
-		    state = RESULT_NOTIFICATION_RECEIVED;
+		    state = NOTIFICATION_RECEIVED;
 		    return true;
 		default:
 		    return false;
@@ -619,7 +561,7 @@ public class AchieveREInitiator extends Initiator {
 	}
 	
 	boolean isCompleted() {
-	    return (state == NEGATIVE_RESPONSE_RECEIVED || state == RESULT_NOTIFICATION_RECEIVED);
+	    return (state == NEGATIVE_RESPONSE_RECEIVED);
 	}
 	
     } // End of inner class Session

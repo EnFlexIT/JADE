@@ -30,13 +30,14 @@ import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.proto.states.*;
+import jade.util.leap.*;
 
 
 /**
  * @author Elisabetta Cortese - TILAB
  * @author Giovanni Caire - TILAB
  */
-class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
+public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 	
     /** 
      * key to retrieve from the DataStore of the behaviour the ACLMessage 
@@ -53,12 +54,18 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
     private static final String RECEIVE_SUBSCRIPTION = "Receive-subscription";
     private static final String PREPARE_RESPONSE = "Prepare-response";
     private static final String SEND_RESPONSE = "Send-response";
+    private static final String SEND_NOTIFICATIONS = "Send-notifications";
 
     // The MsgReceiver behaviour used to receive subscription messages
-    MsgReceiver msgRecBehaviour = null;
+    private MsgReceiver msgRecBehaviour = null;
     
-   	// Notifier passed in the costructor
-    SubscriptionManager mySubscriptionManager = null;
+    private List notifications = new ArrayList();
+    
+    /**
+       The <code>SubscriptionManager</code> used by this 
+       <code>SubscriptionResponder</code> to register subscriptions
+     */
+    protected SubscriptionManager mySubscriptionManager = null;
     
     /**
        This static method can be used 
@@ -104,8 +111,10 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 		
 			// Register the FSM transitions
 			registerDefaultTransition(RECEIVE_SUBSCRIPTION, PREPARE_RESPONSE);
+			registerTransition(RECEIVE_SUBSCRIPTION, SEND_NOTIFICATIONS, MsgReceiver.INTERRUPTED);
 			registerDefaultTransition(PREPARE_RESPONSE, SEND_RESPONSE);
-			registerDefaultTransition(SEND_RESPONSE, RECEIVE_SUBSCRIPTION); 
+			registerDefaultTransition(SEND_RESPONSE, RECEIVE_SUBSCRIPTION, new String[] {PREPARE_RESPONSE}); 
+			registerDefaultTransition(SEND_NOTIFICATIONS, RECEIVE_SUBSCRIPTION); 
 		
 			//***********************************************
 			// For each state create and register a behaviour	
@@ -113,7 +122,7 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 			Behaviour b = null;
 	
 			// RECEIVE_SUBSCRIPTION
-			msgRecBehaviour = new MsgReceiver(myAgent, mt, -1, getDataStore(), SUBSCRIPTION_KEY);
+			msgRecBehaviour = new MsgReceiver(myAgent, mt, MsgReceiver.INFINITE, getDataStore(), SUBSCRIPTION_KEY);
 			registerFirstState(msgRecBehaviour, RECEIVE_SUBSCRIPTION);
 	
 			// PREPARE_RESPONSE
@@ -132,7 +141,6 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 			    catch (RefuseException re) {
 						response = re.getACLMessage();
 			    }
-			    // metto il messagio nel datastore
 			    ds.put(RESPONSE_KEY, response);
 				}
 			};
@@ -140,28 +148,24 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 			registerState(b, PREPARE_RESPONSE);
 		
 			// SEND_RESPONSE 
-			// This behaviour is a simple implementation of a reply message sender.
- 			// It read in DataStore the message and the reply at the key passed in Constrictor  
- 			// Set the reply's conversationId, protocol and reply-to fields and 
- 			// reply's receiver and reply-with fields if not setted
-			b = new ReplySender(myAgent, RESPONSE_KEY, SUBSCRIPTION_KEY){
-		  	public int onEnd() {
-				  int ret = super.onEnd();
-					SubscriptionResponder.this.reset();
-			 		return ret;
-			  }
-			};
+			b = new ReplySender(myAgent, RESPONSE_KEY, SUBSCRIPTION_KEY);
 			b.setDataStore(getDataStore());		
 			registerState(b, SEND_RESPONSE);	
+
+			// SEND_NOTIFICATIONS 
+			b = new OneShotBehaviour(myAgent) {
+				public void action() {
+					sendNotifications();
+				}
+			};
+			b.setDataStore(getDataStore());		
+			registerState(b, SEND_NOTIFICATIONS);	
 
 		} // End of Constructor
 
 
     /**
-       This method allows to change the <code>MessageTemplate</code>
-       that defines what messages this FIPASubscribeResponder will react 
-       to and reset the protocol.
-    */
+     */
     // FIXME: reset deve resettare anche le sottoscrizioni?
     public void reset() {
 			super.reset();
@@ -174,10 +178,10 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
        This method allows to change the <code>MessageTemplate</code>
        that defines what messages this FIPASubscribeResponder 
        will react to and reset the protocol.
-    */
+     */
     public void reset(MessageTemplate mt) {
 			this.reset();
-			msgRecBehaviour.reset(mt, -1, getDataStore(), SUBSCRIPTION_KEY);
+			msgRecBehaviour.reset(mt, MsgReceiver.INFINITE, getDataStore(), SUBSCRIPTION_KEY);
     }
     
 
@@ -196,7 +200,7 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
      * @see jade.lang.acl.ACLMessage#createReply()
      **/
     protected ACLMessage prepareResponse(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-    	mySubscriptionManager.register(new Subscription(myAgent, subscription));
+    	mySubscriptionManager.register(new Subscription(this, subscription));
     	return null;
     }
     
@@ -219,10 +223,39 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
     
     
     /**
+       This is called by a Subscription object when a notification has
+       to be sent to the corresponding subscribed agent.
+       Executed in mutual exclusion with sendNotifications(). Note that this
+       synchronization is not needed in general, but we never know how users
+       manages Subscription objects (possibly in another thread)
+     */
+    private synchronized void addNotification(ACLMessage notification, ACLMessage subscription) {
+    	ACLMessage[] tmp = new ACLMessage[] {notification, subscription};
+    	notifications.add(tmp);
+    	msgRecBehaviour.interrupt();
+    }
+    
+    /**
+       This is called within the SEND_NOTIFICATIONS state.
+       Executed in mutual exclusion with addNotification(). Note that this
+       synchronization is not needed in general, but we never know how users
+       manages Subscription objects (possibly in another thread)
+     */
+    private synchronized void sendNotifications() {
+    	Iterator it = notifications.iterator();
+    	while (it.hasNext()) {
+    		ACLMessage[] tmp = (ACLMessage[]) it.next();
+    		ReplySender.adjustReply(myAgent, tmp[0], tmp[1]);
+    		myAgent.send(tmp[0]);
+    	}
+    	notifications.clear();
+    }
+    	
+    /**
        Inner interface SubscriptionManager
      */
     public static interface SubscriptionManager {
-    	void register(Subscription s) throws RefuseException, NotUnderstoodException;
+    	boolean register(Subscription s) throws RefuseException, NotUnderstoodException;
     	void deregister(Subscription s) throws RefuseException, NotUnderstoodException;
     } // END of inner interface SubscriptionManager
 
@@ -231,11 +264,12 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
      */
 		public static class Subscription {
 		
+			private List notifications = new LinkedList();
 			private ACLMessage subscription;
-			private Agent myAgent;
+			private SubscriptionResponder myResponder;
 		
-			public Subscription(Agent a, ACLMessage s){
-				myAgent = a;
+			public Subscription(SubscriptionResponder r, ACLMessage s){
+				myResponder = r;
 				subscription = s;
 			}
 			
@@ -244,8 +278,7 @@ class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
 			}
 			
 			public void notify(ACLMessage notification){
-				// FIXME: adjust protocol fields
-    		myAgent.send(notification);
+				myResponder.addNotification(notification, subscription);
 			}
 		} // END of inner class Subscription
 
