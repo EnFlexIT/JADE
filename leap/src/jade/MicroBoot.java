@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package jade;
 
 import jade.core.MicroRuntime;
-import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.util.leap.Properties;
 import jade.util.Logger;
@@ -43,7 +42,6 @@ import javax.microedition.lcdui.*;
  */
 //#MIDP_EXCLUDE_BEGIN
 public class MicroBoot {
-	private static FrontEnd myFrontEnd;
 	
   /**
    * Fires up the <b><em>JADE</em></b> runtime.
@@ -185,7 +183,6 @@ public class MicroBoot extends MIDlet implements Runnable {
 
       // Start the JADE runtime system
     	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-			rt.gc();
     	MicroRuntime.startJADE(props, this);
 			rt.gc();
 			
