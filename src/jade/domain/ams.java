@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.27  1999/03/14 17:50:27  rimassa
+  Changed acc class to take advantage of new
+  FipaRequestResponderBehaviour class.
+
   Revision 1.26  1999/03/09 13:18:32  rimassa
   Minor changes.
 
@@ -87,9 +91,11 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import jade.core.*;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.proto.FipaRequestResponderBehaviour;
 
 /**************************************************************
 
@@ -110,31 +116,18 @@ import jade.lang.acl.MessageTemplate;
 ****************************************************************/
 public class ams extends Agent {
 
-  private abstract class AMSBehaviour extends OneShotBehaviour implements BehaviourPrototype {
+  private abstract class AMSBehaviour
+      extends FipaRequestResponderBehaviour.Action
+      implements FipaRequestResponderBehaviour.Factory {
 
     // This Action will be set by crackMessage()
     private AgentManagementOntology.AMSAction myAction;
 
-    private String myActionName;
-    protected ACLMessage myRequest;
-    protected ACLMessage myReply;
-
     protected AgentManagementOntology myOntology;
 
 
-    protected AMSBehaviour(String name) {
+    protected AMSBehaviour() {
       super(ams.this);
-      myActionName = name;
-      myRequest = null;
-      myReply = null;
-      myOntology = AgentManagementOntology.instance();
-    }
-
-    protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
-      super(ams.this);
-      myActionName = name;
-      myRequest = request;
-      myReply = reply;
       myOntology = AgentManagementOntology.instance();
     }
 
@@ -166,7 +159,8 @@ public class ams extends Agent {
     // variables. If some error is found a FIPA exception is thrown
     private void crackMessage() throws FIPAException, NoSuchElementException {
 
-      String content = myRequest.getContent();
+      ACLMessage msg = getRequest();
+      String content = msg.getContent();
 
       // Obtain an AMS action from message content
       try {
@@ -200,76 +194,34 @@ public class ams extends Agent {
       }
       catch(FIPAException fe) {
 	// fe.printStackTrace();
-	sendRefuse(myReply, fe.getMessage());
+	sendRefuse(fe.getMessage());
       }
       catch(NoSuchElementException nsee) {
 	// nsee.printStackTrace();
-	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+	sendRefuse(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
     }
 
-
-    // The following methods handle the various possibilities arising in
-    // AMS <-> Agent interaction. They all receive an ACL message as an
-    // argument, most of whose fields have already been set. Only the
-    // message type and message content have to be filled in.
-
-    // Send a 'not-understood' message back to the requester
-    protected void sendNotUnderstood(ACLMessage msg) {
-      msg.setType("not-understood");
-      send(msg);
+    public boolean done() {
+      return true;
     }
 
-    // Send a 'refuse' message back to the requester
-    protected void sendRefuse(ACLMessage msg, String reason) {
-      msg.setType("refuse");
-      msg.setContent("( ( action ams " + myActionName + " ) " + reason + ")");
-      send(msg);
+    public void reset() {
     }
-
-    // Send a 'failure' message back to the requester
-    protected void sendFailure(ACLMessage msg, String reason) {
-      msg.setType("failure");
-      msg.setContent("( ( action ams " + myActionName + " ) " + reason + ")");
-      send(msg);
-    }
-
-    // Send an 'agree' message back to the requester
-    protected void sendAgree(ACLMessage msg) {
-      msg.setType("agree");
-      msg.setContent("( action ams " + myActionName + " )");
-      send(msg);
-    }
-
-    // Send an 'inform' message back to the requester
-    protected void sendInform(ACLMessage msg) {
-      msg.setType("inform");
-      msg.setContent("( done ( " + myActionName + " ) )");
-      send(msg);
-    }
-
 
   } // End of AMSBehaviour class
 
 
-  // These four concrete classes serve both as a Prototype and as an
-  // Instance: when seen as BehaviourPrototype they can spawn a new
+  // These four concrete classes serve both as a Factory and as an
+  // Action: when seen as Factory they can spawn a new
   // Behaviour to process a given request, and when seen as
-  // Behaviour they process their request and terminate.
+  // Action they process their request and terminate.
 
   private class AuthBehaviour extends AMSBehaviour {
 
-    public AuthBehaviour() {
-      super(AgentManagementOntology.AMSAction.AUTHENTICATE);
-    }
-
-    public AuthBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.AUTHENTICATE, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage msg, ACLMessage reply) {
-      return new AuthBehaviour(msg, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new AuthBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
@@ -291,16 +243,8 @@ public class ams extends Agent {
 
   private class RegBehaviour extends AMSBehaviour {
 
-    public RegBehaviour() {
-      super(AgentManagementOntology.AMSAction.REGISTERAGENT);
-    }
-
-    public RegBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.REGISTERAGENT, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage msg, ACLMessage reply) {
-      return new RegBehaviour(msg, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new RegBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
@@ -312,12 +256,12 @@ public class ams extends Agent {
       try {
 	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
 			      amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
-	sendAgree(myReply);
-	sendInform(myReply);
+	sendAgree();
+	sendInform();
       }
       catch(AgentAlreadyRegisteredException aare) {
-	sendAgree(myReply);
-	sendFailure(myReply, aare.getMessage());
+	sendAgree();
+	sendFailure(aare.getMessage());
       }
 
     }
@@ -327,16 +271,8 @@ public class ams extends Agent {
 
   private class DeregBehaviour extends AMSBehaviour {
 
-    public DeregBehaviour() {
-      super(AgentManagementOntology.AMSAction.DEREGISTERAGENT);
-    }
-
-    public DeregBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.DEREGISTERAGENT, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new DeregBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new DeregBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
@@ -347,8 +283,8 @@ public class ams extends Agent {
       // Remove the agent data from Global Descriptor Table
       myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
 
     }
 
@@ -357,16 +293,8 @@ public class ams extends Agent {
 
   private class ModBehaviour extends AMSBehaviour {
 
-    public ModBehaviour() {
-      super(AgentManagementOntology.AMSAction.MODIFYAGENT);
-    }
-
-    public ModBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.MODIFYAGENT, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new ModBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new ModBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
@@ -377,8 +305,8 @@ public class ams extends Agent {
       // Modify agent data from Global Descriptor Table
       myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
     }
 
   } // End of ModBehaviour class
@@ -589,22 +517,15 @@ public class ams extends Agent {
 
   private class KillContainerBehaviour extends AMSBehaviour {
 
-    KillContainerBehaviour() {
-      super(AgentManagementOntology.AMSAction.KILLCONTAINER);
-    }
-
-    KillContainerBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.KILLCONTAINER, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new KillContainerBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new KillContainerBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
 
       // Make sure it is RMA that's calling
-      String peerName = myRequest.getSource();
+      ACLMessage msg = getRequest();
+      String peerName = msg.getSource();
       if(!peerName.equalsIgnoreCase("RMA"))
 	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
@@ -612,29 +533,23 @@ public class ams extends Agent {
       AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
       String containerName = kca.getContainerName();
       myPlatform.AMSKillContainer(containerName);
-
+      sendAgree();
+      sendInform();
     }
 
-  }
+  } // End of KillContainerBehaviour class
 
   private class CreateBehaviour extends AMSBehaviour {
 
-    CreateBehaviour() {
-      super(AgentManagementOntology.AMSAction.CREATEAGENT);
-    }
-
-    CreateBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.CREATEAGENT, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new CreateBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new CreateBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
 
       // Make sure it is RMA that's calling
-      String peerName = myRequest.getSource();
+      ACLMessage msg = getRequest();
+      String peerName = msg.getSource();
       if(!peerName.equalsIgnoreCase("RMA"))
 	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
@@ -646,8 +561,8 @@ public class ams extends Agent {
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
       myPlatform.AMSCreateAgent(amsd.getName(), className, containerName);
 
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
 
     }
 
@@ -655,22 +570,15 @@ public class ams extends Agent {
 
   private class KillBehaviour extends AMSBehaviour {
 
-    KillBehaviour() {
-      super(AgentManagementOntology.AMSAction.KILLAGENT);
-    }
-
-    KillBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.AMSAction.KILLAGENT, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new KillBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new KillBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
 
     // Make sure it is RMA that's calling
-    String peerName = myRequest.getSource();
+    ACLMessage msg = getRequest();
+    String peerName = msg.getSource();
     if(!peerName.equalsIgnoreCase("RMA"))
        throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
@@ -680,8 +588,8 @@ public class ams extends Agent {
       String password = kaa.getPassword();
       myPlatform.AMSKillAgent(agentName, password);
 
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
 
     }
 
@@ -704,7 +612,7 @@ public class ams extends Agent {
   private AgentPlatformImpl myPlatform;
 
   // Maintains an association between action names and behaviours
-  private FipaRequestServerBehaviour dispatcher;
+  private FipaRequestResponderBehaviour dispatcher;
 
   // Behaviour to listen to incoming 'subscribe' messages from Remote
   // Management Agents.
@@ -736,7 +644,7 @@ public class ams extends Agent {
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
-    dispatcher = new FipaRequestServerBehaviour(this, mt);
+    dispatcher = new FipaRequestResponderBehaviour(this, mt);
     registerRMA = new RegisterRMABehaviour();
     deregisterRMA = new DeregisterRMABehaviour();
     notifyRMAs = new NotifyRMAsBehaviour();
@@ -751,14 +659,14 @@ public class ams extends Agent {
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.AUTHENTICATE, new AuthBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.AUTHENTICATE, new AuthBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
 
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
 
   }
 
