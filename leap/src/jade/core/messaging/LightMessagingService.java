@@ -55,8 +55,6 @@ import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-import jade.security.Authority;
-import jade.security.AgentPrincipal;
 import jade.security.PrivilegedExceptionAction;
 import jade.security.AuthException;
 
@@ -551,10 +549,9 @@ public class LightMessagingService extends BaseService implements MessageManager
 
     // --- This code could go into a Security Service, intercepting the message sending...
 
-    AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
-
-    Authority authority = myContainer.getAuthority();
-    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
+    //    AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
+    //    Authority authority = myContainer.getAuthority();
+    //    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
 
     // --- End of security code		
 
@@ -592,19 +589,19 @@ public class LightMessagingService extends BaseService implements MessageManager
     */
 
     // FIXME: Now there is only one receiver / command
-    try {
-      AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-      authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
+    // try {
+      // AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
+      // authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
 		
-      boolean found = myContainer.postMessageToLocalAgent(msg.getACLMessage(), dest);
-      if(!found) {
-		    myMessageManager.deliver(msg, dest, this);
-      }
+    boolean found = myContainer.postMessageToLocalAgent(msg.getACLMessage(), dest);
+    if(!found) {
+      myMessageManager.deliver(msg, dest, this);
     }
-    catch (AuthException ae) {
-      lastException = ae;
-      notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-    }
+    //}
+    //catch (Exception ae) {
+    //lastException = ae;
+    //notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
+    //    }
 
     if(lastException != null)
 	    throw lastException;
@@ -636,27 +633,29 @@ public class LightMessagingService extends BaseService implements MessageManager
     content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
     failure.setContent(content);
 
-    try {
+    /*
+      try {
 	    Authority authority = myContainer.getAuthority();
 	    authority.doPrivileged(new PrivilegedExceptionAction() {
-          public Object run() {
-            try {
-              GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-              command.addParam(theAMS);
-              command.addParam(failure);
-              submit(command);
-            }
-            catch(ServiceException se) {
-              // It should never happen
-              se.printStackTrace();
-            }
-            return null; // nothing to return
-          }
-        });
-    } catch(Exception e) {
+      public Object run() {
+      try {
+      GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+      command.addParam(theAMS);
+      command.addParam(failure);
+      submit(command);
+      }
+      catch(ServiceException se) {
+      // It should never happen
+      se.printStackTrace();
+      }
+      return null; // nothing to return
+      }
+      });
+      } catch(Exception e) {
 	    // should be never thrown
 	    e.printStackTrace();
-    }
+      }
+    */
   }
 
   private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
