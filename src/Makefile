@@ -144,8 +144,8 @@ images:
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
 	mkdir -p $(CLSDIR)/jade/gui/help
-	cp $(SRCDIR)/jade/tools/dfgui/DFGUI.html $(CLSDIR)/jade/gui/help/DFGUI.html
-	cp $(SRCDIR)/jade/gui/BOOTGUI.html $(CLSDIR)/jade/gui/help/BOOTGUI.html
+	cp $(SRCDIR)/jade/gui/help/DFGUI.html $(CLSDIR)/jade/gui/help/DFGUI.html
+	cp $(SRCDIR)/jade/gui/help/BOOTGUI.html $(CLSDIR)/jade/gui/help/BOOTGUI.html
 
 idlclean:
 	rm -f $(IDLSTUBS)
@@ -176,8 +176,7 @@ batch:
 
 	echo >> $(BATCH_ALL)
 
-	echo 'xcopy /I jade\tools\dfgui\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
-	echo 'xcopy /I jade\gui\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
+	echo 'xcopy /I jade\gui\help\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 
 	echo '$(STUBGEN) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
