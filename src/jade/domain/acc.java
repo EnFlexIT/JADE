@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/02/03 10:54:28  rimassa
+  Added some missing parentheses to ACC reply messages.
+
   Revision 1.7  1998/12/08 00:08:41  rimassa
   Removed handmade content message parsing. Now updated
   ACCAction.fromText() method is used.
@@ -87,14 +90,14 @@ public class acc extends Agent {
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( action acc " + myActionName + " ) " + reason);
+      msg.setContent("( ( action acc " + myActionName + " ) " + reason + ")");
       send(msg);
     }
     
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
     msg.setType("failure");
-    msg.setContent("( action acc " + myActionName + " ) " + reason);
+    msg.setContent("( ( action acc " + myActionName + " ) " + reason + ")");
     send(msg);
     }
     
