@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.17  1999/11/04 09:51:12  rimassaJade
+ * Removed TransientException exception declaration.
+ *
  * Revision 1.16  1999/09/01 00:16:23  rimassa
  * Small changes to the interface to allow message queue transfer during
  * agent migration.
@@ -76,7 +79,7 @@ interface AgentContainer extends Remote {
   void exit() throws RemoteException;
 
   void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException;
-  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException;
+  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
   void ping() throws RemoteException;
 
 }
