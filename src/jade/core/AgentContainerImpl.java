@@ -423,7 +423,24 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       return myNodeDescriptor;
   }
 
+  
   void joinPlatform() {
+  	//#J2ME_EXCLUDE_BEGIN
+  	// Redirect output if the -output option is specified
+  	String output = myProfile.getParameter("output", null);
+  	if (output != null) {
+	  	try {
+	  		jade.util.PerDayFileLogger fl = new jade.util.PerDayFileLogger(output);
+	  		jade.util.PrintStreamSplitter pss = new jade.util.PrintStreamSplitter(System.out, fl);
+	  		System.setOut(pss);
+	  		System.setErr(pss);
+	  	}
+	  	catch (Exception e) {
+	  		e.printStackTrace();
+	  	}
+  	}
+  	//#J2ME_EXCLUDE_END
+  	
       try {
 
 	  // Perform the initial setup from the profile
