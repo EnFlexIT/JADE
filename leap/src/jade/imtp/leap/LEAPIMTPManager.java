@@ -72,7 +72,7 @@ public class LEAPIMTPManager implements IMTPManager {
   
   private NodeLEAP localNode;
 
-  Logger logger = Logger.getMyLogger(this.getClass().getName());
+  Logger logger = Logger.getMyLogger(getClass().getName());
 
   /**
    * Default constructor used to dynamically instantiate a new

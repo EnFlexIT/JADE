@@ -42,7 +42,7 @@ public class MicroStub {
 	
 	public MicroStub(Dispatcher d) {
 		myDispatcher = d;
-    logger = Logger.getMyLogger(this.getClass().getName());
+    logger = Logger.getMyLogger(getClass().getName());
 	}
 	
 	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
