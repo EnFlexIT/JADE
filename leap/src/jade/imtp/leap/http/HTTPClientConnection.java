@@ -124,8 +124,11 @@ public class HTTPClientConnection extends Connection {
 							is = hc.openInputStream();
 				    	int length = (int) hc.getLength();
 					    #MIDP_INCLUDE_END*/
-				    	buf = new byte[length];
-				    	is.read(buf);
+					    buf = new byte[length];
+					    int n = 0;
+					    while (n < length) {
+				    		n += is.read(buf, n, buf.length-n);
+					    }
 					    count = buf.length;
 					    pos = 0;
 			    	}

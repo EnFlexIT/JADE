@@ -147,7 +147,10 @@ public class HTTPPacket {
   	try {
   		int length = Integer.parseInt((String) fields.get(CONTENT_LENGTH_KEY));
   		payload = new byte[length];
-  		is.read(payload);
+	    int n = 0;
+	    while (n < length) {
+    		n += is.read(payload, n, length-n);
+	    }
   	}
   	catch (IOException ioe) {
   		// Rethrow the exception
@@ -193,8 +196,7 @@ public class HTTPPacket {
     outWriter.flush();
     
     // Payload
-    baos.write(payload);
-    
+    baos.write(payload);    
     os.write(baos.toByteArray());
     os.flush();
   } 
