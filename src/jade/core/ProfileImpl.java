@@ -256,6 +256,34 @@ public class ProfileImpl extends Profile {
     return myNotificationManager;
   }
 
+
+
+  /**
+   */
+  public jade.security.PwdDialog getPwdDialog() throws ProfileException {
+          
+    //default is GUI swing password dialog
+    String className = getParameter(PWD_DIALOG_CLASS, "jade.security.impl.PwdDialogSwingImpl");
+
+	jade.security.PwdDialog dialog=null;
+    try {
+      dialog = (jade.security.PwdDialog) Class.forName(className).newInstance();
+    } 
+    catch (Exception e) {
+      //throw new ProfileException("Error loading jade.security password dialog:"+className);
+      //e.printStackTrace();
+      System.out.println("\nError: Could not load jade.security password dialog class: '"+PWD_DIALOG_CLASS+"' ");
+      System.out.println("\n Check parameter: '"+Profile.PWD_DIALOG_CLASS+"' in your JADE config file." );
+      System.out.println("\n Its default value is: jade.security.impl.PwdDialogSwingImpl" );
+      System.exit(-1);
+    } 
+    return dialog;
+  }
+
+
+
+
+
   /**
    * Method declaration
    *
