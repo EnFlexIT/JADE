@@ -1,17 +1,30 @@
 (REQUEST
  :language FIPA-SL0
  :ontology fipa-agent-management
- :content ((action (Agent-Identifier :name DF@IOR:001122)
+ :content ((action (Agent-Identifier :name x@001122)
             (SEARCH
              (Df-agent-description
              :name (Agent-Identifier :name x@ior:002233))
-             (search-constraints)
+             (search-constraints )
             )))
  :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
 )
 
 
-STOP
+(REQUEST
+ :language FIPA-SL0
+ :ontology fipa-agent-management
+ :content ((action (Agent-Identifier :name x@001122)
+            (SEARCH
+             (Df-agent-description
+             :name (Agent-Identifier :name x@ior:002233))
+             (search-constraints :max-depth 20 :max-results 10 )
+            )))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+
 (FAILURE
  :language FIPA-SL0
  :ontology fipa-agent-management
