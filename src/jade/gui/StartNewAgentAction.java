@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.5  1998/11/09 00:36:42  rimassa
+  Changed callback logic to allow different ways to start new agents:
+   - When no node is selected, one can write the container name within
+     start dialog window.
+   - When a container node is selected the agent is started on that
+     agent container.
+   - When more container nodes are selected an agent is started on each
+     one of them.
+
   Revision 1.4  1998/11/05 23:44:59  rimassa
   Changed code indentation style.
 
@@ -31,35 +40,36 @@ public class StartNewAgentAction extends AMSAbstractAction {
     super ("StartNewAgentActionIcon","Start New Agent");
   }
 
+  private int doStartNewAgent(String containerName) {
+    int result = StartDialog.showStartNewDialog(containerName);
+    if (result == StartDialog.OK_BUTTON) {
+
+      String agentName = StartDialog.getAgentName();
+      String className = StartDialog.getClassName();
+      String container = StartDialog.getContainer();
+
+      rma myRMA = AMSMainFrame.getRMA();
+      myRMA.newAgent(agentName, className, container);
+    }
+    return result;
+  }
+
   public void actionPerformed(ActionEvent e) {
-    try	{
-      if (listeners.size()>=1 && listeners.elementAt(0) instanceof TreeData) {
-	TreeData parent = (TreeData) listeners.elementAt(0);
-	if (parent.getLevel() == TreeData.AGENT || parent.getLevel() == TreeData.SUPER_NODE) {	
-	  throw new StartException();
-	}
-	else 
-	  for (int i=0;i<listeners.size();i++) {
-	    int result = StartDialog.showStartNewDialog();
+    if (listeners.size() >= 1) { // Some tree node is selected
+      for (int i=0;i<listeners.size();i++) {
+	try {
+
+	  TreeData parent = (TreeData) listeners.elementAt(i);
+	  if (parent.getLevel() == TreeData.AGENT || parent.getLevel() == TreeData.SUPER_NODE) {
+	    throw new StartException();
+	  }
+	  else {
+	    String containerName = parent.getName();
+
+	    int result = doStartNewAgent(containerName);
 	    if (result == StartDialog.OK_BUTTON) {
-	      ( (TreeData)listeners.elementAt(i)).setState(TreeData.RUNNING);
-	      System.out.println("STARTING NEW AGENT "+StartDialog.getAgentName()+" IN CONTAINER "+
-				 StartDialog.getContainer()+" USING CLASS "+StartDialog.getClassName());
-	      System.out.println();
-
-	      String agentName = StartDialog.getAgentName();
-	      String className = StartDialog.getClassName();
-	      String container = StartDialog.getContainer();
-	      int containerID = 0;
-	      try {
-		containerID = Integer.parseInt(container);
-	      }
-	      catch(NumberFormatException nfe) {
-		// Ignore it and retain default value of 0 for containerID
-	      }
-
-	      rma myRMA = AMSMainFrame.getRMA();
-	      myRMA.newAgent(agentName, className, containerID);
+	      ((TreeData)listeners.elementAt(i)).setState(TreeData.RUNNING);
+ 
 	      //	      AMSTreeModel treeModel = (AMSTreeModel)tree.getModel();
 	      //	      TreeData current = new TreeData(StartDialog.getAgentName(), TreeData.AGENT);
 	      //	      String [] s = new String[1];
@@ -68,14 +78,17 @@ public class StartNewAgentAction extends AMSAbstractAction {
 	      //	      treeModel.insertNodeInto(current,parent, 0);
 	    }
 	  }
+	}
+	catch (StartException ex) {
+	  StartException.handle();	
+	}
       }
-      else throw new StartException();
     }
-    catch (StartException ex) {
-      StartException.handle();	
-    }
+    else
+      doStartNewAgent(null);
   }
 }
+
 
 /** 
  * This class is useful to handle user input error
