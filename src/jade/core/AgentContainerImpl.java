@@ -65,7 +65,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private Profile myProfile;
   
   // The agent platform this container belongs to
-  private MainContainer myMain;
+  private Platform myPlatform;
 
   // The IMTP manager, used to access IMTP-dependent functionalities
   private IMTPManager myIMTPManager;
@@ -151,7 +151,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent previous = localAgents.put(agentID, instance);
     if(startIt) {
       try {
-	myMain.bornAgent(agentID, myID);
+	myPlatform.bornAgent(agentID, myID);
 	instance.powerUp(agentID, myResourceManager);
       }
       catch(NameClashException nce) {
@@ -374,7 +374,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public String installMTP(String address, String className) throws IMTPException, MTPException {
   	String result = myACC.addMTP(className, address);
-  	myMain.newMTP(result, myID);
+  	myPlatform.newMTP(result, myID);
   	return result;
   	/*
   	try {
@@ -399,7 +399,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
     myACC.removeMTP(address);
-    myMain.deadMTP(address, myID);
+    myPlatform.deadMTP(address, myID);
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
@@ -433,11 +433,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   		myIMTPManager.remotize(this);
   		
   		// Get the Main
-      myMain = myProfile.getMain();
+      myPlatform = myProfile.getPlatform();
 
       // This string will be used to build the GUID for every agent on
       // this platform.
-      platformID = myMain.getPlatformName();
+      platformID = myPlatform.getPlatformName();
 
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
@@ -460,9 +460,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID("No-Name", addr);
       
-      // Register to the platform. If myMain is the real MainContainerImpl
+      // Register to the platform. If myPlatform is the real MainContainerImpl
       // this call also starts the AMS and DF
-      myMain.register(this, myID);
+      myPlatform.register(this, myID);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
@@ -497,7 +497,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      // print the exception again. Just skip this agent
 	      continue;
 	    }
-	    myMain.bornAgent(agentID, myID);
+	    myPlatform.bornAgent(agentID, myID);
 	  }
 	  catch(IMTPException imtpe1) {
 	    imtpe1.printStackTrace();
@@ -557,7 +557,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
       // Deregister this container from the platform.
     	// If this is the Main Container this call also stop the AMS and DF
-      myMain.deregister(this);
+      myPlatform.deregister(this);
 
       // Unblock threads hung in ping() method (this will deregister the container)
       synchronized(pingLock) {
@@ -676,7 +676,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void handleEnd(AID agentID) {
     try {
       localAgents.remove(agentID);
-      myMain.deadAgent(agentID);
+      myPlatform.deadAgent(agentID);
     }
     catch(IMTPException re) {
       re.printStackTrace();
@@ -711,7 +711,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
       if(livesHere(receiverID)) {
 	// Dispatch it through the MainContainerProxy
-	myMain.dispatch(msg, receiverID);
+	myPlatform.dispatch(msg, receiverID);
       }
       else {
 	// Dispatch it through the ACC

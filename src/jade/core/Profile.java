@@ -95,7 +95,7 @@ public abstract class Profile {
   
     /**
      */
-    protected abstract MainContainer getMain() throws ProfileException;
+    protected abstract Platform getPlatform() throws ProfileException;
     
     /**
      */

@@ -23,10 +23,10 @@
 package jade.core;
 
 import java.util.List;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.ACLCodec;
-import jade.mtp.MTP;
+//import jade.lang.acl.ACLCodec;
+//import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 

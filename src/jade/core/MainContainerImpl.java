@@ -67,7 +67,7 @@ import jade.mtp.MTPException;
    @version $Date$ $Revision$
 
 */
-public class MainContainerImpl implements MainContainer, AgentManager {
+class MainContainerImpl implements Platform, AgentManager {
 
 
   // The two mandatory system agents.

@@ -24,12 +24,12 @@ package jade.core;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import jade.lang.acl.ACLMessage;
-import jade.mtp.MTP;
+//import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
-import jade.lang.acl.ACLCodec;
 
 /**
  * Light implementation of the ACC. This class simply requests the
@@ -59,9 +59,7 @@ class LightAcc implements acc {
         	}
         	ContainerID routerID = new ContainerID(routerName, null);
         	
-          MainContainer main = p.getMain();
-          router = main.lookup(routerID);
-          main = null;
+          router = p.getPlatform().lookup(routerID);
           routerID = null;
           routerName = null;
         } 
@@ -86,9 +84,9 @@ class LightAcc implements acc {
     /**
      * @see acc#getProxy()
      */
-    public AgentProxy getProxy(AID agentID) throws NotFoundException {
-        return new ACCProxy(agentID, this);
-    } 
+    //public AgentProxy getProxy(AID agentID) throws NotFoundException {
+    //    return new ACCProxy(agentID, this);
+    //} 
 
     /**
      * @see acc#addMTP()
@@ -144,6 +142,24 @@ class LightAcc implements acc {
     public void shutdown() {
         // Just do nothing
     } 
+
+    /**
+     * @see acc#dispatch()
+     */
+    public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException { 
+    	Iterator addresses = receiverID.getAllAddresses();
+    	while(addresses.hasNext()) {
+      	String address = (String)addresses.next();
+      	try {
+					forwardMessage(msg, receiverID, address);
+					return;
+      	}
+      	catch(MTPException mtpe) {
+					System.out.println("Bad address [" + address + "]: trying the next one...");
+      	}
+    	}
+    	throw new NotFoundException("No valid address contained within the AID.");
+  	}
 
 }
 

@@ -53,7 +53,7 @@ public class ProfileImpl extends Profile {
   private LEAPProperties  props = new LEAPProperties();
 
 
-  private MainContainer   myMain = null;
+  private Platform        myPlatform = null;
   private IMTPManager     myIMTPManager = null;
   private acc             myACC = null;
   private MobilityManager myMobilityManager = null;
@@ -144,12 +144,12 @@ public class ProfileImpl extends Profile {
 
   /**
    */
-  protected MainContainer getMain() throws ProfileException {
-    if (myMain == null) {
-      createMain();
+  protected Platform getPlatform() throws ProfileException {
+    if (myPlatform == null) {
+      createPlatform();
     } 
 
-    return myMain;
+    return myPlatform;
   } 
 
   /**
@@ -209,18 +209,16 @@ public class ProfileImpl extends Profile {
    *
    * @see
    */
-  private void createMain() throws ProfileException {
+  private void createPlatform() throws ProfileException {
   	try {
 	    String isMain = props.getProperty(MAIN);
   	  if (isMain == null || isMain.equalsIgnoreCase("true")) {
     	  // The real Main
-      	myMain = new MainContainerImpl(this);
-
-      	//myIMTPManager.remotize(myMain);
+      	myPlatform = new MainContainerImpl(this);
     	} 
     	else {
-      	// A proxy to the main
-      	myMain = new MainContainerProxy(this);
+      	// A proxy to the Main
+      	myPlatform = new MainContainerProxy(this);
     	}
   	}
   	catch (IMTPException imtpe) {

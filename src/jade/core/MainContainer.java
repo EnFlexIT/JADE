@@ -32,11 +32,11 @@ import jade.lang.acl.ACLMessage;
 
 public interface MainContainer {
 
-    void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException;
+    //void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException;
 
-    void deregister(AgentContainer ac) throws IMTPException;
+    //void deregister(AgentContainer ac) throws IMTPException;
 
-    void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
+    //void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
 
     String getPlatformName() throws IMTPException;
 

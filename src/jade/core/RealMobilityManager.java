@@ -252,7 +252,7 @@ class RealMobilityManager implements MobilityManager {
                     throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
                 } 
 
-                AgentContainer dest = myProfile.getMain().lookup((ContainerID)where);
+                AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
                 Agent          a = localAgents.get(agentID);
 
                 if (a == null) {
@@ -287,7 +287,7 @@ class RealMobilityManager implements MobilityManager {
                 dest.createAgent(agentID, bytes, classSite, AgentContainer.NOSTART);
 
                 // Perform an atomic transaction for agent identity transfer
-                boolean transferResult = myProfile.getMain().transferIdentity(agentID, 
+                boolean transferResult = myProfile.getPlatform().transferIdentity(agentID, 
                         (ContainerID) myContainer.here(), (ContainerID) where);
                         
                 List    messages = new ArrayList();
@@ -348,7 +348,7 @@ class RealMobilityManager implements MobilityManager {
                 throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
             } 
 
-            AgentContainer dest = myProfile.getMain().lookup((ContainerID) where);
+            AgentContainer dest = myProfile.getPlatform().lookup((ContainerID) where);
             Agent          a = localAgents.get(agentID);
 
             if (a == null) {

@@ -33,7 +33,7 @@ import jade.lang.acl.ACLMessage;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-class MainContainerProxy implements MainContainer {
+class MainContainerProxy implements Platform {
 
     private static final int CACHE_SIZE = 10;
 
