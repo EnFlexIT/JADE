@@ -95,12 +95,9 @@ public class FIPAAgentManagementOntology {
   // Refusal Exception Propositions
   public static final String UNAUTHORISED = "unauthorised";
   public static final String UNSUPPORTEDFUNCTION = "unsupported-function";
-  public static final String MISSINGARGUMENT = "missing-argument";
-  public static final String UNEXPECTEDARGUMENT = "unexpected-argument";
-  public static final String UNEXPECTEDARGUMENTCOUNT = "unexpected-argument-count";
   public static final String MISSINGPARAMETER = "missing-parameter";
   public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
-	public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
+public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
 
   // Failure Exception Propositions
   public static final String ALREADYREGISTERED = "already-registered";
@@ -296,26 +293,6 @@ public class FIPAAgentManagementOntology {
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new UnsupportedFunction(); } 
 	     public Class getClassForRole() { return UnsupportedFunction.class; }
-	   });
-
-	theInstance.addRole(MISSINGARGUMENT, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new MissingArgument(); } 
-	     public Class getClassForRole() { return MissingArgument.class; }
-	   });
-
-	theInstance.addRole(UNEXPECTEDARGUMENT, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnexpectedArgument(); }
-	     public Class getClassForRole() { return UnexpectedArgument.class;}
-	   });
-
-	theInstance.addRole(UNEXPECTEDARGUMENTCOUNT, new SlotDescriptor[] {
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new UnexpectedArgumentCount(); }
-	     public Class getClassForRole() { return UnexpectedArgumentCount.class;}
 	   });
 
 	theInstance.addRole(MISSINGPARAMETER, new SlotDescriptor[] {

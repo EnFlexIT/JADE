@@ -29,7 +29,10 @@ public class UnrecognisedValue extends NotUnderstoodException {
   public UnrecognisedValue() {
     super("Unrecognised value");
   }
-
+public UnrecognisedValue(String value) {
+  this();
+  s=value;
+}
 String s;
 public void set_0(String a){s=a;}
 public String get_0() {return s;}
