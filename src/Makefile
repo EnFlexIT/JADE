@@ -34,6 +34,7 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
 		jade/proto/FipaContractNetResponderBehaviour.java \
+		jade/proto/FipaQueryInitiatorBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java
