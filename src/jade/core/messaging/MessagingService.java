@@ -378,7 +378,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    // FIXME: the content is not completely correct, but that should
 	    // also avoid creating wrong content
 	    String content = "( (action " + msg.getSender().toString();
-	    content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
+	    content = content + " (ACLMessage) ) (MTS-error "+receiver+" "+ie.getMessage() + ") )";
 	    failure.setContent(content);
 
       try {
