@@ -26,6 +26,7 @@ package jade.content.schema;
 
 import jade.content.onto.*;
 import jade.content.abs.AbsObject;
+import jade.util.leap.Serializable;
 
 /**
  * Represent a generic Facet (i.e. a constraint on the possible 
@@ -33,7 +34,7 @@ import jade.content.abs.AbsObject;
  * an ontological element.
  * @author Giovanni Caire - TILAB
  */
-public interface Facet {
+public interface Facet extends Serializable {
 	/**
 	   Check whether a given value for the slot this Facet applies
 	   to is valid.

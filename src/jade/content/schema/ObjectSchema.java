@@ -31,12 +31,13 @@ import java.util.Vector;
 import java.util.Enumeration;
 import jade.content.schema.facets.*;
 import jade.core.CaseInsensitiveString;
+import jade.util.leap.Serializable;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
-public abstract class ObjectSchema {
+public abstract class ObjectSchema implements Serializable {
     /** 
        Canstant value indicating that a slot in a schema is mandatory,
        i.e. its value must not be null

@@ -31,12 +31,13 @@ import java.util.Vector;
 import java.util.Enumeration;
 import jade.content.schema.facets.*;
 import jade.core.CaseInsensitiveString;
+import jade.util.leap.Serializable;
 
 /**
  * @author Giovanni Caire - TILAB
  */
 class ObjectSchemaImpl extends ObjectSchema {
-    private class SlotDescriptor {
+    private class SlotDescriptor implements Serializable {
         private String       name = null;
         private ObjectSchema schema = null;
         private int          optionality = 0;

@@ -32,6 +32,7 @@ import jade.content.abs.AbsObject;
 import jade.content.schema.ObjectSchema;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
+import jade.util.leap.Serializable;
 import jade.core.CaseInsensitiveString;
 
 /**
@@ -147,7 +148,7 @@ import jade.core.CaseInsensitiveString;
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
-public class Ontology {
+public class Ontology implements Serializable {
 		private static final String DEFAULT_INTROSPECTOR_CLASS = "jade.content.onto.ReflectiveIntrospector";
     private Ontology[]   base = new Ontology[0];
     private String       name = null;

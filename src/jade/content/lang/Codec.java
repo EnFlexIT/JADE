@@ -27,12 +27,13 @@ package jade.content.lang;
 import jade.content.onto.*;
 import jade.content.abs.*;
 import jade.util.WrapperException;
+import jade.util.leap.Serializable;
 
 /**
  * Generic base class for al content language codecs
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class Codec {
+public abstract class Codec implements Serializable {
 
     /**
      * Class CodecException.

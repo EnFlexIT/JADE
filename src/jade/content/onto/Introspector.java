@@ -26,11 +26,12 @@ package jade.content.onto;
 
 import jade.content.abs.*;
 import jade.content.schema.*;
+import jade.util.leap.Serializable;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface Introspector {
+public interface Introspector extends Serializable {
 
     /**
      * Translate an object of a class representing an element in an
