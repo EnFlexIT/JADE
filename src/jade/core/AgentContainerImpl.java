@@ -48,9 +48,13 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Set;
 
-import jade.lang.acl.*;
+import jade.lang.acl.ACLMessage;
+
 import jade.domain.MobilityOntology;
-import jade.mtp.*;
+
+import jade.mtp.MTP;
+import jade.mtp.MTPException;
+import jade.mtp.TransportAddress;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -381,7 +385,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       iae.printStackTrace();
       return null;
     }
-    catch(MTP.MTPException mtpe) {
+    catch(MTPException mtpe) {
       System.out.println("ERROR: Could not initialize MTP from class " + className + "!!!");
       mtpe.printStackTrace();
       return null;
@@ -389,7 +393,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void uninstallMTP(String address) throws RemoteException, NotFoundException {
-    // FIXME: To be implemented
+    try {
+      theACC.removeMTP(address);
+      myPlatform.deadMTP(address, myName);
+    }
+    catch(MTPException mtpe) {
+      throw new NotFoundException("The specified MTP was not present in the ACC");
+    }
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException {
@@ -404,10 +414,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   }
 
-  public void route(Object env, byte[] payload, String address) throws RemoteException, NotFoundException {
-    boolean ok = theACC.routeMessage(env, payload, address);
-    if(!ok)
-      throw new NotFoundException("MTP not found on this container.");
+  public void route(Object env, byte[] payload, String address) throws RemoteException, MTPException {
+    theACC.forwardMessage((jade.domain.FIPAAgentManagement.Envelope)env, payload, address);
   }
 
   public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs) {
@@ -512,6 +520,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void shutDown() {
+
+    // Close all MTP links to the outside world
+    theACC.shutdown();
+
     // Shuts down the Timer Dispatcher
     Agent.stopDispatcher();
 
@@ -530,9 +542,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     synchronized(pingLock) {
       pingLock.notifyAll();
     }
-
-    // Now, close all MTP links to the outside world
-    theACC.shutdown();
 
   }
 

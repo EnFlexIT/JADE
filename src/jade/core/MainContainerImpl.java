@@ -456,6 +456,9 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // other agent containers exit.
   public void shutDown() {
 
+    // Close all MTP links to the outside world
+    theACC.shutdown();
+
     // Deregister yourself as a container
     containers.removeContainer(MAIN_CONTAINER_NAME);
 
@@ -499,8 +502,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     systemAgent.resetToolkit();
     removeListener(theAMS);
 
-    // Now, close all MTP links to the outside world
-    theACC.shutdown();
   }
 
   // These methods dispatch agent management operations to
@@ -600,18 +601,55 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
       // To avoid additions/removals of containers during MTP tables update
       synchronized(containers) {
+
+	// Add the new MTP to the routing tables of all the containers. 
 	AgentContainer[] allContainers = containers.containers();
 	for(int i = 0; i < allContainers.length; i++) {
 	  AgentContainer ac = allContainers[i];
-	  ac.updateRoutingTable(ADD_RT, mtpAddress, target);
+	  // Skip target container
+	  if(ac != target)
+	    ac.updateRoutingTable(ADD_RT, mtpAddress, target);
 	}
 
       }
+
+      // Notify listeners (typically the AMS)
       postNewAddress(mtpAddress);
     }
     catch(NotFoundException nfe) {
+      System.out.println("Error: the container " + containerName + " was not found.");
+    }
+  }
+
+  public void deadMTP(String mtpAddress, String containerName) throws RemoteException {
+    try {
+      platformAddresses.remove(mtpAddress);
+      containers.removeAddress(containerName, mtpAddress);
+      AgentContainer target = containers.getContainer(containerName);
+
+      // To avoid additions/removals of containers during MTP tables update
+      synchronized(containers) {
+
+	// Remove the dead MTP from the routing tables of all the containers. 
+	AgentContainer[] allContainers = containers.containers();
+	for(int i = 0; i < allContainers.length; i++) {
+	  AgentContainer ac = allContainers[i];
+	  // Skip target container
+	  if(ac != target)
+	    ac.updateRoutingTable(DEL_RT, mtpAddress, target);
+	}
+
+      }
+
+      // Notify listeners (typically the AMS)
+      postDeadAddress(mtpAddress);
+
+    }
+    catch(NotFoundException nfe) {
+      System.out.println("Error: the container " + containerName + " was not found.");
       nfe.printStackTrace();
     }
+
   }
 
   public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException {
