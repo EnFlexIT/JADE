@@ -67,7 +67,7 @@ public class Runtime {
   static {
     theInstance = new Runtime();
   }
-
+ 
   //#MIDP_EXCLUDE_BEGIN
   private ThreadGroup criticalThreads;
   //#MIDP_EXCLUDE_END
