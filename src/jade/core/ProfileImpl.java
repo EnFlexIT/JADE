@@ -45,7 +45,7 @@ import java.util.Hashtable;
  * 
  * @author  Federico Bergenti
  * @author  Giovanni Caire - TILAB
- * @author  Giovanni Rimassa - Universita` di Parma
+ * @author  Giovanni Rimassa - Universita' di Parma
  * @version 1.0, 22/11/00
  * 
  */
@@ -68,10 +68,11 @@ public class ProfileImpl extends Profile {
   public static final String MOBILITYMGRCLASSNAME = "mobility";
 
 
+  private ServiceManager myServiceManager = null;
+  private ServiceFinder myServiceFinder = null;
+  private CommandProcessor myCommandProcessor = null;
   private Platform        myPlatform = null;
   private IMTPManager     myIMTPManager = null;
-  private acc             myACC = null;
-  private MobilityManager myMobilityManager = null;
   private NotificationManager myNotificationManager = null;
   private ResourceManager myResourceManager = null;
 
@@ -195,6 +196,44 @@ public class ProfileImpl extends Profile {
   } 
 
 
+  /**
+     Access the platform service manager.
+     @return The platform service manager, either the real
+     implementation or a remote proxy object.
+     @throws ProfileException If some needed information is wrong or
+     missing from the profile.
+  */
+  protected ServiceManager getServiceManager() throws ProfileException {
+      if(myServiceManager == null) {
+	  createServiceManager();
+      }
+
+      return myServiceManager;
+  }
+
+  /**
+     Access the platform service finder.
+     @return The platform service finder, either the real
+     implementation or a remote proxy object.
+     @throws ProfileException If some needed information is wrong or
+     missing from the profile.
+  */
+  protected ServiceFinder getServiceFinder() throws ProfileException {
+      if(myServiceFinder == null) {
+	  createServiceFinder();
+      }
+
+      return myServiceFinder;
+  }
+
+  protected CommandProcessor getCommandProcessor() throws ProfileException {
+      if(myCommandProcessor == null) {
+	  createCommandProcessor();
+      }
+
+      return myCommandProcessor;
+  }
+
 
   /**
    */
@@ -214,31 +253,11 @@ public class ProfileImpl extends Profile {
     } 
 
     return myIMTPManager;
-  } 
+  }
 
   /**
    */
-  protected acc getAcc() throws ProfileException {
-    if (myACC == null) {
-      createACC();
-    } 
-
-    return myACC;
-  } 
-
-  /**
-   */
-  protected MobilityManager getMobilityManager() throws ProfileException {
-    if (myMobilityManager == null) {
-      createMobilityManager();
-    } 
-
-    return myMobilityManager;
-  } 
-
-  /**
-   */
-  protected ResourceManager getResourceManager() throws ProfileException {
+  public ResourceManager getResourceManager() throws ProfileException {
     if (myResourceManager == null) {
       createResourceManager();
     } 
@@ -282,6 +301,67 @@ public class ProfileImpl extends Profile {
 
 
 
+    private void createServiceManager() throws ProfileException {
+	try {
+	    // Make sure the IMTP manager is initialized
+	    myIMTPManager = getIMTPManager();
+
+	    // Make sure the Command Processor is initialized
+	    myCommandProcessor = getCommandProcessor();
+
+	    String isMain = props.getProperty(MAIN);
+	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+		// This is a main container: create a real Service Manager and export it
+		myServiceManager = new ServiceManagerImpl(this);
+		myIMTPManager.exportServiceManager(myServiceManager);
+	    }
+	    else {
+		// This is a peripheral container: create a Service Manager Proxy
+		myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
+	    }
+	}
+	catch(IMTPException imtpe) {
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    pe.initCause(imtpe);
+	    throw pe;
+	}
+    }
+
+    private void createServiceFinder() throws ProfileException {
+	try {
+	    // Make sure the IMTP manager is initialized
+	    myIMTPManager = getIMTPManager();
+
+	    String isMain = props.getProperty(MAIN);
+	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+		// This is a main container: use the real
+		// implementation of the Service Manager as the
+		// service finder.
+		myServiceFinder = (ServiceFinder)myServiceManager;
+	    }
+	    else {
+		// This is a peripheral container: create a Service Finder Proxy
+		myServiceFinder = myIMTPManager.createServiceFinderProxy();
+	    }
+	}
+	catch(IMTPException imtpe) {
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    pe.initCause(imtpe);
+	    throw pe;
+	}
+    }
+
+
+    private void createCommandProcessor() throws ProfileException {
+	try {
+	    myCommandProcessor = new CommandProcessor();
+	}
+	catch(Exception e) {
+	    ProfileException pe = new ProfileException("Exception creating the Command Processor");
+	    pe.initCause(e);
+	    throw pe;
+	}
+    }
 
 
   /**
@@ -327,44 +407,6 @@ public class ProfileImpl extends Profile {
       e.printStackTrace();
 
       throw new ProfileException("Error loading IMTPManager class "+className);
-    } 
-  } 
-
-  /**
-   * Method declaration
-   *
-   * @throws ProfileException
-   *
-   * @see
-   */
-  private void createACC() throws ProfileException {
-    // Use the Full ACC by default
-    String className = new String("jade.core.FullAcc");
-    try {
-      myACC = (acc) Class.forName(className).newInstance();
-    } 
-    catch (Exception e) {
-      throw new ProfileException("Error loading acc class "+className);
-    } 
-  } 
-
-  /**
-   * Method declaration
-   *
-   * @throws ProfileException
-   *
-   * @see
-   */
-  private void createMobilityManager() throws ProfileException {
-     
-      String className = getParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
-      // default is real mobility manager
-   
-    try {
-      myMobilityManager = (MobilityManager) Class.forName(className).newInstance();
-    } 
-    catch (Exception e) {
-      throw new ProfileException("Error loading MobilityManager class "+className);
     } 
   } 
 

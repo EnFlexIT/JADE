@@ -40,4 +40,14 @@ public class UnreachableException extends Exception {
     super(msg);
   }
 
+  /**
+    Construct an <code>UnreachableException</code> with the given
+    message and exception cause.
+    @param msg The exception message.
+    @param t The <code>Throwable</code> tht caused this exception.
+  */
+  public UnreachableException(String msg, Throwable t) {
+    super(msg, t);
+  }
+
 }

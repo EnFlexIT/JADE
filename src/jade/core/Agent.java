@@ -83,7 +83,7 @@ import javax.microedition.midlet.*;
    <code>Agent</code> subclasses, adding specific behaviours as needed
    and exploiting <code>Agent</code> class capabilities.
    
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class Agent implements Runnable, Serializable, TimerListener {
@@ -283,7 +283,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   /**
      Represents the <code>copy</code> agent state.
   */
-  static final int AP_COPY = 8;
+  public static final int AP_COPY = 8;
 
   /**
      Represents the <code>gone</code> agent state. This is the state

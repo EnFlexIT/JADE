@@ -42,17 +42,17 @@ class ContainerTable {
   private static final int CONTAINERS_SIZE = 10;
 
   private static class Entry {
-    private AgentContainer container;
+    private Node node;
     private List mtps = new LinkedList();
     private ContainerPrincipal principal;
 
-    public Entry(AgentContainer ac) {
-      container = ac;
+    public Entry(Node n) {
+      node = n;
       principal = null;
     }
 
-    public Entry(AgentContainer ac, ContainerPrincipal cp) {
-      container = ac;
+    public Entry(Node n, ContainerPrincipal cp) {
+      node = n;
       principal = cp;
     }
 
@@ -72,8 +72,8 @@ class ContainerTable {
       return principal;
     }
 
-    public AgentContainer getContainer() {
-      return container;
+    public Node getNode() {
+      return node;
     }
 
     public List getMTPs() {
@@ -86,13 +86,13 @@ class ContainerTable {
   private Map entries = new HashMap(CONTAINERS_SIZE);
 
 
-  public synchronized void addContainer(ContainerID cid, AgentContainer ac) {
-    Entry e = new Entry(ac);
+  public synchronized void addContainer(ContainerID cid, Node n) {
+    Entry e = new Entry(n);
     entries.put(cid, e);
   }
 
-  public synchronized void addContainer(ContainerID cid, AgentContainer ac, ContainerPrincipal cp) {
-    Entry e = new Entry(ac, cp);
+  public synchronized void addContainer(ContainerID cid, Node n, ContainerPrincipal cp) {
+    Entry e = new Entry(n, cp);
     entries.put(cid, e);
   }
 
@@ -118,11 +118,11 @@ class ContainerTable {
     l.remove(mtp);
   }
 
-  public synchronized AgentContainer getContainer(ContainerID cid) throws NotFoundException {
+  public synchronized Node getContainerNode(ContainerID cid) throws NotFoundException {
     Entry e = (Entry)entries.get(cid);
     if(e == null)
       throw new NotFoundException("No container named " + cid.getName() + " was found.");
-    return e.getContainer();
+    return e.getNode();
   }
 
   public synchronized void setPrincipal(ContainerID cid, ContainerPrincipal cp) throws NotFoundException {
@@ -150,13 +150,13 @@ class ContainerTable {
     return entries.size();
   }
 
-  public synchronized AgentContainer[] containers() {
-    AgentContainer[] result = new AgentContainer[entries.size()];
+  public synchronized Node[] containers() {
+    Node[] result = new Node[entries.size()];
     Iterator it = entries.values().iterator();
     int i = 0;
     while(it.hasNext()) {
       Entry e = (Entry)it.next();
-      result[i++] = e.getContainer();
+      result[i++] = e.getNode();
     }
     return result;
   }

@@ -32,27 +32,45 @@ import jade.security.CertificateFolder;
 
 /**
    Hold all information about an agent
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
 */
 
 class AgentDescriptor {
-	private AMSAgentDescription description;
-  private AgentProxy proxy;
-  private ContainerID containerID;
-  private AgentPrincipal principal;
-	private CertificateFolder amsDelegation;
 
-	// AMS description
-  public void setDescription(AMSAgentDescription dsc) {
-    description = dsc;
-  }
+    public static final boolean NATIVE_AGENT = false;
+    public static final boolean FOREIGN_AGENT = true;
 
-  public AMSAgentDescription getDescription() {
-    return description;
-  }
 
+
+    private AMSAgentDescription description;
+    //  private AgentProxy proxy;
+    private boolean foreign;
+    private ContainerID containerID;
+    private AgentPrincipal principal;
+    private CertificateFolder amsDelegation;
+
+
+    public AgentDescriptor() {
+	this(NATIVE_AGENT);
+    }
+
+    public AgentDescriptor(boolean isForeign) {
+	foreign = isForeign;
+    }
+
+    // AMS description
+    public void setDescription(AMSAgentDescription dsc) {
+	description = dsc;
+    }
+
+    public AMSAgentDescription getDescription() {
+	return description;
+    }
+
+
+    /**
   // Agent proxy
   public void setProxy(AgentProxy rp) {
     proxy = rp;
@@ -61,31 +79,45 @@ class AgentDescriptor {
   public AgentProxy getProxy() {
     return proxy;
   }
+    **/
 
-  // Container ID
-  public void setContainerID(ContainerID cid) {
-    containerID = cid;
-  }
 
-  public ContainerID getContainerID() {
-    return containerID;
-  }
+    // Is this agent a foreign agent?
+    public boolean isForeign() {
+	return foreign;
+    }
 
-  // Agent principal
-  public void setPrincipal(AgentPrincipal p) {
-    principal = p;
-  }
 
-  public AgentPrincipal getPrincipal() {
-    return principal;
-  }
+    // Is this agent a native agent?
+    public boolean isNative() {
+	return !foreign;
+    }
 
-  // AMS delegation
-  public void setAMSDelegation(CertificateFolder cf) {
-    amsDelegation = cf;
-  }
+    // Container ID
+    public void setContainerID(ContainerID cid) {
+	containerID = cid;
+    }
 
-  public CertificateFolder getAMSDelegation() {
-    return amsDelegation;
-  }
+    public ContainerID getContainerID() {
+	return containerID;
+    }
+
+    // Agent principal
+    public void setPrincipal(AgentPrincipal p) {
+	principal = p;
+    }
+
+    public AgentPrincipal getPrincipal() {
+	return principal;
+    }
+
+    // AMS delegation
+    public void setAMSDelegation(CertificateFolder cf) {
+	amsDelegation = cf;
+    }
+
+    public CertificateFolder getAMSDelegation() {
+	return amsDelegation;
+    }
+
 }

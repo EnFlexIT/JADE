@@ -23,46 +23,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.lang.acl.ACLMessage;
-
-import jade.mtp.MTPDescriptor;
-
-//__SECURITY__BEGIN
-import jade.security.AgentPrincipal;
-import jade.security.ContainerPrincipal;
-import jade.security.AuthException;
-import jade.security.JADECertificate;
-import jade.security.IdentityCertificate;
-import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
-//__SECURITY__END
-
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+   @author Giovanni Rimassa - Universita' di Parma
+   @version $Date$ $Revision$
 */
 
 public interface MainContainer {
 
-    //void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException;
-
-    //void deregister(AgentContainer ac) throws IMTPException;
-
-    //void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
-
+    /***
     String getPlatformName() throws IMTPException;
 
-    String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException;
-    void removeContainer(ContainerID cid) throws IMTPException;
-
-    AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
-
-    void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException;
-    void deadAgent(AID name) throws IMTPException, NotFoundException;
-
-    void suspendedAgent(AID name) throws IMTPException, NotFoundException;
-    void resumedAgent(AID name) throws IMTPException, NotFoundException;
+    //    String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException;
+    //    void removeContainer(ContainerID cid) throws IMTPException;
 
 //__SECURITY__BEGIN
     void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException;
@@ -72,11 +45,6 @@ public interface MainContainer {
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END
 
-    void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
-    void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
-
-    boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException;
-
-    AgentProxy getProxy(AID id) throws IMTPException, NotFoundException;
+    ***/
 
 }

@@ -50,7 +50,7 @@ import jade.util.Logger;
    creating and killing agents), but is the only one supported both 
    in J2SE, PersonalJava and MIDP when using the LEAP add-on. 
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @author Giovanni Caire - TILAB
  */
 public class Runtime {

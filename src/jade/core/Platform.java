@@ -40,11 +40,11 @@ import jade.security.AuthException;
    @see MainContainerProxy
    @author Giovanni Caire - TILAB
  */
-interface Platform extends MainContainer {
+interface Platform extends MainContainer { // FIXME: The interface extension must be removed
 
-	void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException;
+    void addLocalContainer(NodeDescriptor desc) throws IMTPException, AuthException;
+    void removeLocalContainer() throws IMTPException;
 
-  void deregister(AgentContainer ac) throws IMTPException;
+    void startSystemAgents(AgentContainerImpl ac) throws IMTPException, NotFoundException, AuthException;
 
-  void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException;
-}	
+}

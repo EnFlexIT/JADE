@@ -90,7 +90,7 @@ class RealNotificationManager implements NotificationManager {
       tn = new ToolNotifier(snifferName);
       AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
-	      myContainer.initAgent(id, tn, AgentContainer.START);
+	      myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
   	    addMessageListener(tn);
       }
       catch (Exception e) {
@@ -134,7 +134,7 @@ class RealNotificationManager implements NotificationManager {
     	tn = new ToolNotifier(debuggerName);
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
-	      myContainer.initAgent(id, tn, AgentContainer.START);
+	      myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
 	      if (toBeDebugged.equals(myContainer.getAMS())) {
 	      	// If we are debugging the AMS, let's wait for the ToolNotifier 
 	      	// be ready to avoid deadlock problems. Note also that in 

@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -130,6 +131,32 @@ public abstract class Profile {
      * should be put. The defaul value is the current directory.
      **/
     public static final String FILE_DIR = "file-dir";
+
+    /**
+       Obtain a reference to the platform <i>Service Manager</i>, with
+       which kernel-level services can be added and removed.
+       @return A <code>ServiceManager</code> object, representing the
+       platform service manager.
+     */
+    protected abstract ServiceManager getServiceManager() throws ProfileException;
+
+    /**
+       Obtain a reference to the platform <i>Service Finder</i>, with
+       which kernel-level services can be looked up.
+       @return A <code>ServiceFinder</code> object, representing the
+       platform service manager.
+    */
+    protected abstract ServiceFinder getServiceFinder() throws ProfileException;
+
+    /**
+       Obtain a reference to the container <i>Command Processor</i>,
+       which manages kernel-level commands dispatching them to the
+       proper platform services.
+       @return A <code>ServiceManager</code> object, representing the
+       platform service manager.
+     */
+    protected abstract CommandProcessor getCommandProcessor() throws ProfileException;
+
     /**
      */
     protected abstract Platform getPlatform() throws ProfileException;
@@ -140,15 +167,7 @@ public abstract class Profile {
     
     /**
      */
-    protected abstract acc getAcc() throws ProfileException;
-
-    /**
-     */
-    protected abstract MobilityManager getMobilityManager() throws ProfileException;
-
-    /**
-     */
-    protected abstract ResourceManager getResourceManager() throws ProfileException;
+    public abstract ResourceManager getResourceManager() throws ProfileException;
 
     /**
      */

@@ -23,47 +23,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.util.leap.List;
-
-import jade.lang.acl.ACLMessage;
-
-import jade.mtp.MTPDescriptor;
-import jade.mtp.MTPException;
-
-//__SECURITY__BEGIN
-import jade.security.AuthException;
-import jade.security.AgentPrincipal;
-import jade.security.ContainerPrincipal;
-import jade.security.IdentityCertificate;
-import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
-//__SECURITY__END
-
 /**
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 */
 
 public interface AgentContainer {
 
-  static final boolean NOSTART = false;
-  static final boolean START = true;
-
-  static final boolean TRANSFER_ABORT = false;
-  static final boolean TRANSFER_COMMIT = true;
-
-  static final int ADD_RT = 1;
-  static final int DEL_RT = 2;
-
-  void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException;
-  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException, AuthException;
-  byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
-
-  void suspendAgent(AID agentID) throws IMTPException, NotFoundException;
-  void resumeAgent(AID agentID) throws IMTPException, NotFoundException;
-
-  void waitAgent(AID agentID) throws IMTPException, NotFoundException;
-  void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
+    /***
 
 //__SECURITY__BEGIN
   void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException;
@@ -71,21 +38,7 @@ public interface AgentContainer {
   void changeContainerPrincipal(CertificateFolder certs) throws IMTPException;
 //__SECURITY__END
 
-  void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
-  void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;
-
-  void killAgent(AID agentID) throws IMTPException, NotFoundException;
   void exit() throws IMTPException;
-
-  void postTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;
-  void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException;
-  void ping(boolean hang) throws IMTPException;
-
-  MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException;
-  void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException;
-
-  void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException;
-  void routeOut(ACLMessage msg, AID receiver, String address) throws IMTPException, MTPException;
 
   void enableSniffer(AID snifferName , AID toBeSniffed) throws IMTPException;
   void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException;
@@ -93,4 +46,5 @@ public interface AgentContainer {
   void enableDebugger(AID debuggerName , AID toBeDebugged) throws IMTPException;
   void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException;
 
+    ***/
 }

@@ -29,7 +29,7 @@ package jade.core;
    @see FullResourceManager
    @author Giovanni Caire - TILAB
  */
-interface ResourceManager {
+public interface ResourceManager {
 	// Constants identifying the types of Thread that can be 
 	// requested to the ResourceManager 
 	public static final int USER_AGENTS = 0;
