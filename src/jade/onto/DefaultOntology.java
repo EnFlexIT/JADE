@@ -49,7 +49,7 @@ import jade.core.CaseInsensitiveString;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-public final class DefaultOntology implements Ontology {
+public class DefaultOntology implements Ontology {
 
 	private Map schemas;
   private Map roleClasses;
@@ -174,7 +174,8 @@ public final class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#createFrame(Object o, String roleName)
   */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
-    Class theRoleClass = getClassForRole(roleName);
+    System.out.println("Object is "+o+", role is "+roleName);
+  	Class theRoleClass = getClassForRole(roleName);
     if (theRoleClass == null)
       throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
     if(!theRoleClass.isInstance(o))
@@ -939,12 +940,12 @@ public final class DefaultOntology implements Ontology {
     try {
 			c = getClassForRole(f.getName());
 			Object obj = c.newInstance();
-			if (obj instanceof jade.domain.MobilityOntology.BCLocation) {
-				return ((jade.domain.MobilityOntology.BCLocation) obj).toCid();
-			}
-			else {
-				return obj;
-			}
+			// PATCH to deal with Location and ContainerID consistently with 
+			// the new ontology support
+			/*if (obj instanceof jade.domain.MobilityOntology.BCLocation) {
+				obj = ((jade.domain.MobilityOntology.BCLocation) obj).toCid();
+			}*/
+			return obj;
     } catch (Exception e) {
     	System.out.println("Error instantiating class "+c+". "+e.getMessage());
       throw new OntologyException(e.getMessage()); 
