@@ -1,8 +1,6 @@
 package jade.lang;
 
 import jade.onto.Frame;
-import jade.onto.Action;
-import jade.onto.Predicate;
 
 /**
    Interface for Content Language encoders/decoders. This interface
@@ -11,13 +9,7 @@ import jade.onto.Predicate;
  */
 public interface Codec {
 
-  String encodeConcept(Frame f);
-  Frame decodeConcept(String s);
-
-  String encodeAction(Action a);
-  Action decodeAction(String s);
-
-  String encodeProposition(Predicate p);
-  Predicate decodeProposition(String s);
+  String encode(Frame f);
+  Frame decode(String s);
 
 }
