@@ -24,8 +24,8 @@ package jade.util;
 //#J2ME_EXCLUDE_FILE
 
 // DO NOT ADD ANY IMPORTS FOR CLASSES NOT DEFINED IN J2ME CLDC!
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Date;
 
@@ -38,6 +38,8 @@ import java.io.Writer;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.io.EOFException;
+
+import jade.util.leap.Properties;
 
 /**
  * Provides the foundation class for property management. It
@@ -83,9 +85,8 @@ import java.io.EOFException;
  * To substitute the value of a key in a value use the format <b><tt>${key}</tt></b>.
  * @author Dick Cowan - HP Labs
  */
-public class BasicProperties {
+public class BasicProperties extends Properties {
 
-    Hashtable properties = null;
     boolean CRState = false;
     Hashtable keyNames = null;  // for detecting circular definitions
     Vector sortVector = null;   // only used by sortedKeys
@@ -103,7 +104,6 @@ public class BasicProperties {
      * Construct empty property collection.
      */
     public BasicProperties() {
-        properties = new Hashtable();
     }
 
     /**
@@ -144,17 +144,13 @@ public class BasicProperties {
         writer.write(lineSeparator);
         for (Enumeration e = sortedKeys(); e.hasMoreElements();) {
             String key = (String)e.nextElement();
-            Object data = properties.get(key);
+            Object data = super.get(key);
             if (data != null) {
                 writer.write(key + "=" + data.toString());
                 writer.write(lineSeparator);
             }
         }
         writer.flush();
-    }
-
-    public Enumeration keys() {
-        return properties.keys();
     }
 
     /**
@@ -167,7 +163,7 @@ public class BasicProperties {
         } else {
             sortVector.clear();
         }
-        for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
+        for (Enumeration e = super.keys(); e.hasMoreElements(); ) {
             String key = (String) e.nextElement();
             int i = 0;
             while (i < sortVector.size()) {
@@ -387,7 +383,7 @@ public class BasicProperties {
     public synchronized void copyProperties(BasicProperties source) {
         for (Enumeration e = source.keys(); e.hasMoreElements(); ) {
             String key = (String)e.nextElement();
-            properties.put(key, source.getRawProperty(key));
+            super.put(key, source.getRawProperty(key));
         }
     }
 
@@ -400,7 +396,7 @@ public class BasicProperties {
      */
     public synchronized BasicProperties extractSubset(String anArgPrefix) {
         BasicProperties result = new BasicProperties();
-        for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
+        for (Enumeration e = super.keys(); e.hasMoreElements(); ) {
             String originalKey = (String) e.nextElement();
             String newKey = null;
 
@@ -431,9 +427,9 @@ public class BasicProperties {
         if (testKey.length() == 0) {
             return null;
         }        
-        Object data = properties.get(testKey);
+        Object data = super.get(testKey);
         if (data == null) {
-            data = properties.get(testKey + "!" );
+            data = super.get(testKey + "!" );
         }
         return data;
     }        
@@ -448,10 +444,10 @@ public class BasicProperties {
     public Object put(String aKey, Object aValue) {
         String actualKey = doSubstitutions(aKey);
         String testKey = (actualKey.endsWith("!")) ? actualKey.substring(0, actualKey.length()) : actualKey;
-        if (properties.containsKey(testKey + "!")) {
+        if (super.containsKey(testKey + "!")) {
             throw new PropertiesException("Attempt to alter read only property:" + testKey);
         }
-        return properties.put(actualKey, aValue);
+        return super.put(actualKey, aValue);
     }        
 
     /**
@@ -475,13 +471,13 @@ public class BasicProperties {
     public Object setProperty(String aKey, String aValue) {
         String actualKey = doSubstitutions(aKey);
         String testKey = (actualKey.endsWith("!")) ? actualKey.substring(0, actualKey.length()) : actualKey;
-        if (properties.containsKey(testKey + "!")) {
+        if (super.containsKey(testKey + "!")) {
             throw new PropertiesException("Attempt to alter read only property:" + testKey);
         }
         if (aValue == null) {
-            return properties.remove(actualKey);
+            return super.remove(actualKey);
         } else {
-            return properties.put(actualKey, aValue);
+            return super.put(actualKey, aValue);
         }
     }
 
@@ -508,7 +504,7 @@ public class BasicProperties {
      * @return The keys value with no substitutions done.
      */
     public String getRawProperty(String aKey) {
-        Object data = properties.get(aKey);
+        Object data = super.get(aKey);
 	    return (data != null) ? data.toString() : null;
     }
 
@@ -518,7 +514,7 @@ public class BasicProperties {
      * @return The key's value or null if not found.
      */
     public String getPropertyIgnoreCase(String aKey) {
-        for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
+        for (Enumeration e = super.keys(); e.hasMoreElements(); ) {
             String key = (String) e.nextElement();
 
             if (aKey.equalsIgnoreCase(key)) {
@@ -549,9 +545,9 @@ public class BasicProperties {
             throw new PropertiesException(
                 "Circular argument substitution with key: " + aKey);
         }
-        Object data = properties.get(testKey);
+        Object data = super.get(testKey);
         if (data == null) {
-            data = properties.get(testKey + "!" );
+            data = super.get(testKey + "!" );
         }
 	    String value = (data != null) ? data.toString() : null;
         if (value != null) {
@@ -662,9 +658,9 @@ public class BasicProperties {
      * was no former value associated with the new key. i.e. null => success.
      */
     public Object renameKey(String existingKey, String newKey) {
-        Object value = properties.remove(doSubstitutions(existingKey));
+        Object value = super.remove(doSubstitutions(existingKey));
         if (value != null) {
-            return properties.put(doSubstitutions(newKey), value);
+            return super.put(doSubstitutions(newKey), value);
         }
         return null;
     }
@@ -903,7 +899,7 @@ public class BasicProperties {
      * @return The resultant String[].
      */
     public String[] toStringArray() {
-        String[] result = new String[properties.size()];
+        String[] result = new String[super.size()];
         int i = 0;
         for (Enumeration e = sortedKeys(); e.hasMoreElements(); ) {
             String key = (String) e.nextElement();
