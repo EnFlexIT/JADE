@@ -58,6 +58,7 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 import jade.domain.FIPAException;
 
+import jade.content.ContentManager;
 
 /**
    The <code>Agent</code> class is the common superclass for user
@@ -1768,4 +1769,14 @@ public class Agent implements Runnable, Serializable {
     return msgQueue.iterator();
   }
 
+	private ContentManager theContentManager = new ContentManager();
+
+	/**
+	* Retrieves the content manager 
+	*
+	* @return The content manager.
+	*/
+	public ContentManager getContentManager() {
+		return theContentManager;
+	} 
 }
