@@ -85,8 +85,10 @@ public class ManageMTPsDialog extends JDialog {
         containers = new javax.swing.JList(EMPTY_LIST);
         addresses = new javax.swing.JList(EMPTY_LIST);
         buttons = new javax.swing.JPanel();
-        addMTP = new javax.swing.JButton();
-        removeMTP = new javax.swing.JButton();
+        addMTP = new javax.swing.JButton(addMTPAction);
+
+        removeMTP = new javax.swing.JButton(removeMTPAction);
+
         closeDlg = new javax.swing.JButton();
         
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
@@ -120,11 +122,9 @@ public class ManageMTPsDialog extends JDialog {
         
 	buttons.setBorder(new EmptyBorder(new Insets(5, 5, 5, 5)));
 
-        addMTP.setAction(addMTPAction);
         addMTP.setToolTipText("Install a new MTP on the selected container");
         buttons.add(addMTP);
 
-        removeMTP.setAction(removeMTPAction);
         removeMTP.setToolTipText("Uninstall the selected MTP");
         buttons.add(removeMTP);
 
