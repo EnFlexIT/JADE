@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 
-import jade.onto.Name;  // it is used to make case-insensitive the search for containers
 
 class ContainerTable {
 
@@ -68,11 +67,11 @@ class ContainerTable {
 
   public synchronized void addContainer(String containerName, AgentContainer ac) {
     Entry e = new Entry(ac);
-    entries.put(new Name(containerName), e);
+    entries.put(new CaseInsensitiveString(containerName), e);
   }
 
   public synchronized void addAddress(String containerName, String address) throws NotFoundException {
-    Entry e = (Entry)entries.get(new Name(containerName));
+    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
     List l = e.getAddresses();
@@ -80,19 +79,19 @@ class ContainerTable {
   }
 
   public synchronized void removeContainer(String containerName) {
-    entries.remove(new Name(containerName));
+    entries.remove(new CaseInsensitiveString(containerName));
   }
 
 
   public synchronized AgentContainer getContainer(String containerName) throws NotFoundException {
-    Entry e = (Entry)entries.get(new Name(containerName));
+    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
     return e.getContainer();
   }
 
   public synchronized List getAddresses(String containerName) throws NotFoundException {
-    Entry e = (Entry)entries.get(new Name(containerName));
+    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
     if(e == null)
       throw new NotFoundException("No container named " + containerName + " was found.");
     return e.getAddresses();
@@ -118,7 +117,7 @@ class ContainerTable {
     Iterator it = entries.keySet().iterator();
     int i = 0;
     while(it.hasNext()) {
-      String s = ((Name)it.next()).toString();
+      String s = ((CaseInsensitiveString)it.next()).toString();
       result[i++] = s;
     }
     return result;
