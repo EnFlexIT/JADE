@@ -348,9 +348,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	// FIXME: This should call myBackEnd.suspendedAgent()/resumedAgent()
   }
 
-  // Note that the cloneFirst argument is ignored since the
+  // Note that the needClone argument is ignored since the
   // FrontEnd must always clone
-  public final void handleSend(ACLMessage msg, AID sender, boolean cloneFirst) {
+  public final void handleSend(ACLMessage msg, AID sender, boolean needClone) {
 		Iterator it = msg.getAllIntendedReceiver();
 		// If some receiver is local --> directly post the message
 		boolean hasRemoteReceivers = false;
