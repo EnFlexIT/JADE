@@ -71,6 +71,7 @@ import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
 import jade.security.AuthException;
+import jade.security.CertificateException;
 //__SECURITY__END
 
 /**
@@ -625,6 +626,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	authority.sign(identity, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 	
 	DelegationCertificate delegation = null;
+	try {
 	if (ca.getDelegation() != null) {
 		delegation = authority.createDelegationCertificate(ca.getDelegation());
 	}
@@ -635,6 +637,10 @@ public class ams extends Agent implements AgentManager.Listener {
 			delegation.addPermissions(creatorDelegation.getPermissions());
 		authority.sign(delegation, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 	}
+	} catch( CertificateException e ) {
+		throw new Unauthorised();
+	}
+
 	final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
 	//sendReply(ACLMessage.AGREE, createAgreeContent(a));
@@ -708,8 +714,8 @@ public class ams extends Agent implements AgentManager.Listener {
         throw new NotRegistered();
       }
       catch(AuthException au){
-	  au.printStackTrace();
-	  throw new Unauthorised();
+	  	//au.printStackTrace();
+	  	throw new Unauthorised();
       }
    		catch (Exception e) {
 			// should be never thrown
