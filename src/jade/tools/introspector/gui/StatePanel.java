@@ -23,10 +23,16 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.tools.introspector.gui;
-import javax.swing.*;
-import java.awt.*;
-import java.util.Vector;
 
+
+import java.awt.*;
+
+import java.util.Map;
+import java.util.HashMap;
+
+import javax.swing.*;
+
+import jade.core.AgentState;
 
 /**
    This is a split pane, with a left-side part containing state
@@ -36,19 +42,20 @@ import java.util.Vector;
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
 
 */
-public class StatePanel extends JSplitPane{
+public class StatePanel extends JSplitPane {
   private int state;
   private GridBagConstraints cons;
   private JPanel viewPanel;
   private JPanel setPanel;
   private JScrollPane scrollPane1;
   private JScrollPane scrollPane2;
-  private JButton waitingLed;
-  private JButton activeLed;
-  private JButton suspendedLed;
-  private JButton deletedLed;
-  private JButton moveLed;
-  private JButton initiatedLed;
+  private ButtonGroup leds;
+  private JRadioButton waitingLed;
+  private JRadioButton activeLed;
+  private JRadioButton suspendedLed;
+  private JRadioButton deletedLed;
+  private JRadioButton moveLed;
+  private JRadioButton initiatedLed;
   private JLabel waitingLabel;
   private JLabel activeLabel;
   private JLabel suspendedLabel;
@@ -62,14 +69,12 @@ public class StatePanel extends JSplitPane{
   private ImageIcon active;
 
   private MainBarListener listener;
-  private Vector leds;
-  private Vector labels;
 
+  private Map ledMap = new HashMap();
 
   public StatePanel(MainBarListener list){
     super();
-    leds=new Vector();
-    labels=new Vector();
+    leds = new ButtonGroup();
     cons =new GridBagConstraints();
     listener = list;
     build();
@@ -81,43 +86,66 @@ public class StatePanel extends JSplitPane{
     scrollPane1=new JScrollPane();
     scrollPane2=new JScrollPane();
 
+    Icon ledOff = new ImageIcon(getClass().getResource("images/rbrs.gif"));
+    Icon ledOn = new ImageIcon(getClass().getResource("images/rbs.gif"));
 
-    waitingLed=new JButton();
-    activeLed=new JButton();
-    suspendedLed=new JButton();
-    deletedLed=new JButton();
-    initiatedLed=new JButton();
-    moveLed=new JButton();
-
-    waitingLabel=new JLabel("waiting");
-    activeLabel=new JLabel("active");
-    suspendedLabel=new JLabel("suspended");
-    deletedLabel=new JLabel("deleted");
-    initiatedLabel=new JLabel("initiated");
-    moveLabel=new JLabel("move");
-
-    leds.add(initiatedLed);
-    leds.add(activeLed);
-    leds.add(suspendedLed);
+    waitingLed = new JRadioButton(ledOff);
+    waitingLed.setDisabledSelectedIcon(ledOn);
+    waitingLed.setDisabledIcon(ledOff);
+    waitingLed.setEnabled(false);
     leds.add(waitingLed);
+    ledMap.put(new AgentState("Waiting"), waitingLed);
+
+    activeLed = new JRadioButton(ledOff);
+    activeLed.setDisabledSelectedIcon(ledOn);
+    activeLed.setDisabledIcon(ledOff);
+    activeLed.setEnabled(false);
+    leds.add(activeLed);
+    ledMap.put(new AgentState("Active"), activeLed);
+
+    suspendedLed = new JRadioButton(ledOff);
+    suspendedLed.setDisabledSelectedIcon(ledOn);
+    suspendedLed.setDisabledIcon(ledOff);
+    suspendedLed.setEnabled(false);
+    leds.add(suspendedLed);
+    ledMap.put(new AgentState("Suspended"), suspendedLed);
+
+    deletedLed = new JRadioButton(ledOff);
+    deletedLed.setDisabledSelectedIcon(ledOn);
+    deletedLed.setDisabledIcon(ledOff);
+    deletedLed.setEnabled(false);
     leds.add(deletedLed);
+    ledMap.put(new AgentState("Deleted"), deletedLed);
+
+    initiatedLed = new JRadioButton(ledOff);
+    initiatedLed.setDisabledSelectedIcon(ledOn);
+    initiatedLed.setDisabledIcon(ledOff);
+    initiatedLed.setEnabled(false);
+    leds.add(initiatedLed);
+    ledMap.put(new AgentState("Initiated"), initiatedLed);
+
+    moveLed = new JRadioButton(ledOff);
+    moveLed.setDisabledSelectedIcon(ledOn);
+    moveLed.setDisabledIcon(ledOff);
+    moveLed.setEnabled(false);
     leds.add(moveLed);
-
-
-    for(int i=0;i<leds.size();i++){
-      JButton b= (JButton)leds.elementAt(i);
-      b.setPreferredSize(new Dimension(30,30));
-      b.setMaximumSize(new Dimension(30,30));
-
-    }
+    ledMap.put(new AgentState("Transit"), moveLed);
 
     Font f = new Font("Monospaced",0,8);
-    for(int i=0;i<labels.size();i++){
-      JLabel b= (JLabel)labels.elementAt(i);
-      //b.setPreferredSize(new Dimension(5,20));
-      //b.setMaximumSize(new Dimension(5,20));
-      b.setFont(f);
-    }
+
+    waitingLabel=new JLabel("waiting");
+    waitingLabel.setFont(f);
+    activeLabel=new JLabel("active");
+    activeLabel.setFont(f);
+    suspendedLabel=new JLabel("suspended");
+    suspendedLabel.setFont(f);
+    deletedLabel=new JLabel("deleted");
+    deletedLabel.setFont(f);
+    initiatedLabel=new JLabel("initiated");
+    initiatedLabel.setFont(f);
+    moveLabel=new JLabel("move");
+    moveLabel.setFont(f);
+
 
     suspendAction=new JButton("Suspend");
     suspendAction.setFont(f);
@@ -186,6 +214,9 @@ public class StatePanel extends JSplitPane{
     cons.gridx=3;
     viewPanel.add(deletedLabel,cons);
 
+    viewPanel.setMinimumSize(viewPanel.getPreferredSize());
+    viewPanel.setMaximumSize(viewPanel.getPreferredSize());
+
     setPanel.setLayout(new GridLayout(2,2,3,3));
     setPanel.add(suspendAction,null);
     setPanel.add(waitAction,null);
@@ -200,8 +231,11 @@ public class StatePanel extends JSplitPane{
     this.add(scrollPane2,JSplitPane.RIGHT);
 
   }
-  public Vector getStateLeds(){
-    return leds;
+
+  public void switchTo(AgentState as) {
+    JRadioButton led = (JRadioButton)ledMap.get(as);
+    if(led != null)
+      led.setSelected(true);
   }
 
 }
