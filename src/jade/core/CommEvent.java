@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.7  1998/11/03 00:31:26  rimassa
+ * A cosmetic change in a comment.
+ *
  * Revision 1.6  1998/10/31 16:34:51  rimassa
  * Removed useless inheritance from AWTEvent class.
  *
@@ -33,7 +36,7 @@ public class CommEvent {
   private AgentGroup recipients;
 
   public CommEvent(CommBroadcaster source, ACLMessage message) {
-    // Message cloning is Necessary for intra-VM messaging, since no
+    // Message cloning is necessary for intra-VM messaging, since no
     // message serialization is carried out in that case
     this.message = (ACLMessage)message.clone();
     recipients = null;
