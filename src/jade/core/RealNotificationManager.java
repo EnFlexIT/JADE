@@ -362,7 +362,6 @@ private void fireRemovedBehaviour(AID agentID, Behaviour b) {
   }
 
   private void addAgentListener(AgentListener l) {
-  	System.out.println("added listener "+l);
     synchronized(agentListenersLock) {
       if(agentListeners == null)
 	agentListeners = new LinkedList();
