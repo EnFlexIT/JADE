@@ -38,7 +38,7 @@ import jade.core.behaviours.Behaviour;
 
 public class DummyAgent extends Agent 
 {
-	private DummyAgentGui myGui;
+	private transient DummyAgentGui myGui;
 
 public static void main(String args[]) {
  DummyAgent d = new DummyAgent();
@@ -49,7 +49,7 @@ public static void main(String args[]) {
 	{
 		///////////////////////////////
 		// Create and display agent GUI
-		myGui = new DummyAgentGui(this);
+	        myGui = new DummyAgentGui(this);
 		myGui.showCorrect();
 
 		///////////////////////
@@ -60,18 +60,66 @@ public static void main(String args[]) {
 	}
 
         protected void takeDown() {
-	    SwingUtilities.invokeLater(new Runnable() {
-	      public void run() {
-		myGui.setVisible(false);
-		myGui.dispose();
-	      }
-	    });
+	    disposeGUI();
 	}
 
 	public DummyAgentGui getGui()
 	{
 		return myGui;
 	}
+
+  protected void beforeMove() {
+      super.beforeMove();
+
+      disposeGUI();
+  }
+
+  protected void afterMove() {
+      super.afterMove();
+
+      restoreGUI();
+  }
+
+  protected void afterClone() {
+      super.afterClone();
+
+      restoreGUI();
+  }
+
+  protected void afterLoad() {
+      super.afterLoad();
+
+      restoreGUI();
+  }
+
+  protected void beforeFreeze() {
+      super.beforeFreeze();
+      disposeGUI();
+  }
+
+  protected void afterThaw() {
+      super.afterThaw();
+
+      restoreGUI();
+  }
+
+    private void restoreGUI() {
+	myGui = new DummyAgentGui(this);
+	myGui.showCorrect();
+    }
+
+    private void disposeGUI() {
+	if(myGui != null) {
+	    final DummyAgentGui gui = myGui;
+	    myGui = null;
+	    SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    gui.setVisible(false);
+		    gui.dispose();
+		}
+	    });
+	}
+    }
 
 }
 
