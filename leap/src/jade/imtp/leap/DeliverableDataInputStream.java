@@ -52,6 +52,8 @@ import jade.security.*;
 import jade.security.dummy.*;
 import jade.imtp.leap.JICP.JICPAddress;
 import jade.imtp.leap.JICP.JICPProtocol;
+import jade.imtp.leap.http.HTTPAddress;
+import jade.imtp.leap.http.HTTPProtocol;
 
 /**
  * This class implements a data input stream deserializing
@@ -136,6 +138,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeReceivedObject();
                 case Serializer.JICPADDRESS_ID:
                     return deserializeJICPAddress();
+                case Serializer.HTTPADDRESS_ID:
+                    return deserializeHTTPAddress();
                 case Serializer.DUMMYCERTIFICATE_ID:
                     return deserializeDummyCertificate();
                 case Serializer.DUMMYPRINCIPAL_ID:
@@ -607,6 +611,23 @@ class DeliverableDataInputStream extends DataInputStream {
         String anchor = readString();
         
         return new JICPAddress(host, port, file, anchor);
+    } 
+
+    private HTTPAddress deserializeHTTPAddress() throws LEAPSerializationException {
+        
+        String protocol = readString();
+
+        if (!HTTPProtocol.NAME.equals(protocol)) {
+            throw new LEAPSerializationException("Unexpected protocol \""+protocol+"\" when \""
+                                                 +HTTPProtocol.NAME+"\" was expected.");
+        } 
+
+        String host = readString();
+        String port = readString();
+        String file = readString();
+        String anchor = readString();
+        
+        return new HTTPAddress(host, port, file, anchor);
     } 
 
     private DummyCertificate deserializeDummyCertificate() throws LEAPSerializationException {

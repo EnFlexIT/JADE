@@ -50,9 +50,11 @@ import jade.util.leap.Properties;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 import jade.mtp.MTPDescriptor;
+import jade.mtp.TransportAddress;
 import jade.security.*;
 import jade.security.dummy.*;
 import jade.imtp.leap.JICP.JICPAddress;
+import jade.imtp.leap.http.HTTPAddress;
 
 /**
  * This class implements a data output stream serializing
@@ -180,7 +182,11 @@ class DeliverableDataOutputStream extends DataOutputStream {
                 }
                 else if (o instanceof JICPAddress) {             // JICPAddress 
                     writeByte(Serializer.JICPADDRESS_ID);
-                    serializeJICPAddress((JICPAddress) o);
+                    serializeTransportAddress((JICPAddress) o);
+                }
+                else if (o instanceof HTTPAddress) {             // HTTPAddress 
+                    writeByte(Serializer.HTTPADDRESS_ID);
+                    serializeTransportAddress((HTTPAddress) o);
                 }
                 else if (o instanceof Properties) {              // Properties 
                     writeByte(Serializer.PROPERTIES_ID);
@@ -670,7 +676,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
     
     /**
      */  
-    private void serializeJICPAddress(JICPAddress addr)
+    private void serializeTransportAddress(TransportAddress addr)
         throws LEAPSerializationException {
         writeString(addr.getProto());
         writeString(addr.getHost());

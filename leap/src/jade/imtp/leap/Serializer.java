@@ -64,6 +64,7 @@ interface Serializer {
     static final byte PROPERTIES_ID = 18;
     static final byte RECEIVEDOBJECT_ID = 19;
     static final byte JICPADDRESS_ID = 20;
+    static final byte HTTPADDRESS_ID = 24;
     static final byte DUMMYCERTIFICATE_ID = 21;
     static final byte DUMMYPRINCIPAL_ID = 22;
     static final byte CERTIFICATEFOLDER_ID = 23;

@@ -239,9 +239,10 @@ public class LEAPIMTPManager implements IMTPManager {
       if (mainURL == null) {
         String mainHost = getMainHost();
         if (mainHost != null) {
+        	String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
           String mainPort = theProfile.getParameter(Profile.MAIN_PORT, null);
           mainPort = (mainPort != null ? new String(":"+mainPort) : "");
-          mainURL = new String("jicp://"+mainHost+mainPort);
+          mainURL = new String(mainProto+"://"+mainHost+mainPort);
           theProfile.setParameter(MAIN_URL, mainURL);
         }
         else {
