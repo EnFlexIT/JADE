@@ -221,11 +221,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param sender The name of the receiver agent.
 	 */
   public final void messageIn(ACLMessage msg, String receiver) throws NotFoundException, IMTPException {
-  	Agent agent = (Agent) localAgents.get(receiver);
-  	if(agent == null) {
-    	throw new NotFoundException("Receiver "+receiver+" not found");
+  	if (receiver != null) {
+	  	Agent agent = (Agent) localAgents.get(receiver);
+	  	if(agent == null) {
+	    	throw new NotFoundException("Receiver "+receiver+" not found");
+	  	}
+	  	agent.postMessage(msg);
   	}
-  	agent.postMessage(msg);
 	}
 	
   /**
