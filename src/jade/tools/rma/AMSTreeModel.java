@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.2  1999/07/11 21:34:43  rimassa
+  Removed a temporary workaround for a deadlock problem. Now a correct
+  use of the SwingUtilities class ensures that all GUI update is done by
+  the AWT Event Dispatcher thread.
+
   Revision 1.1  1999/05/20 15:42:08  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -66,31 +71,6 @@ public class AMSTreeModel extends DefaultTreeModel {
    * to make possible editing the tree
    */
   protected void fireValueChanged(TreePath path,int[] ind,Object[] children)  {}
-
-  /**
-     Using deferred invocation for TreeModelEvent listeners as a
-     workaround for a nasty deadlock problem.
-  */
-  protected void fireTreeNodesInserted(Object source, Object[] path, 
-				       int[] childIndices, 
-				       Object[] children) {
-
-    final Object[] listeners = listenerList.getListenerList();
-    final TreeModelEvent e = new TreeModelEvent(source, path, childIndices, children);
-
-    Runnable updateTreeUI  = new Runnable() {
-
-      public void run() {
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	  if (listeners[i]==TreeModelListener.class) {
-	    ((TreeModelListener)listeners[i+1]).treeNodesInserted(e);
-	  }
-	}
-      }
-
-    };
-    EventQueue.invokeLater(updateTreeUI);
-  }
 
 }
 
