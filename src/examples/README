@@ -273,3 +273,13 @@ the platform or via RMA gui ) and  then enters the name of the agents that will
 send messages to this agent (for example start a DummyAgent from the RMA gui and use 
 it as sender).
 If an REQUEST message will be sent (from one of the expected agent) than the WaitAgent will reply with a INFORM message otherwise no reply message will be sent.
+
+'JadeJessProtege' subdirectory
+==============================
+This package includes examples for a closer integration of JADE with JESS, 
+optionally also with protege. Aspects are
+* starting a JADE agent from a running JESS engine
+* interactively developing JADE agent behaviour from a JESS console
+* protege ontology support for JADE agents in JESS rules
+The example has been kindly developed by Oliver Hoffmann (oliver@hoffmann.org)
+and it is described by the file 'readme.txt' in its subdirectory.
