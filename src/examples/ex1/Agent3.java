@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/02/14 22:46:20  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+
   Revision 1.5  1998/10/30 18:28:22  rimassa
   Made cyclic a SequentialBehaviour of the Agent, taking advantage of
   new reset() method.
@@ -46,25 +49,25 @@ public class Agent3 extends Agent {
     ComplexBehaviour myBehaviour2_1 = new SequentialBehaviour(this);
     ComplexBehaviour myBehaviour2_2 = new SequentialBehaviour(this);
 
-    myBehaviour2_1.addBehaviour(new Behaviour3Step(this,"2.1.1"));
-    myBehaviour2_1.addBehaviour(new Behaviour3Step(this,"2.1.2"));
-    myBehaviour2_1.addBehaviour(new Behaviour3Step(this,"2.1.3"));
+    myBehaviour2_1.addSubBehaviour(new Behaviour3Step(this,"2.1.1"));
+    myBehaviour2_1.addSubBehaviour(new Behaviour3Step(this,"2.1.2"));
+    myBehaviour2_1.addSubBehaviour(new Behaviour3Step(this,"2.1.3"));
 
-    myBehaviour2_2.addBehaviour(new Behaviour3Step(this,"2.2.1"));
-    myBehaviour2_2.addBehaviour(new Behaviour3Step(this,"2.2.2"));
+    myBehaviour2_2.addSubBehaviour(new Behaviour3Step(this,"2.2.1"));
+    myBehaviour2_2.addSubBehaviour(new Behaviour3Step(this,"2.2.2"));
     Behaviour b = new Behaviour3Step(this,"2.2.3");
-    myBehaviour2_2.addBehaviour(b);
+    myBehaviour2_2.addSubBehaviour(b);
 
-    myBehaviour1.addBehaviour(new Behaviour3Step(this,"1.1"));
-    myBehaviour1.addBehaviour(new Behaviour3Step(this,"1.2"));
-    myBehaviour1.addBehaviour(new Behaviour3Step(this,"1.3"));
+    myBehaviour1.addSubBehaviour(new Behaviour3Step(this,"1.1"));
+    myBehaviour1.addSubBehaviour(new Behaviour3Step(this,"1.2"));
+    myBehaviour1.addSubBehaviour(new Behaviour3Step(this,"1.3"));
 
-    myBehaviour2.addBehaviour(myBehaviour2_1);
-    myBehaviour2.addBehaviour(myBehaviour2_2);
+    myBehaviour2.addSubBehaviour(myBehaviour2_1);
+    myBehaviour2.addSubBehaviour(myBehaviour2_2);
 
-    myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.3"));
-    myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.4"));
-    myBehaviour2.addBehaviour(new Behaviour3Step(this,"2.5"));
+    myBehaviour2.addSubBehaviour(new Behaviour3Step(this,"2.3"));
+    myBehaviour2.addSubBehaviour(new Behaviour3Step(this,"2.4"));
+    myBehaviour2.addSubBehaviour(new Behaviour3Step(this,"2.5"));
 
     addBehaviour(myBehaviour1);
     addBehaviour(myBehaviour2);

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/02/14 22:48:52  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+
   Revision 1.5  1998/10/18 16:10:22  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -86,9 +89,9 @@ public class AgentBroadcaster extends Agent {
 
 	  String source = getName();
 
-	  addBehaviour(new BehaviourElement(source,dest1,content));
-	  addBehaviour(new BehaviourElement(source,dest2,content));
-	  addBehaviour(new BehaviourElement(source,dest3,content));
+	  addSubBehaviour(new BehaviourElement(source,dest1,content));
+	  addSubBehaviour(new BehaviourElement(source,dest2,content));
+	  addSubBehaviour(new BehaviourElement(source,dest3,content));
 	}
 	catch(IOException ioe) {
 	  ioe.printStackTrace();

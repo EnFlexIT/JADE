@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/02/14 22:48:18  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+
   Revision 1.4  1998/10/04 18:00:13  rimassa
   Added a 'Log:' field to every source file.
 
@@ -46,23 +49,23 @@ public class Agent4 extends Agent {
     ComplexBehaviour myBehaviour2_1 = NonDeterministicBehaviour.createWhenAll(this);
     ComplexBehaviour myBehaviour2_2 = new SequentialBehaviour(this);
 
-    myBehaviour2_1.addBehaviour(new Behaviour4Step(this,"2.1a",2));
-    myBehaviour2_1.addBehaviour(new Behaviour4Step(this,"2.1b",2));
-    myBehaviour2_1.addBehaviour(new Behaviour4Step(this,"2.1c",2));
+    myBehaviour2_1.addSubBehaviour(new Behaviour4Step(this,"2.1a",2));
+    myBehaviour2_1.addSubBehaviour(new Behaviour4Step(this,"2.1b",2));
+    myBehaviour2_1.addSubBehaviour(new Behaviour4Step(this,"2.1c",2));
 
-    myBehaviour2_2.addBehaviour(new Behaviour4Step(this,"2.2.1",2));
-    myBehaviour2_2.addBehaviour(new Behaviour4Step(this,"2.2.2",2));
-    myBehaviour2_2.addBehaviour(new Behaviour4Step(this,"2.2.3",2));
+    myBehaviour2_2.addSubBehaviour(new Behaviour4Step(this,"2.2.1",2));
+    myBehaviour2_2.addSubBehaviour(new Behaviour4Step(this,"2.2.2",2));
+    myBehaviour2_2.addSubBehaviour(new Behaviour4Step(this,"2.2.3",2));
 
-    myBehaviour1.addBehaviour(new Behaviour4Step(this,"1.1",1));
-    myBehaviour1.addBehaviour(new Behaviour4Step(this,"1.2",1));
-    myBehaviour1.addBehaviour(new Behaviour4Step(this,"1.3",1));
+    myBehaviour1.addSubBehaviour(new Behaviour4Step(this,"1.1",1));
+    myBehaviour1.addSubBehaviour(new Behaviour4Step(this,"1.2",1));
+    myBehaviour1.addSubBehaviour(new Behaviour4Step(this,"1.3",1));
 
-    myBehaviour2.addBehaviour(myBehaviour2_1);
-    myBehaviour2.addBehaviour(myBehaviour2_2);
-    myBehaviour2.addBehaviour(new Behaviour4Step(this,"2.3",2));
-    myBehaviour2.addBehaviour(new Behaviour4Step(this,"2.4",2));
-    myBehaviour2.addBehaviour(new Behaviour4Step(this,"2.5",2));
+    myBehaviour2.addSubBehaviour(myBehaviour2_1);
+    myBehaviour2.addSubBehaviour(myBehaviour2_2);
+    myBehaviour2.addSubBehaviour(new Behaviour4Step(this,"2.3",2));
+    myBehaviour2.addSubBehaviour(new Behaviour4Step(this,"2.4",2));
+    myBehaviour2.addSubBehaviour(new Behaviour4Step(this,"2.5",2));
 
     addBehaviour(myBehaviour1);
     addBehaviour(myBehaviour2);

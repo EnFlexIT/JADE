@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/02/14 22:52:05  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+
   Revision 1.8  1998/10/18 16:10:38  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -139,7 +142,7 @@ public class amsTester extends Agent {
 
     ComplexBehaviour mainBehaviour = new SequentialBehaviour(this);
 
-    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
+    mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
 
@@ -152,7 +155,7 @@ public class amsTester extends Agent {
 
     ComplexBehaviour receive1stReply = NonDeterministicBehaviour.createWhenAny(this);
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
@@ -164,7 +167,7 @@ public class amsTester extends Agent {
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
@@ -176,7 +179,7 @@ public class amsTester extends Agent {
 
     });
 
-    receive1stReply.addBehaviour(new ReceiveBehaviour() {
+    receive1stReply.addSubBehaviour(new ReceiveBehaviour() {
 
       public void action() {
 
@@ -189,16 +192,16 @@ public class amsTester extends Agent {
     });
 
     // Nondeterministically receives not-understood, refuse or agree.
-    mainBehaviour.addBehaviour(receive1stReply);
+    mainBehaviour.addSubBehaviour(receive1stReply);
 
     // If agree is received, also receive inform or failure messages.
-    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
+    mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
 	if(agreed()) {
 	  
 	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(amsTester.this);
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
+	  receiveAfterAgree.addSubBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 
@@ -210,7 +213,7 @@ public class amsTester extends Agent {
 
 	  });
 
-	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
+	  receiveAfterAgree.addSubBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
 

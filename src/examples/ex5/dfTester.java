@@ -1,6 +1,9 @@
 /*
 
   $Log$
+  Revision 1.16  1999/02/14 22:52:26  rimassa
+  Renamed addBehaviour() calls to addSubBehaviour() calls.
+
   Revision 1.15  1999/02/03 15:34:09  rimassa
   Horrible hack to deal with CR/LF vs. LF. It should be fixed...
 
@@ -80,7 +83,7 @@ public class dfTester extends Agent {
 
     };
 
-    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
+    mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
 
       public void action() {
 
