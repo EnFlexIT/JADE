@@ -550,9 +550,9 @@ public class MainReplicationService extends BaseService {
 		    slice.newTool(tools[i]);
 		}
 
-	    }
+		myMain.addServiceManagerAddress(smAddr);
 
-	    myMain.addServiceManagerAddress(smAddr);
+	    }
 
 	}
 
