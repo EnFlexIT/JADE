@@ -48,14 +48,15 @@ import java.util.Date;
  * @author Giovanni Caire - TILAB
  */
 public class BasicOntology extends Ontology implements SL0Vocabulary {
-	// The singleton instance of this ontology
+  
+  // The singleton instance of this ontology
   private static final BasicOntology theInstance = new BasicOntology();
   static {
   	theInstance.initialize();
   }
   
   // Primitive types names
- 	public static final String         STRING = "BO_String";
+  public static final String         STRING = "BO_String";
   public static final String         FLOAT = "BO_Float";
   public static final String         INTEGER = "BO_Integer";
   public static final String         BOOLEAN = "BO_Boolean";
@@ -148,7 +149,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
       actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
       actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
-  		actionSchema.setEncodingByOrder(true);
+  	  actionSchema.setEncodingByOrder(true);
       add(actionSchema);
       
       // DONE Schema
@@ -212,6 +213,11 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	    // TRUE_PROPOSITION
 	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.TRUE_PROPOSITION)) { 
 				TrueProposition t = new TrueProposition();
+				return t;
+	    }
+	    // FALSE_PROPOSITION
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.FALSE_PROPOSITION)) { 
+				FalseProposition t = new FalseProposition();
 				return t;
 	    }
 	    // DONE
@@ -313,6 +319,11 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	    
 	    if(obj instanceof TrueProposition) {
 	    	AbsPredicate absTrueProp = new AbsPredicate(BasicOntology.TRUE_PROPOSITION);
+				return absTrueProp;
+	    }
+	    
+	    if(obj instanceof FalseProposition) {
+	    	AbsPredicate absTrueProp = new AbsPredicate(BasicOntology.FALSE_PROPOSITION);
 				return absTrueProp;
 	    }
 
