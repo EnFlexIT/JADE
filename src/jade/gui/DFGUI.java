@@ -676,14 +676,20 @@ public class DFGUI extends JFrame
 		
 	}
 	
+
 	
 	////////////////////////////////////
 	// Show DF GUI properly
 	public void setVisible(boolean b) 
 	{
+		
 		if(b) 
 		{
-			setLocation(50, 50);
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			int centerX = (int)screenSize.getWidth() / 2;
+			int centerY = (int)screenSize.getHeight() / 2;
+			setLocation(centerX - getWidth() / 2, centerY - getHeight() / 2);
+		
 		}
 		super.setVisible(b);
 	}
