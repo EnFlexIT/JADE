@@ -397,10 +397,28 @@ public class ProfileImpl extends Profile {
    * among the configuration properties.
    */
   public List getSpecifiers(String key) throws ProfileException {
-    List l = (List)props.get(key);
-    if(l == null)
-      l = new ArrayList(0);
-    return l;
+    // Check if the list of specs is already in the properties as a list
+    List l = null;
+
+    try {
+      l = (List) props.get(key);
+      if (l == null) {
+      	l = new ArrayList(0);
+      }
+      return l;
+    }
+    catch (ClassCastException cce) {
+    }
+
+    // Otherwise the list should be present as a string --> parse it
+    String    specsLine = getParameter(key, null);
+
+    try {
+    	return Specifier.parseSpecifierList(specsLine);
+    }
+    catch (Exception e) {
+    	throw new ProfileException("Error parsing specifier list "+specsLine+". "+e.getMessage());
+    }
   } 
 
     public String toString() {
