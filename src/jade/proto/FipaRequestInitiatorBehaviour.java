@@ -248,12 +248,18 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   				case ACLMessage.NOT_UNDERSTOOD:{
   					finished = true;	
   					handleNotUnderstood(firstAnswerMsg);
+  					break;  				
+  				}
+  				case ACLMessage.FAILURE:{ // agree is considered optional
+  					finished = true;	
+  					handleAgree(firstAnswerMsg); // agree is subsumed
+  					handleFailure(firstAnswerMsg);
   					break;
   				}
   				case ACLMessage.INFORM:{
   					// This new state has been added in Fipa99.
   				  finished = true;
-  					handleAgree(firstAnswerMsg);
+  					handleAgree(firstAnswerMsg); // agree is subsumed
   					handleInform(firstAnswerMsg);
   					break;
   				}
