@@ -18,7 +18,10 @@ MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
 - A bug of the sniffer has been removed which did not allow having multiple sniffers on 
   the same containers. The look&feel of the sniffer GUI has also been improved.
 - Fixed bug in agent mobility
-- Modified JADE.IOR file with MTPs-MainContainer.txt and MTPs-Container-xx.txt
+- the IOR of the agent platform is now written into a different file name, no 
+  more JADE.IOR. The name of the file depends now on the container where the 
+  MTP is activated (MTPs-MainContainer.txt and MTPs-Container-xx.txt, 
+  where xx is the number of the container).
 - Ontology can now be serialized by using SL and the JADE-MetaOntology
 - Moved jade.onto.Name into jade.core
 - Made mobility case-insensitive for what regards the container-name
