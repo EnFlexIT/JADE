@@ -37,6 +37,7 @@ public class AddedMTP implements Event {
   public static final String NAME = "Added-MTP";
 
   private String address;
+  private String proto;
   private ContainerID where;
 
   public String getName() {
@@ -49,6 +50,14 @@ public class AddedMTP implements Event {
 
   public String getAddress() {
     return address;
+  }
+
+  public void setProto(String p) {
+    proto = p;
+  }
+
+  public String getProto() {
+    return proto;
   }
 
   public void setWhere(ContainerID id) {
