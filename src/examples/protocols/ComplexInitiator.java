@@ -44,18 +44,20 @@ public class ComplexInitiator extends Initiator {
 	b.registerHandleAgree(new RWBehaviour(b.REPLY_KEY, null,true));
 	b.registerHandleRefuse(new RWBehaviour(b.REPLY_KEY, null,true));
 	b.registerHandleNotUnderstood(new RWBehaviour(b.REPLY_KEY, null,true));
-
-	// when the INFORM message arrives a new initiator is launched
-	// notice that this second MyInitiator has false in the constuctor
-	// in order to avoid restarting the protocol when it terminates.
-	AchieveREInitiator b2 = new Initiator.MyInitiator(this, createNewMessage(), false);
-	b.registerHandleInform(b2); // take care that this method has shared the datastore of b and b2 !
-	//b2.setDataStore(new DataStore()); // this method separates the 2 datastores
-	//b.registerHandleInform(new RWBehaviour(b.REPLY_KEY, null,true));
+	b.registerHandleInform(new RWBehaviour(b.REPLY_KEY, null,true));
 
 	b.registerHandleFailure(new RWBehaviour(b.REPLY_KEY, null,true));
 	b.registerHandleAllResponses(new RWBehaviour(b.ALL_RESPONSES_KEY, null,true));
-	b.registerHandleAllResultNotifications(new RWBehaviour(b.ALL_RESULT_NOTIFICATIONS_KEY, null,true));
+
+	// when all the result notifications are collected, 
+	// a new initiator is launched
+	// notice that this second MyInitiator has false in the constuctor
+	// in order to avoid restarting the protocol when it terminates.
+	AchieveREInitiator b2 = new Initiator.MyInitiator(this, createNewMessage(), false);
+	b.registerHandleAllResultNotifications(b2); // take care that this method has shared the datastore of b and b2 !
+	//b2.setDataStore(new DataStore()); // this method separates the 2 datastores
+
+	//b.registerHandleAllResultNotifications(new RWBehaviour(b.ALL_RESULT_NOTIFICATIONS_KEY, null,true));
 	addBehaviour(b);
     }
 

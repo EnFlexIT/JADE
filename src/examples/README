@@ -163,7 +163,9 @@ that implement the 'fipa-query' protocol and the 'fipa-request' protocol.
 			java examples.protocol.ProtocolTester receiver1 receiver2 receiver3
 			start an Initiator agent sending message to the 
 			three Responders: receiver1, receiver2 and receiver3.
- 
+- ComplexInitiator     This example shows how to use the AchieveREInitiator
+                       protocol and register another initiator behaviour
+                       to handle one of the states of the protocol. 
 
 
 
