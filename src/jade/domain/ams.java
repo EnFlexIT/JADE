@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.19  1998/11/09 00:24:29  rimassa
+  Replaced older container ID with newer container name.
+  Added code to send a snapshot of Agent Platform state (active agent
+  containers and agent list on every container) to each newly registered
+  Remote Management Agent.
+
   Revision 1.18  1998/11/05 23:36:31  rimassa
   Added a deregisterRMABehaviour to listen to 'cancel' messages from
   registered Remote Management Agents.
@@ -141,11 +147,11 @@ public class ams extends Agent {
 	myAction = AgentManagementOntology.AMSAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	//	pe.printStackTrace();
+	// pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
       catch(TokenMgrError tme) {
-	//      tme.printStackTrace();
+	// tme.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
@@ -376,10 +382,51 @@ public class ams extends Agent {
       if(current != null) {
 	// FIXME: Should parse 'iota ?x ...'
 
+	// Get new RMA name from subscription message
+	String newRMA = current.getSource();
+
 	// Send back the whole container list.
+	Enumeration e = myPlatform.AMSContainerNames();
+	while(e.hasMoreElements()) {
+	  String containerName = (String)e.nextElement();
+	  AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
+	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
+	  ev.setContainerName(containerName);
+	  StringWriter w = new StringWriter();
+	  ev.toText(w);
+
+	  RMANotification.setDest(newRMA);
+	  RMANotification.setContent(w.toString());
+	  send(RMANotification);
+
+	}
+
+	// Send all agent names, along with their container name.
+	e = myPlatform.AMSAgentNames();
+	while(e.hasMoreElements()) {
+	  String agentName = (String)e.nextElement();
+	  String containerName = myPlatform.AMSGetContainerName(agentName);
+	  String agentAddress = myPlatform.AMSGetAddress(agentName);
+	  AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+	  amsd.setName(agentName + '@' + agentAddress); // FIXME: 'agentName' should contain the address, too.
+	  amsd.setAddress(agentAddress);
+	  amsd.setAPState(Agent.AP_ACTIVE);
+
+	  AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
+	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
+	  ev.setContainerName(containerName);
+	  ev.setAgentDescriptor(amsd);
+	  StringWriter w = new StringWriter();
+	  ev.toText(w);
+
+	  RMANotification.setContent(w.toString());
+	  RMANotification.setDest(newRMA);
+	  send(RMANotification);
+	  
+	}
 
 	// Add the new RMA to RMAs agent group.
-	RMAs.addMember(current.getSource());
+	RMAs.addMember(newRMA);
 
       }
       else
@@ -413,9 +460,7 @@ public class ams extends Agent {
       if(current != null) {
 	// FIXME: Should parse 'iota ?x ...'
 
-	// Send back the whole container list.
-
-	// Add the new RMA to RMAs agent group.
+	// Remove this RMA to RMAs agent group.
 	RMAs.removeMember(current.getSource());
 
       }
@@ -532,15 +577,11 @@ public class ams extends Agent {
 
       AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
       String className = caa.getClassName();
-      String prop = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
-
-      int containerID = 0;
-      if(prop != null)
-	containerID = Integer.parseInt(prop);
+      String containerName = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
 
       // Create a new agent
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-      myPlatform.AMSCreateAgent(amsd.getName(), className, containerID);
+      myPlatform.AMSCreateAgent(amsd.getName(), className, containerName);
 
       sendAgree(myReply);
       sendInform(myReply);
