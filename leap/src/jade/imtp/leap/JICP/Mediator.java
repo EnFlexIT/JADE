@@ -145,7 +145,8 @@ public class Mediator extends EndPoint implements JICPMediator {
   	}
   	else {
   		// Otherwise forward it to the mediated container
-  		r = deliverCommand(p);
+  		p.setTerminatedInfo(false);
+      r = deliverCommand(p);
   		updateTransmitted(p.getLength());
   		updateReceived(r.getLength());
   	}
@@ -209,8 +210,7 @@ public class Mediator extends EndPoint implements JICPMediator {
 			// Adjust the recipient ID
 			cmd.setRecipientID(destTa.getFile());
 			// Notify the server that this connection is not reusable
-			// Changed by NL
-      //cmd.setTerminatedInfo();
+      cmd.setTerminatedInfo(true);
 			
 			// Open a connection to the destination
       s = new Socket(destTa.getHost(), Integer.parseInt(destTa.getPort()));

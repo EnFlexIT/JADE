@@ -92,13 +92,14 @@ public abstract class EndPoint extends Thread {
      Make this EndPoint terminate
   */     
   public void shutdown() {
-  	active = false;
+  	myLogger.log(Logger.INFO,"Initiating shutdown");
+    active = false;
   	// Note that waking up OutgoingHandlers waiting for a response
   	// is necessary as the main thread may exit smoothly as soon as 
   	// we set active to false.
   	wakeupOutgoings();
   	
-  	// If this is a self-initiated shut down, we must explicitly
+    // If this is a self-initiated shut down, we must explicitly
   	// notify the peer. Otherwise the TERMINATED_INFO will be appended 
   	// to the response to the command that activated the shutdown.
   	// Note that in any case the TERMINATED_INFO is set within the push() 
@@ -266,7 +267,7 @@ public abstract class EndPoint extends Thread {
   			try {
   				if (Thread.currentThread() == terminator) {
   					myLogger.log(Logger.INFO,"Setting TERMINATED_INFO");
-  					pkt.setTerminatedInfo();
+  					pkt.setTerminatedInfo(true);
   				}
 			    // Write the session id and the packet
   				pkt.setSessionID(id);

@@ -190,8 +190,13 @@ public class JICPPacket {
   /**
    * Set the TERMINATED_INFO flag in the info field.
    */
-  public void setTerminatedInfo() {
-    info |= JICPProtocol.TERMINATED_INFO;
+  public void setTerminatedInfo(boolean set) {
+    if (set) {
+      info |= JICPProtocol.TERMINATED_INFO;
+    }
+    else {
+      info &= (~JICPProtocol.TERMINATED_INFO);
+    }
   } 
 
   /**

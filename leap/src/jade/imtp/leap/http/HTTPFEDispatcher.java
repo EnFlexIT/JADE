@@ -422,7 +422,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
   	if (Thread.currentThread() == terminator) {
   		System.out.println("SETTING terminated info");
-  		pkt.setTerminatedInfo();
+  		pkt.setTerminatedInfo(true);
   	}
   	pkt.setRecipientID(mediatorTA.getFile());
     byte type = pkt.getType();

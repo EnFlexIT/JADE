@@ -386,7 +386,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 					  pkt.setSessionID(sid);
 					  if (Thread.currentThread() == terminator) {
 					  	// Attach the TERMINATED_INFO flag to the response
-					  	pkt.setTerminatedInfo();
+					  	pkt.setTerminatedInfo(true);
 					  }
 					  lastSid = sid;
 					  lastResponse = pkt;
