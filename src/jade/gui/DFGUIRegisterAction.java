@@ -32,6 +32,7 @@ import javax.swing.*;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.core.Agent;
+import jade.core.AID;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -49,13 +50,27 @@ class DFGUIRegisterAction extends AbstractAction
 	}
 	
 	public void actionPerformed(ActionEvent e) 
-	{
-		//System.out.println("REGISTER NEW AGENT");
+	{	
+		AID df; 
+		System.out.println("REGISTER NEW AGENT");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,true);
+	
 		if (editedDfd != null)
 		{
-			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getDescriptionOfThisDF().getName(), editedDfd);
+			int kind = gui.kindOfOperation();;
+			if ((kind == DFGUI.PARENT_VIEW) || (kind == DFGUI.CHILDREN_VIEW)) // selected a df from the the federation
+			{
+				AID name = gui.getSelectedAgentInTable();
+		    if (name != null)
+		    	df = name; 
+		    else	
+			    df = gui.myAgent.getDescriptionOfThisDF().getName();
+			}
+			else
+			df = gui.myAgent.getDescriptionOfThisDF().getName();
+
+			gui.myAgent.postRegisterEvent((Object) gui, df, editedDfd);
 		}
 	}
 }
