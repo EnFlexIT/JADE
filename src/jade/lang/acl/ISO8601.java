@@ -76,7 +76,7 @@ public class ISO8601 {
    * This method converts a FIPA DateTime token to a <code>java.util.Date</code>.  
    * It will accept both local and UTC time formats.
    */
-public static Date toDate(String dateTimeToken) throws Exception {
+public synchronized static Date toDate(String dateTimeToken) throws Exception {
     if (dateTimeToken == null)
       return new Date();
     else if( dateTimeToken.startsWith("+") ) {
@@ -113,7 +113,7 @@ public static Date toDate(String dateTimeToken) throws Exception {
    * @return a String, e.g. "19640625T073000000Z" to represent 7:30AM on the
    * 25th of June of 1964, UTC time.
    */
-public static String toString(Date d, boolean useUTCtime){
+public synchronized static String toString(Date d, boolean useUTCtime){
     if( useUTCtime ) {
         // perferred style is to generate UTC times, indicated by trailing 'Z'
         return utcDateFormat.format(d);
