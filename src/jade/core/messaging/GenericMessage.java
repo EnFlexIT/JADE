@@ -29,6 +29,12 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.Serializable;
 
+//#MIDP_EXCLUDE_BEGIN
+import jade.lang.acl.LEAPACLCodec;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+//#MIDP_EXCLUDE_END
 
 /**
  * Generic class to manage a unified representation of messages
@@ -40,7 +46,7 @@ import jade.util.leap.Serializable;
  */
 public class GenericMessage implements Serializable{
 
-  private ACLMessage msg;
+  private transient ACLMessage msg;
   private Envelope env;
   private byte[] payload;
 
@@ -71,7 +77,16 @@ public class GenericMessage implements Serializable{
     this.payload = payload;
   }
 
-  //FIXME: find better way
+	//#MIDP_EXCLUDE_BEGIN
+  private void writeObject(ObjectOutputStream out) throws IOException {
+  	// Updates the payload if not present, before serialising
+    if (payload==null){
+      payload = (new LEAPACLCodec()).encode(msg);
+    }
+    out.defaultWriteObject();
+  }
+	//#MIDP_EXCLUDE_END
+
   public AID getSender(){
     if (msg!=null) return msg.getSender();
     else if (env!=null) return env.getFrom();
