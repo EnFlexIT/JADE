@@ -1268,6 +1268,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     return cf;
   }
 
+  public void addServiceManagerAddress(String smAddr) {
+      GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_ADDED, jade.core.replication.AddressNotificationSlice.NAME, null);
+      cmd.addParam(smAddr);
+
+      myCommandProcessor.processOutgoing(cmd);
+  }
+
+  public void removeServiceManagerAddress(String smAddr) {
+      GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_REMOVED, jade.core.replication.AddressNotificationSlice.NAME, null);
+      cmd.addParam(smAddr);
+
+      myCommandProcessor.processOutgoing(cmd);
+  }
+
+
   /**
      Return the platform main authority
    */
@@ -1484,17 +1499,17 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-	private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal from, AgentPrincipal to) {
-		if (from == null) {
-			from = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
-		}
-		PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_AGENT_PRINCIPAL, agentID, cid, from, to);
+  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal from, AgentPrincipal to) {
+      if (from == null) {
+	  from = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+      }
+      PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_AGENT_PRINCIPAL, agentID, cid, from, to);
 
-		for (int i = 0; i < platformListeners.size(); i++) {
-			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.changedAgentPrincipal(ev);
-		}
-	}
+      for (int i = 0; i < platformListeners.size(); i++) {
+	  AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+	  l.changedAgentPrincipal(ev);
+      }
+  }
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
   	PlatformEvent ev = new PlatformEvent(agentID, from, to);
