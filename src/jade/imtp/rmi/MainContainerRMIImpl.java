@@ -39,6 +39,7 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -55,7 +56,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
 
   /** Creates new MainContainerRMIImpl */
   public MainContainerRMIImpl(MainContainer mc, RMIIMTPManager mgr) throws RemoteException {
-    super(0, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
+      super(0); 
     impl = mc;
     manager = mgr;
   }
@@ -112,6 +113,10 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
   
   public AgentPrincipal getAgentPrincipal(AID name) throws RemoteException, IMTPException, NotFoundException {
     return impl.getAgentPrincipal(name);
+  }
+
+  public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws RemoteException, IMTPException, NotFoundException {
+    return impl.getContainerPrincipal(cid);
   }
 
   public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {

@@ -39,6 +39,7 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
@@ -56,7 +57,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
 
     /** Creates new AgentContainerRMIImpl */
     public AgentContainerRMIImpl(AgentContainer ac, RMIIMTPManager mgr) throws RemoteException {
-	    super(0, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
+	super(0); 
       impl = ac;
       manager = mgr;
     }
@@ -117,7 +118,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.createAgent(agentID, className, arguments, ownership, certs, startIt);
     }
     
-    public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {
+    public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException, AuthException {
       AgentContainer cont = manager.getAdapter(classSite);
       impl.createAgent(agentID, serializedInstance, cont, startIt);
       //impl.createAgent(agentID, serializedInstance, new AgentContainerAdapter(classSite, manager), startIt);
