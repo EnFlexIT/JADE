@@ -103,6 +103,7 @@ import java.util.Date;
 * 
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
+* @deprecated
 */
 public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour {
     
@@ -162,6 +163,40 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
   */
   private boolean hasBeenReset=false; // set to true in the method reset()
 
+  // __BACKWARD_COMPATIBILITY__BEGIN
+  /**
+   * constructor of the behaviour.
+   * @param a is the current agent. The protected variable 
+   * <code>Agent myAgent</code> contains then the pointer to the agent class.
+   * A common usage of this variable is to cast it to the actual type of
+   * Agent class and use the methods of the extended class. 
+   * For instance 
+   * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
+   * @param msg is the Call for Proposal message to be sent. If not set 
+   * already in the parameter, the protocol is set to the value
+   * <code>FIPA-Contract-Net</code>
+   * @param responders is the group of agents to which the cfp must be sent 
+   * sintactically it is a <code>List of AID</code>
+   */
+    public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, java.util.List responders) {
+    	this(a, msg, new ArrayList());
+    	ArrayList l = new ArrayList();
+			l.fromList(responders);
+			proposerAgents = l;
+    }
+
+  /**
+   * @param msg updates the cfp message to be sent
+   * @param responders updates the group of agents to which the cfp message should be sent
+   * @see #reset()
+   */
+public void reset(ACLMessage msg, java.util.List responders) {
+  ArrayList l = new ArrayList();
+	l.fromList(responders);
+  reset(msg, l);
+}
+// __BACKWARD_COMPATIBILITY__END
+
   /**
    * constructor of the behaviour.
    * @param a is the current agent. The protected variable 
@@ -193,14 +228,49 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * @see #FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, List responders)
    */
     public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg) {
-      this(a,msg,null);
-      proposerAgents = new ArrayList();
+      this(a,msg,new ArrayList());
       Iterator i=msg.getAllReceiver();
       while (i.hasNext())
 	proposerAgents.add(i.next());
     }
     
+  /**
+   * This method resets this behaviour object so that it restarts from
+   * the initial state of the protocol.
+   * <p>
+   * Care must be taken to where this method is called because, in some
+   * intermediate states of the contract net protocol, restarting may cause
+   * unwanted side effects 
+   * (e.g. not receiving some propose messages
+   * that refers to the previous cfp message).
+   */
+public void reset() {
+  super.reset();
+  state = 0;  // state of the protocol
+  finished=false; // true when done()
+  hasBeenReset = true;
+  msgProposals = new Vector();
+  msgFinal = new Vector();
+}
 
+
+  /**
+   * @param msg updates the cfp message to be sent
+   * @param responders updates the group of agents to which the cfp message should be sent
+   * @see #reset()
+   */
+public void reset(ACLMessage msg, List responders) {
+  reset();
+  cfpMsg = (ACLMessage)msg.clone();
+  if (responders != null) 
+      proposerAgents = responders;
+  else {
+      proposerAgents = new ArrayList();
+      Iterator i=msg.getAllReceiver();
+      while (i.hasNext())
+	  proposerAgents.add(i.next());
+  }
+}
 
   /**
    * Action method of the behaviour. This method cannot be overriden
@@ -540,42 +610,5 @@ public String createCfpContent(String cfpContent, AID receiver) {
 }
 
 
-  /**
-   * This method resets this behaviour object so that it restarts from
-   * the initial state of the protocol.
-   * <p>
-   * Care must be taken to where this method is called because, in some
-   * intermediate states of the contract net protocol, restarting may cause
-   * unwanted side effects 
-   * (e.g. not receiving some propose messages
-   * that refers to the previous cfp message).
-   */
-public void reset() {
-  super.reset();
-  state = 0;  // state of the protocol
-  finished=false; // true when done()
-  hasBeenReset = true;
-  msgProposals = new Vector();
-  msgFinal = new Vector();
-}
-
-
-  /**
-   * @param msg updates the cfp message to be sent
-   * @param responders updates the group of agents to which the cfp message should be sent
-   * @see #reset()
-   */
-public void reset(ACLMessage msg, List responders) {
-  reset();
-  cfpMsg = (ACLMessage)msg.clone();
-  if (responders != null) 
-      proposerAgents = responders;
-  else {
-      proposerAgents = new ArrayList();
-      Iterator i=msg.getAllReceiver();
-      while (i.hasNext())
-	  proposerAgents.add(i.next());
-  }
-}
 }
 

@@ -54,6 +54,7 @@ import java.util.Date;
 * <p>
 * @author Fabio Bellifemine - CSELT S.p.A
 * @version $Date$ $Revision$
+* @deprecated
 */
 
 
@@ -101,6 +102,31 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
   private boolean finished;
 
 
+// __BACKWARD_COMPATIBILITY__BEGIN
+  /**
+   * constructor of the behaviour.
+   * @param a is the current agent. The public variable
+   * <code> Agent myAgent </code> contains then the pointer to the agent class.
+   * A common usage of this variable is to cast it to the actual type of
+   * Agent class and use the methods of the extended class.
+   * For instance
+   * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
+   * @param msg is the Query message to be sent (notice that the performative
+   * must be set to <code>QUERY-IF</code> or <code>QUERY-REF</code>
+   * @param responders is the group of agents 
+   * (i.e. a <code>List</code> of <code>AID</code>)
+   * to which the query must be sent
+   */
+    public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, java.util.List responders) {
+      this(a,msg);
+      queryMsg.clearAllReceiver();
+      informerAgents =new ArrayList();
+      for (int i=0; i<responders.size(); i++) { 
+	queryMsg.addReceiver((AID)responders.get(i));
+	informerAgents.add((AID)responders.get(i));
+      }
+    }
+// __BACKWARD_COMPATIBILITY__END
 
   /**
    * constructor of the behaviour.
