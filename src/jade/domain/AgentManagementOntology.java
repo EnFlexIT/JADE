@@ -4,9 +4,17 @@
 
 package jade.domain;
 
-import jade.core.Agent;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.Reader;
+import java.io.Writer;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
+
+import jade.core.Agent;
+import jade.lang.acl.ACLMessage;
 
 
 /**************************************************************
@@ -23,6 +31,604 @@ import java.util.Hashtable;
 
 ****************************************************************/
 public class AgentManagementOntology {
+
+  /*****************************************************************
+
+    Name: ServiceDescriptor
+
+    Responsibility and Collaborations:
+
+    + Represents a 'FIPA-Service-Desc' of 'fipa-agent-management'
+      ontology as a Java object, to avoid scattering parsing code
+      throughout applications.
+      (df, AgentManagementParser)
+
+  ******************************************************************/
+  public static class ServiceDescriptor {
+
+    static final String TITLE = ":service-description";
+
+    // These String constants are the keywords in
+    // 'FIPA-Service-Desc-Item' objects
+    static final String NAME = ":service-name";
+    static final String TYPE = ":service-type";
+    static final String ONTOLOGY = ":service-ontology";
+    static final String FIXEDPROPS = ":fixed-properties";
+    static final String NEGOTIABLEPROPS = ":negotiable-properties";
+    static final String COMMUNICATIONPROPS = ":communication-properties";
+
+    // Table of allowed keywords in 'FIPA-Service-Desc-Item' objects
+    private static Hashtable keywords = new Hashtable(6, 1.0f);
+
+    private String name;
+    private String type;
+    private String ontology;
+    private String fixedProperties;
+    private String negotiableProperties;
+    private String communicationProperties;
+
+    public static ServiceDescriptor fromText(Reader r) throws ParseException{
+      return AgentManagementOntology.parser.parseServiceDescriptor(r);
+    }
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setType(String t) {
+      type = t;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public void setOntology(String o) {
+      ontology = o;
+    }
+
+    public String getOntology() {
+      return ontology;
+    }
+
+    public void setFixedProps(String fp) {
+      fixedProperties = fp;
+    }
+
+    public String getFixedProps() {
+      return fixedProperties;
+    }
+
+    public void setNegotiableProps(String np) {
+      negotiableProperties = np;
+    }
+
+    public String getNegotiableProps() {
+      return negotiableProperties;
+    }
+
+    public void setCommunicationProps(String cp) {
+      communicationProperties = cp;
+    }
+
+    public String getCommunicationProps() {
+      return communicationProperties;
+    }
+
+    // Convert a service description object to characters text
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + TITLE);
+	if(name != null)
+	  w.write("( " + NAME + " " + name + " )");
+	if(type != null)
+	  w.write("( " + TYPE + " " + type + " )");
+	if(ontology != null)
+	  w.write("( " + ONTOLOGY + " " + ontology + " )");
+	if(fixedProperties != null)
+	  w.write("( " + FIXEDPROPS + " " + fixedProperties + " )");
+	if(negotiableProperties != null)
+	  w.write("( " + NEGOTIABLEPROPS + " " + negotiableProperties + " )");
+	if(communicationProperties != null)
+	  w.write("( " + COMMUNICATIONPROPS +" " + communicationProperties + " )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+
+    }
+
+  } // End of ServiceDescriptor class
+
+
+
+  /************************************************************************
+
+    Name: AMSAgentDescriptor
+
+    Responsibilities and Collaborations:
+
+    + Provide platform-level support to AMS agent, holding all
+      informations needed by 'AMS-agent-description' objects in
+      'fipa-agent-management' ontology.
+      (ams)
+
+    + Represent the information above as an object, to avoid scattering
+      parsing code throughout applications.
+      (AgentManagementParser)
+
+  ************************************************************************/
+  public static class AMSAgentDescriptor implements Serializable {
+
+    // These String constants are the keywords in
+    // 'FIPA-AMS-description' objects
+    static final String NAME = ":agent-name";
+    static final String ADDRESS = ":address";
+    static final String SIGNATURE = ":signature";
+    static final String APSTATE = ":ap-state";
+    static final String DELEGATE = ":delegate-agent-name";
+    static final String FORWARD = ":forward-address";
+    static final String OWNERSHIP = ":ownership";
+
+    // Table of allowed keywords in 'FIPA-AMS-description' objects
+    private static Hashtable keywords = new Hashtable(7, 1.0f);
+
+    private String name;
+    private String address;
+    private String signature;
+    private int APState;
+    private String delegateAgentName;
+    private String forwardAddress;
+    private String ownership;
+
+
+    public static AMSAgentDescriptor fromText(Reader r) throws ParseException{
+      return AgentManagementOntology.parser.parseAMSDescriptor(r);
+    }
+
+    // Modifiers
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public void setAddress(String a) {
+      address = a;
+    }
+
+    public void setSignature(String s) {
+      signature = s;
+    }
+
+    public void setAPState(int AP) throws IllegalArgumentException {
+      if( (AP <= Agent.AP_MIN)||(AP >= Agent.AP_MAX) )
+	throw new IllegalArgumentException("APState out of range");
+      APState = AP;
+    }
+
+    public void setDelegateAgentName(String d) {
+      delegateAgentName = d;
+    }
+
+    public void setForwardAddress(String f) {
+      forwardAddress = f;
+    }
+
+    public void setOwnership(String o) {
+      ownership = o;
+    }
+
+    // Accessors
+
+    public String getName() {
+      return name;
+    }
+
+    public String getAddress() {
+      return address;
+    }
+
+    public String getSignature() {
+      return signature;
+    }
+
+    public String getAPState() {
+      String result = null;
+      try {
+	result = AgentManagementOntology.instance().getAPStateByCode(APState);
+      }
+      catch(FIPAException fe) {
+	//	fe.printStackTrace();
+      }
+      return result;
+    }
+
+    public String getDelegateAgentName() {
+      return delegateAgentName;
+    }
+
+    public String getForwardAddress() {
+      return forwardAddress;
+    }
+
+    public String getOwnership() {
+      return ownership;
+    }
+
+    // Print out AMS descriptor
+
+    public void toText(Writer w) {
+
+      AgentManagementOntology o = AgentManagementOntology.instance();
+      try {
+	if(name != null)
+	  w.write("( " + NAME + " " + name + " )");
+	if(address != null)
+	  w.write("( " + ADDRESS + " " + address + " )");
+	if(signature != null)
+	  w.write("( " + SIGNATURE + " " + signature + " )");
+	try {
+	  String APStateName = o.getAPStateByCode(APState);
+	  w.write("( " + APSTATE + " " + APStateName + " )");
+	}
+	catch(FIPAException fe) {
+	  // Invalid APState value: don't print it
+	}
+	if(delegateAgentName != null)
+	  w.write("( " + DELEGATE + " " + delegateAgentName + " )");
+	if(forwardAddress != null)
+	  w.write("( " + FORWARD + " " + forwardAddress + " )");
+	if(ownership != null)
+	  w.write("( " + OWNERSHIP + " " + ownership + " )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+
+    }
+
+  } // End of AMSAgentDescriptor class
+
+
+  /************************************************************************
+
+    Name: DFAgentDescriptor
+
+    Responsibilities and Collaborations:
+
+    + Provide platform-level support to DF agent, holding all
+      informations needed by 'DF-agent-description' objects in
+      'fipa-agent-management' ontology.
+      (df)
+
+    + Represent the information above as an object, to avoid scattering
+      parsing code throughout applications.
+      (AgentManagementParser)
+
+  ************************************************************************/
+  public static class DFAgentDescriptor {
+
+    // These String constants are the keywords in
+    // 'FIPA-DF-description' objects
+    static final String NAME = ":agent-name";
+    static final String ADDRESS = ":agent-address";
+    static final String SERVICES = ":agent-services";
+    static final String TYPE = ":agent-type";
+    static final String PROTOCOLS = ":interaction-protocols";
+    static final String ONTOLOGY = ":ontology";
+    static final String OWNERSHIP = ":ownership";
+    static final String DFSTATE = ":df-state";
+
+    // Table of allowed keywords in 'FIPA-DF-description' objects
+    private static Hashtable keywords = new Hashtable(8, 1.0f);
+
+    private String name;
+    private Vector addresses = new Vector();
+    private Vector services = new Vector();
+    private String type;
+    private Vector interactionProtocols = new Vector();
+    private String ontology;
+    private String ownership;
+    private String DFState;
+
+
+    public static DFAgentDescriptor fromText(Reader r) throws ParseException{
+      return AgentManagementOntology.parser.parseDFDescriptor(r);
+    }
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void addAddress(String a) {
+      addresses.addElement(a);
+    }
+
+    public void removeAddresses() {
+      addresses.removeAllElements();
+    }
+
+    public Enumeration getAddresses() {
+      return addresses.elements();
+    }
+
+    public void addService(ServiceDescriptor sd) {
+      services.addElement(sd);
+    }
+
+    public void removeAgentServices() {
+      services.removeAllElements();
+    }
+
+    public Enumeration getAgentServices() {
+      return services.elements();
+    }
+
+    public void setType(String t) {
+      type = t;
+    }
+ 
+    public String getType() {
+      return type;
+    }
+
+    public void addInteractionProtocol(String ip) {
+      interactionProtocols.addElement(ip);
+    }
+
+    public void removeInteractionProtocols() {
+      interactionProtocols.removeAllElements();
+    }
+
+    public Enumeration getInteractionProtocols() {
+      return interactionProtocols.elements();
+    }
+
+    public void setOntology(String o) {
+      ontology = o;
+    }
+
+    public String getOntology() {
+      return ontology;
+    }
+
+    public void setOwnership(String o) {
+      ownership = o;
+    }
+
+    public String getOwnership() {
+      return ownership;
+    }
+
+    public void setDFState(String dfs) {
+      DFState = dfs;
+    }
+
+    String getDFState() {
+      return DFState;
+    }
+
+    public void toText(Writer w) {
+      try {
+	Enumeration e = null;
+	if(name != null)
+	  w.write("( " + NAME + " " + name + " )");
+
+	if(!addresses.isEmpty()) {
+	  w.write("( " + ADDRESS);
+	  e = getAddresses();
+	  while(e.hasMoreElements())
+	    w.write("    " + e.nextElement());
+	  w.write(" )");
+	}
+
+	if(!services.isEmpty()) {
+	  w.write("( " + SERVICES);
+	  e = getAgentServices();
+	  while(e.hasMoreElements()) {
+	    ServiceDescriptor sd = (ServiceDescriptor)e.nextElement();
+	    sd.toText(w);
+	  }
+	  w.write(" )");
+	}
+
+	if(type != null)
+	  w.write(" ( " + TYPE + " " + type + " )");
+
+	if(!interactionProtocols.isEmpty()) {
+	  w.write("( " + PROTOCOLS + " (");
+	  e = getInteractionProtocols();
+	  while(e.hasMoreElements())
+	    w.write(" " + e.nextElement());
+	  w.write(" ) )");
+	}
+
+	if(ontology != null)
+	  w.write(" ( " + ONTOLOGY + " " + ontology + " )");
+
+	if(ownership != null)
+	  w.write(" ( " + OWNERSHIP + " " + ownership + " )");
+
+	if(DFState != null)
+	  w.write(" ( " + DFSTATE + " " + DFState + " )");
+
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+
+    }
+
+  } // End of DFAgentDescriptor class
+
+
+  public static interface Action {
+
+    public void setName(String name);
+    public String getName();
+    public void toText(Writer w);
+
+  }
+
+  public static class AMSAction implements Action {
+
+    // These String constants are the names of the actions supported
+    // by AMS agent
+    static final String AUTHENTICATE = "authenticate";
+    static final String REGISTERAGENT = "register-agent";
+    static final String DEREGISTERAGENT = "deregister-agent";
+    static final String MODIFYAGENT = "modify-agent";
+
+    static final String ARGNAME = ":ams-description";
+
+    private static Hashtable actions = new Hashtable(4, 1.0f);
+    private String name;
+    private AMSAgentDescriptor arg;
+
+
+    public static AMSAction fromText(Reader r) throws ParseException{
+      return AgentManagementOntology.parser.parseAMSAction(r);
+    }
+
+    public void setName(String s) {
+      name = s;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setArg(AMSAgentDescriptor amsd) {
+      arg = amsd;
+    }
+
+    public AMSAgentDescriptor getArg() {
+      return arg;
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write("( " + ARGNAME + " ");
+	arg.toText(w);
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of AMSAction class
+
+  public static class DFAction implements Action {
+
+    // These String constants are the names of the actions supported
+    // by DF agent
+    static final String REGISTER = "register";
+    static final String DEREGISTER = "deregister";
+    static final String MODIFY = "modify";
+    static final String SEARCH = "search";
+
+    static final String ARGNAME = ":df-description";
+
+    private static Hashtable actions = new Hashtable(4, 1.0f);
+    private String name;
+    private DFAgentDescriptor arg;
+
+
+    public static DFAction fromText(Reader r) throws ParseException{
+      return AgentManagementOntology.parser.parseDFAction(r);
+    }
+
+    public void setName(String s) {
+      name = s;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setArg(DFAgentDescriptor dfd) {
+      arg = dfd;
+    }
+
+    public DFAgentDescriptor getArg() {
+      return arg;
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write("( " + ARGNAME + " ");
+	arg.toText(w);
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of DFAction class
+
+  public static class ACCAction implements Action {
+    static final String FORWARD = "forward";
+    static final String ARGNAME = "";
+
+    private static Hashtable actions = new Hashtable(1, 1.0f);
+    private String name;
+    private ACLMessage arg;
+
+
+    public static ACCAction fromText(Reader r) throws ParseException {
+      return AgentManagementOntology.parser.parseACCAction(r);
+    }
+
+    public void setName(String s) {
+      name = s;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setArg(ACLMessage msg) {
+      arg = msg;
+    }
+
+    public ACLMessage getArg() {
+      return arg;
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write(" )");
+	//	arg.toText(w);
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of ACCAction class
 
 
   public static class APLifeCycle {
@@ -41,7 +647,8 @@ public class AgentManagementOntology {
     private APLifeCycle() {
     }
 
-  }
+  } // End of APLifeCycle class
+
 
   public static class DomainLifeCycle {
 
@@ -58,31 +665,7 @@ public class AgentManagementOntology {
     private DomainLifeCycle() {
     }
 
-  }
-
-
-  public static class DFAgentDescription {
-
-    // These String constants are the keywords in
-    // 'fipa-man-df-agent-description' objects
-    static final String NAME = ":agent-name";
-    static final String SERVICES = ":agent-services";
-    static final String TYPE = ":agent-type";
-    static final String PROTOCOLS = ":interaction-protocols";
-    static final String ONTOLOGY = ":ontology";
-    static final String ADDRESS = ":agent-address";
-    static final String OWNERSHIP = ":ownership";
-    static final String DFSTATE = ":df-state";
-
-    // Table of allowed keywords in 'fipa-man-df-agent-description'
-    // objects
-    private static Hashtable keywords = new Hashtable(8, 1.0f);
-
-    // Utility class; can't be instantiated
-    private DFAgentDescription() {
-    }
-
-  } // End of DFAgentDescription class
+  } // End of DomainLifeCycle class
 
 
   public static class PlatformProfile {
@@ -108,26 +691,6 @@ public class AgentManagementOntology {
   } // End of PlatformProfile class
 
 
-  public static class ServiceDescription {
-
-    // These String constants are the keywords in
-    // 'fipa-man-service-description' objects
-    static final String TYPE = ":service-type";
-    static final String ONTOLOGY = ":service-ontology";
-    static final String DESCRIPTION = ":service-description";
-    static final String CONDITION = ":service-condition";
-
-    // Table of allowed keywords in 'fipa-man-service-description'
-    // objects
-    private static Hashtable keywords = new Hashtable(4, 1.0f);
-
-    // Utility class; can't be instantiated
-    private ServiceDescription() {
-    }
-
-  } // End of ServiceDescription class
-
-
   public static class ServiceTypes {
 
     // These String constants are the names of FIPA special services
@@ -141,28 +704,6 @@ public class AgentManagementOntology {
     }
 
   } // End of ServiceTypes class
-
-
-  public static class AMSAgentDescription {
-
-    // These String constants are the keywords in
-    // 'fipa-man-ams-agent-description' objects
-    static final String NAME = ":agent-name";
-    static final String ADDRESS = ":address";
-    static final String SIGNATURE = ":signature";
-    static final String APSTATE = ":ap-state";
-    static final String DELEGATE = ":delegate-agent";
-    static final String FORWARD = ":forward-address";
-
-    // Table of allowed keywords in 'fipa-man-ams-agent-description'
-    // objects
-    private static Hashtable keywords = new Hashtable(6, 1.0f);
-
-    // Utility class; can't be instantiated
-    private AMSAgentDescription() {
-    }
-
-  } // End of AMSAgentDescription class
 
 
   public static class Exception {
@@ -193,41 +734,6 @@ public class AgentManagementOntology {
   } // End of Exception class
 
 
-  public static class AMSActions {
-
-    // These String constants are the names of the actions supported
-    // by AMS agent
-    static final String AUTHENTICATE = "authenticate";
-    static final String REGISTERAGENT = "register-agent";
-    static final String DEREGISTERAGENT = "deregister-agent";
-    static final String MODIFYAGENT = "modify-agent";
-
-    private static Hashtable actions = new Hashtable(4, 1.0f);
-
-    // Utility class; can't be instantiated
-    private AMSActions() {
-    }
-
-  } // End of AMSActions class
-
-
-  public static class DFActions {
-
-    // These String constants are the names of the actions supported
-    // by DF agent
-    static final String REGISTER = "register";
-    static final String DEREGISTER = "deregister";
-    static final String MODIFY = "modify";
-    static final String SEARCH = "search";
-
-    private static Hashtable actions = new Hashtable(4, 1.0f);
-
-    // Utility class; can't be instantiated
-    private DFActions() {
-    }
-
-  } // End of DFActions class
-
 
   // Used as lock in Doubly Checked Locking
   private static Object lock = new Object();
@@ -235,19 +741,13 @@ public class AgentManagementOntology {
   // The single instance of AgentManagementOntology
   private static AgentManagementOntology singleton = null;
 
+  // A parser to convert strings describing 'fipa-agent-management' objects into Java objects
+  private static AgentManagementParser parser = AgentManagementParser.create();
+
   // Private constructor: instantiate only through instance() method.
   private AgentManagementOntology() {
 
     // Fill in keyword tables -- When key == value an Hashtable is used as a Set
-
-    DFAgentDescription.keywords.put(DFAgentDescription.NAME, new Integer(0));
-    DFAgentDescription.keywords.put(DFAgentDescription.SERVICES, new Integer(1));
-    DFAgentDescription.keywords.put(DFAgentDescription.TYPE, new Integer(2));
-    DFAgentDescription.keywords.put(DFAgentDescription.PROTOCOLS, new Integer(3));
-    DFAgentDescription.keywords.put(DFAgentDescription.ONTOLOGY, new Integer(4));
-    DFAgentDescription.keywords.put(DFAgentDescription.ADDRESS, new Integer(5));
-    DFAgentDescription.keywords.put(DFAgentDescription.OWNERSHIP, new Integer(6));
-    DFAgentDescription.keywords.put(DFAgentDescription.DFSTATE, new Integer(7));
 
     PlatformProfile.keywords.put(PlatformProfile.NAME, PlatformProfile.NAME);
     PlatformProfile.keywords.put(PlatformProfile.IIOP, PlatformProfile.IIOP);
@@ -257,17 +757,29 @@ public class AgentManagementOntology {
     PlatformProfile.keywords.put(PlatformProfile.CERTAUTH, PlatformProfile.CERTAUTH);
     PlatformProfile.keywords.put(PlatformProfile.DEFAULTDF, PlatformProfile.DEFAULTDF);
 
-    ServiceDescription.keywords.put(ServiceDescription.TYPE, ServiceDescription.TYPE);
-    ServiceDescription.keywords.put(ServiceDescription.ONTOLOGY, ServiceDescription.ONTOLOGY);
-    ServiceDescription.keywords.put(ServiceDescription.DESCRIPTION, ServiceDescription.DESCRIPTION);
-    ServiceDescription.keywords.put(ServiceDescription.CONDITION, ServiceDescription.CONDITION);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.NAME, ServiceDescriptor.NAME);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.TYPE, ServiceDescriptor.TYPE);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.ONTOLOGY, ServiceDescriptor.ONTOLOGY);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.FIXEDPROPS, ServiceDescriptor.FIXEDPROPS);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.NEGOTIABLEPROPS, ServiceDescriptor.NEGOTIABLEPROPS);
+    ServiceDescriptor.keywords.put(ServiceDescriptor.COMMUNICATIONPROPS, ServiceDescriptor.COMMUNICATIONPROPS);
 
-    AMSAgentDescription.keywords.put(AMSAgentDescription.NAME, new Integer(0));
-    AMSAgentDescription.keywords.put(AMSAgentDescription.ADDRESS, new Integer(1));
-    AMSAgentDescription.keywords.put(AMSAgentDescription.SIGNATURE, new Integer(2));
-    AMSAgentDescription.keywords.put(AMSAgentDescription.APSTATE, new Integer(3));
-    AMSAgentDescription.keywords.put(AMSAgentDescription.DELEGATE, new Integer(4));
-    AMSAgentDescription.keywords.put(AMSAgentDescription.FORWARD, new Integer(5));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.NAME, new Integer(0));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.ADDRESS, new Integer(1));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.SIGNATURE, new Integer(2));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.APSTATE, new Integer(3));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.DELEGATE, new Integer(4));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.FORWARD, new Integer(5));
+    AMSAgentDescriptor.keywords.put(AMSAgentDescriptor.OWNERSHIP, new Integer(6));
+
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.NAME, new Integer(0));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.ADDRESS, new Integer(1));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.SERVICES, new Integer(2));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.TYPE, new Integer(3));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.PROTOCOLS, new Integer(4));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.ONTOLOGY, new Integer(5));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.OWNERSHIP, new Integer(6));
+    DFAgentDescriptor.keywords.put(DFAgentDescriptor.DFSTATE, new Integer(7));
 
 
 
@@ -289,15 +801,15 @@ public class AgentManagementOntology {
 
     // Fill in action names for AMS and DF agents
 
-    AMSActions.actions.put(AMSActions.AUTHENTICATE, new Integer(0));
-    AMSActions.actions.put(AMSActions.REGISTERAGENT, new Integer(1));
-    AMSActions.actions.put(AMSActions.DEREGISTERAGENT, new Integer(2));
-    AMSActions.actions.put(AMSActions.MODIFYAGENT, new Integer(3));
+    AMSAction.actions.put(AMSAction.AUTHENTICATE, new Integer(0));
+    AMSAction.actions.put(AMSAction.REGISTERAGENT, new Integer(1));
+    AMSAction.actions.put(AMSAction.DEREGISTERAGENT, new Integer(2));
+    AMSAction.actions.put(AMSAction.MODIFYAGENT, new Integer(3));
 
-    DFActions.actions.put(DFActions.REGISTER, new Integer(0));
-    DFActions.actions.put(DFActions.DEREGISTER, new Integer(1));
-    DFActions.actions.put(DFActions.MODIFY, new Integer(2));
-    DFActions.actions.put(DFActions.SEARCH, new Integer(3));
+    DFAction.actions.put(DFAction.REGISTER, new Integer(0));
+    DFAction.actions.put(DFAction.DEREGISTER, new Integer(1));
+    DFAction.actions.put(DFAction.MODIFY, new Integer(2));
+    DFAction.actions.put(DFAction.SEARCH, new Integer(3));
 
 
     // Fill in AP Life-Cycle states
@@ -322,23 +834,23 @@ public class AgentManagementOntology {
   // Table of mandatory attributes for AMS actions. First index is the
   // action number and second index is attribute number. Those two
   // numbers can be obtained from action and attribute names, looking
-  // up in 'keywords' Hashtable of AMSActions and AMSAgentDescription
+  // up in 'keywords' Hashtable of AMSAction and AMSAgentDescriptor
   // classes
   private static final boolean AMSMandatoryAttributes[][] = {
-    { true,  false, true,  false, false, false }, // 'authenticate' action
-    { true,  true,  false, true,  false, false }, // 'register-agent' action
-    { true,  false, false, false, false, false }, // 'deregister-agent' action
-    { true,  false, false, false, false, false }  // 'modify-agent' action
+    { true,  false, true,  false, false, false, false }, // 'authenticate' action
+    { true,  true,  false, true,  false, false, false }, // 'register-agent' action
+    { true,  false, false, false, false, false, false }, // 'deregister-agent' action
+    { true,  false, false, false, false, false, false }  // 'modify-agent' action
   };
 
 
   // Table of mandatory attributes for DF actions. First index is the
   // action number and second index is attribute number. Those two
   // numbers can be obtained from action and attribute names, looking
-  // up in 'keywords' Hashtable of DFActions and DFAgentDescription
+  // up in 'keywords' Hashtable of DFAction and DFAgentDescriptor
   // classes
   private static final boolean DFMandatoryAttributes[][] = {
-    { true,  false, true,  false, false, true,  true,  true  }, // 'register' action
+    { true,  true,  false, true,  false, false, true,  true  }, // 'register' action
     { true,  false, false, false, false, false, false, false }, // 'deregister' action
     { true,  false, false, false, false, false, false, false }, // 'modify' action
     { false, false, false, false, false, false, false, false }  // 'search' action
@@ -349,7 +861,7 @@ public class AgentManagementOntology {
   // AgentManagementOntology class
   public static final AgentManagementOntology instance() {
 
-    // Doubly-Checked Locking initialization
+    // Double-Checked Locking initialization
     if(singleton == null)
       synchronized(lock) {
 	if(singleton == null)
@@ -365,32 +877,27 @@ public class AgentManagementOntology {
   // agents to perform correctness controls over received messages
   // content
 
-
-  // Check that 'keyword' is a valid 'fipa-man-df-agent-description'
-  // keyword
+  // Check that 'keyword' is a valid 'FIPA-DF-description' keyword
   public boolean isValidDFADKeyword(String keyword) {
-    return DFAgentDescription.keywords.containsKey(keyword);
+    return DFAgentDescriptor.keywords.containsKey(keyword);
   }
 
-  // Check that 'keyword' is a valid 'fipa-man-platform-profile'
-  // keyword
+  // Check that 'keyword' is a valid 'FIPA-AP-description' keyword
   public boolean isValidPPKeyword(String keyword) {
     return PlatformProfile.keywords.containsKey(keyword);
   }
 
-  // Check that 'keyword' is a valid 'fipa-man-service-description'
-  // keyword
+  // Check that 'keyword' is a valid 'FIPA-Service-Desc-Item' keyword
   public boolean isValidSDKeyword(String keyword) {
-    return ServiceDescription.keywords.containsKey(keyword);
+    return ServiceDescriptor.keywords.containsKey(keyword);
   }
 
-  // Check that 'keyword' is a valid 'fipa-man-ams-agent-description'
-  // keyword
+  // Check that 'keyword' is a valid 'FIPA-AMS-description' keyword
   public boolean isValidAMSADKeyword(String keyword) {
-    return AMSAgentDescription.keywords.containsKey(keyword);
+    return AMSAgentDescriptor.keywords.containsKey(keyword);
   }
 
-  // Check that 'message' is a valid 'fipa-man-exception' error
+  // Check that 'message' is a valid 'AgentManagementException' error
   // message
   public boolean isValidException(String message) {
     return Exception.JavaExceptions.containsKey(message);
@@ -399,16 +906,16 @@ public class AgentManagementOntology {
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' AMS action
   public boolean isMandatoryForAMS(String actionName, String attributeName) {
-    Integer actionIndex = (Integer)AMSActions.actions.get(actionName);
-    Integer attributeIndex = (Integer)AMSAgentDescription.keywords.get(attributeName);
+    Integer actionIndex = (Integer)AMSAction.actions.get(actionName);
+    Integer attributeIndex = (Integer)AMSAgentDescriptor.keywords.get(attributeName);
     return AMSMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
   }
 
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' DF action
   public boolean isMandatoryForDF(String actionName, String attributeName) {
-    Integer actionIndex = (Integer)DFActions.actions.get(actionName);
-    Integer attributeIndex = (Integer)DFAgentDescription.keywords.get(attributeName);
+    Integer actionIndex = (Integer)DFAction.actions.get(actionName);
+    Integer attributeIndex = (Integer)DFAgentDescriptor.keywords.get(attributeName);
     return DFMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
   }
 
@@ -417,7 +924,9 @@ public class AgentManagementOntology {
 
   // Return the Java exception corresponding to a given message
   public FIPAException getException(String message) {
-    return (FIPAException)Exception.JavaExceptions.get(message);
+    FIPAException fe = (FIPAException)Exception.JavaExceptions.get(message);
+    fe.fillInStackTrace();
+    return fe;
   }
 
   // Return the number code of a given AP Life-Cycle state
