@@ -304,6 +304,21 @@ public class AID implements Comparable, Serializable {
     return result;
   }
 
+  // For persistence service
+  private void setAddressesArray(String[] arr) {
+      //#MIDP_EXCLUDE_BEGIN
+      addresses.clear();
+      //#MIDP_EXCLUDE_END
+
+      /*#MIDP_INCLUDE_BEGIN
+      addresses.removeAllElements();
+      #MIDP_INCLUDE_END*/
+
+      for(int i = 0; i < arr.length; i++) {
+	  addAddresses(arr[i]);
+      }
+  }
+
   /**
   * Returns an array containing all the AIDs of the resolvers.
   */
@@ -318,6 +333,21 @@ public class AID implements Comparable, Serializable {
 			resolvers.copyInto(result);
 			#MIDP_INCLUDE_END*/
     return result;
+  }
+
+  // For persistence service
+  private void setResolversArray(AID[] arr) {
+      //#MIDP_EXCLUDE_BEGIN
+      resolvers.clear();
+      //#MIDP_EXCLUDE_END
+
+      /*#MIDP_INCLUDE_BEGIN
+      resolvers.removeAllElements();
+      #MIDP_INCLUDE_END*/
+
+      for(int i = 0; i < arr.length; i++) {
+	  addResolvers(arr[i]);
+      }
   }
 
   /**
@@ -504,5 +534,19 @@ public class AID implements Comparable, Serializable {
     else
       return name.substring(atPos + 1);
   }
+
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
 
 }
