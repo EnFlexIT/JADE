@@ -56,9 +56,10 @@ public class MsgReceiver extends SimpleBehaviour {
     */
     public static final int INFINITE = -1;
     
-    private MessageTemplate template;
-    private long deadline;
-    private Object receivedMsgKey;
+    protected MessageTemplate template;
+    protected long deadline;
+    protected Object receivedMsgKey;
+    
     private boolean received;
     private boolean expired;
     private boolean interrupted;
