@@ -25,6 +25,9 @@ package jade.gui;
 
 // Import required Jade classes
 import jade.core.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
 @author Giovanni Caire - CSELT S.p.A.
@@ -33,26 +36,51 @@ import jade.core.*;
 
 public class GuiEvent 
 {
-	protected Object source;
-	protected int type;
-	
-	// Predefined GUI event types
-	public static final int EXIT = 0;
-	public static final int CLOSEGUI = 1;
+  protected Object source;
+  protected int type;
+  private List parameters;
 
-	public GuiEvent(Object eventSource, int eventType)
-	{
-		source = eventSource;
-		type = eventType;	
-	}
+  // Predefined GUI event types
+  public static final int EXIT = 0;
+  public static final int CLOSEGUI = 1;
 
-	public int getType()
-	{
-		return(type);
-	}
 
-	public Object getSource()
-	{
-		return(source);
-	}
+  public GuiEvent(Object eventSource, int eventType)
+  {
+    source = eventSource;
+    type = eventType;	
+    parameters = new ArrayList();
+  }
+
+  public int getType()
+  {
+    return(type);
+  }
+
+  public Object getSource()
+  {
+    return(source);
+  }
+
+  /** adds a new parameter to this event 
+  * @param param is the parameter 
+  **/
+  public void addParameter(Object param) {
+    parameters.add(param);
+  }     
+
+  /**
+   * get the parameter in the given position
+   * @return the Object with the prameter
+   **/
+  public Object getParameter(int number) {
+    return parameters.get(number);
+  }
+
+  /**
+   * get an Iterator over all the parameters
+   **/
+  public Iterator getAllParameter() {
+    return parameters.iterator();
+  }
 }
