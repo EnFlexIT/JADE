@@ -45,33 +45,34 @@ public class NodeFailureMonitor implements Runnable {
     }
 
     public void run() {
-      while(active) {
-	  try {
-	      target.ping(true); // Hang on this call
-	      active = false;
-	      System.out.println("PING from node "+ target.getName() + " returned normally");
-	  }
-	  catch(IMTPException imtpe1) { // Connection down
-	      System.out.println("PING from node " + target.getName() + " exited with exception");
-	      listener.nodeUnreachable(target);
-	      try {
-		  target.ping(false); // Try a non blocking ping to check
+	listener.nodeAdded(target);
+	while(active) {
+	    try {
+		target.ping(true); // Hang on this call
+		active = false;
+		System.out.println("PING from node "+ target.getName() + " returned normally");
+	    }
+	    catch(IMTPException imtpe1) { // Connection down
+		System.out.println("PING from node " + target.getName() + " exited with exception");
+		listener.nodeUnreachable(target);
+		try {
+		    target.ping(false); // Try a non blocking ping to check
 
-		  System.out.println("PING from node " + target.getName() + " returned OK");
-		  listener.nodeReachable(target);
-	      }
-	      catch(IMTPException imtpe2) { // Object down
-		  active = false;
-	      }
-	  }
-	  catch(Throwable t) {
-	      t.printStackTrace();
-	  }
-      } // END of while
+		    System.out.println("PING from node " + target.getName() + " returned OK");
+		    listener.nodeReachable(target);
+		}
+		catch(IMTPException imtpe2) { // Object down
+		    active = false;
+		}
+	    }
+	    catch(Throwable t) {
+		t.printStackTrace();
+	    }
+	} // END of while
       
-      // If we reach this point the node is no longer active
-      listener.nodeRemoved(target);
+	// If we reach this point the node is no longer active
+	listener.nodeRemoved(target);
 
-      }
+    }
   
-  }
+}
