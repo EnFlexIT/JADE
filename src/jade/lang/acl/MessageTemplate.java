@@ -334,26 +334,30 @@ public class MessageTemplate implements Serializable {
      @deprecated Use MatchReceiver(AID[]) instead
   */
   public static MessageTemplate MatchReceiver(java.util.List values) {
-    ArrayList l = new ArrayList();
-    l.fromList(values);
-    return MatchReceiver(l);
+      AID[] v=null;
+      if (values != null) {
+	  v = new AID[values.size()];
+	  for (int i=0; i<values.size(); i++)
+	      v[i]=(AID)values.get(i);
+      }
+    return MatchReceiver(v);
   }
   //__BACKWARD_COMPATIBILITY__END
 
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
-     @param values A <code>List</code> of Agent IDs against which the
+     @param values An array of Agent IDs against which the
      value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchReceiver(List values) {
+  public static MessageTemplate MatchReceiver(AID[] values) {
     ACLMessage msg = allWildCard();
     msg.clearAllReceiver();
-    Iterator it = values.iterator();
-    while(it.hasNext())
-      msg.addReceiver((AID)it.next());
+    if (values != null) 
+	for (int i=0; i<values.length; i++)
+	    msg.addReceiver(values[i]);
     return new MessageTemplate(msg, false);
   }
 
@@ -407,26 +411,30 @@ public class MessageTemplate implements Serializable {
      @deprecated Use MatchReplyTo(AID[])
   */
   public static MessageTemplate MatchReplyTo(java.util.List values) {
-    ArrayList l = new ArrayList();
-    l.fromList(values);
-    return MatchReplyTo(l);
+      AID[] v=null;
+      if (values != null) {
+	  v = new AID[values.size()];
+	  for (int i=0; i<values.size(); i++)
+	      v[i]=(AID)values.get(i);
+      }
+    return MatchReplyTo(v);
   }
   //__BACKWARD_COMPATIBILITY__END
 
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:reply-to</code> slot.
-     @param values A <code>List</code> of Agent IDs against which the
+     @param values An array of Agent IDs against which the
      value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
   */
-  public static MessageTemplate MatchReplyTo(List values) {
+  public static MessageTemplate MatchReplyTo(AID[] values) {
     ACLMessage msg = allWildCard();
     msg.clearAllReplyTo();
-    Iterator it = values.iterator();
-    while(it.hasNext())
-      msg.addReplyTo((AID)it.next());
+    if (values != null) 
+	for (int i=0; i<values.length; i++)
+	    msg.addReplyTo(values[i]);
     return new MessageTemplate(msg, false);
   }
 
