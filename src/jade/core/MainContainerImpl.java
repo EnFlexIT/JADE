@@ -619,7 +619,7 @@ public class MainContainerImpl implements Platform, AgentManager {
      Create an agent on a given container
      @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException
    */
-  public void create(String name, String className, String args[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException {
+  public void create(String name, String className, String args[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException, NameClashException {
 
       // Get the container where to create the agent
       // If it is not specified, assume it is the Main
@@ -644,7 +644,22 @@ public class MainContainerImpl implements Platform, AgentManager {
       cmd.addParam(ownership);
       cmd.addParam(certs);
 
-      myCommandProcessor.process(cmd); // FIXME: Should throw back the exceptions...
+      Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof NameClashException) {
+	      throw (NameClashException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      throw (UnreachableException)result;
+	  }
+	  if(result instanceof AuthException) {
+	      throw (AuthException)result;
+	  }
+      }
   }
 
 
