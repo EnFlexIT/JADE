@@ -124,26 +124,28 @@ class CommandProcessor {
        changed)
      */
     private synchronized Filter removeFilter(Filter f, Filter first) {
-    	if (f != null) {
-	  		if (f.equals(first)) {
-	  			// Remove the first element of the filter chain
-	  			return first.getNext();
-	  		}
-	  		else {
-	  			Filter current = first;
-	  			Filter next = current.getNext();
-	  			while (true) {
-			  		if (f.equals(next)) {
-			  			// Remove next
-			  			current.setNext(next.getNext());
-			  			break;
-			  		}
-			  		else {
-			  			current = next;
-			  			next = current.getNext();
-			  		}
-	  			}
-	  		}
+    	if (first != null) {
+	    	if (f != null) {
+		  		if (f.equals(first)) {
+		  			// Remove the first element of the filter chain
+		  			return first.getNext();
+		  		}
+		  		else {
+		  			Filter current = first;
+		  			Filter next = current.getNext();
+		  			while (true) {
+				  		if (f.equals(next)) {
+				  			// Remove next
+				  			current.setNext(next.getNext());
+				  			break;
+				  		}
+				  		else {
+				  			current = next;
+				  			next = current.getNext();
+				  		}
+		  			}
+		  		}
+	    	}
     	}
     	return first;
     }

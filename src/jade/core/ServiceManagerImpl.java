@@ -346,24 +346,25 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		localNode.unexportSlice(name);
 
 		// Uninstall the service filters
-		Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
-		if(fOut != null) {
-		    myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
-		}
-		Filter fIn = svc.getCommandFilter(Filter.INCOMING);
-		if(fIn != null) {
-		    myCommandProcessor.removeFilter(fIn, Filter.INCOMING);
-		}
-
-		// Uninistall the service sinks
-		String[] commandNames = svc.getOwnedCommands();
-		Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
-		if(sSrc != null) {
-		    myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, svc.getName());
-		}
-		Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
-		if(sTgt != null) {
-		    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
+		if (svc != null) {
+			Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
+			if(fOut != null) {
+			    myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
+			}
+			Filter fIn = svc.getCommandFilter(Filter.INCOMING);
+			if(fIn != null) {
+			    myCommandProcessor.removeFilter(fIn, Filter.INCOMING);
+			}
+	
+			// Uninistall the service sinks
+			Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
+			if(sSrc != null) {
+			    myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, svc.getName());
+			}
+			Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
+			if(sTgt != null) {
+			    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
+			}
 		}
   }
 
