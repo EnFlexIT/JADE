@@ -121,8 +121,9 @@ public class Boot {
 
 
 
-		// check if username:password has been provided
-		String own = properties.getProperty(profile.OWNER);
+	// check if username:password has been provided
+	String own = properties.getProperty(profile.OWNER);
+	if (own != null) {
 		String user = "";
 		char[] passwd = new char[1]; // initial value to avoid java error;
 		
@@ -163,7 +164,7 @@ public class Boot {
 		
 		// set username:password
 		profile.setParameter(profile.OWNER, user+":"+new String(passwd) );
-
+	}
 
         // Exit the JVM when there are no more containers around
         Runtime.instance().setCloseVM(true);
