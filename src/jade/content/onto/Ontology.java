@@ -157,25 +157,16 @@ public class Ontology {
     private Hashtable    classes  = new Hashtable(); // Maps type-names to java classes
     private Hashtable    schemas  = new Hashtable(); // Maps java classes to schemas
     
-    // These are required for compatibility with CLDC MIDP where XXX.class 
+    // This is required for compatibility with CLDC MIDP where XXX.class 
     // is not supported 
 		private static Class absObjectClass = null;
-		protected static Class absConceptClass = null;
-		protected static Class absPredicateClass = null;
-		protected static Class absAgentActionClass = null;
-		protected static Class absVariableClass = null;
-		protected static Class absIREClass = null;
 		static {
 			try {
 				absObjectClass = Class.forName("jade.content.abs.AbsObject");
-				absConceptClass = Class.forName("jade.content.abs.AbsConcept");
-				absPredicateClass = Class.forName("jade.content.abs.AbsPredicate");
-				absAgentActionClass = Class.forName("jade.content.abs.AbsAgentAction");
-				absVariableClass = Class.forName("jade.content.abs.AbsVariable");
-				absIREClass = Class.forName("jade.content.abs.AbsIRE");
 			}
 			catch (Exception e) {
 				// Should never happen
+				e.printStackTrace();
 			}
 		}
 		
@@ -278,10 +269,8 @@ public class Ontology {
             else {
             	// If the java class is an abstract descriptor check the
             	// coherence between the schema and the abstract descriptor
-            	if ( (javaClass.equals(absConceptClass) && !(schema instanceof ConceptSchema)) ||
-            		   (javaClass.equals(absAgentActionClass) && !(schema instanceof AgentActionSchema)) ||
-            		   (javaClass.equals(absPredicateClass) && !(schema instanceof PredicateSchema))) {
-            		throw new OntologyException("Java class "+javaClass+" not compatible with schema "+schema);
+            	if (!javaClass.isInstance(schema.newInstance())) {
+            		throw new OntologyException("Java class "+javaClass.getName()+" can't represent instances of schema "+schema);
             	}
             }
         } 

@@ -34,7 +34,7 @@ public class Done implements Predicate {
 	
 	public Done() {
 		action = null;
-		action = null;
+		condition = null;
 	}
 	
 	public Done(Concept a) {
