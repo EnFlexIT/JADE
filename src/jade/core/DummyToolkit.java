@@ -54,16 +54,12 @@ final class DummyToolkit implements AgentToolkit {
         return null;
     }
     
-    /*public void handleStart(String localName, Agent instance) {
-        throw new InternalError("Trying to start an agent without proper runtime support.");
-    }*/
-
     //FIXME should we here throw an InternalError also?
     public void handleEnd(AID agentID) {}
-    public void handleSend(ACLMessage msg, AID sender) /*throws JADESecurityException*/ {}
-    public void handlePosted(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {}
-    public void handleReceived(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {}
-    public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {}
+    public void handleSend(ACLMessage msg, AID sender) {}
+    public void handlePosted(AID agentID, ACLMessage msg) {}
+    public void handleReceived(AID agentID, ACLMessage msg) {}
+    public void handleChangedAgentState(AID agentID, int from, int to) {}
     public void handleBehaviourAdded(AID agentID, Behaviour b) {}
     public void handleBehaviourRemoved(AID agentID, Behaviour b) {}
     public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {}
