@@ -33,22 +33,10 @@ import examples.content.ecommerceOntology.*;
  * Ontology containing music related concepts.
  * @author Giovanni Caire - TILAB
  */
-public class MusicShopOntology extends Ontology {
+public class MusicShopOntology extends Ontology implements MusicShopVocabulary {
 	// NAME
   public static final String ONTOLOGY_NAME = "Music-shop-ontology";
 	
-	// VOCABULARY
-  public static final String CD = "CD";
-  public static final String CD_TITLE = "title";
-  public static final String CD_TRACKS = "tracks";
-
-  public static final String TRACK = "TRACK";
-  public static final String TRACK_NAME = "name";
-  public static final String TRACK_DURATION = "duration";
-  public static final String TRACK_PCM = "pcm";
-  
-  public static final String SINGLE = "SINGLE";
-  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new MusicShopOntology(ECommerceOntology.getInstance());
 	

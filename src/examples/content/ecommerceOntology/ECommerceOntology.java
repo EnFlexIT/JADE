@@ -28,39 +28,13 @@ import jade.content.onto.*;
 import jade.content.schema.*;
 
 /**
- * Ontology containing concepts related to buying/selling musical items.
+ * Ontology containing concepts related to buying/selling items.
  * @author Giovanni Caire - TILAB
  */
-public class ECommerceOntology extends Ontology {
+public class ECommerceOntology extends Ontology implements ECommerceVocabulary {
 	// NAME
   public static final String ONTOLOGY_NAME = "E-Commerce-ontology";
 	
-	// VOCABULARY
-  public static final String ITEM = "ITEM";
-  public static final String ITEM_SERIALID = "serialID";
-  
-  public static final String PRICE = "PRICE";
-  public static final String PRICE_VALUE = "value";
-  public static final String PRICE_CURRENCY = "currency";
-  
-  public static final String CREDIT_CARD = "CREDITCARD";
-  public static final String CREDIT_CARD_TYPE = "type";
-  public static final String CREDIT_CARD_NUMBER = "number";
-  public static final String CREDIT_CARD_EXPIRATION_DATE = "expirationdate";
-  
-  public static final String OWNS = "OWNS";
-  public static final String OWNS_OWNER = "Owner";
-  public static final String OWNS_ITEM = "item";
-  
-  public static final String SELL = "SELL";
-  public static final String SELL_BUYER = "buyer";
-  public static final String SELL_ITEM = "item";
-  public static final String SELL_CREDIT_CARD = "creditcard";
-  
-  public static final String COSTS = "COSTS";
-  public static final String COSTS_ITEM = "item";
-  public static final String COSTS_PRICE = "price";
-  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new ECommerceOntology(BasicOntology.getInstance());
 	

@@ -37,33 +37,34 @@ import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
 import jade.content.lang.*;
-import jade.content.lang.leap.*;
+import jade.content.lang.sl.*;
 
 import examples.content.musicShopOntology.*;
 import examples.content.ecommerceOntology.*;
 
 import java.util.Date;
 
+/**
+   This is an agent that plays at the same time the part of a seller of 
+   CDs and a buyer of CDs.
+   More in details the conversation between the "seller" and the "buyer"
+   will go on as follows:
+   - "Seller" informs "buyer" that he owns a CD ("Synchronicity").
+   - "Buyer" asks for the price of that CD
+   - "Seller" informs "buyer" about the price
+   - "Buyer" requests "seller" to sell him the CD specifying his credit card
+   - "Seller" performs the action (this step is not actually implemented as 
+   it would imply interacting with a delivery system like UPS and an
+   electronic payment system) and notifies "buyer"
+ */
 public class CDTrader extends Agent {
-    private ContentManager manager  = (ContentManager)getContentManager();
-    // This agent by default speaks a language called "LEAP"
-    private Codec          codec    = new LEAPCodec();
-    // This agent complies with the MusicShop ontology
+    private ContentManager manager  = (ContentManager) getContentManager();
+    // This agent "speaks" the SL language
+    private Codec      codec    = new SLCodec();
+    // This agent "knows" the Music-Shop ontology
     private Ontology   ontology = MusicShopOntology.getInstance();
 
     protected void setup() {
-    	// Get the codec for the language to speack (use LEAP codec by default)
-    	Object[] args = getArguments();
-    	if (args != null && args.length > 0) {
-    		String codecClassName = (String) args[0];
-    		try {
-    			codec = (Codec) Class.forName(codecClassName).newInstance();
-    		}
-    		catch (Exception e) {
-    			e.printStackTrace();
-    		}
-    	}
-    	System.out.println("Conversation based on the "+codec.getName()+" language\n");
 			manager.registerLanguage(codec);
 			manager.registerOntology(ontology);
 	
@@ -75,7 +76,7 @@ public class CDTrader extends Agent {
 			addBehaviour(new HandleRequestBehaviour(this)); 
 			
 			CD myCd = new CD();
-			myCd.setSerialID(11111);
+			myCd.setSerialID(123456);
 			myCd.setTitle("Synchronicity");
 			List tracks = new ArrayList();
 			Track t = new Track();
@@ -170,15 +171,8 @@ public class CDTrader extends Agent {
 	    			}
 	    			else if (ce instanceof Done) {
 	    				Done d = (Done) ce;
-	    				AgentAction aa = (AgentAction) d.getAction();
-	    				Sell s = null;
-	    				if (aa instanceof Sell) {
-	    					s = (Sell) aa;
-	    				}
-	    				else {
-	    					Action a = (Action) aa;
-	    					s = (Sell) a.getAction();
-	    				}
+	    				Action aa = (Action) d.getAction();
+	    				Sell s = (Sell) aa.getAction();
 							System.out.println("OK! Now I own Item "+s.getItem());
 							myAgent.doDelete();
 	    			}
@@ -187,18 +181,23 @@ public class CDTrader extends Agent {
 	    			}
 	    		}
 	    		catch (UngroundedException ue) {
+	    			// The message content includes variables --> It must be an abs descriptor 
 	    			try {
 							AbsContentElement ce = manager.extractAbsContent(msg);
-							if (ce.getTypeName().equals(BasicOntology.EQUALS)) {
-								AbsConcept p = (AbsConcept) ce.getAbsObject(BasicOntology.EQUALS_RIGHT);
-								Price price = (Price) MusicShopOntology.getInstance().toObject(p);
-								System.out.println("Price is "+price);
-								
-								AbsIRE iota = (AbsIRE) ce.getAbsObject(BasicOntology.EQUALS_LEFT);
+							if (ce.getTypeName().equals(SLVocabulary.EQUALS)) {
+								AbsIRE iota = (AbsIRE) ce.getAbsObject(SLVocabulary.EQUALS_LEFT);
 								AbsPredicate costs = iota.getProposition();
-								AbsConcept i = (AbsConcept) costs.getAbsObject(ECommerceOntology.COSTS_ITEM);
-								Item item = (Item) MusicShopOntology.getInstance().toObject(i);
-								addBehaviour(new RequestSellBehaviour(myAgent, item));
+								AbsConcept absIt = (AbsConcept) costs.getAbsObject(MusicShopOntology.COSTS_ITEM);
+								Item it = (Item) ontology.toObject(absIt);
+								
+								AbsConcept absP = (AbsConcept) ce.getAbsObject(SLVocabulary.EQUALS_RIGHT);
+								Price p = (Price) ontology.toObject(absP);
+								
+	    					System.out.println("Item ");
+	    					System.out.println(it);
+	    					System.out.println("costs "+p);
+								
+								addBehaviour(new RequestSellBehaviour(myAgent, it));
 							}
 							else {
 								System.out.println("Unknown predicate "+ce.getTypeName());
@@ -243,13 +242,13 @@ public class CDTrader extends Agent {
 
 					// Fill the content
 					Ontology onto = MusicShopOntology.getInstance();
-					AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
+					AbsVariable x = new AbsVariable("x", MusicShopOntology.PRICE);
 					
-					AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
-					costs.set(ECommerceOntology.COSTS_ITEM, (AbsTerm) onto.fromObject(it));
-					costs.set(ECommerceOntology.COSTS_PRICE, x);
+					AbsPredicate costs = new AbsPredicate(MusicShopOntology.COSTS);
+					costs.set(MusicShopOntology.COSTS_ITEM, (AbsTerm) onto.fromObject(it));
+					costs.set(MusicShopOntology.COSTS_PRICE, x);
 					
-					AbsIRE iota = new AbsIRE(LEAPCodec.IOTA);
+					AbsIRE iota = new AbsIRE(SLVocabulary.IOTA);
 					iota.setVariable(x);
 					iota.setProposition(costs);
 					
@@ -280,12 +279,12 @@ public class CDTrader extends Agent {
 						// The content of a QUERY_REF is certainly an abstract descriptor
 						// representing an IRE
 						AbsIRE ire = (AbsIRE) manager.extractAbsContent(msg);
-						if (ire.getTypeName().equals(LEAPCodec.IOTA)) {
+						if (ire.getTypeName().equals(SLVocabulary.IOTA)) {
 							AbsPredicate p = (AbsPredicate) ire.getProposition();
-							if (p.getTypeName().equals(ECommerceOntology.COSTS) &&
-								  p.getAbsTerm(ECommerceOntology.COSTS_PRICE) instanceof AbsVariable) { 
-	    					AbsConcept absItem = (AbsConcept) p.getAbsTerm(ECommerceOntology.COSTS_ITEM);
-	    					Item it = (Item) MusicShopOntology.getInstance().toObject(absItem);
+							if (p.getTypeName().equals(MusicShopOntology.COSTS) &&
+								  p.getAbsTerm(MusicShopOntology.COSTS_PRICE) instanceof AbsVariable) { 
+	    					AbsConcept absIt = (AbsConcept) p.getAbsTerm(MusicShopOntology.COSTS_ITEM);
+	    					Item it = (Item) ontology.toObject(absIt);
 	    					
 								addBehaviour(new InformCostsBehaviour(myAgent, it));
 							}
@@ -294,7 +293,7 @@ public class CDTrader extends Agent {
 							}
 	    			}
 	    			else {
-	    				System.out.println("Unknown IRE type");
+	    				System.out.println("Can't manage IRE of type "+ire.getTypeName());
 	    			}
 	    		}
 	    		catch(Exception e) { 
@@ -331,21 +330,20 @@ public class CDTrader extends Agent {
 					msg.setOntology(ontology.getName());
 
 					// Fill the content
-					Ontology onto = MusicShopOntology.getInstance();
-					AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
+					AbsVariable x = new AbsVariable("x", MusicShopOntology.PRICE);
 					
-					AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
-					costs.set(ECommerceOntology.COSTS_ITEM, (AbsTerm) onto.fromObject(it));
-					costs.set(ECommerceOntology.COSTS_PRICE, x);
+					AbsPredicate costs = new AbsPredicate(MusicShopOntology.COSTS);
+					costs.set(MusicShopOntology.COSTS_ITEM, (AbsTerm) ontology.fromObject(it));
+					costs.set(MusicShopOntology.COSTS_PRICE, x);
 					
-					AbsIRE iota = new AbsIRE(LEAPCodec.IOTA);
+					AbsIRE iota = new AbsIRE(SLVocabulary.IOTA);
 					iota.setVariable(x);
 					iota.setProposition(costs);
 					
-					AbsPredicate equals = new AbsPredicate(BasicOntology.EQUALS);
-					equals.set(BasicOntology.EQUALS_LEFT, iota);
-					AbsConcept price = (AbsConcept) onto.fromObject(new Price(20.5F, "EURO"));
-					equals.set(BasicOntology.EQUALS_RIGHT, price);
+					AbsPredicate equals = new AbsPredicate(SLVocabulary.EQUALS);
+					equals.set(SLVocabulary.EQUALS_LEFT, iota);
+					AbsConcept price = (AbsConcept) ontology.fromObject(new Price(20.5F, "EURO"));
+					equals.set(SLVocabulary.EQUALS_RIGHT, price);
 					
 					manager.fillContent(msg, equals);
 					send(msg);
@@ -386,13 +384,9 @@ public class CDTrader extends Agent {
 					sell.setItem(it);
 					sell.setCreditCard(new CreditCard("VISA", 3378892003L, new Date()));
 					
-					// Some CLs (e.g. SL) require actions to be included into the
-					// ACTION construct --> Enable the following 2 lines when using such a CL 
+					// SL requires actions to be included into the ACTION construct 
 					Action a = new Action(getAID(), sell);
 					manager.fillContent(msg, a);
-					// Other CLs (e.g. LEAP) allows putting actions directly in the 
-					// content --> Enable the following line when using such a CL
-					//manager.fillContent(msg, sell);
 					
 					send(msg);
 	    	} 
@@ -416,28 +410,16 @@ public class CDTrader extends Agent {
 	    		try {
 						System.out.println("\nSELLER: Received request from BUYER. Message is");
 						System.out.println(msg);
-						ContentElement ce = manager.extractContent(msg);
-						Sell sell = null;
-						AgentAction toNotify = null;
-						if (ce instanceof Sell) {
-							sell = (Sell) ce;
-							toNotify = sell;
-						}
-						else if (ce instanceof Action) {
-							Action a = (Action) ce;
-							sell = (Sell) a.getAction();
-							toNotify = a;
-						}
-	    			else {
-	    				System.out.println("Unknown action");
-	    				return;
-	    			}
+						Action a = (Action) manager.extractContent(msg);
+						Sell sell = (Sell) a.getAction();
 	    			
 						System.out.println("Buyer is: "+sell.getBuyer());
 						System.out.println("Item is: "+sell.getItem());
 						System.out.println("Credit Card is: "+sell.getCreditCard());
+						
+						// Do the action. Not implemented as it is out of the scope of this example
 							
-						addBehaviour(new InformDoneBehaviour(myAgent, toNotify));
+						addBehaviour(new InformDoneBehaviour(myAgent, a));
 	    		}
 	    		catch(Exception e) { 
 	    			e.printStackTrace(); 
@@ -451,9 +433,9 @@ public class CDTrader extends Agent {
         	
     // SELLER informs BUYER that a given action has been completed
     class InformDoneBehaviour extends OneShotBehaviour {
-			private AgentAction act;
+			private Action act;
 			
-			public InformDoneBehaviour(Agent a, AgentAction act) { 
+			public InformDoneBehaviour(Agent a, Action act) { 
 				super(a); 
 				this.act = act;
 			}
