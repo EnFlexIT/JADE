@@ -735,6 +735,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		myACC.setPlatformAddresses(id);
 	}
 	
+	public void addPlatformAddresses(AID id) {
+		//myACC.addPlatformAddresses(id);
+	}
+	
   // Private methods
 
     /**
