@@ -34,6 +34,9 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.16  1999/04/06 13:24:46  rimassa
+ Fixed a wrong link in Javadoc comments.
+
  Revision 1.15  1999/04/06 00:10:08  rimassa
  Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -376,7 +379,7 @@ public class ACLMessage implements Cloneable, Serializable {
   receivers, so <code>addDest()</code>, <code>removeDest()</code> and
   <code>getDests()</code> should be used.
   @see jade.lang.acl.ACLMessage#addDest(String dest)
-  @see jade.lang.ACLMessage#removeDest(String dest)
+  @see jade.lang.acl.ACLMessage#removeDest(String dest)
   @see jade.lang.acl.ACLMessage#getDests() 
  */
   public String getDest() {
