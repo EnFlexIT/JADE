@@ -73,4 +73,8 @@ public class ContainerID implements Location {
     return name + '@' + DEFAULT_IMTP + "://" + address;
   }
 
+  public String toString() {
+    return getID();
+  }
+
 }
