@@ -35,152 +35,156 @@ import jade.util.leap.HashMap;
  */
 class LADT {
 
-  // Rows of the LADT are protected by a recursive mutex lock
-  private static class Row {
-    private Agent value;
-    private Thread owner;
-    private long depth;
+    // Rows of the LADT are protected by a recursive mutex lock
+    private static class Row {
+        private Agent value;
+        private Thread owner;
+        private long depth;
 
-    public Row(Agent a) {
-      value = a;
-      depth = 0;
+        public Row(Agent a) {
+            value = a;
+            depth = 0;
+        }
+
+        public synchronized Agent get() {
+            return value;
+        }
+
+        public synchronized void clear() {
+            value = null;
+        }
+
+        public synchronized void lock() {
+            try {
+                Thread me = Thread.currentThread();
+                while((owner != null) && (owner != me)) {
+                    wait();
+                }
+
+                owner = me;
+                ++depth;
+            }
+            catch(InterruptedException ie) {
+                return;
+            }
+
+        }
+
+        public synchronized void unlock() {
+            // Must be owner to unlock
+            if(owner != Thread.currentThread())
+                return;
+            --depth;
+            if(depth == 0 || value == null) {
+                // Note that if the row has just been cleared we must wake up 
+                // hanging threads even if depth is > 0, otherwise they will 
+                // hang forever
+                owner = null;
+                notifyAll();
+            }
+        }
+
+    } // End of Row class
+
+
+    // Initial size of agent hash table
+    //private static final int MAP_SIZE = 50;
+
+    // Load factor of agent hash table
+    //private static final float MAP_LOAD_FACTOR = 0.50f;
+
+
+    //private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
+    private Map agents = new HashMap();
+
+    public Agent put(AID aid, Agent a) {
+        Row r;
+        synchronized(agents) {
+            r = (Row)agents.get(aid);
+        }       
+        if(r == null) {
+            agents.put(aid, new Row(a));
+            return null;
+        }
+        else {
+            r.lock();
+            
+            agents.put(aid, new Row(a));
+            Agent old = r.get();
+            
+            r.unlock();
+            return old;
+        }
     }
 
-    public synchronized Agent get() {
-      return value;
+    public Agent remove(AID key) {
+        Row r;
+        synchronized(agents) {
+            r = (Row)agents.get(key);
+        }
+        if(r == null)
+            return null;
+        else {
+            r.lock();
+
+            agents.remove(key);
+            Agent a = r.get();
+            // Clear the row value, to avoid pending acquire() using the
+            // removed agent...
+            r.clear();
+
+            r.unlock();
+            return a;
+        }
     }
 
-    public synchronized void clear() {
-      value = null;
+    // The caller must call release() after it has finished with the row
+    public Agent acquire(AID key) {
+        Row r;
+        synchronized(agents) {
+            r = (Row)agents.get(key);
+        }
+        if(r == null)
+            return null;
+        else {
+            r.lock();
+            return r.get();
+        }
     }
 
-    public synchronized void lock() {
-      try {
-        Thread me = Thread.currentThread();
-	while((owner != null) && (owner != me)) {
-	  wait();
-	}
-
-	owner = me;
-        ++depth;
-      }
-      catch(InterruptedException ie) {
-	return;
-      }
-
+    public void release(AID key) {
+        Row r;
+        synchronized(agents) {
+            r = (Row)agents.get(key);
+        }
+        if(r != null)
+            r.unlock();
     }
 
-    public synchronized void unlock() {
-      // Must be owner to unlock
-      if(owner != Thread.currentThread())
-          return;
-      --depth;
-      if(depth == 0 || value == null) {
-      	// Note that if the row has just been cleared we must wake up 
-      	// hanging threads even if depth is > 0, otherwise they will 
-      	// hang forever
-        owner = null;
-        notifyAll();
-      }
+    public AID[] keys() {
+        synchronized(agents) {
+            Object[] objs = agents.keySet().toArray();
+            AID[] result = new AID[objs.length];
+            
+            // Patch on 11/12/02 by NL to bypass J2ME bug with System.arraycopy
+            for (int i=0;i<result.length;i++) {
+                result[i]=(AID)objs[i];
+            }            
+            return result;
+        }
     }
+    
+    public Agent[] values() {
+        synchronized(agents) {
+            Object[] objs = agents.values().toArray();
+            Agent[] result = new Agent[objs.length];
+            for(int i = 0; i < objs.length; i++) {
+                Row r = (Row)objs[i];
+                result[i] = r.get();
+            }
+            return result;
+        }
 
-  } // End of Row class
-
-
-  // Initial size of agent hash table
-  //private static final int MAP_SIZE = 50;
-
-  // Load factor of agent hash table
-  //private static final float MAP_LOAD_FACTOR = 0.50f;
-
-
-  //private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
-  private Map agents = new HashMap();
-
-  public Agent put(AID aid, Agent a) {
-      Row r;
-      synchronized(agents) {
-	  r = (Row)agents.get(aid);
-      }
-      if(r == null) {
-	  agents.put(aid, new Row(a));
-	  return null;
-      }
-      else {
-	  r.lock();
-
-	  agents.put(aid, new Row(a));
-	  Agent old = r.get();
-
-	  r.unlock();
-	  return old;
-      }
-  }
-
-  public Agent remove(AID key) {
-    Row r;
-    synchronized(agents) {
-	r = (Row)agents.get(key);
     }
-    if(r == null)
-	return null;
-    else {
-	r.lock();
-
-	agents.remove(key);
-	Agent a = r.get();
-	// Clear the row value, to avoid pending acquire() using the
-	// removed agent...
-	r.clear();
-
-	r.unlock();
-	return a;
-    }
-  }
-
-  // The caller must call release() after it has finished with the row
-  public Agent acquire(AID key) {
-    Row r;
-    synchronized(agents) {
-	r = (Row)agents.get(key);
-    }
-    if(r == null)
-	return null;
-    else {
-	r.lock();
-	return r.get();
-    }
-  }
-
-  public void release(AID key) {
-    Row r;
-    synchronized(agents) {
-	r = (Row)agents.get(key);
-    }
-    if(r != null)
-      r.unlock();
-  }
-
-  public AID[] keys() {
-    synchronized(agents) {
-      Object[] objs = agents.keySet().toArray();
-      AID[] result = new AID[objs.length];
-      System.arraycopy(objs, 0, result, 0, result.length);
-      return result;
-    }
-  }
-
-  public Agent[] values() {
-    synchronized(agents) {
-	Object[] objs = agents.values().toArray();
-	Agent[] result = new Agent[objs.length];
-	for(int i = 0; i < objs.length; i++) {
-	    Row r = (Row)objs[i];
-	    result[i] = r.get();
-	}
-	return result;
-    }
-
-  }
 
 }
