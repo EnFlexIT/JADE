@@ -24,128 +24,47 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-import java.io.StringReader;
+import java.util.Map;
+import java.util.HashMap;
 
-import jade.core.*;
-
+import jade.domain.FIPAAgentManagement.AgentID;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-
-import jade.proto.FipaRequestResponderBehaviour;
 
 /**
-  Standard <em>Agent Communication Channel</em> agent. This class
-  implements <em><b>FIPA</b></em> <em>ACC</em> agent. <b>JADE</b>
-  applications cannot use this class directly, but interact with it
-  through <em>ACL</em> message passing.
-  
+  Standard <em>Agent Communication Channel</em>. This class implements
+  <em><b>FIPA</b></em> <em>ACC</em> service. <b>JADE</b> applications
+  cannot use this class directly, but interact with it transparently
+  when using <em>ACL</em> message passing.
   
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
 */
-public class acc extends Agent {
+public class acc {
 
-  private class ACCBehaviour
-    extends FipaRequestResponderBehaviour.Action
-    implements FipaRequestResponderBehaviour.Factory {
+  private Map messageEncodings = new HashMap();
+  private Map MTPs = new HashMap();
 
-    private AgentManagementOntology.ACCAction myAction;
-
-    protected ACCBehaviour() {
-      super(acc.this);
-    }
-
-    public FipaRequestResponderBehaviour.Action create() {
-      return new ACCBehaviour();
-    }
-
-    public void action() {
-
-      try {
-	ACLMessage msg = getRequest();
-	String content = msg.getContent();
-
-	// Obtain an ACC action from message content
-	try {
-	  myAction = AgentManagementOntology.ACCAction.fromText(new StringReader(content));
-	}
-	catch(ParseException pe) {
-	  pe.printStackTrace();
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
-	}
-	catch(TokenMgrError tme) {
-	  tme.printStackTrace();
-	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
-	}
-
-	ACLMessage toForward = myAction.getArg();
-
-	// Make sure destination agent is registered with platform AMS
-	String destName = toForward.getFirstDest();
-
-	// Forward message
-	send(toForward);
-
-	// Acknowledge caller
-	sendAgree();
-	sendInform();
-      }
-      catch(FIPAException fe) {
-	sendRefuse(fe.getMessage());
-      }
-
-    }
-
-    public boolean done() {
-      return true;
-    }
-
-    public void reset() {
-    }
-
-  } // End of ACCBehaviour class
-
-
-  /**
-  @serial
-  */
-  private AgentManagementOntology myOntology;
-  
-  /**
-  @serial
-  */
-  private FipaRequestResponderBehaviour dispatcher;
-
-  /**
-     This constructor creates a new <em>ACC</em> agent. Since a direct
-     reference to an Agent Platform implementation must be passed to
-     it, this constructor cannot be called from application
-     code. Therefore, no other <em>ACC</em> agent can be created
-     beyond the default one.
-  */
   public acc() {
-
-    myOntology = AgentManagementOntology.instance();
-
-    MessageTemplate mt = 
-      MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
-			  MessageTemplate.MatchOntology("fipa-agent-management"));
-
-    dispatcher = new FipaRequestResponderBehaviour(this, mt);
-
-    // Associate each ACC action name with the behaviour to execute
-    // when the action is requested in a 'request' ACL message
-    dispatcher.registerFactory(AgentManagementOntology.ACCAction.FORWARD, new ACCBehaviour());
 
   }
 
-  /**
-   This method starts the <em>ACC</em> behaviours to allow the agent
-   to carry on its duties within <em><b>JADE</b></em> agent platform.
-  */
-  protected void setup() {
-    addBehaviour(dispatcher);
+  public void forwardMessage(ACLMessage msg, AgentID receivers[]) {
+
+    // Steps:
+    // 0. Split the operation in a suitable number of single-receiver operations.
+    // 1. Select the message encoding, (reading the ':encoding' slot from ACL ?)
+    // 2. Encode the message into a byte array.
+    // 3. Deliver the message over an MTP.
+    //    3.1. Build the message envelope.
+    //    3.2. Select the MTP, reading the 'protocol' field of the first ':addresses' element
+    //    3.3. Try to deliver to the selected address.
+    //    3.4. Repeat step 3. until OK or no more addresses.
+
+  }
+
+  public void shutdown() {
+
   }
 
 }
