@@ -539,7 +539,7 @@ public class AclGui extends JPanel
 		{
 			lowerCase = param.toLowerCase();
 			if ((i = fipaProtocolVector.indexOf((Object) lowerCase)) < 0)
-				protocol.setSelectedItem("USER DEFINED");
+				protocol.setSelectedItem("user-defined");
 			else
 				protocol.setSelectedIndex(i);
 		}
