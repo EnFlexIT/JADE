@@ -27,7 +27,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 
-public class CertificateFolder {
+public class CertificateFolder implements jade.util.leap.Serializable {
 	
 	IdentityCertificate identity = null;
 	List delegations = new ArrayList();
