@@ -292,16 +292,7 @@ public class BootProfileImpl extends ProfileImpl {
         value = argProp.getProperty(NAME_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.PLATFORM_ID, value);
-        } else {
-	    updatePlatformID();
-            /*value = profileProp.getProperty(Profile.PLATFORM_ID);
-            if (value == null) {
-                // Build a unique ID for this platform, using host name, port and
-                // object name for the main container.
-                value = host + ":" + port + "/JADE";
-                profileProp.setProperty(Profile.PLATFORM_ID, value);
-		}*/
-        }
+        }  
 
         value = argProp.getProperty(MTP_KEY);
         if (value != null) {
