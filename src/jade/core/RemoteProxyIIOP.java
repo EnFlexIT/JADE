@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/09/03 10:43:36  rimassa
+  Changed CORBA exception handling.
+
   Revision 1.2  1999/08/27 15:46:57  rimassa
   Added support for TransientException in order to retry message
   dispatch when the receiver agent has moved.
@@ -42,7 +45,8 @@ class RemoteProxyIIOP extends RemoteProxy {
 
     }
     catch(org.omg.CORBA.SystemException oocse) {
-      throw new NotFoundException("IIOP communication failure: [" + oocse.getMessage() + "]");
+      oocse.printStackTrace();
+      throw new NotFoundException("IIOP communication failure: [" + oocse.toString() + "]");
     }
 
   }
