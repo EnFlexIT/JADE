@@ -1088,6 +1088,15 @@ public class ams extends Agent implements AgentManager.Listener {
     if(old == null)
       throw new NotRegistered();
     agentDescriptions.register(amsd.getName(), amsd);
+    try {
+      if (!((AMSAgentDescription)old).getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
+        myPlatform.suspend(amsd.getName(),  "");
+      if (((AMSAgentDescription)old).getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
+        myPlatform.activate(amsd.getName(),  "");
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
@@ -1264,7 +1273,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     // Registry needs an update here!
     
-    SuspendedAgent ra = new SuspendedAgent();
+    ResumedAgent ra = new ResumedAgent();
     ra.setAgent(agentID);
     ra.setWhere(cid);
 
