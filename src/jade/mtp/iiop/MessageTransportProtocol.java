@@ -487,7 +487,6 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 
     private void initFromIOR(String s) throws MTPException {
       parseIOR(s, FIPA_2000_TYPE_ID);
-      System.out.println(getURL()); //URL
       anchor = "";
     }
 
@@ -558,7 +557,10 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	throw new MTPException("Ill-formed path into the Naming Service.", nsee);
       }
       catch(UserException ue) {
-	throw new MTPException("CORBA Naming Service exception.", ue);
+	throw new MTPException("CORBA Naming Service user exception.", ue);
+      }
+      catch(SystemException se) {
+	throw new MTPException("CORBA Naming Service system exception.", se);
       }
       
 
