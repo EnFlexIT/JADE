@@ -11,6 +11,7 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 import jade.domain.ams;
+import jade.domain.acc;
 import jade.domain.df;
 import jade.domain.AgentManagementOntology;
 
@@ -26,6 +27,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
 
   private ams theAMS;
+  private acc theACC;
   private df defaultDF;
 
   private Vector containers = new Vector();
@@ -50,6 +52,21 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   private void initACC() {
+    System.out.print("Starting ACC... ");
+    theACC = new acc(this);
+
+    // Subscribe as a listener for the AMS agent
+    theACC.addCommListener(this);
+
+    // Insert AMS into local agents table
+    localAgents.put("acc", theACC);
+
+    AgentDescriptor desc = new AgentDescriptor();
+    desc.setDemux(myDispatcher);
+
+    platformAgents.put("acc", desc);
+
+    System.out.println("ACC OK");
   }
 
   private void initDF() {
@@ -59,7 +76,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     // Subscribe as a listener for the AMS agent
     defaultDF.addCommListener(this);
 
-    // Insert AMS into local agents table
+    // Insert DF into local agents table
     localAgents.put("df", defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
@@ -114,8 +131,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     try {
       // Extract the agent name from the beginning to the '@'
-      agentName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
+      String simpleName = agentName.substring(0,agentName.indexOf('@'));
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName);
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
