@@ -77,10 +77,10 @@ all:
 
 #	Higher level modules, for backward compatibility
 	cd $(CLSDIR);										\
-	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) Notice.txt;			\
 	$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(LIBDIR)/$(JADETOOLS_LIBNAME) Notice.txt;	\
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES) $(IIOP_PACKAGES); 		\
 	rm -rf $(IIOP_CLASSES) $(IIOP_PACKAGES); 						\
+	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) jade;			\
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(BASE64_LIBNAME) starlight;					\
 	rm -rf starlight
 
@@ -132,7 +132,6 @@ batch:
 	echo '@REM Not distributed for this version $(AR) $(ARFLAGS) ..\lib\$(LIBAPPLETNAME) jade\core\AgentGroup.class jade\core\IIOPAddress*.class jade\core\IIOPFormatException.class jade\domain\AgentManagementOntology*.class jade\domain\AgentManagementParser*.class jade\domain\*Exception.class jade\domain\ASCII_CharStream.class jade\domain\Token*.class jade\gui\AboutJadeAction*.class jade\gui\AgentNameTableModel.class jade\gui\ConstraintDlg*.class jade\gui\DFAgentDscDlg*.class jade\gui\DFGUI*.class jade\gui\GUI2DFCommunicatorInterface.class jade\gui\IntRetValue.class jade\gui\ServiceDsc*.class jade\gui\StringDlg*.class jade\gui\TreeHelp*.class jade\gui\GuiEvent.class jade\gui\images jade\gui\help\*.html jade\lang\acl\*.class jade\onto\*.class jade\tools\applet\*.class ' >> $(BATCH_LIB)
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(MANIFESTARFLAGS) jade.mf $(subst /,\,..\lib\$(JADE_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
 	echo '$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(subst /,\,..\lib\$(JADETOOLS_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(IIOP_LIBNAME)) $(subst /,\,$(IIOP_CLASSES)) $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)
@@ -140,6 +139,8 @@ batch:
 	echo 'rmdir /S /Q $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
+
+	echo '$(AR) $(MANIFESTARFLAGS) jade.mf $(subst /,\,..\lib\$(JADE_LIBNAME)) jade' >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(BASE64_LIBNAME)) starlight' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For Win NT 4
