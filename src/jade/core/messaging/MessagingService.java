@@ -113,7 +113,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	super(p);
 
 	myContainer = ac;
+
+	//#MIDP_EXCLUDE_BEGIN
+	cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
+	//#MIDP_EXCLUDE_END
+
+	/*#MIDP_INCLUDE_BEGIN
 	cachedSlices = new HashMap();
+	#MIDP_INCLUDE_END*/
 
 	// Initialize its own ID
 	String platformID = myContainer.getPlatformID();
