@@ -377,19 +377,21 @@ private int performative; // keeps the performative type of this object
       char[] cc = new char[content.length()];
       content.getChars(0,content.length(),cc,0);
       return Base64.decode(cc);
+    } catch(java.lang.StringIndexOutOfBoundsException e){
+    		return new byte[0];
     }
-    catch(java.lang.NoClassDefFoundError jlncdfe) {
-      System.err.println("\t\t===== E R R O R !!! =======\n");
-      System.err.println("Missing support for Base64 conversions");
-      System.err.println("Please refer to the documentation for details.");
-      System.err.println("=============================================\n\n");
-      try {
-	Thread.currentThread().sleep(3000);
-      }
-      catch(InterruptedException ie) {
-      }
-      return new byte[0];
+    	catch(java.lang.NoClassDefFoundError jlncdfe) {
+      	System.err.println("\t\t===== E R R O R !!! =======\n");
+      	System.err.println("Missing support for Base64 conversions");
+      	System.err.println("Please refer to the documentation for details.");
+      	System.err.println("=============================================\n\n");
+      	try {
+					Thread.currentThread().sleep(3000);
+      	}catch(InterruptedException ie) {
+      	}
+      	return new byte[0];
     }
+    
   }
 
   /**
