@@ -47,54 +47,54 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
 
-	private static final String OUTGOING_NAME = "out";
-        private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
+    private static final String OUTGOING_NAME = "out";
+    private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
 
-	private long outCnt = 0;
-	
-	// The FrontEnd this BackEndContainer is connected to
-	private FrontEnd myFrontEnd;
+    private long outCnt = 0;
 
-        private Profile myProfile;
+    // The FrontEnd this BackEndContainer is connected to
+    private FrontEnd myFrontEnd;
 
-	// The manager of the connection with the FrontEnd
-	private BEConnectionManager myConnectionManager;
+    private Profile myProfile;
 
-        private CommandProcessor myCommandProcessor;
+    // The manager of the connection with the FrontEnd
+    private BEConnectionManager myConnectionManager;
 
-        private Map agentImages = new HashMap();
-	private boolean refreshPlatformInfo = true;
+    private CommandProcessor myCommandProcessor;
 
-        private String[] replicasAddresses;
-	
-	public BackEndContainer(Profile p, BEConnectionManager cm) {
-	    super(p);
-	    myProfile = p;
-	    myConnectionManager = cm;
+    private Map agentImages = new HashMap();
+    private boolean refreshPlatformInfo = true;
 
-	    try {
+    private String[] replicasAddresses;
 
-		myCommandProcessor = myProfile.getCommandProcessor();
+    public BackEndContainer(Profile p, BEConnectionManager cm) {
+	super(p);
+	myProfile = p;
+	myConnectionManager = cm;
 
-		String beAddrs = p.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
-		if(beAddrs != null) {
-		    replicasAddresses = parseAddressList(beAddrs);
-		    p.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
-		}
+	try {
 
-		myFrontEnd = cm.getFrontEnd(this, null);
-		Runtime.instance().beginContainer();
-		joinPlatform();
+	    myCommandProcessor = myProfile.getCommandProcessor();
+
+	    String beAddrs = p.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
+	    if(beAddrs != null) {
+		replicasAddresses = parseAddressList(beAddrs);
+		p.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
 	    }
-	    catch (IMTPException imtpe) {
-		// Should never happen
-		imtpe.printStackTrace();
-	    }
-	    catch(ProfileException pe) {
-		// Should never happen
-		pe.printStackTrace();
-	    }
+
+	    myFrontEnd = cm.getFrontEnd(this, null);
+	    Runtime.instance().beginContainer();
+	    joinPlatform();
 	}
+	catch (IMTPException imtpe) {
+	    // Should never happen
+	    imtpe.printStackTrace();
+	}
+	catch(ProfileException pe) {
+	    // Should never happen
+	    pe.printStackTrace();
+	}
+    }
 
 
       protected void startServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
@@ -236,19 +236,35 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
     public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
+	if(!isMaster()) {
+	    throw new IMTPException("This is not the active back-end replica.");
+	}
+
 	myFrontEnd.createAgent(name, className, args);
     }
 
     public void killAgentOnFE(String name) throws IMTPException, NotFoundException {
+	if(!isMaster()) {
+	    throw new IMTPException("This is not the active back-end replica.");
+	}
+
 	myFrontEnd.killAgent(name);
 	deadAgent(name);
     }
 
     public void suspendAgentOnFE(String name) throws IMTPException, NotFoundException {
+	if(!isMaster()) {
+	    throw new IMTPException("This is not the active back-end replica.");
+	}
+
 	myFrontEnd.suspendAgent(name);
     }
 
     public void resumeAgentOnFE(String name) throws IMTPException, NotFoundException {
+	if(!isMaster()) {
+	    throw new IMTPException("This is not the active back-end replica.");
+	}
+
 	myFrontEnd.resumeAgent(name);
     }
 
@@ -304,8 +320,14 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	      }
 	      try {
 		  // Forward the message to the FrontEnd
-		  myFrontEnd.messageIn(msg, receiverID.getLocalName());
-		  return true;
+
+		  if(isMaster()) {
+		      myFrontEnd.messageIn(msg, receiverID.getLocalName());
+		      return true;
+		  }
+		  else {
+		      return false;
+		  }
 	      }
 	      catch(NotFoundException nfe) {
 		  return false;
@@ -381,7 +403,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
       // Forward the exit command to the FrontEnd
       try {
-	  myFrontEnd.exit(false);
+
+	  if(isMaster()) {
+	      myFrontEnd.exit(false);
+	  }
       }
       catch (IMTPException imtpe) {
 	  // The FrontEnd is disconnected. Force the shutdown of the connection
@@ -498,6 +523,43 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 
 	return result;
+    }
+
+    public void becomeMaster() {
+
+	// Do nothing if already a master back-end container
+	if(isMaster()) {
+	    return;
+	}
+
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+
+	// Make all agent images known to the rest of the platform
+	AID[] imgs = getAgentImages();
+	for(int i = 0; i < imgs.length; i++) {
+	    String name = imgs[i].getLocalName();
+	    try {
+		bornAgent(name);
+	    }
+	    catch(IMTPException imtpe) {
+		// Ignore it and try the next agent...
+		imtpe.printStackTrace();
+	    }
+	}
+
+    }
+
+    public boolean isMaster() {
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.IS_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+	Object result = cmd.getReturnValue();
+	if(result instanceof Boolean) {
+	    return ((Boolean)result).booleanValue();
+	}
+	else { // Some exception was thrown
+	    return false;
+	}
     }
 
 }
