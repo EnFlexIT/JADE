@@ -836,11 +836,19 @@ private int performative; // keeps the performative type of this object
 
   /**
    * Add a new user defined parameter to this ACLMessage.
+   * Notice that according to the FIPA specifications, the keyword of a
+   * user-defined parameter must start with the String ":X-". 
+   * If it does not, then this method adds the prefix silently!
    * @param key the property key.
    * @param value the property value
   **/
    public void addUserDefinedParameter(String key, String value) {
-     userDefProps.setProperty(key,value);
+     if (key.startsWith(":X-") || key.startsWith(":x-"))
+       userDefProps.setProperty(key,value);
+     else {
+       System.err.println("WARNING: ACLMessage.addUserDefinedParameter. The key must start with :X-. Prefix has been silently added.");
+       userDefProps.setProperty(":X-"+key,value);
+     }
    }
 
     /**
