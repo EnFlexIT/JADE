@@ -31,7 +31,7 @@ public class TestCreations extends Test {
 						// get the number of current containers
 						availableContainers = ((List)TestUtility.requestAMSAction(a, a.getAMS(), new QueryPlatformLocationsAction())).size();
 				} catch (Exception e) {
-						e.printStackTrace();
+						throw new TestException("Can't get number of currently active containers", e);
 				}
 				log("available Containers="+availableContainers);
 				// The test must complete in 5 sec
@@ -43,11 +43,11 @@ public class TestCreations extends Test {
 										try {
 												myAgent.getContainerController().createNewAgent(AGENTNAME, "examples.thanksAgent.ThanksAgent", null).start();
 										} catch (StaleProxyException e) {
-												failed("exception in creating new agent"+e);
+												failed("exception in creating new agent. "+e);
 												return;
 										}
 										// block for 3 seconds
-										myAgent.blockingReceive(3000);
+										myAgent.blockingReceive(4000);
 										// check if the test went ok
 										if (examples.thanksAgent.ThanksAgent.terminated == 2) {
 												try {
