@@ -1,18 +1,36 @@
-MAJOR CHANGES in JADE Snapshot (22nd August 2002) 
+MAJOR CHANGES in JADE 2.61 (23 September 2002) 
 ==========================================================================
-GENERAL:
+GENERAL IMPROVEMENTS:
+- a new plug-in to deal with intra-platform security has been added
+- the Introspector Agent tool has been strongly improved and it allows now 
+  the visualization of the tree and state of the agent behaviours, including the 
+  snapshot of the agent state, and a step-by-step introspection capability (one 
+  step being the execution of the action() method of a behaviour)
 - replaced all the make files with build files for ant both in JADE and in all
   the add-ons.
-- improved the capability of the Introspector Agent tool to visualize
-  the agent behaviours.
 - added capability to assign a user-defined name to a remote container 
   (Alexander Osherenko)
+- added FALSE Proposition in BasicOntology
+- all tools, examples, and software have been fully ported to use the 
+  jade.content package instead of the old jade.onto package. In the next release
+  the old package will be completely removed.
 	
 BUG FIXES:
 - jade.tools.Introspector.gui.BehaviourPanel.java. Fixed bug in file separator.
   (reported by Karl-Heinz Krempels)
 - jade.proto.Initiator.java. Added sanity check to avoid null pointer exception
 - jade.core.Agent. Improved the exception thrown by getContainerController()
+- jade.content: fixed bug on throwing UngroundedException when converting 
+  AbsIRE and AbsVariable into Java objects
+- fixed bug in visualization of AID and ServiceDescription GUI in Apple 
+  virtual machines (reported by Francesco Ricca)
+- fixed bug in handling SET and SEQUENCE in jade.content
+- the sniffer did not sniff the envelope of the messages
+- Fixed Bit-efficient BLE content decoding when the length is between 1 and 256
+- Fixed bug in setting the RMI Socket Factory: it caused an uncorrect increase
+  in the number of threads.
+- IntrospectionOntology: slots STATE and OWNERSHIP of element BORNAGENT where
+  missing
 
 EXAMPLES:
 - Ontology. Reimplemented the example with the new content support and the new
