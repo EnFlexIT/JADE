@@ -13,8 +13,8 @@ public interface Ontology {
   Object createObject(Frame f, String roleName) throws OntologyException;
   Frame createFrame(Object o, String roleName) throws OntologyException;
 
-  boolean check(Frame f, String roleName);
-  boolean check(Object o, String roleName);
+  void check(Frame f, String roleName) throws OntologyException;
+  void check(Object o, String roleName) throws OntologyException;
 
   String getSlotName(String roleName, int index) throws OntologyException;
   int getSlotPosition(String roleName, String name) throws OntologyException;

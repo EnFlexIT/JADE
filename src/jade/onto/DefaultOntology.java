@@ -271,27 +271,14 @@ public class DefaultOntology implements Ontology {
     return f;
   }
 
-  public boolean check(Frame f, String roleName) {
-    try {
-      FrameSchema fs = lookupSchema(roleName);
-      fs.checkAgainst(f);
-      return true;
-    }
-    catch(OntologyException oe) {
-      // oe.printStackTrace();
-      return false;
-    }
+  public void check(Frame f, String roleName) throws OntologyException {
+    FrameSchema fs = lookupSchema(roleName);
+    fs.checkAgainst(f);
   }
 
-  public boolean check(Object o, String roleName) {
-    try {
-      Frame f = createFrame(o, roleName);
-      return true;
-    }
-    catch(OntologyException oe) {
-      // oe.printStackTrace();
-      return false;
-    }
+  public void check(Object o, String roleName) throws OntologyException {
+    // Just try to create a Frame out of this object, and the check will be made.
+    Frame f = createFrame(o, roleName);
   }
 
   // Name <-> Position lookup methods

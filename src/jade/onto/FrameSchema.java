@@ -298,8 +298,9 @@ class FrameSchema implements Cloneable, Serializable {
 	}
 	case FRAME_TYPE: {
 	  Frame subFrame = f.getFrameSlot(name.toString());
-	  FrameSchema subSchema = myOntology.lookupSchema(subFrame.getName());
-	  subSchema.checkAgainst(subFrame);
+	  //	  FrameSchema subSchema = myOntology.lookupSchema(subFrame.getName());
+	  //      subSchema.checkAgainst(subFrame);
+	  myOntology.check(subFrame, name.toString());
 	  break;
 	}
 	default:
