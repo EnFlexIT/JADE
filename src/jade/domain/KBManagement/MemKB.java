@@ -44,7 +44,6 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.StringACLCodec;
 import jade.proto.SubscriptionResponder;
 import jade.core.AID;
 
