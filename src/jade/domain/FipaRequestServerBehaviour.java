@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/02/03 10:37:18  rimassa
+  Removed a 'setContent("")' method call when sending back
+  "not-understood' messages.
+
   Revision 1.7  1998/10/18 15:56:49  rimassa
   Modified code to avoid using deprecated ACLMessage constructor.
 
@@ -111,7 +115,6 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
   // Send a 'not-understood' message back to the requester
   private void sendNotUnderstood(ACLMessage msg) {
     msg.setType("not-understood");
-    msg.setContent("");
     myAgent.send(msg);
   }
 
