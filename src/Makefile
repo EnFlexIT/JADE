@@ -29,7 +29,6 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/domain/SearchDFBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
 		jade/proto/Standard.java \
-		jade/proto/Waker.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
