@@ -429,11 +429,10 @@ class PersistentDeliveryManager {
     public synchronized void start() {
 
 	if(users == 0) {
-	    failureSender = new ExpirationChecker(sendFailurePeriod);
-	    failureSender.start();
-
 	    processor = new DeliveryItemProcessor(deliverPeriod);
+	    failureSender = new ExpirationChecker(sendFailurePeriod);
 	    processor.start();
+	    failureSender.start();
 	}
 
 	users++;
