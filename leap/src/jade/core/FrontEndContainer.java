@@ -417,6 +417,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	synchronized(pending) {
 	  	pending.addElement(msg.clone());
 	  	pending.addElement(sender);
+			int size = pending.size();
+	  	if (size > 100 && size < 110) {
+	  		jade.util.Logger.println(size+" pending messages");
+	  	}
 	  	pending.notifyAll();
   	}
   }
