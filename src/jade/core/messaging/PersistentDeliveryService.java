@@ -362,7 +362,7 @@ public class PersistentDeliveryService extends BaseService {
 	    for(int i = 0; i < slices.length; i++) {
 		PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 		try {
-			boolean firstTime = acl.getUserDefinedParameter(ACL_USERDEF_DUE_DATE) != null;
+			boolean firstTime = (acl.getUserDefinedParameter(ACL_USERDEF_DUE_DATE) == null);
 			  boolean accepted = false;
 			  try {
 			    accepted = slice.storeMessage(null, msg, receiver);

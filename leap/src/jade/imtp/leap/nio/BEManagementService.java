@@ -968,7 +968,7 @@ public class BEManagementService extends BaseService {
   				}
   			}
   			catch (Throwable t) {
-		  		myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Enexpected exception "+t);
+		  		myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception "+t);
   			}
   		}
   	}
