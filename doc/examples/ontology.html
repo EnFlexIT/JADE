@@ -113,22 +113,22 @@ by two agents:</font> </p>
         behaviour in which</font> <br>
         <font face="Arial,Helvetica">- The details of a person to
         engage are got from the user. This is done in the
-        preAction() method.</font> <br>
+        onStart() method.</font> <br>
         <font face="Arial,Helvetica">- A query is sent to the
         EngagerAgent to check that the indicated person is not
         already working for the indicated company. This is done
         by following</font> <font face="Arial,Helvetica">the
         FIPA-Query protocol and it is implemented through a
-        FipaQueryInitiatorBehaviour that is added as a
+        SimpleAchieveREInitiator that is added as a
         sub-behaviour of the main agent behaviour.</font> <br>
         <font face="Arial,Helvetica">- According to the result of
         the query, A request is sent to the</font> <font
         face="Arial,Helvetica">EngagerAgent to actually perform
         the engagement. This is done following the FIPA-Request
-        protocol and is implemented through
-        FipaRequestInitiatorBehaviour that is added as a
+        protocol and is implemented through another
+        SimpleAchieveREInitiator that is added as a
         sub-behaviour.</font> <br>
-        <font face="Arial,Helvetica">- In the postAction() method
+        <font face="Arial,Helvetica">- In the onEnd() method
         the main agent behaviour is reset so that it is performed
         cyclically</font><p><font face="Arial,Helvetica">In the
         agent setup, besides the addition of the main behaviour,
@@ -141,8 +141,7 @@ by two agents:</font> </p>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>SequentialBehaviour, FipaQueryInitiatorBehaviour,
-        FipaRequestInitiatorBehaviour</td>
+        <td>SequentialBehaviour, SimpleAchieveREInitiator</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
@@ -168,11 +167,11 @@ by two agents:</font> </p>
         face="Arial,Helvetica">The Agent has two behaviours:</font>
         <br>
         <font face="Arial,Helvetica">- A
-        FipaQueryResponderBehaviour to handle queries about
+        SimpleAchieveREResponder to handle queries about
         people working for a company following a FIPA-Query
         protocol.</font> <br>
-        <font face="Arial,Helvetica">- A
-        FipaRequestResponderBehaviour to handle engagement
+        <font face="Arial,Helvetica">- Another
+        SimpleAchieveREResponder to handle engagement
         requests following a FIPA-Request protocol.</font> <br>
         <font face="Arial,Helvetica">Both behaviours are cyclic.</font>
         <br>
@@ -186,7 +185,7 @@ by two agents:</font> </p>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>FipaQueryResponderBehaviour</td>
+        <td>SimpleAchieveREResponder</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
