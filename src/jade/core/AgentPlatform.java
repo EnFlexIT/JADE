@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/08/10 15:31:31  rimassa
+  Added a lookup() method to retrieve an AgentContainer object reference by name.
+
   Revision 1.11  1999/06/04 07:45:51  rimassa
   Made package scoped this previously public interface.
   Removed some String constants from this interface to put them into
@@ -40,6 +43,8 @@ interface AgentPlatform extends AgentContainer {
 
   public String addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(String name) throws RemoteException;
+
+  public AgentContainer lookup(String name) throws RemoteException, NotFoundException;
 
   public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
   public void deadAgent(String name) throws RemoteException, NotFoundException;
