@@ -28,13 +28,15 @@ import java.io.StringWriter;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
-import java.util.Enumeration;
+import java.net.InetAddress;
+
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.NoSuchElementException;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Vector;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -413,24 +415,35 @@ public class ams extends Agent {
   private class NotifyRMAsBehaviour extends CyclicBehaviour {
 
     private void processNewContainers() {
-      Enumeration e = newContainersBuffer.elements();
-      while(e.hasMoreElements()) {
-	String name = (String)e.nextElement();
+      Iterator it = newContainersBuffer.iterator();
+      while(it.hasNext()) {
+	ContDesc c  = (ContDesc)it.next();
+	String name = c.name;
+	InetAddress addr = c.addr;
+	MobilityOntology.Location loc = new MobilityOntology.Location();
+	loc.setName(name);
+	loc.setTransportProtocol("JADE-IPMT");
+	loc.setTransportAddress(getAddress() + "." + name);
+	mobilityMgr.addLocation(name, loc);
+
 	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
 	ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWCONTAINER);
 	ev.setContainerName(name);
+	ev.setContainerAddr(addr.getHostName());
 	StringWriter w = new StringWriter();
 	ev.toText(w);
 	RMANotification.setContent(w.toString());
 	send(RMANotification, RMAs);
-	newContainersBuffer.removeElement(name);
+	it.remove();
       }
     }
 
     private void processDeadContainers() {
-      Enumeration e = deadContainersBuffer.elements();
-      while(e.hasMoreElements()) {
-	String name = (String)e.nextElement();
+      Iterator it = deadContainersBuffer.iterator();
+      while(it.hasNext()) {
+	String name = (String)it.next();
+	mobilityMgr.removeLocation(name);
+
 	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
 	ev.setKind(AgentManagementOntology.AMSEvent.DEADCONTAINER);
 	ev.setContainerName(name);
@@ -438,14 +451,14 @@ public class ams extends Agent {
 	ev.toText(w);
 	RMANotification.setContent(w.toString());
 	send(RMANotification, RMAs);
-	deadContainersBuffer.removeElement(name);
+	it.remove();
       }
     }
 
     private void processNewAgents() {
-      Enumeration e = newAgentsBuffer.elements();
-      while(e.hasMoreElements()) {
-	AgDesc ad = (AgDesc)e.nextElement();
+      Iterator it = newAgentsBuffer.iterator();
+      while(it.hasNext()) {
+	AgDesc ad = (AgDesc)it.next();
 	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
 	ev.setKind(AgentManagementOntology.AMSEvent.NEWAGENT);
 	ev.setContainerName(ad.containerName);
@@ -454,14 +467,14 @@ public class ams extends Agent {
 	ev.toText(w);
 	RMANotification.setContent(w.toString());
 	send(RMANotification, RMAs);
-	newAgentsBuffer.removeElement(ad);
+	it.remove();
       }
     }
 
     private void processDeadAgents() {
-      Enumeration e = deadAgentsBuffer.elements();
-      while(e.hasMoreElements()) {
-	AgDesc ad = (AgDesc)e.nextElement();
+      Iterator it = deadAgentsBuffer.iterator();
+      while(it.hasNext()) {
+	AgDesc ad = (AgDesc)it.next();
 	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
 	ev.setKind(AgentManagementOntology.AMSEvent.DEADAGENT);
 	ev.setContainerName(ad.containerName);
@@ -476,14 +489,14 @@ public class ams extends Agent {
 	RMANotification.setContent(w.toString());
 
 	send(RMANotification, RMAs);
-	deadAgentsBuffer.removeElement(ad);
+	it.remove();
       }
     }
 
     private void processMovedAgents() {
-      Enumeration e = movedAgentsBuffer.elements();
-      while(e.hasMoreElements()) {
-	MotionDesc md = (MotionDesc)e.nextElement();
+      Iterator it = movedAgentsBuffer.iterator();
+      while(it.hasNext()) {
+	MotionDesc md = (MotionDesc)it.next();
 	AgentManagementOntology.AMSMotionEvent ev = new AgentManagementOntology.AMSMotionEvent();
 	ev.setKind(AgentManagementOntology.AMSEvent.MOVEDAGENT);
 
@@ -496,7 +509,7 @@ public class ams extends Agent {
 	RMANotification.setContent(w.toString());
 
 	send(RMANotification, RMAs);
-	movedAgentsBuffer.removeElement(md);
+	it.remove();
       }
     }
 
@@ -652,6 +665,18 @@ public class ams extends Agent {
 
   }
 
+  private static class ContDesc {
+
+    public ContDesc(String s, InetAddress a) {
+      name = s;
+      addr = a;
+    }
+
+    public String name;
+    public InetAddress addr;
+
+  }
+
   private static class MotionDesc {
 
     public MotionDesc(AgentManagementOntology.AMSAgentDescriptor amsd, String s, String d) {
@@ -675,6 +700,9 @@ public class ams extends Agent {
   // Maintains an association between action names and behaviours
   private FipaRequestResponderBehaviour dispatcher;
 
+  // Contains a main Behaviour and some utilities to handle JADE mobility
+  private MobilityManager mobilityMgr;
+
   // Behaviour to listen to incoming 'subscribe' messages from Remote
   // Management Agents.
   private RegisterRMABehaviour registerRMA;
@@ -694,11 +722,11 @@ public class ams extends Agent {
   private ACLMessage RMANotification = new ACLMessage(ACLMessage.INFORM);
 
   // Buffers for AgentPlatform notifications
-  private Vector newContainersBuffer = new Vector();
-  private Vector deadContainersBuffer = new Vector();
-  private Vector newAgentsBuffer = new Vector();
-  private Vector deadAgentsBuffer = new Vector();
-  private Vector movedAgentsBuffer = new Vector();
+  private List newContainersBuffer = new ArrayList();
+  private List deadContainersBuffer = new ArrayList();
+  private List newAgentsBuffer = new ArrayList();
+  private List deadAgentsBuffer = new ArrayList();
+  private List movedAgentsBuffer = new ArrayList();
 
   private Map pendingInforms = new HashMap();
 
@@ -719,6 +747,7 @@ public class ams extends Agent {
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
     dispatcher = new FipaRequestResponderBehaviour(this, mt);
+    mobilityMgr = new MobilityManager(this);
     registerRMA = new RegisterRMABehaviour();
     deregisterRMA = new DeregisterRMABehaviour();
     notifyRMAs = new NotifyRMAsBehaviour();
@@ -765,6 +794,9 @@ public class ams extends Agent {
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction
     addBehaviour(dispatcher);
+
+    // Add a main behaviour to manage mobility related messages
+    addBehaviour(mobilityMgr.getMain());
 
     // Add a Behaviour to accept incoming RMA registrations and a
     // Behaviour to broadcast events to registered RMAs.
@@ -876,6 +908,58 @@ public class ams extends Agent {
   }
 
 
+  // This one is called in response to a 'move-agent' action
+  void AMSMoveAgent(String agentName, Location where) throws FIPAException {
+    try {
+      int atPos = agentName.indexOf('@');
+      if(atPos == -1)
+        agentName = agentName.concat('@' + getAddress());
+      myPlatform.move(agentName, where, "");
+    }
+    catch(UnreachableException ue) {
+      ue.printStackTrace();
+      throw new NoCommunicationMeansException();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+      throw new AgentNotRegisteredException();
+    }
+  }
+
+  // This one is called in response to a 'clone-agent' action
+  void AMSCloneAgent(String agentName, Location where, String newName) throws FIPAException {
+    try {
+      int atPos = agentName.indexOf('@');
+      if(atPos == -1)
+        agentName = agentName.concat('@' + getAddress());
+      myPlatform.copy(agentName, where, newName, "");
+    }
+    catch(UnreachableException ue) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+      throw new AgentNotRegisteredException();
+    }
+  }
+
+
+  // This one is called in response to a 'where-is-agent' action
+  MobilityOntology.Location AMSWhereIsAgent(String agentName) throws FIPAException {
+    try {
+      int atPos = agentName.indexOf('@');
+      if(atPos == -1)
+        agentName = agentName.concat('@' + getAddress());
+      String containerName = myPlatform.getContainerName(agentName);
+      return mobilityMgr.getLocation(containerName);
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+      throw new AgentNotRegisteredException();
+    }
+  }
+
+
   /**
    The AMS must have a special version for this method, or a deadlock will occur.
   */
@@ -924,8 +1008,8 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postNewContainer(String name) {
-    newContainersBuffer.addElement(new String(name));
+  public synchronized void postNewContainer(String name, InetAddress addr) {
+    newContainersBuffer.add(new ContDesc(name, addr));
     doWake();
   }
 
@@ -934,7 +1018,7 @@ public class ams extends Agent {
     application agents.
   */
   public synchronized void postDeadContainer(String name) {
-    deadContainersBuffer.addElement(new String(name));
+    deadContainersBuffer.add(new String(name));
     doWake();
   }
 
@@ -946,7 +1030,7 @@ public class ams extends Agent {
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
     amsd.setName(agentName);
     amsd.setAddress(myPlatform.getAddress(agentName));
-    newAgentsBuffer.addElement(new AgDesc(containerName, amsd));
+    newAgentsBuffer.add(new AgDesc(containerName, amsd));
     doWake();
   }
 
@@ -956,13 +1040,17 @@ public class ams extends Agent {
   */
   public synchronized void postDeadAgent(String containerName, String agentName) {
     AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-    deadAgentsBuffer.addElement(new AgDesc(containerName, amsd));
+    deadAgentsBuffer.add(new AgDesc(containerName, amsd));
     doWake();
   }
 
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void postMovedAgent(String agentName, String src, String dest) {
     AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
-    movedAgentsBuffer.addElement(new MotionDesc(amsd, src, dest));
+    movedAgentsBuffer.add(new MotionDesc(amsd, src, dest));
     doWake();
   }
 
