@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1998/11/05 23:44:06  rimassa
+  Dialog rewritten in order to make it comply with JADE agent
+  descriptor; i.e. an Agent Container, an agent name and a class name.
+
   Revision 1.3  1998/10/10 19:37:25  rimassa
   Imported a newer version of JADE GUI from Fabio.
 
@@ -21,132 +25,130 @@ import java.util.*;
  * to start Agents. IT has many static attributes because
  * ONLY one Dialog of this kind can be shown at one moment
  */
-public class StartDialog extends JDialog implements ActionListener
-{
-	protected static JTextField name;
-	protected static JTextField host;
-	protected static JTextField port;
-	
-	protected static JLabel NameL= new JLabel("Class Name");
-	protected static JLabel HostL= new JLabel("Host");
-	protected static JLabel PortL= new JLabel("Port");
+public class StartDialog extends JDialog implements ActionListener {
+  protected static JTextField agentName;
+  protected static JTextField className;
+  protected static JTextField container;
 
-	protected static JButton OKButton = new JButton ("OK");
-	protected static JButton CancelButton = new JButton ("Cancel");
+  protected static JLabel agentNameL= new JLabel("Agent Name");
+  protected static JLabel classNameL= new JLabel("Class Name");
+  protected static JLabel containerL= new JLabel("Container");
 
-	protected static JFrame frame = new JFrame ("Insert Start Parameters");
+  protected static JButton OKButton = new JButton ("OK");
+  protected static JButton CancelButton = new JButton ("Cancel");
 
-	protected static String NameToolTip = "Class Name of the Agent"; 
-	protected static String HostToolTip = "Host on which the Agent will start";
-	protected static String PortToolTip = "TCP Port";
-	
-	protected static String result  = "";
-	protected static int OK_BUTTON = 0;
-	protected static int CANCEL_BUTTON = 1;
-	protected static int choice = CANCEL_BUTTON;
+  protected static JFrame frame = new JFrame ("Insert Start Parameters");
 
-	static
-	{
-		name = new JTextField ();
-		name.setEditable(false);
-		name.setToolTipText(NameToolTip);
-		NameL.setToolTipText(NameToolTip);	
+  protected static String agentNameToolTip = "Name of the Agent to start";
+  protected static String classNameToolTip = "Class Name of the Agent to start"; 
+  protected static String containerToolTip = "Container on which the Agent will start";
 
-		host = new JTextField ("localhost");
-		host.setEditable(true);
-		host.setToolTipText(HostToolTip);
-		HostL.setToolTipText(HostToolTip);
+  protected static String result  = "";
+  protected static int OK_BUTTON = 0;
+  protected static int CANCEL_BUTTON = 1;
+  protected static int choice = CANCEL_BUTTON;
 
-		port = new JTextField ("2020");
-		port.setEditable(true);
-		port.setToolTipText(PortToolTip);
-		PortL.setToolTipText(PortToolTip);
-	}
+  static {
 
-	protected StartDialog (String ClassName)
-	{
-		super(frame,"Insert Start Parameters",true);
-		
-		getContentPane().setLayout(new GridLayout(4,2));
-		name.setText(ClassName);
-		
-		getContentPane().add(NameL);
-		getContentPane().add(name);
+    agentName = new JTextField ();
+    agentName.setEditable(false);
+    agentName.setToolTipText(agentNameToolTip);
+    agentNameL.setToolTipText(agentNameToolTip);
 
-		getContentPane().add(HostL);
-		getContentPane().add(host);
+    className = new JTextField ("jade.core.Agent");
+    className.setEditable(true);
+    className.setToolTipText(classNameToolTip);
+    classNameL.setToolTipText(classNameToolTip);
 
-		getContentPane().add(PortL);
-		getContentPane().add(port);
+    container = new JTextField ("0");
+    container.setEditable(true);
+    container.setToolTipText(containerToolTip);
+    containerL.setToolTipText(containerToolTip);
 
-		OKButton.addActionListener(this);
-		CancelButton.addActionListener(this);
+  }
 
-		getContentPane().add(OKButton);
-		getContentPane().add(CancelButton);
+  protected StartDialog (String agentNameP) {
+    super(frame,"Insert Start Parameters",true);
 
-		setSize(getPreferredSize());
-		setVisible(true);
-	}
+    getContentPane().setLayout(new GridLayout(4,2));
+    agentName.setText(agentNameP);
 
-	public Dimension getPreferredSize ()
-	{
-		return (new Dimension(250,300));
-	}
+    getContentPane().add(agentNameL);
+    getContentPane().add(agentName);
 
-	public void actionPerformed (ActionEvent evt)
-	{
-		choice = CANCEL_BUTTON;
-		if (evt.getSource()==OKButton)
-		{
-			choice = OK_BUTTON;
-		}
-		dispose();
-	}
+    getContentPane().add(classNameL);
+    getContentPane().add(className);
 
-	/**
-	 * This method show a modal Dialog
-	 * useful to set paramethers to start
-	 * agents previously registered 
-	 */
-	public static int showStartDialog(String ClassName)
-	{
-		name.setEditable(false);
-        StartDialog panel = new StartDialog(ClassName);
-		return choice;
-	}
+    getContentPane().add(containerL);
+    getContentPane().add(container);
 
-	/**
-	 * This method show a modal Dialog
-	 * useful to set paramethers to start
-	 * new agents  
-	 */
-	public static int showStartNewDialog ()
-	{
-        name.setEditable(true);
-		StartDialog panel = new StartDialog("");
-		return choice;
-	}
+    OKButton.addActionListener(this);
+    CancelButton.addActionListener(this);
 
+    getContentPane().add(OKButton);
+    getContentPane().add(CancelButton);
 
-	public static String getHost()
-	{
-		return host.getText();
-	}
+    setSize(getPreferredSize());
+    setVisible(true);
+  }
 
-	public static String getPort ()
-	{
-		return port.getText();
-	}
+  public Dimension getPreferredSize () {
+    return (new Dimension(250,300));
+  }
 
-	public static String getClassName ()
-	{
-		return name.getText();
-	}
+  public void actionPerformed (ActionEvent evt) {
+    choice = CANCEL_BUTTON;
+    if (evt.getSource()==OKButton) {
+      choice = OK_BUTTON;
+    }
+    dispose();
+  }
 
-	public static void setHost(String hostP) {host.setText(hostP);}
-	public static void setPort(String portP) {port.setText(portP);}
-	public static void setClassName(String nameP) {name.setText(nameP);}
+  /**
+   * This method show a modal Dialog
+   * useful to set parameters to start
+   * agents previously registered 
+   */
+  public static int showStartDialog(String agentNameP) {
+    agentName.setEditable(false);
+    StartDialog panel = new StartDialog(agentNameP);
+    return choice;
+  }
+
+  /**
+   * This method show a modal Dialog
+   * useful to set parameters to start
+   * new agents  
+   */
+  public static int showStartNewDialog() {
+    agentName.setEditable(true);
+    StartDialog panel = new StartDialog("");
+    return choice;
+  }
+
+  public static String getAgentName() {
+    return agentName.getText();
+  }
+
+  public static String getClassName() {
+    return className.getText();
+  }
+
+  public static String getContainer() {
+    return container.getText();
+  }
+
+  public static void setAgentName(String agentNameP) {
+    agentName.setText(agentNameP);
+  }
+
+  public static void setClassName(String classNameP) {
+    className.setText(classNameP);
+  }
+
+  public static void setContainer(String containerP) {
+    container.setText(containerP);
+  }
 
 
 }
