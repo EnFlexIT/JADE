@@ -35,6 +35,10 @@
 /*
  $Id$
  $Log$
+ Revision 1.6  1998/09/28 22:40:44  Giovanni
+ Added a 'toText()' method to write an ACLMessage on an arbitrary
+ Writer (String, OutputStream, File, ecc.).
+
  Revision 1.5  1998/09/02 00:42:16  rimassa
  Added code to make ACLMessages cloneable. Now a public clone() method
  is provided to make copies of an ACL message.
@@ -53,7 +57,9 @@
 
 package jade.lang.acl;
 
+import java.io.Writer;
 import java.io.Serializable;
+import java.io.IOException;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
@@ -331,6 +337,39 @@ public class ACLMessage implements Cloneable, Serializable {
     if (protocol != null)        System.out.println("   " + PROTOCOL + protocol);
     if (conversation_id != null) System.out.println("   " + CONVERSATION_ID + conversation_id);
     System.out.println();
+  }
+
+  public void toText(Writer w) {
+    try {
+      w.write(msgType + " ");
+      if(source != null)
+	w.write(SOURCE + " " + source + " ");
+      if(dest != null)
+	w.write(DEST + " " + dest + " ");
+      if(content != null)
+	w.write(CONTENT + " " + content + " ");
+      if(reply_with != null)
+	w.write(REPLY_WITH + " " + reply_with + " ");
+      if(in_reply_to != null)
+	w.write(IN_REPLY_TO + " " + in_reply_to + " ");
+      if(envelope != null)
+	w.write(ENVELOPE + " " + envelope + " ");
+      if(language != null)
+	w.write(LANGUAGE + " " + language + " ");
+      if(ontology != null)
+	w.write(ONTOLOGY + " " + ontology + " ");
+      if(reply_by != null)
+	w.write(REPLY_BY + " " + reply_by + " ");
+      if(ontology != null)
+	w.write(PROTOCOL + " " + protocol + " ");
+      if(conversation_id != null)
+	w.write(CONVERSATION_ID + " " + conversation_id + " ");
+
+      w.flush();
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
   }
 
   public synchronized Object clone() {
