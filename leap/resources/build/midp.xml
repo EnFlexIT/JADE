@@ -12,7 +12,6 @@
         <!--Filtered src directory property--> 
         <property name="filtered.src" location="${midp-root}/filtered/src"/>    
 
-	<!-- MAAAAAVAVVVAVAVAVAVAVAVAVAVAVAVA-->
 	<!-- INIT -->
 	<target name="do-init"  
 	        description="Create the appropriate directories">
