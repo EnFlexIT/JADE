@@ -558,12 +558,13 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
    * Removes all the agents and messages from their lists then repaints the canvas
    */
   public void removeAllAgents () {
-   try{
-    al.removeAllAgents();
-    ml.removeAllMessages();
-    repaintBothCanvas();
-   }
-    catch(Exception e) {}
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+	al.removeAllAgents();
+	ml.removeAllMessages();
+	repaintBothCanvas();
+      }
+    });
   }
 
   // method to repaint the  NoSniffed agent
@@ -579,9 +580,13 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
    * @param mess message to be added
    */
 
-  public void addMessage (Message mess) {
-   ml.addMessage(mess);
-   repaintBothCanvas();
+  public void addMessage (final Message mess) {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        ml.addMessage(mess);
+        repaintBothCanvas();
+      }
+    });
   }
 
   /**
