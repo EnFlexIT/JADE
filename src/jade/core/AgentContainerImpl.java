@@ -751,7 +751,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // or not.
   private boolean livesHere(AID id) {
     String hap = id.getHap();
-    return hap.equalsIgnoreCase(platformID);
+    return CaseInsensitiveString.equalsIgnoreCase(hap, platformID);
   }
 
   /*

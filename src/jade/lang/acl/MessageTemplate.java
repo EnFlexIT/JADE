@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 import jade.core.AID;
+import jade.core.CaseInsensitiveString;
 
 /**
    A pattern for matching incoming ACL messages. This class allows to
@@ -223,7 +224,7 @@ public class MessageTemplate implements Serializable {
 	  String s2 = (String)getValue.invoke(msg, new Object[] { });
 
 	  if(s1 != null)
-	    if((s1.length() > 0) && (!s1.equalsIgnoreCase(s2)))
+	    if((s1.length() > 0) && (!CaseInsensitiveString.equalsIgnoreCase(s1, s2)))
 	      return false;
 	}
 

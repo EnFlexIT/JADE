@@ -32,6 +32,7 @@ import java.util.*;
 import jade.onto.Frame;
 import jade.onto.OntologyException;
 import jade.lang.Codec;
+import jade.core.CaseInsensitiveString;
 
 /**
   
@@ -133,7 +134,7 @@ class SL0Encoder {
     If this is a token of the language, then it must be quoted. 
     **/
   private boolean isAToken(String str) {
-    return str.equalsIgnoreCase(SL0Codec.NAME_OF_ACTION_FRAME);  
+    return CaseInsensitiveString.equalsIgnoreCase(str, SL0Codec.NAME_OF_ACTION_FRAME);  
   }
 
   /** 

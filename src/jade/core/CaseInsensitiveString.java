@@ -97,8 +97,13 @@ public class CaseInsensitiveString implements Serializable {
      * @return <code>true</code> if the strings are equal, apart from case.
      */
     public static boolean equalsIgnoreCase(String s1, String s2) {
-        return ((s1.length() == s2.length()) 
+     	if (s1 == null || s2 == null) {
+     		return false;
+     	}
+     	else {
+    		return ((s1.length() == s2.length()) 
                 && s1.regionMatches(true, 0, s2, 0, s1.length()));
+     	}
     } 
 
 }

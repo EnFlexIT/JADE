@@ -248,7 +248,7 @@ class RealMobilityManager implements MobilityManager {
             try {
                 String proto = where.getProtocol();
 
-								if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP)) {
+								if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
                     throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
                 } 
 
@@ -260,7 +260,7 @@ class RealMobilityManager implements MobilityManager {
                 } 
 
                 // Handle special 'running to stand still' case
-                if (where.getName().equalsIgnoreCase(myContainer.here().getName())) {
+                if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
                     a.doExecute();
                     return;
                 } 
@@ -344,7 +344,7 @@ class RealMobilityManager implements MobilityManager {
         try {
             String proto = where.getProtocol();
 
-      			if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP)) {
+      			if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
                 throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
             } 
 

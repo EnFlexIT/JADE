@@ -58,6 +58,8 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.ArrayList;
 
+import jade.core.CaseInsensitiveString;
+
 class SL0Parser {
 
 
@@ -174,8 +176,8 @@ Object Term():
 {
  ( obj = String() { 
 	// if it is true or false, then converts the String into a Boolean
-	          if (obj.toString().equalsIgnoreCase("true") ||  
-	              obj.toString().equalsIgnoreCase("false") )  
+	          if (CaseInsensitiveString.equalsIgnoreCase(obj.toString(), "true") ||  
+	              CaseInsensitiveString.equalsIgnoreCase(obj.toString(), "false") )  
 	            obj = new Boolean(obj.toString());
                   }
  | obj = Number() 

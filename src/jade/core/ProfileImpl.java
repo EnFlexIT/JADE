@@ -212,7 +212,7 @@ public class ProfileImpl extends Profile {
   private void createPlatform() throws ProfileException {
   	try {
 	    String isMain = props.getProperty(MAIN);
-  	  if (isMain == null || isMain.equalsIgnoreCase("true")) {
+  	  if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
     	  // The real Main
       	myPlatform = new MainContainerImpl(this);
     	} 

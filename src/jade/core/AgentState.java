@@ -55,11 +55,11 @@ public class AgentState {
   public boolean equals(Object o) {
 
     if(o instanceof String) {
-      return name.equalsIgnoreCase((String)o);
+      return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
     }
     try {
       AgentState as = (AgentState)o;
-      return name.equalsIgnoreCase(as.name);
+      return CaseInsensitiveString.equalsIgnoreCase(name, as.name);
     }
     catch(ClassCastException cce) {
       return false;

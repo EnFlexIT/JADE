@@ -228,7 +228,7 @@ class MainContainerImpl implements Platform, AgentManager {
     	AID    id = allIds[i];
       ContainerID cid = platformAgents.get(id).getContainerID();
 
-      if (cid.getName().equalsIgnoreCase(crashedContainer.getName())) {
+      if (CaseInsensitiveString.equalsIgnoreCase(cid.getName(), crashedContainer.getName())) {
       	// This agent was living in the container that has crashed
         // --> It must be cleaned
         platformAgents.remove(id);

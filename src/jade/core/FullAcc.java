@@ -387,7 +387,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
     ReceivedObject[] stamps = env.getStamps();
     for(int i = 0; i < stamps.length; i++) {
       String id = stamps[i].getBy();
-      if(id.equalsIgnoreCase(accID)) {
+      if(CaseInsensitiveString.equalsIgnoreCase(id, accID)) {
 	System.out.println("ERROR: Message loop detected !!!");
 	System.out.println("Route is: ");
 	for(int j = 0; j < stamps.length; j++)

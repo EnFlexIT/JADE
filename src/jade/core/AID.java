@@ -327,11 +327,11 @@ public class AID implements Cloneable, Comparable, Serializable {
   public boolean equals(Object o) {
 
     if(o instanceof String) {
-      return name.equalsIgnoreCase((String)o);
+      return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
     }
     try {
       AID id = (AID)o;
-      return name.equalsIgnoreCase(id.name);
+      return CaseInsensitiveString.equalsIgnoreCase(name, id.name);
     }
     catch(ClassCastException cce) {
       return false;
