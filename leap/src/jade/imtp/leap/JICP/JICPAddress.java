@@ -110,6 +110,15 @@ public class JICPAddress implements TransportAddress {
   public String getAnchor() {
     return anchor;
   } 
+
+  public boolean equals(Object rhs) {
+      if(rhs instanceof JICPAddress) {
+	  return toString().equals(rhs.toString());
+      }
+      else {
+	  return false;
+      }
+  }
   
   public String toString() {
     StringBuffer address = new StringBuffer();
