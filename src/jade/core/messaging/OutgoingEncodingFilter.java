@@ -134,22 +134,6 @@ public class OutgoingEncodingFilter extends Filter {
     return true;
   }
 
-  public void setBlocking(boolean newState) {
-    // Do nothing. Blocking and Skipping not supported
-  }
-
-  public boolean isBlocking() {
-    return false; // Blocking and Skipping not implemented
-  }
-
-  public void setSkipping(boolean newState) {
-    // Do nothing. Blocking and Skipping not supported
-  }
-
-  public boolean isSkipping() {
-    return false; // Blocking and Skipping not implemented
-  }
-
 
   /**
    * This method puts into the envelope the missing information
