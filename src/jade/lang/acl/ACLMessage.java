@@ -1093,16 +1093,14 @@ private int performative; // keeps the performative type of this object
     //Set the Aclrepresentation of the reply message to the aclrepresentation of the sent message 
     if (messageEnvelope != null)
     {
+	m.setDefaultEnvelope(); // reset the envelope after having been cloned
     	String aclCodec= messageEnvelope.getAclRepresentation();
     	if (aclCodec != null)
-    	{	
-    		m.setDefaultEnvelope();
-    		m.getEnvelope().setAclRepresentation(aclCodec);
-    	}
+	    m.getEnvelope().setAclRepresentation(aclCodec);
     }
     else
     m.setEnvelope(null);
-    
+
     return m;
   }
 
