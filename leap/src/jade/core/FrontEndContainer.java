@@ -133,7 +133,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 			
 			// Start agents only after they are all there
-			synchronized (localAgents) {
+			synchronized (this) {
 				Enumeration e = localAgents.keys();
 				while (e.hasMoreElements()) {
 					String name = (String) e.nextElement();
@@ -239,7 +239,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	Logger.println("Container shut down activated");
 	    
 	  	// Kill all agents 
-	  	synchronized (localAgents) {
+	  	synchronized (this) {
 		    Enumeration e = localAgents.elements();
 		  	while (e.hasMoreElements()) {
 		      // Kill agent and wait for its termination
@@ -278,7 +278,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   		// just do nothing. The BackEnd will notify the main.
 	    try {
 	    	String name = agentID.getLocalName();
-	    	synchronized (localAgents) {
+	    	synchronized (this) {
 		      localAgents.remove(name);
 	    	}
 	  	  myBackEnd.deadAgent(name);
@@ -311,14 +311,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			Agent a = (Agent) localAgents.get(id.getLocalName());
 			if (a != null) {
 				ACLMessage m = (ACLMessage) msg.clone();
-				// Check if the sender is set. Note that for remote receivers
-				// this is done by the Back end.
-				try {
-					m.getSender().getName().charAt(0);
-				}
-				catch (Exception e) {
-					m.setSender(sender);
-				}
 				a.postMessage(m);
 				remoteCnt--;
 			}
@@ -387,7 +379,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	myId = new ContainerID(info[0], null);
   	AID.setPlatformID(info[1]);
   	platformInfo = info;
-  	// FIXME: Set platformName to AID static variable
   	amsAID = new AID("ams", AID.ISLOCALNAME);
   	setPlatformAddresses(amsAID);
   	dfAID = new AID("df", AID.ISLOCALNAME);
@@ -395,7 +386,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
 
   private final void initAgent(String name, String className, Object[] args) throws Exception {
-    synchronized (localAgents) {
+    synchronized (this) {
 	  	Agent previous = null;
 	    try {
 	    	// Create the new agent and add it to the local agents table
@@ -421,7 +412,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
     }
   }
   
-  private synchronized void post(ACLMessage msg, String sender) {
+  private void post(ACLMessage msg, String sender) {
   	synchronized(pending) {
 	  	pending.addElement(msg.clone());
 	  	pending.addElement(sender);
