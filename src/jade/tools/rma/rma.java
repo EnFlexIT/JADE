@@ -323,8 +323,11 @@ public class rma extends ToolAgent {
   protected void toolTakeDown() {
     send(getCancel());
     if (myGUI != null) {
-	myGUI.setVisible(false);
-	myGUI.disposeAsync();
+      // The following call was removed as it causes a threading
+      // deadlock with join. Its also not needed as the async
+      // dispose will do it.
+      // myGUI.setVisible(false);
+	  myGUI.disposeAsync();
     }
   }
 

@@ -305,7 +305,7 @@ public class Introspector extends ToolAgent {
     }
 
     send(getCancel());
-    myGUI.setVisible(false);
+    // myGUI.setVisible(false);  Not needed and can cause thread deadlock on join.
     myGUI.disposeAsync();
   }
 
