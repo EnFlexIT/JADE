@@ -14,7 +14,7 @@ options {
 }
 
 
-PARSER_BEGIN(AgentManagementParser) // FIXME: Must check for duplicate keywords
+PARSER_BEGIN(AgentManagementParser)
 
 package jade.domain;
 
@@ -114,7 +114,7 @@ AgentManagementOntology.DFAction DFAction() :
   AgentManagementOntology.DFAction a;
 }
 {
-  "(" a = DFActionBody() ")"
+  "(" ( a = DFActionBody() | a = DFSearchBody() ) ")"
   { return a; }
 }
 
@@ -135,7 +135,9 @@ AgentManagementOntology.AMSAction AMSActionBody() :
 }
 {
   ( t = <REGISTER_AGENT> | t = <DEREGISTER_AGENT> | t = <AUTHENTICATE> | t = <MODIFY_AGENT> )
-  { a.setName(t.image); }
+  { 
+    a.setName(t.image);
+  }
   amsd = AMS_Description()
   { a.setArg(amsd); }
 
@@ -149,29 +151,44 @@ AgentManagementOntology.DFAction DFActionBody() :
   Token t;
 }
 {
-  ( t = <REGISTER> | t = <DEREGISTER> | t = <MODIFY> | t = <SEARCH> )
+  ( t = <REGISTER> | t = <DEREGISTER> | t = <MODIFY> )
   { a.setName(t.image); }
-  dfd = DF_description() // FIXME: Constraint still missing
+  dfd = DF_description()
   {
     a.setArg(dfd);
     return a;
   }
 }
 
+AgentManagementOntology.DFSearchAction DFSearchBody() :
+{
+  AgentManagementOntology.DFSearchAction a = new AgentManagementOntology.DFSearchAction();
+  AgentManagementOntology.DFAgentDescriptor dfd;
+  Token t;
+}
+{
+  t = <SEARCH> { a.setName(t.image); }
+  dfd = DF_description() { a.setArg(dfd); }
+  ( Constraint(a) )+
+  { return a; }
+}
+
 AgentManagementOntology.ACCAction ACCActionBody() :
 {
-  AgentManagementOntology.Action a;
-  ACLMessage msg;
+  AgentManagementOntology.ACCAction a = new AgentManagementOntology.ACCAction();
+  ACLMessage msg = null;
   Token t;
 }
 {
   t = <FORWARD>
   {
+    a.setName(t.image);
     // FIXME: Add ACL message parsing
-    return null;
+    
+    a.setArg(msg);
+    return a;
   }
 }
-
 
 AgentManagementOntology.AMSAgentDescriptor AMS_Description() :
 {
@@ -191,9 +208,21 @@ void FIPA_AMS_description(AgentManagementOntology.AMSAgentDescriptor amsd) :
   Token t;
 }
 {
-  <AGENT_NAME> s = AgentName() { amsd.setName(s); }
-| <ADDRESS> s = CommAddress() { amsd.setAddress(s); }
-| <SIGNATURE> t = <WORD> { amsd.setSignature(t.image); }
+  <AGENT_NAME> s = AgentName() 
+  {
+    if(amsd.getName() == null) amsd.setName(s);
+    else throw new ParseException();
+  }
+| <ADDRESS> s = CommAddress()
+  {
+    if(amsd.getAddress() == null) amsd.setAddress(s);
+    else throw new ParseException();
+  }
+| <SIGNATURE> t = <WORD>
+  {
+    if(amsd.getSignature() == null) amsd.setSignature(t.image);
+    else throw new ParseException();
+  }
 | <AP_STATE> t = <APState> {
     try {
       amsd.setAPState(AgentManagementOntology.instance().getAPStateByName(t.image)); 
@@ -203,9 +232,21 @@ void FIPA_AMS_description(AgentManagementOntology.AMSAgentDescriptor amsd) :
       throw new ParseException();
     }
   }
-| <DELEGATE_AGENT_NAME> s = AgentName() { amsd.setDelegateAgentName(s); }
-| <FORWARD_ADDRESS> s = CommAddress() { amsd.setForwardAddress(s); }
-| <OWNERSHIP> t = <WORD> { amsd.setOwnership(t.image); }
+| <DELEGATE_AGENT_NAME> s = AgentName()
+  {
+    if(amsd.getDelegateAgentName() == null) amsd.setDelegateAgentName(s);
+    else throw new ParseException();
+  }
+| <FORWARD_ADDRESS> s = CommAddress()
+  {
+    if(amsd.getForwardAddress() == null) amsd.setForwardAddress(s);
+    else throw new ParseException();
+  }
+| <OWNERSHIP> t = <WORD>
+  {
+    if(amsd.getOwnership() == null) amsd.setOwnership(t.image);
+    else throw new ParseException();
+  }
 }
 
 AgentManagementOntology.DFAgentDescriptor DF_description() :
@@ -227,14 +268,34 @@ void FIPA_DF_description(AgentManagementOntology.DFAgentDescriptor dfd) :
   Token t;
 }
 {
-   <AGENT_NAME> s = AgentName() { dfd.setName(s); }
+   <AGENT_NAME> s = AgentName()
+   {
+     if(dfd.getName() == null) dfd.setName(s);
+     else throw new ParseException();
+   }
  | <AGENT_ADDRESS> ( s = CommAddress() { dfd.addAddress(s); } )+ // FIXME: Error when multiple adrresses are present
  | <AGENT_SERVICES> ( sd = FIPA_Service_Desc() { dfd.addService(sd); })+
- | <AGENT_TYPE> t = <WORD> { dfd.setType(t.image); }
+ | <AGENT_TYPE> t = <WORD>
+   {
+     if(dfd.getType() == null) dfd.setType(t.image);
+     else throw new ParseException();
+   }
  | <INTERACTION_PROTOCOLS> "(" ( t = <WORD> { dfd.addInteractionProtocol(t.image); } )+ ")"
- | <ONTOLOGY> s = SL1Term() { dfd.setOntology(s); }
- | <OWNERSHIP> s = SL1Term() { dfd.setOwnership(s); }
- | <DF_STATE> t = <DfLifecycleState> { dfd.setDFState(t.image); }
+ | <ONTOLOGY> s = SL1Term()
+   {
+     if(dfd.getOntology() == null) dfd.setOntology(s);
+     else throw new ParseException();
+   }
+ | <OWNERSHIP> s = SL1Term()
+   {
+     if(dfd.getOwnership() == null) dfd.setOwnership(s);
+     else throw new ParseException();
+   }
+ | <DF_STATE> t = <DfLifecycleState>
+   {
+     if(dfd.getDFState() == null) dfd.setDFState(t.image);
+     else throw new ParseException();
+   }
 }
 
 AgentManagementOntology.ServiceDescriptor FIPA_Service_Desc() :
@@ -254,12 +315,36 @@ void FIPA_Service_Desc_Item(AgentManagementOntology.ServiceDescriptor sd) :
   Token t;
 }
 {
-   <SERVICE_NAME> (t = <ServiceTypes> | t = <WORD>) { sd.setName(t.image); }
-|  <SERVICE_TYPE> (t = <ServiceTypes> | t = <WORD>) { sd.setType(t.image); }
-|  <SERVICE_ONTOLOGY> s = SL1Term() { sd.setOntology(s); }
-|  <FIXED_PROPERTIES> s = SL1Term() { sd.setFixedProps(s); }
-| <NEGOTIABLE_PROPERTIES> s = SL1Term() { sd.setNegotiableProps(s); }
-| <COMMUNICATION_PROPERTIES> s = SL1Term() { sd.setCommunicationProps(s); }
+  <SERVICE_NAME> (t = <ServiceTypes> | t = <WORD>)
+  {
+    if(sd.getName() == null) sd.setName(t.image);
+    else throw new ParseException();
+  }
+| <SERVICE_TYPE> (t = <ServiceTypes> | t = <WORD>)
+  {
+    if(sd.getType() == null) sd.setType(t.image);
+    else throw new ParseException();
+  }
+| <SERVICE_ONTOLOGY> s = SL1Term()
+  { 
+    if(sd.getOntology() == null) sd.setOntology(s);
+    else throw new ParseException();
+  }
+| <FIXED_PROPERTIES> s = SL1Term()
+  {
+    if(sd.getFixedProps() == null) sd.setFixedProps(s);
+    else throw new ParseException();
+  }
+| <NEGOTIABLE_PROPERTIES> s = SL1Term()
+  {
+    if(sd.getNegotiableProps() == null) sd.setNegotiableProps(s);
+    else throw new ParseException();
+  }
+| <COMMUNICATION_PROPERTIES> s = SL1Term()
+  {
+    if(sd.getCommunicationProps() == null) sd.setCommunicationProps(s);
+    else throw new ParseException();
+  }
 
 }
 
@@ -324,7 +409,20 @@ String ACCObj() :
   }
 }
 
-
+void Constraint(AgentManagementOntology.DFSearchAction a) :
+{
+  AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+  Token t;
+}
+{
+  "(" ( t = <DFDEPTH> | t = <RESPREQ> )
+  { c.setName(t.image); }
+  t = <ConstraintFn>
+  { c.setFn(t.image); }
+  t = <INTEGER>
+  { c.setArg(Integer.parseInt(t.image)); } ")"
+  { a.addConstraint(c); }
+}
 
 
 // FIXME: This should be an almighty SL1 term
@@ -387,6 +485,9 @@ TOKEN:
 | <NEGOTIABLE_PROPERTIES : ":negotiable-properties">
 | <COMMUNICATION_PROPERTIES : ":communication-properties">
 | <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
+| <ConstraintFn : "Max" | "Min" | "Exactly" >
+| <DFDEPTH : ":df-depth">
+| <RESPREQ : ":resp-req">
 | <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <INTEGER : ["0"-"9"](["0"-"9"])*>
 }
