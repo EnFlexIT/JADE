@@ -1,6 +1,11 @@
 /*
 
   $Log$
+  Revision 1.12  1998/11/30 00:12:23  rimassa
+  Almost completely rewritten; now it correctly supports a complete DF
+  interaction, search action included. Still missing some detail, such
+  as search constraints.
+
   Revision 1.11  1998/11/23 00:11:58  rimassa
   Fixed a little bug: an instance variable vas not reset after each
   message received.
@@ -38,10 +43,13 @@ package examples.ex5;
 // agent.
 
 import java.io.*;
+import java.util.Vector;
+
 
 import jade.core.*;
 import jade.lang.acl.*;
 import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAException;
 
 
 public class dfTester extends Agent {
@@ -127,7 +135,7 @@ public class dfTester extends Agent {
 	byte[] buffer = new byte[1024];
 
 	try {
-	  System.out.println("Enter DF agent action to perform:");
+	  System.out.println("Enter DF agent action to perform: (register, deregister, modify, search) ");
 	  len = System.in.read(buffer);
 	  myAction = new AgentManagementOntology.DFSearchAction();
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
@@ -136,63 +144,110 @@ public class dfTester extends Agent {
 
 	  System.out.println("Enter values for parameters (ENTER leaves them blank)");
 
-	  System.out.print(":agent-name ");
+	  String name = null;
+	  String address = null;
+	  System.out.print(":agent-name (e.g. Peter; mandatory for 'register') ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
-	    dfd.setName(new String(buffer,0,len-1));
+	    name = new String(buffer,0,len-1);
 
-	  System.out.print(":agent-address ");
+	  System.out.println(":agent-address (e.g. iiop://fipa.org:50/acc)");
+	  System.out.print("(mandatory for 'register') ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
-	    dfd.addAddress(new String(buffer,0,len-1));
+	    address = new String(buffer,0,len-1);
 
-	  System.out.print(":agent-type ");
+	  if(address != null) {
+	    if(name != null)
+	      dfd.setName(name + "@" + address);
+	    dfd.addAddress(address);
+	  }
+
+	  System.out.print(":agent-type (mandatory for 'register') ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
 	    dfd.setType(new String(buffer,0,len-1));
 
-	  System.out.print(":interaction-protocols ");
+	  System.out.println(":interaction-protocols ");
+	  System.out.print("  protocol name (ENTER to end) ");
 	  len = System.in.read(buffer);
-	  if(len > 1)
+	  while(len > 1) {
 	    dfd.addInteractionProtocol(new String(buffer,0,len-1));
+	    System.out.print("  protocol name (Enter to end) ");
+	    len = System.in.read(buffer);
+	  }
 
 	  System.out.print(":ontology ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
 	    dfd.setOntology(new String(buffer,0,len-1));
 
-	  System.out.print(":ownership ");
+	  System.out.print(":ownership (mandatory for 'register') ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
 	    dfd.setOwnership(new String(buffer,0,len-1));
 
-	  System.out.print(":df-state ");
+	  System.out.print(":df-state (active, suspended or retired; mandatory for 'register') ");
 	  len = System.in.read(buffer);
 	  if(len > 1)
 	    dfd.setDFState(new String(buffer,0,len-1));
 
-	  System.out.print(":agent-services ");
+	  System.out.println(":agent-services ");
+	  System.out.println(":service-description (leave name blank to end)");
+	  System.out.print("  :service-name ");
 	  len = System.in.read(buffer);
-	  if(len > 1) {
-	    String servicesText = new String(buffer,0,len-1);
-	    try {
-	      AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
-	      dfd.addService(sd);
-	    }
-	    catch(jade.domain.ParseException jdpe) {
-	      jdpe.printStackTrace();
-	    }
+	  while(len > 1) {
+	    AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
+	    sd.setName(new String(buffer,0,len-1));
+	    System.out.print("  :service-type ");
+	    len = System.in.read(buffer);
+	    if(len > 1)
+	      sd.setType(new String(buffer,0,len-1));
+	    System.out.print("  :service-ontology ");
+	    len = System.in.read(buffer);
+	    if(len > 1)
+	      sd.setOntology(new String(buffer,0,len-1));
+	    System.out.print("  :fixed-properties ");
+	    len = System.in.read(buffer);
+	    if(len > 1)
+	      sd.setFixedProps(new String(buffer,0,len-1));
+	    System.out.print("  :negotiable-properties ");
+	    len = System.in.read(buffer);
+	    if(len > 1)
+	      sd.setNegotiableProps(new String(buffer,0,len-1));
+	    System.out.print("  :communication-properties ");
+	    len = System.in.read(buffer);
+	    if(len > 1)
+	      sd.setCommunicationProps(new String(buffer,0,len-1));
+
+	    dfd.addAgentService(sd);
+
+	    System.out.println(":service-description (leave name blank to end)");
+	    System.out.print("  :service-name ");
+	    len = System.in.read(buffer);
 	  }
 
 	  System.out.println("");
 
-	  String name = myAction.getName();
-	  if(name.equalsIgnoreCase("search")) {
+	  String actionName = myAction.getName();
+	  if(actionName.equalsIgnoreCase("search")) {
 	    AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
 	    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
 	    c.setFn(AgentManagementOntology.Constraint.EXACTLY);
 	    c.setArg(1);
 	    myAction.addConstraint(c);
+
+	    AgentManagementOntology.DFSearchResult agents = null;
+	    System.out.println("Calling searchDF()");
+	    try {
+	      agents = searchDF("df", myAction.getArg(), null);
+	    }
+	    catch(FIPAException fe) {
+	      fe.printStackTrace();
+	      return;
+	    }
+	    Writer w = new BufferedWriter(new OutputStreamWriter(System.out));
+	    agents.toText(w);
 	  }
 	}
 	catch(IOException ioe) {
@@ -368,7 +423,7 @@ public class dfTester extends Agent {
 
   public void handleInform(ACLMessage msg) {
     System.out.println("Responder has just informed me that the action has been carried out.");
-    // msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    //    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
 }
