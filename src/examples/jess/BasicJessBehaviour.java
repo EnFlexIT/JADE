@@ -116,11 +116,12 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
 
       //ACLMessage msg = new ACLMessage();
       //msg.setType(vv.get(3).stringValue());
-      ACLMessage msg = new ACLMessage(vv.get(3).stringValue());
+	    int perf = ACLMessage.getInteger(vv.get(3).stringValue());
+      ACLMessage msg = new ACLMessage(perf);
       if (vv.get(4).stringValue() != "nil")
 	msg.setSource(vv.get(4).stringValue());
       if (vv.get(5).toString() != "nil")
-	msg.setDest(vv.get(5).toString());
+	msg.addDest(vv.get(5).toString());
       if (vv.get(6).stringValue() != "nil")
 	msg.setReplyWith(vv.get(6).stringValue());
       if (vv.get(7).stringValue() != "nil")

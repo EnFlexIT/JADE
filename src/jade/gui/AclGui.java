@@ -509,8 +509,8 @@ public class AclGui extends JPanel
 	{
 	int    i;
 	String param, lowerCase;
-
-		lowerCase = msg.getType().toLowerCase();
+    int perf = msg.getPerformative(); 
+		lowerCase = (ACLMessage.getPerformative(perf)).toLowerCase();
 		if ((i = fipaActVector.indexOf((Object) lowerCase)) < 0)
 			communicativeAct.setSelectedItem("UNKNOWN");
 		else
@@ -579,8 +579,9 @@ public class AclGui extends JPanel
 	String param;
 
 		param = (String) communicativeAct.getSelectedItem();
-		ACLMessage msg = new ACLMessage(param);
-
+		int perf = ACLMessage.getInteger(param);
+		ACLMessage msg = new ACLMessage(perf);
+    
 		if (!(param = sender.getText()).equals(""))
 			msg.setSource(param);
 		// Destination: a group of agents

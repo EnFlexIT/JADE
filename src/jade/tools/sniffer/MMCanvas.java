@@ -42,6 +42,7 @@ import javax.swing.SwingUtilities;
 import java.io.Serializable;
 
 import jade.gui.AclGui; 
+import jade.lang.acl.ACLMessage;
 
 
 /**
@@ -256,7 +257,9 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
 		
    	if( ((mess = selMessage(evt)) != null) && (typeCanv == false)){
    		
-			info = "Message Type: "+mess.getType();
+			//info = "Message Type: "+mess.getType();
+			int perf = mess.getPerformative();
+			info = "Message Type: " + ACLMessage.getPerformative(perf);
    			MMAbstractAction.text.setText(info);
 		}
 	}

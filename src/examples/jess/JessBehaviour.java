@@ -54,7 +54,7 @@ public class JessBehaviour extends BasicJessBehaviour {
     
     if (msg == null) return null;
     // I create a string that asserts the template fact
-    fact = "(assert (ACLMessage (receiver " + msg.getDest() + ") (communicative-act " + msg.getType();     
+    fact = "(assert (ACLMessage (receiver " + msg.getFirstDest() + ") (communicative-act " + ACLMessage.getPerformative(msg.getPerformative());     
     if (msg.getSource() != null)         fact = fact + ") (sender " + msg.getSource();   
     if (msg.getContent() != null) 
       fact = fact + ") (content " + super.quote(msg.getContent());
