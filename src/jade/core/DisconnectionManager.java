@@ -69,7 +69,7 @@ class DisconnectionManager implements TimerListener {
 				else if (CaseInsensitiveString.equalsIgnoreCase(tmp, "BUFFER")) {
 					mode = BUFFER;
 					// DEBUG
-					System.out.println("DM: mode set to BUFFER");
+					// System.out.println("DM: mode set to BUFFER");
 					pendings = new ArrayList();
 				}
 			}
@@ -104,7 +104,7 @@ class DisconnectionManager implements TimerListener {
 	 */
 	public void deliverLater(ACLMessage msg, AID receiverID) {
 		// DEBUG
-		System.out.println("DM: handling message "+msg);
+		// System.out.println("DM: handling message "+msg);
 		switch (mode) {
 		case BUFFER:	
 	    // Mutual exclusion with doTimeOut() that is executed inside the 
@@ -162,10 +162,10 @@ class DisconnectionManager implements TimerListener {
 			else {
 				try {
 					// DEBUG
-					System.out.println("DM: traying to send message "+pm.getMessage());
+					// System.out.println("DM: traying to send message "+pm.getMessage());
 					myContainer.deliverNow(pm.getMessage(), pm.getReceiver());
 					// DEBUG
-					System.out.println("DM: message delivered");
+					// System.out.println("DM: message delivered");
 					remove = true;
 				}
 				catch (UnreachableException ue) {
@@ -191,7 +191,7 @@ class DisconnectionManager implements TimerListener {
 		Timer t = new Timer(System.currentTimeMillis() + retryInterval, this);
 		Runtime.instance().getTimerDispatcher().add(t);
 		// DEBUG
-		System.out.println("Timer activated. Period is "+retryInterval);
+		// System.out.println("Timer activated. Period is "+retryInterval);
  	}
 	
 	/**

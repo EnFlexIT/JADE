@@ -96,7 +96,6 @@ class MainContainerProxy implements Platform {
       }
       
       if (!dispatched) {
-    		System.out.println("MainContainerProxy: cache failed");
 				dispatchUntilOK(msg, receiverID);
       }
     }
@@ -183,9 +182,7 @@ class MainContainerProxy implements Platform {
 				// GADT, so the exception breaks out of the loop and ends the
 				// dispatch attempts.
 				try {
-    			System.out.println("Get proxy");
 	  			proxy = adaptee.getProxy(receiverID); // Remote call
-    			System.out.println("Proxy retrieved");
 				}
 				catch(IMTPException imtpe1) {
 	  			//throw new NotFoundException("Communication problem: " + imtpe.getMessage());
@@ -204,7 +201,6 @@ class MainContainerProxy implements Platform {
 				try {
 					// This can throw an UnreachableException that is propagated upwards
 	  			proxy.dispatch(msg); 
-    			System.out.println("Proxy.dispatch() OK");
 	  			cachedProxies.put(receiverID, proxy);
 	  			ok = true;
 				}

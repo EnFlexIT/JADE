@@ -240,10 +240,10 @@ class MainContainerImpl implements Platform, AgentManager {
 				try {
 	  			target.ping(true); // Hang on this call
 	  			active = false;
-	  			System.out.println("PING exited normally");
+	  			System.out.println("PING from container "+targetID.getName()+" returned normally");
 				}
 				catch(IMTPException imtpe1) { // Connection down
-	  			System.out.println("PING exited with exception");
+	  			System.out.println("PING from container "+targetID.getName()+" exited with exception");
 	  			try {
 	    			target.ping(false); // Try a non blocking ping to check
 	  			}
