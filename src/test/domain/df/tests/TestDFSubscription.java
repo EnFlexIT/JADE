@@ -135,7 +135,7 @@ public class TestDFSubscription extends Test {
   			}
   			
   			// Cancel the subscription
-				ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
+				/*ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
 				cancel.addReceiver(myAgent.getDefaultDF());
 				cancel.setLanguage(codec.getName());
 				cancel.setOntology(FIPAManagementOntology.getInstance().getName());
@@ -147,8 +147,10 @@ public class TestDFSubscription extends Test {
 				catch (Exception e) {
 					e.printStackTrace();
 		  	}
-				myAgent.send(cancel);
-  			return 0;
+		  	myAgent.send(cancel);
+		  	*/
+		  	si.cancel(myAgent.getDefaultDF(), true);
+		  	return 0;
   		}
   	};	
 

@@ -158,7 +158,10 @@ public class TestMultipleSubscriptions extends Test {
 	  	getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 	  	
 	  	// Prepare the subscription message
-	  	ACLMessage subscriptionMsg = new ACLMessage(ACLMessage.SUBSCRIBE);
+			DFAgentDescription template = TestDFHelper.getSampleTemplate1();
+			ACLMessage subscriptionMsg = DFService.createSubscriptionMessage(this, getDefaultDF(), template, null);
+	  	/*
+			ACLMessage subscriptionMsg = new ACLMessage(ACLMessage.SUBSCRIBE);
 	  	subscriptionMsg.addReceiver(getDefaultDF());
 	  	subscriptionMsg.setLanguage(codec.getName());
 	  	subscriptionMsg.setOntology(FIPAManagementOntology.getInstance().getName());
@@ -183,6 +186,7 @@ public class TestMultipleSubscriptions extends Test {
 	  		doDelete();
 	  		return;
 	  	}
+	  	*/
 	  	
 	  	// The behaviour that subscribes to the DF and handles notifications
 	  	SubscriptionInitiator si = new SubscriptionInitiator(this, subscriptionMsg) {
@@ -201,6 +205,8 @@ public class TestMultipleSubscriptions extends Test {
 	  			send(inform);
 	  			
 	  			// Cancel the subscription
+	  			cancel(myAgent.getDefaultDF(), true);
+	  			/*
 					ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
 					cancel.addReceiver(myAgent.getDefaultDF());
 					cancel.setLanguage(codec.getName());
@@ -217,6 +223,22 @@ public class TestMultipleSubscriptions extends Test {
 					
 					// Terminate 
 					myAgent.doDelete();
+					*/
+	  		}
+	  		
+	  		protected void fillCancelContent(ACLMessage subscription, ACLMessage cancel) {
+					try {
+						Action act = new Action((AID) cancel.getAllReceiver().next(), OntoACLMessage.wrap(subscription));
+						myAgent.getContentManager().fillContent(cancel, act);
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+			  	}
+	  		}
+	  		
+	  		public int onEnd() {
+					myAgent.doDelete();
+					return 0;
 	  		}
 	  	};
   	
