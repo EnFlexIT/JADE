@@ -336,10 +336,8 @@ public class Agent implements Runnable, Serializable {
     return DEFAULT_DF;
   }
 
-  /**
-  @serial
-  */
-  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+  private int       msgQueueMaxSize = MSG_QUEUE_SIZE;
+  private transient MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
   private transient AgentToolkit myToolkit;
 
   /**
@@ -1236,6 +1234,9 @@ public class Agent implements Runnable, Serializable {
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
+  	// Updates the queue maximum size field, before serialising
+  	msgQueueMaxSize = msgQueue.getMaxSize();
+
     out.defaultWriteObject();
   }
 
@@ -1243,6 +1244,7 @@ public class Agent implements Runnable, Serializable {
     in.defaultReadObject();
 
     // Restore transient fields (apart from myThread, which will be set by doStart())
+    msgQueue = new MessageQueue(msgQueueMaxSize);
     stateLock = new Object();
     suspendLock = new Object();
     waitLock = new Object();

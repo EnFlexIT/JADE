@@ -21,12 +21,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
-
 package jade.core;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -36,12 +32,12 @@ import jade.lang.acl.ACLMessage;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class MessageQueue implements Serializable {
+class MessageQueue {
 
   // This class is sent onto the stream in place of the MessageQueue;
   // when read and resolved, it yields a new MessageQueue with the
   // same maximum size as the original one.
-  private static class Memento implements Serializable {
+  /*private static class Memento implements Serializable {
     private int size;
 
     public Memento(int sz) {
@@ -53,6 +49,7 @@ class MessageQueue implements Serializable {
     }
 
   }
+  */
 
   private LinkedList list;
   private int maxSize;
@@ -101,8 +98,9 @@ class MessageQueue implements Serializable {
   }
 
   // This class is serialized by sending only its current size
-  private Object writeReplace() throws java.io.ObjectStreamException {
+  /*private Object writeReplace() throws java.io.ObjectStreamException {
     return new Memento(maxSize);
   }
-
+	*/
+	
 }
