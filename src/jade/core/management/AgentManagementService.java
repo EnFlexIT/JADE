@@ -123,7 +123,7 @@ public class AgentManagementService extends BaseService {
     */
     public static final String INFORM_CREATED = "Inform-Created";
 
-    // private Agent myAgent;
+
 
     /**
        This command is issued by an agent that has just been destroyed
@@ -148,8 +148,12 @@ public class AgentManagementService extends BaseService {
     */
     public static final String INFORM_STATE_CHANGED = "Inform-State-Changed";
 
-    // private AgentState myOldState;
-    // private AgentState myNewState;
+
+    /**
+       This command name represents the <code>kill-container</code>
+       action.
+    */
+    public static final String KILL_CONTAINER = "Kill-Container";
 
 
     //    public static final String MAIN_SLICE = "Main-Slice";
@@ -221,6 +225,9 @@ public class AgentManagementService extends BaseService {
 		}
 		else if(name.equals(INFORM_CREATED)) {
 		    handleInformCreated(cmd);
+		}
+		else if(name.equals(KILL_CONTAINER)) {
+		    handleKillContainer(cmd);
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -363,6 +370,10 @@ public class AgentManagementService extends BaseService {
 	    if(impl != null) {
 		impl.resumedAgent(name);
 	    }
+	}
+
+	public void exitContainer() throws IMTPException, NotFoundException {
+	    myContainer.shutDown();
 	}
 
     } // End of AgentManagementSlice class
@@ -526,6 +537,17 @@ public class AgentManagementService extends BaseService {
 		se.printStackTrace();
 	    }
 	}
+    }
+
+    private void handleKillContainer(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+
+	Object[] params = cmd.getParams();
+	ContainerID cid = (ContainerID)params[0];
+
+	// Forward to the correct slice
+	AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+	targetSlice.exitContainer();
+
     }
 
 
