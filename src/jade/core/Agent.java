@@ -1466,7 +1466,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	//#MIDP_EXCLUDE_END
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
-    while(myAPState != AP_DELETED) {
+  	while(myAPState != AP_DELETED) {
 			//#MIDP_EXCLUDE_BEGIN
       try {
 			//#MIDP_EXCLUDE_END
@@ -1594,7 +1594,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		  System.out.println("AuthException: "+e.getMessage() );
 		}
 	//#MIDP_EXCLUDE_END
-    
     } // END of while
   }
 
@@ -1709,8 +1708,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final void send(final ACLMessage msg) {
 			// set the sender of the message if not yet set
 			// FIXME. Probably we should always set the sender of the message!
-			if (msg.getSender() == null) 
+			try {
+				msg.getSender().getName().charAt(0);
+			}
+			catch (Exception e) {
 				msg.setSender(myAID);
+			}
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			doPrivileged(new jade.security.PrivilegedExceptionAction() {
