@@ -240,7 +240,6 @@
       <fileset dir=".." includes="jade/src/test/build.xml"/>
       <fileset dir=".." includes="jade/src/test/testerList.xml"/>
       <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite.pdf"/>
-      <fileset dir=".." includes="jade/doc/index.html"/>
       <fileset dir=".." includes="jade/src/test/common/**"/>
       <fileset dir=".." includes="jade/src/test/interPlatform/**"/>
    </jar>
