@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.62  1999/08/10 15:26:21  rimassa
+  Added support for agent cloning.
+
   Revision 1.61  1999/07/26 15:33:59  rimassa
   Added complete support for serialization.
   Added support for agent reading and writing from/to Java streams.
@@ -356,6 +359,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
+  private static class AgentInMotionError extends Error {
+    AgentInMotionError() {
+      super("Agent " + Thread.currentThread().getName() + " is about to move or be cloned.");
+    }
+  }
+
   // This class manages bidirectional associations between Timer and
   // Behaviour objects, using hash tables. This class is fully
   // synchronized because is accessed both by agent internal thread
@@ -483,10 +492,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int AP_TRANSIT = 6;
 
+  // FIXME: Non compliant. Report to FIPA...
+  /**
+     Represents the <code>copy</code> agent state.
+  */
+  public static final int AP_COPY = 7;
+
   /**
      Out of band value for Agent Platform Life Cycle states.
   */
-  public static final int AP_MAX = 7;    // Hand-made type checking
+  public static final int AP_MAX = 8;    // Hand-made type checking
 
 
   /**
@@ -532,7 +547,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int MSG_QUEUE_SIZE = 100;
 
-  private transient MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
   private transient Vector listeners = new Vector();
 
   private String myName = null;
@@ -561,6 +576,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // This variable is 'volatile' because is used as a latch to signal
   // agent suspension and termination from outside world.
   private volatile int myAPState;
+
+  // These two variables are used as temporary buffers for
+  // mobility-related parameters
+  private transient String myDestination;
+  private transient String myNewName;
 
   // Temporary buffer for agent suspension
   private int myBufferedState = AP_MIN;
@@ -673,21 +693,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     catch(java.rmi.RemoteException jrre) {
       jrre.printStackTrace();
     }
-
-  }
-
-  void doStart(String name, String platformAddress, ThreadGroup myGroup) {
-
-    // Set this agent's name and address and start its embedded thread
-      if(myAPState == AP_INITIATED) {
-	myAPState = AP_ACTIVE;
-	myName = new String(name);
-	myAddress = new String(platformAddress);
-	myThread = new Thread(myGroup, this);    
-	myThread.setName(myName);
-	myThread.setPriority(myGroup.getMaxPriority());
-	myThread.start();
-      }
   }
 
   /**
@@ -703,89 +708,36 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   /**
-     Write this agent to an output stream; this method can be used to
-     record a snapshot of the agent state on a file or to send it
-     through a network connection. Of course, the whole agent must
-     be serializable in order to be written successfully.
-     @param s The stream this agent will be sent to. The stream is
-     <em>not</em> closed on exit.
-     @see jade.core.Agent#read(InputStream s)
-   */
-  public void write(OutputStream s) {
-    try {
-      ObjectOutput out = new ObjectOutputStream(s);
-      out.writeUTF(myName);
-      out.writeObject(this);
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-  }
-
-  /**
-     Read a previously saved agent from an input stream and restarts
-     it under its former name. This method can realize some sort of
-     mobility through time, where an agent is saved, then destroyed
-     and then restarted from the saved copy.
-     @param s The stream the agent will be read from. The stream is
-     <em>not</em> closed on exit.
-     @see jade.core.Agent#write(OutputStream s)
-   */
-  public static void read(InputStream s) {
-    try {
-      ObjectInput in = new ObjectInputStream(s);
-      String name = in.readUTF();
-      Agent a = (Agent)in.readObject();
-      a.doStart(name);
-    }
-    catch(ClassNotFoundException cnfe) {
-      cnfe.printStackTrace();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-  }
-
-  /**
-     Read a previously saved agent from an input stream and restarts
-     it under a different name. This method can realize agent cloning
-     through streams, where an agent is saved, then an exact copy of
-     it is restarted as a completely separated agent, with the same
-     state but with different identity and address.
-     @param s The stream the agent will be read from. The stream is
-     <em>not</em> closed on exit.
-     @param agentName The name of the new agent, copy of the saved
-     original one.
-     @see jade.core.Agent#write(Outputstream s)
-   */
-  public static void read(InputStream s, String agentName) {
-    try {
-      ObjectInput in = new ObjectInputStream(s);
-      String name = in.readUTF();
-      Agent a = (Agent)in.readObject();
-      a.doStart(agentName);
-    }
-    catch(ClassNotFoundException cnfe) {
-      cnfe.printStackTrace();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-  }
-
-  public void restore(InputStream s) {
-    // FIXME: Not implemented
-  }
-
-  /**
-     Make a state transition from <em>transit</em> to <em>active</em>
-     within Agent Platform Life Cycle. This method is intended to
-     support agent mobility and is called by the destination Agent
-     Platform when a migration process completes and the mobile agent
-     is about to be restarted on its new location.
+     Make a state transition from <em>active</em> to
+     <em>copy</em> within Agent Platform Life Cycle. This method
+     is intended to support agent mobility and is called either by the
+     Agent Platform or by the agent itself to start a clonation process.
   */
-  public void doExecute(String source) {
-    myAPState = AP_ACTIVE;
+  public void doClone(String destination, String newName) {
+    synchronized(stateLock) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+	myBufferedState = myAPState;
+	myAPState = AP_COPY;
+	myDestination = destination;
+	myNewName = newName;
+      }
+    }
+    // Real action will be executed in the embedded thread
+    if(!myThread.equals(Thread.currentThread()))
+      myThread.interrupt();
+  }
+
+  /**
+     Make a state transition from <em>transit</em> or
+     <code>copy</code> to <em>active</em> within Agent Platform Life
+     Cycle. This method is intended to support agent mobility and is
+     called by the destination Agent Platform when a migration process
+     completes and the mobile agent is about to be restarted on its
+     new location.
+  */
+  void doExecute() {
+    myAPState = myBufferedState;
+    myBufferedState = AP_MIN;
     activateAllBehaviours();
   }
 
@@ -921,6 +873,87 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   /**
+     Write this agent to an output stream; this method can be used to
+     record a snapshot of the agent state on a file or to send it
+     through a network connection. Of course, the whole agent must
+     be serializable in order to be written successfully.
+     @param s The stream this agent will be sent to. The stream is
+     <em>not</em> closed on exit.
+     @exception IOException Thrown if some I/O error occurs during
+     writing.
+     @see jade.core.Agent#read(InputStream s)
+  */
+  public void write(OutputStream s) throws IOException {
+    ObjectOutput out = new ObjectOutputStream(s);
+    out.writeUTF(myName);
+    out.writeObject(this);
+  }
+
+  /**
+     Read a previously saved agent from an input stream and restarts
+     it under its former name. This method can realize some sort of
+     mobility through time, where an agent is saved, then destroyed
+     and then restarted from the saved copy.
+     @param s The stream the agent will be read from. The stream is
+     <em>not</em> closed on exit.
+     @exception IOException Thrown if some I/O error occurs during
+     stream reading.
+     @see jade.core.Agent#write(OutputStream s)
+  */
+  public static void read(InputStream s) throws IOException {
+    try {
+      ObjectInput in = new ObjectInputStream(s);
+      String name = in.readUTF();
+      Agent a = (Agent)in.readObject();
+      a.doStart(name);
+    }
+    catch(ClassNotFoundException cnfe) {
+      cnfe.printStackTrace();
+    }
+  }
+
+  /**
+     Read a previously saved agent from an input stream and restarts
+     it under a different name. This method can realize agent cloning
+     through streams, where an agent is saved, then an exact copy of
+     it is restarted as a completely separated agent, with the same
+     state but with different identity and address.
+     @param s The stream the agent will be read from. The stream is
+     <em>not</em> closed on exit.
+     @param agentName The name of the new agent, copy of the saved
+     original one.
+     @exception IOException Thrown if some I/O error occurs during
+     stream reading.
+     @see jade.core.Agent#write(Outputstream s)
+  */
+  public static void read(InputStream s, String agentName) throws IOException {
+    try {
+      ObjectInput in = new ObjectInputStream(s);
+      String name = in.readUTF();
+      Agent a = (Agent)in.readObject();
+      a.doStart(agentName);
+    }
+    catch(ClassNotFoundException cnfe) {
+      cnfe.printStackTrace();
+    }
+  }
+
+  /**
+     This method reads a previously saved agent, replacing the current
+     state of this agent with the one previously saved. The stream
+     must contain the saved state of <b>the same agent</b> that it is
+     trying to restore itself; that is, <em>both</em> the Java object
+     <em>and</em> the agent name must be the same.
+     @param s The input stream the agent state will be read from.
+     @exception IOException Thrown if some I/O error occurs during
+     stream reading.
+     <em>Note: This method is currently not implemented</em>
+  */
+  public void restore(InputStream s) {
+    // FIXME: Not implemented
+  }
+
+  /**
      This method is the main body of every agent. It can handle
      automatically <b>AMS</b> registration and deregistration and
      provides startup and cleanup hooks for application programmers to
@@ -930,10 +963,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void run() {
 
-    try{
-      registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
+    try {
 
+      switch(myAPState) {
+      case AP_INITIATED:
+	myAPState = AP_ACTIVE;
+	// No 'break' statement - fall through
+      case AP_ACTIVE:
+	registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
 	setup();
+	break;
+      case AP_TRANSIT:
+	break;
+      case AP_COPY:
+	doExecute();
+	registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
+	afterClone();
+	break;
+      }
 
       mainLoop();
 
@@ -956,8 +1003,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       takeDown();
       destroy();
       }
-      else
+      else {
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
+	System.out.println("State was " + myAPState);
+      }
     }
 
   }
@@ -999,15 +1048,36 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      TO DO
   */
-  protected void beforeMotion() {
-  }
+  protected void beforeMove() {}
 
   /**
      TO DO
   */
-  protected void afterMotion() {
-  }
+  protected void afterMove() {}
 
+  /**
+     TO DO
+  */
+  protected void beforeClone() { System.out.println("Agent " + myName + " about to be cloned as " + myNewName);}
+
+  /**
+     TO DO
+  */
+  protected void afterClone() { System.out.println("Agent " + myName + " is a clone ");}
+
+  // This method is used by the Agent Container to fire up a new agent for the first time
+  void powerUp(String name, String platformAddress, ThreadGroup myGroup) {
+
+    // Set this agent's name and address and start its embedded thread
+    if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
+      myName = new String(name);
+      myAddress = new String(platformAddress);
+      myThread = new Thread(myGroup, this);    
+      myThread.setName(myName);
+      myThread.setPriority(myGroup.getMaxPriority());
+      myThread.start();
+    }
+  }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.defaultWriteObject();
@@ -1017,57 +1087,77 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     in.defaultReadObject();
 
     // Restore transient fields (apart from myThread, which will be set by doStart())
-    msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
     listeners = new Vector();
     stateLock = new Object();
     suspendLock = new Object();
+    waitLock = new Object();
     pendingTimers = new AssociationTB();
     myParser = ACLParser.create();
   }
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
     while(myAPState != AP_DELETED) {
+      try {
 
-      // Select the next behaviour to execute
-      currentBehaviour = myScheduler.schedule();
+	// Check for Agent state changes
+	switch(myAPState) {
+	case AP_WAITING:
+	  waitUntilWake(0);
+	  break;
+	case AP_SUSPENDED:
+	  waitUntilActivate();
+	  break;
+	case AP_TRANSIT:
+	  // Create a Migration transactional object and wait on it
+	  return;
+	case AP_COPY:
+	  beforeClone();
+	  notifyCopy();
+	  doExecute();
+	  break;
+	case AP_ACTIVE:
+	  try {
+	    // Select the next behaviour to execute
+	    currentBehaviour = myScheduler.schedule();
+	  }
+	  // Someone interrupted the agent. It could be a kill or a
+	  // move/clone request...
+	  catch(InterruptedException ie) {
+	    switch(myAPState) {
+	    case AP_DELETED:
+	      throw new AgentDeathError();
+	    case AP_TRANSIT:
+	    case AP_COPY:
+	      throw new AgentInMotionError();
+	    }
+	  }
 
-      // Just do it!
-      currentBehaviour.action();
+	  // Just do it!
+	  currentBehaviour.action();
 
-      // Check for Agent state changes
-      switch(myAPState) {
-      case AP_WAITING:
-	waitUntilWake(0);
-	break;
-      case AP_SUSPENDED:
-	waitUntilActivate();
-	break;
-      case AP_DELETED:
-	return;
-      case AP_TRANSIT:
-	// Create a Migration transactional object and wait on it
-	return;
-      case AP_ACTIVE:
-	break;
+	  // When it is needed no more, delete it from the behaviours queue
+	  if(currentBehaviour.done()) {
+	    myScheduler.remove(currentBehaviour);
+	    currentBehaviour = null;
+	  }
+	  else if(!currentBehaviour.isRunnable()) {
+	    // Remove blocked behaviours from scheduling queue and put it
+	    // in blocked behaviours queue
+	    myScheduler.remove(currentBehaviour);
+	    blockedBehaviours.addElement(currentBehaviour);
+	    currentBehaviour = null;
+	  }
+	  break;
+	}
+
+	// Now give CPU control to other agents
+	Thread.yield();
       }
-
-      // When it is needed no more, delete it from the behaviours queue
-      if(currentBehaviour.done()) {
-	myScheduler.remove(currentBehaviour);
-	currentBehaviour = null;
+      catch(AgentInMotionError aime) {
+	// Do nothing, since this is a doMove() or doClone() from the outside.
       }
-      else if(!currentBehaviour.isRunnable()) {
-	// Remove blocked behaviours from scheduling queue and put it
-	// in blocked behaviours queue
-	myScheduler.remove(currentBehaviour);
-	blockedBehaviours.addElement(currentBehaviour);
-	currentBehaviour = null;
-      }
-
-      // Now give CPU control to other agents
-      Thread.yield();
-
     }
+
   }
 
   private void waitUntilWake(long millis) {
@@ -1092,8 +1182,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
 	}
 	catch(InterruptedException ie) {
-	  myAPState = AP_DELETED;
-	  throw new AgentDeathError();
+	  switch(myAPState) {
+	  case AP_DELETED:
+	    throw new AgentDeathError();
+	  case AP_TRANSIT:
+	  case AP_COPY:
+	    throw new AgentInMotionError();
+	  }
 	}
       }
     }
@@ -1106,8 +1201,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	  suspendLock.wait(); // Blocks on suspended state monitor
 	}
 	catch(InterruptedException ie) {
-	  myAPState = AP_DELETED;
-	  throw new AgentDeathError();
+	  switch(myAPState) {
+	  case AP_DELETED:
+	    throw new AgentDeathError();
+	  case AP_TRANSIT:
+	  case AP_COPY:
+	    // Undo the previous clone or move request
+	    myAPState = AP_SUSPENDED;
+	  }
 	}
       }
     }
@@ -1813,6 +1914,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     while(i.hasNext()) {
       CommListener l = (CommListener)i.next();
       l.endSource(myName);
+    }
+  }
+
+  // Notify listeners of the need to copy the current agent
+  private void notifyCopy() {
+    Iterator i = listeners.iterator();
+    while(i.hasNext()) {
+      CommListener l = (CommListener)i.next();
+      l.copySource(myName, myDestination, myNewName);
     }
   }
 
