@@ -50,13 +50,7 @@ public class BlockTimeoutTesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup(new String[] {
 			"test.behaviours.tests.TestBlockTimeout"
-		} ) {
-
-			/*public void initialize(Agent a) throws TestException {
-				Object[] args = BlockTimeoutTesterAgent.this.getArguments();
-				setArguments(args);
-			}*/
-		};
+		} );
 		
 		tg.specifyArgument(N_AGENTS_NAME, "Number of senders", String.valueOf(N_AGENTS_DEFAULT));
 		tg.specifyArgument(N_MESSAGES_NAME, "Number of messages", String.valueOf(N_MESSAGES_DEFAULT));
