@@ -69,6 +69,7 @@ import jade.security.AuthException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 
+import jade.lang.acl.LEAPACLCodec;
 import jade.lang.acl.StringACLCodec;
 
 import jade.mtp.MTP;
@@ -82,17 +83,64 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 
-import jade.util.Logger;
 
 /**
-
-   The JADE service to manage the message passing subsystem installed
-   on the platform.
-
-   @author Giovanni Rimassa - FRAMeTech s.r.l.
-
-*/
+ *
+ * The JADE service to manage the message passing subsystem installed
+ * on the platform.
+ *
+ * @author Giovanni Rimassa - FRAMeTech s.r.l.
+ * @author Nicolas Lhuillier - Motorola Labs
+ * @author Jerome Picault - Motorola Labs
+ */
 public class MessagingService extends BaseService implements MessageManager.Channel {
+
+  // The profile passed to this object
+  private Profile myProfile;
+
+  // The concrete agent container, providing access to LADT, etc.
+  private AgentContainer myContainer;
+
+  // A handle to the persistent delivery service
+  private Service persistentDeliveryService;
+
+  // The local slice for this service
+  private final ServiceComponent localSlice = new ServiceComponent();
+
+  // The command sink, source side
+  private final CommandSourceSink senderSink = new CommandSourceSink();
+
+  // The command sink, target side
+  private final CommandTargetSink receiverSink = new CommandTargetSink();
+
+  // The filter for incoming commands related to ACL encoding
+  private Filter encOutFilter;
+
+  // The filter for outgoing commands related to ACL encoding
+  private Filter encInFilter;
+
+  // The cached AID -> MessagingSlice associations
+  //#MIDP_EXCLUDE_BEGIN
+  private final Map cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
+  //#MIDP_EXCLUDE_END
+	
+  /*#MIDP_INCLUDE_BEGIN
+		private final Map cachedSlices = new HashMap();
+		#MIDP_INCLUDE_END*/
+
+  // The routing table mapping MTP addresses to their hosting slice
+  private RoutingTable routes = new RoutingTable();
+
+  private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
+  // The table of the locally installed ACL message encodings
+  private final Map messageEncodings = new HashMap(EXPECTED_ACLENCODINGS_SIZE);
+
+  // The platform ID, to be used in inter-platform dispatching
+  private String accID;
+
+  // The component managing asynchronous message delivery and retries
+  private MessageManager myMessageManager;
+
 
   public static class UnknownACLEncodingException extends NotFoundException {
     UnknownACLEncodingException(String msg) {
@@ -115,6 +163,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   }
 
 
+  /**
+   * Performs the passive initialization step of the service. This
+   * method is called <b>before</b> activating the service. Its role
+   * should be simply the one of a constructor, setting up the
+   * internal data as needed.
+   * Service implementations should not use the Service Manager and
+   * Service Finder facilities from within this method. A
+   * distributed initialization protocol, if needed, should be
+   * exectuted within the <code>boot()</code> method.
+   * @param ac The agent container this service is activated on.
+   * @param p The configuration profile for this service.
+   * @throws ProfileException If the given profile is not valid.
+   */
   public void init(AgentContainer ac, Profile p) throws ProfileException {
     super.init(ac, p);
     this.myProfile = p;
@@ -124,13 +185,38 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     String platformID = myContainer.getPlatformID();
     accID = "fipa-mts://" + platformID + "/acc";
 
+    // Activate the default ACL String codec anyway
+    ACLCodec stringCodec = new StringACLCodec();
+    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+    
+    // Activate the efficient encoding for intra-platform encoding
+    ACLCodec efficientCodec = new LEAPACLCodec();
+    messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
+    
+    // create the command filters related to the encoding of ACL messages
+    encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer);
+    encInFilter = new IncomingEncodingFilter(messageEncodings);
+
     myMessageManager = MessageManager.instance(p);
   }
 
+  /**
+   * Retrieve the name of this service, that can be used to look up
+   * its slices in the Service Finder.
+   * @return The name of this service.
+   * @see jade.core.ServiceFinder
+   */
   public String getName() {
     return MessagingSlice.NAME;
   }
 
+  /**
+   * Retrieve the interface through which the different service
+   * slices will communicate, that is, the service <i>Horizontal
+   * Interface</i>.
+   * @return A <code>Class</code> object, representing the interface
+   * that is implemented by the slices of this service.
+   */
   public Class getHorizontalInterface() {
     try {
 	    return Class.forName(MessagingSlice.NAME + "Slice");
@@ -140,14 +226,38 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
+  /**
+   * Retrieve the locally installed slice of this service. 
+   */
   public Service.Slice getLocalSlice() {
     return localSlice;
   }
 
-  public Filter getCommandFilter(boolean direction) {
-    return null;
+
+  /**
+   * Access the command filter this service needs to perform its
+   * tasks. This filter will be installed within the local command
+   * processing engine.
+   * @param direction One of the two constants
+   * <code>Filter.INCOMING</code> and <code>Filter.OUTGOING</code>,
+   * distinguishing between the two filter chains managed by the
+   * command processor.
+   * @return A <code>Filter</code> object, used by this service to
+   * intercept and process kernel-level commands.
+   * @see jade.core.CommandProcessor
+   */
+  public Filter getCommandFilter(boolean direction){
+    if (direction == Filter.OUTGOING){
+      return encOutFilter;
+    } else {
+      return encInFilter;
+    }
   }
 
+  /**
+   * Access the command sink this service uses to handle its own
+   * vertical commands.
+   */
   public Sink getCommandSink(boolean side) {
     if(side == Sink.COMMAND_SOURCE) {
 	    return senderSink;
@@ -157,6 +267,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
+  /**
+   * Access the names of the vertical commands this service wants to
+   * handle as their final destination. This set must not overlap
+   * with the owned commands set of any previously installed
+   * service, or an exception will be raised and service
+   * activation will fail.
+   *
+   * @see jade.core.Service#getCommandSink()
+   */
   public String[] getOwnedCommands() {
     return OWNED_COMMANDS;
   }
@@ -172,6 +291,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 	    try {
         String name = cmd.getName();
+
         if(name.equals(MessagingSlice.SEND_MESSAGE)) {
           handleSendMessage(cmd);
         }
@@ -216,22 +336,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private void handleSendMessage(VerticalCommand cmd) throws AuthException {
 	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
-	    AID sender = (AID)params[1];
-
-	    // Set the sender unless already set
-	    try {
-        if (msg.getSender().getName().length() < 1)
-          msg.setSender(sender);
-	    }
-	    catch (NullPointerException e) {
-        msg.setSender(sender);
-	    }
-
+	    AID sender = (AID)params[0];
+	    GenericMessage msg = (GenericMessage)params[1];
+      AID dest = (AID)params[2];
 
 	    // --- This code could go into a Security Service, intercepting the message sending...
 
-	    AgentPrincipal target1 = myContainer.getAgentPrincipal(msg.getSender());
+	    AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
 
 	    Authority authority = myContainer.getAuthority();
 	    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
@@ -249,42 +360,62 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    //
 	    // create an Iterator with all the receivers to which the message must be 
 	    // delivered
-	    Iterator it = msg.getAllIntendedReceiver();
+      
+      /*
+      // FIXME: currently there is one receiver per command
+      Iterator it = msg.getAllIntendedReceiver();
 
-	    while (it.hasNext()) {
-        AID dest = (AID)it.next();
-        try {
-          AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-          authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
-          ACLMessage copy = (ACLMessage)msg.clone();
-
-          myMessageManager.deliver(copy, dest, MessagingService.this);
-        }
-        catch (AuthException ae) {
-          lastException = ae;
-          notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-        }
-	    }
-
+      while (it.hasNext()) {
+      AID dest = (AID)it.next();
+      try {
+      AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
+      authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
+      GenericMessage copy = (GenericMessage)msg.clone();
+        
+      myMessageManager.deliver(copy, dest, MessagingService.this);
+      }
+      catch (AuthException ae) {
+      lastException = ae;
+      notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
+      }
+      }    
+      */
+      
+      try {
+        AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
+        authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
+        myMessageManager.deliver(msg, dest, MessagingService.this);  
+      }
+      catch (AuthException ae) {
+        lastException = ae;
+        notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
+      }
+      
 	    if(lastException != null)
         throw lastException;
     }
-
+    
     private void handleNotifyFailure(VerticalCommand cmd) throws AuthException {
+      // FIXME: the message inside the command is a generic message, i.e.
+      // can either be an ACLMessage or payload+envelope
+      // open question: adjust it to provide interesting information to the
+      // user
 
 	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
+	    GenericMessage msg = (GenericMessage)params[0];
 	    AID receiver = (AID)params[1];
 	    InternalError ie = (InternalError)params[2];	    
 
 	    // If (the sender is not the AMS and the performative is not FAILURE)
-	    if((msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinite loops
+      // The acl message contained inside the GenericMessage should never
+      // be null (it is used to generate the failure message)
+      ACLMessage aclmsg = msg.getACLMessage();
+      if((aclmsg.getSender()==null) || ((aclmsg.getSender().equals(myContainer.getAMS())) && (aclmsg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinite loops
         return;
 
 	    // Send back a failure message
-	    final ACLMessage failure = msg.createReply();
+	    final ACLMessage failure = aclmsg.createReply();
 	    failure.setPerformative(ACLMessage.FAILURE);
-	    //System.err.println(failure.toString());
 	    final AID theAMS = myContainer.getAMS();
 	    failure.setSender(theAMS);
 	    failure.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
@@ -301,8 +432,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             public Object run() {
               try {
                 GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-                command.addParam(failure);
                 command.addParam(theAMS);
+                command.addParam(new GenericMessage(failure));
+                command.addParam((AID)(failure.getAllReceiver().next()));
                 submit(command);
               }
               catch(ServiceException se) {
@@ -350,7 +482,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     private void handleNewMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
-		  Object[] params = cmd.getParams();
+	    Object[] params = cmd.getParams();
 	    MTPDescriptor mtp = (MTPDescriptor)params[0];
 	    ContainerID cid = (ContainerID)params[1];
 
@@ -435,10 +567,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private void handleSendMessage(VerticalCommand cmd) throws NotFoundException {
 	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
-	    AID receiverID = (AID)params[1];
-
-	    dispatchLocally(msg, receiverID);
+	    AID receiverID = (AID)params[0];
+	    GenericMessage msg = (GenericMessage)params[1];
+      AID senderID = (AID)params[2];
+	    dispatchLocally(msg.getACLMessage(), senderID);
     }
 
     private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, MTPException {
@@ -540,11 +672,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               for(int i = 0; i < stamps.length; i++) {
                 String id = stamps[i].getBy();
                 if(CaseInsensitiveString.equalsIgnoreCase(id, accID)) {
-                  System.out.println("ERROR: Message loop detected !!!");
-                  System.out.println("Route is: ");
+                  System.err.println("ERROR: Message loop detected !!!");
+                  System.err.println("Route is: ");
                   for(int j = 0; j < stamps.length; j++)
-                    System.out.println("[" + j + "]" + stamps[j].getBy());
-                  System.out.println("Message dispatch aborted.");
+                    System.err.println("[" + j + "]" + stamps[j].getBy());
+                  System.err.println("Message dispatch aborted.");
                   return;
                 }
               }
@@ -553,59 +685,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               ReceivedObject ro = new ReceivedObject();
               ro.setBy(accID);
               ro.setDate(new Date());
-
               env.setReceived(ro);
 
-              // Decode the message, according to the 'acl-representation' slot
-              String aclRepresentation = env.getAclRepresentation();
-
-              // Default to String representation
-              if(aclRepresentation == null)
-                aclRepresentation = StringACLCodec.NAME;
-
-              ACLCodec codec = (ACLCodec)messageEncodings.get(aclRepresentation.toLowerCase());
-              if(codec == null) {
-                System.out.println("Unknown ACL codec: " + aclRepresentation);
-                return;
-              }
-
-              try {
-                ACLMessage msg = codec.decode(payload);
-                msg.setEnvelope(env);
-
-                // If the 'sender' AID has no addresses, replace it with the
-                // 'from' envelope slot
-                AID sender = msg.getSender();
-                if(sender == null) {
-                  System.out.println("ERROR: Trying to dispatch a message with a null sender.");
-                  System.out.println("Aborting send operation...");
-                  return;
-                }
-                Iterator itSender = sender.getAllAddresses();
-                if(!itSender.hasNext())
-                  msg.setSender(env.getFrom());
-
-                Iterator it = env.getAllIntendedReceiver();
-                // If no 'intended-receiver' is present, use the 'to' slot (but
-                // this should not happen).
-                if(!it.hasNext())
-                  it = env.getAllTo();
-                while(it.hasNext()) {
-                  AID receiver = (AID)it.next();
-
-                  boolean found = myContainer.postMessageToLocalAgent(msg, receiver);
-                  if(!found) {
-                    myMessageManager.deliver(msg, receiver, MessagingService.this);
-                  }
-                }
-
-              }
-              catch(ACLCodec.CodecException ce) {
-                ce.printStackTrace();
+              Iterator it = env.getAllIntendedReceiver();
+              // FIXME: There is a problem if no 'intended-receiver' is present,
+              // but this should not happen
+              while (it.hasNext()) {
+                AID rcv = (AID)it.next();
+                GenericMessage msg = new GenericMessage(env,payload);
+                myMessageManager.deliver(msg, rcv, MessagingService.this);
               }
             }
-          };
-
+          };  
+        
         if(address == null) { 
           // Let the MTP choose the address
           TransportAddress ta = proto.activate(dispatcher, myProfile);
@@ -623,50 +715,50 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         for (int i = 0; i < pp.length; ++i) {
           log("Added Route-Via-MTP for protocol "+pp[i], 1);
         }
-    
+
         GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
         gCmd.addParam(result);
         gCmd.addParam(myContainer.getID());
         submit(gCmd);
-
+        
         return result;
-	    }
-	    catch(ClassNotFoundException cnfe) {
+    }
+      catch(ClassNotFoundException cnfe) {
         throw new MTPException("ERROR: The class " + className + " for the " + address  + " MTP was not found");
-	    }
-	    catch(InstantiationException ie) {
+      }
+      catch(InstantiationException ie) {
         throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
-	    }
-	    catch(IllegalAccessException iae) {
+      }
+      catch(IllegalAccessException iae) {
         throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-	    }
+      }
     }
 
     private void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {
 
-	    MTP proto = routes.removeLocalMTP(address);
-	    if(proto != null) {
+      MTP proto = routes.removeLocalMTP(address);
+      if(proto != null) {
         TransportAddress ta = proto.strToAddr(address);
         proto.deactivate(ta);
         MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
+
 
         GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
         gCmd.addParam(desc);
         gCmd.addParam(myContainer.getID());
         submit(gCmd);
-    
-	    }
-	    else {
+
+ 	    }
+      else {
         throw new MTPException("No such address was found on this container: " + address);
-	    }
+      }
     }
 
     private  void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainer impl = myContainer.getMain();
+      MainContainer impl = myContainer.getMain();
 
-	    if(impl != null) {
+      if(impl != null) {
 
-        // We are on the Main -->
         // Update the routing tables of all the other slices
         Service.Slice[] slices = getAllSlices();
         for(int i = 0; i < slices.length; i++) {
@@ -685,20 +777,20 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             if(t instanceof ServiceException) {
               throw (ServiceException)t;
             }
-            System.out.println("### addRoute() threw " + t.getClass().getName() + " ###");
+            System.err.println("### addRoute() threw " + t.getClass().getName() + " ###");
           }
         }
         impl.newMTP(mtp, cid);
-	    }
-	    else {
+      }
+      else {
         // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	    }
+      }
     }
 
     private void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
-	    MainContainer impl = myContainer.getMain();
+      MainContainer impl = myContainer.getMain();
 
-	    if(impl != null) {
+      if(impl != null) {
 
         // Update the routing tables of all the other slices
         Service.Slice[] slices = getAllSlices();
@@ -711,7 +803,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             }
           }
           catch(Throwable t) {
-            System.out.println("### removeRoute() threw " + t.getClass().getName() + " ###");
+            System.err.println("### removeRoute() threw " + t.getClass().getName() + " ###");
             // Re-throw allowed exceptions
             if(t instanceof IMTPException) {
               throw (IMTPException)t;
@@ -722,23 +814,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           }
         }
         impl.deadMTP(mtp, cid);
-	    }
-	    else {
+      }
+      else {
         // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	    }
+      }
     }
 
 
   } // End of CommandTargetSink class
 
 
-    /**
-       Inner class for this service: this class receives commands from
-       service <code>Sink</code> and serves them, coordinating with
-       remote parts of this service through the <code>Slice</code>
-       interface (that extends the <code>Service.Slice</code>
-       interface).
-    */
+  /**
+     Inner class for this service: this class receives commands from
+     service <code>Sink</code> and serves them, coordinating with
+     remote parts of this service through the <code>Slice</code>
+     interface (that extends the <code>Service.Slice</code>
+     interface).
+  */
   private class ServiceComponent implements Service.Slice {
 
     public Iterator getAddresses() {
@@ -746,7 +838,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     // Entry point for the ACL message dispatching process
-    public void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
+    public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
 	    try {
         MainContainer impl = myContainer.getMain();
         if(impl != null) {
@@ -757,11 +849,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             targetSlice = (MessagingSlice)getSlice(cid.getName());
             try {
               try {
-                targetSlice.dispatchLocally(msg, receiverID);
+                targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
               }
               catch(IMTPException imtpe) {
                 targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
-                targetSlice.dispatchLocally(msg, receiverID);
+                targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
               }
               return; // Message dispatched
             }
@@ -769,10 +861,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               // The agent was found in the GADT, but not in the target LADT.
               // The agent has moved in the meanwhile or the slice may be obsolete 
               // => try again
-            }
-            catch(NullPointerException npe) {
-              // The agent was found in the GADT, but his container has probably 
-              // disappeared in the meanwhile ==> Try again.
             }
           }
         }
@@ -782,7 +870,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           if(cachedSlice != null) { // Cache hit :-)
             try {
               //System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
-              cachedSlice.dispatchLocally(msg, receiverID);
+              cachedSlice.dispatchLocally(msg.getSender(), msg, receiverID);
             }
             catch(IMTPException imtpe) {
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
@@ -807,7 +895,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
     }
 
-    private void deliverUntilOK(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
+    private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
 	    boolean ok = false;
 	    do {
         MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
@@ -824,12 +912,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
         try {
           try {
-            targetSlice.dispatchLocally(msg, receiverID);
+            targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
           }
           catch (IMTPException imtpe) {
             // Try to get a newer slice and repeat...
             targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
-            targetSlice.dispatchLocally(msg, receiverID);
+            targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
           }
           // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
           // On successful message dispatch, put the slice into the slice cache
@@ -837,14 +925,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           ok = true;
         }
         catch(NotFoundException nfe) {
-          // Stale proxy again, maybe the receiver is running around. Try again...
-          ok = false; 
+          // The agent was found in the GADT, but his container has probably 
+          // disappeared in the meanwhile ==> Try again.
+          ok = false;
         }
         catch(NullPointerException npe) {
           // The agent was found in the GADT, but his container has probably 
           // disappeared in the meanwhile ==> Try again.
-          ok = false; 
         }
+
 	    } while(!ok);
     }
 
@@ -872,19 +961,21 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
         if(cmdName.equals(MessagingSlice.H_DISPATCHLOCALLY)) {
           GenericCommand gCmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-          ACLMessage msg = (ACLMessage)params[0];
-          AID receiverID = (AID)params[1];
+          AID senderAID = (AID)params[0];
+          GenericMessage msg = (GenericMessage)params[1];
+          AID receiverID = (AID)params[2];
+          gCmd.addParam(senderAID);
           gCmd.addParam(msg);
           gCmd.addParam(receiverID);
-
           result = gCmd;
         }
         else if(cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
-          ACLMessage msg = (ACLMessage)params[0];
-          AID receiverID = (AID)params[1];
-          String address = (String)params[2];
+          Envelope env = (Envelope)params[0];
+          byte[] payload = (byte[])params[1];
+          AID receiverID = (AID)params[2];
+          String address = (String)params[3];
 
-          routeOut(msg, receiverID, address);
+          routeOut(env, payload, receiverID, address);
         }
         else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
           AID agentID = (AID)params[0];
@@ -949,11 +1040,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
 
-    private void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
+    private void routeOut(Envelope env, byte[] payload, AID receiverID, String address) throws IMTPException, MTPException {
 	    RoutingTable.OutPort out = routes.lookup(address);
-	    log("Routing message from "+msg.getSender().getName()+" to "+receiverID.getName()+" towards port "+out, 2);
+      log("Routing message to "+receiverID.getName()+" towards port "+out, 2);
 	    if(out != null)
-        out.route(msg, receiverID, address);
+        out.route(env, payload, receiverID, address);
 	    else
         throw new MTPException("No suitable route found for address " + address + ".");
     }
@@ -1004,19 +1095,28 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   } // End of ServiceComponent class
 
 
-    /**
-       Activates the ACL codecs and MTPs as specified in the given
-       <code>Profile</code> instance.
-       @param myProfile The <code>Profile</code> instance containing
-       the list of ACL codecs and MTPs to activate on this node.
-    **/
+ 
+  /**
+   * Performs the active initialization step of a kernel-level
+   * service: Activates the ACL codecs and MTPs as specified in the given
+   * <code>Profile</code> instance.
+   *
+   * @param myProfile The <code>Profile</code> instance containing
+   * the list of ACL codecs and MTPs to activate on this node.
+   * @throws ServiceException If a problem occurs during service
+   * initialization.
+   */
   public void boot(Profile myProfile) throws ServiceException {
     this.myProfile = myProfile;
-    try {
 
+    try {
 	    // Activate the default ACL String codec anyway
 	    ACLCodec stringCodec = new StringACLCodec();
 	    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+
+      // Activate the efficient encoding for intra-platform encoding
+      ACLCodec efficientCodec = new LEAPACLCodec();
+      messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
 
 	    // Codecs
 	    List l = myProfile.getSpecifiers(Profile.ACLCODECS);
@@ -1070,23 +1170,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    f.close();      
     }
     catch (ProfileException pe1) {
-	    System.out.println("Error reading MTPs/Codecs");
+	    System.err.println("Error reading MTPs/Codecs");
 	    pe1.printStackTrace();
     }
     catch(ServiceException se) {
-	    System.out.println("Error installing local MTPs");
+	    System.err.println("Error installing local MTPs");
 	    se.printStackTrace();
     }
     catch(jade.lang.acl.ACLCodec.CodecException ce) {
-	    System.out.println("Error installing ACL Codec");
+	    System.err.println("Error installing ACL Codec");
 	    ce.printStackTrace();
     }
     catch(MTPException me) {
-	    System.out.println("Error installing MTP");
+	    System.err.println("Error installing MTP");
 	    me.printStackTrace();
     }    	
     catch(IOException ioe) {
-	    System.out.println("Error writing platform address");
+	    System.err.println("Error writing platform address");
 	    ioe.printStackTrace();
     } 	
     catch(IMTPException imtpe) {
@@ -1095,7 +1195,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
-  public void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException {
+  public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException {
     try {
 	    if(myContainer.livesHere(receiverID)) {
         localSlice.deliverNow(msg, receiverID);
@@ -1110,7 +1210,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             return;
           }
           catch(MTPException mtpe) {
-            System.out.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
+            System.err.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
           }
         }
         notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()), false);
@@ -1127,34 +1227,42 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   }
 
 
-  private void forwardMessage(ACLMessage msg, AID receiver, String address) throws MTPException {
-
-    AID aid = msg.getSender();
-    if(aid == null) {
-	    System.out.println("ERROR: null message sender. Aborting message dispatch...");
+  private void forwardMessage(GenericMessage msg, AID receiver, String address) throws MTPException {
+    // FIXME what if there is no envelope?
+    AID aid = msg.getEnvelope().getFrom();
+    
+    if (aid == null) {
+	    System.err.println("ERROR: null message sender. Aborting message dispatch...");
 	    return;
     }
 
+    // FIXME The message can no longer be updated
     // if has no address set, then adds the addresses of this platform
     if(!aid.getAllAddresses().hasNext())
 	    addPlatformAddresses(aid);
 
-    Iterator it1 = msg.getAllReceiver();
-    while(it1.hasNext()) {
+    // FIXME (NL) Why was this done ????
+    /*
+      Iterator it1 = msg.getACLMessage().getAllReceiver();
+      while(it1.hasNext()) {
 	    AID id = (AID)it1.next();
 	    if(!id.getAllAddresses().hasNext())
-        addPlatformAddresses(id);
-    }
+      addPlatformAddresses(id);
+      }
+    */
 
-    Iterator it2 = msg.getAllReplyTo();
-    while(it2.hasNext()) {
+    // FIXME Cannot do any more (shall the encoding service do?)
+    /*
+      Iterator it2 = msg.getAllReplyTo();
+      while(it2.hasNext()) {
 	    AID id = (AID)it2.next();
 	    if(!id.getAllAddresses().hasNext())
-        addPlatformAddresses(id);
-    }
-
+      addPlatformAddresses(id);
+      }
+    */
+    
     try {
-	    localSlice.routeOut(msg, receiver, address);
+	    localSlice.routeOut(msg.getEnvelope(),msg.getPayload(), receiver, address);
     }
     catch(IMTPException imtpe) {
 	    throw new MTPException("Error during message routing", imtpe);
@@ -1168,7 +1276,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * to notify the sender of a message that a failure was reported by
    * the Message Transport Service.
    */
-  public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force) {
+  public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie, boolean force) {
     GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
     cmd.addParam(msg);
     cmd.addParam(receiver);
@@ -1180,85 +1288,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     catch(ServiceException se) {
 	    // It should never happen
 	    se.printStackTrace();
-    }
-  }
-
-
-  public void prepareEnvelope(ACLMessage msg, AID receiver) {
-    Envelope env = msg.getEnvelope();
-    if(env == null) {
-	    msg.setDefaultEnvelope();
-	    env = msg.getEnvelope();
-    }
-
-    // If no 'to' slot is present, copy the 'to' slot from the
-    // 'receiver' slot of the ACL message
-    Iterator itTo = env.getAllTo();
-    if(!itTo.hasNext()) {
-	    Iterator itReceiver = msg.getAllReceiver();
-	    while(itReceiver.hasNext())
-        env.addTo((AID)itReceiver.next());
-    }
-
-    // If no 'from' slot is present, copy the 'from' slot from the
-    // 'sender' slot of the ACL message
-    AID from = env.getFrom();
-    if(from == null) {
-	    env.setFrom(msg.getSender());
-    }
-
-    // Set the 'date' slot to 'now' if not present already
-    Date d = env.getDate();
-    if(d == null)
-	    env.setDate(new Date());
-
-    // If no ACL representation is found, then default to String
-    // representation
-    String rep = env.getAclRepresentation();
-    if(rep == null)
-	    env.setAclRepresentation(StringACLCodec.NAME);
-
-    // Write 'intended-receiver' slot as per 'FIPA Agent Message
-    // Transport Service Specification': this ACC splits all
-    // multicasts, since JADE has already split them in the
-    // handleSend() method
-    env.clearAllIntendedReceiver();
-    env.addIntendedReceiver(receiver);
-
-    String comments = env.getComments();
-    if(comments == null)
-	    env.setComments("");
-
-    Long payloadLength = env.getPayloadLength();
-    if(payloadLength == null)
-	    env.setPayloadLength(new Long(-1));
-
-    String payloadEncoding = env.getPayloadEncoding();
-    if(payloadEncoding == null)
-	    env.setPayloadEncoding("");
-  }
-
-  public byte[] encodeMessage(ACLMessage msg) throws NotFoundException {
-    Envelope env = msg.getEnvelope();
-    String enc = env.getAclRepresentation();
-
-    if(enc != null) { // A Codec was selected
-	    ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
-	    if(codec!=null) {
-    		// Supported Codec
-    		// FIXME: should verifY that the recevivers supports this Codec
-    		return codec.encode(msg);
-	    }
-	    else {
-    		// Unsupported Codec
-    		//FIXME: find the best according to the supported, the MTP (and the receivers Codec)
-    		throw new UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");
-	    }
-    }
-    else {
-	    // no codec indicated. 
-	    //FIXME: find the better according to the supported Codec, the MTP (and the receiver codec)
-	    throw new UnknownACLEncodingException("No ACL encoding set.");
     }
   }
 
@@ -1275,45 +1304,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
-  // The profile passed to this object
-  private Profile myProfile;
-
-  // The concrete agent container, providing access to LADT, etc.
-  private AgentContainer myContainer;
-
-  // A handle to the persistent delivery service
-  private Service persistentDeliveryService;
-
-  // The local slice for this service
-  private final ServiceComponent localSlice = new ServiceComponent();
-
-  // The command sink, source side
-  private final CommandSourceSink senderSink = new CommandSourceSink();
-
-  // The command sink, target side
-  private final CommandTargetSink receiverSink = new CommandTargetSink();
-
-  // The cached AID -> MessagingSlice associations
-  //#MIDP_EXCLUDE_BEGIN
-  private final Map cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
-  //#MIDP_EXCLUDE_END
-	
-  /*#MIDP_INCLUDE_BEGIN
-		private final Map cachedSlices = new HashMap();
-		#MIDP_INCLUDE_END*/
-
-  // The routing table mapping MTP addresses to their hosting slice
-  private RoutingTable routes = new RoutingTable(MessagingService.this);
-
-  private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
-  // The table of the locally installed ACL message encodings
-  private final Map messageEncodings = new HashMap(EXPECTED_ACLENCODINGS_SIZE);
-
-  // The platform ID, to be used in inter-platform dispatching
-  private String accID;
-
-  // The component managing asynchronous message delivery and retries
-  private MessageManager myMessageManager;
 
   // Work-around for PJAVA compilation
   protected Service.Slice getFreshSlice(String name) throws ServiceException {
