@@ -41,14 +41,14 @@ import jade.core.behaviours.*;
 
 import jade.tools.introspector.gui.IntrospectorGUI;
 
-import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.domain.FIPAServiceCommunicator;
 import jade.domain.introspection.*;
 
 // FIXME: These three imports will not be needed anymore, when
 // suitable actions will be put into the 'jade-introspection'
 // ontology.
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.DebugOn;
 import jade.domain.JADEAgentManagement.DebugOff;
 
@@ -56,9 +56,10 @@ import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.sl.SL0Codec;
+import jade.content.lang.sl.SLCodec;
 
-import jade.onto.basic.*;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Done;
 
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.AchieveREInitiator;
@@ -66,7 +67,6 @@ import jade.proto.AchieveREInitiator;
 import jade.tools.ToolAgent;
 import jade.tools.introspector.gui.IntrospectorGUI;
 import jade.tools.introspector.gui.MainWindow;
-
 
 
 /*
@@ -142,7 +142,7 @@ public class Introspector extends ToolAgent {
   	
       protected void installHandlers(Map handlersTable) {
 
-	handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedContainer ac = (AddedContainer)ev;
 	    ContainerID cid = ac.getContainer();
@@ -158,7 +158,7 @@ public class Introspector extends ToolAgent {
 	  }
 	});
 
-	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.REMOVEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    RemovedContainer rc = (RemovedContainer)ev;
 	    ContainerID cid = rc.getContainer();
@@ -167,7 +167,7 @@ public class Introspector extends ToolAgent {
 	  }
         });
 
-	handlersTable.put(JADEIntrospectionOntology.BORNAGENT, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.BORNAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    BornAgent ba = (BornAgent)ev;
 	    ContainerID cid = ba.getWhere();
@@ -179,7 +179,7 @@ public class Introspector extends ToolAgent {
 	  }
         });
 
-	handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    DeadAgent da = (DeadAgent)ev;
 	    ContainerID cid = da.getWhere();
@@ -194,7 +194,7 @@ public class Introspector extends ToolAgent {
 	  }
         });
 
-	handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.MOVEDAGENT, new EventHandler() {
 	  public void handle(Event ev) {
 	    MovedAgent ma = (MovedAgent)ev;
 	    AID agent = ma.getAgent();
@@ -215,9 +215,12 @@ public class Introspector extends ToolAgent {
   }
 
   public void toolSetup() {
+	getContentManager().registerOntology(JADEManagementOntology.getInstance());
+	getContentManager().registerOntology(IntrospectionOntology.getInstance());
+	getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     ACLMessage msg = getRequest();
-    msg.setOntology(JADEAgentManagementOntology.NAME);
+    msg.setOntology(JADEManagementOntology.NAME);
 
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
@@ -287,16 +290,15 @@ public class Introspector extends ToolAgent {
 	dbgOn.setDebugger(getAID());
 	dbgOn.addDebuggedAgents(name);
 	Action a = new Action();
-	a.set_0(getAMS());
-	a.set_1(dbgOn);
-	List l = new ArrayList(1);
-	l.add(a);
-	fillMsgContent(msg, l);
+	a.setActor(getAMS());
+	a.setAction(dbgOn);
+	
+	getContentManager().fillContent(msg, a);
 
 	addBehaviour(new AMSRequester("DebugOn", msg));
       }
-      catch(FIPAException fe) {
-	fe.printStackTrace();
+      catch(Exception fe) {
+		fe.printStackTrace();
       }
     }*/
   }
@@ -308,15 +310,14 @@ public class Introspector extends ToolAgent {
 			dbgOn.setDebugger(getAID());
 			dbgOn.addDebuggedAgents(name);
 			Action a = new Action();
-			a.set_0(getAMS());
-			a.set_1(dbgOn);
-			List l = new ArrayList(1);
-			l.add(a);
-			fillMsgContent(msg, l);
+			a.setActor(getAMS());
+			a.setAction(dbgOn);
+
+			getContentManager().fillContent(msg, a);
 			
 			addBehaviour(new AMSRequester("DebugOn", msg));
 		}
-		catch(FIPAException fe) {
+		catch(Exception fe) {
 			fe.printStackTrace();
 		}
   }
@@ -342,16 +343,15 @@ public class Introspector extends ToolAgent {
 	dbgOff.setDebugger(getAID());
 	dbgOff.addDebuggedAgents(name);
 	Action a = new Action();
-	a.set_0(getAMS());
-	a.set_1(dbgOff);
-	List l = new ArrayList(1);
-	l.add(a);
-	fillMsgContent(msg, l);
+	a.setActor(getAMS());
+	a.setAction(dbgOff);
+	
+	getContentManager().fillContent(msg, a);
 
 	addBehaviour(new AMSRequester("DebugOff", msg));
       }
-      catch(FIPAException fe) {
-	fe.printStackTrace();
+      catch(Exception fe) {
+		fe.printStackTrace();
       }
     }
   }
@@ -375,15 +375,14 @@ public class Introspector extends ToolAgent {
       }
 
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(dbgOff);
-      List l = new ArrayList(1);
-      l.add(a);
+      a.setActor(getAMS());
+      a.setAction(dbgOff);
+      
       try {
-	fillMsgContent(msg, l);
-	FIPAServiceCommunicator.doFipaRequestClient(this, msg);
+		getContentManager().fillContent(msg, a);
+		FIPAServiceCommunicator.doFipaRequestClient(this, msg);
       }
-      catch(FIPAException fe) {
+      catch(Exception fe) {
     	// When the AMS replies the tool notifier is no longer registered.
     	// But we don't care as we are exiting
       //System.out.println(e.getMessage());
@@ -412,18 +411,18 @@ public class Introspector extends ToolAgent {
     private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 
     IntrospectionListenerBehaviour() {
-      template = MessageTemplate.and(MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME),
+      template = MessageTemplate.and(MessageTemplate.MatchOntology(IntrospectionOntology.NAME),
 				     MessageTemplate.MatchConversationId(getName() + "-event"));
 
       // Fill handlers table ...
-      handlers.put(JADEIntrospectionOntology.CHANGEDAGENTSTATE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.CHANGEDAGENTSTATE, new EventHandler() {
 	public void handle(Event ev) {
 
 	}
 
       });
 
-      handlers.put(JADEIntrospectionOntology.ADDEDBEHAVIOUR, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.ADDEDBEHAVIOUR, new EventHandler() {
 	public void handle(Event ev) {
                 AddedBehaviour ab = (AddedBehaviour)ev;
                 AID agent = ab.getAgent();
@@ -434,7 +433,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.REMOVEDBEHAVIOUR, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.REMOVEDBEHAVIOUR, new EventHandler() {
 	public void handle(Event ev) {
                 RemovedBehaviour rb = (RemovedBehaviour)ev;
                 AID agent = rb.getAgent();
@@ -445,7 +444,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.CHANGEDBEHAVIOURSTATE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.CHANGEDBEHAVIOURSTATE, new EventHandler() {
 	public void handle(Event ev) {
                 ChangedBehaviourState cs = (ChangedBehaviourState)ev;
                 AID agent = cs.getAgent();
@@ -469,7 +468,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.SENTMESSAGE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.SENTMESSAGE, new EventHandler() {
 	public void handle(Event ev) {
 	  SentMessage sm = (SentMessage)ev;
 	  AID sender = sm.getSender();
@@ -481,7 +480,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.RECEIVEDMESSAGE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.RECEIVEDMESSAGE, new EventHandler() {
 	public void handle(Event ev) {
 	  ReceivedMessage rm = (ReceivedMessage)ev;
 	  AID receiver = rm.getReceiver();
@@ -493,7 +492,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.POSTEDMESSAGE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.POSTEDMESSAGE, new EventHandler() {
 	public void handle(Event ev) {
 	  PostedMessage pm = (PostedMessage)ev;
 	  AID receiver = pm.getReceiver();
@@ -505,7 +504,7 @@ public class Introspector extends ToolAgent {
 
       });
 
-      handlers.put(JADEIntrospectionOntology.CHANGEDAGENTSTATE, new EventHandler() {
+      handlers.put(IntrospectionVocabulary.CHANGEDAGENTSTATE, new EventHandler() {
 	public void handle(Event ev) {
 	  ChangedAgentState cas = (ChangedAgentState)ev;
 	  AID agent = cas.getAgent();
@@ -525,8 +524,7 @@ public class Introspector extends ToolAgent {
       if(message != null) {
         AID name = message.getSender();
 	try{
-          List l = extractMsgContent(message);
-	  Occurred o = (Occurred)l.get(0);
+	  Occurred o = (Occurred)getContentManager().extractContent(message);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
 	  // DEBUG
@@ -542,11 +540,8 @@ public class Introspector extends ToolAgent {
 	  if(h != null)
 	    h.handle(ev);
 	}
-	catch(FIPAException fe) {
+	catch(Exception fe) {
 	  fe.printStackTrace();
-	}
-	catch(ClassCastException cce) {
-	  cce.printStackTrace();
 	}
       }
       else
@@ -577,20 +572,16 @@ public class Introspector extends ToolAgent {
       ACLMessage message = receive(template);
       if(message != null) {
 				try{
-          List l = extractMsgContent(message);
-          DonePredicate d = (DonePredicate) l.get(0);
-          Action a = d.get_0();
+          Done d = (Done)getContentManager().extractContent(message);
+          Action a = (Action)d.getAction();
           AID tn = a.getActor();
           StartNotify sn = (StartNotify) a.getAction();
           AID observed = sn.getObserved();
           System.out.println("Map "+observed+" to "+tn);
           notifiers.put(observed, tn);
 				}
-				catch(FIPAException fe) {
+				catch(Exception fe) {
 	  			fe.printStackTrace();
-				}
-				catch(ClassCastException cce) {
-	  			cce.printStackTrace();
 				}
       }
       else {
