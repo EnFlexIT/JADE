@@ -511,6 +511,15 @@ public class Agent implements Runnable, Serializable {
     return myHap;
   }
 
+  /**
+     Method to retrieve the location this agent is currently at.
+     @return A <code>Location</code> object, describing the location
+     where this agent is currently running.
+   */
+  public Location here() {
+    return myToolkit.here();
+  }
+
   static void initReservedAIDs(AID amsID, AID defaultDfID) {
     AMS = amsID;
     DEFAULT_DF = defaultDfID;
@@ -779,7 +788,7 @@ public class Agent implements Runnable, Serializable {
 	  myThread.interrupt();
       }
     }
-    
+
   }
 
   /**
