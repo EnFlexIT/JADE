@@ -33,6 +33,7 @@ import jade.lang.acl.ACLMessage;
 */
 
 interface AgentToolkit {
+  Location here();
   void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
   void handleMove(AID agentID, Location where);
