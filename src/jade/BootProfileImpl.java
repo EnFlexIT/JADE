@@ -70,6 +70,8 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String GUI_KEY = "gui";
     public static final String HELP_KEY = "help";
     public static final String HOST_KEY = "host";
+    public static final String LOCALHOST_KEY = "local-host";
+    public static final String LOCALPORT_KEY = "local-port";
     public static final String MAINAUTH_KEY = "mainauth";
     public static final String MTP_KEY = "mtp";
     public static final String NOMTP_KEY = "nomtp";
@@ -79,6 +81,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String PASSWD_KEY = "jade.security.passwd";
     public static final String POLICY_KEY = "java.security.policy";
     public static final String PORT_KEY = "port";
+    public static final String SM_KEY = "backupmain";
     public static final String SMHOST_KEY = "smhost";
     public static final String SMPORT_KEY = "smport";
     public static final String SMADDRS_KEY = "smaddrs";
@@ -168,6 +171,11 @@ public class BootProfileImpl extends ProfileImpl {
 	    setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
 	}
 
+	String sm = argProp.getProperty(SM_KEY);
+	if(sm != null) {
+	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER, sm);
+	}
+
         value = argProp.getProperty(AUTHORITY_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.AUTHORITY_CLASS, value);
@@ -218,36 +226,51 @@ public class BootProfileImpl extends ProfileImpl {
         } else {
             host = profileProp.getProperty(Profile.MAIN_HOST);
             if (host == null) {
-                try {
-                    host = InetAddress.getLocalHost().getHostName();
-                } catch (UnknownHostException uhe) {
-                    throw new PropertiesException("Host name must be specified.");
-                }
+		host = getDefaultNetworkName();
                 profileProp.setProperty(Profile.MAIN_HOST, host);
             }
        }
 
         String port = argProp.getProperty(PORT_KEY);
-
-        if (port != null) {
-            profileProp.setProperty(Profile.MAIN_PORT, port);
-        } else {
-            port = profileProp.getProperty(Profile.MAIN_PORT);
-            if (port == null) {
-                port = Integer.toString(DEFAULT_PORT);
-                profileProp.setProperty(Profile.MAIN_PORT, port);
-            }
+        if (port == null) {
+	    // Default for a sole main container: use the local port, or
+	    // the default port if also the local port is null.
+	    if(isFirstMain()) {
+		port = argProp.getProperty(LOCALPORT_KEY);
+		System.out.println("FIRST MAIN @@@@@@@@ [" + port + "] @@@@@@@@@");
+	    }
+	    if(port == null) {
+		// All other cases: use the default port.
+		port = Integer.toString(DEFAULT_PORT);
+	    }
         }
+	profileProp.setProperty(Profile.MAIN_PORT, port);
 
-	String smHost = argProp.getProperty(SMHOST_KEY);
-	if(smHost != null) {
-	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER_HOST, smHost);
+	String localHost = argProp.getProperty(LOCALHOST_KEY);
+	if(localHost == null) {
+	    // Default for a sole main container: use the MAIN_HOST property
+	    if(isFirstMain()) {
+		localHost = host;
+	    }
+	    else {
+		// Default for a peripheral container or an added main container: use the local host
+		localHost = getDefaultNetworkName();
+	    }
 	}
+	profileProp.setProperty(Profile.LOCAL_HOST, localHost);
 
-	String smPort = argProp.getProperty(SMPORT_KEY);
-	if(smPort != null) {
-	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER_PORT, smPort);
+	String localPort = argProp.getProperty(LOCALPORT_KEY);
+	if(localPort == null) {
+	    // Default for a sole main container: use the MAIN_PORT property
+	    if(isFirstMain()) {
+		localPort = port;
+	    }
+	    else {
+		// Default for a peripheral container or an added main container: use the default port
+		localPort = Integer.toString(DEFAULT_PORT);
+	    }
 	}
+	profileProp.setProperty(Profile.LOCAL_PORT, localPort);
 
         value = argProp.getProperty(SMADDRS_KEY);
         if (value != null) {

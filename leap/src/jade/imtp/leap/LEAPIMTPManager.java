@@ -99,24 +99,6 @@ public class LEAPIMTPManager implements IMTPManager {
     // Get the singleton CommandDispatcher
     theDispatcher = CommandDispatcher.getDispatcher();
 
-    String localSvcMgrHost = theProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null);
-    String localSvcMgrPort = theProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_PORT, Integer.toString(JICPProtocol.DEFAULT_PORT));
-    if(localSvcMgrHost != null) {
-	try {
-	    Integer.parseInt(localSvcMgrPort);
-	}
-	catch(NumberFormatException nfe) {
-	    // The DEFAULT_PORT is used
-	    localSvcMgrPort = Integer.toString(JICPProtocol.DEFAULT_PORT);
-	}
-
-	// Copy the Service Manager host and port to the LOCAL_HOST and LOCAL_PORT profile parameters
-	theProfile.setParameter(JICPProtocol.LOCAL_HOST_KEY, localSvcMgrHost);
-	theProfile.setParameter(JICPProtocol.LOCAL_PORT_KEY, localSvcMgrPort);
-
-    }
-
-
     // Add to the CommandDispatcher the ICPs specified in the Profile
     try {
 
@@ -140,10 +122,7 @@ public class LEAPIMTPManager implements IMTPManager {
       }
 
       // Initialize the local node
-      String mainProp = theProfile.getParameter(Profile.MAIN, null);
-      boolean hasServiceManager = (mainProp == null || CaseInsensitiveString.equalsIgnoreCase(mainProp, "true"));
-
-      localNode = new NodeLEAP("No-Name", hasServiceManager);
+      localNode = new NodeLEAP("No-Name", theProfile.getParameter(Profile.MAIN, true));
       localNode.setCommandProcessor(cp);
       Skeleton skel = new NodeSkel(localNode);
       theDispatcher.registerSkeleton(skel, localNode);
@@ -175,16 +154,22 @@ public class LEAPIMTPManager implements IMTPManager {
     theDispatcher.setRouterAddress(theProfile.getParameter(ROUTER_URL, null));
 
     String mainURL = theProfile.getParameter(MAIN_URL, null);
-    if(localSvcMgrHost != null) {
+    if(theProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
+
+	String localHost = theProfile.getParameter(Profile.LOCAL_HOST, null);
+	String localPort = theProfile.getParameter(Profile.LOCAL_PORT, null);
 
 	// Attach to the pre-existing ServiceManager...
 	addServiceManagerAddress(mainURL);
 	originalSMAddr = mainURL;
-	localSMAddr = theProfile.getParameter(Profile.MAIN_PROTO, "jicp") + "://" + localSvcMgrHost + ":" + localSvcMgrPort;
+	localSMAddr = theProfile.getParameter(Profile.MAIN_PROTO, "jicp") + "://" + localHost + ":" + localPort;
     }
     else {
 	localSMAddr = mainURL;
     }
+
+    System.out.println(">>> Original [" + originalSMAddr + "] <<<");
+    System.out.println(">>> Local [" + localSMAddr + "] <<<");
 
   }
 

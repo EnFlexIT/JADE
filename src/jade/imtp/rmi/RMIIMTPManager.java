@@ -47,19 +47,54 @@ import jade.mtp.TransportAddress;
  */
 public class RMIIMTPManager implements IMTPManager {
 
+    /**
+       This constant is the name of the property whose value contains
+       the name of the host where a local Service Manager is to be
+       exported (when using JADE fault-tolerant deployment).
+    */
+    private static final String LOCAL_SERVICE_MANAGER_HOST = "smhost";
+
+    /**
+       This constant is the name of the property whose value contains
+       the TCP port where a local Service Manager is to be exported
+       (when using JADE fault-tolerant deployment).
+    */
+    public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
+
+    /**
+       This constant is the name of the property whose value contains
+       the name of the host where the local RMI Node is to be
+       exported.
+    */
+    private static final String LOCAL_NODE_HOST = "nodehost";
+
+    /**
+       This constant is the name of the property whose value contains
+       the TCP port where the local RMI Node is to be exported.
+    */
+    public static final String LOCAL_NODE_PORT = "nodeport";
+
 
     private static final int DEFAULT_RMI_PORT = 1099;
 
 
     private Profile myProfile;
 
-    // Host and port where the original platform Service Manager is listening
+    // Host and port where the original RMI Registry is listening
     private String mainHost;
     private int mainPort;
+
+    // Host and port where the local RMI Registry (if any) is listening
+    private String localHost;
+    private int localPort;
 
     // Host and port where the local Service Manager (if any) is listening
     private String localSvcMgrHost;
     private int localSvcMgrPort;
+
+    // Host and port where the local RMI Node is listening
+    private String localNodeHost;
+    private int localNodePort;
 
     // The RMI URL where the Service Manager is to be. If there is a
     // locally installed one, this string points to it, otherwise it 
@@ -85,49 +120,70 @@ public class RMIIMTPManager implements IMTPManager {
   public void initialize(Profile p, CommandProcessor cp) throws IMTPException {
       myProfile = p;
       mainHost = myProfile.getParameter(Profile.MAIN_HOST, null);
-      if (mainHost == null) {
-      	// Use the local host by default
-      	try {
-	    mainHost= InetAddress.getLocalHost().getHostName();      
-      	} 
-      	catch(UnknownHostException uhe) {
-      		throw new IMTPException("Unknown main host");
-      	}
-
-      }
       
       mainPort = DEFAULT_RMI_PORT;
       String mainPortStr = myProfile.getParameter(Profile.MAIN_PORT, null);
-      if (mainPortStr != null) {
-      	try {
-	    mainPort = Integer.parseInt(mainPortStr);
-      	}
-      	catch (NumberFormatException nfe) {
-	    // Do nothing. The DEFAULT_RMI_PORT is used 
-      	}
+      try {
+	  mainPort = Integer.parseInt(mainPortStr);
+      }
+      catch (NumberFormatException nfe) {
+	  // Do nothing. The DEFAULT_RMI_PORT is used 
       }
 
-      originalRMI = "rmi://" + mainHost + ":" + mainPort + "/";
+      localHost = myProfile.getParameter(Profile.LOCAL_HOST, null);
 
-      localSvcMgrHost = myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null);
+      localPort = DEFAULT_RMI_PORT;
+      String localPortStr = myProfile.getParameter(Profile.LOCAL_PORT, null);
+      try {
+	  localPort = Integer.parseInt(localPortStr);
+      }
+      catch (NumberFormatException nfe) {
+	  // Do nothing. The DEFAULT_RMI_PORT is used
+      }
 
-      localSvcMgrPort = DEFAULT_RMI_PORT;
-      String localSvcMgrPortStr = myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_PORT, null);
-      if(localSvcMgrPortStr != null) {
+      // For a sole Main Container, local host and port overwrite the
+      // main host and port
+      if(myProfile.getParameter(Profile.MAIN, true) && !myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
+	  originalRMI = "rmi://" + localHost + ":" + localPort + "/";
+      }
+      else {
+	  originalRMI = "rmi://" + mainHost + ":" + mainPort + "/";
+      }
+
+      // If this node is exporting a local Service Manager, read host
+      // and port from the profile.
+      if(myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
+
+	  localSvcMgrHost = myProfile.getParameter(LOCAL_SERVICE_MANAGER_HOST, mainHost);
+
+	  localSvcMgrPort = 0;
+	  String localSvcMgrPortStr = myProfile.getParameter(LOCAL_SERVICE_MANAGER_PORT, null);
+	  if(localSvcMgrPortStr != null) {
+	      try {
+		  localSvcMgrPort = Integer.parseInt(localSvcMgrPortStr);
+	      }
+	      catch(NumberFormatException nfe) {
+		  // Do nothing. An OS-chosen port is used
+	      }
+	  }
+      }
+
+      // Read the host and port for the local RMI Node from the profile.
+      localNodeHost = myProfile.getParameter(LOCAL_NODE_HOST, mainHost);
+      localNodePort = 0;
+      String localNodePortStr = myProfile.getParameter(LOCAL_NODE_PORT, null);
+      if(localNodePortStr != null) {
 	  try {
-	      localSvcMgrPort = Integer.parseInt(localSvcMgrPortStr);
+	      localNodePort = Integer.parseInt(localNodePortStr);
 	  }
 	  catch(NumberFormatException nfe) {
-	      // Do nothing. The DEFAULT_RMI_PORT is used
+	      // Do nothing. An OS-chosen port is used
 	  }
       }
 
-
       try {
-	  // Create the local node and mark as hosting a local Service Manager
-	  String mainProp = myProfile.getParameter(Profile.MAIN, null);
-	  boolean hasServiceManager = (mainProp == null || CaseInsensitiveString.equalsIgnoreCase(mainProp, "true"));
-	  localNode = new NodeAdapter(AgentManager.UNNAMED_CONTAINER_NAME, hasServiceManager);
+	  // Create the local node and mark it as hosting a local Service Manager
+	  localNode = new NodeAdapter(AgentManager.UNNAMED_CONTAINER_NAME, myProfile.getParameter(Profile.MAIN, true));
       }
       catch(RemoteException re) {
 	  throw new IMTPException("An RMI error occurred", re);
@@ -135,9 +191,9 @@ public class RMIIMTPManager implements IMTPManager {
 
       // If the LOCAL_SERVICE_MANAGER_HOST property is set, then we have to use it to set the
       // RMI address where the Service Manager is going to be exported.
-      if(localSvcMgrHost != null) {
+      if(myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
 
-	  baseRMI = "rmi://" + localSvcMgrHost + ":" + localSvcMgrPort + "/";
+	  baseRMI = "rmi://" + localHost + ":" + localPort + "/";
 
 	  // Attach to the pre-existing ServiceManager...
 	  addServiceManagerAddress(originalRMI);
@@ -192,9 +248,9 @@ public class RMIIMTPManager implements IMTPManager {
       smImpl.setLocalAddress(baseRMI);
       myRMIServiceManager = new ServiceManagerRMIImpl(smImpl, this);
 
-      int registryPort = mainPort;
-      if(localSvcMgrHost != null) {
-	  registryPort = localSvcMgrPort;
+      int registryPort = localPort;
+      if(registryPort == 0) {
+	  registryPort = mainPort;
       }
 
       Registry theRegistry = getRmiRegistry(null, registryPort);
@@ -615,7 +671,7 @@ public class RMIIMTPManager implements IMTPManager {
     try {
       List l = new LinkedList();
       // The port is meaningful only on the Main container
-      TransportAddress addr = new RMIAddress(InetAddress.getLocalHost().getHostName(), String.valueOf(mainPort), null, null);
+      TransportAddress addr = new RMIAddress(InetAddress.getLocalHost().getHostName(), String.valueOf(localPort), null, null);
       l.add(addr);
       return l;
     }
