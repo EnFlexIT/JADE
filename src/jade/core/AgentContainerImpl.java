@@ -199,24 +199,22 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // Subscribe as a listener for the new agent
     instance.setToolkit(this);
 
-    // Insert new agent into local agents table
-    localAgents.put(agentID, instance);
-
     if(startIt) {
       try {
 	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
 	myPlatform.bornAgent(agentID, rp, myName); // RMI call
+	// Insert new agent into local agents table only if no exception is thrown
+	localAgents.put(agentID, instance);
+	instance.powerUp(agentID, agentThreads);
       }
       catch(NameClashException nce) {
-	System.out.println("Agent name already in use");
-	localAgents.remove(agentID);
+	System.out.println("Agentname already in use:"+nce.getMessage());
+	//localAgents.remove(agentID);
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
 	re.printStackTrace();
       }
-
-      instance.powerUp(agentID, agentThreads);
     }
   }
 
@@ -468,7 +466,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	re.printStackTrace();
       }
       catch(NameClashException nce) {
-	System.out.println("Agent name already in use");
+	System.out.println("Agent name already in use: "+nce.getMessage());
 	localAgents.remove(agentID);
       }
 
