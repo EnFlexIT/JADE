@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/16 00:20:40  rimassa
+  Added a comprehensive support for timeouts on message reception.
+
   Revision 1.1  1999/05/20 13:43:17  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -54,14 +57,125 @@ import jade.lang.acl.MessageTemplate;
  */
 public final class ReceiverBehaviour extends Behaviour {
 
-  // The agent who wants to receive the ACL message
-  private Agent myAgent;
+  /**
+   Exception class for timeouts. This exception is thrown when trying
+   to obtain an <code>ACLMessage</code> object from an
+   <code>Handle</code>, but no message was received within a specified
+   timeout.
+   @see jade.core.behaviours.ReceiverBehaviour.Handle#getMessage()
+  */
+  public static class TimedOut extends Exception {
+    TimedOut() {
+      super("No message was received before time limit.");
+    }
+  }
+
+  /**
+   Exception class for timeouts. This exception is thrown when trying
+   to obtain an <code>ACLMessage</code> from an <code>Handle</code>
+   and no message was received so far, but the time limit is not yet
+   reached.
+   @see jade.core.behaviours.ReceiverBehaviour.Handle#getMessage()
+  */
+  public static class NotYetReady extends Exception {
+    NotYetReady() {
+      super("Requested message is not ready yet.");
+    }
+  }
+
+  /**
+   An interface representing ACL messages due to arrive within a time
+   limit. This interface is used to create a
+   <code>ReceiverBehaviour</code> object to receive an ACL message
+   within a user specified time limit. When the user tries to read the
+   message represented by the handle, either gets it or gets an
+   exception.
+   @see jade.core.behaviours.ReceiverBehaviour#newHandle()
+   @see jade.core.behaviours.ReceiverBehaviour#ReceiverBehaviour(Agent
+   a, ReceiverBehaviour.Handle h, long millis)
+   */
+  public static interface Handle {
+
+    /**
+     Tries to retrieve the <code>ACLMessage</code> object represented
+     by this handle.
+     @return The ACL message, received by the associated
+     <code>ReceiverBehaviour</code>, if any.
+     @exception TimedOut If the associated
+     <code>ReceiverBehaviour</code> did not receive a suitable ACL
+     message within the time limit.
+     @exception NotYetReady If the associated
+     <code>ReceiverBehaviour</code> is still waiting for a suitable
+     ACL message to arrive.
+     @see jade.core.behaviours.ReceiverBehaviour#ReceiverBehaviour(Agent
+     a, ReceiverBehaviour.Handle h, long millis)
+    */
+    ACLMessage getMessage() throws TimedOut, NotYetReady;
+
+  }
+
+  private static class MessageFuture implements Handle {
+
+    private static final int OK = 0;
+    private static final int NOT_YET = 1;
+    private static final int TIMED_OUT = 2;
+
+    private int state = NOT_YET;
+    private ACLMessage message;
+
+    public void reset() {
+      message = null;
+      state = NOT_YET;
+    }
+
+    public void setMessage(ACLMessage msg) {
+      message = msg;
+      if(message != null)
+	state = OK;
+      else
+	state = TIMED_OUT;
+    }
+
+    public ACLMessage getMessage() throws TimedOut, NotYetReady {
+      switch(state) {
+      case NOT_YET:
+	throw new NotYetReady();
+      case TIMED_OUT:
+	throw new TimedOut();
+      default:
+	return message;
+      }
+    }
+  }
+
+  /**
+   Factory method for message handles. This method returns a new
+   <code>Handle</code> object, which can be used to retrieve an ACL
+   message out of a <code>ReceiverBehaviour</code> object.
+   @return A new <code>Handle</code> object.
+   @see jade.core.behaviours.ReceiverBehaviour.Handle
+  */
+  public static Handle newHandle() {
+    return new MessageFuture();
+  }
 
   // This message will contain the result
   private ACLMessage result;
 
   // The pattern to match incoming messages against
   private MessageTemplate template;
+
+  // A future for the ACL message, used when a timeout was specified
+  private MessageFuture future;
+
+  // A time out value, when present
+  private long timeOut;
+
+  // A running counter for calling block(millis) until 'timeOut' milliseconds pass.
+  private long timeToWait;
+
+  // Timestamp holder, used when calling block(millis) many times.
+  private long blockingTime = 0;
 
   private boolean finished;
 
@@ -76,7 +190,7 @@ public final class ReceiverBehaviour extends Behaviour {
      @param mt A Message template to match incoming messages against.
   */
   public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
-    myAgent = a;
+    super(a);
     result = msg;
     template = mt;
   }
@@ -95,6 +209,55 @@ public final class ReceiverBehaviour extends Behaviour {
   }
 
   /**
+     Receive any ACL message, waiting at most <code>millis</code>
+     milliseconds.
+     When calling this constructor, a suitable <code>Handle</code>
+     must be created and passed to it. When this behaviour ends, some
+     other behaviour will try to get the ACL message out of the
+     handle, and an exception will be thrown in case of a time out.
+     The following example code explains this:
+
+     <code><pre>
+       // ReceiverBehaviour creation, e.g. in agent setup() method
+       h = ReceiverBehaviour.newHandle(); // h is an agent instance variable
+       addBehaviour(new ReceiverBehaviour(this, h, 10000); // Wait 10 seconds
+
+       ...
+
+       // Some other behaviour, later, tries to read the ACL message
+       // in its action() method
+       try {
+         ACLMessage msg = h.getMessage();
+	 // OK. Message received within timeout.
+       }
+       catch(ReceiverBehaviour.TimedOut rbte) {
+         // Receive timed out
+       }
+       catch(ReceiverBehaviour.NotYetReady rbnyr) {
+         // Message not yet ready, but timeout still active
+       }
+     </pre></code>
+     @param a The agent this behaviour belongs to.
+     @param h An <em>Handle</em> representing the message to receive.
+     @param millis The maximum amount of time to wait for the message,
+     in milliseconds.
+     @see jade.core.behaviours.ReceiverBehaviour.Handle
+     @see jade.core.behaviours.ReceiverBehaviour#newHandle()
+   */
+  public ReceiverBehaviour(Agent a, Handle h, long millis) {
+    this(a, h, millis, null);
+  }
+
+  public ReceiverBehaviour(Agent a, Handle h, long millis, MessageTemplate mt) {
+    super(a);
+    future = (MessageFuture)h;
+    timeOut = millis;
+    timeToWait = timeOut;
+    result = new ACLMessage("not-understood");
+    template = mt;
+  }
+
+  /**
      Actual behaviour implementation. This method receives a suitable
      ACL message and copies it into the message provided by the
      behaviour creator. It blocks the current behaviour if no suitable
@@ -108,51 +271,32 @@ public final class ReceiverBehaviour extends Behaviour {
       msg = myAgent.receive(template);
 
     if(msg == null) {
-      block();
-      finished = false;
-      return;
+      if(future == null) {
+	block();
+	finished = false;
+	return;
+      }
+      else {
+	long elapsedTime = 0;
+	if(blockingTime != 0)
+	  elapsedTime = System.currentTimeMillis() - blockingTime;
+	else
+	  elapsedTime = 0;
+	timeToWait -= elapsedTime;
+	if(timeToWait > 0) {
+	  blockingTime  = System.currentTimeMillis();
+	  // System.out.println("Waiting for " + timeToWait + " ms.");
+	  block(timeToWait);
+	  return;
+	}
+	else {
+	  future.setMessage(msg);
+	  finished = true;
+	}
+      }
     }
     else {
-      // Copies msg into result
-      result.setType(msg.getType());
-      String s = msg.getContent();
-      if(s != null)
-	result.setContent(s);
-      s = msg.getConversationId();
-      if(s != null)
-	result.setConversationId(s);
-      AgentGroup ag = msg.getDests();
-      Enumeration e = ag.getMembers();
-      while(e.hasMoreElements()) {
-	s = (String)e.nextElement();
-	result.addDest(s);
-      }
-      s = msg.getEnvelope();
-      if(s != null)
-	result.setEnvelope(s);
-      s = msg.getLanguage();
-      if(s != null)
-	result.setLanguage(s);
-      s = msg.getOntology();
-      if(s != null)
-	result.setOntology(s);
-      s = msg.getProtocol();
-      if(s != null)
-	result.setProtocol(s);
-      s = msg.getReplyBy();
-      if(s != null)
-	result.setReplyBy(s);
-      s = msg.getReplyTo();
-      if(s != null)
-	result.setReplyTo(s);
-      s = msg.getReplyWith();
-      if(s != null)
-	result.setReplyWith(s);
-      s = msg.getSource();
-      if(s != null)
-	result.setSource(s);
-
-      finished = true;
+      copyInResult(msg);
     }
   }
 
@@ -172,6 +316,58 @@ public final class ReceiverBehaviour extends Behaviour {
   public void reset() {
     finished = false;
     result = null;
+    if(future != null) {
+      future.reset();
+      result = new ACLMessage("not-understood");
+    }
+    timeToWait = timeOut;
+    blockingTime = 0;
+  }
+
+  private void copyInResult(ACLMessage msg) {
+    // Copies msg into result
+    result.setType(msg.getType());
+    String s = msg.getContent();
+    if(s != null)
+      result.setContent(s);
+    s = msg.getConversationId();
+    if(s != null)
+      result.setConversationId(s);
+    AgentGroup ag = msg.getDests();
+    Enumeration e = ag.getMembers();
+    while(e.hasMoreElements()) {
+      s = (String)e.nextElement();
+      result.addDest(s);
+    }
+    s = msg.getEnvelope();
+    if(s != null)
+      result.setEnvelope(s);
+    s = msg.getLanguage();
+    if(s != null)
+      result.setLanguage(s);
+    s = msg.getOntology();
+    if(s != null)
+      result.setOntology(s);
+    s = msg.getProtocol();
+    if(s != null)
+      result.setProtocol(s);
+    s = msg.getReplyBy();
+    if(s != null)
+      result.setReplyBy(s);
+    s = msg.getReplyTo();
+    if(s != null)
+      result.setReplyTo(s);
+    s = msg.getReplyWith();
+    if(s != null)
+      result.setReplyWith(s);
+    s = msg.getSource();
+    if(s != null)
+      result.setSource(s);
+
+    if(future != null)
+      future.setMessage(result);
+
+    finished = true;
   }
 
 } // End of ReceiverBehaviour class
