@@ -70,6 +70,8 @@ public class AboutJadeAction extends AbstractAction
   */
  	String logojade = "images/jadelogo.jpg";
  	
+ 	String check = "images/tick_blue.gif";
+
  	/**
  	@serial
  	*/
@@ -96,99 +98,128 @@ public class AboutJadeAction extends AbstractAction
 		f.addMouseListener(new MouseClick());
 		
 		Container theCont = f.getContentPane();
-	  			GridBagLayout gridbag = new GridBagLayout();
-	        GridBagConstraints c = new GridBagConstraints();
-	        theCont.setLayout(gridbag);
+	  GridBagLayout gridbag = new GridBagLayout();
+	  GridBagConstraints c = new GridBagConstraints();
+	  theCont.setLayout(gridbag);
 	        
-	        theCont.setBackground(Color.white);        
-	        c.fill = GridBagConstraints.HORIZONTAL;
+	  theCont.setBackground(Color.white);        
+	  c.fill = GridBagConstraints.HORIZONTAL;
 	        
-	        label = new JLabel(" ");
-	        c.weightx = 0.5;
-					c.gridwidth = 3;
-					c.gridx =0;
-					c.gridy=0;
-					gridbag.setConstraints(label,c);
-	        theCont.add(label);
+	  label = new JLabel(" ");
+	  c.weightx = 0.5;
+		//c.gridwidth = 3;
+	  c.gridx =0;
+	  c.gridy=0;
+		gridbag.setConstraints(label,c);
+	  theCont.add(label);
 	        
-	        ImageIcon jadeicon = new ImageIcon(getClass().getResource(logojade));
+	  ImageIcon jadeicon = new ImageIcon(getClass().getResource(logojade));
 					
-					label = new JLabel(jadeicon);
-				  c.weightx = 0.5;
-					c.gridwidth = 3;
-					c.gridx =0;
-					c.gridy=1; //0
-					gridbag.setConstraints(label,c);
-	        theCont.add(label);
+		label = new JLabel(jadeicon);
+		c.gridx =0;
+		c.gridy=1; 
+		gridbag.setConstraints(label,c);
+	  theCont.add(label);
 	        
-	        String CVSname = "$Name$";
-					int colonPos = CVSname.indexOf(":");
-	    		int dollarPos = CVSname.lastIndexOf('$');
-	    		String name = CVSname.substring(colonPos + 1, dollarPos);
+	  String CVSname = "$Name$";
+		int colonPos = CVSname.indexOf(":");
+	  int dollarPos = CVSname.lastIndexOf('$');
+	  String name = CVSname.substring(colonPos + 1, dollarPos);
 	    		
-	    		if(name.indexOf("JADE") == -1)
-							name = "JADE snapshot";
-	    		else {
-	        			name = name.replace('-', ' ');
-								name = name.replace('_', '.');
-								name = name.trim();
-	    		}
+	  if(name.indexOf("JADE") == -1)
+			name = "JADE snapshot";
+	  else {
+	  	name = name.replace('-', ' ');
+			name = name.replace('_', '.');
+			name = name.trim();
+	  }
 	
-	    		label = new JLabel(name);
-	        label.setForeground(dark_blue);
-					c.ipady = 1;
-					c.gridwidth = 1;
-					c.gridx = 1;
-					c.gridy = 2;//1
-					gridbag.setConstraints(label,c);
-					theCont.add(label);
+	  label = new JLabel(name);
+	  label.setForeground(dark_blue);
+		
+		JPanel tmp1 = new JPanel();
+		tmp1.add(label,java.awt.BorderLayout.CENTER);
+		tmp1.setBackground(Color.white);
+		c.gridwidth =3;
+	  c.gridx = 0;
+	  c.gridy = 2;
+	  gridbag.setConstraints(tmp1,c);
+		theCont.add(tmp1);
 					
-	        label = new JLabel(" ");
-	       	c.gridwidth = 1;
-					c.gridx = 0;
-					c.gridy = 3;//2
-	        gridbag.setConstraints(label,c);
-					theCont.add(label);
+	  label = new JLabel(" ");
+	  c.gridwidth = 1;
+	  c.gridx = 0;
+		c.gridy = 3;
+	  gridbag.setConstraints(label,c);
+		theCont.add(label);
 	
-	        label = new JLabel("Copyright (C) 2000 CSELT S.p.A.");
-	        label.setForeground(dark_blue);
-					c.gridwidth = 3;
-					c.gridx = 0;
-					c.gridy = 4;//3
-	        gridbag.setConstraints(label,c);
-					theCont.add(label);                
+		JPanel tmp = new JPanel();
+		tmp.setLayout(new javax.swing.BoxLayout(tmp,javax.swing.BoxLayout.X_AXIS));
+						
+		String fipalogo = "images/fipalogo.jpg";
+		ImageIcon fipaicon = new ImageIcon(getClass().getResource(fipalogo));
+	  label = new JLabel(fipaicon);
+		tmp.add(label);	        
+	  JPanel panel = new JPanel();
+		panel.setLayout(new javax.swing.BoxLayout(panel,javax.swing.BoxLayout.Y_AXIS));
+	  ImageIcon checkIcon = new ImageIcon(getClass().getResource(check));
+	  label = new JLabel("1st  FIPA Interoperability test - Seoul, Jan 1999",checkIcon,JLabel.LEFT);
+	  label.setForeground(Color.blue);
+	  panel.add(label);
 	        
-					label = new JLabel("Distributed under GNU LGPL");
-	        label.setForeground(dark_blue);
-					c.gridwidth = 3;
-					c.gridx = 0;
-					c.gridy = 5;//4
-	        gridbag.setConstraints(label,c);
-					theCont.add(label);
+		label = new JLabel("2nd FIPA Interoperability test - London, Apr 2001",checkIcon,JLabel.LEFT);
+		label.setForeground(Color.blue);
 					
-	        label = new JLabel("http://sharon.cselt.it/projects/jade");
-	        label.setForeground(dark_blue);
-					c.gridwidth = 3;
-					c.gridx = 0;
-					c.gridy = 6;//5
-	        gridbag.setConstraints(label,c);
-					theCont.add(label);
+		panel.add(label);
+		tmp.add(panel);
+
+		c.gridx =0;
+	  c.gridy = 4;
+	  gridbag.setConstraints(tmp,c);
+	  theCont.add(tmp);
+
+	  label = new JLabel(" ");
+		c.gridx = 0;
+		c.gridy = 6;
+	  gridbag.setConstraints(label,c);
+	  theCont.add(label);
+
+	  label = new JLabel("Copyright (C) 2000 CSELT S.p.A.");
+	  label.setForeground(dark_blue);
+		c.gridx = 0;
+	  c.gridy = 7;
+	  gridbag.setConstraints(label,c);
+		theCont.add(label);                
 	        
-	        ImageIcon cselticon = new ImageIcon(getClass().getResource(logocselt));
-	        label = new JLabel(cselticon);
-	        c.weighty = 0.0;
-	        c.ipady = 50;
-	        c.gridx = 1;
-	        c.gridy = 7;
-	        gridbag.setConstraints(label,c);
-	        theCont.add(label); 
+		label = new JLabel("Distributed under GNU LGPL");
+	  label.setForeground(dark_blue);
+		c.gridx = 0;
+		c.gridy = 8;
+	  gridbag.setConstraints(label,c);
+		theCont.add(label);
+					
+	  label = new JLabel("http://sharon.cselt.it/projects/jade");
+	  label.setForeground(dark_blue);
+	  c.gridx = 0;
+		c.gridy = 9;
+	  gridbag.setConstraints(label,c);
+		theCont.add(label);
+	        
+		ImageIcon cselticon = new ImageIcon(getClass().getResource(logocselt));
+	  label = new JLabel(cselticon);
+	  c.ipady = 50;
+	  c.gridx = 0;
+	  c.gridy = 11;
+	  gridbag.setConstraints(label,c);
+	  theCont.add(label); 
 	        
 	        
-	        f.setModal(true);
-	        f.setSize(f.getPreferredSize());
-	        f.setLocation(gui.getX()+(gui.getWidth()- f.getWidth())/2, gui.getY()+
-	        (gui.getHeight() - f.getHeight())/ 2);
-	        f.setVisible(true);
+	  f.setModal(true);
+	  //f.setSize(f.getPreferredSize());
+	  f.setSize(new Dimension(350,350));
+	  f.setLocation(gui.getX()+(gui.getWidth()- f.getWidth())/2, gui.getY()+
+	  (gui.getHeight() - f.getHeight())/ 2);
+	  f.setVisible(true);
 	}
 	
 	
@@ -196,9 +227,7 @@ public class AboutJadeAction extends AbstractAction
 private class AboutFrame extends JDialog {
 	
 	public AboutFrame(JFrame owner, String name){
-		super(owner, name);
-		//setModal(true);
-		
+		super(owner, name);		
 	
 	}
 	
