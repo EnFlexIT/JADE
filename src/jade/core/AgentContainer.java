@@ -84,7 +84,9 @@ public interface AgentContainer {
 
     Authority getAuthority();
     AgentPrincipal getAgentPrincipal(final AID agentID);
-    ContainerPrincipal getContainerPrincipal();
+    //ContainerPrincipal getContainerPrincipal();
+    void setOwnerPrincipal(JADEPrincipal p);
+    void setOwnerCredentials(Credentials c);
 
     void shutDown();
 

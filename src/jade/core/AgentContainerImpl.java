@@ -107,12 +107,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private ContainerID myID;
   private NodeDescriptor myNodeDescriptor;
 
-  //private String username = null;
-  //private byte[] password = null;
-  private CertificateFolder certs;
+  private JADEPrincipal ownerPrincipal;
+  private Credentials ownerCredentials;
+  
   private Authority authority;
   private Map principals = new HashMap();
-  private Map containerPrincipals = new HashMap();
+  //private Map containerPrincipals = new HashMap();
 
   private AID theAMS;
   private AID theDefaultDF;
@@ -206,6 +206,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       myCommandProcessor.processOutgoing(cmd);
   }
 
+  public void setOwnerPrincipal(JADEPrincipal p) {
+  	ownerPrincipal = p;
+  }
+  
+  public void setOwnerCredentials(Credentials c) {
+  	ownerCredentials = c;
+  }
+  
 	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
 		//#MIDP_EXCLUDE_BEGIN
 		Agent agent = localAgents.acquire(agentID);
@@ -220,16 +228,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		principals.put(agentID, principal);
 	}
 
-	public void changeContainerPrincipal(CertificateFolder certs) throws IMTPException {
-		this.certs = certs;
-	}
-
-	public ContainerPrincipal getContainerPrincipal() {
+	/*public ContainerPrincipal getContainerPrincipal() {
 		ContainerPrincipal cp = null;
                 if (certs!=null) 
 		cp = (ContainerPrincipal) certs.getIdentityCertificate().getSubject();
 		return cp;
-	}
+	}*/
 
 
 	/*public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
@@ -453,27 +457,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 
-   // principal and credentials of the container's owner
-   private JADEPrincipal principal = null;
-   private Credentials initialCred = null;
- 
    // Authenticate the container's owner.
    // In pratice, send a vertical cmd, 
    // a proper service (if any) will provide 
    // the user's JADEPrincipal and his initial Credentials
    // Such credentials are used in joinPlatform() to create agents at start-up time.
-   private void authenticateOwner() {
+   /*private void authenticateOwner() {
  
-   	principal = new jade.security.dummy.DummyPrincipal();
-   	initialCred = new jade.security.dummy.DummyCredentials();
      // ToDo: create vcomd AUTHENTICATE_USER
      // send it to the cmd processor
      // handle exceptions
      // get Credentials and JADEPrincipal
 
 
-     /**
-      *   == move following code to Authentication service ==
      
  //#MIDP_EXCLUDE_BEGIN    
      // get the SecurityFactory 
@@ -497,9 +493,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
      System.exit(-1);
    }
  //#MIDP_EXCLUDE_END    
- */
      
-   } // end authenticateOwner()
+   } // end authenticateOwner()*/
  
 
   
@@ -525,9 +520,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  // Perform the initial setup from the profile
 	  init();
-
-    // Authenticate the user that is creating this container 
-    authenticateOwner();
 
 	  // Connect the local bode to the platform and activate the basic services 
 	  startNode();
@@ -572,7 +564,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
               try {
                   createAgent(agentID, s.getClassName(), s.getArgs(),
-                              principal, initialCred, CREATE_ONLY);
+                              ownerPrincipal, ownerCredentials, CREATE_ONLY);
               } catch (AuthException ae) {
                   Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
