@@ -141,6 +141,18 @@ public class BasicOntologyManager {
 				}
 			);
 	   	   
+			// Adds NOT role
+    	theInstance.addRole(
+				BasicOntologyVocabulary.NOT, 
+				new SlotDescriptor[] {
+	  			new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M)
+				}, 
+				new RoleEntityFactory() {
+	     		public Object create(Frame f) { return new Not(); }
+	     		public Class getClassForRole() { return Not.class; }
+				}
+			);
+
 			// DEBUG: PRINT VOCABULARY
 	  	//List voc = theInstance.getVocabulary();
 	  	//Iterator i = voc.iterator();

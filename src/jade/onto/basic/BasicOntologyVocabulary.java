@@ -41,4 +41,5 @@ public class BasicOntologyVocabulary {
   public static final String FALSE = "false";
   public static final String DONE = "done";
   public static final String RESULT = "result";
+  public static final String NOT = "not";
 }
