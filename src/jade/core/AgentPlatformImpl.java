@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.29  1999/03/09 13:30:14  rimassa
+  Used String constants for system agent names.
+  Completely redesigned AgentPlatform startup: now system agents (AMS,
+  ACC and default DF) run in a separate ThreadGroup.
+  Added a custom joinPlatform() method to perform specific
+  initialization.
+  Now removeContainer() takes a String argument and no more an
+  AgentContainer.
+
   Revision 1.28  1999/03/07 22:51:43  rimassa
   Added a debugging printout.
 
@@ -122,6 +131,7 @@ import java.io.StringReader;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -141,6 +151,10 @@ import _FIPA_Agent_97ImplBase;
 
 public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
 
+  private static final String AMS_NAME = "ams";
+  private static final String ACC_NAME = "acc";
+  private static final String DEFAULT_DF_NAME = "df";
+
   // Initial size of containers hash table
   private static final int CONTAINERS_SIZE = 10;
 
@@ -149,6 +163,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   // Load factor of agent hash table
   private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
+  private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
+
 
   private ams theAMS;
   private df defaultDF;
@@ -173,6 +189,15 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
   }
 
+  public AgentPlatformImpl(String args[]) throws RemoteException {
+    super(args);
+    myName = MAIN_CONTAINER_NAME;
+    systemAgentsThreads.setMaxPriority(Thread.MAX_PRIORITY);
+    initAMS();
+    initACC();
+    initDF();
+  }
+
   private void initAMS() {
 
     theAMS = new ams(this);
@@ -181,12 +206,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     theAMS.addCommListener(this);
 
     // Insert AMS into local agents table
-    localAgents.put("ams", theAMS);
+    localAgents.put(AMS_NAME, theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this);
+    desc.setContainer(this, myName);
 
-    platformAgents.put("ams", desc);
+    platformAgents.put(AMS_NAME, desc);
 
   }
 
@@ -197,12 +222,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     theACC.addCommListener(this);
 
     // Insert AMS into local agents table
-    localAgents.put("acc", theACC);
+    localAgents.put(ACC_NAME, theACC);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this);
+    desc.setContainer(this, myName);
 
-    platformAgents.put("acc", desc);
+    platformAgents.put(ACC_NAME, desc);
 
     // Setup CORBA server
     frontEndACC = new InComingIIOP();
@@ -239,12 +264,45 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     defaultDF.addCommListener(this);
 
     // Insert DF into local agents table
-    localAgents.put("df", defaultDF);
+    localAgents.put(DEFAULT_DF_NAME, defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setContainer(this);
+    desc.setContainer(this, myName);
 
-    platformAgents.put("df", desc);
+    platformAgents.put(DEFAULT_DF_NAME, desc);
+
+  }
+
+  public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
+    try {
+      myPlatform = (AgentPlatform)Naming.lookup(platformRMI);
+    }
+    catch(Exception e) {
+      // Should never happen
+      e.printStackTrace();
+    }
+
+    containers.put(MAIN_CONTAINER_NAME, this);
+
+    // Notify AMS
+    theAMS.postNewContainer(MAIN_CONTAINER_NAME);
+
+    theAMS.doStart(AMS_NAME, platformAddress, systemAgentsThreads);
+    theACC.doStart(ACC_NAME, platformAddress, systemAgentsThreads);
+    defaultDF.doStart(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
+
+    for(int i = 0; i < agentNamesAndClasses.size(); i += 2) {
+      String agentName = (String)agentNamesAndClasses.elementAt(i);
+      String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
+      try {
+	createAgent(agentName, agentClass, START);
+      }
+      catch(RemoteException re) {
+	// It should never happen ...
+	re.printStackTrace();
+      }
+
+    }
 
   }
 
@@ -256,41 +314,24 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     return ac;
   }
 
-  private String getContainerName(AgentContainer ac) {
-    String name = "";
-    Enumeration e = containers.keys();
-    while(e.hasMoreElements()) {
-      name = (String)e.nextElement();
-      AgentContainer current = (AgentContainer)containers.get(name);
-      if(ac.equals(current))
-	break;
-    }
-    return name;
+  public String getAddress() throws RemoteException {
+    return platformAddress;
   }
-
-  public AgentPlatformImpl(String args[]) throws RemoteException {
-    super(args);
-    initAMS();
-    initACC();
-    initDF();
-  }
-
 
   public String addContainer(AgentContainer ac) throws RemoteException {
 
-    String name = "Container-" + new Integer(containers.size()).toString();
+    String name = AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
     containers.put(name, ac);
 
     // Notify AMS
     theAMS.postNewContainer(name);
 
-    // Return IIOP URL for the platform
-    return platformAddress;
+    // Return the name given to the new container
+    return name;
 
   }
 
-  public void removeContainer(AgentContainer ac) throws RemoteException {
-    String name = getContainerName(ac);
+  public void removeContainer(String name) throws RemoteException {
     containers.remove(name);
 
     // Notify AMS
@@ -318,18 +359,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void deadAgent(String name) throws RemoteException, NotFoundException {
-
-    // Notify AMS
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(name.toLowerCase());
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
-    AgentContainer ac = ad.getContainer();
-    String containerName = getContainerName(ac);
-    if(containerName == null)
-      System.out.println("*********** " + name + " IS NULL *************");
+    String containerName = ad.getContainerName();
     AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
     platformAgents.remove(name.toLowerCase());
 
+    // Notify AMS
     theAMS.postDeadAgent(containerName, amsd);
   }
 
@@ -355,7 +392,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void shutDown() {
 
     // Deregister yourself as a container
-    containers.remove("Container-0"); // FIXME: Hardwired front end container name
+    containers.remove(MAIN_CONTAINER_NAME);
 
     // Kill every other container
     Enumeration e = containers.keys();
@@ -367,12 +404,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     // Kill all non-system agents
     Enumeration agentNames = localAgents.keys();
-    String dfName = "df"; // FIXME: need to get default DF name from platform properties
+
     while(agentNames.hasMoreElements()) {
       String name = (String)agentNames.nextElement();
       if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
 	 name.equalsIgnoreCase(theACC.getLocalName()) ||
-	 name.equalsIgnoreCase(dfName))
+	 name.equalsIgnoreCase(defaultDF.getLocalName()))
 	  continue;
 
       // Kill agent and wait for its termination
@@ -383,7 +420,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     // Kill system agents, at last
 
-    Agent systemAgent = (Agent)localAgents.get(dfName);
+    Agent systemAgent = defaultDF;
     systemAgent.doDelete();
     systemAgent.join();
 
@@ -496,10 +533,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   // This maps the name of an agent to the name of the Agent Container the agent lives in.
-  public String AMSGetContainerName(String agentName) {
+  public String AMSGetContainerName(String agentName) throws FIPAException {
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
-    AgentContainer ac = ad.getContainer();
-    return getContainerName(ac);
+    if(ad == null)
+      throw new FIPAException("Agent " + agentName + " not found in AMSGetContainerName()");
+    return ad.getContainerName();
   }
 
   // This maps the name of an agent to its IIOP address.
@@ -530,19 +568,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
   }
 
-  public void AMSKillContainer(String containerName) {
-
-    // This call spawns a separate thread in order to avoid deadlock.
-
-    final AgentContainer ac = (AgentContainer)containers.get(containerName);
-    Thread auxThread = new Thread(new Runnable() {
-      public void run() {
-	APKillContainer(ac);
-      }
-    });
-    auxThread.start();
-  }
-
   public void AMSCreateAgent(String agentName, Agent instance, String containerName) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
@@ -557,11 +582,25 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
   }
 
+  public void AMSKillContainer(String containerName) {
+
+    // This call spawns a separate thread in order to avoid deadlock.
+      //    System.out.println("About to kill " + containerName);
+    final AgentContainer ac = (AgentContainer)containers.get(containerName);
+    Thread auxThread = new Thread(new Runnable() {
+      public void run() {
+	APKillContainer(ac);
+      }
+    });
+    auxThread.start();
+  }
+
   // This one is called in response to a 'kill-agent' action
   public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     APKillAgent(simpleName);
   }
+
   // This one is called in response to a 'register-agent' action
   public void AMSNewData(String agentName, String address, String signature, String APState,
 			 String delegateAgentName, String forwardAddress, String ownership)
@@ -595,8 +634,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       ad.setDesc(amsd);
 
       // Notify AMS
-      AgentContainer ac = ad.getContainer();
-      String containerName = getContainerName(ac);
+      String containerName = ad.getContainerName();
       theAMS.postNewAgent(containerName, amsd);
     }
     catch(NotFoundException nfe) {
