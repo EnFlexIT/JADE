@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.55  1999/06/15 14:30:57  rimassa
+  Added support for timeouts. Now every agent maintains a bidirectional
+  mapping between Timer objects and behaviours. Furthermore, a static
+  instance of a TimerDispatcher active object is used by agents to
+  schedule behaviour restarts.
+
   Revision 1.54  1999/06/09 16:13:16  rimassa
   Added an empty restartLater() method.
 
@@ -276,6 +282,8 @@ import java.io.InterruptedIOException;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Vector;
 
 import jade.core.behaviours.Behaviour;
@@ -315,6 +323,96 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       super("Agent " + Thread.currentThread().getName() + " has been terminated.");
     }
 
+  }
+
+  // This class manages bidirectional associations between Timer and
+  // Behaviour objects, using hash tables. This class is fully
+  // synchronized because is accessed both by agent internal thread
+  // and high priority Timer Dispatcher thread.
+  private static class AssociationTB {
+    private Map BtoT = new HashMap();
+    private Map TtoB = new HashMap();
+
+    public synchronized void addPair(Behaviour b, Timer t) {
+      BtoT.put(b, t);
+      TtoB.put(t, b);
+    }
+
+    public synchronized void removeMapping(Behaviour b) {
+      Timer t = (Timer)BtoT.remove(b);
+      if(t != null) {
+	TtoB.remove(t);
+      }
+    }
+
+    public synchronized void removeMapping(Timer t) {
+      Behaviour b = (Behaviour)TtoB.remove(t);
+      if(b != null) {
+	BtoT.remove(b);
+      }
+    }
+
+    public synchronized Timer getPeer(Behaviour b) {
+      return (Timer)BtoT.get(b);
+    }
+
+    public synchronized Behaviour getPeer(Timer t) {
+      return (Behaviour)TtoB.get(t);
+    }
+
+  }
+
+  private static TimerDispatcher theDispatcher;
+
+  static void setDispatcher(TimerDispatcher td) {
+    if(theDispatcher == null) {
+      theDispatcher = td;
+      theDispatcher.start();
+    }
+  }
+
+  static void stopDispatcher() {
+    theDispatcher.stop();
+  }
+
+  /**
+     Schedules a restart for a behaviour, after a certain amount of
+     time has passed.
+     @param b The behaviour to restart later.
+     @param millis The amount of time to wait before restarting
+     <code>b</code>.
+     @see jade.core.behaviours.Behaviour#block(long millis)
+  */
+  public void restartLater(Behaviour b, long millis) {
+    Timer t = new Timer(System.currentTimeMillis() + millis, this);
+    pendingTimers.addPair(b, t);
+    theDispatcher.add(t);
+  }
+
+  // Restarts the behaviour associated with t. This method runs within
+  // the time-critical Timer Dispatcher thread.
+  void doTimeOut(Timer t) {
+    Behaviour b = pendingTimers.getPeer(t);
+    if(b != null) {
+      activateBehaviour(b);
+    }
+  }
+
+  /**
+     Notifies this agent that one of its behaviours has been restarted
+     for some reason. This method clears any timer associated with
+     behaviour object <code>b</code>, and it is unneeded by
+     application level code. To explicitly schedule behaviours, use
+     <code>block()</code> and <code>restart()</code> methods.
+     @param b The behaviour object which was restarted.
+     @see jade.core.behaviours.Behaviour#restart()
+  */
+  public void notifyRestarted(Behaviour b) {
+    Timer t = pendingTimers.getPeer(b);
+    if(t != null) {
+      pendingTimers.removeMapping(b);
+      theDispatcher.remove(t);
+    }
   }
 
   /**
@@ -407,6 +505,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private Thread myThread;
   private Scheduler myScheduler;
+
+  private AssociationTB pendingTimers = new AssociationTB();
 
   /**
      The <code>Behaviour</code> that is currently executing.
@@ -507,14 +607,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return msgQueue.getMaxSize();
   }
 
-
-  /**
-     Schedules a restart for a behaviour, after a certain amount of
-     time has passed.
-  */
-  public void restartLater(Behaviour b, long millis) {
-
-  }
 
   /**
      Read current agent state. This method can be used to query an
@@ -1554,6 +1646,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       CommListener l = (CommListener)i.next();
       l.endSource(myName);
     }
+  }
+
+  private void activateBehaviour(Behaviour b) {
+    blockedBehaviours.remove(b);
+    b.restart();
+    myScheduler.add(b);
   }
 
   private void activateAllBehaviours() {
