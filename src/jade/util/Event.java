@@ -161,10 +161,21 @@ import java.util.EventObject;
 	}	
 	
 	/**
-	   Reset the "processed" status of this <code>Event</code>
+	   Reset the status of this <code>Event</code>
 	 */
-	public synchronized void resetProcessed() {
+	public synchronized void reset() {
 		processed = false;
 		processingResult = null;
+		param.removeAllElements();
 	}
+	
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	   Reset the status of this <code>Event</code>
+	   @deprecated Use <code>reset()</code> instead
+	 */
+	public void resetProcessed() {
+		reset();
+	}
+	//#MIDP_EXCLUDE_END
 }
