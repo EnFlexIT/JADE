@@ -338,12 +338,16 @@ public class AchieveREInitiator extends FSMBehaviour {
 			
 			ret = ALL_RESPONSES_RECEIVED;
 			// remove all the sessions for which no response has been received
+			List sessionsToRemove = new ArrayList(sessions.size());
 			for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
 			    Object key = i.next();
 			    Session s = (Session)sessions.get(key);
 			    if ( s.getState() == INIT )
-				sessions.remove(key);
+				  sessionsToRemove.add(key);
 			}
+			for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); )
+				sessions.remove(i.next());
+			sessionsToRemove=null;  //frees memory	
 		    }else{
 			int perf = msg1.getPerformative();
 			if (isResponse(perf) && !allResponsesReceived) {
