@@ -70,6 +70,11 @@ public class AID implements Cloneable, Comparable, Serializable {
   }
 
   /** Constructor for an Agent-identifier
+   * This constructor (which is deprecated), examines the name
+   * to see if the "@" chararcter is present.  If so, it calls 
+   * <code> this(name, ISGUID)<code> 
+   * otherwise it calls <code>this(name, ISLOCALNAME)</code>
+   * This ensures better compatibility with JADE2.2 code.
    * @param guid is the Globally Unique identifer for the agent. The slot name
    * assumes that value in the constructed object. 
    * @deprecated This constructor might generate a wrong AID, if
