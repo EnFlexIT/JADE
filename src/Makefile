@@ -109,7 +109,8 @@ idl: $(IDLSTUBS)
 	@echo IDL stubs and skeletons generated
 
 $(IDLSTUBS): $(IDLSPEC)
-	$(IDLCC) $<
+	# $(IDLCC) $<
+	@echo IDL files not generated because of bug in the IDL compiler
 
 parsers: ACLParser SL0Parser
 	@echo Parsers generated
@@ -159,7 +160,7 @@ batch:
 	echo '@REM ===============================================================' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'cd src' >> $(BATCH_ALL)
-	echo $(IDLCC) $(IDLSPEC) >> $(BATCH_ALL)
+	echo '@REM idltojava not executed because of a bug in the idl compiler' $(IDLCC) $(IDLSPEC) >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
