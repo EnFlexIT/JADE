@@ -417,9 +417,12 @@ public class AgentManagementService extends BaseService {
 		targetSlice.exitContainer();
 	    }
 	    catch(IMTPException imtpe) {
-		// Try to get a newer slice and repeat...
-		targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-		targetSlice.exitContainer();
+				// Try to get a newer slice and repeat...
+	    	targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+	    	if (targetSlice != null) {
+	    		// If target slice is null the container has already exited in the meanwhile
+					targetSlice.exitContainer();
+	    	}
 	    }
 
 	}
@@ -515,7 +518,6 @@ public class AgentManagementService extends BaseService {
 	    String ownership = (String)params[3];
 	    CertificateFolder certs = (CertificateFolder)params[4];
 	    boolean startIt = ((Boolean)params[5]).booleanValue();
-
 	    createAgent(agentID, className, arguments, ownership, certs, startIt);
 	}
 
@@ -866,7 +868,7 @@ public class AgentManagementService extends BaseService {
 
 
     private void initAgent(AID target, Agent instance, boolean startIt) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
-	// Connect the new instance to the local container
+  // Connect the new instance to the local container
 	Agent old = myContainer.addLocalAgent(target, instance);
 
 	try {
