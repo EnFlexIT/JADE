@@ -43,6 +43,15 @@
 				<include name="**/jade/core/ProfileImpl.java"/>
 				<include name="**/jade/imtp/**"/>
 				<include name="**/jade/util/leap/**"/>
+				
+				<include name="**/jade/MicroBoot.java"/>
+				<include name="**/jade/core/MicroRuntime.java"/>
+				<include name="**/jade/core/BackEnd.java"/>
+				<include name="**/jade/core/BackEndContainer.java"/>
+				<include name="**/jade/core/BEConnectionManager.java"/>
+				<include name="**/jade/core/FrontEnd.java"/>
+				<include name="**/jade/core/FrontEndContainer.java"/>
+				<include name="**/jade/core/FEConnectionManager.java"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
@@ -119,7 +128,7 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" if="pjava" depends="do-parsers"
+	<target name="do-compile" if="pjava" depends="do-setup, do-parsers"
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${classes}"

@@ -63,6 +63,7 @@
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
 				<exclude name="**/parsers/**"/>
+				<exclude name="**/jade/core/Agent.java"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
@@ -127,7 +128,7 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" if="midp" depends="do-parsers"
+	<target name="do-compile" if="midp" depends="do-setup, do-parsers"
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${unverified}"

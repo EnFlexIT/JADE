@@ -14,17 +14,18 @@ import java.io.*;
 public class Preprocessor extends Task {
 	// File exclusion markers
 	private static final String ALL_EXCLUDE_FILE_MARKER = "//#ALL_EXCLUDE_FILE"; 
+	private static final String J2SE_EXCLUDE_FILE_MARKER = "//#J2SE_EXCLUDE_FILE";
 	private static final String J2ME_EXCLUDE_FILE_MARKER = "//#J2ME_EXCLUDE_FILE";
 	private static final String PJAVA_EXCLUDE_FILE_MARKER = "//#PJAVA_EXCLUDE_FILE";
 	private static final String MIDP_EXCLUDE_FILE_MARKER = "//#MIDP_EXCLUDE_FILE";
 	
-	// Code exclusion/inclusion markers
+	// Code exclusion/inclusion markers. Note that the LEAP preprocessor
+	// directives are conceived so that the non-preprocessed version of
+	// a file is the version for J2SE (except for JADE-only code) -->
+	// There is no need for J2SE specific code exclusion/inclusion markers
 	private static final String ALL_EXCLUDE_BEGIN_MARKER = "//#ALL_EXCLUDE_BEGIN"; 
 	private static final String ALL_EXCLUDE_END_MARKER = "//#ALL_EXCLUDE_END";
-	
-	private static final String J2SE_INCLUDE_BEGIN_MARKER = "//#J2SE_INCLUDE_BEGIN"; 
-	private static final String J2SE_INCLUDE_END_MARKER = "//#J2SE_INCLUDE_END";
-	
+		
 	private static final String J2ME_EXCLUDE_BEGIN_MARKER = "//#J2ME_EXCLUDE_BEGIN"; 
 	private static final String J2ME_EXCLUDE_END_MARKER = "//#J2ME_EXCLUDE_END";
 	private static final String J2ME_INCLUDE_BEGIN_MARKER = "/*#J2ME_INCLUDE_BEGIN"; 
@@ -48,9 +49,15 @@ public class Preprocessor extends Task {
 	private static final String J2SE = "j2se"; 
 	private static final String PJAVA = "pjava"; 
 	private static final String MIDP = "midp"; 
+	
+	// Preprocessing results
+	private static final int KEEP = 0; 
+	private static final int OVERWRITE = 1; 
+	private static final int REMOVE = 2; 
 
 	private boolean verbose = false;
 	private int removedCnt = 0;
+	private int modifiedCnt = 0;
 	
 	// The file that is being preprocessed
 	private String target;
@@ -96,7 +103,8 @@ public class Preprocessor extends Task {
 				for (int i = 0; i < files.length; ++i) {
 					execute(d.getPath()+"/"+files[i]);
 				}
-				System.out.println("Removed "+removedCnt+" files.");
+				System.out.println("Modified "+modifiedCnt+" files.");
+				System.out.println("Removed  "+removedCnt+" files.");
 			}
 			else {
 				throw new BuildException("Error: "+basedir+" is not a directory.");
@@ -176,33 +184,43 @@ public class Preprocessor extends Task {
 					ALL_EXCLUDE_BEGIN_MARKER};
 				eems = new String[] {
 					ALL_EXCLUDE_END_MARKER};
-				ims = new String[] {
-					J2SE_INCLUDE_BEGIN_MARKER, 
-					J2SE_INCLUDE_END_MARKER}; 
+				ims = new String[] {};
 				efms = new String[] {
-					ALL_EXCLUDE_FILE_MARKER};
+					ALL_EXCLUDE_FILE_MARKER,
+					J2SE_EXCLUDE_FILE_MARKER};
 			}
 			else {
 				throw new BuildException("Unknown pre-processing type ("+type+") for file "+file);
 			}
 
 			// Preprocess
-			boolean keepFile = preprocess(reader, writer, ebms, eems, ims, efms);
+			int result = preprocess(reader, writer, ebms, eems, ims, efms);
 			
 			// Close both streams
 			reader.close();
 			writer.close();
 			
-			// Overwrite the target file with the preprocessed file or 
-			// remove both if the file must be excluded
-			if (!targetFile.delete()) {
-				System.out.println("Can't overwrite target file with preprocessed file");
-				throw new BuildException("Can't overwrite target file "+target+" with preprocessed file");
-			} 
-			if (keepFile) {
+			switch (result) {
+			case OVERWRITE:
+				// The preprocessing modified the target file. 
+				// Overwrite it with the preprocessed one
+				if (!targetFile.delete()) {
+					System.out.println("Can't overwrite target file with preprocessed file");
+					throw new BuildException("Can't overwrite target file "+target+" with preprocessed file");
+				} 
 				preprocFile.renameTo(targetFile);
-			}
-			else {
+				if (verbose) {
+					System.out.println("File "+preprocFile.getName()+" modified.");
+				}
+				modifiedCnt++;
+				break;
+			case REMOVE:
+				// The preprocessing found that the target file must be excluded.
+				// Remove both the target file and the preprocessed one
+				if (!targetFile.delete()) {
+					System.out.println("Can't delete target file");
+					throw new BuildException("Can't delete target file "+target);
+				} 
 				if (!preprocFile.delete()) {
 					System.out.println("Can't delete temporary preprocessed file "+preprocFile.getName());
 					throw new BuildException("Can't delete temporary preprocessed file "+preprocFile.getName());
@@ -211,6 +229,17 @@ public class Preprocessor extends Task {
 					System.out.println("File "+preprocFile.getName()+" removed.");
 				}
 				removedCnt++;
+				break;
+			case KEEP:
+				// The preprocessing didn't touch the target file.
+				// Just removed the preprocessed file
+				if (!preprocFile.delete()) {
+					System.out.println("Can't delete temporary preprocessed file "+preprocFile.getName());
+					throw new BuildException("Can't delete temporary preprocessed file "+preprocFile.getName());
+				}
+				break;
+			default:
+				throw new BuildException("Unexpected preprocessing result for file "+preprocFile.getName());
 			}
 		}
 		catch (Exception e) {
@@ -219,9 +248,10 @@ public class Preprocessor extends Task {
 		}
 	}
 
-	private boolean preprocess(BufferedReader reader, BufferedWriter writer, String[] excludeBeginMarkers, String[] excludeEndMarkers, String[] includeMarkers, String[] excludeFileMarkers) throws IOException { 
+	private int preprocess(BufferedReader reader, BufferedWriter writer, String[] excludeBeginMarkers, String[] excludeEndMarkers, String[] includeMarkers, String[] excludeFileMarkers) throws IOException { 
 		String line = null;
 		boolean skip = false;
+		int result = KEEP;
 		String nextExcludeEndMarker = null;
 		while (true) {
 			line = reader.readLine();
@@ -233,13 +263,14 @@ public class Preprocessor extends Task {
 			
 			// Check if this is an exclude-file marker
 			if (isMarker(trimmedLine, excludeFileMarkers)) {
-				return false;
+				return REMOVE;
 			}
 			
 			if (!skip) {
 				// Normal processing: Check if this is a BEGIN_EXCLUDE Marker
 				if (isMarker(trimmedLine, excludeBeginMarkers)) {
 					// Enter SKIP mode
+					result = OVERWRITE;
 					skip = true;
 					nextExcludeEndMarker = getExcludeEndMarker(trimmedLine, excludeEndMarkers);
 				}
@@ -249,6 +280,9 @@ public class Preprocessor extends Task {
 					if (!isMarker(trimmedLine, includeMarkers)) {
 						writer.write(line);
 						writer.newLine();
+					}
+					else {
+						result = OVERWRITE;
 					}
 				}
 			}
@@ -261,7 +295,7 @@ public class Preprocessor extends Task {
 				}
 			}
 		}
-		return true;
+		return result;
 	}
 
 	private boolean isMarker(String s, String[] markers) {

@@ -208,7 +208,7 @@
 
 	
 	<!-- ******** The COMPLETE build process ********* -->
-	<target name="rebuild" depends="reset, setup, jar"
+	<target name="rebuild" depends="reset, jar"
 	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
 
 	<target name="complete" depends="all, rebuild, javadoc"
@@ -228,7 +228,6 @@
 	        description="Create the LEAP snapshot file">
 		<echo> To be implemented </echo>
 	</target>
-
 
 	<!-- ******** LEAP tools for ant ******** -->
 
