@@ -1,5 +1,13 @@
 /*
   $Log$
+  Revision 1.32  1999/03/17 12:55:26  rimassa
+  Implemented a complete, general caching mechanism for agent addresses,
+  using the same cache to keep local and remote agent proxies. Besides,
+  caching works now independently from the specific remote protocol used
+  for message transport (i.e. RMI, CORBA or other).
+  Now a cached local proxy can fault and be replaced with a remote one,
+  thus setting some bases for agent mobility.
+
   Revision 1.31  1999/03/15 15:25:10  rimassa
   Changed priority setting for user agents.
 
@@ -159,8 +167,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // Local agents, indexed by agent name
   protected Hashtable localAgents = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
-  // Remote agents cache, indexed by agent name
-  private Hashtable remoteAgentsCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+  // Agents cache, indexed by agent name
+  private Hashtable agentCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
   // The agent platform this container belongs to
   protected AgentPlatform myPlatform;
@@ -215,7 +223,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
 
-    AgentDescriptor desc = new AgentDescriptor();
+    RemoteProxyRMI rp = new RemoteProxyRMI(this);
 
     // Subscribe as a listener for the new agent
     instance.addCommListener(this);
@@ -223,10 +231,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Insert new agent into local agents table
     localAgents.put(agentName.toLowerCase(), instance);
 
-    desc.setContainer(this, myName);
-
     try {
-      myPlatform.bornAgent(agentName, desc); // RMI call
+      myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
     }
     catch(NameClashException nce) {
       System.out.println("Agent name already in use");
@@ -299,10 +305,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void ping() throws RemoteException {
-  }
-
-  public void invalidateCacheEntry(String key) throws RemoteException {
-    remoteAgentsCache.remove(key);
   }
 
   public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
@@ -410,7 +412,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     try {
 
       localAgents.remove(name);
-      myPlatform.deadAgent(name); // RMI call
+      myPlatform.deadAgent(name + '@' + platformAddress); // RMI call
 
     }
     catch(RemoteException re) {
@@ -452,90 +454,91 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     String receiverName = null;
     String receiverAddr = null;
 
+    completeName = completeName.toLowerCase();
+
     int atPos = completeName.indexOf('@');
     if(atPos == -1) {
       receiverName = completeName;
-      receiverAddr = platformAddress;
+      receiverAddr = platformAddress.toLowerCase();
+      completeName = completeName.concat('@' + receiverAddr);
     }
     else {
       receiverName = completeName.substring(0,atPos);
       receiverAddr = completeName.substring(atPos + 1);
     }
 
-    if(receiverAddr.equalsIgnoreCase(platformAddress)) {
+    // Starting from here, all three String objects must be lower case.
 
-      // Look up in local agents.
-      Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
-
-      if(receiver != null)
-	receiver.postMessage(msg);
-      else
-	// Search failed; look up in remote agents.
-	postRemote(msg, receiverName);
-
-      // If it fails again, ask the Agent Platform.
-      // If still fails, raise NotFound exception.
-    }
-    else
-      // Use IIOP for inter-platform communication
-      postOtherPlatform(msg, receiverName, receiverAddr);
-
-  }
-
-  private void postRemote(ACLMessage msg, String receiverName) {
-
-    // Look first in descriptor cache
-    AgentDescriptor desc = (AgentDescriptor)remoteAgentsCache.get(receiverName.toLowerCase());
-    try {
-
-      if(desc == null) { // Cache miss :-( . Ask agent platform and update agent cache
-	desc = myPlatform.lookup(receiverName); // RMI call
-	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
-      }
-      AgentContainer ac = desc.getContainer();
+    AgentProxy ap = (AgentProxy)agentCache.get(completeName);
+    if(ap != null) { // Cache hit :-)
       try {
-	ac.dispatch(msg); // RMI call
+	ap.dispatch(msg);
       }
-      catch(RemoteException re) { // Communication error: retry with a newer object reference from the platform
-	remoteAgentsCache.remove(receiverName.toLowerCase());
-	desc = myPlatform.lookup(receiverName); // RMI call
-	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
-	ac = desc.getContainer();
-	ac.dispatch(msg); // RMI call
+      catch(NotFoundException nfe1) { // Stale cache entry
+	agentCache.remove(completeName);
+	try {
+          AgentProxy freshOne = getFreshProxy(receiverName, receiverAddr);
+	  freshOne.dispatch(msg);
+	  agentCache.put(completeName, freshOne);
+	}
+	catch(NotFoundException nfe2) { // Some serious problem
+	  System.err.println("Agent " + receiverName + " was not found on agent platform");
+	  System.err.println("Message from platform was: " + nfe2.getMessage());
+	}
+      }
+    }
+
+    else { // Cache miss :-(
+
+      try {
+	AgentProxy newOne = getFreshProxy(receiverName, receiverAddr);
+	newOne.dispatch(msg);
+	agentCache.put(receiverName, newOne);
+      }
+      catch(NotFoundException nfe) { // Some serious problem
+	System.err.println("Agent " + receiverName + " was not found on agent platform");
+        System.err.println("Message from platform was: " + nfe.getMessage());
       }
 
     }
-    catch(NotFoundException nfe) {
-      System.err.println("Agent " + receiverName + " was not found on agent platform");
-      System.err.println("Message from platform was: " + nfe.getMessage());
-      // nfe.printStackTrace();
-    }
-    catch(RemoteException re) {
-      System.out.println("Communication error while contacting agent platform");
-      re.printStackTrace();
-    }
+
   }
 
-  private void postOtherPlatform(ACLMessage msg, String receiverName, String receiverAddr) {
-    try {
-      OutGoingIIOP outChannel = new OutGoingIIOP(myORB, receiverAddr);
-      FIPA_Agent_97 dest = outChannel.getObject();
+  private AgentProxy getFreshProxy(String name, String addr) throws NotFoundException {
+    AgentProxy result = null;
 
-      String sender = msg.getSource();
-      if(sender.indexOf('@') == -1)
-        msg.setSource(sender + '@' + platformAddress);
+    // Look first in local agents
+    Agent a = (Agent)localAgents.get(name);
+    if(a != null)
+      result = new LocalProxy(a);
+    else { // Agent is not local
 
-      StringWriter msgText = new StringWriter();
-      msg.toText(msgText);
-      dest.message(msgText.toString()); // CORBA call
+      // Maybe it's registered with this AP on some other container...
+      try {
+        result = myPlatform.getProxy(name, addr); // RMI call
+      }
+      catch(RemoteException re) {
+	System.out.println("Communication error while contacting agent platform");
+	re.printStackTrace();
+      }
+      catch(NotFoundException nfe) { // Agent is neither local nor registered with this platform
+
+        // Then it must be reachable using IIOP
+	try {
+	  OutGoingIIOP outChannel = new OutGoingIIOP(myORB, addr);
+	  FIPA_Agent_97 dest = outChannel.getObject();
+	  result = new RemoteProxyIIOP(dest, platformAddress);
+	}
+	catch(IIOPFormatException iiopfe) { // Invalid address
+	  throw new NotFoundException("Invalid agent address: [" + iiopfe.getMessage() + "]");
+	}
+
+      }
+
     }
-    catch(IIOPFormatException iiopfe) {
-      iiopfe.printStackTrace();
-    }
-    catch(org.omg.CORBA.SystemException oocse) {
-      System.out.println("Communication error while contacting foreign agent platform");
-      oocse.printStackTrace();
-    }
+
+    return result;
+
   }
 
 }
