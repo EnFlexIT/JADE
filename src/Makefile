@@ -32,8 +32,7 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
-		jade/mtp/iiop/MessageTransportProtocol.java
-
+		jade/mtp/iiop/MessageTransportProtocol.java \
 #		jade/tools/sniffer/Sniffer.java \
 #		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 #		jade/tools/applet/DFApplet.java \
