@@ -22,18 +22,15 @@
  */
 package jade.core;
 
+import jade.util.WrapperException;
+
 /**
  * This class represents an exception related to JADE profile creation
  * or management.
  *
  * @author Giovanni Caire - TILAB
  */
-public class ProfileException extends Exception {
-
-    /**
-     * Construct a <code>ProfileException</code> with no message.
-     */
-    public ProfileException() {}
+public class ProfileException extends WrapperException {
 
     /**
      * Construct a <code>ProfileException</code> with the given message.
@@ -43,5 +40,14 @@ public class ProfileException extends Exception {
         super(msg);
     }
 
+  /**
+   * Constructs a <code>ProfileException</code> with the specified detail message,
+   * wrapping the given <code>Throwable</code>object.
+   * @param msg The detail message.
+   * @param t The exception to wrap.
+   */
+  public ProfileException(String msg, Throwable t) {
+    super(msg, t);
+  }
 }
 

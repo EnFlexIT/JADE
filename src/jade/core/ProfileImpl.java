@@ -349,7 +349,7 @@ public class ProfileImpl extends Profile {
 	      myServiceFinder = myIMTPManager.createServiceFinderProxy();
 	  }
 	  catch(IMTPException imtpe) {
-	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Finder");
+	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Finder", imtpe);
 	      throw pe;
 	  }
 	  #MIDP_INCLUDE_END*/
@@ -460,7 +460,7 @@ public class ProfileImpl extends Profile {
 	    }
 	}
 	catch(IMTPException imtpe) {
-	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager", imtpe);
 	    throw pe;
 	}
     }
@@ -485,7 +485,7 @@ public class ProfileImpl extends Profile {
 	    }
 	}
 	catch(IMTPException imtpe) {
-	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager", imtpe);
 	    throw pe;
 	}
     }
@@ -496,7 +496,7 @@ public class ProfileImpl extends Profile {
 	    myCommandProcessor = new CommandProcessor();
 	}
 	catch(Exception e) {
-	    ProfileException pe = new ProfileException("Exception creating the Command Processor");
+	    ProfileException pe = new ProfileException("Exception creating the Command Processor", e);
 	    throw pe;
 	}
     }
@@ -582,7 +582,7 @@ public class ProfileImpl extends Profile {
 			return l1;
     }
     catch (Exception e) {
-    	throw new ProfileException("Error parsing specifier list "+specsLine+". "+e.getMessage());
+    	throw new ProfileException("Error parsing specifier list "+specsLine+".", e);
     }
   }
 
