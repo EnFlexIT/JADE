@@ -235,9 +235,22 @@ String String() :
 { Token t;}
 {
   t=<WORD>		{return t.image;}
-| t=<STRING_LITERAL>	{return (t.image.equalsIgnoreCase("\"action\"")?"action":t.image);} // the opposite has been done in SL0Encoder in order to avoid conflict with the token "action"
+| t=<STRING_LITERAL>	{ /* Take a quoted FIPA SL0 String and convert to a 
+                           * normal Java-style String.  Remove the
+                           * leading/trailing quotation marks, and
+                           * un-escape any included quotation marks.
+                           * This must be the exact inverse of the 
+                           * quotedString() procedure in the SL0Encoder.
+                           */
+                          StringBuffer result = new StringBuffer(t.image.length());
+                          for( int i=1; i<t.image.length()-1; i++)
+                            if( t.image.charAt(i) == '\\' && t.image.charAt(i+1) == '\"' ) 
+                              result.append("\"");
+                            else
+                              result.append(t.image.charAt(i));
+                          return result.toString();
+                        }
 }
-
 Object Number():
 { 
   Token t;
@@ -277,18 +290,11 @@ TOKEN:
 | < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
                     (["e","E"] (["-","+"])? (["0"-"9"])+)? >
 | < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
-| < WORD: (~["\u0000"-"\u001F"," ","(",")","\"","#","0"-"9",":","-","?"]) 
-          (~["\u0000"-"\u001F"," ","(",")"])* >
+| < WORD: (~["\u0000"-"\u0020","(",")","\"","#","0"-"9",":","-","?"]) 
+          (~["\u0000"-"\u0020","(",")","\""])* >
 | < STRING_LITERAL:
       "\""
-      (   (~["\"","\\","\n","\r"])
-        | ("\\"
-            ( ["n","t","b","r","f","\\","'","\""]
-            | ["0"-"7"] ( ["0"-"7"] )?
-            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
-            )
-          )
-      )*
+      ( (~["\""]) | "\\\"" )*
       "\""
   >
 | < PARAMETERNAME : ":"<WORD> | ":"<STRING_LITERAL> >

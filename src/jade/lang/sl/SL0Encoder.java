@@ -37,6 +37,8 @@ import jade.lang.Codec;
   
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
+ * Modified by:
+ * @author Craig Sayers, HP Labs, Palo Alto, California
  */
 class SL0Encoder {
 
@@ -72,42 +74,55 @@ class SL0Encoder {
 	  		if (!slotName.startsWith(":"))
 	    		w.write(":");
 	  		// if the slotName is a String of words then quote it
-	  		if (slotName.indexOf(" ")>-1) 
-	    		w.write("\""+slotName+"\"");
+	  		if (isAWord(slotName)) 
+	    		    w.write(slotName);
 	  		else
-	    		w.write(slotName);
+	    		    w.write(quotedString(slotName));
 	  		w.write(" ");
 			}
 			if (isFrame(slotValue))
-	  		writeFrame((Frame)slotValue, w);
-			else if (slotValue.getClass().equals(java.util.Date.class))
-	  		// if it is a Date then write a DateTimetoken
-	  		// I wanted to use an SLDate that extends Date but, if I did
-	  		// then the ontology would no more be language-independent!
-	  		w.write(jade.lang.acl.ISO8601.toString((java.util.Date)slotValue));
-	  	else if (slotValue.getClass().equals(java.lang.Byte[].class))
-	  		throw new Codec.CodecException("SL0 does not support bynary fields", null);
-			else {
-	  		// If the stringified slot value is a String of words or is the empty string then quote it.
-	  		String stringifiedValue = slotValue.toString();
-	  		if (mustBeQuoted(stringifiedValue))
-			  w.write("\""+stringifiedValue+"\"");
-			else
-			  w.write(stringifiedValue);
+	  		    writeFrame((Frame)slotValue, w);
+                        else if (slotValue.getClass().equals(java.util.Date.class))
+	  		    // if it is a Date then write a DateTimetoken
+	  		    // I wanted to use an SLDate that extends Date but, if I did
+	  		    // then the ontology would no more be language-independent!
+	  		    w.write(jade.lang.acl.ISO8601.toString((java.util.Date)slotValue));
+			else if (slotValue.getClass().equals(java.lang.String.class)) {
+                            String stringifiedValue = slotValue.toString();
+                            if( isAWord(stringifiedValue) && ! isAToken(stringifiedValue) )
+                                w.write(stringifiedValue);
+                            else
+                                w.write(quotedString(stringifiedValue));
 			}
+                        else if (slotValue.getClass().equals(java.lang.Byte[].class)) 
+	  		    throw new Codec.CodecException("SL0 does not support binary fields", null);
+                        else {
+                            // Its not date, string, or byte, so the regular toString will work
+                            w.write(slotValue.toString());
+                        }
 			w.write(" ");
 		}
     w.write(")");
   }
 
-  private boolean mustBeQuoted(String s) {
-    s.trim();
-    if ((s.charAt(0) == '\"') && (s.charAt(s.length()-1) == '\"'))
-      return false;
-    else if (s.indexOf(" ") > -1 || s.equals("") || isAToken(s))
+  /**
+   * Test if the given string is a legal SL0 word using the FIPA XC00008D spec.
+   * In addition to FIPA's restrictions, place the additional restriction 
+   * that a Word can not contain a '\"', that would confuse the parser at
+   * the other end.
+   */
+  private boolean isAWord( String s)
+  {
+      String illegalFirstChar = new String("#0123456789:-?");
+     
+      if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 )
+          return false;
+      
+      for( int i=0; i< s.length(); i++)
+          if( s.charAt(i) == '"' || s.charAt(i) == '(' || 
+              s.charAt(i) == ')' || s.charAt(i) <= 0x20 )
+            return false;
       return true;
-    else
-      return false;
   }
 
   /**
@@ -115,6 +130,30 @@ class SL0Encoder {
     **/
   private boolean isAToken(String str) {
     return str.equalsIgnoreCase(SL0Codec.NAME_OF_ACTION_FRAME);  
+  }
+
+  /** 
+   * Take a java String and quote it to form a legal FIPA SL0 string.
+   * Add quotation marks to the beginning/end and escape any 
+   * quotation marks inside the string.
+   * This must be the exact inverse of the procedure in
+   * the parser (SL0Parser.jj) when it encounters a quoted string.
+   */
+  private String quotedString(String s)
+  {
+      // Make the stringBuffer a little larger than strictly
+      // necessary in case we need to insert any additional
+      // characters.  (If our size estimate is wrong, the
+      // StringBuffer will automatically grow as needed).
+      StringBuffer result = new StringBuffer(s.length()+20);
+      result.append("\"");
+      for( int i=0; i<s.length(); i++)
+          if( s.charAt(i) == '"' ) 
+              result.append("\\\"");
+          else 
+              result.append(s.charAt(i));
+      result.append("\"");
+      return result.toString();
   }
 
    private boolean isFrame(Object f) {
