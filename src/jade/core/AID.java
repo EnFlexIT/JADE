@@ -36,8 +36,6 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import java.util.Enumeration;
 
-import jade.lang.acl.StringACLCodec;
-
 /**
  This class represents a JADE Agent Identifier. JADE internal agent
  tables use this class to record agent names and addresses.
@@ -269,13 +267,19 @@ public class AID implements Comparable, Serializable {
     return userDefSlots;
   }
 
-
+		
     /**
      * @return the String full representation of this AID
      **/
     public String toString() {
-	StringBuffer s = new StringBuffer("( agent-identifier ");
-	StringACLCodec.appendACLExpression(s,":name",name);
+    	StringBuffer s = new StringBuffer("( agent-identifier ");
+    	//#MIDP_EXCLUDE_BEGIN
+			jade.lang.acl.StringACLCodec.appendACLExpression(s,":name",name);
+    	//#MIDP_EXCLUDE_END
+    	/*#MIDP_INCLUDE_BEGIN
+    	s.append(":name "+name);
+    	#MIDP_INCLUDE_END*/
+			
 
 	if (addresses.size()>0)
 	    s.append(" :addresses (sequence ");
