@@ -39,7 +39,7 @@ import java.util.Map;
   */
 public interface AgentManager {
 
-  static final String MAIN_CONTAINER_NAME = "Front-End";
+  static final String MAIN_CONTAINER_NAME = "Main-Container";
   static final String AUX_CONTAINER_NAME = "Container-";
 
   /**
