@@ -732,6 +732,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   // FIXME: Needed due to the Persistence Service being an add-on
+  public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
+      GenericCommand cmd = new GenericCommand("Reload-Myself", "jade.core.persistence.Persistence", null);
+      cmd.addParam(agentID);
+      cmd.addParam(repository);
+      myCommandProcessor.processOutgoing(cmd);
+  }
+
+  // FIXME: Needed due to the Persistence Service being an add-on
   public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
       GenericCommand cmd = new GenericCommand("Freeze-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
@@ -745,7 +753,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(id);
       myCommandProcessor.processOutgoing(cmd);
   }
-	
+
   public AID getAMS() {
     return (AID)theAMS.clone();
   }

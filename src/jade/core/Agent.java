@@ -456,7 +456,7 @@ public class Agent implements Runnable, Serializable
      replaced with a new one retrieved from a persistent data
      repository.
   */
-  static final int AP_LOADING = 11;
+  static final int AP_RELOADING = 11;
 
   /**
      Represents the <code>frozen</code> agent state. This is similar
@@ -1143,6 +1143,29 @@ public class Agent implements Runnable, Serializable
       }      
   }
 
+  public void requestReload(String repository) {
+      // Do nothing if the persistence service is not installed
+      try {
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+      }
+      catch(ServiceException se) {
+	  // Do nothing
+	  return;
+      }
+
+      synchronized(stateLock) {
+	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
+	      myBufferedState = myAPState;
+	      changeStateTo(AP_RELOADING);
+	      myRepository = repository;
+
+	      // Real action will be executed in the embedded thread
+	      if(!myThread.equals(Thread.currentThread()))
+		  myThread.interrupt();
+	  }
+      }
+  }
 
   // External method, is to be called from other threads
   public void requestFreeze(String repository, ContainerID bufferContainer) {
@@ -1623,6 +1646,10 @@ public class Agent implements Runnable, Serializable
 	  doExecute();
 	  afterLoad();
 	  break;
+      case AP_RELOADING:
+	  doExecute();
+	  afterReload();
+	  break;
       case AP_FROZEN:
 	  doExecute();
 	  afterThaw();
@@ -1670,6 +1697,8 @@ public class Agent implements Runnable, Serializable
       case AP_GONE:
 	break;
       case AP_FROZEN:
+	  break;
+      case AP_RELOADING:
 	  break;
       default:
       	terminating = true;
@@ -1799,6 +1828,22 @@ public class Agent implements Runnable, Serializable
   */
   protected void afterLoad() {}
 
+  /**
+    Actions to perform before reloading. This empty placeholder method
+    can be overridden by user defined agents to execute some actions
+    just before the agent thread terminates (and before a new thread
+    is started that will execute the newly reloaded agent).
+  */
+  protected void beforeReload() {}
+
+  /**
+     Actions to perform after reloading. This empty placeholder method
+     can be overridden by user defined agents to execute some actions
+     just after a new thread has started executing the newly reloaded
+     agent (and before the thread enters the main agent execution
+     loop.
+  */
+  protected void afterReload() {}
 
   /**
     Actions to perform before freezing. This empty placeholder method can be
@@ -1949,9 +1994,17 @@ public class Agent implements Runnable, Serializable
 	    }
 	    // FIXME: Should an user-defined afterSave() method be called?
 	    break;
-	case AP_LOADING:
-	    // FIXME: To be implemented
-	    doExecute();
+	case AP_RELOADING:
+	    try {
+		beforeReload();
+		notifyReload();
+		return;
+	    }
+	    catch(Exception e) {
+		// Something went wrong
+		e.printStackTrace();
+		doExecute();
+	    }
 	    break;
 	case AP_FROZEN:
 	  try {
@@ -2459,6 +2512,18 @@ public class Agent implements Runnable, Serializable
 	  // FIXME: There should be a constant defined somewhere in the JADE distribution
 	  getHelper("jade.core.persistence.Persistence");
 	  myToolkit.handleSave(myAID, myRepository);
+      }
+      catch(ServiceException se) {
+	  // Do nothing...
+      }
+  }
+
+  private void notifyReload() throws ServiceException, NotFoundException, IMTPException {
+      try {
+
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+	  myToolkit.handleReload(myAID, myRepository);
       }
       catch(ServiceException se) {
 	  // Do nothing...
