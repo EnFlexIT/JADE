@@ -106,27 +106,29 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 
 		JMenu currentMsgMenu = new JMenu ("Current message");
-		currentMsgMenu.add (item = new JMenuItem ("New"));
+		currentMsgMenu.add (item = new JMenuItem ("Reset"));
+		item.addActionListener (this);
+		currentMsgMenu.add (item = new JMenuItem ("Send"));
 		item.addActionListener (this);
 		currentMsgMenu.add (item = new JMenuItem ("Open"));
 		item.addActionListener (this);
 		currentMsgMenu.add (item = new JMenuItem ("Save"));
 		item.addActionListener (this);
 		currentMsgMenu.addSeparator();
-		currentMsgMenu.add (item = new JMenuItem ("Send"));
-		item.addActionListener (this);
 		jmb.add (currentMsgMenu);
 
 		JMenu queuedMsgMenu = new JMenu ("Queued message");
-		queuedMsgMenu.add (item = new JMenuItem ("View"));
-		item.addActionListener (this);
-		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
-		item.addActionListener (this);
-		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
-		item.addActionListener (this);
 		queuedMsgMenu.add (item = new JMenuItem ("Open queue"));
 		item.addActionListener (this);
 		queuedMsgMenu.add (item = new JMenuItem ("Save queue"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Reply"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("View"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
 		item.addActionListener (this);
 		jmb.add (queuedMsgMenu);
 
@@ -136,14 +138,22 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// Add Toolbar to the NORTH part of the border layout 
 		JToolBar bar = new JToolBar();
 
-		Icon newImg = GuiProperties.getIcon("new");
-		JButton newB = new JButton();
-		newB.setText("New");
-		newB.setIcon(newImg);
-		newB.setToolTipText("New the current ACL message");
-		newB.addActionListener(this);
-		bar.add(newB);
+		Icon resetImg = GuiProperties.getIcon("reset");
+		JButton resetB = new JButton();
+		resetB.setText("Reset");
+		resetB.setIcon(resetImg);
+		resetB.setToolTipText("New the current ACL message");
+		resetB.addActionListener(this);
+		bar.add(resetB);
 											
+		Icon sendImg = GuiProperties.getIcon("send");
+		JButton sendB = new JButton();
+		sendB.setText("Send");
+		sendB.setIcon(sendImg);
+		sendB.setToolTipText("Send the current ACL message");
+		sendB.addActionListener(this);
+		bar.add(sendB);
+
 		Icon openImg = GuiProperties.getIcon("open");
 		JButton openB = new JButton();
 		openB.setText("Open");
@@ -160,39 +170,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		saveB.addActionListener(this);
 		bar.add(saveB);
 
-		Icon sendImg = GuiProperties.getIcon("send");
-		JButton sendB = new JButton();
-		sendB.setText("Send");
-		sendB.setIcon(sendImg);
-		sendB.setToolTipText("Send the current ACL message");
-		sendB.addActionListener(this);
-		bar.add(sendB);
-
 		bar.addSeparator();
-
-		Icon viewImg = GuiProperties.getIcon("view");
-		JButton viewB = new JButton();
-		viewB.setText("View");
-		viewB.setIcon(viewImg);
-		viewB.setToolTipText("View the selected ACL message");
-		viewB.addActionListener(this);
-		bar.add(viewB);
-
-		Icon deleteImg = GuiProperties.getIcon("delete");
-		JButton deleteB = new JButton();
-		deleteB.setText("Delete");
-		deleteB.setIcon(deleteImg);
-		deleteB.setToolTipText("Delete the selected ACL message");
-		deleteB.addActionListener(this);
-		bar.add(deleteB);
-
-		Icon setImg = GuiProperties.getIcon("set");
-		JButton setB = new JButton();
-		setB.setText("Set as current");
-		setB.setIcon(setImg);
-		setB.setToolTipText("Set the selected ACL message to be the current message");
-		setB.addActionListener(this);
-		bar.add(setB);
 
 		Icon openQImg = GuiProperties.getIcon("openq");
 		JButton openQB = new JButton();
@@ -209,6 +187,38 @@ class DummyAgentGui extends JFrame implements ActionListener
 		saveQB.setToolTipText("Save the queue of sent/received messages to file");
 		saveQB.addActionListener(this);
 		bar.add(saveQB);
+
+		Icon setImg = GuiProperties.getIcon("set");
+		JButton setB = new JButton();
+		setB.setText("Set as current");
+		setB.setIcon(setImg);
+		setB.setToolTipText("Set the selected ACL message to be the current message");
+		setB.addActionListener(this);
+		bar.add(setB);
+
+		Icon replyImg = GuiProperties.getIcon("reply");
+		JButton replyB = new JButton();
+		replyB.setText("Reply");
+		replyB.setIcon(replyImg);
+		replyB.setToolTipText("Prepare a message to reply to the selected message");
+		replyB.addActionListener(this);
+		bar.add(replyB);
+
+		Icon viewImg = GuiProperties.getIcon("view");
+		JButton viewB = new JButton();
+		viewB.setText("View");
+		viewB.setIcon(viewImg);
+		viewB.setToolTipText("View the selected ACL message");
+		viewB.addActionListener(this);
+		bar.add(viewB);
+
+		Icon deleteImg = GuiProperties.getIcon("delete");
+		JButton deleteB = new JButton();
+		deleteB.setText("Delete");
+		deleteB.setIcon(deleteImg);
+		deleteB.setToolTipText("Delete the selected ACL message");
+		deleteB.addActionListener(this);
+		bar.add(deleteB);
 
 		getContentPane().add("North", bar);
 	}
@@ -231,12 +241,19 @@ class DummyAgentGui extends JFrame implements ActionListener
 	{
 		String command = e.getActionCommand();
 
-		// NEW
-		if      (command.equals("New"))
+		// RESET
+		if      (command.equals("Reset"))
 		{
 			ACLMessage m = new ACLMessage("accept-proposal");
 			m.setSource(agentName);
 			currentMsgGui.setMsg(m);
+		}
+		// SEND
+		else if (command.equals("Send"))
+		{
+			ACLMessage m = currentMsgGui.getMsg();
+			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
+			myAgent.send(m);
 		}
 		// OPEN
 		else if (command.equals("Open"))
@@ -281,13 +298,6 @@ class DummyAgentGui extends JFrame implements ActionListener
 				catch(IOException e4) { System.out.println("IO Exception"); }
 			} 
 		}
-		// SEND
-		else if (command.equals("Send"))
-		{
-			ACLMessage m = currentMsgGui.getMsg();
-			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
-			myAgent.send(m);
-		}
 		// VIEW
 		else if (command.equals("View"))
 		{
@@ -317,6 +327,17 @@ class DummyAgentGui extends JFrame implements ActionListener
 				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
 				ACLMessage m = mi.getMessage();
 				currentMsgGui.setMsg(m);
+			}
+		}
+		// REPLY
+		else if (command.equals("Reply"))
+		{
+			int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				currentMsgGui.setMsg(m.createReply());
 			}
 		}
 		// OPEN QUEUE
