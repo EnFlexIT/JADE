@@ -19,7 +19,7 @@ import jade.lang.acl.*;
  */
 public class FilebasedSenderAgent extends Agent {
 
-  private Frame1 myGui=new Frame1(this); 
+  private SentReceivedGUI myGui = new Frame1(this); 
     
   protected void setup() {
 
