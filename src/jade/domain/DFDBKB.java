@@ -833,8 +833,8 @@ class DFDBKB extends DBKB {
 		   		byte[] aclB = aclS.getBytes();
 				ACLMessage aclSub = conv.decode(aclB);
 				
-				SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
-				vRis.add(sub);			
+				//SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
+				vRis.add(sr.createSubscription(aclSub));			
       		}
       		rs.close();
       		s.close();
@@ -874,8 +874,8 @@ class DFDBKB extends DBKB {
 		   		byte[] aclB = aclS.getBytes();
 
 				ACLMessage aclSub = conv.decode(aclB);
-				SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
-				vRis.add(sub);			
+				//SubscriptionResponder.Subscription sub = new SubscriptionResponder.Subscription(sr, aclSub);
+				vRis.add(sr.createSubscription(aclSub));			
       		}
       		rs.close();
       		s.close();

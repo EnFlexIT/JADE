@@ -117,8 +117,9 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 
 	//OK
   	// degeregister the subscritpion from hashtable
-  	public void deregister( SubscriptionResponder.Subscription sub ) throws RefuseException, NotUnderstoodException {
+  	public boolean deregister( SubscriptionResponder.Subscription sub ) throws FailureException {
 		kBase.unsubscribe(sub);
+		return false;
   	}
   	
   	

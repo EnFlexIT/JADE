@@ -862,7 +862,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   /**
      DFSubscriptionResponder BAHAVIOUR. An extended version of the 
      SubscriptionResponder that manages the CANCEL message
-   */
+   *
   private class DFSubscriptionResponder extends SubscriptionResponder {	
   	private static final String HANDLE_CANCEL = "Handle-cancel";
     public SubscriptionManager mySubscriptionManager = null; // patch to allow compiling with JDK1.2
@@ -894,6 +894,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			registerState(b, HANDLE_CANCEL);	
 		}
   }
+  */
 		
     
   private List children = new ArrayList();
@@ -909,7 +910,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private DFFipaAgentManagementBehaviour fipaRequestResponder;
   private DFJadeAgentManagementBehaviour jadeRequestResponder;
   private DFAppletManagementBehaviour appletRequestResponder;
-  private DFSubscriptionResponder dfSubscriptionResponder;
+  private SubscriptionResponder dfSubscriptionResponder;
   
   // Configuration parameter keys
   private static final String VERBOSITY = "jade_domain_df_verbosity";
@@ -1058,8 +1059,29 @@ public class df extends GuiAgent implements DFGUIAdapter {
     addBehaviour(appletRequestResponder);
 
 		// Behaviour dealing with subscriptions
-		mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
-    dfSubscriptionResponder = new DFSubscriptionResponder(this, mt1, subManager);
+		mt1 = MessageTemplate.and(
+			MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()),
+			MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchPerformative(ACLMessage.CANCEL)));
+		dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
+			// Note that the DF does not use the default handleCancel() as
+			// the way it retrieve 
+    	protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
+				ACLMessage subsMsg = null;
+				try {
+					Action act = (Action) myAgent.getContentManager().extractContent(cancel);
+					subsMsg = (ACLMessage)act.getAction();
+				}
+				catch(Exception e) {
+					log("WARNING: unexpected CANCEL content", 1);
+					// Create a dummy SUBSCRIBE with the proper sender and conv-id
+					subsMsg = new ACLMessage(ACLMessage.SUBSCRIBE);
+					subsMsg.setSender(cancel.getSender());
+					subsMsg.setConversationId(cancel.getConversationId());
+				}
+				mySubscriptionManager.deregister(createSubscription(subsMsg));
+				return null;
+    	}
+    };
     addBehaviour(dfSubscriptionResponder);
 		    
     // Set the DFDescription of thie DF

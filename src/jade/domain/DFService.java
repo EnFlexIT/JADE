@@ -471,7 +471,9 @@ public class DFService extends FIPAServiceCommunicator {
   public static ACLMessage createSubscriptionMessage(Agent a, AID dfName, DFAgentDescription template, SearchConstraints constraints) {
     ACLMessage subscribe = createRequestMessage(a, dfName);
     subscribe.setPerformative(ACLMessage.SUBSCRIBE);
-    subscribe.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);	
+    subscribe.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+    // Note that iota is not included in SL0
+    subscribe.setLanguage(FIPANames.ContentLanguage.FIPA_SL);	
   	subscribe.setContent(encodeIota(dfName, template, constraints));
     return subscribe;
   }
@@ -499,6 +501,7 @@ public class DFService extends FIPAServiceCommunicator {
 		cancel.addReceiver(dfName);
 		cancel.setLanguage(subscribe.getLanguage());
 		cancel.setOntology(subscribe.getOntology());
+		cancel.setProtocol(subscribe.getProtocol());
 		cancel.setConversationId(subscribe.getConversationId());
 		cancel.setContent(encodeCancel(dfName, subscribe));
     return cancel;
@@ -832,6 +835,9 @@ public class DFService extends FIPAServiceCommunicator {
   	sb.append(actionName);
   	sb.append(' ');
   	encodeDfd(sb, dfd);
+  	if (actionName.equals(FIPAManagementVocabulary.SEARCH) && sc == null) {
+			sc = new SearchConstraints();
+  	}
   	if (sc != null) {
   		sb.append(SPACE_BRACKET);
 			sb.append(FIPAManagementVocabulary.SEARCHCONSTRAINTS);
