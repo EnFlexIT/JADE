@@ -27,8 +27,8 @@ import jade.lang.acl.ACLMessage;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.domain.FIPAException;
-import jade.proto.FipaRequestInitiatorBehaviour;
-import jade.proto.FipaQueryInitiatorBehaviour;
+import jade.domain.FIPANames;
+import jade.proto.AchieveREInitiator;
 import jade.lang.sl.*;
 import jade.onto.*;
 import jade.onto.basic.*;
@@ -185,13 +185,14 @@ public class RequesterAgent extends Agent {
 		already working for the indicated company.
 		This is done following a FIPA-Query interaction protocol
 	*/
-	class CheckAlreadyWorkingBehaviour extends FipaQueryInitiatorBehaviour {
+	class CheckAlreadyWorkingBehaviour extends AchieveREInitiator {
 		// Constructor
 		public CheckAlreadyWorkingBehaviour(Agent myAgent, ACLMessage queryMsg){
 			super(myAgent, queryMsg);
+			queryMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_QUERY);
 		}
 		
-		public void handleInformMessages(Vector messages) {
+		public void handleAllResultNotifications(Vector messages) {
 			ACLMessage msg = (ACLMessage) messages.get(0);
 			try{
 				List l = myAgent.extractMsgContent(msg);
@@ -249,9 +250,6 @@ public class RequesterAgent extends Agent {
 			}
 		}
 		
-		public void handleOtherMessages(ACLMessage msg) {
-			System.out.println("Unexpected message in FIPAQuery interaction protocol");
-		}
 	}
 			
 			
@@ -260,10 +258,11 @@ public class RequesterAgent extends Agent {
 		in the indicated company.
 		This is done following a FIPA-Request interaction protocol
 	*/
-	class RequestEngagementBehaviour extends FipaRequestInitiatorBehaviour {
+	class RequestEngagementBehaviour extends AchieveREInitiator {
 		// Constructor
 		public RequestEngagementBehaviour(Agent myAgent, ACLMessage requestMsg){
 			super(myAgent, requestMsg);
+			requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
 		}
 
 		protected void handleAgree(ACLMessage msg) {
