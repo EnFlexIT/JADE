@@ -257,7 +257,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	fireRemovedContainer(cid);
     }
 
-    public void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
+    void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
 	ContainerID cid = ac.getID();
 	ContainerPrincipal cp = containers.getPrincipal(cid);
 	String agentOwnership = cp.getOwnership();
@@ -289,7 +289,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
 
     // Start the AMS and the Default DF
-    public void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
+    void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
 
 	try {
 	    theAMS.resetEvents(true);
