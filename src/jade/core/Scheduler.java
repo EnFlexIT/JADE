@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/07/26 15:34:42  rimassa
+  Made class serializable.
+
   Revision 1.9  1999/05/20 13:43:15  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -22,6 +25,8 @@ package jade.core;
 
 import java.util.Vector;
 
+import java.io.Serializable;
+
 import jade.core.behaviours.Behaviour;
 
 /**************************************************************
@@ -40,7 +45,7 @@ import jade.core.behaviours.Behaviour;
     behaviours, such as thread pools, locks, etc.
 
 ****************************************************************/
-class Scheduler {
+class Scheduler implements Serializable {
 
   protected Vector behaviours = new Vector();
   private Agent owner;

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/07/26 15:35:15  rimassa
+  Made class serializable.
+
   Revision 1.5  1999/06/16 00:19:11  rimassa
   Added a root() method to retrieve the root behaviour (i.e. the one
   directly scheduled by the agent) for a given behaviour object.
@@ -33,6 +36,8 @@
 
 package jade.core.behaviours;
 
+import java.io.Serializable;
+
 import jade.core.Agent;
 
 /**
@@ -46,7 +51,7 @@ import jade.core.Agent;
    @version $Date$ $Revision$
 
 */
-public abstract class Behaviour {
+public abstract class Behaviour implements Serializable {
 
   /**
      A constant for child-to-parent notifications.
@@ -65,7 +70,7 @@ public abstract class Behaviour {
      behaviour's parent (<em>upward notification</em> or to behaviour's
      children (<em>downward notification</em>).
   */
-  protected class RunnableChangedEvent {
+  protected class RunnableChangedEvent implements Serializable {
     private boolean runnable;
     private int direction;
 
