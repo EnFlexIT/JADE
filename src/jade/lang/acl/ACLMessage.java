@@ -834,15 +834,7 @@ private int performative; // keeps the performative type of this object
    * @param value the property value
   **/
    public void addUserDefinedParameter(String key, String value) {
-     if (key.startsWith(":X-") || key.startsWith(":x-"))
        userDefProps.setProperty(key,value);
-     else {
-       System.err.println("WARNING: ACLMessage.addUserDefinedParameter. The key must start with :X-. Prefix has been silently added.");
-       if (key.startsWith("X-") || key.startsWith("x-"))
-	 userDefProps.setProperty(":"+key,value);
-       else
-	 userDefProps.setProperty(":X-"+key,value);
-     }
    }
 
     /**

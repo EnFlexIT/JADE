@@ -153,7 +153,7 @@ void MessageParameter() :
 | <ONTOLOGY>        s=Expression()			{ msg.setOntology(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <PROTOCOL>        s=Word()				{ msg.setProtocol(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONVERSATION_ID> s=Expression()			{ msg.setConversationId(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| t=<USERDEFINEDPARAM> s=Expression()			{ msg.addUserDefinedParameter(t.image,s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| t=<USERDEFINEDPARAM> s=Expression()			{ msg.addUserDefinedParameter(t.image.substring(3),s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 }
 
 String Content():
@@ -178,7 +178,7 @@ AID AgentIdentifier():
        (aid=AgentIdentifier() {cur.addResolvers(aid);})* <RBRACE2> 
        {token_source.SwitchTo(AIDSTATE);})
   | (t=<USERDEFINEDSLOT> s=Expression() 
-       {cur.addUserDefinedSlot(t.image,s); token_source.SwitchTo(AIDSTATE);})
+       {cur.addUserDefinedSlot(t.image.substring(3),s); token_source.SwitchTo(AIDSTATE);})
  )+
 <RBRACE2>
 {return cur;}

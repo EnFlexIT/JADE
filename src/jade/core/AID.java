@@ -281,7 +281,7 @@ public class AID implements Comparable, Serializable {
 	String tmp;
 	while (e.hasMoreElements()) {
 	    tmp = (String)e.nextElement();
-	    s.append(" ");
+	    s.append(" :X-");
 	    s.append(tmp);
 	    s.append(" ");
 	    s.append(userDefSlots.getProperty(tmp));

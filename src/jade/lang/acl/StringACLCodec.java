@@ -48,7 +48,7 @@ public class StringACLCodec implements ACLCodec {
 
     /** Key of the user-defined parameter used to signal the automatic JADE
 	conversion of the content into Base64 encoding  **/
-    private static final String BASE64ENCODING_KEY = new String(":X-JADE-Encoding");
+    private static final String BASE64ENCODING_KEY = new String("JADE-Encoding");
     /** Value of the user-defined parameter used to signal the automatic JADE
 	conversion of the content into Base64 encoding  **/
     private static final String BASE64ENCODING_VALUE = new String("Base64");
@@ -277,7 +277,7 @@ public class StringACLCodec implements ACLCodec {
 	if (value != null) {
 	    value = value.trim();
 	    if (value.length()>0)
-		str.append(" " + key + " " + value + "\n");
+		str.append(" :X-" + key + " " + value + "\n");
 	}
       }
       str.append(")");
