@@ -253,8 +253,8 @@ public class AclGui extends JPanel
   private Vector fipaActVector;
   
   private static int    N_FIPA_PROTOCOLS = 7;
-  private static String fipaProtocols[] = {"fipa-auction-english",
-                                           "fipa-auction-dutch",
+  private static String fipaProtocols[] = {FIPANames.InteractionProtocol.FIPA_ENGLISH_AUCTION,
+                                           FIPANames.InteractionProtocol.FIPA_DUTCH_AUCTION,
                                            FIPANames.InteractionProtocol.FIPA_CONTRACT_NET,
                                            FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET,
                                            FIPANames.InteractionProtocol.FIPA_QUERY,
