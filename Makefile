@@ -1,6 +1,6 @@
 # Makefile for JADE  project 
 
-VERSION    = 0.82
+VERSION    = 0.83
 ARCHIVE    = JADE
 
 
