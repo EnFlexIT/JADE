@@ -397,18 +397,33 @@ public class Sniffer extends ToolAgent {
   public void toolSetup() {
 
     ExpandedProperties properties = new ExpandedProperties();
-    String fileName = locateFile("sniffer.properties");
-    if (fileName != null) {
-        try {
-            properties.addFromFile(fileName);
-        } catch (IOException ioe) {
-            // ignore - Properties not processed
-        }
+
+    /*
+     * preload agents from argument array if arguments present, otherwise load
+     * sniffer.properties file.
+     */
+    Object[] arguments = getArguments();
+    if( arguments.length > 0 )
+    {
+        String  s = "";
+        for( int i=0; i < arguments.length; ++i )
+            s += arguments[i].toString();
+        properties.setProperty("preload", s );
+        
     } else {
-        // This is only being done for backward compatability.
-        fileName = locateFile("sniffer.inf");
+        String fileName = locateFile("sniffer.properties");
         if (fileName != null) {
-            loadSnifferConfigurationFile(fileName, properties);
+            try {
+                properties.addFromFile(fileName);
+            } catch (IOException ioe) {
+                // ignore - Properties not processed
+            }
+        } else {
+            // This is only being done for backward compatability.
+            fileName = locateFile("sniffer.inf");
+            if (fileName != null) {
+                loadSnifferConfigurationFile(fileName, properties);
+            }
         }
     }
 
