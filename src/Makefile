@@ -48,7 +48,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
 		jade/proto/states/HandlerSelector.java \
-		jade/security/DummyAuthority.java \
+		jade/security/dummy/DummyAuthority.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
