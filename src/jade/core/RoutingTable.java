@@ -23,51 +23,196 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import jade.domain.FIPAAgentManagement.Envelope;
+
+import jade.mtp.OutChannel;
+import jade.mtp.MTP;
+import jade.mtp.MTPException;
 
 class RoutingTable {
 
-  private Map MTPs = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  // This class wraps an MTP installed on a remote container, using
+  // RMI to forward the deliver() operation
+  private static class RoutedChannel implements OutChannel {
+
+    private AgentContainer container;
+
+    public RoutedChannel(AgentContainer ac) {
+      container = ac;
+    }
+
+    public void deliver(String addr, Envelope env, byte[] payload) throws MTPException {
+      try {
+	container.route(env, payload, addr);
+      }
+      catch(java.rmi.RemoteException re) {
+	throw new MTPException("Container unreachable during routing");
+      }
+    }
+
+    public boolean equals(Object o) {
+      try {
+	RoutedChannel ch = (RoutedChannel)o;
+	AgentContainer ac = ch.container;
+	if(container.equals(ac))
+	  return true;
+	else
+	  return false;
+      }
+      catch(ClassCastException cce) {
+	return false;
+      }
+    }
+
+  } // End of RoutedMTP class
+
+
+  private static final boolean LOCAL = true;
+  private static final boolean REMOTE = false;
+
+  private static class OutPortList {
+
+    private List local = new LinkedList();
+    private List remote = new LinkedList();
+
+    public void add(OutChannel port, boolean location) {
+      if(location == LOCAL) {
+	local.add(port);
+      }
+      else {
+	remote.add(port);
+      }
+    }
+
+    public void remove(OutChannel port) {
+      local.remove(port);
+      remote.remove(port);
+    }
+
+    public OutChannel get() {
+      // Look first in the local list
+      if(!local.isEmpty())
+	return (OutChannel)local.get(0);
+      // Then look in the remote list
+      else
+	if(!remote.isEmpty())
+	  return (OutChannel)remote.get(0);
+      return null;
+    }
+
+    public boolean isEmpty() {
+      return local.isEmpty() && remote.isEmpty();
+    }
+
+  } // End of OutPortList class
+
+
+  private Map inPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  private Map outPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  private List platformAddresses = new LinkedList();
 
   /**
-     Adds a new MTP for the protocol named <code>name</code> on the
-     Agent Container <code>where</code>.
+     Adds a new locally installed MTP for the URL named
+     <code>url</code>.
    */
-  public void addMTP(String name, AgentContainer where) {
-    List l = (List)MTPs.get(name);
+  public void addLocalMTP(String url, MTP proto) {
+    // A local MTP can receive messages
+    inPorts.put(url, proto);
+
+    // A local MTP can also send messages
+    addOutPort(url, proto, LOCAL);
+
+    // The new MTP is a valid address for the platform
+    platformAddresses.add(url);
+  }
+
+  /**
+     Removes a locally installed MTP for the URL named
+     <code>url</code>.
+   */
+  public MTP removeLocalMTP(String url) {
+    // A local MTP appears both in the input and output port tables
+    MTP proto = (MTP)inPorts.remove(url);
+    if(proto != null)
+      removeOutPort(url, proto);
+
+    // The MTP address is not a platform address anymore
+    platformAddresses.remove(url);
+
+    return proto;
+  }
+
+  public void addRemoteMTP(String url, AgentContainer where) {
+
+    // A remote MTP can be used only for outgoing messages, through a
+    // RoutedChannel
+    RoutedChannel ch = new RoutedChannel(where);
+    addOutPort(url, ch, REMOTE);
+
+    // Remote MTPs are valid platform addresses
+    platformAddresses.add(url);
+  }
+
+  /**
+     Removes the MTP for the URL named <code>name</code>.
+   */
+  public void removeRemoteMTP(String url, AgentContainer where) {
+    RoutedChannel ch = new RoutedChannel(where);
+    removeOutPort(url, ch);
+
+    // Remote MTPs are valid platform addresses
+    platformAddresses.remove(url);
+  }
+
+  /**
+     Retrieves an outgoing channel object suitable for
+     reaching the address <code>url</code>.
+   */
+  public OutChannel lookup(String url) {
+    String proto = extractProto(url);
+    OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
-      l.add(where);
+      return l.get();
+    else
+      return null;
+  }
+
+  public Iterator getAddresses() {
+    return platformAddresses.iterator();
+  }
+
+
+
+  private void addOutPort(String url, OutChannel port, boolean location) {
+    String proto = extractProto(url);
+    OutPortList l = (OutPortList)outPorts.get(proto);
+    if(l != null)
+      l.add(port, location);
     else {
-      l = new LinkedList();
-      l.add(where);
-      MTPs.put(name, l);
+      l = new OutPortList();
+      l.add(port, location);
+      outPorts.put(proto, l);
     }
   }
 
-  /**
-     Removes the MTP for the protocol named <code>name</code> on the
-     Agent Container <code>where</code>.
-   */
-  public void removeMTP(String name, AgentContainer where) {
-    List l = (List)MTPs.get(name);
+  private void removeOutPort(String url, OutChannel port) {
+    String proto = extractProto(url);
+    OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
-      l.remove(where);
+      l.remove(port);
   }
 
-  /**
-     Retrieves an Agent Container where an instance of the MTP for the
-     protocol <code>name</code> is available.
-   */
-  public AgentContainer lookup(String protoName) {
-    List l = (List)MTPs.get(protoName);
-    if(l != null)
-      return (AgentContainer)l.get(0);
-    else
+  private String extractProto(String address) {
+    int colonPos = address.indexOf(':');
+    if(colonPos == -1)
       return null;
+    return address.substring(0, colonPos);
   }
 
 }
