@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.48  1999/10/06 08:33:13  rimassa
+  Added a printout message to show when the container is ready.
+
   Revision 1.47  1999/09/03 13:07:52  rimassa
   Fixed a bug: agents started on peripheral containers on the command
   line were not inserted into Global Agent Descriptor Table.
@@ -454,6 +457,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
       agent.powerUp(currentName, platformAddress, agentThreads);
     }
+
+    System.out.println("Agent container " + myName + " is ready.");
+
   }
 
   public void shutDown() {
