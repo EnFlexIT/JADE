@@ -27,8 +27,9 @@ package jade;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Properties;
 import java.lang.Boolean;
 import java.io.*;
@@ -109,7 +110,6 @@ public class Boot {
   public static void main(String args[]) {
 
     System.out.println(getCopyrightNotice());
-    // Default values for looking RMI registry bind/lookup
   
     boolean withConf = false;
     boolean fromFile = false;
@@ -117,8 +117,7 @@ public class Boot {
     String platformHost = null;
     
     try {
-      platformHost = InetAddress.getLocalHost().getHostName();
-      
+      platformHost = InetAddress.getLocalHost().getHostName();      
     }
     catch(UnknownHostException uhe) {
       System.out.print("Unknown host exception in getLocalHost(): ");
@@ -127,22 +126,23 @@ public class Boot {
     }
     
     
-    //This vector stores all the properties used to start JADE.When new properties need to be added
-    //then they must be added to this vector.The PropertyType provide a constructor to initialize a property with its
-    //name,type, default value, meaning. The last value states if the property is mandatory or not. 
-    
-    Vector propertyVector = new Vector();
+    // This list stores all the properties used to start JADE.When new
+    // properties need to be added then they must be added to this
+    // vector.The PropertyType provide a constructor to initialize a
+    // property with its name,type, default value, meaning. The last
+    // value states if the property is mandatory or not.
+    List propertyVector = new ArrayList();
     PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name", false);
     PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "to view the RMA Gui", false);
     PropertyType PlatformProperty = new PropertyType("platform",PropertyType.BOOLEAN_TYPE,"true", "to start a platform", false);
     PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,"1099", "port number", false);
     PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "to start a container",false);
     
-    propertyVector.addElement(HostProperty);
-    propertyVector.addElement(GuiProperty);
-    propertyVector.addElement(PlatformProperty);
-    propertyVector.addElement(PortProperty);
-    propertyVector.addElement(ContainerProperty);
+    propertyVector.add(HostProperty);
+    propertyVector.add(GuiProperty);
+    propertyVector.add(PlatformProperty);
+    propertyVector.add(PortProperty);
+    propertyVector.add(ContainerProperty);
     
     String platformPort = null;
     String platformName = "JADE";
@@ -155,10 +155,10 @@ public class Boot {
     
     String fileName = null;
     
-    Vector agents = new Vector();
-    Vector arguments = new Vector(); 
-    
-        
+    List agents = new ArrayList();
+    List arguments = new ArrayList(); 
+
+
     try{
 
       int n = 0;
@@ -243,16 +243,16 @@ public class Boot {
 	  /* 
 	     Every other string is supposed to be the name of an
 	     agent, in the form name:class. The two parts must be at
-	     least one character long to be put in the Vector;
+	     least one character long to be put in the List;
 	     otherwise they are ignored.
 	  */
 	  int separatorPos = args[n].indexOf(SEPARATOR);
 	  if((separatorPos > 0)&&(separatorPos < args[n].length())) {
-	  	arguments.add(args[n]);
+	    arguments.add(args[n]);
 	    String agentName = args[n].substring(0,separatorPos);
 	    String agentClass = args[n].substring(separatorPos + 1);
-	    agents.addElement(new String(agentName));
-	    agents.addElement(new String(agentClass));
+	    agents.add(new String(agentName));
+	    agents.add(new String(agentClass));
 	  }
 	}
 	n++;
@@ -270,18 +270,16 @@ public class Boot {
     BootGUI guiForConf = new BootGUI();
     p = guiForConf.ShowBootGUI(propertyVector);
     
-    /*System.out.println("Properties used to run JADE - FROM GUI");
-    p.list(System.out);*/
     }
     else
     if(fromFile)
     {
       p = new Properties();
       
-      Enumeration e = propertyVector.elements();
-      while(e.hasMoreElements())
+      Iterator it = propertyVector.iterator();
+      while(it.hasNext())
       {
-      	PropertyType pt = (PropertyType)e.nextElement();
+      	PropertyType pt = (PropertyType)it.next();
       	String fileValue = pt.getFileValue();
       	p.put(pt.getName(),fileValue !=null ? fileValue : pt.getDefaultValue());
       }
@@ -300,16 +298,14 @@ public class Boot {
       // the command line are translate to properties
       p = new Properties();
       
-      Enumeration e = propertyVector.elements();
-      while(e.hasMoreElements())
+      Iterator it = propertyVector.iterator();
+      while(it.hasNext())
       {
-      	PropertyType pt = (PropertyType)e.nextElement();
+      	PropertyType pt = (PropertyType)it.next();
       	String commandValue = pt.getCommandLineValue();
       	p.put(pt.getName(),commandValue !=null ? commandValue:pt.getDefaultValue());
       }
       
-      /*System.out.println("Properties used to run JADE - FROM COMMAND LINE BEFORE CHECK");
-      p.list(System.out);*/
       
       // check if the command line are corrected.
       try{
@@ -348,10 +344,10 @@ public class Boot {
     //re-build the vector or string according to the properties used
     int size = arguments.size();
     String result[] = new String[size];
-    Enumeration e1 = arguments.elements();
-    for(int i = 0; e1.hasMoreElements(); i++)
+    Iterator it = arguments.iterator();
+    for(int i = 0; it.hasNext(); i++)
     {
-    	result[i] = (String)e1.nextElement();
+      result[i] = (String)it.next();
     }
     
     args = result;
@@ -360,17 +356,18 @@ public class Boot {
     // startup agents, making sure that the RMA starts before all
     // other agents.
     if(hasGUI) {
-      agents.insertElementAt(new String("RMA"), 0);
-      agents.insertElementAt(new String("jade.tools.rma.rma"), 1);
+      agents.add(0, "RMA");
+      agents.add(1, "jade.tools.rma.rma");
     }
 
-    // Build the complete URL of the agent platform from default
-    // values and command line options, for use with RMI calls.
-    String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
+    // Build A unique ID ofr this platform, using host name, port and
+    // object name for the main container, taken from default values
+    // and command line options.
+    String platformID = platformHost + ":" + platformPort + "/" + platformName;
 
     // Start a new JADE runtime system, passing along suitable
     // information axtracted from command line arguments.
-    jade.core.Starter.startUp(isPlatform, platformRMI, agents, args);
+    jade.core.Starter.startUp(isPlatform, platformID, agents, args);
 
   }
 
@@ -410,7 +407,7 @@ public class Boot {
 
   //Reads the properties from file then update the vector of properties.
   
-  static void loadPropertiesFromFile(String fileName, Vector prop) throws FileNotFoundException, IOException
+  static void loadPropertiesFromFile(String fileName, List prop) throws FileNotFoundException, IOException
   {
   	Properties p = new Properties();
   	FileInputStream in = new FileInputStream(fileName);
@@ -418,11 +415,11 @@ public class Boot {
   	in.close();
   	
   	// update the properties in the vector of properties
-  	Enumeration e = prop.elements();
+  	Iterator it = prop.iterator();
   	
-  	while(e.hasMoreElements())
+  	while(it.hasNext())
   	{
-  		PropertyType pt = (PropertyType)e.nextElement();
+  		PropertyType pt = (PropertyType)it.next();
   		String name = pt.getName();
   		pt.setFileValue(p.getProperty(name));
   	}
@@ -469,7 +466,7 @@ public class Boot {
           {
           	p.remove("host");
           	p.put("host",platformHost);
-          	throw new BootException("WARNING: Not possible to lunch a platform \non a different host.\nA platform must be launched on local host.");
+          	throw new BootException("WARNING: Not possible to launch a platform \non a different host.\nA platform must be launched on local host.");
           }
   	   	}
         catch(UnknownHostException uhe) {
