@@ -1,5 +1,13 @@
 /*
   $Log$
+  Revision 1.16  1998/11/02 02:04:29  rimassa
+  Added two new Behaviours to support AMS <-> RMA interactions. The
+  first Behaviour listens for incoming 'subscribe' messages from RMA
+  agents and adds them to a sequence of listeners. The second one
+  forwards to registered listeners each notification the AgentPlatforrm
+  sends to the AMS (for example, the AgentPlatform informs AMS whenever
+  a new agent container is added or removed to tha AgentPlatform).
+
   Revision 1.15  1998/11/01 14:59:56  rimassa
   Added a new Behaviour to support Remote Management Agent registration.
 
@@ -33,7 +41,9 @@ import java.io.StringReader;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
+import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import java.util.Vector;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -357,17 +367,70 @@ public class ams extends Agent {
 
       // Receive 'subscribe' ACL messages.
       ACLMessage current = receive(subscriptionTemplate);
-      if(current != null)
+      if(current != null) {
 	current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+
+	// Send back the whole container list.
+
+	// Add the new RMA to RMAs agent group.
+	RMAs.addMember(current.getSource());
+
+	current = null;
+      }
       else
 	block();
 
-      // Send back the whole container list.
-      // Add the new RMA to RMAs agent group.
     }
 
-  }
+  } // End of RegisterRMABehaviour class
 
+  private class NotifyRMAsBehaviour extends CyclicBehaviour {
+
+    private void processNewContainers() {
+      Enumeration e = newContainersBuffer.elements();
+      while(e.hasMoreElements()) {
+	String name = (String)e.nextElement();
+	RMANotification.setContent("new-container ( " + name + " )");
+	System.out.println("Notify new...");
+	send(RMANotification);
+	newContainersBuffer.removeElement(name);
+      }
+    }
+
+    private void processDeadContainers() {
+      Enumeration e = deadContainersBuffer.elements();
+      while(e.hasMoreElements()) {
+	String name = (String)e.nextElement();
+	RMANotification.setContent("dead-container ( " + name + " )");
+	System.out.println("Notify dead...");
+	send(RMANotification);
+	deadContainersBuffer.removeElement(name);
+      }
+    }
+
+    private void processNewAgents() {
+    }
+
+    private void processDeadAgents() {
+    }
+
+    public void action() {
+      // Look into the event buffers with AgentPlatform and send
+      // appropriate ACL messages to registered RMAs
+
+      // Mutual exclusion with postXXX() methods
+      synchronized(ams.this) {
+	processNewContainers();
+	processDeadContainers();
+	processNewAgents();
+	processDeadAgents();
+      }
+
+      block();
+
+    }
+
+  } // End of NotifyRMAsBehaviour class
 
   private class CreateBehaviour extends AMSBehaviour {
 
@@ -454,8 +517,21 @@ public class ams extends Agent {
   // Management Agents.
   private RegisterRMABehaviour registerRMA;
 
+  // Behaviour to broadcats AgentPlatform notifications to each
+  // registered Remote Management Agent.
+  private NotifyRMAsBehaviour notifyRMAs;
+
   // Group of Remote Management Agents registered with this AMS
   private AgentGroup RMAs;
+
+  // ACL Message to use for RMA notification
+  private ACLMessage RMANotification = new ACLMessage("inform");
+
+  // Buffers for AgentPlatform notifications
+  private Vector newContainersBuffer = new Vector();
+  private Vector deadContainersBuffer = new Vector();
+  private Vector newAgentsBuffer = new Vector();
+  private Vector deadAgentsBuffer = new Vector();
 
   public ams(AgentPlatformImpl ap, String name) {
     myPlatform = ap;
@@ -465,11 +541,16 @@ public class ams extends Agent {
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
     dispatcher = new FipaRequestServerBehaviour(this, mt);
-
     registerRMA = new RegisterRMABehaviour();
+    notifyRMAs = new NotifyRMAsBehaviour();
 
     RMAs = new AgentGroup();
 
+    RMANotification.setSource(myName);
+    RMANotification.setDest("RMA"); // FIXME: Should use AgentGroup.
+    RMANotification.setLanguage("SL");
+    RMANotification.setOntology("jade-agent-management");
+    RMANotification.setReplyTo("RMA-subscription");
 
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
@@ -486,9 +567,14 @@ public class ams extends Agent {
 
   protected void setup() {
 
-    // Add a dispatcher behaviour
+    // Add a dispatcher Behaviour for all ams actions following from a
+    // 'fipa-request' interaction
     addBehaviour(dispatcher);
+
+    // Add a Behaviour to accept incoming RMA registrations and a
+    // Behaviour to broadcast events to registered RMAs.
     addBehaviour(registerRMA);
+    addBehaviour(notifyRMAs);
 
   }
 
@@ -514,5 +600,26 @@ public class ams extends Agent {
   }
 
 
+  // Methods to be called from AgentPlatform to notify AMS of special events
+
+  public synchronized void postNewContainer(String name) {
+    newContainersBuffer.addElement(name);
+    doWake();
+  }
+
+  public synchronized void postDeadContainer(String name) {
+    deadContainersBuffer.addElement(name);
+    doWake();
+  }
+
+  public synchronized void postNewAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+    //    newAgentsBuffer.addElement(ad);
+    doWake();
+  }
+
+  public synchronized void postDeadAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+    //    deadAgentsBuffer.addElement(ad);
+    doWake();
+  }
 
 } // End of class ams
