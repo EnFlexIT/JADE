@@ -697,13 +697,19 @@ public class rma extends ToolAgent {
   		URL AP_URL = new URL(url);
     	BufferedReader in = new BufferedReader(new InputStreamReader(AP_URL.openStream()));
 
-    	String inputLine = in.readLine();
-			
-			//to parse the APDescription it is put in a Dummy ACLMessage 
+ 	StringBuffer buf=new StringBuffer();
+     	String inputLine; 
+ 	while( (inputLine = in.readLine()) != null ) {
+ 	    if( ! inputLine.equals("") ) {
+ 		buf.append(inputLine);
+ 		buf.append(" ");
+ 	    }
+ 	}
+	//to parse the APDescription it is put in a Dummy ACLMessage 
      	ACLMessage dummyMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
      	dummyMsg.setOntology(FIPAAgentManagementOntology.NAME);
      	dummyMsg.setLanguage(SL0Codec.NAME);
-     	String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (set " + inputLine +" ) ) )";
+     	String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (set " + buf.toString() +" ) ) )";
      	dummyMsg.setContent(content);
      	try{
      	
@@ -711,9 +717,9 @@ public class rma extends ToolAgent {
      	
     	Iterator i = r.getAll_1();
     	
-    	APDescription APDesc = (APDescription)i.next();
+    	APDescription APDesc = null; 
    
-    	if(APDesc != null){
+    	while( i.hasNext() && ((APDesc = (APDescription)i.next()) != null) ){
     			String amsName = "ams@" + APDesc.getName();
 
     			if(amsName.equalsIgnoreCase(getAMS().getName())){
