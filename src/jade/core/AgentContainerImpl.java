@@ -88,7 +88,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
 
   // Local agents, indexed by agent name
-  protected LADT localAgents = new LADT();
+  private LADT localAgents = new LADT();
 
   // Agents cache, indexed by agent name
   private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
@@ -101,17 +101,16 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   private Map sites = new HashMap();
 
   // The agent platform this container belongs to
-  protected MainContainer myPlatform;
+  private MainContainer myMain;
 
   // The Agent Communication Channel, managing the external MTPs.
-  protected acc theACC;
+  private acc theACC;
 
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
-  protected Profile myProfile;
-  protected static String platformID;
-  protected static String platformRMI;
-  protected ContainerID myID;
+  private Profile myProfile;
+  private static String platformID;
+  private ContainerID myID;
 
   private List messageListeners;
   private List agentListeners;
@@ -120,7 +119,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // end, in order to detect container failures.
   private java.lang.Object pingLock = new java.lang.Object();
 
-  protected ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
+  private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
@@ -220,7 +219,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     if(startIt) {
       try {
 	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
-	myPlatform.bornAgent(agentID, rp, myID); // RMI call
+	myMain.bornAgent(agentID, rp, myID); // RMI call
 	instance.powerUp(agentID, agentThreads);
       }
       catch(NameClashException nce) {
@@ -416,35 +415,38 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
   }
 
-  protected void installACLCodec(String className) throws jade.lang.acl.ACLCodec.CodecException{
+  public void installACLCodec(String className) throws jade.lang.acl.ACLCodec.CodecException {
   
-  	try{
-  			Class c = Class.forName(className);
-  			ACLCodec codec = (ACLCodec)c.newInstance(); 
-  			theACC.addACLCodec(codec);
-  			System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className +"\n");
-  			//FIXME: notify the AMS of the new Codec to update the APDescritption.
-  		}catch(ClassNotFoundException cnfe){
-  			throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.",cnfe);
-  		}catch(InstantiationException ie){
-  			throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)",ie);
-  		}catch(IllegalAccessException iae){
-  			throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-  		}
- 		
+    try{
+      Class c = Class.forName(className);
+      ACLCodec codec = (ACLCodec)c.newInstance(); 
+      theACC.addACLCodec(codec);
+      System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className +"\n");
+      // FIXME: notify the AMS of the new Codec to update the APDescritption.
+    }
+    catch(ClassNotFoundException cnfe){
+      throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.",cnfe);
+    }
+    catch(InstantiationException ie) {
+      throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)",ie);
+    }
+    catch(IllegalAccessException iae) {
+      throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
+    }
+
   }
-  
+
   public String installMTP(String address, String className) throws RemoteException, MTPException {
     try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
       TransportAddress ta = theACC.addMTP(proto, address);
       String result = proto.addrToStr(ta);
-      myPlatform.newMTP(result, myID);
+      myMain.newMTP(result, myID);
       return result;
     }
     catch(ClassNotFoundException cnfe) {
-      throw new MTPException("ERROR: The class " + className  + " for the " + address  + " MTP was not found");
+      throw new MTPException("ERROR: The class " + className + " for the " + address  + " MTP was not found");
     }
     catch(InstantiationException ie) {
       throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
@@ -456,7 +458,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException {
     theACC.removeMTP(address);
-    myPlatform.deadMTP(address, myID);
+    myMain.deadMTP(address, myID);
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException {
@@ -480,52 +482,46 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     unicastPostMessage(msg, receiver);
   }
 
-  void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
-
-    // This string will be used as the transport address for the main container
-    platformRMI = pRMI;
+  void joinPlatform( MainContainer mc, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
 
     try {
-      // Retrieve agent platform from RMI registry and register as agent container
-      myPlatform = lookup3(platformRMI);
+
+      myMain = mc;
 
       // This string will be used to build the GUID for every agent on
       // this platform.
-      platformID = myPlatform.getPlatformName(); // RMI call
+      platformID = myMain.getPlatformName();
 
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
+      // Set up the ACC.
       theACC = myProfile.getAcc();
-
       theACC.initialize(this, myProfile);
 
-      //Install the ACLCodecs inserted by command line.
+      // Initialize the Container ID
+      InetAddress netAddr = InetAddress.getLocalHost();
+      myID = new ContainerID("No-Name", netAddr);
+      myMain.register(this, myID);
+
+      // Install the ACLCodecs inserted by command line.
       for(int i =0; i<ACLCodecs.length;i++){
       	String className = ACLCodecs[i];
       	installACLCodec(className);
       }
-      
-      InetAddress netAddr = InetAddress.getLocalHost();
-      // Initialize the Container ID
-      myID = new ContainerID("No-Name", netAddr);
-
-      String myName = myPlatform.addContainer(this, myID); // RMI call
-      myID.setName(myName);
 
       // Install required MTPs
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myName + ".txt"));
+      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myID.getName() + ".txt"));
 
       for(int i = 0; i < MTPs.length; i += 2) {
 
-				String className = MTPs[i];
-				String addressURL = MTPs[i+1];
-				if(addressURL.equals(""))
-	  			addressURL = null;
-				String s = installMTP(addressURL, className);
-
-				f.println(s);
-				System.out.println(s);
+	String className = MTPs[i];
+	String addressURL = MTPs[i+1];
+	if(addressURL.equals(""))
+	  addressURL = null;
+	String s = installMTP(addressURL, className);
+	f.println(s);
+	System.out.println(s);
       }
 
       f.close();
@@ -541,7 +537,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       Runtime.instance().endContainer();
     }
 
-
     /* Create all agents and set up necessary links for message passing.
 
        The link chain is:
@@ -552,34 +547,33 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
        agentSpecifiers is a List of List.Every list contains ,orderly, th a agent name the agent class and the arguments (if any).
     */
     
-      while(agentSpecifiers.hasNext()) 
-    {
+    while(agentSpecifiers.hasNext()) {
       Iterator i = ((List)agentSpecifiers.next()).iterator();
-    	String agentName =(String)i.next();
-    	String agentClass = (String)i.next();
+      String agentName =(String)i.next();
+      String agentClass = (String)i.next();
       List tmp = new ArrayList(); 
-    	for ( ; i.hasNext(); )	         
-    	  tmp.add((String)i.next());
-    	  
+      while(i.hasNext())	         
+        tmp.add((String)i.next());
+
       //Create the String[] args to pass to the createAgent method  
-    	int size = tmp.size();
+      int size = tmp.size();
       String arguments[] = new String[size];
       Iterator it = tmp.iterator();
       for(int n = 0; it.hasNext(); n++)
         arguments[n] = (String)it.next();
       
-    	AID agentID = new AID(agentName, AID.ISLOCALNAME);
+      AID agentID = new AID(agentName, AID.ISLOCALNAME);
       try {
-	      createAgent(agentID, agentClass, arguments, NOSTART);
-	      RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
-	      myPlatform.bornAgent(agentID, rp, myID);
+        createAgent(agentID, agentClass, arguments, NOSTART);
+        RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
+        myMain.bornAgent(agentID, rp, myID);
       }
       catch(RemoteException re) { // It should never happen
-	      re.printStackTrace();
+        re.printStackTrace();
       }
       catch(NameClashException nce) {
-	    System.out.println("Agent name already in use: "+nce.getMessage());
-	    localAgents.remove(agentID);
+        System.out.println("Agent name already in use: "+nce.getMessage());
+        localAgents.remove(agentID);
       }
 	
     }
@@ -628,12 +622,21 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     for(int i = 0; i < allLocalAgents.length; i++) {
       // Kill agent and wait for its termination
       Agent a = allLocalAgents[i];
+
+      // Skip the Default DF and the AMS
+      AID id = a.getAID();
+      if(id.equals(Agent.AMS) || id.equals(Agent.DEFAULT_DF))
+        continue;
+
       a.doDelete();
       a.join();
       a.resetToolkit();
     }
 
     try {
+      // Deregister this container from the platform
+      myMain.deregister(this);
+
       // Unexport the container, without waiting for pending calls to
       // complete.
       unexportObject(this, true);
@@ -742,7 +745,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   public void handleEnd(AID agentID) {
     try {
       localAgents.remove(agentID);
-      myPlatform.deadAgent(agentID); // RMI call
+      myMain.deadAgent(agentID); // RMI call
       cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
     }
     catch(RemoteException re) {
@@ -761,7 +764,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
 	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
 
-	AgentContainer ac = myPlatform.lookup((ContainerID)where);
+	AgentContainer ac = myMain.lookup((ContainerID)where);
 	Agent a = localAgents.get(agentID);
 	if(a == null)
 	  throw new NotFoundException("Internal error: handleMove() called with a wrong name !!!");
@@ -790,7 +793,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	ac.createAgent(agentID, bytes, classSite, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
-	boolean transferResult = myPlatform.transferIdentity(agentID, myID, (ContainerID)where);
+	boolean transferResult = myMain.transferIdentity(agentID, myID, (ContainerID)where);
 	List messages = new ArrayList();
 	if(transferResult == TRANSFER_COMMIT) {
 
@@ -833,7 +836,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       String proto = where.getProtocol();
       if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
 	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
-      AgentContainer ac = myPlatform.lookup((ContainerID)where);
+      AgentContainer ac = myMain.lookup((ContainerID)where);
       Agent a = localAgents.get(agentID);
       if(a == null)
 	throw new NotFoundException("Internal error: handleCopy() called with a wrong name !!!");
@@ -866,31 +869,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   // Private methods
-
-
-  // This hack is needed to overcome a bug in java.rmi.Naming class:
-  // when an object reference is bound, unbound and then rebound
-  // with the same URL, the next two lookup() calls will throw an
-  // Exception without a reason.
-  private MainContainer lookup3(String URL)
-    throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
-    java.lang.Object o = null;
-    try {
-      o = Naming.lookup(URL);
-    }
-    catch(RemoteException re1) { // First one
-      try {
-	o = Naming.lookup(URL);
-      }
-      catch(RemoteException re2) { // Second one
-	// Third attempt. If this one fails, there's really
-	// something wrong, so we let the RemoteException go.
-	o = Naming.lookup(URL);
-      }
-    }
-    return (MainContainer)o;
-  }
-
 
     /**
      * This method is used by the class AID in order to get the HAP.
@@ -1018,14 +996,14 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       
 	// Maybe it's registered with this AP on some other container...
         try {
-	  result = myPlatform.getProxy(id); // RMI call
+	  result = myMain.getProxy(id); // RMI call
 	}
 	catch(RemoteException re) {
 	  System.out.println("Communication error while contacting agent platform");
 	  System.out.print("Trying to reconnect... ");
 	  try {
-	    restoreMainContainer();
-	    result = myPlatform.getProxy(id); // RMI call
+	    // restoreMainContainer();
+	    result = myMain.getProxy(id); // RMI call
 	    System.out.println("OK.");
 	  }
 	  catch(RemoteException rex) {
@@ -1043,12 +1021,13 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   }
 
+  /*
   private void restoreMainContainer() throws NotFoundException {
     try {
-      myPlatform = lookup3(platformRMI);
+      myMain = lookup3(platformRMI);
 
       // Register again with the Main Container.
-      String myName = myPlatform.addContainer(this, myID); // RMI call
+      String myName = myMain.addContainer(this, myID); // RMI call
       myID.setName(myName);
 
       ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
@@ -1067,7 +1046,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	// Register again the agent with the Main Container.
 	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
 	try {
-	  myPlatform.bornAgent(agentID, rp, myID); // RMI call
+	  myMain.bornAgent(agentID, rp, myID); // RMI call
 	}
 	catch(NameClashException nce) {
 	  throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
@@ -1083,7 +1062,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Register again all MTPs with the Main Container
       List localAddresses = theACC.getLocalAddresses();
       for(int i = 0; i < localAddresses.size(); i++) {
-	myPlatform.newMTP((String)localAddresses.get(i), myID);
+	myMain.newMTP((String)localAddresses.get(i), myID);
       }
 
     }
@@ -1100,6 +1079,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
 
   }
+*/
 
   private ToolNotifier findNotifier(AID observerName) {
     if(messageListeners == null)
