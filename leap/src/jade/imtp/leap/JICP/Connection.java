@@ -66,7 +66,7 @@ public abstract class Connection {
   public abstract String getRemoteHost() throws Exception;
   
   public static String getLocalHost() throws Exception {
-    String host = InetAddress.getLocalHost().getHostAddress();
+  	String host = InetAddress.getLocalHost().getHostAddress(); 
 
     if ("127.0.0.1".equals(host)) {
       // Try with the name

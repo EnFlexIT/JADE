@@ -481,12 +481,20 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		      // The JICPServer didn't find my Mediator anymore. There was probably 
 			  	// a fault. Try to recreate the BackEnd
-			  	try {
-			  		c = createBackEnd();
-			  		handleReconnection(c, type);
-			  	}
-			  	catch (IMTPException imtpe) { 
-			      handleError();
+			  	if (type == OUT) {
+			  		// BackEnd recreation is attempted only when restoring the 
+			  		// OUT connection since the BackEnd uses the connection that 
+			  		// creates it to receive outgoing commands. Moreover this ensures
+			  		// that (if the BackEnd is created on a different host) we do not
+			  		// end up with the INP and OUT connections pointing to different 
+			  		// hosts.
+				  	try {
+				  		c = createBackEnd();
+				  		handleReconnection(c, type);
+				  	}
+				  	catch (IMTPException imtpe) { 
+				      handleError();
+				  	}
 			  	}
 			  }
 			  else {

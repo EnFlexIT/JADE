@@ -72,35 +72,48 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     // The original properties passed to this container when it was created
     private Properties creationProperties;
 
+    private static Properties adjustProperties(Properties pp) {
+			// A BackEndContainer is never a Main
+    	pp.setProperty(Profile.MAIN, "false");
+    	
+			// Set default additional services if not already set
+			if (pp.getProperty(Profile.SERVICES) == null) {
+				pp.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
+			}
+			return pp;
+    }
+    	
     public BackEndContainer(Properties props, BEConnectionManager cm) throws ProfileException {
-	super(new ProfileImpl(props));
-	creationProperties = props;
+			super(new ProfileImpl(adjustProperties(props)));
+			creationProperties = props;
+			myConnectionManager = cm;
+    }
 	
-	// Set default additional services if not already set
-	if (props.getProperty(Profile.SERVICES) == null) {
-		props.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
-	}
+    public boolean connect() {
+			try {
+		    myCommandProcessor = myProfile.getCommandProcessor();
 	
-	myConnectionManager = cm;
-
-	try {
-
-	    myCommandProcessor = myProfile.getCommandProcessor();
-
-	    String beAddrs = myProfile.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
-	    if(beAddrs != null) {
-		replicasAddresses = parseAddressList(beAddrs);
-		myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
-	    }
-
-	    myFrontEnd = cm.getFrontEnd(this, null);
-	    Runtime.instance().beginContainer();
-	    joinPlatform();
-	}
-	catch (IMTPException imtpe) {
-	    // Should never happen
-	    imtpe.printStackTrace();
-	}
+		    String beAddrs = myProfile.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
+		    if(beAddrs != null) {
+					replicasAddresses = parseAddressList(beAddrs);
+					myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
+		    }
+	
+		    myFrontEnd = myConnectionManager.getFrontEnd(this, null);
+		    Runtime.instance().beginContainer();
+		    boolean connected = joinPlatform();
+		    if (connected) {
+		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
+		    		resynch();
+		    	}
+		    }
+		    return connected;
+			}
+			catch (Exception e) {
+		    // Should never happen 
+		    e.printStackTrace();
+		    return false;
+			}
     }
 
 
@@ -114,34 +127,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  //#MIDP_EXCLUDE_BEGIN
 	  startService("jade.core.messaging.MessagingService");
 	  //#MIDP_EXCLUDE_END
-    
-      	
-    /* Create the agent management service
-	  jade.core.management.BEAgentManagementService agentManagement = new jade.core.management.BEAgentManagementService();
-	  agentManagement.init(this, myProfile);
-
-	  // Create the messaging service
-	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
-
-	  messaging.init(this, myProfile);
-
-	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
-	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
-	      new ServiceDescriptor(messaging.getName(), messaging)
-	  };
-
-	  // Register with the platform and activate all the container fundamental services
-	  // This call can modify the name of this container
-	  getServiceManager().addNode(getNodeDescriptor(), baseServices);
-
-	  // Install all ACL Codecs and MTPs specified in the Profile
-	  messaging.boot(myProfile);
-
-	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
-	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);*/
-
       }
-
 
     /////////////////////////////////////
     // BackEnd interface implementation
@@ -218,39 +204,29 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      Note that the NotFoundException here is referred to the sender and
      indicates an inconsistency between the FrontEnd and the BackEnd
 	 */
-    public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
-
-	// Check whether the sender exists
+  public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
+		// Check whether the sender exists
   	final AID id = new AID(sender, AID.ISLOCALNAME);
 
-  	AgentImage image = (AgentImage) agentImages.get(id);
-  	if (image == null) {
-	    throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
+  	AgentImage image = null;
+  	synchronized (frontEndSynchLock) {
+	  	image = (AgentImage) agentImages.get(id);
+	  	if (image == null) {
+	  		if (synchronizing) {
+	  			// The image is not yet there since the front-end is synchronizing.
+	  			// Buffer the message. It will be delivered as soon as the 
+	  			// FrontEnd synchronization process completes
+	  		  postponeAfterFrontEndSynch(msg, sender);
+	  			return;
+	  		}
+	  		else {
+			    throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
+	  		}
+	  	}
   	}
   	
-	//try {
-
-	    // An AuthException will be thrown if the sender does not have
-	    // - the permission to send a message on behalf of msg.getSender()
-	    // - the permission to send a message to one of the receivers
-	    //getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    //public Object run() throws AuthException {
-			handleSend(msg, id);
-			//return null;
-		    //}
-		//}, image.getCertificateFolder());
-	//}
-	//catch (AuthException e) {
-	    // FIXME: This will probably disappear as all the AuthExecptions
-	    // should be handled within the "unicastPostMessage loop" inside
-	    // handleSend()
-	    //System.out.println("AuthException: "+e.getMessage() );
-	//} 
-	//catch (Exception e) {
-	    // Should never happen
-	    //e.printStackTrace();
-	//}
-    }
+		handleSend(msg, id);
+  }
 
     public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
 	if(!isMaster()) {
@@ -609,5 +585,120 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
     }
 
+
+  ////////////////////////////////////////////////////////////
+  // Methods and variables related to the front-end synchronization 
+  // mechanism that allows a FrontEnd to re-join the platform after 
+  // his BackEnd got lost (e.g. because of a crash of the hosting 
+  // container).
+  //
+  // - The BackEnd waits for the input connection to be ready
+  //   and then asks the FrontEnd to synchronize.
+  // - In the meanwhile some messages could arrive from the 
+  //   FrontEnd and the sender may not have an image in the BackEnd 
+  //   yet -->
+  // - While synchronizing outgoing messages are bufferd and 
+  //   actually sent as soon as the synchronization process completes
+  ////////////////////////////////////////////////////////////
+  // Flag indicating that the front-end synchronization process is in place
+  private boolean synchronizing = false;
+  // Flag indicating that the input-connection is ready
+  private boolean inputConnectionReady = false;
+  
+  private Object inputConnectionLock = new Object();
+  private Object frontEndSynchLock = new Object();
+  
+  private List fronEndSynchBuffer = new ArrayList();
+  
+  /**
+     Start the front-end synchronization process.
+   */
+  private void resynch() {
+  	synchronizing = true;
+		inputConnectionReady = false;
+  	Thread synchronizer = new Thread() {
+  		public void run() {
+  			while (true) {
+	  			try {
+		  			// Wait for the input connection to be established.
+		  			waitUntilInputConnectionReady();
+		  			myFrontEnd.synch();
+		  			notifySynchronized();
+		  			break;
+	  			}
+	  			catch (IMTPException imtpe) {
+	  				// The input connection is down again. Go back waiting
+	  			}
+  			}
+  		}
+  	};
+  	synchronizer.start();
+  }
+
+  private void waitUntilInputConnectionReady() {
+  	synchronized (inputConnectionLock) {
+  		while (!inputConnectionReady) {
+  			try {
+  				inputConnectionLock.wait();
+  			}
+  			catch (Exception e) {}
+  		}
+  	}
+  }
+  
+  public void notifyInputConnectionReady() {
+  	synchronized (inputConnectionLock) {
+  		inputConnectionReady = true;
+  		inputConnectionLock.notifyAll();
+  	}
+  }
+  
+  private void postponeAfterFrontEndSynch(ACLMessage msg, String sender) {
+  	// No need for synchronization since this is called within a synchronized block
+  	fronEndSynchBuffer.add(new MessageSenderPair(msg, sender));
+  }
+  
+  private void notifySynchronized() {
+  	synchronized (frontEndSynchLock) {
+  		Iterator it = fronEndSynchBuffer.iterator();
+  		while (it.hasNext()) {
+  			try {
+	  			MessageSenderPair msp = (MessageSenderPair) it.next();
+	  			messageOut(msp.getMessage(), msp.getSender());
+  			}
+  			catch (NotFoundException nfe) {
+  				// The sender does not exist --> nothing to notify
+  				nfe.printStackTrace();
+  			}
+  			catch (IMTPException imtpe) {
+  				// Should never happen since this is a local call
+  				imtpe.printStackTrace();
+  			}
+  		}
+  		fronEndSynchBuffer.clear();
+  		synchronizing = false;
+  	}
+  }  		
+  
+  /** 
+     Inner class MessageSenderPair
+   */
+  private class MessageSenderPair {
+  	private ACLMessage msg;
+  	private String sender;
+  	
+  	private MessageSenderPair(ACLMessage msg, String sender) {
+  		this.msg = msg;
+  		this.sender = sender;
+  	}
+  	
+  	private ACLMessage getMessage() {
+  		return msg;
+  	}
+  	
+  	private String getSender() {
+  		return sender;
+  	}
+  } // END of inner class MessageSenderPair
 }
 

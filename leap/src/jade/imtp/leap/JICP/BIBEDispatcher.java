@@ -139,7 +139,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     try {
     	myStub = new FrontEndStub(this);
 
-    	props.setProperty(Profile.MAIN, "false");
     	String nodeName = myID.replace(':', '_');
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
 			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
@@ -149,9 +148,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
 
     	myContainer = new BackEndContainer(props, this);
-			// Check that the BackEndContainer has successfully joined the platform
-			ContainerID cid = (ContainerID) myContainer.here();
-			if (cid == null || cid.getName().equals(AgentContainer.UNNAMED_CONTAINER_NAME)) {
+    	if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
@@ -162,7 +159,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		    myContainer.activateReplicas();
 			}
 
-    	myLogger.log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
+    	myLogger.log("BackEndContainer successfully joined the platform: name is "+myContainer.here().getName(), 2);
     }
     catch (ProfileException pe) {
     	// should never happen
@@ -505,6 +502,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   		myConnection = c;
   		connectionRefreshed = true;
   		waitingForFlush = myStub.flush();
+  		myContainer.notifyInputConnectionReady();
   	}
   	
   	private synchronized Connection getConnection(boolean flush) {
