@@ -38,20 +38,21 @@ import java.util.*;
 */
 public final class DefaultOntology implements Ontology {
 
-  private static final List primitiveTypes = new ArrayList(11);
+  private static final List primitiveTypes = new ArrayList(12);
 
   static { //FIXME. All the primitive types should be subclasse of java.lang.Object!
-    primitiveTypes.add(BOOLEAN_TYPE, Boolean.TYPE);
-    primitiveTypes.add(BYTE_TYPE, Byte.TYPE);
-    primitiveTypes.add(CHARACTER_TYPE, Character.TYPE);
-    primitiveTypes.add(DOUBLE_TYPE, Double.TYPE);
-    primitiveTypes.add(FLOAT_TYPE, Float.TYPE);
-    primitiveTypes.add(INTEGER_TYPE, Integer.TYPE);
-    primitiveTypes.add(LONG_TYPE, new Long(0).getClass());
-    primitiveTypes.add(SHORT_TYPE, Short.TYPE);
+    primitiveTypes.add(BOOLEAN_TYPE, Boolean.class);
+    primitiveTypes.add(BYTE_TYPE, Byte.class);
+    primitiveTypes.add(CHARACTER_TYPE, Character.class);
+    primitiveTypes.add(DOUBLE_TYPE, Double.class);
+    primitiveTypes.add(FLOAT_TYPE, Float.class);
+    primitiveTypes.add(INTEGER_TYPE, Integer.class);
+    primitiveTypes.add(LONG_TYPE, Long.class);
+    primitiveTypes.add(SHORT_TYPE, Short.class);
     primitiveTypes.add(STRING_TYPE, String.class);
-    primitiveTypes.add(BINARY_TYPE, (new byte[0]).getClass());
-    primitiveTypes.add(ANY_TYPE, (new Object()).getClass());
+    primitiveTypes.add(BINARY_TYPE, Byte.class);
+    primitiveTypes.add(DATE_TYPE, java.util.Date.class);
+    primitiveTypes.add(ANY_TYPE, Object.class);
   }
 
 

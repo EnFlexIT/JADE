@@ -173,10 +173,17 @@ public interface Ontology {
   static final short BINARY_TYPE = 9;
 
   /**
+     Constant for <code>java.util.Date</code> 
+     type in a <code>TermDescriptor</code>.
+     @see jade.onto.TermDescriptor
+   */
+  static final short DATE_TYPE = 10;
+
+  /**
      Constant for any type in a <code>TermDescriptor</code>.
      @see jade.onto.TermDescriptor
    */
-  static final short ANY_TYPE = 10;
+  static final short ANY_TYPE = 11;
 
   /**
      Constant for <code>Frame</code> type in a
@@ -187,7 +194,7 @@ public interface Ontology {
      @see jade.onto.Frame
      @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
-  static final short CONCEPT_TYPE = 11;
+  static final short CONCEPT_TYPE = 12;
 
   /**
      Constant for <code>set</code> type in a
@@ -195,7 +202,7 @@ public interface Ontology {
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
   */
-  static final short SET_TYPE = 12;
+  static final short SET_TYPE = 13;
 
   /**
      Constant for <code>sequence</code> type in a
@@ -203,7 +210,7 @@ public interface Ontology {
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
   */
-  static final short SEQUENCE_TYPE = 13;
+  static final short SEQUENCE_TYPE = 14;
 
 
   /**
@@ -213,7 +220,7 @@ public interface Ontology {
   */
   static final String typeNames[] = { "boolean", "byte", "char", "double",
 				      "float", "int", "long", "short",
-				      "String", "Binary", "any", "Concept", "Set", "Sequence" };
+				      "String", "Binary", "Date", "any", "Concept", "Set", "Sequence" };
 
   /**
     Adds a new concept role to the ontology, defined by the structure
