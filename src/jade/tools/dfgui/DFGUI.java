@@ -171,7 +171,7 @@ public class DFGUI extends JFrame
   boolean isGUIForApplet = false;  // this variable is used to discriminate if the gui is of an applet or not
   
   HashMap lastSearchResults; // this HashMap mantains the result of the last search made on a df.
-  AID lastDF;                // this AID is the AID of the DF on which the last search was made. 
+  AID lastDF = null;                // this AID is the AID of the DF on which the last search was made. 
   
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 
@@ -789,20 +789,25 @@ public class DFGUI extends JFrame
 	*/
 	public void addAgentDesc(AID name)
 	{
+	
 		registeredModel.add(name);
 		registeredModel.fireTableDataChanged();
+	
 	}
 	/**
-	remove an agent descr form registeredModel
+	remove an agent descr from registeredModel
 	*/
 	public void removeAgentDesc(AID name, AID df)
 	{
 		registeredModel.remove(name);
 		registeredModel.fireTableDataChanged();
 		registeredTable.clearSelection();
-		//update the foundModel is
-		if(df.equals(lastDF))
+		//update the foundModel
+		try
+		{
+		  	if(df.equals(lastDF))
 				removeSearchResult(name);
+		 }catch(Exception e){}
 		
 	}
 
