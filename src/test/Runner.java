@@ -206,7 +206,7 @@ public class Runner extends Agent {
 			registerFirstState(new ReceiveInformBehaviour(a), ONE);
 			registerLastState(new ReceiveInformBehaviour(a), TWO);
 			
-			registerTransition(ONE, TWO, FSMBehaviour.DEFAULT_EVENT);
+			registerDefaultTransition(ONE, TWO);
 		}
 	}
 	
