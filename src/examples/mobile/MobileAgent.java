@@ -183,29 +183,23 @@ protected void afterClone() {
      addBehaviour(new GetAvailableLocationsBehaviour(this));
    }
 
-  protected void afterLoad() {
-      super.afterLoad();
-
+  public void afterLoad() {
       afterClone();
   }
 
-  protected void beforeFreeze() {
-      super.beforeFreeze();
+  public void beforeFreeze() {
       beforeMove();
   }
 
-  protected void afterThaw() {
-      super.afterThaw();
+  public void afterThaw() {
       afterMove();
   }
 
-  protected void beforeReload() {
-      super.beforeReload();
+  public void beforeReload() {
       beforeMove();
   }
 
-  protected void afterReload() {
-      super.afterReload();
+  public void afterReload() {
       afterMove();
   }
 
