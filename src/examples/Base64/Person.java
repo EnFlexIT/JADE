@@ -48,7 +48,7 @@ int    age;
   }
 
   public String toString() {
-    return(name+surname+" born on "+birthdate.toString()+" age = "+age);
+    return(name+ " "+ surname +" born on "+birthdate.toString()+" age = "+age);
   }
   
 
