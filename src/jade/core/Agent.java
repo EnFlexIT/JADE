@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.60  1999/07/25 23:54:02  rimassa
+  Added a state and two transiton functions for mobility support within
+  Agent Platform Life Cycle.
+
   Revision 1.59  1999/06/30 10:34:37  rimassa
   Fixed erroneous Javadoc '@see' tag.
 
@@ -463,9 +467,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public static final int AP_DELETED = 5;
 
   /**
+     Represents the <code>transit</code> agent state.
+  */
+  public static final int AP_TRANSIT = 6;
+
+  /**
      Out of band value for Agent Platform Life Cycle states.
   */
-  public static final int AP_MAX = 6;    // Hand-made type checking
+  public static final int AP_MAX = 7;    // Hand-made type checking
 
 
   /**
@@ -671,14 +680,26 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      Make a state transition from <em>active</em> to
-     <em>initiated</em> within Agent Platform Life Cycle. This method
+     <em>transit</em> within Agent Platform Life Cycle. This method
      is intended to support agent mobility and is called either by the
-     Agent Platform or by the agent itself to start migration process.
+     Agent Platform or by the agent itself to start a migration process.
      <em>This method is currently not implemented.</em>
   */
   public void doMove() {
-    // myAPState = AP_INITIATED;
+    myAPState = AP_TRANSIT;
     // FIXME: Should do something more
+  }
+
+  /**
+     Make a state transition from <em>transit</em> to <em>active</em>
+     within Agent Platform Life Cycle. This method is intended to
+     support agent mobility and is called by the destination Agent
+     Platform when a migration process completes and the mobile agent
+     is about to be restarted on its new location.
+  */
+  public void doExecute() {
+    myAPState = AP_ACTIVE;
+    activateAllBehaviours();
   }
 
   /**
@@ -844,8 +865,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       // Do Nothing, since this is a killAgent from outside
     }
     finally {
+      if(myAPState == AP_DELETED) {
       takeDown();
       destroy();
+      }
+      else
+	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
     }
 
   }
@@ -884,6 +909,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   protected void takeDown() {}
 
+  /**
+     TO DO
+  */
+  protected void beforeMotion() {
+  }
+
+  /**
+     TO DO
+  */
+  protected void afterMotion() {
+  }
+
   private void mainLoop() throws InterruptedException, InterruptedIOException {
     while(myAPState != AP_DELETED) {
 
@@ -902,6 +939,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	waitUntilActivate();
 	break;
       case AP_DELETED:
+	return;
+      case AP_TRANSIT:
+	// Create a Migration transactional object and wait on it
 	return;
       case AP_ACTIVE:
 	break;
