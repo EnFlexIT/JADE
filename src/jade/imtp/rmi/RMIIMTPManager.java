@@ -187,9 +187,10 @@ public class RMIIMTPManager implements IMTPManager {
   public void exportServiceManager(ServiceManager sm) throws IMTPException {
     try {
 
+      ServiceManagerImpl smImpl = (ServiceManagerImpl)sm;
       String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
-      sm.setLocalAddress(baseRMI);
-      myRMIServiceManager = new ServiceManagerRMIImpl((ServiceManagerImpl)sm, this);
+      smImpl.setLocalAddress(baseRMI);
+      myRMIServiceManager = new ServiceManagerRMIImpl(smImpl, this);
 
       int registryPort = mainPort;
       if(localSvcMgrHost != null) {
