@@ -66,8 +66,8 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
     if (blockTime <= 0) {
       // Timeout is expired --> execute the user defined action and
     	// re-initialize wakeupTime
-    	onTick();
     	tickCount++;
+    	onTick();
 			wakeupTime = System.currentTimeMillis() + period;
 			blockTime = period;
     } 
