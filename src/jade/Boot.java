@@ -405,6 +405,9 @@ public class Boot {
       boolean isMain = !b.isContainer;
       b = null; // frees memory
 
+      // Exit the JVM when there are no more containers around
+      Runtime.instance().setCloseVM(true);
+
       // Check whether this is the Main Container or a peripheral container
       if (isMain)
 	  Runtime.instance().createMainContainer(p);
