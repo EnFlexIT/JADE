@@ -230,23 +230,21 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   */
   public void deadAgent(String name) throws IMTPException {
       AID id = new AID(name, AID.ISLOCALNAME);
-      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
-      cmd.addParam(id);
-      myCommandProcessor.processOutgoing(cmd);
+      handleEnd(id);
   }
 
   /**
 	 */
   public void suspendedAgent(String name) throws NotFoundException, IMTPException {
-  	System.out.println("BackEndContainer.suspendedAgent() not yet implemented");
-  	// FIXME: to be implemented
+    AID id = new AID(name, AID.ISLOCALNAME);
+    handleChangedAgentState(id, Agent.AP_ACTIVE, Agent.AP_SUSPENDED);
   }
   
   /**
 	 */
   public void resumedAgent(String name) throws NotFoundException, IMTPException {
-  	System.out.println("BackEndContainer.resumedAgent() not yet implemented");
-  	// FIXME: to be implemented
+    AID id = new AID(name, AID.ISLOCALNAME);
+    handleChangedAgentState(id, Agent.AP_SUSPENDED, Agent.AP_ACTIVE);
   }
   
   /**
@@ -295,8 +293,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    throw new IMTPException("This is not the active back-end replica.");
 	}
 
-	myFrontEnd.killAgent(name);
-	deadAgent(name);
+	try {
+		myFrontEnd.killAgent(name);
+	}
+	catch (PostponedException pe) {
+		// Hide the delivery delay to the rest of the platform
+		deadAgent(name);
+	}
     }
 
     public void suspendAgentOnFE(String name) throws IMTPException, NotFoundException {
@@ -304,7 +307,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    throw new IMTPException("This is not the active back-end replica.");
 	}
 
-	myFrontEnd.suspendAgent(name);
+	try {
+		myFrontEnd.suspendAgent(name);
+	}
+	catch (PostponedException pe) {
+		// Hide the delivery delay to the rest of the platform
+		suspendedAgent(name);
+	}
     }
 
     public void resumeAgentOnFE(String name) throws IMTPException, NotFoundException {
@@ -312,7 +321,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    throw new IMTPException("This is not the active back-end replica.");
 	}
 
-	myFrontEnd.resumeAgent(name);
+	try {
+		myFrontEnd.resumeAgent(name);
+	}
+	catch (PostponedException pe) {
+		// Hide the delivery delay to the rest of the platform
+		resumedAgent(name);
+	}
     }
 
     
