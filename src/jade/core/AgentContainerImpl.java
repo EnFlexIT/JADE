@@ -23,6 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.StringWriter;
 
 import java.net.InetAddress;
@@ -59,6 +66,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // Agents cache, indexed by agent name
   private AgentCache cachedProxies = new AgentCache(MAP_SIZE);
+
+  // ClassLoader table, used for agent mobility
+  private Map loaders = new HashMap();
 
   // The agent platform this container belongs to
   protected AgentPlatform myPlatform;
@@ -128,11 +138,64 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       e.printStackTrace();
     }
 
-    createAgent(agentName, agent, startIt);
+    initAgent(agentName, agent, startIt);
   }
 
+  public void createAgent(String agentName, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException {
 
-  public void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
+    final AgentContainer ac = classSite;
+
+    class Deserializer extends ObjectInputStream {
+
+      public Deserializer(InputStream inner) throws IOException {
+	super(inner);
+      }
+
+      protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
+	ClassLoader cl = (ClassLoader)loaders.get(ac);
+	if(cl == null) {
+	  cl = new JADEClassLoader(ac);
+	  loaders.put(ac, cl);
+	}
+	return(cl.loadClass(v.getName()));
+      }
+
+    }
+
+    try {
+      ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance));
+
+      Agent instance = (Agent)in.readObject();
+      initAgent(agentName, instance, startIt);
+
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
+    catch(ClassNotFoundException cnfe) {
+      cnfe.printStackTrace();
+    }
+
+  }
+
+  // Accepts the fully qualified class name as parameter and searches
+  // the class file in the classpath
+  public byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException {
+    System.out.println("Classserver: fetch " + name);
+    name = name.replace( '.' , '/') + ".class";
+    InputStream classStream = ClassLoader.getSystemResourceAsStream(name);
+    if (classStream == null) 
+      throw new ClassNotFoundException();
+    try {
+      byte[] bytes = new byte[classStream.available()];
+      classStream.read(bytes);
+      return(bytes);
+    } catch (IOException ioe) {
+	throw new ClassNotFoundException();
+    }
+  }
+
+  void initAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
 
     // Subscribe as a listener for the new agent
     instance.addCommListener(this);
@@ -618,7 +681,17 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	  return;
 	}
 
-	ac.createAgent(name, a, NOSTART);
+	ByteArrayOutputStream out = new ByteArrayOutputStream();
+	try {
+	  ObjectOutputStream encoder = new ObjectOutputStream(out);
+	  encoder.writeObject(a);
+	}
+	catch(IOException ioe) {
+	  ioe.printStackTrace();
+	}
+
+	byte[] bytes = out.toByteArray();
+	ac.createAgent(name, bytes, this, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
 	boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, destName);
@@ -668,7 +741,18 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
       if(a == null)
 	throw new NotFoundException("Internal error: copySource() called with a wrong name !!!");
 
-      ac.createAgent(newName, a, START);
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      try {
+	ObjectOutputStream encoder = new ObjectOutputStream(out);
+	encoder.writeObject(a);
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+
+      byte[] bytes = out.toByteArray();
+      ac.createAgent(name, bytes, this, NOSTART);
+
     }
     catch(RemoteException re) {
       re.printStackTrace();
