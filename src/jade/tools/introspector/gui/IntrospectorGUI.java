@@ -35,7 +35,7 @@ import javax.swing.tree.*;
 import jade.core.AID;
 import jade.gui.AgentTreeModel;
 import jade.gui.AgentTree;
-
+import jade.gui.AboutJadeAction;
 import jade.domain.introspection.*;
 
 import jade.tools.introspector.Introspector;
@@ -58,9 +58,9 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
 
   private JMenuBar bar;
   private JMenu menuFile;
-  private JMenu menuHelp;
+  private JMenu menuAbout;
   private JMenuItem item;
-  private JMenuItem about;
+ 
 
   private String logoIntrospector =  "images/bug.gif";
   
@@ -79,8 +79,8 @@ public IntrospectorGUI(Introspector i) {
     bar = new JMenuBar();
     menuFile = new JMenu();
     item = new JMenuItem();
-    menuHelp = new JMenu();
-    about = new JMenuItem();
+    menuAbout = new JMenu();
+
 
     build();
 
@@ -103,24 +103,19 @@ public IntrospectorGUI(Introspector i) {
     menuFile.add(item);
     bar.add(menuFile);
     this.setJMenuBar(bar);
-    menuHelp.setText("Help");
-    about.setText("About");
-    menuHelp.add(about);
-    about.setName("about");
-    bar.add(menuHelp);
-
+    menuAbout.setText("About");
+    menuAbout.add(new AboutBoxAction(this));
+    menuAbout.add(new AboutJadeAction(this));
+    bar.add(menuAbout);
+    
+    	
     item.addActionListener(new ActionListener()  {
       public void actionPerformed(ActionEvent e) {
         exit_actionPerformed(e);
       }
     });
 
-    about.addActionListener(new ActionListener()  {
-      public void actionPerformed(ActionEvent e) {
-        about();
-      }
-    });
-
+   
     scroll.getViewport().add(desk);
 
     split.add(panel, JSplitPane.LEFT);
@@ -160,12 +155,7 @@ public IntrospectorGUI(Introspector i) {
   JOptionPane.showMessageDialog(null, errMsg, "Error in " + debugger.getName(), JOptionPane.ERROR_MESSAGE);
  }
 
-  public void about(){
-    AboutBox about = new AboutBox(this,"About Jade Introspector Agent", true);
-    about.showCorrect();
-  }
-
-
+  
   // Methods called by the Introspector agent.
 
   public void messageSent(MainWindow f, SentMessage sm) {
