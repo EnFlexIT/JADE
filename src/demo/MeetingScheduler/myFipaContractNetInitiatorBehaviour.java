@@ -26,9 +26,10 @@ import java.util.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.core.*;
-import jade.proto.FipaContractNetInitiatorBehaviour;
+import jade.proto.ContractNetInitiator;
 import jade.domain.FIPAException;
 import jade.lang.sl.SL0Codec;
+import jade.domain.FIPANames;
 
 import demo.MeetingScheduler.Ontology.*;
 
@@ -38,21 +39,27 @@ Javadoc documentation for the file
 @version $Date$ $Revision$
 */
 
-public class myFipaContractNetInitiatorBehaviour extends FipaContractNetInitiatorBehaviour {
+public class myFipaContractNetInitiatorBehaviour extends ContractNetInitiator {
 
   private ACLMessage cfpMsg = new ACLMessage(ACLMessage.CFP);
   private final static long TIMEOUT = 60000; // 1 minute
   private Appointment pendingApp;
   private MeetingSchedulerAgent myAgent;
 
-    public myFipaContractNetInitiatorBehaviour(MeetingSchedulerAgent a, Appointment app, List group) {
-      super(a,new ACLMessage(ACLMessage.CFP),group);
-      myAgent = a;
-      // fill the fields of the cfp message
+  
+  public myFipaContractNetInitiatorBehaviour(MeetingSchedulerAgent a, Appointment app, List group) {
+      super(a, null);
+      myAgent=a;
+           // fill the fields of the cfp message
       cfpMsg.setLanguage(SL0Codec.NAME);
       cfpMsg.setOntology(MSOntology.NAME);
       cfpMsg.setReplyByDate(new Date(System.currentTimeMillis()+TIMEOUT));
-
+      cfpMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+      Iterator i = group.iterator();
+      while (i.hasNext()) {
+					cfpMsg.addReceiver((AID)i.next());
+      }
+      
       try {// fill the content
 	myAgent.fillAppointment(cfpMsg,app);
       } catch (FIPAException e) {
@@ -60,26 +67,36 @@ public class myFipaContractNetInitiatorBehaviour extends FipaContractNetInitiato
 	myAgent.doDelete();
       }
       pendingApp = (Appointment)app.clone();
-      reset(cfpMsg,group); // updates the message to be sent
-      //System.err.println("myFipaContractNetInitiatorBehaviour with these agents: " + group.toString());
+      //reset(cfpMsg); // updates the message to be sent
+      System.out.println("myFipaContractNetInitiatorBehaviour msg:"+cfpMsg); 
     }
 
-  // This method is called to handle message different from proposal
-  public void handleOtherMessages(ACLMessage msg) {
-    System.err.println("!!! FipaContractNetInitiator handleOtherMessages: "+msg.toString());
-  }
+    protected Vector prepareCfps(ACLMessage cfp) {
+	Vector v = new Vector(1);
+	v.addElement(cfpMsg);
+	return v;
+    }  
+protected void handleNotUnderstood(ACLMessage msg) {
+    System.err.println("!!! ContractNetInitiator handleNotUnderstood: "+msg.toString());
+}
   
+protected void handleOutOfSequence(ACLMessage msg) {
+    System.err.println("!!! ContractNetInitiator handleOutOfSequence: "+msg.toString());
+}
+
+protected void handleRefuse(ACLMessage msg) {
+    System.err.println("!!! ContractNetInitiator received Refuse: "+msg.toString());
+}
 
 
-public Vector handleProposeMessages(Vector proposals) {
+protected void handleAllResponses(Vector proposals,Vector retMsgs) {
     //System.err.println(myAgent.getLocalName()+": FipacontractNetInitiator is evaluating the proposals");
-  Vector retMsgs = new Vector(proposals.size());
   ACLMessage msg;
   ArrayList acceptableDates = new ArrayList();
   ArrayList acceptedDates = new ArrayList();
   
   if (proposals.size()==0)
-    return null;
+    return;
 
   Calendar c = Calendar.getInstance();
 
@@ -140,10 +157,9 @@ public Vector handleProposeMessages(Vector proposals) {
     ((ACLMessage)retMsgs.elementAt(i)).setContent(replyMsg.getContent()); 
   }
   
-  return retMsgs;
 }
   
-public Vector handleFinalMessages(Vector messages) {
+public void handleAllResultNotifications(Vector messages) {
   // I here receive failure or inform-done
   ACLMessage msg;
   boolean accepted=false;
@@ -161,6 +177,9 @@ public Vector handleFinalMessages(Vector messages) {
   }
   if (accepted)
     myAgent.addMyAppointment(pendingApp);            
-  return new Vector();
+  
   }
 } 
+
+
+    

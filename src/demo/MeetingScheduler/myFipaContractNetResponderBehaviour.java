@@ -30,8 +30,13 @@ import java.util.ArrayList;
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
-import jade.proto.FipaContractNetResponderBehaviour;
+import jade.proto.ContractNetResponder;
 import jade.domain.FIPAException;
+
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPANames;
 
 
 import demo.MeetingScheduler.Ontology.Appointment;
@@ -41,20 +46,21 @@ Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
-public class myFipaContractNetResponderBehaviour extends FipaContractNetResponderBehaviour {
+public class myFipaContractNetResponderBehaviour extends ContractNetResponder {
 
 MeetingSchedulerAgent myAgent;
 
 public myFipaContractNetResponderBehaviour(MeetingSchedulerAgent a) {
-super(a);
+super(a,createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET));
 myAgent = a;
 }
 
-public void handleOtherMessages(ACLMessage msg) {
- System.err.println(myAgent.getLocalName()+":myFipaContractNetResponderBehaviour. handleOtherMessages:"+msg.toString());
+protected void handleOutOfSequence(ACLMessage cfp,ACLMessage propose,ACLMessage outOfSequenceMsg){
+ System.err.println(myAgent.getLocalName()+":myFipaContractNetResponder:received out of sequence message"+outOfSequenceMsg.toString());
 }
 
- public ACLMessage handleAcceptProposalMessage(ACLMessage msg) {
+protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose,ACLMessage msg ) throws FailureException {
+
    ACLMessage reply = msg.createReply();
    try {
      Appointment app = myAgent.extractAppointment(msg); 
@@ -73,13 +79,12 @@ public void handleOtherMessages(ACLMessage msg) {
 
 
 
- public void handleRejectProposalMessage(ACLMessage msg) {
+ protected void handleRejectProposal(ACLMessage cfp,ACLMessage propose,ACLMessage msg){
     System.err.println(myAgent.getLocalName()+":FipaContractNetResponder: the proposal has been rejected with this message"+msg.toString());
  }
 
-
- public ACLMessage handleCfpMessage(ACLMessage cfp) {
-   ACLMessage propose = cfp.createReply();
+ protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+    ACLMessage propose = cfp.createReply();
 
    try {
      Appointment app = myAgent.extractAppointment(cfp); 
