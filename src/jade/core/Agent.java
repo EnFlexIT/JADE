@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.27  1998/11/15 23:00:20  rimassa
+  Added a new private inner class, named AgentDeathError. Now when an
+  Agent is killed from the AgentPlatform while in waiting state, a new
+  AgentDeathError is raised, and the Agent thread can unblock and
+  terminate.
+
   Revision 1.26  1998/11/09 00:02:25  rimassa
   Modified doWait() method to avoid missing notifications.
   A 'finally' clause is used to execute user-specific and JADE system
@@ -172,6 +178,15 @@ import jade.domain.FIPAException;
 ****************************************************************/
 public class Agent implements Runnable, Serializable, CommBroadcaster {
 
+  // This inner class is used to force agent termination when a signal
+  // from the outside is received
+  private class AgentDeathError extends Error {
+
+    AgentDeathError() {
+      super("Agent " + Thread.currentThread().getName() + " has been terminated.");
+    }
+
+  }
 
   // Agent Platform Life-Cycle states
 
@@ -268,9 +283,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	wait(); // Blocks on its monitor
       }
       catch(InterruptedException ie) {
-	myThread.interrupt();
-	System.out.println("Thread " + Thread.currentThread().getName() + " Interrupted");
 	myAPState = AP_DELETED;
+	throw new AgentDeathError();
       }
     }
   }
@@ -305,6 +319,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
+    }
+    catch(AgentDeathError ade) {
+      // Do Nothing, since this is a killAgent from outside
     }
     finally {
       takeDown();
