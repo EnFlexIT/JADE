@@ -4,13 +4,16 @@
 
 package jade.domain;
 
+import java.util.Enumeration;
+import java.util.Vector;
+
 class DFAgentDescriptor {
 
   private String name;
-  private String address;
-  private ServiceDescriptor services;
+  private Vector addresses = new Vector();
+  private Vector services = new Vector();
   private String type;
-  private String interactionProtocols;
+  private Vector interactionProtocols = new Vector();
   private String ontology;
   private String ownership;
   private String DFState;
@@ -24,20 +27,20 @@ class DFAgentDescriptor {
     return name;
   }
 
-  public void setAddress(String a) {
-    address = a;
+  public void addAddress(String a) {
+    addresses.addElement(a);
   }
 
-  public String getAddress() {
-    return address;
+  public Enumeration getAddresses() {
+    return addresses.elements();
   }
 
-  public void setServices(ServiceDescriptor sd) {
-    services = sd;
+  public void addService(ServiceDescriptor sd) {
+    services.addElement(sd);
   }
 
-  public ServiceDescriptor getAgentServices() {
-    return services;
+  public Enumeration getAgentServices() {
+    return services.elements();
   }
 
   public void setType(String t) {
@@ -48,12 +51,12 @@ class DFAgentDescriptor {
     return type;
   }
 
-  public void setInteractionProtocols(String ip) {
-    interactionProtocols = ip;
+  public void addInteractionProtocol(String ip) {
+    interactionProtocols.addElement(ip);
   }
 
-  public String getInteractionProtocols() {
-    return interactionProtocols;
+  public Enumeration getInteractionProtocols() {
+    return interactionProtocols.elements();
   }
 
   public void setOntology(String o) {
@@ -82,22 +85,37 @@ class DFAgentDescriptor {
 
   public void dump() { 
     System.out.println("(");
-    /*    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.NAME + " " + name + ")");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ADDRESS + " " + address + ")");
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.NAME + " " + name + " )");
 
-    System.out.println("  (" + AgentManagementOntology.DFAgentDescription.SERVICES);
-    System.out.println("    ( :service-type " + services.getType() + ")");
-    System.out.println("    ( :service-ontology " + services.getOntology() + ")");
-    System.out.println("    ( :service-description" + services.getDescription() + ")");
-    System.out.println("    ( :service-conditions" + services.getConditions() + ")");
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ADDRESS);
+    Enumeration e = getAddresses();
+    while(e.hasMoreElements())
+      System.out.println("    " + e.nextElement());
+    System.out.println("  )");
+    /*
+    if(services != null) {
+      System.out.println("  (" + AgentManagementOntology.DFAgentDescription.SERVICES);
+      System.out.println("    ( :service-name " + services.getName() + " )");
+      System.out.println("    ( :service-type " + services.getType() + " )");
+      System.out.println("    ( :service-ontology " + services.getOntology() + " )");
+      System.out.println("    ( :fixed-properties " + services.getFixedProps() + " )");
+      System.out.println("    ( :negotiable-properties " + services.getNegotiableProps() + " )");
+      System.out.println("    ( :communication-properties " + services.getCommunicationProps() + " )");
+      System.out.println("  )");
+    }
+    */
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.TYPE + " " + type + " )");
+
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.PROTOCOLS);
+    e = getInteractionProtocols();
+    while(e.hasMoreElements())
+      System.out.println("    " + e.nextElement());
     System.out.println("  )");
 
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.TYPE + " " + type + ")");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.PROTOCOLS + " " + interactionProtocols + ")");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ONTOLOGY + " " + ontology + ")");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.OWNERSHIP + " " + ownership + ")");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.DFSTATE + " " + DFState + ")");
-    */
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ONTOLOGY + " " + ontology + " )");
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.OWNERSHIP + " " + ownership + " )");
+    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.DFSTATE + " " + DFState + " )");
+
     System.out.println(")");
 
   }
