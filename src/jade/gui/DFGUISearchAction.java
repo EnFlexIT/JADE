@@ -75,7 +75,7 @@ class DFGUISearchAction extends AbstractAction
 		if (editedDfd != null)
 		{	
 			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd,new SearchConstraints());
-			gui.setTab("Search");
+			gui.setTab("Search",df);
 		}
 	}
 }
