@@ -434,7 +434,7 @@ public class Agent implements Runnable, Serializable {
      Default constructor.
   */
   public Agent() {
-    myAPState = AP_INITIATED;
+    setState(AP_INITIATED);
     myScheduler = new Scheduler(this);
     mySecurityManager = new SecurityManager();
   }
@@ -684,6 +684,12 @@ public class Agent implements Runnable, Serializable {
     return msgQueue.getMaxSize();
   }
 
+  private void setState(int state) {
+    synchronized(stateLock) {
+      myAPState = state;
+    }
+  }
+
   /**
      Read current agent state. This method can be used to query an
      agent for its state from the outside.
@@ -734,7 +740,7 @@ public class Agent implements Runnable, Serializable {
     synchronized(stateLock) {
       if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
 	myBufferedState = myAPState;
-	myAPState = AP_TRANSIT;
+	setState(AP_TRANSIT);
 	myDestination = destination;
 
 	// Real action will be executed in the embedded thread
@@ -757,7 +763,7 @@ public class Agent implements Runnable, Serializable {
     synchronized(stateLock) {
       if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
 	myBufferedState = myAPState;
-	myAPState = AP_COPY;
+	setState(AP_COPY);
 	myDestination = destination;
 	myNewName = newName;
 
@@ -778,7 +784,7 @@ public class Agent implements Runnable, Serializable {
   */
   void doExecute() {
     synchronized(stateLock) {
-      myAPState = myBufferedState;
+      setState(myBufferedState);
       myBufferedState = AP_MIN;
       activateAllBehaviours();
     }
@@ -791,7 +797,7 @@ public class Agent implements Runnable, Serializable {
   */
   void doGone() {
     synchronized(stateLock) {
-      myAPState = AP_GONE;
+      setState(AP_GONE);
     }
   }
 
@@ -811,7 +817,7 @@ public class Agent implements Runnable, Serializable {
     synchronized(stateLock) {
       if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
 	myBufferedState = myAPState;
-	myAPState = AP_SUSPENDED;
+	setState(AP_SUSPENDED);
       }
     }
     if(myAPState == AP_SUSPENDED) {
@@ -834,7 +840,7 @@ public class Agent implements Runnable, Serializable {
   public void doActivate() {
     synchronized(stateLock) {
       if(myAPState == AP_SUSPENDED) {
-	myAPState = myBufferedState;
+	setState(myBufferedState);
       }
     }
     if(myAPState != AP_SUSPENDED) {
@@ -877,7 +883,7 @@ public class Agent implements Runnable, Serializable {
   public void doWait(long millis) {
     synchronized(stateLock) {
       if(myAPState == AP_ACTIVE)
-	myAPState = AP_WAITING;
+	setState(AP_WAITING);
     }
     if(myAPState == AP_WAITING) {
       if(myThread.equals(Thread.currentThread())) {
@@ -896,7 +902,7 @@ public class Agent implements Runnable, Serializable {
   public void doWake() {
     synchronized(stateLock) {
       if(myAPState == AP_WAITING) {
-	myAPState = AP_ACTIVE;
+	setState(AP_ACTIVE);
       }
     }
     if(myAPState == AP_ACTIVE) {
@@ -921,7 +927,7 @@ public class Agent implements Runnable, Serializable {
   public void doDelete() {
     synchronized(stateLock) {
       if(myAPState != AP_DELETED) {
-	myAPState = AP_DELETED;
+	setState(AP_DELETED);
 	if(!myThread.equals(Thread.currentThread()))
 	  myThread.interrupt();
       }
@@ -1026,7 +1032,7 @@ public class Agent implements Runnable, Serializable {
       amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:
-	myAPState = AP_ACTIVE;
+	setState(AP_ACTIVE);
 	// No 'break' statement - fall through
       case AP_ACTIVE:
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
@@ -1069,10 +1075,10 @@ public class Agent implements Runnable, Serializable {
       switch(myAPState) {
       case AP_DELETED:
 	int savedState = getState();
-	myAPState = AP_ACTIVE;
+	setState(AP_ACTIVE);
 	takeDown();
 	destroy();
-	myAPState = savedState;
+	setState(savedState);
 	break;
       case AP_GONE:
 	break;
@@ -1080,10 +1086,10 @@ public class Agent implements Runnable, Serializable {
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
 	savedState = getState();
-	myAPState = AP_ACTIVE;
+	setState(AP_ACTIVE);
 	takeDown();
 	destroy();
-	myAPState = savedState;
+	setState(savedState);
       }
     }
 
@@ -1279,7 +1285,7 @@ public class Agent implements Runnable, Serializable {
 	    timeToWait -= elapsedTime;
 
 	    if(timeToWait <= 0)
-	    myAPState = AP_ACTIVE;
+	    setState(AP_ACTIVE);
 	  }
 
 	}
@@ -1309,7 +1315,7 @@ public class Agent implements Runnable, Serializable {
 	  case AP_TRANSIT:
 	  case AP_COPY:
 	    // Undo the previous clone or move request
-	    myAPState = AP_SUSPENDED;
+	    setState(AP_SUSPENDED);
 	  }
 	}
       }
@@ -1317,7 +1323,6 @@ public class Agent implements Runnable, Serializable {
   }
 
   private void destroy() { 
-
     try {
       if (myAID.equals(getAMS())) { //special version for the AMS to avoid deadlock 
 	AMSAgentDescription amsd = new AMSAgentDescription();
