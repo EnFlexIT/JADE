@@ -42,6 +42,7 @@ import jade.security.AuthException;
 interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
+    String getPlatformName() throws RemoteException;
     void activateService(String name, Class itf, String sliceName, NodeRMI node) throws ServiceException, RemoteException;
     void deactivateService(String name, NodeRMI node) throws ServiceException, RemoteException;
     String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces) throws ServiceException, AuthException, RemoteException;

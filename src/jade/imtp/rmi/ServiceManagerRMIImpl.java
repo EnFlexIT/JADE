@@ -54,6 +54,16 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
     }
 
 
+    public String getPlatformName() throws RemoteException {
+	try {
+	    return impl.getPlatformName();
+	}
+	catch(IMTPException imtpe) {
+	    // It should never happen, since this is a local call
+	    throw new RemoteException("IMTPException in local call");
+	}
+    }
+
     public void activateService(String name, Class itf, String sliceName, NodeRMI node) throws ServiceException, RemoteException {
 	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
 
