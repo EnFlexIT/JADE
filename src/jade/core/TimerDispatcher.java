@@ -89,7 +89,7 @@ class TimerDispatcher implements Runnable {
     catch(InterruptedException ie) {
       // Do nothing, but just return, since this is a shutdown.
     }
-    System.out.println("Timer Dispatcher shutting down ...");
+    // System.out.println("Timer Dispatcher shutting down ...");
   }
 
   public void start() {
