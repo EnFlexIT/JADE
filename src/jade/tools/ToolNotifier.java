@@ -331,7 +331,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     addBehaviour(new OneShotBehaviour(this) {
       public void action() {
 	try {
-	  myAgent.fillContent(msg, l);
+	  myAgent.fillContent2(msg, l);
 	  send(msg);
 	}
 	catch(FIPAException fe) {

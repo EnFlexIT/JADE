@@ -182,7 +182,7 @@ public class Sniffer extends ToolAgent {
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
 	try {
-	  List l = extractContent(current);
+	  List l = extractContent2(current);
 	  Occurred o = (Occurred)l.get(0);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
@@ -496,7 +496,7 @@ public class Sniffer extends ToolAgent {
 
 	  ACLMessage requestMsg = getRequest();
 	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	  fillContent(requestMsg, l);
+	  fillContent2(requestMsg, l);
           return requestMsg;
 	}
 	catch(FIPAException fe) {
@@ -529,7 +529,7 @@ public class Sniffer extends ToolAgent {
 
 	  ACLMessage requestMsg = getRequest();
 	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	  fillContent(requestMsg, l);
+	  fillContent2(requestMsg, l);
           requestMsg.setReplyWith(getName()+ (new Date().getTime()));
           return requestMsg;
 	}
