@@ -34,7 +34,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Francisco Regi, Andrea Soracchi - Universita' di Parma
    @version $Date$ $Revision$
  */
 class PopupMouser extends MouseAdapter
@@ -74,8 +74,12 @@ class PopupMouser extends MouseAdapter
       }
       current=(AgentTree.Node)selPath.getLastPathComponent();
       typeNode=current.getType();
-      if(!typeNode.equals(""))
-	popup=agentTree.getPopupMenu(typeNode);
+      if(!typeNode.equals("")) {
+	  popup = agentTree.getPopupMenu(typeNode);
+	  if(popup == null) {
+	      return false;
+	  }
+      }
       else
 	popup=new JPopupMenu();
       return true;
