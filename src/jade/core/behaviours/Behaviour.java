@@ -378,7 +378,8 @@ public abstract class Behaviour implements Serializable {
   }
 
   /**
-     Return the private data store of this <code>Behaviour</code>
+     Return the private data store of this <code>Behaviour</code>.
+     If it was null, a new DataStore is created and returned.
      @return The private data store of this <code>Behaviour</code>
    */
   public DataStore getDataStore() {
