@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/10/06 08:46:26  rimassa
+  Fixed an overflow problem when generating the URL for a given IIOP
+  connection.
+
   Revision 1.3  1999/02/25 08:29:54  rimassa
   Fixed some problems related to uppercase/lowercase.
 
@@ -190,7 +194,10 @@ class OutGoingIIOP {
   }
 
   public String getURL() {
-    return "iiop://" + host + ":" + port + "/" + objectKey;
+    int portNum = port;
+    if(portNum < 0)
+      portNum += 65536;
+    return "iiop://" + host + ":" + portNum + "/" + objectKey;
   }
 
   public String getIOR() {
