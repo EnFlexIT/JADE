@@ -92,8 +92,13 @@ class RealNotificationManager implements NotificationManager {
     if(tn == null) { // New sniffer
       tn = new ToolNotifier(snifferName);
       AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
-      myContainer.initAgent(id, tn, AgentContainer.START);
-      addMessageListener(tn);
+      try {
+        myContainer.initAgent(id, tn, AgentContainer.START);
+        addMessageListener(tn);
+      }
+      catch(Exception e) {
+          e.printStackTrace();
+      }
     }
     tn.addObservedAgent(toBeSniffed);
 
@@ -121,9 +126,14 @@ class RealNotificationManager implements NotificationManager {
     if(tn == null) { // New debugger
       tn = new ToolNotifier(debuggerName);
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
-      myContainer.initAgent(id, tn, AgentContainer.START);
-      addMessageListener(tn);
-      addAgentListener(tn);
+      try {
+        myContainer.initAgent(id, tn, AgentContainer.START);
+        addMessageListener(tn);
+        addAgentListener(tn);
+      }
+      catch(Exception e) {
+        e.printStackTrace();
+      }
     }
     tn.addObservedAgent(toBeDebugged);
 

@@ -184,8 +184,12 @@ public class AgentContainer implements PlatformController {
             throw new StaleProxyException();
         }
         AID agentID = new AID(nickname, AID.ISLOCALNAME);
-        myImpl.initAgent(agentID, anAgent, false);
-
+        try {
+            myImpl.initAgent(agentID, anAgent, false);
+        }
+        catch(Exception e) {
+            throw new StaleProxyException(e);
+        }
         return new Agent(agentID, anAgent);
     }
 
