@@ -1,106 +1,120 @@
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/Agent.java
-Agent@- CommChanged@public synchronized void CommChanged( CommEvent event ) {
-Agent@- addCommListener@public void addCommListener( CommListener l ) {
-Agent@- addLightTask@public void addLightTask( String task ) {
-Agent@- getAgentName@public String getAgentName() {
-Agent@- localCommChanged@public synchronized void localCommChanged( CommEvent event ) {
-Agent@- local_startup@protected void local_startup() {
-Agent@- parseMsg@protected void parseMsg( aclMessage msg ) {
-Agent@- play@public void play( String host, int port, URL codeBase, boolean isApplet, String[] args ) {
-Agent@- processCommEvent@public void processCommEvent( CommEvent event ) {
-Agent@- receiveIf@public synchronized aclMessage receiveIf( String source, String type, String content, String reply ) {
-Agent@- removeCommListener@public void removeCommListener( CommListener l ) {
-Agent@- run@public void run() {
+/home/rimassa/DEVEL/ADK/src/fipa/core/Agent.java
+Agent@= actions@protected Vector actions =
+Agent@- activate@public void activate(String name) {
+Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
+Agent@- addCommListener@public final void addCommListener(CommListener l) {
+Agent@= currentMessage@protected ACLMessage currentMessage;
+Agent@= isActive@protected boolean isActive =
+Agent@= listeners@protected Vector listeners =
+Agent@- localStartup@protected void localStartup() {
+Agent@= msgQueue@protected Vector msgQueue =
+Agent@= myName@protected String myName;
+Agent@= myThread@protected Thread myThread;
+Agent@= parser@private ACLParser parser =
+Agent@- postMessage@public final synchronized void postMessage (ACLMessage msg) {
+Agent@- receive@protected final ACLMessage receive() {
+Agent@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+Agent@- removeCommListener@public final void removeCommListener(CommListener l) {
+Agent@- run@public final void run() {
 Agent@- schedule@public void schedule() {
-Agent@- send@public void send( aclMessage msg ) {
-Agent@- verifyMsg@public boolean verifyMsg( aclMessage msg, String source, String type, String content, String reply ) {
+Agent@- send@protected final void send(String msg) {
+Agent@- send@protected final void send(ACLMessage msg) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentContainer.java
-AgentContainerImpl@- AgentContainer@public AgentContainer( Vector agents, String[] args ) {
-AgentContainerImpl@- CommHandle@public void CommHandle( CommEvent event ) {
-AgentContainerImpl@- main@public static void main( String[] args ) {
-AgentContainerImpl@- usage@private static void usage(){
+/home/rimassa/DEVEL/ADK/src/fipa/core/AgentPlatform.java
+AgentPlatform@= addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
+AgentPlatform@= bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
+AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException;
+AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
+AgentPlatform@= removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentPlatform.java
-AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
-AgentPlatformImpl@- addContainer@public synchronized void addContainer(AgentContainer ac) throws RemoteException {
-AgentPlatform@> bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
-AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
-AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
-AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException {
-AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
-AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
-AgentPlatformImpl@- removeContainer@public synchronized void removeContainer(AgentContainer ac) throws RemoteException {
+/home/rimassa/DEVEL/ADK/src/fipa/core/Behaviour.java
+Behaviour@= execute@public void execute();
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/Behaviour.java
-Behaviour@> execute@public void execute();
+/home/rimassa/DEVEL/ADK/src/fipa/core/CommBroadcaster.java
+CommBroadcaster@= addCommListener@void addCommListener (CommListener l);
+CommBroadcaster@= removeCommListener@void removeCommListener(CommListener event);
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommBroadcaster.java
-CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
-CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
-
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommEvent.java
-CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, aclMessage message) {
+/home/rimassa/DEVEL/ADK/src/fipa/core/CommEvent.java
+CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, String command) {
+CommEvent@= command@private String command;
 CommEvent@- getCommand@public String getCommand() {
-CommEvent@- getMessage@public aclMessage getMessage() {
+CommEvent@- getMessage@public ACLMessage getMessage() {
+CommEvent@= message@private ACLMessage message;
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommListener.java
-CommListener@> CommHandle@void CommHandle( CommEvent event );
+/home/rimassa/DEVEL/ADK/src/fipa/core/CommListener.java
+CommListener@= CommHandle@void CommHandle( CommEvent event );
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/MessageDispatcher.java
-MessageDispatcherImpl@- CommHandle@public void CommHandle( CommEvent event ) {
-MessageDispatcherImpl@- MessageDispatcher@public MessageDispatcher( String HOST, int PORT ) {
-MessageDispatcherImpl@- addAgent@public void addAgent( Agent a ) {
-MessageDispatcherImpl@- addCommListener@public void addCommListener( CommListener l ) {
-MessageDispatcherImpl@- connectionClosed@public void connectionClosed() {
-MessageDispatcher@> dispatch@void dispatch(ACLMessage msg) throws RemoteException;
-MessageDispatcherImpl@- getLocalHost@public String getLocalHost() {
-MessageDispatcherImpl@- getLocalPort@public int getLocalPort() {
-MessageDispatcherImpl@- processCommEvent@public void processCommEvent( CommEvent event ) {
-MessageDispatcherImpl@- receive@public aclMessage receive() throws ParseException {
-MessageDispatcherImpl@- removeCommListener@public void removeCommListener( CommListener l ) {
-MessageDispatcherImpl@- run@public void run() {
-MessageDispatcherImpl@- sendLocal@public void sendLocal( aclMessage msg ) {
-MessageDispatcherImpl@- sendRemote@public void sendRemote( aclMessage msg ) {
+/home/rimassa/DEVEL/ADK/src/fipa/core/MessageDispatcher.java
+MessageDispatcher@= dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException;
+MessageDispatcher@= dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/Giovanni/DEVEL/ADK/src/fipa/domain/ams.java
+/home/rimassa/DEVEL/ADK/src/fipa/domain/ams.java
 ams@- ThreadChanged@public void ThreadChanged( ThreadEvent event ) {
+ams@= agents@private Vector agents;
 ams@+ ams@public ams(int dfPort, Socket sock, Vector agents, Vector sockets ) {
+ams@= dfThread@private Thread dfThread;
+ams@= is@public InputStream is;
+ams@= isLocal@private boolean isLocal;
+ams@= myPort@private int myPort;
+ams@= os@public OutputStream os;
 ams@- parseMsg@public void parseMsg( aclMessage msg ) {
+ams@= parser@ACLParser parser =
+ams@= peerName@private String peerName;
+ams@= peerService@private String peerService;
+ams@= peerSource@private String peerSource;
 ams@- receive@public aclMessage receive() throws ParseException {
 ams@- run@public void run() {
 ams@- send@private void send( aclMessage msg, OutputStream localOs ) {
 ams@- sendAddress@private void sendAddress( String requestedAdd, aclMessage msg, String type ) {
+ams@= sock@private Socket sock;
+ams@= sockets@private Vector sockets;
 ams@- updateDb@private synchronized void updateDb( String source, String name ) {
 ams@- waiting@public void waiting() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/domain/df.java
+/home/rimassa/DEVEL/ADK/src/fipa/domain/df.java
+df@= agents@private Vector agents;
 df@- local_startup@public void local_startup() {
 df@- parseMsg@public int parseMsg() {
 df@- sendAddress@private void sendAddress( String requestedAdd, aclMessage msg, String type ) {
 df@- updateService@private void updateService( String source, String name, String service ) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/Parser.java
-Parser@> parse@public void parse(Reader textSource);
+/home/rimassa/DEVEL/ADK/src/fipa/lang/Parser.java
+Parser@= parse@public void parse(Reader textSource);
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ACLParser.java
-ACLParser@+ ACLParser@public ACLParser() {
-ACLParser@- getMessage@public Message getMessage() {
-ACLParser@- parse@public void parse(Reader textSource) {
-
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/Message.java
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/Message.java
 MessageImpl@+ MessageImpl@public MessageImpl() {
-Message@> getKind@public String getKind();
+MessageImpl@= acceptProposalKind@private static final Object acceptProposalKind =
+MessageImpl@= agreeKind@private static final Object agreeKind =
+MessageImpl@= cancelKind@private static final Object cancelKind =
+MessageImpl@= cfpKind@private static final Object cfpKind =
+MessageImpl@= confirmKind@private static final Object confirmKind =
+MessageImpl@= disconfirmKind@private static final Object disconfirmKind =
+MessageImpl@= failureKind@private static final Object failureKind =
+Message@= getKind@public String getKind();
 MessageImpl@- getKind@public String getKind() {
-Message@> getValue@public String getValue(String name);
+Message@= getValue@public String getValue(String name);
 MessageImpl@- getValue@public String getValue(String name) {
+MessageImpl@= informIfKind@private static final Object informIfKind =
+MessageImpl@= informKind@private static final Object informKind =
+MessageImpl@= informRefKind@private static final Object informRefKind =
 MessageImpl@- initKinds@private static synchronized void initKinds() {
+MessageImpl@= messageKinds@private static Hashtable messageKinds;
+MessageImpl@= notUnderstoodKind@private static final Object notUnderstoodKind =
+MessageImpl@= parameters@private Hashtable parameters;
+MessageImpl@= proposeKind@private static final Object proposeKind =
+MessageImpl@= queryIfKind@private static final Object queryIfKind =
+MessageImpl@= queryRefKind@private static final Object queryRefKind =
+MessageImpl@= refuseKind@private static final Object refuseKind =
+MessageImpl@= rejectProposalKind@private static final Object rejectProposalKind =
+MessageImpl@= requestKind@private static final Object requestKind =
+MessageImpl@= requestWhenKind@private static final Object requestWhenKind =
+MessageImpl@= requestWheneverKind@private static final Object requestWheneverKind =
+MessageImpl@= subscribeKind@private static final Object subscribeKind =
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/grammar.java
-MessageParameter@> value@public String value();
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/grammar.java
+MessageParameter@= value@public String value();
 senderParam@- value@public String value() {
 receiverParam@- value@public String value() {
 contentParam@- value@public String value() {
@@ -112,3 +126,114 @@ languageParam@- value@public String value() {
 ontologyParam@- value@public String value() {
 protocolParam@- value@public String value() {
 conversationIdParam@- value@public String value() {
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/AgentDescriptor.java
+AgentDescriptor@= demux@private MessageDispatcher demux;
+AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
+AgentDescriptor@- getName@public String getName() {
+AgentDescriptor@= name@private String name;
+AgentDescriptor@- set@public void set(String s, MessageDispatcher md) {
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/NotFoundException.java
+NotFoundException@+ NotFoundException@NotFoundException(String msg) {
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/StartContainer.java
+StartContainer@= SEPARATOR@private static final String SEPARATOR =
+StartContainer@- main@public static void main(String args[]) {
+StartContainer@- usage@private static void usage(){
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/StartPlatform.java
+StartPlatform@- main@public static void main(String args[]) {
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/AgentContainerImpl.java
+AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
+AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
+AgentContainerImpl@= MAP_LOAD_FACTOR@private static final float MAP_LOAD_FACTOR =
+AgentContainerImpl@= MAP_SIZE@private static final int MAP_SIZE =
+AgentContainerImpl@+ finalize@protected void finalize() {
+AgentContainerImpl@= localAgents@private Hashtable localAgents =
+AgentContainerImpl@= myDispatcher@private MessageDispatcherImpl myDispatcher;
+AgentContainerImpl@= myPlatform@private AgentPlatform myPlatform;
+AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
+AgentContainerImpl@= remoteAgentsCache@private Hashtable remoteAgentsCache =
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/AgentPlatformImpl.java
+AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
+AgentPlatformImpl@= MAP_LOAD_FACTOR@private static final float MAP_LOAD_FACTOR =
+AgentPlatformImpl@= MAP_SIZE@private static final int MAP_SIZE =
+AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
+AgentPlatformImpl@= agentMap@private Hashtable agentMap =
+AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
+AgentPlatformImpl@= containers@private Vector containers =
+AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException {
+AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
+AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
+
+/home/rimassa/DEVEL/ADK/src/fipa/core/MessageDispatcherImpl.java
+MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
+MessageDispatcherImpl@- dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException {
+MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
+MessageDispatcherImpl@= localAgents@private Hashtable localAgents;
+MessageDispatcherImpl@= parser@private ACLParser parser =
+
+/home/rimassa/DEVEL/ADK/src/fipa/lang/acl/ACLMessage.java
+ACLMessage@+ ACLMessage@public ACLMessage( String source, int port ) {
+ACLMessage@+ ACLMessage@public ACLMessage() {
+ACLMessage@= CONTENT@private final String CONTENT =
+ACLMessage@= CONVERSATION_ID@private final String CONVERSATION_ID =
+ACLMessage@= DEST@private final String DEST =
+ACLMessage@= ENVELOPE@private final String ENVELOPE =
+ACLMessage@= IN_REPLY_TO@private final String IN_REPLY_TO =
+ACLMessage@= LANGUAGE@private final String LANGUAGE =
+ACLMessage@= ONTOLOGY@private final String ONTOLOGY =
+ACLMessage@= PROTOCOL@private final String PROTOCOL =
+ACLMessage@= REPLY_BY@private final String REPLY_BY =
+ACLMessage@= REPLY_WITH@private final String REPLY_WITH =
+ACLMessage@= SOURCE@private final String SOURCE =
+ACLMessage@= conversation_id@private String conversation_id;
+ACLMessage@= counter@private static int counter =
+ACLMessage@= dest@private String dest;
+ACLMessage@- dump@public void dump() {
+ACLMessage@- duplicate@public void duplicate() {
+ACLMessage@= envelope@private String envelope;
+ACLMessage@- getContent@public String getContent() {
+ACLMessage@- getConversationId@public String getConversationId() {
+ACLMessage@- getDest@public String getDest() {
+ACLMessage@- getEnvelope@public String getEnvelope() {
+ACLMessage@- getLanguage@public String getLanguage() {
+ACLMessage@- getMessage@public byte[] getMessage() {
+ACLMessage@- getOntology@public String getOntology() {
+ACLMessage@- getProtocol@public String getProtocol() {
+ACLMessage@- getReplyBy@public String getReplyBy() {
+ACLMessage@- getReplyTo@public String getReplyTo() {
+ACLMessage@- getReplyWith@public String getReplyWith() {
+ACLMessage@- getSource@public String getSource() {
+ACLMessage@- getSrcPort@public int getSrcPort() {
+ACLMessage@- getType@public String getType() {
+ACLMessage@= in_reply_to@private String in_reply_to;
+ACLMessage@= language@private String language;
+ACLMessage@= message@private byte message[];
+ACLMessage@= msgContent@private String msgContent;
+ACLMessage@= msgType@private String msgType;
+ACLMessage@= ontology@private String ontology;
+ACLMessage@= protocol@private String protocol;
+ACLMessage@- receive@public void receive( String s ) {
+ACLMessage@= reply_by@private String reply_by;
+ACLMessage@= reply_with@private String reply_with;
+ACLMessage@- send@public void send() {
+ACLMessage@- setContent@public void setContent( String content ) {
+ACLMessage@- setConversationId@public void setConversationId( String str ) {
+ACLMessage@- setDest@public void setDest( String dest ) {
+ACLMessage@- setEnvelope@public void setEnvelope( String str ) {
+ACLMessage@- setLanguage@public void setLanguage( String str ) {
+ACLMessage@- setOldString@private void setOldString( StringBuffer s, int type ) {
+ACLMessage@- setOntology@public void setOntology( String str ) {
+ACLMessage@- setProtocol@public void setProtocol( String str ) {
+ACLMessage@- setReplyBy@public void setReplyBy( String str ) {
+ACLMessage@- setReplyTo@public void setReplyTo( String reply ) {
+ACLMessage@- setReplyWith@public void setReplyWith( String reply ) {
+ACLMessage@- setSource@public void setSource( String source ) {
+ACLMessage@- setType@public void setType( String type ) {
+ACLMessage@= source@private String source;
+ACLMessage@= srcPort@private int srcPort;
+ACLMessage@= tempMessage@private StringBuffer tempMessage;
