@@ -676,6 +676,13 @@ public class Agent implements Runnable, Serializable {
      @param name The local name of the agent.
   */
   public void doStart(String name) {
+    if (myToolkit == null)  
+      // myToolkit=null if the agent is started by an external application. 
+      // if this application lives in a JVM different from where the 
+      // AgentContainer lives an exception will be thrown, of course!
+      // because Starter.theContainer is a static variable, the following
+      // call works without any problem.
+      setToolkit(Starter.getContainer());  
     myToolkit.handleStart(name, this);
   }
 
