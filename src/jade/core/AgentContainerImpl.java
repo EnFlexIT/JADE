@@ -64,7 +64,7 @@ import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
-import jade.tools.sniffer.Notifier; // FIXME: This should not be imported
+import jade.tools.ToolNotifier; // FIXME: This should not be imported
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -308,18 +308,18 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   **/
   public void enableSniffer(AID snifferName, AID toBeSniffed) throws RemoteException {
 
-    Notifier n = findNotifier(snifferName);
-    if(n != null && n.getState() == Agent.AP_DELETED) { // A formerly dead notifier
-      removeMessageListener(n);
-      n = null;
+    ToolNotifier tn = findNotifier(snifferName);
+    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
+      removeMessageListener(tn);
+      tn = null;
     }
-    if(n == null) { // New sniffer
-      n = new Notifier(snifferName);
+    if(tn == null) { // New sniffer
+      tn = new ToolNotifier(snifferName);
       AID id = new AID(snifferName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
-      initAgent(id, n, START);
-      addMessageListener(n);
+      initAgent(id, tn, START);
+      addMessageListener(tn);
     }
-    n.addSniffedAgent(toBeSniffed);
+    tn.addObservedAgent(toBeSniffed);
 
   }
 
@@ -329,17 +329,54 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     @param notToBeSniffed The <code>AID</code> of the agent to stop sniffing
   **/
   public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException {
-    Notifier n = findNotifier(snifferName);
-    if(n != null) { // The sniffer must be here
-      n.removeSniffedAgent(notToBeSniffed);
-      if(n.isEmpty()) {
-	removeMessageListener(n);
-	n.doDelete();
+    ToolNotifier tn = findNotifier(snifferName);
+    if(tn != null) { // The sniffer must be here
+      tn.removeObservedAgent(notToBeSniffed);
+      if(tn.isEmpty()) {
+	removeMessageListener(tn);
+	tn.doDelete();
       }
     }
 
   }
 
+
+  /**
+    @param debuggerName The Agent ID of the debugger to send messages to.
+    @param toBeDebugged The <code>AID</code> of the agent to start debugging.
+  **/
+  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws RemoteException {
+    ToolNotifier tn = findNotifier(debuggerName);
+    if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
+      removeMessageListener(tn);
+      // removeAgentListener(tn);
+      tn = null;
+    }
+    if(tn == null) { // New debugger
+      tn = new ToolNotifier(debuggerName);
+      AID id = new AID(debuggerName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
+      initAgent(id, tn, START);
+      addMessageListener(tn);
+      // addAgentListener(tn);
+    }
+    tn.addObservedAgent(toBeDebugged);
+  }
+
+  /**
+    @param debuggerName The Agent ID of the debugger to send messages to.
+    @param notToBeDebugged The <code>AID</code> of the agent to stop debugging.
+  **/
+  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws RemoteException {
+    ToolNotifier tn = findNotifier(debuggerName);
+    if(tn != null) { // The debugger must be here
+      tn.removeObservedAgent(notToBeDebugged);
+      if(tn.isEmpty()) {
+	removeMessageListener(tn);
+	// removeAgentListener(tn);
+	tn.doDelete();
+      }
+    }
+  }
 
   public void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException {
 
@@ -1018,17 +1055,17 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   }
 
-  private Notifier findNotifier(AID snifferName) {
+  private ToolNotifier findNotifier(AID observerName) {
     if(messageListeners == null)
       return null;
     Iterator it = messageListeners.iterator();
     while(it.hasNext()) {
       Object obj = it.next();
-      if(obj instanceof Notifier) {
-	Notifier n = (Notifier)obj;
-	AID id = n.getSniffer();
-	if(id.equals(snifferName))
-	  return n;
+      if(obj instanceof ToolNotifier) {
+	ToolNotifier tn = (ToolNotifier)obj;
+	AID id = tn.getObserver();
+	if(id.equals(observerName))
+	  return tn;
       }
     }
     return null;
