@@ -122,7 +122,10 @@ public class BootArguments {
   /**
   * This method verifies the configuration properties and eventually correct them.
   * It checks if the port number is a number greater than 0 otherwise it throws a BootException,
-  * and if the -nomtp has been set, then delete some other mtp wrongly set. 
+  * and if the -nomtp has been set, then delete some other mtp wrongly set.
+  * If the user wants to start a platform the host
+  * must be the local host so if a different name is speficied it
+  * will be corrected and an exception will be thrown.   
   * 
   */
     public void check() throws BootException{
@@ -141,6 +144,54 @@ public class BootArguments {
 	  		MTPs = null;
 	  		throw new BootException("WARNING: If the option noMTP is on, then no MTP can be inserted.");
 	  	}
+
+      if (!isContainer) { // then it is a platform
+	  try {
+	      InetAddress myPlatformAddrs[] =
+		  InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
+	      InetAddress hostAddrs[] = InetAddress.getAllByName(hostName);
+	      
+	      // If the platform address equals the host address, then
+	      // the user is starting the main container (platform) on
+	      // the local host.  The trick here is to compare the InetAddress
+	      // objects, not the strings since the one string might be a
+	      // fully qualified Internet domain name for the host and the 
+	      // other might be a simple name.  
+	      // Example: myHost.hpl.hp.com and myHost might
+	      // acutally be the same host even though the hostname strings do
+	      // not match.  When the InetAddress objects are compared, the IP
+	      // addresses will be compared.
+	      int i = 0;
+	      boolean isLocal = false;
+	      while ( (!isLocal) && (i < myPlatformAddrs.length) ) {
+		  int j = 0;
+		  while ( (!isLocal) && (j < hostAddrs.length) ) {
+		      isLocal = myPlatformAddrs[i].equals(hostAddrs[j]);
+		      j++;
+		  }
+		  i++;
+	      }
+
+	      if( !isLocal ) {
+		  hostName = myPlatformAddrs[0].getHostName();
+		  throw new BootException("WARNING: Not possible to launch a platform"
+					  + "\n"
+					  + "on a different host."
+					  + "\n"
+					  + "A platform must be launched on local host."
+					  );
+	      }
+	  } catch(UnknownHostException uhe) {
+	      // uhe.printStackTrace();
+	      //hostName = myPlatformAddrs[0].getHostName();
+	      throw new BootException("WARNING: Not possible to launch a platform"
+				      + "\n"
+				      + "on a different host."
+				      + "\n"
+				      + "A platform must be launched on local host."
+				      );
+	  }
+      } //END if(!isContainer) -- i.e. (this is a platform)
     }
     
     
