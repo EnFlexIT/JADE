@@ -195,14 +195,8 @@ public class NotificationService extends BaseService {
 		    handleNotifyChangedBehaviourState(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during an event notification operation", imtpe));
-	    }
-	    catch(ServiceException se) {
-		cmd.setReturnValue(new UnreachableException("A service slice was not found during an event notification operation", se));
-	    }
-	    catch(NotFoundException nfe) {
-		cmd.setReturnValue(nfe);
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 
 	    // Never veto a command
