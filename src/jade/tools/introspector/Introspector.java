@@ -505,7 +505,6 @@ public class Introspector extends ToolAgent {
       if(message != null) {
         AID name = message.getSender();
 	try{
-		System.out.println("Parsing message "+message);
 	  Occurred o = (Occurred)getContentManager().extractContent(message);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
@@ -559,7 +558,6 @@ public class Introspector extends ToolAgent {
           AID tn = a.getActor();
           StartNotify sn = (StartNotify) a.getAction();
           AID observed = sn.getObserved();
-          System.out.println("Map "+observed+" to "+tn);
           notifiers.put(observed, tn);
 				}
 				catch(Exception fe) {
