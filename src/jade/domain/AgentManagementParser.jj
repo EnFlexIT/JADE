@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.8  1998/10/26 00:05:39  rimassa
+  Added grammar productions to parse two new AMS actions: 'create-agent'
+  and 'kill-agent'. Besides, some slight modifications were necessary to
+  require a 1-token lookahead even in presence of these new productions.
+
   Revision 1.7  1998/10/23 21:42:14  Giovanni
   Added grammar productions and actions to process ACL messages embedded
   in 'forward' ACC actions.
@@ -124,7 +129,7 @@ AgentManagementOntology.AMSAction AMSAction() :
   AgentManagementOntology.AMSAction a;
 }
 {
-  "(" a = AMSActionBody() ")"
+  "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() ) ")"
   { return a; }
 }
 
@@ -161,6 +166,45 @@ AgentManagementOntology.AMSAction AMSActionBody() :
   { a.setArg(amsd); }
 
   { return a; }
+}
+
+AgentManagementOntology.CreateAgentAction CreateAgentBody() :
+{
+  AgentManagementOntology.CreateAgentAction caa = new AgentManagementOntology.CreateAgentAction();
+  Token t;
+}
+{
+  t = <CREATE_AGENT>
+  {
+    caa.setName(t.image);
+  }
+  ( "(" CreateAgentArg(caa) ")" )+
+
+  { return caa; }
+}
+
+void CreateAgentArg(AgentManagementOntology.CreateAgentAction caa) :
+{
+  Token t;
+  AgentManagementOntology.AMSAgentDescriptor amsd;
+} // FIXME: Property list still missing
+{
+   ( amsd = AMSDescriptionBody() { caa.setArg(amsd); } )
+ | ( <AGENT_CODE> t = <WORD> { caa.setClassName(t.image); } )
+ | ( <AGENT_PROPERTIES> t = <INTEGER> { int i = Integer.parseInt(t.image); caa.setContainerID(i); } )
+}
+
+AgentManagementOntology.KillAgentAction KillAgentBody() :
+{
+  AgentManagementOntology.KillAgentAction kaa = new AgentManagementOntology.KillAgentAction();
+  Token t;
+}
+{
+  t = <KILL_AGENT>
+  {
+    kaa.setName(t.image);
+  }
+  { return kaa; }
 }
 
 AgentManagementOntology.DFAction DFActionBody() :
@@ -261,10 +305,19 @@ String ACLMessageBody() :
 
 AgentManagementOntology.AMSAgentDescriptor AMS_Description() :
 {
+  AgentManagementOntology.AMSAgentDescriptor result;
+}
+{
+  "(" result = AMSDescriptionBody() ")"
+  { return result; }
+}
+
+AgentManagementOntology.AMSAgentDescriptor AMSDescriptionBody() :
+{
   AgentManagementOntology.AMSAgentDescriptor result = new AgentManagementOntology.AMSAgentDescriptor();
 }
 {
- "(" <AMS_DESCRIPTION> ( "(" FIPA_AMS_description(result) ")" )+ ")"
+ <AMS_DESCRIPTION> ( "(" FIPA_AMS_description(result) ")" )+
  {
    return result;
  }
@@ -532,6 +585,10 @@ TOKEN:
 | <DEREGISTER_AGENT : "deregister-agent">
 | <AUTHENTICATE : "authenticate">
 | <MODIFY_AGENT : "modify-agent">
+| <CREATE_AGENT : "create-agent">
+| <AGENT_CODE : ":agent-code">
+| <AGENT_PROPERTIES : ":agent-properties">
+| <KILL_AGENT : "kill-agent">
 | <FORWARD : "forward">
 | <AGENT_NAME : ":agent-name">
 | <AGENT_ADDRESS : ":agent-address">
@@ -630,7 +687,7 @@ TOKEN:
       // If you want, you can add bytes to matchedToken.image here.
       matchedToken.image = new String(bytes);
     }
-| <REMAINDER: (~["(", "#", "\"", ")" ])* >
+| <REMAINDER: (~["(", "#", "\"", ")" ])+ >
 | <INT : ["0"-"9"](["0"-"9"])*>
 
 }
