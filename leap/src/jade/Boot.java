@@ -48,6 +48,7 @@ import java.io.*;
  *
  * @author Giovanni Rimassa - Universita' di Parma
  * @author Giovanni Caire - TILAB
+ * @author Nicolas Lhuillier - Motorola
  * @version $Date$ $Revision$
  *
  */
@@ -81,7 +82,18 @@ public class Boot {
 
       // Start a new JADE runtime system
       Runtime.instance().setCloseVM(true);
-      Runtime.instance().startUp(p);
+      //#PJAVA_EXCLUDE_BEGIN
+      // Check whether this is the Main Container or a peripheral container
+      if (p.getParameter(Profile.MAIN, true)) {
+        Runtime.instance().createMainContainer(p);
+      } else {
+        Runtime.instance().createAgentContainer(p);
+      }
+      //#PJAVA_EXCLUDE_END
+      /*#PJAVA_INCLUDE_BEGIN
+        // Starts the container in SINGLE_MODE (Only one per JVM)
+        Runtime.instance().startUp(p);
+        #PJAVA_INCLUDE_END*/
     }
     catch (ProfileException pe) {
       System.err.println("Error creating the Profile ["+pe.getMessage()+"]");
