@@ -76,6 +76,9 @@ public class TestMobilityOntology extends Test {
   			inform.addReceiver(ma);
   			myAgent.send(inform);
   			l.log(myAgent.getLocalName()+": Startup message sent");
+  			// Wait for reply (to avoid moving the mobile agent while it is in its setup() method)
+  			myAgent.blockingReceive();
+  			l.log(myAgent.getLocalName()+": Reply received");
   			
   			// Register languages and ontologies
   			cm.registerLanguage(codec);

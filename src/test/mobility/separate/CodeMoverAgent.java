@@ -47,7 +47,7 @@ public class CodeMoverAgent extends Agent {
 	private ParallelBehaviour pb;
 	private ACLMessage msg;
 	
-	// Some fiels just used to test code compatibility 
+	// Some fields just used to test code compatibility 
 	Codec c = new LEAPCodec();
 	Ontology o = FIPAManagementOntology.getInstance();
 	AbsPredicate p = new AbsPredicate("Sample");
@@ -56,7 +56,11 @@ public class CodeMoverAgent extends Agent {
 	protected void setup() {
 		// Wait for the startup message and get tester name
 		msg = blockingReceive();
+		System.out.println(getLocalName()+": Startup message received.");
 		tester = msg.getSender();
+		// Reply 
+		send(msg.createReply());
+		System.out.println(getLocalName()+": Reply sent.");
 		
 		template = MessageTemplate.and(
 			MessageTemplate.MatchOntology("onto"),
