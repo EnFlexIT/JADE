@@ -56,6 +56,7 @@ public class TestDFHelper {
 		sd.addOntologies("Test-ontology-1.2");
 		sd.addLanguages("Test-language-1.1");
 		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages("Test-language-1.3");
 		sd.addProtocols("Test-protocol-1");
 		
 		return sd;
@@ -69,22 +70,71 @@ public class TestDFHelper {
 		sd.addLanguages("Test-language-2");
 		sd.addProtocols("Test-protocol-2.1");
 		sd.addProtocols("Test-protocol-2.2");
+		Property p = new Property();
+		p.setName("pname1");
+		p.setValue("pvalue1");
+		sd.addProperties(p);
+		p = new Property();
+		p.setName("pname2");
+		p.setValue("pvalue2");
+		sd.addProperties(p);
 		
 		return sd;
 	}
 	
+	/**
+	   Return a template that matches a DFD including SD1
+	 */
 	public static DFAgentDescription getSampleTemplate1() {
 		DFAgentDescription dfd = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-1");
+		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages("Test-language-1.3");
 		dfd.addServices(sd);
 		return dfd;
 	}
 	
+	/**
+	   Return a template that matches a DFD including SD2
+	 */
 	public static DFAgentDescription getSampleTemplate2() {
 		DFAgentDescription dfd = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-2");
+		Property p = new Property();
+		p.setName("pname2");
+		p.setValue("pvalue2");
+		sd.addProperties(p);
+		dfd.addServices(sd);
+		return dfd;
+	}
+	
+	/**
+	   Return a template that should not matche a DFD including SD1
+	 */
+	public static DFAgentDescription getSampleTemplate3() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("Test-type-1");
+		sd.addLanguages("Test-language-1.2");
+		sd.addLanguages("Test-language-1.3");
+		sd.addLanguages("Test-language-1.4");
+		dfd.addServices(sd);
+		return dfd;
+	}
+
+	/**
+	   Return a template that should not matche a DFD including SD2
+	 */
+	public static DFAgentDescription getSampleTemplate4() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("Test-type-2");
+		Property p = new Property();
+		p.setName("pname3");
+		p.setValue("pvalue2");
+		sd.addProperties(p);
 		dfd.addServices(sd);
 		return dfd;
 	}
