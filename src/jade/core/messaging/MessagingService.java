@@ -82,7 +82,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 
-
+import jade.util.Logger;
 
 /**
 
@@ -120,6 +120,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	this.myProfile = p;
 	myContainer = ac;
 
+	int verbosity = 0;
+	try {
+		verbosity = Integer.parseInt(p.getParameter(VERBOSITY_KEY, null));
+	}
+	catch (Exception e) {
+		// Ignore and keep default (0)
+	}
+	myLogger = new Logger("Messaging-service", verbosity, null, p.getParameter(VERBOSITY_FORMAT_KEY, "%t [%i] %m"));
+	
+	myLogger.log("Initialized", 1);
 	// Initialize its own ID
 	String platformID = myContainer.getPlatformID();
 	accID = "fipa-mts://" + platformID + "/acc";
@@ -489,6 +499,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 		InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {
 			public void dispatchMessage(Envelope env, byte[] payload) {
+				myLogger.log("Message from remote platform received", 2);
 
 			    // To avoid message loops, make sure that the ID of this ACC does
 			    // not appear in a previous 'received' stamp
@@ -904,6 +915,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	private void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
 	    RoutingTable.OutPort out = routes.lookup(address);
+	    myLogger.log("Routing message from "+msg.getSender().getName()+" to "+receiverID.getName()+" towards port "+out, 2);
 	    if(out != null)
 		out.route(msg, receiverID, address);
 	    else
@@ -1256,6 +1268,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     // The component managing asynchronous message delivery and retries
     private MessageManager myMessageManager;
 
+    private static final String VERBOSITY_KEY = "jade_core_messaging_MessagingService_verbosity";
+    private static final String VERBOSITY_FORMAT_KEY = "jade_core_messaging_MessagingService_verbosity_format";
+		private Logger myLogger;
+		
     // Work-around for PJAVA compilation
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);
