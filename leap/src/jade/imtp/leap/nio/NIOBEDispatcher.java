@@ -37,6 +37,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   private long lastReceivedTime;
   private boolean active = true;
   private boolean peerActive = true;
+  private boolean connectionDropped = false;
 
   private JICPMediatorManager myMediatorManager;
   private String myID;
@@ -159,7 +160,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	/**
 	* Passes to this JICPMediator the connection opened by the mediated 
 	* entity.
-	* This is called by the JICPServer this Mediator is attached to
+	* This is called by the JICPMediatorManager this Mediator is attached to
 	* as soon as the mediated entity (re)connects.
 	* @param c the connection to the mediated entity
 	* @param pkt the packet that was sent by the mediated entity when 
@@ -170,6 +171,10 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	* connection open.
 	*/
 	public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+		if (connectionDropped) {
+			droppedToDisconnected();
+		}
+  	
   	// Update keep-alive info
   	lastReceivedTime = System.currentTimeMillis();
   	
@@ -198,22 +203,23 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	/**
 	   Notify this NIOMediator that an error occurred on one of the 
 	   Connections it was using. This information is important since, 
-	   unlike normal mediators, a NIOMediator never reads packets from 
-	   connections on its own (the JICPMediatorManager always does that).
+	   unlike normal mediators, a NIOMediator typically does not read 
+	   packets from 
+	   connections on its own (the JICPMediatorManager does that in general).
 	 */
 	public void handleConnectionError(Connection c, Exception e) {
 		if (active && peerActive) {
 			// Try assuming it is the input connection
 			try {
 				inpManager.checkConnection(c);
-				myLogger.log(Logger.INFO, myID+": IC Disconnection detected");
+				myLogger.log(Logger.WARNING, myID+": IC Disconnection detected");
 				inpManager.resetConnection();
 			}
 			catch (ICPException icpe) {
 				// Then try assuming it is the output connection
 				try {
 					outManager.checkConnection(c);
-					myLogger.log(Logger.INFO, myID+": OC Disconnection detected");
+					myLogger.log(Logger.WARNING, myID+": OC Disconnection detected");
 					outManager.resetConnection();
 				}
 				catch (ICPException icpe2) {
@@ -240,6 +246,11 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	   JICPMediatorManager does that in general).
 	 */
 	public JICPPacket handleJICPPacket(Connection c, JICPPacket pkt, InetAddress addr, int port) throws ICPException {
+  	if (pkt.getType() == JICPProtocol.DROP_DOWN_TYPE) {
+  		handleDropDown(c, pkt, addr, port);
+		  return null;
+  	}
+  	
 		checkTerminatedInfo(pkt);
 		
   	// Update keep-alive info
@@ -261,14 +272,14 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			throw new ICPException("Unexpected packet type "+type);
 		}
 	}
-		
+
 	/**
 	  This is periodically called by the JICPMediatorManager and is
 	  used by this NIOMediator to evaluate the elapsed time without
 	  the need of a dedicated thread or timer.
 	 */
 	public final void tick(long currentTime) {
-		if (active) {
+		if (active && !connectionDropped) {
 			// 1) If there is a blocking read operation in place check the 
 			// response timeout
 			inpManager.checkResponseTime(currentTime);
@@ -330,6 +341,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	return inpManager.getStub();
   }
 
+  // FIXME: to be removed
   public void activateReplica(String addr, Properties props) throws IMTPException {
   }
 
@@ -356,12 +368,65 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   // Dispatcher interface implementation
   //////////////////////////////////////////
   public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
-	  JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-	  pkt = inpManager.dispatch(pkt, flush);
-	  return pkt.getData();
+  	if (connectionDropped) {
+	  	// Move from DROPPED state to DISCONNECTED state and wait 
+  		// for the FE to reconnect
+  		droppedToDisconnected();
+	  	requestRefresh();
+  		throw new ICPException("Connection dropped");
+  	}
+  	else {
+  		// Normal dispatch
+		  JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+		  pkt = inpManager.dispatch(pkt, flush);
+		  return pkt.getData();
+  	}
   }
 
   
+  //////////////////////////////////////////////////////
+  // Methods related to connection drop-down management
+  //////////////////////////////////////////////////////
+  /**
+     Handle a connection DROP_DOWN request from the FE.
+   */
+	protected void handleDropDown(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+		if (myLogger.isLoggable(Logger.CONFIG)) {
+			myLogger.log(Logger.CONFIG,  myID+": DROP_DOWN request received.");
+		}
+		
+		JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+		try {
+			c.writePacket(rsp);
+			
+			inpManager.resetConnection();
+			outManager.resetConnection();
+			connectionDropped = true;
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.WARNING,  myID+": Error writing DROP_DOWN response. "+e);
+		}
+	}
+
+	/**
+	   Move from the connectionDropped state to the Disconnected state.
+	   This may happen when
+	   - a packet must be dispatched to the FE.
+	   - an incoming connection is detected
+	 */
+  private void droppedToDisconnected() {
+  	connectionDropped = false;
+  	outManager.setExpirationDeadline();
+  }
+  	
+  /**
+     Request the FE to refresh the connection.
+   */
+  protected void requestRefresh() {
+  }
+
+	
+	
   /**
      Inner class InputManager.
      This class manages the delivery of commands to the FrontEnd
@@ -573,10 +638,14 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	
   	synchronized void resetConnection() {
   		if (myConnection != null) {
-  			expirationDeadline = System.currentTimeMillis() + maxDisconnectionTime;
+  			setExpirationDeadline();
 				close(myConnection);
   		}
   		myConnection = null;
+  	}
+  	
+  	synchronized void setExpirationDeadline() {
+			expirationDeadline = System.currentTimeMillis() + maxDisconnectionTime;
   	}
   	
 	  final void checkConnection(Connection c) throws ICPException {

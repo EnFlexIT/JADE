@@ -68,7 +68,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
   private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
   private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
-  private Timer kaTimer;
+  private long connectionDropDownTime = -1;
+  private Timer kaTimer, cdTimer;
   private Properties props;
 
   protected Connection outConnection;
@@ -76,6 +77,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   private ConnectionListener myConnectionListener;
   
   private boolean active = true;
+  private boolean connectionDropped = false;
   private boolean waitingForFlush = false;
   protected boolean refreshingInput = false;
   protected boolean refreshingOutput = false;
@@ -119,8 +121,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
 	    // Compose URL 
 	    mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	    if (myLogger.isLoggable(Logger.FINE)) {
-	    	myLogger.log(Logger.FINE, "Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA));
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA));
 	    }
 
 	    // Mediator class
@@ -128,8 +130,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    if (tmp != null) {
 	    	myMediatorClass = tmp;
 	    }
-	    if (myLogger.isLoggable(Logger.FINE)) {
-	    	myLogger.log(Logger.FINE, "Mediator class="+myMediatorClass);
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Mediator class="+myMediatorClass);
 	    }
 	    
 	    // Read (re)connection retry time
@@ -140,8 +142,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    if (myLogger.isLoggable(Logger.FINE)) {
-	    	myLogger.log(Logger.FINE, "Reconnection time="+retryTime);
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Reconnection time="+retryTime);
 	    }
 
 	    // Read Max disconnection time
@@ -152,8 +154,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    if (myLogger.isLoggable(Logger.FINE)) {
-	    	myLogger.log(Logger.FINE, "Max discon. time="+maxDisconnectionTime);
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Max discon. time="+maxDisconnectionTime);
 	    }
 
 	    // Read Keep-alive time
@@ -164,8 +166,20 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    if (myLogger.isLoggable(Logger.FINE)) {
-	    	myLogger.log(Logger.FINE, "Keep-alive time="+keepAliveTime);
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Keep-alive time="+keepAliveTime);
+	    }
+
+	    // Read Connection-drop-down time
+	    tmp = props.getProperty(JICPProtocol.DROP_DOWN_TIME_KEY);
+	    try {
+				connectionDropDownTime = Long.parseLong(tmp);
+	    } 
+	    catch (Exception e) {
+				// Use default
+	    }
+	    if (myLogger.isLoggable(Logger.CONFIG)) {
+	    	myLogger.log(Logger.CONFIG, "Connection-drop-down time="+connectionDropDownTime);
 	    }
 
 	    // Retrieve the ConnectionListener if any
@@ -316,49 +330,55 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      @return The serialized response
    */
   public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
-  	if (outConnection != null) {
-  		if (waitingForFlush && !flush) {
-				throw new ICPException("Upsetting dispatching order");
-  		}
-  		waitingForFlush = false;
-  
-  		int status = 0;
-  		if (myLogger.isLoggable(Logger.FINEST)) {
-  			myLogger.log(Logger.FINEST, "Issuing outgoing command "+outCnt);
-  		}
-	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-	  	pkt.setSessionID((byte) outCnt);
-	  	try {
-		  	writePacket(pkt, outConnection);
-		  	status = 1;
-		  	pkt = outConnection.readPacket();
-		  	if (pkt.getSessionID() != outCnt) {
-		  		pkt = outConnection.readPacket();
-		  	}
-		  	status = 2;
-	  		if (myLogger.isLoggable(Logger.FINEST)) {
-	  			myLogger.log(Logger.FINEST, "Response received "+pkt.getSessionID());
-	  		}
-		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-		    	// Communication OK, but there was a JICP error on the peer
-		      throw new ICPException(new String(pkt.getData()));
-		    }
-  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
-  				// The BackEnd is considering the input connection no longer valid
-  				refreshInp();
-  			}
-			  outCnt = (outCnt+1) & 0x0f;
-		    return pkt.getData();
-	  	}
-	  	catch (IOException ioe) {
-	  		// Can't reach the BackEnd. 
-  			myLogger.log(Logger.WARNING, "IOException OC["+status+"]"+ioe);
-  			refreshOut();
-	  		throw new ICPException("Dispatching error.", ioe);
-	  	}
+  	if (connectionDropped) {
+  		dispatchWhileDropped();
+  		throw new ICPException("Connection dropped");
   	}
   	else {
-  		throw new ICPException("Unreachable");
+	  	if (outConnection != null) {
+	  		if (waitingForFlush && !flush) {
+					throw new ICPException("Upsetting dispatching order");
+	  		}
+	  		waitingForFlush = false;
+	  
+	  		int status = 0;
+	  		if (myLogger.isLoggable(Logger.FINE)) {
+	  			myLogger.log(Logger.FINE, "Issuing outgoing command "+outCnt);
+	  		}
+		  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+		  	pkt.setSessionID((byte) outCnt);
+		  	try {
+			  	writePacket(pkt, outConnection);
+			  	status = 1;
+			  	pkt = outConnection.readPacket();
+			  	if (pkt.getSessionID() != outCnt) {
+			  		pkt = outConnection.readPacket();
+			  	}
+			  	status = 2;
+		  		if (myLogger.isLoggable(Logger.FINER)) {
+		  			myLogger.log(Logger.FINER, "Response received "+pkt.getSessionID());
+		  		}
+			    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+			    	// Communication OK, but there was a JICP error on the peer
+			      throw new ICPException(new String(pkt.getData()));
+			    }
+	  			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
+	  				// The BackEnd is considering the input connection no longer valid
+	  				refreshInp();
+	  			}
+				  outCnt = (outCnt+1) & 0x0f;
+			    return pkt.getData();
+		  	}
+		  	catch (IOException ioe) {
+		  		// Can't reach the BackEnd. 
+	  			myLogger.log(Logger.WARNING, "IOException OC["+status+"]"+ioe);
+	  			refreshOut();
+		  		throw new ICPException("Dispatching error.", ioe);
+		  	}
+	  	}
+	  	else {
+	  		throw new ICPException("Unreachable");
+	  	}
   	}
   } 
 
@@ -392,8 +412,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   				byte sid = pkt.getSessionID();
   				if (sid == lastSid) {
   					// Duplicated packet
-			  		if (myLogger.isLoggable(Logger.FINE)) {
-			  			myLogger.log(Logger.FINE, "Duplicated packet received "+sid);
+			  		if (myLogger.isLoggable(Logger.WARNING)) {
+			  			myLogger.log(Logger.WARNING, "Duplicated packet from BE "+sid);
 			  		}
   					pkt = lastResponse;
   				}
@@ -404,12 +424,12 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 						}
 						else {						
 							// Incoming command
-				  		if (myLogger.isLoggable(Logger.FINEST)) {
-				  			myLogger.log(Logger.FINEST, "Incoming command received "+sid+" pkt-type="+pkt.getType());
+				  		if (myLogger.isLoggable(Logger.FINE)) {
+				  			myLogger.log(Logger.FINE, "Incoming command received "+sid+" pkt-type="+pkt.getType());
 				  		}
 							byte[] rspData = mySkel.handleCommand(pkt.getData());
-				  		if (myLogger.isLoggable(Logger.FINEST)) {
-				  			myLogger.log(Logger.FINEST, "Incoming command served "+ sid);
+				  		if (myLogger.isLoggable(Logger.FINER)) {
+				  			myLogger.log(Logger.FINER, "Incoming command served "+ sid);
 				  		}
 						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
 						}
@@ -460,8 +480,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      Close the current InputManager (if any) and start a new one
    */
   protected synchronized void refreshInp() {
-  	// Avoid 2 refresh at the same time
-  	if (!refreshingInput && active) {
+  	// Avoid 2 refresh at the same time.
+  	// Also avoid restoring the INP connection just after a DROP_DOWN
+  	if (active && !refreshingInput && !connectionDropped) {
 	  	// Close the current InputManager	
 	  	if (myInputManager != null && myInputManager.isConnected()) {
 	  		myInputManager.close();
@@ -602,6 +623,13 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			}
 		}
 		else if (type == OUT) {
+			if (connectionDropped) {
+				// If we have just reconnected after a connection drop-down,
+				// refresh the INP connection too.
+				connectionDropped = false;
+				refreshInp();
+			}
+			
 			outConnection = c;
 			// The Output connection is available again --> 
 			// Activate postponed commands flushing
@@ -688,14 +716,20 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   	else {
 	  	updateKeepAlive();
+			if (pkt.getType() != JICPProtocol.KEEP_ALIVE_TYPE && pkt.getType() != JICPProtocol.DROP_DOWN_TYPE) {
+				updateConnectionDropDown();
+			}
   	}
   }
   
-  ////////////////////////////////////////
-  // Keep-alive mechanism management
-  ////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // Keep-alive and connection drop-down mechanism management
+  ////////////////////////////////////////////////////////////////
   
-  // Mutual exclusion with doTimeOut()
+  /**
+     Refresh the keep-alive timer.
+     Mutual exclusion with doTimeOut()
+   */
   private synchronized void updateKeepAlive() {
   	if (keepAliveTime > 0) {
 	  	TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
@@ -706,32 +740,48 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
   
-  public void doTimeOut(Timer t) {
-  	startWatchDog(outConnection); // [WATCHDOG] 
-	  // Mutual exclusion with updateKeepAlive()
-  	synchronized (this) {
-	  	if (t == kaTimer) { 
-	  		sendKeepAlive();
+  /**
+     Refresh the connection drop-down timer.
+     Mutual exclusion with doTimeOut()
+   */
+  private synchronized void updateConnectionDropDown() {
+  	if (connectionDropDownTime > 0) {
+	  	TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+	  	if (cdTimer != null) {
+		  	td.remove(cdTimer);
 	  	}
-	  	else {
-				stopWatchDog(); // [WATCHDOG] 
-			}
+	  	cdTimer = td.add(new Timer(System.currentTimeMillis()+connectionDropDownTime, this));
   	}
   }
   
-  // This is executed within a synchronized block --> Mutual exclusion
-  // with dispatch() is guaranteed.
+  public void doTimeOut(Timer t) {
+	  // Mutual exclusion with updateKeepAlive() and updateConnectionDropDown()
+  	synchronized (this) {
+	  	if (t == kaTimer) { 
+		  	// [WATCHDOG] startWatchDog(outConnection); 
+	  		sendKeepAlive();
+	  	}
+	  	else if (t == cdTimer) {
+	  		dropDownConnection();
+	  	}
+  	}
+  }
+  
+  /**
+     Send a KEEP_ALIVE packet to the BE.
+     This is executed within a synchronized block --> Mutual exclusion
+     with dispatch() is guaranteed.
+   */
   protected void sendKeepAlive() {
-		// Send a keep-alive packet to the BackEnd
 		if (outConnection != null) {
 			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 			try {
-				if (myLogger.isLoggable(Logger.ALL)) {
-		  		myLogger.log(Logger.ALL, "Writing KA.");
+				if (myLogger.isLoggable(Logger.FINEST)) {
+		  		myLogger.log(Logger.FINEST, "Writing KA.");
 				}
   			writePacket(pkt, outConnection);
   			pkt = outConnection.readPacket();
-	  		stopWatchDog(); // [WATCHDOG] 
+	  		// [WATCHDOG] stopWatchDog(); 
   			if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
   				// The BackEnd is considering the input connection no longer valid
   				refreshInp();
@@ -739,16 +789,66 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			}
 			catch (IOException ioe) {
 	  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
-	  		stopWatchDog(); // [WATCHDOG] 
+	  		// [WATCHDOG] stopWatchDog(); 
 				refreshOut();
 			}
 		}
 		else {
-			stopWatchDog(); // [WATCHDOG] 
+			// [WATCHDOG] stopWatchDog(); 
 		}
   }  
+    
+  /**
+     Send a DROP_DOWN packet to the BE. The latter will also close
+     the INP connection.
+     This is executed within a synchronized block --> Mutual exclusion
+     with dispatch() is guaranteed.
+   */
+  private void dropDownConnection() {
+  	if (outConnection != null && !refreshingInput && !connectionDropped) {
+	  	myLogger.log(Logger.INFO, "Writing DROP_DOWN request");
+	  	JICPPacket pkt = prepareDropDownRequest();
+	  	try {
+		  	writePacket(pkt, outConnection);
+  			outConnection.readPacket();
+	  		myLogger.log(Logger.INFO, "DROP_DOWN response received");
+  					  	
+		  	// Now close the outConnection
+		  	try {
+			  	outConnection.close();
+			  	outConnection = null;
+		  	}
+		  	catch (IOException ioe) {
+		  		// Just print a warning
+		  		myLogger.log(Logger.WARNING, "Exception in connection drop-down closing the OUT connection. "+ioe);
+		  	}
+		  	
+	  		myLogger.log(Logger.INFO, "Connection dropped");
+		  	connectionDropped = true;
+				if (myConnectionListener != null) {
+					myConnectionListener.handleConnectionEvent(ConnectionListener.DROPPED);
+				}
+	  	}
+	  	catch (IOException ioe) {
+	  		// Can't reach the BackEnd. 
+  			myLogger.log(Logger.WARNING, "IOException sending DROP_DOWN request. "+ioe);
+  			refreshOut();
+	  	}	  	
+  	}
+  }
+
+  protected JICPPacket prepareDropDownRequest() {
+	  return new JICPPacket(JICPProtocol.DROP_DOWN_TYPE, JICPProtocol.DEFAULT_INFO, null);
+  }
   
-  /* [WATCHDOG] */
+  protected void dispatchWhileDropped() {
+  	myLogger.log(Logger.INFO, "Dispatch with connection dropped. Reconnecting.");
+		// The connectionDropped flag will be set to false as soon as we 
+		// re-establish the OUT connection. This is needed in handleReconnection()
+		refreshOut();
+  }
+  
+  /* [WATCHDOG] 
   private Object watchDogLock = new Object();
   private Thread watchDogThread = null;
   private boolean done = false;
@@ -757,6 +857,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	synchronized (watchDogLock) {
   		// If a watch dog is already active, don't start another one.
   		if (watchDogThread == null) {
+				myLogger.log(Logger.INFO, "Starting WatchDog thread.");
 		  	done = false;
 		  	watchDogThread = new Thread() {
 		  		public void run() {
@@ -781,23 +882,23 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  				myLogger.log(Logger.WARNING, "WatchDog: Unexpected Exception "+e);
 			  			}
 			  			watchDogThread = null;
-		  				myLogger.log(Logger.ALL, "WatchDog: terminated.");
+		  				myLogger.log(Logger.INFO, "WatchDog: terminated.");
 		  			}		  			
 		  		}
 		  	};
-				myLogger.log(Logger.ALL, "Starting WatchDog thread.");
 		  	watchDogThread.start();
   		}
   	}
   }
   
   private void stopWatchDog() {
+		myLogger.log(Logger.INFO, "Stopping WatchDog thread.");
   	synchronized (watchDogLock) {
   		done = true;
   		watchDogLock.notifyAll();
   	}
   }
-  // [WATCHDOG]
+  // [WATCHDOG] */
   
   private JICPConnection openConnection(TransportAddress ta, int timeout) throws IOException {
   	if (myConnectionListener != null) {
