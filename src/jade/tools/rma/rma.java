@@ -168,6 +168,14 @@ public class rma extends ToolAgent {
       protected void installHandlers(Map handlersTable) {
 
 	// Fill the event handler table.
+
+	handlersTable.put(IntrospectionVocabulary.META_RESETEVENTS, new EventHandler() {
+	  public void handle(Event ev) {
+	      ResetEvents re = (ResetEvents)ev;
+	      myGUI.resetTree();
+	  }
+	});
+
 	handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedContainer ac = (AddedContainer)ev;
