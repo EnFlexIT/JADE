@@ -413,7 +413,7 @@ public class NotificationService extends BaseService {
 	    Iterator itMessages = messages.iterator();
 	    while(itMessages.hasNext()) {
 		ACLMessage msg = (ACLMessage)itMessages.next();
-		MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, targetName, myContainer.getID());
+		MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, null, targetName, myContainer.getID());
 		tn.postedMessage(ev);
 	    }
 
@@ -593,8 +593,9 @@ public class NotificationService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID sender = (AID)params[0];
 	    ACLMessage msg = ((GenericMessage)params[1]).getACLMessage();
+	    AID receiver = (AID)params[2];
 
-	    fireSentMessage(msg, sender);
+	    fireSentMessage(msg, sender, receiver);
 	}
 
 	private void handleNotifyPosted(VerticalCommand cmd) {
@@ -663,12 +664,12 @@ public class NotificationService extends BaseService {
 
 
     // Event dispatching methods
-    private void fireSentMessage(ACLMessage msg, AID sender) {
+    private void fireSentMessage(ACLMessage msg, AID sender, AID receiver) {
   	// NOTE: A normal synchronized block could create deadlock problems
   	// as it prevents concurrent scannings of the listeners list.
 	List l = messageListeners.startScanning();
 	if (l != null) {
-	    MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID());
+	    MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, receiver, myID());
 	    Iterator it = l.iterator();
 	    while (it.hasNext()) {
 		MessageListener ml = (MessageListener) it.next();
@@ -683,7 +684,7 @@ public class NotificationService extends BaseService {
   	// as it prevents concurrent scannings of the listeners list.
 	List l = messageListeners.startScanning();
 	if (l != null) {
-	    MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID());
+	    MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, null, receiver, myID());
 	    Iterator it = l.iterator();
 	    while (it.hasNext()) {
 		MessageListener ml = (MessageListener) it.next();
@@ -698,7 +699,7 @@ public class NotificationService extends BaseService {
   	// as it prevents concurrent scannings of the listeners list.
 	List l = messageListeners.startScanning();
 	if (l != null) {
-	    MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID());
+	    MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, null, receiver, myID());
 	    Iterator it = l.iterator();
 	    while (it.hasNext()) {
 		MessageListener ml = (MessageListener) it.next();
