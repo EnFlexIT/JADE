@@ -1570,7 +1570,7 @@ public class ams extends Agent implements AgentManager.Listener {
   private void writeAPDescription() {
     //Write the APDescription file.
     try {
-      FileWriter f = new FileWriter("APDescription.txt");
+      FileWriter f = new FileWriter(bootProfile.getParameter(Profile.FILE_DIR, "") + "APDescription.txt");
       f.write(theProfile.toString());
       //f.write(s, 0, s.length());
 	  f.write('\n');
