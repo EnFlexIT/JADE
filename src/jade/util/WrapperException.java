@@ -23,11 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.util;
 
-//__CLDC_UNSUPPORTED__BEGIN
-import java.io.PrintStream;
-import java.io.PrintWriter;
-//__CLDC_UNSUPPORTED__END
-
 /**
 
   This class acts as a base class for all the exceptions that wrap
@@ -40,49 +35,38 @@ import java.io.PrintWriter;
 
  */
 public abstract class WrapperException extends Exception {
-
-  private String message;
-  private Throwable nested;
+  private Throwable nested = null;
 
   protected WrapperException(String m, Throwable t) {
-    message = m;
+  	super(m);
     nested = t;
   }
 
   protected WrapperException(String m) {
-    message = m;
+  	super(m);
   }
 
   public String getMessage() {
     if((nested != null)) {
-      return message + " [nested message is: " + nested.getMessage() + "]";
+      return super.getMessage()+" [nested message is: "+nested.getMessage()+"]";
     }
-    return message;
+    return super.getMessage();
   }
 
 //__CLDC_UNSUPPORTED__BEGIN
   public void printStackTrace() {
-    printStackTrace(System.err);
-  }
-
-  public void printStackTrace(PrintStream s) {
-    PrintWriter pw = new PrintWriter(s);
-    printStackTrace(pw);
-  }
-
-  public void printStackTrace(PrintWriter s) {
-    super.printStackTrace(s);
+    super.printStackTrace();
     if(nested != null) {
-      s.println("Nested Exception is:");
-      nested.printStackTrace(s);
+      System.err.println("Nested Exception is:");
+      nested.printStackTrace();
     }
   }
 //__CLDC_UNSUPPORTED__END
 
   /**
      Reads the exception wrapped by this object.
-     @return the <code>Throwable</code> object that is the exception thrown by
-     the concrete MTP subsystem.
+     @return the <code>Throwable</code> object that is the exception 
+     that was originally thrown
   */
   public Throwable getNested() {
     return nested;
