@@ -378,11 +378,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      myServiceManager.activateService(new ServiceDescriptor(agMob.getName(), agMob));
 	  }
 
+	  //#MIDP_EXCLUDE_END
+
+
+	  //#J2ME_EXCLUDE_BEGIN
+
 	  // Activate the Event Notification Service
 	  jade.core.event.NotificationService evNot = new jade.core.event.NotificationService(this, myProfile);
 	  myServiceManager.activateService(new ServiceDescriptor(evNot.getName(), evNot));
 
-	  //#MIDP_EXCLUDE_END
+	  //#J2ME_EXCLUDE_END
+
 
           // If myPlatform is the real MainContainerImpl this call starts the AMS and DF, otherwise it does nothing
 	  myPlatform.startSystemAgents(this);
@@ -575,7 +581,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	// --- End of Security code
 
-	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_POSTED, jade.core.event.NotificationService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, "");
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
@@ -587,7 +593,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_BEGIN
   public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
 
-	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_RECEIVED, jade.core.event.NotificationService.NAME, "");
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_RECEIVED, jade.core.event.NotificationSlice.NAME, "");
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
@@ -598,7 +604,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleBehaviourAdded(AID agentID, Behaviour b) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(agentID);
       cmd.addParam(b);
 
@@ -608,7 +614,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleBehaviourRemoved(AID agentID, Behaviour b) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(agentID);
       cmd.addParam(b);
 
@@ -618,7 +624,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_CHANGED_BEHAVIOUR_STATE, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_CHANGED_BEHAVIOUR_STATE, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(agentID);
       cmd.addParam(b);
       cmd.addParam(from);
