@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.14  1999/08/27 15:41:51  rimassa
+ * Made some interface changes to better support agent migration.
+ *
  * Revision 1.13  1999/08/10 15:27:28  rimassa
  * Changed the signature of copyAgent() method
  *
@@ -54,13 +57,13 @@ interface AgentContainer extends Remote {
   void waitAgent(String agentName) throws RemoteException, NotFoundException;
   void wakeAgent(String agentName) throws RemoteException, NotFoundException;
 
-  void moveAgent(String agentName, AgentContainer where) throws RemoteException;
+  void moveAgent(String agentName, String where) throws RemoteException, NotFoundException;
   void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
 
-  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException;
   void ping() throws RemoteException;
 
 }
