@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.41  1999/03/25 16:49:28  rimassa
+  Added message queue management operations.
+
   Revision 1.40  1999/03/24 12:12:12  rimassa
   Ported most of Agent data structures to new Java 2 Collection
   framework.
@@ -226,7 +229,6 @@ import java.io.InterruptedIOException;
 
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Vector;
 
 import jade.lang.acl.*;
@@ -333,7 +335,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int D_MAX = 41;    // Hand-made type checking
 
-  protected LinkedList msgQueue = new LinkedList();
+  /**
+     Default value for message queue size. When the number of buffered
+     messages exceeds this value, older messages are discarded
+     according to a <b><em>FIFO</em></b> replacement policy.
+     @see jade.core.Agent#setQueueSize()
+     @see jade.core.Agent#getQueueSize()
+  */
+  public static final int MSG_QUEUE_SIZE = 100;
+
+  protected MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
   protected Vector listeners = new Vector();
 
   private String myName = null;
@@ -405,6 +416,31 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       ie.printStackTrace();
     }
 
+  }
+
+  /**
+     Set message queue size. This method allows to change the number
+     of ACL messages that can be buffered before being actually read
+     by the agent or discarded.
+
+     @param newSize A non negative integer value to set message queue
+     size to. Passing 0 means unlimited message queue.
+     @throws IllegalArgumentException If <code>newSize</code> is negative.
+     @see jade.core.Agent#getQueueSize()
+  */
+  public void setQueueSize(int newSize) throws IllegalArgumentException {
+    msgQueue.setMaxSize(newSize);
+  }
+
+  /**
+     Reads message queue size. A zero value means that the message
+     queue is unbounded (its size is limited only by amount of
+     available memory).
+     @return The actual size of the message queue.
+     @see jade.core.Agent#setQueueSize()
+  */
+  public int getQueueSize() {
+    return msgQueue.getMaxSize();
   }
 
   /**
@@ -789,7 +825,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	return null;
       }
       else {
-	currentMessage = (ACLMessage)msgQueue.removeFirst();
+	currentMessage = msgQueue.removeFirst();
 	return currentMessage;
       }
     }
@@ -816,8 +852,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	ACLMessage cursor = (ACLMessage)messages.next();
 	if(pattern.match(cursor)) {
 	  msg = cursor;
-	  currentMessage = cursor;
 	  msgQueue.remove(cursor);
+	  currentMessage = cursor;
 	  break; // Exit while loop
 	}
       }
