@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.20  1998/11/15 23:08:24  rimassa
+  Added a new KillContainerBehaviour to support 'kill-container' AMS
+  action.
+
   Revision 1.19  1998/11/09 00:24:29  rimassa
   Replaced older container ID with newer container name.
   Added code to send a snapshot of Agent Platform state (active agent
@@ -172,10 +176,12 @@ public class ams extends Agent {
 	processAction(myAction);
 
       }
-      catch(FIPAException fe) {
+      catch(FIPAException fe) { // FIXME: Sometimes 'unable-to-deregister' in response to deregisterWithAMS() happens
+	// fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
       }
       catch(NoSuchElementException nsee) {
+	// nsee.printStackTrace();
 	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
@@ -554,6 +560,36 @@ public class ams extends Agent {
 
   } // End of NotifyRMAsBehaviour class
 
+  private class KillContainerBehaviour extends AMSBehaviour {
+
+    KillContainerBehaviour() {
+      super(AgentManagementOntology.AMSAction.KILLCONTAINER);
+    }
+
+    KillContainerBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.KILLCONTAINER, request, reply);
+    }
+
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new KillContainerBehaviour(request, reply);
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+
+      // Make sure it is RMA that's calling
+      String peerName = myRequest.getSource();
+      if(!peerName.equalsIgnoreCase("RMA"))
+	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
+
+      // Obtain container name and ask AgentPlatform to kill it
+      AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
+      String containerName = kca.getContainerName();
+      myPlatform.AMSKillContainer(containerName);
+
+    }
+
+  }
+
   private class CreateBehaviour extends AMSBehaviour {
 
     CreateBehaviour() {
@@ -696,6 +732,7 @@ public class ams extends Agent {
 
     dispatcher.registerPrototype(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
     dispatcher.registerPrototype(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
 
   }
 
