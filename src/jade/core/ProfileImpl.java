@@ -135,7 +135,7 @@ public class ProfileImpl extends Profile {
 		throw new ProfileException("Can't load properties: "+ioe.getMessage());
 	    }
   	}
-
+  	init(); 
   }
 
 
