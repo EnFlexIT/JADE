@@ -234,8 +234,13 @@ class ObjectSchemaImpl extends ObjectSchema {
      * in this schema.
      */
     public ObjectSchema getSchema(String name) throws OntologyException {
-        CaseInsensitiveString ciName = new CaseInsensitiveString(name);
-        SlotDescriptor slot = getSlot(ciName);
+        SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
+				if (slot == null) {    	
+            throw new OntologyException("No slot named: " + name);
+				}
+				return slot.schema;
+        /*CaseInsensitiveString ciName = new CaseInsensitiveString(name);
+        SlotDescriptor slot = getOwnSlot(ciName);
 
         if (slot == null) {
         		if (superSchemas != null) {
@@ -252,8 +257,9 @@ class ObjectSchemaImpl extends ObjectSchema {
 
             throw new OntologyException("No slot named: " + name);
         } 
-
+	
         return slot.schema;
+        */
     } 
 
     /**
@@ -265,23 +271,24 @@ class ObjectSchemaImpl extends ObjectSchema {
      * slot defined in this <code>Schema</code>.
      */
     public boolean containsSlot(String name) {
-        CaseInsensitiveString ciName = new CaseInsensitiveString(name);
-        SlotDescriptor slot = getSlot(ciName);
+        SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
+				return (slot != null);
+    } 
 
-        if (slot != null) {
-            return true;
-        } 
-        
-				if (superSchemas != null) {
-		      for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
-	  	        ObjectSchema superSchema = (ObjectSchema) e.nextElement();
-	            if (superSchema.containsSlot(name)) {
-	               	return true;
-	            } 
-	        }
+    /**
+     * Indicate whether a slot of this schema is mandatory
+     *
+     * @param name The name of the slot.
+     * @return <code>true</code> if the slot is mandatory.
+     * @throws OntologyException If no slot with this name is present
+     * in this schema.
+     */
+    public boolean isMandatory(String name) throws OntologyException {
+        SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
+				if (slot == null) {    	
+            throw new OntologyException("No slot named: " + name);
 				}
-
-        return false;
+				return slot.optionality == MANDATORY;
     } 
 
     /**
@@ -362,7 +369,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   		// If the slot is defined in this schema --> check the value
   		// against the schema of the slot. Otherwise let the super-schema
   		// where the slot is defined validate the value
-  		SlotDescriptor dsc = getSlot(slotName);
+  		SlotDescriptor dsc = getOwnSlot(slotName);
   		if (dsc != null) {
 				// DEBUG
   			//System.out.println("Slot "+slotName+" is defined in schema "+this); 
@@ -528,8 +535,24 @@ class ObjectSchemaImpl extends ObjectSchema {
     	return temp;
 		}
 	
-	private final SlotDescriptor getSlot(CaseInsensitiveString ciName) {
+	private final SlotDescriptor getOwnSlot(CaseInsensitiveString ciName) {
 		return (slots != null ? (SlotDescriptor) slots.get(ciName) : null);
 	}
+	
+	private final SlotDescriptor getSlot(CaseInsensitiveString ciName) {
+		SlotDescriptor dsc = getOwnSlot(ciName);
+		if (dsc == null) {
+  		if (superSchemas != null) {
+  			for (int i = 0; i < superSchemas.size(); ++i) {
+  				ObjectSchemaImpl sc = (ObjectSchemaImpl) superSchemas.elementAt(i);
+  				dsc = sc.getSlot(ciName);
+  				if (dsc != null) {
+  					break;
+  				}
+  			}
+  		}
+    } 
+    return dsc;
+	}		
 }
 

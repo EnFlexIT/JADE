@@ -189,6 +189,16 @@ public abstract class ObjectSchema implements Serializable {
     public abstract boolean containsSlot(String name);
 
     /**
+     * Indicate whether a slot of this schema is mandatory
+     *
+     * @param name The name of the slot.
+     * @return <code>true</code> if the slot is mandatory.
+     * @throws OntologyException If no slot with this name is present
+     * in this schema.
+     */
+    public abstract boolean isMandatory(String name) throws OntologyException;
+
+    /**
      * Creates an Abstract descriptor to hold an object compliant to 
      * this <code>Schema</code>.
      */
