@@ -59,7 +59,11 @@ public class DoNotSnifferAction extends AgentAction {
  }
 
  public void doAction(AgentTree.AgentNode node ) {
-   String realName=checkString(node.getName());
+ 	 doNotSniff(node.getName());
+ }
+ 
+	public void doNotSniff (String agentName) {
+   String realName=checkString(agentName);
    agent=new Agent(realName);
 
    noSniffedAgents.add(agent);

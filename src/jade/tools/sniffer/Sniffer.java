@@ -35,6 +35,8 @@ import jade.util.Logger;
 
 import java.util.LinkedList;
 import java.util.Hashtable;
+import java.util.Set;
+import java.util.HashSet;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -52,8 +54,11 @@ import jade.lang.acl.StringACLCodec;
 
 import jade.content.lang.sl.SLCodec;
 
+import jade.content.AgentAction;
 import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Done;
 
+import jade.proto.SimpleAchieveREResponder;
 import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
@@ -140,6 +145,7 @@ public class Sniffer extends ToolAgent {
   public static final boolean SNIFF_ON = true;
   public static final boolean SNIFF_OFF = false;
 
+  private Set allAgents = null;
   private Hashtable preload = null;
   private ExpandedProperties properties = null;
 
@@ -373,10 +379,9 @@ public class Sniffer extends ToolAgent {
 	    // the sniffing process.
 	    if (preloadContains(agent.getName()) != null) {
 	      ActionProcessor ap = myGUI.actPro;
-          DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
-          sa.doSniff(agent.getName());
-	    } else {
-	    }
+        DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
+        sa.doSniff(agent.getName());
+	    } 
 	  }
         });
 
@@ -442,7 +447,9 @@ public class Sniffer extends ToolAgent {
         }
     }
 
+    allAgents = new HashSet();
     preload = new Hashtable();
+    
     String preloadDescriptions = properties.getProperty("preload", null);
     if (preloadDescriptions != null) {
         StringTokenizer parser = new StringTokenizer(preloadDescriptions, ";");
@@ -457,6 +464,9 @@ public class Sniffer extends ToolAgent {
     // Handle incoming 'inform' messages
     AMSSubscribe.addSubBehaviour(new SnifferAMSListenerBehaviour());
 
+    // Handle incoming REQUEST to start/stop sniffing agents
+    addBehaviour(new RequestListenerBehaviour());
+
     // Schedule Behaviours for execution
     addBehaviour(AMSSubscribe);
     addBehaviour(new SniffListenerBehaviour());
@@ -466,6 +476,20 @@ public class Sniffer extends ToolAgent {
     myGUI.ShowCorrect();
 
   }
+
+  
+  private void addAgent(AID id) {
+    ActionProcessor ap = myGUI.actPro;
+    DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
+    sa.doSniff(id.getName());
+  }
+  
+  private void removeAgent(AID id) {
+    ActionProcessor ap = myGUI.actPro;
+    DoNotSnifferAction nsa = (DoNotSnifferAction)ap.actions.get(ap.DO_NOT_SNIFFER_ACTION);
+    nsa.doNotSniff(id.getName());
+  }
+  
 
     /**
      * Private function to read configuration file containing names of agents to be
@@ -682,4 +706,95 @@ public class Sniffer extends ToolAgent {
     return null;
   }
 
-}  // End of class Sniffer
+  
+  /**
+     Inner class RequestListenerBehaviour.
+     This behaviour serves requests to start sniffing agents.
+     If an agent does not exist it is put into the 
+     preload table so that it will be sniffed as soon as it starts.
+   */
+  private class RequestListenerBehaviour extends SimpleAchieveREResponder {  	
+		private Action requestAction;
+		private AgentAction aa;
+		
+		RequestListenerBehaviour() {
+			// We serve REQUEST messages refering to the JADE Management Ontology
+ 			super(Sniffer.this, MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEManagementOntology.NAME)));
+		}
+	
+		protected ACLMessage prepareResponse (ACLMessage request) {
+			ACLMessage response = request.createReply();
+			try {			
+				requestAction = (Action) getContentManager().extractContent(request);
+				aa = (AgentAction) requestAction.getAction();
+				if (aa instanceof SniffOn || aa instanceof SniffOff) {
+					if (getAID().equals(requestAction.getActor())) {
+						response.setPerformative(ACLMessage.AGREE);
+						response.setContent(request.getContent());
+					}
+					else {
+						response.setPerformative(ACLMessage.REFUSE);
+						response.setContent("((unrecognised-parameter-value actor "+requestAction.getActor()+"))");
+					}
+				}
+				else {
+					response.setPerformative(ACLMessage.REFUSE);	
+					response.setContent("((unsupported-act "+aa.getClass().getName()+"))");
+				}
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+				response.setPerformative(ACLMessage.NOT_UNDERSTOOD);	
+			}
+			return response;					    		    		 	
+		}
+	
+		protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) {	
+			if (aa instanceof SniffOn) { 
+				// SNIFF ON
+				SniffOn requestSniffOn = (SniffOn) aa;
+				// Start sniffing existing agents.
+				// Put non existing agents in the preload map. We will start
+				// sniffing them as soon as they start. 
+				List agentsToSniff = requestSniffOn.getCloneOfSniffedAgents();											
+				for (int i=0;i<agentsToSniff.size();i++) {
+					AID aid = (AID)agentsToSniff.get(i); 
+					if (allAgents.contains(aid)) {
+						addAgent(aid);
+					} 
+					else {
+						//not alive -> put it into preload
+						int performativeCount = ACLMessage.getAllPerformativeNames().length;
+						boolean[] filter = new boolean[performativeCount];
+						for (int j=0; j<performativeCount;j++) {
+							filter[j] = true;
+						}
+						preload.put(aid.getName(), filter);									
+					}
+				}																		
+			}
+			else {
+				// SNIFF OFF
+				SniffOff requestSniffOff = (SniffOff) aa;
+				List agentsToSniff = requestSniffOff.getCloneOfSniffedAgents();											
+				for (int i=0;i<agentsToSniff.size();i++) {
+					AID aid = (AID)agentsToSniff.get(i); 
+					removeAgent(aid);
+				}
+			}
+			
+			// Send back the notification
+			ACLMessage result = request.createReply();
+			result.setPerformative(ACLMessage.INFORM);
+			Done d = new Done(requestAction);
+			try {
+				myAgent.getContentManager().fillContent(result, d);
+			}
+			catch (Exception e) {
+				// Should never happen
+				e.printStackTrace();
+			}
+			return result;
+		}		
+  }  // END of inner class RequestListenerBehaviour 
+}
