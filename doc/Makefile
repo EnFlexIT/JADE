@@ -386,7 +386,7 @@ API_FILES10 =	jade/content/acl/Inform.java \
 		jade/content/OntoAID.java \
 		jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
-		jade/content/lang/Codec.java \
+		jade/content/lang/*.java \
 		jade/content/lang/sl/SLCodec.java \
 		jade/content/onto/ACLOntology.java \
 		jade/content/onto/BasicIntrospector.java \
