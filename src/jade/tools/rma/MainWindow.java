@@ -39,6 +39,7 @@ import javax.swing.tree.*;
 import javax.swing.tree.MutableTreeNode;
 
 import jade.core.AID;
+import jade.core.ContainerID;
 
 import jade.gui.AgentTreeModel;
 import jade.gui.AgentTree;
@@ -315,10 +316,10 @@ class MainWindow extends JFrame {
 
   public boolean showInstallMTPDialog(jade.domain.JADEAgentManagement.InstallMTP imtp) {
     String[] names = (String[])containerNames.toArray(new String[0]);
-    installDlg.reset(names, imtp.getContainer());
+    installDlg.reset(names, imtp.getContainer().getName());
     installDlg.pack();
     installDlg.setVisible(true);
-    imtp.setContainer(installDlg.getContainer());
+    imtp.setContainer(new ContainerID(installDlg.getContainer(), null));
     imtp.setAddress(installDlg.getAddress());
     imtp.setClassName(installDlg.getClassName());
     return installDlg.isConfirmed();
