@@ -36,4 +36,14 @@ create a new agent on the same container, and a new agent on a new container. Th
 			</WhenTestPass>
 		</Test>
 		
+		<Test name="Test PlatformListener" skip="false">
+			<TestClassName>test.inProcess.test.TestPlatformListener</TestClassName>
+			<WhatTest> Tests the ability to register a jade.wrapper.PlatformController.Listener that will listen for platform events
+      </WhatTest>
+			<HowWorkTest> A helper agent is started on the Main Container that retrieves a PlatformController and registers a Platform listener. Then a test agent is started and then killed.
+			</HowWorkTest>			
+			<WhenTestPass> The test passes if the Platform listener is actually notified about the test agent startup and take down
+			</WhenTestPass>
+		</Test>
+		
 	</TestsList>
