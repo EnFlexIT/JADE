@@ -77,6 +77,4 @@ public interface AgentContainer {
   void enableDebugger(AID debuggerName , AID toBeDebugged) throws IMTPException;
   void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException;
 
-  jade.imtp.rmi.AgentContainerAdapter getAdapter();
-  
 }
