@@ -81,7 +81,7 @@ public interface Service {
        An implementation of the <code>Slice</code> interface,
        supporting routed dispatching of horizontal commands.
     */
-    public abstract class SliceProxy implements Slice {
+    public class SliceProxy implements Slice {
 
 	public SliceProxy() {
 	    this(null, null);
