@@ -260,10 +260,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
 		    ACLMessage copy = (ACLMessage)msg.clone();
 
-		    boolean found = false; //myContainer.postMessageToLocalAgent(copy, dest);
-		    if(!found) {
-			myMessageManager.deliver(copy, dest, MessagingService.this);
-		    }
+				myMessageManager.deliver(copy, dest, MessagingService.this);
 		}
 		catch (AuthException ae) {
 		    lastException = ae;
@@ -669,10 +666,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    try {
 		MainContainer impl = myContainer.getMain();
 		if(impl != null) {
+			ContainerID prevCid = null;
 		    while(true) {
 			// Directly use the GADT on the main container
+		  MessagingSlice targetSlice = null;
 			ContainerID cid = impl.getContainerID(receiverID);
-			MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
+			if (cid != prevCid) {
+				targetSlice = (MessagingSlice)getSlice(cid.getName());
+			}
+			else {
+				targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
+			}
+			prevCid = cid;
 			try {
 			    try {
 				targetSlice.dispatchLocally(msg, receiverID);
@@ -684,7 +689,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			    return; // Message dispatched
 			}
 			catch(NotFoundException nfe) {
-			    // The agent was found in he GADT, but not in the target LADT => try again
+			  // The agent was found in the GADT, but not in the target LADT.
+				// The agent has moved in the meanwhile or the slice may be obsolete 
+				// => try again
 			}
 		    }
 		}
