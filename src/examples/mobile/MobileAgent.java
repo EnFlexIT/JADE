@@ -199,6 +199,15 @@ protected void afterClone() {
       afterMove();
   }
 
+  protected void beforeReload() {
+      super.beforeReload();
+      beforeMove();
+  }
+
+  protected void afterReload() {
+      super.afterReload();
+      afterMove();
+  }
 
 
 	/////////////////////////////////
