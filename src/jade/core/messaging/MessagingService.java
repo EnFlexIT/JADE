@@ -954,98 +954,96 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     public Node getNode() throws ServiceException {
-	    try {
-        return MessagingService.this.getLocalNode();
-	    }
-	    catch(IMTPException imtpe) {
-        throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
-	    }
+        try {
+            return MessagingService.this.getLocalNode();
+	}
+	catch(IMTPException imtpe) {
+            throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	}
     }
 
     public VerticalCommand serve(HorizontalCommand cmd) {
-	    VerticalCommand result = null;
-	    try {
-        String cmdName = cmd.getName();
-        Object[] params = cmd.getParams();
+        VerticalCommand result = null;
+	try {
+            String cmdName = cmd.getName();
+            Object[] params = cmd.getParams();
 
-        if(cmdName.equals(MessagingSlice.H_DISPATCHLOCALLY)) {
-          GenericCommand gCmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-          AID senderAID = (AID)params[0];
-          GenericMessage msg = (GenericMessage)params[1];
-          AID receiverID = (AID)params[2];
-          gCmd.addParam(senderAID);
-          gCmd.addParam(msg);
-          gCmd.addParam(receiverID);
-          result = gCmd;
-        }
-        else if(cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
-          Envelope env = (Envelope)params[0];
-          byte[] payload = (byte[])params[1];
-          AID receiverID = (AID)params[2];
-          String address = (String)params[3];
+            if(cmdName.equals(MessagingSlice.H_DISPATCHLOCALLY)) {
+                GenericCommand gCmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+                AID senderAID = (AID)params[0];
+                GenericMessage msg = (GenericMessage)params[1];
+                AID receiverID = (AID)params[2];
+                gCmd.addParam(senderAID);
+                gCmd.addParam(msg);
+                gCmd.addParam(receiverID);
+                result = gCmd;
+            }
+            else if(cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
+                Envelope env = (Envelope)params[0];
+                byte[] payload = (byte[])params[1];
+                AID receiverID = (AID)params[2];
+                String address = (String)params[3];
 
-          routeOut(env, payload, receiverID, address);
-        }
-        else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
-          AID agentID = (AID)params[0];
+                routeOut(env, payload, receiverID, address);
+            }
+            else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
+                AID agentID = (AID)params[0];
+                cmd.setReturnValue(getAgentLocation(agentID));
+            }
+            else if(cmdName.equals(MessagingSlice.H_INSTALLMTP)) {
+                GenericCommand gCmd = new GenericCommand(MessagingSlice.INSTALL_MTP, MessagingSlice.NAME, null);
+                String address = (String)params[0];
+                String className = (String)params[1];
+                gCmd.addParam(address);
+                gCmd.addParam(className);
 
-          cmd.setReturnValue(getAgentLocation(agentID));
-        }
-        else if(cmdName.equals(MessagingSlice.H_INSTALLMTP)) {
-          GenericCommand gCmd = new GenericCommand(MessagingSlice.INSTALL_MTP, MessagingSlice.NAME, null);
-          String address = (String)params[0];
-          String className = (String)params[1];
-          gCmd.addParam(address);
-          gCmd.addParam(className);
+                result = gCmd;
+            }
+            else if(cmdName.equals(MessagingSlice.H_UNINSTALLMTP)) {
+                GenericCommand gCmd = new GenericCommand(MessagingSlice.UNINSTALL_MTP, MessagingSlice.NAME, null);
+                String address = (String)params[0];
+                gCmd.addParam(address);
 
-          result = gCmd;
-        }
-        else if(cmdName.equals(MessagingSlice.H_UNINSTALLMTP)) {
-          GenericCommand gCmd = new GenericCommand(MessagingSlice.UNINSTALL_MTP, MessagingSlice.NAME, null);
-          String address = (String)params[0];
-          gCmd.addParam(address);
+                result = gCmd;
+            }
+            else if(cmdName.equals(MessagingSlice.H_NEWMTP)) {
+                MTPDescriptor mtp = (MTPDescriptor)params[0];
+                ContainerID cid = (ContainerID)params[1];
 
-          result = gCmd;
-        }
-        else if(cmdName.equals(MessagingSlice.H_NEWMTP)) {
-          MTPDescriptor mtp = (MTPDescriptor)params[0];
-          ContainerID cid = (ContainerID)params[1];
+                GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
+                gCmd.addParam(mtp);
+                gCmd.addParam(cid);
 
-          GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
-          gCmd.addParam(mtp);
-          gCmd.addParam(cid);
+                result = gCmd;
+            }
+            else if(cmdName.equals(MessagingSlice.H_DEADMTP)) {
+                MTPDescriptor mtp = (MTPDescriptor)params[0];
+                ContainerID cid = (ContainerID)params[1];
 
-          result = gCmd;
-        }
-        else if(cmdName.equals(MessagingSlice.H_DEADMTP)) {
-          MTPDescriptor mtp = (MTPDescriptor)params[0];
-          ContainerID cid = (ContainerID)params[1];
+                GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
+                gCmd.addParam(mtp);
+                gCmd.addParam(cid);
 
-          GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
-          gCmd.addParam(mtp);
-          gCmd.addParam(cid);
+                result = gCmd;
+            }
+            else if(cmdName.equals(MessagingSlice.H_ADDROUTE)) {
+                MTPDescriptor mtp = (MTPDescriptor)params[0];
+                String sliceName = (String)params[1];
 
-          result = gCmd;
-        }
-        else if(cmdName.equals(MessagingSlice.H_ADDROUTE)) {
-          MTPDescriptor mtp = (MTPDescriptor)params[0];
-          String sliceName = (String)params[1];
+                addRoute(mtp, sliceName);
+            }
+            else if(cmdName.equals(MessagingSlice.H_REMOVEROUTE)) {
+                MTPDescriptor mtp = (MTPDescriptor)params[0];
+                String sliceName = (String)params[1];
 
-          addRoute(mtp, sliceName);
-        }
-        else if(cmdName.equals(MessagingSlice.H_REMOVEROUTE)) {
-          MTPDescriptor mtp = (MTPDescriptor)params[0];
-          String sliceName = (String)params[1];
-
-          removeRoute(mtp, sliceName);
-        }
+                removeRoute(mtp, sliceName);
+                }
 	    }
 	    catch(Throwable t) {
-        cmd.setReturnValue(t);
+                cmd.setReturnValue(t);
 	    }
-	    finally {
-        return result;
-	    }
+
+            return result;
     }
 
 

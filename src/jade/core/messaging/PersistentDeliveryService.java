@@ -517,7 +517,7 @@ public class PersistentDeliveryService extends BaseService {
 		}*/
 		if (cmdName.equals(PersistentDeliverySlice.H_STOREMESSAGE)) {
 		    String storeName = (String)params[0];
-		    GenericMessage msg = (GenericMessage)params[1];//FIXME: check object type(should be GenericMessage instead of ACLMessage
+		    GenericMessage msg = (GenericMessage)params[1];
 		    AID receiver = (AID)params[2];
 
 		    boolean stored = storeMessage(storeName, msg, receiver);
@@ -532,9 +532,8 @@ public class PersistentDeliveryService extends BaseService {
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
 	/**

@@ -495,9 +495,8 @@ public class MainReplicationService extends BaseService {
 		    result.setReturnValue(t);
 		}
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
 

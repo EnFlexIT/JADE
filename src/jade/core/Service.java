@@ -1,4 +1,4 @@
-/*****************************************************************
+    /*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
@@ -136,10 +136,9 @@ public interface Service {
 	    catch(IMTPException imtpe) {
 		cmd.setReturnValue(new ServiceException("An error occurred while routing the command to the remote implementation", imtpe));
 	    }
-	    finally {
-		// No local processing of this command is required
-		return null;
-	    }
+
+            // No local processing of this command is required
+            return null;
 	}
 
 	private Node myNode;

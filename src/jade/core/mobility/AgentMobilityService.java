@@ -706,9 +706,8 @@ public class AgentMobilityService extends BaseService {
 		    result.setReturnValue(t);
 		}
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
 

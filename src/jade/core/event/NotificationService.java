@@ -274,14 +274,13 @@ public class NotificationService extends BaseService {
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
 	    }
-	    finally {
-		if(cmd instanceof VerticalCommand) {
-		    return (VerticalCommand)cmd;
-		}
-		else {
-		    return null;
-		}
-	    }
+
+            if(cmd instanceof VerticalCommand) {
+                return (VerticalCommand)cmd;
+            }
+            else {
+                return null;
+            }
 	}
 
 	// Implementation of the service-specific horizontal interface NotificationSlice

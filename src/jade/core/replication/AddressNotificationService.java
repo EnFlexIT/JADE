@@ -243,9 +243,8 @@ public class AddressNotificationService extends BaseService {
 		    result.setReturnValue(t);
 		}
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
 

@@ -878,9 +878,8 @@ public class AgentManagementService extends BaseService {
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
 	    }
-	    finally {
-		return result;
-	    }
+
+            return result;
 	}
 
     } // End of AgentManagementSlice class
