@@ -166,7 +166,7 @@ batch:
 	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR))\*.jar' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\*.jar' >> $(BATCH_CLEAN)
 
 
