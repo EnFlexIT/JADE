@@ -504,25 +504,13 @@ public class Ontology {
 					return;
 				}
 			}
-			else if (abs instanceof AbsActionPredicate) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsActionPredicate) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-				else if (attrValue instanceof AbsGenericAction) {
-					((AbsActionPredicate) abs).set(attrName, (AbsGenericAction) attrValue);
-					return;
-				}
-			}
 			else if (abs instanceof AbsHigherOrderPredicate) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsHigherOrderPredicate) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-				else if (attrValue instanceof AbsProposition) {
-					((AbsHigherOrderPredicate) abs).set(attrName, (AbsProposition) attrValue);
-					return;
-				}
+				((AbsHigherOrderPredicate) abs).set(attrName, attrValue);
+				return;
+			}
+			else if (abs instanceof AbsHigherOrderAction) {
+				((AbsHigherOrderAction) abs).set(attrName, attrValue);
+				return;
 			}
 			else if (abs instanceof AbsIRE) {
 				if (attrValue instanceof AbsVariable && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.VARIABLE)) {

@@ -102,13 +102,13 @@ class BasicIntrospector implements Introspector {
 	    			}
 
 	    			if(obj instanceof Done) {
-	    				AbsActionPredicate absDone = new AbsActionPredicate(BasicOntology.DONE);
+	    				AbsHigherOrderPredicate absDone = new AbsHigherOrderPredicate(BasicOntology.DONE);
   						absDone.set(BasicOntology.DONE_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Done) obj).getAction()));
 							return absDone;
 	    			}
 
 	    			if(obj instanceof Result) {
-	    				AbsActionPredicate absResult = new AbsActionPredicate(BasicOntology.RESULT);
+	    				AbsHigherOrderPredicate absResult = new AbsHigherOrderPredicate(BasicOntology.RESULT);
   						absResult.set(BasicOntology.RESULT_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Result) obj).getAction()));
   						absResult.set(BasicOntology.RESULT_ITEMS, (AbsTerm) referenceOnto.fromObject(((Result) obj).getItems()));
 							return absResult;
@@ -174,16 +174,16 @@ class BasicIntrospector implements Introspector {
 	    			
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
 							Done d = new Done();
-  						AbsActionPredicate absDone = (AbsActionPredicate) abs;
-  						d.setAction((GenericAction) referenceOnto.toObject(absDone.getAbsTerm(BasicOntology.DONE_ACTION))); 
+  						AbsHigherOrderPredicate absDone = (AbsHigherOrderPredicate) abs;
+  						d.setAction((GenericAction) referenceOnto.toObject(absDone.getAbsObject(BasicOntology.DONE_ACTION))); 
 							return d;
 	    			}
 	    			
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
 							Result r = new Result();
-  						AbsActionPredicate absResult = (AbsActionPredicate) abs;
-  						r.setAction((GenericAction) referenceOnto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ACTION))); 
-  						r.setItems((List) referenceOnto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ITEMS))); 
+  						AbsHigherOrderPredicate absResult = (AbsHigherOrderPredicate) abs;
+  						r.setAction((GenericAction) referenceOnto.toObject(absResult.getAbsObject(BasicOntology.RESULT_ACTION))); 
+  						r.setItems((List) referenceOnto.toObject(absResult.getAbsObject(BasicOntology.RESULT_ITEMS))); 
 							return r;
 	    			}
 	    			

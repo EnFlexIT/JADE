@@ -28,7 +28,7 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 
-public class Done implements ActionPredicate {
+public class Done implements HigherOrderPredicate {
 	private GenericAction action;
 	
 	public Done() {

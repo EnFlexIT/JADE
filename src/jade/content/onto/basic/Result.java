@@ -30,7 +30,7 @@ import jade.content.onto.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
-public class Result implements ActionPredicate {
+public class Result implements HigherOrderPredicate {
 	private GenericAction action;
 	private List items;
 	

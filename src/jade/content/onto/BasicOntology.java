@@ -117,12 +117,12 @@ public class BasicOntology extends Ontology {
       add(truePropSchema);
 
       // DONE Schema
-      ActionPredicateSchema doneSchema = new ActionPredicateSchema(DONE);
+      HigherOrderPredicateSchema doneSchema = new HigherOrderPredicateSchema(DONE);
       doneSchema.add(DONE_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
       add(doneSchema); 
       
       // EQUALS Schema
-      ActionPredicateSchema resultSchema = new ActionPredicateSchema(RESULT);
+      HigherOrderPredicateSchema resultSchema = new HigherOrderPredicateSchema(RESULT);
       resultSchema.add(RESULT_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
       resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
       add(resultSchema); 
