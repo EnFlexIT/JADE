@@ -114,8 +114,7 @@
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="on"
-		       bootclasspath="${boot-midp-classes}"
-		       target="1.1"/>
+		       bootclasspath="${boot-midp-classes}"/>
 		<preverify unverified="${unverified}" verified="${classes}"/>
 	</target>
 

@@ -81,7 +81,6 @@
 	<!-- COMPILE -->
 	<target name="do-compile" depends="do-setup, do-parsers"
 	        description="Compile sources">
-	  <echo>NOTE that it is recommended to set JAVA_HOME to jdk1.3 or an earlier version of Java!</echo>
 	  
 		<javac srcdir="${src}"
 		       destdir="${classes}"
