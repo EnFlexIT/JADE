@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.7  1999/05/19 18:29:43  rimassa
+  Overridden fireTreeNodesInserted() method to perform a deferred event
+  handling. This is a workaround for a nasty deadlock bug occurring at
+  times during RMA GUI startup.
+
   Revision 1.6  1999/02/04 14:47:26  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -59,4 +64,30 @@ public class AMSTreeModel extends DefaultTreeModel {
    */
   protected void fireValueChanged(TreePath path,int[] ind,Object[] children)  {}
 
+  /**
+     Using deferred invocation for TreeModelEvent listeners as a
+     workaround for a nasty deadlock problem.
+  */
+  protected void fireTreeNodesInserted(Object source, Object[] path, 
+				       int[] childIndices, 
+				       Object[] children) {
+
+    final Object[] listeners = listenerList.getListenerList();
+    final TreeModelEvent e = new TreeModelEvent(source, path, childIndices, children);
+
+    Runnable updateTreeUI  = new Runnable() {
+
+      public void run() {
+	for (int i = listeners.length-2; i>=0; i-=2) {
+	  if (listeners[i]==TreeModelListener.class) {
+	    ((TreeModelListener)listeners[i+1]).treeNodesInserted(e);
+	  }
+	}
+      }
+
+    };
+    EventQueue.invokeLater(updateTreeUI);
+  }
+
 }
+
