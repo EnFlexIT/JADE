@@ -258,9 +258,12 @@ public class SLCodec extends StringCodec {
 		str.append(encode(propositionSymbol));
 	    	// Predicate in the ontology
 		try {
-		    for (int i=0; i<slotNames.length; i++) {
-			str.append(" ");
-			str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+				for (int i=0; i<slotNames.length; i++) {
+			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
+			if (t != null) {
+				str.append(" ");
+				str.append(toString(t));
+			}
 		    }
 		} catch (Exception e) {
 		    throw new CodecException("SL allows predicates with term arguments only",e);
@@ -294,8 +297,11 @@ public class SLCodec extends StringCodec {
 	    str.append(functionSymbol);
 	    try {
 		for (int i=0; i<slotNames.length; i++) {
-		    str.append(" ");
-		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
+			if (t != null) {
+				str.append(" ");
+				str.append(toString(t));
+			}
 		}
 	    } catch (Exception e) {
 		throw new CodecException("A FunctionalOperator requires 1 or 2 Term arguments",e);
@@ -305,10 +311,13 @@ public class SLCodec extends StringCodec {
 	    try {
 		if (slotNames != null) 
 		    for (int i=0; i<slotNames.length; i++) {
-			str.append(" :");
-			str.append(encode(slotNames[i]));
-			str.append(" ");
-			str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
+			AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
+			if (t != null) {
+				str.append(" :");
+				str.append(encode(slotNames[i]));
+				str.append(" ");
+				str.append(toString(t));
+			}
 		    }
 	    } catch (Exception e) {
 		throw new CodecException("A FunctionalTerm requires Terms arguments",e);
