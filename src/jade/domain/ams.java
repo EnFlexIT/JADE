@@ -49,24 +49,23 @@ import jade.core.event.MTPEvent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
+import jade.domain.mobility.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
+import jade.content.lang.*;
+import jade.content.lang.sl.*;
+import jade.content.lang.Codec.*;
 
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
 import jade.onto.Frame;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.BasicOntology;
-import jade.onto.basic.ResultPredicate;
-import jade.onto.basic.DonePredicate;
-import jade.onto.basic.TrueProposition;
+import jade.content.onto.basic.Action;
 
 import jade.mtp.MTPException;
+
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.JADEPrincipal;
@@ -94,6 +93,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
     Profile bootProfile = null;    
     
+    private Codec codec = new SLCodec();
+     
     //registration of an agent.
     void AMSRegisterAction(Action a, AMSAgentDescription amsd,AID sender,String ontology)throws AlreadyRegistered,AuthException,MissingParameter {
 			
@@ -160,8 +161,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
     RegisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME);
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage("FIPA-SL0");
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("tool-subscription");
@@ -176,6 +177,7 @@ public class ams extends Agent implements AgentManager.Listener {
       // Receive 'subscribe' ACL messages.
       ACLMessage current = receive(subscriptionTemplate);
       if(current != null) {
+      	
 	// FIXME: Should parse 'iota ?x ...'
 
 	// Get new tool name from subscription message
@@ -197,15 +199,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	    Occurred o = new Occurred();
 	    o.set_0(er);
 
-	    List l = new ArrayList(1);
-	    l.add(o);
-
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillMsgContent(toolNotification, l);
-
-	    send(toolNotification);
-
+	    
+	    try {
+	    	getContentManager().fillContent(toolNotification, o);
+	    	send(toolNotification);
+	 	} catch (Exception e) {
+	 		e.printStackTrace();
+	 	}
 	  }
 
 	  // Send all agent names, along with their container name.
@@ -225,14 +227,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	    Occurred o = new Occurred();
 	    o.set_0(er);
 
-	    List l = new ArrayList(1);
-	    l.add(o);
-
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillMsgContent(toolNotification, l);
-
-	    send(toolNotification);
+	    
+	    try {
+	    	getContentManager().fillContent(toolNotification, o);
+	    	send(toolNotification);
+	 	} catch (Exception e) {
+	 		e.printStackTrace();
+	 	}
 	  }
 
 	  // Send the list of the installed MTPs
@@ -246,14 +249,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	    Occurred o = new Occurred();
 	    o.set_0(er);
 
-	    List l = new ArrayList(1);
-	    l.add(o);
-
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
-	    fillMsgContent(toolNotification, l);
-
-	    send(toolNotification);
+	    
+	    try {
+	    	getContentManager().fillContent(toolNotification, o);
+	    	send(toolNotification);
+	 	} catch (Exception e) {
+	 		e.printStackTrace();
+	 	}
 	  }
 
 	  //Notification to the RMA of the APDescription
@@ -264,11 +268,10 @@ public class ams extends Agent implements AgentManager.Listener {
 	   Occurred o = new Occurred();
 	   o.set_0(er);
 
-	   List l = new ArrayList(1);
-	   l.add(o);
 	   toolNotification.clearAllReceiver();
 	   toolNotification.addReceiver(newTool);
-	   fillMsgContent(toolNotification, l);
+	   
+	   getContentManager().fillContent(toolNotification, o);
 	   send(toolNotification);
 
 	  // Add the new tool to tools list.
@@ -277,9 +280,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 	catch(NotFoundException nfe) {
 	  nfe.printStackTrace();
-	}
-	catch(FIPAException fe) {
-	  fe.printStackTrace();
+	} catch (Exception e) {
+		e.printStackTrace();
 	}
       }
       else
@@ -296,8 +298,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
     DeregisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME);
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage("FIPA-SL0");
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("tool-cancellation");
@@ -510,7 +512,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     public void action() {
 
-      synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid ConcurrentModificationException
+    synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid ConcurrentModificationException
 
 	// Look into the event buffer
 	Iterator it = eventQueue.iterator();
@@ -525,14 +527,18 @@ public class ams extends Agent implements AgentManager.Listener {
           Event ev = er.getWhat();
           handleEvent(ev);
 
-	  List l = new ArrayList(1);
-	  l.add(o);
+	  // -- Filippo
+	  //List l = new ArrayList(1);
+	  //l.add(o);
 	  try {
-	    fillMsgContent(toolNotification, l);
+	    getContentManager().fillContent(toolNotification, o);
 	  }
-	  catch(FIPAException fe) {
-	    fe.printStackTrace();
+	  /*catch(FIPAException fe) {
+	    fe.printStackTrace();*/
+	  catch(Exception fe) {
+	  	fe.printStackTrace();
 	  }
+	  // -- Filippo
 
 	  // Put all tools in the receiver list
 	  toolNotification.clearAllReceiver();
@@ -587,7 +593,7 @@ public class ams extends Agent implements AgentManager.Listener {
     //create an agent.
     ACLMessage createAgentAction(CreateAgent ca, ACLMessage request, ACLMessage reply) throws jade.domain.FIPAAgentManagement.InternalError, Unauthorised,AuthException{
 	//CreateAgent ca = (CreateAgent)a.get_1();
-	
+
 	final String agentName = ca.getAgentName();
 	final AID agentID = new AID(agentName, AID.ISLOCALNAME);
 	final String className = ca.getClassName();
@@ -740,8 +746,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
     }
 
- 
-    //performs s debugOff action
+     //performs s debugOff action
     void debugOffAction(DebugOff action)throws jade.domain.FIPAAgentManagement.InternalError,NotRegistered{
 	try {
 	    myPlatform.debugOff(action.getDebugger(), action.getCloneOfDebuggedAgents());
@@ -789,6 +794,28 @@ public class ams extends Agent implements AgentManager.Listener {
 	    throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", mtpe.getMessage());
 	}
     }
+    
+    
+    // -- Filippo to be completed
+    List queryAgentsOnLocationAction(Location loc) {
+      List l = new ArrayList();
+    	
+	  try {    	
+    	AID[] agents = myPlatform.agentNames();
+
+    	for (int i=0; i < agents.length; i++) {
+    		AID agentName = agents[i];
+    		Location cid = (Location)myPlatform.getContainerID(agentName);
+    		if (loc.equals(cid)) 
+    			l.add(agentName);
+    	}
+    	
+      } catch (Exception e) {
+      		System.out.println(e);
+      }	
+      return l;
+	}
+	// -- Filippo to be completed
 
 	private class CreationInfo {
 		private ACLMessage request;
@@ -902,6 +929,7 @@ public class ams extends Agent implements AgentManager.Listener {
      beyond the default one.
   */
   public ams(AgentManager ap, Profile aBootProfile) {
+  //public ams(AgentManager ap) {
 
     bootProfile = aBootProfile;
     
@@ -918,11 +946,12 @@ public class ams extends Agent implements AgentManager.Listener {
     MessageTemplate mtF = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
     fipaResponderB = new AMSFipaAgentManagementBehaviour(this,mtF);
 
+	mobilityMgr = new MobilityManager(this);
  
-    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME));
-    jadeResponderB = new AMSJadeAgentManagementBehaviour(this,mtJ);
-
-    mobilityMgr = new MobilityManager(this);
+    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEManagementOntology.NAME));
+    mtJ = MessageTemplate.or(mtJ,MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
+    jadeResponderB = new AMSJadeAgentManagementBehaviour(this, mobilityMgr, mtJ);
+    
     registerTool = new RegisterToolBehaviour();
     deregisterTool = new DeregisterToolBehaviour();
     notifyTools = new NotifyToolsBehaviour();
@@ -930,7 +959,7 @@ public class ams extends Agent implements AgentManager.Listener {
     tools = new ArrayList();
 
     toolNotification.setSender(new AID());
-    toolNotification.setLanguage(SL0Codec.NAME);
+    toolNotification.setLanguage("FIPA-SL0");
     toolNotification.setOntology(JADEIntrospectionOntology.NAME);
     toolNotification.setInReplyTo("tool-subscription");
    
@@ -945,16 +974,16 @@ public class ams extends Agent implements AgentManager.Listener {
     // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
     theProfile.setName("\"" + getHap() + "\"");
     writeAPDescription();
-
+    
     // Register the supported ontologies
-    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
-    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
-    registerOntology(JADEIntrospectionOntology.NAME, JADEIntrospectionOntology.instance());
-    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(IntrospectionOntology.getInstance());
+    getContentManager().registerOntology(jade.domain.mobility.MobilityOntology.getInstance());
 
     // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());
-
+    getContentManager().registerLanguage(codec, "FIPA-SL0");
+		
     // Add a Behaviour for all ams actions following from a
     // 'fipa-request' interaction with 'fipa-agent-management' ontology.
     addBehaviour(fipaResponderB);
@@ -964,7 +993,7 @@ public class ams extends Agent implements AgentManager.Listener {
     addBehaviour(jadeResponderB);
 
     // Add a main behaviour to manage mobility related messages
-    addBehaviour(mobilityMgr.getMain());
+    // addBehaviour(mobilityMgr.getMain());
 
     // Add a Behaviour to accept incoming tool registrations and a
     // Behaviour to broadcast events to registered tools.
@@ -1332,7 +1361,7 @@ public class ams extends Agent implements AgentManager.Listener {
     //creationinfo has to bestored immediately!!!
     //if needed, synchronization can be added
     
-		//System.out.println("ams.suddenborn: " + agentID + ", " + ownership + ";");
+	//System.out.println("ams.suddenborn: " + agentID + ", " + ownership + ";");
     if (creations.get(agentID) == null) {
     	creations.put(agentID, new CreationInfo(null, null, ownership, null));
     }
@@ -1541,7 +1570,7 @@ public class ams extends Agent implements AgentManager.Listener {
   private void writeAPDescription() {
     //Write the APDescription file.
     try {
-      FileWriter f = new FileWriter(bootProfile.getParameter(Profile.FILE_DIR, "") + "APDescription.txt");
+      FileWriter f = new FileWriter("APDescription.txt");
       f.write(theProfile.toString());
       //f.write(s, 0, s.length());
 	  f.write('\n');
@@ -1582,13 +1611,13 @@ public class ams extends Agent implements AgentManager.Listener {
      **/
     protected String createExceptionalContent(Action a, String ontoName, FIPAException e) {
 	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-	temp.setLanguage(SL0Codec.NAME);
+	temp.setLanguage("FIPA-SL0");
 	temp.setOntology(ontoName);
 	List l = new ArrayList(2);
 	if (a == null) {
 	    a = new Action();
-	    a.set_0(getAID());
-	    a.set_1("UnknownAction");
+	    a.setActor(getAID());
+	    a.setAction(null);
 	}
 	l.add(a);
 	l.add(e);

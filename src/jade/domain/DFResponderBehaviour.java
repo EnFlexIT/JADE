@@ -31,13 +31,17 @@ import jade.proto.SimpleAchieveREResponder;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.onto.Ontology;
-import jade.onto.Frame;
-import jade.onto.OntologyException;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.TrueProposition;
-import jade.onto.basic.DonePredicate;
+//import jade.content.onto.basic.Action;
+//import jade.content.onto.basic.TrueProposition;
+//import jade.content.onto.basic.DonePredicate;
+// NEW ONTOLOGY
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.TrueProposition;
+import jade.content.onto.basic.Done;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.ContentElementList;
 
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.UnrecognisedValue;
@@ -90,18 +94,13 @@ class DFResponderBehaviour extends SimpleAchieveREResponder{
 	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
 	temp.setLanguage(language);
 	temp.setOntology(ontology);
-	List l = new ArrayList(2);
-	if (a == null) {
-	    a = new Action();
-	    a.set_0(myAgent.getAID());
-	    a.set_1("UnknownAction");
-	}
+	ContentElementList l = new ContentElementList();
 	l.add(a);
 	l.add(new TrueProposition());
 	try {
-	    myAgent.fillMsgContent(temp,l);
+	    myAgent.getContentManager().fillContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
-	    return "( true )";
+	    return "(( true ))";
 	} 
 	return temp.getContent();
     }
@@ -117,12 +116,10 @@ class DFResponderBehaviour extends SimpleAchieveREResponder{
 	ACLMessage temp = new ACLMessage(ACLMessage.INFORM); 
 	temp.setLanguage(language);
 	temp.setOntology(ontology);
-	DonePredicate d = new DonePredicate();
-	d.set_0(a);
-	ArrayList tupla = new ArrayList(1);
-	tupla.add(d);
+	Done d = new Done();
+	d.setAction(a);
 	try {
-	    myAgent.fillMsgContent(temp,tupla);
+	    myAgent.getContentManager().fillContent(temp,d);
 	} catch (Exception e) {
 	    return "( (done unknownAction) )";
 	}
@@ -144,23 +141,24 @@ class DFResponderBehaviour extends SimpleAchieveREResponder{
 	if (e instanceof NotUnderstoodException) { // the object of the exception is the ACLMessage received
 	    cont = "( (action "+request.getSender()+" "+request+") "+e.getMessage()+")";
 	} else { // the object of the exception is the content of the ACLMessage received
-	    ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
-	    temp.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-	    temp.setOntology(request.getOntology());
-	    List l = new ArrayList(2);
 	    if (a == null) {
-		a = new Action();
-		a.set_0(myAgent.getAID());
-		a.set_1("UnknownAction");
+				cont = "( (action "+request.getSender()+" UnknownAction) "+e.getMessage()+")";
 	    }
-	    l.add(a);
-	    l.add(e);
-	    try {
-		myAgent.fillMsgContent(temp,l);
-	    } catch (Exception ee) { // FIXME: which content have to be set in these exceptional cases ??.
-		
-	    } 
-	    cont = temp.getContent();
+	    else {
+	    	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
+	    	temp.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+	    	temp.setOntology(request.getOntology());
+	    	ContentElementList l = new ContentElementList();
+	    	l.add(a);
+	    	l.add(e);
+	    	try {
+					myAgent.getContentManager().fillContent(temp,l);
+	    		cont = temp.getContent();
+	    	} 
+	    	catch (Exception ee) {
+					cont = "( (action "+request.getSender()+" UnknownAction) "+e.getMessage()+")";
+	    	} 
+	    }
 	}
 	e.setMessage(cont);
     }

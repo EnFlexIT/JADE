@@ -44,8 +44,10 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+import jade.content.onto.basic.Action;
+
+import jade.content.onto.basic.Result;
+
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
@@ -57,6 +59,9 @@ import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.UnsupportedFunction;
 import jade.domain.FIPAAgentManagement.Unauthorised;
+
+import jade.domain.mobility.*;
+import jade.domain.JADEAgentManagement.*;
 
 import jade.security.AuthException;
 
@@ -73,7 +78,7 @@ import jade.security.AuthException;
 class MobilityManager {
 
 
-    class MobilityManagerResponderB extends DFResponderBehaviour{
+    /* class MobilityManagerResponderB extends DFResponderBehaviour{
 
 	private ACLMessage res;
 
@@ -86,58 +91,47 @@ class MobilityManager {
 
 	    Action SLAction = null;
 	    Object action = null;
-	    MobilityOntology.MobileAgentDescription description;
+	    MobileAgentDescription description;
 
 	    res = request.createReply();
 	    res.setPerformative(ACLMessage.INFORM);
 	    try {
 		//extract the content of the message this could throws a FIPAException
-		List l = myAgent.extractMsgContent(request);
-		SLAction = (Action)l.get(0);
+		SLAction = (Action)myAgent.getContentManager().extractContent(request);
 		action = SLAction.getAction();
-		if(action instanceof MobilityOntology.MoveAction){
-		    if(action instanceof MobilityOntology.CloneAction){
-			description = ((MobilityOntology.CloneAction)action).get_0(); 
-			AID aName = description.getName();
-			Location dest = description.getDestination();
-			String newName = ((MobilityOntology.CloneAction)action).get_1();
-			theAMS.AMSCloneAgent(aName, dest, newName, request.getSender());
-			// res.setContent("FIXME");
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		    }else{
+		if(action instanceof WhereIsAgentAction){
 		
-			description = ((MobilityOntology.MoveAction)action).get_0();
-			AID agentName = description.getName();
-			Location destination = description.getDestination();
-			theAMS.AMSMoveAgent(agentName, destination, request.getSender());
-			//res.setContent("FIXME");
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		    }		   
-		}else if(action instanceof MobilityOntology.WhereIsAgentAction){
-		
-		    AID agentN = ((MobilityOntology.WhereIsAgentAction)action).get_0();
+		    AID agentN = ((WhereIsAgentAction)action).get_0();
 		    Location where = theAMS.AMSWhereIsAgent(agentN, request.getSender());
-		    ResultPredicate r = new ResultPredicate();
-		    r.set_0(SLAction);
-		    r.add_1(where);
-		    List l3 = new ArrayList(1);
-		    l3.add(r);
-		    theAMS.fillMsgContent(res, l3);
-		}else if(action instanceof MobilityOntology.QueryPlatformLocationsAction){
-		
+		    Result r = new Result();
+		    r.setAction(SLAction);
+		    List l1 = new ArrayList();
+		    l1.add(where);
+		    r.setItems(l1);
+		    try {
+		    	theAMS.getContentManager().fillContent(res, r);
+		  	} catch (Exception e) {
+		  		System.out.println(e);
+		  	}
+
+		}else if(action instanceof QueryPlatformLocationsAction){
 	
-		    ResultPredicate r2 = new ResultPredicate();
-		    r2.set_0(SLAction);
+		    Result r2 = new Result();
+		    r2.setAction(SLAction);
 		    
 		    // Mutual exclusion with addLocation() and removeLocation() methods
 		    synchronized(locations) {
 			Iterator it = locations.values().iterator();
+			List l1 = new ArrayList();
 			while(it.hasNext())
-			    r2.add_1(it.next());
+				l1.add(it.next());
+			r2.setItems(l1);
 		    }
-		    List l2 = new ArrayList();
-		    l2.add(r2);
-		    theAMS.fillMsgContent(res, l2); 
+		    try {
+		    	theAMS.getContentManager().fillContent(res, r2); 
+		  	} catch (Exception e) {
+		  		System.out.println(e);
+		  	}
 		}else{
 		    //this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
 		    //FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
@@ -161,7 +155,10 @@ class MobilityManager {
 		RefuseException re = new RefuseException(fe.getMessage());
 		createExceptionalMsgContent(SLAction,re,request);
 		throw re;
-	    }
+	    } catch (Exception e) {
+	    	System.out.println("errore");
+	    	System.exit(0);
+	 	}
 		//if everything is OK returns an AGREE message.
 		ACLMessage agree = request.createReply();
 		agree.setPerformative(ACLMessage.AGREE);
@@ -180,28 +177,29 @@ class MobilityManager {
 	    super.reset();
 	    res = null;
 	}
-    }
+    } */
 
 	private ams theAMS;
-	private Map locations;
+	public Map locations;
    
-        private MobilityManagerResponderB main;
+    // private MobilityManagerResponderB main;
 
 	public MobilityManager(ams a) {
 		theAMS = a;
 		locations = new HashMap();
 		MessageTemplate mt = 
-			MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
-				MessageTemplate.MatchOntology(MobilityOntology.NAME));
+		MessageTemplate.and(MessageTemplate.MatchLanguage("FIPA-SL0"),
+		MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
 
+		mt = MessageTemplate.or(mt,MessageTemplate.MatchOntology(JADEManagementOntology.NAME));
 		mt = MessageTemplate.and(mt,MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
-
-		main = new MobilityManagerResponderB(theAMS,mt);		
+		
+		// main = new MobilityManagerResponderB(theAMS,mt);		
 	}
 
-	public Behaviour getMain() {
+	/*public Behaviour getMain() {
 		return main;
-	}
+	}*/
 
 	public void addLocation(String name, Location l) {
 		synchronized (locations) {
@@ -213,6 +211,16 @@ class MobilityManager {
 		synchronized (locations) {
 			locations.remove(new CaseInsensitiveString(name));
 		}
+	}
+
+	public List getLocations() {
+		List l1 = new ArrayList();
+		synchronized(locations) {
+			Iterator it = locations.values().iterator();
+			while(it.hasNext())
+				l1.add(it.next());
+		}
+		return l1;
 	}
 
 	public Location getLocation(String containerName) {

@@ -26,6 +26,7 @@ package jade.domain;
 import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
+import jade.content.Predicate;
 
 import jade.lang.acl.ACLMessage;
 
@@ -37,7 +38,7 @@ on its content, i.e. the exception message.
 @version $Date$ $Revision$
 */
 
-public class FIPAException extends Exception {
+public class FIPAException extends Exception implements Predicate {
 
 	/**
   @serial

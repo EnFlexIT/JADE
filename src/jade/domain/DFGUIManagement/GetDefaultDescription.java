@@ -24,14 +24,18 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
+
+import jade.content.AgentAction;
+
 /**
    This class represent the getDescription Action.
    It's used by the dfApplet in order to known its default description.
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class GetDefaultDescription {
+
+public class GetDefaultDescription implements AgentAction{
 
   
 }

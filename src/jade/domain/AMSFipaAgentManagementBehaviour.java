@@ -25,8 +25,7 @@ package jade.domain;
 
 import jade.core.CaseInsensitiveString;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+import jade.content.onto.basic.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -96,9 +95,7 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 
 	isAnSLRequest(request);
 	try {
-	    //extract the content of the message this could throws a FIPAException
-	    List l = myAgent.extractMsgContent(request);
-	    SLAction = (Action)l.get(0);
+	    SLAction = (Action)myAgent.getContentManager().extractContent(request);
 	    action = SLAction.getAction();
 
 	    //the result notification that will be sent into the prepareResultNotification.
@@ -157,13 +154,10 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 		try{
 		
 		    List result = myAgent.AMSSearch(agentDescription,constraints,request,request.getSender());
-		    ResultPredicate r = new ResultPredicate();
-		    r.set_0(SLAction);
-		    for (int i=0; i<result.size(); i++)
-			r.add_1(result.get(i));
-		    result.clear();
-		    result.add(r);
-		    myAgent.fillMsgContent(res,result);
+		    Result r = new Result();
+		    r.setAction(SLAction);
+		    r.setItems(result);
+		    myAgent.getContentManager().fillContent(res, r);
 		}catch(FIPAException fe){
 		    //throw new FailureException(createExceptionalMsgContent(SLAction,fe,request.getLanguage(),request.getOntology()));
 		    //FIXME: verify the exception.
@@ -180,15 +174,14 @@ class AMSFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	
 		APDescription ap = myAgent.getDescriptionAction();
       
-		ResultPredicate rp = new ResultPredicate();
-		rp.set_0(SLAction);
-		rp.add_1(ap);
-		ArrayList list = new ArrayList(1);
-		list.add(rp);
+		Result rp = new Result();
+		rp.setAction(SLAction);
+		List l = new ArrayList();
+		l.add(ap);
+		rp.setItems(l);
 		try{
-		    myAgent.fillMsgContent(res, list);
-		   
-		}catch(FIPAException e){
+		    myAgent.getContentManager().fillContent(res, rp);
+		}catch(Exception e){
 		    InternalError ie = new InternalError("Error in creating the reply");
 		    createExceptionalMsgContent(SLAction,ie,request);
 		    res.setPerformative(ACLMessage.FAILURE);

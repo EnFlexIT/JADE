@@ -24,15 +24,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
+import jade.content.AgentAction;
+
 /**
    This class implements the GetDescriptionUsed action.
    It used by the df applet to known the description used by the df to
    register itself with a parent.
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class GetDescriptionUsed {
+public class GetDescriptionUsed implements AgentAction{
 	
 	private Object parentDF;
 	

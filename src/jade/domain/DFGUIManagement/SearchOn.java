@@ -28,15 +28,16 @@ package jade.domain.DFGUIManagement;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
+import jade.content.AgentAction;
 
 /**
    This class implements the searcOn action.
    It allows the dfApplet to request a search on another df.
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class SearchOn {
+public class SearchOn implements AgentAction{
 	
 	private AID df;
 	private DFAgentDescription description;

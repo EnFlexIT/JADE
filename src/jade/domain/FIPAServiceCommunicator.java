@@ -108,8 +108,10 @@ public class FIPAServiceCommunicator {
     ACLMessage reply = a.blockingReceive(mt);
     if(reply.getPerformative() == ACLMessage.AGREE) {
       reply =  a.blockingReceive(mt);
-      if(reply.getPerformative() != ACLMessage.INFORM) 
-	throw new FIPAException(reply.getContent());
+      if(reply.getPerformative() != ACLMessage.INFORM) {
+      	System.out.println(reply);
+				throw new FIPAException(reply.getContent());
+      }
       else 
 	return reply;
     } else if(reply.getPerformative() == ACLMessage.INFORM) 

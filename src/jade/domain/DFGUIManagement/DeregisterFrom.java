@@ -24,13 +24,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
+
+import jade.content.AgentAction;
+
 /**
    This class implements the DeregisterFrom action.
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class DeregisterFrom {
+public class DeregisterFrom implements AgentAction{
 	
 	private Object parentDF;
 	private Object childrenDF;

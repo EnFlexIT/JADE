@@ -109,7 +109,6 @@ public class DFService extends FIPAServiceCommunicator {
     Action act = new Action();
     act.set_0(dfName);
     act.set_1(r);
-
     synchronized(c) { //must be synchronized because this is a static method
       request.setContent(encode(act,c,o));
     }

@@ -24,13 +24,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
+import jade.content.AgentAction;
+
 /**
-   This class represents the Federate action.
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   This class implements the Federate action.
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class Federate {
+public class Federate implements AgentAction{
 	
 	private Object parentDF;
 	private Object childrenDF;

@@ -27,17 +27,16 @@ package jade.domain;
 
 import jade.util.leap.List;
 
-import jade.onto.basic.Action;
+//import jade.onto.basic.Action;
+import jade.content.onto.basic.Action;
 
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.UnsupportedFunction;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.UnrecognisedValue;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 
 import jade.domain.JADEAgentManagement.ShowGui;
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -68,8 +67,7 @@ class DFJadeAgentManagementBehaviour extends DFResponderBehaviour{
 	isAnSLRequest(request);
 	try{
 	    //extract the content of the message this could throws a FIPAException
-	    List l = myAgent.extractMsgContent(request);
-	    SLAction = (Action)l.get(0);
+	    SLAction = (Action) myAgent.getContentManager().extractContent(request);
 	    Object action = SLAction.getAction();
 	   
 	    if(action instanceof ShowGui){
@@ -87,13 +85,11 @@ class DFJadeAgentManagementBehaviour extends DFResponderBehaviour{
 	 
 	    return null;
 
-	}catch(NotUnderstoodException nue){
-	    throw nue;
 	}catch(RefuseException re){
 	    throw re;
-	}catch(FIPAException fe){
+	}catch(Exception e){
 	    //Exception thrown by the parser.
-	    fe.printStackTrace();
+	    e.printStackTrace();
 	    UnrecognisedValue uv = new UnrecognisedValue("content");
 	    createExceptionalMsgContent(SLAction,uv,request);
 	    throw uv;

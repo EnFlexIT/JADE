@@ -25,7 +25,7 @@ package jade.domain;
 
 import jade.util.leap.List;
 
-import jade.onto.basic.Action;
+import jade.content.onto.basic.Action;
 
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.FailureException;
@@ -73,13 +73,11 @@ class DFAppletManagementBehaviour extends DFResponderBehaviour{
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
 	isAnSLRequest(request);
 	try{
-	    //extract the content of the message this could throws a FIPAException
-	    List l = myAgent.extractMsgContent(request);
-	    SLAction = (Action)l.get(0);
+	    //extract the content of the message
+	    SLAction = (Action) myAgent.getContentManager().extractContent(request);
 	    action = SLAction .getAction();
 	    
 	    if(action instanceof GetParent)
-		//must perform a GETPARENT.
 		actionID = GETPARENT;
 	    else if(action instanceof GetDefaultDescription)
 		actionID = GETDEFAULTDESCRIPTION;
@@ -108,16 +106,14 @@ class DFAppletManagementBehaviour extends DFResponderBehaviour{
 	    //if everything is OK returns an AGREE message.
 	    ACLMessage agree = request.createReply();
 	    agree.setPerformative(ACLMessage.AGREE);
-	    agree.setContent("( true )");
+	    agree.setContent("( ( true ) )");
 	    return agree;
 	    
-	}catch(NotUnderstoodException nue){
-	    throw nue;
 	}catch(RefuseException re){
 	    throw re;
-	}catch(FIPAException fe){
+	}catch(Exception e){
 	    //Exception thrown by the parser.
-	    fe.printStackTrace();
+	    e.printStackTrace();
 	    UnrecognisedValue uv2 = new UnrecognisedValue("content");
 	    createExceptionalMsgContent(SLAction,uv2,request);
 	    throw uv2;

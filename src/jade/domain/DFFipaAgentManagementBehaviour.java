@@ -25,8 +25,11 @@ package jade.domain;
 
 import jade.core.CaseInsensitiveString;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+//import jade.onto.basic.Action;
+//import jade.onto.basic.ResultPredicate;
+// NEW Ontology
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -42,7 +45,7 @@ import jade.util.leap.List;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.Search;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
 import jade.domain.FIPAAgentManagement.Register;
 import jade.domain.FIPAAgentManagement.Deregister;
 import jade.domain.FIPAAgentManagement.Modify;
@@ -78,23 +81,22 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
     }
 
     /*
-    In this method we can be send : AGREE- NOT UNDERSTOOD and Refuse.
+    In this method we can be send : AGREE, NOT UNDERSTOOD and REFUSE.
     in this method we parse the content in order to know the action required to the DF.
-    if the action is unsupported a NOT UDERSTOOD message is sent.
-    if something went wrong with the ontology a REFUSE message will be sent, otherwise an AGREE will be sent.
-  and performs the action.
+    if the action is unsupported a REFUSE message is sent.
+    if something went wrong with the ontology a NOT UDERSTOOD message is sent, 
+    otherwise an AGREE is sent and the action will be performed.
     */
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
 
 	isAnSLRequest(request);
 	try {
 	    //extract the content of the message this could throws a FIPAException
-	    List l = myAgent.extractMsgContent(request);
-	    SLAction = (Action)l.get(0);
+	    SLAction = (Action) myAgent.getContentManager().extractContent(request);
 	    action = SLAction.getAction();
 
 	    if(action instanceof Register){
-		agentDescription = (DFAgentDescription)((Register)action).get_0();
+		agentDescription = (DFAgentDescription)((Register)action).getDescription();
 		//to avoid autoregistration.
 		if ((agentDescription.getName()!=null) && ((agentDescription.getName().equals(myAgent.getAID()) || agentDescription.getName().equals(myAgent.getLocalName())))) {
 		    Unauthorised e = new Unauthorised();
@@ -102,22 +104,22 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 		    createExceptionalMsgContent(SLAction, e, request);
 		    throw e;
 		}
-		myAgent.checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, agentDescription);
+		myAgent.checkMandatorySlots(FIPAManagementOntology.REGISTER, agentDescription);
 		actionID = REGISTER;
 	    }else if(action instanceof Deregister){
 		//performs a DEREGISTER
-		agentDescription = (DFAgentDescription)((Deregister)action).get_0();
+		agentDescription = (DFAgentDescription)((Deregister)action).getDescription();
 		actionID = DEREGISTER;
-		myAgent.checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, agentDescription);
+		myAgent.checkMandatorySlots(FIPAManagementOntology.DEREGISTER, agentDescription);
 	    }else if(action instanceof Modify){
 		//performs a MODIFY
 		actionID = MODIFY;
-		agentDescription = (DFAgentDescription)((Modify)action).get_0();
-		myAgent.checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, agentDescription);
+		agentDescription = (DFAgentDescription)((Modify)action).getDescription();
+		myAgent.checkMandatorySlots(FIPAManagementOntology.MODIFY, agentDescription);
 	    }else if(action instanceof Search){
 		//performs a SEARCH
-		agentDescription = (DFAgentDescription)((Search)action).get_0();
-		constraints = ((Search)action).get_1();
+		agentDescription = (DFAgentDescription)((Search)action).getDescription();
+		constraints = ((Search)action).getConstraints();
 		actionID = SEARCH;
 	       }
 	    else{
@@ -137,12 +139,12 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 
 	}catch(RefuseException re){ // catch and rethrow the unsupportedFunction and unauthorized exceptions
 	    throw re;
-	}catch(FIPAException fe){
+	/*}catch(FIPAException fe){
 	    //Exception thrown by the parser.
 	    fe.printStackTrace();
 	    UnrecognisedValue uv = new UnrecognisedValue("content");
 	    createExceptionalMsgContent(SLAction,uv,request);
-	    throw uv;
+	    throw uv; */
 	}catch (Exception e) {
 	    e.printStackTrace();
 	    UnrecognisedValue uv2 = new UnrecognisedValue("content");
@@ -152,7 +154,7 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
     }
     
     /**
-       Send the Inform message.
+       Do the action and send the Inform message.
      */
     protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{
 
@@ -181,61 +183,58 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	case SEARCH: 
 	    List result = myAgent.DFSearch(agentDescription,constraints,null);
 
-	    //verify if the search must be recursive
+	    // Note that if the local search produced more results than
+	    // required, we don't even consider the recursive search 
+	    // regardless of the maxDepth parameter.
 	    Long maxResult = constraints.getMaxResults();
-	    //search is recursive if there are less results than required and the depth is greater than one
-	    if(maxResult != null) 
-		if(result.size() >= maxResult.intValue()){
-		    //more results than required have been found
-		    ArrayList list = new ArrayList();
-		    int j = 0;
-		    for(Iterator i = result.iterator();i.hasNext()&& j < maxResult.intValue();j++)
-			list.add(i.next());   
-		    try{
-			ResultPredicate rp = new ResultPredicate();
-			rp.set_0(SLAction);
-			for(int i=0;i<list.size();i++)
-			    rp.add_1(list.get(i));
-			list.clear();
-			list.add(rp);
-			myAgent.fillMsgContent(res,list);
-			//found all the result required.
-			return res;
-		    }catch(FIPAException fe){
-			//FIXME: verify the exception.
-			//	throw new FailureException(createExceptionalMsgContent(SLAction,fe,request.getLanguage(),request.getOntology()));
-			InternalError ie = new InternalError("error in creating the reply");
-			createExceptionalMsgContent(SLAction,ie,request);
-			throw ie;
-		    }	   
-		}
+	    if(maxResult != null) {
+				if(result.size() >= maxResult.intValue()){
+		    	// More results than required have been found
+		    	ArrayList list = new ArrayList();
+		    	int j = 0;
+		    	for(Iterator i = result.iterator();i.hasNext()&& j < maxResult.intValue();j++) {
+						list.add(i.next());
+		    	}
+		    	try{
+						Result rs = new Result();
+						rs.setAction(SLAction);
+						rs.setItems(list);
+						myAgent.getContentManager().fillContent(res,rs);
+						return res;
+		    	}
+		    	catch(Exception e){
+						InternalError ie = new InternalError("error in creating the reply");
+						createExceptionalMsgContent(SLAction,ie,request);
+						throw ie;
+		    	}
+				}
+			}
+			
+			// Check if recursive search is required
 	    Long maxDepth = constraints.getMaxDepth();
-	 
-	    if(maxDepth != null)
-		if(maxDepth.intValue()>0){
-		    //recursive search on children
-		    if(myAgent.performRecursiveSearch(result,constraints,agentDescription,request,SLAction))
-			return null;
-		}
+	    if(maxDepth != null) {
+				if(maxDepth.intValue()>0){
+		    	// Recursive search on children. Note that in this case 
+					// the INFORM message will be sent by another behaviour.
+		    	if(myAgent.performRecursiveSearch(result,constraints,agentDescription,request,SLAction)) {
+						return null;
+		    	}
+				}
+			}
 	  
+			// No recursive search. Just send back the results
 	    try{
-		ResultPredicate rp = new ResultPredicate();
-		rp.set_0(SLAction);
-		for(int i=0;i<result.size();i++)
-		    rp.add_1(result.get(i));
-		result.clear();
-		result.add(rp);
-		myAgent.fillMsgContent(res,result);
-	
-		return res;
-		//break;
-	    }catch(FIPAException fe){
-		//throw new FailureException(createExceptionalMsgContent(SLAction,fe,request.getLanguage(),request.getOntology()));
-		InternalError ie2 = new InternalError("error in creating the reply");
-		createExceptionalMsgContent(SLAction,ie2,request);
-		throw ie2;
+				Result rs = new Result();
+				rs.setAction(SLAction);
+				rs.setItems(result);
+				myAgent.getContentManager().fillContent(res, rs);
+				return res;
+	    }
+	    catch(Exception e){
+				InternalError ie2 = new InternalError("error in creating the reply");
+				createExceptionalMsgContent(SLAction,ie2,request);
+				throw ie2;
 	    }  
-
 	case MODIFY: 
 	    try{
 		myAgent.DFModify(agentDescription);

@@ -26,15 +26,17 @@ package jade.domain.DFGUIManagement;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.content.AgentAction;
+
 /**
    This class implements the ModifyOn action.
    It used by the dfApplet to request the df to modify the
    description of an agent registered with another df
-   @author Tiziana Trucco -  CSELT S.p.A.
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class ModifyOn {
+public class ModifyOn implements AgentAction{
 	
   private AID df;
 	private DFAgentDescription description;

@@ -24,13 +24,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
+import jade.content.AgentAction;
+
 /**
    This class implements the GetParent action.
-   @author Tiziana Trucco -  CSELT s.p.a
-   @version $Date$ $Revision$
+   @author Elisabetta Cortese -  TiLab S.p.A.
+   @version $Date$
 */
 
-public class GetParent {
+public class GetParent implements AgentAction{
 
   
 }

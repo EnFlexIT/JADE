@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import java.lang.reflect.Method;
-import java.util.Vector;
+import java.util.*;
 
 import jade.util.leap.HashMap;
 import jade.util.leap.ArrayList;
@@ -35,42 +35,27 @@ import java.net.InetAddress;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.*;
-import jade.domain.FIPAAgentManagement.Register;
-import jade.domain.FIPAAgentManagement.Deregister;
-import jade.domain.FIPAAgentManagement.Modify;
-import jade.domain.FIPAAgentManagement.Search;
-import jade.domain.FIPAAgentManagement.SearchConstraints;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.domain.FIPAAgentManagement.MissingParameter;
-import jade.domain.FIPAAgentManagement.AlreadyRegistered;
-import jade.domain.FIPAAgentManagement.NotRegistered;
-import jade.domain.FIPAAgentManagement.Unauthorised;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.domain.FIPAAgentManagement.UnrecognisedValue;
-import jade.domain.FIPAAgentManagement.UnexpectedAct;
 
-import jade.onto.Ontology;
-import jade.onto.Frame;
-import jade.onto.OntologyException;
-import jade.onto.basic.TrueProposition;
+import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.*;
-
 import jade.domain.DFGUIManagement.*;
+
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.sl.SL0Codec;
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-import jade.onto.basic.DonePredicate;
+
+import jade.proto.SubscriptionResponder;
+
+import jade.content.*;
+import jade.content.lang.*;
+import jade.content.lang.sl.*;
+import jade.content.onto.*;
+import jade.content.onto.basic.*;
+import jade.content.abs.*;
 
 /**
   Standard <em>Directory Facilitator</em> agent. This class implements
@@ -98,9 +83,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private class RecursiveSearchBehaviour extends RequestFIPAServiceBehaviour 
   {
   	RecursiveSearchHandler rsh;
-  	RecursiveSearchBehaviour(RecursiveSearchHandler rsh,AID children,DFAgentDescription dfd,SearchConstraints constraints) throws FIPAException
+  	RecursiveSearchBehaviour(RecursiveSearchHandler rsh, AID children, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException
   	{
-  		super(df.this,children,FIPAAgentManagementOntology.SEARCH,dfd,constraints);
+  		super(df.this, children, FIPAManagementOntology.SEARCH, dfd, constraints);
   		this.rsh = rsh;
   	}
   	
@@ -169,10 +154,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
   }//End class RecursiveSearchBehaviour
   
      
-    /*
-      This method called into the DFFIPAAgentManagementBehaviour add the behaviours for a recursive search.
-return true if the Df has children, false otherwise
-     */
+  /**
+    This method called into the DFFIPAAgentManagementBehaviour add the behaviours for a recursive search.
+		return true if the Df has children, false otherwise
+   */
 	protected boolean performRecursiveSearch(List l, SearchConstraints constraints, DFAgentDescription dfd, ACLMessage request, Action action){
 
 	    boolean out = false;
@@ -238,42 +223,40 @@ return true if the Df has children, false otherwise
   		this.children.remove(b);
   	}
   	
-      void addResults(Behaviour b, List localResults) throws FIPAException {
+    void addResults(Behaviour b, List localResults) throws FIPAException {
+	  	this.children.remove(b);
 	  
-	  this.children.remove(b);
-	  
-	  if(constraints.getMaxResults() != null){
+	  	if(constraints.getMaxResults() != null){
 	      //number of results still missing	 
 	      int remainder = constraints.getMaxResults().intValue() - results.size();
 
 	      if(remainder > 0){
-		  //add the local result to fill the list of results
-		  Iterator it = localResults.iterator();
-		  for(int i =0; i < remainder && it.hasNext(); i++){
-		      results.add(it.next());
-		  }
+		  		//add the local result to fill the list of results
+		  		Iterator it = localResults.iterator();
+		  		for(int i =0; i < remainder && it.hasNext(); i++){
+		      	results.add(it.next());
+		  		}
 	      }
-	  }else{// add all the results returned by the children.
+	  	}
+	  	else {// add all the results returned by the children.
 	      for (Iterator i=localResults.iterator(); i.hasNext(); )
-		  results.add(i.next());    
-	  }
+		  		results.add(i.next());    
+	  		}
 
-	 
-	  if   ((System.currentTimeMillis() >= deadline) || (children.size() == 0)) {
-		  ACLMessage inform = request.createReply();
-		  inform.setPerformative(ACLMessage.INFORM);
-		  ResultPredicate r = new ResultPredicate();
-		  r.set_0(action);
-		  for (int i=0; i<results.size(); i++)
-		      r.add_1(results.get(i));
-		  ArrayList tuple = new ArrayList(1);
-		  tuple.add(r);
-		  fillMsgContent(inform,tuple); 
-		  send(inform);
-		  //kill the behaviours in children
-	      } 
-      }
-  }
+	  		if   ((System.currentTimeMillis() >= deadline) || (children.size() == 0)) {
+		  		ACLMessage inform = request.createReply();
+		  		inform.setPerformative(ACLMessage.INFORM);
+		  		Result rs = new Result(action, results);
+		  		try {
+			  		getContentManager().fillContent(inform, rs);
+		  		}
+		  		catch (Exception e) {
+		  			throw new FIPAException(e.getMessage());
+		  		}
+		  		send(inform);
+	    	} 
+    	}
+  	}
    
     //performs the ShowGui action: show the GUI of the DF.
     protected void showGuiAction(Action a) throws FailureException{
@@ -290,18 +273,18 @@ return true if the Df has children, false otherwise
 	    ACLMessage inform = request.createReply();
 	    inform.setPerformative(ACLMessage.INFORM);
 
-	    ResultPredicate rp = new ResultPredicate();
-	    rp.set_0(a);
-	    for(int i = 0; i<parents.size() ;i++)
-	      	rp.add_1(parents.get(i));
-	    ArrayList list = new ArrayList(1);
-	    list.add(rp);
-	    fillMsgContent(inform,list);
-
+	    Result rs = new Result(a, parents);
+	    try {
+	    	getContentManager().fillContent(inform, rs);
+		  }
+		  catch (Exception e) {
+		  	throw new FIPAException(e.getMessage());
+		  }
+	    
 	    return inform;
 	    
 	}
-	catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	catch(FIPAException e) { //FIXME no exception predicate in the DFApplet ontology
 	    throw new InternalError("Impossible_to_provide_the_needed_information");
 	}
     }
@@ -315,16 +298,19 @@ return true if the Df has children, false otherwise
       	  ACLMessage inform = request.createReply();      
           inform.setPerformative(ACLMessage.INFORM);
 
-	  ResultPredicate rp = new ResultPredicate();
-	  rp.set_0(a);
-	  rp.add_1(thisDF);
-	  ArrayList list = new ArrayList(1);
-	  list.add(rp);
-	  fillMsgContent(inform,list);
+	  List tmp = new ArrayList();
+	  tmp.add(thisDF);
+	  Result rs = new Result(a, tmp);
+	  try {
+	  	getContentManager().fillContent(inform, rs);
+		}
+		catch (Exception e) {
+		  throw new FIPAException(e.getMessage());
+		}
 
 	  return inform;
 	  
-	  }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	  }catch(FIPAException e) { //FIXME no exception predicate in the DFApplet ontology
 	   throw new InternalError("Impossible_to_provide_the_needed_information");
        }
     }
@@ -345,56 +331,58 @@ return true if the Df has children, false otherwise
 	    request = msg;
 	}
 	
-	public void action()
-	{
-	    System.out.println("Agent: " + getName() + "in ThirdStep...Token: " + token);
-	    ACLMessage reply = request.createReply();
-	    if(previousStep.correctly)
-		{
-		    if(token.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
-			
-			try{	
-			    reply.setPerformative(ACLMessage.INFORM); 
-			    List l = extractMsgContent(request);
-			    Action a = (Action)l.get(0);
-			    
-			    // Convert search result from array to list
-			    Object[] r = previousStep.getSearchResults();
-			    List result = new ArrayList();
-			    for (int i = 0; i < r.length; ++i) {
-				result.add(r[i]);
-			    }
-			    
-			    ResultPredicate rp = new ResultPredicate();
-			    rp.set_0(a);
-			    
-			    for (int i=0; i<result.size(); i++)
-				rp.add_1(result.get(i));
-			    
-			    result.clear();
-			    result.add(rp);
-			    fillMsgContent(reply,result);
-			}catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
-			    reply.setPerformative(ACLMessage.FAILURE);
-			    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
-			}catch(RequestFIPAServiceBehaviour.NotYetReady nyr){
-			    reply.setPerformative(ACLMessage.FAILURE);
-			    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
-			}
+	public void action() {
+		System.out.println("Agent: " + getName() + "in ThirdStep...Token: " + token);
+	  ACLMessage reply = request.createReply();
+	  if(previousStep.correctly) {
+	    if(token.equalsIgnoreCase(DFAppletOntology.SEARCHON)) {			
+				try{	
+		    	reply.setPerformative(ACLMessage.INFORM); 
 		    
-		    else
-			{
-			    reply.setPerformative(ACLMessage.INFORM);
-			    reply.setContent("( done (" + token + " ) )" );
+		    	// Convert search result from array to list
+		    	Object[] r = previousStep.getSearchResults();
+		    	List result = new ArrayList();
+		    	for (int i = 0; i < r.length; ++i) {
+						result.add(r[i]);
+		    	}
+		    
+		    	try {
+		    		Action a = (Action) getContentManager().extractContent(request);
+		    		Result rs = new Result(a, result);
+		    		getContentManager().fillContent(reply, rs);
+	  			}
+	  			catch (Exception e) {
+	  				throw new FIPAException(e.getMessage());
+	  			}
+				}
+				catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
+		    	reply.setPerformative(ACLMessage.FAILURE);
+		    	reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+				}
+				catch(RequestFIPAServiceBehaviour.NotYetReady nyr){
+		    	reply.setPerformative(ACLMessage.FAILURE);
+		    	reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+				}
+		  }
+		  else {
+			  reply.setPerformative(ACLMessage.INFORM);
+		    try {
+		    	Action a = (Action) getContentManager().extractContent(request);
+		    	Done d = new Done(a);
+		    	getContentManager().fillContent(reply, d);
+	  		}
+	  		catch (Exception e) {
+	  			// Try in any case to send back something meaningful
+			  	reply.setContent("( ( done ( action " + myAgent.getLocalName() + " " + token + " ) ) )" );
+	  		}
 			}
 		}
-	    else
-		{
-		    reply.setPerformative(ACLMessage.FAILURE);
-		    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+	  else {
+		  reply.setPerformative(ACLMessage.FAILURE);
+		  reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
 		}
-	    send(reply);
-	    finished = true;
+	  send(reply);
+	  finished = true;
 	}			
 	
 	
@@ -419,7 +407,7 @@ return true if the Df has children, false otherwise
       {
 	  super(df.this);
 
-	  String token = DFAppletManagementOntology.FEDERATEWITH;
+	  String token = DFAppletOntology.FEDERATEWITH;
  			
 	  try{
 	    	      
@@ -427,7 +415,7 @@ return true if the Df has children, false otherwise
 	      AID parentDF = (AID)f.getParentDF();
 	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
 	      //send request to parentDF
-	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAManagementOntology.REGISTER,dfd,null,gui);
 	      addSubBehaviour(secondStep);
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
@@ -457,16 +445,19 @@ return true if the Df has children, false otherwise
 	    ACLMessage inform = request.createReply();      
 	    inform.setPerformative(ACLMessage.INFORM);
        
-	    ResultPredicate rp = new ResultPredicate();
-	    rp.set_0(a);
-	    rp.add_1(dscDFParentMap.get(parent));
+	    List tmp = new ArrayList();
+	    tmp.add(dscDFParentMap.get(parent));
+	    Result rs = new Result(a, tmp);
+	    try {
+	    	getContentManager().fillContent(inform, rs);
+		  }
+		  catch (Exception e) {
+		  	throw new FIPAException(e.getMessage());
+		  }
 	    
-	    ArrayList list = new ArrayList(1);
-	    list.add(rp);
-	    fillMsgContent(inform,list);
 	    return inform;
 
-       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+       }catch(FIPAException e) { //FIXME no exception predicate in the DFApplet ontology
 	   throw new InternalError("Impossible_to_provide_the_needed_information");
        }
     }
@@ -482,7 +473,7 @@ return true if the Df has children, false otherwise
      
       DeregisterFromBehaviour(Action action, ACLMessage msg)
       {
-	  String token = DFAppletManagementOntology.DEREGISTERFROM;
+	  String token = DFAppletOntology.DEREGISTERFROM;
  			
 	  try{
 	     
@@ -490,12 +481,12 @@ return true if the Df has children, false otherwise
 	      AID parentDF = (AID)f.getParentDF();
 	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
 	      //send request to parentDF
-	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.DEREGISTER,dfd,null,gui);
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAManagementOntology.DEREGISTER,dfd,null,gui);
 	      addSubBehaviour(secondStep);
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	      
-	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
 	      //FIXME: send a failure
 	      ACLMessage failure = msg.createReply();
 	      failure.setPerformative(ACLMessage.FAILURE);
@@ -519,7 +510,7 @@ return true if the Df has children, false otherwise
 
       RegisterWithBehaviour(Action a, ACLMessage msg){
  		
-	  String token = DFAppletManagementOntology.REGISTERWITH;
+	  String token = DFAppletOntology.REGISTERWITH;
  		
 	  try{
              
@@ -527,12 +518,12 @@ return true if the Df has children, false otherwise
 	      AID df = rf.getDf();
 	      DFAgentDescription dfd = rf.getDescription();
 	      //send request to the DF indicated
-	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAManagementOntology.REGISTER,dfd,null,gui);
 	      addSubBehaviour(secondStep);
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	      
-	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
 	      //FIXME: send a failure
 	      ACLMessage failure = msg.createReply();
 	      failure.setPerformative(ACLMessage.FAILURE);
@@ -555,7 +546,7 @@ return true if the Df has children, false otherwise
 
       
       ModifyOnBehaviour(Action a, ACLMessage msg){
-	  String token = DFAppletManagementOntology.MODIFYON;
+	  String token = DFAppletOntology.MODIFYON;
 
 	  try{
 
@@ -563,12 +554,12 @@ return true if the Df has children, false otherwise
 	      AID df = mod.getDf();
 	      DFAgentDescription dfd = mod.getDescription();
 	      //send request to the DF indicated
-	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.MODIFY,dfd,null,gui);
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAManagementOntology.MODIFY,dfd,null,gui);
 	      addSubBehaviour(secondStep);
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	      
-	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
 	      // send a failure
 	      ACLMessage failure = msg.createReply();
 	      failure.setPerformative(ACLMessage.FAILURE);
@@ -591,7 +582,7 @@ return true if the Df has children, false otherwise
       SearchOnBehaviour(Action a, ACLMessage msg)
       {
 	  
-	 String token = DFAppletManagementOntology.SEARCHON;
+	 String token = DFAppletOntology.SEARCHON;
 
 	  try{
 	      SearchOn s = (SearchOn)a.getAction(); 	
@@ -600,12 +591,12 @@ return true if the Df has children, false otherwise
 	      SearchConstraints sc = s.getConstraints();
 	      
 	      //send request to the DF
-	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.SEARCH,dfd,sc,gui);
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAManagementOntology.SEARCH,dfd,sc,gui);
 	      addSubBehaviour(secondStep);
 	      
 	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	      
-	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFApplet ontology
 	      //FIXME: send a failure
 	      // send a failure
 	      ACLMessage failure = msg.createReply();
@@ -643,7 +634,7 @@ return true if the Df has children, false otherwise
   	{
 	    super.handleInform(msg);
   		correctly =true;
-  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH))
+  		if(actionName.equalsIgnoreCase(FIPAManagementOntology.SEARCH))
   		{
   			try{
   				if(gui != null)
@@ -662,8 +653,7 @@ return true if the Df has children, false otherwise
   			e.printStackTrace();// should never happen
   			}
   		}
-  		else
-  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER))
+  		else if(actionName.equalsIgnoreCase(FIPAManagementOntology.REGISTER))
   		{
   			try{
   			  
@@ -680,8 +670,7 @@ return true if the Df has children, false otherwise
   			e.printStackTrace();// should never happen
   			}
   		}
-  		else
-  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+  		else if(actionName.equalsIgnoreCase(FIPAManagementOntology.DEREGISTER))
   		{
   			try
   			{
@@ -705,8 +694,7 @@ return true if the Df has children, false otherwise
   			e.printStackTrace();// should never happen
   			}
   		}
-  		else 
-  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.MODIFY))
+  		else if(actionName.equalsIgnoreCase(FIPAManagementOntology.MODIFY))
   		{
   			try{
   				gui.showStatusMsg("Modify request processed. Ready for new request");
@@ -760,6 +748,110 @@ return true if the Df has children, false otherwise
       }
   }
   
+  /******************************/
+  /***  Subscription Manager  ***/
+  /******************************/
+  
+  private class SubscriptionManagerImpl implements SubscriptionResponder.SubscriptionManager{
+  	// Maps DFD templates with cuples (Subscription, iota).
+  	Hashtable subscriptions = new Hashtable();
+  	
+  	public boolean register(SubscriptionResponder.Subscription sub) throws RefuseException, NotUnderstoodException{
+  
+			DFAgentDescription dfdTemplate = null;
+			SearchConstraints constraints = null;
+			AbsIRE absIota = null;
+			
+			System.out.println("DF Registering subscription. Message is");
+			System.out.println(sub.getMessage());
+  		try{
+  			// Get DFD template and search constraints from the subscription message 
+				ACLMessage subMessage = sub.getMessage();
+				absIota = (AbsIRE) getContentManager().extractAbsContent(subMessage);
+				AbsPredicate absResult = absIota.getProposition();
+				AbsAgentAction absAction = (AbsAgentAction) absResult.getAbsObject(BasicOntology.RESULT_ACTION);
+				AbsAgentAction absSearch = (AbsAgentAction) absAction.getAbsObject(BasicOntology.ACTION_ACTION);
+				Search search = (Search) FIPAManagementOntology.getInstance().toObject(absSearch);
+				
+				dfdTemplate = (DFAgentDescription) search.getDescription();
+				constraints = search.getConstraints();
+			
+				// Register the Subscription
+				subscriptions.put(dfdTemplate, new Object[] {sub, absIota});				
+		
+  		}
+  		catch(Exception e){
+
+			e.printStackTrace();
+  			throw new NotUnderstoodException(e.getMessage());
+  		}
+  		
+			// Search for DFDs that already match the specified template
+			List results = agentDescriptions.search(dfdTemplate);	
+			// If some DFD matches the template, notify the subscribed agent 
+			if(results.size() > 0){
+				// If there are more matching DFD than MAX_RESULT, then remove the DFD in eccess
+				Long maxResult = constraints.getMaxResults();						
+				if(maxResult != null) {						
+					if(results.size() >= maxResult.intValue()){
+						// More results than required have been found, put in list the first MAX_RESULT results
+						ArrayList list = new ArrayList();
+						int j = 0;
+						for(Iterator i = results.iterator();i.hasNext()&& j < maxResult.intValue();j++){
+							list.add(i.next()); 
+						}
+						results=list;
+					}
+				}
+				
+				System.out.println("DF search found "+results.size()+" results");
+				notify(sub, results, absIota);
+				return true;
+			}
+			return false;
+  	}
+
+  	// degeregister the subscritpion from hashtable
+  	public void deregister( SubscriptionResponder.Subscription sub ) throws RefuseException, NotUnderstoodException {
+			subscriptions.remove(sub);
+  	}
+  	
+  	// Handle new registrations/modifications by notifying subscribed agents
+  	// if necessary
+		void handleChange(DFAgentDescription dfd) {
+			Enumeration e = subscriptions.keys();
+			while (e.hasMoreElements()) {
+				DFAgentDescription template = (DFAgentDescription) e.nextElement();
+				if (((KBAbstractImpl)agentDescriptions).match(template, dfd)) {
+					List results = new ArrayList();
+					results.add(dfd);
+					Object[] tmp = (Object[]) subscriptions.get(template);
+					SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) tmp[0];
+					AbsIRE absIota = (AbsIRE) tmp[1];
+					notify(sub, results, absIota);
+				}
+			}
+		}
+  	
+		private void notify(SubscriptionResponder.Subscription sub, List results, AbsIRE absIota) {
+			try {
+				ACLMessage notification = sub.getMessage().createReply();
+				notification.setPerformative(ACLMessage.INFORM);
+				AbsPredicate absEquals = new AbsPredicate(SLVocabulary.EQUALS);
+				absEquals.set(SLVocabulary.EQUALS_LEFT, absIota);
+				absEquals.set(SLVocabulary.EQUALS_RIGHT, FIPAManagementOntology.getInstance().fromObject(results));
+			
+				getContentManager().fillContent(notification, absEquals);
+				//pass to Subscription the message to send
+				sub.notify(notification);
+			}
+			catch (Exception e) {
+				//FIXME: Check whether a FAILURE message should be sent back.				
+			}
+		}
+		
+  }  // END of inner class SubscriptionManagerImpl
+    
   private static int NUMBER_OF_AGENT_FOUND = 1000;
 
 
@@ -790,35 +882,92 @@ return true if the Df has children, false otherwise
   */
   private DFAgentDescription thisDF = null;
   
-    private DFFipaAgentManagementBehaviour fipaRequestResponder;
-    private DFJadeAgentManagementBehaviour jadeRequestResponder;
-    private DFAppletManagementBehaviour appletRequestResponder;
+  private Codec codec = new SLCodec();
   
+  private DFFipaAgentManagementBehaviour fipaRequestResponder;
+  private DFJadeAgentManagementBehaviour jadeRequestResponder;
+  private DFAppletManagementBehaviour appletRequestResponder;
+  private SubscriptionResponder dfSubscriptionResponder;
+  
+ 	private SubscriptionManagerImpl subManager = new SubscriptionManagerImpl();
+
   /**
     This constructor creates a new <em>DF</em> agent. This can be used
     to create additional <em>DF</em> agents, beyond the default one
     created by <em><b>JADE</b></em> on platform startup.
   */
-    public df() {
-	MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
+  public df() {
+  	MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+  	MessageTemplate mt1 = null;
+  	
+    // Behaviour dealing with FIPA management actions
+		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
+    fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
 
-    // Associate each DF action name with the behaviour to execute
-    // when the action is requested in a 'request' ACL message
+    // Behaviour dealing with JADE management actions
+    mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(JADEManagementOntology.getInstance().getName()));
+    jadeRequestResponder = new DFJadeAgentManagementBehaviour(this, mt1);
 
-    fipaRequestResponder = new DFFipaAgentManagementBehaviour(this,mt);
+    // Behaviour dealing with DFApplet management actions
+    mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(DFAppletOntology.getInstance().getName()));
+    appletRequestResponder = new DFAppletManagementBehaviour(this, mt1);
 
-    // Behaviour to deal with the GUI
-    
-    MessageTemplate mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME));
-    jadeRequestResponder = new DFJadeAgentManagementBehaviour(this,mt1);
-
-    MessageTemplate mt2 = MessageTemplate.and(
-                             MessageTemplate.MatchOntology(DFAppletManagementOntology.NAME),
-    	                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
-    appletRequestResponder = new DFAppletManagementBehaviour(this,mt2);
+		// Behaviour dealing with subscriptions
+		mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
+    dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager);
 
   }
 
+  /**
+    This method starts all behaviours needed by <em>DF</em> agent to
+    perform its role within <em><b>JADE</b></em> agent platform.
+  */
+  protected void setup() {
+    // register the codec of the language
+    //registerLanguage(SL0Codec.NAME,new SL0Codec());	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
+		
+    // register the ontologies
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(DFAppletOntology.getInstance());
+
+    // Add behaviours
+    addBehaviour(fipaRequestResponder);
+    addBehaviour(jadeRequestResponder);
+    addBehaviour(appletRequestResponder);
+    addBehaviour(dfSubscriptionResponder);
+    
+    // Set the DFDescription of thie DF
+    setDescriptionOfThisDF(getDefaultDescription());
+   
+  }  // End of method setup()
+
+  /**
+    Cleanup <em>DF</em> on exit. This method performs all necessary
+    cleanup operations during agent shutdown.
+  */
+  protected void takeDown() {
+
+    if(gui != null) {
+			gui.disposeAsync();
+    }
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(getAID());
+    Iterator it = parents.iterator();
+    while(it.hasNext()) {
+      AID parentName = (AID)it.next();
+      try {
+        DFService.deregister(this, parentName, dfd);
+      }
+      catch(FIPAException fe) {
+        fe.printStackTrace();
+      }
+    }
+  }
 
     /**
      * Create the content for a so-called "exceptional" message, i.e.
@@ -831,10 +980,13 @@ return true if the Df has children, false otherwise
      **/
     //FIXME. This method is only used for create the reply to the APPLET request.
     private String createExceptionalMsgContent(Action a, FIPAException e) {
+	    return e.getMessage();
+	// FIXME: The following code is hard to port to the new Ontology support
+	/*
 	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
-	temp.setLanguage(SL0Codec.NAME);
-	temp.setOntology(FIPAAgentManagementOntology.NAME);
-	List l = new ArrayList(2);
+	temp.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+	temp.setOntology(FIPAManagementOntology.getInstance().getName());
+	List l = new ArrayList();
 	if (a == null) {
 	    a = new Action();
 	    a.set_0(getAID());
@@ -847,32 +999,8 @@ return true if the Df has children, false otherwise
 	} catch (Exception ee) { // in any case try to return some good content
 	    return e.getMessage();
 	} 
-	return temp.getContent();
+	return temp.getContent();*/
     }
-
-
-  /**
-    This method starts all behaviours needed by <em>DF</em> agent to
-    perform its role within <em><b>JADE</b></em> agent platform.
-  */
-  protected void setup() {
-    // register the codec of the language
-    registerLanguage(SL0Codec.NAME,new SL0Codec());	
-		
-    // register the ontology used by application
-    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
-    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
-    registerOntology(DFAppletManagementOntology.NAME,DFAppletManagementOntology.instance());
-
-    // Add a message dispatcher behaviour
-    addBehaviour(fipaRequestResponder);
-   
-    addBehaviour(jadeRequestResponder);
-
-    addBehaviour(appletRequestResponder);
-    setDescriptionOfThisDF(getDefaultDescription());
-   
-  }  // End of method setup()
 
 	/**
 	  This method make visible the GUI of the DF.
@@ -906,28 +1034,6 @@ return true if the Df has children, false otherwise
  
 
 
-  /**
-    Cleanup <em>DF</em> on exit. This method performs all necessary
-    cleanup operations during agent shutdown.
-  */
-  protected void takeDown() {
-
-    if(gui != null)
-	gui.disposeAsync();
-    DFAgentDescription dfd = new DFAgentDescription();
-    dfd.setName(getAID());
-    Iterator it = parents.iterator();
-    while(it.hasNext()) {
-      AID parentName = (AID)it.next();
-      try {
-        DFService.deregister(this, parentName, dfd);
-      }
-      catch(FIPAException fe) {
-        fe.printStackTrace();
-      }
-    }
-  }
-
   private boolean isADF(DFAgentDescription dfd) {
   	try {
   		return ((ServiceDescription)dfd.getAllServices().next()).getType().equalsIgnoreCase("fipa-df");
@@ -940,33 +1046,33 @@ return true if the Df has children, false otherwise
   * checks that all the mandatory slots for a register/modify/deregister action
   * are present.
   * @param actionName is the name of the action (one of 
-  * <code>FIPAAgentManagementOntology.REGISTER</code>,
-  * <code>FIPAAgentManagementOntology.MODIFY</code>,
-  * <code>FIPAAgentManagementOntology.DEREGISTER</code>)
+  * <code>FIPAManagementOntology.REGISTER</code>,
+  * <code>FIPAManagementOntology.MODIFY</code>,
+  * <code>FIPAManagementOntology.DEREGISTER</code>)
   * @param dfd is the DFAgentDescription to be checked for
   * @throws MissingParameter if one of the mandatory slots is missing
   **/
   void checkMandatorySlots(String actionName, DFAgentDescription dfd) throws MissingParameter {
   	try {
   	  if (dfd.getName().getName().length() == 0)
-  		  throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+  		  throw new MissingParameter(FIPAManagementOntology.DFAGENTDESCRIPTION, FIPAManagementOntology.DFAGENTDESCRIPTION_NAME);
   	} catch (Exception e) {
-  		throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+  		throw new MissingParameter(FIPAManagementOntology.DFAGENTDESCRIPTION, FIPAManagementOntology.DFAGENTDESCRIPTION_NAME);
   	}
-  	if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+  	if (!actionName.equalsIgnoreCase(FIPAManagementOntology.DEREGISTER))
   	 for (Iterator i=dfd.getAllServices(); i.hasNext();) {
   		ServiceDescription sd =(ServiceDescription)i.next();
   		try {
   		  if (sd.getName().length() == 0)
-  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+  		   throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, FIPAManagementOntology.SERVICEDESCRIPTION_NAME);
   	  } catch (Exception e) {
-  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+  		   throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, FIPAManagementOntology.SERVICEDESCRIPTION_NAME);
   	  }
   	  try {
   		  if (sd.getType().length() == 0)
-  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+  		   throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, FIPAManagementOntology.SERVICEDESCRIPTION_TYPE);
   	  } catch (Exception e) {
-  		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+  		   throw new MissingParameter(FIPAManagementOntology.SERVICEDESCRIPTION, FIPAManagementOntology.SERVICEDESCRIPTION_TYPE);
   	  }
   	 } //end of for
   }
@@ -1068,6 +1174,9 @@ return true if the Df has children, false otherwise
     		gui.addChildren(dfd.getName());
 	    } catch (Exception ex) {}
 	}
+	// for subscriptions
+	subManager.handleChange(dfd);
+
 	try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
 	    gui.addAgentDesc(dfd.getName());
 	    gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
@@ -1107,6 +1216,9 @@ return true if the Df has children, false otherwise
 	if(old == null)
 	    throw new NotRegistered();
 	agentDescriptions.register(dfd.getName(), dfd);    
+	// for subscription
+	subManager.handleChange(dfd);
+
 	try{
 	    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
 	    gui.addAgentDesc(dfd.getName());
@@ -1122,12 +1234,11 @@ return true if the Df has children, false otherwise
     
   }
 	
-	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
+	// GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
 	{
 		try
 		{
-		
 			switch(ev.getType()) 
 			{
 			case DFGUIAdapter.EXIT:
@@ -1145,9 +1256,8 @@ return true if the Df has children, false otherwise
 				{
 					// Register an agent with this DF
 				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
-				    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+				    checkMandatorySlots(FIPAManagementOntology.REGISTER, dfd);
 				    DFRegister(dfd);
-					
 				}
 				else 
 				{
@@ -1155,7 +1265,7 @@ return true if the Df has children, false otherwise
 				  try
 				    {
 				      gui.showStatusMsg("Process your request & waiting for result...");
-				      addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
+				      addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
 				    }catch (FIPAException fe) {
 				      fe.printStackTrace(); //it should never happen
 				    } catch(Exception ex){} //Might happen if the gui has been closed
@@ -1167,19 +1277,18 @@ return true if the Df has children, false otherwise
 				{
 					// Deregister an agent with this DF
 				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
-				    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
+				    checkMandatorySlots(FIPAManagementOntology.DEREGISTER, dfd);
 				    DFDeregister(dfd);
-					
 				}
 				else 
 				{
 					// Deregister an agent with another DF. 
-				try
-		 		{
-		  	   gui.showStatusMsg("Process your request & waiting for result...");
-		  		 addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.DEREGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
-		 		}catch (FIPAException fe) {
-		 			fe.printStackTrace(); //it should never happen
+					try
+		 			{
+		  	  	gui.showStatusMsg("Process your request & waiting for result...");
+		  			addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAManagementOntology.DEREGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
+		 			}catch (FIPAException fe) {
+		 				fe.printStackTrace(); //it should never happen
 		 			} catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
@@ -1189,16 +1298,15 @@ return true if the Df has children, false otherwise
 				{
 					// Modify the description of an agent with this DF
 				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
-				    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+				    checkMandatorySlots(FIPAManagementOntology.MODIFY, dfd);
 				    DFModify(dfd);
-					
 				}
 				else 
 				{
 					// Modify the description of an agent with another DF
 					try{
 						gui.showStatusMsg("Process your request & waiting for result..");
-						addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0), FIPAAgentManagementOntology.MODIFY, (DFAgentDescription)ev.getParameter(1),null,gui));
+						addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0), FIPAManagementOntology.MODIFY, (DFAgentDescription)ev.getParameter(1),null,gui));
 					}catch(FIPAException fe1){
 						fe1.printStackTrace();
 					}//it should never happen
@@ -1209,7 +1317,7 @@ return true if the Df has children, false otherwise
 		  	 
 		  	try{
 		  		gui.showStatusMsg("Process your request & waiting for result...");
-	  		  addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.SEARCH,(DFAgentDescription)ev.getParameter(1),(SearchConstraints)ev.getParameter(2),gui));
+	  		  addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAManagementOntology.SEARCH,(DFAgentDescription)ev.getParameter(1),(SearchConstraints)ev.getParameter(2),gui));
 	  	  }catch(FIPAException fe){
 	  	   fe.printStackTrace();
 	  	  }catch(Exception ex1){} //Might happen if the gui has been closed.
@@ -1218,26 +1326,21 @@ return true if the Df has children, false otherwise
 		 	case DFGUIAdapter.FEDERATE:
 		 		try
 		 		{
-		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  	  gui.showStatusMsg("Process your request & waiting for result...");
 		  	   
-		  	   if(ev.getParameter(0).equals(getAID()) || ev.getParameter(0).equals(getLocalName()))
+		  	  if(ev.getParameter(0).equals(getAID()) || ev.getParameter(0).equals(getLocalName()))
 		 	  		gui.showStatusMsg("Self Federation not allowed");
 		  		else
-		  		  addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
+		  		  addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
 		 		}catch (FIPAException fe) {
 		 			fe.printStackTrace(); //it should never happen
-		 			} catch(Exception ex){} //Might happen if the gui has been closed
-		  	  
-		  	
+		 		} catch(Exception ex){} //Might happen if the gui has been closed
 		 		break;
-		 	
-		 
 			} // END of switch
 		} // END of try
 		catch(FIPAException fe) 
 		{
 			fe.printStackTrace();
-		
 		}
 	}
 
@@ -1264,19 +1367,20 @@ return true if the Df has children, false otherwise
 	  	DFAgentDescription out = new DFAgentDescription();
 	
 			out.setName(getAID());
-			out.addOntologies(FIPAAgentManagementOntology.NAME);
-			out.addLanguages(SL0Codec.NAME);
-			out.addProtocols("fipa-request");
+			out.addOntologies(FIPAManagementOntology.getInstance().getName());
+			out.addLanguages(FIPANames.ContentLanguage.FIPA_SL0);
+			out.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
 			ServiceDescription sd = new ServiceDescription();
 			sd.setName("df-service");
 			sd.setType("fipa-df");
-			sd.addOntologies(FIPAAgentManagementOntology.NAME);
-			sd.addLanguages(SL0Codec.NAME);
-			sd.addProtocols("fipa-request");
+			sd.addOntologies(FIPAManagementOntology.getInstance().getName());
+			sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL0);
+			sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
       try{
 		  	sd.setOwnership(InetAddress.getLocalHost().getHostName());
 		  }catch (java.net.UnknownHostException uhe){
-		  	sd.setOwnership("unknown");}
+		  	sd.setOwnership("unknown");
+		  }
 		  
 		  out.addServices(sd);
 		  
@@ -1285,8 +1389,8 @@ return true if the Df has children, false otherwise
 
 	
 	/**
-	* This method set the description of the df according to the DFAgentAgentDescription passed.
-	* The programmers can call this method to provide a different initialization of the description of the df they are implemented.
+	* This method set the description of the df according to the DFAgentDescription passed.
+	* The programmers can call this method to provide a different initialization of the description of the df they are implementing.
 	* The method is called inside the setup of the agent and set the df description using a default description.
 	*/
 	public void setDescriptionOfThisDF(DFAgentDescription dfd)

@@ -24,26 +24,29 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import jade.core.CaseInsensitiveString;
+import jade.core.AID;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.UnrecognisedValue;
 import jade.domain.FIPAAgentManagement.Unauthorised;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 
 import jade.domain.JADEAgentManagement.*;
+
+import jade.core.Location;
 
 //__SECURITY__BEGIN
 import jade.security.AuthException;
@@ -57,13 +60,15 @@ import jade.security.AuthException;
 class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
 
     private ams myAgent;
+    private MobilityManager myMobilityMgr;
    
     //the result notification prepared into the prepareResponse.
     private ACLMessage res;
 
-    protected AMSJadeAgentManagementBehaviour(ams a, MessageTemplate mt){
-	super(a,mt);
-	myAgent = a;
+    protected AMSJadeAgentManagementBehaviour(ams a, MobilityManager b, MessageTemplate mt){
+		super(a,mt);
+		myAgent = a;
+		myMobilityMgr = b;
     }
 
     /*
@@ -85,65 +90,85 @@ class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
 	    res = request.createReply();
 	    res.setPerformative(ACLMessage.INFORM);
 	    	    
-	    //extract the content of the message this could throws a FIPAException
-	    List l = myAgent.extractMsgContent(request);
-	    SLAction = (Action)l.get(0);
+	    SLAction = (Action)myAgent.getContentManager().extractContent(request);
+	    
 	    action = SLAction.getAction();
 
 	    if(action instanceof CreateAgent){
-  
-		ACLMessage reply = request.createReply();
-		reply.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		reply.setPerformative(ACLMessage.INFORM);
-		//res is null in this case. The INFORM will be sent by the AMS later.
-		res = myAgent.createAgentAction((CreateAgent)action,request,reply);
-	    }
-	    else if(action instanceof KillAgent){
-		//performs a KILLAGENT
-		myAgent.killAgentAction((KillAgent)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof KillContainer){
-		//performs a KILLCONTAINER
-		myAgent.killContainerAction((KillContainer)action,request.getSender());
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof SniffOn){
-		//performs a SNIFFON
-		myAgent.sniffOnAction((SniffOn)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	      }
-	    else if(action instanceof SniffOff){
-		myAgent.sniffOffAction((SniffOff)action); 
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof DebugOn){
-		myAgent.debugOnAction((DebugOn)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof DebugOff){
-		myAgent.debugOffAction((DebugOff)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof InstallMTP){
-	
-		myAgent.installMTPAction((InstallMTP)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else if(action instanceof UninstallMTP){
-	
-		myAgent.unistallMTPAction((UninstallMTP)action);
-		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    }
-	    else{
-		//this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
-		//FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
-		//how can we retrive this name ?
-		UnsupportedFunction uf = new UnsupportedFunction();
-		//createExceptionalMsgContent(SLAction,uf,request);
-		throw uf;
-	    }
-	}catch(RefuseException re){
+  			ACLMessage reply = request.createReply();
+			reply.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+			reply.setPerformative(ACLMessage.INFORM);
+			//res is null in this case. The INFORM will be sent by the AMS later.
+			res = myAgent.createAgentAction((CreateAgent)action,request,reply);
+	    } else if(action instanceof KillAgent){
+			//performs a KILLAGENT
+			myAgent.killAgentAction((KillAgent)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof KillContainer){
+			//performs a KILLCONTAINER
+			myAgent.killContainerAction((KillContainer)action,request.getSender());
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof SniffOn){
+			//performs a SNIFFON
+			myAgent.sniffOnAction((SniffOn)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof SniffOff){
+			myAgent.sniffOffAction((SniffOff)action); 
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof DebugOn){
+			myAgent.debugOnAction((DebugOn)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof DebugOff){
+			myAgent.debugOffAction((DebugOff)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof InstallMTP){
+			myAgent.installMTPAction((InstallMTP)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof UninstallMTP){
+			myAgent.unistallMTPAction((UninstallMTP)action);
+			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+	    } else if(action instanceof QueryAgentsOnLocation) {
+	    	Location loc = ((QueryAgentsOnLocation)action).getLocation();
+	    	List l = myAgent.queryAgentsOnLocationAction(loc);
+	    	Result r  = new Result();
+	    	r.setAction(SLAction);
+	    	r.setItems(l);
+	    	try {
+		    	myAgent.getContentManager().fillContent(res, r);
+		  	} catch (Exception e) {
+		  		System.out.println(e);
+		  	}
+	 	} else if(action instanceof WhereIsAgentAction){
+		    AID agentN = ((WhereIsAgentAction)action).get_0();
+		    Location where = myAgent.AMSWhereIsAgent(agentN, request.getSender());
+		    Result r = new Result();
+		    r.setAction(SLAction);
+		    List l1 = new ArrayList();
+		    l1.add(where);
+		    r.setItems(l1);
+		    try {
+		    	myAgent.getContentManager().fillContent(res, r);
+		  	} catch (Exception e) {
+		  		System.out.println(e);
+		  	}
+		} else if(action instanceof QueryPlatformLocationsAction){
+		    Result r2 = new Result();
+		    r2.setAction(SLAction);
+			r2.setItems(myMobilityMgr.getLocations());
+		    try {
+		    	myAgent.getContentManager().fillContent(res, r2); 
+		  	} catch (Exception e) {
+		  		System.out.println(e);
+		  	}
+	   } else {
+			//this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
+			//FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
+			//how can we retrive this name ?
+			UnsupportedFunction uf = new UnsupportedFunction();
+			//createExceptionalMsgContent(SLAction,uf,request);
+			throw uf;
+	   }
+	} catch(RefuseException re){
 	    createExceptionalMsgContent(SLAction,re,request);
 	    throw re;
 	}catch(FailureException ie){
@@ -180,7 +205,7 @@ class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
        Send the Inform message.
      */
     protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
-	return res;       
+		return res;       
     }
     
     //to reset the action
