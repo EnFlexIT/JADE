@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.17  1999/09/02 15:03:28  rimassa
+  Added a 'throws ParseException' specification to fromText() method.
+
   Revision 1.16  1999/08/10 15:40:00  rimassa
   Added serialization to MessageTemplate class and to all its inner
   classes.
@@ -519,9 +522,10 @@ public class MessageTemplate implements Serializable {
      @param r A readable character stream containing a string
      representation of a message template.
      @return A new <code>MessageTemplate</code> object.
+     @exception ParseException Thrown when the string format is incorrect.
   */
-  public static MessageTemplate fromText(Reader r) {
-    Literal l  = new Literal(ACLMessage.fromText(r));
+  public static MessageTemplate fromText(Reader r) throws ParseException {
+    Literal l = new Literal(ACLMessage.fromText(r));
     return new MessageTemplate(l);
   }
 
