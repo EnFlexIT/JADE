@@ -188,8 +188,11 @@ class MobilityManager {
       reply.setPerformative(ACLMessage.INFORM);
       reply.setLanguage(SL0Codec.NAME);
       reply.setOntology(MobilityOntology.NAME);
+      ResultPredicate r = new ResultPredicate();
+      r.set_0(a);
+      r.add_1(where);
       List l = new ArrayList(1);
-      l.add(where);
+      l.add(r);
       theAMS.fillContent(reply, l);
       theAMS.send(reply);
     }
