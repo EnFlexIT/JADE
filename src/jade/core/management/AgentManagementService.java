@@ -640,7 +640,7 @@ public class AgentManagementService extends BaseService {
 			try {
 				System.out.println("Replacing old agent "+name.getName());
 				dyingAgents.add(name);
-				((jade.core.AgentManager) impl).kill(name);
+				((jade.core.AgentManager) impl).kill(name, principal, credentials);
 				waitUntilDead(name);
 		    impl.bornAgent(name, cid, principal, ownership, false); 
 			}
