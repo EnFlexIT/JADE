@@ -121,15 +121,6 @@ class FullCommandDispatcher extends CommandDispatcher {
     // System.out.println("full command dispatcher initialized");
   }
 
-    /***
-  public MainContainer getMain(Profile p) throws IMTPException {
-  	if (theMain == null) {
-  		theMain = super.getMain(p);
-  	}
-  	return theMain;
-  }
-    ***/
-  
   /**
    * Adds (and activates) an ICP to this command dispatcher.
    * 
