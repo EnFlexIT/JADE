@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -205,7 +206,7 @@ public class ams extends Agent {
 
 	// Inform agent creator that registration was successful.
 	if(informCreator !=  null) {
-	informCreator.setType("inform");
+	informCreator.setPerformative(ACLMessage.INFORM);
 	informCreator.setContent("( done ( " + a.getName() + " ) )");
 	send(informCreator);
 	}
@@ -217,7 +218,7 @@ public class ams extends Agent {
 
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
-	  informCreator.setType("failure");
+	  informCreator.setPerformative(ACLMessage.FAILURE);
 	  informCreator.setContent("( ( action " + getLocalName() + " " + a.getName() + " ) " + aare.getMessage() + ")");
 	  send(informCreator);
 	}
@@ -280,7 +281,7 @@ public class ams extends Agent {
       theProfile.toText(profile);
 
       ACLMessage reply = getReply();
-      reply.setType("inform");
+      reply.setPerformative(ACLMessage.INFORM);
       reply.setContent(profile.toString());
       send(reply);
     }
@@ -690,7 +691,7 @@ public class ams extends Agent {
   private AgentGroup RMAs;
 
   // ACL Message to use for RMA notification
-  private ACLMessage RMANotification = new ACLMessage("inform");
+  private ACLMessage RMANotification = new ACLMessage(ACLMessage.INFORM);
 
   // Buffers for AgentPlatform notifications
   private Vector newContainersBuffer = new Vector();
