@@ -21,6 +21,14 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.gui;
+
+import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAException;
+
+import java.util.Enumeration;
+import java.util.Vector;
+
 /**
  * This interface must be implemented by a GUI that wants to interact
  * with the DF agent. Two implementations of this interface have been
@@ -29,13 +37,6 @@ Boston, MA  02111-1307, USA.
  * @author Fabio Bellifemine - CSELT - 25/8/1999
  * @version $Date$ $Revision$
  */
-package jade.gui;
-
-import jade.domain.AgentManagementOntology;
-import jade.domain.FIPAException;
-
-import java.util.Enumeration;
-import java.util.Vector;
 
 public interface GUI2DFCommunicatorInterface {
 
@@ -95,7 +96,7 @@ public interface GUI2DFCommunicatorInterface {
   public void postSearchWithConstraintEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraint);
   
   /**
-  * this method returns all the agent descriptions registered with the DF
+  * This method returns all the agent descriptions registered with the DF
   */
   public abstract Enumeration getAllDFAgentDsc();
 
@@ -104,17 +105,29 @@ public interface GUI2DFCommunicatorInterface {
    */
   public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException;
   
-  // this method returns the descriptor of an agent result of a search
+  /**
+  * This method returns the descriptor of an agent result of a search
+  */
   public AgentManagementOntology.DFAgentDescriptor getDFAgentSearchDsc(String name) throws FIPAException;
   
+  /**
+  * This methods returns the parent of the df that are the dfs with which this df is federated.
+  */
   public Enumeration getParents();
   
+  /*
+  * This method returns the df-agents registered with this df.
+  */
   public Enumeration getChildren();
   
   /**
-  * This method returns the constraints for the search operation
+  * This method returns the constraints for the search operation.
   */
   public Vector getConstraints();
+  
+  /*
+  * This method returns the default description of the df.
+  */
 
   public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF();
   

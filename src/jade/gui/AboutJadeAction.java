@@ -43,6 +43,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 
 /**
+This class provide the About dialog for Jade.   
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */

@@ -23,11 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
-/**
- * The TimeChooser class can be used to let the user define a certain point 
- * in time by means of a dialog window.<p>
- * <p>
- */
 
 // Import required Java classes
 import java.awt.*;
@@ -41,9 +36,13 @@ import java.util.Date;
 import java.text.*;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+ * The TimeChooser class can be used to let the user define a certain point 
+ * in time by means of a dialog window.<p>
+ * <p>
+ * @author Giovanni Rimassa - Universita` di Parma
+ * @version $Date$ $Revision$
+
+ */
 
 public class TimeChooser implements ActionListener
 {
