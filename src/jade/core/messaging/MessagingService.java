@@ -54,7 +54,6 @@ import jade.core.Specifier;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
-import jade.core.UnreachableException;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -81,6 +80,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.Logger;
+import jade.util.HashCache;
 
 
 /**
@@ -93,8 +93,10 @@ import jade.util.Logger;
  * @author Jerome Picault - Motorola Labs
  */
 public class MessagingService extends BaseService implements MessageManager.Channel {
-
-  // The profile passed to this object
+  public static final String CACHE_SIZE = "jade_core_messaging_MessagingService_cachesize";
+  public static final int CACHE_SIZE_DEFAULT = 100;
+  
+	// The profile passed to this object
   private Profile myProfile;
 
   // A flag indicating whether or not we must accept foreign agents
@@ -128,13 +130,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   private Logger logger = Logger.getMyLogger(getClass().getName());
 
   // The cached AID -> MessagingSlice associations
-  //#MIDP_EXCLUDE_BEGIN
-  private final Map cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
-  //#MIDP_EXCLUDE_END
-
-  /*#MIDP_INCLUDE_BEGIN
-	private final Map cachedSlices = new HashMap();
-	#MIDP_INCLUDE_END*/
+  private Map cachedSlices; 
 
   // The routing table mapping MTP addresses to their hosting slice
   private RoutingTable routes = new RoutingTable();
@@ -186,8 +182,17 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    */
   public void init(AgentContainer ac, Profile p) throws ProfileException {
     super.init(ac, p);
-    this.myProfile = p;
+    myProfile = p;
     myContainer = ac;
+    
+    int size = CACHE_SIZE_DEFAULT;
+    try {
+    	size = Integer.parseInt(myProfile.getParameter(CACHE_SIZE, null));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    cachedSlices = new HashCache(size);
 
     // Look in the profile and check whether we must accept foreign agents
     acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
@@ -805,12 +810,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     // Entry point for the ACL message dispatching process
-    public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
+    public void deliverNow(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException {
       //log("Delivering message for "+receiverID.getName(), 4);
         if (logger.isLoggable(Logger.FINE))
           logger.log(Logger.FINE,"Delivering message for "+receiverID.getName());
 
-	    try {
         MainContainer impl = myContainer.getMain();
         if(impl != null) {
           while(true) {
@@ -860,17 +864,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               cachedSlice.dispatchLocally(msg.getSender(), msg, receiverID);
             }
             catch(IMTPException imtpe) {
-            	//log("Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.", 3);
-                    if (logger.isLoggable(Logger.WARNING))
-                      logger.log(Logger.WARNING,"Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.");
+              if (logger.isLoggable(Logger.FINER))
+                logger.log(Logger.FINER,"Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.");
 
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
             }
             catch(NotFoundException nfe) {
-            	//log("Cached slice does not contain agent "+receiverID.getName()+". Remove it.", 3);
-                    if (logger.isLoggable(Logger.WARNING))
-                      logger.log(Logger.WARNING,"Cached slice does not contain agent "+receiverID.getName()+". Remove it.");
+              if (logger.isLoggable(Logger.FINER))
+                logger.log(Logger.FINER,"Cached slice does not contain agent "+receiverID.getName()+". Remove it.");
 
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
@@ -881,13 +883,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             deliverUntilOK(msg, receiverID);
           }
         }
-	    }
-	    catch(IMTPException imtpe) {
-        throw new UnreachableException("Unreachable network node", imtpe);
-	    }
-	    catch(ServiceException se) {
-        throw new UnreachableException("Unreachable service slice:", se);
-	    }
     }
 
     private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
@@ -911,9 +906,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           }
           catch (IMTPException imtpe) {
             // Try to get a newer slice and repeat...
-          	//log("Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.", 3);
-                  if (logger.isLoggable(Logger.WARNING))
-                    logger.log(Logger.WARNING,"Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.");
+            if (logger.isLoggable(Logger.FINER))
+              logger.log(Logger.FINER,"Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.");
 
           	try {
 	            targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
@@ -1209,7 +1203,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			    sb = new StringBuffer("MTP addresses:");
 	    	}
         f.println(mtpAddrs[0]);
-        sb.append("\n- ");
+        sb.append("\n");
         sb.append(mtpAddrs[0]);
 	    }
 			
@@ -1254,7 +1248,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
-  public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException {
+  public void deliverNow(GenericMessage msg, AID receiverID) {
     try {
 	    if (!msg.hasForeignReceiver()) {
         localSlice.deliverNow(msg, receiverID);
@@ -1281,9 +1275,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    // The receiver does not exist --> Send a FAILURE message
 	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
     }
-    catch(UnreachableException ue) {
+    catch(IMTPException imtpe) {
 	    // Can't reach the destination container --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + ue.getMessage()));
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + imtpe.getMessage()));
+    }
+    catch(ServiceException se) {
+	    // Service error during delivery --> Send a FAILURE message
+	    notifyFailureToSender(msg, receiverID, new InternalError("Service error: " + se.getMessage()));
     }
   }
 
