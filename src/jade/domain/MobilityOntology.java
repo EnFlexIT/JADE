@@ -24,6 +24,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+import java.util.List;
+import java.util.LinkedList;
+
+import jade.lang.Codec;
+
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
@@ -513,6 +518,44 @@ public class MobilityOntology {
       return actor;
     }
 
+  } // End of QueryPlatformLocationsAction
+
+  /**
+     
+   */
+  public static Location[] parseLocationsList(Codec c, String list) throws Codec.CodecException, OntologyException {
+
+    if(list.startsWith("#")) { // Handle ByteLenghtEncoded content
+      int prefixEnd = list.indexOf('"');
+      list = list.substring(prefixEnd + 1); // Remove '#<len>"' prefix
+    }
+
+    List locations = new LinkedList();
+    int from = 0;                      // From the beginning of the string ...
+    do {
+      int to = list.indexOf("||", from); // ... until the first occurrence of the separator.
+      if(to == -1)
+	to = list.length(); // ...until the end if there's no separator.
+
+      String item = list.substring(from, to);
+
+      // Convert the string in a Location object with the given codec.
+      Frame f = c.decode(item, theInstance);
+      Location l = (Location)theInstance.createObject(f);
+
+      // Put the Location object at the end of the list
+      locations.add(l);
+
+      from = to + 2; // Next item starts after the separator.
+    }
+    while(from < list.length());
+
+    Location[] result = new Location[locations.size()];
+
+    for(int i = 0; i < result.length; i++)
+      result[i] = (Location)locations.get(i);
+
+    return result;
   }
 
 }
