@@ -27,6 +27,7 @@ import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
+import jade.util.Logger;
 
 /**
  * Class declaration
@@ -50,6 +51,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
   	c.addParam(name);
   	try {
   		disableFlush();
+  		//Logger.println("Executing BORN_AGENT");
   		Command r = executeRemotely(c);
   		if (r.getParamCnt() > 0) {
   			return (String[]) r.getParamAt(0);
@@ -75,6 +77,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
   	c.addParam(name);
   	try {
   		disableFlush();
+  		//Logger.println("Executing DEAD_AGENT");
   		Command r = executeRemotely(c);
   	}
   	catch (ICPException icpe) {
@@ -140,6 +143,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
   	c.addParam(sender);
   	try {
   		disableFlush();
+  		//Logger.println("Executing MESSAGE_OUT");
   		Command r = executeRemotely(c);
   		if (r.getCode() == Command.ERROR) {
   			// One of the expected exceptions occurred in the remote BackEnd
