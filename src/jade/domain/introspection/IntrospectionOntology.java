@@ -131,7 +131,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
   		
   		cs = (ConceptSchema)getSchema(CONTAINERID);
 		cs.add(CONTAINERID_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-		cs.add(CONTAINERID_ADDRESS, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+		cs.add(CONTAINERID_ADDRESS, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 
 		cs = (ConceptSchema)getSchema(AGENTSTATE);
 		cs.add(AGENTSTATE_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
