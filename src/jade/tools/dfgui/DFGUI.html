@@ -55,7 +55,7 @@ a proper meaning: </p>
         search.Two kinds of constraints are permitted: the depth
         of propagation of the search operation to the federate
         DF's and the maximum number of returned agent
-        description.If no values are inserted the default
+        descriptions.If no values are inserted the default
         constraints will be used (local search on this DF and all
         agent matching returned). Then the user must insert an
         agent description. If no value is inserted in the agent
@@ -63,8 +63,8 @@ a proper meaning: </p>
         agents currently registered with this DF.</li>
     <li><b>Federate</b> allow to federate this DF with another
         DF. The user must provide the AID of the DF with which to
-        federate and then the description of this DF that must be
-        registered with the specified DF.</li>
+        federate and then the description of this DF to use to
+        register itself with the specified DF .</li>
 </ul>
 
 <p><b>Search Result</b> </p>
@@ -87,23 +87,19 @@ a proper meaning: </p>
 <ul>
     <li><b>View</b> the description of an agent selected in one
         of the two tables. If the agent selected is a parent,
-        then the default description of this DF is shown.
-        Otherwise if the selected agent is a child, then the
-        description of this child DF is shown.</li>
+        then the description used by this DF to federate with the
+        parent is shown. Otherwise if the selected agent is a
+        child, then the description of this child DF is shown.</li>
     <li><b>Deregister</b> If the selected agent is a parent then
         this DF is deregistered from the selected one, otherwise,
         if the agent selected is a child, this child is
         deregistered from this DF.</li>
-    <li><b>Search</b> permits to make a search with default
-        constraint with the DF selected in one of the tables (If
-        the DF GUI is referred to an applet the search returns
-        agents registered with this DF ).</li>
-    <li><b>Search with constraints</b> permits to make a search
-        with constraints with the DF selected in one of the
-        tables (If the DF GUI is referred to an applet the search
-        returns agents registered with this DF ).</li>
-    <li><b>Federate</b> allows to federate this DF with the
-        selected one.</li>
+    <li><b>Search</b> permits to make a search with the DF
+        selected in one of the tables (If the DF GUI is referred
+        to an applet the search returns agents registered with
+        this DF ).</li>
+    <li><b>Federate</b> allows to federate this DF with the one
+        whose AID will be indicated.</li>
 </ul>
 
 <dl>
