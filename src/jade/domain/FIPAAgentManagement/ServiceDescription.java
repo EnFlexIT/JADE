@@ -110,7 +110,7 @@ public String getOwnership(){
     public boolean removeProperties(Property ip) {
       return properties.remove(ip);
     }
-    public void clearAllPropertis(){
+    public void clearAllProperties(){
       properties = new ArrayList();
     }
     public Iterator getAllProperties() {

@@ -29,19 +29,19 @@ public class SearchConstraints {
 private long max_depth = 0;
 private long max_results = 0;
 
-public void setMax_Depth(long l){
+public void setMaxDepth(long l){
   max_depth=l;
 }
 
-public long getMax_Depth() {
+public long getMaxDepth() {
   return max_depth;
 }
 
-public void setMax_Results(long l) {
+public void setMaxResults(long l) {
   max_results = l;
 }
 
-  public long getMax_Results(){
+  public long getMaxResults(){
     return max_results;
   }
 }

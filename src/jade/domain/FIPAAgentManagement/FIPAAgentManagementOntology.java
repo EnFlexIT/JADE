@@ -115,7 +115,7 @@ public class FIPAAgentManagementOntology {
     try {
 	theInstance.addFrame(AGENTIDENTIFIER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("addresses", Ontology.SEQUENCE_TYPE, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("addresses", Ontology.SEQUENCE_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("resolvers", Ontology.SEQUENCE_TYPE, AGENTIDENTIFIER, Ontology.O)
 	    //FIXME How can we deal with userDefinedSlots? Should we mind?
 	}, new RoleFactory() {
@@ -126,9 +126,9 @@ public class FIPAAgentManagementOntology {
 	theInstance.addFrame(DFAGENTDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
           new TermDescriptor("services", Ontology.SET_TYPE, SERVICEDESCRIPTION, Ontology.O),
-	  new TermDescriptor("protocols", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O)
+	  new TermDescriptor("protocols", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
+	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
+	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new DFAgentDescription(); }
 	     public Class getClassForRole() { return DFAgentDescription.class; }
@@ -137,11 +137,11 @@ public class FIPAAgentManagementOntology {
 	theInstance.addFrame(SERVICEDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("type", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("protocol", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
+	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
+	  new TermDescriptor("protocol", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("ownership", Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("properties", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O)
+	  new TermDescriptor("properties", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new ServiceDescription(); }
 	     public Class getClassForRole() { return ServiceDescription.class;}
@@ -184,7 +184,7 @@ public class FIPAAgentManagementOntology {
 	theInstance.addFrame(MTPDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	    new TermDescriptor("profile", Ontology.STRING_TYPE, Ontology.O),
 	    new TermDescriptor("mtp-name", Ontology.STRING_TYPE, Ontology.O),
-	    new TermDescriptor("addresses", Ontology.SEQUENCE_TYPE, Ontology.STRING_TYPE, Ontology.M)
+	    new TermDescriptor("addresses", Ontology.SEQUENCE_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MTPDescription(); } 
 	     public Class getClassForRole() { return MTPDescription.class; }

@@ -30,9 +30,9 @@ public class MTPDescription {
   private List addresses = new ArrayList();
 
 public void setProfile(String p) {profile = p;}
-public void setName(String n) {name = n;}
+public void setMtpName(String n) {name = n;}
 public String getProfile() {return profile;}
-public String getName() {return name;}
+public String getMtpName() {return name;}
 
 public void addAddresses(String a) {addresses.add(a);}
 public boolean removeAddresses(String a) {return addresses.remove(a);}

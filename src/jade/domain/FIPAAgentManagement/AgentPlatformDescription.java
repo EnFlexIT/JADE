@@ -31,9 +31,9 @@ private APTransportDescription aptdesc;
 public void setName(String n) {name = n;}
 public void setDynamic(String n) {dynamic=n;}
 public void setMobility(String n) {mobility=n;}
-public void setAPTransportProfile(APTransportDescription a) {aptdesc=a;}
+public void setTransportProfile(APTransportDescription a) {aptdesc=a;}
 public String getName() {return name;}
 public String getDynamic() {return dynamic;}
 public String getMobility() {return mobility;}
-public APTransportDescription getAPTransportProfile() {return aptdesc;}
+public APTransportDescription getTransportProfile() {return aptdesc;}
 }
