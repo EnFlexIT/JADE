@@ -701,17 +701,20 @@ public class ProfileImpl extends Profile {
     }
 
     protected String getDefaultNetworkName() {
-	try {
-	    //#MIDP_EXCLUDE_BEGIN
-	    return InetAddress.getLocalHost().getHostName();
-	    //#MIDP_EXCLUDE_END
-	    /*#MIDP_INCLUDE_BEGIN
-	      return "localhost";
-	      #MIDP_INCLUDE_END*/
-	}
-	catch(Exception e) {
-	    return "localhost";
-	}
+		  String host = "localhost";
+		  //#MIDP_EXCLUDE_BEGIN
+			try {
+		  	host = InetAddress.getLocalHost().getHostAddress(); 
+		
+		    if ("127.0.0.1".equals(host)) {
+		      // Try with the name
+		      host = InetAddress.getLocalHost().getHostName();
+		    }
+			}
+			catch(Exception e) {
+			}
+		  //#MIDP_EXCLUDE_END
+			return host;
     }
 
     //#APIDOC_EXCLUDE_END
