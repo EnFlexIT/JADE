@@ -68,7 +68,6 @@ public class Receiver extends Agent {
 			    AbsContentElement abs = manager.extractAbsContent(msg);
 			    if(abs instanceof AbsIRE) {
 				AbsIRE ire = (AbsIRE)abs;
-				ire.dump();
 
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
@@ -91,7 +90,7 @@ public class Receiver extends Agent {
 				send(reply);
 
 				System.out.println("[" + getLocalName() + "] Received query-ref message: reply sent:");
-				absEquals.dump();
+				System.out.println(absEquals);
 				break;
 			    }
 			default:

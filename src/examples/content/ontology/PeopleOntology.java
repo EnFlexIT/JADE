@@ -27,7 +27,7 @@ import jade.content.*;
 import jade.content.onto.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
-import jade.content.acl.*;
+//import jade.content.acl.*;
 import jade.content.lang.*;
 
 import jade.util.leap.List;
@@ -68,7 +68,8 @@ public class PeopleOntology extends Ontology {
 	public static final String HUSBAND = "HUSBAND";
 	public static final String WIFE    = "WIFE";
 
-	private static PeopleOntology theInstance = new PeopleOntology(ACLOntology.getInstance());
+	//private static PeopleOntology theInstance = new PeopleOntology(ACLOntology.getInstance());
+	private static PeopleOntology theInstance = new PeopleOntology(BasicOntology.getInstance());
 	
 	public static PeopleOntology getInstance() {
 		return theInstance;
@@ -101,14 +102,15 @@ public class PeopleOntology extends Ontology {
 			add(womanSchema, Woman.class);
 			add(addressSchema, Address.class);
 
-			AggregateSchema childrenSchema = new AggregateSchema(BasicOntology.SET);
+			AggregateSchema childrenSchema = new AggregateSchema(BasicOntology.SEQUENCE);
 
 			PredicateSchema fatherOfSchema = new PredicateSchema(FATHER_OF);
 			fatherOfSchema.add(FATHER,   manSchema);
-			fatherOfSchema.add(CHILDREN, personSchema);
+			fatherOfSchema.add(CHILDREN, childrenSchema);
 
 			PredicateSchema motherOfSchema = new PredicateSchema(MOTHER_OF);
-			motherOfSchema.add(CHILDREN, personSchema);
+			motherOfSchema.add(MOTHER,   womanSchema);
+			motherOfSchema.add(CHILDREN, childrenSchema);
 
 			add(fatherOfSchema, FatherOf.class);
 			add(motherOfSchema, MotherOf.class);

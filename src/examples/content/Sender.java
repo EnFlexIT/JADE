@@ -111,7 +111,7 @@ public class Sender extends Agent {
 		AbsConcept absBillAddress = (AbsConcept)ontology.fromObject(billAddress);
 		absBill.set(PeopleOntology.ADDRESS, absBillAddress);
 
-		AbsAggregate absChildren = new AbsAggregate(BasicOntology.SET);
+		AbsAggregate absChildren = new AbsAggregate(BasicOntology.SEQUENCE);
 		absChildren.add(absBill);
 
 		AbsVariable absX = new AbsVariable("x", PeopleOntology.MAN);
