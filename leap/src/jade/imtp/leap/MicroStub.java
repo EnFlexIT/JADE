@@ -50,6 +50,9 @@ public class MicroStub {
   		disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
+			if (pendingCommands.size() > 0) {
+				System.out.println("############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
+			}
 			Command r = SerializationEngine.deserialize(rsp);
 			if (r.getCode() == Command.ERROR) {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
@@ -73,6 +76,7 @@ public class MicroStub {
 			}
 			else {
 				// FIXME: if timeout > 0 we should add a timer
+				System.out.println("############# Dispatch failed. Command postponed");
 				postpone(c);
 				return null;
 			}
@@ -118,7 +122,7 @@ public class MicroStub {
 					}
 					
 					// 2) Flush the buffer of pending commands
-					logger.log(Logger.FINE,"Start flushing");					
+					logger.log(Logger.INFO,"Start flushing");					
 					int flushedCnt = 0;
 					Command c = null;
 					while ((c = removeFirst()) != null) {
@@ -136,13 +140,16 @@ public class MicroStub {
 							}
 						}
 						catch (Exception ex) {
-							logger.log(Logger.SEVERE,"Exception in command asynchronous delivery. "+ex.getMessage());
-							// We are disconnected again
+							logger.log(Logger.WARNING,"Exception in command asynchronous delivery. "+ex);
+							// We are disconnected again --> put the command back in the queue of postponed commands
+							// and stop flushing
+							pendingCommands.insertElementAt(c, 0);
 							break;
 						}
 					}
 					
 					// 3) Unlock the buffer of pending commands
+					System.out.println("########## "+pendingCommands.size()+" pending commands after flush");
 					synchronized (pendingCommands) {
 						flushing = false;
 						pendingCommands.notifyAll();
