@@ -92,8 +92,10 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     act.set_0(AMSName);
     act.set_1(r);
 
-    // Write the action in the :content slot of the request
-    request.setContent(encode(act,c,o));
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
 
     // Send message and collect reply
     doFipaRequestClient(a,request);
@@ -139,8 +141,10 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     act.set_0(AMSName);
     act.set_1(d);
 
-    // Write the action in the :content slot of the request
-    request.setContent(encode(act,c,o));
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
 
     // Send message and collect reply
     doFipaRequestClient(a,request);
@@ -194,8 +198,10 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     act.set_0(AMSName);
     act.set_1(m);
 
-    // Write the action in the :content slot of the request
-    request.setContent(encode(act,c,o));
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
 
     // Send message and collect reply
     doFipaRequestClient(a,request);
@@ -243,12 +249,18 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
     act.set_0(AMSName);
     act.set_1(s);
 
-    // Write the action in the :content slot of the request
-    request.setContent(encode(act,c,o));
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
 
     // Send message and collect reply
     ACLMessage inform = doFipaRequestClient(a,request);
-    ResultPredicate r = extractContent(inform.getContent(),c,o);
+
+    ResultPredicate r = null;
+    synchronized(c) { //must be synchronized because this is a static method
+      r = extractContent(inform.getContent(),c,o);
+    }
     Iterator i = r.getAll_1(); //this is the set of AMSAgentDescription
     List l = new ArrayList(); 
     while (i.hasNext())

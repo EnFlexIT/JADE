@@ -50,6 +50,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.sl.SL0Codec;
 
 import jade.onto.basic.Action;
+import jade.onto.basic.ResultPredicate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
@@ -70,8 +71,9 @@ public class ams extends Agent implements AgentManager.Listener {
       extends FipaRequestResponderBehaviour.ActionHandler
       implements FipaRequestResponderBehaviour.Factory {
 
-    protected AMSBehaviour() {
-      super(ams.this);
+	
+    protected AMSBehaviour(ACLMessage req) {
+      super(ams.this,req);
     }
 
     // Each concrete subclass will implement this deferred method to
@@ -92,7 +94,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       }
       catch(FIPAException fe) {
-	sendRefuse(fe.getMessage());
+	sendReply(ACLMessage.REFUSE,fe.getMessage());
       }
 
     }
@@ -114,8 +116,11 @@ public class ams extends Agent implements AgentManager.Listener {
 
   private class RegBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new RegBehaviour();
+    public RegBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new RegBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -130,8 +135,8 @@ public class ams extends Agent implements AgentManager.Listener {
       try {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
-	sendAgree();
-	sendInform();
+	sendReply(ACLMessage.AGREE,"( true )");
+	sendReply(ACLMessage.INFORM, "FIXME");
 
 	// Inform agent creator that registration was successful.
 	if(informCreator !=  null) {
@@ -141,8 +146,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
       }
       catch(AlreadyRegistered are) {
-	sendAgree();
-	sendFailure(are.getMessage());
+	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.FAILURE,are.getMessage());
 
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
@@ -156,62 +161,80 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of RegBehaviour class
 
   private class DeregBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new DeregBehaviour();
+    public DeregBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new DeregBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Deregister d = (Deregister)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   } // End of DeregBehaviour class
 
   private class ModBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new ModBehaviour();
+    public ModBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new ModBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   } // End of ModBehaviour class
 
   private class SrchBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new SrchBehaviour();
+    public SrchBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new SrchBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Search s = (Search)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
-      AMSSearch(amsd, constraints, getReply());
-
+      List l = AMSSearch(amsd, constraints, getReply());
+      sendReply(ACLMessage.AGREE,"FIXME");
+      ACLMessage msg = getRequest().createReply();
+      msg.setPerformative(ACLMessage.INFORM);
+      ResultPredicate r = new ResultPredicate();
+      r.set_0(a);
+      for (int i=0; i<l.size(); i++)
+      	r.add_1(l.get(i));
+      l.clear();
+      l.add(r);
+      fillContent(msg,l); 
+      send(msg);
     }
 
   } // End of SrchBehaviour class
 
   private class GetDescriptionBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new GetDescriptionBehaviour();
+    public GetDescriptionBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new GetDescriptionBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
 
-      sendAgree();
+      sendReply(ACLMessage.AGREE, "FIXME");
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
@@ -410,9 +433,11 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of NotifyToolsBehaviour class
 
   private class KillContainerBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new KillContainerBehaviour();
+    public KillContainerBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new KillContainerBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -420,17 +445,19 @@ public class ams extends Agent implements AgentManager.Listener {
       KillContainer kc = (KillContainer)a.get_1();
       String containerName = kc.getName();
       myPlatform.killContainer(containerName);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
 
     }
 
   } // End of KillContainerBehaviour class
 
   private class CreateBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new CreateBehaviour();
+    public CreateBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new CreateBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -440,7 +467,7 @@ public class ams extends Agent implements AgentManager.Listener {
       String className = ca.getClassName();
       String containerName = ca.getContainerName();
 
-      sendAgree();
+      sendReply(ACLMessage.AGREE, "FIXME");
 
       try {
 	myPlatform.create(agentName, className, containerName);
@@ -461,9 +488,11 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of CreateBehaviour class
 
   private class KillBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new KillBehaviour();
+    public KillBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new KillBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -474,8 +503,8 @@ public class ams extends Agent implements AgentManager.Listener {
       String password = kaa.getPassword();
       try {
 	myPlatform.kill(agentName, password);
-	sendAgree();
-	sendInform();
+	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
@@ -490,9 +519,11 @@ public class ams extends Agent implements AgentManager.Listener {
 
 
   private class SniffAgentOnBehaviour extends AMSBehaviour { 
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new SniffAgentOnBehaviour();
+    public SniffAgentOnBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new SniffAgentOnBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -500,8 +531,8 @@ public class ams extends Agent implements AgentManager.Listener {
       AgentManagementOntology.SniffAgentOnAction saoa = (AgentManagementOntology.SniffAgentOnAction)a;
       try {
 	myPlatform.sniffOn(saoa.getSnifferName(), saoa.getEntireList());
-	sendAgree();
-	sendInform();
+	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
@@ -512,9 +543,11 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of SniffAgentOnBehaviour class
 
   private class SniffAgentOffBehaviour extends AMSBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new SniffAgentOffBehaviour();
+    public SniffAgentOffBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new SniffAgentOffBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -522,8 +555,8 @@ public class ams extends Agent implements AgentManager.Listener {
       AgentManagementOntology.SniffAgentOffAction saoa = (AgentManagementOntology.SniffAgentOffAction)a;
       try {
 	myPlatform.sniffOff(saoa.getSnifferName(), saoa.getEntireList());
-	sendAgree();
-	sendInform();
+	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
 	throw new NoCommunicationMeansException();
@@ -645,18 +678,18 @@ public class ams extends Agent implements AgentManager.Listener {
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour(null));
 
-    dispatcher.registerFactory(FIPAAgentManagementOntology.GETDESCRIPTION, new GetDescriptionBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.GETDESCRIPTION, new GetDescriptionBehaviour(null));
 
-    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.CREATEAGENT, new CreateBehaviour());
-    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLAGENT, new KillBehaviour());
-    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLCONTAINER, new KillContainerBehaviour());
-    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFON, new SniffAgentOnBehaviour());
-    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFOFF, new SniffAgentOffBehaviour());
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.CREATEAGENT, new CreateBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLAGENT, new KillBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLCONTAINER, new KillContainerBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFON, new SniffAgentOnBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFOFF, new SniffAgentOffBehaviour(null));
 
   }
 
@@ -673,10 +706,13 @@ public class ams extends Agent implements AgentManager.Listener {
     theProfile.setTransportProfile(null);
 
 
-    // Register the two supported ontologies (beyond the default capabilities).
+    // Register the supported ontologies 
+    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-
+    
+    // register the supported languages
+    registerLanguage(SL0Codec.NAME,new SL0Codec());	
 
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction with 'fipa-agent-management' ontology.
@@ -697,22 +733,62 @@ public class ams extends Agent implements AgentManager.Listener {
 
   }
 
+  
+  /**
+  * checks that all the mandatory slots for a register/modify/deregister action
+  * are present.
+  * @param actionName is the name of the action (one of 
+  * <code>FIPAAgentManagementOntology.REGISTER</code>,
+  * <code>FIPAAgentManagementOntology.MODIFY</code>,
+  * <code>FIPAAgentManagementOntology.DEREGISTER</code>)
+  * @param amsd is the AMSAgentDescription to be checked for
+  * @throws MissingParameter if one of the mandatory slots is missing
+  **/
+  private void checkMandatorySlots(String actionName, AMSAgentDescription amsd) throws MissingParameter {
+    try {
+      if (amsd.getName().getName().length() == 0)
+	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+    }
+    if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+      try {
+	if (amsd.getState().length() == 0)
+	  throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
+      } catch (Exception e) {
+	e.printStackTrace();
+	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
+      }
+  }
+  
+private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   /** it is called also by Agent.java **/
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSRegister() called");
+    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    PROVA.put(amsd.getName(),amsd);
   }
 
   /** it is called also by Agent.java **/
   public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSDeregister() called");
+    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    if (PROVA.remove(amsd.getName()) == null)
+    	throw new NotRegistered();
   }
 
   private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSModify() called");
+    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    if (PROVA.put(amsd.getName(),amsd) == null)
+    	throw new NotRegistered();
   }
 
-  private void AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
+  private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
     System.out.println("ams::AMSSearch() called");
+    // Search has no mandatory slot!
+    return new ArrayList(PROVA.values());
   }
 
   // This one is called in response to a 'move-agent' action

@@ -70,26 +70,26 @@ class MobilityManager {
 
     main.registerFactory(MobilityOntology.MOVE,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create() {
-				     return new MoveBehaviour();
+				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+				     return new MoveBehaviour(msg);
 				 }
 			     });
     main.registerFactory(MobilityOntology.CLONE,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create() {
-				     return new CloneBehaviour();
+				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+				     return new CloneBehaviour(msg);
 				 }
 			     });
     main.registerFactory(MobilityOntology.WHERE_IS,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create() {
-				     return new WhereIsBehaviour();
+				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+				     return new WhereIsBehaviour(msg);
 				 }
 			     });
     main.registerFactory(MobilityOntology.QUERY_PLATFORM_LOCATIONS,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.ActionHandler create() {
-				     return new QPLBehaviour();
+				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+				     return new QPLBehaviour(msg);
 				 }
 			     });
 
@@ -102,8 +102,8 @@ class MobilityManager {
 
   private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.ActionHandler {
 
-    MobilityBehaviour() {
-      super(MobilityManager.this.theAMS);
+    MobilityBehaviour(ACLMessage msg) {
+      super(MobilityManager.this.theAMS,msg);
     }
 
     protected abstract void doAction(Object o) throws FIPAException;
@@ -115,17 +115,17 @@ class MobilityManager {
 	List l = theAMS.extractContent(msg);
 	Action a = (Action)l.get(0);
 	o = a.get_1();
-	sendAgree();
+	sendReply(ACLMessage.AGREE,"FIXME");
 	try {
 	  doAction(o);
 	}
 	catch(FIPAException fe) {
-	  sendFailure(fe.getMessage());
+	  sendReply(ACLMessage.FAILURE,fe.getMessage());
 	  return;
 	}
       }
       catch(FIPAException fe) {
-	sendRefuse(fe.getMessage());
+	sendReply(ACLMessage.REFUSE,fe.getMessage());
       }
     }
 
@@ -141,7 +141,9 @@ class MobilityManager {
 
 
   private class MoveBehaviour extends MobilityBehaviour {
-
+    public MoveBehaviour(ACLMessage msg) {
+      super(msg);
+    }
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)o;
       MobilityOntology.MobileAgentDescription desc = action.get_0();
@@ -149,13 +151,15 @@ class MobilityManager {
       AID agentName = desc.getName();
       MobilityOntology.Location destination = desc.getDestination();
       theAMS.AMSMoveAgent(agentName, destination);
-      sendInform();
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   }
 
   private class CloneBehaviour extends MobilityBehaviour {
-
+    public CloneBehaviour(ACLMessage msg) {
+      super(msg);
+    }
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)o;
       MobilityOntology.MobileAgentDescription desc = action.get_0();
@@ -164,13 +168,15 @@ class MobilityManager {
       MobilityOntology.Location destination = desc.getDestination();
       String newName = action.get_1();
       theAMS.AMSCloneAgent(agentName, destination, newName);
-      sendInform();
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   }
 
   private class WhereIsBehaviour extends MobilityBehaviour {
-
+    public WhereIsBehaviour(ACLMessage msg) {
+      super(msg);
+    }
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)o;
 
@@ -190,7 +196,9 @@ class MobilityManager {
   }
 
   private class QPLBehaviour extends MobilityBehaviour {
-
+    public QPLBehaviour(ACLMessage msg) {
+      super(msg);
+    }
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)o;
       MobilityOntology.PlatformLocations locations = theAMS.AMSGetPlatformLocations();

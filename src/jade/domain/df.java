@@ -96,8 +96,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     extends FipaRequestResponderBehaviour.ActionHandler 
     implements FipaRequestResponderBehaviour.Factory {
 
-    protected DFBehaviour() {
-      super(df.this);
+    protected DFBehaviour(ACLMessage req) {
+      super(df.this,req);
     }
   
 
@@ -120,7 +120,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       
       }
       catch(FIPAException fe) {	
-      	sendRefuse(fe.getMessage());
+      	sendReply(ACLMessage.REFUSE,fe.getMessage());
       }
 
     }
@@ -141,56 +141,66 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
   private class RegBehaviour extends DFBehaviour {
 
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new RegBehaviour();
+    public RegBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new RegBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Register r = (Register)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)r.get_0();
       DFRegister(dfd);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE,"FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   } // End of RegBehaviour class
 
   private class DeregBehaviour extends DFBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new DeregBehaviour();
+    public DeregBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new DeregBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Deregister d = (Deregister)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)d.get_0();
       DFDeregister(dfd);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE,"FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   } // End of DeregBehaviour class
 
   private class ModBehaviour extends DFBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new ModBehaviour();
+    public ModBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new ModBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
       Modify m = (Modify)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)m.get_0();
       DFModify(dfd);
-      sendAgree();
-      sendInform();
+      sendReply(ACLMessage.AGREE,"FIXME");
+      sendReply(ACLMessage.INFORM,"FIXME");
     }
 
   } // End of ModBehaviour class
 
    private class SrchBehaviour extends DFBehaviour {
-
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new SrchBehaviour();
+    public SrchBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new SrchBehaviour(msg);
     }
 
     protected void processAction(Action a) throws FIPAException {
@@ -198,7 +208,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       DFAgentDescription dfd = (DFAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = DFSearch(dfd, constraints, getReply());
-      sendAgree();
+      sendReply(ACLMessage.AGREE,"FIXME");
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -218,23 +228,23 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   private class ShowGUIBehaviour extends FipaRequestResponderBehaviour.ActionHandler 
                                  implements FipaRequestResponderBehaviour.Factory 
   {
-  	protected ShowGUIBehaviour() 
+  	protected ShowGUIBehaviour(ACLMessage msg) 
 	{
-      	super(df.this);
+      	super(df.this,msg);
   	}
 
-  	public FipaRequestResponderBehaviour.ActionHandler create() 
+  	public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) 
   	{
-      	return new ShowGUIBehaviour();
+      	return new ShowGUIBehaviour(msg);
   	}
 
   	public void action () 
   	{ 
-	    sendAgree();
+	    sendReply(ACLMessage.AGREE,"FIXME");
 	    if (((df)myAgent).showGui())
-	      sendInform();
+	      sendReply(ACLMessage.INFORM,"FIXME");
 	    else
-	      sendFailure("Gui_is_being_shown_already");
+	      sendReply(ACLMessage.FAILURE,"Gui_is_being_shown_already");
   	}
       
       public boolean done() 
@@ -250,19 +260,19 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   // This behaviour will be used to respond to request from the applet to know the parent with which this df is federated.
   private class GetParentsBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
-      protected GetParentsBehaviour()
+      protected GetParentsBehaviour(ACLMessage msg)
       {
-	super(df.this);
+	super(df.this,msg);
       }
   	
-      public FipaRequestResponderBehaviour.ActionHandler create()
+      public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
       {
-	return new GetParentsBehaviour();
+	return new GetParentsBehaviour(msg);
       }
 
       public void action ()
       {
-	sendAgree();
+	sendReply(ACLMessage.AGREE,"FIXME");
   		
 	try {
 	  // FIXME: Construct the reply, using the FIPAAgentManagementOntology singleton to build the sequence of
@@ -270,7 +280,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	  throw new FIPAException("STUB CODE !!!");
 	}
 	catch(FIPAException e) {
-	  sendFailure("Impossible to provide the needed information");
+	  sendReply(ACLMessage.FAILURE,"Impossible to provide the needed information");
 	}
       }
 
@@ -290,19 +300,19 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   //It is used to reply to a request from the applet 
   private class GetDescriptionOfThisDFBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
-    protected GetDescriptionOfThisDFBehaviour()
+    protected GetDescriptionOfThisDFBehaviour(ACLMessage msg)
     {
-      super(df.this);
+      super(df.this,msg);
     }
   	
-    public FipaRequestResponderBehaviour.ActionHandler create()
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
     {
-      return new GetDescriptionOfThisDFBehaviour();
+      return new GetDescriptionOfThisDFBehaviour(msg);
     }
   	
     public void action()
       {
-      	sendAgree();
+      	sendReply(ACLMessage.AGREE,"FIXME");
 
 	      // FIXME: Create an 'inform' ACL message containing the DFAgentDescription object for this DF.
 
@@ -323,12 +333,12 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   // This behaviour allows the federation of this df with another df required by the APPLET
   private class FederateWithBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
 
-    protected FederateWithBehaviour() {
-      super(df.this);
+    protected FederateWithBehaviour(ACLMessage msg) {
+      super(df.this,msg);
     }
 
-    public FipaRequestResponderBehaviour.ActionHandler create() {
-      return new FederateWithBehaviour();
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new FederateWithBehaviour(msg);
     }
 
     public void action() {
@@ -350,14 +360,14 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
 
-  	protected DeregisterFromBehaviour()
+  	protected DeregisterFromBehaviour(ACLMessage msg)
   	{
-  		super(df.this);
+  		super(df.this,msg);
   	}
   	
-  	public FipaRequestResponderBehaviour.ActionHandler create()
+  	public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
   	{
-  		return new DeregisterFromBehaviour();
+  		return new DeregisterFromBehaviour(msg);
   	}
   	
   	public void action()
@@ -481,21 +491,21 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     // Associate each DF action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour());
-    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour());
+    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour(null));
+    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour(null));
 
     // Behaviour to deal with the GUI
     
     MessageTemplate mt1 = MessageTemplate.MatchOntology("jade-extensions");
     jadeExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt1);
-    jadeExtensionDispatcher.registerFactory("SHOWGUI", new ShowGUIBehaviour());
+    jadeExtensionDispatcher.registerFactory("SHOWGUI", new ShowGUIBehaviour(null));
     // The following three actions are used only by the DFApplet	
-    jadeExtensionDispatcher.registerFactory("GETPARENTS", new GetParentsBehaviour()); 
-    jadeExtensionDispatcher.registerFactory("FEDERATE_WITH", new FederateWithBehaviour());
-    jadeExtensionDispatcher.registerFactory("DEREGISTER_FROM", new DeregisterFromBehaviour());
-    jadeExtensionDispatcher.registerFactory("GETDEFAULTDESCRIPTION", new GetDescriptionOfThisDFBehaviour()); 
+    jadeExtensionDispatcher.registerFactory("GETPARENTS", new GetParentsBehaviour(null)); 
+    jadeExtensionDispatcher.registerFactory("FEDERATE_WITH", new FederateWithBehaviour(null));
+    jadeExtensionDispatcher.registerFactory("DEREGISTER_FROM", new DeregisterFromBehaviour(null));
+    jadeExtensionDispatcher.registerFactory("GETDEFAULTDESCRIPTION", new GetDescriptionOfThisDFBehaviour(null)); 
   }
 
   /**

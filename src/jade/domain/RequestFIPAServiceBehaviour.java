@@ -78,7 +78,7 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 
   private ACLMessage lastMsg;
   private boolean notYetReady;
-  private static Codec c = new SL0Codec();
+  private Codec c; 
   private static Ontology o = FIPAAgentManagementOntology.instance();
 
     /**
@@ -128,6 +128,12 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
      }
      else
        throw new UnsupportedFunction();
+
+     // initialize SL0 Codec and FIPAAgentManagementOntology
+     c = a.lookupLanguage(SL0Codec.NAME);
+     if (c == null)
+       c = new SL0Codec();
+
      // Write the action in the :content slot of the request
      msg.setContent(FIPAServiceCommunicator.encode(act,c,o));
      reset(msg);
