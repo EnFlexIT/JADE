@@ -317,6 +317,7 @@ public class FSMBehaviour extends SerialBehaviour {
   			}
   		}
   		catch (NullPointerException npe) {
+  			current = null;
   			handleInconsistentFSM(previousName, currentResult);
   		}
   		// DEBUG
