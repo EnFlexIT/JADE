@@ -1,41 +1,25 @@
-/*
-  $Log$
-  Revision 1.5  1999/11/08 15:26:55  rimassaJade
-  Added a menu item to start the message sniffer.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.4  1999/06/22 13:19:22  rimassa
-  Added a menu action to show DF GUI.
+GNU Lesser General Public License
 
-  Revision 1.3  1999/06/09 13:00:25  rimassa
-  Added support for dialog centering with respect to RMA main window.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.2  1999/06/04 11:31:40  rimassa
-  Integrated RMA GUI with DummyAgent tool.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.1  1999/05/20 15:42:07  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.7  1999/05/19 18:31:23  rimassa
-  Changed various classes to remove static references to RMA agent from GUI
-  components and actions.
-
-  Revision 1.6  1999/02/04 14:47:25  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
-
-  Revision 1.5  1998/11/15 23:12:56  rimassa
-  Minor changes to comply with KillAction() new constructor.
-
-  Revision 1.4  1998/11/09 22:17:28  Giovanni
-  Added two items to 'File' JADE menu; one shuts down the Remote
-  Management Agent, whereas the othe closes the whole Agent Platform.
-
-  Revision 1.3  1998/10/10 19:37:04  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -44,6 +28,11 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**
  * The Menu of the GUI

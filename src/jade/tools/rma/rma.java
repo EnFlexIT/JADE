@@ -1,107 +1,24 @@
-/*
-  $Log$
-  Revision 1.5  1999/08/31 17:30:11  rimassa
-  Implemented GUI update whenever some JADE agent migrates from an agent
-  container to another.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.4  1999/08/10 15:41:14  rimassa
-  Added serialization support.
+GNU Lesser General Public License
 
-  Revision 1.3  1999/06/06 21:58:14  rimassa
-  Changed handlers for 'failure' and 'receive' ACL messages, to show an
-  error dialog box instead of simply printing an error message on
-  standard output.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.2  1999/06/04 07:59:50  rimassa
-  Changed package scoping when using some String constants.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.1  1999/05/20 15:42:13  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
-
-  Revision 1.21  1999/05/20 13:43:18  rimassa
-  Moved all behaviour classes in their own subpackage.
-
-  Revision 1.20  1999/04/13 16:00:25  rimassa
-  Changed GUI destruction and made it occur asynchronously.
-
-  Revision 1.19  1999/04/07 11:42:10  rimassa
-  Removed wrong exception handler from takeDown() method. Fixed a bug
-  where ACL request messages were sent twice to the AMS.
-
-  Revision 1.18  1999/04/06 16:12:30  rimassa
-  Added a check on InterruptedException during dispose().
-
-  Revision 1.17  1999/04/06 00:09:57  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.16  1999/03/30 08:33:44  rimassa
-  Added a new behaviour to correctly follow standard 'fipa-request'
-  protocol when dealing with the AMS agent.
-
-  Revision 1.15  1999/03/10 06:58:13  rimassa
-  Removed some debugging printouts.
-
-  Revision 1.14  1999/03/09 13:21:14  rimassa
-  Removed calls to deprecated ACLMessage methods getDest() and
-  setDest().
-  Removed hardwired name for front end container.
-
-  Revision 1.13  1999/03/07 22:52:36  rimassa
-  Added a printout in a catch() block for ParseException.
-
-  Revision 1.12  1999/03/03 16:02:58  rimassa
-  Added methods to suspend and resume agents on demand.
-  Added a getModel() method to access GUI TreeModel.
-  Removed duplicate ACL message objects.
-
-  Revision 1.11  1999/02/25 08:41:36  rimassa
-  Added code to remember RMA's container name and an exit() method to
-  close 'this' container.
-  Changed direct access to 'myName' and 'myAddress' with suitable
-  accessor calls.
-
-  Revision 1.10  1999/02/15 11:46:52  rimassa
-  Changed a line of code to correctly use Agent.getName().
-
-  Revision 1.9  1999/02/14 23:25:31  rimassa
-  Changed addBehaviour() calls to addSubBehaviour() calls where
-  appropriate.
-
-  Revision 1.8  1998/12/08 00:11:31  rimassa
-  Removed handmade parsing of message content; now updated
-  fromText() method is used from various AMS actions.
-
-  Revision 1.7  1998/11/15 23:11:52  rimassa
-  Added two public methods killContainer() and shutDownPlatform(), used
-  as GUI callbacks.
-  Added new ACLMessage object to hold requests to AMS for
-  'kill-container' action.
-
-  Revision 1.6  1998/11/09 00:27:11  rimassa
-  Added 'RMA' as sender name in ACL messages to the AMS.
-  Closing GUI on RMA agent exit.
-
-  Revision 1.5  1998/11/05 23:38:06  rimassa
-  Added GUI callback methods to create new agents and to kill them.
-
-  Revision 1.4  1998/11/03 00:39:52  rimassa
-  Added processing of 'inform' messages received from AMS in response to
-  AgentPlatform events.
-
-  Revision 1.3  1998/11/02 02:06:23  rimassa
-  Started to add a Behaviour to handle 'inform' messages the AMS sends
-  when some AgentPlatform event occurs that can be of interest of Remote
-  Management Agent.
-
-  Revision 1.2  1998/11/01 15:02:29  rimassa
-  Added a Behaviour to register with the AMS as a listener of Agent
-  Container Event notifications.
-
-  Revision 1.1  1998/10/26 00:12:30  rimassa
-  New domain agent to perform platform administration: this agent has a GUI to
-  manage the Agent Platform and special access rights to the AMS.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 
 package jade.tools.rma;
@@ -123,7 +40,8 @@ import jade.proto.FipaRequestInitiatorBehaviour;
   this class directly, but interact with it through <em>ACL</em>
   message passing. Besides, this agent has a <em>GUI</em> through
   which <b>JADE</b> Agent Platform can be administered.
-
+  
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

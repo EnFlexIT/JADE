@@ -1,35 +1,24 @@
-/*
-  $Log$
-  Revision 1.2  1999/07/11 21:34:43  rimassa
-  Removed a temporary workaround for a deadlock problem. Now a correct
-  use of the SwingUtilities class ensures that all GUI update is done by
-  the AWT Event Dispatcher thread.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.1  1999/05/20 15:42:08  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+GNU Lesser General Public License
 
-  Revision 1.7  1999/05/19 18:29:43  rimassa
-  Overridden fireTreeNodesInserted() method to perform a deferred event
-  handling. This is a workaround for a nasty deadlock bug occurring at
-  times during RMA GUI startup.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.6  1999/02/04 14:47:26  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.5  1998/11/03 00:43:24  rimassa
-  Added automatic GUI tree updating in response to AMS 'inform' messages to
-  Remote Management Agent.
-
-  Revision 1.4  1998/11/01 14:57:28  rimassa
-  Changed code indentation to comply with JADE style.
-
-  Revision 1.3  1998/10/10 19:37:11  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.tools.rma;
 
@@ -39,6 +28,12 @@ import javax.swing.event.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**
  * The model of the AMSTree

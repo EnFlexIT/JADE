@@ -1,28 +1,25 @@
-/*
-  $Log$
-  Revision 1.2  1999/06/09 13:03:16  rimassa
-  Added support for dialog centering with respect to RMA main window.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.1  1999/05/20 15:42:11  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+GNU Lesser General Public License
 
-  Revision 1.6  1999/02/04 14:47:31  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.5  1998/11/09 00:33:11  rimassa
-  Changed dialog window size and some code indentation.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.4  1998/11/05 23:44:06  rimassa
-  Dialog rewritten in order to make it comply with JADE agent
-  descriptor; i.e. an Agent Container, an agent name and a class name.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.3  1998/10/10 19:37:25  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -32,6 +29,12 @@ import javax.swing.event.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**
  * The Dialog to set command line parameters

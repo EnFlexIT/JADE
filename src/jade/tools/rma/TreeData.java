@@ -1,34 +1,25 @@
-/*
-  $Log$
-  Revision 1.1  1999/05/20 15:42:12  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.8  1999/02/04 14:47:33  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
+GNU Lesser General Public License
 
-  Revision 1.7  1998/11/09 00:39:19  rimassa
-  Removed loadChildren() method, since now the GUI is notified of every
-  event by the Agent Platform.
-  Changed some label strings and formatting.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.6  1998/11/05 23:45:59  rimassa
-  Changed Agent default state in the GUI from 'suspended' to 'active'.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.5  1998/11/03 00:43:25  rimassa
-  Added automatic GUI tree updating in response to AMS 'inform' messages to
-  Remote Management Agent.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.4  1998/11/01 14:56:03  rimassa
-  Changed code indentation.
-  Removed dummy insertion into Agent Platform Tree representation.
-
-  Revision 1.3  1998/10/10 19:37:29  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -38,6 +29,11 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**
  * Class TreeData represents Agents, Containers and Agent-platforms 

@@ -1,38 +1,25 @@
-/*
-  $Log$
-  Revision 1.4  1999/11/08 15:27:33  rimassaJade
-  Added a button to start the message sniffer; rearranged the buttons.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.3  1999/06/09 13:01:08  rimassa
-  Added support for dialog centering with respect to RMA main window.
+GNU Lesser General Public License
 
-  Revision 1.2  1999/06/04 11:32:58  rimassa
-  Changed some code to support DummyAgent tool.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.1  1999/05/20 15:42:08  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.7  1999/05/19 18:31:25  rimassa
-  Changed various classes to remove static references to RMA agent from GUI
-  components and actions.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.6  1999/02/04 14:47:25  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
-
-  Revision 1.5  1998/11/15 23:13:59  rimassa
-  Minor changes to comply with JADE code indentation style and
-  KillAction() new constructor.
-
-  Revision 1.4  1998/10/26 00:10:31  rimassa
-  Fixed a wrong indentation.
-
-  Revision 1.3  1998/10/10 19:37:09  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -41,6 +28,11 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 /**
  * The ToolBar 
  */

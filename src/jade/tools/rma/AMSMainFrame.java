@@ -1,69 +1,25 @@
-/*
-  $Log$
-  Revision 1.6  1999/07/11 21:31:49  rimassa
-  Used asynchronous update for the tree model, by means of the
-  SwingUtilities.invokeLater() method.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.5  1999/06/25 12:55:51  rimassa
-  Changed code to reflect the new jade.gui utility package.
+GNU Lesser General Public License
 
-  Revision 1.4  1999/06/09 12:59:46  rimassa
-  Improved screen presentation adding support for main window and dialog
-  centering.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.3  1999/06/06 21:54:20  rimassa
-  Removed useless main() function.
-  Added an error dialog to be shown when some 'failure' or 'refuse'
-  message is received from the AMS.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.2  1999/06/06 17:49:29  rimassa
-  Made this class package scoped instead of public.
-  Added a call to AMSTree to adjust initial separator position for
-  three-pane window.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.1  1999/05/20 15:42:07  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
-
-  Revision 1.12  1999/05/19 18:31:22  rimassa
-  Changed various classes to remove static references to RMA agent from GUI
-  components and actions.
-
-  Revision 1.11  1999/04/13 16:01:10  rimassa
-  Added a method to perform asynchronously GUI disposal.
-
-  Revision 1.10  1999/03/07 22:54:22  rimassa
-  Changed class name prefix string in setUI() method to enable multiple
-  Look & Feel.
-
-  Revision 1.9  1999/03/03 16:00:51  rimassa
-  Added a getModel() method to access underlying TreeModel for GUI
-  updates.
-
-  Revision 1.8  1999/02/04 14:47:24  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
-
-  Revision 1.7  1998/11/09 00:29:28  rimassa
-  Changed preferred window size from (400, 400) to (600, 400).
-  Removed older, commented out code.
-
-  Revision 1.6  1998/11/05 23:39:47  rimassa
-  Some minor changes. Added a static method getRMA(), returning a static
-  reference to RMA agent. Probably a better solution would be useful.
-
-  Revision 1.5  1998/11/03 00:43:22  rimassa
-  Added automatic GUI tree updating in response to AMS 'inform' messages to
-  Remote Management Agent.
-
-  Revision 1.4  1998/11/01 14:57:26  rimassa
-  Changed code indentation to comply with JADE style.
-
-  Revision 1.3  1998/10/10 19:37:03  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -90,11 +46,12 @@ import jade.gui.*;
  * <pre>
  *    java AMSMainFrame -mo
  * </pre>
- *
+ * Javadoc documentation for the file
  * @author  Gianstefano Monni
- * @version %I%, %G%
+ * @version $Date$ $Revision$
  * @see     javax.swing.JFrame
  */
+ 
 class AMSMainFrame extends JFrame {
   // FIXME: Static Vector 'listeners' prevents two or more rma within the same JVM 
   private AMSTree tree;

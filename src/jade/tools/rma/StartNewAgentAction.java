@@ -1,40 +1,25 @@
-/*
-  $Log$
-  Revision 1.3  1999/06/09 13:03:53  rimassa
-  Added support for dialog centering with respect to RMA main window.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.2  1999/06/06 21:56:06  rimassa
-  Removed old, commented out code.
+GNU Lesser General Public License
 
-  Revision 1.1  1999/05/20 15:42:12  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.7  1999/05/19 18:31:32  rimassa
-  Changed various classes to remove static references to RMA agent from GUI
-  components and actions.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.6  1999/02/04 14:47:31  rimassa
-  Changed package specification for Swing: now it's 'javax.swing' and no more
-  'com.sun.swing'.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.5  1998/11/09 00:36:42  rimassa
-  Changed callback logic to allow different ways to start new agents:
-   - When no node is selected, one can write the container name within
-     start dialog window.
-   - When a container node is selected the agent is started on that
-     agent container.
-   - When more container nodes are selected an agent is started on each
-     one of them.
-
-  Revision 1.4  1998/11/05 23:44:59  rimassa
-  Changed code indentation style.
-
-  Revision 1.3  1998/10/10 19:37:26  rimassa
-  Imported a newer version of JADE GUI from Fabio.
-
-  Revision 1.2  1998/10/04 18:01:41  rimassa
-  Added a 'Log:' field to every source file.
-*/
 
 package jade.tools.rma;
 
@@ -43,6 +28,12 @@ import javax.swing.tree.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.lang.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**
  * StartNewAgentAction starts a new agent in the selected
