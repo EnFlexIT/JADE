@@ -43,18 +43,20 @@ import jade.proto.FipaRequestInitiatorBehaviour;
 
 /** 
   This class extends the <code>FipaRequestIntiatorBehaviour</code> in order to request an agent, e.g. <em>DF or AMS</em> 
-  to perform a specific action.
-  This class implements all the abstract method of the super classes. 
-  The behaviour can be added to an agent directly, or the class can be extended to override the methods 
-  to react to the received messages in a specific manner.
-  The class has two constructor. The first generic constructor can be use for all the action an agent can perform.
-  if this constructor is used to perform a search action the constraint will be the default one.
-  The second constructor provided is specific for a search action.
+  to perform a specific action. <br>
+  This class implements all the abstract method of the super classes, therefore the behaviour can be immediately added to an agent.  <br>
+In some cases, it might be usefull to extend this class to override 
+some of its methods and
+  react to the received messages in an application-specific manner. <br>
+  The class has two constructor. The first generic constructor can be used for all the action an agent can perform. In the case of a 
+a search action the default search constraints are used. <br> 
+  The second constructor is specific for a search action and it allows
+to specify additional search constraints.
   
   @see jade.domain.DFServiceCommunicator
   @see jade.domain.AMSServiceCommunicator
   
-  @author Tiziana Trucco
+  @author Fabio Bellifemine (CSELT S.p.A.)
   @version $Date$ $Revision$
 */
 public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
@@ -62,8 +64,8 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   /**
    Exception class for timeouts. This exception is thrown when trying
    to obtain an <code>ACLMessage</code> from an <code>Handle</code>
-   and no message was received so far, but the time limit is not yet
-   reached.
+   and no message has been yet received and the timeout limit is not yet
+   elapsed.
    @see jade.core.behaviours.ReceiverBehaviour.Handle#getMessage()
   */
   public static class NotYetReady extends Exception {
@@ -76,37 +78,23 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
 
-	/**
-  @serial
-  */
   private ACLMessage lastMsg;
-  /**
-  @serial
-  */
   private boolean notYetReady;
-  /**
-  @serial
-  */
   private Codec c; 
   private static Ontology o = FIPAAgentManagementOntology.instance();
 
     /**
-  *  Create a behaviour to request a DF to perform a specific action. 
+  *  Create a behaviour to request an agent to perform a specific action. 
   *  Using this constructor, is possible to pass all information necessary to
-  *  set up a <em>Directory Facilitator</em> search. 
+  *  request a search operation. 
   *  @param a The agent this behaviour belongs to, i.e. the agent who is
   *  interested in the search result.
-  *  @param receiver The agent who will perform the action.
+  *  @param receiver The agent who will be requested to perform the action.
   *  @param agentDescription An agent descriptor used according to the action required.
-  *  @param constraint A <code>Vector</code> that will be filled with
-  *  desired search constraints. When no particular constraint is
-  *  needed, a <code>null</code> object reference can be passed.
-  *  @param r This object will contain the results of the search. At the
-  *  end of this <code>Behaviour</code>, this object can be accessed to
-  *  retrieve all agent descriptors matching search criteria. If
-  *  something goes wrong during the search, <code>DFSearchResult</code>
-  *  object will throw a suitable <code>FipaException</code> as soon as
-  *  a data access is attempted.
+  *  @param constraints The search contraints for the search action. 
+     @exception FIPAException A suitable exception can be thrown 
+      when
+     the method locally discovers that the passed parameters are not valid.
   *  @see jade.domain.FIPAAgentManagement.SearchConstraints
   */
    public RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription, SearchConstraints constraints) throws FIPAException {
@@ -151,11 +139,13 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 
   /**
   * Create a behaviour to request an agent to perform a specific action.
+  * The default search constraints are used.
   *
   * @param a The agent this behaviour belongs to, i.e the agent who is interested in the action.
   * @param dfName The DF who will perform the action.
   * @param dfAction The action requested to the DF.
   * @param dfd An agent descriptor that will be use according to the action required to the DF.
+  * @see #RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription, SearchConstraints constraints)
   */
   public RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription) throws FIPAException
   {
@@ -217,14 +207,17 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 
     // This exception object records last outcome. When it is
     // 'null', all went OK.
+    private FIPAException outcome = null;
+
   /**
-  @serial
-  */
-  private FIPAException outcome = null;
-  
-  /**
-  * Returns the last inform message received.
-  */
+    This public method allows to get the INFORM message received in the final
+    * state of this FIPA-Request protocol. 
+    *@return the ACLMessage received
+     @exception FIPAException A suitable exception can be thrown 
+      when the protocol was finished with a FAILURE/REFUSE or NOT-UNDERSTOOD
+      * performative.
+      * @exception NotYetReady is thrown if the protocol is not yet finished.
+  **/
   public ACLMessage getLastMsg() throws FIPAException,NotYetReady {
     if (notYetReady)
       throw new NotYetReady();
@@ -234,9 +227,13 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   }
 
   /**
-  * This method returns a list representing the result of a search operation.
-  * @throws jade.domain.FIPAException, #NotYetReady
-  */
+    This public method allows to get the results of a search operation. 
+    *@return the List of Objects received an a result of the search. 
+     @exception FIPAException A suitable exception can be thrown 
+      when the protocol was finished with a FAILURE/REFUSE or NOT-UNDERSTOOD
+      * performative.
+      * @exception NotYetReady is thrown if the protocol is not yet finished.
+  **/
   public List getSearchResult() throws FIPAException,NotYetReady {
     if (notYetReady)
       throw new NotYetReady();
@@ -251,3 +248,4 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   }
     
 }
+
