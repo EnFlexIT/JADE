@@ -304,23 +304,17 @@ public class Runtime {
    */
   public String getVersionInfo() {
     String CVSname = "$Name$";
-    String CVSdate = "$Date$";
-    int colonPos = CVSname.indexOf(":");
-    int dollarPos = CVSname.lastIndexOf('$');
-    String name = CVSname.substring(colonPos + 1, dollarPos);
+		String CVSdate = "- revision $WCREV$ of $WCDATE$"; // these keywords are automatically replaced by WCREV with subversion
+    String name = CVSname; //.substring(colonPos + 1, dollarPos);
     if(name.indexOf("JADE") == -1)
-    	name = "JADE snapshot";
+    	name = "JADE snapshot ";
     else 
     {
         name = name.replace('-', ' ');
 	      name = name.replace('_', '.');
 	      name = name.trim();
     }
-    colonPos = CVSdate.indexOf(':');
-    dollarPos = CVSdate.lastIndexOf('$');
-    String date = CVSdate.substring(colonPos + 1, dollarPos);
-    date = date.trim();
-    return name + " - " + date;
+    return name + CVSdate;
   }
 }
  
