@@ -509,7 +509,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       // DispatcherException (some error occurred in the remote
       // CommandDispatcher) --> throw a DispatcherException.
       if (exception.equals("jade.imtp.leap.DispatcherException")) {
-        throw new DispatcherException("DispatcherException in remote site.");
+        throw new DispatcherException("DispatcherException in remote site. "+response.getParamAt(1));
       } 
       else    // UnreachableException (the Command was sent to the router,
       // but the final destination was unreachable from there)
@@ -750,7 +750,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     try {
       if (skeletons.size() == 1) {
         // This is the only skeleton
-        skeletons.remove(ids.remove(remoteObject));
+      	Object id = ids.remove(remoteObject);
+        skeletons.remove(id);
       }
       else {
         
@@ -764,7 +765,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
                 Thread.sleep(1000);
               }
               catch (InterruptedException ie) {}
-              skeletons.remove(ids.remove(remoteObject));
+			      	Object id = ids.remove(remoteObject);
+			        skeletons.remove(id);
             }
           };
         t.start();
@@ -936,7 +938,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
       // FIXME. If this throws an exception this is not handled by
       // the CommandDispatcher.
-      return serializeCommand(buildExceptionResponse(new DispatcherException(e.getMessage())));
+      return serializeCommand(buildExceptionResponse(new DispatcherException(e.toString())));
     } 
   } 
 
