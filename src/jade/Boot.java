@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.22  1999/10/06 14:56:25  rimassa
+  Committed for 1.1 version.
+
   Revision 1.21  1999/09/03 10:44:07  rimassa
   Removed obsolete '-name' option.
 
@@ -169,7 +172,7 @@ public class Boot {
 	    name = name.replace('_', '.');
 	    name = name.trim();
 	  }
-
+ 
 	  colonPos = CVSdate.indexOf(':');
 	  dollarPos = CVSdate.lastIndexOf('$');
 	  String date = CVSdate.substring(colonPos + 1, dollarPos);
