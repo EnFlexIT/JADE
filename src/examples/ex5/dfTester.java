@@ -1,6 +1,13 @@
 /*
 
   $Log$
+  Revision 1.10  1998/11/18 22:56:49  Giovanni
+  Reading input from the standard input has been moved from setup()
+  method to an agent Behaviour. Besides, a suitable reset() method was
+  added to mainBehaviour, in order to make dfTester agent perform an
+  endless loop of requests to the DF, asking for different parameters
+  each time.
+
   Revision 1.9  1998/10/18 17:33:53  rimassa
   Added support for 'search' DF operation.
 
@@ -63,6 +70,7 @@ public class dfTester extends Agent {
 
   } // End of Receiver class
 
+  private ComplexBehaviour receiveAfterAgree;
 
   // Used to generate conversation IDs.
   private int convCounter = 0;
@@ -84,94 +92,111 @@ public class dfTester extends Agent {
     protected ReceiveBehaviour() {
     }
 
+    public void reset() {
+      finished = false;
+    }
+
     public abstract void action();
 
     public boolean done() {
       return finished;
     }
-    
+
   } // End of ReceiveBehaviour class
 
 
   protected void setup() {
 
-    int len = 0;
-    byte[] buffer = new byte[1024];
+    ComplexBehaviour mainBehaviour = new SequentialBehaviour(this) {
 
-    try {
-      System.out.println("Enter DF agent action to perform:");
-      len = System.in.read(buffer);
-      AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-      myAction.setName(new String(buffer,0,len-1));
-      myAction.setArg(dfd);
+      protected void postAction() {
+	reset();
+      }
 
-      System.out.println("Enter values for parameters (ENTER leaves them blank)");
+    };
 
-      System.out.print(":agent-name ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.setName(new String(buffer,0,len-1));
+    mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
-      System.out.print(":agent-address ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.addAddress(new String(buffer,0,len-1));
+      public void action() {
 
-      System.out.print(":agent-type ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.setType(new String(buffer,0,len-1));
+	int len = 0;
+	byte[] buffer = new byte[1024];
 
-      System.out.print(":interaction-protocols ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.addInteractionProtocol(new String(buffer,0,len-1));
-
-      System.out.print(":ontology ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.setOntology(new String(buffer,0,len-1));
-
-      System.out.print(":ownership ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.setOwnership(new String(buffer,0,len-1));
-
-      System.out.print(":df-state ");
-      len = System.in.read(buffer);
-      if(len > 1)
-	dfd.setDFState(new String(buffer,0,len-1));
-
-      System.out.print(":agent-services ");
-      len = System.in.read(buffer);
-      if(len > 1) {
-	String servicesText = new String(buffer,0,len-1);
 	try {
-	  AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
-	  dfd.addService(sd);
+	  System.out.println("Enter DF agent action to perform:");
+	  len = System.in.read(buffer);
+	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+	  myAction.setName(new String(buffer,0,len-1));
+	  myAction.setArg(dfd);
+
+	  System.out.println("Enter values for parameters (ENTER leaves them blank)");
+
+	  System.out.print(":agent-name ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.setName(new String(buffer,0,len-1));
+
+	  System.out.print(":agent-address ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.addAddress(new String(buffer,0,len-1));
+
+	  System.out.print(":agent-type ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.setType(new String(buffer,0,len-1));
+
+	  System.out.print(":interaction-protocols ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.addInteractionProtocol(new String(buffer,0,len-1));
+
+	  System.out.print(":ontology ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.setOntology(new String(buffer,0,len-1));
+
+	  System.out.print(":ownership ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.setOwnership(new String(buffer,0,len-1));
+
+	  System.out.print(":df-state ");
+	  len = System.in.read(buffer);
+	  if(len > 1)
+	    dfd.setDFState(new String(buffer,0,len-1));
+
+	  System.out.print(":agent-services ");
+	  len = System.in.read(buffer);
+	  if(len > 1) {
+	    String servicesText = new String(buffer,0,len-1);
+	    try {
+	      AgentManagementOntology.ServiceDescriptor sd = AgentManagementOntology.ServiceDescriptor.fromText(new StringReader(servicesText));
+	      dfd.addService(sd);
+	    }
+	    catch(jade.domain.ParseException jdpe) {
+	      jdpe.printStackTrace();
+	    }
+	  }
+
+	  System.out.println("");
+
+	  String name = myAction.getName();
+	  if(name.equalsIgnoreCase("search")) {
+	    AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+	    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
+	    c.setFn(AgentManagementOntology.Constraint.EXACTLY);
+	    c.setArg(1);
+	    myAction.addConstraint(c);
+	  }
 	}
-	catch(jade.domain.ParseException jdpe) {
-	  jdpe.printStackTrace();
+	catch(IOException ioe) {
+	  ioe.printStackTrace();
 	}
+
       }
 
-      System.out.println("");
-
-      String name = myAction.getName();
-      if(name.equalsIgnoreCase("search")) {
-	AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-	c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-	c.setFn(AgentManagementOntology.Constraint.EXACTLY);
-	c.setArg(1);
-	myAction.addConstraint(c);
-      }
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-
-
-    ComplexBehaviour mainBehaviour = new SequentialBehaviour(this);
+    });
 
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
@@ -231,7 +256,7 @@ public class dfTester extends Agent {
       public void action() {
 	if(agreed()) {
 	  
-	  ComplexBehaviour receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(dfTester.this);
+	  receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(dfTester.this);
 	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
 	    public void action() {
@@ -257,11 +282,19 @@ public class dfTester extends Agent {
 	  });
 
 	  // Schedules next behaviour for execution
-	  addBehaviour(receiveAfterAgree);
+	  parent.addBehaviour(receiveAfterAgree);
 	}
 
 	else
 	  System.out.println("Protocol ended.");
+      }
+
+      public void reset() {
+	if(agreed()) {
+	  receivedAgree = false;
+	  parent.removeBehaviour(receiveAfterAgree);
+	  receiveAfterAgree = null;
+	}
       }
 
     });
@@ -304,7 +337,7 @@ public class dfTester extends Agent {
     myAction.toText(w);
     toSend.setContent("( action df " + w + " )");
 
-    toSend.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    // toSend.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     send(toSend);
 
     System.out.println("[Agent.sendRequest()]\tRequest sent");
@@ -318,7 +351,7 @@ public class dfTester extends Agent {
  
   public void receiveAgree(ACLMessage msg) {
     System.out.println("[Agent.receiveAgree]\tSuccess!!! Responder agreed to do action !");
-    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    // msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     receivedAgree = true;
   }
 
@@ -330,7 +363,7 @@ public class dfTester extends Agent {
 
   public void handleInform(ACLMessage msg) {
     System.out.println("Responder has just informed me that the action has been carried out.");
-    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    // msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
 }
