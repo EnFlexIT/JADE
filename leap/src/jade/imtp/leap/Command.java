@@ -39,6 +39,8 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import java.io.IOException;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  * The <code>Command</code> object is used to represent a platform command.
@@ -301,7 +303,7 @@ public class Command {
    * @see
    */
   public static byte[] getSerializedOk() {
-    DeliverableDataOutputStream ddos = new DeliverableDataOutputStream(null);
+    /*DeliverableDataOutputStream ddos = new DeliverableDataOutputStream(null);
     try {
       ddos.serializeCommand(new Command(OK));
     } 
@@ -311,7 +313,20 @@ public class Command {
       return null;
     } 
 
-    return ddos.getSerializedByteArray();
+    return ddos.getSerializedByteArray();*/
+  	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(baos);
+    try {
+      dos.writeInt(OK);
+      dos.writeInt(DUMMY_ID);
+      dos.writeInt(0);
+    } 
+    catch (IOException ioe) {
+    	// Should never happen
+      ioe.printStackTrace();
+      return null;
+    } 
+    return baos.toByteArray();
   } 
 
 }
