@@ -67,6 +67,7 @@ public class AgentPrincipal extends BasicPrincipal implements Serializable {
 	*/
 	public static String encode(String name) {
 		StringBuffer buffer = new StringBuffer();
+//__CLDC_UNSUPPORTED__BEGIN 
 		for (int i = 0; i < name.length(); i++) {
 			char c = name.charAt(i);
 			if ( Character.isLetterOrDigit(c) ) {
@@ -77,6 +78,7 @@ public class AgentPrincipal extends BasicPrincipal implements Serializable {
 				buffer.append("[" + ((int)c) + "]");
 			}
 		}
+//__CLDC_UNSUPPORTED__END
 		return buffer.toString();
 	}
 
