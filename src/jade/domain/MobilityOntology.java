@@ -36,6 +36,12 @@ import jade.onto.DefaultOntology;
 import jade.onto.TermDescriptor;
 import jade.onto.RoleFactory;
 import jade.onto.OntologyException;
+import jade.onto.Action;
+
+import jade.domain.FIPAAgentManagement.AID;
+import jade.domain.FIPAAgentManagement.DonePredicate;
+import jade.domain.FIPAAgentManagement.ResultPredicate;
+
 
 /**
 Javadoc documentation for the file
@@ -56,39 +62,46 @@ public class MobilityOntology {
   public static final String NAME = "jade-mobility-ontology";
 
   /**
+    The symbolic constant that identifies an AgentIdentifier
+    **/
+  public static final String AGENTIDENTIFIER = "agent-identifier";
+
+  public static final String DONE = "done"; 
+  public static final String RESULT = "result"; 
+  /**
     A symbolic constant, containing the name of the concept.
   */
-  public static final String MOBILE_AGENT_DESCRIPTION = ":mobile-agent-description";
+  public static final String MOBILE_AGENT_DESCRIPTION = "mobile-agent-description";
   
   /**
     A symbolic constant, containing the name of the concept.
   */
-  public static final String MOBILE_AGENT_PROFILE = ":mobile-agent-profile";
+  public static final String MOBILE_AGENT_PROFILE = "mobile-agent-profile";
   
   /**
     A symbolic constant, containing the name of the concept.
   */
-  public static final String MOBILE_AGENT_SYSTEM = ":mobile-agent-system";
+  public static final String MOBILE_AGENT_SYSTEM = "mobile-agent-system";
   
   /**
     A symbolic constant, containing the name of the concept.
   */
-  public static final String MOBILE_AGENT_LANGUAGE = ":mobile-agent-language";
+  public static final String MOBILE_AGENT_LANGUAGE = "mobile-agent-language";
 
   /**
     A symbolic constant, containing the name of the concept.
   */
-  public static final String MOBILE_AGENT_OS = ":mobile-agent-os";
+  public static final String MOBILE_AGENT_OS = "mobile-agent-os";
 
   /**
     A symbolic constant, containing the name of the concept.
   */  
-  public static final String LOCATION = ":location";
+  public static final String LOCATION = "location";
 
   /**
     A symbolic constant, containing the name of the concept.
   */  
-  public static final String PLATFORMLOCATIONS = ":platform-locations";
+  public static final String PLATFORMLOCATIONS = "platform-locations";
 
   /**
     A symbolic constant, containing the name of the action.
@@ -131,96 +144,128 @@ public class MobilityOntology {
 
   private static void initInstance() {
     try {
-	theInstance.addFrame(MOBILE_AGENT_DESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor(":address", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor(":destination", Ontology.CONCEPT_TYPE, LOCATION, Ontology.M),
-	  new TermDescriptor(":agent-profile", Ontology.CONCEPT_TYPE, MOBILE_AGENT_PROFILE, Ontology.O),
-	  new TermDescriptor(":agent-version", Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor(":signature", Ontology.BINARY_TYPE, Ontology.O)
+	theInstance.addFrame(DefaultOntology.NAME_OF_ACTION_FRAME, new TermDescriptor[] {
+	  new TermDescriptor(Ontology.FRAME_TERM, AGENTIDENTIFIER, Ontology.M),
+	  new TermDescriptor(Ontology.FRAME_TERM, Ontology.ANY_TYPE, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new jade.onto.Action(); }
+	     public Class getClassForRole() { return jade.onto.Action.class; }
+	   });
+
+	theInstance.addFrame(AGENTIDENTIFIER, new TermDescriptor[] {
+	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("addresses", Ontology.SEQUENCE_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("resolvers", Ontology.SEQUENCE_TERM, AGENTIDENTIFIER, Ontology.O)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new AID(); }
+	     public Class getClassForRole() { return AID.class; }
+	   });
+
+	theInstance.addFrame(DONE, new TermDescriptor[] {
+	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) {return new DonePredicate(); }
+	     public Class getClassForRole() {return DonePredicate.class;}
+	   });
+
+	theInstance.addFrame(RESULT, new TermDescriptor[] {
+	  new TermDescriptor(Ontology.FRAME_TERM, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M),
+	  new TermDescriptor(Ontology.ANY_TERM, Ontology.ANY_TYPE, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) {return new ResultPredicate(); }
+	     public Class getClassForRole() {return ResultPredicate.class;}
+	   });
+
+	theInstance.addFrame(MOBILE_AGENT_DESCRIPTION, new TermDescriptor[] {
+	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("address", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("destination", Ontology.FRAME_TERM, LOCATION, Ontology.M),
+	  new TermDescriptor("agent-profile", Ontology.FRAME_TERM, MOBILE_AGENT_PROFILE, Ontology.O),
+	  new TermDescriptor("agent-version", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("signature", Ontology.CONSTANT_TERM, Ontology.BINARY_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentDescription(); }
 	     public Class getClassForRole() { return MobileAgentDescription.class; }
 	   });
 
-	theInstance.addFrame(MOBILE_AGENT_PROFILE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor(":system", Ontology.CONCEPT_TYPE, MOBILE_AGENT_SYSTEM, Ontology.O),
-	  new TermDescriptor(":language", Ontology.CONCEPT_TYPE, MOBILE_AGENT_LANGUAGE, Ontology.O),
-          new TermDescriptor(":os", Ontology.CONCEPT_TYPE, MOBILE_AGENT_OS, Ontology.M)
+	theInstance.addFrame(MOBILE_AGENT_PROFILE, new TermDescriptor[] {
+	  new TermDescriptor("system", Ontology.FRAME_TERM, MOBILE_AGENT_SYSTEM, Ontology.O),
+	  new TermDescriptor("language", Ontology.FRAME_TERM, MOBILE_AGENT_LANGUAGE, Ontology.O),
+          new TermDescriptor("os", Ontology.FRAME_TERM, MOBILE_AGENT_OS, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentProfile(); }
 	     public Class getClassForRole() { return MobileAgentProfile.class; }
 	   });
 
-	theInstance.addFrame(MOBILE_AGENT_SYSTEM, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
-	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
-	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	theInstance.addFrame(MOBILE_AGENT_SYSTEM, new TermDescriptor[] {
+	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("major-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.M),
+	  new TermDescriptor("minor-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.O),
+	  new TermDescriptor("dependencies", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentSystem(); }
 	     public Class getClassForRole() { return MobileAgentSystem.class; }
 	   });
 
-	theInstance.addFrame(MOBILE_AGENT_LANGUAGE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
-	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
-	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	theInstance.addFrame(MOBILE_AGENT_LANGUAGE, new TermDescriptor[] {
+	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("major-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.M),
+	  new TermDescriptor("minor-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.O),
+	  new TermDescriptor("dependencies", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentLanguage(); }
 	     public Class getClassForRole() { return MobileAgentLanguage.class; }
 	   });
 
-	theInstance.addFrame(MOBILE_AGENT_OS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
-	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
-	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
-	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	theInstance.addFrame(MOBILE_AGENT_OS, new TermDescriptor[] {
+	  new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("major-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.M),
+	  new TermDescriptor("minor-version", Ontology.CONSTANT_TERM, Ontology.LONG_TYPE, Ontology.O),
+	  new TermDescriptor("dependencies", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentOS(); }
 	     public Class getClassForRole() { return MobileAgentOS.class; }
 	   });
 
-	theInstance.addFrame(LOCATION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	    new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
-	    new TermDescriptor(":transport-protocol", Ontology.STRING_TYPE, Ontology.M),
-	    new TermDescriptor(":transport-address", Ontology.STRING_TYPE, Ontology.M)
+	theInstance.addFrame(LOCATION, new TermDescriptor[] {
+	    new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	    new TermDescriptor("transport-protocol", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
+	    new TermDescriptor("transport-address", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new Location(); } // FIXME: use Indexed Creation
 	     public Class getClassForRole() { return Location.class; }
 	   });
 
-	theInstance.addFrame(PLATFORMLOCATIONS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	    new TermDescriptor(":locations", Ontology.SET_TYPE, LOCATION, Ontology.M),
+	theInstance.addFrame(PLATFORMLOCATIONS, new TermDescriptor[] {
+	    new TermDescriptor("locations", Ontology.SET_TERM, LOCATION, Ontology.M),
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new PlatformLocations(); }
 	     public Class getClassForRole() { return PlatformLocations.class; }
 	   });
 
-	theInstance.addFrame(MOVE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	    new TermDescriptor(Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M)
+	theInstance.addFrame(MOVE, new TermDescriptor[] {
+	    new TermDescriptor(Ontology.FRAME_TERM, MOBILE_AGENT_DESCRIPTION, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MoveAction(); }
 	     public Class getClassForRole() { return MoveAction.class; }
 	   });
 
-	theInstance.addFrame(CLONE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	    new TermDescriptor(Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M),
-	    new TermDescriptor(Ontology.STRING_TYPE, Ontology.M)
+	theInstance.addFrame(CLONE, new TermDescriptor[] {
+	    new TermDescriptor(Ontology.FRAME_TERM, MOBILE_AGENT_DESCRIPTION, Ontology.M),
+	    new TermDescriptor(Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new CloneAction(); }
 	     public Class getClassForRole() { return CloneAction.class; }
 	   });
 
-	theInstance.addFrame(WHERE_IS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	    new TermDescriptor(Ontology.STRING_TYPE, Ontology.M)
+	theInstance.addFrame(WHERE_IS, new TermDescriptor[] {
+	    new TermDescriptor(Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new WhereIsAgentAction(); }
 	     public Class getClassForRole() { return WhereIsAgentAction.class; }
 	   });
 
-	theInstance.addFrame(QUERY_PLATFORM_LOCATIONS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(QUERY_PLATFORM_LOCATIONS, new TermDescriptor[] {
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new QueryPlatformLocationsAction(); }
 	     public Class getClassForRole() { return QueryPlatformLocationsAction.class; }
@@ -245,7 +290,7 @@ public class MobilityOntology {
     private Location destination;
     private MobileAgentProfile agentProfile;
     private String agentVersion;
-    private byte[] signature;
+    private Byte[] signature;
 
     public void setName(String n) {
       name = n;
@@ -287,13 +332,15 @@ public class MobilityOntology {
       return agentVersion;
     }
 
-    public void setSignature(byte[] s) {
-      signature = new byte[s.length];
+    public void setSignature(Byte[] s) {
+      signature = new Byte[s.length];
       System.arraycopy(s, 0, signature, 0, s.length);
     }
 
-    public byte[] getSignature() {
-      byte[] result = new byte[signature.length];
+    public Byte[] getSignature() {
+      if (signature == null)
+	return null;
+      Byte[] result = new Byte[signature.length];
       System.arraycopy(signature, 0, result, 0, signature.length);
       return result;
     }
@@ -347,8 +394,8 @@ public class MobilityOntology {
   public static class MobileAgentSystem {
 
     private String name;
-    private short majorVersion;
-    private short minorVersion;
+    private Long majorVersion;
+    private Long minorVersion;
     private String dependencies;
 
     public void setName(String n) {
@@ -359,19 +406,19 @@ public class MobilityOntology {
       return name;
     }
 
-    public void setMajorVersion(short v) {
+    public void setMajorVersion(Long v) {
       majorVersion = v;
     }
 
-    public short getMajorVersion() {
+    public Long getMajorVersion() {
       return majorVersion;
     }
 
-    public void setMinorVersion(short v) {
+    public void setMinorVersion(Long v) {
       minorVersion = v;
     }
 
-    public short getMinorVersion() {
+    public Long getMinorVersion() {
       return minorVersion;
     }
 
@@ -393,8 +440,8 @@ public class MobilityOntology {
   */
   public static class MobileAgentLanguage {
     private String name;
-    private short majorVersion;
-    private short minorVersion;
+    private Long majorVersion;
+    private Long minorVersion;
     private String dependencies;
 
     public void setName(String n) {
@@ -405,19 +452,19 @@ public class MobilityOntology {
       return name;
     }
 
-    public void setMajorVersion(short v) {
+    public void setMajorVersion(Long v) {
       majorVersion = v;
     }
 
-    public short getMajorVersion() {
+    public Long getMajorVersion() {
       return majorVersion;
     }
 
-    public void setMinorVersion(short v) {
+    public void setMinorVersion(Long v) {
       minorVersion = v;
     }
 
-    public short getMinorVersion() {
+    public Long getMinorVersion() {
       return minorVersion;
     }
 
@@ -439,8 +486,8 @@ public class MobilityOntology {
   */
   public static class MobileAgentOS {
     private String name;
-    private short majorVersion;
-    private short minorVersion;
+    private Long majorVersion;
+    private Long minorVersion;
     private String dependencies;
 
     public void setName(String n) {
@@ -451,19 +498,19 @@ public class MobilityOntology {
       return name;
     }
 
-    public void setMajorVersion(short v) {
+    public void setMajorVersion(Long v) {
       majorVersion = v;
     }
 
-    public short getMajorVersion() {
+    public Long getMajorVersion() {
       return majorVersion;
     }
 
-    public void setMinorVersion(short v) {
+    public void setMinorVersion(Long v) {
       minorVersion = v;
     }
 
-    public short getMinorVersion() {
+    public Long getMinorVersion() {
       return minorVersion;
     }
 
