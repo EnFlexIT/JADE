@@ -487,7 +487,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 
     private void initFromIOR(String s) throws MTPException {
       parseIOR(s, FIPA_2000_TYPE_ID);
-      System.out.println("URL is: " + getURL());
+      System.out.println(getURL()); //URL
       anchor = "";
     }
 
