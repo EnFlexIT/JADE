@@ -1,6 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -105,6 +106,10 @@ public class FSMBehaviour extends SerialBehaviour {
   	state.setParent(this);
 	state.setAgent(myAgent);
   	states.put(name, state);
+
+	//#MIDP_EXCLUDE_BEGIN
+	persistentSubBehaviours.put(name, state);
+	//#MIDP_EXCLUDE_END
   }
 
   /** 
@@ -130,6 +135,9 @@ public class FSMBehaviour extends SerialBehaviour {
   	registerState(state, name);
   	if (!lastStates.contains(name)) {
   		lastStates.add(name);
+		//#MIDP_EXCLUDE_BEGIN
+		persistentLastStates.add(name);
+		//#MIDP_EXCLUDE_END
   	}
   }
 
@@ -144,7 +152,7 @@ public class FSMBehaviour extends SerialBehaviour {
      @see jade.core.behaviours.Behaviour#onEnd()
   */
   public void registerTransition(String s1, String s2, int event) {
-  	theTransitionTable.addTransition(s1, s2, event, null);
+      registerTransition(s1, s2, event, null);
   }
   	
   /** 
@@ -164,7 +172,8 @@ public class FSMBehaviour extends SerialBehaviour {
      @see jade.core.behaviours.Behaviour#onEnd()
   */
   public void registerTransition(String s1, String s2, int event, String[] toBeReset) {
-  	theTransitionTable.addTransition(s1, s2, event, toBeReset);
+      Transition t = new Transition(this, s1, s2, event, toBeReset);
+      theTransitionTable.addTransition(t);
   }
   	
   /** 
@@ -176,7 +185,7 @@ public class FSMBehaviour extends SerialBehaviour {
      @param s2 The name of the state this transition leads to
   */
   public void registerDefaultTransition(String s1, String s2) {
-    theTransitionTable.addDefaultTransition(s1, s2, null);
+      registerDefaultTransition(s1, s2, null);
   }
   	
   /** 
@@ -194,12 +203,16 @@ public class FSMBehaviour extends SerialBehaviour {
      the states to be reset.
   */
   public void registerDefaultTransition(String s1, String s2, String[] toBeReset) {
-    theTransitionTable.addDefaultTransition(s1, s2, toBeReset);
+      Transition t = new Transition(this, s1, s2, toBeReset);
+      theTransitionTable.addTransition(t);
   }
   	
   /** 
-     @return the <code>Behaviour</code> representing the state whose
-     name is name.
+      Retrieve the child behaviour associated to the FSM state with
+      the given name.
+      @return the <code>Behaviour</code> representing the state whose
+      name is <code>name</code>, or <code>null</code> if no such
+      behaviour exists.
   */
   public Behaviour getState(String name) {
   	Behaviour b = null;
@@ -210,8 +223,11 @@ public class FSMBehaviour extends SerialBehaviour {
   }
   
   /** 
-     @return the name of the state represented by <code>Behaviour</code>
-     state.
+     Retrieve the name of the FSM state associated to the given child
+     behaviour.
+     @return the name of the state represented by
+     <code>Behaviour</code> state, or <code>null</code> if the given
+     behaviour is not a child of this FSM behaviour.
   */
   public String getName(Behaviour state) {
   	Iterator it = states.keySet().iterator();
@@ -226,6 +242,9 @@ public class FSMBehaviour extends SerialBehaviour {
   }
   
   /** 
+      Retrieve the exit value of the most recently executed
+      child. This is also the trigger value that selects the next FSM
+      transition.
      @return the exit value of the last executed state.
   */
   public int getLastExitValue() {
@@ -330,8 +349,18 @@ public class FSMBehaviour extends SerialBehaviour {
   public Collection getChildren() {
   	return states.values();
   }
-  
+
   /**
+     Temporarily disregards the FSM structure, and jumps to the given
+     state. This method acts as a sort of <code>GOTO</code> statement
+     between states, and replaces the currently active state without
+     considering the trigger event or whether a transition was
+     registered. It should be used only to handle exceptional
+     conditions, if default transitions are not effective enough.
+
+     @param next The name of the state to jump to at the next FSM
+     cheduling quantum. If the FSM has no state with the given name,
+     this method does nothing.
    */
   protected void forceTransitionTo(String next) {
   	// Just check that the forced transition leads into a valid state
@@ -343,7 +372,7 @@ public class FSMBehaviour extends SerialBehaviour {
   }
   
   /**
-     Put this FSMBehaviour back in the initial condition
+     Put this FSMBehaviour back in the initial condition.
    */ 
   public void reset() {
   	super.reset();
@@ -353,7 +382,7 @@ public class FSMBehaviour extends SerialBehaviour {
   	
   /**
      Reset the children behaviours registered in the states indicated in
-     the <code>states</code> parameter
+     the <code>states</code> parameter.
      @param states the names of the states that have to be reset
    */
   public void resetStates(String[] states) {	
@@ -408,86 +437,249 @@ public class FSMBehaviour extends SerialBehaviour {
    * Inner class implementing the FSM transition table
    */
   class TransitionTable implements Serializable {
-  	private Hashtable transitions = new Hashtable();
-  	private static final long     serialVersionUID = 3487495895819003L;
-  	
-  	void addTransition(String s1, String s2, int event, String[] toBeReset) {
-  		TransitionsFromState tfs = null;
+      private Hashtable transitions = new Hashtable();
+      private static final long serialVersionUID = 3487495895819003L;
+
+      void clear() {
+	  transitions.clear();
+
+	  //#MIDP_EXCLUDE_BEGIN
+	  persistentTransitions.clear();
+	  //#MIDP_EXCLUDE_END
+      }
+
+      void addTransition(Transition t) {
+	  String key1 = t.getFrom();
+
+	  TransitionsFromState tfs = null;
   		
-  		if (!transitions.containsKey(s1)) {
-  			tfs = new TransitionsFromState();
-  			transitions.put(s1, tfs);
-  		}
-  		else {
-  			tfs = (TransitionsFromState) transitions.get(s1);
-  		}
-  		
-  		tfs.put(new Integer(event), new Transition(s2, toBeReset));
-  	}
-  	
-  	void addDefaultTransition(String s1, String s2, String[] toBeReset) {
-  		TransitionsFromState tfs = null;
-  		
-  		if (!transitions.containsKey(s1)) {
-  			tfs = new TransitionsFromState();
-  			transitions.put(s1, tfs);
-  		}
-  		else {
-  			tfs = (TransitionsFromState) transitions.get(s1);
-  		}
-  		
-  		tfs.setDefaultTransition(new Transition(s2, toBeReset));
-  	}
-  		
-  	Transition getTransition(String s, int event) {
-  		TransitionsFromState tfs = (TransitionsFromState) transitions.get(s);
-  		Transition t = (Transition) tfs.get(new Integer(event));
-  		return t;
-  	}
+	  if (!transitions.containsKey(key1)) {
+	      tfs = new TransitionsFromState();
+	      transitions.put(key1, tfs);
+	  }
+	  else {
+	      tfs = (TransitionsFromState) transitions.get(key1);
+	  }
+
+	  if(t.isDefault()) {
+	      tfs.setDefaultTransition(t);
+	  }
+	  else {
+	      Integer key2 = new Integer(t.getTrigger());
+	      tfs.put(key2, t);
+	  }
+
+	  //#MIDP_EXCLUDE_BEGIN
+	    
+	  // For persistence service
+	  persistentTransitions.add(t);
+
+	  //#MIDP_EXCLUDE_END
+
+      }
+
+      void removeTransition(String s1, int event) {
+	  TransitionsFromState tfs = (TransitionsFromState)transitions.get(s1);
+	  if(tfs != null) {
+	      Transition t = (Transition)tfs.remove(new Integer(event));
+	      if(t != null) {
+
+		  if((tfs.isEmpty() && (tfs.getDefaultTransition() == null))) {
+		      transitions.remove(s1);
+		  }
+
+		  //#MIDP_EXCLUDE_BEGIN
+
+		  // For persistence service
+		  persistentTransitions.remove(t);
+
+		  //#MIDP_EXCLUDE_END
+	      }
+	  }
+      }
+
+      void removeTransition(String s1) {
+	  TransitionsFromState tfs = (TransitionsFromState)transitions.get(s1);
+	  if(tfs != null) {
+	      Transition t = tfs.getDefaultTransition();
+	      tfs.setDefaultTransition(null);
+
+	      if(tfs.isEmpty()) {
+		  transitions.remove(s1);
+	      }
+
+	      //#MIDP_EXCLUDE_BEGIN
+
+	      // For persistence service
+	      persistentTransitions.remove(t);
+
+	      //#MIDP_EXCLUDE_END
+	  }
+      }
+
+      Transition getTransition(String s, int event) {
+	  TransitionsFromState tfs = (TransitionsFromState) transitions.get(s);
+	  if(tfs != null) {
+	      Transition t = (Transition) tfs.get(new Integer(event));
+	      return t;
+	  }
+	  else {
+	      return null;
+	  }
+      }
+
   }
-  
-  class Transition implements Serializable {
-  	private String dest;
-  	private String[] toBeReset;
-  	private static final long     serialVersionUID = 3487495895819004L;
+
+
+  static class Transition implements Serializable {
+
+      private FSMBehaviour fsm;
+      private String src;
+      private String dest;
+      private int trigger;
+      private boolean def;
+      private String[] toBeReset;
+      private static final long     serialVersionUID = 3487495895819004L;
   	
-  	public Transition(String d, String[] rs) {
-  		dest = d;
-  		toBeReset = rs;
-  	}
+      public Transition() {
+      }
+
+      public Transition(FSMBehaviour f, String s, String d, int t, String[] rs) {
+	  fsm = f;
+	  src = s;
+	  dest = d;
+	  trigger = t;
+	  def = false;
+	  toBeReset = rs;
+      }
+
+      public Transition(FSMBehaviour f, String s, String d, String[] rs) {
+	  fsm = f;
+	  src = s;
+	  dest = d;
+	  trigger = 0;
+	  def = true;
+	  toBeReset = rs;
+      }
+
+      public FSMBehaviour getFSM() {
+	  return fsm;
+      }
+
+      public void setFSM(FSMBehaviour f) {
+	  fsm = f;
+      }
+
+      public String getFrom() {
+	  return src;
+      }
+
+      public void setFrom(String f) {
+	  src = f;
+      }
+
+      public String getTo() {
+	  return dest;
+      }
+
+      public void setTo(String t) {
+	  dest = t;
+      }
+
+      public int getTrigger() {
+	  return trigger;
+      }
+
+      public void setTrigger(int t) {
+	  trigger = t;
+      }
+
+      public boolean isDefault() {
+	  return def;
+      }
+
+      public void setDefault(boolean d) {
+	  def = d;
+      }
+
+      public String[] getStatesToReset() {
+	  return toBeReset;
+      }
+
+      public void setStatesToReset(String[] ss) {
+	  toBeReset = ss;
+      }
+
+      //#MIDP_EXCLUDE_BEGIN
+
+      // For persistence service
+      private Long persistentID;
+
+      // For persistence service
+      private Long getPersistentID() {
+	  return persistentID;
+      }
+
+      // For persistence service
+      private void setPersistentID(Long l) {
+	  persistentID = l;
+      }
+
+      //#MIDP_EXCLUDE_END
+
   }
   
   class TransitionsFromState extends Hashtable {
-  	private Transition defaultTransition = null;
-  	private static final long     serialVersionUID = 3487495895819005L;
+      private Transition defaultTransition = null;
+      private static final long     serialVersionUID = 3487495895819005L;
   	
-  	void setDefaultTransition(Transition dt) {
-  		defaultTransition = dt;
-  	}
+      void setDefaultTransition(Transition dt) {
+	  defaultTransition = dt;
+      }
+
+      Transition getDefaultTransition() {
+	  return defaultTransition;
+      }
   	
-  	public Object get(Object key) {
-  		Transition t = (Transition) super.get(key);
-  		if (t == null) {
-  			t = defaultTransition;
-  		}
-  		return t;
-  	}
+      public Object get(Object key) {
+	  Transition t = (Transition) super.get(key);
+	  if (t == null) {
+	      t = defaultTransition;
+	  }
+	  return t;
+      }
   }
 
     //#MIDP_EXCLUDE_BEGIN
 
+
+    //For persistence service
+    private boolean isTransitionForced() {
+	return transitionForced;
+    }
+
+    // For persistence service
+    private void setTransitionForced(boolean forced) {
+	transitionForced = forced;
+    }
+
+    // For persistence service
+    private String getForcedTransitionDest() {
+	return forcedTransitionDest;
+    }
+
+    // For persistence service
+    private void setForcedTransitionDest(String dest) {
+	forcedTransitionDest = dest;
+    }
+
+    // For persistence service
+    private java.util.Map persistentSubBehaviours = new java.util.HashMap();
+
+
     // For persistence service
     private java.util.Map getSubBehaviours() {
-
-	java.util.Map result = new java.util.HashMap();
-	Set keys = states.keySet();
-	Iterator it = keys.iterator();
-	while(it.hasNext()) {
-	    Object key = it.next();
-	    result.put(key, states.get(key));
-	}
-
-	return result;
+	return persistentSubBehaviours;
     }
 
     // For persistence service
@@ -499,6 +691,71 @@ public class FSMBehaviour extends SerialBehaviour {
 	    java.util.Map.Entry e = (java.util.Map.Entry)it.next();
 	    states.put(e.getKey(), e.getValue());
 	}
+
+	persistentSubBehaviours = behaviours;
+    }
+
+    // For persistence service
+    private String getFirstState() {
+	return firstName;
+    }
+
+    // For persistence service
+    private void setFirstState(String name) {
+	firstName = name;
+    }
+
+    // For persistence service
+    private java.util.Set persistentLastStates = new java.util.HashSet();
+
+    // For persistence service
+    private java.util.Set getLastStates() {
+	return persistentLastStates;
+    }
+
+    // For persistence service
+    private void setLastStates(java.util.Set states) {
+
+	if(persistentLastStates != states) {
+	    lastStates.clear();
+
+	    java.util.Iterator it = states.iterator();
+	    while(it.hasNext()) {
+		lastStates.add(it.next());
+	    }
+
+	    persistentLastStates = states;
+	}
+    }
+
+    // For persistence service
+    private java.util.Set persistentTransitions = new java.util.HashSet();
+
+    // For persistence service
+    private java.util.Set getTransitions() {
+	return persistentTransitions;
+    }
+
+    // For persistence service
+    private void setTransitions(java.util.Set transitions) {
+
+	if(persistentTransitions != transitions) {
+
+	    // Refill the transition table, if needed
+	    theTransitionTable.clear();
+
+	    java.util.Iterator it = transitions.iterator();
+	    while(it.hasNext()) {
+		Transition t = (Transition)it.next();
+		theTransitionTable.addTransition(t);
+	    }
+
+	    persistentTransitions = transitions;
+	}
+	else {
+	    System.out.println("--- Self-assignment: nothing to do ---");
+	}
+
     }
 
   //#MIDP_EXCLUDE_END
