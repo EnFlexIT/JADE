@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/03/09 13:04:01  rimassa
+  Minor change to remove deprecated 'ACLMessage.getDest()' calls.
+
   Revision 1.4  1999/02/15 11:45:12  rimassa
   Changed removeBehaviour() calls to removeSubBehaviour() calls.
 
@@ -39,10 +42,12 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
     request.setType("request");
     request.setProtocol("fipa-request");
 
+    String destName = request.getFirstDest();
+
     // Create all necessary MessageTemplate objects
     MessageTemplate FipaRequestTemplate = MessageTemplate.and(
       MessageTemplate.MatchProtocol("fipa-request"),
-      MessageTemplate.MatchSource(request.getDest()));
+      MessageTemplate.MatchSource(destName));
     String convID = request.getConversationId();
     String replyWith = request.getReplyWith();
     if(convID != null)
