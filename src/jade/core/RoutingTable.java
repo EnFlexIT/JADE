@@ -174,9 +174,11 @@ class RoutingTable {
      <code>url</code>.
    */
   public synchronized void addLocalMTP(String url, MTP proto) {
-    url = url.toLowerCase();
+    
+      CaseInsensitiveString urlTmp = new CaseInsensitiveString(url);  
+      // url = url.toLowerCase();
     // A local MTP can receive messages
-    inPorts.put(url, proto);
+    inPorts.put(urlTmp, proto);
 
     // A local MTP can also send messages, over all supported protocols
     OutPort out = new OutViaMTP(myACC, proto);
@@ -204,9 +206,10 @@ class RoutingTable {
      <code>url</code>.
    */
   public synchronized MTP removeLocalMTP(String url) {
-    url = url.toLowerCase();
+      // url = url.toLowerCase();
+      CaseInsensitiveString urlTmp = new CaseInsensitiveString(url);
     // A local MTP appears both in the input and output port tables
-    MTP proto = (MTP)inPorts.remove(url);
+    MTP proto = (MTP)inPorts.remove(urlTmp);
     if(proto != null) {
       // Remove all outgoing ports associated with this MTP
       String[] protoNames = proto.getSupportedProtocols();
@@ -243,7 +246,7 @@ class RoutingTable {
 
     // Remote MTPs are valid platform addresses
     String[] mtpAddrs = mtp.getAddresses();
-    platformAddresses.add(mtpAddrs[0]);
+    platformAddresses.add(mtpAddrs[0]); 
   }
 
   /**
@@ -266,9 +269,10 @@ class RoutingTable {
      reaching the address <code>url</code>.
    */
   public synchronized OutPort lookup(String url) {
-    url = url.toLowerCase();
+      //url = url.toLowerCase();
     String proto = extractProto(url);
-    OutPortList l = (OutPortList)outPorts.get(proto);
+    CaseInsensitiveString protoTmp = new CaseInsensitiveString(proto);
+    OutPortList l = (OutPortList)outPorts.get(protoTmp);
     if(l != null)
       return l.get();
     else
@@ -280,20 +284,22 @@ class RoutingTable {
   }
 
   private void addOutPort(String proto, OutPort port, boolean location) {
-    proto = proto.toLowerCase();
-    OutPortList l = (OutPortList)outPorts.get(proto);
+      //proto = proto.toLowerCase();
+      CaseInsensitiveString protoTmp = new CaseInsensitiveString(proto);
+    OutPortList l = (OutPortList)outPorts.get(protoTmp);
     if(l != null)
       l.add(port, location);
     else {
       l = new OutPortList();
       l.add(port, location);
-      outPorts.put(proto, l);
+      outPorts.put(protoTmp, l);
     }
   }
 
   private void removeOutPort(String proto, OutPort port) {
-    proto = proto.toLowerCase();
-    OutPortList l = (OutPortList)outPorts.get(proto);
+      //proto = proto.toLowerCase();
+      CaseInsensitiveString protoTmp = new CaseInsensitiveString(proto);
+    OutPortList l = (OutPortList)outPorts.get(protoTmp);
     if(l != null)
       l.remove(port);
   }
