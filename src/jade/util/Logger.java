@@ -29,8 +29,8 @@ import javax.microedition.rms.RecordStore;
 #MIDP_INCLUDE_END*/
 
 //#MIDP_EXCLUDE_BEGIN
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
