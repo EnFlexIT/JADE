@@ -62,7 +62,7 @@ public class TestBackEndFault extends Test {
   		throw new TestException("This test can only be executed from the JADE TestSuite");
   	}
   	 
-  	setTimeout(60000);
+  	setTimeout(90000);
   	
 		// MIDP container name as group argument
 		lightContainerName = (String) getGroupArgument(LEAPTesterAgent.LIGHT_CONTAINER_KEY);
@@ -87,7 +87,7 @@ public class TestBackEndFault extends Test {
   	ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ALL);
   	
   	// The behaviour receiving messages from the sender agent
-  	pb.addSubBehaviour(new CyclicBehaviour(a) {
+  	pb.addSubBehaviour(new Behaviour(a) {
   		private int cnt = 0;
   		public void action() {
   			ACLMessage msg = myAgent.receive(MessageTemplate.MatchSender(sender));
@@ -116,6 +116,10 @@ public class TestBackEndFault extends Test {
   				block();
   			}
   		}
+  		
+  		public boolean done() {
+  			return cnt >= N_MESSAGES;
+  		}
   	} );
   	
   	// The behaviour that kills the master main container and then restores it
@@ -129,7 +133,7 @@ public class TestBackEndFault extends Test {
   		}
   	} );
   	  	
-  	// Step 2: Restore the old main container after 5 more secs
+  	// Step 2: Restore the old main container after 5 more secs.
   	sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
   		public void handleElapsedTimeout() {
 				log("2) Restoring old master (now backup) main container ...");
@@ -145,8 +149,10 @@ public class TestBackEndFault extends Test {
   		}
   	} );
   	
-  	// Step 3: Kill the new master main container aftre 5 more secs
-  	sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
+  	// Step 3: Kill the new master main container aftre 20 more secs
+  	// Note that a front-end may take up to 2*reconnection-time (~20 sec) 
+  	// to resynch
+  	sb.addSubBehaviour(new WakerBehaviour(a, 20000) {
   		public void handleElapsedTimeout() {
   			log("3) Killing new master main container...");
   			backupMain.kill();
