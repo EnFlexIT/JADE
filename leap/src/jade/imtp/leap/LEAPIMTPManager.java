@@ -167,14 +167,18 @@ public class LEAPIMTPManager implements IMTPManager {
   }
 
   public void exportServiceManager(ServiceManager mgr) throws IMTPException {
+      //#MIDP_EXCLUDE_BEGIN
       Skeleton skel = new ServiceManagerSkel((ServiceManagerImpl)mgr, this);
       theDispatcher.registerSkeleton(skel, mgr);
+      //#MIDP_EXCLUDE_END
   }
 
   public void unexportServiceManager(ServiceManager sm) throws IMTPException {
+      //#MIDP_EXCLUDE_BEGIN
       if(sm instanceof ServiceManagerImpl) {
 	  theDispatcher.deregisterSkeleton(sm);
       }
+      //#MIDP_EXCLUDE_END
   }
 
   public ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException {

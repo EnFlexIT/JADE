@@ -52,7 +52,6 @@ public class ProfileImpl extends Profile {
 	//#MIDP_EXCLUDE_BEGIN
   // Keys to retrieve the implementation classes for configurable
   // functionalities among the bootstrap properties.
-  private static final String ACC = "acc";
   private static final String RESOURCE = "resource";
   private static final String MOBILITY = "mobility";
   private static final String NOTIFICATION = "notification";
@@ -187,7 +186,19 @@ public class ProfileImpl extends Profile {
 
     protected ServiceManager getServiceManager() throws ProfileException {
       if(myServiceManager == null) {
+	  //#MIDP_EXCLUDE_BEGIN
 	  createServiceManager();
+	  //#MIDP_EXCLUDE_END
+
+	  /*#MIDP_INCLUDE_BEGIN
+	  try {
+	      myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
+	  }
+	  catch(IMTPException imtpe) {
+	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	      throw pe;
+	  }
+	  #MIDP_INCLUDE_END*/
       }
 
       return myServiceManager;
@@ -195,7 +206,19 @@ public class ProfileImpl extends Profile {
 
     protected ServiceFinder getServiceFinder() throws ProfileException {
       if(myServiceFinder == null) {
+	  //#MIDP_EXCLUDE_BEGIN
 	  createServiceFinder();
+	  //#MIDP_EXCLUDE_END
+
+	  /*#MIDP_INCLUDE_BEGIN
+	  try {
+	      myServiceFinder = myIMTPManager.createServiceFinderProxy();
+	  }
+	  catch(IMTPException imtpe) {
+	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Finder");
+	      throw pe;
+	  }
+	  #MIDP_INCLUDE_END*/
       }
 
       return myServiceFinder;
@@ -266,6 +289,7 @@ public class ProfileImpl extends Profile {
   	#MIDP_INCLUDE_END*/
   }
 
+    //#MIDP_EXCLUDE_BEGIN
     private void createServiceManager() throws ProfileException {
 	try {
 	    // Make sure the IMTP manager is initialized
@@ -287,11 +311,12 @@ public class ProfileImpl extends Profile {
 	}
 	catch(IMTPException imtpe) {
 	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
-	    pe.initCause(imtpe);
 	    throw pe;
 	}
     }
+    //#MIDP_EXCLUDE_END
 
+    //#MIDP_EXCLUDE_BEGIN
     private void createServiceFinder() throws ProfileException {
 	try {
 	    // Make sure the IMTP manager is initialized
@@ -311,11 +336,10 @@ public class ProfileImpl extends Profile {
 	}
 	catch(IMTPException imtpe) {
 	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
-	    pe.initCause(imtpe);
 	    throw pe;
 	}
     }
-
+    //#MIDP_EXCLUDE_END
 
     private void createCommandProcessor() throws ProfileException {
 	try {
@@ -323,13 +347,11 @@ public class ProfileImpl extends Profile {
 	}
 	catch(Exception e) {
 	    ProfileException pe = new ProfileException("Exception creating the Command Processor");
-	    pe.initCause(e);
 	    throw pe;
 	}
     }
 
-  /**
-   */
+  //#MIDP_EXCLUDE_BEGIN
   private void createPlatform() throws ProfileException {
     try {
       if (CaseInsensitiveString.equalsIgnoreCase("true", getParameter(MAIN, "true"))) {
@@ -345,9 +367,10 @@ public class ProfileImpl extends Profile {
       throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
     }
   }
+  //#MIDP_EXCLUDE_END
 
-  /**
-   */
+
+  //#MIDP_EXCLUDE_BEGIN
   private void createIMTPManager() throws ProfileException {
     String className = getParameter(IMTP, "jade.imtp.leap.LEAPIMTPManager");
 
@@ -358,9 +381,9 @@ public class ProfileImpl extends Profile {
       throw new ProfileException("Error loading IMTPManager class"+className);
     }
   }
+  //#MIDP_EXCLUDE_END
 
-  /**
-   */
+  //#MIDP_EXCLUDE_BEGIN
   private void createResourceManager() throws ProfileException {
   	//#PJAVA_EXCLUDE_BEGIN
     String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
@@ -376,6 +399,7 @@ public class ProfileImpl extends Profile {
       throw new ProfileException("Error loading ResourceManager class"+className);
     }
   }
+  //#MIDP_EXCLUDE_END
 
 
   /**
