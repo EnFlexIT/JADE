@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.37  1999/08/10 15:39:00  rimassa
+  Changed method name in an invocation to the agent platform to reflect
+  AgentManager changes.
+
   Revision 1.36  1999/07/19 00:05:34  rimassa
   Added support for storing and querying a FIPA 98 compliant platform profile.
 
@@ -262,11 +266,11 @@ public class ams extends Agent {
       checkMandatory(amsd);
 
       String agentName = amsd.getName();
-      if(agentName != null)
+      if(agentName == null)
 	AMSDumpData();
-      else
+      else {
 	AMSDumpData();
-
+      }
       throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
     }
 
@@ -626,7 +630,7 @@ public class ams extends Agent {
       // Create a new agent
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
       try {
-	myPlatform.createAgent(amsd.getName(), className, containerName);
+	myPlatform.create(amsd.getName(), className, containerName);
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.
