@@ -1,0 +1,151 @@
+README file for ???, Version 0.6
+
+INTRODUCTION
+============
+
+This package contains a Java framework to build agent-based systems
+according to FIPA standard specifications.
+
+
+
+LICENSE
+=======
+
+???
+
+
+SYSTEM REQUIREMENTS
+===================
+
+To build the framework a complete Java programming environment is
+needed. At least a Java Development Kit version 1.1 is required, due
+to Remote Method Invocation (RMI) API usage.
+
+
+INSTALLATION AND TEST
+==============================
+
+After uncompressing the archive, you will have a directory tree
+starting with ???; from that directory, you can type
+
+- make clean 		To remove compiled classes, HTML docs and the like.
+
+- make src		To compile source code and create RMI stubs and skeletons.
+
+- make lib		To create a compressed file in 'lib' directory, containing all compiled classes.
+
+- make docs		To create HTML documentation for the framework in 'doc' directory.
+
+- make test		To build example programs.
+
+- make all		Performs 'make lib', 'make doc' and 'make test'
+
+
+After compiling, one can run the example programs in 'test'
+subdirectory; remember to set CLASSPATH environment variable to
+include the zip file in 'lib' directory and the current directory.
+
+The Agent Platform uses Java RMI, so one has to start the RMI registry
+on the same host the Agent Platform will run on.
+
+To run the Agent Platform, one must issue the command:
+
+	java fipa.core.StartPlatform
+
+Use -h option to get a list of command line arguments.
+
+To actually start some agents, one must create and run one or more
+Agent Containers; these components connect themselves with the main
+Agent Platform, resulting in a distributed system that seems a single
+Agent Platform from outside.
+
+An Agent Container can be started using the command:
+
+	java fipa.core.StartContainer [options] [agent list]
+
+Again, using -h command-line option explains program usage.
+
+Using command-line options, users can state host name and port number
+where the main Agent Platform resides, and the name with which it is
+registered in RMI Registry. This way, multiple platform can be
+executed on a single host.
+
+The agent list is a sequence of character strings; each one of them
+must be broken in two parts by a colon ':'. The substring before the
+colon is taken as the agent name, whereas the substring after the
+colon is the name of the Java class implementing the agent. This class
+will be dynamically loaded by the Agent Container.
+
+For example, a string 'Peter:myAgent' means "create a new agent named
+Peter whose implementation is an object of class myAgent". The name of
+the class must be fully qualified, (e.g. Peter:myPackage.myAgent) and
+will be searched for according to CLASSPATH definition.
+
+After compilation, some simple agents (just to test the basic platform
+mechanisms) can be found in test subdirectory. The following list
+gives some explanations:
+
+ - Agent1.class			An agent with a cyclic behaviour, printing 
+				a message once in a second. This shows
+				how an agent behaviour can be defined
+				in a class implementing
+				fipa.core.Behaviour interface.
+
+ - Agent2.class			An agent which executes three times and then
+				stops. This example shows how a
+				behaviour can be defined extending
+				fipa.core.SimpleBehaviour class. It
+				also shows how an agent without active
+				behaviours is blocked.
+
+ - Agent3.class			An agent with a behaviour made of many steps,
+				with some steps that have sub-steps
+				themselves. This examples shows how
+				fipa.core.ComplexBehaviour class
+				allows the construction of aggregate
+				behaviours starting from simpler ones,
+				even with recursive aggregations.
+				Besides, it shows the cooperative
+				multitasking presently used for
+				intra-agent behaviour scheduling.
+
+ - AgentReceiver.class		This example creates an agent that continously
+				waits for messages and sends back automated 
+				replies; it shows how to create a simple
+				server agent, purely reactive.
+
+ - AgentSender.class		This agent works together with AgentReceiver
+				to build a simple client/server
+				interaction. The agent asks the user
+				for a message and an agent name. It
+				then sends the string to the specified agent.
+				This example, together with the
+				previous one, shows how the
+				distributed Agent Platform allows
+				message passing between the agents.
+
+ - AgentBroadcaster.class	This agent combines message passing with
+				ComplexBehaviour class to achieve
+				more complex interactions between agents.
+				This Agent asks for a string and three
+				agent names; then it sends the string
+				to each one of the three agents,
+				collecting the replies. Eventually, it
+				prints the concatenation of the three
+				replies.
+
+
+BUGS
+====
+
+
+
+TODO
+====
+
+
+CONTACT
+=======
+
+
+
