@@ -56,4 +56,6 @@ public interface AgentManagementSlice extends Service.Slice {
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
+    void exitContainer() throws IMTPException, NotFoundException;
+
 }
