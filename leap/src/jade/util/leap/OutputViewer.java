@@ -46,6 +46,7 @@ public class OutputViewer extends MIDlet implements CommandListener {
 	private static final String OUTPUT = "OUTPUT";
   
   private static final Command exitCommand = new Command("Exit", Command.EXIT, 1);
+  private static final Command clearCommand = new Command("Clear", Command.SCREEN, 1);
   private static final Command okCommand = new Command("OK", Command.OK, 1);
   private Display                       display;
   private String                        recordStoreName;
@@ -62,6 +63,7 @@ public class OutputViewer extends MIDlet implements CommandListener {
   public void startApp() {
     form = new Form("Output:");
     form.addCommand(exitCommand);
+    form.addCommand(clearCommand);
     form.setCommandListener(this);
     display.setCurrent(form);    
     readOutput();
@@ -82,6 +84,19 @@ public class OutputViewer extends MIDlet implements CommandListener {
   public void commandAction(Command c, Displayable d) {
     if (c == exitCommand) {
     	notifyDestroyed();
+    }
+    if (c == clearCommand) {
+    	try {
+	    	Class.forName("jade.util.Logger");    	
+		  	int size = form.size();
+				for (int i = 0; i < size; ++i) {
+					form.delete(0);
+				}
+		    display.setCurrent(form);
+    	}
+    	catch (Exception e) {
+    		showError("Cannot clear output. "+e.getMessage());
+    	}
     }
     if (c == okCommand) {
     	display.setCurrent(form);
