@@ -315,34 +315,40 @@ public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) thro
   {	
      gui.showStatusMsg("Waiting...process request");
      
-  	 ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-     msg.addDest(getLocalName());
-     msg.setOntology("jade-extensions");
-     msg.setProtocol("fipa-request");
-     msg.setContent("(action df (FEDERATE_WITH "+ dfName +"))");
-     sendMessage(msg.toString());
-     //System.out.println(msg.toString());
-     
-     try
+     if(dfName.equalsIgnoreCase(getName())||dfName.equalsIgnoreCase(getLocalName()))
+     	gui.showStatusMsg("Self Federation not allowed");
+     	
+     else
      {
-     	 ACLMessage reply = receiveMessage(); 
+  	   ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+       msg.addDest(getLocalName());
+       msg.setOntology("jade-extensions");
+       msg.setProtocol("fipa-request");
+       msg.setContent("(action df (FEDERATE_WITH "+ dfName +"))");
+       sendMessage(msg.toString());
        //System.out.println(msg.toString());
-
-       if (ACLMessage.AGREE == (reply.getPerformative())) 
+     
+       try
        {
-     	   reply = receiveMessage();
-         if (! (ACLMessage.INFORM == reply.getPerformative())) 
-           gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
-         else
+     	   ACLMessage reply = receiveMessage(); 
+         //System.out.println(msg.toString());
+
+         if (ACLMessage.AGREE == (reply.getPerformative())) 
+         {
+     	     reply = receiveMessage();
+           if (! (ACLMessage.INFORM == reply.getPerformative())) 
+             gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
+           else
            {
-           	gui.refreshFederation();
-           	gui.showStatusMsg("Federation succeeded");
+           	 gui.refreshFederation();
+           	 gui.showStatusMsg("Federation succeeded");
            }
-       }
-       else
-         gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
-     }catch(jade.lang.acl.ParseException e){
-     	gui.showStatusMsg("Federation unsucceeded because "+e.getMessage());}
+         }
+         else
+          gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
+       }catch(jade.lang.acl.ParseException e){
+     	 gui.showStatusMsg("Federation unsucceeded because "+e.getMessage());}
+     }
   }
   
   /*
