@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.3  1998/11/02 02:06:23  rimassa
+  Started to add a Behaviour to handle 'inform' messages the AMS sends
+  when some AgentPlatform event occurs that can be of interest of Remote
+  Management Agent.
+
   Revision 1.2  1998/11/01 15:02:29  rimassa
   Added a Behaviour to register with the AMS as a listener of Agent
   Container Event notifications.
@@ -13,8 +18,15 @@
 
 package jade.domain;
 
+// FIXME: For debug only
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+
+import java.io.StringReader;
+
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.gui.*;
 
 /**************************************************************
@@ -38,13 +50,47 @@ public class rma extends Agent {
 
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
-    public void action() {
+    private MessageTemplate listenTemplate;
 
-      // Handle inform messages from AMS
-      block();
+    AMSListenerBehaviour() {
+
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage("SL");
+      MessageTemplate mt2 = MessageTemplate.MatchOntology("jade-agent-management");
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+
+      mt1 = MessageTemplate.MatchReplyTo("RMA-subscription");
+      mt2 = MessageTemplate.MatchType("inform");
+      listenTemplate = MessageTemplate.and(mt1, mt2);
+      listenTemplate = MessageTemplate.and(listenTemplate, mt12);
 
     }
-  }
+
+    public void action() {
+
+      ACLMessage current = receive(listenTemplate);
+      if(current != null) {
+	// Handle inform messages from AMS
+	current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+	StringReader text = new StringReader(current.getContent());
+	try {
+	  AgentManagementOntology.AMSEvent amse = AgentManagementOntology.AMSEvent.fromText(text);
+	}
+	catch(ParseException pe) {
+	  pe.printStackTrace();
+	  return;
+	}
+	catch(TokenMgrError tme) {
+	  tme.printStackTrace();
+	  return;
+	}
+	current = null;
+      }
+      else
+	block();
+
+    }
+
+  } // End of AMSListenerBehaviour
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
