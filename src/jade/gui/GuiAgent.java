@@ -93,7 +93,8 @@ public abstract class GuiAgent extends Agent
 				{
 					try
 					{
-						ev  = (GuiEvent) guiEventQueue.remove(0);
+						ev  = (GuiEvent) guiEventQueue.elementAt(0);
+						guiEventQueue.removeElementAt(0);
 					}
 					catch (ArrayIndexOutOfBoundsException ex)
 					{
@@ -131,7 +132,7 @@ public abstract class GuiAgent extends Agent
 	{
 		synchronized(guiEventQueueLock)
 		{
-			guiEventQueue.add( (Object) e );
+			guiEventQueue.addElement( (Object) e );
 			doWake();
 		}
 	}
