@@ -32,8 +32,8 @@ import java.util.Properties;
 /**
  * This class encapsulates some informations used by the program
 
-   
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+ 
+   @author Francisco Regi, Andrea Soracchi - Universita' di Parma
    @version $Date$ $Revision$
 
  */
@@ -59,8 +59,8 @@ import java.util.Properties;
       "RMAAction.CloneAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/clone.gif"),	
       "RMAAction.SaveAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(),"images/saveagent.gif"),
       "RMAAction.LoadAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(),"images/loadagent.gif"),
-      "RMAAction.FreezeAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(), "images/freezeagent.png"),
-      "RMAAction.ThawAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(), "images/thawagent.png"),
+      "RMAAction.FreezeAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(), "images/freezeagent.gif"),
+      "RMAAction.ThawAgentActionIcon", LookAndFeel.makeIcon(foo.getClass(), "images/thawagent.gif"),
       "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
       "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/runtree.gif"),
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/foldergreen.gif"),
