@@ -226,11 +226,11 @@ public class Envelope implements java.io.Serializable {
 	if (i.hasNext()) {
 	    s = s + " :to (sequence ";
 	    for (Iterator ii=i; ii.hasNext(); ) 
-		s = s+" "+((AID)ii.next()).toFullString();
+		s = s+" "+ii.next().toString();
 	    s = s + ") ";
 	}
 	if (getFrom() != null)
-	    s = s + " :from " + getFrom().toFullString();
+	    s = s + " :from " + getFrom().toString();
 	if (getComments() != null) 
 	    s = s + " :comments " + getComments(); 
 	if (getAclRepresentation() != null) 
@@ -251,7 +251,7 @@ public class Envelope implements java.io.Serializable {
 	if (i.hasNext()) {
 	    s = s + " :intended-receiver (sequence ";
 	    for (Iterator ii=i; ii.hasNext(); ) 
-		s = s+" "+((AID)ii.next()).toFullString();
+		s = s+" "+ ii.next().toString();
 	    s = s + ") ";
 	}
 	ReceivedObject[] ro = getStamps();

@@ -122,8 +122,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     // this platform.
     platformID = pID;
 
-    translator = new AIDTranslator(platformID);
-
     String platformRMI = "rmi://" + platformID;
 
     try {
@@ -135,7 +133,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
 
     // Build the Agent IDs for the AMS and for the Default DF.
-    Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
+    Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
     initAMS();
     initDF();
@@ -217,7 +215,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
         arguments[n] = (String)it.next();
 
  
-    	AID agentID = globalAID(agentName);
+    	AID agentID = new AID(agentName, AID.ISLOCALNAME);
       try {
 	      createAgent(agentID, agentClass,arguments, START);
       }
@@ -796,7 +794,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 	  ac = this;
 	}
       }
-      AID id = globalAID(agentName);
+      AID id = new AID(agentName, AID.ISLOCALNAME);
       ac.createAgent(id, className, args,START); // RMI call
     }
     catch(RemoteException re) {

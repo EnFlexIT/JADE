@@ -596,7 +596,7 @@ public class rma extends ToolAgent {
   //this method sends a request to a remote AMS to know the APDescription of a remote Platform
   public void addRemotePlatform(AID remoteAMS){
   
-  	//System.out.println("AddRemotePlatform");
+      //System.out.println("AddRemotePlatform"+remoteAMS.toString());
   	try{
 
   		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
@@ -653,7 +653,7 @@ public class rma extends ToolAgent {
     			}
     				else
     			{
-    				AID ams = new AID(amsName);
+    				AID ams = new AID(amsName, AID.ISGUID);
     				Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
     			
     				while(TP.hasNext())

@@ -97,11 +97,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
-  protected String platformID;
+  protected static String platformID;
   protected ContainerID myID;
-
-  // An object used to manage Agent IDs using nicknames
-  protected AIDTranslator translator;
 
   private List messageListeners;
 
@@ -318,7 +315,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
     if(n == null) { // New sniffer
       n = new Notifier(snifferName);
-      AID id = globalAID(snifferName.getLocalName() + "-on-" + myID.getName());
+      AID id = new AID(snifferName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
       initAgent(id, n, START);
       addMessageListener(n);
     }
@@ -436,10 +433,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // This string will be used to build the GUID for every agent on this platform.
     platformID = pID;
 
-    translator = new AIDTranslator(platformID);
-
     // Build the Agent IDs for the AMS and for the Default DF.
-    Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
+    Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
     try {
       // Retrieve agent platform from RMI registry and register as agent container
@@ -516,7 +511,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       for(int n = 0; it.hasNext(); n++)
         arguments[n] = (String)it.next();
       
-    	AID agentID = globalAID(agentName);
+    	AID agentID = new AID(agentName, AID.ISLOCALNAME);
       try {
 	      createAgent(agentID, agentClass, arguments, NOSTART);
 	      RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
@@ -600,8 +595,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public void handleSend(ACLMessage msg) {
 
-    translator.translateOutgoing(msg);
-
     //System.out.println("Sniffer to Notify- sender: "+ sniffersToNotify.size());
     // 26-Mar-2001. The receivers set into the Envelope of the message, 
     // if present, must have precedence over those set into the ACLMessage.
@@ -658,7 +651,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void handleStart(String localName, Agent instance) {
-    AID agentID = globalAID(localName);
+    AID agentID = new AID(localName, AID.ISLOCALNAME);
     initAgent(agentID, instance, START);
   }
 
@@ -770,7 +763,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	ioe.printStackTrace();
       }
 
-      AID newID = globalAID(newName);
+      AID newID = new AID(newName, AID.ISLOCALNAME);
       byte[] bytes = out.toByteArray();
       // Gets the container where the agent classes can be retrieved
       AgentContainer classSite = (AgentContainer) sites.get(a);
@@ -790,9 +783,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // Private methods
 
-  protected AID globalAID(String nickName) {
-    return translator.globalAID(nickName);
-  }
 
   // This hack is needed to overcome a bug in java.rmi.Naming class:
   // when an object reference is bound, unbound and then rebound
@@ -818,7 +808,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
 
-  String getPlatformID()
+    /**
+     * This method is used by the class AID in order to get the HAP.
+     **/
+  static String getPlatformID()
   {
   	return platformID;
   }
@@ -858,11 +851,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	failure.setSender(Agent.getAMS());
 	// FIXME the content is not completely correct, but that should
 	// also avoid creating wrong content
-	StringWriter content = new StringWriter();
-	content.write("( (action ");
-	msg.getSender().toText(content); 
-	content.write(" ACLMessage ) "+ie.getMessage()+")");
-	failure.setContent(content.toString());
+	String content = "( (action " + msg.getSender().toString();
+	content = content + " ACLMessage ) "+ie.getMessage()+")" ;
+	failure.setContent(content);
 	handleSend(failure);
     }
 
@@ -925,9 +916,16 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     } while(!ok);
   }
 
+ // Tells whether the given AID refers to an agent of this platform
+  // or not.
+  private boolean livesHere(AID id) {
+    String hap = id.getHap();
+    return hap.equalsIgnoreCase(platformID);
+  }
+
   private AgentProxy getFreshProxy(AID id) throws NotFoundException {
     AgentProxy result = null;
-  if(translator.livesHere(id)) { // the receiver agent lives in this platform...
+  if(livesHere(id)) { // the receiver agent lives in this platform...
       // Look first in local agents
       Agent a = localAgents.get(id);
       if(a != null) {

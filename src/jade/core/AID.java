@@ -66,23 +66,65 @@ public class AID implements Cloneable, Comparable, Serializable {
    * Constructs an Agent-Identifier whose slot name is set to an empty string
    */
   public AID() {
-    this("");
+    this("",ISGUID);
   }
 
   /** Constructor for an Agent-identifier
    * @param guid is the Globally Unique identifer for the agent. The slot name
    * assumes that value in the constructed object. 
+   * @deprecated This constructor might generate a wrong AID, if
+   * the passed parameter is not a guid (globally unique identifier), but
+   * the local name of an agent (e.g. "da0"). 
+   * @see AID(String, boolean)
    */
   public AID(String guid) {
-    name = guid;
+      this(guid,ISGUID);
   }
 
+
+    /** Constructor for an Agent-identifier
+     * @param name is the value for the slot name for the agent. 
+     * @param isGUID indicates if the passed <code>name</code>
+     * is already a globally unique identifier or not. Two
+     * constants <code>ISGUID</code>, <code>ISLOCALNAME</code>
+     * have also been defined for setting a value for this parameter.
+     * If the name is a local name, then the HAP (Home Agent Platform)
+     * is concatenated to the name, separated by  "@".
+     **/
+    public AID(String name, boolean isGUID) {
+	// initialize the static variable atHAP, if not yet initialized
+	if (atHAP == null)
+	    atHAP = "@"+AgentContainerImpl.getPlatformID();
+	if (isGUID)
+	    setName(name);
+	else
+	    setLocalName(name);
+    }
+
+    /** constant to be used in the constructor of the AID **/
+    public static boolean ISGUID = true;
+    /** constant to be used in the constructor of the AID **/
+    public static boolean ISLOCALNAME = false;
+
+    /** private variable containing the right part of a local name **/
+    private static String atHAP = null; 
+
   /**
-  * This method permits to set the symbolic name of an agent. 
-  * This must be unique within the HAP of the agent.
+  * This method permits to set the symbolic name of an agent.
+  * The passed parameter must be a GUID and not a local name. 
   */
   public void setName(String n){
     name = n;
+  }
+
+  /**
+  * This method permits to set the symbolic name of an agent.
+  * The passed parameter must be a local name. 
+  */
+  public void setLocalName(String n){
+    name = n;
+    if ((name != null) && (!name.endsWith(atHAP))) 
+	name = name.concat(atHAP); 
   }
 
   /**
@@ -110,7 +152,7 @@ public class AID implements Cloneable, Comparable, Serializable {
   }
   
   /**
-  * To remove alla addresses of the agent
+  * To remove all addresses of the agent
   */
   public void clearAllAddresses(){
     addresses.clear();
@@ -195,59 +237,57 @@ public class AID implements Cloneable, Comparable, Serializable {
     return userDefSlots;
   }
 
-    // FIXME This should just replace toString()
-    public String toFullString() {
-	StringWriter text = new StringWriter();
-	toText(text);
-	return text.toString();
+
+    /**
+     * @return the String full representation of this AID
+     **/
+    public String toString() {
+	String s = "( agent-identifier ";
+	if ((name!=null)&&(name.length()>0))
+	    s = s + " :name " + name;
+	if (addresses.size()>0)
+	    s = s + " :addresses (sequence ";
+	for (int i=0; i<addresses.size(); i++)
+	    try {
+		s = s + (String)addresses.get(i) + " ";
+	    } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+	if (addresses.size()>0)
+	    s = s + ")";
+	if (resolvers.size()>0)
+	    s = s + " :resolvers (sequence ";
+	for (int i=0; i<resolvers.size(); i++) { 
+	    try {
+		s = s + resolvers.get(i).toString();
+	    } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+	    s = s + " ";
+	}
+	if (resolvers.size()>0)
+	    s = s + ")";
+	Enumeration e = userDefSlots.propertyNames();
+	String tmp;
+	while (e.hasMoreElements()) {
+	    tmp = (String)e.nextElement();
+	    s = s + " " + tmp + " " + userDefSlots.getProperty(tmp);
+	}
+	s = s + ")";
+	return s;
     }
 
   /**
    * This method is called from ACLMessage in order to create
    * the String encoding of an ACLMessage.
+   * @deprecated replaced by the method toString
    */
   public void toText(Writer w) {
   try {
-    w.write("( agent-identifier ");
-    if ((name!=null)&&(name.length()>0))
-      w.write(" :name " + name);
-    if (addresses.size()>0)
-      w.write(" :addresses (sequence ");
-    for (int i=0; i<addresses.size(); i++)
-      try {
-	w.write((String)addresses.get(i) + " ");
-      } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
-    if (addresses.size()>0)
-      w.write(")");
-    if (resolvers.size()>0)
-      w.write(" :resolvers (sequence ");
-    for (int i=0; i<resolvers.size(); i++) { 
-      try {
-	((AID)resolvers.get(i)).toText(w);
-      } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
-      w.write(" ");
-    }
-    if (resolvers.size()>0)
-      w.write(")");
-    Enumeration e = userDefSlots.propertyNames();
-    String tmp;
-    while (e.hasMoreElements()) {
-      tmp = (String)e.nextElement();
-      w.write(" " + tmp + " " + userDefSlots.getProperty(tmp));
-    }
-    w.write(")");
-    w.flush();
+      w.write(toString());
+      w.flush();
   } catch(IOException ioe) {
     ioe.printStackTrace();
   }
-}
-
-  /**
-  * Returns the symbolic name of the agent.
-  */
-  public String toString() {
-    return name;
   }
+
+
 
   /**
   * Clone the AID object.
@@ -321,9 +361,10 @@ public class AID implements Cloneable, Comparable, Serializable {
   }
 
   /**
-  * Returns the local name of the agent (without the HAP)
+  * Returns the local name of the agent (without the HAP).
+  * If the agent is not local, then the method returns its GUID.
   */
-  String getLocalName() {
+  public String getLocalName() {
     int atPos = name.lastIndexOf('@');
     if(atPos == -1)
       return name;
