@@ -426,7 +426,9 @@ class DeliverableDataInputStream extends DataInputStream {
         // User def props must be set one by one
         int size = readInt();
         for (int i=0; i<size; i++) {
-            msg.addUserDefinedParameter(readString(), readString());
+        		String key = (String) readObject();
+        		String val = (String) readObject();
+            msg.addUserDefinedParameter(key, val);
         } 
         msg.setEnvelope((Envelope) readObject());
 	      //#CUSTOM_EXCLUDE_END
