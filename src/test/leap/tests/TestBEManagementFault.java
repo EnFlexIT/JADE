@@ -35,21 +35,19 @@ import test.leap.LEAPTesterAgent;
 
 /**
    Test the recovery capability from a fault of the container hosting
-   back-ends when this role is played by the Main Container. 
+   back-ends when this role is played by a peripheral container
+   through the BEManagementService. 
+   This test works exactly as the TestBackEndFault except for the 
+   fact that the mediator container (and not the main) is killed
+   and then restored.
    @author Giovanni Caire - TILAB
  */
-public class TestBackEndFault extends Test {
-	private static final int BACKUPMAIN_PORT = 1234;
-	
+public class TestBEManagementFault extends Test {
 	private static final String PING_AGENT = "ping";
 	private static final String SENDER_AGENT = "sender";
 	private static final String PING_CONV_ID = "__conv-id__";
 	private static final int N_MESSAGES = 10;
 	
-	private JadeController backupMain;
-	private String masterMainHost;
-	private String backupMainHost;
-	  
 	private String lightContainerName = "Container-1";
 	private AID ping;
 	private AID sender;
@@ -58,21 +56,11 @@ public class TestBackEndFault extends Test {
 	private boolean senderCompleted = false;
 	
   public Behaviour load(Agent a) throws TestException {
-  	if (TestSuiteAgent.mainController == null) {
-  		throw new TestException("This test can only be executed from the JADE TestSuite");
-  	}
-  	 
   	setTimeout(90000);
   	
 		// MIDP container name as group argument
 		lightContainerName = (String) getGroupArgument(LEAPTesterAgent.LIGHT_CONTAINER_KEY);
 
-		// Start a backup main container
-		log("Starting backup main container...");
-		masterMainHost = TestUtility.getContainerHostName(a, TestSuiteAgent.mainController.getContainerName());
-		backupMain = TestUtility.launchJadeInstance("Backup-Main", null, "-backupmain -nomtp -name "+TestSuiteAgent.TEST_PLATFORM_NAME+" -services "+TestSuiteAgent.MAIN_SERVICES+" -local-port "+BACKUPMAIN_PORT+" -host "+masterMainHost+" -port "+Test.DEFAULT_PORT, null);
-		log("Backup main container correctly started");
-  	
 		// Start a PingAgent on the light container
 		log("Creating a PingAgent on the light container...");
 		ping = TestUtility.createAgent(a, PING_AGENT, "test.leap.midp.PingAgent", null, a.getAMS(), lightContainerName);
@@ -122,44 +110,39 @@ public class TestBackEndFault extends Test {
   		}
   	} );
   	
-  	// The behaviour that kills the master main container and then restores it
+  	// The behaviour that kills the mediator container and then restores it
   	SequentialBehaviour sb = new SequentialBehaviour(a);
-  	// Step 1: Kill the master main container after 5 secs
+  	// Step 1: Kill the mediator container after 5 secs
   	sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
   		protected void handleElapsedTimeout() {
-  			log("1) Killing master main container...");
-  			TestSuiteAgent.mainController.kill();
-  			log("Master main container killed.");
+  			log("1) Killing mediator container...");
+  			LEAPTesterAgent.mediatorController.kill();
+  			log("Mediator container killed.");
   		}
   	} );
   	  	
-  	// Step 2: Restore the old main container after 5 more secs.
+  	// Step 2: Restore the mediator container after 5 more secs.
   	sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
   		public void handleElapsedTimeout() {
-				log("2) Restoring old master (now backup) main container ...");
+				log("2) Restoring mediator container ...");
   			try {
-					backupMainHost = TestUtility.getContainerHostName(myAgent, backupMain.getContainerName());
-					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES+" -container-name Main-Container -name "+TestSuiteAgent.TEST_PLATFORM_NAME, null);
-					log("Old master (now backup) main container correctly restored");
+					LEAPTesterAgent.mediatorController = TestUtility.launchJadeInstance("Mediator", null, "-container -local-port "+LEAPTesterAgent.MEDIATOR_LOCAL_PORT+" -services "+LEAPTesterAgent.MEDIATOR_SERVICES, null);
+					log("Mediator container correctly restored. Wait a bit to allow the light container to reconnect...");
   			}
   			catch (Exception e) {
-  				failed("Error restoring old master main container. "+e.getMessage());
+  				failed("Error restoring mediator container. "+e.getMessage());
   				e.printStackTrace();
   			}
   		}
   	} );
   	
-  	// Step 3: Kill the new master main container aftre 20 more secs
-  	// Note that a front-end may take up to 2*reconnection-time (~20 sec) 
-  	// to resynch
+  	// Step 3: Give enough time to the light container to reconnect.
   	sb.addSubBehaviour(new WakerBehaviour(a, 20000) {
   		public void handleElapsedTimeout() {
-  			log("3) Killing new master main container...");
-  			backupMain.kill();
-  			log("New master main container killed.");
+  			// Just do nothing
   		}
   	} );
-	
+  		
   	// Step 4: Ping the PingAgent
   	sb.addSubBehaviour(new Behaviour(a) {
   		private boolean finished = false;
