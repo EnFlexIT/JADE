@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.33  1999/06/04 07:58:23  rimassa
+  Replaced direct AgentPlatformImpl usage with a more restricted
+  AgentManager interface, to tighten jade.core encapsulation.
+
   Revision 1.32  1999/05/20 13:43:18  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -607,7 +611,7 @@ public class ams extends Agent {
   }
 
   // The AgentPlatform where information about agents is stored 
-  private AgentPlatformImpl myPlatform;
+  private AgentManager myPlatform;
 
   // Maintains an association between action names and behaviours
   private FipaRequestResponderBehaviour dispatcher;
@@ -643,7 +647,7 @@ public class ams extends Agent {
      code. Therefore, no other <em>AMS</em> agent can be created
      beyond the default one.
   */
-  public ams(AgentPlatformImpl ap) {
+  public ams(AgentManager ap) {
     myPlatform = ap;
 
     MessageTemplate mt = 
