@@ -1,0 +1,328 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent
+systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+package jade.core.behaviours;
+
+import java.util.*;
+
+import jade.core.Agent;
+
+/**
+   Composite behaviour with non deterministic children scheduling.
+   It is a <code>CompositeBehaviour</code> that executes its children
+   behaviours non deterministically, and it terminates when a
+   particular condition on its sub-behaviours is met. Static
+   <em><b>Factory Methods</b></em> are provided to get a
+   <code>ParallelBehaviour</code> that ends when all its
+   sub-behaviours are done, when any sub-behaviour terminates or when
+   <em>N</em> sub-behaviours have finished.
+
+   
+   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Caire - Telecom Italia Lab
+   @version $Date$ $Revision$
+
+*/
+public class ParallelBehaviour extends CompositeBehaviour {
+
+  public static final int WHEN_ALL = 0;
+  public static final int WHEN_ANY = 1;
+
+  /**
+  @serial
+  */
+  private int whenToStop;
+  private BehaviourList subBehaviours = new BehaviourList();
+  /**
+  @serial
+  */
+  private Hashtable blockedChildren = new Hashtable(); 
+  /**
+  @serial
+  */
+  private BehaviourList terminatedChildren = new BehaviourList();
+
+
+ 
+  /**
+   * Constructor
+   */
+  public ParallelBehaviour(int endCondition) {
+    whenToStop = endCondition;
+  }
+
+  /**
+   * Constructor
+   */
+  public ParallelBehaviour(Agent a, int endCondition) {
+    super(a);
+    whenToStop = endCondition;
+  }
+
+  protected void scheduleFirst() {
+  	// Schedule the first child
+  	subBehaviours.begin();
+  	Behaviour b = subBehaviours.getCurrent();
+  	
+  	// If there are no children just do nothing
+	if (b != null) {
+	  	// If there is at least one runnable child, then schedule 
+		// the first runnable child, else just do nothing.
+		if (blockedChildren.size() < subBehaviours.size()) {
+			while (!b.isRunnable()) {
+				b = subBehaviours.next();
+			}
+		}
+  	}
+  }
+  	
+  /**
+     This method
+     schedules children behaviours one at a time, in a round robin
+     fashion.
+     @see jade.core.behaviours.CompositeBehaviour#scheduleNext()
+  */
+  protected void scheduleNext(boolean currentDone, int currentResult) {
+    // Regardless of whether the current child is terminated, schedule
+  	// the next one;
+    Behaviour b = subBehaviours.next();
+    
+  	// If there are no children just do nothing (this can happen
+    // if there was just one child and someone suddenly removed it)
+	if (b != null) {
+	  	// If there is at least one runnable child, then schedule 
+		// the first runnable child, else just do nothing.
+		if (blockedChildren.size() < subBehaviours.size()) {
+			while (!b.isRunnable()) {
+				b = subBehaviours.next();
+			}
+		}
+  	}
+  }
+
+  protected boolean checkTermination(boolean currentDone, int currentResult) {
+    if(currentDone) {
+    	// If the current child is terminated --> remove it from
+      	// the list of sub-behaviours
+      	Behaviour b = subBehaviours.getCurrent();
+		subBehaviours.removeElement(b);
+		terminatedChildren.addElement(b);
+    }
+
+    if (!evalCondition()) {
+    	// The following check must be done regardless of the fact  
+    	// that the current child is done or not, but provided that 
+    	// this ParallelBehaviour is not terminated
+		if (blockedChildren.size() == subBehaviours.size()) {
+			// If all children are blocked --> this 
+			// ParallelBehaviour must block too and notify upwards
+			myEvent.init(false, NOTIFY_UP);
+			super.handle(myEvent);
+	    }
+	    return false;
+    }
+	else {
+      	return true;
+    }
+  }
+  
+  protected Behaviour getCurrent() {
+  	return subBehaviours.getCurrent();
+  }
+  
+  protected Collection getChildren() {
+	return subBehaviours.values();
+  }
+  	
+  /** 
+   * Add a sub behaviour to this ParallelBehaviour
+   */
+  public void addSubBehaviour(Behaviour b) {
+    subBehaviours.addElement(b);
+    b.setParent(this);
+	
+	if (b.isRunnable()) {
+		// If all previous children were blocked (this Parallel Behaviour 
+		// was blocked too), restart this ParallelBehaviour and notify 
+		// upwords
+		if (!isRunnable()) {
+	  		myEvent.init(true, NOTIFY_UP);
+	  		super.handle(myEvent);
+	  		// Also reset the currentExecuted flag so that a runnable
+	  		// child will be scheduled for execution
+	  		currentExecuted = true;
+		}
+	}
+	else {
+		blockedChildren.put(b, b);
+	}	
+  }
+  
+  /** 
+   * Remove a sub behaviour from this ParallelBehaviour
+   */
+  public void removeSubBehaviour(Behaviour b) {
+    boolean rc = subBehaviours.removeElement(b);
+    if(rc) {
+      b.setParent(null);
+    }
+    else {
+      // The specified behaviour was not found. Do nothing
+    }
+	
+	if (!b.isRunnable()) {
+		blockedChildren.remove(b);
+	}
+	else {
+		// If some children still exist and they are all blocked, 
+		// block this ParallelBehaviour and notify upwords
+		if ((!subBehaviours.isEmpty()) && 
+			(blockedChildren.size() == subBehaviours.size()) ) {
+	  		myEvent.init(false, NOTIFY_UP);
+	  		super.handle(myEvent);
+		}
+	}
+  }
+  
+  /**
+     Resets this behaviour. This methods puts a
+     <code>ParallelBehaviour</code> back in initial state,
+     besides calling <code>reset()</code> on each child behaviour
+     recursively.
+  */
+  public void reset() {
+    blockedChildren.clear();
+
+    terminatedChildren.begin();
+    Behaviour b = terminatedChildren.getCurrent();
+
+    // Restore all terminated sub-behaviours
+    while(b != null) {
+      terminatedChildren.removeElement(b);
+      subBehaviours.addElement(b);
+      b = terminatedChildren.next();
+    }
+    
+    subBehaviours.begin();
+    
+    super.reset();
+
+  }
+
+  /**
+     Handle block/restart notifications. A
+     <code>ParallelBehaviour</code> object is blocked
+     <em>only</em> when all its children behaviours are blocked and
+     becomes ready to run as soon as any of its children is
+     runnable. This method takes care of the various possibilities.
+     @param rce The event to handle.
+  */
+  protected void handle(RunnableChangedEvent rce) {
+    if(rce.isUpwards()) {
+      // Upwards notification
+      Behaviour b = rce.getSource();
+      
+      if (b == this) {
+      	// If the event is from this behaviour, set the new 
+      	// runnable state and notify upwords.
+      	super.handle(rce);
+      }
+      else {
+      	// If the event is from a child -->
+    	if(rce.isRunnable()) {
+    		// If this is a restart, remove the child from the
+    		// list of blocked children
+			Object rc = blockedChildren.remove(b);
+			
+			// Only if all children were blocked (this ParallelBehaviour was
+			// blocked too), restart this ParallelBehaviour and notify upwords
+			if( (rc != null) && !isRunnable() ) {
+	  			myEvent.init(true, NOTIFY_UP);
+	  			super.handle(myEvent);
+	  			// Also reset the currentExecuted flag so that a runnable
+	  			// child will be scheduled for execution
+	  			currentExecuted = true;
+			}
+    	}
+    	else {
+    		// If this is a block, put the child in the list of
+    		// blocked children
+			Object rc = blockedChildren.put(b, b);
+			
+			// Only if, with the addition of this child all sub-behaviours 
+			// are now blocked, block this ParallelBehaviour and notify upwords
+			if ( (rc != null) && (blockedChildren.size() == subBehaviours.size()) ) {
+	  			myEvent.init(false, NOTIFY_UP);
+	  			super.handle(myEvent);
+			}
+    	}
+      } // END of upwords notification from children
+      
+    } // END of upwords notification
+    else {
+      // Downwords notification	(from parent)
+      boolean r = rce.isRunnable();
+	  
+      // Set the new runnable state
+	  setRunnable(r);
+	  // Notify all children
+  	  Iterator it = getChildren().iterator();
+  	  while (it.hasNext()) {
+  	  	Behaviour b = (Behaviour) it.next();
+  		b.handle(rce);
+  	  }
+  	  // Clear or completely fill the list of blocked children 
+  	  // according to whether this is a block or restart
+  	  if (r) {
+  	  	blockedChildren.clear();
+  	  }
+  	  else {
+  	    it = getChildren().iterator();
+  	    while (it.hasNext()) {
+  	  		Behaviour b = (Behaviour) it.next();
+			blockedChildren.put(b, b);
+  	  	}
+  	  }
+    }  // END of downwords notification
+  }
+
+  private boolean evalCondition() {
+
+    boolean cond;
+    switch(whenToStop) {
+    case WHEN_ALL:
+      cond = subBehaviours.isEmpty();
+      break;
+    case WHEN_ANY:
+      cond = (terminatedChildren.size() > 0);
+      break;
+    default:
+      cond = (terminatedChildren.size() >= whenToStop);
+      break;
+    }
+
+    return cond;
+  }
+   
+ 
+}
