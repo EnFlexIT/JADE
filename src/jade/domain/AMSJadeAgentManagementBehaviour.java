@@ -45,6 +45,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.mobility.*;
 
 import jade.core.Location;
 
@@ -160,6 +161,23 @@ class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
 		  	} catch (Exception e) {
 		  		System.out.println(e);
 		  	}
+		} else if (action instanceof MoveAction){
+		    if(action instanceof CloneAction){
+				MobileAgentDescription description = ((CloneAction)action).getMobileAgentDescription(); 
+				AID aName = description.getName();
+				Location dest = description.getDestination();
+				String newName = ((CloneAction)action).getNewName();
+				myAgent.AMSCloneAgent(aName, dest, newName, request.getSender());
+				// res.setContent("FIXME");
+				res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+		    } else {
+				MobileAgentDescription description = ((MoveAction)action).getMobileAgentDescription();
+				AID agentName = description.getName();
+				Location destination = description.getDestination();
+				myAgent.AMSMoveAgent(agentName, destination, request.getSender());
+				//res.setContent("FIXME");
+				res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
+		    }		   
 	   } else {
 			//this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
 			//FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
