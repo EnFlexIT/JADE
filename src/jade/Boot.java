@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.14  1999/02/14 22:57:23  rimassa
+  Put back System.runFinalizersOnExit() call, for now.
+
   Revision 1.13  1999/02/03 09:38:41  rimassa
   Commented out deprecated method call 'System.runFinalizersOnExit(true)'.
   Delegated IIOP platform address creation to AgentPlatform class.
@@ -183,7 +186,7 @@ public class Boot {
     }
 
     // This will run all finalization code when this Java VM ends.
-    // System.runFinalizersOnExit(true);  // DEPRECATED 
+    System.runFinalizersOnExit(true);  // FIXME: Deprecated and deadlock-prone 
 
     try{
 
