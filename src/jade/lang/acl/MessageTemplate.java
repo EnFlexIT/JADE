@@ -461,7 +461,8 @@ public class MessageTemplate implements Serializable {
 
   /**
      @deprecated This <em>Factory Method</em> returns a message template that
-     matches any message with a given message type.
+     matches any message with a given message type.Use <code>matchPerformative</code>
+     instead.
      @param value The value the message slot will be matched against.
      @return A new <code>MessageTemplate</code> matching the given
      value.
