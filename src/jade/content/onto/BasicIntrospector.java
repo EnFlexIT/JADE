@@ -31,6 +31,8 @@ import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.content.onto.basic.*;
 import jade.core.CaseInsensitiveString;
+import jade.core.AID;
+import jade.lang.acl.ACLMessage;
 import java.util.Date;
 
 /**
@@ -88,8 +90,8 @@ class BasicIntrospector implements Introspector {
 							return AbsHelper.externaliseIterator((Iterator) obj, referenceOnto);
 	    			}
 	    
-	    			if(obj instanceof jade.core.AID) {
-							return AbsHelper.externaliseAID((jade.core.AID)obj);
+	    			if(obj instanceof AID) {
+							return AbsHelper.externaliseAID((AID)obj);
 	    			}
 
             if (obj instanceof ContentElementList) {
@@ -125,6 +127,10 @@ class BasicIntrospector implements Introspector {
 	    				AbsAgentAction absAction = new AbsAgentAction(BasicOntology.ACTION);
 	    				((Action) obj).externalise(absAction, referenceOnto);
 	    				return absAction;
+	    			}
+	    			
+	    			if (obj instanceof ACLMessage) {
+							return AbsHelper.externaliseACLMessage((ACLMessage)obj, referenceOnto);
 	    			}
 	    			
             throw new UnknownSchemaException();
@@ -205,6 +211,10 @@ class BasicIntrospector implements Introspector {
 	    				Action a = new Action();
 	    				a.internalise(abs, referenceOnto);
 	    				return a;
+	    			}
+						// ACLMESSAGE
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.ACLMSG)) { 
+							return AbsHelper.internaliseACLMessage((AbsAgentAction) abs, referenceOnto);
 	    			}
 	    			
 	    			throw new UnknownSchemaException();
