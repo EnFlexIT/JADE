@@ -251,6 +251,10 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	}
     }
 
+    public void clearStubAddresses(Stub target) {
+	target.clearTAs();
+    }
+
   /**
    * Sets the transport address of the default router used for the
    * forwarding mechanism.
