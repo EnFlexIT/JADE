@@ -250,6 +250,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 	  		localAgents.clear();
 	  	}
+	  	Logger.println("Local agents terminated");
 	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main

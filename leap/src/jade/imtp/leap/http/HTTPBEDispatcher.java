@@ -102,9 +102,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	
     log("Created HTTPBEDispatcher V2.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
   	
-    jade.util.Logger.println("Start-backend-"+System.currentTimeMillis());
     startBackEndContainer(props);
-    jade.util.Logger.println("Backend-started-"+System.currentTimeMillis());    
   }
   
   protected final void startBackEndContainer(Properties props) throws ICPException {
@@ -355,10 +353,12 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			  				log("Response will never arrive "+sid, 2);
 	  					}
 	  					else {
-		  					// Response Timeout expired
-				  			log("Response timeout expired "+sid, 2);
-				  			frontEndStatus = UNREACHABLE;
-				  			activateTimer();
+	  						if (frontEndStatus != TERMINATED) {
+			  					// Response Timeout expired
+					  			log("Response timeout expired "+sid, 2);
+					  			frontEndStatus = UNREACHABLE;
+					  			activateTimer();
+	  						}
 	  					}
 			  			outCnt--;
 			  			if (outCnt < 0) {outCnt = MAX_SID;}
@@ -468,9 +468,11 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	}
   	
   	private void activateTimer() {
-	  	// Set the disconnection timer
-			disconnectionTimer = new Timer(System.currentTimeMillis()+maxDisconnectionTime, this);
+  		// Set the disconnection timer
+  		long now = System.currentTimeMillis();
+			disconnectionTimer = new Timer(now+maxDisconnectionTime, this);
 			disconnectionTimer = Runtime.instance().getTimerDispatcher().add(disconnectionTimer);
+  		log("Disconnection timer activated.", 2); 
   	}
   	
   	private void resetTimer() {
@@ -482,7 +484,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	
   	public synchronized void doTimeOut(Timer t) {
 	  	if (frontEndStatus != REACHABLE) {
-		  	log("Max disconnection timeout expired", 1);
+		  	log("Max disconnection timeout expired.", 1);
 				// The remote FrontEnd is probably down --> notify up.
 				handleConnectionError();
 	  	}
@@ -496,7 +498,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
-      jade.util.Logger.println(name+": "+s);
+      jade.util.Logger.println(name+"[LVL-"+level+"]["+System.currentTimeMillis()+"]: "+s);
     } 
   }   
 }

@@ -151,7 +151,7 @@ public class JICPServer extends Thread {
 	    } 
 			catch (BindException be) {
 				// The port is still busy. Wait a bit
-				log("Local port still busy. Wait a bit before retrying...", 2);
+				log("Local port "+port+" still busy. Wait a bit before retrying...", 2);
 				waitABit(10000);
 			}					
 			catch (Exception e) {
@@ -171,12 +171,12 @@ public class JICPServer extends Thread {
 				try {
 	  			pause();
 					log("Sending dummy reply to "+addr+":"+port, 2);
-		  		s = new Socket(addr, port, InetAddress.getLocalHost(), 1099);
+		  		s = new Socket(addr, port, InetAddress.getLocalHost(), oldPort);
 				}
 				catch (BindException be) {
 					// The port is still busy. Wait a bit
-					log("Local port still busy. Wait a bit before retrying...", 2);
-					waitABit(10000);
+					log("Local port "+oldPort+" still busy. Wait a bit before retrying...", 2);
+					waitABit(30000);
 				}					
 				catch (Exception e) {
 					log("Dummy reply sent", 2);
@@ -408,7 +408,7 @@ public class JICPServer extends Thread {
       catch (Exception e) {
       	switch (status) {
       	case 0:
-	        log("Communication error reading incoming packet", 1);
+	        log("Communication error reading incoming packet from "+addr+":"+port, 1);
         	e.printStackTrace();
 	        break;
 	      case 1:
@@ -427,16 +427,16 @@ public class JICPServer extends Thread {
 	        }
 	      	break;
 	      case 2:
-	      	log("Communication error writing return packet", 1);
+	      	log("Communication error writing return packet to "+addr+":"+port, 1);
         	e.printStackTrace();
 	      	break;
 	      case 3:
 	      	// This is a re-used connection waiting for the next incoming packet
 	      	if (e instanceof EOFException) {
-	      		log("Client has closed the connection.", 2);
+	      		log("Client "+addr+":"+port+" has closed the connection.", 2);
 	      	}
 	      	else {
-	      		log("Unexpected client termination. "+e.toString(), 1);
+	      		log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 1);
 	      	}
       	}
       } 
@@ -487,7 +487,7 @@ public class JICPServer extends Thread {
   static void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().getName();
-      System.out.println("JICPServer("+name+"): "+s);
+      System.out.println("JICPServer("+name+")[LVL-"+level+"]["+System.currentTimeMillis()+"]: "+s);
     } 
   } 
 
