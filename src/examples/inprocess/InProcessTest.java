@@ -46,6 +46,9 @@ public class InProcessTest {
       // Get a hold on JADE runtime
       Runtime rt = Runtime.instance();
 
+      // Exit the JVM when there are no more containers around
+      rt.setCloseVM(true);
+
       // Check whether a '-container' flag was given
       if(args.length > 0) {
 	if(args[0].equalsIgnoreCase("-container")) {
@@ -58,7 +61,7 @@ public class InProcessTest {
 	  AgentContainer ac = rt.createAgentContainer(p);
 
 	  // Create a new agent, a DummyAgent
-	  Agent dummy = ac.createAgent("inProcess", "jade.tools.DummyAgent.DummyAgent", new String[0]);
+	  Agent dummy = ac.createAgent("inProcess", "jade.tools.DummyAgent.DummyAgent", new Object[0]);
 
 	  // Fire up the agent
 	  System.out.println("Starting up a DummyAgent...");
@@ -75,15 +78,16 @@ public class InProcessTest {
 	  AgentContainer another = rt.createAgentContainer(p);
 
 	  // Launch the Mobile Agent example
-	  Agent mobile = another.createAgent("Johnny", "examples.mobile.MobileAgent", new String[0]);
+	  // and pass it 2 arguments: a String and an object reference
+	  Object[] arguments = new Object[2];
+	  arguments[0] = "Hello World!";
+	  arguments[1]=dummy;
+	  Agent mobile = another.createAgent("Johnny", "examples.mobile.MobileAgent", arguments);
 	  mobile.start();
 
 	  return;
 	}
       }
-
-      // Exit the JVM when there are no more containers around
-      rt.setCloseVM(true);
 
       // Launch a complete platform on the 8888 port
       // create a default Profile 
@@ -99,7 +103,7 @@ public class InProcessTest {
       AgentContainer cont = rt.createAgentContainer(pContainer);
 
       System.out.println("Launching the rma agent on the main container ...");
-      Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new String[0]);
+      Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
     }

@@ -21,14 +21,15 @@
 package jade.core;
 
 /**
- * Class declaration
+ * This class represent a specifier and collects
+ * a name, a className, and an array of arguments.
  * 
  * @author LEAP
  */
 public class Specifier {
     private String   name = null;
     private String   className = null;
-    private String[] args = null;
+    private Object[] args = null;
 
     /**
      * Method declaration
@@ -81,7 +82,7 @@ public class Specifier {
      * 
      * @see
      */
-    public void setArgs(String[] a) {
+    public void setArgs(Object[] a) {
         args = a;
     } 
 
@@ -92,7 +93,7 @@ public class Specifier {
      * 
      * @see
      */
-    public String[] getArgs() {
+    public Object[] getArgs() {
         return args;
     } 
 

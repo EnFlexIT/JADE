@@ -102,9 +102,9 @@ class FullAcc implements acc, InChannel.Dispatcher {
       	Specifier spec = (Specifier) mtps.next();
 				String className = spec.getClassName();
 				String addressURL = null;
-				String[] args = spec.getArgs();
+				Object[] args = spec.getArgs();
 				if (args != null && args.length > 0) {
-					addressURL = args[0];
+					addressURL = args[0].toString();
 					if(addressURL.equals("")) {
 	  				addressURL = null;
 					}

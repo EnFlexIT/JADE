@@ -76,7 +76,7 @@ class StartNewAgentAction extends ContainerAction {
       	  ArrayList argList = new ArrayList();
       	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
 	  Iterator it = Boot.getCommandLineAgentSpecifiers(al);
-	  String[] arg = (it.hasNext()?((Specifier)it.next()).getArgs():new String[0]);
+	  Object[] arg = (it.hasNext()?((Specifier)it.next()).getArgs():new Object[0]);
       	  myRMA.newAgent(agentName, className, arg, container);
       }
     }

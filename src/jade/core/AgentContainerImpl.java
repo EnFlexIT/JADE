@@ -117,12 +117,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   // Interface AgentContainer implementation
 
-  public void createAgent(AID agentID, String className, String[] args, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] args, boolean startIt) throws IMTPException {
 
     Agent agent = null;
     try {
         agent = (Agent)Class.forName(new String(className)).newInstance();
-        agent.setArguments(args);
+	agent.setArguments(args);
     }
     catch(ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");

@@ -45,7 +45,7 @@ public interface AgentContainer {
   static final int ADD_RT = 1;
   static final int DEL_RT = 2;
 
-  void createAgent(AID agentID, String className,String arguments[], boolean startIt) throws IMTPException;
+  void createAgent(AID agentID, String className, Object arguments[], boolean startIt) throws IMTPException;
   void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException;
   byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 

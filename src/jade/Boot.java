@@ -206,7 +206,7 @@ public class Boot {
 		// argument is between brackets.
 		if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
 		    s.setClassName(arg.substring(0, openBracketPos));
-		    String a[] = new String[1];
+		    Object a[] = new Object[1];
 		    a[0] = arg.substring(openBracketPos + 1, closedBracketPos);
 		    s.setArgs(a);
 		} else
@@ -683,7 +683,7 @@ public class Boot {
 			} //5
 			nextArg = (String)args.get(i);
 		    } // 4 
-		    String agentArgs[] = new String[asArgs.size()];
+		    Object agentArgs[] = new Object[asArgs.size()];
 		    for (int i3=0; i3<asArgs.size(); i3++) 
 			agentArgs[i3]=(String)asArgs.get(i3);
 		    as.setArgs(agentArgs);
@@ -797,10 +797,10 @@ private String toAgentString(){
 	Specifier s = (Specifier)i.next();
 	tmp.append(s.getName()+":"+s.getClassName()); 
 	StringBuffer tmp2 = new StringBuffer();
-	String[] args = s.getArgs();
+	Object[] args = s.getArgs();
 	if (args != null) {
 	    for (int ii=0; ii<args.length; ii++) {
-		String argument = escapequote(args[ii]); 
+		String argument = escapequote((String)args[ii]); 
 		int index = argument.indexOf(" ");
 		if (index > 0)
 		    argument= "\""+ argument +"\"";

@@ -325,7 +325,7 @@ public class rma extends ToolAgent {
   /**
    Callback method for platform management <em>GUI</em>.
    */
-  public void newAgent(String agentName, String className, String arg[], String containerName) {
+  public void newAgent(String agentName, String className, Object arg[], String containerName) {
 
     CreateAgent ca = new CreateAgent();
 

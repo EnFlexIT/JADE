@@ -126,7 +126,7 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public void createAgent(AID agentID, String className, String[] arguments, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws IMTPException {
     try {
       adaptee.createAgent(agentID, className, arguments, startIt);
     }

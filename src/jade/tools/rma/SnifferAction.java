@@ -46,7 +46,7 @@ class SnifferAction extends ContainerAction {
    	if(node != null)
    	  	containerName = node.getName();
 
-    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer",new String[0], containerName);
+    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer",new Object[0], containerName);
     progressiveNumber++;
   }
 

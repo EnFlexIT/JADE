@@ -51,7 +51,7 @@ interface AgentContainerRMI extends Remote {
     public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException, IMTPException;
     public void wakeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException;
-    public void createAgent(AID agentID, String className, String[] arguments, boolean startIt) throws RemoteException, IMTPException;
+    public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws RemoteException, IMTPException;
     public void killAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public String installMTP(String address, String className) throws RemoteException, MTPException, IMTPException;
     public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException, IMTPException;

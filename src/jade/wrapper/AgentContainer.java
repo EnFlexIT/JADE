@@ -76,8 +76,35 @@ public class AgentContainer {
      new agent with this array as argument.
      @return A proxy object, allowing to call state-transition forcing
      methods on the real agent instance.
+     @deprecated The array of agent arguments is now <code>Object[]</code>
+     and no more <code>String[]</code>
    */
-  public Agent createAgent(String nickname, String className, String[] args) throws NotFoundException, StaleProxyException {
+  public Agent createAgent(String nickname, String className, String[] sargs) throws NotFoundException, StaleProxyException {
+      Object args[];
+      if (sargs != null) {
+	  args = new Object[sargs.length];
+	  for (int i=0; i<sargs.length; i++)
+	      args[i]=sargs[i];
+      } else
+	  args = new Object[0];
+      return createAgent(nickname, className, args);
+  }
+
+
+
+  /**
+     Creates a new JADE agent, running within this container, 
+     @param nickname A platform-unique nickname for the newly created
+     agent. The agent will be given a FIPA compliant agent identifier
+     using the nickname and the ID of the platform it is running on.
+     @param className The fully qualified name of the class that
+     implements the agent.
+     @param args An object array, containing initialization parameters
+     to pass to the new agent. 
+     @return A proxy object, allowing to call state-transition forcing
+     methods on the real agent instance.
+   */
+  public Agent createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException {
     if(myImpl == null)
       throw new StaleProxyException();
     try {
@@ -100,6 +127,8 @@ public class AgentContainer {
     }
 
   }
+
+
 
   /**
      Shuts down this container, terminating all the agents running within it.

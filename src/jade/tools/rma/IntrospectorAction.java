@@ -52,7 +52,7 @@ import jade.gui.AgentTree;
    	String containerName = new String();
    	if(node != null)
    	  	containerName = node.getName();
-      myRMA.newAgent("Introspector"+progressiveNumber, "jade.tools.introspector.Introspector", new String[0], containerName);
+      myRMA.newAgent("Introspector"+progressiveNumber, "jade.tools.introspector.Introspector", new Object[0], containerName);
       progressiveNumber++;
      }
 

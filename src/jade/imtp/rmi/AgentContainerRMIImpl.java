@@ -93,7 +93,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.disableSniffer(snifferName, notToBeSniffed);
     }
     
-    public void createAgent(AID agentID, String className, String[] arguments, boolean startIt) throws RemoteException, IMTPException {
+    public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws RemoteException, IMTPException {
       impl.createAgent(agentID, className, arguments, startIt);
     }
     
