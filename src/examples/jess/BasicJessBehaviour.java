@@ -83,7 +83,7 @@ Javadoc documentation for the file
  * <a href="http://herzberg.ca.sandia.gov/jess">Jess</a>
  * supports the development of rule-based expert systems.
  * <p>
- * This JADE implementation has been tested only with version 5.1 of JESS.
+ * This JADE implementation has been tested with version 6.0 of JESS.
  * <p>
  * The programmer can override this class.
  * In particular, its methods <code>ACL2JessString</code> and
@@ -166,7 +166,8 @@ public class BasicJessBehaviour extends CyclicBehaviour{
       // Case where JESS calls (send ?m)
 
       if(vv.get(1).type() == RU.VARIABLE)
-        vv =  context.getEngine().findFactByID(vv.get(1).factIDValue(context));
+	  // Uncomment for JESS 5.0 vv =  context.getEngine().findFactByID(vv.get(1).factIDValue(context));
+	  vv =  context.getEngine().findFactByID(vv.get(1).factValue(context).getFactId()); //JESS6.0
 
       //////////////////////////////////
       // Case where JESS calls (send (assert (ACLMessage ...)))
