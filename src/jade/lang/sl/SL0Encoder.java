@@ -113,6 +113,10 @@ class SL0Encoder {
    */
   private boolean isAWord( String s)
   {
+      // This should permit strings of length 0 to be encoded.
+      if( s==null || s.length()==0 )
+          return false; // words must have at least one character
+
       String illegalFirstChar = new String("#0123456789:-?");
      
       if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 )

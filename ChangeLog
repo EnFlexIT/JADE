@@ -20,6 +20,9 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - Modified the class jade.core.AID that now represents only GUID. Some 
   user applications might need to modify the code and call the constructor
   AID(localName, AID.ISLOCALNAME) instead of the old constructor.
+- (see also the HTML page news.html)
+- Tiny fix to the SL0Encoder in order to permit encoding of strings of length 0
+  [Craig Sayers - HP] 
 	
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
