@@ -30,6 +30,7 @@ import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.proto.states.MsgReceiver;
+import jade.util.leap.Iterator;
 
 /**
  *
@@ -193,7 +194,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 			resNotification = prepareResultNotification(request, response); 
 		    }
 		    catch (FailureException fe) {
-			resNotification = fe.getACLMessage();
+		    	resNotification = fe.getACLMessage();
 		    }
 		    ds.put(RESULT_NOTIFICATION_KEY, resNotification);
 		}
@@ -209,19 +210,28 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 		    ACLMessage resNotification = (ACLMessage) ds.get(RESULT_NOTIFICATION_KEY);
 		    if (resNotification != null) {
 			ACLMessage receivedMsg = (ACLMessage) ds.get(REQUEST_KEY);
-			//set the conversationId
+			// Set the conversationId
 			resNotification.setConversationId(receivedMsg.getConversationId());
-			//se the inReplyTo
+			// Set the inReplyTo
 			resNotification.setInReplyTo(receivedMsg.getReplyWith());
-			//set the protocol
+			// Set the protocol
 			resNotification.setProtocol(receivedMsg.getProtocol());
+			// Set the receivers if not yet set
+    	if (!resNotification.getAllReceiver().hasNext()) {
+	    	Iterator it = receivedMsg.getAllReplyTo();
+	    	int r = 0;
+  	  	while (it.hasNext()) {
+    	  	resNotification.addReceiver((AID)it.next());
+    	  	r++;
+    		}
+    		if (r == 0) {
+      		resNotification.addReceiver(receivedMsg.getSender());
+    		}
+    	}
 			myAgent.send(resNotification);
 		    }
 		    
-		    //FIXME: richiamare il reset sulla FSM
 		    AchieveREResponder.this.reset();
-		    // Finally clear the private data store
-		    // ds.clear();
 		}
 	    };
 	b.setDataStore(getDataStore());		
@@ -325,6 +335,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 	registerState(b, PREPARE_RESULT_NOTIFICATION);
 	b.setDataStore(getDataStore());
     }
+    
 }
 	
 		
