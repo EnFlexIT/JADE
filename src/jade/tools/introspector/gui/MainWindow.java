@@ -46,31 +46,29 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
   private Introspector debugger;
   private JSplitPane splitPanel;
-  private JTabbedPane tabPanel;
   private MainBar mainBar;
   private MessagePanel messagePanel;
   private StatePanel statePanel;
   private BehaviourPanel behaviourPanel;
   private MainBarListener list;
+  private int lastDividerLocation;
 
   public MainWindow(Introspector da,String title){
     super(title);
-    debugger=da;
+    debugger = da;
     MessageTableModel mi=new MessageTableModel(new Vector(),"MESSAGE IN");
     MessageTableModel mo=new MessageTableModel(new Vector(),"MESSAGE OUT");
     DefaultTreeModel r=new DefaultTreeModel(new DefaultMutableTreeNode("Behaviours"));
     int s=1;
 
-    list=new MainBarListener(this);
-    mainBar=new MainBar(list);
-    messagePanel=new MessagePanel(mi,mo);
-    statePanel=new StatePanel(list);
-    behaviourPanel=new BehaviourPanel(r);
-    splitPanel=new JSplitPane();
-    tabPanel=new JTabbedPane();
+    list = new MainBarListener(this);
+    mainBar = new MainBar(list);
+    messagePanel = new MessagePanel(mi,mo);
+    statePanel = new StatePanel(list);
+    behaviourPanel = new BehaviourPanel(r);
+    splitPanel = new JSplitPane();
 
     build();
-
 
   }
 
@@ -78,50 +76,57 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
     /*layout*/
     this.getContentPane().setLayout(new BorderLayout());
-    this.getContentPane().add(splitPanel,BorderLayout.CENTER);
+    this.getContentPane().add(splitPanel, BorderLayout.CENTER);
+    this.getContentPane().add(statePanel, BorderLayout.WEST);
 
     splitPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
     splitPanel.setContinuousLayout(true);
 
     this.setBehaviourPanelVisible(true);
-    this.setStatePanelVisible(true);
-    splitPanel.setDividerLocation(90);
-
-
-    tabPanel.add(messagePanel,"Messages");
-    tabPanel.add(statePanel,"State");
-
+    this.setMessagePanelVisible(true);
 
     this.setClosable(false);
     this.setIconifiable(true);
     this.setMaximizable(true);
     this.setResizable(true);
     this.setJMenuBar(mainBar);
-    this.setBounds(35, 35, 450, 300);
+    this.pack();
+    splitPanel.setDividerLocation(getWidth() / 2);
+
   }
 
-  public void setStatePanelVisible(boolean b){
-    if(!b) splitPanel.remove(tabPanel);
-    else splitPanel.add(tabPanel,JSplitPane.TOP);
+  public void setMessagePanelVisible(boolean b){
+    if(!b) {
+      lastDividerLocation = splitPanel.getDividerLocation();
+      splitPanel.remove(messagePanel);
+    }
+    else {
+      splitPanel.add(messagePanel, JSplitPane.TOP);
+      splitPanel.setDividerLocation(lastDividerLocation);
+    }
   }
 
   public void setBehaviourPanelVisible(boolean b){
-    if(!b) splitPanel.remove(behaviourPanel);
+    if(!b) {
+      lastDividerLocation = splitPanel.getDividerLocation();
+      splitPanel.remove(behaviourPanel);
+    }
     else{
-      splitPanel.add(behaviourPanel,JSplitPane.BOTTOM);
-      splitPanel.setDividerLocation(
-          splitPanel.getLastDividerLocation());
+      splitPanel.add(behaviourPanel, JSplitPane.BOTTOM);
+      splitPanel.setDividerLocation(lastDividerLocation);
     }
   }
 
   public MessagePanel getMessagePanel(){
     return messagePanel;
   }
-  public StatePanel getStatePanel(){
-    return statePanel;
-  }
+
   public BehaviourPanel getBehaviourPanel(){
     return behaviourPanel;
+  }
+
+  public StatePanel getStatePanel() {
+    return statePanel;
   }
 
   //inerface InternalFrameListener
