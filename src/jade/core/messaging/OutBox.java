@@ -1,7 +1,5 @@
 package jade.core.messaging;
 
-//#MIDP_EXCLUDE_FILE
-
 import java.util.Hashtable;
 
 import jade.util.leap.List;
