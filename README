@@ -140,8 +140,7 @@ EXAMPLE
 =======
 #first of all set the CLASSPATH to include also jade.zip and the current directory
 # (WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.zip
-rmiregistry     
-        # start the RMI registry on one shell on the host kim.cselt.it
+
 java jade.Boot -name facts -platform -host kim.cselt.it 
         # start the platform on another shell on the same host
 java jade.Boot -name facts -host kim.cselt.it sender1:examples.ex2.AgentSender 
