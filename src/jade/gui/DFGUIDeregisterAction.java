@@ -51,18 +51,18 @@ class DFGUIDeregisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("DEREGISTER");
-		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor ();;
+		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor ();
 	  String df =null;
 	  String name;
 		int kind = gui.kindOfOperation();
-	 
+	  
 	  if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW)
 		{
       // Deregister an agent from the descriptor table		
 			name = gui.getSelectedAgentInTable();
 			if (name != null)
 			{
-				df = gui.myAgent.getName();
+				df = gui.myAgent.getLocalName();
 				try
 				{
 				dfd = gui.myAgent.getDFAgentDsc(name);

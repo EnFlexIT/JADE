@@ -50,10 +50,9 @@ class DFGUISearchAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("SEARCH");
-		//System.out.println("Not yet implemented!");
+	
 		int kind = gui.kindOfOperation();
-		String df = gui.myAgent.getName();
+		String df = gui.myAgent.getLocalName();
 		
 		if (kind == DFGUI.PARENT_VIEW) // search on parent
 		   {

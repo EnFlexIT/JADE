@@ -75,20 +75,7 @@ class DFGUISearchWithConstraintAction extends AbstractAction
 		
 	  Vector out = constraint.viewConstraint(gui.myAgent.getConstraints());
 	  
-	  // print of the constraints: to remove for final version
-	  if (out !=null){
-	  Enumeration el = out.elements();
-		while(el.hasMoreElements())
-		{
-			AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)el.nextElement();
-		  java.io.StringWriter w = new java.io.StringWriter();
-			w.write("( ");
-	    w.write(c.getName() + " " + c.getFn() + " " + c.getArg());
-	    w.write(" )");
-
-		}	
-	  }
-
+	 
 	  if ( out == null)
 	  	// cancel button pressed 
 	  	return;

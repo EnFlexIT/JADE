@@ -999,7 +999,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   public boolean showGui() {
    if (gui == null) 
   		{
-			gui = new DFGUI((GUI2DFCommunicatorInterface)df.this, false,null);
+			gui = new DFGUI((GUI2DFCommunicatorInterface)df.this, false);
 			gui.refresh();
 			
 			gui.setVisible(true);

@@ -54,7 +54,7 @@ class DFGUIRegisterAction extends AbstractAction
 		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
 		if (editedDfd != null)
 		{
-			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getName(), editedDfd);
+			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
 		}
 	}
 }
