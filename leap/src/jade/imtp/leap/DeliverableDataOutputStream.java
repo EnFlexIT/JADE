@@ -169,6 +169,10 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.NODE_ID);
                     serializeNode((Node) o);
                 }
+                else if (o instanceof PlatformManager) {         // PlatformManager
+                    writeByte(Serializer.PLATFORMMANAGER_ID);
+                    serializePlatformManager((PlatformManager) o);
+                }
                 else if (o instanceof Node[]) {                  // Array of Node
                     writeByte(Serializer.NODEARRAY_ID);
                     serializeNodeArray((Node[]) o);
@@ -200,6 +204,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
                 else if (o instanceof ReceivedObject) {          // ReceivedObject
                     writeByte(Serializer.RECEIVEDOBJECT_ID);
                     serializeReceivedObject((ReceivedObject) o);
+                }
+                else if (o instanceof ServiceDescriptor) {       // ServiceDescriptor
+                    writeByte(Serializer.SERVICEDESCRIPTOR_ID);
+                    serializeServiceDescriptor((ServiceDescriptor) o);
+                }
+                else if (o instanceof Service.SliceProxy) {      // SliceProxy
+                    writeByte(Serializer.SLICEPROXY_ID);
+                    serializeSliceProxy((Service.SliceProxy) o);
                 }
                 else if (o instanceof DummyCertificate) {        // DummyCertificate
                     writeByte(Serializer.DUMMYCERTIFICATE_ID);
@@ -669,9 +681,35 @@ class DeliverableDataOutputStream extends DataOutputStream {
         }
     }
 
+    /**
+     */
+    private void serializeServiceDescriptor(ServiceDescriptor dsc) throws LEAPSerializationException {
+        try {
+        	writeUTF(dsc.getName());
+        	Service svc = dsc.getService();
+          writeUTF(svc.getClass().getName());
+        }
+        catch (IOException ioe) {
+          throw new LEAPSerializationException("Error serializing ServiceDescriptor");
+        }
+    }
+
+    /**
+     */
+    private void serializeSliceProxy(Service.SliceProxy proxy) throws LEAPSerializationException {
+        try {
+            writeUTF(proxy.getClass().getName());
+            writeNode(proxy.getNode());
+        }
+        catch (Throwable t) {
+            throw new LEAPSerializationException("Error serializing SliceProxy");
+        }
+    }
+
     private void serializeNode(Node n) throws LEAPSerializationException {
 	try {
 	    writeString(n.getName());
+	    writeBoolean(n.hasPlatformManager());
 
 	    NodeStub stub = null;
 	    if (n instanceof NodeStub) {
@@ -682,10 +720,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
 		    // This is a real node --> get a stub and serialize it
 	    	stub = (NodeStub) myStubHelper.buildLocalStub(n);
 	    }
-	    //writeByte(Serializer.NODESTUB_ID);
-	    serializeNodeStub(stub);
+	    serializeStub(stub);
+	}
+	catch(IOException ioe) {
+		ioe.printStackTrace();
+	    throw new LEAPSerializationException("Error building a Node stub");
 	}
 	catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
 	    throw new LEAPSerializationException("Error building a Node stub");
 	}
     }
@@ -705,20 +747,38 @@ class DeliverableDataOutputStream extends DataOutputStream {
         } 
     }
 
-    private void serializeNodeStub(NodeStub ns) throws LEAPSerializationException {
+    private void serializePlatformManager(PlatformManager pm) throws LEAPSerializationException {
 	try {
-	    // Write the remote ID, uniquely identifying this node
-	    writeInt(ns.remoteID);
+	    writeString(pm.getLocalAddress());
+
+	    PlatformManagerStub stub = null;
+	    if (pm instanceof PlatformManagerStub) {
+	    	// This is already a stub --> serialize it directly
+	    	stub = (PlatformManagerStub) pm;
+	    }
+	    else {
+		    // This is a real PlatformManager --> get a stub and serialize it
+	    	stub = (PlatformManagerStub) myStubHelper.buildLocalStub(pm);
+	    }
+	    serializeStub(stub);
+	}
+	catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
+	    throw new LEAPSerializationException("Error building a PlatformManager stub");
+	}
+    }
+
+    private void serializeStub(Stub stub) throws LEAPSerializationException {
+	try {
+			writeUTF(stub.getClass().getName());
+	    // Write the remote ID, uniquely identifying the remotized object this stub points to
+	    writeInt(stub.remoteID);
 
 	    // Write all the transport addresses
-	    int sz = ns.remoteTAs.size();
-	    writeInt(sz);
-	    for(int i = 0; i < sz; i++) {
-		writeObject(ns.remoteTAs.get(i));
-	    }
+	    serializeArrayList((ArrayList) stub.remoteTAs);
 	}
 	catch(IOException ioe) {
-	    throw new LEAPSerializationException("I/O Error during Node stub serialization");
+	    throw new LEAPSerializationException("I/O Error during stub serialization");
 	}
     }
 

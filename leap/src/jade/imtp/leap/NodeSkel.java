@@ -26,9 +26,7 @@ package jade.imtp.leap;
 
 import jade.core.Node;
 import jade.core.HorizontalCommand;
-import jade.core.Service;
-import jade.core.ServiceException;
-import jade.core.IMTPException;
+import jade.core.PlatformManager;
 
 /**
    This calss implements a skeleton to a local LEAP Node.
@@ -70,6 +68,14 @@ class NodeSkel extends Skeleton {
 			} 
 			case Command.INTERRUPT_NODE: {
 		    myNode.interrupt();
+		    command.reset(Command.OK);
+		    break;
+			}
+			case Command.PLATFORM_MANAGER_DEAD: {
+		    String deadPMAddress = (String) command.getParamAt(0);
+		    String notifyingPMAddress = (String) command.getParamAt(1);
+		    myNode.platformManagerDead(deadPMAddress, notifyingPMAddress);
+	
 		    command.reset(Command.OK);
 		    break;
 			}

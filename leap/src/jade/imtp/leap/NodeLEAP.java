@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
+import jade.core.IMTPManager;
 import jade.core.BaseNode;
 import jade.core.Service;
 import jade.core.HorizontalCommand;
@@ -41,9 +42,9 @@ class NodeLEAP extends BaseNode {
     // detect node failures.
     private Object terminationLock = new Object();
     private boolean terminating = false;
-
-    public NodeLEAP(String name, boolean hasSM) {
-			super(name, hasSM);
+    
+    public NodeLEAP(String name, boolean hasPM) {
+			super(name, hasPM);
     }
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
@@ -75,6 +76,7 @@ class NodeLEAP extends BaseNode {
 			notifyTermination();
     }
 
+    
     private void waitTermination() {
 			synchronized(terminationLock) {
 		    try {

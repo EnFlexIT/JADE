@@ -37,7 +37,7 @@
 package jade.imtp.leap;
 
 
-import jade.core.ServiceManager;
+import jade.core.PlatformManager;
 import jade.core.Node;
 import jade.core.IMTPException;
 import jade.core.Profile;
@@ -132,11 +132,11 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    */
   protected List      urls = new ArrayList();
 
-    /**
-       The stub for the platform service manager. This stub will be
-       shared by all nodes within this Java virtual Machine.
-    */
-    private ServiceManagerStub theSvcMgrStub = null;
+  /**
+     The stub for the platform service manager. This stub will be
+     shared by all nodes within this Java virtual Machine.
+  */
+  private PlatformManager thePlatformManager = null;
 
 
   /**
@@ -212,31 +212,36 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     nextID = 1;
   }
 
-    public synchronized ServiceManagerStub getServiceManagerStub(Profile p) throws IMTPException {
-	if(theSvcMgrStub == null) {
+    synchronized PlatformManager getPlatformManagerProxy(Profile p) throws IMTPException {
+	if(thePlatformManager == null) {
 
-	  theSvcMgrStub = new ServiceManagerStub();
+	  PlatformManagerStub stub = new PlatformManagerStub();
 	  TransportAddress mainTA = initMainTA(p);
-	  theSvcMgrStub.bind(this);
-	  theSvcMgrStub.addTA(mainTA);
+	  stub.bind(this);
+	  stub.addTA(mainTA);
+	  thePlatformManager = stub;
 	}
 
-	return theSvcMgrStub;
+	return thePlatformManager;
+    }
+    
+    synchronized void setPlatformManagerProxy(PlatformManager pm) {
+    	thePlatformManager = pm;
     }
 
-    public ServiceManagerStub getServiceManagerStub(String addr) throws IMTPException {
+    public PlatformManager getPlatformManagerStub(String addr) throws IMTPException {
 
 	// Try to translate the address into a TransportAddress
 	// using a protocol supported by this CommandDispatcher
 	try {
-	    ServiceManagerStub stub = new ServiceManagerStub();
+	    PlatformManagerStub stub = new PlatformManagerStub();
 	    TransportAddress ta = stringToAddr(addr);
 	    stub.bind(this);
 	    stub.addTA(ta);
 	    return stub;
 	}
 	catch (DispatcherException de) {
-	    throw new IMTPException("Invalid address for a Service Manager", de);
+	    throw new IMTPException("Invalid address for a Platform Manager", de);
 	}
 	
     }
@@ -382,7 +387,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     catch (UnreachableException ue) {
       // Direct dispatching failed --> Try through the router
       // DEBUG
-      // System.out.println("Dispatch command through router");
+      //System.out.println("Dispatch command through router");
       responsePayload = dispatchThroughRouter(destTAs, commandPayload, origin);
 
       // Runtime.instance().gc(24);
@@ -433,7 +438,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         //TransportAddress ta = (TransportAddress)destTAs.get(i);
         //System.out.println("Sending command to " + ta.getProto() + "://" + ta.getHost() + ":" + ta.getPort() + " failed [" + ue.getMessage() + "]");
         //if (i < destTAs.size() - 1)
-        // System.out.println("Try next address");
+        //  System.out.println("Try next address");
       } 
     } 
 
@@ -631,6 +636,15 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     } 
   } 
 
+  TransportProtocol getProtocol(String protoName) {
+    List list = (List) icps.get(protoName.toLowerCase());
+    if (list != null && list.size() > 0) {
+    	ICP icp = (ICP) list.get(0);
+    	return icp.getProtocol();
+    }
+    return null;
+  }
+  	
   /**
    * Returns the ID of the specified remotized object.
    * 
@@ -710,28 +724,18 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    */
   public void registerSkeleton(Skeleton skeleton, Object remotizedObject) {
   	Integer id = null;
-  	if(remotizedObject instanceof ServiceManager) {
+  	if(remotizedObject instanceof PlatformManager) {
 	    synchronized(this) {
-		id = new Integer(0);
-		name = "Service-Manager";
-
-		// Since we're exporting a local Service Manager, we
-		// make the SM stub point to the local SM, using our
-		// local transport addresses
-		theSvcMgrStub = new ServiceManagerStub();
-		theSvcMgrStub.bind(this);
-		Iterator it = addresses.iterator();
-		while(it.hasNext()) {
-		    TransportAddress ta = (TransportAddress)it.next();
-		    theSvcMgrStub.addTA(ta);
-		}
+				id = new Integer(0);
+				name = "Service-Manager";
+				thePlatformManager = (PlatformManager) remotizedObject;
 	    }
   	}
   	else {
 	    id = new Integer(nextID++);
   	}
-	skeletons.put(id, skeleton);
-	ids.put(remotizedObject, id);
+		skeletons.put(id, skeleton);
+		ids.put(remotizedObject, id);
   }
 
   /**
@@ -758,15 +762,18 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     if (remotizedObject instanceof Node) {
 	    stub = new NodeStub(getID(remotizedObject));
-
-	    // Add the local addresses.
-	    Iterator it = addresses.iterator();
-	    while (it.hasNext()) {
-				stub.addTA((TransportAddress) it.next());
-	    }
+    }
+    else if (remotizedObject instanceof PlatformManager) {
+	    stub = new PlatformManagerStub();
     }
     else {
       throw new IMTPException("can't create a stub for object "+remotizedObject+".");
+    }
+    
+    // Add the local addresses.
+    Iterator it = addresses.iterator();
+    while (it.hasNext()) {
+			stub.addTA((TransportAddress) it.next());
     }
 
     return stub;

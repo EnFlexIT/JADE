@@ -104,14 +104,16 @@ class Stub {
       // Check if it is one of the expected exceptions.
       String exceptionName = (String) result.getParamAt(0);
 
-      for (int i = 0; i < expectedExceptions.length; ++i) {
-        // FIXME: This check does not work for extended exceptions
-        if (exceptionName.equals(expectedExceptions[i])) {
-
-          // Return the index of the expected exception (first index is 1)
-          return i+1;
-        } 
-      } 
+      if (expectedExceptions != null) {
+	      for (int i = 0; i < expectedExceptions.length; ++i) {
+	        // FIXME: This check does not work for extended exceptions
+	        if (exceptionName.equals(expectedExceptions[i])) {
+	
+	          // Return the index of the expected exception (first index is 1)
+	          return i+1;
+	        } 
+	      }
+      }
 
       // The exception thrown is not among the expected exceptions -->
       // Print a notification and throw IMTPException

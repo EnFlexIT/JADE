@@ -72,7 +72,7 @@ public class FrontEndSkel extends MicroSkeleton {
   			myFrontEnd.exit(((Boolean) c.getParamAt(0)).booleanValue());
 	  		break;
 	  	case SYNCH:
-  			myFrontEnd.exit(((Boolean) c.getParamAt(0)).booleanValue());
+  			myFrontEnd.synch();
 	  		break;
 	  	default:
 	  		throw new IMTPException("Unsupported command "+c.getCode());

@@ -75,6 +75,9 @@ interface Serializer {
     static final byte THROWABLE_ID = 29;
     static final byte PROPERTY_ID = 30;
     static final byte SERIALIZABLE_ID = 31;
+    static final byte SERVICEDESCRIPTOR_ID = 32;
+    static final byte SLICEPROXY_ID = 33;
+    static final byte PLATFORMMANAGER_ID = 34;
 
     /**
      * This method serializes an object according to the LEAP

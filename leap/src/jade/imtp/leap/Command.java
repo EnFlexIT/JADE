@@ -75,6 +75,7 @@ public class Command {
   public static final int SERVICE_MANAGER_ADOPT = 13;
   public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
   public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
+  public static final int PLATFORM_MANAGER_DEAD = 16;
 
   public static final int        OK = 1;
   public static final int        ERROR = 2;

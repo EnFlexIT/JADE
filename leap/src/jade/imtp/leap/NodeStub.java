@@ -32,6 +32,7 @@ import jade.core.*;
  */
 class NodeStub extends Stub implements Node {
 	private String name;
+	private boolean hasPM = false;
 	
   public NodeStub() {
 		super();
@@ -49,8 +50,12 @@ class NodeStub extends Stub implements Node {
   	return name;
   }
   
-  public boolean hasServiceManager() {
-  	return false;
+  public boolean hasPlatformManager() {
+  	return hasPM;
+  }
+  
+  void setPlatformManager(boolean b) {
+  	hasPM = b;
   }
 
   public void exportSlice(String serviceName, Service.Slice localSlice) {
@@ -84,22 +89,6 @@ class NodeStub extends Stub implements Node {
 		catch (UnreachableException ue) {
 	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
 		}
-  }
-
-  /**
-     Serves an incoming horizontal command. This should never
-     happen since this is a stub --> throw an exception.
-  */
-  public Object serve(HorizontalCommand cmd) throws ServiceException {
-  	throw new ServiceException("Trying to make a node stub serve an horizontal command");
-  }
-  
-  /**
-     Serves an incoming vertical command, locally. This should never
-     happen since this is a stub --> throw an exception.
-  */
-  public Object serve(VerticalCommand cmd) throws ServiceException {
-  	throw new ServiceException("Trying to make a node stub serve a vertical command");
   }
 
   /**
@@ -151,6 +140,23 @@ class NodeStub extends Stub implements Node {
 
   public void exit() throws IMTPException {
 		Command cmd = new Command(Command.EXIT_NODE, remoteID);
+
+		try {
+		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+		    checkResult(result, new String[] { });
+		}
+		catch (DispatcherException de) {
+		    throw new IMTPException(DISP_ERROR_MSG, de);
+		}
+		catch (UnreachableException ue) {
+		    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+		}
+  }
+  
+  public void platformManagerDead(String deadPMAddress, String notifyingPMAddress) throws IMTPException {
+		Command cmd = new Command(Command.PLATFORM_MANAGER_DEAD, remoteID);
+		cmd.addParam(deadPMAddress);
+		cmd.addParam(notifyingPMAddress);
 
 		try {
 		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);

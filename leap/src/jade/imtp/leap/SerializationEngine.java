@@ -69,8 +69,9 @@ class SerializationEngine {
 
 	final static Command deserialize(byte[] data) throws LEAPSerializationException {
   	DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
-    try {
-      Command cmd = new Command((int) dis.readByte());
+    try { 
+    	int type = (int) dis.readByte();
+      Command cmd = new Command(type);
       int paramCnt = (int) dis.readByte();
       for (int i = 0; i < paramCnt; ++i) {
         cmd.addParam(deserializeObject(dis));

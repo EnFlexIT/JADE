@@ -66,12 +66,11 @@ public class LEAPIMTPManager implements IMTPManager {
   /**
    * The Profile holding the configuration for this IMTPManager
    */
-  private Profile           theProfile = null;
+  private Profile theProfile = null;
 
-  private String originalSMAddr;
-  private String localSMAddr;
-  private BaseServiceManagerProxy myServiceManagerProxy;
-  private Map remoteServiceManagers;
+  private String masterPMAddr;
+  private String localAddr;
+  
   private NodeLEAP localNode;
 
   /**
@@ -79,7 +78,6 @@ public class LEAPIMTPManager implements IMTPManager {
    * LEAPIMTPManager object
    */
   public LEAPIMTPManager() {
-      remoteServiceManagers = new HashMap();
   }
 
   // ////////////////////////////////
@@ -89,19 +87,17 @@ public class LEAPIMTPManager implements IMTPManager {
   /**
    * Initialize the support for intra-platform communication
    */
-  public void initialize(Profile p, CommandProcessor cp) throws IMTPException {
+  public void initialize(Profile p) throws IMTPException {
     theProfile = p;
 
+    // Get the singleton CommandDispatcher
     if (!CommandDispatcher.create(theProfile)) {
       throw new IMTPException("wrong type of command dispatcher!");
     } 
-
-    // Get the singleton CommandDispatcher
     theDispatcher = CommandDispatcher.getDispatcher();
 
     // Add to the CommandDispatcher the ICPs specified in the Profile
     try {
-
     	// Set defaults if not explicitly set. 
     	setDefaults();
     	
@@ -122,8 +118,7 @@ public class LEAPIMTPManager implements IMTPManager {
       }
 
       // Initialize the local node
-      localNode = new NodeLEAP("No-Name", theProfile.getParameter(Profile.MAIN, true));
-      localNode.setCommandProcessor(cp);
+      localNode = new NodeLEAP("No-Name", theProfile.getBooleanProperty(Profile.MAIN, true));
       Skeleton skel = new NodeSkel(localNode);
       theDispatcher.registerSkeleton(skel, localNode);
     }
@@ -140,6 +135,7 @@ public class LEAPIMTPManager implements IMTPManager {
       throw new IMTPException("No ICP active");
     } 
     else {
+    	localAddr = (String) URLs.get(0);
       Iterator it = URLs.iterator();
 
       Logger.println("Listening for intra-platform commands on address:");
@@ -149,412 +145,89 @@ public class LEAPIMTPManager implements IMTPManager {
       }
     }
 
+    // Be sure the mainURL uses the host address. Note that this must
+    // be done after ICP installation
+    adjustMainURL();
+
+    // Get the address of the master PlatformManager (if this is a backup main)
+    if (theProfile.getBooleanProperty(Profile.MAIN, true)) {
+    	if (theProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false)) {
+	    	// This node hosts a real PlatformManager that is NOT the master PlatformManager
+				// --> MAIN_URL points to the master PlatformManager
+	    	masterPMAddr = theProfile.getParameter(MAIN_URL, null);
+    	}
+    }
+    	    
     // Finally, if a URL for the default router is specified in the
     // Profile, set it in the CommandDispatcher
     theDispatcher.setRouterAddress(theProfile.getParameter(ROUTER_URL, null));
-
-    String mainURL = theProfile.getParameter(MAIN_URL, null);
-    if(theProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, false)) {
-
-	String localHost = theProfile.getParameter(Profile.LOCAL_HOST, null);
-	String localPort = theProfile.getParameter(Profile.LOCAL_PORT, null);
-
-	// Attach to the pre-existing ServiceManager...
-	addServiceManagerAddress(mainURL);
-	originalSMAddr = mainURL;
-	localSMAddr = theProfile.getParameter(Profile.MAIN_PROTO, "jicp") + "://" + localHost + ":" + localPort;
-    }
-    else {
-	localSMAddr = mainURL;
-    }
-
   }
 
-  public void addServiceManagerAddress(String addr) throws IMTPException {
-
-      try {
-	  ServiceManagerStub sm = theDispatcher.getServiceManagerStub(addr);
-	  synchronized(remoteServiceManagers) {
-	      remoteServiceManagers.put(addr, sm);
-	  }
-      }
-      catch(Exception e) {
-	  throw new IMTPException("Error in contacting newly added Service Manager address", e);
-      }
-
+  private void adjustMainURL() {
+  	//#MIDP_EXCLUDE_BEGIN
+  	try {
+	  	String mainURL = theProfile.getParameter(MAIN_URL, null);
+	  	TransportAddress ta = theDispatcher.stringToAddr(mainURL);
+	  	java.net.InetAddress ad = java.net.InetAddress.getByName(ta.getHost());
+	  	TransportProtocol tp = theDispatcher.getProtocol(ta.getProto());
+	  	String hostAddr = ad.getHostAddress();
+	  	if (hostAddr.equals("127.0.0.1")) {
+	  		hostAddr = ad.getHostName();
+	  	}
+	  	ta = tp.buildAddress(hostAddr, ta.getPort(), ta.getFile(), ta.getAnchor());
+	  	// DEBUG
+	  	//System.out.println("MAIN URL set to "+tp.addrToString(ta));
+	  	theProfile.setParameter(MAIN_URL, tp.addrToString(ta));
+  	}
+  	catch (Exception e) {
+  		// Ignore it
+  	}
+  	//#MIDP_EXCLUDE_END
   }
-
-  public void removeServiceManagerAddress(String addr) throws IMTPException {
-      synchronized(remoteServiceManagers) {
-	  remoteServiceManagers.remove(addr);
-      }
-  }
-
-  public String[] getServiceManagerAddresses() throws IMTPException {
-      synchronized(remoteServiceManagers) {
-
-	  Object[] objs = remoteServiceManagers.keySet().toArray();
-	  String[] result = new String[objs.length];
-
-	  for(int i = 0; i < result.length; i++) {
-	      result[i] = (String)objs[i];
-	  }
-
-	  return result;
-      }
-  }
-
-  public ServiceManagerStub getRemoteServiceManager(String addr) {
-      synchronized(remoteServiceManagers) {
-	  return (ServiceManagerStub)remoteServiceManagers.get(addr);
-      }
-  }
-
-  public ServiceManagerStub lookupRemoteServiceManager(String addr) throws IMTPException {
-      ServiceManagerStub result = getRemoteServiceManager(addr);
-      if(result == null) {
-	  result = theDispatcher.getServiceManagerStub(addr);	  
-      }
-
-      return result;
-  }
-
-  public void nodeAdded(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, int nodeCnt, int mainCnt) throws IMTPException {
-
-      // Fill a String array with the class names
-      String[] svcInterfacesNames = new String[svcInterfaces.length];
-      for(int i = 0; i < svcInterfaces.length; i++) {
-	  svcInterfacesNames[i] = svcInterfaces[i].getName();
-      }
-
-      synchronized(remoteServiceManagers) {
-	  Iterator it = remoteServiceManagers.values().iterator();
-	  while(it.hasNext()) {
-	      try {
-		  ServiceManagerStub sm = (ServiceManagerStub)it.next();
-		  sm.updateCounters(nodeCnt, mainCnt);
-		  sm.addNode(desc, svcNames, svcInterfacesNames, false);
-	      }
-	      catch(Exception e) {
-		  e.printStackTrace();
-	      }
-	  }
-      }
-
-  }
-
-  public void nodeRemoved(NodeDescriptor desc) throws IMTPException {
-      synchronized(remoteServiceManagers) {
-	  Iterator it = remoteServiceManagers.keySet().iterator();
-	  Object[] keys = remoteServiceManagers.keySet().toArray();
-	  for(int i = 0; i < keys.length; i++) {
-	      String smAddr = (String)keys[i];
-	      try {
-		  ServiceManagerStub sm = (ServiceManagerStub)remoteServiceManagers.get(smAddr);
-		  sm.removeNode(desc, false);
-	      }
-	      catch(IMTPException imtpe) {
-		  // The removed node is the one hosting this Service Manager replica...
-		  removeServiceManagerAddress(smAddr);
-	      }
-	      catch(Exception e) {
-		  e.printStackTrace();
-	      }
-	  }
-      }
-  }
-
-  public void serviceActivated(String svcName, Class svcItf, Node where) throws IMTPException {
-
-      synchronized(remoteServiceManagers) {
-	  Iterator it = remoteServiceManagers.values().iterator();
-	  while(it.hasNext()) {
-	      try {
-		  ServiceManagerStub sm = (ServiceManagerStub)it.next();
-		  sm.activateService(svcName, svcItf, new NodeDescriptor(where.getName(), where), false);
-	      }
-	      catch(Exception e) {
-		  e.printStackTrace();
-	      }
-	  }
-      }
-  }
-
-  public void serviceDeactivated(String svcName, Node where) throws IMTPException {
-      synchronized(remoteServiceManagers) {
-	  Iterator it = remoteServiceManagers.values().iterator();
-	  while(it.hasNext()) {
-	      try {
-		  ServiceManagerStub sm = (ServiceManagerStub)it.next();
-		  sm.deactivateService(svcName, new NodeDescriptor(where.getName(), where), false);
-	      }
-	      catch(Exception e) {
-		  e.printStackTrace();
-	      }
-	  }
-      }
-  }
-
-  public void connect(ContainerID id) throws IMTPException {
-      String containerName = id.getName();
-      localNode.setName(containerName);
-  }
-
-  public void disconnect(ContainerID id) throws IMTPException {
-      // Simply exit the local node...
-      localNode.exit();
-      theDispatcher.deregisterSkeleton(localNode);
-  }
-
+	  	
   public Node getLocalNode() throws IMTPException {
       return localNode;
   }
 
-  public void exportServiceManager(ServiceManager mgr) throws IMTPException {
-      //#MIDP_EXCLUDE_BEGIN
-      ServiceManagerImpl smImpl = (ServiceManagerImpl)mgr;
-      Skeleton skel = new ServiceManagerSkel(smImpl, this);
-      smImpl.setLocalAddress(localSMAddr);
+  //#MIDP_EXCLUDE_BEGIN
+  public void exportPlatformManager(PlatformManager mgr) throws IMTPException {
+      Skeleton skel = new PlatformManagerSkel(mgr, this);
+      mgr.setLocalAddress(localAddr);
       theDispatcher.registerSkeleton(skel, mgr);
 
-      // Attach to the original Service manager, if any
-      if(originalSMAddr != null) {
-	  ServiceManagerStub originalSM = getRemoteServiceManager(originalSMAddr);
-
-	  if(originalSM != null) {
-	      String[] smAddresses = originalSM.addReplica(localSMAddr);
-
-	      // Copy the addresses for all the other replicas
-	      for(int i = 0; i < smAddresses.length; i++) {
-		  addServiceManagerAddress(smAddresses[i]);
-	      }
-	  }
-      }
-
-      //#MIDP_EXCLUDE_END
-  }
-
-  public void unexportServiceManager(ServiceManager sm) throws IMTPException {
-      //#MIDP_EXCLUDE_BEGIN
-      if(sm instanceof ServiceManagerImpl) {
-	  theDispatcher.deregisterSkeleton(sm);
-      }
-      //#MIDP_EXCLUDE_END
-  }
-
-  public ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException {
-      try {
-
-	  // Look up the actual remote object in the LEAP profile
-	  final ServiceManagerStub remoteSvcMgr = theDispatcher.getServiceManagerStub(theProfile);
-
-	  myServiceManagerProxy = new BaseServiceManagerProxy(this, proc) {
-
-	      public String getLocalAddress() throws IMTPException {
-		  List addrs = theDispatcher.getLocalURLs();
-		  if((addrs == null) || (addrs.size() == 0)) {
-		      return null;
-		  }
-		  else {
-		      return (String)addrs.get(0);
-		  }
-	      }
-
-	      public String getPlatformName() throws IMTPException {
-		  try {
-		      return remoteSvcMgr.getPlatformName();
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      return remoteSvcMgr.getPlatformName();
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected String addRemoteNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
-		  String[] svcNames = new String[services.length];
-		  String[] svcInterfaces = new String[services.length];
-
-		  // Fill the parameter arrays
-		  for(int i = 0; i < services.length; i++) {
-		      svcNames[i] = services[i].getName();
-		      svcInterfaces[i] = services[i].getService().getHorizontalInterface().getName();
-		  }
-
-		  // Now register this node and all its services with the Service Manager
-		  try {
-		      return remoteSvcMgr.addNode(desc, svcNames, svcInterfaces, true);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      return remoteSvcMgr.addNode(desc, svcNames, svcInterfaces, true);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected void removeRemoteNode(NodeDescriptor desc) throws IMTPException, ServiceException {
-		  // First, deregister this node with the service manager
-		  try {
-		      remoteSvcMgr.removeNode(desc, true);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      remoteSvcMgr.removeNode(desc, true);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected void addRemoteSlice(String svcName, Class itf, NodeDescriptor where) throws IMTPException, ServiceException {
-		  try {
-		      remoteSvcMgr.activateService(svcName, itf, where, true);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      remoteSvcMgr.activateService(svcName, itf, where, true);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected void removeRemoteSlice(String svcName, NodeDescriptor where) throws IMTPException, ServiceException {
-		  try {
-		      remoteSvcMgr.deactivateService(svcName, where, true);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      remoteSvcMgr.deactivateService(svcName, where, true);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected Node findSliceNode(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
-		  try {
-		      return remoteSvcMgr.findSliceNode(serviceKey, sliceKey);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      return remoteSvcMgr.findSliceNode(serviceKey, sliceKey);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      protected Node[] findAllNodes(String serviceKey) throws IMTPException, ServiceException {
-		  try {
-		      return remoteSvcMgr.findAllNodes(serviceKey);
-		  }
-		  catch(IMTPException imtpe) {
-		      while(reconnect()) {
-			  try {
-			      return remoteSvcMgr.findAllNodes(serviceKey);
-			  }
-			  catch(IMTPException imtpe2) {
-			      // Store it and just try reconnecting again...
-			      imtpe = imtpe2;
-			  }
-		      }
-
-		      throw imtpe;
-		  }
-	      }
-
-	      // Try to connect once again
-	      private boolean reconnect() throws IMTPException {
-
-		  String[] addrs = getAddresses();
-		  for(int i = 0; i < addrs.length; i++) {
-		      try {
-			  theDispatcher.clearStubAddresses(remoteSvcMgr);
-			  theDispatcher.addAddressToStub(remoteSvcMgr, addrs[i]);
-
-			  remoteSvcMgr.adopt(localNode);
-			  return true;
-		      }
-		      catch(Exception e) {
-			  // Ignore it and try the next address...
-		      }
-		  }
-
-		  return false;
-	      }
-
-	  };
-
-	  // Add all the additional addresses to the Service Manager Proxy...
-	  String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
-	  List smAddrs = theProfile.getSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES);
-	  Iterator smIt = smAddrs.iterator();
-	  while(smIt.hasNext()) {
-	      Specifier spec = (Specifier)smIt.next();
-	      String smAddr = mainProto+"://" + spec.toString();
-	      myServiceManagerProxy.addAddress(smAddr);
-	  }
-
-	  return myServiceManagerProxy;
-      }
-      catch (Exception e) {
-	  throw new IMTPException("Exception while looking up the Service Manager in the RMI Registry", e);
+      // Attach to the original Platform manager, if any
+      if (masterPMAddr != null) {
+			  PlatformManager masterPM = theDispatcher.getPlatformManagerStub(masterPMAddr);
+		
+		  	try {
+		  		((PlatformManagerImpl) mgr).setPlatformName(masterPM.getPlatformName());
+			  	mgr.addReplica(masterPMAddr, true); // Do as if it was a propagated info
+			    masterPM.addReplica(localAddr, false);
+		  	}
+		  	catch (ServiceException se) {
+		  		throw new IMTPException("Cannot attach to the original PlatformManager.", se);
+		  	}
       }
   }
 
-  public ServiceFinder createServiceFinderProxy() throws IMTPException {
-      return myServiceManagerProxy;
+  public void unexportPlatformManager(PlatformManager pm) throws IMTPException {
+	  theDispatcher.deregisterSkeleton(pm);
+  }
+  //#MIDP_EXCLUDE_END
+
+  public PlatformManager getPlatformManagerProxy() throws IMTPException {
+  	return theDispatcher.getPlatformManagerProxy(theProfile);
+  }
+  
+  public PlatformManager getPlatformManagerProxy(String addr) throws IMTPException {
+  	return theDispatcher.getPlatformManagerStub(addr);
+  }
+  
+  public void reconnected(PlatformManager pm) {
+		theDispatcher.setPlatformManagerProxy(pm);
   }
 
-  public void exportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
-      localNode.exportSlice(serviceName, localSlice);
-  }
-
-  public void unexportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
-      localNode.unexportSlice(serviceName);
-  }
-
+  // FIXME: this is not IMTP-dependent --> Should be moved elsewhere
   public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
       try {
 	  Class proxyClass = Class.forName(serviceName + "Proxy");
@@ -571,11 +244,27 @@ public class LEAPIMTPManager implements IMTPManager {
    * Release all resources of this LEAPIMTPManager
    */
   public void shutDown() {
-    if (theDispatcher != null) {
-      theDispatcher.shutDown();
-
-      theDispatcher = null;
-    } 
+  	try {
+	    localNode.exit();
+	    // Hack: If the PlatformManager monitoring this node is in the same 
+	    // JVM it needs some time to broadcast the termination of this node
+	    // to its replicas --> asynchronously deregister the skeleton after 
+	    // a while
+	    Thread t = new Thread() {
+	    	public void run() {
+	    		try {
+	    			Thread.sleep(1000);
+	    		}
+	    		catch (InterruptedException ie) {}
+			    theDispatcher.deregisterSkeleton(localNode);
+	    	}
+	    };
+	    t.start();
+  	}
+  	catch (IMTPException imtpe) {
+  		// Should never happen since this is a local call
+  		imtpe.printStackTrace();
+  	}
   } 
 
   /**
@@ -609,25 +298,21 @@ public class LEAPIMTPManager implements IMTPManager {
      c) Main container / J2SE or PJAVA --> JICPPeer
    */
   private void setDefaults() throws ProfileException {
-    if ("false".equals(theProfile.getParameter(Profile.MAIN, null))) {
-      // This is a "Peripheral Container"
-      // - MAIN URL
-      String mainURL = theProfile.getParameter(MAIN_URL, null);
-      if (mainURL == null) {
-        String mainHost = getMainHost();
-        if (mainHost != null) {
-	  String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
-          String mainPort = theProfile.getParameter(Profile.MAIN_PORT, null);
-          mainPort = (mainPort != null) ? (":" + mainPort) : (":" + JICPProtocol.DEFAULT_PORT);
-          mainURL = new String(mainProto + "://" + mainHost + mainPort);
-          theProfile.setParameter(MAIN_URL, mainURL);
-        }
-        else {
-          throw new ProfileException("Main URL not specified");
-        }
+    // - MAIN URL (Useful for peripheral containers and backup main. Ignored otherwise
+    String mainURL = theProfile.getParameter(MAIN_URL, null);
+    if (mainURL == null) {
+      String mainHost = getMainHost();
+      if (mainHost != null) {
+			  String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
+        String mainPort = theProfile.getParameter(Profile.MAIN_PORT, null);
+        mainPort = (mainPort != null) ? (":" + mainPort) : (":" + JICPProtocol.DEFAULT_PORT);
+        mainURL = new String(mainProto + "://" + mainHost + mainPort);
+     		theProfile.setParameter(MAIN_URL, mainURL);
       }
-
-      // - ICPS
+    }
+    
+    if (!theProfile.getBooleanProperty(Profile.MAIN, true)) {
+      // ICPS for a "Peripheral Container"
       if (theProfile.getParameter(ICPS, null) == null) {
       	String jvm = theProfile.getParameter(Profile.JVM, null);
       	if (Profile.J2SE.equals(jvm)) {
@@ -646,19 +331,7 @@ public class LEAPIMTPManager implements IMTPManager {
       }
     }
     else {
-      // This is a Main Container
-      String mainURL = theProfile.getParameter(MAIN_URL, null);
-      if (mainURL == null) {
-        String mainHost = getMainHost();
-        if (mainHost != null) {
-	    String mainProto = theProfile.getParameter(Profile.MAIN_PROTO, "jicp");
-	    String mainPort = theProfile.getParameter(Profile.MAIN_PORT, null);
-	    mainPort = (mainPort != null) ? (":" + mainPort) : (":" + JICPProtocol.DEFAULT_PORT);
-	    mainURL = new String(mainProto + "://" + mainHost + mainPort);
-	    theProfile.setParameter(MAIN_URL, mainURL);
-        }
-      }
-
+      // ICPS for a Main Container
       if (theProfile.getParameter(ICPS, null) == null) {
         theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
       }
@@ -671,11 +344,7 @@ public class LEAPIMTPManager implements IMTPManager {
   	String host = theProfile.getParameter(Profile.MAIN_HOST, null);
   	//#MIDP_EXCLUDE_BEGIN
   	if (host == null) {
-	    try {
-      	host = Connection.getLocalHost();
-    	}
-    	catch (Exception e) {
-    	}
+  		host = Profile.getDefaultNetworkName();
   	}
   	//#MIDP_EXCLUDE_END
     return host;

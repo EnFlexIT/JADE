@@ -107,8 +107,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeACL();
                 case Serializer.AID_ID:
                     return deserializeAID();
-		case Serializer.AIDARRAY_ID:
-		    return deserializeAIDArray();
+                case Serializer.AIDARRAY_ID:
+		    						return deserializeAIDArray();
                 case Serializer.STRING_ID:
                     return readUTF();
                 case Serializer.CONTAINERID_ID:
@@ -131,6 +131,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeNodeDescriptor();
                 case Serializer.NODE_ID:
                     return deserializeNode();
+                case Serializer.PLATFORMMANAGER_ID:
+                    return deserializePlatformManager();
                 case Serializer.NODEARRAY_ID:
                     return deserializeNodeArray();
                 case Serializer.ENVELOPE_ID:
@@ -143,6 +145,10 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeProperties();
                 case Serializer.RECEIVEDOBJECT_ID:
                     return deserializeReceivedObject();
+                case Serializer.SERVICEDESCRIPTOR_ID:
+                    return deserializeServiceDescriptor();
+                case Serializer.SLICEPROXY_ID:
+                    return deserializeSliceProxy();
                 case Serializer.JICPADDRESS_ID:
                     return deserializeJICPAddress();
                 case Serializer.HTTPADDRESS_ID:
@@ -162,7 +168,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     byte[] bytes = deserializeByteArray();
 										ByteArrayInputStream inp = new ByteArrayInputStream(bytes);
 										java.io.ObjectInputStream decoder = new java.io.ObjectInputStream(inp);
-								    return decoder.readObject();
+								    Object obj = decoder.readObject();
+	                	return obj;
 								//#MIDP_EXCLUDE_END
 								case Serializer.DEFAULT_ID:
                     String     serName = readUTF();
@@ -562,6 +569,30 @@ class DeliverableDataInputStream extends DataInputStream {
         }
     }
  
+    private ServiceDescriptor deserializeServiceDescriptor() throws LEAPSerializationException {
+        try {
+        	String name = readUTF();
+			    String   className = readUTF();
+			    Service svc = (Service) Class.forName(className).newInstance();
+			    return new ServiceDescriptor(name, svc);
+        }
+        catch (Throwable t) {
+            throw new LEAPSerializationException("Error deserializing ServiceDescriptor");
+        }
+    }
+ 
+    private Service.SliceProxy deserializeSliceProxy() throws LEAPSerializationException {
+        try {
+			    String   className = readUTF();
+			    Service.SliceProxy proxy = (Service.SliceProxy) Class.forName(className).newInstance();
+			    proxy.setNode(readNode());
+			    return proxy;
+        }
+        catch (Throwable t) {
+            throw new LEAPSerializationException("Error deserializing SliceProxy");
+        }
+    }
+ 
     private NodeDescriptor deserializeNodeDescriptor() throws LEAPSerializationException {
 	try {
 
@@ -596,32 +627,42 @@ class DeliverableDataInputStream extends DataInputStream {
     }
 
     private Node deserializeNode() throws LEAPSerializationException {
+    	try {
+		    String name = readString();
+		    boolean hasPM = readBoolean();
+	
+		    NodeStub stub = (NodeStub) deserializeStub();
+		    stub.setName(name);
+		    stub.setPlatformManager(hasPM);
+		    return stub;
+    	}
+    	catch (IOException ioe) {
+    		throw new LEAPSerializationException("Error deserializing node");
+    	}
+    }
 
-	    String name = readString();
+    private PlatformManager deserializePlatformManager() throws LEAPSerializationException {
 
-	    NodeStub stub = deserializeNodeStub();
-	    stub.setName(name);
+	    String address = readString();
+
+	    PlatformManagerStub stub = (PlatformManagerStub) deserializeStub();
+	    stub.setLocalAddress(address);
 	    return stub;
     }
 
-    private NodeStub deserializeNodeStub() throws LEAPSerializationException {
+    private Stub deserializeStub() throws LEAPSerializationException {
 	try {
-	    NodeStub ns = new NodeStub();
+			String stubClassName = readUTF();
+			Stub stub = (Stub) Class.forName(stubClassName).newInstance();
 
-	    // Read the remote ID uniquely identifying the node
-	    ns.remoteID = readInt();
+	    stub.remoteID = readInt();
+	    stub.remoteTAs = deserializeArrayList();	    
 
-	    // Read all the node transport addresses
-	    int sz = readInt();
-	    for(int i = 0; i < sz; i++) {
-		ns.remoteTAs.add(readObject());
-	    }
-
-	    ns.bind(myStubHelper);
-	    return ns;
+	    stub.bind(myStubHelper);
+	    return stub;
 	}
-	catch(IOException ioe) {
-	    throw new LEAPSerializationException("Error deserializing Node stub");
+	catch(Throwable t) {
+	    throw new LEAPSerializationException("Error deserializing stub");
 	}
     }
 

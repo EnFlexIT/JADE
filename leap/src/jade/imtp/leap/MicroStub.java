@@ -52,7 +52,7 @@ public class MicroStub {
 			if (r.getCode() == Command.ERROR) {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
 					// Unexpected exception thrown in the remote site
-					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site. "+(String) r.getParamAt(2));
+					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site processing command "+c.getCode()+". "+(String) r.getParamAt(2));
 					Logger.println(msg);
       		throw new IMTPException(msg);
 				}
