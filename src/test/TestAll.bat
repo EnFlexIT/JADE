@@ -5,6 +5,7 @@ set JESS51=c:\myprograms\jess51
 set JESS60=c:\myprograms\jess60a6\jess.jar
 set ORBACUSJIDLPATH=C:\ORBacus\bin
 set LOCALHOST=fbellif
+set JADEHOME=c:\projects\jade
 
 java -version
 pause check now that the JVM is actually 1.2. Otherwise abort the testing
@@ -14,20 +15,19 @@ pause check that idlj is an unrecognized command such that the FIPa classes will
 
 echo off
 
-set JADEJAR=..\..\lib\jade.jar
-set JADEIIOP=..\..\lib\iiop.jar
-set JADETOOLSJAR=..\..\lib\jadeTools.jar
-set BASE64JAR=..\..\lib\Base64.jar
+set JADEJAR=%JADEHOME%\lib\jade.jar
+set JADEIIOP=%JADEHOME%\lib\iiop.jar
+set JADETOOLSJAR=%JADEHOME%\lib\jadeTools.jar
+set BASE64JAR=%JADEHOME%\lib\Base64.jar
 set ALLJADEJARS=%JADEJAR%;%JADEIIOP%;%JADETOOLSJAR%;%BASE64JAR%
-set HTTPJARS=..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar 
-set ORBACUSJARS=..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar
-set JADECLASSES=..\..\classes
+set HTTPJARS=%JADEHOME%\add-ons\http\lib\http.jar;%JADEHOME%\lib\crimson.jar
+set ORBACUSJARS=%JADEHOME%\lib\OB.jar;%JADEHOME%\lib\OBNaming.jar;%JADEHOME%\add-ons\ORBacusMTP\lib\iiopOB.jar
+set JADECLASSES=%JADEHOME%\classes
 set JAVA=java -Djava.compiler=""
 echo 
 
 set CLASSPATH=%JADECLASSES%;%ALLJADEJARS%
 
-goto :STARTHERE
 goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
@@ -85,6 +85,8 @@ pause
 :SKIPCOMPILATION
 
 REM End compilation task. Start testing task. WorkingDir = src\test
+
+goto :STARTHERE
 
 echo Starting the Agent Platform
 START %JAVA% -cp %CLASSPATH%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -gui -aclcodec jamr.jadeacl.xml.XMLACLCodec;sonera.fipa.acl.BitEffACLCodec 
@@ -181,13 +183,16 @@ echo Running the Test of the Wrapper
 
 echo Running the roundTripTime test on a single container. 10 couples=5.34msec (JADE 2.4)
 echo This test tests also the configuration file and setting arguments to agents
+echo Kill all running platforms
 %JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\SingleContainer.conf
 pause
+
+:STARTHERE	
 
 echo Running the roundTripTime test on 2 containers. 10 couples=33.52msec (JADE 2.4)
 START %JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\Receiver.conf 
 pause press a key when the platform is ready
-%JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\RoundTripper.conf 
+%JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\RoundTripperContainer.conf 
 pause
 
 echo Running the roundTripTime test on 2 platforms. 
@@ -211,7 +216,6 @@ START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%ORBACUSJARS%;%JADECLASSES% jade.Boot 
 pause
 
 
-:STARTHERE	
 
 
 echo Running the tests on CL and ontology support for LEAP Codec
@@ -241,9 +245,7 @@ echo Running the MessageTemplate test
 pause Please SHUTDOWN any platform running
 %JAVA% -cp %CLASSPATH% test.MessageTemplate.MessageTester
 
-
-
-echo FIXME RDFCodec Test
+echo RDFCodec Test
 dir
 START %JAVA% -cp %ALLJADEJARS%;..\..\add-ons\http\lib\sax2\sax2.jar;..\..\lib\rdf-api-2001-19.jar;..\..\lib\xerces.jar;..\..\add-ons\RDFCodec\classes jade.Boot -gui sender:examples.rdfcontent.Sender receiver:examples.rdfcontent.Receiver
 pause 
