@@ -104,6 +104,7 @@ public class ams extends Agent implements AgentManager.Listener {
   // Buffer for AgentPlatform notifications
   private InputQueue eventQueue = new InputQueue();
 
+  private Hashtable pendingNewAgents = new Hashtable();
   private Hashtable pendingDeadAgents = new Hashtable();
   private Hashtable pendingClonedAgents = new Hashtable();
   private Hashtable pendingMovedAgents = new Hashtable();
@@ -198,7 +199,7 @@ public class ams extends Agent implements AgentManager.Listener {
   //////////////////////////////////////////////////////////////////
   
 	// CREATE AGENT
-	void createAgentAction(CreateAgent ca, AID requester) throws FIPAException {
+	void createAgentAction(final CreateAgent ca, final AID requester) throws FIPAException {
 		final String agentName = ca.getAgentName();
 		final AID agentID = new AID(agentName, AID.ISLOCALNAME);
 		final String className = ca.getClassName();
@@ -247,8 +248,32 @@ public class ams extends Agent implements AgentManager.Listener {
 			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
 	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
-					myPlatform.create(agentName, className, args, container, ownership, agentCerts);
+		    public Object run() throws Exception /*throws UnreachableException, AuthException, NotFoundException, NameClashException*/ {
+					Thread auxThread = new Thread() {
+				    public void run() {
+							try {
+								myPlatform.create(agentName, className, args, container, ownership, agentCerts);
+							}
+							catch (UnreachableException ue) {
+						    // Send failure notification to the requester if any
+	    					sendFailureNotification(ca, agentID, new InternalError("Destination container unreachable. "+ue.getMessage()));
+							}
+							catch (AuthException ae) {
+						    log("Agent "+requester.getName()+" does not have permission to perform action Create-agent: " + ae, 0);
+						    // Send failure notification to the requester if any
+						    sendFailureNotification(ca, agentID, new Unauthorised());
+							}
+							catch (NotFoundException nfe) {
+						    // Send failure notification to the requester if any
+	    					sendFailureNotification(ca, agentID, new InternalError("Destination container not found. "+nfe.getMessage()));
+							}
+							catch (NameClashException nce) {
+						    // Send failure notification to the requester if any
+	    					sendFailureNotification(ca, agentID, new AlreadyRegistered());
+							}
+				    }
+					};
+					auxThread.start();
 					return null;
 		    }
 			}, requesterCredentials);
@@ -256,7 +281,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch(CertificateException ce) {
 			throw new Unauthorised();
 		}
-		catch(AuthException ae) {
+		/*catch(AuthException ae) {
 			log("Agent "+requester.getName()+" does not have permission to perform action CreateAgent", 0);
 			throw new Unauthorised();
 		}
@@ -264,11 +289,11 @@ public class ams extends Agent implements AgentManager.Listener {
 	    throw new InternalError("Destination container unreachable. "+ue.getMessage());
 		}
 		catch (NotFoundException nfe) {
-	    throw new InternalError("Destination container notfound. "+nfe.getMessage());
+	    throw new InternalError("Destination container not found. "+nfe.getMessage());
 		}
 		catch (NameClashException nce) {
 		    throw new AlreadyRegistered();
-		}
+		}*/
 		catch (Exception e) {
 			e.printStackTrace();
 	    throw new InternalError("Unexpected exception. "+e.getMessage());
@@ -375,14 +400,14 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 	
 	// KILL CONTAINER
-	void killContainerAction(KillContainer kc, AID requester) throws FIPAException {
+	void killContainerAction(final KillContainer kc, AID requester) throws FIPAException {
     final ContainerID cid = kc.getContainer();
 		log("Agent "+requester+" requesting Kill-container "+cid, 2);
     CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try {
 	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws AuthException, NotFoundException {
+		    public Object run() throws Exception /*throws AuthException, NotFoundException*/ {
 
 			Thread auxThread = new Thread() {
 			    public void run() {
@@ -391,9 +416,12 @@ public class ams extends Agent implements AgentManager.Listener {
 				}
 				catch(AuthException ae) {
 				    log("Agent does not have permission to perform action Kill-container: " + ae, 0);
+				    // Send failure notification to the requester if any
+				    sendFailureNotification(kc, cid, new Unauthorised());
 				}
 				catch(NotFoundException nfe) {
-				    log("The Container to kill was not found: " + nfe, 0);
+				    // Send failure notification to the requester if any
+				    sendFailureNotification(kc, cid, new InternalError("Container not found. "+nfe.getMessage()));
 				}
 			    }
 			};
@@ -403,13 +431,13 @@ public class ams extends Agent implements AgentManager.Listener {
 		    }
 		}, requesterCredentials);
     }
-    catch(AuthException ae) {
+    /*catch(AuthException ae) {
 	log("Agent "+requester.getName()+" does not have permission to perform action KillContainer", 0);
 	throw new Unauthorised();
     }
     catch(NotFoundException nfe) {
     	throw new InternalError("Container not found. "+nfe.getMessage());   
-    }
+    }*/
     catch(Exception e) {
 			e.printStackTrace();
     	throw new InternalError("Unexpected exception. "+e.getMessage());   
@@ -1004,7 +1032,11 @@ public class ams extends Agent implements AgentManager.Listener {
         	// an agent --> notify him.
           BornAgent ba = (BornAgent)ev;
           AID agentID = ba.getAgent();
-          ACLMessage notification = (ACLMessage) pendingClonedAgents.remove(agentID);
+          // The requested action could be a CreateAgent or a CloneAgent
+          ACLMessage notification = (ACLMessage) pendingNewAgents.remove(agentID);
+          if (notification == null) {
+	          notification = (ACLMessage) pendingClonedAgents.remove(agentID);
+          }
           if (notification != null) {
           	send(notification);
           }
@@ -1421,6 +1453,9 @@ public class ams extends Agent implements AgentManager.Listener {
      Package-scoped as it is called by the AMSJadeAgentManagementBehaviour
    */
  	void storeNotification(Concept action, Object key, ACLMessage notification) {
+ 		if (action instanceof CreateAgent) {
+ 			pendingNewAgents.put(key, notification);
+ 		}
  		if (action instanceof KillAgent) {
  			pendingDeadAgents.put(key, notification);
  		}
@@ -1435,6 +1470,41 @@ public class ams extends Agent implements AgentManager.Listener {
  		}
   }
   
+  /**
+     This method is executed by an auxiliary thread started by the AMS
+     to perform certain actions (createAgent, killContainer) asynchronously
+   */
+  private void sendFailureNotification(final Concept action, final Object key, final FIPAException fe) {
+  	addBehaviour(new OneShotBehaviour(this) {
+  		public void action() {
+  			ACLMessage notification  = null;
+		 		if (action instanceof CreateAgent) {
+		 			notification = (ACLMessage) pendingNewAgents.remove(key);
+		 		}
+		 		else if (action instanceof KillContainer) {
+		 			notification = (ACLMessage) pendingRemovedContainers.remove(key);
+		 		}
+		 		if (notification != null) {
+		 			notification.setPerformative(ACLMessage.FAILURE);
+		 			// Compose the content
+		 			Action slAction = new Action(getAID(), action);
+		 			ContentElementList cel = new ContentElementList();
+		 			cel.add(slAction);
+		 			cel.add(fe);
+		 			try {
+			 			getContentManager().fillContent(notification, cel);
+		 			}
+		 			catch (Exception e) {
+		 				// Should never happen 
+		 				e.printStackTrace();
+						notification.setContent("("+fe.getMessage()+")");
+		 			}
+					send(notification);
+		 		}
+  		}
+  	} );
+  }
+		 			
   private void log(String s, int level) {
   	if (verbosity >= level) {
 	  	System.out.println("AMS-log: "+s);
