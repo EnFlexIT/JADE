@@ -194,37 +194,4 @@ public class FullOntology extends Ontology {
 
         return ret;
     } 
-
-    /**
-     * Converts an abstract descriptor to an object.
-     *
-     * @param abs the abstract descriptor.
-     *
-     * @return the object
-     *
-     * @throws OntologyException
-     * @throws UngroundedException
-     *
-     * @see fromObject(Object)
-     */
-    public Object toObject(AbsObject abs) 
-            throws OntologyException, UngroundedException {
-        return introspector.internalise(this, abs);
-    } 
-
-    /**
-     * Converts an object to an abstract descriptor.
-     *
-     * @param obj the object
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     * @see toObject(AbsObject)
-     */
-    public AbsObject fromObject(Object obj) throws OntologyException {
-        return introspector.externalise(this, obj);
-    } 
-
 }
