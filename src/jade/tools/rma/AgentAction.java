@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -30,7 +31,8 @@ import jade.gui.AgentTree;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public abstract class AgentAction extends RMAAction {
+
+	abstract class AgentAction extends RMAAction {
 
   public AgentAction(String IconPath,String ActionName,ActionProcessor actPro) {
    super(IconPath,ActionName,actPro);

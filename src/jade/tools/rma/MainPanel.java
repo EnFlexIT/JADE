@@ -35,7 +35,7 @@ import jade.gui.AgentTree;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class MainPanel extends JPanel implements TreeSelectionListener{
+class MainPanel extends JPanel implements TreeSelectionListener{
 
   public JTextArea selArea;
   AgentTree treeAgent;

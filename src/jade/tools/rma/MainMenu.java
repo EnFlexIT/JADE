@@ -38,7 +38,7 @@ import jade.gui.AboutJadeAction;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class MainMenu extends JMenuBar {
+  class MainMenu extends JMenuBar {
 
   private ActionProcessor actPro;
   private RMAAction obj;

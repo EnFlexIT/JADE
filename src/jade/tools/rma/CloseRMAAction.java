@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -37,8 +38,8 @@ Javadoc documentation for the file
  * Close RMA Action
  * @see jade.gui.AMSAbstractAction
  */
-public class CloseRMAAction extends FixedAction {
-
+ 
+class CloseRMAAction extends FixedAction {
   private rma myRMA;
 
   public CloseRMAAction (rma anRMA,ActionProcessor actPro) {

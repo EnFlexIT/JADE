@@ -32,7 +32,7 @@ import jade.gui.*;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class CustomAction extends AgentAction {
+ class CustomAction extends AgentAction {
 
  private rma myRMA;
  private Frame mainWnd;
