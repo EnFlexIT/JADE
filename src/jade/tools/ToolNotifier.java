@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,6 +39,7 @@ import jade.core.event.MessageListener;
 import jade.core.event.AgentEvent;
 import jade.core.event.AgentListener;
 
+import jade.domain.FIPANames;
 import jade.domain.FIPAException;
 import jade.domain.introspection.*;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
@@ -48,7 +49,6 @@ import jade.domain.FIPAAgentManagement.FailureException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.StringACLCodec;
-import jade.lang.sl.SL0Codec;
 
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
@@ -58,7 +58,8 @@ import jade.util.leap.HashMap;
 
 import jade.tools.ToolAgent;
 
-import jade.onto.basic.*;
+import jade.content.*;
+import jade.content.onto.basic.*;
 
 import jade.proto.AchieveREResponder;
 
@@ -75,7 +76,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   private ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
   // flag used to stop handling events during shutdown
-  private boolean closingDown = false;  
+  private boolean closingDown = false;
 
 
   /**
@@ -84,7 +85,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   class NotifierAMSListenerBehaviour extends AMSListenerBehaviour {
   	protected void installHandlers(Map handlersTable) {
     	// Fill the event handler table.
-      handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+      handlersTable.put(IntrospectionOntology.DEADAGENT, new EventHandler() {
       	public void handle(Event ev) {
 	    		DeadAgent da = (DeadAgent)ev;
 	    		AID dead = da.getAgent();
@@ -96,11 +97,11 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	  		}
       });
 
-      handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+      handlersTable.put(IntrospectionOntology.MOVEDAGENT, new EventHandler() {
       	public void handle(Event ev) {
 	    		MovedAgent ma = (MovedAgent)ev;
 	    		AID moved = ma.getAgent();
-	    		if (!here().equals(ma.getTo())) { 
+	    		if (!here().equals(ma.getTo())) {
 	    			removeObservedAgent(moved);
 	    			if(isEmpty()) {
 	      			// FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
@@ -111,11 +112,11 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       });
 
     } // END of installHandlers() method
-  	
+
   } // END of inner class NotifierAMSListenerBehaviour
-  
-  
-  
+
+
+
   public ToolNotifier(AID id) {
     observerAgent = id;
   }
@@ -128,26 +129,26 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       // Handle incoming 'inform' messages from the AMS
       AMSSubscribe.addSubBehaviour(new NotifierAMSListenerBehaviour());
       addBehaviour(AMSSubscribe);
-      
+
       /* Handle requests from the observer agent
       addBehaviour(new ObserverRequestsHandler(this, MessageTemplate.and(
       	MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME),
       	MessageTemplate.MatchConversationId(observerAgent.getName()+"-request"))));
      	*/
-     	
-      // Set constant fields in the message to be sent to the observer each  
+
+      // Set constant fields in the message to be sent to the observer each
       // time an event occurs.
     	msg.setSender(getAID());
     	msg.addReceiver(observerAgent);
-    	msg.setOntology(JADEIntrospectionOntology.NAME);
-    	msg.setLanguage(SL0Codec.NAME);
+    	msg.setOntology(IntrospectionOntology.NAME);
+    	msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
   }
 
   protected void toolTakeDown() {
     closingDown = true;
     send(getCancel());
     // If there are still threads waiting for some JADE event to be processed
-    // wake up them 
+    // wake up them
     notifyAllPendingEvents();
   }
 
@@ -197,7 +198,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 
   public void postedMessage(MessageEvent ev) {
     if(closingDown)
-      return;  	
+      return;
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
       ACLMessage msg = ev.getMessage();
@@ -222,7 +223,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 
   public void receivedMessage(MessageEvent ev) {
     if(closingDown)
-      return;  	
+      return;
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
       ACLMessage msg = ev.getMessage();
@@ -272,18 +273,18 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     }
   }
 
-  public void addedBehaviour(AgentEvent ev) 
+  public void addedBehaviour(AgentEvent ev)
   {
     if(closingDown)
       return;
-    
+
     AID id = ev.getAgent();
-    if(observedAgents.contains(id)) 
+    if(observedAgents.contains(id))
     {
         AddedBehaviour ab = new AddedBehaviour();
         ab.setAgent(id);
         ab.setBehaviour(ev.getBehaviour());
-        
+
       	addBehaviour(new EventInformer(this, ab));
     }
   }
@@ -292,34 +293,34 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   {
     if(closingDown)
       return;
-    
+
     AID id = ev.getAgent();
-    if(observedAgents.contains(id)) 
+    if(observedAgents.contains(id))
     {
         RemovedBehaviour rb = new RemovedBehaviour();
         rb.setAgent(id);
         rb.setBehaviour(ev.getBehaviour());
-        
+
       	addBehaviour(new EventInformer(this, rb));
     }
   }
 
-  public void changedBehaviourState(AgentEvent ev) 
+  public void changedBehaviourState(AgentEvent ev)
   {
     if(closingDown)
       return;
-    
+
     AID id = ev.getAgent();
-    if(observedAgents.contains(id)) 
+    if(observedAgents.contains(id))
     {
         ChangedBehaviourState cs = new ChangedBehaviourState();
         cs.setAgent(id);
         cs.setBehaviour(ev.getBehaviour());
         cs.setFrom(ev.getBehaviourFrom());
         cs.setTo(ev.getBehaviourTo());
-        
+
       	if (ev.getBehaviourTo().equals(Behaviour.STATE_RUNNING) && ev.getBehaviour().isSimple()) {
-      		// This event requires synchronous handling. As it may have already 
+      		// This event requires synchronous handling. As it may have already
       		// been processed by other listeners reset its processed status
       		ev.resetProcessed();
 					addPendingEvent(ev, id);
@@ -347,93 +348,87 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   /**
- 	   Inner class DoneInformer. 
-     Inform the Observer that an action (typically StartNotify) 
-     has been done. 
+ 	   Inner class DoneInformer.
+     Inform the Observer that an action (typically StartNotify)
+     has been done.
    */
-  private class DoneInformer extends OneShotBehaviour {    
+  private class DoneInformer extends OneShotBehaviour {
   	private Object act;
   	DoneInformer(Agent a, Object act) {
   		super(a);
   		this.act = act;
   	}
-  	
+
   	public void action() {
-	    Action a = new Action();
-	    a.setAction(act);
+            Action a = new Action();
+	    a.setAction((AgentAction)act);
 	    a.setActor(getAID());
-	    DonePredicate d = new DonePredicate();
-	    d.set_0(a);
-	    List l = new ArrayList();
-	    l.add(d);
-			try {
-		  	fillMsgContent(msg, l);
+	    Done d = new Done();
+	    d.setAction(a);
+            try {
+		getContentManager().fillContent(msg, d);
     		msg.setConversationId(observerAgent.getName() + "-control");
-		  	send(msg);
-		  	System.out.println(msg);
-			}
-			catch(FIPAException fe) {
-		  	fe.printStackTrace();
-			}
+	  	send(msg);
+	  	// System.out.println(msg);
+            } catch(Exception fe) {
+		fe.printStackTrace();
+            }
   	}
   }
-  
+
   /**
- 	   Inner class EventInformer. 
+     Inner class EventInformer.
      Inform the Observer about an event that has occurred
    */
-  private class EventInformer extends OneShotBehaviour {    
+  private class EventInformer extends OneShotBehaviour {
   	private Event ev;
   	EventInformer(Agent a, Event ev) {
   		super(a);
   		this.ev = ev;
   	}
-  	
+
   	public void action() {
 	    EventRecord er = new EventRecord(ev, here());
 	    Occurred o = new Occurred();
 	    o.setWhat(er);
-	
-	    List l = new ArrayList(1);
-	    l.add(o);
-			try {
-		  	fillMsgContent(msg, l);
-    		msg.setConversationId(observerAgent.getName() + "-event");
-		  	send(msg);
-		  	// DEBUG
-	  		//System.out.println("Sent event "+ev);
-		  	msg.setReplyWith(null);
-			}
-			catch(FIPAException fe) {
-		  	fe.printStackTrace();
-			}
+
+            try {
+              getContentManager().fillContent(msg, o);
+              msg.setConversationId(observerAgent.getName() + "-event");
+              send(msg);
+              // DEBUG
+	      //System.out.println("Sent event "+ev);
+              msg.setReplyWith(null);
+	    } catch(Exception fe) {
+              fe.printStackTrace();
+            }
   	}
   }
-  
+
   /**
- 	   Inner class SynchEventInformer. 
+ 	   Inner class SynchEventInformer.
      When the observation of an event must be synchronous (i.e. the
-     thread that generated the event must block until the observer 
-     has finished observing the event) we must 
-     - inform the observer 
+     thread that generated the event must block until the observer
+     has finished observing the event) we must
+     - inform the observer
      - wait for the observer to send back a proper indication
      - wake up the thread that generated the event
    */
   private class SynchEventInformer extends SequentialBehaviour {
   	private String replyWith;
-  	
+
   	SynchEventInformer(Agent a, Event ev, JADEEvent jev) {
   		super(a);
 			replyWith = String.valueOf(jev.hashCode());
   		addSubBehaviour(new EventInformer(a, ev));
   		addSubBehaviour(new ObservationCompleteReceiver(a, jev, replyWith));
   	}
-  	
+
   	public void onStart() {
 			msg.setReplyWith(replyWith);
-		}  		
+		}
   }
-  	
+
   /**
      Inner class ObservationCompleteReceiver
      This is the behaviour that waits for the notification that the
@@ -443,13 +438,13 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 		private JADEEvent jev;
 		private MessageTemplate mt;
 		private boolean finished = false;
-		
+
 		ObservationCompleteReceiver(Agent a, JADEEvent jev, String replyWith) {
 			super(a);
 			this.jev = jev;
 			mt = MessageTemplate.MatchInReplyTo(replyWith);
 		}
-		
+
 		public void action() {
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
@@ -458,13 +453,13 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 				finished = true;
 			}
 		}
-		
+
 		public boolean done() {
 			return finished;
 		}
 	}
-	
-	
+
+
 	//////////////////////////////////////////////
 	// Utility methods dealing with pending events
 	private void addPendingEvent(JADEEvent ev, AID id) {
@@ -477,7 +472,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	    l.add(ev);
 		}
 	}
-	
+
 	private void removePendingEvent(JADEEvent ev) {
 		synchronized (pendingEvents) {
 			AID id = null;
@@ -496,7 +491,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 			}
 		}
 	}
-				
+
 	private void notifyPendingEvents(AID id) {
 		synchronized (pendingEvents) {
 	    List l = (List) pendingEvents.remove(id);
@@ -509,7 +504,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	    }
 		}
 	}
-	
+
 	private void notifyAllPendingEvents() {
 		synchronized (pendingEvents) {
 	    Iterator it1 = pendingEvents.values().iterator();
