@@ -1388,7 +1388,7 @@ public class AclGui extends JPanel
 			msg.setLanguage(param);
 	
 	  
-	  ReceivedObject recObject = new ReceivedObject();
+	  /* ReceivedObject recObject = new ReceivedObject();
 		boolean filled = false;
 		param = by.getText().trim();
 		
@@ -1426,7 +1426,7 @@ public class AclGui extends JPanel
 		
 		if(filled)
 		  env.setReceived(recObject);
-	  	
+	  	*/
     msg.setEnvelope(env);
 		return msg;
 	}
