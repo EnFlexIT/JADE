@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.io.FileWriter;
 import java.io.StringWriter;
 
 import java.net.InetAddress;
@@ -375,13 +376,14 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-
   public String installMTP(String address, String className) throws RemoteException {
     try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
       TransportAddress ta = theACC.addMTP(proto, address);
-      return proto.addrToStr(ta);
+      String result = proto.addrToStr(ta);
+      myPlatform.newMTP(result, myName);
+      return result;
     }
     catch(ClassNotFoundException cnfe) {
       System.out.println("ERROR: The class for the IIOP MTP was not found");
@@ -424,7 +426,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       throw new NotFoundException("MTP not found on this container.");
   }
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs) {
 
     // This string will be used to build the GUID for every agent on this platform.
     platformID = pID;
@@ -442,6 +444,24 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call
 
+      // Install required MTPs
+      FileWriter f = new FileWriter("MTPs-" + myName + ".txt");
+
+      for(int i = 0; i < MTPs.length; i += 2) {
+
+	String className = MTPs[i];
+	String addressURL = MTPs[i+1];
+	if(addressURL.equals(""))
+	  addressURL = null;
+	String s = installMTP(addressURL, className);
+
+	f.write(s, 0, s.length());
+	f.write('\n');
+	System.out.println(s);
+      }
+
+      f.close();
+
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -451,6 +471,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       System.err.println("Some problem occurred while contacting agent platform.");
       e.printStackTrace();
     }
+
 
     /* Create all agents and set up necessary links for message passing.
 
