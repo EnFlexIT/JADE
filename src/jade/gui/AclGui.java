@@ -667,9 +667,13 @@ public class AclGui extends JPanel
 		//if not present the first of the comboBox is selected
 		communicativeAct.setSelectedItem(lowerCase);	
 		
-		this.SenderAID = msg.getSender();
-		
-		if ((param = SenderAID.getName()) == null) param = "";
+		try {
+		  this.SenderAID = msg.getSender();
+		  param = SenderAID.getName();
+		} catch (NullPointerException e) {
+		  param = "";
+		  this.SenderAID = new AID();
+		}
 	
 		sender.setText(param);
 		
