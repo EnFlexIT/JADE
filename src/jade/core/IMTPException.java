@@ -30,18 +30,34 @@ package jade.core;
  */
 public class IMTPException extends Exception {
 
-    /**
-     * Construct an <code>IMTPException</code> with no message.
-     */
-    public IMTPException() {}
+  private Throwable nested;
 
-    /**
-     * Construct an <code>IMTPException</code> with the given message.
-     * @param msg The exception message.
-     */
-    public IMTPException(String msg) {
-        super(msg);
-    }
+  /**
+   * Constructs an <code>IMTPException</code> with the specified detail message.
+   * @param msg The detail message.
+   */
+  public IMTPException(String msg) {
+    super(msg);
+  }
+
+  /**
+   * Constructs an <code>IMTPException</code> with the specified detail message,
+   * wrapping the given <code>Throwable</code>object.
+   * @param msg The detail message.
+   * @param t The exception to wrap.
+   */
+  public IMTPException(String msg, Throwable t) {
+    super(msg);
+    nested = t;
+  }
+
+  public String getMessage() {
+    String base = super.getMessage();
+    if(nested == null)
+      return base;
+    else
+      return base + " [Wrapping an " + nested.getClass().getName() + ": " + nested.getMessage() + "]";
+  }
 
 }
 
