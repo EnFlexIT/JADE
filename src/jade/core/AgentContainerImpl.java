@@ -41,7 +41,7 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.JADESecurityException;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
@@ -49,7 +49,7 @@ import jade.security.DelegationCertificate;
 import jade.security.UserPrincipal;
 import jade.security.JADESubject;
 import jade.security.Authority;
-//__JADE_ONLY__END
+//__SECURITY__END
 
 
 /**
@@ -209,7 +209,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     agent.doActivate();
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if (agent == null)
@@ -220,7 +220,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
     subject = new JADESubject(identity, new DelegationCertificate[] {delegation});
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
@@ -736,7 +736,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	new Object[]{msg, agentID});
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
     	new Object[]{agentID, oldPrincipal, newPrincipal});
@@ -750,7 +750,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       nfe.printStackTrace();
     }
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
     //fireChangedAgentState(agentID, from, to);
@@ -889,7 +889,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return localAgents;
   }
   
-//__CLDC_UNSUPPORTED__BEGIN  
+//__JADE_ONLY__BEGIN  
   //FIXME: These methods have been added to support 
   // PlatformListener registration from the In-process-interface
   // with minimum effort. They will possibly be removed in a 
@@ -903,5 +903,5 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	AgentManager m = (AgentManager) myPlatform;
   	m.removeListener(l);
   }
-//__CLDC_UNSUPPORTED__END  
+//__JADE_ONLY__END  
 }

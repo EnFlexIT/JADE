@@ -53,7 +53,7 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.Authority;
 import jade.security.JADECertificate;
@@ -62,7 +62,7 @@ import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.UserPrincipal;
 import jade.security.JADESecurityException;
-//__JADE_ONLY__END
+//__SECURITY__END
 
 
 /**
@@ -380,7 +380,7 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
     PlatformEvent ev = new PlatformEvent(agentID, cid, oldPrincipal, newPrincipal);
 
@@ -389,7 +389,7 @@ class MainContainerImpl implements Platform, AgentManager {
       l.changedAgentPrincipal(ev);
     }
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
     PlatformEvent ev = new PlatformEvent(agentID, from, to);
@@ -537,7 +537,7 @@ class MainContainerImpl implements Platform, AgentManager {
     fireResumedAgent(cid, name);
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
     AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
@@ -549,7 +549,7 @@ class MainContainerImpl implements Platform, AgentManager {
     ContainerID cid = ad.getContainerID();
     fireChangedAgentPrincipal(cid, name, from, to);
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
     AgentProxy ap;
@@ -628,7 +628,7 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException {
     try {
       JADESubject subject = authority.authenticateUser(user, passwd);
@@ -641,7 +641,7 @@ class MainContainerImpl implements Platform, AgentManager {
       throw new UnreachableException(re.getMessage());
     }
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {

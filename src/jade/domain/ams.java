@@ -69,11 +69,11 @@ import jade.mtp.MTPException;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-//__JADE_ONLY__END
 import jade.security.JADESecurityException;
+//__SECURITY__END
 
 /**
   Standard <em>Agent Management System</em> agent. This class
@@ -1163,10 +1163,10 @@ public class ams extends Agent implements AgentManager.Listener {
         myPlatform.suspend(amsd.getName(),  "");
       if (old.getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
         myPlatform.activate(amsd.getName(),  "");
-//__JADE_ONLY__BEGIN        
+//__SECURITY__BEGIN        
       if (!old.getOwnership().equalsIgnoreCase(amsd.getOwnership()))
         myPlatform.changeAgentPrincipal(amsd.getName(), new UserPrincipal(username), password.getBytes());
-//__JADE_ONLY__END
+//__SECURITY__END
     }
     catch (NotFoundException nfe) {
       nfe.printStackTrace();
@@ -1355,7 +1355,7 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   /**
     Post an event to the AMS agent. This method must not be used by
     application agents.
@@ -1380,7 +1380,7 @@ public class ams extends Agent implements AgentManager.Listener {
     eventQueue.add(er);
     doWake();
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   /**
     Post an event to the AMS agent. This method must not be used by

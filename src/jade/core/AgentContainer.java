@@ -30,11 +30,11 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
-//__JADE_ONLY__END
+//__SECURITY__END
 
 /**
   @author Giovanni Rimassa - Universita` di Parma
@@ -62,10 +62,10 @@ public interface AgentContainer {
   void waitAgent(AID agentID) throws IMTPException, NotFoundException;
   void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
   void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException;
-//__JADE_ONLY__END
+//__SECURITY__END
 
   void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
   void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;

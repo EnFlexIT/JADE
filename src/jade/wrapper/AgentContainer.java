@@ -285,14 +285,18 @@ public class AgentContainer implements PlatformController {
   public State getState() { return platformState; }
   
   public synchronized void addPlatformListener(Listener aListener) throws ControllerException {
+//__JADE_ONLY__BEGIN  
   	if (myListenerManager.addListener(aListener) == 1) {
   		myImpl.addPlatformListener(myListenerManager);
   	}
+//__JADE_ONLY__END  
   }
   public synchronized void removePlatformListener(Listener aListener) throws ControllerException {
+//__JADE_ONLY__BEGIN  
   	if (myListenerManager.removeListener(aListener) == 0) {
   		myImpl.removePlatformListener(myListenerManager);
   	}
+//__JADE_ONLY__END  
   }
     
   class ListenerManager implements AgentManager.Listener {
@@ -351,10 +355,10 @@ public class AgentContainer implements PlatformController {
   	public void resumedAgent(jade.core.event.PlatformEvent ev) {
  			System.out.println("Resumed agent");
   	} 
-//__JADE_ONLY__BEGIN  
+//__SECURITY__BEGIN  
   	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
  			System.out.println("Changed agent principal");
   	} 
-//__JADE_ONLY__END 
+//__SECURITY__END 
   }
 }

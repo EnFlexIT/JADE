@@ -59,11 +59,6 @@ import jade.lang.sl.SL0Codec;
 
 import jade.tools.ToolAgent;
 
-//__JADE_ONLY__BEGIN
-import jade.security.AgentPrincipal;
-//__JADE_ONLY__END
-
-
 public class ToolNotifier extends ToolAgent implements MessageListener, AgentListener {
 
   private AID observerAgent;

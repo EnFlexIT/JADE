@@ -27,13 +27,13 @@ import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPDescriptor;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-//__JADE_ONLY__END
 import jade.security.JADESecurityException;
 import jade.security.JADECertificate;
 import jade.security.JADESubject;
+//__SECURITY__END
 
 
 /**
@@ -62,10 +62,10 @@ public interface MainContainer {
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
     void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException;
     JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException;
-//__JADE_ONLY__END
+//__SECURITY__END
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;

@@ -206,7 +206,7 @@ public class Runtime {
     }
   }
 
-  TimerDispatcher getTimerDispatcher() {
+  public TimerDispatcher getTimerDispatcher() {
     return theDispatcher;
   }
 

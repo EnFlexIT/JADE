@@ -35,7 +35,7 @@ public interface PlatformListener extends EventListener
   void movedAgent(PlatformEvent ev);
   void suspendedAgent(PlatformEvent ev);
   void resumedAgent(PlatformEvent ev);
-//__JADE_ONLY__BEGIN  
+//__SECURITY__BEGIN  
   void changedAgentPrincipal(PlatformEvent ev);
-//__JADE_ONLY__END 
+//__SECURITY__END 
 }

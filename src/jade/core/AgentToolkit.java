@@ -24,9 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
-//__JADE_ONLY__END
+//__SECURITY__END
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -43,8 +43,8 @@ interface AgentToolkit {
   void handlePosted(AID agentID, ACLMessage msg);
   void handleReceived(AID agentID, ACLMessage msg);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to);
-//__JADE_ONLY__END
+//__SECURITY__END
   void setPlatformAddresses(AID id);
 }

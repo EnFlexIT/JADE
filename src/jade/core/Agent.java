@@ -61,11 +61,11 @@ import jade.domain.FIPAException;
 
 import jade.content.ContentManager;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
-//__JADE_ONLY__END
+//__SECURITY__END
 
 /**
    The <code>Agent</code> class is the common superclass for user
@@ -432,13 +432,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   private volatile int myAPState;
   
-
+//__SECURITY__BEGIN
   private String ownership = jade.security.Principal.NONE;
-//__JADE_ONLY__BEGIN
   private AgentPrincipal principal = new AgentPrincipal();
   private IdentityCertificate identity = null;
   private DelegationCertificate delegation = null;
-//__JADE_ONLY__END
+//__SECURITY__END
   
   /**
      This flag is used to distinguish the normal AP_ACTIVE state from
@@ -929,7 +928,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return msgQueue.getMaxSize();
   }
 
-  //__JADE_ONLY__BEGIN
+  //__SECURITY__BEGIN
 	public void setOwnership(String ownership) {
 	  this.ownership = ownership;
 	}
@@ -952,7 +951,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
     return p;
   }
-  //__JADE_ONLY__END
+  //__SECURITY__END
 
   private void setState(int state) {
     synchronized(stateLock) {
@@ -2066,13 +2065,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
       myToolkit.handleChangedAgentState(myAID, from, to);
   }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
   private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to) {
     if (myToolkit != null)
       myToolkit.handleChangedAgentPrincipal(myAID, from, to);
   }
-//__JADE_ONLY__END
+//__SECURITY__END
 
   private void activateAllBehaviours() {
     myScheduler.restartAll();

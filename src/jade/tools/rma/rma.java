@@ -243,13 +243,13 @@ public class rma extends ToolAgent {
 
         handlersTable.put(JADEIntrospectionOntology.CHANGEDAGENTPRINCIPAL, new EventHandler() {
           public void handle(Event ev) {
-//__JADE_ONLY__BEGIN          	
+//__SECURITY__BEGIN          	
           	ChangedAgentPrincipal cap = (ChangedAgentPrincipal)ev;
       	    ContainerID cid = cap.getWhere();
       	    String container = cid.getName();
       	    AID agent = cap.getAgent();
       	    myGUI.modifyAgent(container, agent, null, cap.getNewPrincipal().getName());
-//__JADE_ONLY__END         	
+//__SECURITY__END         	
 	        }
         });
 

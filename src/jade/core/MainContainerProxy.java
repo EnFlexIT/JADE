@@ -30,13 +30,13 @@ import jade.mtp.MTPDescriptor;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
-//__JADE_ONLY__END
 import jade.security.JADESecurityException;
 import jade.security.JADECertificate;
 import jade.security.JADESubject;
+//__SECURITY__END
 
 /**
  
@@ -138,11 +138,11 @@ class MainContainerProxy implements Platform {
       adaptee.resumedAgent(name);
     }
 
-//__JADE_ONLY__BEGIN
+//__SECURITY__BEGIN
     public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
       adaptee.changedAgentPrincipal(name, from, to);
     }
-//__JADE_ONLY__END
+//__SECURITY__END
 
     public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
       return adaptee.addContainer(ac, cid, user, passwd);
