@@ -29,6 +29,7 @@ import jade.mtp.MTPDescriptor;
 
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
@@ -66,6 +67,7 @@ public interface MainContainer {
 //__SECURITY__BEGIN
     void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException;
     AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException;
+    ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException;
     JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException;
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END

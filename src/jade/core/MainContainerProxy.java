@@ -33,6 +33,7 @@ import jade.util.leap.LinkedList;
 
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
@@ -157,6 +158,9 @@ class MainContainerProxy implements Platform {
 	 	*/
     public synchronized AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
       return adaptee.getAgentPrincipal(name);
+    }
+    public synchronized ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+      return adaptee.getContainerPrincipal(cid);
     }
 //__SECURITY__END
 
