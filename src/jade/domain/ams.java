@@ -269,7 +269,6 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
 
       //sendReply(ACLMessage.AGREE, "( true )");
-
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
       List l = new ArrayList(1);
@@ -740,7 +739,20 @@ public class ams extends Agent implements AgentManager.Listener {
     theProfile.setName("JADE");
     theProfile.setDynamic(new Boolean(false));
     theProfile.setMobility(new Boolean(false));
-    theProfile.setTransportProfile(null);
+    APTransportDescription mtps = new APTransportDescription();
+    String[] addresses = myPlatform.platformAddresses();
+    for(int i = 0; i < addresses.length; i++) {
+      String addr = addresses[i];
+      MTPDescription desc = new MTPDescription();
+      int colonPos = addr.indexOf(':');
+      if(colonPos != -1)
+	desc.setMtpName(addr.substring(0, colonPos));
+      desc.addAddresses(addr);
+
+      mtps.addAvailableMtps(desc);
+    }
+
+    theProfile.setTransportProfile(mtps);
 
 
     // Register the supported ontologies 
