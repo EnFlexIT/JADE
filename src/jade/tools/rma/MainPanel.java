@@ -67,6 +67,8 @@ class MainPanel extends JPanel implements  TreeSelectionListener
     //  (javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION);
    
     pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,treeAgent.tree,table.createTable());
+    pan.setContinuousLayout(true);
+
     add(pan);
    
     treeAgent.listenerTree(this);
