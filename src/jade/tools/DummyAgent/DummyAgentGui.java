@@ -271,11 +271,11 @@ class DummyAgentGui extends JFrame implements ActionListener
 			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
 		  StringACLCodec codec = new StringACLCodec();
 		  try {
-		  	codec.decode(codec.encode(m));
-		  	myAgent.send(m);
+		      codec.decode(codec.encode(m));
+		      myAgent.send(m);
 		  } catch (ACLCodec.CodecException ce) {	
 		  	  System.out.println("Wrong ACL Message");
-					ce.printStackTrace();
+			  // ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 						  }
 
@@ -303,7 +303,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 					System.out.println("File Not Found: " + fileName); }
 				catch (ACLCodec.CodecException e2) {
 					System.out.println("Wrong ACL Message in file: " +fileName);
-					e2.printStackTrace(); 
+					// e2.printStackTrace(); 
 					JOptionPane.showMessageDialog(null,"Wrong ACL Message in file: "+ fileName +"\n"+ e2.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 				
 			}
