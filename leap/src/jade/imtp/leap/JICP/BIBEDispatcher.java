@@ -127,7 +127,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	myStub = new FrontEndStub(this);
 
     	props.setProperty(Profile.MAIN, "false");
-    	props.setProperty("mobility", "jade.core.DummyMobilityManager");
 	String nodeName = "Back-End[" + myID.replace(':', '_') + "]";
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
 			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
