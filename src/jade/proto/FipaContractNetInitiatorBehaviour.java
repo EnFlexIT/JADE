@@ -223,15 +223,17 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       // and finally it goes to state 1
 
       cfpMsg.setPerformative(ACLMessage.CFP);
-      if (cfpMsg.getProtocol().length() < 1)
+      if (cfpMsg.getProtocol() == null)
 	cfpMsg.setProtocol("FIPA-Contract-Net");
       cfpMsg.setSender(myAgent.getAID());
-      if (cfpMsg.getReplyWith().length() < 1)
+      if (cfpMsg.getReplyWith() == null)
 	cfpMsg.setReplyWith("ContractNet"+(new Date()).getTime());
-      if (cfpMsg.getConversationId().length() < 1)
+      if (cfpMsg.getConversationId() == null )
 	cfpMsg.setConversationId("ContractNet"+(new Date()).getTime());
-      timeout = cfpMsg.getReplyByDate().getTime()-(new Date()).getTime();
-      if (timeout <= 1000) timeout = -1; // infinite timeout
+      if (cfpMsg.getReplyByDate() != null) 
+	timeout = cfpMsg.getReplyByDate().getTime()-(new Date()).getTime();
+      else
+	timeout = -1; // infinite timeout
       endingTime = System.currentTimeMillis() + timeout;
 
       //replace the content with the actual actor name 
@@ -337,9 +339,11 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       for (int i=0; i<msgAcceptReject.size(); i++) {
 	tmpmsg = (ACLMessage)msgAcceptReject.elementAt(i);
 	if (ACLMessage.ACCEPT_PROPOSAL ==tmpmsg.getPerformative()) {
-	  tmptime = tmpmsg.getReplyByDate().getTime()-(new Date()).getTime();
-	  if (timeout < tmptime)
-	    timeout = tmptime; // put in timeout the maximum timeout
+	  if (tmpmsg.getReplyByDate() != null) {
+	    tmptime = tmpmsg.getReplyByDate().getTime()-(new Date()).getTime();
+	    if (timeout < tmptime)
+	      timeout = tmptime; // put in timeout the maximum timeout
+	  }
 	  waitedAgents.add(tmpmsg.getAllReceiver().next());
 	}
 	tmpmsg.setSender(myAgent.getAID());

@@ -337,8 +337,6 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
     Date d = reqMsg.getReplyByDate();
     if(d != null) {
       timeout = d.getTime() - (new Date()).getTime();
-      if (timeout<=1000)
-	timeout = -1;//infinite timeout
     }
     else
       timeout = -1;

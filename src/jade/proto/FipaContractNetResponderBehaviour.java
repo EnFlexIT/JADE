@@ -186,7 +186,7 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
       proposeMsg.setInReplyTo(cfpMsg.getReplyWith());
       proposeMsg.setProtocol("FIPA-Contract-Net");
       proposeMsg.setConversationId(cfpMsg.getConversationId());
-      if (proposeMsg.getReplyWith().length()<1)
+      if (proposeMsg.getReplyWith() == null )
 	proposeMsg.setReplyWith("ContractNetResponder"+(new Date()).getTime());
       template = MessageTemplate.MatchInReplyTo(proposeMsg.getReplyWith());
       myAgent.send(proposeMsg);
@@ -195,8 +195,10 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
       if (! (ACLMessage.PROPOSE == proposeMsg.getPerformative()))
 	reset();
       else {
-	timeout = proposeMsg.getReplyByDate().getTime()-(new Date()).getTime();
-	if (timeout <= 1000) timeout = -1; // infinite timeout
+	if (proposeMsg.getReplyByDate() != null)
+	  timeout = proposeMsg.getReplyByDate().getTime()-(new Date()).getTime();
+	else 
+	  timeout = -1; // infinite timeout
 	endingTime = System.currentTimeMillis() + timeout;
       //      System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis());
       }
