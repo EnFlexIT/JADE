@@ -3,7 +3,7 @@
 package examples.JadeJessProtege;
 import jess.*;
 import jade.core.*;
-import java.util.*;
+import jade.util.leap.*;
 public class JadeJessAgent extends jade.core.Agent // shows how Protege, JESS and JADE can be combined
   {
   private Rete jess;

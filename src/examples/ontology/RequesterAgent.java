@@ -34,7 +34,8 @@ import jade.onto.*;
 import jade.onto.basic.*;
 import examples.ontology.employment.*;
 
-import java.util.*;
+import java.util.Vector;
+import jade.util.leap.*;
 import java.io.*;
 
 /**

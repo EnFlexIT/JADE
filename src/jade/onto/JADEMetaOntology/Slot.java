@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.onto.JADEMetaOntology;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 
 public class Slot {

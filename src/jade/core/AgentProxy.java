@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma

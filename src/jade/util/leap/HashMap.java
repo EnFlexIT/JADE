@@ -71,6 +71,13 @@ public class HashMap implements Map, Serializable {
     }
 
     /**
+     * Constructor, creates a new Map with initial size and load factor
+     */
+    public HashMap(int s, float lf) {
+        realHiddenMap = new java.util.HashMap(s, lf);
+    }
+
+    /**
      * @see jade.util.leap.Map interface
      */
     public boolean isEmpty() {

@@ -25,11 +25,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Iterator;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.ServiceDescription;

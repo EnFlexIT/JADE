@@ -23,9 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
  * This class allows retrieving configuration-dependent classes.

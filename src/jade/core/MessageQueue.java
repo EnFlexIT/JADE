@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.Iterator;
-import java.util.LinkedList;
+import jade.util.leap.Iterator;
+import jade.util.leap.LinkedList;
 
 import jade.lang.acl.ACLMessage;
 

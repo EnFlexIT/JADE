@@ -20,11 +20,11 @@
  */
 package jade.core;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -27,7 +27,7 @@ import java.io.Writer;
 import java.io.StringWriter;
 import java.io.IOException;
 
-import java.util.*;
+import jade.util.leap.*;
 
 import jade.onto.Frame;
 import jade.onto.OntologyException;

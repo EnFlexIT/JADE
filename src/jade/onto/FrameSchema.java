@@ -26,15 +26,15 @@ package jade.onto;
 
 import java.lang.reflect.*;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Set;
+import jade.util.leap.Iterator;
 
 import jade.core.CaseInsensitiveString;
 

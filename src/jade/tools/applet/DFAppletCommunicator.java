@@ -28,9 +28,9 @@ import java.io.DataInputStream;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.net.*;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.List;
+import jade.util.leap.Iterator;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
 
 import jade.domain.DFGUIAdapter;
 import jade.lang.acl.ACLParser;

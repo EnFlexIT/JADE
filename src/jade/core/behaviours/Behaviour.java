@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.behaviours;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 import jade.core.Agent;
 

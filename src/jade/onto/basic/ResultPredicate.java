@@ -26,7 +26,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
-import java.util.*;
+import jade.util.leap.*;
 
 /**
    @author Fabio Bellifemine - CSELT S.p.A.

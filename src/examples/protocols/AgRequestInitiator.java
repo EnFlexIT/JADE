@@ -26,7 +26,7 @@ package examples.protocols;
 // This agent plays the initiator role in fipa-request protocol.
 
 import java.io.*;
-import java.util.*;
+import jade.util.leap.*;
 
 import jade.core.Agent;
 import jade.core.AID;

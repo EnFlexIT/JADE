@@ -25,7 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.mobile;
 
-import java.util.*;
+import jade.util.leap.*;
 
 import jade.proto.*;
 import jade.lang.acl.*;

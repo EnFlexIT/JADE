@@ -27,7 +27,7 @@ import java.io.Serializable;
 
 import java.rmi.RemoteException;
 
-import java.util.List;
+import jade.util.leap.List;
 
 import jade.core.AID;
 import jade.core.AgentContainer;

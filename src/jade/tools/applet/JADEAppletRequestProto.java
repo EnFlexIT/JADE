@@ -25,9 +25,9 @@ package jade.tools.applet;
 
 import java.io.PrintStream;
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 import jade.lang.Codec;
 import jade.onto.Ontology;

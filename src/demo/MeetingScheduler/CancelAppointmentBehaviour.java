@@ -37,7 +37,7 @@ import jade.onto.basic.Action;
 
 import java.io.*;
 import java.util.Date;
-import java.util.List;
+import jade.util.leap.List;
 
 import demo.MeetingScheduler.Ontology.*;
 

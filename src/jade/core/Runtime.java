@@ -28,7 +28,7 @@ package jade.core;
 //import java.rmi.*; // FIXME: This will go away...
 //import java.rmi.registry.*; // FIXME: This will go away...
 
-import java.util.LinkedList;
+import jade.util.leap.LinkedList;
 
 /**
    This class is a Singleton class, allowing intial access to the JADE

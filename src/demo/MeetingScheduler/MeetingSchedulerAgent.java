@@ -24,7 +24,11 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 
-import java.util.*;
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.util.Date;
+import jade.util.leap.*;
 
 import demo.MeetingScheduler.Ontology.*;
 import jade.core.Agent;
@@ -223,7 +227,7 @@ protected Person getPersonbyAgentName(AID agentname) {
    */
 private void fixAppointment(Appointment a) {
 
-  List ag = new ArrayList();
+  java.util.List ag = new java.util.ArrayList();
   for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); ) 
     ag.add(((Person)i.next()).getAID());
     

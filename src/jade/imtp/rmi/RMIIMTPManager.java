@@ -27,8 +27,8 @@ import java.rmi.*;
 import java.rmi.registry.*;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 

@@ -26,7 +26,7 @@ package jade.imtp.rmi;
 import java.rmi.*;
 import java.rmi.server.*;
 
-import java.util.List;
+import jade.util.leap.List;
 
 import jade.core.AgentContainer;
 import jade.core.AID;

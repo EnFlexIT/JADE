@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import java.util.LinkedList;
+import jade.util.leap.LinkedList;
 
 import jade.core.AID;
 import jade.core.Location;

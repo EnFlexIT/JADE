@@ -26,10 +26,13 @@ package jade;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Properties;
+import jade.util.leap.Properties;
 import java.lang.Boolean;
 import java.util.StringTokenizer;
 import java.util.Stack;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
 import java.io.*;
 import javax.swing.JOptionPane;
 
@@ -38,9 +41,6 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.ProfileException;
 import jade.core.Specifier;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  *  Boots <B><em>JADE</em></b> system, parsing command line arguments.
@@ -337,12 +337,12 @@ public class Boot {
 	  rma.setName("RMA");
 	  rma.setClassName("jade.tools.rma.rma");
 	  //This method is not available in jade.util.leap 
-	  b.agents.add(0,rma);
-	  /* List copy = b.agents;
+	  //b.agents.add(0,rma);
+	  List copy = b.agents;
 	  b.agents = new ArrayList();
 	  b.agents.add(rma);
 	  for (Iterator i=copy.iterator(); i.hasNext(); )
-	  b.agents.add(i.next());*/
+	  b.agents.add(i.next());
 	  rma = null; // frees memory
       }	
     	

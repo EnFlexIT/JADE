@@ -25,7 +25,11 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 import java.lang.reflect.*;
-import java.util.*;
+import jade.util.leap.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+import jade.util.leap.ArrayList;
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -412,10 +416,10 @@ public final class DefaultOntology implements Ontology {
     // MODIFIED by GC
     // The return value of the getAllXXX() method of the user defined class 
     // must be a jade.util.leap.Iterator or a super-class/interface of it -->
-    // No problem if it is a java.util.Iterator.
+    // No problem if it is a jade.util.leap.Iterator.
     if (!(getReturnType(getMethod)).isAssignableFrom(jade.util.leap.Iterator.class))
-    //if (!getReturnType(getMethod).equals(java.util.Iterator.class))
-      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a java.util.Iterator." + getReturnType(getMethod).toString());
+    //if (!getReturnType(getMethod).equals(jade.util.leap.Iterator.class))
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a jade.util.leap.Iterator." + getReturnType(getMethod).toString());
 
     // check 'add' method 
     if (getArgumentLength(addMethod) != 1)
@@ -695,7 +699,7 @@ public final class DefaultOntology implements Ontology {
 	    else
 	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
 	    // MODIFIED by GC
-	    java.util.Iterator i = (java.util.Iterator) value;
+	    jade.util.leap.Iterator i = (jade.util.leap.Iterator) value;
 	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
 	      while (i.hasNext()) {
 		Object elem = i.next();
@@ -780,7 +784,9 @@ public final class DefaultOntology implements Ontology {
 	slots.add(sd);
       } //end iteration on slots
       SlotDescriptor[] sdarray = new SlotDescriptor[slots.size()];
-      slots.toArray(sdarray);
+      int counter = 0;
+      for(Iterator it = slots.iterator(); it.hasNext(); )
+	  sdarray[counter++] = (SlotDescriptor)it.next();
       if (r.getClassName() == null)
 	addRole(r.getName(),sdarray);
       else 

@@ -41,11 +41,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import java.util.Properties;
+import jade.util.leap.Properties;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

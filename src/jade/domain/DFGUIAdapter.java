@@ -28,8 +28,8 @@ import jade.domain.FIPAException;
 import jade.core.AID;
 import jade.gui.GuiEvent;
 
-import java.util.Iterator;
-import java.util.List;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
 
 /**
  * This interface must be implemented by a GUI that wants to interact

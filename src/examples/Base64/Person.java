@@ -23,8 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package examples.Base64;
 
-import java.util.*;
+import jade.util.leap.*;
 import java.io.*;
+import java.util.Date;
 
 /**
 This is  just a support class for the object reader and writer agents.
@@ -33,7 +34,7 @@ Refer to them for any documentation.
 @version $Date$ $Revision$
 */
 
-public class Person implements Serializable {
+public class Person implements jade.util.leap.Serializable {
 
 String name;
 String surname;

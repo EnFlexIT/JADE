@@ -24,10 +24,10 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
+import jade.util.leap.HashMap;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.Iterator;
 import java.net.InetAddress;
 
 import jade.core.AID;
@@ -255,7 +255,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
       if( maxResults != null)
       		if (l.size() >= maxResults.intValue()) 
       		{
-      			l = l.subList(0, maxResults.intValue());
+		    ArrayList dummy = new ArrayList();
+		    for(Iterator i = l.iterator(); i.hasNext();)
+			dummy.add(i.next());
+
+			l = dummy;
+			// subList not supported by jade.util.leap.List
+      			// l = l.subList(0, maxResults.intValue());
       		
       			ACLMessage msg = getRequest().createReply();
       			msg.setPerformative(ACLMessage.INFORM);

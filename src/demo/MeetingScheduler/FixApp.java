@@ -29,9 +29,10 @@ package demo.MeetingScheduler;
 
 import java.awt.*;
 
+import java.util.Enumeration;
+
 import symantec.itools.awt.util.Calendar;
 
-import java.util.Enumeration;
 import java.util.Date;
 
 import jade.gui.GuiEvent;

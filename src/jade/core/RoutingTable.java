@@ -23,9 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -119,8 +119,8 @@ class RoutingTable {
 
   private static class OutPortList {
 
-    private List local = new LinkedList();
-    private List remote = new LinkedList();
+    private List local = new ArrayList();
+    private List remote = new ArrayList();
 
     public void add(OutPort port, boolean location) {
       if(location == LOCAL) {
@@ -157,7 +157,7 @@ class RoutingTable {
   private FullAcc myACC;
   private Map inPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private Map outPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-  private List platformAddresses = new LinkedList();
+  private List platformAddresses = new ArrayList();
 
   
   public RoutingTable(FullAcc fa) {

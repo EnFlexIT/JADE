@@ -24,10 +24,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 import jade.lang.Codec;
 
@@ -39,7 +39,7 @@ import jade.onto.OntologyException;
 //import jade.onto.Name;
 
 import jade.onto.basic.*;
-import java.util.Iterator;
+import jade.util.leap.Iterator;
 
 /**
    

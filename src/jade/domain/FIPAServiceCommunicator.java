@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-import java.util.*; 
+import jade.util.leap.*; 
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -41,6 +41,8 @@ import jade.onto.OntologyException;
 
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
+
+import java.util.Date;
 
 /**
  * This class provides a set of basic and static methods to perform the FIPA Agent Management actions.

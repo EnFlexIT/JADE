@@ -32,7 +32,7 @@ import jade.onto.OntologyException;
 
 import jade.onto.basic.*;
 
-import java.util.*;
+import jade.util.leap.*;
 
 /**
    Javadoc documentation for the file EmploymentOntology

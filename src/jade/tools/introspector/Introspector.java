@@ -27,8 +27,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Iterator;

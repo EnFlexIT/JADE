@@ -30,15 +30,15 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 import java.util.Date;
-import java.util.Properties;
+import jade.util.leap.Properties;
 
 import jade.core.AID;
 
-public class Envelope implements java.io.Serializable {
+public class Envelope implements jade.util.leap.Serializable {
 
 	/**
   @serial
@@ -215,7 +215,13 @@ public class Envelope implements java.io.Serializable {
      routing path, from the oldest to the newest.
   */
   public ReceivedObject[] getStamps() {
-    return (ReceivedObject[])stamps.toArray(new ReceivedObject[0]);
+      ReceivedObject[] ret = new ReceivedObject[stamps.size()];
+      int counter = 0;
+
+      for(Iterator it = stamps.iterator(); it.hasNext(); )
+      ret[counter++] = (ReceivedObject)it.next();
+
+    return ret;
   }
 
   // FIXME: Handle Properties

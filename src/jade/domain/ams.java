@@ -32,12 +32,12 @@ import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 import java.net.InetAddress;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Set;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 import jade.core.*;
 import jade.core.behaviours.*;

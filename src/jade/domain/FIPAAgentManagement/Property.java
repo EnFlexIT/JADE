@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
-import java.util.*;
+import jade.util.leap.*;
 
 /** 
  This class implements the property type, a pair of a name and value.

@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import java.util.*;
+import jade.util.leap.*;
 
 import jade.core.AID;
 

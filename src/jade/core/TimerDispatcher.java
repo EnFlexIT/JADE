@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
+import jade.util.leap.SortedSet;
+import jade.util.leap.SortedSetImpl;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -34,7 +34,7 @@ import java.util.TreeSet;
 class TimerDispatcher implements Runnable {
 
   private Thread myThread;
-  private SortedSet timers = new TreeSet();
+  private SortedSet timers = new SortedSetImpl();
   private boolean active;
 
   TimerDispatcher() {

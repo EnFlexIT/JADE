@@ -28,9 +28,9 @@ import java.io.StringReader;
 
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.LinkedList;
 
 import jade.core.*;
@@ -129,7 +129,7 @@ public class Sniffer extends ToolAgent {
   private Vector preLoadedAgents; // The agents in the .inf file that we are to pre-sniff.
   private Vector preLoadedFilters; // Filtering array for the pre-sniffed agents.
 
-  private LinkedList agentsUnderSniff = new LinkedList();
+  private ArrayList agentsUnderSniff = new ArrayList();
 
 
   // Sends requests to the AMS

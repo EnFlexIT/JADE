@@ -23,7 +23,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
-import java.util.Vector;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
   /**
    Javadoc documentation for the file
@@ -44,7 +45,7 @@ public class PopSniffAgent extends AbstractPopup {
 
 private PopupAgent popAg;
 private Sniffer mySniffer;
-private Vector sniffedAgent=new Vector();
+private List sniffedAgent=new ArrayList();
 private MMCanvas canvAgent;
 
  public PopSniffAgent(PopupAgent popAg,Sniffer mySniffer,MMCanvas canvAgent) {
@@ -57,9 +58,9 @@ private MMCanvas canvAgent;
    if (!canvAgent.isPresent(popAg.agent.agentName))
      canvAgent.addAgent(popAg.agent);   // add Agent in the Canvas
      canvAgent.rAgfromNoSniffVector(popAg.agent);
-     sniffedAgent.addElement(popAg.agent);
+     sniffedAgent.add(popAg.agent);
      mySniffer.sniffMsg(sniffedAgent,Sniffer.SNIFF_ON);   // Sniff the Agents
-     sniffedAgent.removeAllElements();
+     sniffedAgent.clear();
    }
 
 } // End of class PopSniffAgent

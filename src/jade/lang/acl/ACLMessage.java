@@ -25,7 +25,7 @@ package jade.lang.acl;
 
 import java.io.Reader;
 import java.io.Writer;
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.ByteArrayOutputStream;
@@ -35,11 +35,11 @@ import java.io.ObjectInputStream;
 import java.lang.ClassNotFoundException;
 
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
-import java.util.Properties;
+import jade.util.leap.Properties;
 import java.util.Enumeration;
 
 import jade.core.AID;

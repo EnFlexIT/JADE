@@ -23,7 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.lang.acl;
 
-import java.util.*;
+import jade.util.leap.*;
+import java.util.Date;
+import java.util.TimeZone;
 import java.text.SimpleDateFormat;
 
 /**

@@ -22,7 +22,7 @@
  */
 package jade.core;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 /**
  * A name string, with case insensitive comparison and equality operations.

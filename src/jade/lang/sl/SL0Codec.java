@@ -33,7 +33,7 @@ import jade.onto.Ontology;
 import jade.onto.basic.BasicOntology;
 
 
-import java.util.List;
+import jade.util.leap.List;
 
 /**
 

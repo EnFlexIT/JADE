@@ -25,13 +25,13 @@ package jade.lang.acl;
 
 import java.io.Writer;
 import java.io.IOException;
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 import java.lang.reflect.Method;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
 
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;

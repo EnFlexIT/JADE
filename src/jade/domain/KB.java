@@ -25,7 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-import java.util.List;
+import jade.util.leap.List;
 
 /** Interface for AMS and DF Knowledge Base*/
 interface KB {

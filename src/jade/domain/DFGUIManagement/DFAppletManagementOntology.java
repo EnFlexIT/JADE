@@ -24,8 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
-import java.util.List;
-import java.util.LinkedList;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
 
 
 import jade.onto.basic.*;  // to import Done, Action, ...

@@ -31,8 +31,8 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 
-import java.util.Iterator;
-import java.util.List;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
 import java.util.HashMap;
 import java.applet.*;
 

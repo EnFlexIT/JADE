@@ -34,7 +34,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import examples.ontology.employment.*;
 import jade.onto.basic.*;
-import java.util.*;
+import jade.util.leap.*;
 
 /**
 	This agent is able to engage people on behalf of company 

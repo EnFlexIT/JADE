@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 
 // Class for the Global Agent Descriptor Table.

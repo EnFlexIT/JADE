@@ -33,8 +33,8 @@ import jade.onto.SlotDescriptor;
 import jade.onto.OntologyException;
 
 
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 /**
    @author Fabio Bellifemine - CSELT S.p.A.
    @version $Date$ $Revision$

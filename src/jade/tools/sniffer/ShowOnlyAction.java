@@ -24,7 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import jade.gui.AgentTree;
-import java.util.Vector;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
   /**
    Javadoc documentation for the file
@@ -45,7 +46,7 @@ public class ShowOnlyAction extends AgentAction {
 
  private MainPanel mainPanel;
  private Sniffer mySniffer;
- private Vector  noSniffedAgents=new Vector();
+ private List  noSniffedAgents=new ArrayList();
  private Agent agent;
 
  public ShowOnlyAction(ActionProcessor actPro, MainPanel mainPanel, Sniffer mySniffer) {
@@ -58,12 +59,12 @@ public class ShowOnlyAction extends AgentAction {
   String realName;
   realName=checkString(node.getName());
   agent=new Agent(realName);
-  noSniffedAgents.addElement(agent);
+  noSniffedAgents.add(agent);
   if (!mainPanel.panelcan.canvAgent.isPresent(realName))
        mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
   mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(agent);
   mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
-  noSniffedAgents.removeAllElements();
+  noSniffedAgents.clear();
  }
 
  private String checkString(String nameAgent) {

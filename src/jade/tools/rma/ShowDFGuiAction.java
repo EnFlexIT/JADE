@@ -30,8 +30,8 @@ import jade.domain.JADEAgentManagement.ShowGui;
 import jade.lang.sl.SL0Codec;
 import jade.onto.basic.Action;
 import jade.domain.FIPAException;
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
 /**
    

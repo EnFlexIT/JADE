@@ -30,11 +30,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.InputStreamReader;
 
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Iterator;
+import jade.util.leap.Iterator;
 import java.net.URL;
 
 import jade.core.*;

@@ -32,15 +32,14 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
+import jade.util.leap.Collection;
+import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Map;
+import jade.util.leap.Set;
 
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;

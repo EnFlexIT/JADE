@@ -30,7 +30,7 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import java.util.Iterator;
+import jade.util.leap.Iterator;
 
 /**
  * Behaviour class for <code>fipa-query</code> <em>Responder</em>

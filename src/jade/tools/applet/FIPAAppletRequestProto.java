@@ -24,9 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.tools.applet;
 
 import java.io.PrintStream;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.Iterator;
+import jade.util.leap.ArrayList;
 import java.util.Date;
 import jade.lang.Codec;
 import jade.lang.acl.ACLMessage;

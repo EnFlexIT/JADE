@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 import java.io.InputStream;
 import java.io.ObjectInput;
@@ -35,12 +35,12 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
-import java.util.List;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import java.util.Vector;
 
 import jade.core.behaviours.Behaviour;

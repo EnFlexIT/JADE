@@ -25,7 +25,7 @@ package jade.lang;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
-import java.util.List;
+import jade.util.leap.List;
 
 /**
    Interface for Content Language encoders/decoders. This interface

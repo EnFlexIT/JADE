@@ -23,9 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package test;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Hashtable;
 
 import jade.core.*;
 import jade.core.behaviours.*;

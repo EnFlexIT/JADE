@@ -23,10 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 import jade.core.*;
 import jade.core.behaviours.*;

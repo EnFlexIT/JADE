@@ -27,9 +27,9 @@
 package jade.core;
 
 import jade.util.leap.Properties;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 import java.io.IOException;
 import java.net.*;
 import java.util.Hashtable;

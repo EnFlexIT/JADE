@@ -24,10 +24,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.List;
-import java.util.LinkedList;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Iterator;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 
 import jade.core.behaviours.Behaviour;
 
@@ -112,13 +113,24 @@ class Scheduler implements Serializable {
   // Some ready behaviour can be a NDBehaviour with some of its
   // children blocked. These children must be restarted too.
   public synchronized void restartAll() {
-    Behaviour[] behaviours = (Behaviour[])readyBehaviours.toArray(new Behaviour[0]);
+    Object[] dummy = readyBehaviours.toArray();
+
+
+    Behaviour[] behaviours = new Behaviour[readyBehaviours.size()];
+    int counter = 0;
+    for(Iterator it = readyBehaviours.iterator(); it.hasNext();)
+	behaviours[counter++] = (Behaviour)it.next();
+
     for(int i = 0; i < behaviours.length; i++) {
       Behaviour b = behaviours[i];
       b.restart();
     }
     
-    behaviours = (Behaviour[])blockedBehaviours.toArray(new Behaviour[0]);
+    behaviours = new Behaviour[blockedBehaviours.size()];
+    counter = 0;
+    for(Iterator it = blockedBehaviours.iterator(); it.hasNext();)
+	behaviours[counter++] = (Behaviour)it.next();
+
     for(int i = 0; i < behaviours.length; i++) {
       Behaviour b = behaviours[i];
       b.restart();

@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-
-
 import java.awt.Frame;
 
 import jade.gui.AgentTree;
@@ -32,9 +30,9 @@ import jade.Boot;
 import jade.core.Specifier;
 
 import java.util.StringTokenizer;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
    

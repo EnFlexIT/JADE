@@ -26,10 +26,9 @@ package jade.core;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -62,7 +61,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
   private Map messageEncodings = new HashMap();
   private RoutingTable routes = new RoutingTable(this);
 
-  private List localAddresses = new LinkedList();
+  private List localAddresses = new ArrayList();
   private AgentContainerImpl myContainer;
   private String accID;
 

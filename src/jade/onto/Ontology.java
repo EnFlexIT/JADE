@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package jade.onto;
-import java.util.List;
+import jade.util.leap.List;
 import jade.lang.Codec.CodecException;
 import jade.onto.JADEMetaOntology.AnOntology;
 

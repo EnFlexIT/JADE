@@ -24,15 +24,15 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
 import java.io.Writer; // FIXME: This must go away
 import java.io.IOException; // FIXME: This must go away
 import java.io.StringWriter; 
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Properties;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.Properties;
 import java.util.Enumeration;
 
 /**
@@ -165,7 +165,7 @@ public class AID implements Cloneable, Comparable, Serializable {
 
   /**
   * Returns an iterator of all the addresses of the agent.
-  * @see java.util.Iterator
+  * @see jade.util.leap.Iterator
   */
   public Iterator getAllAddresses(){
     return addresses.iterator();
@@ -197,7 +197,7 @@ public class AID implements Cloneable, Comparable, Serializable {
 
   /**
   * Returns an iterator of all the resolvers.
-  * @see java.util.Iterator
+  * @see jade.util.leap.Iterator
   */
   public Iterator getAllResolvers() {
     return resolvers.iterator();
@@ -235,8 +235,8 @@ public class AID implements Cloneable, Comparable, Serializable {
 
   /**
   * Returns the user-defined slots as properties. 
-  * @return all the user-defined slots as a <code>java.util.Properties</code> java Object.
-  * @see java.util.Properties
+  * @return all the user-defined slots as a <code>jade.util.leap.Properties</code> java Object.
+  * @see jade.util.leap.Properties
   */
   public Properties getAllUserDefinedSlot(){
     return userDefSlots;

@@ -2,7 +2,7 @@
 // in collaboration with Fabio Bellifemine and Ernest Friedmann-Hill
 package examples.JadeJessProtege;
 import jess.*;
-import java.util.Hashtable;
+import jade.util.leap.Hashtable;
 public class JessHashtable // for storing the running JESS engine
   {
   private static Hashtable jessHashtable = new Hashtable();

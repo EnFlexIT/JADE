@@ -22,8 +22,8 @@
  */
 package jade.core;
 
-import java.util.List;
-//import java.util.ArrayList;
+import jade.util.leap.List;
+//import jade.util.leap.ArrayList;
 import jade.lang.acl.ACLMessage;
 //import jade.lang.acl.ACLCodec;
 //import jade.mtp.MTP;
