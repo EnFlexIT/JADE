@@ -70,8 +70,8 @@ interface AgentContainer extends Remote {
   void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException;
   void ping(boolean hang) throws RemoteException;
 
-  String installMTP(String address, String className) throws RemoteException;
-  void uninstallMTP(String address) throws RemoteException, NotFoundException;
+  String installMTP(String address, String className) throws RemoteException, MTPException;
+  void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException;
 
   void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException;
   void route(Object env, byte[] payload, String address) throws RemoteException, MTPException;
