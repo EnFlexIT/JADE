@@ -148,6 +148,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeDummyPrincipal();
                 case Serializer.CERTIFICATEFOLDER_ID:
                     return deserializeCertificateFolder();
+		case Serializer.THROWABLE_ID:
+		    return deserializeThrowable();
                 case Serializer.DEFAULT_ID:
                     String     serName = readUTF();
                     Serializer s = (Serializer) Class.forName(serName).newInstance();
@@ -765,5 +767,21 @@ class DeliverableDataInputStream extends DataInputStream {
         return cf;
     }
 
-} // End of DeliverableDaraInputStream class
+    private Throwable deserializeThrowable() throws LEAPSerializationException {
+	String className = readString();
+	String message = readString();
+	try {
+	    Throwable result = (Throwable)Class.forName(className).newInstance();
+	    // FIXME: How do we set the message?
+	    return result;
+	}
+	catch(Throwable t) {
+
+	    // Actual class not found: simply create a java.lang.Exception
+	    return new java.lang.Exception(message + " [Original exception was: " + className + "]");
+	}
+    }
+
+
+} // End of DeliverableDataInputStream class
 
