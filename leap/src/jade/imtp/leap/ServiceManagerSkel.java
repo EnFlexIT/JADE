@@ -77,15 +77,10 @@ class ServiceManagerSkel extends Skeleton {
 	    NodeDescriptor desc = (NodeDescriptor)command.getParamAt(0);
 	    String[] svcNames = (String[])command.getParamAt(1);
 	    String[] svcInterfaceNames = (String[])command.getParamAt(2);
-
-	    // Fill a Class array from the names array
-	    Class[] svcInterfaces = new Class[svcInterfaceNames.length];
-	    for(int i = 0; i < svcInterfaceNames.length; i++) {
-		svcInterfaces[i] = Class.forName(svcInterfaceNames[i]);
-	    }
+	    boolean propagate = ((Boolean)command.getParamAt(3)).booleanValue();
 
 	    // Execute command...
-	    String name = addNode(desc, svcNames, svcInterfaces);
+	    String name = addNode(desc, svcNames, svcInterfaceNames, propagate);
 
 	    resp = new Command(Command.OK);
 	    resp.addParam(name);
@@ -95,9 +90,10 @@ class ServiceManagerSkel extends Skeleton {
 
 	case Command.REMOVE_NODE: {
 	    NodeDescriptor desc = (NodeDescriptor)command.getParamAt(0);
+	    boolean propagate = ((Boolean)command.getParamAt(1)).booleanValue();
 
 	    // Execute command...
-	    removeNode(desc);
+	    removeNode(desc, propagate);
 
 	    resp = new Command(Command.OK);
 
@@ -108,10 +104,11 @@ class ServiceManagerSkel extends Skeleton {
 	    String svcName = (String)command.getParamAt(0);
 	    String itfName = (String)command.getParamAt(1);
 	    NodeDescriptor where = (NodeDescriptor)command.getParamAt(2);
+	    boolean propagate = ((Boolean)command.getParamAt(3)).booleanValue();
 
 	    // Execute command...
 	    Class itf = Class.forName(itfName);
-	    activateService(svcName, itf, where);
+	    activateService(svcName, itf, where, propagate);
 
 	    resp = new Command(Command.OK);
 
@@ -143,12 +140,45 @@ class ServiceManagerSkel extends Skeleton {
 	    break;
 	}
 
+	case Command.SERVICE_MANAGER_PING: {
+
+	    // Do nothing...
+
+	    resp = new Command(Command.OK);
+
+	    break;
+	}
+
+	case Command.SERVICE_MANAGER_ADD_REPLICA: {
+	    String addr = (String)command.getParamAt(0);
+
+	    // Do something...
+	    String[] addresses = addReplica(addr);
+
+	    resp = new Command(Command.OK);
+	    resp.addParam(addresses);
+
+	    break;
+	}
+
+	case Command.SERVICE_MANAGER_UPDATE_COUNTERS: {
+	    int nodeCnt = ((Integer)command.getParamAt(0)).intValue();
+	    int mainCnt = ((Integer)command.getParamAt(1)).intValue();
+
+	    // Do something...
+	    updateCounters(nodeCnt, mainCnt);
+
+	    resp = new Command(Command.OK);
+
+	    break;
+	}
+
 	}
 
 	return resp;
     }
 
-    private void activateService(String name, Class itf, NodeDescriptor desc) throws ServiceException, IMTPException {
+    private void activateService(String name, Class itf, NodeDescriptor desc, boolean propagate) throws ServiceException, IMTPException {
 
 	String sliceName = desc.getName();
 	Node remoteNode = desc.getNode();
@@ -159,6 +189,9 @@ class ServiceManagerSkel extends Skeleton {
 	Service.Slice slice = manager.createSliceProxy(name, itf, remoteNode);
 	impl.addRemoteSlice(name, sliceName, slice, remoteNode);
 
+	if(propagate) {
+	    manager.serviceActivated(name, itf, remoteNode);
+	}
     }
 
     private void deactivateService(String name, NodeDescriptor desc) throws ServiceException, IMTPException {
@@ -170,21 +203,32 @@ class ServiceManagerSkel extends Skeleton {
 
     }
 
-    private String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces) throws ServiceException, AuthException, IMTPException {
+    private String addNode(NodeDescriptor desc, String[] svcNames, String[] svcInterfacesNames, boolean propagate) throws ServiceException, AuthException, IMTPException {
 
 	// Add the node to the node table
-	String containerName = impl.addRemoteNode(desc);
+	String containerName = impl.addRemoteNode(desc, propagate);
 
 	String name = desc.getName();
 	NodeAdapter remoteNode = (NodeAdapter)desc.getNode();
 
 	System.out.println("Adding node <" + name + "> to the platform.");
 
+	// Fill a Class array from the names array
+	Class[] svcInterfaces = new Class[svcInterfacesNames.length];
+	for(int i = 0; i < svcInterfacesNames.length; i++) {
+	    try {
+		svcInterfaces[i] = Class.forName(svcInterfacesNames[i]);
+	    }
+	    catch(ClassNotFoundException cnfe) {
+		svcInterfaces[i] = jade.core.Service.Slice.class;
+	    }
+	}
+
 	// Activate all the node services
 	List failedServices = new LinkedList();
 	for(int i = 0; i < svcNames.length; i++) {
 	    try {
-		activateService(svcNames[i], svcInterfaces[i], desc);
+		activateService(svcNames[i], svcInterfaces[i], desc, propagate);
 	    }
 	    catch(IMTPException imtpe) {
 		// This should never happen, because it's a local call...
@@ -215,16 +259,15 @@ class ServiceManagerSkel extends Skeleton {
 	    }
 	}
 
+	if(propagate) {
+	    manager.nodeAdded(desc, svcNames, svcInterfaces, impl.getNodeCounter(), impl.getMainNodeCounter());
+	}
+
 	return containerName;
     }
 
-    private void removeNode(NodeDescriptor desc) throws ServiceException, IMTPException {
-	// FIXME: To be implemented
-
-	// Remove all the slices corresponding to the calling node...
-
-	// For each service, if no slices remain remove also the service...
-
+    private void removeNode(NodeDescriptor desc, boolean propagate) throws ServiceException, IMTPException {
+	impl.removeRemoteNode(desc, propagate);
     }
 
     private Node[] findAllNodes(String serviceKey) throws ServiceException, IMTPException {
@@ -245,5 +288,31 @@ class ServiceManagerSkel extends Skeleton {
 	}
     }
 
+    public String[] addReplica(String addr) throws IMTPException {
+	try {
+	    // Retrieve the RMI object for the replica...
+	    ServiceManagerStub replica = null; // FIXME: Temporary Hack
+
+	    // Send all nodes with their installed services...
+	    List infos = impl.getAllNodesInfo();
+
+	    Iterator it = infos.iterator();
+	    while(it.hasNext()) {
+		ServiceManagerImpl.NodeInfo info = (ServiceManagerImpl.NodeInfo)it.next();
+		replica.addNode(info.getNodeDescriptor(), info.getServiceNames(), info.getServiceInterfacesNames(), false);
+	    }
+
+	    replica.updateCounters(impl.getNodeCounter(), impl.getMainNodeCounter());
+	    return manager.getServiceManagerAddresses();
+	}
+	catch(Exception e) {
+	    e.printStackTrace();
+	    return new String[0];
+	}
+    }
+
+    public void updateCounters(int nodeCnt, int mainCnt) throws IMTPException {
+	impl.setNodeCounters(nodeCnt, mainCnt);
+    }
 
 }
