@@ -98,7 +98,6 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/onto/OntologyException.java \
 		jade/content/onto/ReflectiveIntrospector.java \
 		jade/content/onto/MicroIntrospector.java \
-		jade/content/onto/BasicIntrospector.java \
 		jade/content/onto/UngroundedException.java \
 		jade/content/onto/UnknownSchemaException.java \
 		jade/content/schema/AgentActionSchema.java \
