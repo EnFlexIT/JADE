@@ -158,6 +158,7 @@ public class AbsObjectImpl implements AbsObject {
     	sb.append(getTypeName());
     	
       String[] names = getNames();
+      
       for (int i = 0; i < names.length; i++) {
       	sb.append(" :"+names[i]+" "+getAbsObject(names[i]));
       }

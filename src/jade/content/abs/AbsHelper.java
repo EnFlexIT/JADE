@@ -32,6 +32,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
+import jade.lang.acl.ACLMessage;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
@@ -138,6 +139,59 @@ public class AbsHelper {
         return ret;
     } 
 
+    /**
+     * Converts an <code>ACLMessage</code> into an
+     * <code>AbsAgentAction</code> using
+     * the specified ontology.
+     * @param obj the <code>ACLMessage</code>
+     * @param onto the ontology.
+     * @return the abstract descriptor.
+     * @throws OntologyException
+     */
+    public static AbsAgentAction externaliseACLMessage(ACLMessage obj, Ontology onto) throws OntologyException {
+  		try {
+  			AbsAgentAction absMsg =  new AbsAgentAction(BasicOntology.ACLMSG);
+  			
+  			absMsg.set(BasicOntology.ACLMSG_PERFORMATIVE, AbsPrimitive.wrap(obj.getPerformative()));
+  			absMsg.set(BasicOntology.ACLMSG_SENDER, (AbsTerm) onto.fromObject(obj.getSender()));
+  			// Receivers
+  			AbsAggregate recvs = new AbsAggregate(BasicOntology.SEQUENCE);
+  			Iterator it = obj.getAllReceiver();
+  			while (it.hasNext()) {
+  				recvs.add((AbsTerm) onto.fromObject(it.next()));
+  			}
+  			absMsg.set(BasicOntology.ACLMSG_RECEIVERS, recvs);
+  			// Reply_to
+  			AbsAggregate repls = new AbsAggregate(BasicOntology.SEQUENCE);
+  			it = obj.getAllReceiver();
+  			while (it.hasNext()) {
+  				repls.add((AbsTerm) onto.fromObject(it.next()));
+  			}
+  			absMsg.set(BasicOntology.ACLMSG_REPLY_TO, repls);
+  		
+  			absMsg.set(BasicOntology.ACLMSG_LANGUAGE, obj.getLanguage());
+  			absMsg.set(BasicOntology.ACLMSG_ONTOLOGY, obj.getOntology());
+  			absMsg.set(BasicOntology.ACLMSG_PROTOCOL, obj.getProtocol());
+  			absMsg.set(BasicOntology.ACLMSG_IN_REPLY_TO, obj.getInReplyTo());
+  			absMsg.set(BasicOntology.ACLMSG_REPLY_WITH, obj.getReplyWith());
+  			absMsg.set(BasicOntology.ACLMSG_CONVERSATION_ID, obj.getConversationId());
+  			absMsg.set(BasicOntology.ACLMSG_REPLY_BY, obj.getReplyByDate());
+  			// Content
+  			if (obj.hasByteSequenceContent()) {
+	  			absMsg.set(BasicOntology.ACLMSG_BYTE_SEQUENCE_CONTENT, obj.getByteSequenceContent());
+  			}
+  			else {
+	  			absMsg.set(BasicOntology.ACLMSG_CONTENT, obj.getContent());
+  			}
+  			absMsg.set(BasicOntology.ACLMSG_ENCODING, obj.getEncoding());
+  			
+  			return absMsg;
+  		}
+  		catch (Exception e) {
+  			throw new OntologyException("Error externalising ACLMessage", e);
+  		}
+  	}
+
             
     /**
      * Converts an <code>AbsAggregate</code> into a List using the 
@@ -218,10 +272,64 @@ public class AbsHelper {
         return ret;
     } 
 
+    /**
+     * Converts to an <code>AbsAgentAction</code> representing an ACLMessage
+     * into an OntoACLMessage using the specified ontology.
+     * @param onto the ontology
+     * @return the OntoACLMessage
+     * @throws OntologyException
+     */
+    public static OntoACLMessage internaliseACLMessage(AbsAgentAction absMsg, Ontology onto) throws OntologyException {
+      OntoACLMessage ret = new OntoACLMessage();
+
+    	try {
+  			ret.setPerformative(absMsg.getInteger(BasicOntology.ACLMSG_PERFORMATIVE)); 
+  			ret.setSender((AID) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_SENDER))); 
+  			// Receivers
+  			ret.clearAllReceiver();
+  			List l = (List) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_RECEIVERS));
+  			Iterator it = l.iterator();
+  			while (it.hasNext()) {
+  				ret.addReceiver((AID) it.next());
+  			}
+  			// ReplyTo
+  			ret.clearAllReplyTo();
+  			l = (List) onto.toObject(absMsg.getAbsObject(BasicOntology.ACLMSG_REPLY_TO));
+  			it = l.iterator();
+  			while (it.hasNext()) {
+  				ret.addReplyTo((AID) it.next());
+  			}
+  			ret.setLanguage(absMsg.getString(BasicOntology.ACLMSG_LANGUAGE)); 
+  			ret.setOntology(absMsg.getString(BasicOntology.ACLMSG_ONTOLOGY)); 
+  			ret.setProtocol(absMsg.getString(BasicOntology.ACLMSG_PROTOCOL)); 
+  			ret.setInReplyTo(absMsg.getString(BasicOntology.ACLMSG_IN_REPLY_TO)); 
+  			ret.setReplyWith(absMsg.getString(BasicOntology.ACLMSG_REPLY_WITH)); 
+  			ret.setConversationId(absMsg.getString(BasicOntology.ACLMSG_CONVERSATION_ID)); 
+  			ret.setReplyByDate(absMsg.getDate(BasicOntology.ACLMSG_REPLY_BY)); 
+  			String c = absMsg.getString(BasicOntology.ACLMSG_CONTENT);
+  			if (c != null) {
+  				ret.setContent(c);
+  			}
+  			else {
+	  			byte[] bsc = absMsg.getByteSequence(BasicOntology.ACLMSG_BYTE_SEQUENCE_CONTENT);
+	  			if (bsc != null) {
+	  				ret.setByteSequenceContent(bsc);
+	  			}
+  			}
+  			ret.setEncoding(absMsg.getString(BasicOntology.ACLMSG_ENCODING)); 
+  			
+  			return ret;
+  		}
+  		catch (Exception e) {
+  			throw new OntologyException("Error internalising OntoACLMessage", e);
+  		}
+  	}
+  	
     public static String toString(AbsObject abs) {
 			ByteArrayOutputStream str = new ByteArrayOutputStream();
 			((AbsObjectImpl) abs).dump(0, new PrintStream(str));
 			return new String(str.toByteArray());
-    }
+    
+    }    
 }
 

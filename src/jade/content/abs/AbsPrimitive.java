@@ -61,7 +61,10 @@ public class AbsPrimitive implements AbsTerm {
      * containing a given <code>String</code> value.
      */
     public static AbsPrimitive wrap(String value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.STRING, value);
+     		AbsPrimitive ret = null;
+     		if (value != null) { 
+        	ret = new AbsPrimitive(BasicOntology.STRING, value);
+        }
         return ret;
     } 
 
@@ -117,7 +120,10 @@ public class AbsPrimitive implements AbsTerm {
      * containing a given <code>Date</code> value.
      */
     public static AbsPrimitive wrap(Date value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.DATE, value);
+        AbsPrimitive ret = null;
+        if (value != null) {
+        	ret = new AbsPrimitive(BasicOntology.DATE, value);
+        }
         return ret;
     } 
 
@@ -126,7 +132,10 @@ public class AbsPrimitive implements AbsTerm {
      * containing a given <code>byte[]</code> value.
      */
     public static AbsPrimitive wrap(byte[] value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.BYTE_SEQUENCE, value);
+        AbsPrimitive ret = null;
+        if (value != null) {
+        	ret = new AbsPrimitive(BasicOntology.BYTE_SEQUENCE, value);
+        }
         return ret;
     } 
 

@@ -139,7 +139,13 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
      * @param value The value of the attribute.
      */
     public String getString(String name) {
-        return ((AbsPrimitive) getAbsObject(name)).getString();
+        AbsPrimitive p = (AbsPrimitive) getAbsObject(name);
+        if (p != null) {
+        	return p.getString();
+        }
+        else {
+        	return null;
+        }
     }
 
     /**
@@ -207,7 +213,13 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
      * @param value The value of the attribute.
      */
     public Date getDate(String name) {
-    	return ((AbsPrimitive) getAbsObject(name)).getDate();
+        AbsPrimitive p = (AbsPrimitive) getAbsObject(name);
+        if (p != null) {
+        	return p.getDate();
+        }
+        else {
+        	return null;
+        }
     }
     
     /**
@@ -218,7 +230,13 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
      * @param value The value of the attribute.
      */
     public byte[] getByteSequence(String name) {
-    	return ((AbsPrimitive) getAbsObject(name)).getByteSequence();
+        AbsPrimitive p = (AbsPrimitive) getAbsObject(name);
+        if (p != null) {
+        	return p.getByteSequence();
+        }
+        else {
+        	return null;
+        }
     }
 }
 
