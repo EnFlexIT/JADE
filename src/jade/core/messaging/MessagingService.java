@@ -131,7 +131,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
     }
 
-    public Slice getLocalSlice() {
+    public Service.Slice getLocalSlice() {
 	return localSlice;
     }
 
@@ -520,7 +520,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    if(impl != null) {
 
 		// Update the routing tables of all the other slices
-		Slice[] slices = getAllSlices();
+		Service.Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
 		    try {
 			MessagingSlice slice = (MessagingSlice)slices[i];
@@ -553,7 +553,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    if(impl != null) {
 
 		// Update the routing tables of all the other slices
-		Slice[] slices = getAllSlices();
+		Service.Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
 		    try {
 			MessagingSlice slice = (MessagingSlice)slices[i];

@@ -108,7 +108,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	}
     }
 
-    public Slice getLocalSlice() {
+    public Service.Slice getLocalSlice() {
 	return localSlice;
     }
 

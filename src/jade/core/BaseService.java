@@ -68,13 +68,13 @@ public abstract class BaseService implements Service {
        which is then put into the local table.</i></li> 
        </ol>
     */
-    public Slice getSlice(String name) throws ServiceException {
+    public Service.Slice getSlice(String name) throws ServiceException {
 
 	// First look through the name alias table
 	String realName = lookupAlias(name);
 
 	// Then look up in the slice table
-	Slice s = (Slice)slices.get(realName);
+	Service.Slice s = (Service.Slice)slices.get(realName);
 
 	// if there's not a suitable slice, ask the service finder,
 	// then cache the result in the slices table.
@@ -115,7 +115,7 @@ public abstract class BaseService implements Service {
        directly retrieves the current list of slices from the Service
        Manager.
     */
-    public Slice[] getAllSlices() throws ServiceException {
+    public Service.Slice[] getAllSlices() throws ServiceException {
 	try {
 	    return myFinder.findAllSlices(getName());
 	}

@@ -171,7 +171,7 @@ public class AgentMobilityService extends BaseService {
 	return AgentMobilitySlice.class;
     }
 
-    public Slice getLocalSlice() {
+    public Service.Slice getLocalSlice() {
 	return localSlice;
     }
 
