@@ -125,6 +125,8 @@ public abstract class Behaviour implements Serializable {
   @serial
   */
   private boolean runnableState = true;
+  
+  private boolean startFlag = true;
 
   /**
      The agent this behaviour belongs to.
@@ -149,12 +151,12 @@ public abstract class Behaviour implements Serializable {
 
   /**
      Back pointer to the enclosing Behaviour (if present).
-     @see jade.core.behaviours.ComplexBehaviour
+     @see jade.core.behaviours.CompositeBehaviour
      @serial
   */
-  protected ComplexBehaviour parent;
+  protected CompositeBehaviour parent;
 
-  final void setParent(ComplexBehaviour cb) {
+  final void setParent(CompositeBehaviour cb) {
     parent = cb;
   }
 
@@ -183,7 +185,7 @@ public abstract class Behaviour implements Serializable {
      soon as possible to preserve agent responsiveness. To split a
      long and slow task into smaller section, recursive behaviour
      aggregation may be used.
-     @see jade.core.behaviours.ComplexBehaviour
+     @see jade.core.behaviours.CompositeBehaviour
   */
   public abstract void action();
 
@@ -198,6 +200,21 @@ public abstract class Behaviour implements Serializable {
   */
   public abstract boolean done();
 
+  public int onEnd() {
+  	return 0;
+  }
+  
+  public void onStart() {
+  }
+  
+  public void actionWrapper() {
+  	if (startFlag) {
+  		onStart();
+  		startFlag = false;
+  	}
+  	action();
+  }
+  
   /**
      Restores behaviour initial state. This method must be implemented
      by concrete subclasses in such a way that calling
@@ -209,6 +226,7 @@ public abstract class Behaviour implements Serializable {
      Remind to call super.reset() from the sub-classes.
   */
   public void reset() {
+  	startFlag = true;
     restart();
   }
 
@@ -221,7 +239,11 @@ public abstract class Behaviour implements Serializable {
      @param rce The event to handle
   */
   protected void handle(RunnableChangedEvent rce) {
+  	// Set the new runnable state
     setRunnable(rce.isRunnable());
+    
+    // If the notification is upwords and a parent exists -->
+    // Notify the parent
     if( (parent != null) && (rce.isUpwards()) ) {
       parent.handle(rce);
     }
