@@ -36,8 +36,7 @@ public class TermDescriptor {
 
   private Name myName;
   private int type;
-  private String typeName;
-private int elementType; // indicates the type of the elements of a set/sequence, when this type is a primitive type
+  private String typeName; // indicates the type of the elements of a set/sequence
   private boolean optionality;
 
   /**
@@ -59,24 +58,7 @@ private int elementType; // indicates the type of the elements of a set/sequence
     optionality = o;
   }
 
-  /**
-    Build the descriptor for a named slot of a set/sequence type. 
-    This constructor
-    can be used to describe a named slot, whose type is one among
-    <code>Ontology.SET_TYPE  Ontology.SEQUENCE_TYPE</code>. 
-    @param n The name of the described slot.
-    @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, is a set, ...).
-    @param et A symbolic constant to identify the type of the elements (i.e. whether it is a string, is a long, ...).
-    @param o One of <code>Ontology.M</code> (for mandatory slots) and
-    <code>Ontology.O</code> (for optional slots).
-  */
-  public TermDescriptor(String n, int t, int et, boolean o) {
-    myName = new Name(n);
-    type = t;
-    elementType = et;
-    optionality = o;
-  }
+
 
   /**
     Build the descriptor for a named slot of a primitive type. This constructor
@@ -178,5 +160,11 @@ private int elementType; // indicates the type of the elements of a set/sequence
     myName = new Name(n);
   }
 
+  /**
+   * return a String representation of the object, just for debug purposes
+   **/
+public String toString() {
+return myName.toString()+" of type "+type+" and typeName "+typeName+" and optionality "+optionality;
+}
 }
 

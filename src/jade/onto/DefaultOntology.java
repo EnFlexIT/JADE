@@ -209,7 +209,7 @@ public final class DefaultOntology implements Ontology {
     while(it.hasNext()) {
 
       TermDescriptor desc = (TermDescriptor)it.next();
-	Method m = findMethodCaseInsensitive("get" + translateName(desc.getName()), implementationClass.getMethods());
+	Method m = findMethodCaseInsensitive("get" + translateName(desc.getName()), implementationClass);
 	try {
 	  Object value = m.invoke(o, new Object[] { });
 
@@ -281,10 +281,10 @@ public final class DefaultOntology implements Ontology {
   }
 
 
-  private Class checkGetAndSet(String name, Method[] methods) throws OntologyException {
+  private Class checkGetAndSet(String name, Class c) throws OntologyException {
     Class result;
-    Method getMethod = findMethodCaseInsensitive("get" + name, methods);
-    Method setMethod = findMethodCaseInsensitive("set" + name, methods);
+    Method getMethod = findMethodCaseInsensitive("get" + name, c);
+    Method setMethod = findMethodCaseInsensitive("set" + name, c);
 
     // Make sure "get" method takes no arguments.
     Class[] getParams = getMethod.getParameterTypes();
@@ -305,6 +305,87 @@ public final class DefaultOntology implements Ontology {
 
   }
 
+  /**
+   * @return the number of arguments of the method m
+   */
+  private int getArgumentLength(Method m) {
+    Class[] getParams = m.getParameterTypes();
+    return getParams.length;
+  }
+
+  /**
+    @ return the Class of the return type of the method m
+   */
+  private Class getReturnType(Method m) {
+    return m.getReturnType();
+  }
+
+  /**
+    @ return the Class of the argument type number no. of the method m
+   */
+  private Class getArgumentType(Method m, int no) {
+    Class[] setParams = m.getParameterTypes();
+    return setParams[no];
+  }
+
+  /**
+   * This method checks for correct get and set methods for the
+   * current descriptor and retrieves the implementation type.
+   * This check is for terms of type SET_TYPE or SEQUENCE_TYPE.
+   * <p> 
+   * For every <code>TermDescriptor</code> 
+   * of type <code>SET_TYPE</code> or <code>SEQUENCE_TYPE</code>
+   * and named <code>XXX</code>, with elements of type <code>T</code>, the
+   * class must have four accessible methods, with the following
+   * signature:</i>
+   *  <ul>
+   *  <li> <code>Iterator getAllXXX()</code>
+   *  <li> <code>void addXXX(T t)</code>
+   *  <li> <code>boolean removeXXX(T t)</code>
+   *  <li> <code>void clearAllXXX()</code>
+   *  </ul>
+   */
+  private Class checkGetAndSet2(String name, Class c) throws OntologyException {
+    Method getMethod = findMethodCaseInsensitive("getAll" + name, c);
+    Method addMethod = findMethodCaseInsensitive("add" + name, c);
+    Method remMethod = findMethodCaseInsensitive("remove" + name, c);
+    Method clrMethod = findMethodCaseInsensitive("clearAll" + name, c);
+    Class result = getArgumentType(addMethod,0);  
+    //FIXME. The type of result should be taken from the TermDescriptor 
+    // and not directly from the method argument. 
+
+    // check "get" method 
+    if (getArgumentLength(getMethod) != 0)
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must take no arguments.");
+    if (!getReturnType(getMethod).equals(java.util.Iterator.class))
+      throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a java.util.Iterator." + getReturnType(getMethod).toString());
+
+    // check 'add' method 
+    if (getArgumentLength(addMethod) != 1)
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() must take one argument.");
+    if (!getArgumentType(addMethod,0).equals(result))
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() has the wrong argument type.");
+    if (!getReturnType(addMethod).equals(Void.TYPE))
+      throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() must return a void.");
+
+    // check remove method
+    if (getArgumentLength(remMethod) != 1)
+      throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() must take one argument.");
+    if (!getArgumentType(remMethod,0).equals(result))
+      throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() has the wrong argument type.");
+    if (!getReturnType(remMethod).equals(Boolean.TYPE))
+      throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() must return a boolean.");
+
+    // check clear method
+    if (getArgumentLength(clrMethod) != 0)
+      throw new OntologyException("Wrong class: method " +  clrMethod.getName() + "() must take no arguments.");
+    if (!getReturnType(clrMethod).equals(Void.TYPE))
+      throw new OntologyException("Wrong class: method " +  clrMethod.getName() + "() must return a void.");
+
+    return result;
+
+  }
+
   private void checkClass(String roleName, Class c) throws OntologyException {
 
     FrameSchema fs = lookupSchema(roleName);
@@ -314,14 +395,16 @@ public final class DefaultOntology implements Ontology {
     Iterator it = fs.subSchemas();
     while(it.hasNext()) {
       TermDescriptor desc = (TermDescriptor)it.next();
-
+      System.err.println("checkClass. TermDescriptor="+desc.toString());
       String termName = translateName(desc.getName());
       try {
-	Method[] methods = c.getMethods();
-
 	// Check for correct set and get methods for the current
 	// descriptor and retrieve the implementation type.
-	Class implType = checkGetAndSet(termName, methods);
+	Class implType;
+	if ((desc.getType() == SET_TYPE) || (desc.getType() == SEQUENCE_TYPE))
+	  implType = checkGetAndSet2(termName, c);
+	else
+	  implType = checkGetAndSet(termName, c);
 
 	// If the descriptor is a complex term (Concept)
 	// and some class C is registered for that role,
@@ -362,7 +445,7 @@ public final class DefaultOntology implements Ontology {
       String methodName = "set" + translateName(slotName);
 
       // Retrieve the modifier method from the class and call it
-      Method setMethod = findMethodCaseInsensitive(methodName, theConceptClass.getMethods());
+      Method setMethod = findMethodCaseInsensitive(methodName, theConceptClass);
       try {
 
 	Object slotValue = f.getSlot(slotName);
@@ -408,7 +491,7 @@ public final class DefaultOntology implements Ontology {
       String methodName = translateName(name);
 
       // Retrieve the accessor method from the class and call it
-      Method getMethod = findMethodCaseInsensitive("get" +methodName, c.getMethods());
+      Method getMethod = findMethodCaseInsensitive("get" +methodName, c);
       try {
 	Object value = getMethod.invoke(o, new Object[] { });
 
@@ -447,14 +530,14 @@ public final class DefaultOntology implements Ontology {
   }
 
 
-  private Method findMethodCaseInsensitive(String name, Method[] methods) throws OntologyException {
-
+  private Method findMethodCaseInsensitive(String name, Class implementationClass) throws OntologyException {
+    Method[] methods = implementationClass.getMethods();
     for(int i = 0; i < methods.length; i++) {
       String ithName = methods[i].getName();
       if(ithName.equalsIgnoreCase(name))
 	return methods[i];
     }
-    throw new OntologyException("Method " + name + " not found.");
+    throw new OntologyException("Method " + name + " not found in class "+implementationClass.getName());
 
   }
 
