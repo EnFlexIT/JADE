@@ -287,9 +287,10 @@ public class AgentController {
       case jade.core.Agent.AP_DELETED:
         ret =  AgentState.AGENT_STATE_DELETED;
         break;
-      case jade.core.Agent.AP_TRANSIT:
+      // FIXME: Correctly handle states defined outside the Agent class
+      /*case jade.core.Agent.AP_TRANSIT:
         ret =  AgentState.AGENT_STATE_INTRANSIT;
-        break;
+        break;*/
       default:
         throw new InternalError("Unknown state: " + jadeState);
     }
