@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package jade.gui;
- 
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Dimension;
@@ -44,11 +44,11 @@ import jade.domain.FIPAAgentManagement.*;
  @see jade.core.AID
  @author Tiziana Trucco - CSELT S.p.A.
  @version $Date$ $Revision$
- 
+
 */
- 
+
  public class AIDGui extends JDialog{
- 	
+
  	/**
   @serial
   */
@@ -61,9 +61,9 @@ import jade.domain.FIPAAgentManagement.*;
   @serial
   */
   private JTextField nameText;
-  
+
   private JCheckBox isLocalName;
-  
+
  	/**
   @serial
   */
@@ -80,26 +80,26 @@ import jade.domain.FIPAAgentManagement.*;
   @serial
   */
   private AID out;
- 	
+
   /**
   @serial
   */
   private Component parentGUI;
-  
+
   /**
   @serial
   */
   private AIDGui thisGUI;
-  
+
  	public AIDGui(Component owner)
  	{
-   super();	
+   super();
    setTitle("AID");
    parentGUI = owner;
    thisGUI = this;
  	}
 
- 	
+
 
  /**
  This method shows an AID with a GUI.
@@ -113,18 +113,19 @@ import jade.domain.FIPAAgentManagement.*;
  	  this.out = null;
  		this.editable = ed;
  	  this.checkSlots = checkMandatorySlots;
- 	  
+
  		if(agentIdentifier == null)
  			this.agentAID =  new AID();
  		else
  		  this.agentAID = agentIdentifier;
- 		
+
  		JLabel label;
- 
+
  		JPanel mainPanel = new JPanel();
- 		
+
  		mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.Y_AXIS));
- 	  
+//mainPanel.setBackground(Color.black);
+
  		//Name
  		JPanel namePanel = new JPanel();
  	  namePanel.setLayout(new BoxLayout(namePanel,BoxLayout.X_AXIS));
@@ -133,11 +134,11 @@ import jade.domain.FIPAAgentManagement.*;
  	  label.setMinimumSize(new Dimension(80,26));
     label.setMaximumSize(new Dimension(80,26));
     namePanel.add(label);
-    
+
     isLocalName = new JCheckBox();
     isLocalName.setVisible(ed); //if the AID is editable then the checkbox is show otherwise no.
   	isLocalName.setToolTipText("Select if the name is not a GUID.");
-    
+
     namePanel.add(isLocalName);
     nameText = new JTextField();
     nameText.setBackground(Color.white);
@@ -147,9 +148,10 @@ import jade.domain.FIPAAgentManagement.*;
     nameText.setMaximumSize(new Dimension(125,26));
  	  nameText.setEditable(editable);
  		namePanel.add(nameText);
- 		
+
  		mainPanel.add(namePanel);
- 		
+
+
  		//Addresses
  		JPanel addressesPanel = new JPanel();
  		addressesPanel.setLayout(new BorderLayout());
@@ -159,8 +161,8 @@ import jade.domain.FIPAAgentManagement.*;
     addressListPanel.setEnabled(editable);
  		addressesPanel.add(addressListPanel);
  		mainPanel.add(addressesPanel);
- 		
- 		
+
+
  		//Resolvers
  		JPanel resolversPanel = new JPanel();
  		resolversPanel.setLayout(new BorderLayout());
@@ -170,9 +172,9 @@ import jade.domain.FIPAAgentManagement.*;
  	  resolverListPanel.setEnabled(editable);
  	  resolverListPanel.setCheckMandatorySlots(checkMandatorySlots);
  	  resolversPanel.add(resolverListPanel);
- 		mainPanel.add(resolversPanel); 
- 		
- 		
+ 		mainPanel.add(resolversPanel);
+
+
  		//Properties
  		JPanel propertiesPanel = new JPanel();
  	  propertiesPanel.setLayout(new BorderLayout());
@@ -194,26 +196,26 @@ import jade.domain.FIPAAgentManagement.*;
  					String param = (String)e.getActionCommand();
  					if(param.equals("OK"))
  					{
- 						
+
  						if(editable)
  						{
- 							
+
  						  String name = (nameText.getText()).trim();
- 						  if (checkSlots) 
+ 						  if (checkSlots)
  						    if (name.length() == 0) {
-    		  				JOptionPane.showMessageDialog(thisGUI,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE); 
+    		  				JOptionPane.showMessageDialog(thisGUI,"AID must have a non-empty name.","Error Message",JOptionPane.ERROR_MESSAGE);
     		  				return;
-    		  			}				  
+    		  			}
  						  out = new AID();
- 						  
+
  						  if(isLocalName.isSelected())
  						  	out.setLocalName(name);
  						  else
  						  	out.setName(name);
- 						  	
+
  						  //addresses
  						  Enumeration addresses = addressListPanel.getContent();
- 						  
+
  						  while(addresses.hasMoreElements())
  						  	out.addAddresses((String)addresses.nextElement());
  						  //resolvers
@@ -228,18 +230,18 @@ import jade.domain.FIPAAgentManagement.*;
  						  	String key = (String)key_en.nextElement();
  						  	out.addUserDefinedSlot(key, new_prop.getProperty(key));
  						  }
- 						  
- 						  
+
+
  						}
  						else
  						  out = agentAID;
- 						dispose(); 
+ 						dispose();
  					}
  				}
  			});
- 			
- 		buttonPanel.add(okButton);	
- 		
+
+ 		buttonPanel.add(okButton);
+
  		if(editable)
  		{
  			JButton cancelButton = new JButton("Cancel");
@@ -256,23 +258,24 @@ import jade.domain.FIPAAgentManagement.*;
  			});
  			buttonPanel.add(cancelButton);
  		}
- 		
+
  		mainPanel.add(buttonPanel);
- 		
+
+
  		getContentPane().add(mainPanel, BorderLayout.CENTER);
- 		pack();
+ 		//pack();
  		setResizable(false);
  		setModal(true);
  		//setVisible(true);
- 		
+
  		ShowCorrect();
- 		
+
  		return out;
  	}
- 	
- 	private void ShowCorrect() 
+
+ 	private void ShowCorrect()
  	 {
-    pack(); 
+    pack();
     setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);
     setVisible(true);
     toFront();

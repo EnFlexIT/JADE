@@ -298,7 +298,7 @@ public class ServiceDscDlg extends JDialog
 		main.add(p);
 		
 		getContentPane().add(main, BorderLayout.CENTER);
-		pack();
+		//pack();
 		setModal(true);
 		setResizable(false);
 		
@@ -307,7 +307,7 @@ public class ServiceDscDlg extends JDialog
     	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
     	setLocation(x>0 ? x:0,y>0 ? y:0);
     }catch(Exception e){}
-
+	        pack();
 		show();
 		
 		return out;		
