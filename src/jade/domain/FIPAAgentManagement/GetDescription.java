@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 /** 
-* 
+* This class implements the get-description action.
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$

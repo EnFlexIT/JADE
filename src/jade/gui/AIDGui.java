@@ -37,10 +37,12 @@ import java.io.StringWriter;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
 
-/*
+/**
+ This class provide a gui to show an AID of an agent.
+ @see jade.domain.core.AID
  @author Tiziana Trucco - CSELT S.p.A.
  @version $Date$ $Revision$
- @see jade.domain.core.AID
+ 
 */
  
  public class AIDGui extends JDialog{

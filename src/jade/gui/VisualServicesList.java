@@ -29,7 +29,10 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import javax.swing.JDialog;
 
 /**
-* 
+* This class extends the VisualStringList in order to show a list of services
+* @see jade.gui.VisualStringList
+* @see jade.gui.ServiceDscDlg
+* @see jade.domain.FIPAAgentManagement.ServiceDescription
 * @author Tiziana Trucco - CSELT S.p.A
 * @version $Date$ $Revision$
 */
