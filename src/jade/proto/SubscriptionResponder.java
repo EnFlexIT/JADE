@@ -33,18 +33,15 @@ import jade.domain.FIPANames;
 import jade.proto.states.*;
 import jade.util.leap.*;
 
+import java.util.Hashtable;
+
 
 /**
  * This is a single homogeneous and effective implementation of the responder role in 
  * all the FIPA-Subscribe-like interaction protocols defined by FIPA,
  * that is all those protocols 
  * where the initiator sends a single "subscription" message
- * and receive notifications each time a given condition becomes true. 
- * <p>
- * NOTE that this implementation is in an experimental state and the API will 
- * possibly change in next versions also taking into account that the FIPA
- * specifications related to subscribe-like protocols are not yet stable.
- * <p>
+ * and receives notifications each time a given condition becomes true. 
  * @see SubscriptionInitiator
  * @author Elisabetta Cortese - TILAB
  * @author Giovanni Caire - TILAB
@@ -55,7 +52,12 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      *  key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object sent by the initiator as a subscription.
      **/
-    public final String SUBSCRIPTION_KEY = "__subscription" + hashCode();
+    public final String SUBSCRIPTION_KEY = "__subs_canc" + hashCode();
+    /** 
+     *  key to retrieve from the DataStore of the behaviour the ACLMessage 
+     *	object sent by the initiator to cancel a subscription.
+     **/
+    public final String CANCEL_KEY = SUBSCRIPTION_KEY;
     /** 
      *  key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object sent as a response to the initiator.
@@ -65,12 +67,14 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
     // FSM states names
     protected static final String RECEIVE_SUBSCRIPTION = "Receive-subscription";
     protected static final String PREPARE_RESPONSE = "Prepare-response";
+  	protected static final String HANDLE_CANCEL = "Handle-cancel";
     protected static final String SEND_RESPONSE = "Send-response";
     protected static final String SEND_NOTIFICATIONS = "Send-notifications";
 
     // The MsgReceiver behaviour used to receive subscription messages
     private MsgReceiver msgRecBehaviour = null;
-    
+
+ 		private Hashtable subscriptions = new Hashtable();
     private List notifications = new ArrayList();
     
     /**
@@ -81,22 +85,15 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
     
     /**
        This static method can be used 
-       to set the proper message Template (based on the interaction protocol 
-       and the performative)
-       into the constructor of this behaviour.
-       @see FIPAProtocolNames
-    *
-    // FIXME: Commented as FIPA_SUBSCRIBE is not yet defined as a constant
-    public static MessageTemplate createMessageTemplate(String iprotocol){
-	
-	if( CaseInsensitiveString.equalsIgnoreCase(FIPA_SUBSCRIBE,iprotocol) )
-	    return MessageTemplate.and( MessageTemplate.MatchProtocol(FIPA_SUBSCRIBE), MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE) );
-	else
-	    if( CaseInsensitiveString.equalsIgnoreCase(FIPA_REQUEST_WHENEVER, iprotocol) )
-			return MessageTemplate.and( MessageTemplate.MatchProtocol(FIPA_REQUEST_WHENEVER),MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.REQUEST_WHENEVER), MessageTemplate.MatchPerformative(ACLMessage.REQUEST_WHENEVER)) );
-	    else
-			return MessageTemplate.MatchProtocol(iprotocol);
-    }*/
+       to set the proper message Template (based on the performative of the
+       subscription message) into the constructor of this behaviour.
+       @param perf The performative of the subscription message
+     */
+    public static MessageTemplate createMessageTemplate(int perf) {
+    	return MessageTemplate.and(
+    		MessageTemplate.MatchProtocol(FIPA_SUBSCRIBE),
+    		MessageTemplate.or(MessageTemplate.MatchPerformative(perf), MessageTemplate.MatchPerformative(ACLMessage.CANCEL)));
+    }
 
     /**
      * Constructor of the behaviour that creates a new empty DataStore
@@ -124,9 +121,11 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		
 			// Register the FSM transitions
 			registerDefaultTransition(RECEIVE_SUBSCRIPTION, PREPARE_RESPONSE);
+	    registerTransition(RECEIVE_SUBSCRIPTION, HANDLE_CANCEL, ACLMessage.CANCEL);
 			registerTransition(RECEIVE_SUBSCRIPTION, SEND_NOTIFICATIONS, MsgReceiver.INTERRUPTED);
 			registerDefaultTransition(PREPARE_RESPONSE, SEND_RESPONSE);
-			registerDefaultTransition(SEND_RESPONSE, RECEIVE_SUBSCRIPTION, new String[] {PREPARE_RESPONSE}); 
+	    registerDefaultTransition(HANDLE_CANCEL, SEND_RESPONSE);
+			registerDefaultTransition(SEND_RESPONSE, RECEIVE_SUBSCRIPTION, new String[] {PREPARE_RESPONSE, HANDLE_CANCEL}); 
 			registerDefaultTransition(SEND_NOTIFICATIONS, RECEIVE_SUBSCRIPTION); 
 		
 			//***********************************************
@@ -165,6 +164,24 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			b.setDataStore(getDataStore());		
 			registerState(b, SEND_RESPONSE);	
 
+			// HANDLE_CANCEL 
+			b = new OneShotBehaviour(myAgent) {
+				public void action() {
+			    DataStore ds = getDataStore();
+			    ACLMessage cancel = (ACLMessage) ds.get(CANCEL_KEY);
+			    ACLMessage response = null;
+			    try {
+						response = handleCancel(cancel); 
+			    }
+			    catch (FailureException fe) {
+						response = fe.getACLMessage();
+			    }
+			    ds.put(RESPONSE_KEY, response);
+				}
+			};
+			b.setDataStore(getDataStore());		
+			registerState(b, HANDLE_CANCEL);	
+			
 			// SEND_NOTIFICATIONS 
 			b = new OneShotBehaviour(myAgent) {
 				public void action() {
@@ -204,12 +221,15 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      * This method is called when a subscription
      * message is received that matches the message template
      * specified in the constructor. 
-     * This default implementation registers the new subscription to the 
-     * <code>SubscriptionManager</code> object used by this responder and
-     * returns null which has
-     * the effect of sending no reponse. Programmers should
-     * override the method in case they need to react to this event in a different 
-     * way, e.g. by sending back an AGREE.
+     * The default implementation creates an new <code>Subscription</code>
+     * object and registers it to the <code>SubscriptionManager</code> 
+     * used by this responder. Then it returns null which has
+     * the effect of sending no reponse. Programmers in general do not need
+     * to override this method, but just implement the <code>register()</code>
+     * method of the <code>SubscriptionManager</code> used by this
+     * <code>SubscriptionResponder</code>. However they could
+     * override it in case they need to react to the reception of a 
+     * subscription message in a different way, e.g. by sending back an AGREE.
      * @param subscription the received message
      * @return the ACLMessage to be sent as a response (i.e. one of
      * <code>agree, refuse, not-understood</code>. <b>Remind</b> to
@@ -218,20 +238,49 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      * @see jade.lang.acl.ACLMessage#createReply()
      **/
     protected ACLMessage prepareResponse(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-    	mySubscriptionManager.register(new Subscription(this, subscription));
+    	mySubscriptionManager.register(createSubscription(subscription));
+    	return null;
+    }
+    
+    /**   
+     * This method is called when a CANCEL
+     * message is received for a previous subscription. 
+     * The default implementation retrieves the <code>Subscription</code>
+     * object the received cancel message refers to and deregisters it from 
+     * <code>SubscriptionManager</code> used by this responder. Then it and
+     * returns null which has the effect of sending no reponse. 
+     * Programmers in general do not need
+     * to override this method, but just implement the <code>deregister()</code>
+     * method of the <code>SubscriptionManager</code> used by this
+     * <code>SubscriptionResponder</code>. However they could
+     * override it in case they need to react to the reception of a 
+     * cancel message in a different way, e.g. by sending back an INFORM.
+     * @param cancel the received CANCEL message
+     * @return the ACLMessage to be sent as a response to the 
+     * cancel operation (i.e. one of
+     * <code>inform</code> and <code>failure</code>. 
+     */
+    protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
+    	String convId = cancel.getConversationId();
+    	if (convId != null) {
+    		Subscription s = (Subscription) subscriptions.get(convId);
+    		mySubscriptionManager.deregister(s);
+    	}
     	return null;
     }
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the PREPARE_RESPONSE state.
-       This behaviour would override the homonymous method.
+       This behaviour overrides the homonymous method.
        This method also sets the 
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        It is responsibility of the registered behaviour to put the
-       response to be sent back into the datastore at the <code>RESPONSE_KEY</code>
-       key.
+       response (if any) to be sent back into the datastore at the 
+       <code>RESPONSE_KEY</code> key.
+       The incoming subscription message can be retrieved from the 
+       datastore at the <code>SUBSCRIPTION_KEY</code> key
        @param b the Behaviour that will handle this state
     */
     public void registerPrepareResponse(Behaviour b) {
@@ -239,6 +288,32 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			b.setDataStore(getDataStore());
     }
     
+    /**
+       This method allows to register a user defined <code>Behaviour</code>
+       in the HANDLE_CANCEL state.
+       This behaviour overrides the homonymous method.
+       This method also sets the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       It is responsibility of the registered behaviour to put the
+       response (if any) to be sent back into the datastore at the 
+       <code>RESPONSE_KEY</code> key.
+       The incoming CANCEL message can be retrieved from the 
+       datastore at the <code>CANCEL_KEY</code> key
+       @param b the Behaviour that will handle this state
+    */
+    public void registerHandleCancel(Behaviour b) {
+			registerState(b, HANDLE_CANCEL);
+			b.setDataStore(getDataStore());
+    }
+    
+    /**
+       Utility method to correctly create a Subscription object managed
+       by this <code>SubscriptionResponder</code>
+     */
+    public Subscription createSubscription(ACLMessage subsMsg) {
+    	return new Subscription(this, subsMsg);
+    }
     
     /**
        This is called by a Subscription object when a notification has
@@ -301,8 +376,27 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		   <p>
      */
     public static interface SubscriptionManager {
+    	/**
+    	   Register a new Subscription object
+    	   @param s The Subscription object to be registered
+    	   @return The boolean value returned by this method provides an 
+    	   indication to the <code>SubscriptionResponder</code> about whether
+    	   or not an AGREE message should be sent back to the initiator. The
+    	   default implementation of the <code>prepareResponse</code> method
+    	   of the <code>SubscriptionResponder</code> ignores this indication,
+    	   but programmers can override it.
+    	 */
     	boolean register(Subscription s) throws RefuseException, NotUnderstoodException;
-    	void deregister(Subscription s) throws RefuseException, NotUnderstoodException;
+    	/**
+    	   Deregister a Subscription object
+    	   @return The boolean value returned by this method provides an 
+    	   indication to the <code>SubscriptionResponder</code> about whether
+    	   or not an INFORM message should be sent back to the initiator. The
+    	   default implementation of the <code>handleCancel()</code> method
+    	   of the <code>SubscriptionResponder</code> ignores this indication,
+    	   but programmers can override it.
+    	 */
+    	boolean deregister(Subscription s) throws FailureException;
     } // END of inner interface SubscriptionManager
 
     /**
@@ -313,7 +407,9 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
        be directly sent to the subscribed agent, but should be passed to the
        <code>Subscription</code> object representing the subscription of that 
        agent by means of its <code>notify()</code> method. This automatically 
-       handles sequencing and protocol fields appropriately
+       handles sequencing and protocol fields appropriately.
+       <code>Subscription</code> objects must be created by means of the
+       <code>createSubscription()</code> method.
      */
 		public static class Subscription {
 		
@@ -321,14 +417,15 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			private SubscriptionResponder myResponder;
 		
 			/**
-			   Construct a new <code>Subscription</code> object.
+			   Private constructor. The <code>createSubscription()</code>
+			   must be used instead.
 			   @param r The <code>SubscriptionResponder</code> that received
 			   the subscription message corresponding to this 
 			   <code>Subscription</code>
 			   @param s The subscription message corresponding to this 
 			   <code>Subscription</code>
 			 */
-			public Subscription(SubscriptionResponder r, ACLMessage s){
+			private Subscription(SubscriptionResponder r, ACLMessage s){
 				myResponder = r;
 				subscription = s;
 			}

@@ -42,8 +42,8 @@ import jade.util.leap.Serializable;
  * all the FIPA-Subscribe-like interaction protocols defined by FIPA,
  * that is all those protocols 
  * where the initiator sends a single "subscription" message
- * and receive notifications each time a given condition becomes true. 
- * This implementation works both for 1:1 and 1:N conversation.
+ * and receives notifications each time a given condition becomes true. 
+ * This implementation works both for 1:1 and 1:N conversations.
  * <p>
  * FIPA has already specified a number of these interaction protocols, like 
  * FIPA-subscribe and FIPA-request-whenever.
@@ -55,17 +55,11 @@ import jade.util.leap.Serializable;
  * <code>refuse</code> or
  * an <code>agree</code> message to communicate that the subscription has been 
  * agreed. This first category
- * of reply messages has been here identified as a "response".
+ * of reply messages has been here identified as a "response". Sending 
+ * no response is allowed and is equivalent to sending an <code>agree</code>.
  * <p> 
- * Each time the condition refered within the subscription message becomes true,
+ * Each time the condition indicated within the subscription message becomes true,
  * the responder sends proper "notification" messages to the initiator. 
- * <p> Notice that we have extended the protocol to make optional the 
- * transmission of the agree message. Infact, in some cases the subscription
- * condition is already true when the responder receives the subscription message.
- * In these cases clearly the agree message is immediately followed by the first
- * notification message thus resulting in useless and uneffective overhead as 
- * the agreement to the subscription is subsumed by the reception of the following
- * message in the protocol.
  * <p>
  * This behaviour terminates if a) neither a response nor a notification has been 
  * received before the timeout set by the <code>reply-by</code> of the
@@ -116,7 +110,7 @@ public class SubscriptionInitiator extends Initiator {
 	
     // States exit values
     private static final int ALL_RESPONSES_RECEIVED = 1;
-    private static final int ABORTED = 2;
+    private static final int TERMINATED = 2;
 	
     // If set to true all expected responses have been received
     private boolean allResponsesReceived = false;
@@ -149,7 +143,7 @@ public class SubscriptionInitiator extends Initiator {
 	// Register the FSM transitions specific to the Achieve-RE protocol
 	registerTransition(CHECK_IN_SEQ, HANDLE_POSITIVE_RESPONSE, ACLMessage.AGREE);		
 	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
-	registerTransition(CHECK_SESSIONS, DUMMY_FINAL, ABORTED);
+	registerTransition(CHECK_SESSIONS, DUMMY_FINAL, TERMINATED);
 	registerDefaultTransition(HANDLE_ALL_RESPONSES, CHECK_AGAIN);
 	registerTransition(CHECK_AGAIN, DUMMY_FINAL, 0);
 	registerDefaultTransition(CHECK_AGAIN, RECEIVE_REPLY, toBeReset);
@@ -292,26 +286,29 @@ public class SubscriptionInitiator extends Initiator {
      */    
     protected int checkSessions(ACLMessage reply) {
 			int ret = -1;
-	  	if (getLastExitValue() == MsgReceiver.TIMEOUT_EXPIRED && !allResponsesReceived) {
-				// Special case 1: Timeout has expired
-	  		// Remove all the sessions for which no response has been received yet
-				List sessionsToRemove = new ArrayList(sessions.size());
-				for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
-		    	Object key = i.next();
-		    	Session s = (Session)sessions.get(key);
-		    	if ( s.getState() == Session.INIT ) {
-			  		sessionsToRemove.add(key);
-		    	}
-				}
-				for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); ) {
-					sessions.remove(i.next());
-				}
-				sessionsToRemove=null;  //frees memory
-	  	}
-	  	else if (reply == null) {
-	  		// Special case 2: We were interrupted (or an additional timeout expired)
-	  		// Remove all sessions
-	  		sessions.clear();
+	  	if (getLastExitValue() == MsgReceiver.TIMEOUT_EXPIRED) {
+	  		if (!allResponsesReceived) {
+					// Special case 1: Timeout has expired
+		  		// Remove all the sessions for which no response has been received yet
+					List sessionsToRemove = new ArrayList(sessions.size());
+					for (Iterator i=sessions.keySet().iterator(); i.hasNext(); ) {
+			    	Object key = i.next();
+			    	Session s = (Session)sessions.get(key);
+			    	if ( s.getState() == Session.INIT ) {
+				  		sessionsToRemove.add(key);
+			    	}
+					}
+					for (Iterator i=sessionsToRemove.iterator(); i.hasNext(); ) {
+						sessions.remove(i.next());
+					}
+					sessionsToRemove=null;  //frees memory
+	  		}
+	  		else {
+		  		// Special case 2: All responses have already been received 
+	  			// and an additional timeout (set e.g. through replyReceiver.setDeadline())
+	  			// expired. Remove all sessions
+		  		sessions.clear();
+	  		}
 	  	}
 	  	
 	  	if (!allResponsesReceived) {
@@ -333,10 +330,11 @@ public class SubscriptionInitiator extends Initiator {
 		    }
 	  	}
 	  	else {
+	  		// Note that this check must be done only if the HANDLE_ALL_RESPONSES
+	  		// has already been visited.
 		    if (sessions.size() == 0) {
-		    	// We reach this point when we were interrupted after all responses  
-		    	// had been received --> Terminate
-		    	ret = ABORTED;
+		    	// There are no more active sessions --> Terminate
+		    	ret = TERMINATED;
 		    }
 			}
 		  return ret;
@@ -498,9 +496,108 @@ public class SubscriptionInitiator extends Initiator {
 	registerState(b, HANDLE_ALL_RESPONSES);
 	b.setDataStore(getDataStore());
     }
-        
-    //FIXME: Need to call handleAgree also when
-    // the INFORM/FAILURE is received before or by skipping the AGREE? 
+
+    /**
+       Cancel the subscription to agent <code>receiver</code>.
+       This method retrieves the subscription message sent to 
+       <code>receiver</code> and sends a suitable CANCEL message with
+       the conversationID and all other protocol fields appropriately set.
+       The <code>:content</code> slot of this CANCEL message is filled
+       in by means of the <code>fillCancelContent()</code>
+       method. The way the CANCEL content is set in fact is application
+       specific.
+       @param receiver The agent to whom we are cancelling the subscription.
+       @param ignoreResponse When receiving a CANCEL, the responder may 
+       send back a response to notify that the subscription has been 
+       cancelled (INFORM) or not (FAILURE). If this parameter is set to 
+       <code>true</code> this response is ignored and the session with
+       agent <code>receiver</code> is immediately terminated. When 
+       <code>ignoreResponse</code> is set to <code>false</code>, on the
+       other hand, the session with agent <code>receiver</code> remains
+       active and the INFORM or FAILURE massage (if any) will be handled by the 
+       <code>HANDLE_INFORM</code> and <code>HANDLE_FAILURE</code> states
+       as if they were normal notifications. It is responsibility of
+       the programmer to distinguish them and actually terminate the 
+       session with agent <code>receiver</code> by calling the 
+       <code>cancellationCompleted()</code> method.
+       @see #fillCancelContent(ACLMessage, ACLMessage)
+       @see #cancellationCompleted(AID)
+     */
+    public void cancel(AID receiver, boolean ignoreResponse) {
+    	ACLMessage subscription = (ACLMessage) getDataStore().get(receiver);
+    	Session s = (Session) sessions.get(subscription.getReplyWith());
+    	if (s != null) {
+    		if (ignoreResponse) {
+    			sessions.remove(subscription.getReplyWith());
+    		}
+    		else {
+    			s.cancel();
+    		}
+    		// If the session was still active, send the CANCEL message
+    		ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
+    		cancel.addReceiver(receiver);
+				cancel.setLanguage(subscription.getLanguage());
+				cancel.setOntology(subscription.getOntology());
+				cancel.setProtocol(subscription.getProtocol());
+				cancel.setConversationId(subscription.getConversationId());
+				fillCancelContent(subscription, cancel);
+				myAgent.send(cancel);
+				// Interrupt the ReplyReceiver to check if this SubscriptionInitiator 
+				// should terminate
+				replyReceiver.interrupt();
+    	}		
+    }
+    
+    /**
+       This method is used to fill the <code>:content</code> slot
+       of the CANCEL message that is being sent to an agent to cancel 
+       the subscription previously activated by means of the 
+       <code>subscription</code> message. Note that all other relevant
+       fields of the <code>cancel</code> message have already been 
+       set appropriately and the programmer should not modify them.
+       The default implementation just sets a null content (the responder 
+       should be able to identify the subscription that has to be 
+       cancelled on the basis of the sender and conversationID fields
+       of the CANCEL message). Programmers may override this method to 
+       create an appropriate content as exemplified in the code below.
+       
+		   <pr><hr><blockquote><pre>
+		   	try {
+		   		AID receiver = (AID) cancel.getAllReceiver().next();
+		   		Action a = new Action(receiver, OntoACLMessage.wrap(subscription));
+		   		getContentManager.fillContent(cancel, a);
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+		   </pre></blockquote><hr>
+		   
+		   @see #cancel(AID, boolean)
+		 */
+    protected void fillCancelContent(ACLMessage subscription, ACLMessage cancel) {
+    	cancel.setContent(null);
+    }
+    
+    /**
+       This method should be called when the notification of a 
+       successful subscription cancellation is received from agent
+       <code>receiver</code> to terminate the session with him.
+       This method has some effect only if a cancellation for
+       agent <code>receiver</code> was previously activated by 
+       means of the <code>cancel()</code> method.
+       @see #cancel(AID, boolean);
+     */       
+    public void cancellationCompleted(AID receiver) {
+    	ACLMessage subscription = (ACLMessage) getDataStore().get(receiver);
+    	Session s = (Session) sessions.get(subscription.getReplyWith());
+    	if (s != null && s.isCancelled()) {
+    		sessions.remove(subscription.getReplyWith());
+				// Interrupt the ReplyReceiver to check if this SubscriptionInitiator 
+				// should terminate
+				replyReceiver.interrupt();
+    	}		
+    }
+    
     /**
      * reset this behaviour
      * @param msg is the ACLMessage to be sent
@@ -533,6 +630,7 @@ public class SubscriptionInitiator extends Initiator {
 	static final int NOTIFICATION_RECEIVED = 3;
 		
 	private int state = INIT;
+	private boolean cancelled = false;
 	
 	/**
 	   return true if the received performative is valid with respect to
@@ -578,7 +676,14 @@ public class SubscriptionInitiator extends Initiator {
 	boolean isCompleted() {
 	    return (state == NEGATIVE_RESPONSE_RECEIVED);
 	}
+
+	void cancel() {
+		cancelled = true;
+	}
 	
+	boolean isCancelled() {
+		return cancelled;
+	}
     } // End of inner class Session
     
 }
