@@ -1027,5 +1027,28 @@ private int performative; // keeps the performative type of this object
     return m;
   }
 
+  /**
+     @return An Iterator over all the intended receivers of this
+     message taking into account the Envelope ":intended-receiver"
+     first, the Envelope ":to" second and the message ":receiver" 
+     last.
+   */
+  public Iterator getAllIntendedReceiver() {
+		Iterator it = null;
+		Envelope env = getEnvelope();
+		if (env != null) {
+			it = env.getAllIntendedReceiver();
+			if (!it.hasNext()) {
+				// The ":intended-receiver" field is empty --> try with the ":to" field 
+				it = env.getAllTo();
+			}
+		}
+		if (it == null || !it.hasNext()) {
+			// Both the ":intended-receiver" and the ":to" fields are empty --> 
+			// Use the ACLMessage receivers
+			it = getAllReceiver();
+		}
+		return it;
+  }
 
 }
