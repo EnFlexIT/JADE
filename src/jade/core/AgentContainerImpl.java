@@ -746,11 +746,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	//#MIDP_EXCLUDE_BEGIN
 	CertificateFolder agentCerts = a.getCertificateFolder();
-	//#MIDP_EXCLUDE_END
-
-	/*#MIDP_INCLUDE_BEGIN
-	  CertificateFolder agentCerts = new CertificateFolder();
-	  #MIDP_INCLUDE_END*/
 
 	if(agentCerts.getIdentityCertificate() == null) {
 	    AgentPrincipal principal = authority.createAgentPrincipal(id, AgentPrincipal.NONE);
@@ -761,6 +756,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 
 	// --- End of security code
+
+	//#MIDP_EXCLUDE_END
 
 	a.setToolkit(this);
 	return localAgents.put(id, a);
