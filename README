@@ -28,20 +28,20 @@ needed. At least a Java Development Kit version 1.2 is required.
 
 KNOWN BUGS
 ==========
+  see http://jade.cselt.it/  ('Bugs' page)  for the full list of reported bugs
   1) On Solaris 7 with Jdk 1.2, a message "Resource temporarily
      unavailable" appears during platform shutdown, but then the
      process completes without any problems.
 
   2) The second argument of the ResultPredicate is limited to be a SET.
 
+  3) A deadlock happens when using the ORB of JDK1.3 for inter-platform
+     communication. ORBacus or JDK1.4 must be used instead.
 
 CONTACT
 =======
-Fabio Bellifemine - CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
-e-mail: bellifemine@cselt.it
-
-Tiziana Trucco - CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
-e-mail tiziana.trucco@cselt.it
+Fabio Bellifemine - TILab S.p.A.
+e-mail: bellifemine@tilab.com 
 
 
 INSTALLATION AND TEST
@@ -82,8 +82,8 @@ root is jade and with a lib subdirectory. This subdirectory contains some
 JAR files that have to be added to the CLASSPATH environment variable.
 Having set the classpath, the following command can be used to launch the 
 main container of the platform. The main container is composed of the DF 
-agent, the AMS agent, an RMI registry (that is used by JADE for 
-intra-platform communication), and the ACC.
+agent, the AMS agent, and an RMI registry (that is used by JADE for 
+intra-platform communication).
         java jade.Boot [options] [Agent list]
 Additional agent containers can be then launched on the same host, or on 
 remote hosts, that connect themselves with the main container of the Agent 
@@ -95,27 +95,8 @@ An Agent Container can be started using the command:
 An alternative way of launching JADE is the following command:
         java -jar lib\jade.jar -nomtp [options] [Agent list]
 
-5.3.1 Options available from the command line
-=============================================
--h this option prints on the standard output some help on the available 
-options
--container this option launches a container that try to connect with a main 
-container
--host <hostname> should be used to specify the host where the main container 
-has been launched; the default is the local host.
--port <portnumber> this option allows to specify the port number where the 
-RMI registry should be created (for the main-container) / located 
-(for the ordinary containers)
--conf this option displays a graphical interface that allows to load/save 
-the JADE configuration from a file
--conf <fileName> launches JADE with the options specified in the fileName.
--gui this option launches a Remote Monitoring Agent, a graphical interface 
-that allows to monitor the agent platform (see section 6).
--version -prints on the standard output versioning information of JADE.
--name <symbolicname> specifies the symbolic name to be used as the 
-platform name; this option should be specified only for the main container; the
- default is to generate this from the values of the main container's hostname 
-and portnumber
+see the Administrator's guide for the list of 
+options available from the command line
 
 
 5.3.2 Launching agents from the command line
@@ -258,7 +239,7 @@ Every JADE agent inherits the addresses of its platform and its AID
 messages are sent externally to the platform. 
 Because most of the CORBA ORB implementations (including the one used by 
 JADE) do not yet allow to choose meaningful words as object keys, JADE 
-resorts to the alternate naming scheme, adopted also by FIPA 98 version 2.0, 
+resorts to the alternate naming scheme, adopted also by FIPA, 
 using OMG standard stringified IOR as agent addresses. A valid agent address 
 can be both an URL like iiop://fipa.org:50/acc and an IOR as 
 IOR:000000000000001649444c644f4)
