@@ -39,7 +39,7 @@ This example shows some of the methods an agent can use to receive messages
 
 public class AgentReceiver extends Agent {
 
-  class my3StepBehaviour extends CyclicBehaviour {
+  class my3StepBehaviour extends SimpleBehaviour {
 
   	final int FIRST = 1;
   	final int SECOND = 2;
@@ -59,6 +59,10 @@ public class AgentReceiver extends Agent {
       	case THIRD:{op3(); state = FIRST; finished = true; break;}
       	
       }
+    }
+
+    public boolean done() {
+      return finished;
     }
 
     
@@ -129,10 +133,10 @@ public class AgentReceiver extends Agent {
 
     	
     }     
-	}
+  } // End of my3StepBehaviour class
 
   
-	protected void setup() {
+  protected void setup() {
 
     my3StepBehaviour mybehaviour = new my3StepBehaviour(this);
     addBehaviour(mybehaviour);
