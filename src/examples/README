@@ -1,4 +1,4 @@
-README file for JADE 0.71 - Example programs.
+README file for JADE 0.76 - Example programs.
 
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
@@ -9,7 +9,7 @@ with a fully qualified package name; all example agent classes belong
 to subpackages of 'examples' package: for example, class Agent1 in
 'ex1' subdirectory of 'examples' directory must be started with:
 
-	java jade.boot -platform examples.ex1.Agent1
+	java jade.Boot -platform examples.ex1.Agent1
 
 
 The following list describes all the example programs found in
@@ -122,4 +122,14 @@ The following list describes all the example programs found in
 
 
 
+'ex5' subdirectory
+==================
 
+ - amsTester.class		This agent allows a comprehensive testing
+				of the Agent ManagementSystem of
+				JADE. When the agent is started, it
+				asks the user for an action name and
+				some parameters, then builds a
+				'fipa-request' conversation with the
+				AMS using the data gathered from the
+				user.
