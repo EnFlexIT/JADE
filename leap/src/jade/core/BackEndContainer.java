@@ -446,7 +446,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
 
       if (agentImages.size() > 0) {
-    		myLogger.log(Logger.WARNING, "# "+agentImages.size()+" zombie agent images found. "+e);
+    		myLogger.log(Logger.WARNING, "# "+agentImages.size()+" zombie agent images found.");
 	      agentImages.clear();
       }
 		
