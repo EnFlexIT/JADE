@@ -34,7 +34,6 @@ import jade.lang.acl.ACLParser;
 import jade.lang.acl.ParseException;
 import jade.lang.sl.SL0Codec;
 import jade.core.AID;
-import jade.domain.FIPAServiceCommunicator;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.onto.Ontology;
@@ -129,7 +128,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
        c = new SL0Codec();
 
      // Write the action in the :content slot of the request
-     this.reqMsg.setContent(FIPAServiceCommunicator.encode(act,c,o));
+     this.reqMsg.setContent(AppletRequestProto.encode(act,c,o));
      
 
 	}
@@ -144,7 +143,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
   		throw new NotYetReady();
   	if(lastMsg.getPerformative() != ACLMessage.INFORM)
   		throw new FIPAException(lastMsg);
-  	ResultPredicate r = FIPAServiceCommunicator.extractContent(lastMsg.getContent(),c,o); 
+  	ResultPredicate r = AppletRequestProto.extractContent(lastMsg.getContent(),c,o); 
     Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
     List l = new ArrayList(); 
     while (i.hasNext())

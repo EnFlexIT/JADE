@@ -35,7 +35,6 @@ import jade.domain.DFGUIManagement.*;
 import jade.core.AID;
 import jade.lang.acl.ACLParser;
 import jade.lang.acl.ACLMessage;
-import jade.domain.FIPAServiceCommunicator;
 import jade.onto.basic.Action;
 import jade.onto.OntologyException;
 import jade.onto.Frame;
@@ -217,7 +216,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
   	if(lastMsg.getPerformative() != ACLMessage.INFORM)
   		throw new FIPAException(lastMsg);
   		
-  	ResultPredicate r = FIPAServiceCommunicator.extractContent(lastMsg.getContent(),c,o); 
+  	ResultPredicate r = AppletRequestProto.extractContent(lastMsg.getContent(),c,o); 
     Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
     List l = new ArrayList(); 
     while (i.hasNext())
