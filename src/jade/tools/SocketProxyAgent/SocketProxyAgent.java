@@ -25,9 +25,9 @@ Boston, MA  02111-1307, USA.
 package jade.tools.SocketProxyAgent;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.lang.acl.*;
 import jade.core.behaviours.SimpleBehaviour;
-import jade.domain.FIPAAgentManagement.AID;
 
 import java.net.*;
 import java.io.*;
