@@ -82,7 +82,7 @@ public abstract class BaseService implements Service {
 	if(s == null) {
 	    try {
 		s = myFinder.findSlice(getName(), realName);
-		//		slices.put(realName, s);
+		slices.put(realName, s);
 	    }
 	    catch(IMTPException imtpe) {
 		throw new ServiceException("IMTP Error while using the Service Finder", imtpe);
@@ -158,6 +158,19 @@ public abstract class BaseService implements Service {
 
     public void boot(Profile p) throws ServiceException {
 	// Empty placeholder method
+    }
+
+    protected Service.Slice getFreshSlice(String name) throws ServiceException {
+
+	// First look through the name alias table
+	String realName = lookupAlias(name);
+
+	// Invalidate the cache entry
+	slices.remove(realName);
+
+	// Get a newer slice and return it
+	return getSlice(name);
+
     }
 
     private ServiceFinder myFinder;
