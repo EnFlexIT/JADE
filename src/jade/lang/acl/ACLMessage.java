@@ -34,6 +34,12 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.9  1998/10/18 16:01:17  rimassa
+ Deprecated constructor without arguments and dump() method. Added a
+ newer constructor and a fromText() static Factory Method.
+ Modified toText() output formatting to insert a newline character
+ after each message field.
+
  Revision 1.8  1998/10/04 18:02:09  rimassa
  Added a 'Log:' field to every source file.
 
@@ -62,6 +68,7 @@
 
 package jade.lang.acl;
 
+import java.io.Reader;
 import java.io.Writer;
 import java.io.Serializable;
 import java.io.IOException;
@@ -100,10 +107,35 @@ public class ACLMessage implements Cloneable, Serializable {
   private String        protocol;
   private String        conversation_id;
 
-
+  /**
+     @deprecated Since every ACL Message must have a message type, you
+     should use the new constructor which gets a message type as a
+     parameter.  To avoid problems, now this constructor silently sets
+     the message type to "not-understood".
+     @see #ACLMessage(String type)
+  */
   public ACLMessage() {
+    msgType = "not-understood";
   }
 
+  public ACLMessage(String type) {
+    msgType = new String(type);
+  }
+
+  public static ACLMessage fromText(Reader r) {
+    ACLMessage msg = null;
+    try {
+      msg = ACLParser.create().parse(r);
+    }
+    catch(ParseException pe) {
+      pe.printStackTrace();
+    }
+    catch(TokenMgrError tme) {
+      tme.printStackTrace();
+    }
+
+    return msg;
+  }
 
 /**
  * <em>set</em> methods to set the actual values of parameters.
@@ -324,9 +356,13 @@ public class ACLMessage implements Cloneable, Serializable {
 
 
   private static int counter = 0; // This variable is only used as a counter in dump()
- /**
- * this method dumps the message.
- */
+  /**
+     @deprecated This method dumps the message on System.out, so it's
+     not suitable for use with GUIs or streams. Now fromText()/toText()
+     methods allow reading and writing an ACL message on any stream;
+     besides they are inverse of each other.
+     @see #toText(Writer w)
+  */
   public void dump() {
     counter++;	
     System.out.println( counter + ") " + msgType.toUpperCase());
@@ -346,29 +382,29 @@ public class ACLMessage implements Cloneable, Serializable {
 
   public void toText(Writer w) {
     try {
-      w.write(msgType + " ");
+      w.write(msgType + "\n");
       if(source != null)
-	w.write(SOURCE + " " + source + " ");
+	w.write(SOURCE + " " + source + "\n");
       if(dest != null)
-	w.write(DEST + " " + dest + " ");
+	w.write(DEST + " " + dest + "\n");
       if(content != null)
-	w.write(CONTENT + " " + content + " ");
+	w.write(CONTENT + " " + content + "\n");
       if(reply_with != null)
-	w.write(REPLY_WITH + " " + reply_with + " ");
+	w.write(REPLY_WITH + " " + reply_with + "\n");
       if(in_reply_to != null)
-	w.write(IN_REPLY_TO + " " + in_reply_to + " ");
+	w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
       if(envelope != null)
-	w.write(ENVELOPE + " " + envelope + " ");
+	w.write(ENVELOPE + " " + envelope + "\n");
       if(language != null)
-	w.write(LANGUAGE + " " + language + " ");
+	w.write(LANGUAGE + " " + language + "\n");
       if(ontology != null)
-	w.write(ONTOLOGY + " " + ontology + " ");
+	w.write(ONTOLOGY + " " + ontology + "\n");
       if(reply_by != null)
-	w.write(REPLY_BY + " " + reply_by + " ");
+	w.write(REPLY_BY + " " + reply_by + "\n");
       if(protocol != null)
-	w.write(PROTOCOL + " " + protocol + " ");
+	w.write(PROTOCOL + " " + protocol + "\n");
       if(conversation_id != null)
-	w.write(CONVERSATION_ID + " " + conversation_id + " ");
+	w.write(CONVERSATION_ID + " " + conversation_id + "\n");
 
       w.flush();
     }
