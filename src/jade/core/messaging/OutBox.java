@@ -10,6 +10,7 @@ import jade.util.leap.RoundList;
 import jade.lang.acl.ACLMessage;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
+import jade.core.messaging.MessageManager.Channel;
 
 
 /**
@@ -35,15 +36,15 @@ class OutBox {
 	 * This method is executed by an agent's thread requesting to deliver 
 	 * a new message.
 	 */
-	synchronized void addLast(AID receiverID, ACLMessage msg, MessageManager.Channel ch) {
+	synchronized void addLast(AID receiverID, ACLMessage msg, Channel ch) {
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b == null){
 			// There is no Box of messages for this receiver yet. Create a new one 
-			b = new Box(receiverID, ch);
+			b = new Box(receiverID);
 			messagesByReceiver.put(receiverID, b);
 			messagesByOrder.add(b);
 		}
-		b.addLast(msg);
+		b.addLast(new PendingMsg(msg, receiverID, ch, -1));
 		//log("Message added", 2);
 		// Wakes up all deliverers
 		notifyAll();
@@ -57,9 +58,9 @@ class OutBox {
 	 * indicated receiver must already exist. Moreover the busy flag of 
 	 * this Box must be reset to allow deliverers to handle messages in it
    */
-	synchronized void addFirst( AID receiverID, ACLMessage msg ){
-		Box b = (Box) messagesByReceiver.get(receiverID);
-		b.addFirst(msg);
+	synchronized void addFirst(PendingMsg pm){
+		Box b = (Box) messagesByReceiver.get(pm.getReceiver());
+		b.addFirst(pm);
 		b.setBusy(false);
 		// Wakes up all deliverers
 		notifyAll();
@@ -85,8 +86,7 @@ class OutBox {
 				// Just do nothing
 			}
 		}
-		PendingMsg pm = new PendingMsg(b.removeFirst(), b.getReceiver(), b.getChannel(), -1);
-	 	return pm;
+	 	return b.removeFirst();
 	}
 	
 	
@@ -136,12 +136,12 @@ class OutBox {
 	private class Box {
 	    private final AID receiver;
 	    private boolean busy;
-	    private MessageManager.Channel channel;  
+	    //private MessageManager.Channel channel;  
 	    private final List messages;
 		
-		public Box(AID r, MessageManager.Channel ch) {
+		public Box(AID r) {
 			receiver = r;
-			channel = ch;
+			//channel = ch;
 			busy = false;
 			messages = new LinkedList(); 
 		}
@@ -150,9 +150,9 @@ class OutBox {
 			return receiver;
 		}
 
-	        private MessageManager.Channel getChannel() {
+	  /*      private MessageManager.Channel getChannel() {
 		    return channel;
-		}
+		}*/
 		
 		private void setBusy(boolean b){
 			busy = b;
@@ -162,17 +162,26 @@ class OutBox {
 			return busy;
 		}
 		
-		private void addLast(ACLMessage msg) {
+		private void addLast(PendingMsg pm) {
+			messages.add(pm);
+		}
+		/*private void addLast(ACLMessage msg) {
 			messages.add(msg);
-		}
+		}*/
 		
-		private void addFirst(ACLMessage msg) {
+		private void addFirst(PendingMsg pm) {
+			messages.add(0, pm);
+		}
+		/*private void addFirst(ACLMessage msg) {
 			messages.add(0, msg);
-		}
+		}*/
 		
-		private ACLMessage removeFirst() {
-			return (ACLMessage) messages.remove(0);
+		private PendingMsg removeFirst() {
+			return (PendingMsg) messages.remove(0);
 		}
+		/*private ACLMessage removeFirst() {
+			return (ACLMessage) messages.remove(0);
+		}*/
 		
 		private boolean isEmpty() {
 			return messages.isEmpty();

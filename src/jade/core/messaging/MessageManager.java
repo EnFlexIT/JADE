@@ -345,7 +345,7 @@ class MessageManager implements TimerListener {
 				else {
 					// Otherwise schedule again the message for delivery
 //#MIDP_EXCLUDE_BEGIN
-					outBox.addFirst(pm.getReceiver(), pm.getMessage());
+					outBox.addFirst(pm);
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 					putInOutBox(pm);
