@@ -76,8 +76,9 @@ class acc implements InChannel.Dispatcher {
   private AIDTranslator translator;
 
   public acc(AgentContainerImpl ac, String platformID) {
-    ACLCodec stringCodec = new StringACLCodec();
-    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+  	
+  	ACLCodec stringCodec = new StringACLCodec();
+    addACLCodec(stringCodec);
     myContainer = ac;
     accID = "fipa-mts://" + platformID + "/acc";
     translator = new AIDTranslator(platformID);
