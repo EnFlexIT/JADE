@@ -53,8 +53,8 @@ public class NodeDescriptor implements Serializable {
        @param nn The name of the described node.
        @param node The described <code>Node</code> object.
     */
-    public NodeDescriptor(String nn, Node node) {
-	myName = nn;
+    public NodeDescriptor(Node node) {
+	myName = node.getName();
 	myNode = node;
     }
 
@@ -66,12 +66,10 @@ public class NodeDescriptor implements Serializable {
        @param principal The principal of the node owner.
        @param credentials The credentials of the node owner.
     */
-    public NodeDescriptor(ContainerID cid, Node node, JADEPrincipal principal, Credentials credentials) {
+    public NodeDescriptor(ContainerID cid, Node node) {
 	myName = cid.getName();
 	myNode = node;
 	myContainer = cid;
-	ownerPrincipal = principal;
-	ownerCredentials = credentials;
     }
 
     /**
@@ -135,15 +133,71 @@ public class NodeDescriptor implements Serializable {
     }
 
     /**
+       Set the username of the owner of the described node
+     */
+    public void setUsername(String username) {
+			this.username = username;
+    }
+
+    /**
+       Retrieve the username of the owner of the described node
+     */
+    public String getUsername() {
+			return username;
+    }
+
+    /**
+       Set the password of the owner of the described node
+     */
+    public void setPassword(byte[] password) {
+	this.password = password;
+    }
+
+    /**
+       Retrieve the password of the owner of the described node
+     */
+    public byte[] getPassword() {
+			return password;
+    }
+    
+    /**
+       Set the principal of the described node
+     */
+    public void setPrincipal(JADEPrincipal principal) {
+			myPrincipal = principal;
+    }
+
+    /**
+       Retrieve the principal of the described node
+     */
+    public JADEPrincipal getPrincipal() {
+			return myPrincipal;
+    }
+    
+    /**
+       Set the principal of the owner of this node
+     */
+    public void setOwnerPrincipal(JADEPrincipal principal) {
+			ownerPrincipal = principal;
+    }
+
+    /**
        Retrieve the principal of the owner of this node (if any)
 
        @return The principal of the owner of this node, or
        <code>null</code> if no principal was set.
     */
     public JADEPrincipal getOwnerPrincipal() {
-	return ownerPrincipal;
+			return ownerPrincipal;
     }
 
+    /**
+       Set the credentials of the owner of this node
+     */
+    public void setOwnerCredentials(Credentials credentials) {
+			ownerCredentials = credentials;
+    }
+    
     /**
        Retrieve the credentials of the owner of this node (if any)
 
@@ -151,13 +205,16 @@ public class NodeDescriptor implements Serializable {
        <code>null</code> if no credentials were set.
     */
     public Credentials getOwnerCredentials() {
-	return ownerCredentials;
+			return ownerCredentials;
     }
 
     private String myName;
     private Node myNode;
 
     private ContainerID myContainer;
+    private String username;
+    private byte[] password;
+    private JADEPrincipal myPrincipal;
     private JADEPrincipal ownerPrincipal;
     private Credentials ownerCredentials;
 
