@@ -11,7 +11,7 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 // This agent starts a conversation thread and collect the reply.
-public class AgentSenderP1 extends Agent {
+public class AgentThread extends Agent {
 
   protected void setup() {
 
