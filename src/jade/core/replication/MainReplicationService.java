@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,7 +48,7 @@ import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
-import jade.core.NameClashException; 
+import jade.core.NameClashException;
 import jade.core.UnreachableException;
 
 import jade.core.AID;
@@ -65,6 +65,7 @@ import jade.security.JADESecurityException;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
+import jade.util.Logger;
 
 
 /**
@@ -80,6 +81,8 @@ public class MainReplicationService extends BaseService {
 
     private static final boolean EXCLUDE_MYSELF = false;
     private static final boolean INCLUDE_MYSELF = true;
+
+    private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
     private static final String[] OWNED_COMMANDS = new String[] {
     };
@@ -388,7 +391,9 @@ public class MainReplicationService extends BaseService {
 
 	    // Stop the previous monitor, if any
 	    if(nodeMonitor != null) {
-	    	log("Stop monitoring node <"+nodeMonitor.getNode().getName()+">", 2);
+	    	//log("Stop monitoring node <"+nodeMonitor.getNode().getName()+">", 2);
+                if (logger.isLoggable(Logger.CONFIG))
+                  logger.log(Logger.CONFIG,"Stop monitoring node <"+nodeMonitor.getNode().getName()+">");
 				nodeMonitor.stop();
 	    }
 
@@ -559,7 +564,7 @@ public class MainReplicationService extends BaseService {
 	    replicas.remove(index);
 	    adjustLabels(index);
 	}
-	
+
 	private void adjustLabels(int index) {
 	    if(index < myLabel) {
 		myLabel--;
@@ -580,7 +585,10 @@ public class MainReplicationService extends BaseService {
 		try {
 				// FIXME: What about principal and ownership?
 		    myMain.bornAgent(agents[i], containers[i], null, null, true);
-				log("Agent "+agents[i].getName()+" inserted into GADT", 2);		    
+				//log("Agent "+agents[i].getName()+" inserted into GADT", 2);
+                                if (logger.isLoggable(Logger.CONFIG))
+                                  logger.log(Logger.CONFIG,"Agent "+agents[i].getName()+" inserted into GADT");
+
 		}
 		catch(NotFoundException nfe) {
 		    // It should never happen...
@@ -606,7 +614,10 @@ public class MainReplicationService extends BaseService {
 	    try {
 		// If the name is already in the GADT, throws NameClashException
 		myMain.bornAgent(name, cid, principal, ownership, false);
-		log("Agent "+name.getName()+" inserted into GADT", 2);
+		//log("Agent "+name.getName()+" inserted into GADT", 2);
+                if (logger.isLoggable(Logger.CONFIG))
+                  logger.log(Logger.CONFIG,"Agent "+name.getName()+" inserted into GADT");
+
 	    }
 	    catch(NameClashException nce) {
 		try {
@@ -625,7 +636,10 @@ public class MainReplicationService extends BaseService {
 		catch(Exception e) {
 		    // Ping failed: forcibly replace the dead agent...
 		    myMain.bornAgent(name, cid, principal, ownership, true);
-				log("Agent "+name.getName()+" inserted into GADT", 2);
+				//log("Agent "+name.getName()+" inserted into GADT", 2);
+                                if (logger.isLoggable(Logger.CONFIG))
+                                  logger.log(Logger.CONFIG,"Agent "+name.getName()+" inserted into GADT");
+
 		}
 	    }
 	}
@@ -687,11 +701,17 @@ public class MainReplicationService extends BaseService {
 	// Implementation of the NodeEventListener interface
 
 	public void nodeAdded(Node n) {
-  	log("Start monitoring node <"+n.getName()+">", 2);
+  	//log("Start monitoring node <"+n.getName()+">", 2);
+          if (logger.isLoggable(Logger.CONFIG))
+            logger.log(Logger.CONFIG,"Start monitoring node <"+n.getName()+">");
+
 	}
 
 	public void nodeRemoved(Node n) {
-	    log("Node <"+n.getName()+"> TERMINATED", 2);
+	    //log("Node <"+n.getName()+"> TERMINATED", 2);
+            if (logger.isLoggable(Logger.CONFIG))
+              logger.log(Logger.CONFIG,"Node <"+n.getName()+"> TERMINATED");
+
 	    try {
 	    	myPlatformManager.removeReplica(monitoredSvcMgr, false);
 	    	myPlatformManager.removeNode(new NodeDescriptor(n), false);
@@ -714,7 +734,10 @@ public class MainReplicationService extends BaseService {
 		attachTo(monitoredLabel, newSlice);
 
 		if((oldLabel != 0) && (myLabel == 0)) {
-		    log("-- I'm the new leader ---", 1);
+		    //log("-- I'm the new leader ---", 1);
+                    if (logger.isLoggable(Logger.INFO))
+                      logger.log(Logger.INFO,"-- I'm the new leader ---");
+
 
 		    myContainer.becomeLeader();
 
@@ -730,11 +753,17 @@ public class MainReplicationService extends BaseService {
 	}
 
 	public void nodeUnreachable(Node n) {
-	    log("Node <"+n.getName()+"> UNREACHABLE", 2);
+	    //log("Node <"+n.getName()+"> UNREACHABLE", 2);
+            if (logger.isLoggable(Logger.CONFIG))
+              logger.log(Logger.CONFIG,"Node <"+n.getName()+"> UNREACHABLE");
+
 	}
 
 	public void nodeReachable(Node n) {
-	    log("Node <"+n.getName()+"> REACHABLE", 2);
+	    //log("Node <"+n.getName()+"> REACHABLE", 2);
+            if (logger.isLoggable(Logger.CONFIG))
+              logger.log(Logger.CONFIG,"Node <"+n.getName()+"> REACHABLE");
+
 	}
 
 	// The active object monitoring the remote node
@@ -748,11 +777,11 @@ public class MainReplicationService extends BaseService {
     } // End of ServiceComponent class
 
   /*#PJAVA_INCLUDE_BEGIN
-  // PJAVA workaround as protected methods inherited from parent class 
+  // PJAVA workaround as protected methods inherited from parent class
   // are not accessible to inner classes
-  public void log(String txt, int l) {
-    super.log(txt,l);
-  }
+  //public void log(String txt, int l) {
+    //super.log(txt,l);
+  //}
   #PJAVA_INCLUDE_END*/
 
 
@@ -787,7 +816,10 @@ public class MainReplicationService extends BaseService {
 		slice.serve(cmd);
 		Object ret = cmd.getReturnValue();
 		if (ret instanceof Throwable) {
-			log("Error propagating H-command "+cmd.getName()+" to slice "+sliceName, 0);
+			//log("Error propagating H-command "+cmd.getName()+" to slice "+sliceName, 0);
+                        if (logger.isLoggable(Logger.SEVERE))
+                          logger.log(Logger.SEVERE,"Error propagating H-command "+cmd.getName()+" to slice "+sliceName);
+
 			((Throwable) ret).printStackTrace();
 		}
 	    }

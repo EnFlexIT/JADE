@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -58,6 +58,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
+import jade.util.Logger;
 
 
 
@@ -70,8 +71,10 @@ import jade.util.leap.LinkedList;
 
 */
 public class PersistentDeliveryService extends BaseService {
-    
+
 	static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
+
+        private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
     private static final String[] OWNED_COMMANDS = new String[] {
 	/*PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE,
@@ -149,7 +152,7 @@ public class PersistentDeliveryService extends BaseService {
 	// Implementation of the Sink interface
 
 	public void consume(VerticalCommand cmd) {
-		
+
 	    try {
 		String name = cmd.getName();
 		if(name.equals(PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE)) {
@@ -175,7 +178,7 @@ public class PersistentDeliveryService extends BaseService {
 		cmd.setReturnValue(nce);
 	    }
 	    catch(ServiceException se) {
-		cmd.setReturnValue(new IMTPException("A Service Exception occurred", se));		
+		cmd.setReturnValue(new IMTPException("A Service Exception occurred", se));
 	    }
 	}
 
@@ -255,7 +258,7 @@ public class PersistentDeliveryService extends BaseService {
 	// Implementation of the Sink interface
 
 	public void consume(VerticalCommand cmd) {
-		
+
 		String name = cmd.getName();
 		if(name.equals(PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE)) {
 		    handleActivateMessageStore(cmd);
@@ -347,10 +350,14 @@ public class PersistentDeliveryService extends BaseService {
 	    GenericMessage msg = (GenericMessage)params[0];//FIXME: check object type
 	    AID receiver = (AID)params[1];
     	ACLMessage acl = msg.getACLMessage();
-		  log("Processing failed message "+MessageManager.stringify(msg)+" for agent "+receiver.getName(), 2);
+
+		  //log("Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName(), 2);
+                  if(logger.isLoggable(Logger.INFO))
+                    logger.log(Logger.INFO,"Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName());
+
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
-	    
+
 	    // Ask all slices whether the failed message should be stored
 	    Service.Slice[] slices = getAllSlices();
 	    for(int i = 0; i < slices.length; i++) {
@@ -359,13 +366,23 @@ public class PersistentDeliveryService extends BaseService {
 		    boolean accepted = slice.storeMessage(null, msg, receiver);
 
 		    if(accepted) {
-		    	log("Message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
+
+		    	//log("Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
+                            if(logger.isLoggable(Logger.INFO))
+                              logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
+
+
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
-			log("Error trying to store message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
+
+			//log("Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
+                        if(logger.isLoggable(Logger.INFO))
+                          logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
+
+
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -415,7 +432,10 @@ public class PersistentDeliveryService extends BaseService {
 							    slice.flushMessages(agentID);
 							}
 							catch(Exception e) {
-								log("Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName(), 1);
+								//log("Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName(), 1);
+                                                                if(logger.isLoggable(Logger.WARNING))
+                                                                  logger.log(Logger.WARNING,"Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName());
+
 							    // Ignore it and try other slices...
 							}
 				    }
@@ -435,7 +455,7 @@ public class PersistentDeliveryService extends BaseService {
        The SLICE.
      */
     private class ServiceComponent implements Service.Slice {
-	
+
   // Implementation of the Service.Slice interface
 	public Service getService() {
 	    return PersistentDeliveryService.this;
@@ -478,7 +498,7 @@ public class PersistentDeliveryService extends BaseService {
 		    gCmd.addParam(mt);
 
 		    result = gCmd;
-		    
+
 		}
 		else if(cmdName.equals(PersistentDeliverySlice.H_DEREGISTERTEMPLATE)) {
 		    GenericCommand gCmd = new GenericCommand(PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE, PersistentDeliverySlice.NAME, null);
@@ -517,16 +537,16 @@ public class PersistentDeliveryService extends BaseService {
 	}
 
 	/**
-	   This is called following a message delivery failure to check 
+	   This is called following a message delivery failure to check
 	   whether or not the message must be stored.
 	 */
 	private boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, ServiceException {
 
 		boolean	firstTime = false;
 		long now = System.currentTimeMillis();
-		long dueDate = now; 
+		long dueDate = now;
 		try {
-			// If the due-date parameter is already set, this is a re-transmission 
+			// If the due-date parameter is already set, this is a re-transmission
 			// attempt --> Use the due-date value
 		    String dd = msg.getACLMessage().getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
 			dueDate = Long.parseLong(dd);
@@ -540,14 +560,23 @@ public class PersistentDeliveryService extends BaseService {
 		    firstTime = true;
 	    }
 		}
-		
-		if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) { 
+
+		if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) {
 			try {
 			    if (firstTime) {
-			    	log("Storing message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+". Due date is "+dueDate, 1);
+
+			    	//log("Storing message\n"+msg+"\nDue date is "+dueDate, 1);
+                                    if(logger.isLoggable(Logger.CONFIG))
+                                      logger.log(Logger.CONFIG,"Storing message\n"+msg+"\nDue date is "+dueDate);
+
+
 			    }
 			    else {
-			    	log("Re-Storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate, 4);
+
+			    	//log("Re-Storing message\n"+msg+"\nDue date is "+dueDate, 2);
+                                    if(logger.isLoggable(Logger.CONFIG))
+                                      logger.log(Logger.CONFIG,"Re-Storing message\n"+msg+"\nDue date is "+dueDate);
+
 			    }
 			    myManager.storeMessage(storeName, msg, receiver);
 			    return true;
@@ -562,13 +591,16 @@ public class PersistentDeliveryService extends BaseService {
 	}
 
 	/**
-	   This is called when a new agent is born to send him the stored 
+	   This is called when a new agent is born to send him the stored
 	   messages (if any)
 	 */
 	private void flushMessages(AID receiver) {
 	    int cnt = myManager.flushMessages(receiver);
 	    if (cnt > 0) {
-	    	log("Flushed "+cnt+" messages for agent "+receiver, 1);
+	    	//log("Flushed "+cnt+" messages for agent "+receiver, 1);
+                    if(logger.isLoggable(Logger.INFO))
+                      logger.log(Logger.INFO,"Flushed "+cnt+" messages for agent "+receiver);
+
 	    }
 	}
 
@@ -601,7 +633,10 @@ public class PersistentDeliveryService extends BaseService {
 	    else {
 		messageFilter = new DefaultMessageFilter();
 	    }
-	    log("Using message filter of type "+messageFilter.getClass().getName(), 1);
+	    //log("Using message filter of type "+messageFilter.getClass().getName(), 1);
+            if(logger.isLoggable(Logger.INFO))
+              logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
+
 	}
 	catch(Exception e) {
 	    throw new ServiceException("Exception in message filter initialization", e);

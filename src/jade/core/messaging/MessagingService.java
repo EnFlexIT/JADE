@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -80,6 +80,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
+import jade.util.Logger;
 
 
 /**
@@ -92,16 +93,16 @@ import jade.util.leap.List;
  * @author Jerome Picault - Motorola Labs
  */
 public class MessagingService extends BaseService implements MessageManager.Channel {
-	
+
   // The profile passed to this object
   private Profile myProfile;
-  
+
   // A flag indicating whether or not we must accept foreign agents
   private boolean acceptForeignAgents = false;
- 
+
   // The ID of the PLatformthis service belongs to
   private String platformID;
-  
+
   // The concrete agent container, providing access to LADT, etc.
   private AgentContainer myContainer;
 
@@ -123,11 +124,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   // The filter for outgoing commands related to ACL encoding
   private Filter encInFilter;
 
+  // The logger
+  private Logger logger = Logger.getMyLogger(this.getClass().getName());
+
   // The cached AID -> MessagingSlice associations
   //#MIDP_EXCLUDE_BEGIN
   private final Map cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
   //#MIDP_EXCLUDE_END
-	
+
   /*#MIDP_INCLUDE_BEGIN
 		private final Map cachedSlices = new HashMap();
 		#MIDP_INCLUDE_END*/
@@ -187,7 +191,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // Look in the profile and check whether we must accept foreign agents
     acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
-    
+
     // Initialize its own ID
     platformID = myContainer.getPlatformID();
     accID = "fipa-mts://" + platformID + "/acc";
@@ -195,12 +199,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     /* Activate the default ACL String codec anyway
     ACLCodec stringCodec = new StringACLCodec();
     messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
-    
+
     // Activate the efficient encoding for intra-platform encoding
     ACLCodec efficientCodec = new LEAPACLCodec();
     messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
     */
-    
+
     // create the command filters related to the encoding of ACL messages
     encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer, this);
     encInFilter = new IncomingEncodingFilter(messageEncodings);
@@ -235,7 +239,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   }
 
   /**
-   * Retrieve the locally installed slice of this service. 
+   * Retrieve the locally installed slice of this service.
    */
   public Service.Slice getLocalSlice() {
     return localSlice;
@@ -296,7 +300,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     // Implementation of the Sink interface
 
     public void consume(VerticalCommand cmd) {
-		
+
 	    try {
         String name = cmd.getName();
 
@@ -348,18 +352,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    GenericMessage msg = (GenericMessage)params[1];
       AID dest = (AID)params[2];
       // Since message delivery is asynchronous we use the GenericMessage
-      // as a temporary holder for the sender principal and credentials to the 
+      // as a temporary holder for the sender principal and credentials to the
       msg.setSenderPrincipal(cmd.getPrincipal());
       msg.setSenderCredentials(cmd.getCredentials());
-      log("Enqueuing message for "+dest.getName()+" to MessageManager", 4);
+      //log("Enqueuing message for "+dest.getName()+" to MessageManager", 4);
+      if (logger.isLoggable(Logger.FINE))
+        logger.log(Logger.FINE,"Enqueuing message for "+dest.getName()+" to MessageManager");
+
+      if (logger.isLoggable(Logger.FINE))
+        logger.log(Logger.FINE,"Enqueuing message for "+dest.getName()+" to MessageManager");
       myMessageManager.deliver(msg, dest, MessagingService.this);
     }
-    
+
     private void handleNotifyFailure(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
 	    GenericMessage msg = (GenericMessage)params[0];
 	    AID receiver = (AID)params[1];
-	    InternalError ie = (InternalError)params[2];	    
+	    InternalError ie = (InternalError)params[2];
 
 	    // If (the sender is not the AMS and the performative is not FAILURE)
       // The acl message contained inside the GenericMessage should never
@@ -389,7 +398,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           command.addParam(gm);
           command.addParam((AID)(failure.getAllReceiver().next()));
           // FIXME: We should set the AMS principal and credentials
-          
+
           submit(command);
         }
         catch(ServiceException se) {
@@ -473,7 +482,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   private class CommandTargetSink implements Sink {
 
     public void consume(VerticalCommand cmd) {
-		
+
 	    try {
         String name = cmd.getName();
         if(name.equals(MessagingSlice.SEND_MESSAGE)) {
@@ -558,18 +567,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private void handleNewSlice(VerticalCommand cmd) {
       MainContainer impl = myContainer.getMain();
-      if(impl != null) {		
+      if(impl != null) {
         Object[] params = cmd.getParams();
         String newSliceName = (String) params[0];
         try {
-        	// Be sure to get the new (fresh) slice --> Bypass the service cache  
+        	// Be sure to get the new (fresh) slice --> Bypass the service cache
           MessagingSlice newSlice = (MessagingSlice) getFreshSlice(newSliceName);
-	    	
-          // Send all possible routes to the new slice 
+
+          // Send all possible routes to the new slice
           ContainerID[] cids = impl.containerIDs();
           for(int i = 0; i < cids.length; i++) {
             ContainerID cid = cids[i];
-					
+
             try {
               List mtps = impl.containerMTPs(cid);
               Iterator it = mtps.iterator();
@@ -596,9 +605,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
-    	log("Posting message from "+msg.getSender().getName()+" to "+receiverID, 4);
+    	//log("Posting message from "+msg.getSender().getName()+" to "+receiverID, 4);
+            if (logger.isLoggable(Logger.FINE))
+              logger.log(Logger.FINE,"Posting message from "+msg.getSender().getName()+" to "+receiverID);
+
 	    boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
-	    if(!found) { 
+	    if(!found) {
         throw new NotFoundException("Messaging service slice failed to find " + receiverID);
 	    }
     }
@@ -612,7 +624,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
         InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {
             public void dispatchMessage(Envelope env, byte[] payload) {
-              log("Message from remote platform received", 2);
+              //log("Message from remote platform received", 2);
+              if (logger.isLoggable(Logger.INFO))
+                logger.log(Logger.INFO,"Message from remote platform received");
 
               // To avoid message loops, make sure that the ID of this ACC does
               // not appear in a previous 'received' stamp
@@ -621,11 +635,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               for(int i = 0; i < stamps.length; i++) {
                 String id = stamps[i].getBy();
                 if(CaseInsensitiveString.equalsIgnoreCase(id, accID)) {
-                  System.err.println("ERROR: Message loop detected !!!");
-                  System.err.println("Route is: ");
-                  for(int j = 0; j < stamps.length; j++)
-                    System.err.println("[" + j + "]" + stamps[j].getBy());
-                  System.err.println("Message dispatch aborted.");
+                    System.err.println("ERROR: Message loop detected !!!");
+                    System.err.println("Route is: ");
+                    for(int j = 0; j < stamps.length; j++)
+                      System.err.println("[" + j + "]" + stamps[j].getBy());
+                      System.err.println("Message dispatch aborted.");
                   return;
                 }
               }
@@ -645,14 +659,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
                 myMessageManager.deliver(msg, rcv, MessagingService.this);
               }
             }
-          };  
-        
-        if(address == null) { 
+          };
+
+        if(address == null) {
           // Let the MTP choose the address
           TransportAddress ta = proto.activate(dispatcher, myProfile);
           address = proto.addrToStr(ta);
         }
-        else { 
+        else {
           // Convert the given string into a TransportAddress object and use it
           TransportAddress ta = proto.strToAddr(address);
           proto.activate(dispatcher, ta, myProfile);
@@ -662,19 +676,22 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
         String[] pp = result.getSupportedProtocols();
         for (int i = 0; i < pp.length; ++i) {
-          log("Added Route-Via-MTP for protocol "+pp[i], 1);
+          //log("Added Route-Via-MTP for protocol "+pp[i], 1);
+          if (logger.isLoggable(Logger.INFO))
+            logger.log(Logger.INFO,"Added Route-Via-MTP for protocol "+pp[i]);
+
         }
 
 				String[] addresses = result.getAddresses();
 				for(int i = 0; i < addresses.length; i++) {
 						myContainer.addAddressToLocalAgents(addresses[i]);
 				}
-				
+
         GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
         gCmd.addParam(result);
         gCmd.addParam(myContainer.getID());
         submit(gCmd);
-        
+
         return result;
     }
       catch(ClassNotFoundException cnfe) {
@@ -735,7 +752,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             if(t instanceof ServiceException) {
               throw (ServiceException)t;
             }
-            System.err.println("### addRoute() threw " + t.getClass().getName() + " ###");
+            //System.err.println("### addRoute() threw " + t.getClass().getName() + " ###");
+            if (logger.isLoggable(Logger.INFO))
+              logger.log(Logger.INFO,"### addRoute() threw " + t.getClass().getName() + " ###");
           }
         }
         impl.newMTP(mtp, cid);
@@ -761,7 +780,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             }
           }
           catch(Throwable t) {
-            System.err.println("### removeRoute() threw " + t.getClass().getName() + " ###");
+            //System.err.println("### removeRoute() threw " + t.getClass().getName() + " ###");
+            if (logger.isLoggable(Logger.INFO))
+              logger.log(Logger.INFO,"### removeRoute() threw " + t.getClass().getName() + " ###");
+
             // Re-throw allowed exceptions
             if(t instanceof IMTPException) {
               throw (IMTPException)t;
@@ -797,7 +819,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // Entry point for the ACL message dispatching process
     public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
-      log("Delivering message for "+receiverID.getName(), 4);
+      //log("Delivering message for "+receiverID.getName(), 4);
+        if (logger.isLoggable(Logger.FINE))
+          logger.log(Logger.FINE,"Delivering message for "+receiverID.getName());
+
 	    try {
         MainContainer impl = myContainer.getMain();
         if(impl != null) {
@@ -818,18 +843,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             }
             catch(NotFoundException nfe) {
               // The agent was found in the GADT, but not in the target LADT.
-              // The agent has moved in the meanwhile or the slice may be obsolete 
+              // The agent has moved in the meanwhile or the slice may be obsolete
               // => try again
             }
 		        catch(NullPointerException npe) {
-		          // The agent was found in the GADT, but his container has probably 
+		          // The agent was found in the GADT, but his container has probably
 		          // disappeared in the meanwhile ==> Try again.
 		        }
 		        catch(IMTPException imtpe1) {
 		          // The agent was found in the GADT, but his container is unreachable.
 		        	if (receiverID.equals(myContainer.getAMS())) {
 		        		// If the receiver is the AMS this may be due to a fault
-		        		// of the master main container (the new AMS and DF have not started 
+		        		// of the master main container (the new AMS and DF have not started
 		        		// yet). Wait a bit and try one more time.
 		        		waitABit(3000);
 		        	}
@@ -848,12 +873,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               cachedSlice.dispatchLocally(msg.getSender(), msg, receiverID);
             }
             catch(IMTPException imtpe) {
-            	log("Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.", 3);
+            	//log("Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.", 3);
+                    if (logger.isLoggable(Logger.WARNING))
+                      logger.log(Logger.WARNING,"Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.");
+
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
             }
             catch(NotFoundException nfe) {
-            	log("Cached slice does not contain agent "+receiverID.getName()+". Remove it.", 3);
+            	//log("Cached slice does not contain agent "+receiverID.getName()+". Remove it.", 3);
+                    if (logger.isLoggable(Logger.WARNING))
+                      logger.log(Logger.WARNING,"Cached slice does not contain agent "+receiverID.getName()+". Remove it.");
+
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
             }
@@ -893,7 +924,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           }
           catch (IMTPException imtpe) {
             // Try to get a newer slice and repeat...
-          	log("Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.", 3);
+          	//log("Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.", 3);
+                  if (logger.isLoggable(Logger.WARNING))
+                    logger.log(Logger.WARNING,"Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.");
+
           	try {
 	            targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
           	}
@@ -901,9 +935,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           		t.printStackTrace();
           		throw ((IMTPException) t);
           	}
-          	log("Fresh slice is "+targetSlice, 4);
+          	//log("Fresh slice is "+targetSlice, 4);
+                  if (logger.isLoggable(Logger.INFO))
+                    logger.log(Logger.INFO,"Fresh slice is "+targetSlice);
+
             targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
-          	log("Dispatch successful", 4);
+          	//log("Dispatch successful", 4);
+                  if (logger.isLoggable(Logger.INFO))
+                    logger.log(Logger.INFO,"Dispatch successful");
+
           }
           // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
           // On successful message dispatch, put the slice into the slice cache
@@ -911,19 +951,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           ok = true;
         }
         catch(NotFoundException nfe) {
-          // The agent was found in the GADT, but his container has probably 
+          // The agent was found in the GADT, but his container has probably
           // disappeared in the meanwhile ==> Try again.
           ok = false;
         }
         catch(NullPointerException npe) {
-          // The agent was found in the GADT, but his container has probably 
+          // The agent was found in the GADT, but his container has probably
           // disappeared in the meanwhile ==> Try again.
         }
         catch(IMTPException imtpe1) {
           // The agent was found in the GADT, but his container is unreachable.
         	if (receiverID.equals(myContainer.getAMS())) {
         		// If the receiver is the AMS this may be due to a fault
-        		// of the master main container (the new AMS and DF have not started 
+        		// of the master main container (the new AMS and DF have not started
         		// yet). Wait a bit and try one more time.
         		waitABit(3000);
         	}
@@ -940,7 +980,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 			catch (InterruptedException ie) {}
 		}
-		
+
     // Implementation of the Service.Slice interface
 
     public Service getService() {
@@ -1043,7 +1083,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private void routeOut(Envelope env, byte[] payload, AID receiverID, String address) throws IMTPException, MTPException {
 	    RoutingTable.OutPort out = routes.lookup(address);
-      log("Routing message to "+receiverID.getName()+" towards port "+out, 2);
+      //log("Routing message to "+receiverID.getName()+" towards port "+out, 2);
+      if (logger.isLoggable(Logger.INFO))
+        logger.log(Logger.INFO,"Routing message to "+receiverID.getName()+" towards port "+out);
+
 	    if(out != null)
         out.route(env, payload, receiverID, address);
 	    else
@@ -1065,10 +1108,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    // Be sure the slice is fresh --> bypass the service cache
     	MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
 	    routes.addRemoteMTP(mtp, sliceName, slice);
-	    
+
 	    String[] pp = mtp.getSupportedProtocols();
 	    for (int i = 0; i < pp.length; ++i) {
-		    log("Added Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+		   // log("Added Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+                   if (logger.isLoggable(Logger.INFO))
+                     logger.log(Logger.INFO,"Added Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
+
 	    }
 
 	    String[] addresses = mtp.getAddresses();
@@ -1084,7 +1130,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	    String[] pp = mtp.getSupportedProtocols();
 	    for (int i = 0; i < pp.length; ++i) {
-		    log("Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+		    //log("Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+                    if (logger.isLoggable(Logger.INFO))
+                      logger.log(Logger.INFO,"Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
+
 	    }
 
 	    String[] addresses = mtp.getAddresses();
@@ -1096,7 +1145,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   } // End of ServiceComponent class
 
 
- 
+
   /**
    * Performs the active initialization step of a kernel-level
    * service: Activates the ACL codecs and MTPs as specified in the given
@@ -1127,9 +1176,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         String className = spec.getClassName();
         try{
           Class c = Class.forName(className);
-          ACLCodec codec = (ACLCodec)c.newInstance(); 
+          ACLCodec codec = (ACLCodec)c.newInstance();
           messageEncodings.put(codec.getName().toLowerCase(), codec);
-          System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+          //System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+          if (logger.isLoggable(Logger.INFO))
+            logger.log(Logger.INFO,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+
           // FIXME: notify the AMS of the new Codec to update the APDescritption.
         }
         catch(ClassNotFoundException cnfe){
@@ -1166,30 +1218,43 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         String[] mtpAddrs = mtp.getAddresses();
         f.println(mtpAddrs[0]);
         System.out.println(mtpAddrs[0]);
+        if (logger.isLoggable(Logger.INFO))
+          logger.log(Logger.INFO,mtpAddrs[0]);
+
 	    }
 
-	    f.close();      
+	    f.close();
     }
     catch (ProfileException pe1) {
-	    System.err.println("Error reading MTPs/Codecs");
+	    //System.err.println("Error reading MTPs/Codecs");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"Error reading MTPs/Codecs");
 	    pe1.printStackTrace();
     }
     catch(ServiceException se) {
-	    System.err.println("Error installing local MTPs");
+	    //System.err.println("Error installing local MTPs");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"Error installing local MTPs");
 	    se.printStackTrace();
     }
     catch(jade.lang.acl.ACLCodec.CodecException ce) {
-	    System.err.println("Error installing ACL Codec");
+	    //System.err.println("Error installing ACL Codec");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"Error installing ACL Codec");
 	    ce.printStackTrace();
     }
     catch(MTPException me) {
-	    System.err.println("Error installing MTP");
+	    //System.err.println("Error installing MTP");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"Error installing MTP");
 	    me.printStackTrace();
-    }    	
+    }
     catch(IOException ioe) {
-	    System.err.println("Error writing platform address");
+	    //System.err.println("Error writing platform address");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"Error writing platform address");
 	    ioe.printStackTrace();
-    } 	
+    }
     catch(IMTPException imtpe) {
 	    // Should never happen as this is a local call
 	    imtpe.printStackTrace();
@@ -1211,7 +1276,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             return;
           }
           catch(MTPException mtpe) {
-            System.err.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
+            //System.err.println("Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
+            if (logger.isLoggable(Logger.WARNING))
+              logger.log(Logger.WARNING,"Cannot deliver message to address: "+address+" ["+mtpe.toString()+"]. Trying the next one...");
           }
         }
         notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
@@ -1231,9 +1298,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   private void forwardMessage(GenericMessage msg, AID receiver, String address) throws MTPException {
     // FIXME what if there is no envelope?
     AID aid = msg.getEnvelope().getFrom();
-    
+
     if (aid == null) {
-	    System.err.println("ERROR: null message sender. Aborting message dispatch...");
+	    //System.err.println("ERROR: null message sender. Aborting message dispatch...");
+            if (logger.isLoggable(Logger.SEVERE))
+              logger.log(Logger.SEVERE,"ERROR: null message sender. Aborting message dispatch...");
 	    return;
     }
 
@@ -1261,7 +1330,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
       addPlatformAddresses(id);
       }
     */
-    
+
     try {
 	    localSlice.routeOut(msg.getEnvelope(),msg.getPayload(), receiver, address);
     }
@@ -1355,7 +1424,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    			// The agent does not live in the platform
 	    			return false;
 	    		}
-		      catch (Exception e) {  	
+		      catch (Exception e) {
 		      	// Intra-platform delivery would fail, so try inter-platform
 		      	return false;
 		      }
@@ -1363,7 +1432,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	  	}
   	}
   }
-  
+
   private final boolean isPlatformAddress(String addr) {
     Iterator it = localSlice.getAddresses();
     while(it.hasNext()) {
@@ -1379,13 +1448,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   protected Service.Slice getFreshSlice(String name) throws ServiceException {
     return super.getFreshSlice(name);
   }
-  
+
   /*#PJAVA_INCLUDE_BEGIN
-  // PJAVA workaround as protected methods inherited from parent class 
+  // PJAVA workaround as protected methods inherited from parent class
   // are not accessible to inner classes
-  public void log(String txt, int l) {
-    super.log(txt,l);
-  }
+  //public void log(String txt, int l) {
+    //super.log(txt,l);
+  //}
   #PJAVA_INCLUDE_END*/
-  
+
 }
