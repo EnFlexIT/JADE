@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.41  1999/06/24 12:27:08  rimassa
+  Added a new line.
+
   Revision 1.40  1999/06/15 14:34:31  rimassa
   Added a new thread group for time-critical activities, runnning at
   high priority.
@@ -407,6 +410,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     catch(RemoteException re) {
       re.printStackTrace();
     }
+
   }
 
 
