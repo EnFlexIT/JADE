@@ -607,8 +607,15 @@ public class AchieveREInitiator extends Initiator {
      **/
     public void reset(ACLMessage msg){
 	super.reset(msg);
-	allResponsesReceived = false;
+	allResponsesReceived = false; 
   }
+
+    /**
+     * reset this behaviour
+     **/
+    public void reset(){
+			reset(null);
+  	}
 
     
     //#APIDOC_EXCLUDE_BEGIN
