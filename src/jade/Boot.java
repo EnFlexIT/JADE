@@ -133,15 +133,15 @@ public class Boot {
     // property with its name,type, default value, meaning. The last
     // value states if the property is mandatory or not.
     List propertyVector = new ArrayList();
-    PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name", false);
-    PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "to view the RMA Gui", false);
-    PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,platformPort, "port number", false);
-    PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "to start a container",false);
-    PropertyType AgentToStartProperty = new PropertyType("agent",PropertyType.STRING_TYPE, "","insert the class name of the agent ot start", false);
+    PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name of the main-container", false);
+    PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "Select to launch the RMA Gui", false);
+    PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,platformPort, "Port Number of the main-container", false);
+    PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "Select to launch an agent-container",false);
+    PropertyType AgentToStartProperty = new PropertyType("agents",PropertyType.STRING_TYPE, "","Agents to launch", false);
     
     propertyVector.add(HostProperty);
-    propertyVector.add(GuiProperty);
     propertyVector.add(PortProperty);
+    propertyVector.add(GuiProperty);
     propertyVector.add(ContainerProperty);
     propertyVector.add(AgentToStartProperty);
     
@@ -267,7 +267,8 @@ public class Boot {
     else
     if(fromFile)
     {
-      p = new Properties();
+      System.out.println("WARNING: Any additional command line option has been ignored and overloaded by the configuration file");
+    	p = new Properties();
       
       Iterator it = propertyVector.iterator();
       while(it.hasNext())
@@ -310,7 +311,7 @@ public class Boot {
       
     }
     
-    String agentNames = p.getProperty("agent");
+    String agentNames = (p.getProperty("agents")).trim();
     
     StringTokenizer st = new StringTokenizer(agentNames);
      while (st.hasMoreTokens()) {
@@ -342,11 +343,12 @@ public class Boot {
     if(!isPlatform)
     	arguments.add("-container");
     
-    if(fromFile)
-    {
-    	String output = "Agent " + (isPlatform ? "platform on " : "container connecting to ") + "host " + platformHost  + " on port "+platformPort+"\n";
-    	System.out.println(output);
-    }
+    
+    
+    String output = "Agent " + (isPlatform ? "platform on " : "container connecting to ") + "host " + platformHost  + " on port "+platformPort+(hasGUI ? " launching the RMA gui" : "")+"\n";
+    output = output + (agentNames.length() > 0 ? " launching the following list of agents: " + agentNames : "");
+    System.out.println(output);
+    
     
     //re-build the vector or string according to the properties used
     int size = arguments.size();
@@ -358,6 +360,7 @@ public class Boot {
     }
     
     args = result;
+   
     
     // If '-gui' option is given, add 'RMA:jade.domain.rma' to
     // startup agents, making sure that the RMA starts before all
@@ -404,9 +407,13 @@ public class Boot {
     System.out.println("  -version\t\tIf specified, current JADE version number and build date is printed.");
     System.out.println("  -help \t\tPrints out usage informations.");
     System.out.println("");
-    System.out.print("An agent specifier is made by an agent name and an agent class, separated by \"");
+    System.out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");
     System.out.println(SEPARATOR + "\"");
     System.out.println("");
+    System.out.println("Take care that the specified agent name represents only the local name of the agent."); 
+    System.out.println("Its guid (globally unique identifier) is instead assigned by the AMS after concatenating");
+    System.out.println("the home agent platform identifier (e.g. john@foo.cselt.it:1099/JADE)");
+    System.out.println("");	
     System.out.println("Examples:");
     System.out.println("  Connect to default platform, starting an agent named 'peter'");
     System.out.println("  implemented in 'myAgent' class:");
@@ -419,6 +426,7 @@ public class Boot {
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
     System.out.println("  \tjava jade.Boot Willy:searchAgent");
     System.out.println("");
+    
     System.exit(0);
   }
 
@@ -477,13 +485,16 @@ public class Boot {
 
   	   } 	
   	String port = p.getProperty("port");
-  	int portNumber = Integer.parseInt(port);
+  	int portNumber = -1;
+  	try{
+  		portNumber = Integer.parseInt(port);
+  	}catch(Exception e){}
   	if(portNumber <= 0)
   		{
   			//set property to default port.
   			p.remove("port");
   			p.put("port", platformPort);
-  			throw new BootException("WARNING: Port number must be > 0.");
+  			throw new BootException("WARNING: Port number must be a number > 0.");
   		}
   		
   
