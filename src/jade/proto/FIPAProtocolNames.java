@@ -23,27 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
+import jade.domain.FIPANames;
+
 /**
  * This interface provides a set of constants for the names of the protocols
  * already defined by FIPA.
  * @author Tiziana Trucco - TILab
  * @version $Date$ $Revision$
+ @deprecated Use jade.domain.FIPANames.InteractionProtocol instead
  **/
-public interface FIPAProtocolNames{
+public interface FIPAProtocolNames extends FIPANames.InteractionProtocol {
 
-	//achieve rational effect protocol
-    public static final String FIPA_REQUEST = "fipa-request";
-    public static final String FIPA_QUERY =  "fipa-query" ;
-	public static final String FIPA_REQUEST_WHEN = "fipa-request-when";
-	
-	//auction protocol
-	public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
-	public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
-	
-	public static final String FIPA_BROKERING = "fipa-brokering";
-	public static final String FIPA_RECRUITING = "fipa-recruiting";
-	public static final String FIPA_PROPOSE = "fipa-propose";
-	
-	public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
-	public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";  
 }
