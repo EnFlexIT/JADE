@@ -67,7 +67,7 @@ import jade.lang.acl.MessageTemplate;
   the  expiration of the timeout.
   
   @see jade.proto.FipaRequestResponderBehaviour
-  
+  @deprecated the class <code>AchieveREInitiator</code> must be used instead.
   @author Tiziana Trucco - CSELT S.p.A.
   @version $Date$ $Revision$
 */

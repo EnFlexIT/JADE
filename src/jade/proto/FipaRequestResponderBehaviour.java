@@ -74,7 +74,7 @@ import jade.lang.acl.*;
   </ol>
 
   @see jade.proto.FipaRequestInitiatorBehaviour
-  
+  @deprecated the class <code>AchieveREResponder</code> must be used instead.
   
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
