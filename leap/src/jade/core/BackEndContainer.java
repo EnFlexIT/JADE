@@ -198,7 +198,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret instanceof NameClashException) {
-      	throw new JADESecurityException("Name already in use");
+      	throw new JADESecurityException(((NameClashException) ret).getMessage());
       }
       else if (ret instanceof JADESecurityException) {
       	throw (JADESecurityException) ret;
