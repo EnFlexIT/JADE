@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.11  1999/06/04 07:45:51  rimassa
+  Made package scoped this previously public interface.
+  Removed some String constants from this interface to put them into
+  AgentManagementOntology class.
+
   Revision 1.10  1999/03/17 13:00:59  rimassa
   Some changes were made to the interface, to support new proxy-based
   design.
@@ -29,10 +34,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 
-public interface AgentPlatform extends AgentContainer {
-
-  public static final String MAIN_CONTAINER_NAME = "Front-End";
-  public static final String AUX_CONTAINER_NAME = "Container-";
+interface AgentPlatform extends AgentContainer {
 
   public String getAddress() throws RemoteException;
 
