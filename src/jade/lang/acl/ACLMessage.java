@@ -968,7 +968,7 @@ private int performative; // keeps the performative type of this object
 	  Iterator it = reply_to.iterator();
 	  while(it.hasNext()) {
 	      AID id = (AID)it.next();
-	      result.dests.add(id.clone());
+	      result.reply_to.add(id.clone());
 	  }
       }
 
