@@ -153,7 +153,11 @@ public class Start extends MicroBoot implements CommandListener {
     else if (c == cancelCommand) {
     	MicroRuntime.stopJADE();
     }
-  }  
+  }
+  
+  protected void customize(Properties p) {
+  	p.setProperty("exitwhenempty", "true");
+	}
 #MIDP_INCLUDE_END*/
   
   private static boolean checkName(String name) {
