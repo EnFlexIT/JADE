@@ -48,6 +48,17 @@ public class TermDescriptor {
     this(n, t, Ontology.typeNames[t], o);
   }
 
+  public TermDescriptor(int t, String tn, boolean o) {
+    myName = new Name("");
+    type = t;
+    typeName = tn;
+    optionality = o;
+  }
+
+  public TermDescriptor(int t, boolean o) {
+    this(t, Ontology.typeNames[t], o);
+  }
+
   public String getName() {
     return myName.toString();
   }
@@ -66,6 +77,10 @@ public class TermDescriptor {
 
   public boolean isComplex() {
     return ( type == Ontology.CONCEPT_TYPE) || (type == Ontology.ACTION_TYPE) || ( type == Ontology.PREDICATE_TYPE);
+  }
+
+  void setName(String n) {
+    myName = new Name(n);
   }
 
 }
