@@ -375,9 +375,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   			Class c = Class.forName(className);
   			ACLCodec codec = (ACLCodec)c.newInstance(); 
   			theACC.addACLCodec(codec);
+  			System.out.println("Added ACLCodec: " + className + " implementing " + codec.getName()+"\n");
   			//FIXME: notify the AMS of the new Codec to update the APDescritption.
   		}catch(ClassNotFoundException cnfe){
-  			throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class" +className +" for the ACLCodec not found",cnfe);
+  			throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.",cnfe);
   		}catch(InstantiationException ie){
   			throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)",ie);
   		}catch(IllegalAccessException iae){
