@@ -46,13 +46,11 @@ import java.util.Enumeration;
 */
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
-	private static final String BE_PROPERTIES_FILE = "backends.properties";
 	
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
     public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
 
 
-    private static final String OUTGOING_NAME = "out";
     private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
 
     private long outCnt = 0;
@@ -77,23 +75,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	super(new ProfileImpl(props));
 	creationProperties = props;
 	
-	// Set default additional services
-	props.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
+	// Set default additional services if not already set
+	if (props.getProperty(Profile.SERVICES) == null) {
+		props.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
+	}
 	
-	// Read the BackEnd configuration properties
-	Properties beProps = new Properties();
-	try {
-		beProps.load(BE_PROPERTIES_FILE);
-		Enumeration e = beProps.propertyNames();
-		while (e.hasMoreElements()) {
-			String key = (String) e.nextElement();
-			props.setProperty(key, beProps.getProperty(key));
-		}
-	}
-	catch (Exception e) {
-		// Ignore and keep defaults
-	}
-		
 	myConnectionManager = cm;
 
 	try {
@@ -482,58 +468,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	myCommandProcessor.processOutgoing(cmd);
     }
 
-    /**
-     *
-    private void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
-
-	// If the message was sent by an agent living on the FrontEnd, the
-	// FAILURE has to be notified only if the receiver does not live
-	// on the FrontEnd too. In this case in fact the message has
-	// been delivered even if we have an exception. 
-	if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
-	    if (agentImages.get(receiver) == null) {
-		Thread.currentThread().setName("dummy");
-	    }
-	}
-
-	//if (the sender is not the AMS and the performative is not FAILURE)
-	if ( (msg.getSender()==null) || ((msg.getSender().equals(getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
-	    return;
-	// else send back a failure message
-	final ACLMessage failure = msg.createReply();
-	failure.setPerformative(ACLMessage.FAILURE);
-	//System.err.println(failure.toString());
-	final AID theAMS = getAMS();
-	failure.setSender(theAMS);
-
-	// FIXME: the content is not completely correct, but that should
-	// also avoid creating wrong content
-	// FIXME: the content should include the indication about the 
-	// receiver to wich dispatching failed.
-	String content = "( (action " + msg.getSender().toString();
-	content = content + " ACLMessage ) " + ie.getMessage() + ")";
-	failure.setContent(content);
-
-	try {
-	    Authority authority = getAuthority();
-	    authority.doPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() {
-			try {
-			    handleSend(failure, theAMS);
-			} catch (AuthException ae) {
-			    // it does not have permission to notify the failure 
-			    // it never happens if the policy file gives 
-			    // enough permission to the jade.jar 
-			    System.out.println( ae.getMessage() );
-			}
-			return null; // nothing to return
-		    }
-		});
-	} catch(Exception e) {
-	    // should be never thrown
-	    e.printStackTrace();
-	}
-    }*/
 
     private String[] parseAddressList(String toParse) {
 
