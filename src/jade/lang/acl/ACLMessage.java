@@ -974,7 +974,7 @@ private int performative; // keeps the performative type of this object
       if (userDefProps != null)
 	  result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
       if(messageEnvelope != null)
-	  result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
+	  result.messageEnvelope = (Envelope)messageEnvelope.clone();
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen

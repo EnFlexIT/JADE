@@ -423,6 +423,7 @@ public class AID implements Comparable, Serializable {
   */
     public synchronized Object clone() {
         AID      result = new AID(this.name, ISGUID);
+	result.persistentID = null;
 
 				//#MIDP_EXCLUDE_BEGIN
         result.addresses = (ArrayList)((ArrayList)addresses).clone();
