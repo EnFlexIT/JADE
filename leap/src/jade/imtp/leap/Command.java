@@ -47,86 +47,38 @@ import java.util.Vector;
  * @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
 public class Command {
-
-
   /**
    * Unspecified object id
    */
-  static final int        DUMMY_ID = -1;
+  public static final int        DUMMY_ID = -1;
 
   /**
    * Command identifier code for response command.
    */
 
-    // Lower limit for service and node management related commands
-    static final int SERVICE_BASE = 0;
+  // Lower limit for service and node management related commands
+  static final int SERVICE_BASE = 0;
 
-    // Service and node management related command IDs
-    public static final int GET_PLATFORM_NAME = 1;
-    public static final int ADD_NODE = 2;
-    public static final int REMOVE_NODE = 3;
-    public static final int ACTIVATE_SERVICE = 4;
-    public static final int DEACTIVATE_SERVICE = 5;
-    public static final int FIND_SLICE_NODE = 6;
-    public static final int FIND_ALL_NODES = 7;
-    public static final int ACCEPT_COMMAND = 8;
-    public static final int PING_NODE_BLOCKING = 9;
-    public static final int PING_NODE_NONBLOCKING = 10;
-    public static final int EXIT_NODE = 11;
-    public static final int INTERRUPT_NODE = 12;
-    public static final int SERVICE_MANAGER_ADOPT = 13;
-    public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
-    public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
-
+  // Service and node management related command IDs
+  public static final int GET_PLATFORM_NAME = 1;
+  public static final int ADD_NODE = 2;
+  public static final int REMOVE_NODE = 3;
+  public static final int ACTIVATE_SERVICE = 4;
+  public static final int DEACTIVATE_SERVICE = 5;
+  public static final int FIND_SLICE_NODE = 6;
+  public static final int FIND_ALL_NODES = 7;
+  public static final int ACCEPT_COMMAND = 8;
+  public static final int PING_NODE_BLOCKING = 9;
+  public static final int PING_NODE_NONBLOCKING = 10;
+  public static final int EXIT_NODE = 11;
+  public static final int INTERRUPT_NODE = 12;
+  public static final int SERVICE_MANAGER_ADOPT = 13;
+  public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
+  public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
 
   public static final int        OK = 1;
-  static final int        ERROR = 2;
-  static final int        FORWARD = 37;
-
-    /******************************************
-    //  static final int        GET_PLATFORM_NAME = 3;
-  static final int        ADD_CONTAINER = 4;
-  static final int        REMOVE_CONTAINER = 5;
-  static final int        LOOKUP = 6;
-  static final int        BORN_AGENT = 7;
-  static final int        DEAD_AGENT = 8;
-  static final int        NEW_MTP = 9;
-  static final int        DEAD_MTP = 10;
-  static final int        TRANSFER_IDENTITY = 11;
-  static final int        GET_PROXY = 12;
-  static final int        CREATE_AGENT_FROM_NAME = 13;
-  static final int        CREATE_AGENT_FROM_DATA = 14;
-  static final int        FETCH_CLASS_FILE = 15;
-  static final int        SUSPEND_AGENT = 16;
-  static final int        RESUME_AGENT = 17;
-  static final int        WAIT_AGENT = 18;
-  static final int        WAKE_AGENT = 19;
-  static final int        MOVE_AGENT = 20;
-  static final int        COPY_AGENT = 21;
-  static final int        KILL_AGENT = 22;
-  static final int        EXIT = 23;
-  static final int        POST_TRANSFER_RESULT = 24;
-  static final int        DISPATCH = 25;
-  public static final int PING = 26;             // see 38, blocking ping!
-  static final int        INSTALL_MTP = 27;
-  static final int        UNINSTALL_MTP = 28;
-  static final int        UPDATE_ROUTING_TABLE = 29;
-  static final int        ROUTE_OUT = 30;
-  static final int        ENABLE_SNIFFER = 31;
-  static final int        DISABLE_SNIFFER = 32;
-  static final int        ENABLE_DEBUGGER = 33;
-  static final int        DISABLE_DEBUGGER = 34;
-  static final int        SUSPENDED_AGENT = 35;
-  static final int        RESUMED_AGENT = 36;
-  static final int        FORWARD = 37;
-  public static final int BLOCKING_PING = 38;    // make public for getCommandType()
-  static final int        CHANGED_AGENT_PRINCIPAL = 39;
-  static final int        SIGN = 40;
-  static final int        CHANGE_AGENT_PRINCIPAL = 41;
-  static final int        CHANGE_CONTAINER_PRINCIPAL = 42;
-  static final int        GET_PUBLIC_KEY = 43;
-  static final int        GET_AGENT_PRINCIPAL = 44;
-    ************************************************************************/
+  public static final int        ERROR = 2;
+  public static final int        FORWARD = 37;
 
   /**
    * Code defining the type of command.
@@ -231,51 +183,5 @@ public class Command {
 	    return commandParameters.elementAt(index);
   	}
   } 
-
-  /**
-   * attention: this is a hack! should be removed in the future
-   * by adding different commandCodes for PING and BLOCKING_PING.
-   * 
-   * @return PING:            if it is a non blocking ping command
-   * BLOCKING_PING:   if it is a blocking ping command
-   * any other value: some other command
-   */
-  public static int getCommandType(byte[] serializedCommand) {
-    // the command code is an int at the beginning of the
-    // byte array (see serializeCommand() in DeliverableDataOutputStream
-    int ret = 0;
-    for (int i = 0; i < 4; ++i) {
-      // System.out.print(" " + serializedCommand[i]);
-      ret <<= 8;
-      ret |= ((int) serializedCommand[i])&255;
-    } 
-
-    // System.out.println(" -> " + ret);
-    return ret;
-  } 
-
-  /**
-   * Method declaration
-   * 
-   * @return
-   * 
-   * @see
-   */
-  public static byte[] getSerializedOk() {
-  	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    DataOutputStream dos = new DataOutputStream(baos);
-    try {
-      dos.writeInt(OK);
-      dos.writeInt(DUMMY_ID);
-      dos.writeInt(0);
-    } 
-    catch (IOException ioe) {
-    	// Should never happen
-      ioe.printStackTrace();
-      return null;
-    } 
-    return baos.toByteArray();
-  } 
-
 }
 
