@@ -136,19 +136,19 @@ set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar;
                 c:\jade\lib\jadeTools.jar; c:\jade\lib\Base64.jar
 Execute the following command to start the main-container of the platform. 
 Let's suppose that the hostname of this machine is "kim.cselt.it"
-prompt> java jade.Boot -name facts -platform -gui 
+prompt> java jade.Boot -platform -gui 
 Execute the following command to start an agent container on another machine,
 by telling it to join the AgentPlatform, called "facts" running on the host 
 "kim.cselt.it", and start one agent (you must download and compile the 
 examples agents to do that): 
-prompt> java jade.Boot -name facts -host kim.cselt.it 
+prompt> java jade.Boot -host kim.cselt.it -container
           sender1:examples.receivers.AgentSender 
 where "sender1" is the name of the agent,  
 while examples.receivers.AgentSender is the code that implements the agent.
 Execute the following command on a third machine to start another agent 
 container telling it to join the Agent Platform, called "facts" running on 
 the host "kim.cselt.it", and then start two agents. 
-prompt> java jade.Boot -name facts -host kim.cselt.it 
+prompt> java jade.Boot -host kim.cselt.it -container 
           receiver2:examples.receivers.AgentReceiver 
           sender2:examples.receivers.AgentSender
 where the agent named sender2 is implemented by the class 
