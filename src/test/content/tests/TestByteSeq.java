@@ -27,45 +27,30 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
-import jade.util.leap.*;
-import examples.content.ecommerceOntology.*;
-import examples.content.musicShopOntology.*;
 import test.common.*;
 import test.content.*;
-import test.content.testOntology.Exists;
+import test.content.testOntology.*;
+import examples.content.musicShopOntology.*;
 
-public class TestSequence extends Test{
+public class TestByteSeq extends Test{
   public String getName() {
-  	return "Sequence-attribute";
+  	return "Byte-sequence-attribute";
   }
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an aggregate attribute of type SEQUENCE");
+  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type byte-sequence");
   	return sb.toString();
   }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		Object[] args = getGroupArguments();
   		final ACLMessage msg = (ACLMessage) args[0];
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-					CD cd = new CD();
-					cd.setSerialID(11111);
-					cd.setTitle("Synchronicity");
-					List tracks = new ArrayList();
-					Track t = new Track();
-					t.setName("Synchronicity");
-					tracks.add(t);
-					t = new Track();
-					t.setName("Every breath you take");
-					tracks.add(t);
-					t = new Track();
-					t.setName("King of pain");
-					t.setDuration(new Integer(240));
-					tracks.add(t);
-					cd.setTracks(tracks);
-  		
-  				Exists e = new Exists(cd);
+  				Track t = new Track();
+  				t.setName("Blowing in the wind");
+  				t.setDuration(new Integer(240));
+  				t.setPcm(new byte[3000]);
+  				Exists e = new Exists(t);
   				myAgent.getContentManager().fillContent(msg, e);
   				return msg;
   			}

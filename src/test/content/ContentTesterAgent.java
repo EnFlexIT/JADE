@@ -48,6 +48,7 @@ public class ContentTesterAgent extends Agent {
   		"test.content.tests.TestFloat",
   		"test.content.tests.TestDouble",
   		"test.content.tests.TestDate",
+  		"test.content.tests.TestByteSeq",
   		"test.content.tests.TestAgentAction",
   		"test.content.tests.TestAction1",
   		"test.content.tests.TestAction2",

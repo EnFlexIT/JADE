@@ -66,7 +66,7 @@ public class TestCardinality extends Test{
 					tracks.add(t);
 					t = new Track();
 					t.setName("King of pain");
-					t.setDuration(240);
+					t.setDuration(new Integer(240));
 					tracks.add(t);
 					s.setTracks(tracks);
   		
