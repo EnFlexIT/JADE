@@ -30,16 +30,6 @@ import jade.util.leap.HashMap;
 // Class for the Global Agent Descriptor Table.
 class GADT {
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
-  // Initial size of agent hash table
-  //private static final int GLOBALMAP_SIZE = 100;
-
-  // Load factor of agent hash table
-  //private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
-
-  //private Map descriptors = new HashMap(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
-  //__BACKWARD_COMPATIBILITY__END
-
   private Map descriptors = new HashMap();
 
   public synchronized AgentDescriptor put(AID aid, AgentDescriptor desc) {

@@ -512,6 +512,7 @@ class MainContainerImpl implements Platform, AgentManager {
     fireResumedAgent(cid, name);
   }
 
+//__JADE_ONLY__BEGIN
   public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
     AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
@@ -521,6 +522,7 @@ class MainContainerImpl implements Platform, AgentManager {
     // Notify listeners
     fireChangedAgentPrincipal(cid, name, from, to);
   }
+//__JADE_ONLY__END
 
   public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
     AgentProxy ap;
@@ -600,6 +602,7 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   public void changeAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) throws NotFoundException, UnreachableException {
+//__JADE_ONLY__BEGIN
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.changeAgentPrincipal(agentID, newPrincipal);
@@ -607,6 +610,7 @@ class MainContainerImpl implements Platform, AgentManager {
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
+//__JADE_ONLY__END
   }
 
   public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {

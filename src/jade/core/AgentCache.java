@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-//__BACKWARD_COMPATIBILITY__BEGIN
+//__JADE_ONLY__BEGIN
 package jade.core;
 
 import java.util.Comparator;
@@ -170,7 +170,7 @@ class AgentCache {
   }
 
 }
-//__BACKWARD_COMPATIBILITY__END
+//__JADE_ONLY__END
 
 /*__J2ME_COMPATIBILITY__BEGIN
 package jade.core;

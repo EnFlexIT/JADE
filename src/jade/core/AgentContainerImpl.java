@@ -41,7 +41,9 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
+//__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__END
 
 
 /**
@@ -191,12 +193,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     agent.doActivate();
   }
 
+//__JADE_ONLY__BEGIN
   public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if (agent == null)
       throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
     agent.setPrincipal(newPrincipal);
   }
+//__JADE_ONLY__END
 
   public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
@@ -661,6 +665,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	new Object[]{msg, agentID});
   }
 
+//__JADE_ONLY__BEGIN
   public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
     	new Object[]{agentID, oldPrincipal, newPrincipal});
@@ -674,6 +679,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       nfe.printStackTrace();
     }
   }
+//__JADE_ONLY__END
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
     //fireChangedAgentState(agentID, from, to);

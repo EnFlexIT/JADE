@@ -30,7 +30,9 @@ import jade.mtp.MTPDescriptor;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
+//__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__END
 
 /**
  
@@ -139,9 +141,11 @@ class MainContainerProxy implements Platform {
       adaptee.resumedAgent(name);
     }
 
+//__JADE_ONLY__BEGIN
     public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
       adaptee.changedAgentPrincipal(name, from, to);
     }
+//__JADE_ONLY__END
 
     public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
       return adaptee.addContainer(ac, cid);

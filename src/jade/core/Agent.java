@@ -676,7 +676,7 @@ public class Agent implements Runnable, Serializable {
     ontologies.remove(new CaseInsensitiveString(ontologyName));
   }
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__JADE_ONLY__BEGIN
   /**
      Builds a Java object out of an ACL message. This method uses the
      <code>:language</code> slot to select a content language and the
@@ -755,7 +755,7 @@ public class Agent implements Runnable, Serializable {
     l.fromList(content);
     fillMsgContent(msg, l);
   }
-  //__BACKWARD_COMPATIBILITY__END
+  //__JADE_ONLY__END
   	
 
   /**
@@ -2033,8 +2033,10 @@ public class Agent implements Runnable, Serializable {
 
   // Notify toolkit that the current agent has changed its principal
   private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to) {
+//__JADE_ONLY__BEGIN
     if (myToolkit != null)
       myToolkit.handleChangedAgentPrincipal(myAID, from, to);
+//__JADE_ONLY__END
   }
 
   private void activateAllBehaviours() {

@@ -27,7 +27,9 @@ import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPDescriptor;
 
+//__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+//__JADE_ONLY__END
 
 
 /**
@@ -56,7 +58,9 @@ public interface MainContainer {
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
+//__JADE_ONLY__BEGIN
     void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException;
+//__JADE_ONLY__END
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
