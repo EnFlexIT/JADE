@@ -1,3 +1,55 @@
+MAJOR CHANGES in JADE Snapshot (13 November 2003)
+==========================================================================
+GENERAL IMPROVEMENTS:
+- Added support for application specific message persistency through the 
+	PersistentDeliveryService
+- Added support for FIPA Propose interaction protocol
+- Modified the jade.util.Logger class to accept user defined log formats 
+- Improved some exception reporting
+- Added method submit() in the Service interface for cross service command
+	submission
+- Added support for a service filter to stop a command.
+
+- LEAP add-on:
+	- Modified default BackEnd-FrontEnd communication using two sockets
+	- Added support for keep-alive packets between FrontEnd and BackEnd
+	- Added support for user-defined handling of disconnections on a split
+	container through the ConnectionListener interface
+	- Added support for sending the FAILURE notification for messages that are buffered 
+	by a BackEnd container whose FrontEnd is disconnected when the destination 
+	agent dies
+	- Added ANT target to minimize a midp application
+	- Improved support for BackEnd replication
+	- Hardly improved communication performances between different containers 
+	in the same JVM
+	- Simplified configuration when multiple ICPs have to be installed
+	- Changed name of BackEnd containers so that it appears clearly that they
+	are split containers
+	
+BUG FIXES:
+- User defined parameters are now correctly handled by the Sniffer
+-	Fixed a bug in message delivery due to cached slices.
+- Fixed a bug in management of relative times in WakerBehaviour 
+- Removed bug when calling accept() on a dead node (now it throws an Exception).
+
+- LEAP add-on:
+	- Fixed a profile incoherence between the 'port' and 'local-port' 
+	options on a Main Container node.
+	- Fixed bug in agent termination notification during split container
+	shutdown
+	- Removed limitation of packet size to 64K
+	
+DOCUMENTATION:
+- Added section on fault tolerance and Main Container replication in the 
+	JADE Administrator's guide.
+- Added section on the Persistent delivery service in the JADE
+	Administrator's guide.
+- Added section on the FIPA Propose interaction protocol in the JADE 
+	Programmer's guide
+- Added documentation of replicating a BackEnd container in the LEAP user 
+	guide
+
+	
 MAJOR CHANGES in JADE Snapshot (22 September 2003)
 ==========================================================================
 GENERAL IMPROVEMENTS:
