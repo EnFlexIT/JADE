@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  1999/02/04 12:53:37  rimassa
+  Modified some error messages for 'fipa-man-exeption' objects.
+
   Revision 1.22  1999/02/03 10:56:31  rimassa
   Some 'private' instance variables made 'protected', to allow code
   compilation under jdk 1.2.
@@ -142,7 +145,7 @@ public class ams extends Agent {
     // reference
     private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
       if(myOntology.isMandatoryForAMS(myAction.getName(), attributeName) && (attributeValue == null))
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE + " " +attributeName);
     }
 
     // This method parses the message content and puts
@@ -158,11 +161,11 @@ public class ams extends Agent {
       }
       catch(ParseException pe) {
 	// pe.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR+ " :content");
       }
       catch(TokenMgrError tme) {
 	// tme.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR+ " :content");
       }
 
     }
