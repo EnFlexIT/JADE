@@ -397,14 +397,15 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
    */
   private class EventInformer extends OneShotBehaviour {
   	private Event ev;
+		private EventRecord er;
   	EventInformer(Agent a, Event ev) {
   		super(a);
   		this.ev = ev;
+	    er = new EventRecord(ev, here());
   		setBehaviourName(getBehaviourName()+"-"+ev.toString());
   	}
 
   	public void action() {
-	    EventRecord er = new EventRecord(ev, here());
 	    Occurred o = new Occurred();
 	    o.setWhat(er);
 
