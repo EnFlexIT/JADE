@@ -79,7 +79,7 @@ CALL makejadejessprotegeexample
 pause
 echo compile the Test code
 cd src
-javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR%;. test\TestAgent.java test\jsp\TestDanielExample.java test\content\*.java test\wrapper\*.java test\proto\*.java test\MessageTemplate\*.java test\common\*.java test\content\tests\*.java test\proto\tests\*.java test\proto\tests\contractNet\*.java test\proto\responderBehaviours\*.java test\proto\responderBehaviours\achieveRE\*.java test\proto\responderBehaviours\contractNet\*.java test\roundTripTime\*.java
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR%;. test\TestAgent.java test\content\*.java test\wrapper\*.java test\proto\*.java test\MessageTemplate\*.java test\common\*.java test\content\tests\*.java test\proto\tests\*.java test\proto\tests\contractNet\*.java test\proto\responderBehaviours\*.java test\proto\responderBehaviours\achieveRE\*.java test\proto\responderBehaviours\contractNet\*.java test\roundTripTime\*.java
 cd test
 pause
 :SKIPCOMPILATION
@@ -126,9 +126,7 @@ REM FIXME %JAVA% -cp %CLASSPATH%;%JESS51% jade.Boot -container jess:examples.jes
 cd test
 
 echo Running jsp example. The test works is a message arrives to buffer
-START %JAVA% -cp %CLASSPATH% jade.Boot -container buffer:jade.tools.DummyAgent.DummyAgent 
-pause press a Key when the container with buffer is ready
-%JAVA% -cp %CLASSPATH% TestDanielExample
+echo FIXME. Still to do
 
 echo Running MessageTemplate example.
 echo Remind to send a REQUEST message from the DummyAgent
