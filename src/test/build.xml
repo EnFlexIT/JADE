@@ -1,83 +1,65 @@
-
 <!-- ANT BUILD FILE FOR THE JADE TEST SUITE -->
 
 <!-- set properties for this project -->
-<project name="testsuite" default="compile" basedir="../..">
+<project name="testsuite" default="run" basedir="../..">
   <description>Test Suite build file</description>
   
   <property name="version" value="3.1"/>
-  <property name="classpath" value="classes"/>
-  <property name="src" value="src"/>
-  <property name="dest" value="classes"/>
-  
-  <!-- Definitions for the LEAP target -->
-  <property file="add-ons/leap/buildLEAP.properties"/>
-	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
-  <property name="leap-home" value="add-ons/leap" />
-  <property name="leapmidp" value="${leap-home}/midp/lib/JadeLeap.jar" />
-  <property name="unverified" value="${src}/test/unverified" />
-  <property name="verified" value="${src}/test/verified" />
-  <property name="minimized" value="${src}/test/minimized" />
-  <property name="dlc-file" value="${src}/test/testleap.dlc" />
-  <property name="tmp-jar-file" value="${src}/test/testleap-tmp.jar" />
-  <property name="manifest-file" value="${src}/test/testleap.manifest" />
-  <property name="jar-file" value="${src}/test/testleap.jar" />
-  <property name="jad-file" value="${src}/test/testleap.jad" />
-  
-	<!-- Preverifier -->
-	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
-  	<classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
-	</taskdef>
-  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
-	<!-- Minimizer -->
-	<taskdef name = "minimize"    classname="leapTools.Minimizer">
-		<classpath path ="${leap-home}/resources/antTasks/leapTools.jar"/>
-	</taskdef>
-  <!-- Jad Updater -->
-    <taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
-	<classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
-	</taskdef>  
+
+  <property environment="env"/>
+  <path id="project.class.path">
+    <pathelement path="${env.CLASSPATH}"/>
+    <fileset dir="lib">
+        <include name="*.jar"/>
+    </fileset>
+    <pathelement location="classes"/>
+  </path>
+
+
   
   
-  <!-- TARGETS -->
   
+
+  
+  <!--   _______________________________________________
+                               init
+         _______________________________________________ -->
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
   </target>
 
+
   <!--   _______________________________________________
                                compile
          _______________________________________________ -->
   <target name="compile" depends="init" description="compile the tests">
-  	<echo> NOTE: All JADE class files (including examples) must be in the 
-  	jade/classes directory for this compilation to succeed 
-  	</echo>
   	
   	<!-- Compile the java code source files -->
-  	<javac srcdir="${src}/test" 
-  	       destdir="${dest}" 
-  	       classpath="${classpath}" 
+  	<javac srcdir="src/test" 
+  	       destdir="classes" 
   	       optimize="on" 
   	       deprecation="off">
+  	  <classpath refid="project.class.path"/>
   		<exclude name="TestAgent.java"/>
   		<exclude name="mobility/separate/**"/>
   		<exclude name="leap/midp/**"/>
   	</javac>
   				
   	<!-- RMIC the TSDaemon -->
-    <rmic classname="test.common.remote.TSDaemon" base="${dest}"/>
+    <rmic classname="test.common.remote.TSDaemon" base="classes"/>
     
     <!-- Copy images -->
-    <copy todir="${dest}/test/common/testSuite/gui/images">
-      <fileset dir="${src}/test/common/testSuite/gui/images"/>
+    <copy todir="classes/test/common/testSuite/gui/images">
+      <fileset dir="src/test/common/testSuite/gui/images"/>
     </copy> 
     
     <!-- Copy xml configuration files -->
-    <copy todir="${dest}" >
-     <fileset dir="${src}" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
+    <copy todir="classes" >
+     <fileset dir="src" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
     </copy>
   </target>
+
 
   <!--  __________________________________________________
                             lib
@@ -86,7 +68,7 @@
           description="Create a jar file including all Jade tests and the necessary examples">
 		<delete file="lib/jadeTestSuite.jar" quiet="true"/>
 		<jar jarfile="lib/jadeTestSuite.jar">
-			<fileset dir="${dest}">
+			<fileset dir="classes">
 				<include name="**/test/**"/>
 				<include name="**/examples/mobile/**"/>
 				<include name="**/examples/content/**"/>
@@ -95,6 +77,7 @@
 			</fileset>
 		</jar>
 	</target>
+
 	
   <!--  __________________________________________________
                             separate
@@ -104,22 +87,22 @@
   	<echo>NOTE that this target should be executed setting JAVA_HOME to jdk1.3 or earlier versions of Java to avoid problems when testing mobility on a PJAVA container
   	</echo>
   	
-  	<javac srcdir="${src}/test" 
-  	       destdir="${dest}" 
+  	<javac srcdir="src/test" 
+  	       destdir="classes" 
   	       includes="**/mobility/separate/**"
-  	       classpath="${classpath}"
   	       target="1.1"
 	         compiler="javac1.1"
-  	       deprecation="off"/>
-
-  	<delete file="${src}/test/separate.jar" quiet="true"/>
-		<jar jarfile="${src}/test/separate.jar">
-			<fileset dir="${dest}">
+  	       deprecation="off">
+  	  <classpath refid="project.class.path"/>
+    </javac> 
+  	<delete file="src/test/separate.jar" quiet="true"/>
+		<jar jarfile="src/test/separate.jar">
+			<fileset dir="classes">
   			<include name="**/test/mobility/separate/**"/>
 			</fileset>
 		</jar>
 		
-		<delete dir = "${dest}/test/mobility/separate"/>
+		<delete dir = "classes/test/mobility/separate"/>
 	</target>
 	
   <!--  __________________________________________________
@@ -128,12 +111,40 @@
   <target name="leap" depends="init" 
           description="Compile files to be executed in a MIDP environment">
   	
+  <property file="add-ons/leap/buildLEAP.properties"/>
+	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+  <property name="leap-home" value="add-ons/leap" />
+  <property name="leapmidp" value="${leap-home}/midp/lib/JadeLeap.jar" />
+  <property name="unverified" value="src/test/unverified" />
+  <property name="verified" value="src/test/verified" />
+  <property name="minimized" value="src/test/minimized" />
+  <property name="dlc-file" value="src/test/testleap.dlc" />
+  <property name="tmp-jar-file" value="src/test/testleap-tmp.jar" />
+  <property name="manifest-file" value="src/test/testleap.manifest" />
+  <property name="jar-file" value="src/test/testleap.jar" />
+  <property name="jad-file" value="src/test/testleap.jad" />
+  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+
+
+ 	 <!-- Preverifier -->
+	 <taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
+  	<classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
+	 </taskdef>
+	 <!-- Minimizer -->
+	 <taskdef name = "minimize"    classname="leapTools.Minimizer">
+		<classpath path ="${leap-home}/resources/antTasks/leapTools.jar"/>
+	 </taskdef>
+   <!-- Jad Updater -->
+   <taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
+	  <classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
+	  </taskdef>  
+
 		<mkdir dir = "${verified}"/>
 		<mkdir dir = "${unverified}"/>
 		<mkdir dir = "${minimized}"/>
 		
 		<!-- Compile -->
-    <javac srcdir="${src}/test" 
+    <javac srcdir="src/test" 
            destdir="${unverified}" 
            classpath="${leapmidp};${boot-midp-classes}" 
            nowarn="off" 
@@ -194,13 +205,22 @@
   <target name="clean" description="clean up">
     <!-- Delete the ${build} directory tree -->
     <delete includeEmptyDirs="true">
-      <fileset dir="${dest}/test"/>
+      <fileset dir="classes/test"/>
     </delete>
     <delete file="lib/jadeTestSuite.jar"/>
   </target>
 
 
 
+  <!--  __________________________________________________
+                            run
+        __________________________________________________ -->
+  <target name="run" description="run the test suite" depends="compile">
+   <java classname="test.common.testSuite.TestSuiteAgent" fork="true">
+  	  <classpath refid="project.class.path"/>
+   </java>
+
+  </target>
 
   <!--  __________________________________________________
                             dist
@@ -212,11 +232,14 @@
    <copy file="src/test/JADE_TestSuite_V2.0.pdf" todir="doc/tutorials"/>
    <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml"/>
    <jar jarfile="../JADE-testSuite-${version}.zip">
-      <fileset dir=".." includes="jade/src/test/Copying"/>
+      <fileset dir=".." includes="jade/src/test/COPYING"/>
+      <fileset dir=".." includes="jade/src/test/ChangeLog"/>
       <fileset dir=".." includes="jade/src/test/License"/>
       <fileset dir=".." includes="jade/src/test/build.xml"/>
-      <fileset dir=".." includes="jade/src/test/doc/**"/>
+      <fileset dir=".." includes="jade/src/test/testerList.xml"/>
+      <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite_V2.0.pdf"/>
       <fileset dir=".." includes="jade/src/test/common/**"/>
+      <fileset dir=".." includes="jade/src/test/interPlatform/**"/>
    </jar>
   </target>
 
