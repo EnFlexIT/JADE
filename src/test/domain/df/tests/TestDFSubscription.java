@@ -86,7 +86,7 @@ public class TestDFSubscription extends Test {
 			AbsPredicate result = new AbsPredicate(BasicOntology.RESULT);
 			AbsVariable x = new AbsVariable("x", null);
 			result.set(BasicOntology.RESULT_ACTION, (AbsAgentAction) FIPAManagementOntology.getInstance().fromObject(aa));
-			result.set(BasicOntology.RESULT_ITEMS, x);
+			result.set(BasicOntology.RESULT_VALUE, x);
   		AbsIRE iota = new AbsIRE(SLVocabulary.IOTA);
   		iota.setVariable(x);
   		iota.setProposition(result);
