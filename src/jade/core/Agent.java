@@ -288,22 +288,39 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int MSG_QUEUE_SIZE = 100;
 
+  /**
+  @serial
+  */
   private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
   private transient Vector listeners = new Vector();
 
+  /**
+  @serial
+  */
   private String myName = null;
+  
+  /**
+  @serial
+  */
   private String myAddress = null;
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object waitLock = new Object();  // Used for agent waiting
   private transient Object suspendLock = new Object(); // Used for agent suspension
 
   private transient Thread myThread;
+  
+  /**
+  @serial
+  */
   private Scheduler myScheduler;
 
   private transient AssociationTB pendingTimers = new AssociationTB();
 
   // Free running counter that increments by one for each message
   // received.
+  /**
+  @serial
+  */
   private int messageCounter = 0 ;
 
   private transient Map languages = new HashMap();
@@ -312,17 +329,22 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      The <code>Behaviour</code> that is currently executing.
      @see jade.core.behaviours.Behaviour
+     @serial
   */
   protected Behaviour currentBehaviour;
 
   /**
      Last message received.
      @see jade.lang.acl.ACLMessage
+     @serial
   */
   protected ACLMessage currentMessage;
 
   // This variable is 'volatile' because is used as a latch to signal
   // agent suspension and termination from outside world.
+  /**
+  @serial
+  */
   private volatile int myAPState;
 
   // These two variables are used as temporary buffers for
@@ -331,9 +353,19 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private transient String myNewName;
 
   // Temporary buffer for agent suspension
+  /**
+  @serial
+  */
   private int myBufferedState = AP_MIN;
 
+  /**
+  @serial
+  */
   private int myDomainState;
+  
+  /**
+  @serial
+  */
   private Vector blockedBehaviours = new Vector();
 
   /**
