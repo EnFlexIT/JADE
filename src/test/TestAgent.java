@@ -35,6 +35,7 @@ import jade.lang.acl.*;
 import jade.core.Agent;
 import jade.lang.sl.SL0Codec;
 import jade.onto.basic.*;
+import jade.onto.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 public class TestAgent extends Agent {
 
@@ -70,12 +71,35 @@ final static String SAMPLEFILE = "test/testmessages.msg";
 protected void setup() {
   // register the codec of the language
   registerLanguage(SL0Codec.NAME,new SL0Codec());	
-		
+	
+  // test to/from string
+  Ontology o1 = new DefaultOntology();
+  try {
+    o1.fromSL0String(FIPAAgentManagementOntology.instance().toSL0String(FIPAAgentManagementOntology.NAME));
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
   // register the ontology used by application
-  registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
+  registerOntology(FIPAAgentManagementOntology.NAME, o1);
+
+  // test to/from string
+  Ontology o2 = new DefaultOntology();
+  try {
+    o2.fromSL0String(MobilityOntology.instance().toSL0String(MobilityOntology.NAME));
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
   // register the ontology used by application
-  registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-  registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+  registerOntology(MobilityOntology.NAME, o2);
+
+  // test to/from string
+  Ontology o3 = new DefaultOntology();
+  try {
+    o3.fromSL0String(JADEAgentManagementOntology.instance().toSL0String(JADEAgentManagementOntology.NAME));
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+  registerOntology(JADEAgentManagementOntology.NAME, o3); 
 	
 
   StringACLCodec codec = getStringACLCodec(); 
