@@ -312,12 +312,12 @@ public class AgentMobilityService extends BaseService {
 		// destination container
 		boolean transferResult = false;
 		try {
-		    mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		    transferResult = mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
 		}
 		catch(IMTPException imtpe) {
 		    // Try to get a newer slice and repeat...
 		    mainSlice = (AgentMobilitySlice)getFreshSlice(MAIN_SLICE);
-		    mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		    transferResult = mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
 		}
 
 		transferState = 3;
@@ -847,7 +847,7 @@ public class AgentMobilityService extends BaseService {
 	}
 
 	private void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
-	    log("Activating incoming agent "+agentID, 1);                             	
+	    log("Activating incoming agent "+agentID, 1);
 	    try {
 		Agent agent = myContainer.acquireLocalAgent(agentID);
 
