@@ -40,7 +40,7 @@ import java.util.*;
 
 public class SocketProxyAgent extends Agent {
 
-BufferedWriter logFile;
+PrintWriter logFile;
 BufferedReader in;
 Server s;
 
@@ -48,7 +48,7 @@ protected void setup() {
   try {
   
     in = new BufferedReader(new FileReader(getLocalName()+".inf"));
-    logFile = new BufferedWriter(new FileWriter(getLocalName()+".log"));
+    logFile = new PrintWriter(new FileWriter(getLocalName()+".log",true));
     int portNumber = Integer.parseInt(in.readLine());
     Vector agentNames = new Vector();
     StringTokenizer st = new StringTokenizer(in.readLine());
@@ -92,13 +92,10 @@ protected void takeDown(){
 }
 
 public synchronized void log(String str) {
-  try {
-    logFile.write(str,0,str.length());
+  
+  	String tmp = (new Date()).toString() + " - "+ str; 
+    logFile.println(tmp);
     logFile.flush();
-  } catch (IOException e) {
-    e.printStackTrace();
-    doDelete();
-  }
 }
 }
 
