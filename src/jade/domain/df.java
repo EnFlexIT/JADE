@@ -181,6 +181,35 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   } // End of ModBehaviour class
 
+  private class RecursiveSearchBehaviour extends RequestFIPAServiceBehaviour 
+  {
+  	RecursiveSearchHandler rsh;
+  	RecursiveSearchBehaviour(RecursiveSearchHandler rsh,AID children,DFAgentDescription dfd,SearchConstraints constraints) throws FIPAException
+  	{
+  		super(df.this,children,FIPAAgentManagementOntology.SEARCH,dfd,constraints);
+  		this.rsh = rsh;
+  	}
+  	
+  	protected void handleInform(ACLMessage reply)
+  	{
+  		super.handleInform(reply);
+  		try{
+  			rsh.addResults(this,getSearchResult());
+  		}catch (FIPAException e){
+  		}catch(NotYetReady nyr){}
+  	}
+  	
+  	protected void handleRefuse(ACLMessage reply)
+  	{
+  		super.handleRefuse(reply);
+  	}
+  	
+  	protected void handleFailure(ACLMessage reply)
+  	{
+  		super.handleFailure(reply);
+  	}
+  }//End class RecursiveSearchBehaviour
+  
    private class SrchBehaviour extends DFBehaviour {
     public SrchBehaviour(ACLMessage msg) {
       super(msg);
@@ -190,11 +219,59 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
 
     protected void processAction(Action a) throws FIPAException {
-      Search s = (Search)a.getAction();
+      sendReply(ACLMessage.AGREE,"( true )");
+    	Search s = (Search)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = DFSearch(dfd, constraints, getReply());
-      sendReply(ACLMessage.AGREE,"( true )");
+      Long maxResults = constraints.getMaxResults();
+      
+      if( maxResults != null)
+      		if (l.size() >= maxResults.intValue()) 
+      		{
+      			l = l.subList(0, maxResults.intValue());//elimino i risultati in eccesso;
+      		
+      			ACLMessage msg = getRequest().createReply();
+      			msg.setPerformative(ACLMessage.INFORM);
+            ResultPredicate r = new ResultPredicate();
+            r.set_0(a);
+            for (int i=0; i<l.size(); i++)
+      	      r.add_1(l.get(i));
+            l.clear();
+            l.add(r);
+            fillContent(msg,l); 
+            send(msg);//	mando la inform
+      			return;
+      		}
+      	
+      Long maxDepth = constraints.getMaxDepth();
+      
+      if(maxDepth != null)		
+      if (maxDepth.intValue() > 0 )
+      { //recursive search on children
+        
+      	RecursiveSearchHandler rsh = new RecursiveSearchHandler(l, constraints, dfd, getRequest(),a);
+      	SearchConstraints newConstr = new SearchConstraints();
+      	
+      	newConstr.setMaxDepth(new Long ((new Integer(constraints.getMaxDepth().intValue()-1)).longValue()));
+      	
+      	if(maxResults != null)
+      	newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));
+      	
+      	//creo constraints = constaints.maxdepth-1, maxresults-l.size,
+      	Iterator childIt = children.iterator();
+      	while(childIt.hasNext())
+      	{
+      	
+      	    try{
+      	    	RecursiveSearchBehaviour b = new RecursiveSearchBehaviour(rsh,(AID)childIt.next(), dfd, newConstr);
+      	    	addBehaviour(b);
+      	      rsh.addChildren(b);
+      	    }catch(FIPAException e){}
+      	}
+      	if (children.size() != 0) //to verify	
+      	return;
+      }		
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -210,6 +287,69 @@ public class df extends GuiAgent implements DFGUIAdapter {
   } // End of SrchBehaviour class
 
 
+  private class RecursiveSearchHandler {
+  	List children;
+  	long deadline;
+  	List results;
+  	SearchConstraints constraints;
+  	DFAgentDescription dfd;
+  	ACLMessage request;
+  	Action action;
+    int DEFAULTTIMEOUT = 60000; // 1 minute	
+  	long MAXRESULTS = 100; //Maximum number of results if not set 
+  	
+    //constructor
+    RecursiveSearchHandler(List l, SearchConstraints c, DFAgentDescription dfd, ACLMessage msg, Action a) { 
+	    this.results = l;
+	    this.constraints = new SearchConstraints();
+	    constraints.setMaxDepth(c.getMaxDepth()); //MAxDepth is not null by definition of this point of the code
+	    if(c.getMaxResults() != null)
+	    constraints.setMaxResults(c.getMaxResults());
+	    else
+	    constraints.setMaxResults(new Long(MAXRESULTS));
+	    this.dfd = dfd;
+	    this.request = msg;
+	    this.children = new ArrayList();
+	    
+    	if (this.request.getReplyByDate() == null)
+  		   this.deadline = System.currentTimeMillis() + DEFAULTTIMEOUT;
+  	  else 
+  	     this.deadline = this.request.getReplyByDate().getTime();
+  	  this.action = a;   
+  	}
+  	
+    void addChildren(Behaviour b) {
+  		this.children.add(b);
+  	}
+  	void removeChildren(Behaviour b) {
+  		this.children.remove(b);
+  	}
+  	
+  	void addResults(Behaviour b, List localResults) throws FIPAException, jade.domain.RequestFIPAServiceBehaviour.NotYetReady {
+  		this.children.remove(b);
+  	// add local results to the full list of results
+  		for (Iterator i=localResults.iterator(); i.hasNext(); )
+  			results.add(i.next());
+  		
+  		if ( (results.size() >= constraints.getMaxResults().intValue()) || 
+  			   (System.currentTimeMillis() >= deadline) || 
+  			   (children.size() == 0)  )
+  			//sono sufficienti OR è scaduto il timeout OR children.size() == 0) 
+  			{
+  		   ACLMessage inform = request.createReply();
+  		   inform.setPerformative(ACLMessage.INFORM);
+  		   ResultPredicate r = new ResultPredicate();
+         r.set_0(action);
+         for (int i=0; i<results.size(); i++)
+      	  r.add_1(results.get(i));
+      	 ArrayList tuple = new ArrayList(1);
+      	 tuple.add(r);
+         fillContent(inform,tuple); 
+         send(inform);
+         // kill the behaviours in children
+  			} 
+  	}
+  }
   private class ShowGUIBehaviour extends FipaRequestResponderBehaviour.ActionHandler 
                                  implements FipaRequestResponderBehaviour.Factory 
   {
@@ -578,8 +718,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		    gui = new DFGUI(df.this, false);
 		    DFAgentDescription matchEverything = new DFAgentDescription();
 		    List agents = agentDescriptions.search(matchEverything);
-		    gui.refresh(agents.iterator(), parents.iterator(), children.iterator());
-			
+		    List AIDList = new ArrayList();
+		    Iterator it = agents.iterator();
+		    while(it.hasNext())
+		    	AIDList.add(((DFAgentDescription)it.next()).getName());
+		    
+		    gui.refresh(AIDList.iterator(), parents.iterator(), children.iterator());
 		    gui.setVisible(true);
 		    return true;
   		}
@@ -794,6 +938,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 
   private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
     // Search has no mandatory slots
+  	
     return agentDescriptions.search(dfd);
     
   }
