@@ -646,7 +646,7 @@ import jade.BootException;
  	 }
  	 
    //This method read the properties from file and update the vector of properties.
- 	 private void loadPropertiesFromFile(String fileName) throws FileNotFoundException, IOException
+  	 private void loadPropertiesFromFile(String fileName) throws FileNotFoundException, IOException
    {
    
   	Properties p = readPropertiesFromFile(fileName);
@@ -655,14 +655,14 @@ import jade.BootException;
   	// for every property set the value read in the file and set the command line value to null.
   	
   	Enumeration e = p.propertyNames();
+  
   	Iterator it = propertiesVector.iterator();
-  	
   	while(e.hasMoreElements())
-  	{
-  	
-	  String name = (String)e.nextElement();  
+  	{	
+  		
   	  boolean found = false;
-  	  
+	    String name = (String)e.nextElement();    
+  	 
   	  while(it.hasNext() && !found)
   	  {
   	  	PropertyType pt = (PropertyType)it.next();
@@ -673,8 +673,10 @@ import jade.BootException;
 			    pt.setFileValue(p.getProperty(name));
   	  		}
   	  }
-      
+      it = propertiesVector.iterator(); 
   	}
+  	
+  
   	
   }
   
@@ -685,7 +687,7 @@ import jade.BootException;
   	FileInputStream in = new FileInputStream(fileName);
   	p.load(in);
   	in.close();
-  	
+  
   	return p;
 
   }

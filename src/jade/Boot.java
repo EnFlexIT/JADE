@@ -168,7 +168,7 @@ public class Boot {
     {
       //in this case the gui for the configuration properties is shown.
       //the gui returns the properties after making the needed checking. 
-      BootGUI guiForConf = new BootGUI();
+      BootGUI guiForConf = new BootGUI();      
       p = guiForConf.ShowBootGUI(propertyVector);
     
     }
@@ -430,6 +430,14 @@ public class Boot {
       PropertyType MTPProperty = new PropertyType("mtp", PropertyType.STRING_TYPE, "", "List of MTPs to activate", false);
       PropertyType NoMTPProperty = new PropertyType("nomtp", PropertyType.BOOLEAN_TYPE, "false", "Disable all external MTPs on this container", false);
       
+      //update the propertyVector with all the -option 
+      propertyVector.add(HostProperty);
+      propertyVector.add(PortProperty);
+      propertyVector.add(GuiProperty);
+      propertyVector.add(ContainerProperty);
+      propertyVector.add(MTPProperty);
+      propertyVector.add(NoMTPProperty);
+
       while( n < args.length && !endCommand)
       {
       	
@@ -512,14 +520,7 @@ public class Boot {
 	n++;
       }
 
-      //update the propertyVector with all the -option 
-      propertyVector.add(HostProperty);
-      propertyVector.add(PortProperty);
-      propertyVector.add(GuiProperty);
-      propertyVector.add(ContainerProperty);
-      propertyVector.add(MTPProperty);
-      propertyVector.add(NoMTPProperty);
-
+      
       if(endCommand)
       	return --n;
       else
