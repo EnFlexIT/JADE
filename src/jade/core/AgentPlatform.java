@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.10  1999/03/17 13:00:59  rimassa
+  Some changes were made to the interface, to support new proxy-based
+  design.
+
   Revision 1.9  1999/03/09 12:59:14  rimassa
   Added some String constants to represent container names.
   Added a getAddress() method.
@@ -24,23 +28,7 @@ package jade.core;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-/************************************************************************
 
-  Name: AgentPlatform
-
-  Responsibilities and Collaborations:
-
-  + Provides a global access point for the agent platform as a whole.
-
-
-  + Maintains a list of the Object Reference for every agent container.
-    (AgentContainer)
-
-  + Holds a complete table of agent descriptors, knowing the container
-    which every agent is in.
-    (AgentContainer, AgentDescriptor)
-
-************************************************************************/
 public interface AgentPlatform extends AgentContainer {
 
   public static final String MAIN_CONTAINER_NAME = "Front-End";
@@ -51,9 +39,9 @@ public interface AgentPlatform extends AgentContainer {
   public String addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(String name) throws RemoteException;
 
-  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
+  public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
   public void deadAgent(String name) throws RemoteException, NotFoundException;
 
-  public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
+  public RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException;
 
 }
