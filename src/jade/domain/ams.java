@@ -264,7 +264,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw new Unauthorised();
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action CreateAgent");
+			log("Agent "+requester.getName()+" does not have permission to perform action CreateAgent", 0);
 			throw new Unauthorised();
 		}
 		catch (UnreachableException ue) {
@@ -292,7 +292,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     }
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action KillAgent");
+			log("Agent "+requester.getName()+" does not have permission to perform action KillAgent", 0);
 			throw new Unauthorised();
 		}
     catch (UnreachableException ue) {
@@ -325,7 +325,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			}, requesterCredentials);
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action CloneAgent");
+			log("Agent "+requester.getName()+" does not have permission to perform action CloneAgent", 0);
 			throw new Unauthorised();
 		}
     catch (UnreachableException ue) {
@@ -357,7 +357,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			}, requesterCredentials);
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action MoveAgent");
+			log("Agent "+requester.getName()+" does not have permission to perform action MoveAgent", 0);
 			throw new Unauthorised();
 		}
     catch (UnreachableException ue) {
@@ -387,7 +387,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			}, requesterCredentials);
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action KillContainer");
+			log("Agent "+requester.getName()+" does not have permission to perform action KillContainer", 0);
 			throw new Unauthorised();
 		}
     catch(NotFoundException nfe) {
@@ -567,7 +567,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw ar;
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action Register");
+			log("Agent "+requester.getName()+" does not have permission to perform action Register", 0);
 			throw new Unauthorised();
 		}
     catch(Exception e) {
@@ -600,7 +600,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			throw nr;
 		}
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action Deregister");
+			log("Agent "+requester.getName()+" does not have permission to perform action Deregister", 0);
 			throw new Unauthorised();
 		}
     catch(Exception e) {
@@ -640,7 +640,7 @@ public class ams extends Agent implements AgentManager.Listener {
       throw new InternalError("Agent not found. "+nfe.getMessage());
     }
 		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action Modify");
+			log("Agent "+requester.getName()+" does not have permission to perform action Modify", 0);
 			throw new Unauthorised();
 		}
     catch(Exception e) {
@@ -1298,52 +1298,9 @@ public class ams extends Agent implements AgentManager.Listener {
  		}
   }
   
-  private void log(String s) {
-  	log(s, 0);
-  }
-  
   private void log(String s, int level) {
   	if (verbosity >= level) {
 	  	System.out.println("AMS-log: "+s);
   	}
-  }
-  
-  
-  /**
-     @serial
-   *
-  private KB agentDescriptions = new KBAbstractImpl() {
-      protected boolean match(Object template, Object fact) {
-	try {
-	  AMSAgentDescription templateDesc = (AMSAgentDescription)template;
-	  AMSAgentDescription factDesc = (AMSAgentDescription)fact;
-
-	  String o1 = templateDesc.getOwnership();
-	  if(o1 != null) {
-	    String o2 = factDesc.getOwnership();
-	    if((o2 == null) || (!o1.equalsIgnoreCase(o2)))
-	      return false;
-	  }
-
-	  String s1 = templateDesc.getState();
-	  if(s1 != null) {
-	    String s2 = factDesc.getState();
-	    if((s2 == null) || (!s1.equalsIgnoreCase(s2)))
-	      return false;
-	  }
-
-	  AID id1 = templateDesc.getName();
-	  if(id1 != null) {
-	    AID id2 = factDesc.getName();
-	    if((id2 == null) || (!matchAID(id1, id2)))
-	      return false;
-	  }
-
-	  return true;
-	}
-	catch (ClassCastException cce) {
-	  return false;
-	}
-      }
-    };*/
+  }  
 }
