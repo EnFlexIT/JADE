@@ -143,16 +143,16 @@ EXAMPLE
 
 java jade.Boot -platform -host kim.cselt.it 
         # start the platform on another shell on the same host
-java jade.Boot -name facts -host kim.cselt.it sender1:examples.ex2.AgentSender 
+java jade.Boot -name facts -host kim.cselt.it sender1:examples.receivers.AgentSender 
         # start an agent container on another shell and tell to join the AgentPlatform
         # called "facts" running on the host "kim.cselt.it" and
         # start an agent. The name of this agent is "sender1", 
-        # while examples.ex2.AgentSender is the code that implements the agent
-java jade.Boot -name facts -host kim.cselt.it receiver2:examples.ex2.AgentReceiver sender2:examples.ex2.AgentSender
+        # while examples.receivers.AgentSender is the code that implements the agent
+java jade.Boot -name facts -host kim.cselt.it receiver2:examples.receivers.AgentReceiver sender2:examples.receivers.AgentSender
         # start an agent container on another shell and tell to join the AgentPlatform
         # called "facts" running on the host "kim.cselt.it" and
         # start two agents. The name of these agents are "sender2" (and 
-        # examples.ex2.AgentSender is the code that implements the agent) and
-        # receiver2 and examples.ex2.AgentReceiver is the code that implements the agent.
+        # examples.receivers.AgentSender is the code that implements the agent) and
+        # "receiver2" and examples.receivers.AgentReceiver is the code that implements         # the agent.
 
 
