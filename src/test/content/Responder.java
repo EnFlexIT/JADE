@@ -54,8 +54,14 @@ public class Responder extends CyclicBehaviour {
   		ACLMessage reply = msg.createReply();
   		try {
   			handleContent(msg);
-  			// Content handling OK --> reply with an empty INFORM message
+  			// Content handling OK --> reply with an INFORM message with the same content
   			reply.setPerformative(ACLMessage.INFORM);
+  			if (msg.hasByteSequenceContent()) {
+  				reply.setByteSequenceContent(msg.getByteSequenceContent());
+  			}
+  			else {
+  				reply.setContent(msg.getContent());
+  			}
   		}
   		catch (Throwable t) {
   			// Content handling FAILED --> reply with an empty FAILURE message

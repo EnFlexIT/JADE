@@ -33,6 +33,7 @@ import test.content.testOntology.*;
 import examples.content.musicShopOntology.*;
 
 public class TestByteSeq extends Test{
+	private byte[] bytes = new byte[] {0, 1, 0, -128, 0, 127, 0};
   public String getName() {
   	return "Byte-sequence-attribute";
   }
@@ -53,11 +54,32 @@ public class TestByteSeq extends Test{
   					Track t = new Track();
   					t.setName("Blowing in the wind");
   					t.setDuration(new Integer(240));
-  					t.setPcm(new byte[3000]);
+  					t.setPcm(bytes);
   					Exists e = new Exists(t);
   					myAgent.getContentManager().fillContent(msg, e);
   					return msg;
   				}
+  				
+  				protected boolean check(ACLMessage reply) {
+  					if (super.check(reply)) {
+  						// Also check that the sequence of byte is exactly the same as 
+  						// the sent one.
+  						try {
+  							Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  							Track t = (Track) e.getWhat();
+  							byte[] returnedBytes = t.getPcm();
+  							return compare(bytes, returnedBytes);
+  						}
+  						catch (Exception ex) {
+  							TestUtility.log("Unexpected exception while extracting returned sequence of bytes");
+  							ex.printStackTrace();
+  							return false;
+  						}
+  					}
+  					else {
+  						return false;
+  					}
+  				}		
   			};
   		}
   		else {
@@ -66,7 +88,7 @@ public class TestByteSeq extends Test{
   					Track t = new Track();
   					t.setName("Blowing in the wind");
   					t.setDuration(new Integer(240));
-  					t.setPcm(new byte[3000]);
+  					t.setPcm(bytes);
   					Exists e = new Exists(t);
   					myAgent.getContentManager().fillContent(msg, e);
   					return msg;
@@ -79,4 +101,17 @@ public class TestByteSeq extends Test{
   	}
   }
 
+  private boolean compare(byte[] s1, byte[] s2) {
+  	if (s1.length == s2.length) {
+  		for (int i = 0; i < s1.length; ++i) {
+  			if (s1[i] != s2[i]) {
+  				return false;
+  			}
+  		}
+  		return true;
+  	}
+  	else {
+  		return false;
+  	}
+  }
 }
