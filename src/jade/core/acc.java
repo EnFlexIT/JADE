@@ -42,6 +42,7 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.ReceivedObject;
 
 /**
   Standard <em>Agent Communication Channel</em>. This class implements
@@ -66,11 +67,13 @@ class acc implements InChannel.Dispatcher {
 
   private List localAddresses = new LinkedList();
   private AgentContainerImpl myContainer;
+  private String accID;
 
-  public acc(AgentContainerImpl ac) {
+  public acc(AgentContainerImpl ac, String platformID) {
     ACLCodec stringCodec = new StringACLCodec();
     messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
     myContainer = ac;
+    accID = "fipa-mts://" + platformID + "/acc";
   }
 
   /*
@@ -104,8 +107,9 @@ class acc implements InChannel.Dispatcher {
     // If no 'from' slot is present, copy the 'from' slot from the
     // 'sender' slot of the ACL message
     AID from = env.getFrom();
-    if(from == null)
+    if(from == null) {
       env.setFrom(msg.getSender());
+    }
 
     // Set the 'date' slot to 'now' if not present already
     Date d = env.getDate();
@@ -271,6 +275,28 @@ class acc implements InChannel.Dispatcher {
 
   public void dispatchMessage(Envelope env, byte[] payload) {
 
+    // To avoid message loops, make sure that the ID of this ACC does
+    // not appear in a previous 'received' stamp
+    ReceivedObject[] stamps = env.getStamps();
+    for(int i = 0; i < stamps.length; i++) {
+      String id = stamps[i].getBy();
+      if(id.equalsIgnoreCase(accID)) {
+	System.out.println("ERROR: Message loop detected !!!");
+	System.out.println("Route is: ");
+	for(int j = 0; j < stamps.length; j++)
+	  System.out.println("[" + j + "]" + stamps[j].getBy());
+	System.out.println("Message dispatch aborted.");
+	return;
+      }
+    }
+
+    // Put a 'received-object' stamp in the envelope
+    ReceivedObject ro = new ReceivedObject();
+    ro.setBy(accID);
+    ro.setDate(new Date());
+
+    env.setReceived(ro);
+
     // Decode the message, according to the 'acl-representation' slot
     String aclRepresentation = env.getAclRepresentation();
 
@@ -286,10 +312,16 @@ class acc implements InChannel.Dispatcher {
 
     try {
       ACLMessage msg = codec.decode(payload);
+      msg.setEnvelope(env);
 
       // If the 'sender' AID has no addresses, replace it with the
       // 'from' envelope slot
       AID sender = msg.getSender();
+      if(sender == null) {
+	System.out.println("ERROR: Trying to dispatch a message with a null sender.");
+	System.out.println("Aborting send operation...");
+	return;
+      }
       Iterator itSender = sender.getAllAddresses();
       if(!itSender.hasNext())
 	       msg.setSender(env.getFrom());
