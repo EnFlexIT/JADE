@@ -52,6 +52,7 @@ class ActionProcessor {
      public static final String  CUSTOM_ACTION="Custom Agent";
      public static final String  SNIFFER_ACTION="Start Sniffer";     
      public static final String  DUMMYAG_ACTION="Start DummyAgent";
+     public static final String  LOGGERAG_ACTION="Start LoggerAgent";
      public static final String  INTROSPECTOR_ACTION = "Start IntrospectAgent "; 
      public static final String  CLOSE_ACTION="Close RMA";
      public static final String  EXIT_ACTION="Exit RMA";
@@ -88,6 +89,7 @@ class ActionProcessor {
       actions.put(CUSTOM_ACTION,new CustomAction(anRma, mWnd,this));
       actions.put(SNIFFER_ACTION,new SnifferAction(anRma,this));
       actions.put(DUMMYAG_ACTION,new DummyAgentAction(anRma,this));
+      actions.put(LOGGERAG_ACTION,new LogManagerAgentAction(anRma,this));
       actions.put(INTROSPECTOR_ACTION,new IntrospectorAction(anRma,this));
       actions.put(CLOSE_ACTION,new CloseRMAAction(anRma,this));
       actions.put(EXIT_ACTION,new ExitAction(anRma,this));
@@ -148,7 +150,7 @@ class ActionProcessor {
        		JOptionPane.showMessageDialog(new JFrame(),"You must select an agent in the Tree","Start Procedure Error",JOptionPane.ERROR_MESSAGE);
 				else
 				if
-				 (action instanceof DummyAgentAction || action instanceof SnifferAction || action instanceof IntrospectorAction )	
+				 (action instanceof DummyAgentAction || action instanceof SnifferAction || action instanceof IntrospectorAction || action instanceof LogManagerAgentAction )	
 				 	containerAct(null);
 				else
 				if(action instanceof PlatformAction)
@@ -178,7 +180,7 @@ class ActionProcessor {
  private void containerAct(AgentTree.Node node){
   ContainerAction ac=(ContainerAction) action;
   AgentTree.ContainerNode nod;
-  if ((ac instanceof DummyAgentAction || ac instanceof SnifferAction || ac instanceof IntrospectorAction) && (node == null || node instanceof AgentTree.SuperContainer))
+  if ((ac instanceof DummyAgentAction || ac instanceof SnifferAction || ac instanceof IntrospectorAction || ac instanceof LogManagerAgentAction) && (node == null || node instanceof AgentTree.SuperContainer))
   	ac.doAction(null);
   else	
   try{

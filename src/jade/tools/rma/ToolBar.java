@@ -121,6 +121,9 @@ final class ToolBar  extends JToolBar  implements ActionListener {
 
     obj=(RMAAction)actPro.actions.get(actPro.DUMMYAG_ACTION);
     setButton(add(obj));
+
+    obj=(RMAAction)actPro.actions.get(actPro.LOGGERAG_ACTION);
+    setButton(add(obj));
     
     obj =(RMAAction)actPro.actions.get(actPro.INTROSPECTOR_ACTION);
     setButton(add(obj));

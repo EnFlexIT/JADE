@@ -66,6 +66,7 @@ import java.util.Properties;
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/foldergreen.gif"),
       "TreeData.FolderIcon1",LookAndFeel.makeIcon(foo.getClass(),"images/folderyellow.gif"),
       "RMAAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif"),
+      "RMAAction.LoggerAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/logger.gif"),
       "RMAAction.DGGUIActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/dfsmall.gif"), 
       "RMAAction.AddRemotePlatformActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/connect.gif"), 
       "RMAAction.IntrospectorActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/bug.gif"), 
