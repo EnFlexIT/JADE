@@ -37,6 +37,13 @@ import jade.content.lang.*;
 import test.common.*;
 import test.common.agentConfigurationOntology.*;
 import test.content.testOntology.TestOntology;
+import test.common.xml.*;
+
+/**
+ * @author Giovanni Caire - TiLab
+ * @author Elisabetta Cortese - TiLab
+ *
+ */
 
 public class SLOperatorsTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
@@ -45,12 +52,12 @@ public class SLOperatorsTesterAgent extends TesterAgent {
 	private static final String RESPONDER_NAME = "responder";
 	
 	protected TestGroup getTestGroup() {		
-		TestGroup tg = new TestGroup(new String[] {
-  		"test.content.tests.sl.TestLogicalOp",
-  		"test.content.tests.sl.TestModalOp",
-  		"test.content.tests.sl.TestQuantifiers",
-  		"test.content.tests.sl.TestActionExpressions"
-		} ) {
+		TestDescriptor[] td = XMLManager.getTests("test\\content\\SLOperatorTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT){		
 			
 			private AID resp;
 			

@@ -29,9 +29,11 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
 import test.common.*;
+import test.common.xml.*;
 
 /**
  * @author Giovanni Caire - TILAB
+ * @author Elisabetta Cortese - TILAB
  */
 public class BlockTimeoutTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
@@ -48,9 +50,12 @@ public class BlockTimeoutTesterAgent extends TesterAgent {
 	private static final long TIMEOUT_INCREASE_DEFAULT = 0;
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup(new String[] {
-			"test.behaviours.tests.TestBlockTimeout"
-		} );
+		TestDescriptor[] td = XMLManager.getTests("test\\behaviours\\blockTimeOutTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT);		
 		
 		tg.specifyArgument(N_AGENTS_NAME, "Number of senders", String.valueOf(N_AGENTS_DEFAULT));
 		tg.specifyArgument(N_MESSAGES_NAME, "Number of messages", String.valueOf(N_MESSAGES_DEFAULT));

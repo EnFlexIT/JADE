@@ -29,9 +29,11 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
 import test.common.*;
+import test.common.xml.*;
 
 /**
  * @author Giovanni Caire - TILAB
+ * @author Elisabetta Cortese - TILAB
  */
 public class PerformanceTesterAgent extends TesterAgent {
 
@@ -39,9 +41,12 @@ public class PerformanceTesterAgent extends TesterAgent {
 	public static final int N_ITERATIONS_DEFAULT = 100;
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup(new String[] {
-			"test.behaviours.tests.TestPerformance"
-		} );
+		TestDescriptor[] td = XMLManager.getTests("test\\behaviours\\performanceTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT);		
 		
 		tg.specifyArgument(N_ITERATIONS_KEY, "Number of iterations", String.valueOf(N_ITERATIONS_DEFAULT));
 		

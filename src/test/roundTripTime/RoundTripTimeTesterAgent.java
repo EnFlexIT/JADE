@@ -54,12 +54,6 @@ public class RoundTripTimeTesterAgent extends TesterAgent {
 	public static final String RECEIVER_CLASS = "benchmark.roundTripTime.RoundTripReceiver";
 	
 	protected TestGroup getTestGroup() {
-		/*TestGroup tg = new TestGroup(new String[] {
-			"test.roundTripTime.tests.TestRTT1Container",
-			"test.roundTripTime.tests.TestRTT2Containers",
-			"test.roundTripTime.tests.TestRTT2Containers2Hosts"
-			//"test.roundTripTime.tests.TestRTT2Platforms2HostsIIOP"
-		} );*/
 		TestDescriptor[] tests = XMLManager.getTests("test//roundTripTime//roundTripTimeTestsList.xml");
 		System.out.println(tests);
 		String[] classes  = new String[tests.length];

@@ -36,7 +36,15 @@ import jade.content.lang.*;
 
 import test.common.*;
 import test.common.agentConfigurationOntology.*;
+import test.common.xml.TestDescriptor;
+import test.common.xml.XMLManager;
 import test.content.testOntology.TestOntology;
+
+/**
+ * @author Giovanni Caire - TiLab
+ * @author Elisabetta Cortese - TiLab
+ *
+ */
 
 public class ContentTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
@@ -47,35 +55,13 @@ public class ContentTesterAgent extends TesterAgent {
 	
 	private static final String RESPONDER_NAME = "responder";
 	
-	protected TestGroup getTestGroup() {		
-		TestGroup tg = new TestGroup(new String[] {
-  		"test.content.tests.TestInt",
-  		"test.content.tests.TestBoolean",
-  		"test.content.tests.TestLong",
-  		"test.content.tests.TestFloat",
-  		"test.content.tests.TestDouble",
-  		"test.content.tests.TestDate",
-  		"test.content.tests.TestByteSeq",
-  		"test.content.tests.TestAgentAction",
-  		"test.content.tests.TestAction1",
-  		"test.content.tests.TestAction2",
-  		"test.content.tests.TestObject",
-  		"test.content.tests.TestUnknownSchema",
-  		"test.content.tests.TestOntoAID",
-  		"test.content.tests.TestSequence",
-  		"test.content.tests.TestMissingOptional",
-  		"test.content.tests.TestMissingMandatory",
-  		"test.content.tests.TestContentElementList",
-  		"test.content.tests.TestAggregateAsConcept",
-  		"test.content.tests.TestTypedAggregate",
-  		"test.content.tests.TestCardinality",
-  		"test.content.tests.TestCorrectIRE",
-  		"test.content.tests.TestOntoACLMessage",
-  		"test.content.tests.TestBCReflectiveIntrospector",
-  		"test.content.tests.TestAbsDescriptorAsConcept",
-  		"test.content.tests.TestAbsDescriptorAsPredicate",
-  		"test.content.tests.TestSlotOrder"
-		} ) {
+	protected TestGroup getTestGroup() {
+		TestDescriptor[] td = XMLManager.getTests("test\\content\\contentTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT){		
 			
 			private AID resp;
 			

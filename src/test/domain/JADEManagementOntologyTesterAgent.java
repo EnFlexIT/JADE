@@ -39,6 +39,12 @@ import jade.content.lang.*;
 import jade.content.lang.sl.*;
 
 import test.common.*;
+import test.common.xml.*;
+
+/**
+ * @author Giovanni Caire - TILAB
+ * @author Elisabetta Cortese - TILAB
+ */
 
 public class JADEManagementOntologyTesterAgent extends TesterAgent {
 	// Keys and default values for group arguments
@@ -48,9 +54,12 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
 	private static final String TEST_RESPONSE_ID = "Test-response";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup(new String[] {
-  		"test.domain.tests.TestCreateAgent"
-		} ) {
+		TestDescriptor[] td = XMLManager.getTests("test\\domain\\jadeManagementOntoTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT){		
 			
 			private AID resp;
 			

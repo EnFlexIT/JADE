@@ -39,21 +39,22 @@ import jade.content.lang.*;
 import jade.content.lang.sl.*;
 
 import test.common.*;
+import test.common.xml.*;;
+
 
 /**
-   @author Giovanni Caire - TILAB
+ * @author Giovanni Caire - TILAB
+ * @author Elisabetta Cortese - TILAB
  */
 public class DFTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup(new String[] {
-  		"test.domain.df.tests.TestSearchUntilFound",
-  		"test.domain.df.tests.TestDFService",
-  		"test.domain.df.tests.TestLightDFService",
-  		"test.domain.df.tests.TestFIPAManagementOntology_DF",
-  		"test.domain.df.tests.TestFederation",
-  		"test.domain.df.tests.TestDFSubscription"
-		} ); 				
+		TestDescriptor[] td = XMLManager.getTests("test\\domain\\df\\dfTestsList.xml");
+		String[] listT = new String[td.length];
+		for (int i = 0; i < td.length; i++) {
+			listT[i] = td[i].getTestClassName();
+		}
+		TestGroup tg = new TestGroup(listT);		
 		return tg;
 	}
 				
