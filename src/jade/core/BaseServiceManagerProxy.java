@@ -64,6 +64,7 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	    myIMTPManager = mgr;
 	    myCommandProcessor = proc;
 	    localNode = mgr.getLocalNode();
+	    addresses = new LinkedList();
 	    services = new HashMap();
 	}
 	catch(IMTPException imtpe) {
@@ -168,6 +169,24 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     */
     protected abstract Node[] findAllNodes(String serviceKey) throws IMTPException, ServiceException;
 
+    public void addAddress(String addr) throws IMTPException {
+	addresses.add(addr);
+    }
+
+    public void removeAddress(String addr) throws IMTPException {
+	addresses.remove(addr);
+    }
+
+    public String[] getAddresses() {
+	Object[] objs = addresses.toArray();
+	String[] addrs = new String[objs.length];
+
+	for(int i = 0; i < addrs.length; i++) {
+	    addrs[i] = (String)objs[i];
+	}
+
+	return addrs;
+    }
 
     public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
 
@@ -392,6 +411,7 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     }
 
 
+    private List addresses;
     private Map services;
     private Node localNode;
     private IMTPManager myIMTPManager;
