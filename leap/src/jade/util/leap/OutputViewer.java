@@ -41,12 +41,16 @@ import javax.microedition.rms.*;
    @author Giovanni Caire - TILAB
  */
 public class OutputViewer extends MIDlet implements CommandListener {
-  private static final Command exitCommand = new Command("Exit", Command.EXIT, 1);
-  private static final Command downCommand = new Command("Down", Command.SCREEN, 1);
-  private static final Command upCommand = new Command("Up", Command.SCREEN, 0);
+	private static final String OUTPUT = "OUTPUT";
+  
+	private static final Command downCommand = new Command("Down", Command.SCREEN, 0);
+  private static final Command upCommand = new Command("Up", Command.SCREEN, 1);
+  private static final Command exitCommand = new Command("Exit", Command.SCREEN, 1);
+  private static final Command okCommand = new Command("OK", Command.OK, 0);
+  private static final Command cancelCommand = new Command("Cancel", Command.OK, 0);
   private Display                       display;
   private String                        recordStoreName;
-  private Form                          form;
+  private Form                          form, last, error;
   private StringItem                    si;
   private int                           offset = 0;
 
@@ -62,9 +66,9 @@ public class OutputViewer extends MIDlet implements CommandListener {
     form = new Form("Output:");
     si = new StringItem(null, null);
     form.append(si);
-    form.addCommand(exitCommand);
     form.addCommand(downCommand);
     form.addCommand(upCommand);
+    form.addCommand(exitCommand);
     form.setCommandListener(this);
     display.setCurrent(form);    
     si.setText(readOutput());
@@ -96,16 +100,30 @@ public class OutputViewer extends MIDlet implements CommandListener {
     		si.setText(readOutput());
       }
     }
+    else if (d == last) {
+    	if (c == okCommand) {
+    		clearOutput();
+    	}
+    	notifyDestroyed();
+    }
+    else if (d == error) {
+    	notifyDestroyed();
+    }
   }
   
   private void exit() {
-    notifyDestroyed();
+		last = new Form("");
+  	last.append(new StringItem(null, "Reset OUTPUT before exiting?"));
+		last.addCommand(okCommand);
+		last.addCommand(cancelCommand);
+		last.setCommandListener(this);
+		display.setCurrent(last);
   }
   
   private String readOutput() {
   	StringBuffer sb = new StringBuffer();
   	try {
-  		RecordStore rs = RecordStore.openRecordStore("OUTPUT", false);
+  		RecordStore rs = RecordStore.openRecordStore(OUTPUT, true);
   		int linesCnt = rs.getNumRecords();
    		for (int i = offset; i < linesCnt; ++i) {
    			byte[] bb = rs.getRecord(i+1);
@@ -116,9 +134,31 @@ public class OutputViewer extends MIDlet implements CommandListener {
     	rs.closeRecordStore();
   	}
   	catch (Exception e) {
-  		e.printStackTrace();
+  		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
   	}
   	return sb.toString();
+  }
+  
+  private void clearOutput() {
+  	try {
+  		RecordStore rs = RecordStore.openRecordStore(OUTPUT, false);
+  		int cnt = rs.getNumRecords();
+   		for (int i = 0; i < cnt; ++i) {
+   			rs.deleteRecord(i+1);
+   		}
+    	rs.closeRecordStore();
+  	}
+  	catch (Exception e) {
+  		showError("Cannot clear "+OUTPUT+" record store. "+e.getMessage());
+  	}
   }		
+  
+  private void showError(String msg) {
+		error = new Form("ERROR");
+  	error.append(new StringItem(null, msg));
+		error.addCommand(okCommand);
+		error.setCommandListener(this);
+		display.setCurrent(error);
+  }
 }
 
