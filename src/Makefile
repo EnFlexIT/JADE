@@ -14,6 +14,9 @@ ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 SL0FLAGS    =   -OUTPUT_DIRECTORY:jade/lang/sl
 SL0SPEC     =   jade/lang/sl/SL0Parser.jj
 
+SLFLAGS     =   -OUTPUT_DIRECTORY:jade/content/lang/sl
+SLSPEC      =   jade/content/lang/sl/SLParser.jj
+
 EXECS       = 	jade/Boot.java jade/core/Runtime.java
 IDLSPEC     =   fipa.idl
 ROOTCLASSES =	jade/core/FullAcc.java \
@@ -92,7 +95,7 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 
 ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
-		jade/content/lang/Codec.java \
+		jade/content/lang/sl/SLCodec.java \
 		jade/content/onto/ACLOntology.java \
 		jade/content/onto/BasicOntology.java \
 		jade/content/onto/Introspector.java \
@@ -142,6 +145,14 @@ SL0CLASSES =	jade/lang/sl/SL0Parser.java \
 		jade/lang/sl/ParseException.java \
 		jade/lang/sl/Token.java \
 		jade/lang/sl/TokenMgrError.java
+
+SLCLASSES =	jade/content/lang/sl/SLParser.java \
+		jade/content/lang/sl/SLParserConstants.java \
+		jade/content/lang/sl/SLParserTokenManager.java \
+		jade/content/lang/sl/ASCII_UCodeESC_CharStream.java \
+		jade/content/lang/sl/ParseException.java \
+		jade/content/lang/sl/Token.java \
+		jade/content/lang/sl/TokenMgrError.java
 
 IDLSTUBS    =   FIPA/AgentID.java \
 		FIPA/AgentIDHelper.java \
@@ -201,7 +212,7 @@ $(IDLSTUBS): $(IDLSPEC)
 	$(IDLCC) $<
 	@echo IDL files generated
 
-parsers: ACLParser SL0Parser
+parsers: ACLParser SL0Parser SLParser
 	@echo Parsers generated
 
 ACLParser: $(ACLCLASSES)
@@ -210,11 +221,17 @@ ACLParser: $(ACLCLASSES)
 SL0Parser: $(SL0CLASSES)
 	@echo SL0 Parser generated.
 
+SLParser: $(SLCLASSES)
+	@echo SL Parser generated.
+
 $(ACLCLASSES): $(ACLSPEC)
 	$(PARSERGEN) $(ACLFLAGS) $(ACLSPEC)
 
 $(SL0CLASSES): $(SL0SPEC)
 	$(PARSERGEN) $(SL0FLAGS) $(SL0SPEC)
+
+$(SLCLASSES): $(SLSPEC)
+	$(PARSERGEN) $(SLFLAGS) $(SLSPEC)
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
@@ -242,6 +259,7 @@ idlclean:
 jjclean:
 	rm -f $(ACLCLASSES)
 	rm -f $(SL0CLASSES)
+	rm -f $(SLCLASSES)
 
 batch:
 	rm -f $(BATCH_ALL)
@@ -254,6 +272,7 @@ batch:
 	echo >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
+	echo 'call $(PARSERGEN) $(subst /,\,$(SLFLAGS)) $(subst /,\,$(SLSPEC))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo '$(JC) -classpath . $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
 	echo '$(JC) -classpath .;$(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
