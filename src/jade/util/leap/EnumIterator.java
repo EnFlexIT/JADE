@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 import java.util.NoSuchElementException;
 import java.util.Enumeration;
+import jade.util.Logger;
 
 /**
  * Implementation of an Iterator constructed by an
@@ -70,7 +71,8 @@ public class EnumIterator implements Iterator {
      */
     public void remove() {
 	RuntimeException e = new RuntimeException("Unsupported Operation");
-	jade.util.Logger.println(e.getMessage());
+	Logger logger = Logger.getMyLogger(this.getClass().getName());
+	logger.log(Logger.WARNING,e.getMessage());
 	throw e;
     }
 
