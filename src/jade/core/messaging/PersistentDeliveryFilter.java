@@ -29,12 +29,38 @@ package jade.core.messaging;
 import jade.lang.acl.ACLMessage;
 
 
+/**
+   This interface can be used 
 
+*/
 public interface PersistentDeliveryFilter {
 
+    /**
+       The constant to specifiy an immediate failure notification
+       (i.e. no message buffering).
+    */
     static final long NOW = 0;
+
+    /**
+       The constant to specify no failure notification (i.e. message
+       buffering for infinitely long).
+    */
     static final long NEVER = -1;
 
+    /**
+       The application-specific method to control which messages are
+       to be buffered and for how long.
+
+       @param msg The undelivered ACL message, that is to be tested
+       against this filter and possibly buffered.
+       @return The delay, in milliseconds, within which the message is
+       to be delivered. If the message is still undelivered after that
+       delay, the delivery process aborts and a <code>failure</code>
+       message is sent back to the message originator. The specially
+       defined <code>NOW</code> and <code>NEVER</code> constants can
+       be used to request immediate abort or message storage for
+       unlimited time.
+    */
     long delayBeforeExpiration(ACLMessage msg);
 
 }
