@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.21  1998/10/25 23:54:30  rimassa
+  Added an 'implements Serializable' clause to support Agent code
+  downloading through RMI.
+
   Revision 1.20  1998/10/18 15:50:08  rimassa
   Method parse() is now deprecated, since ACLMessage class provides a
   fromText() static method.
@@ -118,6 +122,8 @@ package jade.core;
 
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.Serializable;
+
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -140,7 +146,7 @@ import jade.domain.FIPAException;
     (Behaviour, Scheduler)
 
 ****************************************************************/
-public class Agent implements Runnable, CommBroadcaster {
+public class Agent implements Runnable, Serializable, CommBroadcaster {
 
 
   // Agent Platform Life-Cycle states
