@@ -67,7 +67,7 @@ import jade.proto.FipaRequestResponderBehaviour;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-import jade.gui.DFGUI;
+import jade.tools.dfgui.DFGUI;
 import jade.gui.GUI2DFCommunicatorInterface;
 
 import jade.proto.FipaRequestInitiatorBehaviour;
@@ -435,22 +435,32 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		else
   		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
   		{
-  			try{
-			  gui.showStatusMsg("Deregister request Processed. Ready for new request");
-			  //this behaviour is never used to deregister an agent of this DF
-			  // but only to deregister a parent or an agent that was registered with
-			  // one of my parents or my children
-  			  if(dfd.getName().equals(df.this.getAID()))
-			    { 
-			      //I deregister myself from a parent
-			      removeParent(receiverDF);
-			    }
-  			  else
-			    {
-			      gui.removeSearchResult(dfd.getName());
-			    }
+  			try
+  			{
+  				gui.showStatusMsg("Deregister request Processed. Ready for new request");
+			    //this behaviour is never used to deregister an agent of this DF
+			    // but only to deregister a parent or an agent that was registered with
+			    // one of my parents or my children
+  			    if(dfd.getName().equals(df.this.getAID()))
+			      { 
+			        //I deregister myself from a parent
+			        removeParent(receiverDF);
+			      }
+  			    else
+			      {
+			        gui.removeSearchResult(dfd.getName());
+			      }
   			}catch (Exception e){
   			e.printStackTrace();// should never happen
+  			}
+  		}
+  		else 
+  		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.MODIFY))
+  		{
+  			try{
+  				gui.showStatusMsg("Modify request processed. Ready for new request");
+  			}catch(Exception e){
+  			e.printStackTrace();
   			}
   		}
 
@@ -869,7 +879,6 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	}
 	
 	
-	
 	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
 	{
@@ -938,8 +947,13 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				else 
 				{
 					// Modify the description of an agent with another DF
-					// The agent whose description has to be modified should be this DF --> MODIFY FEDERATION
-				    //					modifyDFData(e.dfName, e.dfd);
+					try{
+						gui.showStatusMsg("Process your request & waiting for result..");
+						addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName, FIPAAgentManagementOntology.MODIFY, e.dfd,null,gui));
+					}catch(FIPAException fe1){
+						fe1.printStackTrace();
+					}//it should never happen
+		 			catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
 		  case DFGuiEvent.SEARCH:
