@@ -257,7 +257,7 @@ public class BEReplicationService extends BaseService {
 
     private class OutgoingCommandFilter implements Filter {
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -284,6 +284,9 @@ public class BEReplicationService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 
@@ -334,7 +337,7 @@ public class BEReplicationService extends BaseService {
 
     private class IncomingCommandFilter implements Filter {
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -349,6 +352,9 @@ public class BEReplicationService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 	private void handleKillMasterReplica(VerticalCommand cmd) throws IMTPException, ServiceException {
