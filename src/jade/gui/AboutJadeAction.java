@@ -105,9 +105,7 @@ public class AboutJadeAction extends AbstractAction
         gridbag.setConstraints(imagePanel,c);
         theCont.add(imagePanel);
        
-        //label = new JLabel("Version 1.3");
-        String CVSname = "$Name$";
-        label = new JLabel(CVSname);
+        label = new JLabel("Version 1.3");
         label.setForeground(dark_blue);
 				c.ipady = 1;
 				c.gridwidth = 1;
