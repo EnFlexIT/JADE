@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.28  1999/03/07 22:51:43  rimassa
+  Added a debugging printout.
+
   Revision 1.27  1999/03/03 16:07:45  rimassa
   Added a getContainerFromAgent() method.
   Added methods to dispatch a suspend()/resume() request to the
@@ -322,6 +325,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       throw new NotFoundException("DeadAgent failed to find " + name);
     AgentContainer ac = ad.getContainer();
     String containerName = getContainerName(ac);
+    if(containerName == null)
+      System.out.println("*********** " + name + " IS NULL *************");
     AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
     platformAgents.remove(name.toLowerCase());
 
