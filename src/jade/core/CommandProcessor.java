@@ -26,27 +26,33 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
+// We use Hashtables since we need synchronized access
+import java.util.Hashtable; 
 
 /**
-
    Processes JADE kernel-level commands, managing a filter/sink system
    to support dynamically configurable platform services.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
+   @author Giovanni Caire - TILAB
 */
 public class CommandProcessor {
+		private Filter firstDownFilter;
+		private Filter firstUpFilter;
+		
+    private final Hashtable downSinks;
+    private final Hashtable upSinks;
+		private SinksFilter lastDownFilter;
+		private SinksFilter lastUpFilter;
+
 
     public CommandProcessor() {
-	inFilters = new LinkedList();
-	outFilters = new LinkedList();
-	sourceSinks = new HashMap();
-	targetSinks = new HashMap();
-	updateFiltersArray();
+			downSinks = new Hashtable();
+			upSinks = new Hashtable();
+    	lastDownFilter = new SinksFilter(downSinks);
+    	lastUpFilter = new SinksFilter(upSinks);
+    	firstDownFilter = lastDownFilter;
+    	firstUpFilter = lastUpFilter;
     }
 
 
@@ -57,37 +63,91 @@ public class CommandProcessor {
        @param direction Whether to add this filter to the outgoing or
        incoming filter chain.
     */
-    public synchronized void addFilter(Filter f, boolean direction) {
-
-	// FIXME: How do we know the right position for this filter in
-	// the filter chain?
-
+    public void addFilter(Filter f, boolean direction) {
 	if(direction == Filter.INCOMING) {
-	    inFilters.add(f);
+		firstUpFilter = insertFilter(f, firstUpFilter);
 	}
 	else {
-	    outFilters.add(f);
+		firstDownFilter = insertFilter(f, firstDownFilter);
 	}
-
-	updateFiltersArray();
     }
 
+    /**
+       Insert a Filter in the chain started by <code>first</code>.
+       @return The Filter at the beginning of the chain (may have
+       changed)
+     */
+    private synchronized Filter insertFilter(Filter f, Filter first) {
+    	if (f != null) {
+	  		if (f.getPreferredPosition() < first.getPreferredPosition()) {
+	  			// Insert at the beginning of the filter chain
+	  			f.setNext(first);
+	  			return f;
+	  		}
+	  		else {
+	  			Filter current = first;
+	  			Filter next = current.getNext();
+	  			while (true) {
+			  		if (f.getPreferredPosition() < next.getPreferredPosition()) {
+			  			// Insert between current and next
+			  			f.setNext(next);
+			  			current.setNext(f);
+			  			break;
+			  		}
+			  		else {
+			  			current = next;
+			  			next = current.getNext();
+			  		}
+	  			}
+	  		}
+    	}
+    	return first;
+    }
+    
     /**
        Remove a filter from the filter chain.
 
        @param f The filter to remove.
     */
-    public synchronized void removeFilter(Filter f, boolean direction) {
+    public void removeFilter(Filter f, boolean direction) {
 	if(direction == Filter.INCOMING) {
-	    inFilters.remove(f);
+		firstUpFilter = removeFilter(f, firstUpFilter);
 	}
 	else {
-	    outFilters.remove(f);
+		firstDownFilter = removeFilter(f, firstDownFilter);
 	}
-
-	updateFiltersArray();
     }
 
+    /**
+       Remove a Filter from the chain started by <code>first</code>.
+       @return The Filter at the beginning of the chain (may have
+       changed)
+     */
+    private synchronized Filter removeFilter(Filter f, Filter first) {
+    	if (f != null) {
+	  		if (f.equals(first)) {
+	  			// Remove the first element of the filter chain
+	  			return first.getNext();
+	  		}
+	  		else {
+	  			Filter current = first;
+	  			Filter next = current.getNext();
+	  			while (true) {
+			  		if (f.equals(next)) {
+			  			// Remove next
+			  			current.setNext(next.getNext());
+			  			break;
+			  		}
+			  		else {
+			  			current = next;
+			  			next = current.getNext();
+			  		}
+	  			}
+	  		}
+    	}
+    	return first;
+    }
+    
     /**
        Register a command sink object to handle the given vertical commmand set.
 
@@ -106,12 +166,12 @@ public class CommandProcessor {
     */
     public synchronized void registerSink(Sink snk, boolean side, String serviceName) throws ServiceException {
 
-	Map sinks;
+	Hashtable sinks;
 	if(side == Sink.COMMAND_SOURCE) {
-	    sinks = sourceSinks;
+	    sinks = downSinks;
 	}
 	else {
-	    sinks = targetSinks;
+	    sinks = upSinks;
 	}
 	sinks.put(serviceName, snk);
     }
@@ -131,12 +191,12 @@ public class CommandProcessor {
     */
     public synchronized void deregisterSink(boolean side, String serviceName) throws ServiceException {
 	
-	Map sinks;
+	Hashtable sinks;
 	if(side == Sink.COMMAND_SOURCE) {
-	    sinks = sourceSinks;
+	    sinks = downSinks;
 	}
 	else {
-	    sinks = targetSinks;
+	    sinks = upSinks;
 	}
 	
 	sinks.remove(serviceName);
@@ -151,29 +211,8 @@ public class CommandProcessor {
        @param cmd The <code>VerticalCommand</code> object to process.
     */
     public Object processOutgoing(VerticalCommand cmd) {
-
-	// FIXME: Should manage the blocking and skipping filter states...
-
-	// Pass the command through every outgoing filter
-	Filter[] arr = outFiltersArray;
-	for(int i = 0; i < arr.length; i++) {
-	    Filter f = arr[i];
-
-	    // Give each filter a chance to veto the command
-	    boolean accepted = f.accept(cmd);
-	    if(!accepted) {
-				// Vetoed command
-				return null;
-	    }
-	}
-
-	Sink s = (Sink)sourceSinks.get(cmd.getService());
-	if(s != null) {
-	    s.consume(cmd);
-	}
-
-	return cmd.getReturnValue();
-
+    	firstDownFilter.filter(cmd);
+    	return cmd.getReturnValue();
     }
 
     /**
@@ -185,59 +224,35 @@ public class CommandProcessor {
        @param cmd The <code>VerticalCommand</code> object to process.
     */
     public Object processIncoming(VerticalCommand cmd) {
-	// FIXME: Should manage the blocking and skipping filter states...
-
-	// Pass the command through every outgoing filter
-	Filter[] arr = inFiltersArray;
-	for(int i = 0; i < arr.length; i++) {
-	    Filter f = arr[i];
-
-	    // Give each filter a chance to veto the command
-	    boolean accepted = f.accept(cmd);
-	    if(!accepted) {
-				// Vetoed command
-				return null;
-	    }
-	}
-
-	Sink s = (Sink)targetSinks.get(cmd.getService());
-	if(s != null) {
-	    s.consume(cmd);
-	}
-
-	return cmd.getReturnValue();
-
+    	firstUpFilter.filter(cmd);
+    	return cmd.getReturnValue();
     }
 
-
-    private final List inFilters;
-    private final List outFilters;
-    private final Map sourceSinks;
-    private final Map targetSinks;
-
-
-    // Array representation of the filter chains, cached to allow concurrent iteration.
-    private Filter[] inFiltersArray;
-    private Filter[] outFiltersArray;
-
-
-    private void updateFiltersArray() {
-	inFiltersArray = new Filter[inFilters.size()];
-	Object[] objs = inFilters.toArray();
-
-	// Copy the elements
-	for(int i = 0; i < objs.length; i++) {
-	    inFiltersArray[i] = (Filter)objs[i];
-	}
-
-	outFiltersArray = new Filter[outFilters.size()];
-	objs = outFilters.toArray();
-
-	// Copy the elements
-	for(int i = 0; i < objs.length; i++) {
-	    outFiltersArray[i] = (Filter)objs[i];
-	}
-
-    }
-
+	/**
+	  Inner class SinksFilter.
+	  This class makes the set of sinks in a given direction
+	  look like a single filter that always stands at the end of 
+	  the filter chain.
+	*/
+	private class SinksFilter extends Filter {
+		private Hashtable mySinks;
+		
+		private SinksFilter(Hashtable ht) {
+			mySinks = ht;
+			preferredPosition = LAST+1;
+		}
+		
+		protected boolean accept(VerticalCommand cmd) {
+			String service = cmd.getService();
+			if (service != null) {
+				Sink s = (Sink) mySinks.get(service);
+				if (s != null) {
+    			//System.out.println("Sink "+s+" consuming command "+cmd.getName());
+					s.consume(cmd);
+				}
+			}
+			// Do not propagate since this is always the last filter in the chain
+			return false;
+		}
+	} // END of inner class SinksFilter	
 }
