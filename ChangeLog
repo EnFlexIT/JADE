@@ -23,6 +23,7 @@ ADD-ONS:
 	Sergi Robles from University of Barcelona)
 - Added new add-on: MTP implementation based on JMS (Edward Curry)
 - LEAP ADD-ON for running JADE agents on cell phones and PDAs:
+	- Unified ProfileImpl class between JADE and JADE-LEAP
 	- Modified default BackEnd-FrontEnd communication using two sockets
   - big improvement of performance in read/write operations on the sockets
 	- Added support for keep-alive packets between FrontEnd and BackEnd
@@ -31,8 +32,10 @@ ADD-ONS:
 	- Added support for sending the FAILURE notification for messages that are buffered 
 	by a BackEnd container whose FrontEnd is disconnected when the destination 
 	agent dies
+	- Added jade.content.frame package: super compact support for creating 
+	content expressions
 	- Added ANT target to minimize a midp application
-	- Hardly improved communication performances between different containers 
+	- Highly improved communication performances between different containers 
 	in the same JVM
 	- Simplified configuration when multiple ICPs have to be installed
 	- Changed name of BackEnd containers so that it appears clearly that they
@@ -45,6 +48,7 @@ ADD-ONS:
   - Improved exception reporting
   - Removed deadlock on flushing	
 - Added link to JADEX add-on (version 0.9 - 19th September 2003, Lars Braubach, Alexander Pokahr)
+- Added Beangenerator add-on (Chris van Aart - University of Amsterdam)
 - misc add-on:
   - JADEPlatformTest: Modified to probe for the new ServiceManagerRMI 
   interface in the RMI Registry.
@@ -125,6 +129,7 @@ OTHERS:
 	
 DOCUMENTATION:
 - Added the official "JADE-programming Tutorial for Beginners"
+- Completely revisited Javadoc APIs
 - Added section on fault tolerance and Main Container replication in the 
 	JADE Administrator's guide.
 - Added section on the Persistent delivery service in the JADE
