@@ -1,6 +1,6 @@
 # Makefile for JADE project
 
-VERSION    = 0.99b3
+VERSION    = 1.0
 ARCHIVE    = JADE
 
 ROOTDIR = $(shell pwd)
@@ -8,7 +8,7 @@ ROOTNAME = $(shell basename $(ROOTDIR))
 DOCDIR  = $(ROOTDIR)/doc
 SRCDIR  = $(ROOTDIR)/src
 LIBDIR  = $(ROOTDIR)/lib
-LIBNAME = JADE.zip
+LIBNAME = JADE.jar
 EXAMPLESDIR = $(SRCDIR)/examples
 MAKE = make
 
@@ -44,7 +44,7 @@ examples:
 	@echo Examples built.
 
 clean:
-	rm -f *~ "#*#"
+	rm -f *~ "#*#" *.IOR
 	cd $(SRCDIR); $(MAKE) clean
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
