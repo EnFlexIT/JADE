@@ -63,7 +63,6 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 	{
 		ACLMessage msg;
 		MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
-		Location dest;
 
 		// Get a message from the queue or wait for a new one if queue is empty
 		msg = myAgent.receive(mt);
@@ -108,29 +107,12 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			// MOVE TO ANOTHER LOCATION				
 			else if (action.equals("move"))
 			{
-			        String content = msg.getContent();
-
-			        // Select the substring after the 'move' word. The destination location starts there
-				int locationPos = content.indexOf("move") + 4;
-				content = content.substring(locationPos);
-				msg.setContent(content);
-
-				// Set the language to 'SL0' and the ontology to 'jade-mobility-ontology'
-				msg.setLanguage(SL0Codec.NAME);
-				msg.setOntology(MobilityOntology.NAME);
-
-				// Get destination from the new content
-				try {
-				  dest = (Location)myAgent.extractContent(msg);
-				}
-				catch(FIPAException fe) {
-				  fe.printStackTrace();
-				  return;
-				}
-
-				System.out.println("They requested me to go to " + dest);
+			    String destination = st.nextToken();
+			    System.out.println();
+			    Location dest = new jade.domain.MobilityOntology.Location(destination, myAgent.getHap());
+			    System.out.println("They requested me to go to " + destination);
 				// Set reply sentence
-				replySentence = new String("\"OK moving to " + dest+" \"");
+				replySentence = new String("\"OK moving to " + destination+" \"");
 				// Prepare to move
 				((MobileAgent)myAgent).nextSite = dest;
 				myAgent.doMove(dest);
