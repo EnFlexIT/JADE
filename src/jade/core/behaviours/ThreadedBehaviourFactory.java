@@ -124,6 +124,7 @@ public class ThreadedBehaviourFactory {
 		}
 		
 		public void onStart() {
+			myBehaviour.setAgent(myAgent);
 			myBehaviour.setParent(new DummyCompositeBehaviour(myAgent, this));
 			myThread = new Thread(this);
 			myThread.setName(myAgent.getLocalName()+"#"+myBehaviour.getBehaviourName());
