@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.25  1999/02/15 11:43:21  rimassa
+  Fixed a bug: a case sensitive comparison was incorrectly made on agent
+  name during deregistration with AMS agent.
+
   Revision 1.24  1999/02/14 23:13:34  rimassa
   Removed an useless printout. Changed IOR file name from 'CSELT.IOR' to
   'JADE.IOR'.
@@ -504,9 +508,10 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     // Extract the agent name from the beginning to the '@'
     agentName = agentName.substring(0,agentName.indexOf('@'));
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
-    if(ad == null)
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null) {
       throw new jade.domain.UnableToDeregisterException();
+    }
     AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
     amsd.setAPState(Agent.AP_DELETED);
   }
