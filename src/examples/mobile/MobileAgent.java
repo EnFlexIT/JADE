@@ -29,7 +29,7 @@ import java.util.Vector;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
+import java.util.Iterator;
 import jade.core.*;
 import jade.core.behaviours.*;
 
@@ -183,36 +183,8 @@ protected void afterClone() {
 
 	/////////////////////////////////
 	// GUI HANDLING
-
-	// MOBILE GUI EVENT 
-	private class MobGuiEvent extends GuiEvent
-	{
-		public Location destination;
-
-		public MobGuiEvent(Object source, int type, Location dest)
-		{
-			super(source, type);
-			this.destination = dest;
-		}
-	}
 		
-	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT OPERATIONS 	
-	public void postMoveEvent(Object source, Location dest)
-	{
-		MobGuiEvent ev = new MobGuiEvent(source, MOVE_EVENT, dest);
-		postGuiEvent(ev);
-	}
-
-	public void postCloneEvent(Object source, Location dest)
-	{
-		MobGuiEvent ev = new MobGuiEvent(source, CLONE_EVENT, dest);
-		postGuiEvent(ev);
-	}
-
-        public void postSimpleEvent(int eventType) {
-	  MobGuiEvent ev = new MobGuiEvent(null, eventType, null);
-	  postGuiEvent(ev);
-	}
+	
 	
 	// AGENT OPERATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
@@ -225,14 +197,16 @@ protected void afterClone() {
 			doDelete();
 			break;
 		case MOVE_EVENT:
-			nextSite = (Location)(((MobGuiEvent)ev).destination);
+      Iterator moveParameters = ev.getAllParameter();
+      nextSite =(Location)moveParameters.next();
 			doMove(nextSite);
 			break;
 		case CLONE_EVENT:
-			nextSite = (Location)(((MobGuiEvent)ev).destination);
+			Iterator cloneParameters = ev.getAllParameter();
+			nextSite =(Location)cloneParameters.next();
 			doClone(nextSite,"clone"+cnt+"of"+getName());
 			break;
-   	        case STOP_EVENT:
+   	case STOP_EVENT:
 		  stopCounter();
 		  break;
 		case CONTINUE_EVENT:
@@ -246,5 +220,4 @@ protected void afterClone() {
 	}
 
 }
-
 

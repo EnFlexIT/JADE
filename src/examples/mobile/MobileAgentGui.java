@@ -38,6 +38,7 @@ import java.io.*;
 
 import jade.core.*;
 import jade.domain.MobilityOntology;
+import jade.gui.GuiEvent;
 
 /**
  * This is the GUI of the MobileAGent. Becuase in Java a new Thread is spawn
@@ -190,7 +191,10 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		    dest = availableSiteListModel.getElementAt(sel);
 		  else
 		    dest = availableSiteListModel.getElementAt(0);
-		  myAgent.postMoveEvent((Object) this, dest);
+              
+		  GuiEvent ev = new GuiEvent((Object) this,myAgent.MOVE_EVENT);
+		  ev.addParameter(dest);
+      myAgent.postGuiEvent(ev);	 
 		}
 		// CLONE
 		else if      (command.equalsIgnoreCase(CLONELABEL)) {
@@ -200,20 +204,27 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		    dest = availableSiteListModel.getElementAt(sel);
 		  else
 		    dest = availableSiteListModel.getElementAt(0);
-		  myAgent.postCloneEvent((Object) this, dest);
+		  GuiEvent ev = new GuiEvent((Object) this, myAgent.CLONE_EVENT);
+		  ev.addParameter(dest);
+      myAgent.postGuiEvent(ev);
+
 		}
 		// EXIT
 		else if (command.equalsIgnoreCase(EXITLABEL)) {
-			myAgent.postSimpleEvent(myAgent.EXIT);
+      GuiEvent ev = new GuiEvent(null,myAgent.EXIT);
+			myAgent.postGuiEvent(ev);
 		}
 		else if (command.equalsIgnoreCase(PAUSELABEL)) {
-		  myAgent.postSimpleEvent(myAgent.STOP_EVENT);
+      GuiEvent ev = new GuiEvent(null,myAgent.STOP_EVENT);
+		  myAgent.postGuiEvent(ev);
 		}
 		else if (command.equalsIgnoreCase(CONTINUELABEL)) {
-		  myAgent.postSimpleEvent(myAgent.CONTINUE_EVENT);
+		     GuiEvent ev = new GuiEvent(null,myAgent.CONTINUE_EVENT);
+		     myAgent.postGuiEvent(ev);
 		}
 		else if (command.equalsIgnoreCase(REFRESHLABEL)) {
-		  myAgent.postSimpleEvent(myAgent.REFRESH_EVENT);
+		     GuiEvent ev = new GuiEvent(null,myAgent.REFRESH_EVENT); 
+         myAgent.postGuiEvent(ev);
 		}
 	}
 	
