@@ -45,7 +45,7 @@ public class ReplySender extends OneShotBehaviour{
 	
 		public static final int NO_REPLY_SENT = -1;
 		private int ret;
-		private String ResponseKey,RequestKey;
+		private String replyKey,requestKey;
 
  /**
   *  Constructor.
@@ -66,28 +66,25 @@ public ReplySender(Agent a,String key_response,String key_request,DataStore ds){
   * @param key_request DataStore's key where stored the message to respond
  **/ 
 
-public ReplySender(Agent a,String key_response,String key_request){
+public ReplySender(Agent a,String key_reply,String key_request){
 		super(a);
-	  ResponseKey=key_response;
-	  RequestKey=key_request;	
+	  replyKey=key_reply;
+	  requestKey=key_request;	
 }
 	
 public void onStart(){
 	ret=NO_REPLY_SENT;
 }
 
-
-
-
 public void action(){
 	DataStore ds = getDataStore();
-	ACLMessage response = (ACLMessage)ds.get(ResponseKey);
-	if (response != null) {
-			ACLMessage receivedMsg = (ACLMessage) ds.get(RequestKey);
-			if(receivedMsg!=null) {
-			  prepareReply(receivedMsg,response);
+	ACLMessage reply = (ACLMessage)ds.get(replyKey);
+	if (reply != null) {
+			ACLMessage request = (ACLMessage) ds.get(requestKey);
+			if(request!=null) {
+			  sendReply(request,reply);
+				ret = reply.getPerformative();
 			}		
-			ret = response.getPerformative();
 	}
 }
  public int onEnd() {
@@ -96,7 +93,7 @@ public void action(){
 
  
  
-private void prepareReply(ACLMessage message,ACLMessage reply){
+private void sendReply(ACLMessage message,ACLMessage reply){
 
                         //set the conversationId
 		
