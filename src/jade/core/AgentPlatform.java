@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1999/03/09 12:59:14  rimassa
+  Added some String constants to represent container names.
+  Added a getAddress() method.
+
   Revision 1.8  1999/02/03 10:05:44  rimassa
   Changed addContainer() signature: now it returns a String containing
   the IIOP address (in IOR or URL format).
@@ -38,8 +42,14 @@ import java.rmi.RemoteException;
 
 ************************************************************************/
 public interface AgentPlatform extends AgentContainer {
+
+  public static final String MAIN_CONTAINER_NAME = "Front-End";
+  public static final String AUX_CONTAINER_NAME = "Container-";
+
+  public String getAddress() throws RemoteException;
+
   public String addContainer(AgentContainer ac) throws RemoteException;
-  public void removeContainer(AgentContainer ac) throws RemoteException;
+  public void removeContainer(String name) throws RemoteException;
 
   public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
   public void deadAgent(String name) throws RemoteException, NotFoundException;
