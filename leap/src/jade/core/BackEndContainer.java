@@ -367,11 +367,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       return super.createCertificateFolder(agentID);
   }
 
-    public void exit() {
+    /*public void exit() {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 
 	myCommandProcessor.processOutgoing(cmd);
-    }
+    }*/
 
   /**
    */
