@@ -95,7 +95,7 @@ class SL0Encoder {
     String actor = (String)f.getSlot(":actor");
     w.write("( action " + actor + " ");
     w.write("( " + name + " ");
-    for(int i = 0; i < terms.length; i++) {
+    for(int i = 1; i < terms.length; i++) {
       TermDescriptor current = terms[i];
       Object slotValue = f.getSlot(i);
       if(current.isComplex()) {
