@@ -564,7 +564,7 @@ Constructor with arguments.
 */
 public DFGUI(DFGUIAdapter a)
 {
-	super();
+	this();
 	setAdapter(a);
 
 }

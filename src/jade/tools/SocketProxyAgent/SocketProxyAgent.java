@@ -94,6 +94,7 @@ protected void takeDown(){
 public synchronized void log(String str) {
   try {
     logFile.write(str,0,str.length());
+    logFile.flush();
   } catch (IOException e) {
     e.printStackTrace();
     doDelete();
@@ -157,7 +158,7 @@ class Server extends Thread {
     try {
       while (true) {
 	client_socket = listen_socket.accept();
-	((SocketProxyAgent)myAgent).log("New Connection with "+client_socket.getInetAddress().toString()+" on remote port "+client_socket.getPort());
+	((SocketProxyAgent)myAgent).log("\nNew Connection with "+client_socket.getInetAddress().toString()+" on remote port "+client_socket.getPort());
 	c = new Connection(client_socket,myAgent,myOnlyReceivers);
       }
     } catch (IOException e) {e.printStackTrace(); myAgent.doDelete();}
