@@ -24,6 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 /**
+This interface is used by the JADE internal timing system to execute 
+an action scheduled after a given amount of time. It should not
+be used by application developers. 
 @author Giovanni Caire - TILAB
 */
 public interface TimerListener {

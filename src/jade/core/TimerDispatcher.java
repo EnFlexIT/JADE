@@ -27,6 +27,8 @@ import jade.util.leap.SortedSet;
 import jade.util.leap.SortedSetImpl;
 
 /**
+This class implements the JADE internal timing system. It should not
+be used by application developers.
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
