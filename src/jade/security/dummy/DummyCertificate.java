@@ -82,5 +82,12 @@ public class DummyCertificate implements Credentials,
         public JADEPrincipal getOwner() {
           return null;
         }
-      
+
+        public byte[] encode() {
+          return null;
+        }
+
+        public Credentials decode(byte[] enc) {
+          return null;
+        }
 }
