@@ -52,7 +52,7 @@ class MsgIndication
 
 	MsgIndication()
 	{
-		msg = new ACLMessage("");
+		msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 		direction = OUTGOING;
 		date = new Date();
 	}
