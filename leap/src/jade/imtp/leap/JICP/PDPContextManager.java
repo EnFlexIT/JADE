@@ -33,11 +33,14 @@ public interface PDPContextManager {
 	public static final String MSISDN = "msisdn";
 	public static final String USERNAME = "username";
 	public static final String PASSWORD = "password";
+	public static final String LOCATION = "location";
 	
 	public static interface Listener {
 		void handlePDPContextClosed(String msisdn);
 	}
 	
+  void init(Properties p) throws Exception;
+  
   void registerListener(Listener l);
   
   Properties getPDPContextInfo(InetAddress addr);
