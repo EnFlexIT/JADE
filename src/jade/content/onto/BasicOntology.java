@@ -45,15 +45,15 @@ public class BasicOntology extends Ontology {
   }
   
   // Primitive types names
- 	public static final String         STRING = "String";
-  public static final String         FLOAT = "Float";
-  public static final String         INTEGER = "Integer";
-  public static final String         BOOLEAN = "Boolean";
-  public static final String         DATE = "Date";
+ 	public static final String         STRING = "BO_String";
+  public static final String         FLOAT = "BO_Float";
+  public static final String         INTEGER = "BO_Integer";
+  public static final String         BOOLEAN = "BO_Boolean";
+  public static final String         DATE = "BO_Date";
     
   // Aggregate types names
-  public static final String         SEQUENCE = "Sequence";
-  public static final String         SET = "Set";
+  public static final String         SEQUENCE = "BO_Sequence";
+  public static final String         SET = "BO_Set";
     
   // Content element list 
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;

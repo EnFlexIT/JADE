@@ -149,7 +149,7 @@ import jade.core.CaseInsensitiveString;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class Ontology {
-    private Ontology[]   base = null;
+    private Ontology[]   base = new Ontology[0];
     private String       name = null;
     private Introspector introspector = null;
     
@@ -313,6 +313,8 @@ public class Ontology {
             if (searchInBase) {
             	for (int i = 0; i < base.length; ++i) {
             		try {
+            			if (base[i] == null)
+            				System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
                 	ret = base[i].getSchema(name);
                 	if (ret != null) {
                 		return ret;
@@ -490,7 +492,7 @@ public class Ontology {
 					return;
 				}
 			}
-			else if (attrValue instanceof AbsCommunicativeAct) {
+			else if (abs instanceof AbsCommunicativeAct) {
 				if (attrValue instanceof AbsContentElement) {
 					((AbsCommunicativeAct) abs).set(attrName, (AbsContentElement) attrValue);
 					return;

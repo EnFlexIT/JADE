@@ -57,7 +57,8 @@ public class ReflectiveIntrospector implements Introspector {
             if (schema == null) {
             	throw new UnknownSchemaException();
             }
-            //DEBUG System.out.println("Schema is: "+schema);
+            //DEBUG 
+            //System.out.println("Schema is: "+schema);
             AbsObject    abs = schema.newInstance();
             
             Method[]     methods = javaClass.getMethods();
@@ -73,9 +74,11 @@ public class ReflectiveIntrospector implements Introspector {
                 String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
                 if (schema.containsSlot(attributeName)) {
-            			//DEBUG System.out.println("Handling attribute "+attributeName);
+            			//DEBUG 
+                	//System.out.println("Handling attribute "+attributeName);
                   AbsObject attributeValue = invokeGetMethod(referenceOnto, m, obj);
-            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
+            			//DEBUG 
+                  //System.out.println("Attribute value is: "+attributeValue);
 
                   if (attributeValue != null) {
                   	Ontology.setAttribute(abs, attributeName, attributeValue);
