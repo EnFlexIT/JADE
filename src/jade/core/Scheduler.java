@@ -158,9 +158,11 @@ class Scheduler implements Serializable {
     if(index != -1) {
       readyBehaviours.remove(b);
       if(index < currentIndex)
-	--currentIndex;
-      if(currentIndex < 0)
-	currentIndex = 0;
+	    --currentIndex;
+      //if(currentIndex < 0)
+	  //  currentIndex = 0;
+	  else if (index == currentIndex && currentIndex == readyBehaviours.size())
+	  	currentIndex = 0;
     }
     return index != -1;
   }
