@@ -43,6 +43,7 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
   public static final String QUERYAGENTSONLOCATION = "query-agents-on-location";
   public static final String QUERYAGENTSONLOCATION_LOCATION = "location";
   
+  public static final String SHUTDOWNPLATFORM = "shutdown-platform";
   public static final String KILLCONTAINER = "kill-container";
   public static final String KILLCONTAINER_CONTAINER = "container";
   public static final String KILLCONTAINER_PASSWORD = "password";
