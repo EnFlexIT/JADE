@@ -58,43 +58,44 @@ public interface PersistentDeliverySlice extends Service.Slice {
        This command name represents the action of activating a message
        store for undelivered ACL messages, on the specified node.
     */
-    static final String ACTIVATE_MESSAGE_STORE = "Activate-Message-Store";
+    //static final String ACTIVATE_MESSAGE_STORE = "Activate-Message-Store";
 
     /**
        This command name represents the action of deactivating a message
        store for undelivered ACL messages, on the specified node.
     */
-    static final String DEACTIVATE_MESSAGE_STORE = "Deactivate-Message-Store";
+    //static final String DEACTIVATE_MESSAGE_STORE = "Deactivate-Message-Store";
 
     /**
        This command name represents the action of adding a given message
        template to a message store, so that undelivered ACL messages
        addressed to that ID will be retained.
     */
-    static final String REGISTER_MESSAGE_TEMPLATE = "Register-Message-Template";
+    //static final String REGISTER_MESSAGE_TEMPLATE = "Register-Message-Template";
 
     /**
        This command name represents the action of removing a given
        message template from a message store. This stops the retention
        of undelivered ACL messages for that agent ID.
     */
-    static final String DEREGISTER_MESSAGE_TEMPLATE = "Deregister-Message-Template";
+    //static final String DEREGISTER_MESSAGE_TEMPLATE = "Deregister-Message-Template";
 
 
     // Constants for the names of horizontal commands associated to methods
-    static final String H_ACTIVATEMSGSTORE = "1";
-    static final String H_DEACTIVATEMSGSTORE = "2";
-    static final String H_REGISTERTEMPLATE = "3";
-    static final String H_DEREGISTERTEMPLATE = "4";
+    //static final String H_ACTIVATEMSGSTORE = "1";
+    //static final String H_DEACTIVATEMSGSTORE = "2";
+    //static final String H_REGISTERTEMPLATE = "3";
+    //static final String H_DEREGISTERTEMPLATE = "4";
     static final String H_STOREMESSAGE = "5";
     static final String H_FLUSHMESSAGES = "6";
 
 
-    void activateMsgStore(String name) throws IMTPException, NameClashException;
+    /*void activateMsgStore(String name) throws IMTPException, NameClashException;
     void deactivateMsgStore(String name) throws IMTPException, NotFoundException;
 
     void registerTemplate(String storeName, MessageTemplate mt) throws IMTPException, NotFoundException, NameClashException;
     void deregisterTemplate(String storeName, MessageTemplate mt) throws IMTPException, NotFoundException;
+    */
 
     boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, NotFoundException;
     void flushMessages(AID receiver) throws IMTPException;

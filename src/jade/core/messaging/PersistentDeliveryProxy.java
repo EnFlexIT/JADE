@@ -51,7 +51,7 @@ import jade.lang.acl.MessageTemplate;
 public class PersistentDeliveryProxy extends Service.SliceProxy implements PersistentDeliverySlice {
 
 
-    public void activateMsgStore(String name) throws IMTPException, NameClashException {
+    /*public void activateMsgStore(String name) throws IMTPException, NameClashException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_ACTIVATEMSGSTORE, NAME, null);
 	    cmd.addParam(name);
@@ -147,7 +147,7 @@ public class PersistentDeliveryProxy extends Service.SliceProxy implements Persi
 	catch(ServiceException se) {
 	    throw new IMTPException("Unable to access remote node", se);
 	}
-    }
+    }*/
 
     public boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, NotFoundException {
 	try {

@@ -62,8 +62,6 @@ class PersistentDeliveryManager {
 	return theInstance;
     }
 
-    private static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
-
     // How often to check for expired deliveries
     private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
 
@@ -123,104 +121,6 @@ class PersistentDeliveryManager {
     } // End of DeliveryItem class
 
 
-    private class DeliveryItemProcessor implements Runnable {
-
-	public DeliveryItemProcessor(long t) {
-	    period = t;
-	    myThread = new Thread(this, "Persistent Delivery Service -- Delivery Processor Thread");
-	    enqueuedItems = new HashMap();
-	}
-
-	public void run() {
-	    while(active) {
-
-		// Dequeue and send a message for every different receiver
-		// Wait forever if nothing to send
-		// Wait for a while if there are more messages for the same receiver
-		synchronized(this) {
-		    try {
-			while(enqueuedItems.isEmpty()) {
-			    wait();
-			}
-
-			Object[] keys = enqueuedItems.keySet().toArray();
-			for(int i = 0; i < keys.length; i++) {
-			    List l = (List)enqueuedItems.get(keys[i]);
-			    DeliveryItem item = (DeliveryItem)l.remove(0);
-
-			    try {
-				storage.delete(item.getMessage(), item.getReceiver());
-			    }
-			    catch(IOException ioe) {
-				ioe.printStackTrace();
-			    }
-
-			    // Send either the stored message or a
-			    // failure if the due date has passed
-			    MessageManager.Channel ch = item.getChannel();
-			    if(item.isExpired()) {
-				ch.notifyFailureToSender(item.getMessage(), item.getReceiver(), new InternalError("Message Undelivered after its due date"), true);
-			    }
-			    else {
-				// Set the due date as a user defined property of the message.
-				ACLMessage msg = item.getMessage();
-				Date dueDate = item.getDueDate();
-				if(dueDate != null) {
-				    msg.addUserDefinedParameter(ACL_USERDEF_DUE_DATE, Long.toString(dueDate.getTime()));
-				}
-				myMessageManager.deliver(item.getMessage(), item.getReceiver(), ch);
-			    }
-
-			    if(l.isEmpty()) {
-				enqueuedItems.remove(keys[i]);
-			    }
-			}
-		    }
-		    catch(InterruptedException ie) {
-			// Do nothing...
-		    }
-		}
-
-		// Wait a bit before scanning the list again...
-		try {
-		    Thread.sleep(period);
-		}
-		catch(InterruptedException ie) {
-		    // Do nothing...
-		}
-	    }
-	}
-
-	public void start() {
-	    active = true;
-	    myThread.start();
-	}
-
-	public void stop() {
-	    active = false;
-	    myThread.interrupt();
-	}
-
-	public synchronized void enqueue(DeliveryItem item) {
-	    AID id = item.getReceiver();
-	    List l = (List)enqueuedItems.get(id);
-	    if(l == null) {
-		l = new LinkedList();
-		enqueuedItems.put(id, l);
-	    }
-
-	    l.add(item);
-	    notifyAll();
-	}
-
-	private boolean active = false;
-	private long period;
-	private Thread myThread;
-
-	private Map enqueuedItems;
-
-    } // End of DeliveryItemProcessor class
-
 
     private class ExpirationChecker implements Runnable {
 
@@ -230,44 +130,23 @@ class PersistentDeliveryManager {
 	}
 
 	public void run() {
-	    while(active) {
-
-		try {
-		    synchronized(pendingMessages) {
-
-			// Scan all pending messages lists...
-			Object[] keys = pendingMessages.keySet().toArray();
-			for(int i = 0; i < keys.length; i++) {
-
-			    List l = (List)pendingMessages.get(keys[i]);
-			    Object[] items = l.toArray();
-
-			    for(int j = 0; j < items.length; j++) {
-
-				// Send all expired messages...
-				DeliveryItem item = (DeliveryItem)items[j];
-				if(item.isExpired()) {
-				    l.remove(item);
-				    enqueue(item);
-				}
-				else {
-				    l.remove(item);
-				    enqueue(item);
-				}
-			    }
-
-			    if(l.isEmpty()) {
-				pendingMessages.remove(keys[i]);
-			    }
-			}
-
-		    }
+    while(active) {
+			try {
 		    Thread.sleep(period);
-		}
-		catch(InterruptedException ie) {
-		    // Do nothing...
-		}
-	    }
+		    synchronized(pendingMessages) {
+					// Try to send all stored messages...
+				  // If the receiver still not exists and the due date has elapsed
+				  // the sender will get back a FAILURE
+					Object[] keys = pendingMessages.keySet().toArray();
+					for(int i = 0; i < keys.length; i++) {
+						flushMessages((AID) keys[i]);
+					}
+		    }
+			}
+			catch (InterruptedException ie) {
+				// Just do nothing
+			}
+    }
 	}
 
 	public void start() {
@@ -377,7 +256,7 @@ class PersistentDeliveryManager {
 
     }
 
-    public void storeMessage(String storeName, ACLMessage msg, AID receiver, long delay) throws IOException {
+    public void storeMessage(String storeName, ACLMessage msg, AID receiver, long dueDate) throws IOException {
 
 	// Store the ACL message and its receiver for later re-delivery...
 	synchronized(pendingMessages) {
@@ -387,30 +266,16 @@ class PersistentDeliveryManager {
 		pendingMessages.put(receiver, msgs);
 	    }
 
-	    // If a due date is present in the message, use it, otherwise use the passed delay
-	    String dueDate = msg.getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
-	    DeliveryItem item = null;
-	    if(dueDate != null) {
-		try {
-		    item = new DeliveryItem(msg, receiver, new Date(Long.parseLong(dueDate)), deliveryChannel);
-		}
-		catch(NumberFormatException nfe) {
-		    item = new DeliveryItem(msg, receiver, delay, deliveryChannel);
-		}
-	    }
-	    else {
-		item = new DeliveryItem(msg, receiver, delay, deliveryChannel);
-	    }
-
-	    storage.store(item.getMessage(), item.getReceiver(), item.getDueDate());
-	    msgs.add(item);
+	    storage.store(msg, receiver, new Date(dueDate));
+	    msgs.add(new DeliveryItem(msg, receiver, dueDate, deliveryChannel));
 	}
 
     }
 
-    public void flushMessages(AID receiver) {
+    public int flushMessages(AID receiver) {
 
 	// Send messages for this agent, if any...
+  int cnt = 0;
 	List l = null;
 	synchronized(pendingMessages) {
 	    l = (List)pendingMessages.remove(receiver);
@@ -420,18 +285,17 @@ class PersistentDeliveryManager {
 	    Iterator it = l.iterator();
 	    while(it.hasNext()) {
 		DeliveryItem item = (DeliveryItem)it.next();
-		enqueue(item);
+		retry(item);
+		cnt++;
 	    }
 	}
-
+	return cnt;
     }
 
     public synchronized void start() {
 
 	if(users == 0) {
-	    processor = new DeliveryItemProcessor(deliverPeriod);
 	    failureSender = new ExpirationChecker(sendFailurePeriod);
-	    processor.start();
 	    failureSender.start();
 	}
 
@@ -443,7 +307,6 @@ class PersistentDeliveryManager {
 	users--;
 
 	if(users == 0) {
-	    processor.stop();
 	    failureSender.stop();
 	}
     }
@@ -456,8 +319,15 @@ class PersistentDeliveryManager {
     private PersistentDeliveryManager() {
     }
 
-    private void enqueue(DeliveryItem item) {
-	processor.enqueue(item);
+    private void retry(DeliveryItem item) {
+			myMessageManager.deliver(item.getMessage(), item.getReceiver(), item.getChannel());
+	    // Also remove the message from the storage
+			try {
+				storage.delete(item.getMessage(), item.getReceiver());
+	    }
+	    catch(IOException ioe) {
+				ioe.printStackTrace();
+	    }
     }
 
 
@@ -485,13 +355,7 @@ class PersistentDeliveryManager {
     // messages and sends them after it expired
     private ExpirationChecker failureSender;
 
-    // The active object that sends out stored messages when it's time
-    // to do so, acting also as a bandwidth limiter towards messages
-    // receiver agents.
-    private DeliveryItemProcessor processor;
-
     // The component performing the actual storage and retrieval from
     // a persistent support
     private MessageStorage storage;
-
 }

@@ -69,12 +69,14 @@ import jade.util.leap.LinkedList;
 
 */
 public class PersistentDeliveryService extends BaseService {
+    
+	static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
 
     private static final String[] OWNED_COMMANDS = new String[] {
-	PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE,
+	/*PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE,
 	PersistentDeliverySlice.DEACTIVATE_MESSAGE_STORE,
 	PersistentDeliverySlice.REGISTER_MESSAGE_TEMPLATE,
-	PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE,
+	PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE*/
     };
 
 
@@ -124,18 +126,20 @@ public class PersistentDeliveryService extends BaseService {
     }
 
     public Sink getCommandSink(boolean side) {
-	if(side == Sink.COMMAND_SOURCE) {
+	/*if(side == Sink.COMMAND_SOURCE) {
 	    return senderSink;
 	}
 	else {
 	    return receiverSink;
-	}
+	}*/
+	return null;
     }
 
     public String[] getOwnedCommands() {
 	return OWNED_COMMANDS;
     }
 
+/*
     // This inner class handles the messaging commands on the command
     // issuer side, turning them into horizontal commands and
     // forwarding them to remote slices when necessary.
@@ -251,7 +255,6 @@ public class PersistentDeliveryService extends BaseService {
 
 	public void consume(VerticalCommand cmd) {
 		
-	    //	    try {
 		String name = cmd.getName();
 		if(name.equals(PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE)) {
 		    handleActivateMessageStore(cmd);
@@ -265,21 +268,6 @@ public class PersistentDeliveryService extends BaseService {
 		else if(name.equals(PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE)) {
 		    handleDeregisterMessageTemplate(cmd);
 		}
-		/************
-	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(imtpe);
-	    }
-	    catch(NotFoundException nfe) {
-		cmd.setReturnValue(nfe);
-	    }
-	    catch(NameClashException nce) {
-		cmd.setReturnValue(nce);
-	    }
-	    catch(ServiceException se) {
-		cmd.setReturnValue(new IMTPException("A Service Exception occurred", se));		
-	    }
-		***************/
 	}
 
 
@@ -325,8 +313,12 @@ public class PersistentDeliveryService extends BaseService {
 
 
     } // End of CommandTargetSink class
+*/
 
-
+    /**
+       Outgoing commanf FILTER.
+       Processes the NOTIFY_FAILURE command
+     */
     private class CommandOutgoingFilter implements Filter {
 
 	public boolean accept(VerticalCommand cmd) {
@@ -366,11 +358,13 @@ public class PersistentDeliveryService extends BaseService {
 	}
 
 	private boolean handleNotifyFailure(VerticalCommand cmd) throws IMTPException, ServiceException {
-
 	    Object[] params = cmd.getParams();
 	    ACLMessage msg = (ACLMessage)params[0];
 	    AID receiver = (AID)params[1];
 
+	    // FIXME: We should check if the failure is due to a "not found receiver"
+	    
+	    // Ask all slices whether the failed message should be stored
 	    Service.Slice[] slices = getAllSlices();
 	    for(int i = 0; i < slices.length; i++) {
 		try {
@@ -378,7 +372,8 @@ public class PersistentDeliveryService extends BaseService {
 		    boolean accepted = slice.storeMessage(null, msg, receiver);
 
 		    if(accepted) {
-			return false; // This will cause the NOTIFY_FAILURE command to be vetoed
+		    	// The message was stored --> Veto the NOTIFY_FAILURE command
+					return false;
 		    }
 		}
 		catch(Exception e) {
@@ -392,6 +387,10 @@ public class PersistentDeliveryService extends BaseService {
     } // End of CommandOutgoingFilter class
 
 
+    /**
+       Outgoing commanf FILTER.
+       Processes the INFORM_CREATED command
+     */
     private class CommandIncomingFilter implements Filter {
 
 	public boolean accept(VerticalCommand cmd) {
@@ -410,33 +409,50 @@ public class PersistentDeliveryService extends BaseService {
 		cmd.setReturnValue(se);
 	    }
 
-	    // Never veto a command
 	    return true;
 	}
 
 	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, ServiceException {
-
 	    Object[] params = cmd.getParams();
+	    final AID agentID = (AID)params[0];
 
-	    AID agentID = (AID)params[0];
-
-	    Service.Slice[] slices = getAllSlices();
-	    for(int i = 0; i < slices.length; i++) {
-		try {
-		    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
-		    slice.flushMessages(agentID);
-		}
-		catch(Exception e) {
-		    // Ignore it and try other slices...
-		}
-	    }
+	    // This happens on the main container only.
+	    // Requests all slices to flush the stored messages for the newly born agent.
+	    // Do it in a separated thread since the new agent has not been inserted 
+	    // in the GADT yet.
+	    Thread t = new Thread() {
+	    	public void run() {
+	    		// Wait a bit to be sure the new agent is in the GADT
+	    		try {
+	    			Thread.sleep(500);
+	    		}
+	    		catch (Exception e) {}
+	    		
+	    		try {
+				    Service.Slice[] slices = getAllSlices();
+				    for(int i = 0; i < slices.length; i++) {
+							try {
+							    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
+							    slice.flushMessages(agentID);
+							}
+							catch(Exception e) {
+							    // Ignore it and try other slices...
+							}
+				    }
+	    		}
+	    		catch (ServiceException se) {
+	    			se.printStackTrace();
+	    		}
+	    	}
+	    };
+	    t.start();
 	}
 
 	public void setBlocking(boolean newState) {
 	    // Do nothing. Blocking and Skipping not supported
 	}
 
-    	public boolean isBlocking() {
+	public boolean isBlocking() {
 	    return false; // Blocking and Skipping not implemented
 	}
 
@@ -452,17 +468,11 @@ public class PersistentDeliveryService extends BaseService {
 
 
     /**
-       Inner class for this service: this class receives commands from
-       service <code>Sink</code> and serves them, coordinating with
-       remote parts of this service through the <code>Slice</code>
-       interface (that extends the <code>Service.Slice</code>
-       interface).
-    */
+       The SLICE.
+     */
     private class ServiceComponent implements Service.Slice {
-
-
-	// Implementation of the Service.Slice interface
-
+	
+  // Implementation of the Service.Slice interface
 	public Service getService() {
 	    return PersistentDeliveryService.this;
 	}
@@ -482,7 +492,7 @@ public class PersistentDeliveryService extends BaseService {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
 
-		if(cmdName.equals(PersistentDeliverySlice.H_ACTIVATEMSGSTORE)) {
+		/*if(cmdName.equals(PersistentDeliverySlice.H_ACTIVATEMSGSTORE)) {
 		    GenericCommand gCmd = new GenericCommand(PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE, PersistentDeliverySlice.NAME, null);
 		    String name = (String)params[0];
 		    gCmd.addParam(name);
@@ -514,13 +524,14 @@ public class PersistentDeliveryService extends BaseService {
 		    gCmd.addParam(mt);
 
 		    result = gCmd;
-		}
-		else if(cmdName.equals(PersistentDeliverySlice.H_STOREMESSAGE)) {
+		}*/
+		if (cmdName.equals(PersistentDeliverySlice.H_STOREMESSAGE)) {
 		    String storeName = (String)params[0];
 		    ACLMessage msg = (ACLMessage)params[1];
 		    AID receiver = (AID)params[2];
 
-		    cmd.setReturnValue(new Boolean(storeMessage(storeName, msg, receiver)));
+		    boolean stored = storeMessage(storeName, msg, receiver);
+		    cmd.setReturnValue(new Boolean(stored));
 		}
 		else if(cmdName.equals(PersistentDeliverySlice.H_FLUSHMESSAGES)) {
 		    AID receiver = (AID)params[0];
@@ -536,26 +547,59 @@ public class PersistentDeliveryService extends BaseService {
 	    }
 	}
 
+	/**
+	   This is called following a message delivery failure to check 
+	   whether or not the message must be stored.
+	 */
 	private boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, ServiceException {
-
-	    long delay = messageFilter.delayBeforeExpiration(msg);
-	    if(delay != PersistentDeliveryFilter.NOW) {
+		boolean	firstTime = false;
+		long now = System.currentTimeMillis();
+		long dueDate = now; 
 		try {
-		    myManager.storeMessage(storeName, msg, receiver, delay);
-		    return true;
+			// If the due-date parameter is already set, this is a re-transmission 
+			// attempt --> Use the due-date value
+			String dd = msg.getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
+			dueDate = Long.parseLong(dd);
 		}
-		catch(IOException ioe) {
-		    throw new ServiceException("I/O Error in message storage", ioe);
+		catch (Exception e) {
+			// Due date not yet set (or unknown value)
+	    long delay = messageFilter.delayBeforeExpiration(msg);
+	    if (delay != PersistentDeliveryFilter.NOW) {
+	    	dueDate = (delay == PersistentDeliveryFilter.NEVER ? delay : now+delay);
+		    msg.addUserDefinedParameter(ACL_USERDEF_DUE_DATE, String.valueOf(dueDate));
+		    firstTime = true;
+	    }
 		}
-	    }
-	    else {
-		return false;
-	    }
-
+		
+		if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) { 
+			try {
+			    if (firstTime) {
+			    	log("Storing message\n"+msg+"\nDue date is "+dueDate, 1);
+			    }
+			    else {
+			    	log("Re-Storing message\n"+msg+"\nDue date is "+dueDate, 2);
+			    }
+			    myManager.storeMessage(storeName, msg, receiver, dueDate);
+			    return true;
+			}
+			catch(IOException ioe) {
+			    throw new ServiceException("I/O Error in message storage", ioe);
+			}
+    }
+    else {
+			return false;
+    }
 	}
 
+	/**
+	   This is called when a new agent is born to send him the stored 
+	   messages (if any)
+	 */
 	private void flushMessages(AID receiver) {
-	    myManager.flushMessages(receiver);
+	    int cnt = myManager.flushMessages(receiver);
+	    if (cnt > 0) {
+	    	log("Flushed "+cnt+" messages for agent "+receiver, 1);
+	    }
 	}
 
     } // End of ServiceComponent class
@@ -567,31 +611,6 @@ public class PersistentDeliveryService extends BaseService {
 	public long delayBeforeExpiration(ACLMessage msg) {
 	    return NOW;
 	}
-
-	/****
-
-	// Test configuration: require the :ontology slot to hold the
-	// name of the local container, and use :reply-by message slot
-	// to select the expiration time.
-	public long delayBeforeExpiration(ACLMessage msg) {
-
-	    if(msg.getOntology().equals(myContainer.getID().getName())) {
-		Date d = msg.getReplyByDate();
-		if(d != null) {
-		    long delay = d.getTime() - System.currentTimeMillis();
-		    return (delay > 0) ? delay : 0;
-		}
-		else {
-		    return NEVER;
-		}
-	    }
-	    else {
-		return NOW;
-	    }
-
-	}
-	***/
-
     } // End of DefaultMessageFilter class
 
 
@@ -612,6 +631,7 @@ public class PersistentDeliveryService extends BaseService {
 	    else {
 		messageFilter = new DefaultMessageFilter();
 	    }
+	    log("Using message filter of type "+messageFilter.getClass().getName(), 1);
 	}
 	catch(Exception e) {
 	    throw new ServiceException("Exception in message filter initialization", e);
@@ -633,10 +653,10 @@ public class PersistentDeliveryService extends BaseService {
     private final ServiceComponent localSlice = new ServiceComponent();
 
     // The command sink, source side
-    private final CommandSourceSink senderSink = new CommandSourceSink();
+    //private final CommandSourceSink senderSink = new CommandSourceSink();
 
     // The command sink, target side
-    private final CommandTargetSink receiverSink = new CommandTargetSink();
+    //private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     // The command filter, outgoing direction
     private final CommandOutgoingFilter outFilter = new CommandOutgoingFilter();
