@@ -111,7 +111,11 @@ public abstract class Profile {
 
     /**
      */
-    //protected abstract IMTPManager getIMTPManager() throws ProfileException;
+    protected abstract ResourceManager getResourceManager() throws ProfileException;
+
+    /**
+     */
+    protected abstract NotificationManager getNotificationManager() throws ProfileException;
 
     /**
      * Retrieve a String value from the configuration properties.

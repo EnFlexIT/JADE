@@ -47,7 +47,7 @@ public class Runtime {
     theInstance = new Runtime();
   }
 
-  //private ThreadGroup criticalThreads;
+  private ThreadGroup criticalThreads;
   private TimerDispatcher theDispatcher;
   private int activeContainers = 0;
   private boolean closeVM = false;
@@ -163,14 +163,14 @@ public class Runtime {
     if(activeContainers == 0) {
 
       // Set up group and attributes for time critical threads
-      //criticalThreads = new ThreadGroup("JADE time-critical threads");
-      //criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
+      criticalThreads = new ThreadGroup("JADE time-critical threads");
+      criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
 
       // Initialize and start up the timer dispatcher
       theDispatcher = new TimerDispatcher();
-      //Thread t = new Thread(criticalThreads, theDispatcher);
-      //t.setPriority(criticalThreads.getMaxPriority());
-      Thread t = ResourceManager.getThread(ResourceManager.CRITICAL, theDispatcher);
+      Thread t = new Thread(criticalThreads, theDispatcher);
+      t.setPriority(criticalThreads.getMaxPriority());
+      //Thread t = ResourceManager.getThread(ResourceManager.CRITICAL, theDispatcher);
       theDispatcher.setThread(t);
       theDispatcher.start();
 
@@ -183,10 +183,9 @@ public class Runtime {
   void endContainer() {
     --activeContainers;
     if(activeContainers == 0) {
-    	//theDispatcher.stop();
-      //ResourceManager.releaseResources();
+    	/*theDispatcher.stop();
       
-      /*try {
+      try {
 	criticalThreads.destroy();
       }
       catch(IllegalThreadStateException itse) {
@@ -196,7 +195,7 @@ public class Runtime {
       finally {
 	criticalThreads = null;
       }
-			*/
+      */
 			
       if(closeVM) {
       	Thread t = new Thread(new Runnable() {

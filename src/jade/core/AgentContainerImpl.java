@@ -91,6 +91,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // in this container
   private MobilityManager myMobilityManager;
   
+  // The Object managing Thread resources in this container
+  private ResourceManager myResourceManager;
+  
   // The Object managing all operations related to event notification
   // in this container
   private NotificationManager myNotificationManager;
@@ -164,7 +167,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       try {
 	RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
 	myMain.bornAgent(agentID, rp, myID); // RMI call
-	instance.powerUp(agentID, ResourceManager.USER_AGENTS);
+	instance.powerUp(agentID, myResourceManager);
       }
       catch(NameClashException nce) {
 	System.out.println("Agentname already in use:"+nce.getMessage());
@@ -450,8 +453,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
+      // Create the ResourceManager
+      myResourceManager = myProfile.getResourceManager();
+      
       // Create and initialize the NotificationManager
-      myNotificationManager = new RealNotificationManager();
+      myNotificationManager = myProfile.getNotificationManager();
       myNotificationManager.initialize(this, localAgents);
       
       // Create and initialize the MobilityManager.
@@ -461,11 +467,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Create the ACC.
       myACC = myProfile.getAcc();
 
-      // Initialize the Container ID and register to the platform
-      // FIXME: ContainerID should be modified so that to take
-      // a list of addresses
+      // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID("No-Name", addr);
+      
+      // Register to the platform. If myMain is the real MainContainerImpl
+      // this call also starts the AMS and DF
       myMain.register(this, myID);
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
@@ -523,7 +530,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	for(int i = 0; i < allLocalNames.length; i++) {
       	AID id = allLocalNames[i];
       	Agent agent = localAgents.get(id);
-      	agent.powerUp(id, ResourceManager.USER_AGENTS);
+      	agent.powerUp(id, myResourceManager);
     	}
     }
     catch (ProfileException pe) {
@@ -573,8 +580,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
 
+    // Releases Thread resources
+    myResourceManager.releaseResources();
     // Destroy the (now empty) thread groups
-
     //try {
     //  agentThreads.destroy();
     //}
@@ -585,8 +593,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //finally {
     //  agentThreads = null;
     //}
-
-
 
     // Notify the JADE Runtime that the container has terminated
     // execution

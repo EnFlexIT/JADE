@@ -32,7 +32,7 @@ package jade.core;
    Platform level events (e.g. container added/removed, agent 
    born/dead) are not considered by the notification manager as they
    are managed directly by the <code>MainContainerImpl</code>.
-   @see RealNotificationManager;
+   @see RealNotificationManager
    @author Giovanni Caire - TILAB
   */
 interface NotificationManager {

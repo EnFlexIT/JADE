@@ -23,84 +23,27 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-public class ResourceManager {
+/**
+   This is the interface that must be implemented by a class 
+   managing Thread resources on a <code>Container</code>
+   @see FullResourceManager
+   @author Giovanni Caire - TILAB
+ */
+interface ResourceManager {
+	// Constants identifying the types of Thread that can be 
+	// requested to the ResourceManager 
 	public static final int USER_AGENTS = 0;
 	public static final int SYSTEM_AGENTS = 1;
-	public static final int CRITICAL = 2;
-	
-  private static ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
-  private static ThreadGroup systemAgentThreads = new ThreadGroup("JADE Management Agents");
-  private static ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
-      
-      
-  static {
-      agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
-      systemAgentThreads.setMaxPriority(Thread.NORM_PRIORITY);
-      criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
-  }
-  
-  public static Thread getThread(int type, Runnable r) {
-  	Thread t = null;
-  	switch (type) {
-  	case USER_AGENTS:
-  		t = new Thread(agentThreads, r);
-      t.setPriority(agentThreads.getMaxPriority());
-  		break;
-  	case SYSTEM_AGENTS:
-  		t = new Thread(systemAgentThreads, r);
-      t.setPriority(systemAgentThreads.getMaxPriority());
-  		break;
-  	case CRITICAL:
-  		t = new Thread(criticalThreads, r);
-      t.setPriority(criticalThreads.getMaxPriority());
-  		break;
-  	}
-  	
-  	return t;
-  }
-  
-  public static void releaseResources() {
-  	// Release ThreadGroup for user agents
-    try {
-      agentThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-			System.out.println("Active threads in 'JADE-Agents' thread group:");
-			agentThreads.list();
-    }
-    finally {
-      agentThreads = null;
-    }
-    
-  	// Release ThreadGroup for system agents
-    try {
-      systemAgentThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-			System.out.println("Active threads in 'JADE-Agents' thread group:");
-			systemAgentThreads.list();
-    }
-    finally {
-      systemAgentThreads = null;
-    }
-    
-  	// Release ThreadGroup for time critical threads
-  	try {
-			criticalThreads.destroy();
-    }
-    catch(IllegalThreadStateException itse) {
-			System.out.println("Time-critical threads still active: ");
-			criticalThreads.list();
-    }
-    finally {
-			criticalThreads = null;
-    }
-  }
-  	
+	//public static final int CRITICAL = 2;
+
+	/** 
+	   Return a Thread without starting it.
+	   @param type The type of the Thread that will be returned: valid 
+	   types are <code>USER_AGENTS</code>, <code>SYSTEM_AGENTS</code>,
+	   <code>CRITICAL</code>.
+	   @param r The <code>Runnable</code> object that will executed by the 
+	   returned <code>Thread</code>.
+	 */
+  public Thread getThread(int type, String name, Runnable r);
+  public void releaseResources();
 }
-  	
-  		
-  		
-  
-  
-      

@@ -57,6 +57,8 @@ public class ProfileImpl extends Profile {
   private IMTPManager     myIMTPManager = null;
   private acc             myACC = null;
   private MobilityManager myMobilityManager = null;
+  private NotificationManager myNotificationManager = null;
+  private ResourceManager myResourceManager = null;
 
   /**
    * Creates a Profile implementation with the default configuration
@@ -181,6 +183,26 @@ public class ProfileImpl extends Profile {
   } 
 
   /**
+   */
+  protected ResourceManager getResourceManager() throws ProfileException {
+    if (myResourceManager == null) {
+      createResourceManager();
+    } 
+
+    return myResourceManager;
+  }
+
+  /**
+   */
+  protected NotificationManager getNotificationManager() throws ProfileException {
+    if (myNotificationManager == null) {
+      createNotificationManager();
+    } 
+
+    return myNotificationManager;
+  }
+
+  /**
    * Method declaration
    *
    * @throws ProfileException
@@ -198,7 +220,7 @@ public class ProfileImpl extends Profile {
     	} 
     	else {
       	// A proxy to the main
-      	myMain = new MainContainerProxy(this /*, myIMTPManager.getMain()*/);
+      	myMain = new MainContainerProxy(this);
     	}
   	}
   	catch (IMTPException imtpe) {
@@ -261,6 +283,15 @@ public class ProfileImpl extends Profile {
     catch (Exception e) {
       throw new ProfileException("Error loading MobilityManager class "+className);
     } 
+  } 
+
+  private void createResourceManager() throws ProfileException {
+  	ThreadGroup parentGroup = new ThreadGroup("FIXME: Dummy name");
+  	myResourceManager = new FullResourceManager(parentGroup);
+  } 
+
+  private void createNotificationManager() throws ProfileException {
+  	myNotificationManager = new RealNotificationManager();
   } 
 
   /**

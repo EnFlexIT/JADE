@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * JADE - Java Agent DEvelopment Framework is a framework to develop
@@ -38,8 +36,6 @@ import jade.lang.acl.ACLMessage;
 
 /**
  * Class declaration
- * 
- * @author LEAP
  */
 class RealMobilityManager implements MobilityManager {
     static final boolean       TRANSFER_ABORT = false;
@@ -61,6 +57,9 @@ class RealMobilityManager implements MobilityManager {
 
     // The Profile of the container including this MobilityManager
     private Profile            myProfile;
+    
+    // The ResourceManager of the container including this MobilityManager
+    private ResourceManager    myResourceManager;
 
     /**
      * Inner class Deserializer
@@ -106,6 +105,7 @@ class RealMobilityManager implements MobilityManager {
      */
     public RealMobilityManager() {
     	myProfile = null;
+    	myResourceManager = null;
       myContainer = null;
       localAgents = null;
       loaders = new HashMap();
@@ -118,6 +118,13 @@ class RealMobilityManager implements MobilityManager {
     	myProfile = p;
       myContainer = ac;
       localAgents = la;
+      try {
+	    	myResourceManager = myProfile.getResourceManager();
+      }
+      catch (ProfileException pe) {
+      	// Should never happen
+      	pe.printStackTrace();
+      }
     } 
 
     // IMPLEMENTATION OF INTERFACE MobilityHandler
@@ -227,7 +234,7 @@ class RealMobilityManager implements MobilityManager {
                     agent.putBack((ACLMessage) messages.get(i - 1));
                 } 
 
-                agent.powerUp(agentID, ResourceManager.USER_AGENTS);
+                agent.powerUp(agentID, myResourceManager);
             } 
         } 
     } 
