@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +30,7 @@ import jade.security.JADESecurityException;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
-
+import jade.util.Logger;
 import java.util.Vector;
 
 /**
@@ -54,11 +54,11 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   private Map localServices;
 
   private Map backupManagers;
-  
+
   //#MIDP_EXCLUDE_BEGIN
   private jade.util.Logger myLogger;
   //#MIDP_EXCLUDE_END
-  
+
   /**
      Constructs a new Service Manager implementation complying with
      a given JADE profile. This constructor is package-scoped, so
@@ -75,9 +75,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		invalidPlatformManager = false;
 		localServices = new HashMap();
 		backupManagers = new HashMap();
-		
+
 	  //#MIDP_EXCLUDE_BEGIN
-		myLogger = new jade.util.Logger("ServiceManager", 1, null, "[%t] %m");
+		//myLogger = new jade.util.Logger("ServiceManager", 1, null, "[%t] %m");
+                myLogger = Logger.getMyLogger(this.getClass().getName());
 	  //#MIDP_EXCLUDE_END
   }
 
@@ -102,7 +103,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   public synchronized void addAddress(String addr) throws IMTPException {
-		log("Adding PlatformManager address "+addr, 2);
+		//log("Adding PlatformManager address "+addr, 2);
+                //#MIDP_EXCLUDE_BEGIN
+                  if(myLogger.isLoggable(Logger.INFO))
+                    myLogger.log(Logger.INFO,"Adding PlatformManager address "+addr);
+                //#MIDP_EXCLUDE_END
+
   	if (invalidPlatformManager || !addr.equals(myPlatformManager.getLocalAddress())) {
 	  	backupManagers.put(addr, myIMTPManager.getPlatformManagerProxy(addr));
 	  	if (invalidPlatformManager) {
@@ -112,7 +118,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   public synchronized void removeAddress(String addr) throws IMTPException {
-		log("Removing PlatformManager address "+addr, 2);
+		//log("Removing PlatformManager address "+addr, 2);
+                //#MIDP_EXCLUDE_BEGIN
+                if(myLogger.isLoggable(Logger.INFO))
+                  myLogger.log(Logger.INFO,"Removing PlatformManager address "+addr);
+                //#MIDP_EXCLUDE_END
+
   	backupManagers.remove(addr);
   	if (addr.equals(myPlatformManager.getLocalAddress())) {
   		reconnect();
@@ -123,8 +134,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   	return myPlatformManager.getLocalAddress();
   }
 
-  
-  // FIXME: Should take an array of Service 
+
+  // FIXME: Should take an array of Service
   public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, JADESecurityException {
   	localNode = desc.getNode();
 	  try {
@@ -137,8 +148,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		 			ss.addElement(services[i]);
 		 		}
 		 	}
-		 	
-			// Notify the platform manager. Get back a valid name and assign 
+
+			// Notify the platform manager. Get back a valid name and assign
 		 	// it to both the node and the container
 			String name = null;
 		 	try {
@@ -171,11 +182,11 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     	throw new ServiceException("Unexpected error activating node", t);
     }
   }
-  
+
 
   public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
 		// Do not notify the platform manager. The node termination will cause the deregistration...
-		
+
 		// Uninstall all services locally
 		Object[] names = localServices.keySet().toArray();
 		for(int i = 0; i < names.length; i++) {
@@ -220,7 +231,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    uninstallServiceLocally(svc.getName());
 	    // Rethrow the exception
 	    throw imtpe2;
-		}		
+		}
   }
 
   public void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
@@ -237,7 +248,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 				throw imtpe;
 			}
 		}
-	
+
 		// Uninstall the service locally
 		uninstallServiceLocally(name);
   }
@@ -291,9 +302,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     	return ss;
   	}
   }
-  
-  
-  
+
+
+
   /////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////
@@ -308,7 +319,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		if(fIn != null) {
 		    myCommandProcessor.addFilter(fIn, Filter.INCOMING);
 		}
-	
+
 		// Install the service sinks
 		String[] commandNames = svc.getOwnedCommands();
 		Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
@@ -319,28 +330,28 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		if(sTgt != null) {
 		    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, svc.getName());
 		}
-	
+
 		// Export the local slice so that it can be reached through the network
 		Service.Slice localSlice = svc.getLocalSlice();
 		if(localSlice != null) {
 		    localNode.exportSlice(svc.getName(), localSlice);
 		}
-	
+
 		// Add the service to the local service finder so that it can be found
 		localServices.put(svc.getName(), svc);
-		
+
     // If this service extends BaseService, attach it to the Command Processor
     if(svc instanceof BaseService) {
 			BaseService bs = (BaseService)svc;
 			bs.setCommandProcessor(myCommandProcessor);
     }
   }
-  
+
   private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
 		Service svc = (Service)localServices.get(name);
 		localServices.remove(name);
 		localNode.unexportSlice(name);
-	
+
 		// Uninstall the service filters
 		Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
 		if(fOut != null) {
@@ -350,7 +361,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		if(fIn != null) {
 		    myCommandProcessor.removeFilter(fIn, Filter.INCOMING);
 		}
-	
+
 		// Uninistall the service sinks
 		String[] commandNames = svc.getOwnedCommands();
 		Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
@@ -362,8 +373,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
 		}
   }
-  
-  
+
+
 	private synchronized boolean reconnect() {
 		// Check if the current PlatformManager is actually down (another thread
 		// may have reconnected in the meanwhile
@@ -372,30 +383,42 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			return true;
 		}
 		catch (IMTPException imtpe) {
-			// The current PlatformManager is actually down --> try to reconnect 
+			// The current PlatformManager is actually down --> try to reconnect
 	  	invalidPlatformManager = true;
 			Iterator it = backupManagers.keySet().iterator();
 		  while (it.hasNext()) {
 		  	String addr = (String) it.next();
 	      try {
-	      	myPlatformManager = (PlatformManager) backupManagers.get(addr);	
-					log("Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress(), 1);
+	      	myPlatformManager = (PlatformManager) backupManagers.get(addr);
+					//log("Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress(), 1);
+                                        //#MIDP_EXCLUDE_BEGIN
+                                        if(myLogger.isLoggable(Logger.WARNING))
+                                          myLogger.log(Logger.WARNING,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
+                                          //#MIDP_EXCLUDE_END
 				  myPlatformManager.adopt(localNode);
-					log("Reconnection OK", 1);
+					//log("Reconnection OK", 1);
+                                        //#MIDP_EXCLUDE_BEGIN
+                                        if(myLogger.isLoggable(Logger.INFO))
+                                          myLogger.log(Logger.INFO,"Reconnection OK");
+                                        //#MIDP_EXCLUDE_END
 				  myIMTPManager.reconnected(myPlatformManager);
 				  backupManagers.remove(addr);
 				  invalidPlatformManager = false;
 				  return true;
 	      }
 	      catch(Exception e) {
-					log("Reconnection failed", 1);
+					//log("Reconnection failed", 1);
+                                        //#MIDP_EXCLUDE_BEGIN
+                                        if(myLogger.isLoggable(Logger.WARNING))
+                                          myLogger.log(Logger.WARNING,"Reconnection failed");
+                                        //#MIDP_EXCLUDE_END
 				  // Ignore it and try the next address...
 	      }
 		  }
 		  return false;
 		}
   }
-  
+
   private Service.Slice checkLocal(Service.Slice slice) throws ServiceException {
   	if (slice != null) {
 	  	// If the slice is for the local node be sure it includes the real local
@@ -406,11 +429,11 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	  	}
   	}
   	return slice;
-  }	
-  
-  private void log(String msg, int level) {
+  }
+
+ /* private void log(String msg, int level) {
   	//#MIDP_EXCLUDE_BEGIN
   	myLogger.log(msg, level);
   	//#MIDP_EXCLUDE_END
-  }	
+  }*/
 }

@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,6 +52,8 @@ import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
+import jade.util.Logger;
+
 //#J2ME_EXCLUDE_BEGIN
 import java.io.IOException;
 //#J2ME_EXCLUDE_END
@@ -67,7 +69,7 @@ import java.io.IOException;
 */
 public class AgentManagementService extends BaseService {
   static final String NAME = "jade.core.management.AgentManagement";
-
+  private Logger logger = Logger.getMyLogger(this.getClass().getName());
   /**
      The path where to search agent jar files
    */
@@ -90,7 +92,7 @@ public class AgentManagementService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
-	
+
 	// Read profile parameters
 	agentsPath = p.getParameter(AGENTS_PATH, null);
 	// Be sure it ends with /
@@ -142,7 +144,7 @@ public class AgentManagementService extends BaseService {
     private class CommandSourceSink implements Sink {
 
 	public void consume(VerticalCommand cmd) {
-		
+
 	    try {
 		String name = cmd.getName();
 		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
@@ -191,7 +193,9 @@ public class AgentManagementService extends BaseService {
 	    JADEPrincipal owner = (JADEPrincipal) params[4];
 	    Credentials initialCredentials = (Credentials) params[5];
 
-	    log("Source Sink consuming command REQUEST_CREATE. Name is "+name, 3);
+	    //log("Source Sink consuming command REQUEST_CREATE. Name is "+name, 3);
+            if(logger.isLoggable(Logger.CONFIG))
+               logger.log(Logger.CONFIG,"Source Sink consuming command REQUEST_CREATE. Name is "+name);
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 				AID agentID = new AID(name, AID.ISLOCALNAME);
@@ -220,7 +224,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
-	    log("Source Sink consuming command REQUEST_KILL. Name is "+agentID.getName(), 3);
+	    //log("Source Sink consuming command REQUEST_KILL. Name is "+agentID.getName(), 3);
+            if(logger.isLoggable(Logger.CONFIG))
+               logger.log(Logger.CONFIG,"Source Sink consuming command REQUEST_KILL. Name is "+agentID.getName());
+
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
@@ -282,7 +289,10 @@ public class AgentManagementService extends BaseService {
 	    AID target = (AID)params[0];
 	    Agent instance = (Agent)params[1];
 
-    	log("Source Sink consuming command INFORM_CREATED. Name is "+target.getName(), 3);
+    	//log("Source Sink consuming command INFORM_CREATED. Name is "+target.getName(), 3);
+            if(logger.isLoggable(Logger.CONFIG))
+               logger.log(Logger.CONFIG,"Source Sink consuming command INFORM_CREATED. Name is "+target.getName());
+
 	    initAgent(target, instance, cmd);
 	}
 
@@ -290,7 +300,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 
-    	log("Source Sink consuming command INFORM_KILLED. Name is "+target.getName(), 3);
+    	//log("Source Sink consuming command INFORM_KILLED. Name is "+target.getName(), 3);
+            if(logger.isLoggable(Logger.CONFIG))
+               logger.log(Logger.CONFIG,"Source Sink consuming command INFORM_KILLED. Name is "+target.getName());
+
 	    // Remove the dead agent from the LADT of the container
 	    myContainer.removeLocalAgent(target);
 
@@ -369,7 +382,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    ContainerID cid = (ContainerID)params[0];
 
-    	log("Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName(), 3);
+    	//log("Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName(), 3);
+            if(logger.isLoggable(Logger.CONFIG))
+               logger.log(Logger.CONFIG,"Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName());
+
 	    // Forward to the correct slice
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 	    try {
@@ -422,10 +438,10 @@ public class AgentManagementService extends BaseService {
     private class CommandTargetSink implements Sink {
 
 	public void consume(VerticalCommand cmd) {
-		
+
 	    try {
 		String name = cmd.getName();
-		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) { 
+		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
 		    handleRequestCreate(cmd);
 		}
 		else if(name.equals(AgentManagementSlice.REQUEST_KILL)) {
@@ -464,8 +480,11 @@ public class AgentManagementService extends BaseService {
 	    JADEPrincipal owner = (JADEPrincipal)params[3];
 	    Credentials initialCredentials = (Credentials)params[4];
 	    boolean startIt = ((Boolean) params[5]).booleanValue();
-	    
-			log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
+
+			//log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
+                        if(logger.isLoggable(Logger.INFO))
+                           logger.log(Logger.INFO,"Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName());
+
 	    createAgent(agentID, className, arguments, owner, initialCredentials, startIt);
 	}
 
@@ -474,7 +493,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
-			log("Target sink consuming command REQUEST_KILL: Name is "+agentID.getName(), 2);
+			//log("Target sink consuming command REQUEST_KILL: Name is "+agentID.getName(), 2);
+                        if(logger.isLoggable(Logger.INFO))
+                           logger.log(Logger.INFO,"Target sink consuming command REQUEST_KILL: Name is "+agentID.getName());
+
 	    killAgent(agentID);
 	}
 
@@ -494,7 +516,10 @@ public class AgentManagementService extends BaseService {
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
 
-			log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
+			//log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
+                        if(logger.isLoggable(Logger.INFO))
+                           logger.log(Logger.INFO,"Target sink consuming command INFORM_CREATED: Name is "+agentID.getName());
+
 	    bornAgent(agentID, cid, cmd.getPrincipal(), cmd.getCredentials());
 	}
 
@@ -503,7 +528,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
-			log("Target sink consuming command INFORM_KILLED: Name is "+agentID.getName(), 2);
+			//log("Target sink consuming command INFORM_KILLED: Name is "+agentID.getName(), 2);
+                        if(logger.isLoggable(Logger.INFO))
+                           logger.log(Logger.INFO,"Target sink consuming command INFORM_KILLED: Name is "+agentID.getName());
+
 	    deadAgent(agentID);
 	}
 
@@ -523,7 +551,10 @@ public class AgentManagementService extends BaseService {
 	}
 
 	private void handleKillContainer(VerticalCommand cmd) {
-			log("Target sink consuming command KILL_CONTAINER", 2);
+			//log("Target sink consuming command KILL_CONTAINER", 2);
+                        if(logger.isLoggable(Logger.INFO))
+                           logger.log(Logger.INFO,"Target sink consuming command KILL_CONTAINER");
+
 	    exitContainer();
 	}
 
@@ -532,13 +563,13 @@ public class AgentManagementService extends BaseService {
 	    try {
 	  //#J2ME_EXCLUDE_BEGIN
 	  String jarName = className.replace('.', '_') + ".jar";
-	  if (agentsPath != null) {	  	
+	  if (agentsPath != null) {
 		  jarName = agentsPath+jarName;
 	  }
-	  try { 
+	  try {
 		  JarClassLoader loader = new JarClassLoader(jarName, getClass().getClassLoader());
 		  agent = (Agent) loader.loadClass(className).newInstance();
-	  } 
+	  }
 	  catch (IOException ioe) {
 	  	// Should never happen
 	  	ioe.printStackTrace();
@@ -614,7 +645,7 @@ public class AgentManagementService extends BaseService {
     }
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(name, cid, principal, ownership, false); 
+		    impl.bornAgent(name, cid, principal, ownership, false);
 		}
 		catch(NameClashException nce) {
 			//#CUSTOMJ2SE_EXCLUDE_BEGIN
@@ -638,16 +669,18 @@ public class AgentManagementService extends BaseService {
 			//#CUSTOMJ2SE_EXCLUDE_END
 			/*#CUSTOMJ2SE_INCLUDE_BEGIN
 			try {
-				System.out.println("Replacing old agent "+name.getName());
+				//System.out.println("Replacing old agent "+name.getName());
+                                if(logger.isLoggable(Logger.INFO))
+                                    logger.log(Logger.INFO,"Replacing old agent "+name.getName());
 				dyingAgents.add(name);
 				((jade.core.AgentManager) impl).kill(name, principal, credentials);
 				waitUntilDead(name);
-		    impl.bornAgent(name, cid, principal, ownership, false); 
+		    impl.bornAgent(name, cid, principal, ownership, false);
 			}
 			catch (Exception e) {
 				dyingAgents.remove(name);
 				impl.bornAgent(name, cid, principal, ownership, true);
-			}				
+			}
 			#CUSTOMJ2SE_INCLUDE_END*/
 		}
 	    }
@@ -655,7 +688,7 @@ public class AgentManagementService extends BaseService {
 
 	/*#CUSTOMJ2SE_INCLUDE_BEGIN
 	private jade.util.leap.List dyingAgents = new jade.util.leap.ArrayList();
-	
+
 	private void waitUntilDead(AID id) {
 		synchronized (dyingAgents) {
 			while (dyingAgents.contains(id)) {
@@ -666,7 +699,7 @@ public class AgentManagementService extends BaseService {
     	}
     }
   }
-  
+
 	private void notifyDead(AID id) {
 		synchronized (dyingAgents) {
 			dyingAgents.remove(id);
@@ -674,7 +707,7 @@ public class AgentManagementService extends BaseService {
     }
   }
 	#CUSTOMJ2SE_INCLUDE_END*/
-    
+
 	private void deadAgent(AID name) throws NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
@@ -857,13 +890,13 @@ public class AgentManagementService extends BaseService {
 	    throw ae;
 	}
     }
-  
+
   /*#PJAVA_INCLUDE_BEGIN
-  // PJAVA workaround as protected methods inherited from parent class 
+  // PJAVA workaround as protected methods inherited from parent class
   // are not accessible to inner classes
-  public void log(String txt, int l) {
-    super.log(txt,l);
-  }
+  //public void log(String txt, int l) {
+    //super.log(txt,l);
+  //}
   #PJAVA_INCLUDE_END*/
 
     // The concrete agent container, providing access to LADT, etc.
@@ -879,7 +912,7 @@ public class AgentManagementService extends BaseService {
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     private String agentsPath = null;
-    
+
     // Work-around for PJAVA compilation
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);

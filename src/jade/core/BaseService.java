@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -54,9 +54,10 @@ public abstract class BaseService implements Service {
 
 	slices = new HashMap();
 	aliases = new HashMap();
-	
+
 	//#MIDP_EXCLUDE_BEGIN
-	int verbosity = 0;
+    /*
+        int verbosity = 0;
 	try {
 		String className = getClass().getName();
 		String tmp = className.replace('.', '_');
@@ -68,13 +69,18 @@ public abstract class BaseService implements Service {
 			String name = (index < 0 ? className : className.substring(index+1));
 			myLogger = new jade.util.Logger(name, verbosity, null, p.getParameter(verbosityFormatKey, "%t [%i] %m"));
 		}
-		
+
 		log("Initialized", 1);
+
 	}
 	catch (Exception e) {
 		// Ignore and keep default: no logs
-	}
-	//#MIDP_EXCLUDE_END	
+	}*/
+        if (myLogger.isLoggable(jade.util.Logger.INFO))
+            myLogger.log(jade.util.Logger.INFO,"Initialized");
+
+
+	//#MIDP_EXCLUDE_END
     }
 
     // Package scoped method to receive the Command Processor from the
@@ -94,7 +100,7 @@ public abstract class BaseService implements Service {
        The <code>getSlice()</code> implementation of this class works
        as follows:
        <ol>
-       <li><i>First, the name alias table is used to convert the given 
+       <li><i>First, the name alias table is used to convert the given
        slice name into another name, if any</i></li>
 
        <li><i>Then, the new name (which may or may not be different
@@ -103,7 +109,7 @@ public abstract class BaseService implements Service {
 
        <li><i>If no slice was found, the</i>
        <code>ServiceFinder</code> <i>is asked to provide the slice,
-       which is then put into the local table.</i></li> 
+       which is then put into the local table.</i></li>
        </ol>
     */
     public Service.Slice getSlice(String name) throws ServiceException {
@@ -193,7 +199,7 @@ public abstract class BaseService implements Service {
 	}
     }
 
-    // this should be properly implemented 
+    // this should be properly implemented
     // by the services that have helpers
     public ServiceHelper getHelper(Agent a) {
          return null;
@@ -210,7 +216,7 @@ public abstract class BaseService implements Service {
     }
 
     public Object submit(VerticalCommand cmd) throws ServiceException {
-    	String cmdName = cmd.getName(); 
+    	String cmdName = cmd.getName();
 	String[] ownedCommands = getOwnedCommands();
 
 	for(int i = 0; i < ownedCommands.length; i++) {
@@ -241,7 +247,7 @@ public abstract class BaseService implements Service {
     	return new CallbackInvokator();
     }
     //#MIDP_EXCLUDE_END
-    
+
     private ServiceFinder myFinder;
     private IMTPManager myIMTPManager;
 
@@ -251,14 +257,16 @@ public abstract class BaseService implements Service {
     private Map aliases;
 
     //#MIDP_EXCLUDE_BEGIN
-    protected jade.util.Logger myLogger;
+    // protected jade.util.Logger myLogger;
+    protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(this.getClass().getName());
     //#MIDP_EXCLUDE_END
-    
+
+    /*
     protected void log(String msg, int level) {
     	//#MIDP_EXCLUDE_BEGIN
     	if (myLogger != null) {
     		myLogger.log(msg, level);
     	}
     	//#MIDP_EXCLUDE_END
-    }
+    }*/
 }
