@@ -37,6 +37,9 @@ import jade.content.Concept;
   *  @version $Date$ $Revision$
   *
   */
+
+import java.util.Date;
+
   public class DFAgentDescription implements Concept{
 
     private AID name;
@@ -44,7 +47,10 @@ import jade.content.Concept;
     private List interactionProtocols = new ArrayList();
     private List ontology = new ArrayList();
     private List language = new ArrayList();
+	
 
+	// Added lease default value -1
+	private Date leaseTime = new Date(-1);
 
     public void setName(AID n) {
       name = n;
@@ -52,6 +58,25 @@ import jade.content.Concept;
 
     public AID getName() {
       return name;
+    }
+
+    public void setLeaseTime(Date absoluteTime) {
+      leaseTime = absoluteTime;
+    }
+
+    public Date getLeaseTime() {
+      return leaseTime;
+    }
+    
+    public void setRemainingLeaseTime(long relativeTime){
+    	long currentTime = System.currentTimeMillis();
+    	leaseTime = new Date(currentTime+relativeTime);
+    }
+    
+	// ritorna i msec che restano prima che il 
+	// lease scada
+    public long getRemainingLeaseTime(){
+    	return (leaseTime.getTime() - System.currentTimeMillis());
     }
 
     public void addServices(ServiceDescription a) {
@@ -62,13 +87,13 @@ import jade.content.Concept;
       return services.remove(a);
     }
 
-public void clearAllServices(){
-  services.clear();
-}
-
-public Iterator getAllServices(){
-  return services.iterator();
-}
+	public void clearAllServices(){
+	  services.clear();
+	}
+	
+	public Iterator getAllServices(){
+	  return services.iterator();
+	}
 
     public void addProtocols(String ip) {
 	interactionProtocols.add(ip);
