@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.14  1998/10/14 21:24:11  Giovanni
+  Added a line to restore platform state when a new agent has a name
+  clashing with a previous agent's name.
+
   Revision 1.13  1998/10/11 19:32:30  rimassa
   In method bornAgent() a sensible strategy has been implemented to
   recover from agent name collisions. When a new agent has a name
@@ -135,6 +139,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       MessageDispatcher md = ad.getDemux();
       try {
 	md.ping(); // Make sure container is alive, then raise a name clash exception
+	platformAgents.put(name.toLowerCase(), ad);
 	throw new NameClashException("Agent " + name + " already present in the platform ");
       }
       catch(RemoteException re) {
