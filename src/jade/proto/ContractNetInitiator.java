@@ -316,11 +316,20 @@ public class ContractNetInitiator extends FSMBehaviour {
 			    	ACLMessage toSend = (ACLMessage) msg.clone();
 			    	for (Iterator receivers = msg.getAllReceiver(); receivers.hasNext(); ) {
 							toSend.clearAllReceiver();
-							toSend.addReceiver((AID)receivers.next());
+							AID r = (AID)receivers.next();
+							toSend.addReceiver(r);
 							if (step == 1 || toSend.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
 								String sessionKey = "R"+Integer.toString(step)+hashCode()+"_"+ Integer.toString(cnt);
 								toSend.setReplyWith(sessionKey);
 								sessions.put(sessionKey, new Session(step));
+								if (r.equals(myAgent.getAID())) {
+									// If myAgent is among the receivers (strange case, but can happen)
+									// then modify the MessageTemplate to avoid intercepting the cfp
+									// as if it was a reply
+									mt = MessageTemplate.and(
+										mt,
+										MessageTemplate.not(MessageTemplate.MatchCustom(toSend, true)));
+								}
 								cnt++;
 							}
 							myAgent.send(toSend);

@@ -259,10 +259,19 @@ public class AchieveREInitiator extends FSMBehaviour {
 			    ACLMessage toSend = (ACLMessage)request.clone();
 			    for (Iterator receivers = request.getAllReceiver(); receivers.hasNext(); ) {
 				toSend.clearAllReceiver();
-				toSend.addReceiver((AID)receivers.next());
+				AID r = (AID)receivers.next();
+				toSend.addReceiver(r);
 				String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
 				toSend.setReplyWith(sessionKey);
 				sessions.put(sessionKey, new Session());
+				if (r.equals(myAgent.getAID())) {
+					// If myAgent is among the receivers (strange case, but can happen)
+					// then modify the MessageTemplate to avoid intercepting the request
+					// as if it was a reply
+					mt = MessageTemplate.and(
+						mt,
+						MessageTemplate.not(MessageTemplate.MatchCustom(toSend, true)));
+				}
 				myAgent.send(toSend);
 				cnt++;
 			    }
@@ -890,6 +899,7 @@ public class AchieveREInitiator extends FSMBehaviour {
     private boolean isResponse(int perf) {
 	return (perf == ACLMessage.AGREE || perf == ACLMessage.REFUSE || perf == ACLMessage.NOT_UNDERSTOOD);
     }
+   
 }
 	
 		
