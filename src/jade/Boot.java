@@ -139,13 +139,14 @@ public class Boot {
      * Original       New
      * ------------------------------
      * -host x        host:x
+     * -ownership x   ownership:x
      * -name x        name:x
      * -port n        port:n
      * -mtp  x        mtp:x
      * -aclcodec:x    aclcodec:x
      * -conf x        import:x
      * -conf          -conf
-     * -container      -container
+     * -container     -container
      * -gui           -gui
      * -version       -version
      * -v             -version
@@ -225,6 +226,14 @@ public class Boot {
                     printUsageInfo = true;
                 } else {
                     results.add("host:" + args[n]);
+                }
+            } else if (theArg.equalsIgnoreCase("-ownership")) {
+                if (++n == args.length) {
+                    System.err.println("Missing ownership");
+
+                    printUsageInfo = true;
+                } else {
+                    results.add("ownership:" + args[n]);
                 }
             } else if (theArg.equalsIgnoreCase("-name")) {
                 if (++n == args.length) {
@@ -347,6 +356,7 @@ public class Boot {
         out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
         out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
         out.println("  -name <platform name>\tThe symbolic platform name specified only for the main container.");
+        out.println("  -ownership <username:password>\tThe owner of a container or platform.");
         out.println("  -help\t\t\tPrints out usage informations.");
         out.println("");
         out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");

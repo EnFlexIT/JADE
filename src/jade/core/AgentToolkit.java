@@ -25,8 +25,9 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 //__SECURITY__BEGIN
-import jade.security.AgentPrincipal;
 import jade.security.Authority;
+import jade.security.AgentPrincipal;
+import jade.security.IdentityCertificate;
 //__SECURITY__END
 
 /**
@@ -45,7 +46,7 @@ interface AgentToolkit {
   void handleReceived(AID agentID, ACLMessage msg);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
 //__SECURITY__BEGIN
-  void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to);
+  void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity);
   Authority getAuthority();
 //__SECURITY__END
   void setPlatformAddresses(AID id);

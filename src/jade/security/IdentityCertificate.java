@@ -26,18 +26,5 @@ package jade.security;
 import java.util.Date;
 
 
-public interface IdentityCertificate extends jade.util.leap.Serializable {
-	
-	public void setSubject(JADEPrincipal subject);
-	public JADEPrincipal getSubject();
-	
-	public void setNotBefore(Date notBefore);
-	public Date getNotBefore();
-	
-	public void setNotAfter(Date notAfter);
-	public Date getNotAfter();
-	
-	public String encode();
-	public void decode(String encoded);
-	
+public interface IdentityCertificate extends JADECertificate {
 }

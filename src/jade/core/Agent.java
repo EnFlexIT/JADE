@@ -614,6 +614,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
   
   public Authority getAuthority() {
+  	if (myToolkit == null)
+  		return null;
     return myToolkit.getAuthority();
   }
 
@@ -941,39 +943,43 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	}
 
 	//__SECURITY__BEGIN
-	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
-		if (identity != null && delegation != null) {
-			synchronized (principalLock) {
-				AgentPrincipal old = getPrincipal();
-				this.identity = identity;
-				this.delegation = delegation;
-				principal = (AgentPrincipal)identity.getSubject();
-				if (getState() != AP_INITIATED)
-					notifyChangedAgentPrincipal(old, principal);
-			}
+	public UserPrincipal extractUser(String ownership) {
+		UserPrincipal user = getAuthority().createUserPrincipal();
+		int dot2 = ownership.indexOf(':');
+		user.init((dot2 != -1) ? ownership.substring(0, dot2) : ownership);
+		return user;
+	}
+
+	public byte[] extractPassword(String ownership) {
+		byte[] word = null;
+		int dot2 = ownership.indexOf(':');
+		word = (dot2 != -1) ? ownership.substring(dot2 + 1, ownership.length()).getBytes() : new byte[] {};
+		return word;
+	}
+
+	public void setPrincipal(AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) {
+		AgentPrincipal old = getPrincipal();
+		synchronized (principalLock) {
+			this.identity = identity;
+			this.delegation = delegation;
+			this.principal = principal;
+			notifyChangedAgentPrincipal(old, principal, identity);
 		}
 	}
 
 	public AgentPrincipal getPrincipal() {
 		AgentPrincipal p = null;
-		synchronized (principalLock) {
-			Authority authority = getAuthority();
-			if (principal == null) {
-				UserPrincipal user = null;
-				int dot2 = ownership.indexOf(':');
-				if (dot2 != -1) {
-					user = authority.createUserPrincipal();
-					user.init(ownership.substring(0, dot2));
+		if (myToolkit != null) {
+			synchronized (principalLock) {
+				Authority authority = getAuthority();
+				if (principal == null) {
+					UserPrincipal user = extractUser(ownership);
+					principal = authority.createAgentPrincipal();
+					principal.init(myAID, user);
 				}
-				else {
-					user = authority.createUserPrincipal();
-					user.init(ownership);
-				}
-				principal = authority.createAgentPrincipal();
-				principal.init(myAID, user);
+				p = authority.createAgentPrincipal();
+				p.init(principal.getName());
 			}
-			p = authority.createAgentPrincipal();
-			p.init(principal.getName());
 		}
 		return p;
 	}
@@ -988,7 +994,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	//__SECURITY__END
 
   private void setState(int state) {
-    synchronized(stateLock) {
+    synchronized (stateLock) {
       int oldState = myAPState;
       myAPState = state;
       notifyChangedAgentState(oldState, myAPState);
@@ -1603,7 +1609,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   void powerUp(AID id, ResourceManager rm) {
 
     // Set this agent's name and address and start its embedded thread
-    if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
+    if ((myAPState == AP_INITIATED) || (myAPState == AP_TRANSIT) || (myAPState == AP_COPY)) {
       myName = id.getLocalName();
       myHap = id.getHap();
       
@@ -2144,15 +2150,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private void notifyChangedAgentState(int oldState, int newState) {
     AgentState from = STATES[oldState];
     AgentState to = STATES[newState];
-    if(myToolkit != null)
+    if (myToolkit != null)
       myToolkit.handleChangedAgentState(myAID, from, to);
   }
 
 //__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
-  private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to) {
+  private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) {
     if (myToolkit != null)
-      myToolkit.handleChangedAgentPrincipal(myAID, from, to);
+      myToolkit.handleChangedAgentPrincipal(myAID, from, to, identity);
   }
 //__SECURITY__END
 

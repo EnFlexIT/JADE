@@ -48,19 +48,13 @@ public class DummyAuthority implements Authority {
 		return null;
 	}
 	
-	public void verify(IdentityCertificate cert) throws AuthException {
+	public void verify(JADECertificate cert) throws AuthException {
 	}
 	
-	public void verify(DelegationCertificate cert) throws AuthException {
+	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
-	public void sign(IdentityCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
-	}
-	
-	public void sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
-	}
-	
-	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException {
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException {
 	}
 	
 	public Object doAs(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception {

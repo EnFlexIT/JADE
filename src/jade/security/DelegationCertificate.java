@@ -27,21 +27,10 @@ import jade.util.leap.List;
 import java.util.Date;
 
 
-public interface DelegationCertificate extends jade.util.leap.Serializable {
-	
-	public void setSubject(JADEPrincipal subject);
-	public JADEPrincipal getSubject();
-	
-	public void setNotBefore(Date notBefore);
-	public Date getNotBefore();
-	
-	public void setNotAfter(Date notAfter);
-	public Date getNotAfter();
-	
-	public String encode();
-	public void decode(String encoded);
+public interface DelegationCertificate extends JADECertificate {
 	
 	public void addPermission(Object permission);
+	public void addPermissions(List permissions);
 	public List getPermissions();
 	
 }

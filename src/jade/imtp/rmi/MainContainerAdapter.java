@@ -42,6 +42,7 @@ import jade.mtp.MTPDescriptor;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
+import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 
@@ -138,9 +139,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws NotFoundException, IMTPException {
+  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws NotFoundException, IMTPException {
     try {
-      adaptee.changedAgentPrincipal(name, from, to);
+      adaptee.changedAgentPrincipal(name, from, to, identity);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -201,7 +202,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     return adaptee;
   }
 
-  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
+  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
     try {
       return adaptee.sign(certificate, identity, delegations);
     }

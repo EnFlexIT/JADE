@@ -34,6 +34,7 @@ import jade.util.leap.LinkedList;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
 import jade.security.AuthException;
+import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 //__SECURITY__END
@@ -139,8 +140,8 @@ class MainContainerProxy implements Platform {
     }
 
 //__SECURITY__BEGIN
-    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
-      adaptee.changedAgentPrincipal(name, from, to);
+    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws IMTPException, NotFoundException {
+      adaptee.changedAgentPrincipal(name, from, to, identity);
     }
 //__SECURITY__END
 
@@ -259,14 +260,14 @@ class MainContainerProxy implements Platform {
       regMsg.setProtocol("fipa-request");
 
       AID[] agentIDs = localContainer.getLocalAgents().keys();
-      for(int i = 0; i < agentIDs.length; i++) {
+      for (int i = 0; i < agentIDs.length; i++) {
 				AID agentID = agentIDs[i];
 
 				// Register again the agent with the Main Container.
 				try {
 	  			adaptee.bornAgent(agentID, myID); // Remote call
 				}
-				catch(NameClashException nce) {
+				catch (NameClashException nce) {
 	  			throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
 				}
 
@@ -278,20 +279,20 @@ class MainContainerProxy implements Platform {
       }
 
       // Restore the registration of local MTPs 
-      for(int i = 0; i < localMTPs.size(); i++) {
+      for (int i = 0; i < localMTPs.size(); i++) {
         adaptee.newMTP((MTPDescriptor)localMTPs.get(i), myID); // Remote call
       }
 
     }
-    catch(ProfileException pe) {
+    catch (ProfileException pe) {
       throw new NotFoundException("Profile error trying to reconnect to the Main container: "+pe.getMessage());
     }
-    catch(AuthException se) {
+    catch (AuthException se) {
       se.printStackTrace();
     }
   }
   
-  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
+  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
     return adaptee.sign(certificate, identity, delegations);
   }
   

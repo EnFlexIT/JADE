@@ -38,6 +38,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 
@@ -55,14 +57,14 @@ interface AgentContainerRMI extends Remote {
     public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException, IMTPException;
     public void wakeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException;
-    public void createAgent(AID agentID, String className, Object[] arguments, String ownership, boolean startIt) throws RemoteException, IMTPException;
+    public void createAgent(AID agentID, String className, Object[] arguments, String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws RemoteException, IMTPException;
     public void killAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public MTPDescriptor installMTP(String address, String className) throws RemoteException, MTPException, IMTPException;
     public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException, IMTPException;
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
-    public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException;
-    public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException;
+    public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException;
+    public void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException;
     public void copyAgent(AID agentID, Location where, String newName) throws RemoteException, NotFoundException, IMTPException;
     public void enableSniffer(AID snifferName, AID toBeSniffed) throws RemoteException, IMTPException;
     public void enableDebugger(AID debuggerName, AID toBeDebugged) throws RemoteException, IMTPException;

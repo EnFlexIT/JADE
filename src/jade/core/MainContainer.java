@@ -31,6 +31,7 @@ import jade.mtp.MTPDescriptor;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
 import jade.security.AuthException;
+import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 //__SECURITY__END
@@ -63,8 +64,8 @@ public interface MainContainer {
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
 //__SECURITY__BEGIN
-    void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException;
-    DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException;
+    void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws IMTPException, NotFoundException;
+    JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException;
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END
 

@@ -108,5 +108,9 @@ public class DummyPrincipal implements AgentPrincipal, UserPrincipal, ContainerP
 	public String toString() {
 		return getName();
 	}
-
+	
+	public boolean equals(Object o) {
+		return (o != null) && getName().equals(o.toString());
+	}
+	
 }

@@ -40,6 +40,7 @@ import jade.mtp.MTPDescriptor;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
+import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 
@@ -104,15 +105,15 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     impl.resumedAgent(name);
   }
   
-  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws RemoteException, NotFoundException, IMTPException {
-    impl.changedAgentPrincipal(name, from, to);
+  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity) throws RemoteException, NotFoundException, IMTPException {
+    impl.changedAgentPrincipal(name, from, to, identity);
   }
   
   public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
     impl.newMTP(mtp, cid);
   }
   
-  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
+  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
     return impl.sign(certificate, identity, delegations);
   }
   

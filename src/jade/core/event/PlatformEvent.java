@@ -26,7 +26,7 @@ package jade.core.event;
 import jade.core.AID;
 import jade.core.ContainerID;
 //__SECURITY__BEGIN
-import jade.security.AgentPrincipal;
+import jade.security.JADEPrincipal;
 //__SECURITY__END
 
 /**
@@ -48,14 +48,15 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   public static final int SUSPENDED_AGENT = 6;
   public static final int RESUMED_AGENT = 7;
   public static final int CHANGED_AGENT_PRINCIPAL = 8;
+  public static final int CHANGED_CONTAINER_PRINCIPAL = 9;
 
   private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
   private String myPlatformName = null;  // the name of the platform that generated this event
   private AID agent = null;
 //__SECURITY__BEGIN
-  private AgentPrincipal oldPrincipal = null;
-  private AgentPrincipal newPrincipal = null;
+  private JADEPrincipal oldPrincipal = null;
+  private JADEPrincipal newPrincipal = null;
 //__SECURITY__END
 
   /**
@@ -156,10 +157,17 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   }
 
 //__SECURITY__BEGIN
-  public PlatformEvent(AID aid, ContainerID eventSource, AgentPrincipal from, AgentPrincipal to) {
+  public PlatformEvent(AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
     super(eventSource);
     myID = CHANGED_AGENT_PRINCIPAL;
     agent = aid;
+    oldPrincipal = from;
+    newPrincipal = to;
+  }
+
+  public PlatformEvent(ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
+    super(eventSource);
+    myID = CHANGED_CONTAINER_PRINCIPAL;
     oldPrincipal = from;
     newPrincipal = to;
   }
@@ -220,11 +228,11 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   }
 
 //__SECURITY__BEGIN
-  public AgentPrincipal getOldPrincipal() {
+  public JADEPrincipal getOldPrincipal() {
     return oldPrincipal;
   }
 
-  public AgentPrincipal getNewPrincipal() {
+  public JADEPrincipal getNewPrincipal() {
     return newPrincipal;
   }
 //__SECURITY__END

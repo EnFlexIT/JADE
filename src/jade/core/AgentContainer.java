@@ -32,8 +32,9 @@ import jade.mtp.MTPException;
 
 //__SECURITY__BEGIN
 import jade.security.AgentPrincipal;
-import jade.security.DelegationCertificate;
+import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 //__SECURITY__END
 
 /**
@@ -52,7 +53,7 @@ public interface AgentContainer {
   static final int ADD_RT = 1;
   static final int DEL_RT = 2;
 
-  void createAgent(AID agentID, String className, Object arguments[], String ownership, boolean startIt) throws IMTPException;
+  void createAgent(AID agentID, String className, Object arguments[], String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException;
   void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException;
   byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
@@ -63,8 +64,8 @@ public interface AgentContainer {
   void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
 
 //__SECURITY__BEGIN
-  void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
-  void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException;
+  void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
+  void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException;
 //__SECURITY__END
 
   void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;

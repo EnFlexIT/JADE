@@ -55,6 +55,7 @@ public interface Authority {
 	public final String CONTAINER_CREATE    = "container-create";
 	public final String CONTAINER_KILL      = "container-kill";
 	public final String CONTAINER_CREATE_IN = "container-create-in";
+	public final String CONTAINER_KILL_IN   = "container-kill-in";
 	public final String CONTAINER_MOVE_FROM = "container-move-from";
 	public final String CONTAINER_MOVE_TO   = "container-move-to";
 	public final String CONTAINER_COPY_FROM = "container-copy-from";
@@ -62,6 +63,9 @@ public interface Authority {
 
 	public final String PLATFORM_CREATE     = "platform-create";
 	public final String PLATFORM_KILL       = "platform-kill";
+
+	public final String AUTHORITY_SIGN_IC   = "authority-sign-ic";
+	public final String AUTHORITY_SIGN_DC   = "authority-sign-dc";
 
 	public void init(Profile profile, MainContainer platform) throws AuthException;
 	
@@ -87,9 +91,7 @@ public interface Authority {
 		@throws AuthenticationException if the certificate is not
 			integer or is out of its validity period.
 	*/
-	public void verify(IdentityCertificate cert) throws AuthException;
-	
-	public void verify(DelegationCertificate cert) throws AuthException;
+	public void verify(JADECertificate cert) throws AuthException;
 	
 	/**
 		Signs a new certificate. The certificates presented with the
@@ -104,11 +106,9 @@ public interface Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(IdentityCertificate cert, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
 
-	public void sign(DelegationCertificate cert, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
-
-	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException;
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException;
 	
 	public Object doAs(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
 	
