@@ -1,6 +1,7 @@
 package jade.core;
 
 import java.util.Set;
+import java.util.Map;
 
 /**
   This interface provides Agent Life Cycle management services to the
@@ -24,6 +25,9 @@ public interface AgentManager {
 
   void wait(String agentName, String password) throws NotFoundException, UnreachableException;
   void wake(String agentName, String password) throws NotFoundException, UnreachableException;
+
+  void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException;
+  void sniffOff(String SnifferName, Map ToBeSniffed) throws UnreachableException;
 
   void move(String agentName, String containerName, String password ) throws NotFoundException, UnreachableException;
   void copy(String agentName, String containerName, String newAgentName, String password) throws NotFoundException, UnreachableException;
