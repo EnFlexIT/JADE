@@ -44,7 +44,7 @@ public class ObjectWriterAgent extends Agent {
 
 protected void setup() {
 
-  System.out.println(getLocalName()+" agent sends an ACLMessage whose content is a set of Java objects");
+  System.out.println(getLocalName()+" agent sends an ACLMessage whose content is a Java object");
 
   /** Search with the DF for the name of the ObjectReaderAgent **/
   String reader = new String();
@@ -74,33 +74,18 @@ protected void setup() {
     doDelete();
     }
 
-    try {
+   try {
       ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
       msg.addDest(reader);
 
-      ByteArrayOutputStream c = new ByteArrayOutputStream();
-      ObjectOutputStream oos = new ObjectOutputStream(c);
-
       Person p = new Person("JADE", "CSELT", new Date(), 2);
-      oos.writeObject(p);
-      System.out.println(getLocalName()+" written "+p.toString());
-      oos.writeObject("Today");
-      System.out.println(getLocalName()+" written Today");
-      oos.writeObject(new Integer(12345));
-      System.out.println(getLocalName()+" written 12345");
-      Date d = new Date();
-      oos.writeObject(d);
-      System.out.println(getLocalName()+" written "+d.toString());
-      oos.flush();
-      
-      msg.setContentBase64(c.toByteArray());
+      msg.setContentObject(p);
+     
       send(msg);
       System.out.println(getLocalName()+" sent a message to "+reader);
-    } catch (IOException e ) {
-      e.printStackTrace();
-    }
+  } catch (IOException e ) {
+    e.printStackTrace();}
     doDelete();
   }
 }
-
