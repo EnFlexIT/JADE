@@ -12,38 +12,58 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 
+/**************************************************************
+
+  Name: ams
+
+  Responsibility and Collaborations:
+
+  + Serves as Agent Management System for the Agent Platform,
+    according to FIPA 97 specification.
+
+  + Handles platform internal data to describe all the agents present
+    on the platform.
+    (AgentPlatformImpl)
+
+  + Manages AP Life-Cycle of Agent objects.
+    (Agent)
+
+****************************************************************/
 public class ams extends Agent { // FIXME: Must become a Singleton
 
-
-  // These String constants are the keywords in
-  // 'fipa-man-ams-agent-description' objects
-  private static final String NAME_ATTR = ":agent-name";
-  private static final String ADDR_ATTR = ":address";
-  private static final String SIGN_ATTR = ":signature";
-  private static final String DELE_ATTR = ":delegate-agent";
-  private static final String FORW_ATTR = ":forward-address";
-  private static final String APST_ATTR = ":ap-state";
-
-  private static final String DUPLICATE_MSG = "Duplicate attribute name";
-  private static final String UNRECOGNIZED_MSG = "Unrecognized attribute name";
-  private static final String UNKNOWN_MSG = "???";
-
-
   private abstract class AMSBehaviour extends SimpleBehaviour {
+
+    // This String will be set by subclasses
+    private String myActionName;
 
     private ACLMessage myReply;
     private StringTokenizer myTokenizer;
 
-    protected AMSBehaviour() {
+    protected AgentManagementOntology myOntology;
+
+    // These variables are set by crackMessage() method to the
+    // attribute values of message content
+    private String agentName;
+    private String address;
+    private String signature;
+    private String delegateAgent;
+    private String forwardAddress;
+    private String APState;
+
+    protected AMSBehaviour(String actionName) {
       super(ams.this);
+      myActionName = actionName;
       myReply = null;
       myTokenizer = null;
+      myOntology = AgentManagementOntology.instance();
     }
 
-    protected AMSBehaviour(ACLMessage msg, StringTokenizer st) {
+    protected AMSBehaviour(String actionName, ACLMessage msg, StringTokenizer st) {
       super(ams.this);
+      myActionName = actionName;
       myReply = msg;
       myTokenizer = st;
+      myOntology = AgentManagementOntology.instance();
     }
 
     // This method creates a copy of an AMS behaviour, passing the
@@ -51,12 +71,20 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     // of a received message.
     public abstract Behaviour instance(ACLMessage msg, StringTokenizer st);
 
+    // This method throws a FIPAException if the attribute is
+    // mandatory for the current AMS action but it is a null object
+    // reference
+    private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
+      if(myOntology.isMandatoryForAMS(myActionName, attributeName) && (attributeValue == null))
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+    }
 
-    // This method parses the message content and builds an Hashtable
-    // of attribute/value pairs.
-    protected Hashtable crackMessage() throws NoSuchElementException {
+    // This method parses the message content and puts
+    // 'fipa-ams-agent-description' attribute values in instance
+    // variables. If some error is found a FIPA exception is thrown
+    private void crackMessage() throws FIPAException, NoSuchElementException {
 
-      Hashtable result = new Hashtable();
+      Hashtable attributes = new Hashtable();
 
       while(myTokenizer.hasMoreTokens()) {
 
@@ -64,30 +92,111 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 
 	// Make sure that keyword is defined in
 	// 'fipa-man-ams-agent-description'
-	if(!attributeNames.containsKey(name))
-	  throw new NoSuchElementException(UNRECOGNIZED_MSG);
+	if(!myOntology.isValidAMSADKeyword(name))
+	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
 
 	String value = myTokenizer.nextToken();
 
-	Object old = result.put(name, value);
+	Object old = attributes.put(name, value);
 	// Check if attribute exists already. If so, raise an
 	// exception
 	if(old != null)
-	  throw new NoSuchElementException(DUPLICATE_MSG);
+	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
-      return result;
+
+      // Finally, assign each attribute value to an instance variable,
+      // making sure mandatory attributes for the current AMS action
+      // are non-null
+
+      agentName = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.NAME);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.NAME, agentName);
+
+      address = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.ADDRESS);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.ADDRESS, address);
+
+      signature = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.SIGNATURE);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.SIGNATURE, signature);
+
+      delegateAgent = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.DELEGATE);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.DELEGATE, delegateAgent);
+
+      forwardAddress = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.FORWARD);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.FORWARD, forwardAddress);
+
+      APState = (String)attributes.get(AgentManagementOntology.AMSAgentDescription.APSTATE);
+      checkAttribute(AgentManagementOntology.AMSAgentDescription.APSTATE, APState);
+
     }
 
-    protected void handleNSEE(NoSuchElementException nsee, String action) {
-	String why = nsee.getMessage();
-	if(why.equals(UNRECOGNIZED_MSG))
-	   sendRefuse(myReply, action, "unrecognised-attribute");
-	else if(why.equals(DUPLICATE_MSG))
-	  sendRefuse(myReply, action, "unrecognised-attribute-value");
-	else
-	  sendRefuse(myReply, action, UNKNOWN_MSG);
+    // Each concrete subclass will implement this deferred method to
+    // do action-specific work
+    protected abstract void processAttributes(String agentName, String address,
+					      String signature, String delegateAgent,
+					      String forwardAddress, String APState);
+
+    public void action() {
+
+      try {
+	// Convert message from untyped keyword/value list to ordinary
+	// typed variables, throwing a FIPAException in case of errors
+	crackMessage();
+      }
+      catch(FIPAException fe) {
+	sendRefuse(myReply, fe.getMessage());
+	return;
+      }
+      catch(NoSuchElementException nsee) {
+	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+	return;
+      }
+
+      // Do real action, deferred to subclasses
+      processAttributes(agentName, address, signature, delegateAgent, forwardAddress, APState);
+
     }
+
+
+  // The following methods handle the various possibilities arising in
+  // AMS <-> Agent interaction. They all receive an ACL message as an
+  // argument, most of whose fields have already been set. Only the
+  // message type and message content have to be filled in.
+
+  // Send a 'not-understood' message back to the requester
+  private void sendNotUnderstood(ACLMessage msg) {
+    msg.setType("not-understood");
+    msg.setContent("");
+    send(msg);
+  }
+
+  // Send a 'refuse' message back to the requester
+  private void sendRefuse(ACLMessage msg, String reason) {
+    msg.setType("refuse");
+    msg.setContent("( ams action " + myActionName + " ) " + reason);
+    send(msg);
+  }
+
+  // Send a 'failure' message back to the requester
+  private void sendFailure(ACLMessage msg, String reason) {
+    msg.setType("failure");
+    msg.setContent("( ams action " + myActionName + " ) " + reason);
+    send(msg);
+  }
+
+  // Send an 'agree' message back to the requester
+  private void sendAgree(ACLMessage msg) {
+    msg.setType("agree");
+    msg.setContent("( ams action " + myActionName + " )");
+    send(msg);
+  }
+
+  // Send an 'inform' message back to the requester
+  private void sendInform(ACLMessage msg) {
+    msg.setType("inform");
+    msg.setContent("( done ( " + myActionName + " ) )");
+    send(msg);
+  }
+
 
   } // End of AMSBehaviour class
 
@@ -100,83 +209,48 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   private class AuthBehaviour extends AMSBehaviour {
 
     public AuthBehaviour() {
+      super(AgentManagementOntology.AMSActions.AUTHENTICATE);
     }
 
     public AuthBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(msg, st);
+      super(AgentManagementOntology.AMSActions.AUTHENTICATE, msg, st);
     }
 
     public Behaviour instance(ACLMessage msg, StringTokenizer st) {
       return new AuthBehaviour(msg, st);
     }
 
-    public void action() {
-      Hashtable attributes = null;
-      try {
-	attributes = crackMessage();
-      }
-      catch(NoSuchElementException nsee) {
-	handleNSEE(nsee, "authenticate");
-      }
+    protected void processAttributes(String agentName, String address, String signature,
+				     String delegateAgent, String forwardAddress, String APState) {
 
-      sendRefuse(myReply, "authenticate", "unwilling-to-perform"); // FIXME: Not Implemented
+      sendRefuse(myReply, AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
 
-      myPlatform.AMSDumpData();
-      // Mandatory attributes:
-      // :agent-name
-
-      // Optional attributes:
-      // :address
-      // :signature
-      // :ap-state
-      // :delegate-agent-name
-      // :forward-address
+      if(agentName != null)
+	myPlatform.AMSDumpData(agentName);
+      else
+	myPlatform.AMSDumpData();
 
     }
 
   } // End of AuthBehaviour class
 
+
   private class RegBehaviour extends AMSBehaviour {
 
     public RegBehaviour() {
+      super(AgentManagementOntology.AMSActions.REGISTERAGENT);
     }
 
     public RegBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(msg, st);
+      super(AgentManagementOntology.AMSActions.REGISTERAGENT, msg, st);
     }
 
     public Behaviour instance(ACLMessage msg, StringTokenizer st) {
       return new RegBehaviour(msg, st);
     }
 
-    public void action() {
-      Hashtable attributes = null;
-      try {
-	attributes = crackMessage();
-      }
-      catch(NoSuchElementException nsee) {
-	handleNSEE(nsee, "register-agent");
-      }
-
-      // Mandatory attributes:
-      // :agent-name
-      // :address
-      // :ap-state
-      String agentName = (String)attributes.get(NAME_ATTR);
-      String address = (String)attributes.get(ADDR_ATTR);
-      String APState = (String)attributes.get(APST_ATTR);
-      if((agentName == null)||(address == null)||(APState == null)) {
-	sendRefuse(myReply, "register-agent", "unrecognised-attribute");
-	return;
-      }
-
-      // Optional attributes:
-      // :signature
-      // :delegate-agent-name
-      // :forward-address
-      String signature = (String)attributes.get(SIGN_ATTR);
-      String delegateAgent = (String)attributes.get(DELE_ATTR);
-      String forwardAddress = (String)attributes.get(FORW_ATTR);
+    protected void processAttributes(String agentName, String address, String signature,
+				     String delegateAgent, String forwardAddress, String APState) {
 
       // Write new agent data in Global Agent Descriptor Table
       try {
@@ -184,125 +258,73 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 			      forwardAddress, APState);
       }
       catch(AgentAlreadyRegisteredException aare) {
-	sendAgree(myReply, "register-agent");
-	sendFailure(myReply, "register-agent", aare.getMessage());
+	sendAgree(myReply);
+	sendFailure(myReply, aare.getMessage());
 	return;
       }
       catch(FIPAException fe) {
-	sendRefuse(myReply, "register-agent", fe.getMessage());
+	sendRefuse(myReply, fe.getMessage());
 	return;
       }
 
-      sendAgree(myReply, "register-agent");
-      sendInform(myReply, "register-agent");
+      sendAgree(myReply);
+      sendInform(myReply);
 
     }
 
   } // End of RegBehaviour class
 
+
   private class DeregBehaviour extends AMSBehaviour {
 
     public DeregBehaviour() {
+      super(AgentManagementOntology.AMSActions.DEREGISTERAGENT);
     }
 
     public DeregBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(msg, st);
+      super(AgentManagementOntology.AMSActions.DEREGISTERAGENT, msg, st);
     }
 
     public Behaviour instance(ACLMessage msg, StringTokenizer st) {
       return new DeregBehaviour(msg, st);
     }
 
-    public void action() {
-
-      Hashtable attributes = null;
-      try {
-	attributes = crackMessage();
-      }
-      catch(NoSuchElementException nsee) {
-	handleNSEE(nsee, "deregister-agent");
-      }
-
-      // Mandatory attributes:
-      // :agent-name
-      String agentName = (String)attributes.get(NAME_ATTR);
-
-      if(agentName == null) {
-	sendRefuse(myReply, "deregister-agent", "unrecognised-attribute");
-	return;
-      }
-
-      // Optional attributes:
-      // :address
-      // :signature
-      // :delegate-agent-name
-      // :forward-address
-      // :ap-state
-      String address = (String)attributes.get(ADDR_ATTR);
-      String signature = (String)attributes.get(SIGN_ATTR);
-      String delegateAgent = (String)attributes.get(DELE_ATTR);
-      String forwardAddress = (String)attributes.get(FORW_ATTR);
-      String APState = (String)attributes.get(APST_ATTR);
-
+    protected void processAttributes(String agentName, String address, String signature,
+				     String delegateAgent, String forwardAddress, String APState) {
       try {
 	// Remove the agent data from Global Descriptor Table
 	myPlatform.AMSRemoveData(agentName, address, signature, delegateAgent,
 				 forwardAddress, APState);
       }
       catch(FIPAException fe) {
-	sendRefuse(myReply, "deregister-agent", fe.getMessage());
+	sendRefuse(myReply, fe.getMessage());
 	return;
       }
 
-      sendAgree(myReply, "deregister-agent");
-      sendInform(myReply, "deregister-agent");
+      sendAgree(myReply);
+      sendInform(myReply);
 
     }
 
   } // End of DeregBehaviour class
 
+
   private class ModBehaviour extends AMSBehaviour {
 
     public ModBehaviour() {
+      super(AgentManagementOntology.AMSActions.MODIFYAGENT);
     }
 
     public ModBehaviour(ACLMessage msg, StringTokenizer st) {
-      super(msg, st);
+      super(AgentManagementOntology.AMSActions.MODIFYAGENT, msg, st);
     }
 
     public Behaviour instance(ACLMessage msg, StringTokenizer st) {
       return new ModBehaviour(msg, st);
     }
 
-    public void action() {
-
-      Hashtable attributes = null;
-      try {
-	attributes = crackMessage();
-      }
-      catch(NoSuchElementException nsee) {
-	handleNSEE(nsee, "modify-agent");
-      }
-      // Mandatory attributes:
-      // :agent-name
-      String agentName = (String)attributes.get(NAME_ATTR);
-
-      if(agentName == null) {
-	sendRefuse(myReply, "modify-agent", "unrecognised-attribute");
-	return;
-      }
-
-      // Optional attributes:
-      // :address
-      // :signature
-      // :delegate-agent-name
-      // :forward-address
-      // :ap-state
-      String address = (String)attributes.get(ADDR_ATTR);
-      String signature = (String)attributes.get(SIGN_ATTR);
-      String delegateAgent = (String)attributes.get(DELE_ATTR);
-      String forwardAddress = (String)attributes.get(FORW_ATTR);
-      String APState = (String)attributes.get(APST_ATTR);
+    protected void processAttributes(String agentName, String address, String signature,
+				     String delegateAgent, String forwardAddress, String APState) {
 
       try {
 	// Modify agent data from Global Descriptor Table
@@ -310,12 +332,12 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 				 forwardAddress, APState);
       }
       catch(FIPAException fe) {
-	sendRefuse(myReply, "modify-agent", fe.getMessage());
+	sendRefuse(myReply, fe.getMessage());
 	return;
       }
 
-      sendAgree(myReply, "modify-agent");
-      sendInform(myReply, "modify-agent");
+      sendAgree(myReply);
+      sendInform(myReply);
 
     }
 
@@ -390,6 +412,13 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       return false;
     }
 
+    // Send a 'not-understood' message back to the requester
+    private void sendNotUnderstood(ACLMessage msg) {
+      msg.setType("not-understood");
+      msg.setContent("");
+      send(msg);
+    }
+
   } // End of DispatcherBehaviour class
 
 
@@ -399,29 +428,20 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   // Maintains an association between action names and behaviours
   private Hashtable actions;
 
-  // Holds all the valid names of attributes in
-  // 'fipa-man-ams-agent-description' objects
-  private Hashtable attributeNames;
-
   public ams(AgentPlatformImpl ap, String name) {
     myPlatform = ap;
     myName = name;
 
+    // Associate each AMS action name with the behaviour to execute
+    // when the action is requested in a 'request' ACL message
     actions = new Hashtable(4, 1.0f);
-    actions.put("authenticate", new AuthBehaviour());
-    actions.put("register-agent", new RegBehaviour());
-    actions.put("deregister-agent", new DeregBehaviour());
-    actions.put("modify-agent", new ModBehaviour());
+
+    actions.put(AgentManagementOntology.AMSActions.AUTHENTICATE, new AuthBehaviour());
+    actions.put(AgentManagementOntology.AMSActions.REGISTERAGENT, new RegBehaviour());
+    actions.put(AgentManagementOntology.AMSActions.DEREGISTERAGENT, new DeregBehaviour());
+    actions.put(AgentManagementOntology.AMSActions.MODIFYAGENT, new ModBehaviour());
 
 
-    attributeNames = new Hashtable(6, 1.0f);
-    // When key == value an Hashtable is used like a Set
-    attributeNames.put(NAME_ATTR, NAME_ATTR);
-    attributeNames.put(ADDR_ATTR, ADDR_ATTR);
-    attributeNames.put(SIGN_ATTR, SIGN_ATTR);
-    attributeNames.put(DELE_ATTR, DELE_ATTR);
-    attributeNames.put(FORW_ATTR, FORW_ATTR);
-    attributeNames.put(APST_ATTR, APST_ATTR);
   }
 
   protected void setup() {
@@ -429,47 +449,6 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     // Add a dispatcher behaviour
     addBehaviour(new DispatcherBehaviour());
 
-  }
-
-
-  // The following methods handle the various possibilities arising in
-  // AMS <-> Agent interaction. They all receive an ACL message as an
-  // argument, most of whose fields have already been set. Only the
-  // message type and message content have to be filled in.
-
-  // Send a 'not-understood' message back to the requester
-  private void sendNotUnderstood(ACLMessage msg) {
-    msg.setType("not-understood");
-    msg.setContent("");
-    send(msg);
-  }
-
-  // Send a 'refuse' message back to the requester
-  private void sendRefuse(ACLMessage msg, String action, String reason) {
-    msg.setType("refuse");
-    msg.setContent("( action " + action + " ) " + reason);
-    send(msg);
-  }
-
-  // Send a 'failure' message back to the requester
-  private void sendFailure(ACLMessage msg, String action, String reason) {
-    msg.setType("failure");
-    msg.setContent("( action " + action + " ) " + reason);
-    send(msg);
-  }
-
-  // Send an 'agree' message back to the requester
-  private void sendAgree(ACLMessage msg, String action) {
-    msg.setType("agree");
-    msg.setContent("( action " + action + " )");
-    send(msg);
-  }
-
-  // Send an 'inform' message back to the requester
-  private void sendInform(ACLMessage msg, String action) {
-    msg.setType("inform");
-    msg.setContent("( done ( " + action + " ) )");
-    send(msg);
   }
 
 
