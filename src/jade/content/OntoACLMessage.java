@@ -65,43 +65,44 @@ public class OntoACLMessage extends ACLMessage implements AgentAction {
 	 */
 	public static OntoACLMessage wrap(ACLMessage msg) {
 		OntoACLMessage wrapper = null;
-		if (msg instanceof OntoACLMessage) {
-			wrapper = (OntoACLMessage) msg;
-		}
-		else {
-			wrapper = new OntoACLMessage(msg.getPerformative());
-			// This automatically performs the wrapping
-			wrapper.setSender(msg.getSender());
-			Iterator it = msg.getAllReceiver();
-			while (it.hasNext()) {
-				// This automatically performs the wrapping
-				wrapper.addReceiver((AID) it.next());
+		if (msg != null) {
+			if (msg instanceof OntoACLMessage) {
+				wrapper = (OntoACLMessage) msg;
 			}
-			
-			it = msg.getAllReplyTo();
-			while (it.hasNext()) {
+			else {
+				wrapper = new OntoACLMessage(msg.getPerformative());
 				// This automatically performs the wrapping
-				wrapper.addReplyTo((AID) it.next());
+				wrapper.setSender(msg.getSender());
+				Iterator it = msg.getAllReceiver();
+				while (it.hasNext()) {
+					// This automatically performs the wrapping
+					wrapper.addReceiver((AID) it.next());
+				}
+				
+				it = msg.getAllReplyTo();
+				while (it.hasNext()) {
+					// This automatically performs the wrapping
+					wrapper.addReplyTo((AID) it.next());
+				}
+				
+	    	wrapper.setLanguage(msg.getLanguage());
+	    	wrapper.setOntology(msg.getOntology());
+	    	wrapper.setProtocol(msg.getProtocol());
+	    	wrapper.setInReplyTo(msg.getInReplyTo());
+	      wrapper.setReplyWith(msg.getReplyWith()); 
+	    	wrapper.setConversationId(msg.getConversationId());
+	    	wrapper.setReplyByDate(msg.getReplyByDate());
+	    	if (msg.hasByteSequenceContent()) {
+	    		wrapper.setByteSequenceContent(msg.getByteSequenceContent());
+	    	}
+	    	else {
+	    		wrapper.setContent(msg.getContent());
+	    	}
+	    	wrapper.setEncoding(msg.getEncoding());
+	    
+	    	//FIXME: Message Envelope is missing
 			}
-			
-    	wrapper.setLanguage(msg.getLanguage());
-    	wrapper.setOntology(msg.getOntology());
-    	wrapper.setProtocol(msg.getProtocol());
-    	wrapper.setInReplyTo(msg.getInReplyTo());
-      wrapper.setReplyWith(msg.getReplyWith()); 
-    	wrapper.setConversationId(msg.getConversationId());
-    	wrapper.setReplyByDate(msg.getReplyByDate());
-    	if (msg.hasByteSequenceContent()) {
-    		wrapper.setByteSequenceContent(msg.getByteSequenceContent());
-    	}
-    	else {
-    		wrapper.setContent(msg.getContent());
-    	}
-    	wrapper.setEncoding(msg.getEncoding());
-    
-    	//FIXME: Message Envelope is missing
 		}
-		
 		return wrapper; 
 	}
 	

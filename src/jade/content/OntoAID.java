@@ -66,23 +66,24 @@ public class OntoAID extends AID implements Concept {
 	 */
 	public static OntoAID wrap(AID id) {
 		OntoAID wrapper = null;
-		if (id instanceof OntoAID) {
-			wrapper = (OntoAID) id;
-		}
-		else {
-			wrapper = new OntoAID(id.getName(), ISGUID);
-			Iterator it = id.getAllAddresses();
-			while (it.hasNext()) {
-				wrapper.addAddresses((String) it.next());
+		if (id != null) {
+			if (id instanceof OntoAID) {
+				wrapper = (OntoAID) id;
 			}
-			
-			it = id.getAllResolvers();
-			while (it.hasNext()) {
-				// This automatically performs the wrapping
-				wrapper.addResolvers((AID) it.next()); 
+			else {
+				wrapper = new OntoAID(id.getName(), ISGUID);
+				Iterator it = id.getAllAddresses();
+				while (it.hasNext()) {
+					wrapper.addAddresses((String) it.next());
+				}
+				
+				it = id.getAllResolvers();
+				while (it.hasNext()) {
+					// This automatically performs the wrapping
+					wrapper.addResolvers((AID) it.next()); 
+				}
 			}
 		}
-		
 		return wrapper; 
 	}
 	
