@@ -391,7 +391,7 @@ public class ProfileImpl extends Profile {
 
     try {
       myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
-    } 
+    }
     catch (Exception e) {
       e.printStackTrace();
 
