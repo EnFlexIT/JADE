@@ -40,14 +40,17 @@ import javax.swing.ImageIcon;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.Image;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 import jade.domain.FIPAAgentManagement.APDescription;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Francisco Regi, Andrea Soracchi - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class AgentTree extends JPanel {
@@ -397,6 +400,30 @@ public class RemoteAgentNode extends AgentNode{
  			}
  	}
  }
+
+  public void clearLocalPlatform() {
+      AgentTreeModel model = getModel();
+      MutableTreeNode root = (MutableTreeNode)model.getRoot();
+      Enumeration folders = root.children();
+      while(folders.hasMoreElements()) {
+	  AgentTree.Node folderNode =(AgentTree.Node)folders.nextElement();
+	  String folderName = folderNode.getName();
+	  if(folderName.equalsIgnoreCase(localPlatformName)) {
+	      Enumeration containers = folderNode.children();
+	      List toRemove = new LinkedList();
+	      while(containers.hasMoreElements()) {
+		  AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+		  toRemove.add(container);
+	      }
+
+	      Iterator it = toRemove.iterator();
+	      while(it.hasNext()) {
+		  MutableTreeNode node = (MutableTreeNode)it.next();
+		  model.removeNodeFromParent(node);
+	      }
+	  }
+      }
+  }
  
   public void addContainerNode(ContainerNode node,String typeContainer, InetAddress addr) {
     AgentTreeModel model = getModel();
