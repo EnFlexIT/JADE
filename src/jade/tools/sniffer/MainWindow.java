@@ -99,6 +99,18 @@ public class MainWindow extends JFrame {
     return myProperties;
  }
 
+  public void resetTree() {
+      Runnable resetIt = new Runnable() {
+
+	  public void run() {
+	      mainPanel.treeAgent.clearLocalPlatform();
+          }
+      };
+      SwingUtilities.invokeLater(resetIt);
+  }
+
+
+
  /**
  * Tells the Agent Tree to add a container.
  *

@@ -307,6 +307,16 @@ public IntrospectorGUI(Introspector i) {
     return panel.treeAgent.getModel();
   }
 
+  public void resetTree() {
+      Runnable resetIt = new Runnable() {
+
+	  public void run() {
+	      panel.treeAgent.clearLocalPlatform();
+          }
+      };
+      SwingUtilities.invokeLater(resetIt);
+  }
+
   public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {

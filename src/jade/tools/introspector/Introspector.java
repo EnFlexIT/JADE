@@ -79,7 +79,7 @@ import jade.tools.introspector.gui.MainWindow;
   introspection events and updates the display through the
   IntrospectorGUI class.
 
-  @author Andrea Squeri, -  Universita` di Parma
+  @author Andrea Squeri, -  Universita' di Parma
   @author Giovanni Caire, -  TILAB
 */
 public class Introspector extends ToolAgent {
@@ -146,6 +146,13 @@ public class Introspector extends ToolAgent {
   class IntrospectorAMSListenerBehaviour extends AMSListenerBehaviour {
 
       protected void installHandlers(Map handlersTable) {
+
+	handlersTable.put(IntrospectionVocabulary.META_RESETEVENTS, new EventHandler() {
+	  public void handle(Event ev) {
+	      ResetEvents re = (ResetEvents)ev;
+	      myGUI.resetTree();
+	  }
+	});
 
 	handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
