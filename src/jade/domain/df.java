@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.21  1999/03/29 10:42:30  rimassa
+  Changed the handling of DF GUI events: now both registration and
+  deregistration are handled as events.
+
   Revision 1.20  1999/03/15 15:24:26  rimassa
   Removed call to deprecated ACLMessage.setDest() method.
 
@@ -569,14 +573,28 @@ public class df extends Agent {
       public void action() {
         if(!eventQueue.isEmpty()) {
 	  try {
-	    RegEvent re = (RegEvent)eventQueue.remove(0);
-	    if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
-	      // Register with yourself directly, avoiding deadlock
-	      DFRegister(re.dfd);
-	    }
-	    else {
-	      // Follow ordinary 'fipa-request' protocol
-	      registerWithDF(re.dfName, re.dfd);
+	    GUIEvent re = (GUIEvent)eventQueue.remove(0);
+	    switch(re.getKind()) {
+	    case GUIEvent.EV_REG:
+	      if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
+		// Register with yourself directly, avoiding deadlock
+		DFRegister(re.dfd);
+	      }
+	      else {
+		// Follow ordinary 'fipa-request' protocol
+		registerWithDF(re.dfName, re.dfd);
+	      }
+	      break;
+	    case GUIEvent.EV_DEREG:
+	      if(re.dfName.equalsIgnoreCase(getName()) || re.dfName.equalsIgnoreCase(getLocalName())) {
+		// Deregister with yourself directly, avoiding deadlock
+		DFDeregister(re.dfd);
+	      }
+	      else {
+		// Follow ordinary 'fipa-request' protocol
+		deregisterWithDF(re.dfName, re.dfd);
+	      }
+	      break;
 	    }
 	  }
 	  catch(ArrayIndexOutOfBoundsException aioobe) { // Cannot happen
@@ -863,21 +881,36 @@ public class df extends Agent {
     return true;
   }
 
-  private class RegEvent {
+  private class GUIEvent {
 
+    public static final int EV_REG = 1;
+    public static final int EV_DEREG = 2;
+
+    private int myKind;
     public String dfName;
     public AgentManagementOntology.DFAgentDescriptor dfd;
 
-    public RegEvent(String n, AgentManagementOntology.DFAgentDescriptor ad) {
+    public GUIEvent(int kind, String n, AgentManagementOntology.DFAgentDescriptor ad) {
+      myKind = kind;
       dfName = n;
       dfd = ad;
+    }
+
+    public int getKind() {
+      return myKind;
     }
 
   }
 
   public void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-    eventQueue.addElement(new RegEvent(dfName, dfd));
+    eventQueue.addElement(new GUIEvent(GUIEvent.EV_REG, dfName, dfd));
+    doWake();
+  }
+
+  public void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+    eventQueue.addElement(new GUIEvent(GUIEvent.EV_DEREG, dfName, dfd));
     doWake();
   }
 
 }
+
