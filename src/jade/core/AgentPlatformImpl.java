@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.24  1999/02/14 23:13:34  rimassa
+  Removed an useless printout. Changed IOR file name from 'CSELT.IOR' to
+  'JADE.IOR'.
+
   Revision 1.23  1999/02/04 12:57:07  rimassa
   Added a 'FIXME:' reminder.
 
@@ -129,7 +133,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private class InComingIIOP extends _FIPA_Agent_97ImplBase {
     public void message(String acl_message) {
 
-      System.out.println(acl_message);
       // Recover ACL message object from String
       ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));
 
@@ -181,7 +184,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       System.out.println(platformAddress);
       // FIXME: for Seoul we have decided to write the IOR on a file
       try {
-      	FileWriter f = new FileWriter("CSELT.IOR");
+      	FileWriter f = new FileWriter("JADE.IOR");
       	f.write(platformAddress,0,platformAddress.length());
       	f.close();
       }
