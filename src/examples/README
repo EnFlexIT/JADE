@@ -170,8 +170,17 @@ This example shows some methods an agent can use to receive a message.
  - SubDF.class			This examples shows how to set up multiple
 				Agent Domains by means of a network of
 				connected Directory Facilitator Agents.
-				This agent can register itself with another
-				DF, exploiting recursive search capabilities.
+				This agent can automatically
+				register itself with another
+				DF, and then exploit 
+				recursive search capabilities.
+				Notice that the same might be done without
+				writing any line of code: just start a new
+				agent subdf of classe jade.domain.df
+				(subdf:jade.domain.df), send it a message
+				to request to show the GUI (by using
+				the dummyAgent), and then use its GUI
+				to federate with its parent.
 
 'ontology' subdirectory
 =======================

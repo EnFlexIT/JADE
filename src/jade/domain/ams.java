@@ -94,7 +94,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       }
       catch(FIPAException fe) {
-	sendReply(ACLMessage.REFUSE,fe.getMessage());
+	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
       }
 
     }
@@ -146,8 +146,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
       }
       catch(AlreadyRegistered are) {
-	sendReply(ACLMessage.AGREE, "FIXME");
-	sendReply(ACLMessage.FAILURE,are.getMessage());
+	sendReply(ACLMessage.AGREE, "( true )");
+	sendReply(ACLMessage.FAILURE,"("+are.getMessage()+")");
 
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
@@ -172,7 +172,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Deregister d = (Deregister)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
-      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.AGREE, "( true )");
       sendReply(ACLMessage.INFORM,"FIXME");
     }
 
@@ -190,7 +190,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
-      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.AGREE, "( true)");
       sendReply(ACLMessage.INFORM,"FIXME");
     }
 
@@ -209,7 +209,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = AMSSearch(amsd, constraints, getReply());
-      sendReply(ACLMessage.AGREE,"FIXME");
+      sendReply(ACLMessage.AGREE,"( true)");
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -234,7 +234,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     protected void processAction(Action a) throws FIPAException {
 
-      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.AGREE, "( true )");
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
@@ -445,7 +445,7 @@ public class ams extends Agent implements AgentManager.Listener {
       KillContainer kc = (KillContainer)a.get_1();
       String containerName = kc.getName();
       myPlatform.killContainer(containerName);
-      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.AGREE, " (true)");
       sendReply(ACLMessage.INFORM,"FIXME");
 
     }
@@ -467,7 +467,7 @@ public class ams extends Agent implements AgentManager.Listener {
       String className = ca.getClassName();
       String containerName = ca.getContainerName();
 
-      sendReply(ACLMessage.AGREE, "FIXME");
+      sendReply(ACLMessage.AGREE, "(true)");
 
       try {
 	myPlatform.create(agentName, className, containerName);
@@ -503,7 +503,7 @@ public class ams extends Agent implements AgentManager.Listener {
       String password = kaa.getPassword();
       try {
 	myPlatform.kill(agentName, password);
-	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.AGREE, "(true)");
 	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
@@ -531,7 +531,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AgentManagementOntology.SniffAgentOnAction saoa = (AgentManagementOntology.SniffAgentOnAction)a;
       try {
 	myPlatform.sniffOn(saoa.getSnifferName(), saoa.getEntireList());
-	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.AGREE, "(true)");
 	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
@@ -555,7 +555,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AgentManagementOntology.SniffAgentOffAction saoa = (AgentManagementOntology.SniffAgentOffAction)a;
       try {
 	myPlatform.sniffOff(saoa.getSnifferName(), saoa.getEntireList());
-	sendReply(ACLMessage.AGREE, "FIXME");
+	sendReply(ACLMessage.AGREE, "(true)");
 	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
@@ -767,6 +767,8 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSRegister() called");
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+    if (PROVA.containsKey(amsd.getName()))
+	throw new AlreadyRegistered();
     PROVA.put(amsd.getName(),amsd);
   }
 
@@ -831,7 +833,7 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   }
 
   // This one is called in response to a 'query-platform-locations' action
-  MobilityOntology.PlatformLocations AMSGetPlatformLocations() {
+  Iterator AMSGetPlatformLocations() {
     return mobilityMgr.getLocations();
   }
 

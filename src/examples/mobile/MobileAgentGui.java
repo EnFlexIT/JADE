@@ -167,10 +167,10 @@ public class MobileAgentGui extends JFrame implements ActionListener
     //counterText.fireActionPerformed();
   }
 
-  public void updateLocations(MobilityOntology.Location[] list) {
+  public void updateLocations(Iterator list) {
     availableSiteListModel.clear();
-    for (int i=0; i<list.length; i++)
-      availableSiteListModel.add(list[i]);
+    for ( ; list.hasNext(); )
+      availableSiteListModel.add((Location)list.next());
     availableSiteListModel.fireTableDataChanged();
   }
 

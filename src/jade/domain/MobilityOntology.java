@@ -97,11 +97,6 @@ public class MobilityOntology {
   public static final String LOCATION = "location";
 
   /**
-    A symbolic constant, containing the name of the concept.
-  */  
-  public static final String PLATFORMLOCATIONS = "platform-locations";
-
-  /**
     A symbolic constant, containing the name of the action.
   */
   public static final String MOVE = "move-agent";
@@ -202,13 +197,6 @@ public class MobilityOntology {
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new Location(); } // FIXME: use Indexed Creation
 	     public Class getClassForRole() { return Location.class; }
-	   });
-
-	theInstance.addRole(PLATFORMLOCATIONS, new SlotDescriptor[] {
-	    new SlotDescriptor("locations", Ontology.SET_SLOT, LOCATION, Ontology.M),
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new PlatformLocations(); }
-	     public Class getClassForRole() { return PlatformLocations.class; }
 	   });
 
 	theInstance.addRole(MOVE, new SlotDescriptor[] {
@@ -536,34 +524,6 @@ public class MobilityOntology {
     }
 
   } // End of Location class
-
-  /**
-    This class represent the ':platform-locations' concept in JADE
-    mobility ontology. It has various get- and set- methods, according to the
-    rules for ontological classes in JADE.
-    @see jade.onto.Ontology
-  */
-  public static class PlatformLocations {
-
-    private List locations = new ArrayList();
-
-    public void clearAllLocations() {
-      locations.clear();
-    }
-
-    public void addLocations(Location l) {
-      locations.add(l);
-    }
-
-    public Boolean removeLocations(Location l) {
-      return new Boolean(locations.remove(l));
-    }
-
-    public Iterator getAllLocations() {
-      return locations.iterator();
-    }
-
-  }
 
   /**
     This class represent the 'move-agent' action in JADE

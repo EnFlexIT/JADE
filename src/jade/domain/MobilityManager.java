@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
@@ -38,6 +39,7 @@ import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 
 import jade.onto.basic.Action;
+import jade.onto.basic.ResultPredicate;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
@@ -106,7 +108,7 @@ class MobilityManager {
       super(MobilityManager.this.theAMS,msg);
     }
 
-    protected abstract void doAction(Object o) throws FIPAException;
+    protected abstract void doAction(Action a) throws FIPAException;
 
     public final void action() {
       Object o;
@@ -114,18 +116,17 @@ class MobilityManager {
       try {
 	List l = theAMS.extractContent(msg);
 	Action a = (Action)l.get(0);
-	o = a.get_1();
-	sendReply(ACLMessage.AGREE,"FIXME");
+	sendReply(ACLMessage.AGREE,"(true)");
 	try {
-	  doAction(o);
+	  doAction(a);
 	}
 	catch(FIPAException fe) {
-	  sendReply(ACLMessage.FAILURE,fe.getMessage());
+	  sendReply(ACLMessage.FAILURE,"("+fe.getMessage()+")");
 	  return;
 	}
       }
       catch(FIPAException fe) {
-	sendReply(ACLMessage.REFUSE,fe.getMessage());
+	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
       }
     }
 
@@ -144,8 +145,8 @@ class MobilityManager {
     public MoveBehaviour(ACLMessage msg) {
       super(msg);
     }
-    protected void doAction(Object o) throws FIPAException {
-      MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)o;
+    protected void doAction(Action a) throws FIPAException {
+      MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)a.get_1();
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
       AID agentName = desc.getName();
@@ -160,8 +161,8 @@ class MobilityManager {
     public CloneBehaviour(ACLMessage msg) {
       super(msg);
     }
-    protected void doAction(Object o) throws FIPAException {
-      MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)o;
+    protected void doAction(Action a) throws FIPAException {
+      MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)a.get_1();
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
       AID agentName = desc.getName();
@@ -177,8 +178,8 @@ class MobilityManager {
     public WhereIsBehaviour(ACLMessage msg) {
       super(msg);
     }
-    protected void doAction(Object o) throws FIPAException {
-      MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)o;
+    protected void doAction(Action a) throws FIPAException {
+      MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)a.get_1();
 
       AID agentName = action.get_0();
       MobilityOntology.Location where = theAMS.AMSWhereIsAgent(agentName);
@@ -199,17 +200,21 @@ class MobilityManager {
     public QPLBehaviour(ACLMessage msg) {
       super(msg);
     }
-    protected void doAction(Object o) throws FIPAException {
-      MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)o;
-      MobilityOntology.PlatformLocations locations = theAMS.AMSGetPlatformLocations();
+    protected void doAction(Action a) throws FIPAException {
+      MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)a.get_1();
+      Iterator locations = theAMS.AMSGetPlatformLocations();
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
       reply.setLanguage(SL0Codec.NAME);
       reply.setOntology(MobilityOntology.NAME);
-      List l = new ArrayList(1);
-      l.add(locations);
-      theAMS.fillContent(reply, l);
+      ResultPredicate r = new ResultPredicate();
+      r.set_0(a);
+      for (; locations.hasNext(); )
+      	r.add_1(locations.next());
+      List l = new ArrayList();
+      l.add(r);
+      theAMS.fillContent(reply,l); 
       theAMS.send(reply);
     }
 
@@ -227,12 +232,8 @@ class MobilityManager {
     return (MobilityOntology.Location)locations.get(new Name(containerName));
   }
 
-  public MobilityOntology.PlatformLocations getLocations() {
-    MobilityOntology.PlatformLocations result = new MobilityOntology.PlatformLocations();
-
-    // Fill it in using the locations list
-
-    return result;
+  public Iterator getLocations() {
+    return locations.values().iterator();
   }
 
 }

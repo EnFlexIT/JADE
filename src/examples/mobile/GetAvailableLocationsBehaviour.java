@@ -39,6 +39,7 @@ import jade.lang.sl.SL0Codec;
 import jade.core.*;
 import jade.onto.OntologyException;
 import jade.onto.basic.Action;
+import jade.onto.basic.ResultPredicate;
 
   /*
    * This behaviour extends FipaRequestInitiatorBehaviour in order
@@ -100,20 +101,15 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
    protected void handleInform(ACLMessage inform) {
      String content = inform.getContent();
      System.out.println(inform.toString());
-     /*** FIXME cosa ritorna lo AMS?
      try {
-       Codec c = myAgent.lookupLanguage(SL0Codec.NAME);
-       MobilityOntology.Location[] list = MobilityOntology.parseLocationsList(c, content);
+       List tuple = myAgent.extractContent(inform);
+       ResultPredicate r = (ResultPredicate)tuple.get(0);
        //update the GUI
-       ((MobileAgent)myAgent).gui.updateLocations(list);
+       ((MobileAgent)myAgent).gui.updateLocations(r.getAll_1());
      }
-     catch(OntologyException oe) {
-       oe.printStackTrace();
+     catch(Exception e) {
+       e.printStackTrace();
      }
-     catch(Codec.CodecException cce) {
-       cce.printStackTrace();
-     }
-     ***/
    }
 
 }
