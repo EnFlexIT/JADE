@@ -482,9 +482,9 @@ public class MessageTemplate implements Serializable {
  		 @return A new <code>MessageTenplate</code>matching the given
  		 value.
  */
-	public static MessageTemplate MatchPerformative(String value){
+	public static MessageTemplate MatchPerformative(int value){
   	ACLMessage msg = allWildCard();
-  	msg.setPerformative(ACLMessage.getInteger(value));  	
+  	msg.setPerformative(value);  	
   	return new MessageTemplate(msg,true);
   }
 
