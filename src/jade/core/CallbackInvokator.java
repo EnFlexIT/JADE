@@ -40,19 +40,41 @@ public class CallbackInvokator implements jade.util.leap.Serializable {
 	}
 	
 	public void invokeCallbackMethod(Agent a, String name) {
+		recursiveInvoke(a, a.getClass(), name);
+	}
+	
+	private void recursiveInvoke(Agent a, Class agentClass, String name) {
 		Method callbackMethod = null;
 		try {
-			callbackMethod = a.getClass().getDeclaredMethod(name, null);
+			callbackMethod = agentClass.getDeclaredMethod(name, null);
+			boolean accessibilityChanged = false;
+			if (!callbackMethod.isAccessible()) {
+				try {
+					callbackMethod.setAccessible(true);
+					accessibilityChanged = true;
+				}
+				catch (SecurityException se) {
+					System.out.println("Callback method "+name+"() of agent "+a.getName()+" not accessible.");
+				}
+			}					
 			try { 			
 				callbackMethod.invoke(a, null);
+				// Restore accessibility if changed
+				if (accessibilityChanged) {
+					callbackMethod.setAccessible(false);
+				}
 			}
 			catch (Exception e) {
 				System.out.println("Error executing callback method "+name+"() of agent "+a.getName()+". "+e);
 			}
 		}
 		catch (NoSuchMethodException e) {
-			// Callback method not defined. ignore it.
-			System.out.println("Method "+name +" not found");
+			// Callback method not defined. Try in the superclass if any.	
+			// Otherwise just ignore it
+			Class superClass = agentClass.getSuperclass();
+			if (superClass != null) {
+				recursiveInvoke(a, superClass, name);
+			}
 		}
 		catch (Exception e1) {
 			e1.printStackTrace();
