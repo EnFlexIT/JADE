@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/11/08 15:26:55  rimassaJade
+  Added a menu item to start the message sniffer.
+
   Revision 1.4  1999/06/22 13:19:22  rimassa
   Added a menu action to show DF GUI.
 
@@ -121,9 +124,8 @@ public class AMSMenu extends JMenuBar {
     // TOOLS MENU
     menu = new JMenu ("Tools");
 
-    act = new SnifferAction();
+    act = new SnifferAction(anRMA);
     tmp = menu.add(act);
-    tmp.setEnabled(false);
     tmp.setIcon(null);
 
     act = new DummyAgentAction(anRMA);
