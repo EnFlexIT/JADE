@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/08/27 15:43:50  rimassa
+  Added transactional locking support for agent migration.
+
   Revision 1.10  1999/07/13 20:01:38  rimassa
   Removed useless code.
 
@@ -28,6 +31,7 @@ class AgentDescriptor {
 
   private RemoteProxy proxy;
   private String containerName;
+  private boolean locked = false;
 
   public void setProxy(RemoteProxy rp) {
     proxy = rp;
@@ -45,7 +49,21 @@ class AgentDescriptor {
     return containerName;
   }
 
+  public synchronized void lock() {
+    while(locked) {
+      try {
+	wait();
+      }
+      catch(InterruptedException ie) {
+	ie.printStackTrace();
+      }
+    }
+    locked = true;
+  }
+
+  public synchronized void unlock() {
+    locked = false;
+    notifyAll();
+  }
+
 }
-
-
-
