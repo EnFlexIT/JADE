@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.6  1998/10/25 23:55:19  rimassa
+ * Added some function for remote agent management.
+ *
  * Revision 1.5  1998/10/11 19:12:26  rimassa
  * Added a method to invalidate an entry of remote agents cache.
  *
@@ -13,13 +16,17 @@ package jade.core;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-/* 
 
-   FIXME: To support GUI direct intervention, some methods such as
-          startAgent() will be needed. Making them remote will help
-          with distributed platform administration.
-*/
 public interface AgentContainer extends Remote {
+
+  static final boolean NOSTART = false;
+  static final boolean START = true;
+
+  void createAgent(String agentName, String className, boolean startIt) throws RemoteException;
+  void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException;
+
+  void killAgent(String agentName) throws RemoteException, NotFoundException;
+
 
   void invalidateCacheEntry(String key) throws RemoteException;
 
