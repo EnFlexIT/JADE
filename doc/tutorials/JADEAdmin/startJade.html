@@ -1,0 +1,93 @@
+<html>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<meta name="generator" content="Adobe GoLive 5">
+		<title>Tutorial 1: Starting with JADE</title>
+		<link rel="stylesheet" href="../cps.css">
+	</head>
+
+	<body bgcolor="#ffffff">
+		<h1>Tutorial 1: Getting Started with JADE</h1>
+		<p>[revised for JADE 2.5 March 2002]</p>
+		<p>(Note: The procedures in these notes have been tested on Windows 98 and Windows 2000.)</p>
+		<p>JADE can be run in several different ways, on one or on many computers. The easiest way is to run a single Jade platform on one computer and use the main container.</p>
+		<p>Once you have unzipped JADE,  you need to make Jade's jar files visible on the classpath. To save typing out could make a one line batch file with the following (on a single line), tailored to your setup,</p>
+		<li>java  -classpath .;.\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar jade.Boot %1 %2 %3 %4 %5 %6 %7 %8 %9
+		<li>
+		<li>We will call this batch file <a href="runjade.bat">runjade.bat.</a>
+		<h3>
+			<li>Booting Jade
+		</h3>
+		<h3></h3>
+		<p>Then boot Jade (from the jade directory),</p>
+		<p>runjad -gui</p>
+		<p>You see this window (after you display the tree),</p>
+		<table cool width="617" height="417" usegridx usegridy showgridx showgridy gridx="16" gridy="16" border="0" cellpadding="0" cellspacing="0">
+			<tr height="16">
+				<td width="16" height="416" rowspan="2"></td>
+				<td width="600" height="16"></td>
+				<td width="1" height="16"><spacer type="block" width="1" height="16"></td>
+			</tr>
+			<tr height="400">
+				<td width="600" height="400" valign="top" align="left" xpos="16"><img src="images/JadeStart.gif" width="600" height="400" border="0"></td>
+				<td width="1" height="400"><spacer type="block" width="1" height="400"></td>
+			</tr>
+			<tr height="1" cntrlrow>
+				<td width="16" height="1"><spacer type="block" width="16" height="1"></td>
+				<td width="600" height="1"><spacer type="block" width="600" height="1"></td>
+				<td width="1" height="1"></td>
+			</tr>
+		</table>
+		<h4>Notes on this image</h4>
+		<ul>
+			<li>Jade agent <i>platforms</i> have <i>containers</i> to hold agents. A platform can have many containers, not necessarily on the same computer. One container on a platform is &quot;privileged&quot;. This <i>main container </i>resides on the host which also runs the platform's&nbsp;RMI server.  Agents on various containers on a platform use the RMI protocol to communicate. 
+			<li>The image above shows the GUI of the <i>Remote Monitoring Agent </i>(<b>RMA</b>) which appears when you use the -gui switch. In addition to itself, the RMA shows the presence of two other agents in the Main Container.  The <b>ams</b> is the Agent Management System. An agent itself, it provides an environment with many services for agents on the platform. The <b>df</b> is the<i> Directory Facilitator</i>. It is an agent which provides a &quot;yellow pages&quot; for agents known to the platform. 
+			<li>Agents must have globally unique names. A name is a &quot;nickname&quot; and an address separated by the at (@) sign. For example, RMA@IBM:1099/JADE is an agent with nickname RMA at the address IBM:1099/JADE. (&quot;IBM&quot; is the name of my Win2000 machine on a LAN. 			<li>The addresses are in RMI format in this case. RMI is used for intra platform communication. (CORBA or HTTP are used for inter platform communication.) The address consists of a host name, in this case IBM, and a port on which the&nbsp;RMI naming service is active, in this case, 1099, the default port for RMI. The name JADE distinguishes Jade RMI invocations from other possible RMI services. Note that in this case, the host name does not have a domain attached. If you wanted a full name you can use the -host switch: java jade.Boot -gui -host jupiter.scs.ryerson.ca, for example. There is also a -port switch if you don't like 1099.		</ul>
+		<h2>Running Some Agents</h2>
+		<p>We will use the DummyAgent which can be launched by clicking a button on the RMA, and the PingAgent which is an example provided with the Jade distribution. First you need to compile the PingAgent.</p>
+		<h3>Compiling the PingAgent</h3>
+		<p>The source for the PingAgent is in the src\PingAgent directory. I moved it to examples\PingAgent\ under the jade directory. This directory structure matches the package structure declared in the PingAgent.java source file.</p>
+		<p>You need to compile the PingAgent. I find it convenient to use another one line batch file for compilation (from the Jade directory). The one line might be:</p>
+		<p>javac  -classpath .\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar;.  %1 %2 %3 %4 %5 %6 %7 %8 %9</p>
+		<p>(all on one line)</p>
+		<p>I call this file <a href="compileJade.bat">compilejade.bat</a>.</p>
+		<p>Then compile the Ping Agent with,</p>
+		<p>compilejade examples\pingagent\PingAgent.java</p>
+		<h3>Loading the PingAgent into a Jade main container</h3>
+		<p>There are two ways to load agents, using RMA, and from the command line when booting JADE. </p>
+		<p><b>Loading agents with the RMA</b></p>
+		<p>In the RMA window, select Main-Container, then click the New Agent button (or use the Actions menu). Or you can right click on the Main-Container, and choose Start New Agent. This window pops up:</p>
+		<p><img src="images/RMAStartParam.gif" width="450" height="150" border="0"></p>
+		<p>Enter a name for the agent, say ping0. (In this window just use the nickname of the agent, that is, leave out the address. The address will be filled in by the system.)</p>
+		<p>Then enter the fully qualified agent class name. In this case, examples.PingAgent.PingAgent. If your class paths are set correctly, after you click OK, the name ping0@IBM:1099/JADE will appear in the Main Container listing. (Of course, the host name will be yours, not mine :-).) If the class cannot be found, JADE  will ignore your and may print an error on the Java Console (maybe).</p>
+		<p>Loading Agents when booting JADE</p>
+		<p>To carry out the same task as above you could have typed,</p>
+		<p>runjade -gui ping0:examples.PingAgent.PingAgent</p>
+		<p>and loaded the Ping Agent right away. Note the syntax with the agent nickname separated from its fully qualified class name by a colon.</p>
+		<h3>The Dummy Agent</h3>
+		<p>The Dummy agent has its own button on the RMA. Click it to bring up the DummyAgent window. The Window looks like this:</p>
+		<p><img src="images/Dummyagent.gif" width="661" height="695" border="0"></p>
+		<p>A formidable form indeed. The form is set up to allow you to describe a Communicative (speech) Act. </p>
+		<p>Fortunately, at this stage you don't need to know anything about SL. Nor do you have to fill in many fields. The fields you do need to deal with are, receivers, communicative act, and content.</p>
+		<p><b>receivers</b>. The receiver is the ping0 agent. With its pointer on the receivers box, <i>right </i>click the mouse and select &quot;add&quot;. The AID (Agent ID) window appears.</p>
+		<p><img src="images/DummyAIDWindow.gif" width="226" height="306" border="0"></p>
+		<p>Fill in the form in the manner shown (using your own host name). In the case of the address right click the mouse on the text field.</p>
+		<p>Note the check box. Checking it means the name is local (ping0) in this case. If you don't check it you need to enter the full agent name: ping0@IBM:1099/JADE.</p>
+		<p>Back in the DummyAgent window, select QUERY-REF for the <b>communicative act.</b>  In the <b>request</b> field, type in the word &quot;ping&quot;. (See comment on the PingAgent.java source file.) </p>
+		<h3>Send a message</h3>
+		<p>Finally click the send the message by clicking the send button (second from left).</p>
+		<p>In the right pane of the DummyAgent window two lines appear, one red, the other blue. The most recent is the topmost. Blue refers to sent messages, red to received messages. You have something like this:</p>
+		<p><img src="images/DummyAgentSent.gif" width="661" height="695" border="0"></p>
+		<p>You can examine the received INFORM message (sent by the ping0@IBM:1099/JADE agent by selecting it and then clicking the button with the &quot;glasses&quot; icon.</p>
+		<p>The ping agent has replied &quot;alive&quot;.  [In versions of JADE previous to  version 2.5, the Ping Agent replies &quot;(pong)&quot;.]</p>
+		<h2>Shutting Down the Platform</h2>
+		<p>In the RMA window, choose Shut down platform. Sometimes this does not work. In this case just type ctrl-c in the Java console window to shut down the JVM.</p>
+		<p></p>
+		<p></p>
+		<p></p>
+		<p></p>
+		<p></p>
+	</body>
+
+</html>

@@ -1,0 +1,327 @@
+<html>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<meta name="generator" content="Adobe GoLive 5">
+		<title>The JADE PingAgent</title>
+	</head>
+
+	<body bgcolor="#ffffff">
+		<dl>
+			<h1>
+				<dt>The JADE PingAgent
+
+			</h1>
+			<dt>Of the examples provided with the JADE distribution, the Ping Agent is probably the easiest to understand. If you have used any of the first 3 tutorials you know the PingAgent's functionality. Here we take a look at PingAgent's source code to observe features typical of all JADE agents.
+
+			<dt>
+			<pre><code>/*****************************************************************
+</code></pre>
+			<pre><code><b><font size="+1">JADE - Java Agent DEvelopment Framework is a framework to develop
+</font></b></code></pre>
+			<pre><code><b><font size="+1">multi-agent systems in compliance with the FIPA specifications.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">Copyright (C) 2000 CSELT S.p.A.
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">GNU Lesser General Public License
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">This library is free software; you can redistribute it and/or
+</font></b></code></pre>
+			<pre><code><b><font size="+1">modify it under the terms of the GNU Lesser General Public
+</font></b></code></pre>
+			<pre><code><b><font size="+1">License as published by the Free Software Foundation,
+</font></b></code></pre>
+			<pre><code><b><font size="+1">version 2.1 of the License.
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">This library is distributed in the hope that it will be useful,
+</font></b></code></pre>
+			<pre><code><b><font size="+1">but WITHOUT ANY WARRANTY; without even the implied warranty of
+</font></b></code></pre>
+			<pre><code><b><font size="+1">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+</font></b></code></pre>
+			<pre><code><b><font size="+1">Lesser General Public License for more details.
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">You should have received a copy of the GNU Lesser General Public
+</font></b></code></pre>
+			<pre><code><b><font size="+1">License along with this library; if not, write to the
+</font></b></code></pre>
+			<pre><code><b><font size="+1">Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+</font></b></code></pre>
+			<pre><code><b><font size="+1">Boston, MA  02111-1307, USA.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">*****************************************************************/
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">package examples.PingAgent;
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import java.util.Date;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import java.io.FileWriter;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import java.io.IOException;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import java.io.PrintWriter;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import java.io.OutputStreamWriter;
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.core.*;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.core.behaviours.*;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.lang.acl.ACLMessage;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.domain.FIPAAgentManagement.ServiceDescription;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.domain.FIPAAgentManagement.DFAgentDescription;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.domain.DFServiceCommunicator;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">import jade.domain.FIPAException;
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">/**
+</font></b></code></pre>
+			<pre><code><b><font size="+1">This agent implements a simple Ping Agent.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">First of all the agent registers itself with the DF of the platform and
+</font></b></code></pre>
+			<pre><code><b><font size="+1">then waits for ACLMessages.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">If  a QUERY_REF or QUER_IF message arrives that contains the string &quot;ping&quot; within the content
+</font></b></code></pre>
+			<pre><code><b><font size="+1">then it replies with an INFORM message whose content will be the string &quot;(pong)&quot;.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">If it receives a NOT_UNDERSTOOD message no reply is sent.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">For any other message received it replies with a NOT_UNDERSTOOD message.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">The exchanged message are written in a log file whose name is the local name of the agent.
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">@author Tiziana Trucco - CSELT S.p.A.
+</font></b></code></pre>
+			<pre><code><b><font size="+1">@version  $Date$ $Revision$
+</font></b></code></pre>
+			<pre><code><b><font size="+1">*/
+
+
+</font></b></code></pre>
+			<pre><code><b><font size="+2" color="red"><u>public class PingAgent extends Agent {
+</u>
+</font></b></code></pre>
+			<pre><code><b><font size="+1"> PrintWriter logFile;
+
+</font></b></code></pre>
+			<pre><code><b><u><font size="+2" color="green"> class WaitPingAndReplyBehaviour extends SimpleBehaviour {</font></u><u><font size="+2" color="green">
+</font></u><font size="+2" color="green">
+</font></b></code></pre>
+			<pre><code><b><font size="+1">   private boolean finished = false;
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    public WaitPingAndReplyBehaviour(Agent a) {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      super(a);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    }
+
+</font></b></code></pre>
+			<pre><code><b><font size="+2" color="blue"><i>   </i></font><i><font size="+2" color="blue"><u> public void action(</u>) {</font><font size="+1">
+
+</font></i></b></code></pre>
+			<pre><code><b><font size="+1">     ACLMessage  msg = blockingReceive();
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      if(msg != null){
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       if(msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD)
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        log(&quot;Received the following message: &quot;+ msg.toString());
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        log(&quot;No reply message sent.&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       }
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       else{
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        log(&quot;Received the following message: &quot;+ msg.toString());
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        ACLMessage reply = msg.createReply();
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        if((msg.getPerformative()== ACLMessage.QUERY_REF)||
+</font></b></code></pre>
+			<pre><code><b><font size="+1">         (msg.getPerformative()== ACLMessage.QUERY_IF))
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">          String content = msg.getContent();
+</font></b></code></pre>
+			<pre><code><b><font size="+1">            if ((content != null) &amp;&amp; (content.indexOf(&quot;ping&quot;) != -1))
+</font></b></code></pre>
+			<pre><code><b><font size="+1">           {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">            reply.setPerformative(ACLMessage.INFORM);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">              reply.setContent(&quot;(pong)&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">           }
+</font></b></code></pre>
+			<pre><code><b><font size="+1">          else
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       reply.setContent(&quot;( UnexpectedContent (expected ping))&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      }
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        }
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        else
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">         reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">         reply.setContent(&quot;( (Unexpected-act &quot;+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">            ACLMessage.getPerformative(msg.getPerformative())+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">            &quot;) ( expected (query-ref :content ping)))&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        }
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        log(&quot;Replied with the following message: &quot;+ reply.toString());
+</font></b></code></pre>
+			<pre><code><b><font size="+1">           send(reply);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">       }
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      }else{
+</font></b></code></pre>
+			<pre><code><b><font size="+1">        //System.out.println(&quot;No message received&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      }
+</font></b></code></pre>
+			<pre><code><b><font size="+1">   </font><font size="+2" color="blue"><i><u>  // end action() method}</u></i><i><u>
+</u></i></font></b></code></pre>
+			<pre><code><b><font size="+1"> 
+   public boolean done() {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      return finished;
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    }
+</font></b></code></pre>
+			<pre><code><b><font size="+1"> </font><font size="+2" color="green"><u> } //End class WaitPingAndReplyBehaviour
+</u></font><font size="+1">
+
+</font></b></code></pre>
+			<pre><code><b><u><font size="+2" color="blue"><i>  protected void setup() {
+</i></font><font size="+1">
+</font></u></b></code></pre>
+			<pre><code><b><font size="+1">     /** Registration with the DF */
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    </font><font size="+1" color="#191970"><i> DFAgentDescriptio</i>n</font><font size="+1"> dfd = new DFAgentDescription();
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    </font><font size="+1" color="#191970"><i> ServiceDescriptio</i></font><font size="+1">n sd = new ServiceDescription();
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     sd</font><font size="+1" color="#191970"><i>.setTyp</i></font><font size="+1">e(&quot;PingAgent&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     sd</font><font size="+1" color="#191970">.setName</font><font size="+1">(getName());
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     sd</font><font size="+1" color="#191970">.setOwnershi</font><font size="+1">p(&quot;ExampleReceiversOfJADE&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     sd</font><font size="+1" color="#191970">.addOntologie</font><font size="+1">s(&quot;PingAgent&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     dfd</font><font size="+1" color="#191970">.setNam</font><font size="+1">e(getAID());
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    </font><font size="+2"> dfd.addServices(sd);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     try {
+</font></b></code></pre>
+			<pre><code><b><font size="+1">         DFServiceCommunicator.register(this,dfd);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     } catch (FIPAException e) {
+</font></b></code></pre>
+			<dl>
+				<pre><code><b><font size="+1">   System.err.println(getLocalName()+
+</font></b></code></pre>
+			</dl>
+			<pre><code><b><font size="+1">           &quot; registration with DF unsucceeded. Reason: &quot;+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">           e.getMessage());
+</font></b></code></pre>
+			<dl>
+				<pre><code><b><font size="+1">   doDelete();
+</font></b></code></pre>
+			</dl>
+			<pre><code><b><font size="+1">     }
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     try{
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      logFile = new PrintWriter(new FileWriter(getLocalName()+&quot;.log&quot;,true));
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      log(&quot;Agent: &quot; + getName() + &quot; born&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">    </font><font size="+2"> WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
+</font></b></code></pre>
+			<pre><code><b><font size="+2">      addBehaviour(PingBehaviour);</font><font size="+1">
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     }catch(IOException e){
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      System.out.println(&quot;WARNING: The agent needs the &quot;+ getLocalName()+&quot;.log file.&quot;);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">      e.printStackTrace();
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     }
+</font></b></code></pre>
+			<pre><code><b><font size="+1"> </font><font size="+2" color="blue"><i><u>  // end setup() method}</u></i><i><u>
+</u></i></font></b></code></pre>
+			<pre>
+<code><b><font size="+1"> public synchronized void log(String str) {
+
+</font></b></code></pre>
+			<pre><code><b><font size="+1">  logFile.println((new Date()).toString()+ &quot; - &quot; + str);
+</font></b></code></pre>
+			<pre><code><b><font size="+1">     ogFile.flush();
+</font></b></code></pre>
+			<pre><code><b><font size="+1"> }
+
+</font></b></code></pre>
+			<p><code><b><font size="+2" color="red"><u>}//end class PingAgent<br>
+								<br>
+							</u></font></b></code></p>
+		</dl>
+		<ul>
+			<li>Some comments on the code
+			<li>The colours highlight the basic structure of a JADE agent. 
+			<li>All JADE agents extend the Agent class. 
+			<li>Agents must be given a behaviour by extending one of the Behaviour classes. Normally an agent's behaviour class is an inner class, either named, as is the case here, or anonymous (see AgentSend and AgentReceive).
+			<li>In the Behaviour inner class you override the (empty) action() method to provide the agent's behaviour.
+			<li>The done() is called by JADE when the behaviour is finished. You can put any cleanup code you  like here. In the PingAgent example, nothing happesn.
+			<li>You must override the Agent class's setup() method to at least allow the agent to register itself with the directory facilitator (DF) of the JADE platform. The basic registration code is shown.
+		</ul>
+		<dl>
+			<p></p>
+			<dt>
+			<dt>
+			<dt>
+		</dl>
+		<dl>
+			<dd>
+		</dl>
+	</body>
+
+</html>

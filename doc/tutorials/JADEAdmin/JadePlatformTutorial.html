@@ -1,0 +1,105 @@
+<html>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<meta name="generator" content="Adobe GoLive 5">
+		<title>Tutorial 3. Multiple Platforms</title>
+		<link rel="stylesheet" href="../cps.css">
+	</head>
+
+	<body bgcolor="#ffffff">
+		<h1>Tutorial 3. JADE Inter Platform Communication</h1>
+		<p>In Tutorial 2 we saw a simple JADE platform consisting of containers which could be scattered among many different hosts with one Main container on a host running the RMI service. All the agents on one platform communicate using the RMI protocol. RMI is the intra communication mechanism internal to a platform.</p>
+		<p>JADE agents can also communicate among separate platforms, in other words, JADE provides mechanisms for inter platform communication. These mechanisms are CORBA based and use the IIOP protocol rather than RMI. Such an arrangement allows JADE agents to talk to FIPA compliant agents on any platform supporting CORBA and FIPA standards. This is the whole idea of FIPA: to make diverse agent systems interoperable.</p>
+		<p>Also, there exist other protocols for inter platform communication. One popular method uses the HTTP protocol.</p>
+		<p>This tutorial shows how to use the basic Sun IIOP for inter platform communication.</p>
+		<p>In this tutorial you just get the DummyAgent talking to the PingAgent, one on one platform, the other on another platform. You could run two platforms on one machine, provided you use different ports for the RMI servers. But things are clearer and more typical if the platforms run on different hosts.</p>
+		<h3>What is that big number that appears when booting a platform?</h3>
+		<p>When you invoke java jade.Boot -gui, you get something like this on the Java console (DOS window):</p>
+		<p>IOR:000000000000001149444C3A464950412F4D54533A312E3000000000000000010000000000000054000101000000000C3139322E3136382E302E350007CE000000000018AFABCAFF00000002234298670000000800000000000000000000000100000001000000140000000000010020000000000001010000000000<br>
+		</p>
+		<p>You will also find it stored in a file called MTP-Main-Container.txt in the<i> jade</i> directory. </p>
+		<p>What is it? Well, it acts as a CORBA address, or end point. This strange value occurs because by default JADE uses Sun's JDK 1.3 CORBA/iiop implementation which is rather primitive. (The JADE team has provided a more sophisticated ORB which allows explicit addressing.)</p>
+		<p>To send messages between default versions of JADE platforms you need to use this end point as an agent address, which is rather awkward.</p>
+		<h2>Setting Up</h2>
+		<p>Boot a JADE platform on each of two computers in the usual way. For example, on host Frodo</p>
+		<dl>
+			<dd><a href="runjade.bat">runjade</a> -host Frodo -gui		</dl>
+		<p>and</p>
+		<dl>
+			<dd>runjade -host IBM -gui		</dl>
+		<p>on host IBM.</p>
+		<p>Now, as usual, we want to send a message from a DummyAgent to a PingAgent, this time with the agents residing on separate platforms, not just in separate containers on the same platform. To do this we use the IOR's as the addresses for the agents.</p>
+		<h2> End Points</h2>
+		<p>The IIOP IOR (endpoint) of a platform is automatically stored in a file called MTP-Main-Contairner.txt. A sender of a message must know the receivers IOR so somehow, the sender must get a hold of the MTP-Main-Container.txt file of the receiver. One could use ftp. On a LAN with MS Windows you can just copy the file or even just cut and paste its contents.</p>
+		<p>The platform with the DummyAgent needs to know the IOR of the platform with the PingAgent in order to send it a message. (Of course it knows its own IOR.) </p>
+		<p>In this tutorial we just use &quot;Network Neighborhood&quot; with the editor NotePad to open the receiver's file and copy the IOR to the Receiver field of the DummyAgent.</p>
+		<div align="left">
+			<table cool width="340" height="213" usegridx usegridy showgridx showgridy gridx="16" gridy="16" border="0" cellpadding="0" cellspacing="0" align="right">
+				<tr height="16">
+					<td width="304" height="16"></td>
+					<td width="35" height="212" rowspan="2"></td>
+					<td width="1" height="16"><spacer type="block" width="1" height="16"></td>
+				</tr>
+				<tr height="196">
+					<td width="304" height="196" align="left" xpos="0" content valign="top" csheight="196"><font color="blue">Recall that to add a receiver to the DummyAgent right click on the receivers field and choose add. This brings up the AID window. Enter the full name of the PingAgent, e.g., ping0@Frodo:1099/JADE. Then right click the address field in the AID&nbsp;window and use ctrl-v to paste the IOR into this field.</font></td>
+					<td width="1" height="196"><spacer type="block" width="1" height="196"></td>
+				</tr>
+				<tr height="1" cntrlrow>
+					<td width="304" height="1"><spacer type="block" width="304" height="1"></td>
+					<td width="35" height="1"><spacer type="block" width="35" height="1"></td>
+					<td width="1" height="1"></td>
+				</tr>
+			</table>
+		</div>
+		<p> On MS Windows you type ctrl-v to do the pasting. </p>
+		<p><i>Remember to remove the cr/lf from the end of the IOR</i>. You can see from the pictures below that you get a visual clue if you have entered the IOR correctly.</p>
+		<table cool width="611" height="298" usegridx usegridy showgridx showgridy gridx="16" gridy="16" border="0" cellpadding="0" cellspacing="0">
+			<tr height="32">
+				<td width="610" height="32" colspan="5"></td>
+				<td width="1" height="32"><spacer type="block" width="1" height="32"></td>
+			</tr>
+			<tr height="144">
+				<td width="16" height="265" rowspan="2"></td>
+				<td width="208" height="144" align="left" xpos="16" content valign="top" csheight="108">The IOR with a cr/lf (bad)
+					<p>(This may not happen in version 2.5. )</p>
+				</td>
+				<td width="32" height="144" colspan="2"></td>
+				<td width="354" height="144" valign="top" align="left" xpos="256"><img src="images/IORWithCR.gif" width="306" height="121" border="0"></td>
+				<td width="1" height="144"><spacer type="block" width="1" height="144"></td>
+			</tr>
+			<tr height="121">
+				<td width="224" height="121" colspan="2" align="left" xpos="16" content valign="top" csheight="64">The IOR correctly entered without a CR/LF</td>
+				<td width="16" height="121"></td>
+				<td width="354" height="121" valign="top" align="left" xpos="256"><img src="images/IORCorrect.gif" width="306" height="121" border="0"></td>
+				<td width="1" height="121"><spacer type="block" width="1" height="121"></td>
+			</tr>
+			<tr height="1" cntrlrow>
+				<td width="16" height="1"><spacer type="block" width="16" height="1"></td>
+				<td width="208" height="1"><spacer type="block" width="208" height="1"></td>
+				<td width="16" height="1"><spacer type="block" width="16" height="1"></td>
+				<td width="16" height="1"><spacer type="block" width="16" height="1"></td>
+				<td width="354" height="1"><spacer type="block" width="354" height="1"></td>
+				<td width="1" height="1"></td>
+			</tr>
+		</table>
+		<p></p>
+		<p></p>
+		<p>The AID window should look something like this:</p>
+		<p><img src="images/AIDCorba.gif" width="226" height="306" border="0"></p>
+		<p>Do not check the box indicating a local name. Fill in the full,global name (with the @ sign.)</p>
+		<p>Click OK and then send the message to the ping0 agent.</p>
+		<h2>Send the Message</h2>
+		<p>Finally, you are ready to send the same message as before, from the DummyAgent to the PingAgent. Everything should run just like in all the previous tutorial examples. The QUERY-REF informative is sent by the DummyAgent, and the PingAgent sends an INFORM message in reply. Click the &quot;eyeglasses&quot; button to see the content of the reply.</p>
+		<p>Note that the message sent by the DummyAgent includes the return address (IOR of the platform on which the DummyAgent is running so you only need to copy one IOR, that of the receiver.</p>
+		<h2>Comment</h2>
+		<p>Using the JDK 1.3 CORBA/IIOP ORB is clearly very awkward. It would be well to install the Orbacus ORB add on (see the distribution documentation on doing this) which allows the standard host:port addressing for the endpoints.</p>
+		<p>Many people use the HTTP MTP add-on for inter platform communication. Tutorial 4 of these notes shows how to do this.</p>
+		<h2>Contacting the Remote Platform</h2>
+		<p>You will notice a menu entry of the RMA agent (the GUI&nbsp;for the platform) called &quot;Remote Platforms&quot;. If you click it you see two  ways. The easiest is &quot;add platform via AMS AID.</p>
+		<p>If you click this you get a window which allows you to enter the agent name and location. For the name you need the global name of the target AMS, for example, ams@frodo:1099/JADE. For the location you need to copy in the IOR of that platform.</p>
+		<p>You should see a new entry in the RMA agent for the remote platform. To view its contents select and right click. The choose &quot;Refresh agent list&quot; and you should see all the agents on the remote platform.</p>
+		<p></p>
+	</body>
+
+</html>

@@ -1,0 +1,64 @@
+<html>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<meta name="generator" content="Adobe GoLive 5">
+		<title>Tutorial 2. Jade containers</title>
+		<link rel="stylesheet" href="../cps.css">
+	</head>
+
+	<body bgcolor="#ffffff">
+		<h1>Tutorial 2. JADE Containers, Local and Remote</h1>
+		<p>This tutorial shows how to add local and remote containers to  a JADE platform. As before, DummyAgent and PingAgent are used to demonstrate agent communication.</p>
+		<h2>Multiple Containers on One Computer</h2>
+		<p>As in Tutorial 1, open a DOS/Command window,and use <a href="runjade.bat">runjade.bat</a> as done in Tutorial 1.</p>
+		<dl>
+			<dd>runjade -gui -host Frodo
+			<dd>(The local name for the computer is Frodo. You don't really need the -host flag here. But ...)
+		</dl>
+		<p>If you are using computers in different domains you would want to include the full host name to prevent JADE from just using localhost. For example,</p>
+		<p>runjade -gui -host frodo.scs.ryerson.ca </p>
+		<p>Display the container tree in the RMA agent window. You see the main container with the df, ams and RMA agents.</p>
+		<p>Now open another DOS/Command window. In that window we create a satellite container and put the PingAgent in it.</p>
+		<p>runjade -host  Frodo -container ping0:examples.PingAgent.PingAgent</p>
+		<dl>
+			<dd>		</dl>
+		<h3>Notes on the syntax</h3>
+		<ul>
+			<li>The -host switch here is used somewhat differently than when used when creating the platform itself (that is, when used with the -gui switch). In the -gui case, -host just names the host where the platform and its RMI naming service are located.<i> But when you are adding a container to a platform, the -host switch tells which host is hosting the platform you want to hook up your container to.</i>			<li>The -container switch tells the system that this is just a container. After this switch you can list agents which you want to put in the container (separated by spaces). If your agent needs command line arguments you can list them inside parentheses immediately following the agent's name.			<li>You specify an agent by its nickname, followed by a colon, followed by its fully qualified class name.
+		</ul>
+		<h3>Try out the agents</h3>
+		<p>Display the RMA window you will see an entry &quot;container-1&quot; added. Expanding the tree shows the ping0 agent.</p>
+		<p>Invoke the DummyAgent and use it to send a message to ping0 in the same way as was done in Tutorial 1. (Fill in the receivers=ping0@Frodo:1099/JADE, communicative act=QUERY-REF, Content=ping) If you examine the return message it is the same as in Tutorial 1, namely &quot;(pong)&quot; or &quot;alive&quot;, depending on your JADE version..</p>
+		<p>Try changing the commutative act to INFORM and send the message to ping0. You will get a NOT-UNDERSTOOD reply. Look at the content of this message for an example of the SL&nbsp;language constructed by JADE.</p>
+		<h2>Remote Containers</h2>
+		<p>So far, this tutorial is just a repeat of Tutorial 1. It is not surprising to find that you can send messages from agent to agent on the same platform whether they are in different containers or not. More interesting is that JADE is a distributed system. A platform can have containers on remote systems as well as locally. So if you have a second computer networked to the first, try this.</p>
+		<p>On the second computer  set up and run a JADE container with a PingAgent in it.  In other words, simply, type,</p>
+		<dl>
+			<dd>runjade -host Frodo -container ping1:examples.PingAgent.PingAgent.		</dl>
+		<p>This is exactly the same command as used above to create a container on machine Frodo itself! Thanks to RMI, the system is transparent with respect to hosts. Notice that, since an agent nicknamed ping0 already exists on this platform, I must use a different nickname for this second PingAgent, even though  the new agent is running on a different machine.</p>
+		<p>Looking on the original machine (Frodo in my case) I see that a new container, Container-2 has appeared on the RMA agent window in which ping1 is listed. I can, once again, send the usual message from the DummyAgent on Frodo to ping1 which lives on another machine&nbsp;(named IBM in my case). The location of ping1 is transparent to the user of RMA on Frodo. It could be anywhere.</p>
+		<p>The container on the other computer is a client of the RMI server running on Frodo. So is ping0 a client which happens to exist on the same machine as the RMI server itself.</p>
+		<h3>Running an RMA (Remote  Monitoring Agent) with a container</h3>
+		<p>If you have followed the tutorial to this point you have a main JADE platform on one machine (Frodo in my case). This machine is the home of the Main Container and the RMI server. A second container, Container-1 is installed on this machine and contains one agent, ping0@Frodo:1099/JADE, to give it its full name. On a second machine, IBM in my case, there is a second container, Container-2 containing one agent, ping1@Frodo:1099/JADE. This agent lives on machine IBM but &quot;belongs&quot; to the platform running on machine Frodo.</p>
+		<p>A user on machine IBM can't see anything or do anything. The user of machine Frodo is in complete control. It would be nice to run an RMA agent and a DummyAgent on a machine remote from the platform machine.</p>
+		<p>To do this we need to know the fully qualified names of Dummy agent and RMA agent. These are,</p>
+		<ul>
+			<li>java.tools.DummyAgent.DummyAgent
+			<li>java.tools.rma.rma
+		</ul>
+		<p>So start another container with these two agents and yet another ping agent, ping2, on some machine connected to the JADE platform machine. For example,</p>
+		<dl>
+			<dd>runjade -host Frodo -container dummy0:jade.tools.DummyAgent.DummyAgent RMA1:jade.tools.rma.rma		</dl>
+		<p>(Don't forget to include a nickname for your agents! AND make sure the names don't clash with names on other containers on the platform. Note RMA1 not RMA.)</p>
+		<p>You will get the windows for the two agents on the remote machine. RMA1 will show all the containers and agents on the platform, just like RMA on the main platform server. Try sending one of the  ping agents the usual message from dummy0.</p>
+		<h3>Note</h3>
+		<ul>
+			<li>If you just launch the RMA agent on the remote machine and try using its button to launch the Dummy Agent, the Dummy Agent fails to appear if one is running elsewhere. Instead, select the container, right click and choose Start New Agent. Choose a none-clashing nickname for the new Dummy Agent, and enter its full class name jade.tools.DummyAgent.DummyAgent.			<li>A JADE  platform is a cooperative system. If you hook up to the main platform server from a remote machine and run an RMA agent on the remote  machine you can use that agent to destroy the whole platform! Be nice. Security will eventually be added to JADE.		</ul>
+		<p></p>
+		<p></p>
+		<p></p>
+		<p></p>
+	</body>
+
+</html>
