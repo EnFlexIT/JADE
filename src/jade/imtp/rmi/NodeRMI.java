@@ -53,15 +53,22 @@ interface NodeRMI extends Remote {
        returns immediately; when <code>true</code>, the method blocks
        and will return only when unblocked from the remote end
        (through regular return or exception.
+       @return If the node is exiting, <code>true</code> is returned,
+       and <code>false</code> otherwise.
        @throws RemoteException If a network problem occurs.
     */
-    void ping(boolean hang) throws RemoteException;
+    boolean ping(boolean hang) throws RemoteException;
 
     /**
        Shut down this node.
-
        @throws RemoteException If a network problem occurs.
     */
     void exit() throws RemoteException;
+
+    /**
+       Release blocked ping() calls on this node.
+       @throws RemoteException If a network problem occurs.       
+    */
+    void interrupt() throws RemoteException;
 
 }

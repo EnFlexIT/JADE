@@ -74,15 +74,21 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	}
     }
 
-    public void ping(boolean hang) throws RemoteException {
+    public boolean ping(boolean hang) throws RemoteException {
       if(hang) {
 	  waitTermination();
       }
+      return terminating;
     }
 
     public void exit() throws RemoteException {
-      // Unblock threads hung in ping() method (this will deregister the container)
-      notifyTermination();
+	// Unblock threads hung in ping() method (this will deregister the container)
+	terminating = true;
+	notifyTermination();
+    }
+
+    public void interrupt() throws RemoteException {
+	notifyTermination();
     }
 
     private void waitTermination() {
@@ -107,6 +113,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
     // This monitor is used to hang a remote ping() call in order to
     // detect node failures.
     private Object terminationLock = new Object();
+    private boolean terminating = false;
 
     private NodeAdapter myNode;
 

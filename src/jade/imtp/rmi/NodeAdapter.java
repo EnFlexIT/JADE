@@ -46,9 +46,13 @@ import jade.core.ServiceException;
  */
 class NodeAdapter extends BaseNode {
 
-    public NodeAdapter(String name) throws RemoteException {
-	super(name);
+    public NodeAdapter(String name, boolean hasSM) throws RemoteException {
+	super(name, hasSM);
 	adaptee = new NodeRMIImpl(this);
+    }
+
+    public NodeAdapter(String name) throws RemoteException {
+	this(name, false);
     }
 
     public NodeAdapter(String name, NodeRMI node) {
@@ -86,9 +90,9 @@ class NodeAdapter extends BaseNode {
 	return super.getSlice(serviceName);
     }
 
-    public void ping(boolean hang) throws IMTPException {
+    public boolean ping(boolean hang) throws IMTPException {
 	try {
-	    adaptee.ping(hang);
+	    return adaptee.ping(hang);
 	}
 	catch(RemoteException re) {
 	    throw new IMTPException("RMI exception", re);
@@ -103,6 +107,16 @@ class NodeAdapter extends BaseNode {
 	    throw new IMTPException("RMI exception", re);
 	}
     }
+
+    public void interrupt() throws IMTPException {
+	try {
+	    adaptee.interrupt();
+	}
+	catch(RemoteException re) {
+	    throw new IMTPException("RMI exception", re);
+	}
+    }
+
 
     private NodeRMI adaptee;
     private transient CommandProcessor processor;
