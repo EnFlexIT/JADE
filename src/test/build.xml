@@ -12,7 +12,24 @@ ant testsuite - to compile test Suite
   <property name="classpath" value="classes"/>
   <property name="src" value="src"/>
   <property name="dest" value="classes"/>
-	
+  
+  <!-- Definitions for the LEAP target -->
+  <property name="j2me-wtk-home" location="C:/Java/J2MEWTK"/>
+	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+  <property name="javac" location="C:/Java/jdk1.4/bin/javac"/>
+  <property name="leaphome" value="add-ons/leap" />
+  <property name="leapmidp" value="${leaphome}/midp/lib/JadeLeap.jar" />
+  <property name="unverified" value="${src}/test/unverified" />
+  <property name="verified" value="${src}/test/verified" />
+  
+	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
+  	<classpath path ="${leaphome}/resources/antTasks/StampysoftAntTasks.jar" />
+	</taskdef>
+  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+  
+  
+  <!-- TARGETS -->
+  
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -61,6 +78,7 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/proto/contractNetProtoTestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/roundTripTime/roundTripTimeTestsList.xml" todir="${dest}/test/roundTripTime"/>
+    <copy file="${src}/test/leap/LEAPTestsList.xml" todir="${dest}/test/leap"/>
   </target>
 
   <!--  __________________________________________________
@@ -103,6 +121,39 @@ ant testsuite - to compile test Suite
 		</jar>
 		
 		<delete dir = "${dest}/test/mobility/separate"/>
+	</target>
+	
+  <!--  __________________________________________________
+                            leap
+        __________________________________________________ -->
+  <target name="leap" depends="init" 
+          description="Compile files to be executed in a MIDP environment">
+  	
+		<mkdir dir = "${verified}"/>
+		<mkdir dir = "${unverified}"/>
+		
+    <javac srcdir="${src}/test" 
+           destdir="${unverified}" 
+           classpath="${leapmidp};${boot-midp-classes}" 
+           nowarn="off" 
+           optimize="on" 
+           deprecation="on" 
+  	       includes="**/leap/midp/**"
+  	       verbose="false"
+  	       fork="yes"
+  	       executable="${javac}"
+  	       compiler="modern"/>
+  	       
+    <unjar src="${leapmidp}" dest="${unverified}" />
+		<preverify unverified="${unverified}" 
+		           verified="${verified}"/>
+		           
+    
+  	<delete file="${src}/test/testleap.jar" quiet="true"/>
+		<jar jarfile="${src}/test/testleap.jar" basedir="${verified}" manifest="${src}/test/testleap.manifest"/>
+		
+		<delete dir = "${verified}"/>
+		<delete dir = "${unverified}"/>
 	</target>
 	
   <!--  __________________________________________________
