@@ -37,7 +37,6 @@ import java.util.Enumeration;
  */
 public class AbsObjectImpl implements AbsObject {
     private Hashtable elements = new Hashtable();
-    //private Vector    names = new Vector();
     private String    typeName = null;
 
     /**
@@ -71,11 +70,9 @@ public class AbsObjectImpl implements AbsObject {
     		CaseInsensitiveString ciName = new CaseInsensitiveString(name);
     		if (value == null) {
     			elements.remove(ciName);
-    			//names.removeElement(ciName);
     		}
     		else {
 	        elements.put(ciName, value);
-    			//names.addElement(ciName);
     		}
     } 
 
@@ -98,15 +95,9 @@ public class AbsObjectImpl implements AbsObject {
         String[] elementNames = new String[getCount()];
         
         int count = 0;
-				//for (Enumeration e = names.elements(); e.hasMoreElements(); ) {
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
 					elementNames[count++] = ((CaseInsensitiveString) e.nextElement()).toString();
 				}
-        /*int      count = getCount() - 1;
-
-        for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
-            names[count--] = (String) e.nextElement();
-        }*/
 
         return elementNames;
     } 

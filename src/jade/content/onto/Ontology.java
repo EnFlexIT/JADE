@@ -256,7 +256,7 @@ public class Ontology implements Serializable {
             throw new OntologyException("Invalid schema identifier");
         } 
                 
-        CaseInsensitiveString s = new CaseInsensitiveString(schema.getTypeName());
+        String s = schema.getTypeName().toLowerCase();
         elements.put(s, schema);
 
         if (javaClass != null) {

@@ -292,8 +292,7 @@ public class ContentManager implements Serializable {
 		/** 
 		 */
 		public Ontology getOntology(ACLMessage msg) {
-      Codec    codec = lookupLanguage(msg.getLanguage());
-      return getMergedOntology(codec, lookupOntology(msg.getOntology()));
+      return getMergedOntology(lookupLanguage(msg.getLanguage()), lookupOntology(msg.getOntology()));
 		}
 		
 		/**
