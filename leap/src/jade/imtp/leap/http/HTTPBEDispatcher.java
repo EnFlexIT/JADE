@@ -25,6 +25,7 @@ package jade.imtp.leap.http;
 
 //#MIDP_EXCLUDE_FILE
 
+import jade.core.AgentManager;
 import jade.core.BackEndContainer;
 import jade.core.BEConnectionManager;
 import jade.core.BackEnd;
@@ -87,7 +88,6 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
-  	verbosity = 3;
   	
   	// Max disconnection time
     long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -104,32 +104,87 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	
     startBackEndContainer(props);
   }
-  
+
   protected final void startBackEndContainer(Properties props) throws ICPException {
     try {
+
     	myStub = new FrontEndStub(this);
+
     	props.setProperty(Profile.MAIN, "false");
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
+	String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
+	if(masterNode == null) {
+	    props.setProperty(Profile.CONTAINER_NAME, "BackEnd-" + myID);
+	}
+
+	// Add the mediator ID to the profile (it's used as a token
+	// to keep related replicas together)
+	props.setProperty(Profile.BE_MEDIATOR_ID, myID);
+
     	myContainer = new BackEndContainer(new ProfileImpl(props), this);
 			// Check that the BackEndContainer has successfully joined the platform
 			ContainerID cid = (ContainerID) myContainer.here();
-			if (cid == null || cid.getName().equals("No-Name")) {
+			if (cid == null || cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
+
+	if(masterNode == null) {
+	    myContainer.activateReplicas(props);
+	}
+
     	log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
     }
     catch (ProfileException pe) {
     	// should never happen
     	pe.printStackTrace();
-			throw new ICPException("Error creating profile");
+	throw new ICPException("Error creating profile");
     }
   }
 
-  public void activateReplica(String addr, Properties props) {
-      throw new RuntimeException("FIXME: Not Implemented");
+  public void activateReplica(String addr, Properties props) throws IMTPException {
+      try {
+
+	  // Build a CREATE_MEDIATOR packet with the given properties as payload
+	  StringBuffer sb = new StringBuffer();
+	  Enumeration e = props.propertyNames();
+	  while(e.hasMoreElements()) {
+
+	      String key = (String)e.nextElement();
+	      String value = props.getProperty(key);
+	      sb.append(key);
+	      sb.append('=');
+	      sb.append(value);
+	      sb.append(';');
+
+	  }
+
+	  JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
+
+	  // Open a Connection to the given HTTP address and write the packet to it
+	  int colonPos = addr.indexOf(':');
+	  String host = addr.substring(0, colonPos);
+	  String port = addr.substring(colonPos + 1, addr.length());
+	  JICPAddress targetAddress = new JICPAddress(host, port, "", "");
+	  Connection c = new HTTPClientConnection(targetAddress);
+	  OutputStream out = c.getOutputStream();
+	  pkt.writeTo(out);
+
+	  // Read back the response
+	  InputStream inp = c.getInputStream();
+	  pkt = JICPPacket.readFrom(inp);
+	  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+	      // The JICPServer refused to create the Mediator or didn't find myMediator anymore
+	      byte[] data = pkt.getData();
+	      String errorMsg = (data != null ? new String(data) : null);
+	      throw new IMTPException(errorMsg);
+	  }
+      }
+      catch(IOException ioe) {
+	  throw new IMTPException("An I/O error occurred", ioe);
+      }
   }
-  
+
   /**
      Shutdown forced by the JICPServer this BackEndContainer is attached 
      to. This method is also called when the FrontEnd spontaneously exits
@@ -183,15 +238,20 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
      The HTTPBEDispatcher reacts to this call by resetting the current
      situation
    */
-  public JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port) {
-  	myOutgoingsHandler.setConnecting();
-		
-  	// Return an OK response
+  public JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind) {
+      myOutgoingsHandler.setConnecting();
+
+    // On reconnections, a back end container becomes the master node
+    if(pktKind == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
+	myContainer.becomeMaster();
+    }
+
+    // Return an OK response
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-  } 
+  }
 
   private void dummyResponse() {
-  	myJICPServer.dummyReply(lastRspAddr, lastRspPort);
+      myJICPServer.dummyReply(lastRspAddr, lastRspPort);
   }
   
   //////////////////////////////////////////

@@ -34,6 +34,8 @@ import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
@@ -52,13 +54,16 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
   // Variables related to the connection with the Mediator
   protected TransportAddress mediatorTA;
+  private String myMediatorID;
   private boolean mediatorAlive = false;
   private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
   private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
   private long totalDisconnectionTime = 0;
   private String owner;
   private String errorMsg;
-  private String backEndAddresses;
+
+  private String beAddrsText;
+  private String[] backEndAddresses;
 
   /**
    * Constructor declaration
@@ -77,74 +82,75 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {  	
   	try {
 
-	    backEndAddresses = (String)props.get(FrontEnd.REMOTE_BACK_END_ADDRESSES);
+	    beAddrsText = (String)props.get(FrontEnd.REMOTE_BACK_END_ADDRESSES);
+	    backEndAddresses = parseBackEndAddresses(beAddrsText);
 
-  		// Verbosity
-	  	try {
-	  		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
-	  	}
-	  	catch (NumberFormatException nfe) {
-	      // Use default (1)
-	  	}
+	    // Verbosity
+	    try {
+		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
+	    }
+	    catch (NumberFormatException nfe) {
+		// Use default (1)
+	    }
 	  	
-  		log("Connecting to the BackEnd", 2);
+	    log("Connecting to the BackEnd", 2);
   		
-	  	// Host
-	  	String host = props.getProperty("host");
-	  	if (host == null) {
-	  		host = "localhost";
-	  	}
-	  	// Port
-	  	int port = JICPProtocol.DEFAULT_PORT;
-	  	try {
-	  		port = Integer.parseInt(props.getProperty("port"));
-	  	}
-	  	catch (NumberFormatException nfe) {
-	      // Use default
-	  	}
-	  	
-			// Compose URL 
-	  	mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	 		log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
-				
-			// Read (re)connection retry time
-			String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
+	    // Host
+	    String host = props.getProperty("host");
+	    if (host == null) {
+		host = "localhost";
+	    }
+	    // Port
+	    int port = JICPProtocol.DEFAULT_PORT;
 	    try {
-	      retryTime = Long.parseLong(tmp);
+		port = Integer.parseInt(props.getProperty("port"));
+	    }
+	    catch (NumberFormatException nfe) {
+		// Use default
+	    }
+
+	    // Compose URL 
+	    mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
+	    log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
+
+	    // Read (re)connection retry time
+	    String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
+	    try {
+		retryTime = Long.parseLong(tmp);
+	    }
+	    catch (Exception e) {
+		// Use default
+	    }
+	    log("Reconnection retry time is "+retryTime, 2);
+
+	    // Read Max disconnection time
+	    tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
+	    try {
+		maxDisconnectionTime = Long.parseLong(tmp);
 	    } 
 	    catch (Exception e) {
-	      // Use default
-	    } 
-			log("Reconnection retry time is "+retryTime, 2);
-				
-			// Read Max disconnection time
-			tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
-	    try {
-	      maxDisconnectionTime = Long.parseLong(tmp);
-	    } 
-	    catch (Exception e) {
-	      // Use default
-	    } 
-			log("Max disconnection time is "+maxDisconnectionTime, 2);
-			 				
-			// Create the BackEnd stub and the FrontEnd skeleton
-			myStub = new BackEndStub(this);
-			mySkel = new FrontEndSkel(fe);
-			
-			// Read the owner if any
-			owner = props.getProperty("owner");
-			
+		// Use default
+	    }
+	    log("Max disconnection time is "+maxDisconnectionTime, 2);
+
+	    // Create the BackEnd stub and the FrontEnd skeleton
+	    myStub = new BackEndStub(this);
+	    mySkel = new FrontEndSkel(fe);
+
+	    // Read the owner if any
+	    owner = props.getProperty("owner");
+
 	    // Start the embedded Thread and wait until it connects to the BackEnd
 	    start();
 	    waitUntilConnected();
-			log("Connection OK", 1);
-	
-			return myStub;
+	    log("Connection OK", 1);
+
+	    return myStub;
   	}
   	catch (ICPException icpe) {
-  		throw new IMTPException("Connection error", icpe);
+	    throw new IMTPException("Connection error", icpe);
   	}
-  } 
+  }
 
   /**
      Mutual exclusion with handleConnectionReady/Error()
@@ -192,38 +198,59 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   /**
    */
   protected void setup() throws ICPException {
-    while (true) {
-      try {
-        connect();
-        totalDisconnectionTime = 0;
-        return;
-      } 
-      catch (IOException ioe) {
-      	if (mediatorAlive) {
-      		// Can't reconnect to the Mediator. Wait for a while before trying again
-      		// or PANIC if the max-disconnection timeout expired
-	        if (totalDisconnectionTime < maxDisconnectionTime) {
-	        	log("Can't connect to the BackEnd. Wait a bit before retrying...", 2);
-	          try {
-	            Thread.sleep(retryTime);
-	          } 
-	          catch (InterruptedException ie) {
-	            log("InterruptedException while waiting for next reconnection attempt", 1);
-	          } 
-	          totalDisconnectionTime += retryTime;
-	        }
-	        else {
-	        	throw new ICPException("Timeout expired");
-	        }
-      	}
-      	else {
-      		// Can't reach the JICPServer to create my Mediator. Notify and exit
-      		errorMsg = "Can't connect to "+mediatorTA+". "+ioe.toString();
-	        throw new ICPException(errorMsg);
-      	}
+      while (true) {
+
+	  // Try first with the current transport address, then with the various backup addresses
+	  for(int i = -1; i < backEndAddresses.length; i++) {
+
+	      if(i >= 0) {
+		  // Set the mediator address to a new address..
+		  String addr = backEndAddresses[i];
+		  int colonPos = addr.indexOf(':');
+		  String host = addr.substring(0, colonPos);
+		  String port = addr.substring(colonPos + 1, addr.length());
+		  mediatorTA = new JICPAddress(host, port, myMediatorID, "");
+	      }
+
+	      try {
+		  connect();
+		  totalDisconnectionTime = 0;
+		  return;
+	      }
+	      catch (IOException ioe) {
+		  // Ignore it, and try the next address...
+	      }
+	      catch(ICPException icpe) {
+		  // Ignore it, and try the next address...
+	      }
+	  }
+
+	  // No address succeeded: try to handle the problem...
+
+	  if (mediatorAlive) {
+	      // Can't reconnect to the Mediator. Wait for a while before trying again
+	      // or PANIC if the max-disconnection timeout expired
+	      if(totalDisconnectionTime < maxDisconnectionTime) {
+		  log("Can't connect to the BackEnd. Wait a bit before retrying...", 2);
+		  try {
+		      Thread.sleep(retryTime);
+		  }
+		  catch (InterruptedException ie) {
+		      log("InterruptedException while waiting for next reconnection attempt", 1);
+		  }
+		  totalDisconnectionTime += retryTime;
+	      }
+	      else {
+		  throw new ICPException("Timeout expired");
+	      }
+	  }
+	  else {
+	      // Can't reach the JICPServer to create my Mediator. Notify and exit
+	      errorMsg = "Can't connect to " + mediatorTA + ".";
+	      throw new ICPException(errorMsg);
+	  }
       }
-    }
-  }  
+  }
 
   protected void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
@@ -245,39 +272,98 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BackEndDispatcher");
     	appendProp(sb, "verbosity", String.valueOf(verbosity));
     	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
-	if(backEndAddresses != null) {
-	    appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, backEndAddresses);
+	if(beAddrsText != null) {
+	    appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
 	}
     	if (owner != null) {
     		appendProp(sb, "owner", owner);
     	}
     	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
-    }    	
+    }
     pkt.writeTo(out);
 
-  	log("Packet sent. Read response", 2);
+    log("Packet sent. Read response", 2);
     // Read the response
     pkt = JICPPacket.readFrom(inp);
-  	log("Response read", 2);
+    log("Response read", 2);
     if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();
     	errorMsg = (data != null ? new String(data) : null);
     	throw new ICPException(errorMsg);
-    } 
-		if (!mediatorAlive) {
-			mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), new String(pkt.getData()), null);
-			mediatorAlive = true;
-		}
-		setConnection(c);
-  } 
+    }
+    if (!mediatorAlive) {
+	// Store the mediator ID
+	myMediatorID = new String(pkt.getData());
+
+	mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
+	mediatorAlive = true;
+    }
+    setConnection(c);
+  }
 
   private void appendProp(StringBuffer sb, String key, String val) {
-  	sb.append(key);
-  	sb.append('=');
-  	sb.append(val);
-  	sb.append(';');
+      sb.append(key);
+      sb.append('=');
+      sb.append(val);
+      sb.append(';');
   }
+
+  private String[] parseBackEndAddresses(String addressesText) {
+    ArrayList addrs = new ArrayList();
+
+    if(addressesText != null && !addressesText.equals("")) {
+	// Copy the string with the specifiers into an array of char
+	char[] addressesChars = new char[addressesText.length()];
+
+    	addressesText.getChars(0, addressesText.length(), addressesChars, 0);
+
+    	// Create the StringBuffer to hold the first address
+    	StringBuffer sbAddr = new StringBuffer();
+    	int i = 0;
+
+    	while(i < addressesChars.length) {
+	    char c = addressesChars[i];
+
+	    if((c != ',') && (c != ';') && (c != ' ') && (c != '\n') && (c != '\t')) {
+        	sbAddr.append(c);
+	    }
+	    else {
+
+        	// The address is terminated --> Add it to the result list
+        	String tmp = sbAddr.toString().trim();
+
+        	if (tmp.length() > 0) {
+		    // Add the Address to the list
+		    addrs.add(tmp);
+        	}
+
+        	// Create the StringBuffer to hold the next specifier
+        	sbAddr = new StringBuffer();
+	    }
+
+	    ++i;
+    	}
+
+    	// Handle the last specifier
+    	String tmp = sbAddr.toString().trim();
+
+    	if(tmp.length() > 0) {
+	    // Add the Address to the list
+	    addrs.add(tmp);
+    	}
+    }
+
+    // Convert the list into an array of strings
+    String[] result = new String[addrs.size()];
+    for(int i = 0; i < result.length; i++) {
+	result[i] = (String)addrs.get(i);
+    }
+
+    return result;
+
+  }
+
   
   /**
      The connection is up --> Notify threads hang in 

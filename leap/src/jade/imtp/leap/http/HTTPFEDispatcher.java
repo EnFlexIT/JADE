@@ -33,8 +33,11 @@ import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
-import jade.util.leap.Properties;
 import jade.imtp.leap.JICP.*;
+
+import jade.util.leap.Properties;
+import jade.util.leap.ArrayList;
+
 
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.midlet.*;
@@ -65,9 +68,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private Properties props;
   
   private TransportAddress mediatorTA;
+  private String myMediatorID;
   
   private String owner;
   private int verbosity = 1;
+
+  private String beAddrsText;
+  private String[] backEndAddresses;
+
 
   ////////////////////////////////////////////////
   // FEConnectionManager interface implementation
@@ -78,16 +86,23 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	   communicate with it
 	 */
   public BackEnd getBackEnd(FrontEnd fe, Properties p) throws IMTPException {
-  	props = p;
-		// Verbosity
+      props = p;
+
+      beAddrsText = (String)props.get(FrontEnd.REMOTE_BACK_END_ADDRESSES);
+      backEndAddresses = parseBackEndAddresses(beAddrsText);
+
+      // Verbosity
   	try {
-  		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_http_HTTPFEDispatcher_verbosity"));
+	    String v = props.getProperty("jade_imtp_leap_http_HTTPFEDispatcher_verbosity");
+	    if(v != null) {
+  		verbosity = Integer.parseInt(v);
+	    }
   	}
   	catch (NumberFormatException nfe) {
       // Use default
   	}
-  	
-		log("Creating the BackEnd: ", 2);
+
+	log("Creating the BackEnd: ", 2);
 		
   	// Host
   	String host = props.getProperty("host");
@@ -206,33 +221,56 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      FrontEndContainer.
    */
   private void createBackEnd() throws IMTPException {
-    log("Sending CREATE_MEDIATOR packet", 2);
-  	StringBuffer sb = new StringBuffer();
-  	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
-  	appendProp(sb, "verbosity", String.valueOf(verbosity));
-  	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
-  	if (owner != null) {
-  		appendProp(sb, "owner", owner);
-  	}
-  	JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
+      log("Sending CREATE_MEDIATOR packet", 2);
+      StringBuffer sb = new StringBuffer();
+      appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
+      appendProp(sb, "verbosity", String.valueOf(verbosity));
+      appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
+      if(beAddrsText != null) {
+	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
+      }
+      if (owner != null) {
+	  appendProp(sb, "owner", owner);
+      }
+      JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
-		try {
-			jade.util.Logger.println("send-create-mediator-"+System.currentTimeMillis());
-			
-	  	pkt = deliver(pkt, outConnection);
-			jade.util.Logger.println("create-mediator-rsp-got"+System.currentTimeMillis());
-		}
-		catch (IOException ioe) {
-			throw new IMTPException("Error creating the BackEnd.", ioe);
-		}
+      // Try first with the current transport address, then with the various backup addresses
+      for(int i = -1; i < backEndAddresses.length; i++) {
 
-    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-    	// The JICPServer refused to create the Mediator 
-    	byte[] data = pkt.getData();
-    	throw new IMTPException((data != null ? new String(data) : null));
-    } 
-    // Complete the mediator address with the mediator ID
-		mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), new String(pkt.getData()), null);
+	  if(i >= 0) {
+	      // Set the mediator address to a new address..
+	      String addr = backEndAddresses[i];
+	      int colonPos = addr.indexOf(':');
+	      String host = addr.substring(0, colonPos);
+	      String port = addr.substring(colonPos + 1, addr.length());
+	      mediatorTA = new JICPAddress(host, port, myMediatorID, "");
+	  }
+
+	  try {
+	      jade.util.Logger.println("send-create-mediator-" + System.currentTimeMillis());
+	      pkt = deliver(pkt, outConnection);
+
+	      myMediatorID = new String(pkt.getData());
+
+	      // Complete the mediator address with the mediator ID
+	      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
+
+	      jade.util.Logger.println("create-mediator-rsp-got" + System.currentTimeMillis());
+
+	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
+		  // The JICPServer refused to create the Mediator 
+		  return;
+	      }
+	  }
+	  catch (IOException ioe) {
+	      // Ignore it, and try the next address...
+	      ioe.printStackTrace();
+	  }
+      }
+
+      // No address succeeded: try to handle the problem...
+      throw new IMTPException("Error creating the BackEnd.");
+
   }
   
   private void appendProp(StringBuffer sb, String key, String val) {
@@ -333,6 +371,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		
 				if (active) {
   				log("IOException on input connection. "+ioe, 2);
+				ioe.printStackTrace();
 					myDisconnectionManager.setUnreachable();
 					myDisconnectionManager.waitUntilReachable();
 				}
@@ -479,21 +518,100 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      outConnection at the same time
    */
   private synchronized boolean ping(int cnt) throws ICPException {
-		try {
-	    log("Ping the BackEnd "+cnt, 2);
-	  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null);
+
+	  // Try first with the current transport address, then with the various backup addresses
+	  for(int i = -1; i < backEndAddresses.length; i++) {
+
+	      if(i >= 0) {
+		  // Set the mediator address to a new address..
+		  String addr = backEndAddresses[i];
+		  int colonPos = addr.indexOf(':');
+		  String host = addr.substring(0, colonPos);
+		  String port = addr.substring(colonPos + 1, addr.length());
+		  mediatorTA = new JICPAddress(host, port, myMediatorID, "");
+		  outConnection = new HTTPClientConnection(mediatorTA);
+	      }
+
+	      try {
+
+		  log("Ping the BackEnd "+cnt, 2);
+		  JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null);
 		  pkt = deliver(pkt, outConnection);
-	    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-	    	// The JICPServer didn't find my Mediator.  
-	    	throw new ICPException("Mediator expired.");
-	    }
-	    return true;
-		}
-		catch (IOException ioe) {
-	    log("Ping failed. "+ioe.toString(), 2);
-	    return false;
-		}
+		  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+		      // The JICPServer didn't find my Mediator.  
+		      throw new ICPException("Mediator expired.");
+		  }
+		  return true;
+	      }
+	      catch (IOException ioe) {
+		  // Ignore it, and try the next address...
+	      }
+	      catch(ICPException icpe) {
+		  // Ignore it, and try the next address...
+	      }
+	  }
+
+	  // No address succeeded: try to handle the problem...
+	  log("Ping failed.", 2);
+	  return false;
   }
+
+
+  private String[] parseBackEndAddresses(String addressesText) {
+    ArrayList addrs = new ArrayList();
+
+    if(addressesText != null && !addressesText.equals("")) {
+	// Copy the string with the specifiers into an array of char
+	char[] addressesChars = new char[addressesText.length()];
+
+    	addressesText.getChars(0, addressesText.length(), addressesChars, 0);
+
+    	// Create the StringBuffer to hold the first address
+    	StringBuffer sbAddr = new StringBuffer();
+    	int i = 0;
+
+    	while(i < addressesChars.length) {
+	    char c = addressesChars[i];
+
+	    if((c != ',') && (c != ';') && (c != ' ') && (c != '\n') && (c != '\t')) {
+        	sbAddr.append(c);
+	    }
+	    else {
+
+        	// The address is terminated --> Add it to the result list
+        	String tmp = sbAddr.toString().trim();
+
+        	if (tmp.length() > 0) {
+		    // Add the Address to the list
+		    addrs.add(tmp);
+        	}
+
+        	// Create the StringBuffer to hold the next specifier
+        	sbAddr = new StringBuffer();
+	    }
+
+	    ++i;
+    	}
+
+    	// Handle the last specifier
+    	String tmp = sbAddr.toString().trim();
+
+    	if(tmp.length() > 0) {
+	    // Add the Address to the list
+	    addrs.add(tmp);
+    	}
+    }
+
+    // Convert the list into an array of strings
+    String[] result = new String[addrs.size()];
+    for(int i = 0; i < result.length; i++) {
+	result[i] = (String)addrs.get(i);
+    }
+
+    return result;
+
+  }
+
   	  
   /**
      Executed by the DisconnectionManager thread as soon as it detects it is 
