@@ -32,7 +32,7 @@
  :ontology jade-agent-management
  :content "( (action (Agent-Identifier :name AMS)
               (kill-container 
-               :name container-1
+               :container (Container-ID :name container-1)
                :password PWD    
              )))  "
  :X-comment "Some sample JADE agent management messages"
@@ -45,7 +45,7 @@
               (create-agent
                :agent-name a-1
                :class-name examples.ontology.TestAgent
-               :container-name c2
+               :container (Container-ID :name c2)
                :password PWD    
              )))  "
  :X-comment "Some sample JADE agent management messages"
@@ -91,12 +91,12 @@
 
 (SUBSCRIBE
  :language FIPA-SL0
- :ontology jade-agent-management
- :content "( (event-occurred (Container-born :name c1 :host sharon) )
-            (event-occurred (Container-dead :name c1 ) )
-            (event-occurred (Agent-born :container c2 :agent (Agent-identifier :name c1) ) )
-            (event-occurred (Agent-dead :container c2 :agent (Agent-Identifier :name c1) ) )
-            (event-occurred (Agent-moved :from c1 :to c2 :agent (Agent-Identifier :name pippo) ) )
+ :ontology jade-introspection
+ :content "( (occurred (Event-Record :what (added-Container :container (Container-ID :name c1) )))
+            (occurred (Event-Record :what (removed-Container :container (Container-ID :name c1 ) )))
+            (occurred (Event-Record :what (Born-Agent :where (Container-ID :name c2) :agent (Agent-identifier :name c1) ) ))
+            (occurred (Event-Record :what (Dead-Agent :where (Container-ID :name c2) :agent (Agent-Identifier :name c1) ) ))
+            (occurred (Event-Record :what (Moved-Agent :from (Container-ID :name c1) :to (Container-ID :name c2) :agent (Agent-Identifier :name pippo) ) ))
             true
             FALSE
           )"
@@ -183,8 +183,8 @@
               :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
-			    :transport-protocol RMI
-                            :transport-address rmi://p.cselt.it:50)
+			    :protocol RMI
+                            :address rmi://p.cselt.it:50)
               :agent-profile (Mobile-Agent-Profile
                               :system (Mobile-Agent-System
                                        :name XXX
@@ -217,8 +217,8 @@
               :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
-			    :transport-protocol RMI
-                            :transport-address rmi://p.cselt.it:50)
+			    :protocol RMI
+                            :address rmi://p.cselt.it:50)
             ) NewName ))))"
  :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
 )
@@ -232,8 +232,8 @@
               :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
-			    :transport-protocol RMI
-                            :transport-address rmi://p.cselt.it:50)
+			    :protocol RMI
+                            :address rmi://p.cselt.it:50)
             ) NEWName )))"
  :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
 )
@@ -246,8 +246,8 @@
                             (where-is-agent (Agent-Identifier :name Giovanni)))
              (Location 
 			    :name Container1 
-			    :transport-protocol RMI
-                            :transport-address rmi://p.cselt.it:50)
+			    :protocol RMI
+                            :address rmi://p.cselt.it:50)
             ))"
  :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
 )

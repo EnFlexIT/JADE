@@ -31,6 +31,7 @@ import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.MobilityOntology;
 import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
 import jade.domain.FIPAException;
+import jade.domain.introspection.JADEIntrospectionOntology;
 import jade.lang.acl.*;
 import jade.core.Agent;
 import jade.lang.sl.SL0Codec;
@@ -100,6 +101,15 @@ protected void setup() {
     e.printStackTrace();
   }
   registerOntology(JADEAgentManagementOntology.NAME, o3); 
+
+  // test to/from string
+  Ontology o4 = new DefaultOntology();
+  try {
+    o4.fromSL0String(JADEIntrospectionOntology.instance().toSL0String(JADEIntrospectionOntology.NAME));
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
+  registerOntology(JADEIntrospectionOntology.NAME, o4); 
 	
 
   StringACLCodec codec = getStringACLCodec(); 
