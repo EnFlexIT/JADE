@@ -266,7 +266,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	try {
 	    theAMS.resetEvents(true);
 	    AID amsId = ac.getAMS();
-	    ac.initAgent(amsId, theAMS, (JADEPrincipal) null, (Credentials)null);
+	    ((AgentContainerImpl)ac).initAgent(amsId, theAMS); 
 	    ac.powerUpLocalAgent(amsId);
 	    theAMS.waitUntilStarted();
 	}
@@ -277,7 +277,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
  
 	try {
 	    AID dfId = ac.getDefaultDF();
-	    ac.initAgent(dfId, defaultDF, (JADEPrincipal)null, (Credentials)null);
+	    ((AgentContainerImpl)ac).initAgent(dfId, defaultDF);
 	    ac.powerUpLocalAgent(dfId);
 	    defaultDF.waitUntilStarted();
 	}
