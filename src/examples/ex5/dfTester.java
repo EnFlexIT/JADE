@@ -1,5 +1,9 @@
 /*
+
   $Log$
+  Revision 1.9  1998/10/18 17:33:53  rimassa
+  Added support for 'search' DF operation.
+
   Revision 1.8  1998/10/18 16:10:39  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -69,7 +73,8 @@ public class dfTester extends Agent {
   private boolean receivedAgree = false;
 
   // Holds a Java object representation of DF action to perform
-  private AgentManagementOntology.DFAction myAction = new AgentManagementOntology.DFAction();
+  private AgentManagementOntology.DFSearchAction myAction = new AgentManagementOntology.DFSearchAction();
+  private String constraints;
 
 
   private abstract class ReceiveBehaviour extends SimpleBehaviour {
@@ -152,6 +157,14 @@ public class dfTester extends Agent {
 
       System.out.println("");
 
+      String name = myAction.getName();
+      if(name.equalsIgnoreCase("search")) {
+	AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+	c.setName(AgentManagementOntology.Constraint.DFDEPTH);
+	c.setFn(AgentManagementOntology.Constraint.EXACTLY);
+	c.setArg(1);
+	myAction.addConstraint(c);
+      }
     }
     catch(IOException ioe) {
       ioe.printStackTrace();
