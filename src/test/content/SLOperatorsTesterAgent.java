@@ -38,55 +38,28 @@ import test.common.*;
 import test.common.agentConfigurationOntology.*;
 import test.content.testOntology.TestOntology;
 
-public class ContentTesterAgent extends TesterAgent {
+public class SLOperatorsTesterAgent extends TesterAgent {
 	
 	private static final String RESPONDER_NAME = "responder";
 	
 	protected TestGroup getTestGroup() {		
 		TestGroup tg = new TestGroup(new String[] {
-  		"test.content.tests.TestInt",
-  		"test.content.tests.TestBoolean",
-  		"test.content.tests.TestLong",
-  		"test.content.tests.TestFloat",
-  		"test.content.tests.TestDouble",
-  		"test.content.tests.TestDate",
-  		"test.content.tests.TestByteSeq",
-  		"test.content.tests.TestAgentAction",
-  		"test.content.tests.TestAction1",
-  		"test.content.tests.TestAction2",
-  		"test.content.tests.TestUnknownSchema",
-  		"test.content.tests.TestOntoAID",
-  		"test.content.tests.TestSequence",
-  		"test.content.tests.TestMissingOptional",
-  		"test.content.tests.TestMissingMandatory",
-  		"test.content.tests.TestContentElementList",
-  		"test.content.tests.TestAggregateAsConcept",
-  		"test.content.tests.TestTypedAggregate",
-  		"test.content.tests.TestCardinality",
-  		"test.content.tests.TestCorrectIRE",
-  		"test.content.tests.TestOntoACLMessage",
-  		"test.content.tests.TestBCReflectiveIntrospector",
-  		"test.content.tests.TestAbsDescriptorAsConcept",
-  		"test.content.tests.TestAbsDescriptorAsPredicate"
+  		"test.content.tests.sl.TestLogicalOp",
+  		"test.content.tests.sl.TestModalOp",
+  		"test.content.tests.sl.TestQuantifiers"
 		} ) {
 			
 			private AID resp;
 			
 			public void initialize(Agent a) throws TestException {
-				// Load the codec to be used in the tests
-				Object[] args = ContentTesterAgent.this.getArguments();
-    		String codecClassName = "jade.content.lang.sl.SLCodec";
+				String codecClassName = "jade.content.lang.sl.SLCodec";
     		Codec codec = null;
-    		if (args != null && args.length > 0) {
-    			codecClassName = (String) args[0];
-    		}
     		try {
     			codec = (Codec) Class.forName(codecClassName).newInstance();
     		}
     		catch (Exception e) {
     			throw new TestException("Error loading codec "+codecClassName, e);
     		}
-    		System.out.println("Test group performed using the "+codec.getName()+" language");
 				
     		// Register the codec and ontology in the Agent's content manager
     		a.getContentManager().registerLanguage(codec);
@@ -136,7 +109,7 @@ public class ContentTesterAgent extends TesterAgent {
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
-      AgentController tester = mc.createNewAgent("tester", "test.content.ContentTesterAgent", args);
+      AgentController tester = mc.createNewAgent("tester", "test.content.SLOperatorsTesterAgent", args);
       tester.start();
 		}
 		catch (Exception e) {

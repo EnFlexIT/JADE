@@ -51,7 +51,7 @@ public class TestBoolean extends Test{
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Position p = new Position(1.0, 1.0);
-  				p.setPrecise(new Boolean(false));
+  				p.setPrecise(new Boolean(true));
   				Exists e = new Exists(p);
   				myAgent.getContentManager().fillContent(msg, e);
   				return msg;

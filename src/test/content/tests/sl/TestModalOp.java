@@ -21,45 +21,59 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package test.content.tests;
+package test.content.tests.sl;
 
+import test.common.*;
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
-import jade.content.*;
+import jade.content.ContentManager;
+import jade.content.lang.sl.*;
 import jade.content.abs.*;
-import jade.content.onto.*;
-import jade.content.onto.basic.*;
-import jade.util.leap.*;
-import test.content.testOntology.*;
+import jade.content.onto.BasicOntology;
+import examples.content.ecommerceOntology.*;
 import test.common.*;
 import test.content.*;
-import examples.content.ecommerceOntology.*;
-import examples.content.musicShopOntology.*;
+import test.content.testOntology.*;
 
 /**
  * @author Giovanni Caire - TILAB
  */
-public class TestUnknownSchema extends Test{
+public class TestModalOp extends Test{
   public String getName() {
-  	return "Unknown-schema";
+  	return "Test-modal-operators";
   }
+  
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content that is a Predicate of an unknown type");
+  	StringBuffer sb = new StringBuffer("Tests a content including the B, U and I operators\n");
+  	sb.append("The content tested looks like: (U (agent-identifier ...) (B (agent-identifier ...) (I (agent-identifier ...) (TEST_EXISTS ...))))");
   	return sb.toString();
   }
+  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		Object[] args = getGroupArguments();
   		final ACLMessage msg = (ACLMessage) args[0];
-  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				AbsPredicate p = new AbsPredicate("pippo");
-  				myAgent.getContentManager().fillContent(msg, p);
-  				// Even if for some CL this is not a problem, the fillContent() 
-  				// method gets the schema to validate the AbsContentElement 
-  				// to be serialized --> As there is no schema defined for 
-  				// "pippo", this should always fail.  
+  				Item it = new Item();
+  				it.setSerialID(1000);
+  				Exists e = new Exists(it);
+  				
+  				AbsPredicate i = new AbsPredicate(SLVocabulary.INTENTION);
+  				i.set(SLVocabulary.INTENTION_AGENT, BasicOntology.getInstance().fromObject(new AID("John", AID.ISLOCALNAME)));
+  				i.set(SLVocabulary.INTENTION_CONDITION, TestOntology.getInstance().fromObject(e));
+  					
+  				AbsPredicate b = new AbsPredicate(SLVocabulary.BELIEF);
+  	  		b.set(SLVocabulary.BELIEF_AGENT, BasicOntology.getInstance().fromObject(new AID("Bill", AID.ISLOCALNAME)));
+  				b.set(SLVocabulary.BELIEF_CONDITION, i);
+  					
+					AbsPredicate u = new AbsPredicate(SLVocabulary.UNCERTAINTY);
+  				u.set(SLVocabulary.UNCERTAINTY_AGENT, BasicOntology.getInstance().fromObject(new AID("Peter", AID.ISLOCALNAME)));
+  				u.set(SLVocabulary.UNCERTAINTY_CONDITION, b);
+  				
+  				myAgent.getContentManager().fillContent(msg, u);
   				return msg;
   			}
   		};
