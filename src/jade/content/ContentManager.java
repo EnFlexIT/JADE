@@ -289,11 +289,13 @@ public class ContentManager implements Serializable {
 			return validationMode;
 		}
 		
+		//#APIDOC_EXCLUDE_BEGIN
 		/** 
 		 */
 		public Ontology getOntology(ACLMessage msg) {
       return getMergedOntology(lookupLanguage(msg.getLanguage()), lookupOntology(msg.getOntology()));
 		}
+		//#APIDOC_EXCLUDE_END
 		
 		/**
 		 * Merge the reference ontology with the inner ontology of the 
