@@ -23,15 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CompositeBehaviour;
+import jade.core.behaviours.*;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Collection;
 
-import java.util.StringTokenizer;
 /**
 
   This class represents an unique identifier referring to a specific
@@ -43,8 +41,9 @@ import java.util.StringTokenizer;
 */
 public class BehaviourID {
 
-  private String name;
-  private String kind;
+	private String name;
+	private String className;
+  private String kind; // Simple, FSM, Parallel or Sequential
   private List children = new ArrayList();
 
   public BehaviourID () {
@@ -52,39 +51,76 @@ public class BehaviourID {
   
   public BehaviourID (Behaviour b) {
       
-      name = b.getClass().getName();
+      name = b.getBehaviourName();
+      //name = b.getClass().getName();
+      className = b.getClass().getName();
       
-      // Remove the class name and the '$' characters from
-      // the class name for readability.
-      int dotIndex = name.lastIndexOf('.');
-      int dollarIndex = name.lastIndexOf('$');
-      int lastIndex = Math.max(dotIndex, dollarIndex);
-      
-      if (lastIndex != -1) {
-          name = name.substring(lastIndex+1);
-      }
+      kind = getClassKind(b.getClass());      
 
       // If we have a composite behaviour, add the
       // children to this behaviour id.
       if (b instanceof CompositeBehaviour) {
-          kind = "CompositeBehaviour";
+      		/*if (b instanceof SequentialBehaviour) {
+	          kind = "SequentialBehaviour";
+      		}
+      		else if (b instanceof ParallelBehaviour) {
+	          kind = "ParallelBehaviour";
+      		}
+      		else if (b instanceof FSMBehaviour) {
+	          kind = "FSMBehaviour";
+      		}
+      		else {
+	          kind = "CompositeBehaviour";
+      		}*/
           CompositeBehaviour c = (CompositeBehaviour)b;
           Iterator iter = c.getChildren().iterator();
           while (iter.hasNext()) {
               addChildren(new BehaviourID((Behaviour)iter.next()));
           }
       }
-      else {
-          kind = "Behaviour";
-      }
+      /*else {
+          kind = "SimpleBehaviour";
+      }*/
   }
 
+  private String getClassKind(Class c) {
+  	if (c == null) {
+  		return null;
+  	}
+  	
+  	String className = c.getName();
+    // Remove the class name and the '$' characters from
+    // the class name for readability.
+    int dotIndex = className.lastIndexOf('.');
+    int dollarIndex = className.lastIndexOf('$');
+  	int lastIndex = (dotIndex > dollarIndex ? dotIndex : dollarIndex);
+    if (lastIndex == -1) {
+    	return className;
+    }
+    else if (lastIndex == dotIndex) {
+      return className.substring(lastIndex+1);
+    }
+    else {
+    	// This is an anonymous inner class (the name is not meaningful) --> 
+    	// Use the extended class 
+    	return getClassKind(c.getSuperclass());
+    }
+  }
+      
   public void setName(String n) {
     name = n;
   }
 
   public String getName() {
     return name;
+  }
+
+  public void setClassName(String n) {
+    className = n;
+  }
+
+  public String getClassName() {
+    return className;
   }
 
   public void setKind(String k) {
@@ -109,9 +145,9 @@ public class BehaviourID {
   
   public boolean equals(Object o) {
       boolean bEqual = false;
-      if (o instanceof BehaviourID) {
+      if (o != null && o instanceof BehaviourID) {
           BehaviourID b = (BehaviourID)o;
-          bEqual = b.name.equals(name) && b.kind.equals(kind);
+          bEqual = b.name.equals(name) && b.className.equals(className) && b.kind.equals(kind);
       }
       return bEqual;
   }
