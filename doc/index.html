@@ -8,56 +8,76 @@
 </HEAD>
 <BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#000077" ALINK="#FF0000">
 
-<CENTER><IMG SRC="logo.jpg" BORDER=0 HEIGHT=151 WIDTH=309>
+<CENTER><A HREF="http://jade.tilab.com"><IMG SRC="logo.jpg" BORDER=0 HEIGHT=151 WIDTH=309></A>
 </CENTER><P><CENTER>
     <B><FONT FACE="Arial" size="+2">On-line documentation</FONT></B> 
   </center>
 
 <CENTER><TABLE BORDER="1" CELLSPACING=0 CELLPADDING=2 WIDTH="606" >
     <TR> 
-      <TD ALIGN=LEFT BGCOLOR="#EEEEFF" width="598"><B>Basis Documentation</B> 
+    <TD ALIGN=LEFT BGCOLOR="#EEEEFF" width="598">
+    
+        <B>Basis Documentation</B> 
         <UL>
           <LI> <A HREF="html/intro.htm">Introduction to JADE</A></LI>
-          <LI> <a href="tutorials/JADEAdmin/index.html">JADE Administrative Tutorials 
-            for beginners</a>, <a href="http://www.ryerson.ca/~dgrimsha">David 
-            Grimshaw</a> - <a href="http://www.ryerson.ca">Ryerson University</a></LI>
-          <LI><a href="http://www.iro.umontreal.ca/%7Evaucher/Agents/Jade/JadePrimer.html">JADE 
-            Primer, J. Vaucher and A. Ncho, Universit&eacute; de Montr&eacute;al 
-            </a><font color="#FF0000">(NEW!)</font></LI>
           <LI> <A HREF="administratorsguide.pdf">JADE Administrator's Guide</A></LI>
           <LI> <A HREF="programmersguide.pdf">JADE Programmer's Guide</A></LI>
           <LI> <A HREF="api/index.html">Complete API Documentation</A></LI>
           <LI> <A HREF="examples/index.html">Description of the examples</A></LI>
         </UL>
+        
         <p> <B>Tutorials</B> </p>
         <ul>
+        	<li><I>Administration</I>
+        		<ul>
+		          <LI> <a href="tutorials/JADEAdmin/index.html">Administrating the JADE platform. Tutorial 
+		            for beginners</a><br>
+		            By <a href="http://www.ryerson.ca/~dgrimsha">David 
+		            Grimshaw</a> - <a href="http://www.ryerson.ca">Ryerson University</a></LI>
+        		</ul>
+        	</li>
+        	<li><I>Programming</I>
+        		<ul>
+		          <li><a href="JADEProgramming-tutorial-for-beginners.pdf">Developing  
+		          	multi-agent applications with JADE. Tutorial for beginners</a><font color="#FF0000">(NEW!)</font>
+		          	&nbsp; </li>
+		          <li><a href="CLOntoSupport.pdf">Creating and using applications-specific 
+		          	ontologies</a> &nbsp; </li>
+		          <li><a href="tutorials/ArgsAndPropsPassing.htm">Using arguments and  
+		          	properties to configure your agent</a><br>
+		          	By <a href="mailto:rm.cowan@verizon.net">Dick Cowan</a> - Menehune Software Inc 
+		            &nbsp; </li>
+        		</ul>
+        	</li>
+        	<li><I>Links</I>
+        		<ul>
+		          <LI><a href="http://www.iro.umontreal.ca/%7Evaucher/Agents/Jade/JadePrimer.html">JADE 
+		            Primer</a><font color="#FF0000">(NEW!)</font><br>
+		            By J. Vaucher and A. Ncho - Universit&eacute; de Montr&eacute;al 
+		            </LI>
+		          <LI><a href="http://www.cs.bath.ac.uk/~occ/agents_ecommerce/jade/">Basic aspects of JADE 
+		            programming</a><font color="#FF0000">(NEW!)</font><br>
+		            By Owen Cliffe - University of Bath</LI>
+        		</ul>
+        	</li>
+        </ul>
+        
+        <p> <B>Tutorials on JADE add-ons</B> </p>
+        <ul>
           <li><a href="LEAPUserGuide.pdf">How to use the LEAP add-on to deploy 
-            JADE agents on java enabled cell-phones </a><font color="#FF0000">(NEW!)</font> 
+            JADE agents on java enabled cell-phones </a> 
             &nbsp; </li>
-          <li><a href="tutorials/jadesecurity.html">JADE plug-in for Security 
-            and multi-user support </a> 
-            <ul>
-              <li><a href="tutorials/SecurityAdminGuide.pdf">Administrator's Guide 
-                </a></li>
-            </ul>
-          </li>
-          <li><a href="CLOntoSupport.pdf">JADE Support to application-defined 
-            ontologies and content languages</a> &nbsp; </li>
-          <li><a href="tutorials/ArgsAndPropsPassing.htm">How to use arguments 
-            or properties to configure your agent</a>, <a href="mailto:rm.cowan@verizon.net">Dick 
-            Cowan</a>, Menehune Software Inc <font color="#FF0000">(NEW!)</font> 
-            &nbsp; </li>
-          <li><b>Overriding the default Message Transport Protocol</b> 
+          <li><I>Overriding the default Message Transport Protocol</I> 
             <ul>
               <li><A HREF="tutorials/orbacus/ORBACUS.html">How to use the ORBACUS 
                 ORB</A></li>
-              <li><A HREF= "tutorials/http/HTTP.html" > How to use the HTTP-based 
+              <li><A HREF= "tutorials/http/HTTP.html" >How to use the HTTP-based 
                 MTP </A></li>
-              <li><a href="tutorials/JMSMTP.html">How to use the JMS-based MTP</a>, 
-                Edward Curry, <font color="#FF0000">(NEW!)</font></li>
+              <li><a href="tutorials/JMSMTP.html">How to use the JMS-based MTP</a><font color="#FF0000">(NEW!)</font><br> 
+              By Edward Curry</li>
             </ul>
           </li>
-          <li><b>Message and content encodings</b> 
+          <li><I>Message and content encodings</I> 
             <ul>
               <li><A HREF= "tutorials/XMLACL.html" >How to use XML encoding of 
                 ACLMessages with JADE</A></li>
@@ -70,26 +90,30 @@
               </li>
             </ul>
           </li>
-          <li><b>JADE and the Internet technologies</b> 
+          <li><I>JADE and the Internet technologies</I> 
             <ul>
               <li><a href="tutorials/jsp/JADE4JSP.html">Integrating JADE with 
-                JSP</a></li>
+                JSP</a><br>
+                By Daniel Le Berre & Olivier Fourdrinoy</li>
               <li><a href="tutorials/jadeApplets.html">How to use JADE within 
-                Applets</a>, Claudiu Anghel, <font color="#FF0000">(NEW!)</font></li>
-              <li><a href="http://jade.tilab.com/thirdpartysw.html">Linking a servlet to a JADE agent</a>, Fabien Gandon, <i>to be downloaded as a separate add-on</i><font color="#FF0000">(NEW!)</font></li>
+                Applets</a><font color="#FF0000">(NEW!)</font><br>
+                By Claudiu Anghel</li>
+              <li><a href="http://jade.tilab.com/thirdpartysw.html">Linking a servlet to a JADE agent</a>, <i>included in the add-on</i><font color="#FF0000">(NEW!)</font><br>
+              By Fabien Gandon</li>
             </ul>
           </li>
           <li><a href="tutorials/benchmark/HowToUseRTTBenchmark.htm">Benchmark 
             on the Message Round Trip Time in JADE&nbsp;</a></li>
-          <li><b>Upgrading the user code to new versions of JADE</b> 
+          <li><I>Upgrading the user code to new versions of JADE</I> 
             <ul>
               <li><A HREF="tutorials/toJade30.html">How to upgrade user code from 
-                JADE 2.x to JADE 3.0</A> <font color="#FF0000">(NEW!)</font></li>
+                JADE 2.x to JADE 3.0</A></li>
               <li><A HREF="tutorials/toJade/toJade.html"> How to upgrade user 
                 code from JADE 1.x to JADE 2.0</A></li>
             </ul>
           </li>
         </ul>
+        
         <p><B>Tools</B> </p>
         <ul>
           <li><A HREF="tools/rma/index.html">JADE RMA </A></li>
