@@ -73,7 +73,7 @@ public class PlatformManagerImpl implements PlatformManager {
     // By convention, nodes hosting containers with a local copy of the Platform Manager are called
     // Main-Container-<N>, hosting containers whereas nodes without their own Platform Manager are
     // called Container-<M>.
-    // Nodes not hosting containers are called Node-<K>
+    // Nodes not hosting containers are called Aux-Node-<K>
     private int containerNo = 1;
     private int mainContainerNo = 0;
     private int nodeNo = 1;
@@ -830,9 +830,9 @@ public class PlatformManagerImpl implements PlatformManager {
     }
     
     private void adjustContainerName(Node n, ContainerID cid) {
+			String name = null;
+			NodeDescriptor old = null;
 			if (cid.getName() == null || cid.getName().equals(NO_NAME)) {
-				String name = null;
-				NodeDescriptor old = null;
 				if(n.hasPlatformManager()) {
 			    // Use the Main-Container-<N> name schema
 					do {
@@ -847,6 +847,19 @@ public class PlatformManagerImpl implements PlatformManager {
 						containerNo++;
 						old = (NodeDescriptor) nodes.get(name);
 					} while (old != null);
+				}
+				cid.setName(name);
+			}
+			else {
+				// The new container comes with a user defined name.
+				// If it is already in use add a progressive number
+				name = cid.getName();
+				int cnt = 1;
+				old = (NodeDescriptor) nodes.get(name);
+				while (old != null) {
+					name = cid.getName() + '-' + cnt;
+					cnt++;
+					old = (NodeDescriptor) nodes.get(name);
 				}
 				cid.setName(name);
 			}
