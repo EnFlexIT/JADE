@@ -139,11 +139,11 @@ public class LEAPIMTPManager implements IMTPManager {
     	localAddr = (String) URLs.get(0);
       Iterator it = URLs.iterator();
 
-      logger.log(Logger.ALL,"Listening for intra-platform commands on address:");
-
+			StringBuffer sb = new StringBuffer("Listening for intra-platform commands on address:\n");
       while (it.hasNext()) {
-        logger.log(Logger.ALL,"- "+(String) it.next());
+      	sb.append("- "+(String) it.next()+"\n");
       }
+      logger.log(Logger.INFO,sb.toString());
     }
 
     // Be sure the mainURL uses the host address. Note that this must
