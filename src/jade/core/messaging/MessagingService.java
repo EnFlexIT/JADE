@@ -548,7 +548,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			ContainerID cid = impl.getContainerID(receiverID);
 			MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 			try {
-			    targetSlice.dispatchLocally(msg, receiverID);
+			    try {
+				targetSlice.dispatchLocally(msg, receiverID);
+			    }
+			    catch(IMTPException imtpe) {
+				targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
+				targetSlice.dispatchLocally(msg, receiverID);
+			    }
 			    return; // Message dispatched
 			}
 			catch(NotFoundException nfe) {
