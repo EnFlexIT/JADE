@@ -10,6 +10,21 @@ import jade.onto.Ontology;
  */
 public interface Codec {
 
+  public static class CodecException extends Exception {
+
+    private Throwable nested;
+
+    public CodecException(String msg, Throwable t) {
+      super(msg);
+      nested = t;
+    }
+
+    public Throwable getNested() {
+      return nested;
+    }
+
+  }
+
   /**
      Encodes a <code>Frame</code> object into a Jave
      <code>String</code>, according to this Content Language and
@@ -37,6 +52,6 @@ public interface Codec {
      @return A frame, representing the given ontological element.
      @see jade.onto.Ontology
   */
-  Frame decode(String s, Ontology o);
+  Frame decode(String s, Ontology o) throws CodecException;
 
 }
