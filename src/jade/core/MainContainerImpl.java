@@ -793,15 +793,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	try {
 	    authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		    public Object run() {
-			Thread auxThread = new Thread() {
-				public void run() {
-				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
-				    cmd.addParam(cid);
-				    myCommandProcessor.processOutgoing(cmd);
-				}
-			    };
+			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
+			cmd.addParam(cid);
+			myCommandProcessor.processOutgoing(cmd);
 
-			auxThread.start();
 			return null;
 		    }
 		});
