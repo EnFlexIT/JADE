@@ -225,27 +225,6 @@ public abstract class CompositeBehaviour extends Behaviour {
   }
 
   /**
-     Overrides the <code>onStart()</code> method in the 
-     <code>Behaviour</code> class by simply calling the 
-     <code>preAction()</code> method for backward compatibility.
-     @see jade.core.behaviours.Behaviour#onStart()
-  */
-  public void onStart() {
-  	//preAction();
-  }
-  
-  /**
-     Overrides the <code>onEnd()</code> method in the 
-     <code>Behaviour</code> class by simply calling the 
-     <code>postAction()</code> method for backward compatibility.
-     @see jade.core.behaviours.Behaviour#onEnd()
-  */
-  public int onEnd() {
-  	//postAction();
-  	return 0;
-  }
-  
-  /**
      Associates this behaviour with the agent it belongs to.
      Overrides the method in the base class to propagate the
      setting to all children.
@@ -261,37 +240,6 @@ public abstract class CompositeBehaviour extends Behaviour {
   	
   	super.setAgent(a);
   }
-
-  /*protected void handle(RunnableChangedEvent rce) {
-    if(rce.isUpwards()) {
-      // Upwards notification
-      if (rce.getSource() == this) {
-      	// If the event is from this behaviour, set the new 
-      	// runnable state and notify upwords.
-      	super.handle(rce);
-      }
-      else if (rce.getSource() == getCurrent()) {
-  		// If the event is from the currently executing child, 
-  		// create a new event, set the new runnable state and
-      	// notify upwords.
-		myEvent.init(rce.isRunnable(), NOTIFY_UP);
-		super.handle(myEvent);
-      }
-      else {
-      	// If the event is from another child, just ignore it
-      }
-    }
-    else {
-      // Downwards notifications 
-      // Copy the state and pass it downwords only to the
-      // current child
-	  setRunnable(rce.isRunnable());
-	  Behaviour b  = getCurrent();
-	  if (b != null) {
-	  	b.handle(rce);
-	  }
-    }  	
-  }*/
 
   //#APIDOC_EXCLUDE_BEGIN
   protected void registerAsChild(Behaviour b) {
