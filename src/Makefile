@@ -14,7 +14,7 @@ ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 SL0FLAGS    =   -OUTPUT_DIRECTORY:jade/lang/sl
 SL0SPEC     =   jade/lang/sl/SL0Parser.jj
 
-EXECS       = 	jade/Boot.java
+EXECS       = 	jade/Boot.java jade/core/Runtime.java
 IDLSPEC     =   fipa.idl
 ROOTCLASSES =	jade/core/behaviours/CompositeBehaviour.java \
 		jade/core/behaviours/NonDeterministicBehaviour.java \
