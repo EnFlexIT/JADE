@@ -88,7 +88,6 @@ public class ACLPanel extends JPanel {
       editsVector.add(envACLReprTextField);
       editsVector.add(envPayloadEncodingTextField);
       editsVector.add(envPayloadLengthTextField);
-      editsVector.add(envEncryptedList);
       editsVector.add(envIntendedReceiversList);
 
     }
@@ -145,7 +144,6 @@ public class ACLPanel extends JPanel {
     envPayloadEncodingTextField.register(itsEnvelope, "PayloadEncoding");
     envPayloadLengthTextField.register(itsEnvelope, "PayloadLength");
     envDateTextField.setText(itsEnvelope.getDate() != null ? ISO8601.toString(itsEnvelope.getDate()) : "");
-    envEncryptedList.register(itsEnvelope);
     envIntendedReceiversList.register(itsEnvelope, "IntendedReceiver");
 
   }
@@ -598,8 +596,6 @@ public class ACLPanel extends JPanel {
     envDateLabel.setFont(new java.awt.Font("Dialog", 0, 11));
     envDateLabel.setToolTipText("Date");
     envDateLabel.setText("date");
-    encryptedLabel.setFont(new java.awt.Font("Dialog", 0, 11));
-    encryptedLabel.setText("encrypted");
     intReceiversLabel.setFont(new java.awt.Font("Dialog", 0, 11));
     intReceiversLabel.setToolTipText("Intended Receivers");
     intReceiversLabel.setText("int. receivers");
@@ -750,9 +746,9 @@ public class ACLPanel extends JPanel {
       , GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
     envelopeTab.add(envDateLabel, new GridBagConstraints(0, 6, 2, 1, 0.0, 0.0
       , GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
-    envelopeTab.add(encryptedLabel, new GridBagConstraints(0, 7, 2, 1, 0.0, 0.0
-      , GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
-    envelopeTab.add(intReceiversLabel, new GridBagConstraints(0, 8, 2, 1, 0.0, 0.0
+    //envelopeTab.add(encryptedLabel, new GridBagConstraints(0, 7, 2, 1, 0.0, 0.0
+    //  , GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+    envelopeTab.add(intReceiversLabel, new GridBagConstraints(0, 7, 2, 1, 0.0, 0.0
       , GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
     envelopeTab.add(envACLReprTextField, new GridBagConstraints(2, 3, 2, 1, 1.0, 0.0
       , GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
@@ -768,11 +764,11 @@ public class ACLPanel extends JPanel {
       , GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
     envelopeTab.add(envDateTextField, new GridBagConstraints(2, 6, 1, 1, 1.0, 0.0
       , GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-    envelopeTab.add(envEncryptedList, new GridBagConstraints(2, 7, 2, 1, 1.0, 1.0
+    //envelopeTab.add(envEncryptedList, new GridBagConstraints(2, 7, 2, 1, 1.0, 1.0
+    //  , GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+    envelopeTab.add(envIntendedReceiversList, new GridBagConstraints(2, 7, 2, 1, 1.0, 1.0
       , GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-    envelopeTab.add(envIntendedReceiversList, new GridBagConstraints(2, 8, 2, 1, 1.0, 1.0
-      , GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-    envelopeTab.add(defaultEnvelopeButton, new GridBagConstraints(2, 9, 1, 1, 0.0, 0.0
+    envelopeTab.add(defaultEnvelopeButton, new GridBagConstraints(2, 8, 1, 1, 0.0, 0.0
       , GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5, 0, 0, 0), 0, 0));
     envelopeTab.add(envFromTextField, new GridBagConstraints(2, 0, 1, 1, 1.0, 0.0
       , GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
@@ -858,7 +854,6 @@ public class ACLPanel extends JPanel {
   JLabel aclRepreLabel = new JLabel();
   JLabel payLoadLabel = new JLabel();
   JLabel envDateLabel = new JLabel();
-  JLabel encryptedLabel = new JLabel();
   JLabel intReceiversLabel = new JLabel();
   JLabel jLabel1 = new JLabel();
   JTextField envDateTextField = new JTextField();
@@ -867,7 +862,6 @@ public class ACLPanel extends JPanel {
   JButton envDateButton = new JButton();
   JButton contentZoomButton = new JButton();
   ACLTextArea contentTextArea = new ACLTextArea();
-  private EnvEncryptedList envEncryptedList = new EnvEncryptedList();
   private ACLTextField envACLReprTextField = new ACLTextField();
   private ACLTextField envPayloadLengthTextField = new ACLTextField();
   private ACLTextField envPayloadEncodingTextField = new ACLTextField();
