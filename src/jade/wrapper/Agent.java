@@ -23,11 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import jade.util.leap.LinkedList;
-
 import jade.core.AID;
 import jade.core.Location;
-
 
 /**
 
@@ -40,7 +37,7 @@ import jade.core.Location;
    @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
    @author Giovanni Rimassa - Universita` di Parma
  */
-public class Agent {
+public class Agent implements AgentController {
 
   /**
      Constant representing an asynchronous rendez-vous policy.
@@ -70,6 +67,21 @@ public class Agent {
     adaptee = a;
   }
 
+  protected void validateProxy() throws StaleProxyException {
+    if (adaptee == null) {
+      throw new StaleProxyException("The proxy is not valid anymore.");
+    }
+  }
+
+  /**
+   * Get the platforms name of the agent.
+   * This name would be what the platform would use to uniquely reference this agent.
+   * @return The agents name.
+   */
+  public String getName() throws StaleProxyException {
+    validateProxy();
+    return adaptee.getLocalName();
+  }       
 
   /**
      Triggers a state transition from <b>INITIATED</b> to
@@ -80,8 +92,7 @@ public class Agent {
      gone.
    */
   public void start() throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+    validateProxy();
     adaptee.doStart(agentID.getLocalName());
   }
 
@@ -92,8 +103,7 @@ public class Agent {
      gone.
    */
   public synchronized void suspend() throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+    validateProxy();
     adaptee.doSuspend();    
   }
 
@@ -104,11 +114,17 @@ public class Agent {
      gone.
    */
   public void activate() throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+    validateProxy();
     adaptee.doActivate();
   }
 
+    /**
+     * @see #kill
+     * @deprecated this method is here for backward compatibility, use kill instead
+     **/
+    public void delete() throws StaleProxyException {
+	kill();
+    }
   /**
      Triggers a state transition from <b>ACTIVE</b> to
      <b>DELETED</b>. This call also stops the internal agent thread
@@ -117,9 +133,8 @@ public class Agent {
      @exception StaleProxyException If the underlying agent is dead or
      gone.
    */
-  public void delete() throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+  public void kill() throws StaleProxyException {
+    validateProxy();
     adaptee.doDelete();
     adaptee = null;
   }
@@ -138,8 +153,7 @@ public class Agent {
      gone.
   */
   public void move(Location where) throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+    validateProxy();
     adaptee.doMove(where);
     adaptee = null; // FIXME: Should check whether the migration transaction succeeded
   }
@@ -158,8 +172,7 @@ public class Agent {
      gone.
    */
   public void clone(Location where, String newName) throws StaleProxyException {
-    if(adaptee == null)
-      throw new StaleProxyException();
+    validateProxy();
     adaptee.doClone(where, newName);
   }
 
@@ -179,8 +192,49 @@ public class Agent {
      @see jade.core.Agent#getO2AObject()
      @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
    */
-  public void putO2AObject(Object o, boolean blocking) throws InterruptedException {
-    adaptee.putO2AObject(o, blocking);
+  public void putO2AObject(Object o, boolean blocking) throws StaleProxyException {
+    validateProxy();
+    try {
+      adaptee.putO2AObject(o, blocking);
+    } catch (InterruptedException ace) {
+        throw new StaleProxyException(ace);
+    }
   }
+
+  /**
+     Read current agent state. This method can be used to query an
+     agent for its state from the outside.
+     @return the Agent Platform Life Cycle state this agent is currently in.
+   */
+  public State getState() throws StaleProxyException {
+    validateProxy();
+    int jadeState = adaptee.getState();
+    switch (jadeState) {
+      case jade.core.Agent.AP_INITIATED:
+        return AgentState.AGENT_STATE_INITIATED;
+
+      case jade.core.Agent.AP_ACTIVE:
+        return AgentState.AGENT_STATE_ACTIVE;
+
+      case jade.core.Agent.AP_IDLE:
+        return AgentState.AGENT_STATE_IDLE;
+
+      case jade.core.Agent.AP_SUSPENDED:
+        return AgentState.AGENT_STATE_SUSPENDED;
+
+      case jade.core.Agent.AP_WAITING:
+        return AgentState.AGENT_STATE_WAITING;
+
+      case jade.core.Agent.AP_DELETED:
+        return AgentState.AGENT_STATE_DELETED;
+
+      case jade.core.Agent.AP_TRANSIT:
+        return AgentState.AGENT_STATE_INTRANSIT;
+
+      default:
+        throw new InternalError("Unknown state: " + jadeState);
+    }
+  }
+
 
 }

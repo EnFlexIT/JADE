@@ -27,12 +27,12 @@ package jade.wrapper;
  This exception class is thrown when an attempt to use a stale
  (i.e. outdated) wrapper object is made.
  */
-public class StaleProxyException extends Exception {
+public class StaleProxyException extends AgentControllerException {
 
   /**
      Creates a new exception object, with a default detail message.
    */
-  public StaleProxyException() {
+  StaleProxyException() {
     super("The proxy is not valid anymore.");
   }
 
@@ -40,8 +40,16 @@ public class StaleProxyException extends Exception {
      Creates a new exception object, with a given detail message.
      @param message The detail message for the new exception object.
    */
-  public StaleProxyException(String message) {
+  StaleProxyException(String message) {
     super(message);
+  }
+
+  /**
+   * Creates a new exception object, extracting message from another throwable.
+   * @param aThrowable The original exception or error.
+   */
+  StaleProxyException(Throwable aThrowable) {
+    super(aThrowable.getMessage());
   }
 
 }
