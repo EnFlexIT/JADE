@@ -59,6 +59,7 @@ public class mainFrame extends JFrame  {
  final static int VIEWKNOWNPERSONS = 0;
  final static int VIEWKNOWNDF = 1;
 
+
 public mainFrame(MeetingSchedulerAgent a, String title) {
   this(title);
   myAgent = a;
@@ -504,7 +505,7 @@ class SymWindow extends java.awt.event.WindowAdapter {
 	  p4.setVisible(true);
 	  //textFieldErrMsg.setVisible(true);
 	  Info.setText(text);
-	  System.err.println(text);
+	  //System.err.println(text);
 	}
 //da sistemare..chiama anche lui showErrorMessage
 	void textFieldDFaddress_EnterHit(java.awt.event.ActionEvent event)
