@@ -72,7 +72,9 @@ class FullResourceManager implements ResourceManager {
   }
   
   public void releaseResources() {
-    parent.interrupt();
+  	if (parent != null) {
+	    parent.interrupt();
+  	}
     
     agentThreads = null;
     systemAgentThreads = null;
