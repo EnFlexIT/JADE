@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.22  1999/02/03 10:56:31  rimassa
+  Some 'private' instance variables made 'protected', to allow code
+  compilation under jdk 1.2.
+  Added some missing parentheses to AMS reply messages.
+
   Revision 1.21  1998/12/08 00:10:20  rimassa
   Removed handmade parsing of message content; now updated
   AMSAction.fromText() method is used.
@@ -95,8 +100,8 @@ public class ams extends Agent {
     private AgentManagementOntology.AMSAction myAction;
 
     private String myActionName;
-    private ACLMessage myRequest;
-    private ACLMessage myReply;
+    protected ACLMessage myRequest;
+    protected ACLMessage myReply;
 
     protected AgentManagementOntology myOntology;
 
@@ -197,21 +202,20 @@ public class ams extends Agent {
     // Send a 'not-understood' message back to the requester
     protected void sendNotUnderstood(ACLMessage msg) {
       msg.setType("not-understood");
-      msg.setContent("");
       send(msg);
     }
 
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( action ams " + myActionName + " ) " + reason);
+      msg.setContent("( ( action ams " + myActionName + " ) " + reason + ")");
       send(msg);
     }
 
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
       msg.setType("failure");
-      msg.setContent("( action ams " + myActionName + " ) " + reason);
+      msg.setContent("( ( action ams " + myActionName + " ) " + reason + ")");
       send(msg);
     }
 
