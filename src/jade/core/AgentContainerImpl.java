@@ -183,8 +183,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	}
   	catch (Exception e) {
   		e.printStackTrace();
-  		//throw new IMTPException("Exception in createAgent",e); 
-  		
+  		throw new IMTPException("Exception in createAgent",e); 
   	}
   }
 
@@ -431,42 +430,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException {
-      MTPDescriptor result = myACC.addMTP(className, address);
-
-    // Add the address of the new MTP to the AIDs of all local agents
-    Agent[] allLocalAgents = localAgents.values();
-  	for(int i = 0; i < allLocalAgents.length; i++) {
-	  String[] addrs = result.getAddresses();
-          for(int j = 0; j < addrs.length; j++) {
-            allLocalAgents[i].addPlatformAddress(addrs[j]);
-          }
-  	}
-
-    // Add the new addresses to the AMS and Default DF AIDs
-    String[] addresses = result.getAddresses();
-    for(int i = 0; i < addresses.length; i++) {
-        theAMS.addAddresses(addresses[i]);
-        theDefaultDF.addAddresses(addresses[i]);
-    }
-
+    MTPDescriptor result = myACC.addMTP(className, address);
+		// There is no need to update the AIDs of local agents adding the
+    // addresses of the installed MTP as this will result in a call 
+    // to updateRoutingTable 
     myPlatform.newMTP(result, myID);
     return result;
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
     MTPDescriptor mtp = myACC.removeMTP(address);
-
-    // Remove the address of the old MTP from the AIDs of all local agents
-    Agent[] allLocalAgents = localAgents.values();
-    for(int i = 0; i < allLocalAgents.length; i++) {
-      allLocalAgents[i].removePlatformAddress(address);
-    }
-
-    // Remove the address of the old MTP from the AIDs of the AMS and the Default DF
-
-    theAMS.removeAddresses(address);
-    theDefaultDF.removeAddresses(address);
-
+		// There is no need to update the AIDs of local agents removing the
+    // addresses of the uninstalled MTP as this will result in a call 
+    // to updateRoutingTable 
     myPlatform.deadMTP(mtp, myID);
   }
 
