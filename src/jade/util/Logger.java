@@ -24,26 +24,19 @@
 
 package jade.util;
 
-/*#MIDP_INCLUDE_BEGIN
-import java.io.IOException;
-import javax.microedition.rms.RecordStore;
 import jade.util.leap.Properties;
-import jade.core.Agent;
-#MIDP_INCLUDE_END*/
+import jade.util.leap.Serializable;
 
-//#MIDP_EXCLUDE_BEGIN
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-//#MIDP_EXCLUDE_END
+import java.util.Hashtable;
+
 //#J2ME_EXCLUDE_BEGIN
 import java.util.logging.Level;
 import java.io.ObjectStreamException;
 //#J2ME_EXCLUDE_END
 
-import jade.util.leap.Serializable;
+/*#MIDP_INCLUDE_BEGIN
+import javax.microedition.rms.RecordStore;
+#MIDP_INCLUDE_END*/
 
 /**
  * This class provides a uniform way to produce logging printouts
@@ -188,69 +181,166 @@ public class Logger
 		}
 	}
 	//////////////////////////////////////////////
-	//#J2ME_EXCLUDE_END
-
+	
 	/**
-	 *  Find or create a logger for a named subsystem.
-	 *	@param name The name of the logger.
-         *      @return myLogger the instance of the Logger.
+	   Find or create a logger for a named subsystem.
+	   @param name The name of the logger.
+     @return myLogger the instance of the Logger.
 	 */
 	public static Logger getMyLogger(String name){
-		//#J2ME_EXCLUDE_BEGIN
 		Logger myLogger = new Logger(name, (String)null);
 		java.util.logging.LogManager.getLogManager().addLogger(myLogger);
-		//#J2ME_EXCLUDE_END
-
-    /*#PJAVA_INCLUDE_BEGIN
-		Logger myLogger = new Logger(name);
-		#PJAVA_INCLUDE_END*/
-
-    /*#MIDP_INCLUDE_BEGIN
-		if (myLogger == null) {
-    myLogger = new Logger(name);
-    }
-		#MIDP_INCLUDE_END*/
-
+		
 		return myLogger;
 	}
+	
+	/**
+	   Initialize the logging mechanism.
+	   This method makes sense only in a PJAVA or MIDP environment,
+     but is available in J2SE too (where it does nothing) to provide
+     a uniform interface over the different Java environments.
+   */
+	public static void initialize(Properties pp) {
+	}
+	//#J2ME_EXCLUDE_END
 
+
+	public static void println(String log) {
+		System.out.println(log);
+		/*#MIDP_INCLUDE_BEGIN
+		try {
+			write(log);
+		}
+		catch (Throwable t){
+			// Maybe the record-store has been closed from the outside. Retry.
+      theRecordStore = null;
+      try {
+      	write(log);
+			}
+			catch (Throwable t1) {
+        t.printStackTrace();
+      	theRecordStore = null;
+			}
+		}		
+		#MIDP_INCLUDE_END*/
+	}
+	
 
 	/*#J2ME_INCLUDE_BEGIN
 	  //SEVERE is a message level indicating a serious failure.
-		public static final int SEVERE	=	1000;
+		public static final int SEVERE	=	10;
 	  //WARNING is a message level indicating a potential problem.
-		public static final int WARNING	=	900;
+		public static final int WARNING	=	9;
 	  //INFO is a message level for informational messages
-		public static final int INFO	=	800;
+		public static final int INFO	=	8;
 	  //CONFIG is a message level for static configuration messages.
-	  	public static final int CONFIG	=	700;
+	  	public static final int CONFIG	=	7;
 	  //FINE is a message level providing tracing information.
-		public static final int FINE	=	500;
+		public static final int FINE	=	5;
 	  //FINER indicates a fairly detailed tracing message.
-		public static final int FINER	=	400;
+		public static final int FINER	=	4;
 	  //FINEST indicates a highly detailed tracing message
-		public static final int FINEST	=	300;
+		public static final int FINEST	=	3;
 	  //ALL indicates that all messages should be logged.
 		public static final int ALL		=	-2147483648;
 	  //Special level to be used to turn off logging
 		public static final int OFF		=	2147483647;
 
-		private static int theLevel = 800;
-		private String theName;
+		private static Properties verbosityLevels = null;
+		private static Hashtable loggers = new Hashtable();
+		
+		private int myLevel = INFO;
+		private String myName;
+		
+		public synchronized static Logger getMyLogger(String name){
+			Logger l = (Logger) loggers.get(name);
+			if (l == null) {
+				String key = name.replace('.', '_')+"_verbosity";
+				int level = INFO;
+				if (verbosityLevels != null) {
+					try {
+						level = getLevel(verbosityLevels.getProperty(key));
+					}
+					catch (Exception e) {
+						// Keep default
+					}
+				}
+				l = new Logger(name, level);
+				loggers.put(name, l);
+			}
+			return l;
+		}
+	
+		public static void initialize(Properties pp) {
+			if (pp != null) {
+				verbosityLevels = pp;
+			}
+			else {
+				verbosityLevels = new Properties();
+			}
+		}
 
-       // Check if the current message is loggable
-       public boolean isLoggable(int level){
-         if(level>=theLevel)
-           return true;
-         else return false;
-          }
+		
+		private static int getLevel(String level) {
+			if (level != null) {
+				try {
+					return Integer.parseInt(level);
+				}
+				catch (Exception e) {				
+				 	if (level.equals("severe"))
+				 		return SEVERE;
+				 	if (level.equals("warning"))
+				 		return WARNING;
+				 	if (level.equals("info"))
+				 		return INFO;
+				 	if (level.equals("config"))
+				 		return CONFIG;
+				 	if (level.equals("fine"))
+				 		return FINE;
+				 	if (level.equals("finer"))
+				 		return FINER;
+				 	if (level.equals("finest"))
+				 		return FINEST;
+				 	if (level.equals("all"))
+				 		return ALL;
+				 	if (level.equals("off"))
+				 		return OFF;
+				}
+			}
+			// If we get here either nothing or a wrong value was specified --> use default
+			return INFO;
+		}
+			
+					
+		//  Private constructor. The getMyLogger() static method must be used 
+		private Logger(String name, int level) {
+			myName = name;
+			myLevel = level;
+		}
+		
+		// Check if the current level is loggable
+		public boolean isLoggable(int level){
+			if(level >= myLevel) {
+		   return true;
+			}
+			else {
+				return false;
+		  }
+		}
+		
+		public void log(int level, String msg) {
+	    if(level >= myLevel){
+		    println(myName+": "+msg);
+	    }
+		}		
+	#J2ME_INCLUDE_END*/
 
-		//#J2ME_INCLUDE_END*/
 
+	
   /*#MIDP_INCLUDE_BEGIN
     private static final String OUTPUT = "OUTPUT";
-		private static Logger myLogger;
-		private RecordStore rs;
+		private static RecordStore theRecordStore;
+		private static int cnt = 0;
 
     static {
 			try {
@@ -261,125 +351,16 @@ public class Logger
 			}
 		}
 
-		private Logger(String name) {
-		// theName is not used in MIDP
-    //theName= name;
-			try {
-        // The level is loaded from same properties as other parameter
-        String src = null;
-        if (Agent.midlet != null) {
-          src = Agent.midlet.getAppProperty("MIDlet-LEAP-conf");
-        }
-        if (src == null) {
-          // Use the JAD by default
-      	  src = "jad";
-        }
-
-        Properties props = new Properties();
-				try {
-          props.load(src);
-        }
-        catch(IOException ioe) {
-          // Ignoring properties
-        }
-
-				if (props.getProperty("log_level")!=null) {
-				 	String tmp = props.getProperty("log_level");
-
-				 	if (tmp.equals("severe"))
-				 		theLevel = 1000;
-				 	if (tmp.equals("warning"))
-				 		theLevel = 900;
-				 	if (tmp.equals("info"))
-				 		theLevel = 800;
-				 	if (tmp.equals("config"))
-				 		theLevel = 700;
-				 	if (tmp.equals("fine"))
-				 		theLevel = 500;
-				 	if (tmp.equals("finer"))
-				 		theLevel = 400;
-				 	if (tmp.equals("finest"))
-				 		theLevel = 300;
-				 	if (tmp.equals("all"))
-				 		//Set the level to lowest possible one
-				 		//so to log everything
-				 		theLevel = -2147483648;
-				 	else if (tmp.equals("off"))
-						//set the level to highest possible one
-						//so to log nothing
-				 		theLevel = 2147483647;
-					}
-
-				}
-				catch (Exception e){
-					Logger.println(e.getMessage());
-					}
-			}
-
-
-		// Log a message in MIDP environment.
-		// The message is written in the RecordStore of the MIDP device
-		public synchronized void log(int level, String msg) {
-			if(level >= theLevel){
-			try {
-				//RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
-				if (rs == null) {
-          // Opens the RecordStore
-          rs =	RecordStore.openRecordStore(OUTPUT, true);
-        }
-        //String log = theName+": "+msg;
-				byte[] bb = msg.getBytes();
-				rs.addRecord(bb,0,bb.length);
-			}
-			catch (Throwable t){
-        t.printStackTrace();
-        //rs.closeRecordStore();
-        rs = null;
-			}
+		private static void write(String log) throws Throwable {
+			if (theRecordStore == null) {
+        // Opens the RecordStore
+        theRecordStore =	RecordStore.openRecordStore(OUTPUT, true);
+      }
+			byte[] bb = (String.valueOf(cnt)+") "+log).getBytes();
+			theRecordStore.addRecord(bb,0,bb.length);
+			cnt++;
 		}
-	}
   #MIDP_INCLUDE_END*/
-
-  /*#PJAVA_INCLUDE_BEGIN
-
-    private Logger(String name){
-    theName= name;
-    }
-
-		public  synchronized  void log(int level, String msg) {
-    if(level >= theLevel){
-    System.out.println(theName+": "+msg);
-    }
-		}
-		#PJAVA_INCLUDE_END*/
-
-
-
-
-
-             public synchronized static void println(String s) {
-                     System.out.println(s);
-
-                     /*#MIDP_INCLUDE_BEGIN
-         if (myLogger == null) {
-           myLogger = new Logger(null);
-         }
-         myLogger.log(SEVERE,s);
-
-         /*
-           try{
-                             RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
-                             byte[] bb = s.getBytes();
-                             rs.addRecord(bb,0,bb.length);
-                             rs.closeRecordStore();
-           }
-           catch (Throwable t){
-                             t.printStackTrace();
-           }
-         */
-                     //#MIDP_INCLUDE_END*/
-             }
-
 }
 
 
