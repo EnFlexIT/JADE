@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1998/11/09 22:10:08  Giovanni
+  Added explanation of '-version' option in usage() method.
+
   Revision 1.9  1998/11/07 23:05:08  rimassa
   Removed explicit "localhost" default value for platformHost; now
   InetAddress.getLocalHost() is used to get local host name implicitly.
@@ -122,7 +125,7 @@ public class Boot {
 	  hasGUI = true;
 	}
 	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	  System.out.println("JADE Version $Name$ - $Date$");
+	  System.out.println("JADE Version 0.9 $Name$ - $Date$");
 	  System.exit(0);
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
@@ -203,8 +206,10 @@ public class Boot {
     System.out.println("  -port\t\tThe port where RMI registry for the platform resides");
     System.out.println("  -name\t\tThe name with which the platform is bound in RMI registry");
     System.out.println("  -file\t\tA file name containing tne agent specifiers");
+    System.out.println("  -gui\tIf specified, a new Remote Management Agent is created.");
     System.out.println("  -platform\tIf specified, a new Agent Platform is created.");
     System.out.println("  \t\tOtherwise a new Agent Container is added to an existing platform");
+    System.out.println("  -version\tIf specified, current JADE version number and build date is printed.");
     System.out.println("");
     System.out.print("An agent specifier is made by an agent name and an agent class, separated by \"");
     System.out.println(SEPARATOR + "\"");
