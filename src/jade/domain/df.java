@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.26  2000/01/31 09:18:52  rimassaJade
+  Commented out two stack trace printouts.
+
   Revision 1.25  1999/09/02 14:59:57  rimassa
   Separated DF GUI from DF agent. Now the DF GUI lives in jade.gui
   package.
@@ -162,12 +165,12 @@ public class df extends Agent implements GUI2DFCommunicatorInterface {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	pe.printStackTrace();
+	// pe.printStackTrace();
 	// System.out.println("DF ParseException with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	tme.printStackTrace();
+	// tme.printStackTrace();
 	// System.out.println("DF TokenMgrError with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
