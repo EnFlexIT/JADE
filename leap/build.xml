@@ -16,18 +16,6 @@
 	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
 	<property name="boot-java-1.1-classes" value="${java-1.1-home}/lib/classes.zip"/>
 
-    <condition property="boot-midp-classes" 
-               value="${j2me-wtk-home}/lib/midpapi.zip">
-       <available file="${j2me-wtk-home}/lib/midpapi.zip"/>
-    </condition>
-    <condition property="boot-midp-classes" 
-               value="${j2me-wtk-home}/lib/midpapi10.jar${path.separator}${j2me-wtk-home}/lib/cldcapi10.jar">
-       <equals arg1="${midp-version}" arg2="1.0" trim="true" />
-    </condition>
-    <condition property="boot-midp-classes" 
-               value="${j2me-wtk-home}/lib/midpapi20.jar${path.separator}${j2me-wtk-home}/lib/cldcapi11.jar">
-       <equals arg1="${midp-version}" arg2="2.0" trim="true" />
-    </condition>
    
 	<!-- Directories -->
 	<property name="jade-src" value="${jade-home}/src"/>
@@ -66,7 +54,7 @@
 	</taskdef>
     <!-- Jad Updater -->
     <taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
-	<classpath path ="resources/ant/StampysoftAntTasks.jar" />
+	<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
 	</taskdef>  
   <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
   
@@ -116,6 +104,20 @@
 	<target name="init"
 	        description="Set time stamp">
 	  <tstamp/>
+	  
+    <condition property="boot-midp-classes" 
+               value="${j2me-wtk-home}/lib/midpapi.zip">
+       <available file="${j2me-wtk-home}/lib/midpapi.zip"/>
+    </condition>
+    <condition property="boot-midp-classes" 
+               value="${j2me-wtk-home}/lib/midpapi10.jar${path.separator}${j2me-wtk-home}/lib/cldcapi10.jar">
+       <equals arg1="${midp-version}" arg2="1.0" trim="true" />
+    </condition>
+    <condition property="boot-midp-classes" 
+               value="${j2me-wtk-home}/lib/midpapi20.jar${path.separator}${j2me-wtk-home}/lib/cldcapi11.jar">
+       <equals arg1="${midp-version}" arg2="2.0" trim="true" />
+    </condition>
+    
 		<mkdir dir="${tmp}"/>
 	</target>
 	
