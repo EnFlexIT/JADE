@@ -1236,6 +1236,44 @@ public class ams extends Agent implements AgentManager.Listener {
   }
 
   /**
+     Put a FrozenAgent event in the AMS event queue
+   */
+  public void frozenAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
+    ContainerID cid = ev.getContainer();
+    AID name = ev.getAgent();
+    ContainerID bufferContainer = ev.getNewContainer();
+
+    FrozenAgent fa = new FrozenAgent();
+    fa.setAgent(name);
+    fa.setWhere(cid);
+    fa.setBufferContainer(bufferContainer);
+
+    EventRecord er = new EventRecord(fa, here());
+    er.setWhen(ev.getTime());
+    eventQueue.put(er);
+  }
+
+  /**
+     Put a ThawedAgent event in the AMS event queue
+   */
+  public void thawedAgent(PlatformEvent ev) {
+      log(ev.toString(), 1);
+    ContainerID cid = ev.getContainer();
+    AID name = ev.getAgent();
+    ContainerID bufferContainer = ev.getNewContainer();
+
+    ThawedAgent ta = new ThawedAgent();
+    ta.setAgent(name);
+    ta.setWhere(cid);
+    ta.setBufferContainer(bufferContainer);
+
+    EventRecord er = new EventRecord(ta, here());
+    er.setWhen(ev.getTime());
+    eventQueue.put(er);
+  }
+
+  /**
      Put a MovedAgent event in the AMS event queue
    */
   public void movedAgent(PlatformEvent ev) {
