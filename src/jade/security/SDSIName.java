@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
+
 /**
 	The <code>SDSIName</code> interface represents
 	the SDSI name including a public key used in
@@ -78,6 +79,13 @@ public interface SDSIName
 		@see java.security.PublicKey#getFormat()
 	*/
 	public String[] getLocalNames();
+
+        /**
+         *
+         * @return the right most local name
+         */
+         public String getLastLocalName();
+
 
 
 
