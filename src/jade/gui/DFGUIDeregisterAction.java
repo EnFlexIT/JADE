@@ -34,7 +34,7 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 /**
-@author Giovanni Caire - CSELT S.p.A
+@author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
@@ -51,22 +51,47 @@ class DFGUIDeregisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("DEREGISTER");
-		int i = gui.registeredTable.getSelectedRow();
-		if (i != -1)
+		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor ();;
+	  String df =null;
+	  String name;
+		int kind = gui.kindOfOperation();
+	 
+	  if ( kind == 0 || kind == 3)
 		{
-			AgentManagementOntology.DFAgentDescriptor dfd;
-			String name = gui.registeredModel.getElementAt(i);
-			try
+      // Deregister an agent from the descriptor table		
+			name = gui.getSelectedAgentInTable();
+			if (name != null)
 			{
+				df = gui.myAgent.getName();
+				try
+				{
 				dfd = gui.myAgent.getDFAgentDsc(name);
+				}catch (FIPAException fe)
+				{
+					System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+					return;}
+			
 			}
-			catch (FIPAException fe)
-			{
-				System.out.println("WARNING! No agent called " + name + " is currently resistered with this DF");
-				return;
-			}
-			gui.myAgent.postDeregisterEvent((Object) gui, gui.myAgent.getName(), dfd);
 		}
+		else
+		if (kind == 2)
+		{
+			//Deregister the df from a selected parent 
+
+			df = gui.getSelectedAgentInTable();
+			if (df != null)
+			{
+				dfd = new AgentManagementOntology.DFAgentDescriptor ();
+		  	dfd.setName(gui.myAgent.getName());
+		  	
+			}
+			else return;
+		}
+		else 
+		{//kind == 1 Not possible Deregister not allowed from lastsearch 
+			return;
+		}
+		gui.myAgent.postDeregisterEvent((Object) gui, df, dfd);
 	}
 }
 	

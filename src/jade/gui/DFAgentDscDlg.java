@@ -41,13 +41,15 @@ import jade.domain.AgentManagementOntology.DFAgentDescriptor;
 class DFAgentDscDlg extends JDialog 
 {
 	JTextField agentName;
-	JComboBox  agentAddresses;
+	//JComboBox  agentAddresses;
 	JTextField agentType;
-	JTextField dfState;
+	//JTextField dfState;
 	JTextField ownership;
 	JTextField ontology;
 	JTextField language;
-	JComboBox  protocols;
+	//JComboBox  protocols;
+	String[] states ={"active", "suspended","waiting"};
+	JComboBox dfState;
 	Dialog     dlgParent;
 
 	// CONSTRUCTORS
@@ -139,8 +141,10 @@ class DFAgentDscDlg extends JDialog
     l.setPreferredSize(new Dimension(80,20));
     p.add(l);
 	  p.add(Box.createHorizontalGlue());
-		dfState = new JTextField();
-		dfState.setEditable(false);
+		//dfState = new JTextField();
+	  dfState = new JComboBox(states);
+	  
+		dfState.setEnabled(false);
 		p.add(dfState);
 		main.add(p);
 	  main.add(Box.createRigidArea(new Dimension (0,3)));
@@ -249,7 +253,7 @@ class DFAgentDscDlg extends JDialog
 			agentName.setText(dfd.getName());
 		  agentType.setText(dfd.getType());
 			ownership.setText(dfd.getOwnership());
-			dfState.setText(dfd.getDFState());
+			dfState.setSelectedItem(dfd.getDFState());
 			ontology.setText(dfd.getOntology());
 			//language.setText(dfd.getLanguage());
 			
@@ -293,7 +297,7 @@ class DFAgentDscDlg extends JDialog
 		setLocation(50, 50);
 		pack();
 		show();
-
+    
 	}
 
 	AgentManagementOntology.DFAgentDescriptor editDFD(AgentManagementOntology.DFAgentDescriptor dfd)
@@ -472,7 +476,7 @@ class DFAgentDscDlg extends JDialog
     l.setPreferredSize(new Dimension(80,20));
     p.add(l);
 	  p.add(Box.createHorizontalGlue());
-		dfState = new JTextField();
+		dfState = new JComboBox(states);
 		p.add(dfState);
 		main.add(p);
 	  main.add(Box.createRigidArea(new Dimension (0,3)));
@@ -731,7 +735,7 @@ class DFAgentDscDlg extends JDialog
 			agentName.setText(dfd.getName());
 			agentType.setText(dfd.getType());
 			ownership.setText(dfd.getOwnership());
-			dfState.setText(dfd.getDFState());
+			dfState.setSelectedItem(dfd.getDFState());
 			ontology.setText(dfd.getOntology());
 			//language.setText(dfd.getLanguage());
 			
@@ -797,7 +801,7 @@ class DFAgentDscDlg extends JDialog
 			AgentManagementOntology.DFAgentDescriptor editedDfd = new AgentManagementOntology.DFAgentDescriptor();
 		
 			editedDfd.setName(getSaveText(agentName));
-			editedDfd.setDFState(getSaveText(dfState));
+			editedDfd.setDFState((String)dfState.getSelectedItem());
 			editedDfd.setOwnership(getSaveText(ownership));
       editedDfd.setType(getSaveText(agentType));
       editedDfd.setOntology(getSaveText(ontology));

@@ -46,7 +46,6 @@ class DFGUISearchAction extends AbstractAction
 	{
 		super ("Search");
 		this.gui = gui;
-		setEnabled(true);
 	}
 	
 	public void actionPerformed(ActionEvent e) 
@@ -54,12 +53,12 @@ class DFGUISearchAction extends AbstractAction
 		//System.out.println("SEARCH");
 		//System.out.println("Not yet implemented!");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);		
+		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+		
 		if (editedDfd != null)
-		{
-				
+		{	
 			gui.myAgent.postSearchEvent((Object) gui, gui.myAgent.getName(), editedDfd);
-			
+			gui.setTab("Search");
 		}
 	}
 }

@@ -83,6 +83,8 @@ public interface GUI2DFCommunicatorInterface {
    */
   public void postSearchEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd); 
   
+  public void postFederateEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  
   /**
   * this method returns all the agent descriptions registered with the DF
   */
@@ -92,6 +94,12 @@ public interface GUI2DFCommunicatorInterface {
    * this method returns the agent description registered with the DF given the agent name
    */
   public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException;
+  
+  public Enumeration getParents();
+  
+  public Enumeration getChildren();
+  
+  public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF();
   
   
 	

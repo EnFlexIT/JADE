@@ -52,28 +52,34 @@ class DFGUIViewAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("VIEW");
-		int i = gui.registeredTable.getSelectedRow();
-	
-
-		if (i != -1)
-		{
-			AgentManagementOntology.DFAgentDescriptor dfd;
-			String name = gui.registeredModel.getElementAt(i);
-		  
-			try
-			{
-				dfd = gui.myAgent.getDFAgentDsc(name);
-			}
-			catch (FIPAException fe)
-			{
-				System.out.println("WARNING! No agent called " + name + " is currently resistered with this DF");
-				return;
-			}
-			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+		int kind = gui.kindOfOperation();
+		
+		if ( kind == 0 || kind == 3 || kind == 1)
+	  {
+	  	String name = gui.getSelectedAgentInTable();
+	  	if (name != null)
+	  		try
+	  		{
+	  			dfd = gui.myAgent.getDFAgentDsc(name);
+	  		}catch (FIPAException fe){
+	  			System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+	  			return;}
+	  	
+	  	}
+	  	else
+	  	if (kind == 2)
+	  	{
+	  	  // In this case the description that will be shown will be the standard description used to federate the df 
+	  		dfd = gui.myAgent.getDescriptionOfThisDF();
+	  	
+	  	}
+	  	
+	    DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 		
 			dlg.viewDFD(dfd);
 		
-		}
+		
 	}
 }
 	

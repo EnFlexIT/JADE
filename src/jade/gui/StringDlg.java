@@ -112,7 +112,10 @@ class StringDlg extends JDialog
 
 		if (ret.getValue() == 1)
 		{	
-			return(new String(txtString.getText()));
+			String out = txtString.getText();
+			if (out.length() == 0)
+				out = null;
+			return(out);
  		}
 		return(null);		
 	}

@@ -27,12 +27,13 @@ package jade.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+//import java.net.InetAddress;
 
 // Import required Jade classes
 import jade.domain.AgentManagementOntology;
 
 /**
-@author Giovanni Caire - CSELT S.p.A
+@author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
@@ -44,13 +45,31 @@ class DFGUIFederateAction extends AbstractAction
 	{
 		super ("Federate");
 		this.gui = gui;
-		setEnabled(false);
+		
 	}
 	
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("FEDERATE");
-		System.out.println("Not yet implemented");
+		gui.setTab("Federate");
+		//System.out.println("Not yet implemented");
+	
+	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+		
+		dfd = gui.myAgent.getDescriptionOfThisDF();
+		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the name of the DF with which federate");
+		String parent = insertDlg.editString("");
+		if ( parent != null)
+		{
+			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+			AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(dfd);
+		
+		  if (editedDfd != null)
+			  gui.myAgent.postFederateEvent((Object)gui, parent, editedDfd);
+	   	  gui.setTab("Federate");
+		}
+		else 
+		System.out.println("Please enter the name of the DF  with which to federate");
 		// FIXME To be done
 	}
 }
