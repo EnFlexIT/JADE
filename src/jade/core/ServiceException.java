@@ -23,7 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-public class ServiceException extends Exception {
+
+import jade.util.WrapperException;
+
+
+public class ServiceException extends WrapperException {
 
     public ServiceException() {
 	super("An exception occurred during a service operation.");

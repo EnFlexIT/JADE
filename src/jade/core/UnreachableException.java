@@ -24,13 +24,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+
+import jade.util.WrapperException;
+
+
 /**
   This exception is thrown when some agent container cannot be contacted.
 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class UnreachableException extends Exception {
+public class UnreachableException extends WrapperException {
 
   /**
     Construct an <code>UnreachableException</code> with the given message.
