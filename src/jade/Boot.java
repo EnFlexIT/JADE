@@ -105,7 +105,8 @@ public class Boot {
    * <li>  <b>-version</b>  <em>Prints out version information and exits.</em>
    * <li>  <b>-help</b>     <em>Prints out usage informations.</em>
    * <li>  <b>-mtp</b>      <em>Specifies a list of external Message Transport Protocols to be activated on this container (by default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers).</em>
-   * <li>  <b>-nomtp</b>			<em>has precedence over -mtp and overrides it. It should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).</em>
+   * <li>  <b>-nomtp</b>    <em>has precedence over -mtp and overrides it. It should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).</em>
+   * <li>  <b>-aclcodec</b> <em>To specify an acl encoding.By default the string encoding is used. </em>
    * </ul>
    *
    * In any case the properties specified by command line replace the properties read by a file (if specified) or the default ones.
@@ -339,7 +340,8 @@ public class Boot {
     System.out.println("  -mtp\t\t\tSpecifies a list of external Message Transport Protocols to be activated.");
     System.out.println("  \t\t\tBy default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers.");
     System.out.println("  -nomtp\t\tHas precedence over -mtp and overrides it.");
-    System.out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected.");
+    System.out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
+    System.out.println("  -aclcodec\t\tSpecifies a list of ACLCodec to use. By default the string codec is used.");
     System.out.println("  -help\t\t\tPrints out usage informations.");
     System.out.println("");
     System.out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");
