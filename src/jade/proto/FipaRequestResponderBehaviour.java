@@ -204,8 +204,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     must be the same.
     @param a An <code>Action</code> ontological object, that holds the
     content of a received <em>request</em> ACL message.
-    @return the name of the action. If some problem occurs, it returns
-    a null String.
+    @return the name of the action. If some problem occurs, it throws an Exception.
     @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f)
   */
   protected String getActionName(ACLMessage msg) throws NotUnderstoodException, RefuseException {
@@ -234,11 +233,11 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     if(msg != null) {
       ACLMessage reply = msg.createReply();
       try {
-	String actionName = getActionName(msg);
+	String actionName = getActionName(msg).toUpperCase();
 	Factory actionFactory = (Factory)actions.get(actionName);
 	if(actionFactory == null) {
 	  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-	  reply.setContent("FIXME");
+	  reply.setContent("( (unsupported-function "+ actionName+"))");
 	  myAgent.send(reply);
 	  return;
 	} else {
@@ -249,7 +248,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       } catch(FIPAException fe) {
 	fe.printStackTrace();
 	reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-	reply.setContent("FIXME");
+	reply.setContent("("+fe.getMessage()+")");
 	myAgent.send(reply);
 	return;
       }
@@ -262,13 +261,15 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     method registers an object to be used to create behaviours to
     handle the specified action when some <code>request</code> for it
     is received.
+    In order to implement a case-insensitive match, all action names are 
+    converted to uppercase  before registration.
     @param actionName The name of the action the <code>Factory</code>
     creates handlers for.
     @param f The actual <code>Factory</code> object; it will be used
     to create action handlers on demand.
   */
   public void registerFactory(String actionName, Factory f) {
-    actions.put(actionName, f);
+    actions.put(actionName.toUpperCase(), f);
   }
 
 
@@ -279,15 +280,16 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     specific action for a while; during that time, the agent will
     answer with <code>not-understood</code> messages to requests for
     the suspended action.
+    In order to implement a case-insensitive match, all action names are 
+    converted to uppercase  before deregistration.
     @param actionName The name of the action to remove from supported actions.
   */
   public void unregisterFactory(String actionName) {
-    actions.remove(actionName);
+    actions.remove(actionName.toUpperCase());
   }
 
 
 
 } // End of FipaRequestResponderBehaviour class
-
 
 
