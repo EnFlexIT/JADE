@@ -101,9 +101,12 @@ public class MsgReceiver extends SimpleBehaviour {
 			//System.out.println("Agent "+myAgent.getName()+" has received message");
 			//System.out.println(msg);
 			
-			getDataStore().put(receivedMsgKey, msg);
+			if (receivedMsgKey != null) {
+				getDataStore().put(receivedMsgKey, msg);
+			}
 			received = true;
 			ret = msg.getPerformative();
+			handleMessage(msg);
 		}
 		else {
 			if (deadline >= 0) {
@@ -111,10 +114,12 @@ public class MsgReceiver extends SimpleBehaviour {
 				long blockTime = deadline - System.currentTimeMillis();
 				if(blockTime <=0){
 				    //timeout expired
-				    getDataStore().put(receivedMsgKey, null); 
+						if (receivedMsgKey != null) {
+							getDataStore().put(receivedMsgKey, null);
+						}
 				    expired = true;
 				    ret = TIMEOUT_EXPIRED;
-
+						handleMessage(null);
 				}else{
 				    block(blockTime);
 				}
@@ -143,7 +148,14 @@ public class MsgReceiver extends SimpleBehaviour {
 	}
     //#APIDOC_EXCLUDE_END
 
-
+	/**
+	   This is invoked when a message matching the specified template 
+	   is received or the timeout has expired (the <code>msg</code>
+	   parameter is null in this case). Users may redefine this method 
+	   to react to this event. The default implementation of does nothing.
+	 */
+	protected void handleMessage(ACLMessage msg) {
+	}
 	
     /**
        Reset this behaviour, possibly replacing the receive templatt
