@@ -1,20 +1,24 @@
-/*
-  $Log$
-  Revision 1.4  1999/11/04 09:59:47  rimassaJade
-  Removed TransientException specification from class declaration.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.3  1999/09/03 10:43:36  rimassa
-  Changed CORBA exception handling.
+GNU Lesser General Public License
 
-  Revision 1.2  1999/08/27 15:46:57  rimassa
-  Added support for TransientException in order to retry message
-  dispatch when the receiver agent has moved.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.1  1999/03/17 13:14:26  rimassa
-  A remote proxy for an agent that can be reached using IIOP (foreign agents and
-  inter-platform mobile agents).
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.core;
 
@@ -24,6 +28,11 @@ import FIPA_Agent_97;
 
 import jade.lang.acl.ACLMessage;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 class RemoteProxyIIOP extends RemoteProxy {
 
   private FIPA_Agent_97 ref;

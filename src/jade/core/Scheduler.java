@@ -1,25 +1,26 @@
-/*
-  $Log$
-  Revision 1.10  1999/07/26 15:34:42  rimassa
-  Made class serializable.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.9  1999/05/20 13:43:15  rimassa
-  Moved all behaviour classes in their own subpackage.
+GNU Lesser General Public License
 
-  Revision 1.8  1999/03/15 15:22:22  rimassa
-  Changed an 'if' clause to a 'while' clause.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.7  1999/03/03 16:03:44  rimassa
-  Changed a getName() call to getLocalName() call.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.6  1998/10/31 16:38:08  rimassa
-  Method schedule() now does't catch InterruptedException anymore. This
-  way an external 'kill-agent' is effective even on blocked agents.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.5  1998/10/04 18:01:14  rimassa
-  Added a 'Log:' field to every source file.
 
-*/
 
 package jade.core;
 
@@ -28,6 +29,12 @@ import java.util.Vector;
 import java.io.Serializable;
 
 import jade.core.behaviours.Behaviour;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 /**************************************************************
 

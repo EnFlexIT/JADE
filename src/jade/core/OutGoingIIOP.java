@@ -1,27 +1,37 @@
-/*
-  $Log$
-  Revision 1.4  1999/10/06 08:46:26  rimassa
-  Fixed an overflow problem when generating the URL for a given IIOP
-  connection.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.3  1999/02/25 08:29:54  rimassa
-  Fixed some problems related to uppercase/lowercase.
+GNU Lesser General Public License
 
-  Revision 1.2  1999/02/04 13:35:10  rimassa
-  Added actual interface type ID value to 'wrong type ID' exception.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.1  1999/02/03 10:20:57  rimassa
-  New class to model outgoing IIOP connections. It can hold a CORBA object
-  reference for FIPA_Agent_97 IDL interface and convert it among various formats,
-  such as IOR and URL.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 package jade.core;
 
 import org.omg.CORBA.*;
 import FIPA_Agent_97;
 import FIPA_Agent_97Helper;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 class OutGoingIIOP {
 

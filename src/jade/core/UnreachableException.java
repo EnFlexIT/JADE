@@ -1,17 +1,33 @@
-/*
-  $Log$
-  Revision 1.3  1999/07/13 19:24:46  rimassa
-  Made this exception class public.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.2  1999/03/24 12:19:48  rimassa
-  Removed ^M characters.
+GNU Lesser General Public License
 
-  Revision 1.1  1999/03/17 13:15:31  rimassa
-  An exception occurring when a remote agent cannot be reached by the platform.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-*/
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 package jade.core;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 public class UnreachableException extends Exception {
 
