@@ -41,6 +41,7 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -151,6 +152,15 @@ public class MainContainerAdapter implements MainContainer, Serializable {
   public AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
     try {
       return adaptee.getAgentPrincipal(name);
+    }
+    catch (RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
+  public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+    try {
+      return adaptee.getContainerPrincipal(cid);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);

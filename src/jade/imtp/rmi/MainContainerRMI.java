@@ -37,6 +37,7 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
@@ -57,6 +58,7 @@ public interface MainContainerRMI extends Remote {
     public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
     public void changedAgentPrincipal(AID name, CertificateFolder certs) throws RemoteException, NotFoundException, IMTPException;
     public AgentPrincipal getAgentPrincipal(AID name) throws RemoteException, IMTPException, NotFoundException;
+    public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws RemoteException, IMTPException, NotFoundException;
     public String addContainer(AgentContainerRMI ac, ContainerID cid, String username, byte[] password) throws RemoteException, IMTPException, AuthException;
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException;
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException;
