@@ -50,6 +50,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   private String firstName = null;
   private String currentName = null;
   private String previousName = null;
+  private int lastExitValue;
   
   private TransitionTable theTransitionTable = new TransitionTable();
   
@@ -101,7 +102,9 @@ public class FSMBehaviour extends CompositeBehaviour {
   */
   public void registerLastState(Behaviour state, String name) {
   	registerState(state, name);
-  	lastStates.add(name);
+  	if (!lastStates.contains(name)) {
+  		lastStates.add(name);
+  	}
   }
 
   /** 
@@ -158,6 +161,21 @@ public class FSMBehaviour extends CompositeBehaviour {
   	return null;
   }
   
+  /** 
+     @return the exit value of the last executed state.
+  */
+  public int getLastExitValue() {
+  	return lastExitValue;
+  }
+  	
+  /** 
+     Override the onEnd() method to return the exit value of the
+     last executed state.
+  */
+  public int onEnd() {
+  	return getLastExitValue();
+  }
+  
   /**
      Prepare the first child for execution. The first child is the 
      <code>Behaviour</code> registered as the first state of this
@@ -167,6 +185,8 @@ public class FSMBehaviour extends CompositeBehaviour {
   protected void scheduleFirst() {
   	currentName = firstName;
   	current = getState(currentName);
+  	// DEBUG
+  	System.out.println("Executing state "+currentName);
   }
   
   /**
@@ -196,6 +216,8 @@ public class FSMBehaviour extends CompositeBehaviour {
   		catch (NullPointerException npe) {
   			throw new RuntimeException("Inconsistent FSM. State: "+previousName+" event: "+currentResult);
   		}
+  		// DEBUG
+  		System.out.println("Executing state "+currentName);
   	}
   }
   
@@ -206,7 +228,11 @@ public class FSMBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.CompositeBehaviour#checkTermination
   */
   protected boolean checkTermination(boolean currentDone, int currentResult) { 
-  	return (currentDone && lastStates.contains(currentName));
+  	if (currentDone) {
+  		lastExitValue = currentResult;
+  		return lastStates.contains(currentName);
+  	}
+  	return false;
   }  		
   
   /** 
