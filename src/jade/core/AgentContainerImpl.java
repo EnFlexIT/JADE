@@ -386,7 +386,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  //#MIDP_EXCLUDE_BEGIN
 	  if(myMainContainer != null) {
-	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null) == null);
+	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
 	  //#MIDP_EXCLUDE_END
@@ -414,7 +414,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   
-  void joinPlatform() {
+    void joinPlatform() {
+
   	//#J2ME_EXCLUDE_BEGIN
   	// Redirect output if the -output option is specified
   	String output = myProfile.getParameter("output", null);
