@@ -67,11 +67,7 @@ public class Agent1 extends Agent {
     addBehaviour(new Behaviour1("First"));
     addBehaviour(new Behaviour1("Second"));
     addBehaviour(new Behaviour1("Third"));
-    addBehaviour(new OneShotBehaviour(this) {
-      public void action() {
-	doClone("Front-End", getLocalName() + "x");
-      }
-    });
+
   }
 
 }
