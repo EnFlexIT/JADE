@@ -583,6 +583,7 @@ public class RMIIMTPManager implements IMTPManager {
 		      try {
 			  remoteSvcMgr = (ServiceManagerRMI)Naming.lookup(addrs[i] + SERVICE_MANAGER_NAME);
 			  remoteSvcMgr.adopt(localNode);
+			  baseRMI = addrs[i];
 			  return true;
 		      }
 		      catch(Exception e) {
