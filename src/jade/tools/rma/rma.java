@@ -125,7 +125,7 @@ public class rma extends Agent {
     		//System.out.println("arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),lookupLanguage(msg.getLanguage()),lookupOntology(msg.getOntology())); 
+    			ResultPredicate r =(ResultPredicate) extractContent(msg).get(0); 
 
     			Iterator i = r.getAll_1();
     			APDescription APDesc = (APDescription)i.next();
@@ -153,7 +153,7 @@ public class rma extends Agent {
 	    //System.out.println("arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),lookupLanguage(msg.getLanguage()),lookupOntology(msg.getOntology())); 
+    			ResultPredicate r = (ResultPredicate)extractContent(msg).get(0);
     			Iterator i = r.getAll_1();
     			myGUI.addRemoteAgentsToRemotePlatform(platform,i);
     		}catch(FIPAException e){
@@ -672,21 +672,16 @@ public class rma extends Agent {
   
   	//System.out.println("AddRemotePlatform");
   	try{
-  		if(remoteAMS.getName().equalsIgnoreCase(getAMS().getName()))
-  		{
-  			System.out.println("ERROR: Action not allowed on local AMS.");
-  			return;
-  		}
-  		else{
-  			ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
-  			requestMsg.setSender(getAID());
+  		
+  		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
+		requestMsg.setSender(getAID());
     		requestMsg.clearAllReceiver();
     		requestMsg.addReceiver(remoteAMS);
     		requestMsg.setProtocol("fipa-request");
     		requestMsg.setLanguage(SL0Codec.NAME);
-      	requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
     	
-      	GetDescription action = new GetDescription();
+		GetDescription action = new GetDescription();
     		List l = new ArrayList(1);
     		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
     		Action a = new Action();
@@ -695,7 +690,7 @@ public class rma extends Agent {
     		l.add(a);
     		fillContent(requestMsg,l);
     		addBehaviour(new handleAddRemotePlatformBehaviour("GetDescription",requestMsg));
-  		}
+  		
   	}catch(FIPAException e){
   		e.printStackTrace();
   	}
@@ -718,7 +713,7 @@ public class rma extends Agent {
      	dummyMsg.setContent(content);
      	try{
      	
-     	ResultPredicate r = FIPAServiceCommunicator.extractContent(dummyMsg.getContent(),lookupLanguage(dummyMsg.getLanguage()),lookupOntology(dummyMsg.getOntology())); 
+     	ResultPredicate r = (ResultPredicate)extractContent(dummyMsg).get(0);
      	
     	Iterator i = r.getAll_1();
     	

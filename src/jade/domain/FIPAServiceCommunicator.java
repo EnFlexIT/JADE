@@ -42,6 +42,13 @@ import jade.onto.OntologyException;
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
 
+/**
+ * This class provides a set of basic and static methods to perform the FIPA Agent Management actions.
+ * However, developers should use <code>DFServiceCommunicator</code> and <code>AMSServiceCommunicator</code>
+ * which provide specialized methods to communicate with the DF and the AMS.
+ * @author Fabio Bellifemine - CSELT S.p.A.
+ * @version $Date$ $Revision$  
+ **/
 public class FIPAServiceCommunicator {
 
   /**
@@ -70,10 +77,20 @@ public class FIPAServiceCommunicator {
   
 
   /**
+   * This method plays the initiator role in the Fipa-Request interaction protocol
+   * and performs all the steps of the protocol.
+   * Take care because the method blocks until all the response messages are received.
+   * Under error conditions, or if the responder does not wish to respond, that
+   * might block for ever the execution of the agent.
+   * For this reason, the <code>FipaRequestInitiatorBehaviour</code> is the preferred
+   * way to play the protocol.
+   * @param a is the Agent playing the initiator role
+   * @param request is the ACLMessage to be sent. Notice that all the slots of the
+   * message must have already been filled by the caller. 
    * @return the INFORM message received in the final state of the protocol, if
    * the protocol succeeded, otherwise it throws an Exception
    */
-  static ACLMessage doFipaRequestClient(Agent a, ACLMessage request) throws FIPAException {
+  public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request) throws FIPAException {
     a.send(request);
     MessageTemplate mt = MessageTemplate.MatchInReplyTo(request.getReplyWith());
     ACLMessage reply = a.blockingReceive(mt);
@@ -93,7 +110,7 @@ public class FIPAServiceCommunicator {
    * this method is here to avoid any agent using this class to register before
    * the SL-0 codec and the fipa-agent-management ontology
    */
-  public static String encode(Action act, Codec c, Ontology o) throws FIPAException {
+  static String encode(Action act, Codec c, Ontology o) throws FIPAException {
     // Write the action in the :content slot of the request
     List l = new ArrayList();
     try {
@@ -109,7 +126,7 @@ public class FIPAServiceCommunicator {
    * this method is here to avoid any agent using this class to register before
    * the SL-0 codec and the fipa-agent-management ontology
    */
-  public static ResultPredicate extractContent(String content, Codec c, Ontology o) throws FIPAException {
+  static ResultPredicate extractContent(String content, Codec c, Ontology o) throws FIPAException {
     try {
       List tuple = c.decode(content,o);
       tuple = o.createObject(tuple);
