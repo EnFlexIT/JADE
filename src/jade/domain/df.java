@@ -234,7 +234,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
   //#PJAVA_EXCLUDE_END
   
   // Configuration parameter keys
-  private static final String VERBOSITY = "jade_domain_df_verbosity";
   private static final String AUTOCLEANUP = "jade_domain_df_autocleanup";
   private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
   private static final String MAX_RESULTS = "jade_domain_df_maxresult";
@@ -258,7 +257,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
    */
   private int maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
   private Date maxLeaseTime = null;
-  private int verbosity = 0; 
 
   private KB agentDescriptions = null;
   private KBSubscriptionManager subManager = null;	
@@ -301,7 +299,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		// properties are read from the Profile.
 		// Values in a property file override those in the profile if
 		// both are specified.
-		String sVerbosity = getProperty(VERBOSITY, null);
 		String sAutocleanup = getProperty(AUTOCLEANUP, null);
 		String sMaxLeaseTime = getProperty(MAX_LEASE_TIME, null);
 		String sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
@@ -319,7 +316,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			Properties p = new Properties();
 			try {
 				p.load((String) args[0]);
-				sVerbosity = p.getProperty(VERBOSITY, sVerbosity);
 				sMaxLeaseTime = p.getProperty(MAX_LEASE_TIME, sMaxLeaseTime);
 				sMaxResults = p.getProperty(MAX_RESULTS, sMaxResults);
 				dbUrl = p.getProperty(DB_URL, dbUrl);
@@ -335,13 +331,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			}
 		}
 		
-		// Convert verbosity into a number
-  	try {
-  		verbosity = Integer.parseInt(sVerbosity);
-  	}
-  	catch (Exception e) {
-      // Keep default
-  	}
 		// Convert max lease time into a Date
   	try {
   		maxLeaseTime = new Date(Long.parseLong(sMaxLeaseTime));
@@ -358,7 +347,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				logger.log(Logger.WARNING,"The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS);
 		}else if(maxResultLimit > Integer.parseInt(DEFAULT_MAX_RESULTS)){
 			if(logger.isLoggable(Logger.WARNING))
-				logger.log(Logger.WARNING,"Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!");
+				logger.log(Logger.WARNING,"Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !! It has been set to the default value: " + DEFAULT_MAX_RESULTS);
 		}
   	}
   	catch (Exception e) {
@@ -764,7 +753,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
     protected void handleFailure(ACLMessage failure) {
     	// FIXME: In general this is due to a federation loop (search-id already used)
-    	// In this case no warning must be printed --> We use verbosity level 1
+    	// In this case no warning must be printed --> We should use FINE log level in that case
   		if(logger.isLoggable(Logger.WARNING))
   			logger.log(Logger.WARNING,"FAILURE received from federated DF "+failure.getSender().getName()+" during recursive search.");
     }
