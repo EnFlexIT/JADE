@@ -208,6 +208,10 @@ public class Agent implements Runnable, CommBroadcaster {
     return msg;
   }
 
+  // Put a received message back in message queue
+  public final synchronized void putBack(ACLMessage msg) {
+    msgQueue.insertElementAt(msg,0);
+  }
 
   // Build an ACL message from a character stream
   public ACLMessage parse(Reader text) {
