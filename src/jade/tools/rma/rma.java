@@ -576,22 +576,28 @@ public class rma extends ToolAgent {
     UninstallMTP umtp = new UninstallMTP();
     umtp.setContainer(new ContainerID(containerName, null));
     if(myGUI.showUninstallMTPDialog(umtp)) {
-      try {
-	Action a = new Action();
-	a.set_0(getAMS());
-	a.set_1(umtp);
-	List l = new ArrayList(1);
-	l.add(a);
+      uninstallMTP(umtp.getContainer().getName(), umtp.getAddress());
+    }
+  }
 
-	ACLMessage requestMsg = getRequest();
-	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	fillMsgContent(requestMsg, l);
-	addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
-      }
-      catch(FIPAException fe) {
-	fe.printStackTrace();
-      }
+  public void uninstallMTP(String containerName, String address) {
+    UninstallMTP umtp = new UninstallMTP();
+    umtp.setContainer(new ContainerID(containerName, null));
+    umtp.setAddress(address);
+    try {
+      Action a = new Action();
+      a.set_0(getAMS());
+      a.set_1(umtp);
+      List l = new ArrayList(1);
+      l.add(a);
 
+      ACLMessage requestMsg = getRequest();
+      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
+      fillMsgContent(requestMsg, l);
+      addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
+    }
+    catch(FIPAException fe) {
+      fe.printStackTrace();
     }
   }
 
