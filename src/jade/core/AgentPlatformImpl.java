@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.21  1998/11/15 23:03:33  rimassa
+  Removed old printed messages about system agents, since now the Remote
+  Agent Management GUI shows all agents present on the platform.
+  Added a new AMSKillContainer method to be used from AMS agent to
+  terminate Agent Containers.
+
   Revision 1.20  1998/11/09 22:15:58  Giovanni
   Added an overridden version of AgentContainerImpl shutDown() method:
   an AgentPlatform firstly shuts itself down as an ordinary
@@ -99,7 +105,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   private void initAMS() {
 
-    System.out.print("Starting AMS... ");
     theAMS = new ams(this, "ams");
 
     // Subscribe as a listener for the AMS agent
@@ -112,11 +117,10 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     desc.setContainer(this);
 
     platformAgents.put("ams", desc);
-    System.out.println("AMS OK");
+
   }
 
   private void initACC() {
-    System.out.print("Starting ACC... ");
     theACC = new acc(this);
 
     // Subscribe as a listener for the AMS agent
@@ -130,11 +134,10 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
     platformAgents.put("acc", desc);
 
-    System.out.println("ACC OK");
   }
 
   private void initDF() {
-    System.out.print("Starting Default DF... ");
+
     defaultDF = new df();
 
     // Subscribe as a listener for the AMS agent
@@ -147,7 +150,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     desc.setContainer(this);
 
     platformAgents.put("df", desc);
-    System.out.println("DF OK");
 
   }
 
@@ -244,16 +246,11 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     // Remove yourself from container list
     super.shutDown();
 
-    // Then call remote method exit() on every other container
-    Enumeration e = containers.elements();
+    // Then kill every other container
+    Enumeration e = containers.keys();
     while(e.hasMoreElements()) {
-      AgentContainer ac = (AgentContainer)e.nextElement();
-      try {
-	ac.exit(); // RMI call
-      }
-      catch(RemoteException re) {
-	re.printStackTrace();
-      }
+      String containerName = (String)e.nextElement();
+      AMSKillContainer(containerName);
     }
   }
 
@@ -302,6 +299,20 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
     catch(RemoteException re) {
       throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void AMSKillContainer(String containerName) {
+    AgentContainer ac = (AgentContainer)containers.get(containerName);
+    try {
+      ac.exit(); // RMI call
+    }
+    catch(UnmarshalException ue) {
+      // FIXME: This is ignored, since we'd need oneway calls to
+      // perform exit() remotely
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
     }
   }
 
