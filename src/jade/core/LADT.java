@@ -35,12 +35,15 @@ import jade.util.leap.HashMap;
  */
 class LADT {
 
+  // Rows of the LADT are protected by a recursive mutex lock
   private static class Row {
-    private boolean locked;
     private Agent value;
+    private Thread owner;
+    private long depth;
 
     public Row(Agent a) {
       value = a;
+      depth = 0;
     }
 
     public synchronized Agent get() {
@@ -53,10 +56,12 @@ class LADT {
 
     public synchronized void lock() {
       try {
-	while(locked)
+        Thread me = Thread.currentThread();
+	while((owner != null) && (owner != me))
 	  wait();
 
-	locked = true;
+	owner = me;
+        ++depth;
       }
       catch(InterruptedException ie) {
 	return;
@@ -65,8 +70,14 @@ class LADT {
     }
 
     public synchronized void unlock() {
-      locked = false;
-      notifyAll();
+      // Must be owner to unlock
+      if(owner != Thread.currentThread())
+          return;
+      --depth;
+      if(depth == 0) {
+        owner = null;
+        notifyAll();
+      }
     }
 
   } // End of Row class
