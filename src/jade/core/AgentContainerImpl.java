@@ -52,6 +52,8 @@ import java.util.Set;
 
 import jade.core.event.MessageEvent;
 import jade.core.event.MessageListener;
+import jade.core.event.AgentEvent;
+import jade.core.event.AgentListener;
 
 import jade.lang.acl.ACLMessage;
 
@@ -101,6 +103,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   protected ContainerID myID;
 
   private List messageListeners;
+  private List agentListeners;
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
@@ -357,7 +360,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID.getName(), AID.ISLOCALNAME);
       initAgent(id, tn, START);
       addMessageListener(tn);
-      // addAgentListener(tn);
+      addAgentListener(tn);
     }
     tn.addObservedAgent(toBeDebugged);
   }
@@ -372,7 +375,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       tn.removeObservedAgent(notToBeDebugged);
       if(tn.isEmpty()) {
 	removeMessageListener(tn);
-	// removeAgentListener(tn);
+	removeAgentListener(tn);
 	tn.doDelete();
       }
     }
@@ -685,6 +688,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public void handleReceived(AID agentID, ACLMessage msg) {
     fireReceivedMessage(msg, agentID);
+  }
+
+  public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
+    fireChangedAgentState(agentID, from, to);
   }
 
   public void handleStart(String localName, Agent instance) {
@@ -1127,5 +1134,29 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
+  private void addAgentListener(AgentListener l) {
+    // Use lazy evaluation
+    if(agentListeners == null)
+      agentListeners = new LinkedList();
+    agentListeners.add(l);
+  }
+
+  private void removeAgentListener(AgentListener l) {
+    if(agentListeners != null) {
+      agentListeners.remove(l);
+      if(agentListeners.isEmpty())
+	agentListeners = null;
+    }
+  }
+
+  private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
+    if(agentListeners != null) {
+      AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID);
+      for(int i = 0; i < agentListeners.size(); i++) {
+	AgentListener l = (AgentListener)agentListeners.get(i);
+	l.changedAgentState(ev);
+      }
+    }
+  }
 
 }
