@@ -25,13 +25,16 @@ Boston, MA  02111-1307, USA.
  * This Java application test the examples of Daniel Le Berre about JADE/JSP
  * integration.
  * This tester must be started via the following command line:
- * java -cp jade.jar jade.Boot   #run the main-container
- * java -cp jade.jar;jadeExamplesdirectory TestDanielExamples
+ * java -cp jade.jar jade.Boot buffer:jade.tools.DummyAgent.DummyAgent
+ * java -cp jade.jar;jadeExamplesdirectory TestDanielExamples 
+ *
+ * The test works if a message arrives to the DummyAgent in the main container
  *
  * @author Fabio Bellifemine - TILab 
  * @version $Date$ $Revision$
  **/
 public class TestDanielExample {
+
     public static void main(String args[]) {
 	examples.jsp.Snooper snooper = new examples.jsp.Snooper();
 	try {
@@ -41,6 +44,6 @@ public class TestDanielExample {
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
-    snooper.snoop("FUNZIONA!"); 
+	snooper.snoop("IT WORKS!"); 
     }
 }

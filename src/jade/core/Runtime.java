@@ -23,17 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//import java.net.MalformedURLException;
-
-//import java.rmi.*; // FIXME: This will go away...
-//import java.rmi.registry.*; // FIXME: This will go away...
-
 import jade.util.leap.LinkedList;
 
 /**
    This class is a Singleton class, allowing intial access to the JADE
    runtime system. Invoking methods on the shared instance of this
-   class, it is possible to create <it>in-process</it> agent
+   class (i.e. <code>Runtime.instance()</code>, 
+   it is possible to create <it>in-process</it> agent
    containers.
 
    @author Giovanni Rimassa - Universita` di Parma
@@ -58,6 +54,10 @@ public class Runtime {
     // Do nothing
   }
 
+    /**
+     * This method returns the singleton instance of this class
+     * that should be then used to create agent containers.
+     **/
   public static Runtime instance() {
     return theInstance;
   }
@@ -65,94 +65,41 @@ public class Runtime {
   /**
      Creates a new agent container in the current JVM, providing
      access through a proxy object.
+     @parameter p the profile containing boostrap and configuration
+     data for this container
      @return A proxy object, through which services can be requested
      from the real JADE container.
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
 
-    //try {
-      //String host = p.getParameter(Profile.MAIN_HOST);
-      //String port = p.getParameter(Profile.MAIN_PORT);
-
-      //String platformRMI = "rmi://" + host + ":" + port + "/JADE";
-      //String[] empty = new String[] { };
-      
       AgentContainerImpl impl = new AgentContainerImpl(p);
-
-      // Look the remote Main Container up into the
-      // RMI Registry, then create a Smart Proxy for it.
-      //MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
-      //MainContainer mc = new MainContainerProxy(remoteMC);
-
-      //impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
       impl.joinPlatform();
-
+      if (enableDefaultToolkit)
+	  setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
       return new jade.wrapper.AgentContainer(impl);
-    /*}
-    catch(RemoteException re) {
-      throw new InternalError("Remote exception in a local call.");
-    }
-    catch(NotBoundException nbe) {
-      throw new InternalError("The platform was not found in the RMI Registry");
-    }
-    catch(MalformedURLException murle) {
-      throw new InternalError("Malformed URL exception"); // FIXME: Need to throw a suitable exception
-    }
-    catch(ProfileException pe) {
-      throw new InternalError("Can't read configuration from Profile.");
-    }*/
-
   }
 
   /**
      Creates a new main container in the current JVM, providing
      access through a proxy object.
+     @parameter p the profile containing boostrap and configuration
+     data for this container
      @return A proxy object, through which services can be requested
      from the real JADE main container.
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
 
-    //try {
-      //String host = p.getParameter(Profile.MAIN_HOST);
-      //String port = p.getParameter(Profile.MAIN_PORT);
-
-      //String platformRMI = "rmi://" + host + ":" + port + "/JADE";
-
       AgentContainerImpl impl = new AgentContainerImpl(p);
-      //MainContainerImpl mc = new MainContainerImpl(p);
-
-      // Create an embedded RMI Registry within the platform and
-      // bind the Agent Platform to it
-
-      //int portNumber = Integer.parseInt(port);
-
-      //Registry theRegistry = LocateRegistry.createRegistry(portNumber);
-      //Naming.bind(platformRMI, mc);
-      //String[] empty = new String[] { };
-      //impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
       impl.joinPlatform();
-
+      if (enableDefaultToolkit)
+	  setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
       return new jade.wrapper.MainContainer(impl);
-    /*}
-    catch(RemoteException re) {
-      throw new InternalError("Remote Exception"); // FIXME: Need to throw a suitable exception
-    }
-    catch(MalformedURLException murle) {
-      throw new InternalError("Malformed URL exception"); // FIXME: Need to throw a suitable exception
-    }
-    catch(AlreadyBoundException abe) {
-      throw new InternalError("Already Bound Exception"); // FIXME: Need to throw a suitable exception
-    }
-    catch(ProfileException pe) {
-      throw new InternalError("Can't read configuration from Profile.");
-    }*/
-
   }
 
 
-  // Called by jade.core.Starter to make the VM terminate when all the
+  // Called by jade.Boot to make the VM terminate when all the
   // containers are closed.
   public void setCloseVM(boolean flag) {
     closeVM = flag;
@@ -219,16 +166,27 @@ public class Runtime {
   }
 
   /********** FIXME: This is just to support the JSP example *************/
-
+  private boolean enableDefaultToolkit = false; 
   private AgentToolkit defaultToolkit;
 
-  void setDefaultToolkit(AgentToolkit tk) {
+  private void setDefaultToolkit(AgentToolkit tk) {
     defaultToolkit = tk;
   }
 
   AgentToolkit getDefaultToolkit() {
     return defaultToolkit;
   }
+
+    /**
+     * @deprecated This method should not be used. It has been temporarily
+     * introduced for the JSP example and it will be removed in the next
+     * version of JADE
+     **/
+    public void enableDefaultToolkit() {
+	enableDefaultToolkit=true;
+    }
+
+
 
 
 
