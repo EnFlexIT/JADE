@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.69  1999/12/22 09:00:13  rimassaJade
+  Added support API for adding a new Content Language or Ontology to an agent
+  internal tables.
+
   Revision 1.68  1999/10/08 08:27:35  rimassa
   Fixed a problem, when an unhandled exception caused the agent to die
   without deregistering itself with the AMS.
@@ -341,7 +345,13 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import jade.core.behaviours.Behaviour;
+
+import jade.lang.Codec;
 import jade.lang.acl.*;
+
+import jade.onto.Name;
+import jade.onto.Ontology;
+
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
@@ -588,6 +598,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private transient AssociationTB pendingTimers = new AssociationTB();
 
+  private Map languages = new HashMap();
+  private Map ontologies = new HashMap();
+
   /**
      The <code>Behaviour</code> that is currently executing.
      @see jade.core.behaviours.Behaviour
@@ -657,6 +670,58 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return myAddress;
   }
 
+  /**
+     Adds a Content Language codec to the agent capabilities. When an
+     agent wants to provide automatic support for a specific content
+     language, it must use an implementation of the <code>Codec</code>
+     interface for the specific content language, and add it to its
+     languages table with this method.
+     @param languageName The symbolic name to use for the language.
+     @param translator A translator for the specific content language,
+     able to translate back and forth between text strings and Frame
+     objects.
+     @see jade.core.Agent#deregisterLanguage(String languageName)
+     @see jade.lang.Codec
+  */
+  public void registerLanguage(String languageName, Codec translator) {
+    languages.put(new Name(languageName), translator);
+  }
+
+  /**
+     Removes a Content Language from the agent capabilities.
+     @param languageName The name of the language to remove.
+     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
+   */
+  public void deregisterLanguage(String languageName) {
+    languages.remove(new Name(languageName));
+  }
+
+  /**
+     Adds an Ontology to the agent capabilities. When an agent wants
+     to provide automatic support for a specific ontology, it must use
+     an implementation of the <code>Ontology</code> interface for the
+     specific ontology and add it to its ontologies table with this
+     method.
+     @param ontologyName The symbolic name to use for the ontology
+     @param o An ontology object, that is able to convert back and
+     forth between Frame objects and application specific Java objects
+     representing concepts.
+     @see jade.core.Agent#deregisterOntology(String ontologyName)
+     @see jade.onto.Ontology
+   */
+  public void registerOntology(String ontologyName, Ontology o) {
+    ontologies.put(new Name(ontologyName), o);
+  }
+
+  /**
+     Removes an Ontology from the agent capabilities.
+     @param ontologyName The name of the ontology to remove.
+     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
+   */
+  public void deregisterOntology(String ontologyName) {
+    ontologies.remove(new Name(ontologyName));
+  }
+
   // This is used by the agent container to wait for agent termination
   void join() {
     try {
@@ -691,7 +756,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public int getQueueSize() {
     return msgQueue.getMaxSize();
   }
-
 
   /**
      Read current agent state. This method can be used to query an
