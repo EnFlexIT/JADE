@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.64  1999/08/27 15:40:55  rimassa
+  Implemented doMove() state transition.
+
   Revision 1.63  1999/08/10 15:42:23  rimassa
   Removed debugging printouts.
 
@@ -495,16 +498,23 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int AP_TRANSIT = 6;
 
-  // FIXME: Non compliant. Report to FIPA...
+  // Non compliant states, used internally. Maybe report to FIPA...
   /**
      Represents the <code>copy</code> agent state.
   */
-  public static final int AP_COPY = 7;
+  static final int AP_COPY = 7;
+
+  /**
+     Represents the <code>gone</code> agent state. This is the state
+     the original instance of an agent goes into when a migration
+     transaction successfully commits.
+  */
+  static final int AP_GONE = 8;
 
   /**
      Out of band value for Agent Platform Life Cycle states.
   */
-  public static final int AP_MAX = 8;    // Hand-made type checking
+  public static final int AP_MAX = 9;    // Hand-made type checking
 
 
   /**
@@ -675,7 +685,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @return the Agent Platform Life Cycle state this agent is currently in.
    */
   public int getState() {
-    return myAPState;
+    int state;
+    synchronized(stateLock) {
+      state = myAPState;
+    }
+    return state;
   }
 
   // State transition methods for Agent Platform Life-Cycle
@@ -706,8 +720,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <em>This method is currently not implemented.</em>
   */
   public void doMove(String destination) {
-    myAPState = AP_TRANSIT;
-    // FIXME: Should do something more
+    synchronized(stateLock) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+	myBufferedState = myAPState;
+	myAPState = AP_TRANSIT;
+	myDestination = destination;
+
+	// Real action will be executed in the embedded thread
+	if(!myThread.equals(Thread.currentThread()))
+	  myThread.interrupt();
+      }
+    }
+    
   }
 
   /**
@@ -723,11 +747,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	myAPState = AP_COPY;
 	myDestination = destination;
 	myNewName = newName;
+
+	// Real action will be executed in the embedded thread
+	if(!myThread.equals(Thread.currentThread()))
+	  myThread.interrupt();
       }
     }
-    // Real action will be executed in the embedded thread
-    if(!myThread.equals(Thread.currentThread()))
-      myThread.interrupt();
   }
 
   /**
@@ -868,10 +893,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      agent has no effect.
   */
   public void doDelete() {
-    if(myAPState != AP_DELETED) {
-      myAPState = AP_DELETED;
-      if(!myThread.equals(Thread.currentThread()))
-	myThread.interrupt();
+    synchronized(stateLock) {
+      if(myAPState != AP_DELETED) {
+	myAPState = AP_DELETED;
+	if(!myThread.equals(Thread.currentThread()))
+	  myThread.interrupt();
+      }
     }
   }
 
@@ -977,6 +1004,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	setup();
 	break;
       case AP_TRANSIT:
+	doExecute();
+	afterMove();
 	break;
       case AP_COPY:
 	doExecute();
@@ -1111,7 +1140,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	  waitUntilActivate();
 	  break;
 	case AP_TRANSIT:
-	  // Create a Migration transactional object and wait on it
+	  notifyMove();
+	  beforeMove();
 	  return;
 	case AP_COPY:
 	  beforeClone();
@@ -1917,6 +1947,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     while(i.hasNext()) {
       CommListener l = (CommListener)i.next();
       l.endSource(myName);
+    }
+  }
+
+  // Notify listeners of the need to copy the current agent
+  private void notifyMove() {
+    Iterator i = listeners.iterator();
+    while(i.hasNext()) {
+      CommListener l = (CommListener)i.next();
+      l.moveSource(myName, myDestination);
     }
   }
 
