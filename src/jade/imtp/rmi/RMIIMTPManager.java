@@ -64,15 +64,15 @@ public class RMIIMTPManager implements IMTPManager {
       return manager.getAdapter(ref);
     } 
 
-    public void dispatch(ACLMessage msg) throws NotFoundException {
+    public void dispatch(ACLMessage msg) throws NotFoundException, UnreachableException {
       try {
         ref.dispatch(msg, receiver);
       } 
       catch (RemoteException re) {
-	throw new NotFoundException("IMTP failure: [" + re.getMessage() + "]");
+				throw new UnreachableException("IMTP failure: [" + re.getMessage() + "]");
       }
       catch (IMTPException imtpe) {
-	throw new NotFoundException("IMTP failure: [" + imtpe.getMessage() + "]");
+				throw new UnreachableException("IMTP failure: [" + imtpe.getMessage() + "]");
       }
     }
 
@@ -236,11 +236,11 @@ public class RMIIMTPManager implements IMTPManager {
 
   /**
    */
-  public synchronized MainContainer getMain() throws IMTPException {
+  public synchronized MainContainer getMain(boolean reconnect) throws IMTPException {
     // Look the remote Main Container up into the
     // RMI Registry.
     try {
-      if(remoteMC == null) {
+      if(remoteMC == null || reconnect) {
 	MainContainerRMI remoteMCRMI = (MainContainerRMI)Naming.lookup(platformRMI);
 	remoteMC = new MainContainerAdapter(remoteMCRMI, this);
       }

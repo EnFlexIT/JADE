@@ -151,7 +151,14 @@ class MainContainerImpl implements Platform, AgentManager {
     ad.lock();
     AgentProxy ap = ad.getProxy();
     ad.unlock();
-    ap.dispatch(msg);
+    try {
+    	ap.dispatch(msg);
+    }
+    catch (UnreachableException ue) {
+      // TBD: Here we should buffer massages for temporarily disconnected 
+      // agents
+      throw new NotFoundException(ue.getMessage());
+    }
   }
 
   // this variable holds a progressive number just used to name new containers

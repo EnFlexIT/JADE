@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
+import jade.util.leap.List;
 
 /**
  
@@ -45,11 +46,10 @@ class MainContainerProxy implements Platform {
     // Agents cache, indexed by agent name
     private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
 
-
-    MainContainerProxy(Profile p) throws ProfileException, IMTPException {
+    public MainContainerProxy(Profile p) throws ProfileException, IMTPException {
       myProfile = p;
-      // Use the IMTPManager to get a stub of the real Main container
-      adaptee = myProfile.getIMTPManager().getMain();
+      // Use the IMTPManager to get a fresh stub of the real Main container
+      adaptee = myProfile.getIMTPManager().getMain(true);
     }
 
     public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
@@ -66,19 +66,33 @@ class MainContainerProxy implements Platform {
 
 
     public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException {
-      // Use the cache.
-      AgentProxy ap = cachedProxies.get(receiverID);
-      if(ap != null) { // Cache hit :-)
-	try {
-	  ap.dispatch(msg);
-	}
-	catch(NotFoundException nfe) { // Stale cache entry
-	  cachedProxies.remove(receiverID);
-	  dispatchUntilOK(msg, receiverID);
-	}
+	    boolean dispatched = false;
+      
+  	  // Use the cache.
+    	AgentProxy ap = cachedProxies.get(receiverID);
+      if(ap != null) { 
+      	// Cache hit :-)
+				try {
+	  			ap.dispatch(msg);
+		  		dispatched = true;
+				}
+				catch(NotFoundException nfe) { // Stale cache entry
+	  			cachedProxies.remove(receiverID);
+				}
+				catch(UnreachableException ue) { // Stale cache entry
+	  			cachedProxies.remove(receiverID);
+				}
       }
-      else { // Cache miss :-(
-	dispatchUntilOK(msg, receiverID);
+      
+      if (!dispatched) {
+      	try {
+					dispatchUntilOK(msg, receiverID);
+      	}
+      	catch (UnreachableException ue) {
+      		// TBD: Here we should buffer massages for temporarily disconnected 
+      		// agents
+      		throw new NotFoundException(ue.getMessage());
+      	}
       }
     }
 
@@ -124,7 +138,7 @@ class MainContainerProxy implements Platform {
     }
 
 
-  private void dispatchUntilOK(ACLMessage msg, AID receiverID) throws NotFoundException {
+  private void dispatchUntilOK(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException {
     boolean ok;
     int i = 0;
     do {
@@ -137,16 +151,32 @@ class MainContainerProxy implements Platform {
 				cachedProxies.put(receiverID, proxy);
 				ok = true;
       }
+      catch(IMTPException imtpe) {
+				// It should never happen as this is a local call
+				throw new InternalError("Error: cannot contact the local container.");
+      }
       catch(NotFoundException nfe) {
+      	// The destination agent is not in the local container.
 				// Try with the Main Container: if this call raises a
 				// NotFoundException, the agent is not found in the whole
 				// GADT, so the exception breaks out of the loop and ends the
 				// dispatch attempts.
 				try {
-	  			proxy = adaptee.getProxy(receiverID);
+	  			proxy = adaptee.getProxy(receiverID); // Remote call
 				}
-				catch(IMTPException imtpe) {
-	  			throw new NotFoundException("Communication problem: " + imtpe.getMessage());
+				catch(IMTPException imtpe1) {
+	  			//throw new NotFoundException("Communication problem: " + imtpe.getMessage());
+	  			System.out.println("Communication error while contacting the Main container");
+	  			System.out.print("Trying to reconnect... ");
+	  			try {
+	    			restoreMainContainer();
+	    			System.out.println("OK.");
+	    			proxy = adaptee.getProxy(receiverID); // Remote call
+	  			}
+	  			catch(IMTPException imtpe2) {
+	  				System.out.println("Cannot reconnect: "+imtpe2.getMessage());
+	    			throw new UnreachableException("Main container unreachable: "+imtpe2.getMessage());
+	  			}
 				}
 				try {
 	  			proxy.dispatch(msg);
@@ -154,13 +184,10 @@ class MainContainerProxy implements Platform {
 	  			ok = true;
 				}
 				catch(NotFoundException nfe2) {
-	  			// Stale proxy: need to check again.
+	  			// Stale proxy (the agent can have moved in the meanwhile).
+					// Need to check again.
 	  			ok = false;
 				}
-      }
-      catch(IMTPException imtpe) {
-				// It should never happen, since this really is a local call
-				throw new InternalError("Error: cannot contact the local container.");
       }
 
       /*
@@ -189,6 +216,55 @@ class MainContainerProxy implements Platform {
     } while(!ok);
   }
 
+  
+  private void restoreMainContainer() throws IMTPException, NotFoundException {
+    try {
+      // Use the IMTPManager to get a fresh stub of the real Main container
+      adaptee = myProfile.getIMTPManager().getMain(true);
 
+      // Register again with the Main Container.
+      ContainerID myID = (ContainerID) localContainer.here();
+      String name = adaptee.addContainer(localContainer, myID); // Remote call
+      myID.setName(name);
+
+      // Restore registration of local agents
+      ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
+      regMsg.setSender(Agent.getAMS());
+      regMsg.addReceiver(Agent.getAMS());
+      regMsg.setLanguage(jade.lang.sl.SL0Codec.NAME);
+      regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
+      regMsg.setProtocol("fipa-request");
+
+      AID[] agentIDs = localContainer.getLocalAgents().keys();
+      for(int i = 0; i < agentIDs.length; i++) {
+				AID agentID = agentIDs[i];
+
+				// Register again the agent with the Main Container.
+				try {
+	  			adaptee.bornAgent(agentID, myID); // Remote call
+				}
+				catch(NameClashException nce) {
+	  			throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
+				}
+
+				String content = "((action (agent-identifier :name " + Agent.getAMS().getName() + " ) (register (ams-agent-description :name (agent-identifier :name " + agentID.getName() + " ) :ownership JADE :state active ) ) ))";
+				// Register again the agent with the AMS
+				regMsg.setContent(content);
+				localContainer.routeIn(regMsg, Agent.getAMS());
+
+      }
+
+      // Restore the registration of local MTPs 
+      List localAddresses = myProfile.getAcc().getLocalAddresses();
+      for(int i = 0; i < localAddresses.size(); i++) {
+				adaptee.newMTP((String)localAddresses.get(i), myID); // Remote call
+      }
+
+    }
+    catch(ProfileException pe) {
+      throw new NotFoundException("Profile error trying to reconnect to the Main container: "+pe.getMessage());
+    }
+  }
+  
 }
 

@@ -64,10 +64,11 @@ public interface IMTPManager {
     AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException;
 
     /**
-       Return the MainContainer or a stub of it depending on whether
-       we are in the Main Container or in a perfipheral container.
+       Return a stub of the remote Main Container.
+       @param reconnect Indicates whether or not the stub must be 
+       created from scratch
      */
-    MainContainer getMain() throws IMTPException;
+    MainContainer getMain(boolean reconnect) throws IMTPException;
 
     /**
      * Release all resources of this IMTPManager

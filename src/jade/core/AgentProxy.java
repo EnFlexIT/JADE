@@ -32,7 +32,7 @@ import jade.util.leap.Serializable;
 */
 
 public interface AgentProxy extends Serializable {
-  void dispatch(ACLMessage msg) throws NotFoundException;
+  void dispatch(ACLMessage msg) throws NotFoundException, UnreachableException ;
   void ping() throws UnreachableException;
 }
 

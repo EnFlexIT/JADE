@@ -601,7 +601,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void handleSend(ACLMessage msg) {
 
-    //System.out.println("Sniffer to Notify- sender: "+ sniffersToNotify.size());
     // 26-Mar-2001. The receivers set into the Envelope of the message, 
     // if present, must have precedence over those set into the ACLMessage.
     // If no :intended-receiver parameter is present in the Envelope, 
@@ -710,12 +709,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
       if(livesHere(receiverID)) {
-	// Dispatch it through the MainContainerProxy
-	myPlatform.dispatch(msg, receiverID);
+				// Dispatch it through the MainContainerProxy
+				myPlatform.dispatch(msg, receiverID);
       }
       else {
-	// Dispatch it through the ACC
-	myACC.dispatch(msg, receiverID);
+				// Dispatch it through the ACC
+				myACC.dispatch(msg, receiverID);
       }
     }
     catch(NotFoundException nfe) {
@@ -752,6 +751,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private boolean livesHere(AID id) {
     String hap = id.getHap();
     return CaseInsensitiveString.equalsIgnoreCase(hap, platformID);
+  }
+  
+  LADT getLocalAgents() {
+  	return localAgents;
   }
 
   /*
