@@ -64,14 +64,11 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 
 		// Get a message from the queue or wait for a new one if queue is empty
 		msg = myAgent.receive(mt);
-		if (msg == null)
-		{
+		if (msg == null) {
 			block();
 		 	return;
 		}
-		
-		else
-		{
+		else {
 			String replySentence = new String("");
 
 			// Get action to perform
@@ -114,6 +111,28 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 				// Prepare to move
 				((MobileAgent)myAgent).nextSite = dest;
 				myAgent.doMove(dest);
+			}
+			// CLONE TO ANOTHER LOCATION				
+			else if (action.equals("clone"))
+			{
+			    String destination = st.nextToken();
+			    System.out.println();
+			    Location dest = new jade.core.ContainerID(destination, null);
+			    System.out.println("They requested me to clone myself to " + destination);
+				// Set reply sentence
+				replySentence = new String("\"OK cloning to " + destination+" \"");
+				// Prepare to move
+				((MobileAgent)myAgent).nextSite = dest;
+				myAgent.doClone(dest, "clone"+((MobileAgent)myAgent).cnt+"of"+myAgent.getName());
+			}
+			// SAY THE CURRENT LOCATION 
+			else if (action.equals("where-are-you"))
+			{
+			    System.out.println();
+			    Location current = myAgent.here();
+			    System.out.println("Currently I am running on "+current.getName());
+				// Set reply sentence
+				replySentence = current.getName();
 			}
 
 			// Reply

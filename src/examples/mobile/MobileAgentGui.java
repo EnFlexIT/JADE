@@ -174,8 +174,10 @@ public class MobileAgentGui extends JFrame implements ActionListener
 
   public void updateLocations(Iterator list) {
     availableSiteListModel.clear();
-    for ( ; list.hasNext(); )
-      availableSiteListModel.add((Location)list.next());
+    for ( ; list.hasNext(); ) {
+    	Object obj = list.next();
+      availableSiteListModel.add((Location) obj);
+    }
     availableSiteListModel.fireTableDataChanged();
   }
 

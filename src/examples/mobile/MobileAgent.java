@@ -79,7 +79,7 @@ public class MobileAgent extends GuiAgent {
   // this vector contains the list of visited locations
   Vector visitedLocations = new Vector();
 
-	public void setup() {
+  public void setup() {
 	  // register the SL0 content language
 	  getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 	  // register the mobility ontology
