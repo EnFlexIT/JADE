@@ -24,9 +24,17 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 /**
- * This class represent a specifier and collects
- * a name, a className, and an array of arguments.
- * 
+ * This class represent a specifier and collects a name, a className,
+ * and an array of arguments. Profile specifiers are used to describe
+ * several kinds of complex information when configuring JADE
+ * (e.g. MTPs to install, agents to start up, kernel services to
+ * activate).
+ *
+ * The general string format for a specifier is
+ * <p><code>name<b>:</b>className<b>(</b><i>separated arglist</i><b>)</b></code></p>
+ * The separated argument list uses a separator character that can be configured when
+ * invoking parsing-related utility methods. 
+ *
  * @author LEAP
  */
 public class Specifier {
@@ -35,37 +43,52 @@ public class Specifier {
     private Object[] args = null;
 
     /**
+       Set the name for this specifier object.
+       @param n The name to give to this specifier.
      */
     public void setName(String n) {
         name = n;
     } 
 
     /**
+       Retrieve the name for this specifier object.
+       @return The name of the specifier, if one was set, or
+       <code>null</code> otherwise.
      */
     public String getName() {
         return name;
     } 
 
     /**
-
+       Set the name of the class of this specifier.
+       @param cn The class name to assign to the specifier object.
      */
     public void setClassName(String cn) {
         className = cn;
     } 
 
     /**
+       Retrieve the class name of this specifier.
+       @return The class name of the specifier, if one was set, or
+       <code>null</code> otherwise.
      */
     public String getClassName() {
         return className;
     } 
 
     /**
+       Set the argument list for this specifier object.
+       @param a An object array containing the argument list for this
+       specifier.
      */
     public void setArgs(Object[] a) {
         args = a;
     } 
 
     /**
+       Retrieve the argument list for this specifier.
+       @return An object array containing the argument list, if one
+       was set, or <code>null</code> otherwise.
      */
     public Object[] getArgs() {
         return args;
@@ -75,6 +98,9 @@ public class Specifier {
      * This method is used by Boot, ProfileImpl, and RMA in order
      * to have a String representation of this Specifier according to the
      * format <code>name:className(arg1 arg2 argn)</code>
+     *
+     * @return A string representation of this specifier, according to
+     * the format above.
      **/
     public String toString() {
 	// TAKE CARE: do not change this method otherwise Boot might fail
@@ -99,6 +125,17 @@ public class Specifier {
     }
 
   /**
+     This static utility method can parse the string representation of
+     a list of specifiers. The general format of a specifier is used,
+     with a comma as argument separator, i.e.:
+     <p><code>name<b>:</b>className<b>(</b><i>comma-separated arglist</i><b>)</b></code></p>
+     While comma is the separator character within a specifier
+     arguments, the semicolon is used to separate the different
+     specifiers in the list.
+
+     @param specsLine The string containing the representation of the
+     specifier list, according to the format above.
+     @return A vector containing the parsed specifiers.
    */
   public static Vector parseSpecifierList(String specsLine) throws Exception {
     Vector specs = new Vector();
@@ -153,11 +190,14 @@ public class Specifier {
 
   /**
    * Utility method that parses a stringified object specifier in the form
-   * name:class(arg1, arg2...) and returns
+   * <p><code>name<b>:</b>className<b>(</b><i>separated arglist</i><b>)</b></code></p>
    * a Specifier object.
    * Both the name and the list of arguments are optional.
-   * Concrete implementations can take advantage from this method to
-   * implement the getSpecifiers() method.
+   * 
+   * @param specString A string containing the representation of the
+   * specifier, according to the format above.
+   * @param argsDelimiter The character to use as a delimiter within the argument list.
+   * @return A specifier object, built according to the parsed information.
    */
   public static Specifier parseSpecifier(String specString, char argsDelimiter) throws Exception {
     Specifier s = new Specifier();
