@@ -14,5 +14,27 @@
 				This process is repeated 4 times (including moving to the local container).
 			</HowWorkTest>
 			<WhenTestPass> The test passes if the agent move correctly.</WhenTestPass>
+		</Test>	
+		
+		<Test name="Protocol in transit" skip="false">
+			<TestClassName>test.mobility.tests.TestProtocolInTransit</TestClassName>
+			<WhatTest> Tests the execution of an interaction protocol while an agent is in transit.</WhatTest>
+			<HowWorkTest> The mobile agent initiates a Contract-Net protocol with 3 responders.<br/> 
+				Each responder replies with a PROPOSE and puts the name of the container he lives on in the content.<br/>
+				On receiving a PROPOSE the mobile agents moves on the indicated container and accepts all proposals.<br/>
+				When all proposals have been received the mobile agent informs the tester agent.<br/>
+				The same happens for result notifications.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent correctly receives the two INFORMs (one for responses and one for notifications) from the mobile agent.</WhenTestPass>
+		</Test>		
+		
+		<Test name="Mobility ontology" skip="false">
+			<TestClassName>test.mobility.tests.TestMobilityOntology</TestClassName>
+			<WhatTest> Tests the MoveAction and CloneAction of the MobilityOntology.</WhatTest>
+			<HowWorkTest> A mobile agent is started on Container-3.<br/>
+			The tester requests the AMS to MOVE the mobile agent on Container-1 and then waits for a confirmation message from the mobile agent (who sends this message in his afterMove() method).<br/>
+			Then the tester requests the AMS to CLONE the mobile agent on Container-2 and then waits for a confirmation message from the clone (who sends this message in his afterClone() method).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent correctly receives the two CONFIRMs.</WhenTestPass>
 		</Test>		
 	</TestsList>
