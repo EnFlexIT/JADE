@@ -466,8 +466,23 @@ public class DFService extends FIPAServiceCommunicator {
 		a.send(subscribe);
 		DFAgentDescription[] result = waitForResults(a, timeout, replyWith, convId);
 
-		// FIXME: SEND the CANCEL message
-
+		// SEND the CANCEL message
+		ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
+		cancel.addReceiver(dfName);
+		cancel.setLanguage(c.getName());
+		cancel.setOntology(o.getName());
+		cancel.setConversationId(convId);
+		Action act = new Action(dfName, OntoACLMessage.wrap(subscribe));
+		synchronized (cm) {
+			try {
+				cm.fillContent(cancel, act);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+  	}
+		a.send(cancel);
+		
 		return result;
   }
   

@@ -748,6 +748,40 @@ public class df extends GuiAgent implements DFGUIAdapter {
       }
   }
   
+  /**
+     DFSubscriptionResponder BAHAVIOUR. An extended version of the 
+     SubscriptionResponder that manages the CANCEL message
+   */
+  private class DFSubscriptionResponder extends SubscriptionResponder {	
+  	private static final String HANDLE_CANCEL = "Handle-cancel";
+
+		DFSubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm) {
+	    super(a, MessageTemplate.or(mt, MessageTemplate.MatchPerformative(ACLMessage.CANCEL)), sm);
+	    
+	    registerTransition(RECEIVE_SUBSCRIPTION, HANDLE_CANCEL, ACLMessage.CANCEL);
+	    registerDefaultTransition(HANDLE_CANCEL, RECEIVE_SUBSCRIPTION);
+		    
+			// HANDLE_CANCEL 
+			Behaviour b = new OneShotBehaviour(myAgent) {
+				public void action() {
+			    DataStore ds = getDataStore();
+			    // If we are in this state the SUBSCRIPTION_KEY actually contains a CANCEL message 
+			    ACLMessage cancel = (ACLMessage) ds.get(SUBSCRIPTION_KEY);
+					try {
+						Action act = (Action) getContentManager().extractContent(cancel);
+						ACLMessage subsMsg = (ACLMessage)act.getAction();
+			    	mySubscriptionManager.deregister(new SubscriptionResponder.Subscription(DFSubscriptionResponder.this, subsMsg));
+					}
+					catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			b.setDataStore(getDataStore());		
+			registerState(b, HANDLE_CANCEL);	
+		}
+  }
+		
   /******************************/
   /***  Subscription Manager  ***/
   /******************************/
@@ -812,7 +846,16 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
   	// degeregister the subscritpion from hashtable
   	public void deregister( SubscriptionResponder.Subscription sub ) throws RefuseException, NotUnderstoodException {
-			subscriptions.remove(sub);
+			Enumeration e = subscriptions.keys();
+			while(e.hasMoreElements()){
+				DFAgentDescription dfd = (DFAgentDescription)e.nextElement();
+				Object[] oo = (Object[])subscriptions.get(dfd);
+				SubscriptionResponder.Subscription s = (SubscriptionResponder.Subscription) oo[0];
+				if((s.getMessage().getConversationId()).equals(sub.getMessage().getConversationId())){
+					subscriptions.remove(dfd);	
+					break;
+				}
+			}		
   	}
   	
   	// Handle new registrations/modifications by notifying subscribed agents
@@ -886,7 +929,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private DFFipaAgentManagementBehaviour fipaRequestResponder;
   private DFJadeAgentManagementBehaviour jadeRequestResponder;
   private DFAppletManagementBehaviour appletRequestResponder;
-  private SubscriptionResponder dfSubscriptionResponder;
+  private DFSubscriptionResponder dfSubscriptionResponder;
   
  	private SubscriptionManagerImpl subManager = new SubscriptionManagerImpl();
 
@@ -913,7 +956,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 
 		// Behaviour dealing with subscriptions
 		mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
-    dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager);
+    dfSubscriptionResponder = new DFSubscriptionResponder(this, mt1, subManager);
 
   }
 
