@@ -86,6 +86,18 @@
 			<Description> This item includes tests related to the support for the Two-phase-commit interaction protocols </Description>
 			<TestsListRif>test/proto/twoPhTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="jade.wrapper in-process interface" skip="false">
+			<ClassName>test.inProcess.TesterAgent</ClassName>
+			<Description> This item includes tests for the APIs defined in the jade.wrapper package. The list of tests is still under construction. 
+      </Description>
+			<TestsListRif>test/inProcess/inProcessTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Stress tests" skip="true">
+			<ClassName>test.stress.StressTesterAgent</ClassName>
+			<Description> This item includes stress tests i.e. tests that do not focus on a specific case, but stress the system by performing a lot of operations. 
+      </Description>
+			<TestsListRif>test/stress/stressTestsList.xml</TestsListRif>
+		</Tester>
 		<Tester name="Communication performance and scalability" skip="true">
 			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
 			<Description> This item includes tests that measure the performances of the message transport mechanism for different types of communication (intra-container, inter-container, inter-platform...) </Description>
@@ -96,11 +108,5 @@
 			<Description> This item includes tests validating the execution of JADE containers and agents on MIDP devices.
 			The execution of this group of tests requires the user to i) load the testleap.jar file on the MIDP device used for the tests and ii) manualy start JADE containers on it when requested. </Description>
 			<TestsListRif>test/leap/LEAPTestsList.xml</TestsListRif>
-		</Tester>
-		<Tester name="jade.wrapper in-process interface" skip="false">
-			<ClassName>test.inProcess.TesterAgent</ClassName>
-			<Description> This item includes tests for the APIs defined in the jade.wrapper package. The list of tests is still under construction. 
-      </Description>
-			<TestsListRif>test/inProcess/inProcessTestsList.xml</TestsListRif>
 		</Tester>
 	</TesterList>
