@@ -51,7 +51,20 @@
 	   			<LI>searches the AMS for himself and checks that the address has been removed from the AMSDescription;</LI>
 			    <LI>gets the platform description and check that the address has been removed;</LI>
 			    </UL>			
-		    </HowWorkTest>
-			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		  </HowWorkTest>
+			<WhenTestPass>The test passes if the address of the installed/uninstalled MTP is correctly added/removed to i) the agent AID, ii) the AMS-Description of the Agent and iii) the Platform description. 
+			</WhenTestPass> 
 		</Test>				
+		
+		<Test name="MTP management on container crash" skip="false">
+			<TestClassName>test.domain.ams.tests.TestMTPCrash</TestClassName>
+			<WhatTest>Test the correct management of MTP addresses when a container running an MTP i) is started and ii) crashes.
+			</WhatTest>
+			<HowWorkTest>All the steps of this test are identical to those of the 'Install / Uninstall MTP' test except steps 1 and 5.
+			Here a container with an MTP on it is created/killed instead of requesting the AMS to install/uninstall an MTP on an existing container. 
+	    </HowWorkTest>
+			<WhenTestPass>The test passes if the address of the new/dead MTP is correctly added/removed to i) the agent AID, ii) the AMS-Description of the Agent and iii) the Platform description. 
+			</WhenTestPass> 
+		</Test>				
+		
 	</TestsList>
