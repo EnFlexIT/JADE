@@ -31,6 +31,15 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
     - automates the process of creating the jade http mtp plugin
   - Also we changed the names of the make commands and batch files
     from make http, make httplib, httpclean to plain 	
+- Added drag and drop support for sending a file. (David Bell, HP)
+  - You can drag and drop a file (containing a text representation of an ACL 
+    message) onto the "Send Message" AclGui panel or the DummyAgent AclGui 
+    panel.
+  - You can select one or more agents in the AgentTree (left hand panel of the 
+    RMA) and then drag and drop a file onto the tree.  The file should contain 
+    a text representation of an ACL message.  The message will be sent to all 
+    selected agents.
+
 
 	
 	
