@@ -58,6 +58,8 @@ import jade.content.onto.basic.Action;
 import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
+import jade.security.JADEPrincipal;
+import jade.security.SDSIName;
 
 
 /**
@@ -470,19 +472,51 @@ public class rma extends ToolAgent {
       containerName = AgentContainer.MAIN_CONTAINER_NAME;
 
     // fill the create action with the intended agent owner
-    jade.security.JADEPrincipal rmaOwner = null;
-    jade.security.Credentials rmaCredentials = null;
-    try {
-      jade.security.CredentialsHelper ch = (jade.security.CredentialsHelper) getHelper("jade.core.security.Security");
-      // get RMA's owner
-      if (ch!=null) {  rmaCredentials = ch.getCredentials();    }
-      if (rmaCredentials!=null) {  rmaOwner = rmaCredentials.getOwner();    }
+    jade.security.JADEPrincipal intendedOwner = null;
+    jade.security.Credentials initialCredentials = null;
+
+    // the ownerName (this can come from the GUI)
+    final String ownerName="alice"; // TOFIX: AR, please replace this
+
+    if ((ownerName==null) || (ownerName.trim().length()==0)) {
+      // it is requested the creation of an agent 
+      // with the same owner of the RMA
+      try {
+        jade.security.JADEPrincipal rmaOwner = null;
+        jade.security.Credentials rmaCredentials = null;
+        jade.security.CredentialsHelper ch = (jade.security.CredentialsHelper) getHelper("jade.core.security.Security");
+        // get RMA's owner
+        if (ch!=null) {  rmaCredentials = ch.getCredentials();    }
+        if (rmaCredentials!=null) {  rmaOwner = rmaCredentials.getOwner();    }
+        intendedOwner = rmaOwner;
+      }
+      catch (ServiceException se) { // Security service not present. Owner is null. 
+        intendedOwner=null;
+        initialCredentials=null;
+      }
+
+    } else {
+      // it is requested the creation of an agent 
+      // with a specified owner name 
+      try
+       {
+         Class c = Class.forName("jade.security.impl.JADEPrincipalImpl");
+         System.out.println("Loaded class: " + c);
+         intendedOwner = (JADEPrincipal) c.newInstance();
+         java.lang.reflect.Method setName = c.getDeclaredMethod("setName", new Class[]{ String.class });
+         System.out.println("Got method: " + setName);
+         setName.invoke(intendedOwner, new Object[] {ownerName});
+       } catch (Exception e)
+       {
+         //e.printStackTrace();
+         // Security service not present. Owner is null. 
+         intendedOwner=null;
+         initialCredentials=null;
+       }
     }
-    catch (ServiceException se) { // Security service not present. Owner is null. 
-    }
-    // it is requested the creation of an agent 
-    // with the same owner of the RMA
-    ca.setOwner( rmaOwner );
+
+    ca.setOwner( intendedOwner );
+    ca.setInitialCredentials( initialCredentials );
 
     ca.setAgentName(agentName);
     ca.setClassName(className);
