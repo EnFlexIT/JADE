@@ -26,6 +26,10 @@ package jade.onto;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.text.*;
 
 /**
   A simple implementation of the <code>Ontology</code> interface. Instances of
@@ -37,7 +41,35 @@ import java.util.*;
 */
 public final class DefaultOntology implements Ontology {
 
-  private Map schemas;
+	private final static String BEGIN_ONTOLOGY_TAG = "ONTOLOGY";
+	private final static String END_ONTOLOGY_TAG = "END-ONTOLOGY";
+	private final static String ONTOLOGY_NAME_TAG = "ONTOLOGY-NAME";
+	private final static String BEGIN_ROLE_TAG = "ROLE";
+	private final static String END_ROLE_TAG = "END-ROLE";
+	private final static String ROLE_NAME_TAG = "ROLE-NAME";
+	private final static String ROLE_FACTORY_TAG = "ROLE-ENTITY-FACTORY";
+	private final static String BEGIN_SLOT_TAG = "SLOT";
+	private final static String END_SLOT_TAG = "END-SLOT";
+	private final static String SLOT_NAME_TAG = "SLOT-NAME";
+	private final static String SLOT_CATEGORY_TAG = "SLOT-CATEGORY";
+	private final static String SLOT_TYPE_TAG = "SLOT-TYPE";
+	private final static String SLOT_PRESENCE_TAG = "SLOT-PRESENCE";
+	
+	private final static int INIT_STATE = 1;
+	private final static int PARSE_ONTOLOGY_BEGIN_STATE = 2;
+	private final static int PARSE_ONTOLOGY_ROLES_STATE = 3;
+	private final static int PARSE_ROLE_BEGIN_STATE = 4;
+	private final static int PARSE_ROLE_SLOTS_STATE = 5;
+	private final static int PARSE_ROLE_END_STATE = 6;
+	private final static int PARSE_SLOT_BEGIN_STATE = 7;
+	private final static int PARSE_SLOT_NAME_OK_STATE = 8;
+	private final static int PARSE_SLOT_CATEGORY_OK_STATE = 9;
+	private final static int PARSE_SLOT_TYPE_OK_STATE = 10;
+	private final static int PARSE_SLOT_END_STATE = 11;
+	private final static int END_STATE = 12;
+	private final static int ERROR_STATE = 13;
+
+	private Map schemas;
   private Map factories;
 
   /**
@@ -777,5 +809,333 @@ public final class DefaultOntology implements Ontology {
     }
     throw new OntologyException("Method " + name + " not found in class "+c.getName());
   }
+  
+  /**
+    Initializes this DefaultOntology object from a text including an ontology
+    according to the format described hereafter.
+    
+    ONTOLOGY
+    ONTOLOGY-NAME <name>
+    
+    	ROLE
+    	ROLE-NAME <name>
+    
+    		SLOT
+    		[SLOT-NAME <name>]
+    		SLOT-CATEGORY <category> // Must be one among Ontology.FRAME_SLOT ....
+    		SLOT-TYPE <type>         // Must be one among Ontology.SLOT_TYPE ....
+    		SLOT-PRESENCE <presence> // Must be M or O
+    		END-SLOT // This block can be repeated n times
+    		
+    	[ROLE-ENTITY-FACTORY <factory>]
+    	
+    	END-ROLE // This block can be repeated n times
+    	
+    END-ONTOLOGY
+    
+    It should be noticed that if a Factory is specified for a given role, 
+    that Factory must have an accessible constructor with no parameters.
+    
+    @param inp The <code>BufferedReader</code> where to read text from.
+    @return The name of the ontology
+    @see toText(BufferedWriter out)
+  */  
+  public String fromText(BufferedReader inp) throws IOException, ParseException, OntologyException {
+  	StringBuffer sb = new StringBuffer();
+  	String line = inp.readLine();
+  	while (line != null) {
+  		sb.append(" " + line);
+  		line = inp.readLine();
+  	}
+	 	StringTokenizer st = new StringTokenizer(sb.toString(), " \t");
+	 	
+	 	String ontologyName = null;
+	 	int state = INIT_STATE;
+	 	while (state != END_STATE) {
+	 		try {
+	 			String token = st.nextToken();
+	 			switch (state) {
+	 			case INIT_STATE:
+	 				if (token.equals(BEGIN_ONTOLOGY_TAG))
+	 					state = PARSE_ONTOLOGY_BEGIN_STATE;
+	 				else
+						throw new ParseException("State PARSE_ONTOLOGY_BEGIN_STATE: Unexpected token " + token, 0);
+	 				break;
+	 				
+				case PARSE_ONTOLOGY_BEGIN_STATE:
+					if (token.equals(ONTOLOGY_NAME_TAG)) {
+	 					ontologyName = st.nextToken();
+	 					state = PARSE_ONTOLOGY_ROLES_STATE;
+	 				}
+	 				else 
+						throw new ParseException("State PARSE_ONTOLOGY_BEGIN_STATE: Unexpected token " + token, 0);
+	 				break;
+	 				
+				case PARSE_ONTOLOGY_ROLES_STATE:
+					if (token.equals(BEGIN_ROLE_TAG))
+						parseRole(st); 
+						// does not change the state
+					else if (token.equals(END_ONTOLOGY_TAG))
+						state = END_STATE;
+					else
+						throw new ParseException("State PARSE_ONTOLOGY_ROLES_STATE: Unexpected token " + token, 0);
+					break;
+					
+				default:
+					throw new ParseException("Unknown parsing state after token " + token, 0);
+	 			} // END of switch
+	 			
+	 		} // END of try
+	 		catch (NoSuchElementException nsee) {
+	 			throw new ParseException("End of stream reached before parsing termination", 0);
+	 		}
+	 	} // END of while
+	 	
+	 	return ontologyName;
+  }
+  
+  private void parseRole(StringTokenizer st) throws ParseException, NoSuchElementException, OntologyException {
+  	String roleName = null;
+  	List slots = new ArrayList(); 
+  	RoleEntityFactory ref = null;
+  	
+  	int state = PARSE_ROLE_BEGIN_STATE;
+  	boolean stopFlag = false;
+  	while (!stopFlag) {
+  		String token = st.nextToken();
+  		switch(state) {
+			case PARSE_ROLE_BEGIN_STATE: 
+				if (token.equals(ROLE_NAME_TAG)) {
+					roleName = st.nextToken();
+					state = PARSE_ROLE_SLOTS_STATE;
+				}
+				else
+					throw new ParseException("State PARSE_ROLE_BEGIN_STATE: Unexpected token" + token, 0);
+				break;
 
+			case PARSE_ROLE_SLOTS_STATE: 
+				if (token.equals(BEGIN_SLOT_TAG)){
+					SlotDescriptor dsc = parseSlot(st, roleName);
+					slots.add(dsc);
+					// Does not change state
+				}
+				else if (token.equals(ROLE_FACTORY_TAG)) {
+					String refName = st.nextToken();
+					try {
+						Class c = Class.forName(refName);
+						ref = (RoleEntityFactory) (c.newInstance());
+					}
+					catch (IllegalAccessException iae) {
+						throw new ParseException("State PARSE_ROLE_SLOTS_STATE: RoleEntityFactory " + refName + " for role " + roleName + " does not have an accessible constructor", 0);
+					}
+					catch (Exception e) {
+						throw new ParseException("State PARSE_ROLE_SLOTS_STATE: RoleEntityFactory " + refName + " for role " + roleName + " cannot be loaded or instantiated", 0);
+					}
+					state = PARSE_ROLE_END_STATE;
+				}
+				else if (token.equals(END_ROLE_TAG))
+					stopFlag = true;
+				else
+					throw new ParseException("State PARSE_ROLE_SLOTS_STATE: Unexpected token " + token + " parsing role " + roleName, 0);
+				break;
+
+			case PARSE_ROLE_END_STATE:
+				if (token.equals(END_ROLE_TAG))
+					stopFlag = true;
+				else
+					throw new ParseException("State PARSE_ROLE_END_STATE: Unexpected token " + token + " parsing role " + roleName, 0);		
+				break;
+				
+			default:
+				throw new ParseException("Unknown parsing state after token " + token, 0);
+  		} // END of switch
+  		
+  	} // END of while
+  	
+  	// Add the role to the ontology
+  	SlotDescriptor[] tmp = new SlotDescriptor[slots.size()];
+  	Iterator it = slots.iterator();
+  	int i = 0;
+  	while (it.hasNext())
+  		tmp[i++] = (SlotDescriptor) it.next();
+  	if (ref != null)
+  		addRole(roleName, tmp, ref);
+  	else
+  		addRole(roleName, tmp);
+  
+  	return;
+  }
+  
+  private SlotDescriptor parseSlot(StringTokenizer st, String roleName) throws ParseException, NoSuchElementException{
+  	String slotName = null;
+  	int slotCategory = 0;
+  	String slotType = null;
+  	boolean isOptional = false;
+  	
+  	int state = PARSE_SLOT_BEGIN_STATE;
+  	boolean stopFlag = false;
+  	while (!stopFlag) {
+  		String token = st.nextToken();
+  		switch(state) {
+			case PARSE_SLOT_BEGIN_STATE:
+				if (token.equals(SLOT_NAME_TAG)) {
+					slotName = st.nextToken();
+					state = PARSE_SLOT_NAME_OK_STATE;
+				}
+				else if (token.equals(SLOT_CATEGORY_TAG)){
+					Integer ii = new Integer(st.nextToken());
+					slotCategory = ii.intValue();
+					state = PARSE_SLOT_CATEGORY_OK_STATE;
+				}
+				else
+					throw new ParseException("State PARSE_SLOT_BEGIN_STATE: Unexpected token " + token + " parsing role " + roleName, 0);
+  			break;
+  			
+			case PARSE_SLOT_NAME_OK_STATE:
+				if (token.equals(SLOT_CATEGORY_TAG)){
+					Integer ii = new Integer(st.nextToken());
+					slotCategory = ii.intValue();
+					state = PARSE_SLOT_CATEGORY_OK_STATE;
+				}
+				else
+					throw new ParseException("State PARSE_SLOT_NAME_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
+				break;
+				
+			case PARSE_SLOT_CATEGORY_OK_STATE:
+				if (token.equals(SLOT_TYPE_TAG)){
+					slotType = st.nextToken();
+					state = PARSE_SLOT_TYPE_OK_STATE;
+				}
+				else 
+					throw new ParseException("State PARSE_SLOT_CATEGORY_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
+				break;
+				
+			case PARSE_SLOT_TYPE_OK_STATE:
+				if (token.equals(SLOT_PRESENCE_TAG)){
+					String tmp = st.nextToken();
+					isOptional = (tmp.equalsIgnoreCase("O"));
+					state = PARSE_SLOT_END_STATE;
+				}
+				else
+					throw new ParseException("State PARSE_SLOT_TYPE_OK_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
+				break;
+				
+			case PARSE_SLOT_END_STATE:
+				if (token.equals(END_SLOT_TAG))
+					stopFlag = true;
+				else
+					throw new ParseException("State PARSE_SLOT_END_STATE: Unexpected token " + token + " parsing slot " + slotName + " of role " + roleName, 0);
+				break;
+				
+			default:
+				throw new ParseException("Unknown parsing state after token " + token, 0);
+				
+  		} // END of switch
+  		
+  	} // END of while
+  	
+  	SlotDescriptor dsc = null;
+  	if (slotName != null)
+  		dsc = new SlotDescriptor(slotName, slotCategory, slotType, isOptional);
+  	else
+  		dsc = new SlotDescriptor(slotCategory, slotType, isOptional);
+  	
+  	return dsc;
+  }
+  
+  /**
+    Writes the ontology represented by this Ontology object as a text formatted
+    according to the following syntax.
+    ONTOLOGY
+    ONTOLOGY-NAME <name>
+    
+    	ROLE
+    	ROLE-NAME <name>
+    
+    		SLOT
+    		[SLOT-NAME <name>]
+    		SLOT-CATEGORY <category> // Must be one among Ontology.FRAME_SLOT ....
+    		SLOT-TYPE <type>         // Must be one among Ontology.SLOT_TYPE ....
+    		SLOT-PRESENCE <presence> // Must be M or O
+    		END-SLOT // This block can be repeated n times
+    		
+    	[ROLE-ENTITY-FACTORY <factory>]
+    	
+    	END-ROLE // This block can be repeated n times
+    	
+    END-ONTOLOGY
+    
+    @param ontologyName This <code>String</code> will be used as the ontology name.
+    @param out The <code>BufferedWriter</code> where to write text into.
+    @see fromText(BufferedReader inp)
+  */  
+  public void toText(String ontologyName, BufferedWriter out) throws IOException {
+  	// Ontology BEGIN TAG
+  	out.write(BEGIN_ONTOLOGY_TAG);
+  	out.newLine();
+  	// Ontology Name
+  	out.write(ONTOLOGY_NAME_TAG + " " + ontologyName);
+  	out.newLine();
+  	
+  	// Loop on roles
+  	Iterator i = schemas.values().iterator();
+  	while (i.hasNext()) {
+  		FrameSchema fs = (FrameSchema) i.next();
+  		String roleName = fs.getName();
+  		// Role BEGIN TAG
+  		out.write(BEGIN_ROLE_TAG);
+  		out.newLine();
+  		// Role Name
+			out.write(ROLE_NAME_TAG + " " + roleName);
+  		out.newLine();
+	  	
+	  	// Loop on slots
+	  	Iterator j = fs.subSchemas();
+	  	while (j.hasNext()) {
+	  		SlotDescriptor dsc = (SlotDescriptor) j.next();
+	  		// Slot BEGIN TAG
+	  		out.write(BEGIN_SLOT_TAG);
+	  		out.newLine();
+  			// Slot Name
+	  		if (!(dsc.getName().equals("") || dsc.getName().startsWith(Frame.UNNAMEDPREFIX) ) ) {
+	  			out.write(SLOT_NAME_TAG + " " + dsc.getName());
+  				out.newLine();
+	  		}
+	  		// Slot Category
+	  		out.write(SLOT_CATEGORY_TAG + " " + dsc.getCategory());
+  			out.newLine();
+	  		// Slot Type
+	  		out.write(SLOT_TYPE_TAG + " " + dsc.getType());
+  			out.newLine();
+	  		// Slot Presence
+	  		if (dsc.isOptional())
+	  			out.write(SLOT_PRESENCE_TAG + " O");
+	  		else
+	  			out.write(SLOT_PRESENCE_TAG + " M");
+  			out.newLine();
+	  		// Slot END TAG
+	  		out.write(END_SLOT_TAG);
+  			out.newLine();
+	  			
+	  	} // END loop on slots
+	  	
+	  	// Role Entity Factory
+    	if (factories.containsKey(new Name(roleName))) {
+    		RoleEntityFactory fac = lookupFactory(roleName);
+    		out.write(ROLE_FACTORY_TAG + " " + fac.getClass().getName());
+  			out.newLine();
+    	}
+	  	// Role END TAG
+	  	out.write(END_ROLE_TAG);
+  		out.newLine();
+	  	
+  	} // END loop on roles
+  	
+  	// Ontology END TAG
+  	out.write(END_ONTOLOGY_TAG);
+  	out.newLine();
+  	
+  	out.flush();
+  	out.close();
+  }
 }
