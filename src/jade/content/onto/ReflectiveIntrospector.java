@@ -34,7 +34,7 @@ import java.lang.reflect.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ReflectiveIntrospector implements Introspector {
+public class ReflectiveIntrospector extends BasicIntrospector {
 
     /**
      * Externalize
@@ -52,41 +52,9 @@ public class ReflectiveIntrospector implements Introspector {
 	FullOntology onto = (FullOntology)ontology;
 
         try {
-            if (obj == null) {
-                return null;
-            } 
+            AbsObject ret = super.externalise(ontology, obj);
 
-            if (obj instanceof String) {
-                return AbsPrimitive.wrap((String) obj);
-            } 
-
-            if (obj instanceof Boolean) {
-                return AbsPrimitive.wrap(((Boolean) obj).booleanValue());
-            } 
-
-            if (obj instanceof Float) {
-                return AbsPrimitive.wrap(((Float) obj).floatValue());
-            } 
-
-            if (obj instanceof Integer) {
-                return AbsPrimitive.wrap(((Integer) obj).intValue());
-            } 
-
-            if (obj instanceof List) {
-                return AbsHelper.fromObject((List) obj, onto);
-            }
-
-	    if(obj instanceof jade.core.AID) {
-		return AbsHelper.fromObject((jade.core.AID)obj, onto);
-	    }
-
-            if (obj instanceof ContentElementList) {
-                return AbsHelper.fromContentElementListObject((List) obj, onto);
-            } 
-	    
-	    if (obj instanceof Iterator) {
-		return AbsHelper.fromObject((Iterator) obj, onto);
-	    }
+	    if(ret != null) return ret;
 
             Class        javaClass = obj.getClass();
             ObjectSchema schema = onto.getSchema(javaClass);
@@ -156,25 +124,9 @@ public class ReflectiveIntrospector implements Introspector {
 	FullOntology onto = (FullOntology)ontology;
 
         try {
-            if (abs == null) {
-                return null;
-            } 
+            Object ret = super.internalise(ontology, abs);
 
-            if (abs instanceof AbsPrimitive) {
-                return AbsPrimitive.toObject((AbsPrimitive) abs);
-            } 
-
-            if (abs instanceof AbsAggregate) {
-                return AbsHelper.toListObject((AbsAggregate) abs, onto);
-            } 
-
-	    if (abs instanceof AbsAID) {
-		return AbsHelper.toAIDObject((AbsAID) abs, onto);
-	    }
-
-            if (abs instanceof AbsContentElementList) {
-                return AbsHelper.toListObject((AbsContentElementList) abs, onto);
-            } 
+            if (ret != null) return ret;
 
             Class        javaClass = onto.getClass(abs.getTypeName());
             Object       obj = javaClass.newInstance();
