@@ -49,13 +49,6 @@ public class TestBlockTimeout extends Test {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the behaviour block/restart mechanism when a timeout is specified by stressing it\n");
-  	sb.append("It should be noticed that passing this test does not ensure the mechanism works correctly\n");
-  	sb.append("This test will take a while");
-  	return sb.toString();
-  }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException { 
   	try {
   		final DataStore store = ds;

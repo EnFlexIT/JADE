@@ -47,12 +47,6 @@ public class TestPerformance extends Test {
   	return TEST_NAME;
   }
   
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the performance of the behaviour scheduling/blocking/restarting mechanism by running a number of different behaviours that do all these things\n");
-  	sb.append("The complete process is repeated several times and the average time is computed");
-  	return sb.toString();
-  }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException { 
   	try {
   		final DataStore store = ds;

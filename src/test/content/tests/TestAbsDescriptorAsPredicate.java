@@ -40,11 +40,6 @@ public class TestAbsDescriptorAsPredicate extends Test{
   public String getName() {
   	return "AbsPredicate-as-Java-class";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the usage of AbsPredicate as a Java class associated to a Predicate in an ontology");
-  	sb.append("\n");
-  	return sb.toString();
-  }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

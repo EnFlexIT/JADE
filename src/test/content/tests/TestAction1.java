@@ -40,10 +40,6 @@ public class TestAction1 extends Test{
   public String getName() {
   	return "BasicOntology.ACTION-with-AgentAction";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests sending an AgentAction within a BasicOntology.ACTION");
-  	return sb.toString();
-  }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();

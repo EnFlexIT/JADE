@@ -40,12 +40,7 @@ public class TestAbsDescriptorAsConcept extends Test{
   public String getName() {
   	return "AbsConcept-as-Java-class";
   }
-  public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests the usage of AbsConcept as a Java class associated to a Concept in an ontology\n");
-  	sb.append("More in details the content used in this test is a predicate represented as a Java object including a concept represented as an instance of the AbsConcept class");
-  	sb.append("\n");
-  	return sb.toString();
-  }
+
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		//Object[] args = getGroupArguments();
