@@ -225,6 +225,13 @@ public abstract class Profile {
    */
   public static final String ACLCODECS = "aclcodecs";
 
+  /**
+     This constant is the key of the property whose value (true or false)
+     indicates whether or not this platform accepts foreign agents i.e.
+     agents whose names are not of the form <local-name>@<platform-name>.
+   */
+	public static final String ACCEPT_FOREIGN_AGENTS = "accept-foreign-agents";
+	
   //#APIDOC_EXCLUDE_BEGIN
 
   /**
