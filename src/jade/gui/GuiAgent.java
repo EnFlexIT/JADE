@@ -36,7 +36,7 @@ import jade.core.behaviours.*;
 @version $Date$ $Revision$
 */
 
-public class GuiAgent extends Agent
+public abstract class GuiAgent extends Agent
 {
 	/**
 	@serial
@@ -110,7 +110,7 @@ public class GuiAgent extends Agent
 
 	/////////////////////////////////////////////////////////////////////////
 	// METHODS TO POST PREDEFINED EXIT AND CLOSEGUI EVENTS IN GUI EVENT QUEUE
-	public void postExitEvent(Object g)
+	/*public void postExitEvent(Object g)
 	{
 		GuiEvent e = new GuiEvent(g, GuiEvent.EXIT);
 		postGuiEvent(e);
@@ -120,13 +120,11 @@ public class GuiAgent extends Agent
 	{
 		GuiEvent e = new GuiEvent(g, GuiEvent.CLOSEGUI);
 		postGuiEvent(e);
-	}
+	}*/
 
 	///////////////////////////////
 	// METHOD TO HANDLE GUI EVENTS
-	protected void onGuiEvent(GuiEvent ev)
-	{
-	}		
+	protected abstract void onGuiEvent(GuiEvent ev);
+	
 }
-
 
