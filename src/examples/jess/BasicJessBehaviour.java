@@ -257,6 +257,9 @@ public class BasicJessBehaviour extends CyclicBehaviour{
     } else {
       System.out.println(myAgent.getName()+ " is checking if there is a message...");
       msg = myAgent.receive();
+      if (msg != null)
+	  // assert the fact message in Jess
+	  assert(ACL2JessString(msg));
     }
 
     // run jess
