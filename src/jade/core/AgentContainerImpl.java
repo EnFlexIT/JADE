@@ -32,23 +32,23 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Set;
 
-import jade.core.event.MessageEvent;
-import jade.core.event.MessageListener;
-import jade.core.event.AgentEvent;
-import jade.core.event.AgentListener;
+//import jade.core.event.MessageEvent;
+//import jade.core.event.MessageListener;
+//import jade.core.event.AgentEvent;
+//import jade.core.event.AgentListener;
 
 import jade.lang.acl.ACLMessage;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-import jade.lang.acl.ACLCodec;
+//import jade.lang.acl.ACLCodec;
 
 //import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
-import jade.tools.ToolNotifier; // FIXME: This should not be imported
+//import jade.tools.ToolNotifier; // FIXME: This should not be imported
 
 
 /**
@@ -87,9 +87,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Agent Communication Channel, managing the external MTPs.
   private acc myACC;
 
-  // The Object this container delegates all operations related to
-  // agent mobility
+  // The Object managing all operations related to agent mobility
+  // in this container
   private MobilityManager myMobilityManager;
+  
+  // The Object managing all operations related to event notification
+  // in this container
+  private NotificationManager myNotificationManager;
   
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
@@ -236,7 +240,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     @param toBeSniffed The <code>AID</code> of the agent to be sniffed
   **/
   public void enableSniffer(AID snifferName, AID toBeSniffed) throws IMTPException {
-
+  	// Delegate the operation to the NotificationManager
+  	myNotificationManager.enableSniffer(snifferName, toBeSniffed);
+		/*
     ToolNotifier tn = findNotifier(snifferName);
     if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
       removeMessageListener(tn);
@@ -249,7 +255,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       addMessageListener(tn);
     }
     tn.addObservedAgent(toBeSniffed);
-
+		*/
   }
 
 
@@ -258,6 +264,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     @param notToBeSniffed The <code>AID</code> of the agent to stop sniffing
   **/
   public void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException {
+  	// Delegate the operation to the NotificationManager
+  	myNotificationManager.disableSniffer(snifferName, notToBeSniffed);
+  	/*
     ToolNotifier tn = findNotifier(snifferName);
     if(tn != null) { // The sniffer must be here
       tn.removeObservedAgent(notToBeSniffed);
@@ -266,7 +275,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	tn.doDelete();
       }
     }
-
+		*/
   }
 
 
@@ -275,6 +284,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     @param toBeDebugged The <code>AID</code> of the agent to start debugging.
   **/
   public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
+  	// Delegate the operation to the NotificationManager
+  	myNotificationManager.enableDebugger(debuggerName, toBeDebugged);
+  	/*
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
       removeMessageListener(tn);
@@ -295,7 +307,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent a = localAgents.get(toBeDebugged);
     AgentState as = a.getAgentState();
     fireChangedAgentState(toBeDebugged, as, as);
-
+		*/
   }
 
   /**
@@ -303,6 +315,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     @param notToBeDebugged The <code>AID</code> of the agent to stop debugging.
   **/
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
+  	// Delegate the operation to the NotificationManager
+  	myNotificationManager.disableDebugger(debuggerName, notToBeDebugged); 
+  	/*
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn != null) { // The debugger must be here
       tn.removeObservedAgent(notToBeDebugged);
@@ -312,6 +327,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	tn.doDelete();
       }
     }
+    */
   }
 
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
@@ -434,13 +450,17 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
-      // Create the ACC.
-      myACC = myProfile.getAcc();
-
+      // Create and initialize the NotificationManager
+      myNotificationManager = new RealNotificationManager();
+      myNotificationManager.initialize(this, localAgents);
+      
       // Create and initialize the MobilityManager.
       myMobilityManager = myProfile.getMobilityManager();
       myMobilityManager.initialize(myProfile, this, localAgents);
       
+      // Create the ACC.
+      myACC = myProfile.getAcc();
+
       // Initialize the Container ID and register to the platform
       // FIXME: ContainerID should be modified so that to take
       // a list of addresses
@@ -450,7 +470,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
-      
     }
     catch(IMTPException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -627,20 +646,28 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     // Notify message listeners
-    fireSentMessage(msg, msg.getSender());
+    //fireSentMessage(msg, msg.getSender());
+    myNotificationManager.fireEvent(NotificationManager.SENT_MESSAGE,
+    	new Object[]{msg, msg.getSender()});
 
   }
 
   public void handlePosted(AID agentID, ACLMessage msg) {
-    firePostedMessage(msg, agentID);
+    //firePostedMessage(msg, agentID);
+    myNotificationManager.fireEvent(NotificationManager.POSTED_MESSAGE,
+    	new Object[]{msg, agentID});
   }
 
   public void handleReceived(AID agentID, ACLMessage msg) {
-    fireReceivedMessage(msg, agentID);
+    //fireReceivedMessage(msg, agentID);
+    myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
+    	new Object[]{msg, agentID});
   }
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
-    fireChangedAgentState(agentID, from, to);
+    //fireChangedAgentState(agentID, from, to);
+    myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_STATE,
+    	new Object[]{agentID, from, to});
   }
 
   public void handleStart(String localName, Agent instance) {
@@ -885,7 +912,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 */
 
-  private ToolNotifier findNotifier(AID observerName) {
+  /*private ToolNotifier findNotifier(AID observerName) {
     if(messageListeners == null)
       return null;
     Iterator it = messageListeners.iterator();
@@ -901,7 +928,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return null;
 
   }
-
+	
 
   // This lock is used to synchronize operations on the message
   // listeners list. Using lazy processing (the list is set to null
@@ -1011,5 +1038,5 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
     }
   }
-
+	*/
 }
