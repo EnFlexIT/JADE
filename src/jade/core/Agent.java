@@ -23,6 +23,22 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
+
+import jade.util.leap.Serializable;
+import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+
+import jade.core.behaviours.Behaviour;
+import jade.lang.acl.*;
+import jade.domain.FIPAException;
+import jade.content.ContentManager;
+
+import jade.security.AuthException;
+
+//#MIDP_EXCLUDE_BEGIN
 import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
@@ -30,43 +46,21 @@ import java.io.OutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-
-import java.util.Vector;
-
-
-import jade.util.leap.Serializable;
-
-import jade.util.leap.Iterator;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-//import jade.util.Debug;
+import java.util.Vector;
 
-import jade.core.behaviours.Behaviour;
-
-import jade.lang.acl.*;
-
-import jade.domain.AMSService;
-// Concepts from fipa-agent-management ontology
-import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-
-import jade.domain.FIPAException;
-
-import jade.content.ContentManager;
-
-//__SECURITY__BEGIN
-import jade.security.AuthException;
 import jade.security.Authority;
-import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.CertificateFolder;
 import jade.security.PrivilegedExceptionAction;
-//__SECURITY__END
+//#MIDP_EXCLUDE_END
+
+/*#MIDP_INCLUDE_BEGIN
+import javax.microedition.midlet.*;
+#MIDP_INCLUDE_END*/
 
 /**
    The <code>Agent</code> class is the common superclass for user
@@ -89,28 +83,25 @@ import jade.security.PrivilegedExceptionAction;
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */
-
 public class Agent implements Runnable, Serializable, TimerListener {
-
-  /**
-  @serial
-  */
 
   // This inner class is used to force agent termination when a signal
   // from the outside is received
   private class AgentDeathError extends Error {
-
+  	//#MIDP_EXCLUDE_BEGIN
     AgentDeathError() {
       super("Agent " + Thread.currentThread().getName() + " has been terminated.");
     }
-
+  	//#MIDP_EXCLUDE_END
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   private static class AgentInMotionError extends Error {
     AgentInMotionError() {
       super("Agent " + Thread.currentThread().getName() + " is about to move or be cloned.");
     }
   }
+ 	//#MIDP_EXCLUDE_END
 
   // This class manages bidirectional associations between Timer and
   // Behaviour objects, using hash tables. This class is fully
@@ -154,6 +145,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   } // End of AssociationTB class
 
 
+	//#MIDP_EXCLUDE_BEGIN
   // A simple class for a boolean condition variable
   private static class CondVar {
     private boolean value = false;
@@ -170,6 +162,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
 
   } // End of CondVar class
+	//#MIDP_EXCLUDE_END
 
 
 
@@ -209,9 +202,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(b != null) {
       b.restart();
     }
+    //#MIDP_EXCLUDE_BEGIN
     else {
     	System.out.println("Warning: No mapping found for expired timer "+t.expirationTime());
     }
+    //#MIDP_EXCLUDE_END
   }
 
   /**
@@ -274,6 +269,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public static final int AP_DELETED = 6;
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Represents the <code>transit</code> agent state.
   */
@@ -291,12 +287,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
      transaction successfully commits.
   */
   static final int AP_GONE = 9;
+  //#MIDP_EXCLUDE_END
 
   /**
      Out of band value for Agent Platform Life Cycle states.
   */
   public static final int AP_MAX = 10;    // Hand-made type checking
 
+  //#MIDP_EXCLUDE_BEGIN  
   private static final AgentState[] STATES = new AgentState[] { 
     new AgentState("Illegal MIN state"),
     new AgentState("Initiated"),
@@ -344,6 +342,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
      Out of band value for Domain Life Cycle states.
   */
   public static final int D_MAX = 41;    // Hand-made type checking
+  //#MIDP_EXCLUDE_END
 
 
   /**
@@ -364,38 +363,32 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		return myToolkit.getDefaultDF();
 	}
 
+  //#MIDP_EXCLUDE_BEGIN
   private int       msgQueueMaxSize = 0;
   private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
   private transient List o2aQueue;
   private int o2aQueueSize;
   private transient Map o2aLocks = new HashMap();
   private transient AgentToolkit myToolkit = DummyToolkit.instance();
-
-  /**
-  @serial
-  */
-  private String myName = null;
+  //#MIDP_EXCLUDE_END
+  /*#MIDP_INCLUDE_BEGIN
+  private transient MessageQueue    msgQueue = new MessageQueue(0);
+  private transient AgentToolkit    myToolkit;
+	#MIDP_INCLUDE_END*/
   
-  /**
-  @serial
-  */
+  private String myName = null;  
   private AID myAID = null;
-
-  /**
-  @serial
-  */
   private String myHap = null;
 
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object suspendLock = new Object(); // Used for agent suspension
+  //#MIDP_EXCLUDE_BEGIN
   private transient Object principalLock = new Object(); // Used to make principal transitions atomic
+  //#MIDP_EXCLUDE_END
 
   private transient Thread myThread;
   private transient TimerDispatcher theDispatcher;
 
-  /**
-  @serial
-  */
   private Scheduler myScheduler;
 
   private transient AssociationTB pendingTimers = new AssociationTB();
@@ -421,17 +414,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // This variable is 'volatile' because is used as a latch to signal
   // agent suspension and termination from outside world.
-  /**
-  @serial
-  */
   private volatile int myAPState;
-  
-//__SECURITY__BEGIN
+
+  //#MIDP_EXCLUDE_BEGIN
   private Authority authority;
   private String ownership = jade.security.JADEPrincipal.NONE;
   private AgentPrincipal principal = null;
   private CertificateFolder certs = new CertificateFolder();
-//__SECURITY__END
+  //#MIDP_EXCLUDE_END
   
   /**
      This flag is used to distinguish the normal AP_ACTIVE state from
@@ -443,6 +433,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   private boolean terminating = false;
   
+  //#MIDP_EXCLUDE_BEGIN
   /** 
      When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
      or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
@@ -455,12 +446,18 @@ public class Agent implements Runnable, Serializable, TimerListener {
   // mobility-related parameters
   private transient Location myDestination;
   private transient String myNewName;
+  //#MIDP_EXCLUDE_END
 
   // Temporary buffer for agent suspension
-  /**
-  @serial
-  */
   private int myBufferedState = AP_MIN;
+
+	/*#MIDP_INCLUDE_BEGIN
+  public static MIDlet midlet;
+  
+  // Flag for agent interruption (necessary as Thread.interrupt()
+  // is not available in MIDP)
+  private boolean isInterrupted = false;
+	#MIDP_INCLUDE_END*/
 
   /**
      Default constructor.
@@ -471,6 +468,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
   
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Constructor to be used by special "agents" that will never powerUp.
    */
@@ -514,6 +512,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   * @deprecated use the method <code>getArguments</code> instead
   */
     public void setArguments(String args[]) {}
+  //#MIDP_EXCLUDE_END
   
     private transient Object[] arguments = null;  // array of arguments
     /**
@@ -523,12 +522,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
     public final void setArguments(Object args[]) {
 	// I have declared the method final otherwise getArguments would not work!
 	arguments=args;
+  //#MIDP_EXCLUDE_BEGIN
 	if (arguments != null) { //FIXME. This code goes away with the depcreated setArguments(String[]) method
 	    String sargs[] = new String[args.length];
 	    for (int i=0; i<args.length; i++)
 		sargs[i]=(args[i]==null?null:args[i].toString());
 	    setArguments(sargs);
 	}
+  //#MIDP_EXCLUDE_END
     }
 
     /**
@@ -624,9 +625,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return myToolkit.here();
   }
   
+	//#MIDP_EXCLUDE_BEGIN
   public Authority getAuthority() {
     return myToolkit.getAuthority();
   }
+	//#MIDP_EXCLUDE_END
 
   /**
    * This is used by the agent container to wait for agent termination.
@@ -639,6 +642,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
    * FIXME: the timeout value should be got by Profile
    */
   void join() {
+  	//#MIDP_EXCLUDE_BEGIN
     try {
       myThread.join(5000);
       if (myThread.isAlive()) {
@@ -652,7 +656,17 @@ public class Agent implements Runnable, Serializable, TimerListener {
     catch(InterruptedException ie) {
       ie.printStackTrace();
     }
-
+  	//#MIDP_EXCLUDE_END
+  	/*#MIDP_INCLUDE_BEGIN
+    if (myThread != null && myThread.isAlive()) {
+      try {
+        myThread.join();
+      } 
+      catch (InterruptedException ie) {
+        ie.printStackTrace();
+      } 
+    } 
+  	#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -669,7 +683,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public void setQueueSize(int newSize) throws IllegalArgumentException {
     msgQueue.setMaxSize(newSize);
+  	//#MIDP_EXCLUDE_BEGIN
     msgQueueMaxSize = newSize;
+  	//#MIDP_EXCLUDE_END
   }
 
     /**
@@ -693,11 +709,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return msgQueue.getMaxSize();
   }
 
+  //#MIDP_EXCLUDE_BEGIN
 	public void setOwnership(String ownership) {
 	  this.ownership = ownership;
 	}
 
-	//__SECURITY__BEGIN
 	public static String extractUsername(String ownership) {
 		int dot2 = ownership.indexOf(':');
 		return (dot2 != -1) ?
@@ -741,13 +757,18 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	private void doPrivileged(PrivilegedExceptionAction action) throws Exception {
 		getAuthority().doAsPrivileged(action, getCertificateFolder());
 	}
-	//__SECURITY__END
+  //#MIDP_EXCLUDE_END
 
   private void setState(int state) {
     synchronized (stateLock) {
       int oldState = myAPState;
       myAPState = state;
+  		//#MIDP_EXCLUDE_BEGIN
       notifyChangedAgentState(oldState, myAPState);
+		  //#MIDP_EXCLUDE_END
+		  /*#MIDP_INCLUDE_BEGIN
+    	//myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
+		  #MIDP_INCLUDE_END*/
     }
   }
 
@@ -764,6 +785,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return state;
   }
 
+	//#MIDP_EXCLUDE_BEGIN
   AgentState getAgentState() {
     return STATES[getState()];
   }
@@ -847,7 +869,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
     }
   }
-
+  
   /**
      Make a state transition from <em>transit</em> or
      <code>copy</code> to <em>active</em> within Agent Platform Life
@@ -880,6 +902,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       setState(AP_GONE);
     }
   }
+  //#MIDP_EXCLUDE_END
 
   /**
      Make a state transition from <em>active</em> or <em>waiting</em>
@@ -987,9 +1010,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
     if(myAPState == AP_ACTIVE) {
       activateAllBehaviours();
-      //synchronized(waitLock) {
       synchronized(msgQueue) {
-        //waitLock.notifyAll(); // Wakes up the embedded thread
         msgQueue.notifyAll(); // Wakes up the embedded thread
       }
     }
@@ -1011,7 +1032,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       if(myAPState != AP_DELETED && !terminating) {
 	setState(AP_DELETED);
 	if(!myThread.equals(Thread.currentThread()))
-	  myThread.interrupt();
+          interruptThread();
       }
     }
   }
@@ -1024,6 +1045,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Write this agent to an output stream; this method can be used to
      record a snapshot of the agent state on a file or to send it
@@ -1218,6 +1240,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
 
   }
+  //#MIDP_EXCLUDE_END
 
   /**
      This method is the main body of every agent. It can handle
@@ -1230,34 +1253,24 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public final void run() {
 
     try {
-      //AMSAgentDescription amsd = new AMSAgentDescription();
-      //amsd.setName(myAID);
-      //amsd.setOwnership(ownership);
-      //amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:
-	setState(AP_ACTIVE);
-	// No 'break' statement - fall through
+				setState(AP_ACTIVE);
+				// No 'break' statement - fall through
       case AP_ACTIVE:
-	/*if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
-	else
-	  AMSService.register(this, amsd);*/
         notifyStarted();
-	setup();
-	break;
+				setup();
+				break;
+			//#MIDP_EXCLUDE_BEGIN
       case AP_TRANSIT:
 	doExecute();
 	afterMove();
 	break;
       case AP_COPY:
 	doExecute();
-	/*if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
-	else
-	  AMSService.register(this, amsd);*/
 	afterClone();
 	break;
+			//#MIDP_EXCLUDE_END
       }
 
       mainLoop();
@@ -1268,11 +1281,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     catch(InterruptedIOException iioe) {
       // Do nothing, since this is a killAgent from outside
     }
-    /*catch(AuthException e) {
-	  // FIXME:  Should a message be sent to the agent 
-	  //         to notify this ?
-      System.err.println(" Authorization exception. Agent " + myName + " does not have the permission.");
-    }*/
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
@@ -1281,6 +1289,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       // Do Nothing, since this is a killAgent from outside
     }
     finally {
+			//#MIDP_EXCLUDE_BEGIN
       switch(myAPState) {
       case AP_DELETED:
       	terminating = true;
@@ -1302,6 +1311,21 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	destroy();
 	setState(savedState);
       }
+			//#MIDP_EXCLUDE_END
+			/*#MIDP_INCLUDE_BEGIN
+      if (myAPState != AP_DELETED) {
+        System.out.println("ERROR: Agent "+myName+" died without being properly terminated !!!");
+        System.out.println("State was "+myAPState);
+      } 
+
+      terminating = true;
+
+      int savedState = getState();
+      setState(AP_ACTIVE);
+      takeDown();
+      destroy();
+      setState(savedState);
+			#MIDP_INCLUDE_END*/
     }
 
   }
@@ -1340,6 +1364,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   protected void takeDown() {}
 
+	//#MIDP_EXCLUDE_BEGIN
   /**
     Actions to perform before moving. This empty placeholder method can be
     overridden by user defined agents to execute some actions just before
@@ -1367,12 +1392,18 @@ public class Agent implements Runnable, Serializable, TimerListener {
     creating an agent copy to the destination agent container.
   */
   protected void afterClone() {}
+	//#MIDP_EXCLUDE_END
 
   // This method is used by the Agent Container to fire up a new agent for the first time
   void powerUp(AID id, ResourceManager rm) {
 
     // Set this agent's name and address and start its embedded thread
-    if ((myAPState == AP_INITIATED) || (myAPState == AP_TRANSIT) || (myAPState == AP_COPY)) {
+    if ( (myAPState == AP_INITIATED) 
+			//#MIDP_EXCLUDE_BEGIN
+    	|| (myAPState == AP_TRANSIT) 
+    	|| (myAPState == AP_COPY)
+			//#MIDP_EXCLUDE_END
+    		) {
       myName = id.getLocalName();
       myHap = id.getHap();
       
@@ -1386,6 +1417,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
   }
 
+	//#MIDP_EXCLUDE_BEGIN
   private void writeObject(ObjectOutputStream out) throws IOException {
   	// Updates the queue maximum size field, before serialising
   	msgQueueMaxSize = msgQueue.getMaxSize();
@@ -1400,15 +1432,17 @@ public class Agent implements Runnable, Serializable, TimerListener {
     msgQueue = new MessageQueue(msgQueueMaxSize);
     stateLock = new Object();
     suspendLock = new Object();
-    //waitLock = new Object();
     principalLock = new Object();
     pendingTimers = new AssociationTB();
     theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
+	//#MIDP_EXCLUDE_END
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
     while(myAPState != AP_DELETED) {
+			//#MIDP_EXCLUDE_BEGIN
       try {
+			//#MIDP_EXCLUDE_END
 
 	// Check for Agent state changes
 	switch(myAPState) {
@@ -1418,6 +1452,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	case AP_SUSPENDED:
 	  waitUntilActivate();
 	  break;
+	//#MIDP_EXCLUDE_BEGIN
 	case AP_TRANSIT:
 	  try {
 		notifyMove();
@@ -1444,12 +1479,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  }  
 	  doExecute();
 	  break;
+	//#MIDP_EXCLUDE_END
 	case AP_ACTIVE:
 	  try {
 	    // Select the next behaviour to execute
 	    int oldState = myAPState;
 	    currentBehaviour = myScheduler.schedule();
-	    if((myAPState != oldState) &&(myAPState != AP_DELETED))
+	    if((myAPState != oldState) && (myAPState != AP_DELETED))
 	      setState(oldState);
 
 	    // Remember how many messages arrived
@@ -1462,7 +1498,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    // in the meanwhile, restart the behaviour to give it another chance
 	    if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
 	      currentBehaviour.restart();
-
 
 	    // When it is needed no more, delete it from the behaviours queue
 	    if(currentBehaviour.done()) {
@@ -1495,22 +1530,23 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    switch(myAPState) {
 	    case AP_DELETED:
 	      throw new AgentDeathError();
+	    //#MIDP_EXCLUDE_BEGIN
 	    case AP_TRANSIT:
 	    case AP_COPY:
 	      throw new AgentInMotionError();
+	    //#MIDP_EXCLUDE_END
 	    case AP_ACTIVE:
-	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName() + " in AP_ACTIVE state.");
-	      break;
 	    case AP_IDLE:
-	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName() + " in AP_IDLE state.");
+	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName());
 	      break;
 	    }
 	  } // end catch
 	  break;
-	}  // END of switch on agent atate
+	}  // END of switch on agent state
 
 	// Now give CPU control to other agents
 	Thread.yield();
+	//#MIDP_EXCLUDE_BEGIN
       }
       catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
@@ -1521,14 +1557,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		  // shouuld never happen
 		  ie.printStackTrace();
 	}
-
-
-    }
-
+	//#MIDP_EXCLUDE_END
+    
+    } // END of while
   }
 
   private void waitUntilWake(long millis) {
-    //synchronized(waitLock) {
     synchronized(msgQueue) {
 
       long timeToWait = millis;
@@ -1536,8 +1570,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	try {
 
 	  long startTime = System.currentTimeMillis();
-	  //waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
-	  msgQueue.wait(timeToWait); // Blocks on waiting state monitor for a while
+	  // Blocks on msgQueue monitor for a while
+	  waitOn(msgQueue, timeToWait);
 	  long elapsedTime = System.currentTimeMillis() - startTime;
 
 	  // If this was a timed wait, update time to wait; if the
@@ -1554,9 +1588,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  switch(myAPState) {
 	  case AP_DELETED:
 	    throw new AgentDeathError();
+	  //#MIDP_EXCLUDE_BEGIN
 	  case AP_TRANSIT:
 	  case AP_COPY:
 	    throw new AgentInMotionError();
+	  //#MIDP_EXCLUDE_END
 	  }
 	}
       }
@@ -1567,16 +1603,18 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(suspendLock) {
       while(myAPState == AP_SUSPENDED) {
   try {
-	  suspendLock.wait(); // Blocks on suspended state monitor
+  	waitOn(suspendLock, 0);
 	}
 	catch(InterruptedException ie) {
 	  switch(myAPState) {
 	  case AP_DELETED:
 	    throw new AgentDeathError();
+	  //#MIDP_EXCLUDE_BEGIN
 	  case AP_TRANSIT:
 	  case AP_COPY:
 	    // Undo the previous clone or move request
 	    setState(AP_SUSPENDED);
+	  //#MIDP_EXCLUDE_END
 	  }
 	}
       }
@@ -1584,24 +1622,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 	private void destroy() { 
-		/*if (!(myToolkit instanceof DummyToolkit)) {
-		    try {
-			    if (myAID.equals(getAMS())) {
-				    //special version for the AMS to avoid deadlock 
-				    AMSAgentDescription amsd = new AMSAgentDescription();
-				    amsd.setName(getAID());
-				    ((jade.domain.ams)this).AMSDeregister(amsd, myAID);
-			    } else {
-				    AMSService.deregister(this);
-			    }
-		    } catch (FIPAException fe) {
-			    fe.printStackTrace();
-		    } catch (AuthException e) {
-				System.out.println("AuthException: "+e.getMessage() );;
-			    //e.printStackTrace();
-		    }
-		}*/
-
 		// Remove all pending timers
 		Iterator it = pendingTimers.timers();
 		while (it.hasNext()) {
@@ -1626,7 +1646,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void addBehaviour(Behaviour b) {
     b.setAgent(this);
     myScheduler.add(b);
-    //notifyAddBehaviour(b);
   }
 
   /**
@@ -1640,30 +1659,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void removeBehaviour(Behaviour b) {
     b.setAgent(null);
     myScheduler.remove(b);
-    //notifyRemoveBehaviour(b);
   }
-
-	/*
-	//!!!
-	class SendAction implements jade.security.PrivilegedExceptionAction, jade.util.leap.Serializable {
-		ACLMessage msg;
-		
-		public SendAction(ACLMessage msg) {
-			this.msg = msg;
-		}
-		
-		public void setMessage(ACLMessage msg) {
-			this.msg = msg;
-		}
-		
-		public Object run() throws AuthException {
-			notifySend(msg);
-			return null;
-		}
-	}
-	
-	SendAction sendAction = new SendAction();
-	*/
 
 	/**
 		Send an <b>ACL</b> message to another agent. This methods sends
@@ -1682,8 +1678,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		catch (NullPointerException e) {
 			msg.setSender(myAID);
 		}
+		
+		//#MIDP_EXCLUDE_BEGIN
 		try {
-			// Notify send
 			doPrivileged(new jade.security.PrivilegedExceptionAction() {
 				public Object run() throws AuthException {
 					notifySend(msg);
@@ -1697,6 +1694,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		catch (Exception e) {
 			e.printStackTrace();
 		} 
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+    try {
+      myToolkit.handleSend(msg);
+    } 
+    catch (AuthException ae) {
+    } 
+		#MIDP_INCLUDE_END*/
 	}
 
 	/**
@@ -1710,26 +1715,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	*/
 	public final ACLMessage receive() {
 		return receive(null);
-		/*
-		synchronized(waitLock) {
-			if(msgQueue.isEmpty()) {
-				return null;
-			}
-			else {
-				currentMessage = msgQueue.removeFirst();
-				try {
-				    //notifyReceived(currentMessage);
-				    doPrivileged(new ReceiveAction(currentMessage));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-					//!!! discard the message
-					return receive();
-				}
-				return currentMessage;
-			}
-		}
-		*/
 	}
 
 	/**
@@ -1746,21 +1731,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	*/
 	public final ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage msg = null;
-		//synchronized (waitLock) {
 		synchronized (msgQueue) {
 			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
 				final ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
 					try {
 						messages.remove(); //!!! msgQueue.remove(msg);
-						// Notify receive
+						//#MIDP_EXCLUDE_BEGIN
 						notifyReceived(cursor);
-						/*doPrivileged(new jade.security.PrivilegedExceptionAction() {
-							public Object run() throws AuthException {
-								notifyReceived(cursor);
-								return null;
-							}
-						});*/
+						//#MIDP_EXCLUDE_END
 						currentMessage = cursor;
 						msg = cursor;
 						break; // Exit while loop
@@ -1802,7 +1781,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
      amount of time passes without any message reception.
    */
   public final ACLMessage blockingReceive(long millis) {
-    //synchronized(waitLock) {
     synchronized(msgQueue) {
       ACLMessage msg = receive();
       if(msg == null) {
@@ -1852,13 +1830,29 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern, long millis) {
     ACLMessage msg = null;
-    //synchronized(waitLock) {
     synchronized(msgQueue) {
       msg = receive(pattern);
       long timeToWait = millis;
       while(msg == null) {
 	long startTime = System.currentTimeMillis();
+	//#MIDP_EXCLUDE_BEGIN
 	doWait(timeToWait);
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+  // As Thread.interrupt() is substituted by interruptThread(),
+  // it is possible to enter this method with the agent state
+  // equals to AP_DELETED. If this is the case the loop
+  // lasts forever as doWait() does nothing -->the monitor
+  // of the waitLock is not released --> even if a message arrive
+  // the postMessage method can't be executed.
+  // Throwing AgentDeathError is necessary to exit this infinite loop.
+  if (myAPState == AP_ACTIVE) {
+    doWait(timeToWait);
+  } 
+  else {
+    throw new AgentDeathError();
+  }
+	#MIDP_INCLUDE_END*/
 	long elapsedTime = System.currentTimeMillis() - startTime;
 
 	msg = receive(pattern);
@@ -1883,7 +1877,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @see jade.core.Agent#receive()
   */
   public final void putBack(ACLMessage msg) {
-    //synchronized(waitLock) {
     synchronized(msgQueue) {
       msgQueue.addFirst(msg);
     }
@@ -1896,14 +1889,19 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   final void resetToolkit() {
+  	//#MIDP_EXCLUDE_BEGIN
     myToolkit = DummyToolkit.instance();
+  	//#MIDP_EXCLUDE_END
+  	/*#MIDP_INCLUDE_BEGIN
+    myToolkit = null;
+  	#MIDP_INCLUDE_END*/
   }
 
   /**
     This method blocks until the agent has finished its start-up phase
     (i.e. until just before its setup() method is called.
     When this method returns, the target agent is registered with the
-   AMS and the JADE platform is aware of it.
+    AMS and the JADE platform is aware of it.
   */
   public synchronized void waitUntilStarted() {
     while(getState() == AP_INITIATED) {
@@ -1923,6 +1921,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
     notifyAll();
   }
 
+  // Notify toolkit of the destruction of the current agent
+  private void notifyDestruction() {
+    myToolkit.handleEnd(myAID);
+  }
+
+  //#MIDP_EXCLUDE_BEGIN
   // Notify toolkit that a message was posted in the message queue
   private void notifyPosted(ACLMessage msg) throws AuthException {
     myToolkit.handlePosted(myAID, msg);
@@ -1937,11 +1941,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   // Notify toolkit of the need to send a message
   private void notifySend(ACLMessage msg) throws AuthException {
   	myToolkit.handleSend(msg);
-  }
-
-  // Notify toolkit of the destruction of the current agent
-  private void notifyDestruction() {
-    myToolkit.handleEnd(myAID);
   }
 
   // Notify toolkit of the need to move the current agent
@@ -1990,12 +1989,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myToolkit.handleChangedAgentState(myAID, from, to);
   }
   
-//__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
   private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
     myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
   }
-//__SECURITY__END
+  //#MIDP_EXCLUDE_END
 
   private void activateAllBehaviours() {
     myScheduler.restartAll();
@@ -2011,9 +2009,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.core.Agent#send(ACLMessage msg)
 	*/
 	public final void postMessage(final ACLMessage msg) {
-		//synchronized (waitLock) {
 		synchronized (msgQueue) {
 			if (msg != null) {
+				//#MIDP_EXCLUDE_BEGIN
 				try {
 					doPrivileged(new PrivilegedExceptionAction() {
 						public Object run() throws AuthException {
@@ -2032,24 +2030,84 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				catch (Exception e) {
 					e.printStackTrace();
 				}
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+				msgQueue.addLast(msg);
+				#MIDP_INCLUDE_END*/
+				doWake();
+				messageCounter++;
 			}
-			doWake();
-			messageCounter++;
 		}
 	}
 
-  /*Iterator messages() {
-    return msgQueue.iterator();
-  }*/
-
-	private ContentManager theContentManager = new ContentManager();
+	private ContentManager theContentManager = null;
 
 	/**
 	* Retrieves the content manager 
-	*
 	* @return The content manager.
 	*/
 	public ContentManager getContentManager() {
+		if (theContentManager == null) {
+			theContentManager = new ContentManager();
+		}
 		return theContentManager;
 	} 
+	
+  /**
+     This method is used to interrupt the agent's thread.
+     In J2SE/PJAVA it just calls myThread.interrupt(). In MIDP, 
+     where interrupt() is not supported the thread interruption is 
+     simulated as described below.
+     The agent thread can be in one of the following four states:
+     1) Running a behaviour.
+     2) Sleeping on msgQueue due to a doWait()
+     3) Sleeping on suspendLock due to a doSuspend()
+     4) Sleeping on myScheduler due to a schedule() with no active behaviours
+     The idea is: set the 'isInterrupted' flag, then wake up the
+     thread wherever it may be
+   */
+  private void interruptThread() {
+  	//#MIDP_EXCLUDE_BEGIN
+  	myThread.interrupt();
+  	//#MIDP_EXCLUDE_END
+  	/*#MIDP_INCLUDE_BEGIN
+  	synchronized (this) {
+	    isInterrupted = true;
+	
+	    // case 1: Nothing to do.
+	    // case 2: Signal on msgQueue.
+	    synchronized (msgQueue) {msgQueue.notifyAll();} 
+	    // case 3: Signal on suspendLock object.
+	    synchronized (suspendLock) {suspendLock.notifyAll();} 
+			// case 4: Signal on the Scheduler
+			synchronized (myScheduler) {myScheduler.notifyAll();}
+  	}
+  	#MIDP_INCLUDE_END*/
+  } 
+
+  /**
+     Since in MIDP Thread.interrupt() does not exist and a simulated
+     interruption is used to "interrupt" the agent's thread, we must 
+     check whether the simulated interruption happened just before and
+     after going to sleep.
+   */
+  void waitOn(Object lock, long millis) throws InterruptedException {
+  	/*#MIDP_INCLUDE_BEGIN
+  	synchronized (this) {
+	    if (isInterrupted) {
+      	isInterrupted = false;
+      	throw new InterruptedException();
+			}
+    } 
+  	#MIDP_INCLUDE_END*/
+    lock.wait(millis);
+  	/*#MIDP_INCLUDE_BEGIN
+  	synchronized (this) {
+	    if (isInterrupted) {
+      	isInterrupted = false;
+      	throw new InterruptedException();
+			}
+    } 
+  	#MIDP_INCLUDE_END*/
+  } 
 }

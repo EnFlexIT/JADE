@@ -147,6 +147,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       try {
           agent = (Agent)Class.forName(new String(className)).newInstance();
           agent.setArguments(args);
+          //#MIDP_EXCLUDE_BEGIN
           // Set agent principal and certificates
           if(certs != null) {
               agent.setPrincipal(certs);
@@ -156,6 +157,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               agent.setOwnership(ownership);
           else if(certs.getIdentityCertificate() != null)
               agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
+          //#MIDP_EXCLUDE_END
 
           initAgent(agentID, agent, startIt);
       }
@@ -199,7 +201,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       Agent previous = localAgents.put(agentID, instance);
       if(startIt) {
           try {
+          		//#MIDP_EXCLUDE_BEGIN
               CertificateFolder agentCerts = instance.getCertificateFolder();
+          		//#MIDP_EXCLUDE_END
+          		/*#MIDP_INCLUDE_BEGIN
+              CertificateFolder agentCerts = new CertificateFolder();
+          		#MIDP_INCLUDE_END*/
               if(agentCerts.getIdentityCertificate() == null) {
                   AgentPrincipal principal = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
                   IdentityCertificate identity = authority.createIdentityCertificate();
@@ -249,13 +256,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     localAgents.release(agentID);
   }
 
-//__SECURITY__BEGIN
   
 	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
+		//#MIDP_EXCLUDE_BEGIN
 		Agent agent = localAgents.acquire(agentID);
 		if (agent != null)
 			agent.setPrincipal(certs);
 		localAgents.release(agentID);
+		//#MIDP_EXCLUDE_END
 	}
 
 	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
@@ -568,9 +576,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 							"No-Name"), addr);
 
           // Acquire username and password
+					//#MIDP_EXCLUDE_BEGIN
           String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
           password = Agent.extractPassword(ownership);
           username = Agent.extractUsername(ownership);
+					//#MIDP_EXCLUDE_END
+					/*#MIDP_INCLUDE_BEGIN
+					password = new byte[] {};
+					username = ContainerPrincipal.NONE;
+					#MIDP_INCLUDE_END*/
           myProfile.setParameter(Profile.OWNER, username);
 
           // Register to the platform. If myPlatform is the real MainContainerImpl

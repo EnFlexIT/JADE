@@ -24,15 +24,15 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
-import jade.core.behaviours.Behaviour;
-//__SECURITY__BEGIN
-import jade.security.Authority;
 import jade.security.AuthException;
+//#MIDP_EXCLUDE_BEGIN
+import jade.core.behaviours.Behaviour;
+import jade.security.Authority;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
-//__SECURITY__END
+//#MIDP_EXCLUDE_END
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -43,19 +43,19 @@ interface AgentToolkit {
   Location here();
   void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
+  void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
+  void handleSend(ACLMessage msg) throws AuthException;
+  //#MIDP_EXCLUDE_BEGIN
   void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException;
   void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException;
-  void handleSend(ACLMessage msg) throws AuthException;
   void handlePosted(AID agentID, ACLMessage msg) throws AuthException;
   void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
-  void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
   void handleBehaviourAdded(AID agentID, Behaviour b);
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
-//__SECURITY__BEGIN
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
   Authority getAuthority();
-//__SECURITY__END
+  //#MIDP_EXCLUDE_END
   void setPlatformAddresses(AID id);
   AID getAMS();
   AID getDefaultDF();
