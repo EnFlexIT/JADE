@@ -39,6 +39,7 @@ package jade.imtp.leap.JICP;
 import jade.core.Profile;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
+import jade.util.Logger;
 import jade.util.leap.Properties;
 
 import java.io.*;
@@ -67,9 +68,10 @@ public class JICPServer extends Thread {
 
   private ConnectionFactory connFactory;
   
-  private static int     verbosity = 2;
   private InetAddress localHost;
 
+	private Logger myLogger;
+	
   /**
    * Constructor declaration
    */
@@ -77,6 +79,7 @@ public class JICPServer extends Thread {
     cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
+  	myLogger = new Logger("JICPServer", 2, "HH:mm:ss", true);
 		
     try {
     	localHost = InetAddress.getLocalHost(); 
@@ -135,7 +138,7 @@ public class JICPServer extends Thread {
      Temporarily stop this JICPServer from accepting connections
    */
   private synchronized void pause() {
-  	log("Pausing JICPServer...", 2);
+  	myLogger.log("Pausing JICPServer...", 2);
   	try {
   		paused = true;
   		server.close();
@@ -149,7 +152,7 @@ public class JICPServer extends Thread {
      Resume this JICPServer from the paused state
    */
   private synchronized void restart(int port) {
-  	log("Restarting JICPServer...", 2);
+  	myLogger.log("Restarting JICPServer...", 2);
   	while (true) {
 	    try {
 	      server = new ServerSocket(port);
@@ -158,11 +161,11 @@ public class JICPServer extends Thread {
 	    } 
 			catch (BindException be) {
 				// The port is still busy. Wait a bit
-				log("Local port "+port+" still busy. Wait a bit before retrying...", 2);
+				myLogger.log("Local port "+port+" still busy. Wait a bit before retrying...", 2);
 				waitABit(10000);
 			}					
 			catch (Exception e) {
-				log("PANIC: Cannot restart JICPServer", 1);
+				myLogger.log("PANIC: Cannot restart JICPServer", 1);
 				break;
 			}
   	}
@@ -184,14 +187,14 @@ public class JICPServer extends Thread {
 	  		synchronized (this) {
 					try {
 		  			pause();
-						log("Sending fake reply to "+addr+":"+port, 2);
+						myLogger.log("Sending fake reply to "+addr+":"+port, 2);
 			  		s = new Socket(addr, port, localHost, oldPort);
 					}
 					catch (BindException be) {
-						log("Local port "+oldPort+" still busy", 2);
+						myLogger.log("Local port "+oldPort+" still busy", 2);
 					}					
 					catch (Exception e) {
-						log("Fake reply sent", 2);
+						myLogger.log("Fake reply sent", 2);
 						return;
 					}
 					finally {
@@ -203,7 +206,7 @@ public class JICPServer extends Thread {
 					}
 	  		}
 				// If we get here the local port is still busy. Wait a bit
-				log("Wait a bit before retrying...", 2);
+				myLogger.log("Wait a bit before retrying...", 2);
 				waitABit(30000);
 	  	}
   	}
@@ -217,7 +220,7 @@ public class JICPServer extends Thread {
       Thread.sleep(time);
     } 
     catch (InterruptedException ie) {
-      log("InterruptedException in Thread.sleep()", 1);
+      myLogger.log("InterruptedException in Thread.sleep()", 1);
     }
 	}
 	
@@ -233,7 +236,7 @@ public class JICPServer extends Thread {
         InetAddress addr = s.getInetAddress();
         int port = s.getPort();
         if (!addr.equals(localHost)) {
-	        log("Incoming connection from "+addr+":"+port, 3);
+	        myLogger.log("Incoming connection from "+addr+":"+port, 3);
         }
         Connection c = connFactory.createConnection(s);
         new ConnectionHandler(c, addr, port).start();    // start a handler and go back to listening
@@ -246,9 +249,9 @@ public class JICPServer extends Thread {
       } 
       catch (Exception e) {
       	if (paused) {
-      		log("JICPServer paused", 2);
+      		myLogger.log("JICPServer paused", 2);
     			synchronized (this) {
-    				log("JICPServer resumed ", 2);
+    				myLogger.log("JICPServer resumed ", 2);
     			}
     		}
       	else {
@@ -256,7 +259,7 @@ public class JICPServer extends Thread {
 	        // been forced by the shutdown() method --> do nothing.
 	        // Otherwise some error occurred
 	        if (listen) {
-	          log("Problems accepting a new connection", 1);
+	          myLogger.log("Problems accepting a new connection", 1);
 	          e.printStackTrace();
 	
 	          // Stop listening
@@ -271,7 +274,7 @@ public class JICPServer extends Thread {
       server.close();
     } 
     catch (IOException io) {
-      log("I/O error closing the server socket", 1);
+      myLogger.log("I/O error closing the server socket", 1);
       io.printStackTrace();
     } 
 
@@ -377,7 +380,7 @@ public class JICPServer extends Thread {
 	
 	        case JICPProtocol.GET_ADDRESS_TYPE:
 	          // Respond sending back the caller address
-	          log("Received a GET_ADDRESS request from "+addr+":"+port, 2);
+	          myLogger.log("Received a GET_ADDRESS request from "+addr+":"+port, 2);
 	          reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          break;
 	
@@ -394,7 +397,7 @@ public class JICPServer extends Thread {
 		      id = localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
 		  }
 
-	          log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
+	          myLogger.log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
@@ -407,7 +410,7 @@ public class JICPServer extends Thread {
 	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
 	          // A mediated container is (re)connecting to its mediator
 	          recipientID = pkt.getRecipientID();
-	          log("Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID, 2);
+	          myLogger.log("Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID, 2);
 	          m = (JICPMediator) mediators.get(recipientID);
 	          if (m != null) {
 	          	// Don't close the connection, but pass it to the proper 
@@ -423,7 +426,7 @@ public class JICPServer extends Thread {
 	
 	        default:
 	          // Send back an error response
-	          log("Uncorrect JICP data type: "+pkt.getType(), 1);
+	          myLogger.log("Uncorrect JICP data type: "+pkt.getType(), 1);
 	          reply = new JICPPacket("Uncorrect JICP data type: "+pkt.getType(), null);
 	        }
 	        status = 2;
@@ -439,11 +442,11 @@ public class JICPServer extends Thread {
       catch (Exception e) {
       	switch (status) {
       	case 0:
-	        log("Communication error reading incoming packet from "+addr+":"+port, 1);
+	        myLogger.log("Communication error reading incoming packet from "+addr+":"+port, 1);
         	e.printStackTrace();
 	        break;
 	      case 1:
-	      	log("Error handling incoming packet", 1);
+	      	myLogger.log("Error handling incoming packet", 1);
         	e.printStackTrace();
 	      	// If the incoming packet was a command, try 
         	// to send back a generic error response
@@ -453,21 +456,21 @@ public class JICPServer extends Thread {
 	          } 
 	          catch (IOException ioe) {   
 	          	// Just print a warning
-	          	log("Can't send back error indication "+ioe, 1);
+	          	myLogger.log("Can't send back error indication "+ioe, 1);
 	          } 
 	        }
 	      	break;
 	      case 2:
-	      	log("Communication error writing return packet to "+addr+":"+port, 1);
+	      	myLogger.log("Communication error writing return packet to "+addr+":"+port, 1);
         	e.printStackTrace();
 	      	break;
 	      case 3:
 	      	// This is a re-used connection waiting for the next incoming packet
 	      	if (e instanceof EOFException) {
-	      		log("Client "+addr+":"+port+" has closed the connection.", 2);
+	      		myLogger.log("Client "+addr+":"+port+" has closed the connection.", 2);
 	      	}
 	      	else {
-	      		log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 1);
+	      		myLogger.log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 1);
 	      	}
       	}
       } 
@@ -476,13 +479,13 @@ public class JICPServer extends Thread {
           if (closeConnection) {
             // Close connection
 		        if (!addr.equals(localHost)) {
-	          	log("Closing connection with "+addr+":"+port, 3);
+	          	myLogger.log("Closing connection with "+addr+":"+port, 3);
 		        }
           	c.close();
           } 
         } 
         catch (IOException io) {
-          log("I/O error while closing the connection", 1);
+          myLogger.log("I/O error while closing the connection", 1);
           io.printStackTrace();
         } 
       	handlersCnt--;
@@ -514,15 +517,5 @@ public class JICPServer extends Thread {
 			throw new ICPException("No JICPMediator class specified.");
 		}
   }
-  
-  /**
-   */
-  static void log(String s, int level) {
-    if (verbosity >= level) {
-      String name = Thread.currentThread().getName();
-      System.out.println("JICPServer("+name+")[LVL-"+level+"]["+System.currentTimeMillis()+"]: "+s);
-    } 
-  } 
-
 }
 
