@@ -42,15 +42,20 @@ import jade.gui.LocationTableModel;
 
 public class MobileAgentGui extends JFrame implements ActionListener
 {
-	public MobileAgent          myAgent;
-	public LocationTableModel visitedSiteListModel;
-	public JTable            visitedSiteList;
-	public LocationTableModel availableSiteListModel;
-	public JTable            availableSiteList;
-	//public JButton          exitB;
-	//public JButton          moveB;
-	public JTextField       nextDstContainerTxt;
-	
+  private MobileAgent          myAgent;
+  private LocationTableModel visitedSiteListModel;
+  private JTable            visitedSiteList;
+  private LocationTableModel availableSiteListModel;
+  private JTable            availableSiteList;
+  private JTextField counterText; 
+
+  private static String MOVELABEL = "MOVE";
+  private static String EXITLABEL = "EXIT";
+  private static String PAUSELABEL = "Stop Counter";
+  private static String CONTINUELABEL = "Continue Counter";
+  private static String REFRESHLABEL = "Refresh Locations";
+
+
 	// Constructor
 	MobileAgentGui(MobileAgent a)
 	{
@@ -69,9 +74,11 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		counterPanel.setLayout(new BoxLayout(counterPanel, BoxLayout.X_AXIS));
 		
 		JButton pauseButton = new JButton("STOP COUNTER");
+		pauseButton.addActionListener(this);
 		JButton continueButton = new JButton("CONTINUE COUNTER");
+		continueButton.addActionListener(this);
 		JLabel counterLabel = new JLabel("Counter value: ");
-		JTextField counterText = new JTextField();
+		counterText = new JTextField();
 		counterPanel.add(pauseButton);
 		counterPanel.add(continueButton);
 		counterPanel.add(counterLabel);
@@ -136,11 +143,14 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		// Add the control buttons to the SOUTH part 
 		// Move button
 		JPanel p = new JPanel();
-		JButton b = new JButton("Move");
+		JButton b = new JButton(REFRESHLABEL);
+		b.addActionListener(this);
+		p.add(b);
+		b = new JButton(MOVELABEL);
 		b.addActionListener(this);
 		p.add(b);
 		// Exit button
-		b = new JButton("Exit");
+		b = new JButton(EXITLABEL);
 		b.addActionListener(this);
 		p.add(b);
 		main.add(p);
@@ -148,32 +158,44 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		getContentPane().add(main, BorderLayout.CENTER);
 	}
 
-  public void updateLocations(MobilityOntology.Location[] list) {
-				  availableSiteListModel.clear();
+  void displayCounter(int value){
+    counterText.setText(Integer.toString(value));
+    //counterText.fireActionPerformed();
+  }
 
-        	for (int i=0; i<list.length; i++)
-				  	availableSiteListModel.add(list[i]);
-				  	
-				  availableSiteListModel.fireTableDataChanged();
-	
-        }
+  public void updateLocations(MobilityOntology.Location[] list) {
+    availableSiteListModel.clear();
+    for (int i=0; i<list.length; i++)
+      availableSiteListModel.add(list[i]);
+    availableSiteListModel.fireTableDataChanged();
+  }
 
 	public void actionPerformed(ActionEvent e)
 	{
 		String command = e.getActionCommand();
 
 		// MOVE
-		if      (command.equals("Move"))
-		{
-		        //String dest = nextDstContainerTxt.getText();
-			//FIXME null deve essere una buona dest
-			Location dest;
-			myAgent.postMoveEvent((Object) this, null);
+		if      (command.equalsIgnoreCase(MOVELABEL)) {
+		  Location dest;
+		  int sel = availableSiteList.getSelectedRow();
+		  if (sel >= 0)
+		    dest = availableSiteListModel.getElementAt(sel);
+		  else
+		    dest = availableSiteListModel.getElementAt(0);
+		  myAgent.postMoveEvent((Object) this, dest);
 		}
 		// EXIT
-		else if (command.equals("Exit"))
-		{
+		else if (command.equalsIgnoreCase(EXITLABEL)) {
 			myAgent.postExitEvent((Object) this);
+		}
+		else if (command.equalsIgnoreCase(PAUSELABEL)) {
+		  myAgent.postSimpleEvent(myAgent.STOP_EVENT);
+		}
+		else if (command.equalsIgnoreCase(CONTINUELABEL)) {
+		  myAgent.postSimpleEvent(myAgent.CONTINUE_EVENT);
+		}
+		else if (command.equalsIgnoreCase(REFRESHLABEL)) {
+		  myAgent.postSimpleEvent(myAgent.REFRESH_EVENT);
 		}
 	}
 	

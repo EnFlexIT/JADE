@@ -92,7 +92,7 @@ class ExecutorBehaviour extends SimpleBehaviour
 			else if (action.equals("stop"))
 			{
 				System.out.println("They requested me to stop counting");
-				((MobileAgent) myAgent).cntEnabled = false;
+				((MobileAgent) myAgent).stopCounter();
 				// Set reply sentence
 				replySentence = new String("\"OK stopping\"");
 			} 				
@@ -100,7 +100,7 @@ class ExecutorBehaviour extends SimpleBehaviour
 			else if (action.equals("continue"))
 			{
 				System.out.println("They requested me to continue counting");
-				((MobileAgent) myAgent).cntEnabled = true;
+				((MobileAgent) myAgent).continueCounter();
 				// Set reply sentence
 				replySentence = new String("\"OK continuing\"");
 			} 

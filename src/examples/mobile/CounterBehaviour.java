@@ -54,8 +54,9 @@ class CounterBehaviour extends SimpleBehaviour
 		// If counting is enabled, print current number and increment counter
 		if ( ((MobileAgent) myAgent).cntEnabled )
 		{
-			System.out.println(((MobileAgent) myAgent).cnt);
 			((MobileAgent) myAgent).cnt++;
+			((MobileAgent) myAgent).displayCounter();
+
 		}
 		
 		// Block the behaviour for 2 seconds

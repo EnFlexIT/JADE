@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.mobile;
 
+import java.util.Vector;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -58,9 +59,18 @@ the agent migration takes effect.
 */
 public class MobileAgent extends GuiAgent {
   int     cnt;   // this is the counter
-  boolean cntEnabled;  // this flag indicates if counting is enabled
-  protected MobileAgentGui gui;  // this is the gui
+  public boolean cntEnabled;  // this flag indicates if counting is enabled
+  transient protected MobileAgentGui gui;  // this is the gui
   Location nextSite;  // this variable holds the destination site
+
+  // These constants are used by the Gui to post Events to the Agent
+  public static final int MOVE_EVENT = 1001;
+  public static final int STOP_EVENT = 1002;
+  public static final int CONTINUE_EVENT = 1003;
+  public static final int REFRESH_EVENT = 1004;
+
+  Vector visitedLocations = new Vector();;
+
 
 	public void setup() {
 	  // register the SL0 content language
@@ -70,7 +80,7 @@ public class MobileAgent extends GuiAgent {
 
 	  // creates and shows the GUI
 	  gui = new MobileAgentGui(this);
-	  gui.showCorrect();
+	  gui.setVisible(true); 
 
 	  // get the list of available locations and show it in the GUI
 	  addBehaviour(new GetAvailableLocationsBehaviour(this));
@@ -86,23 +96,41 @@ public class MobileAgent extends GuiAgent {
 	  addBehaviour(b2);	
 	}
 
-
+   void stopCounter(){
+    cntEnabled = false;
+   }
+   void continueCounter(){
+     cntEnabled = true;
+   }
+   void displayCounter(){
+     gui.displayCounter(cnt);
+   }
+  
+   
 	protected void beforeMove() 
 	{
 		gui.dispose();
+		gui.setVisible(false);
 		System.out.println(getLocalName()+" is now moving elsewhere.");
 	}
 
 	protected void afterMove() 
 	{
 		System.out.println(getLocalName()+" is just arrived to this location.");
-		gui.addVisitedSite(nextSite);
-		gui.showCorrect();
+		// creates and shows the GUI
+		gui = new MobileAgentGui(this);
 
+		visitedLocations.addElement(nextSite);
+		for (int i=0; i<visitedLocations.size(); i++)
+			gui.addVisitedSite((Location)visitedLocations.elementAt(i));
+		gui.setVisible(true); 	
+			
 		// Register again SL0 content language and JADE mobility ontology,
 		// since they don't migrate.
 		registerLanguage(SL0Codec.NAME, new SL0Codec());
 		registerOntology(MobilityOntology.NAME, MobilityOntology.instance());		
+
+		addBehaviour(new GetAvailableLocationsBehaviour(this));
 	}
 	
 
@@ -113,7 +141,6 @@ public class MobileAgent extends GuiAgent {
 	// MOBILE GUI EVENT 
 	private class MobGuiEvent extends GuiEvent
 	{
-		public static final int MOVE = 1001;
 		public Location destination;
 
 		public MobGuiEvent(Object source, int type, Location dest)
@@ -126,8 +153,13 @@ public class MobileAgent extends GuiAgent {
 	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT OPERATIONS 	
 	public void postMoveEvent(Object source, Location dest)
 	{
-		MobGuiEvent ev = new MobGuiEvent(source, MobGuiEvent.MOVE, dest);
+		MobGuiEvent ev = new MobGuiEvent(source, MOVE_EVENT, dest);
 		postGuiEvent(ev);
+	}
+
+        public void postSimpleEvent(int eventType) {
+	  MobGuiEvent ev = new MobGuiEvent(null, eventType, null);
+	  postGuiEvent(ev);
 	}
 	
 	// AGENT OPERATIONS FOLLOWING GUI EVENTS
@@ -140,11 +172,21 @@ public class MobileAgent extends GuiAgent {
 			gui = null;
 			doDelete();
 			break;
-		case MobGuiEvent.MOVE:
+		case MOVE_EVENT:
 			nextSite = (Location)(((MobGuiEvent)ev).destination);
 			doMove(nextSite);
 			break;
+   	        case STOP_EVENT:
+		  stopCounter();
+		  break;
+		case CONTINUE_EVENT:
+		  continueCounter();
+		  break;
+		case REFRESH_EVENT:
+		  addBehaviour(new GetAvailableLocationsBehaviour(this));
+		  break;
 		}
+
 	}
 
 }
