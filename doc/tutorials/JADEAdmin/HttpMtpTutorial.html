@@ -10,7 +10,7 @@
 		<h1>Tutorial 4: Using the HTTP MTP for Inter Platform  Communication</h1>
 		<p>An alternative for inter platform communication using the HTTP protocol instead of IIOP (see Tutorial 3) has been provided with the JADE distribution. It is easy to use and provides a well known and universally used message transport protocol (MTP).</p>
 		<h2>Compiling (if necessary)</h2>
-		<p>The HTTP MTP add-on comes with source and a jar file  (htttp.jar) containing the compiled classes. The compiled code assumes you ar using the Crimson SAX parser (crimson.jar from Apache - a free download). If you want to use a different parser, e.g. Xerces, you need to follow the provided <a href="HTTP.html"> instructions</a>. What you want to create is the file http.jar. </p>
+		<p>The HTTP MTP add-on comes with source and a jar file (http.jar) containing the compiled classes. The compiled code assumes you ar using the Crimson SAX parser (<a href="http://xml.apache.org/crimson/index.html">crimson.jar</a> from <a href="http://www.apache.org/">Apache </a>- a free download). If you want to use a different parser, e.g. Xerces, you need to follow the provided <a href="HTTP.html"> instructions</a>. What you want to create is the file http.jar. </p>
 		<h3></h3>
 		<h2>Using the HTTP MTP</h2>
 		<p>Once you have http.jar and crimson.jar the rest is easy. I just put these in the lib directory along with the other JADE jar files in the lib directory. Then I just needed to tell JADE where the main class is using the -mtp command line switch. All this can be put in a one line batch file which looks like this:</p>
