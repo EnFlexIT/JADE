@@ -343,7 +343,7 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public String getName() {
-    return "fipa.mts.mtp.iiop.std";
+    return jade.domain.FIPANames.MTP.IIOP; 
   }
 
   public String[] getSupportedProtocols() {

@@ -44,7 +44,7 @@ import starlight.util.Base64;
  **/
 public class StringACLCodec implements ACLCodec {
 
-  public static final String NAME = "fipa.acl.rep.string.std"; 
+  public static final String NAME = jade.domain.FIPANames.ACLCodec.STRING; 
 
     /** Key of the user-defined parameter used to signal the automatic JADE
 	conversion of the content into Base64 encoding  **/

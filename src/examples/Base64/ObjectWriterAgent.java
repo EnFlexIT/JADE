@@ -28,6 +28,7 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFServiceCommunicator;
+import jade.domain.FIPANames;
 
 import java.util.*;
 import java.io.*;
@@ -73,10 +74,10 @@ protected void setup() {
       Thread.sleep(10000);
     }
   } catch (Exception fe) {
-    fe.printStackTrace();
-    System.err.println(getLocalName()+" search with DF is not succeeded because of " + fe.getMessage());
-    doDelete();
-    }
+      fe.printStackTrace();
+      System.err.println(getLocalName()+" search with DF is not succeeded because of " + fe.getMessage());
+      doDelete();
+  }
 
    try {
       ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -90,11 +91,11 @@ protected void setup() {
       System.out.println(getLocalName()+" sent 1st msg "+msg);
 
       msg.setDefaultEnvelope();
-      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.bitefficient.std"); 
+      msg.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.BITEFFICIENT);
       send(msg);
       System.out.println(getLocalName()+" sent 1st msg with bit-efficient aclCodec "+msg);
 
-      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.xml.std"); 
+      msg.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.XML); 
       send(msg);
       System.out.println(getLocalName()+" sent 1st msg with xml aclCodec "+msg);
 
@@ -105,11 +106,11 @@ protected void setup() {
       send(msg);
       System.out.println(getLocalName()+" sent 2nd msg "+msg);
 
-      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.bitefficient.std"); 
+      msg.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.BITEFFICIENT); 
       send(msg);
       System.out.println(getLocalName()+" sent 2nd msg with bit-efficient aclCodec "+msg);
       
-      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.xml.std"); 
+      msg.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.XML); 
       send(msg);
       System.out.println(getLocalName()+" sent 2nd msg with xml aclCodec "+msg);
   } catch (IOException e ) {
