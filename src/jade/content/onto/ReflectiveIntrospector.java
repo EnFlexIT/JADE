@@ -207,7 +207,8 @@ public class ReflectiveIntrospector implements Introspector {
 	protected String translateName(String name) {
 		StringBuffer buf = new StringBuffer();
 
-		boolean capitalize = false;
+		// Capitalize the first char so that e.g. getxxx becomes getXxx 
+		boolean capitalize = true;
 
 		for (int i = 0; i < name.length(); i++) {
 			char c = name.charAt(i);
