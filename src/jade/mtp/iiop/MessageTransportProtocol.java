@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.Calendar;
+import java.io.*;
 
 import org.omg.CORBA.*;
 
@@ -55,6 +56,7 @@ import jade.domain.FIPAAgentManagement.ReceivedObject;
    @version $Date$ $Revision$
  */
 public class MessageTransportProtocol implements MTP {
+
 
   private static class MTSImpl extends FIPA._MTSImplBase {
 
@@ -126,7 +128,13 @@ public class MessageTransportProtocol implements MTP {
 	// FIXME: need to unmarshal user properties
 
       }
-
+      
+      //String tmp = "\n\n"+(new  java.util.Date()).toString()+"   RECEIVED IIOP MESSAGE"+ "\n" + env.toString() + "\n" + new String(payload); 
+      //System.out.println(tmp);
+   
+       
+      //MessageTransportProtocol.log(tmp); //Write in a log file for iiop incoming message
+      
       // Dispatch the message
       dispatcher.dispatchMessage(env, payload);
 
@@ -163,15 +171,26 @@ public class MessageTransportProtocol implements MTP {
 
   private ORB myORB;
   private MTSImpl server;
-
+  private static PrintWriter logFile;
+  
   public MessageTransportProtocol() {
     myORB = ORB.init(new String[0], null);
+    
   }
 
   public TransportAddress activate(InChannel.Dispatcher disp) throws MTPException {
     server = new MTSImpl(disp);
     myORB.connect(server);
-    return new IIOPAddress(myORB, server);
+    IIOPAddress iiop = new IIOPAddress(myORB, server);
+    
+    /* //Open log file
+    String fileName = "iiop"+iiop.getHost()+iiop.getPort()+".log";
+		try{
+    	logFile = new PrintWriter(new FileWriter(fileName,true));
+    }catch(java.io.IOException e){e .printStackTrace();}
+    */
+    return iiop;
+    
   }
 
   public void activate(InChannel.Dispatcher disp, TransportAddress ta) throws MTPException {
@@ -276,7 +295,13 @@ public class MessageTransportProtocol implements MTP {
 					       IDLuserDefinedProperties);
 
       FipaMessage msg = new FipaMessage(new FIPA.Envelope[] { IDLenv }, payload);
-      objRef.message(msg);
+
+      //String tmp = "\n\n"+(new  java.util.Date()).toString()+"   SENT IIOP MESSAGE"+ "\n" + env.toString() + "\n" + new String(payload); 
+      //System.out.println(tmp);
+	
+  //MessageTransportProtocol.log(tmp); // write in a log file for sent iiop message
+		
+	objRef.message(msg);
     }
     catch(ClassCastException cce) {
       cce.printStackTrace();
@@ -349,6 +374,13 @@ public class MessageTransportProtocol implements MTP {
     result.via = ro.getVia();
     return result;
   }
+ 
+
+//Method to write on a file the iiop message log file
+/*public static synchronized void log(String str) {
+  logFile.println(str);  
+	logFile.flush();
+		}*/
 
 } // End of class MessageTransportProtocol
 
@@ -818,6 +850,8 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     public String getAnchor() {
       return "";
     }
+    
+    
 
   } // End of IIOPAddress class
 
