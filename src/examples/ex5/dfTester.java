@@ -1,64 +1,25 @@
-/*
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  $Log$
-  Revision 1.18  1999/05/20 14:12:40  rimassa
-  Updated import clauses to reflect JADE package structure changes.
+GNU Lesser General Public License
 
-  Revision 1.17  1999/02/25 08:02:46  rimassa
-  Added a correct InterruptedIOException handler; the agent is
-  terminated.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.16  1999/02/14 22:52:26  rimassa
-  Renamed addBehaviour() calls to addSubBehaviour() calls.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.15  1999/02/03 15:34:09  rimassa
-  Horrible hack to deal with CR/LF vs. LF. It should be fixed...
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.14  1998/12/07 23:37:24  rimassa
-  Added support for search constraints and for multiple DFs. Now dfTester
-  is a complete FIPA 98 client for Directory Facilitators.
-
-  Revision 1.13  1998/12/01 23:33:19  rimassa
-  Completely rewritten (again!) to use new Agent class API for DF
-  access. Now all DF actions are carried on by means of suitable Agent
-  class methods. This results in blocking interactions. Still missing
-  search constraints.
-
-  Revision 1.12  1998/11/30 00:12:23  rimassa
-  Almost completely rewritten; now it correctly supports a complete DF
-  interaction, search action included. Still missing some detail, such
-  as search constraints.
-
-  Revision 1.11  1998/11/23 00:11:58  rimassa
-  Fixed a little bug: an instance variable vas not reset after each
-  message received.
-
-  Revision 1.10  1998/11/18 22:56:49  Giovanni
-  Reading input from the standard input has been moved from setup()
-  method to an agent Behaviour. Besides, a suitable reset() method was
-  added to mainBehaviour, in order to make dfTester agent perform an
-  endless loop of requests to the DF, asking for different parameters
-  each time.
-
-  Revision 1.9  1998/10/18 17:33:53  rimassa
-  Added support for 'search' DF operation.
-
-  Revision 1.8  1998/10/18 16:10:39  rimassa
-  Some code changes to avoid deprecated APIs.
-
-   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
-   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
-     instead.
-   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
-     instead.
-
-  Revision 1.7  1998/10/11 19:09:17  rimassa
-  Removed old,commented out code.
-
-  Revision 1.6  1998/10/04 18:00:32  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
 
 package examples.ex5;
 
@@ -76,6 +37,11 @@ import jade.domain.SearchDFBehaviour;
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Università di Parma
+@version $Date$ $Revision$
+*/
 
 public class dfTester extends Agent {
 

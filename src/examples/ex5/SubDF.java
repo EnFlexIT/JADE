@@ -1,21 +1,25 @@
-/*
-  $Log$
-  Revision 1.3  1999/05/20 14:12:39  rimassa
-  Updated import clauses to reflect JADE package structure changes.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.2  1999/02/25 08:00:10  rimassa
-  Removed direct usage of 'myName' and 'myAddress' variables.
-  Added a correct handling of InterruptedIOException; it now terminates
-  the agent.
+GNU Lesser General Public License
 
-  Revision 1.1  1998/12/08 00:24:41  rimassa
-  Added this new example to show how to set up multiple Agent Domains.
-  This agent is simply a DF agent, but on startup it asks the user for a
-  parent DF to register with. Using this simple example it is possible to
-  build complex DF trees or graphs and exploit recursive search capabilities
-  of JADE DF agent.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-*/
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 package examples.ex5;
 
@@ -27,6 +31,12 @@ import jade.core.behaviours.*;
 
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Università di Parma
+@version $Date$ $Revision$
+*/
 
 public class SubDF extends jade.domain.df {
 
