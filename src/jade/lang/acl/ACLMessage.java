@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.20  1999/09/01 13:40:54  rimassa
+ Added a createReply() method to handle automatically
+ ':conversation-id' and ':reply-with' slots.
+
  Revision 1.19  1999/07/25 23:52:36  rimassa
  Replaced String data members with StringBuffer, to overcome an UTF
  data format limitation to 64 kB in size.
@@ -772,4 +776,27 @@ public class ACLMessage implements Cloneable, Serializable {
   protocol=null;
   conversation_id=null;
  }
+
+  /**
+   * create a new ACLMessage that is a reply to this message.
+   * In particular, it sets the following parameters of the new message:
+   * receiver, language, ontology, protocol, conversation-id,
+   * in-reply-to, reply-with.
+   * The programmer needs to set the communicative-act and the content.
+   * Of course, if he wishes to do that, he can reset any of the fields.
+   * @return the ACLMessage to send as a reply
+   */
+public ACLMessage createReply() {
+  ACLMessage m = (ACLMessage)clone();
+  m.removeAllDests();
+  m.addDest(getSource());
+  //m.setSource(getLocalName());
+  m.setReplyTo(getReplyWith());
+  m.setReplyWith(getSource()+(new Date()).getTime());
+  m.setReplyBy(null);
+  m.setContent(null);
+  m.setEnvelope(null);
+  return m;
+}
+
 }
