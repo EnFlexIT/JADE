@@ -409,7 +409,12 @@ public final class DefaultOntology implements Ontology {
     // check "get" method 
     if (getArgumentLength(getMethod) != 0)
       throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must take no arguments.");
-    if (!getReturnType(getMethod).equals(java.util.Iterator.class))
+    // MODIFIED by GC
+    // The return value of the getAllXXX() method of the user defined class 
+    // must be a jade.util.leap.Iterator or a super-class/interface of it -->
+    // No problem if it is a java.util.Iterator.
+    if (!(getReturnType(getMethod)).isAssignableFrom(jade.util.leap.Iterator.class))
+    //if (!getReturnType(getMethod).equals(java.util.Iterator.class))
       throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a java.util.Iterator." + getReturnType(getMethod).toString());
 
     // check 'add' method 
@@ -689,7 +694,8 @@ public final class DefaultOntology implements Ontology {
 	      setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
 	    else
 	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
-	    Iterator i = (Iterator)value;
+	    // MODIFIED by GC
+	    java.util.Iterator i = (java.util.Iterator) value;
 	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
 	      while (i.hasNext()) {
 		Object elem = i.next();
