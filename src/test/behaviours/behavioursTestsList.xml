@@ -65,4 +65,11 @@
 			<author>Juan Manuel Serrano, jserrano@escet.urjc.es</author>
 		</Test>
 
+		<Test name="Memory leak in block with timeout" skip="true">
+			<TestClassName>test.behaviours.tests.TestMemoryLeakInBlockTimeout</TestClassName>
+			<WhatTest> </WhatTest>
+			<HowWorkTest> </HowWorkTest>
+			<WhenTestPass> </WhenTestPass>
+		</Test>		
+
 	</TestsList>
