@@ -59,6 +59,7 @@ import jade.core.MainContainerImpl;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
+import jade.core.UnreachableException;
 
 import jade.lang.acl.ACLMessage;
 
@@ -205,16 +206,19 @@ public class AgentMobilityService extends BaseService {
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
+		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during agent cloning", imtpe));
 	    }
 	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
+		cmd.setReturnValue(nfe);
+	    }
+	    catch(NameClashException nce) {
+		cmd.setReturnValue(nce);
 	    }
 	    catch(AuthException ae) {
-		ae.printStackTrace();
+		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
-		se.printStackTrace();
+		cmd.setReturnValue(new UnreachableException("A service slice was not found during agent cloning", se));
 	    }
 	}
 
@@ -248,7 +252,7 @@ public class AgentMobilityService extends BaseService {
 
 	// Implementation of the service-specific horizontal interface AgentMobilitySlice 
 
-	public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, AuthException {
+	public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
 	    try {
 		log("Incoming agent " + agentID, 1);
 
@@ -323,9 +327,6 @@ public class AgentMobilityService extends BaseService {
 	    }
 	    catch(ClassNotFoundException cnfe) {
 		throw new IMTPException("A class was not found during de-serialization", cnfe);
-	    }
-	    catch(NameClashException nce) {
-		throw new IMTPException("The name chosen for the new copy already exists", nce);
 	    }
 	}
 
@@ -487,7 +488,29 @@ public class AgentMobilityService extends BaseService {
 	public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
 	    MainContainerImpl impl = myContainer.getMain();
 	    if(impl != null) {
-		impl.bornAgent(agentID, cid, certs);
+		try {
+		    // If the name is already in the GADT, throws NameClashException
+		    impl.bornAgent(agentID, cid, certs, false); 
+		}
+		catch(NameClashException nce) {
+		    try {
+			ContainerID oldCid = impl.getContainerID(agentID);
+			Node n = impl.getContainerNode(oldCid);
+
+			// Perform a non-blocking ping to check...
+			n.ping(false);
+
+			// Ping succeeded: rethrow the NameClashException
+			throw nce;
+		    }
+		    catch(NameClashException nce2) {
+			throw nce2; // Let this one through...
+		    }
+		    catch(Exception e) {
+			// Ping failed: forcibly replace the dead agent...
+			impl.bornAgent(agentID, cid, certs, true);
+		    }
+		}
 	    }
 	}
 
@@ -647,6 +670,9 @@ public class AgentMobilityService extends BaseService {
 	      System.out.println("Transferred agent not found on destination container. Can't roll back. " + nfe.getMessage());
 	  }
       }
+      catch(NameClashException nce) {
+	  // This should not happen, because the agent is not changing its name but just its location...
+      }
       catch(IMTPException imtpe) {
 	  // Unexpected remote error
 	  if (transferState == 0) {
@@ -676,7 +702,7 @@ public class AgentMobilityService extends BaseService {
       }
     }
 
-    private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, AuthException {
+    private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	Object[] params = cmd.getParams();
 	AID agentID = (AID)params[0];
 	Location where = (Location)params[1];
@@ -727,16 +753,10 @@ public class AgentMobilityService extends BaseService {
 	}
     	catch (IOException ioe) {
 	    // Error in agent serialization
-	    System.out.println("Error in agent serialization. Abort cloning. "+ ioe.getMessage());
-	}
-    	catch (AuthException ae) {
-	    System.out.println("Permission to clone not owned. Abort cloning. " + ae.getMessage());
+	    throw new IMTPException("I/O serialization error in handleInformCloned()", ioe);
 	}
 	catch(ServiceException se) {
-	    System.out.println("Destination container does not exist. Abort cloning. " + se.getMessage());
-	}
-	catch(IMTPException imtpe) {
-	    System.out.println("Unexpected remote error. Abort cloning. " + imtpe.getMessage());
+	    throw new IMTPException("Destination container not found in handleInformCloned()", se);
 	}
 	finally {
 	    myContainer.releaseLocalAgent(agentID);
