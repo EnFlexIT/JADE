@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 
 import jade.core.AgentContainer;
-import jade.core.AgentContainerImpl;
+//import jade.core.AgentContainerImpl;
 import jade.core.MainContainer;
 import jade.core.RemoteProxy;
 import jade.core.AID;
@@ -54,10 +54,10 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     manager = mgr;
   }
 
-  public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
+  /*public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
     throw new IMTPException("This method cannot be called on an adapter.");
   }  
-
+	*/
   public void newMTP(String mtpAddress, ContainerID cid) throws IMTPException {
     try {
       adaptee.newMTP(mtpAddress, cid);
@@ -123,14 +123,14 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void deregister(AgentContainer ac) throws IMTPException {
+  /*public void deregister(AgentContainer ac) throws IMTPException {
       throw new IMTPException("This method cannot be called on an adapter.");
   }
 
   public void dispatch(jade.lang.acl.ACLMessage msg, AID receiverID) throws NotFoundException {
       throw new NotFoundException("This method cannot be called on an adapter.");
   }
-
+	*/
   public void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException {
     try {
       adaptee.deadMTP(mtpAddress, cid);
