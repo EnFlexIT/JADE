@@ -23,52 +23,57 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools;
 
-import jade.util.leap.List;
 import java.util.Set;
 import java.util.Map;
-import jade.util.leap.ArrayList;
 import java.util.HashSet;
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.AgentState;
 
-import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.SenderBehaviour;
-import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.*;
 
+import jade.core.event.JADEEvent;
 import jade.core.event.MessageEvent;
 import jade.core.event.MessageListener;
 import jade.core.event.AgentEvent;
 import jade.core.event.AgentListener;
 
 import jade.domain.FIPAException;
-import jade.domain.introspection.JADEIntrospectionOntology;
-import jade.domain.introspection.Event;
-import jade.domain.introspection.DeadAgent;
-import jade.domain.introspection.Occurred;
-import jade.domain.introspection.EventRecord;
-import jade.domain.introspection.SentMessage;
-import jade.domain.introspection.PostedMessage;
-import jade.domain.introspection.ReceivedMessage;
-import jade.domain.introspection.ChangedAgentState;
-import jade.domain.introspection.AddedBehaviour;
-import jade.domain.introspection.RemovedBehaviour;
-import jade.domain.introspection.ChangedBehaviourState;
+import jade.domain.introspection.*;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.FailureException;
 
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.StringACLCodec;
 import jade.lang.sl.SL0Codec;
 
+import jade.util.Sensor;
+import jade.util.leap.List;
 import jade.util.leap.Iterator;
+import jade.util.leap.LinkedList;
+import jade.util.leap.ArrayList;
+import jade.util.leap.HashMap;
 
 import jade.tools.ToolAgent;
 
+import jade.onto.basic.*;
+
+import jade.proto.AchieveREResponder;
+
+/*
+  @author Giovanni Rimassa -  Universita` di Parma
+  @author Giovanni Caire -  TILAB
+*/
 public class ToolNotifier extends ToolAgent implements MessageListener, AgentListener {
 
   private AID observerAgent;
   private Set observedAgents = new HashSet();
+  private HashMap pendingEvents = new HashMap();
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
+  private ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
   // flag used to stop handling events during shutdown
   private boolean closingDown = false;  
@@ -94,7 +99,15 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 
       handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
       	public void handle(Event ev) {
-	    		// FIXME: Should follow the mobile agent
+	    		MovedAgent ma = (MovedAgent)ev;
+	    		AID moved = ma.getAgent();
+	    		if (!here().equals(ma.getTo())) { 
+	    			removeObservedAgent(moved);
+	    			if(isEmpty()) {
+	      			// FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
+	      			doDelete();
+	    			}
+	    		}
 	  		}
       });
 
@@ -110,57 +123,45 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 
 
   protected void toolSetup() {
-
       // Send 'subscribe' message to the AMS
       AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
 
-      // Handle incoming 'inform' messages
+      // Handle incoming 'inform' messages from the AMS
       AMSSubscribe.addSubBehaviour(new NotifierAMSListenerBehaviour());
-      /*AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
-
-      protected void installHandlers(Map handlersTable) {
-
-        // Fill the event handler table.
-        handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
-          public void handle(Event ev) {
-	    DeadAgent da = (DeadAgent)ev;
-	    AID dead = da.getAgent();
-	    removeObservedAgent(dead);
-	    if(isEmpty()) {
-	      // FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
-	      doDelete();
-	    }
-	  }
-        });
-
-        handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
-          public void handle(Event ev) {
-	    // FIXME: Should follow the mobile agent
-	  }
-        });
-
-      } // End of installHandlers() method
-
-    });
-    */
-
-      // Schedule Behaviours for execution
       addBehaviour(AMSSubscribe);
-
+      
+      /* Handle requests from the observer agent
+      addBehaviour(new ObserverRequestsHandler(this, MessageTemplate.and(
+      	MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME),
+      	MessageTemplate.MatchConversationId(observerAgent.getName()+"-request"))));
+     	*/
+     	
+      // Set constant fields in the message to be sent to the observer each  
+      // time an event occurs.
+    	msg.setSender(getAID());
+    	msg.addReceiver(observerAgent);
+    	msg.setOntology(JADEIntrospectionOntology.NAME);
+    	msg.setLanguage(SL0Codec.NAME);
   }
-
 
   protected void toolTakeDown() {
     closingDown = true;
     send(getCancel());
+    // If there are still threads waiting for some JADE event to be processed
+    // wake up them 
+    notifyAllPendingEvents();
   }
 
   public void addObservedAgent(AID id) {
     observedAgents.add(id);
+    StartNotify sn = new StartNotify();
+    sn.setObserved(id);
+    addBehaviour(new DoneInformer(this, sn));
   }
 
   public void removeObservedAgent(AID id) {
     observedAgents.remove(id);
+    notifyPendingEvents(id);
   }
 
   public AID getObserver() {
@@ -171,6 +172,9 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     return observedAgents.isEmpty();
   }
 
+  /////////////////////////////////////
+  // MessageListener Interface
+  /////////////////////////////////////
   public void sentMessage(MessageEvent ev) {
     if(closingDown)
       return;
@@ -188,15 +192,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       sm.setSender(id);
       sm.setMessage(m);
 
-      EventRecord er = new EventRecord(sm, here());
-      Occurred o = new Occurred();
-      o.set_0(er);
-
-      List l = new ArrayList(1);
-      l.add(o);
-
-      informObserver(l);
-
+      addBehaviour(new EventInformer(this, sm));
     }
   }
 
@@ -220,15 +216,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       pm.setReceiver(id);
       pm.setMessage(m);
 
-      EventRecord er = new EventRecord(pm, here());
-      Occurred o = new Occurred();
-      o.set_0(er);
-
-      List l = new ArrayList(1);
-      l.add(o);
-
-      informObserver(l);
-
+      addBehaviour(new EventInformer(this, pm));
     }
 
   }
@@ -253,24 +241,19 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       rm.setReceiver(id);
       rm.setMessage(m);
 
-      EventRecord er = new EventRecord(rm, here());
-      Occurred o = new Occurred();
-      o.set_0(er);
-
-      List l = new ArrayList(1);
-      l.add(o);
-
-      informObserver(l);
-
+      addBehaviour(new EventInformer(this, rm));
     }
   }
 
   public void routedMessage(MessageEvent ev) {
-    // Do nothing
+    // No tool is interested in this type of event --> Do nothing
     if(closingDown)
       return;
   }
 
+  /////////////////////////////////////
+  // AgentListener Interface
+  /////////////////////////////////////
   public void changedAgentState(AgentEvent ev) {
     if(closingDown)
       return;
@@ -286,15 +269,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       cas.setFrom(from);
       cas.setTo(to);
 
-      EventRecord er = new EventRecord(cas, here());
-      Occurred o = new Occurred();
-      o.set_0(er);
-
-      List l = new ArrayList(1);
-      l.add(o);
-
-      informObserver(l);
-
+      addBehaviour(new EventInformer(this, cas));
     }
   }
 
@@ -310,14 +285,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
         ab.setAgent(id);
         ab.setBehaviour(ev.getBehaviour());
         
-        EventRecord er = new EventRecord(ab, here());
-        Occurred o = new Occurred();
-        o.set_0(er);
-
-        List l = new ArrayList(1);
-        l.add(o);
-
-        informObserver(l);
+      	addBehaviour(new EventInformer(this, ab));
     }
   }
 
@@ -333,14 +301,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
         rb.setAgent(id);
         rb.setBehaviour(ev.getBehaviour());
         
-        EventRecord er = new EventRecord(rb, here());
-        Occurred o = new Occurred();
-        o.set_0(er);
-
-        List l = new ArrayList(1);
-        l.add(o);
-
-        informObserver(l);
+      	addBehaviour(new EventInformer(this, rb));
     }
   }
 
@@ -358,56 +319,209 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
         cs.setFrom(ev.getBehaviourFrom());
         cs.setTo(ev.getBehaviourTo());
         
-        EventRecord er = new EventRecord(cs, here());
-        Occurred o = new Occurred();
-        o.set_0(er);
-
-        List l = new ArrayList(1);
-        l.add(o);
-
-        informObserver(l);
+      	if (ev.getBehaviourTo().equals(Behaviour.STATE_RUNNING) && ev.getBehaviour().isSimple()) {
+      		// This event requires synchronous handling. As it may have already 
+      		// been processed by other listeners reset its processed status
+      		ev.resetProcessed();
+					addPendingEvent(ev, id);
+      		addBehaviour(new SynchEventInformer(this, cs, ev));
+					try {
+	      		ev.waitUntilProcessed();
+					}
+					catch (InterruptedException ie) {
+						// This is the thread of the observed agent. If it has been interrupted
+						// the agent is exiting or moving --> just do nothing
+					}
+					return;
+      	}
+      	else {
+      		addBehaviour(new EventInformer(this, cs));
+      	}
     }
   }
 
 
   public void changedAgentPrincipal(AgentEvent ev) {
-    // Do nothing
+    // No tool is interested in this type of event --> Do nothing
     if (closingDown)
       return;
   }
 
-  /*
-   * Creates the message to be sent to the observer. The observed
-   * message is put in the content field of this message.
-   *
-   * @param theMsg handler of the observed message
-   * @param theDests list of the destination (observers)
+  /**
+ 	   Inner class DoneInformer. 
+     Inform the Observer that an action (typically StartNotify) 
+     has been done. 
    */
-  private void informObserver(List content) {
-
-    final ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-    msg.clearAllReceiver();
-    msg.setSender(getAID());
-    msg.addReceiver(observerAgent);
-    msg.setConversationId(observerAgent.getName() + "-event");
-    msg.setOntology(JADEIntrospectionOntology.NAME);
-    msg.setLanguage(SL0Codec.NAME);
-    final List l = content;
-    addBehaviour(new OneShotBehaviour(this) {
-      public void action() {
-	try {
-	  myAgent.fillMsgContent(msg, l);
-	  send(msg);
-	}
-	catch(FIPAException fe) {
-	  fe.printStackTrace();
-	}
-
-      }
-
-    });
-
+  private class DoneInformer extends OneShotBehaviour {    
+  	private Object act;
+  	DoneInformer(Agent a, Object act) {
+  		super(a);
+  		this.act = act;
+  	}
+  	
+  	public void action() {
+	    Action a = new Action();
+	    a.setAction(act);
+	    a.setActor(getAID());
+	    DonePredicate d = new DonePredicate();
+	    d.set_0(a);
+	    List l = new ArrayList();
+	    l.add(d);
+			try {
+		  	fillMsgContent(msg, l);
+    		msg.setConversationId(observerAgent.getName() + "-control");
+		  	send(msg);
+		  	System.out.println(msg);
+			}
+			catch(FIPAException fe) {
+		  	fe.printStackTrace();
+			}
+  	}
   }
-
-
+  
+  /**
+ 	   Inner class EventInformer. 
+     Inform the Observer about an event that has occurred
+   */
+  private class EventInformer extends OneShotBehaviour {    
+  	private Event ev;
+  	EventInformer(Agent a, Event ev) {
+  		super(a);
+  		this.ev = ev;
+  	}
+  	
+  	public void action() {
+	    EventRecord er = new EventRecord(ev, here());
+	    Occurred o = new Occurred();
+	    o.setWhat(er);
+	
+	    List l = new ArrayList(1);
+	    l.add(o);
+			try {
+		  	fillMsgContent(msg, l);
+    		msg.setConversationId(observerAgent.getName() + "-event");
+		  	send(msg);
+		  	// DEBUG
+	  		//System.out.println("Sent event "+ev);
+		  	msg.setReplyWith(null);
+			}
+			catch(FIPAException fe) {
+		  	fe.printStackTrace();
+			}
+  	}
+  }
+  
+  /**
+ 	   Inner class SynchEventInformer. 
+     When the observation of an event must be synchronous (i.e. the
+     thread that generated the event must block until the observer 
+     has finished observing the event) we must 
+     - inform the observer 
+     - wait for the observer to send back a proper indication
+     - wake up the thread that generated the event
+   */
+  private class SynchEventInformer extends SequentialBehaviour {
+  	private String replyWith;
+  	
+  	SynchEventInformer(Agent a, Event ev, JADEEvent jev) {
+  		super(a);
+			replyWith = String.valueOf(jev.hashCode());
+  		addSubBehaviour(new EventInformer(a, ev));
+  		addSubBehaviour(new ObservationCompleteReceiver(a, jev, replyWith));
+  	}
+  	
+  	public void onStart() {
+			msg.setReplyWith(replyWith);
+		}  		
+  }
+  	
+  /**
+     Inner class ObservationCompleteReceiver
+     This is the behaviour that waits for the notification that the
+     Observer has finished observing an event
+   */
+	class ObservationCompleteReceiver extends SimpleBehaviour {
+		private JADEEvent jev;
+		private MessageTemplate mt;
+		private boolean finished = false;
+		
+		ObservationCompleteReceiver(Agent a, JADEEvent jev, String replyWith) {
+			super(a);
+			this.jev = jev;
+			mt = MessageTemplate.MatchInReplyTo(replyWith);
+		}
+		
+		public void action() {
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				jev.notifyProcessed(null);
+				removePendingEvent(jev);
+				finished = true;
+			}
+		}
+		
+		public boolean done() {
+			return finished;
+		}
+	}
+	
+	
+	//////////////////////////////////////////////
+	// Utility methods dealing with pending events
+	private void addPendingEvent(JADEEvent ev, AID id) {
+		synchronized (pendingEvents) {
+	    List l = (List) pendingEvents.get(id);
+	    if (l == null) {
+	    	l = new ArrayList();
+	    	pendingEvents.put(id, l);
+	    }
+	    l.add(ev);
+		}
+	}
+	
+	private void removePendingEvent(JADEEvent ev) {
+		synchronized (pendingEvents) {
+			AID id = null;
+			if (ev instanceof AgentEvent) {
+				id = ((AgentEvent) ev).getAgent();
+			}
+			else if (ev instanceof MessageEvent) {
+				id = ((MessageEvent) ev).getAgent();
+			}
+			List l = (List) pendingEvents.get(id);
+			if (l != null) {
+				l.remove(ev);
+				if (l.isEmpty()) {
+					pendingEvents.remove(id);
+				}
+			}
+		}
+	}
+				
+	private void notifyPendingEvents(AID id) {
+		synchronized (pendingEvents) {
+	    List l = (List) pendingEvents.remove(id);
+	    if (l != null) {
+	    	Iterator it = l.iterator();
+	    	while (it.hasNext()) {
+	    		JADEEvent ev = (JADEEvent) it.next();
+	    		ev.notifyProcessed(null);
+	    	}
+	    }
+		}
+	}
+	
+	private void notifyAllPendingEvents() {
+		synchronized (pendingEvents) {
+	    Iterator it1 = pendingEvents.values().iterator();
+	    while (it1.hasNext()) {
+	    	List l = (List) it1.next();
+	    	Iterator it2 = l.iterator();
+	    	while (it2.hasNext()) {
+	    		JADEEvent ev = (JADEEvent) it2.next();
+	    		ev.notifyProcessed(null);
+	    	}
+	    }
+		}
+	}
 }
