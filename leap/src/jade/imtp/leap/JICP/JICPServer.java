@@ -295,8 +295,7 @@ public class JICPServer extends Thread {
       InputStream  inp = null;
       boolean closeConnection = true;
       int status = 0;
-			byte type = (byte) 0;
-			
+      byte type = (byte) 0;
       try {
         // Get input and output stream from the connection
         inp = c.getInputStream();
@@ -344,6 +343,7 @@ public class JICPServer extends Thread {
           break;
 
         case JICPProtocol.CREATE_MEDIATOR_TYPE:
+
           // Starts a new Mediator and sends back its ID
           String   id = String.valueOf(mediatorCnt++);
           log("Received a CREATE_MEDIATOR request from "+addr+":"+port+". New Mediator ID is "+id+".", 2);
@@ -415,6 +415,7 @@ public class JICPServer extends Thread {
       } 
       finally {
         try {
+
           if (closeConnection) {
             // Close connection
           	c.close();

@@ -253,8 +253,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
-	  	myConnectionManager.shutdown();
-	    
+	    myConnectionManager.shutdown();
+
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
   	}
@@ -404,7 +404,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	      agent.setToolkit(this);
 	      previous = (Agent) localAgents.put(name, agent);
 	      // Notify the BackEnd (get back platform info if this is the first agent) 
-				String[] info = myBackEnd.bornAgent(name);
+	      String[] info = myBackEnd.bornAgent(name);
 				if (info != null) {
 					initInfo(info);
 				}
