@@ -28,44 +28,63 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.InternalError;
+import jade.util.Logger;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.security.*;
 
-import java.util.Hashtable;
-import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 /**
 @author Giovanni Caire - TILAB
 */
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
+
+    public static final String BE_REPLICAS_SIZE = "be-replicas-size";
+
 	private static final String OUTGOING_NAME = "out";
+        private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
+
 	private long outCnt = 0;
 	
 	// The FrontEnd this BackEndContainer is connected to
 	private FrontEnd myFrontEnd;
-	
+
+        private Profile myProfile;
+
 	// The manager of the connection with the FrontEnd
 	private BEConnectionManager myConnectionManager;
-        private ServiceFinder myServiceFinder;
 
-	private Hashtable agentImages = new Hashtable();
-	private Hashtable pendingImages = new Hashtable();
-	
+        private CommandProcessor myCommandProcessor;
+
+        private Map agentImages = new HashMap();
 	private boolean refreshPlatformInfo = true;
-	
+
+        private String[] replicasAddresses;
 	
 	public BackEndContainer(Profile p, BEConnectionManager cm) {
 	    super(p);
+	    myProfile = p;
 	    myConnectionManager = cm;
+
 	    try {
+
+		myCommandProcessor = myProfile.getCommandProcessor();
+
+		String beAddrs = p.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
+		if(beAddrs != null) {
+		    replicasAddresses = parseAddressList(beAddrs);
+		    p.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
+		}
+
 		myFrontEnd = cm.getFrontEnd(this, null);
 		Runtime.instance().beginContainer();
 		joinPlatform();
-		myServiceFinder = p.getServiceFinder();
 	    }
 	    catch (IMTPException imtpe) {
 		// Should never happen
@@ -77,87 +96,87 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    }
 	}
 
-	/////////////////////////////////////
-	// BackEnd interface implementation
-	/////////////////////////////////////
-	/**
-	   A new agent has just started on the FrontEnd.
-	   - Create an image for the new agent and set its CertificateFolder
-	     unless there is already a pending image (see createAgent()).
-	   - Notify the Main
-	   - Return the platform info to the FrontEnd if required
-	 */
+
+      protected void startServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+	  // Create the agent management service
+	  jade.core.management.BEAgentManagementService agentManagement = new jade.core.management.BEAgentManagementService();
+	  agentManagement.init(this, myProfile);
+
+	  // Create the messaging service
+	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
+
+	  messaging.init(this, myProfile);
+
+	  // Create the back-end replication service
+	  jade.core.replication.BEReplicationService beReplication = new jade.core.replication.BEReplicationService();
+	  beReplication.init(this, myProfile);
+
+	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
+	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
+	      new ServiceDescriptor(messaging.getName(), messaging)
+	  };
+
+	  // Register with the platform and activate all the container fundamental services
+	  // This call can modify the name of this container
+	  getServiceManager().addNode(getNodeDescriptor(), baseServices);
+
+	  // Install all ACL Codecs and MTPs specified in the Profile
+	  messaging.boot(myProfile);
+
+	  // Start the Back-End replication service
+	  startService("jade.core.replication.BEReplicationService");
+
+      }
+
+
+    /////////////////////////////////////
+    // BackEnd interface implementation
+    /////////////////////////////////////
+
+
+  /**
+     A new agent has just started on the FrontEnd.
+     - Create an image for the new agent and set its CertificateFolder
+     unless there is already a pending image (see createAgent()).
+     - Notify the Main
+     - Return the platform info to the FrontEnd if required
+  */
   public String[] bornAgent(String name) throws IMTPException {
-  	AID id = new AID(name, AID.ISLOCALNAME);
-  	AgentImage image = (AgentImage) pendingImages.remove(id);
-  	if (image == null) {
-  		// The agent spontaneously born on the FrontEnd --> its image still has to be created
-  		image = new AgentImage(id);
-  		// Create and set security information
-  		try {
-		    CertificateFolder certs = createCertificateFolder(id);
-		    image.setPrincipal(certs);
-		    image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
-  		}
-  		catch (AuthException ae) {
-  			// Should never happen
-  			ae.printStackTrace();
-  		}
-  	}
-  	AgentImage previous = (AgentImage) agentImages.put(id, image);
-  	try {
+      AID id = new AID(name, AID.ISLOCALNAME);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
+      cmd.addParam(id);
 
-	    ContainerID cid = getID();
-	    image.setToolkit(this);
+      myCommandProcessor.processOutgoing(cmd);
 
-	    Service agMan = myServiceFinder.findService(jade.core.management.AgentManagementSlice.NAME);
-	    jade.core.management.AgentManagementSlice mainSlice = (jade.core.management.AgentManagementSlice)agMan.getSlice(jade.core.ServiceFinder.MAIN_SLICE);
-	    mainSlice.bornAgent(id, cid, image.getCertificateFolder());
+      // Prepare platform info to return if necessary
+      String[] info = null;
+      if (refreshPlatformInfo) {
+	  AID ams = getAMS();
+	  String[] addresses = ams.getAddressesArray();
+	  info = new String[2+addresses.length];
+	  info[0] = getID().getName();
+	  info[1] = ams.getHap();
+	  for (int i = 0; i < addresses.length; ++i) {
+	      info[i+2] = addresses[i];
+	  }
+	  refreshPlatformInfo = false;
+      }
 
-	    // Prepare platform info to return if necessary
-	    String[] info = null;
-	    if (refreshPlatformInfo) {
-		AID ams = getAMS();
-		String[] addresses = ams.getAddressesArray();
-		info = new String[2+addresses.length];
-		info[0] = cid.getName();
-		info[1] = ams.getHap();
-		for (int i = 0; i < addresses.length; ++i) {
-		    info[i+2] = addresses[i];
-		}
-		refreshPlatformInfo = false;
-	    }
-	    return info;
-  	}
-  	catch (Exception e) {
-	    e.printStackTrace();
-	    // Roll back if necessary and throw an IMTPException
-	    agentImages.remove(id);
-	    if (previous != null) {
-		agentImages.put(id, previous);
-	    }
-	    throw new IMTPException("Error creating agent "+name+". ", e);
-  	}
+      return info;
+
   }
 
   /**
      An agent has just died on the FrontEnd.
      Remove its image and notify the Main
-	 */
+  */
   public void deadAgent(String name) throws IMTPException {
-  	AID id = new AID(name, AID.ISLOCALNAME);
-  	AgentImage image = (AgentImage) agentImages.remove(id);
-  	if (image != null) {
-	    try {
-		handleEnd(id);
-	    }
-	    catch (Exception e) {
-		// There is nothing we can do
-		e.printStackTrace();
-	    }
-  	}
+      AID id = new AID(name, AID.ISLOCALNAME);
+      GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
+      cmd.addParam(id);
+      myCommandProcessor.processOutgoing(cmd);
   }
-  
+
   /**
 	 */
   public void suspendedAgent(String name) throws NotFoundException, IMTPException {
@@ -177,136 +196,61 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      Note that the NotFoundException here is referred to the sender and
      indicates an inconsistency between the FrontEnd and the BackEnd
 	 */
-  public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
-		// Check whether the sender exists
+    public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
+
+	// Check whether the sender exists
   	final AID id = new AID(sender, AID.ISLOCALNAME);
+
   	AgentImage image = (AgentImage) agentImages.get(id);
   	if (image == null) {
-  		throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
+	    throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
   	}
   	
-		// Mark this thread as an outgoing message dispatcher. This is 
-		// necessary, in the case some of the receivers lives in the FrontEnd,
-		// to avoid sending him back the message (see dispatch()).
-		Thread.currentThread().setName(OUTGOING_NAME+outCnt++);
-		
-		try {
-  		// An AuthException will be thrown if the sender does not have
-  		// - the permission to send a message on behalf of msg.getSender()
-			// - the permission to send a message to one of the receivers
-	  	getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-				public Object run() throws AuthException {
-					handleSend(msg, id);
-					return null;
-				}
-			}, image.getCertificateFolder());
-		}
-		catch (AuthException e) {
-			// FIXME: This will probably disappear as all the AuthExecptions
-			// should be handled within the "unicastPostMessage loop" inside
-			// handleSend()
-			System.out.println("AuthException: "+e.getMessage() );
-		} 
-		catch (Exception e) {
-  		// Should never happen
-			e.printStackTrace();
-		} 
-  }
-  
-	///////////////////////////////////////////
-	// AgentContainerImpl methods re-definition
-	///////////////////////////////////////////
-  /**
-     Force the creation of an agent on the FrontEnd.
-     Note that the agent to create can have a different owner with respect 
-     to the owner of this "container" --> Its image holding the agent's
-     ownership information must be created now and not in the bornAgent()
-     method. This image is stored in the pendingImages map for later 
-     retrieval (see bornAgent()).
-   */
-  public void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
-    AgentImage image = new AgentImage(agentID);
-    // Set security information 
-    if (certs != null) {
-    	image.setPrincipal(certs);
-    }
-    if(ownership != null) {
-    	image.setOwnership(ownership);
-    }
-    else if (certs.getIdentityCertificate() != null) {
-    	image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
+	// Mark this thread as an outgoing message dispatcher. This is 
+	// necessary, in the case some of the receivers lives in the FrontEnd,
+	// to avoid sending him back the message (see dispatch()).
+	Thread.currentThread().setName(OUTGOING_NAME+outCnt++);
+
+	try {
+
+	    // An AuthException will be thrown if the sender does not have
+	    // - the permission to send a message on behalf of msg.getSender()
+	    // - the permission to send a message to one of the receivers
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws AuthException {
+			handleSend(msg, id);
+			return null;
+		    }
+		}, image.getCertificateFolder());
+	}
+	catch (AuthException e) {
+	    // FIXME: This will probably disappear as all the AuthExecptions
+	    // should be handled within the "unicastPostMessage loop" inside
+	    // handleSend()
+	    System.out.println("AuthException: "+e.getMessage() );
+	} 
+	catch (Exception e) {
+	    // Should never happen
+	    e.printStackTrace();
+	}
     }
 
-    // Store the image so that it can be retrieved when the new agent starts
-    AgentImage previous = (AgentImage) pendingImages.put(agentID, image);
-    
-    try {
-    	// Arguments can only be Strings
-    	String[] sargs = null;
-    	if (args != null) {
-    		sargs = new String[args.length];
-    		for (int i = 0; i < args.length; ++i) {
-    			sargs[i] = (String) args[i];
-    		}
-    	}
-    	myFrontEnd.createAgent(agentID.getLocalName(), className, sargs);
+    public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
+	myFrontEnd.createAgent(name, className, args);
     }
-    catch (IMTPException imtpe) {
-    	// Roll back if necessary and forward the exception
-    	pendingImages.remove(agentID);
-    	if (previous != null) {
-    		pendingImages.put(agentID, previous);
-    	}
-    	throw imtpe;
+
+    public void killAgentOnFE(String name) throws IMTPException, NotFoundException {
+	myFrontEnd.killAgent(name);
+	deadAgent(name);
     }
-    catch (ClassCastException cce) {
-    	// Roll back if necessary and forward the exception
-    	pendingImages.remove(agentID);
-    	if (previous != null) {
-    		pendingImages.put(agentID, previous);
-    	}
-    	throw new IMTPException("Non-String argument");
+
+    public void suspendAgentOnFE(String name) throws IMTPException, NotFoundException {
+	myFrontEnd.suspendAgent(name);
     }
-  }
 
-  /**
-     Force the termination of an agent on the FrontEnd.
-     Note that deadAgent() is immediately called so that the agent is
-     considered dead by the platform even if the killAgent command
-     cannot reach the FrontEnd for disconnection problems (see deadAgent()). 
-   */
-  public void killAgent(AID agentID) throws IMTPException, NotFoundException {
-  	if (agentImages.get(agentID) != null) {
-  		String name = agentID.getLocalName();
-  		myFrontEnd.killAgent(name);
-	  	deadAgent(name);
-  	}
-  	else {
-			throw new NotFoundException("KillAgent failed to find " + agentID);
-  	}
-  }
-
-  /**
-   */
-  public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
-  	if (agentImages.get(agentID) != null) {
-  		myFrontEnd.suspendAgent(agentID.getLocalName());
-  	}
-  	else {
-			throw new NotFoundException("SuspendAgent failed to find " + agentID);
-  	}
-  }
-
-  /**
-   */
-  public void resumeAgent(AID agentID) throws IMTPException, NotFoundException {
-  	if (agentImages.get(agentID) != null) {
-  		myFrontEnd.resumeAgent(agentID.getLocalName());
-  	}
-  	else {
-			throw new NotFoundException("ResumeAgent failed to find " + agentID);
-  	}
-  }
+    public void resumeAgentOnFE(String name) throws IMTPException, NotFoundException {
+	myFrontEnd.resumeAgent(name);
+    }
 
   /**
      Dispatch a message to an agent in the FrontEnd.
@@ -324,7 +268,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       else {
 	  // The receiver must be in the FrontEnd
 	  AgentImage image = (AgentImage) agentImages.get(receiverID);
-	  if (image != null) {
+	  if(image != null) {
+
 	      if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
 		  // The message was sent by an agent living in the FrontEnd. The
 		  // receiverID (living in the FrontEnd too) has already received
@@ -338,6 +283,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	      try {
 		  final ACLMessage msgFinal = msg;
 		  final AID receiverIDFinal = receiverID;
+
 		  // An AuthException will be thrown if the receiver does not have
 		  // the permission to receive messages from the sender of this message
 		  getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
@@ -367,6 +313,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	      catch(IMTPException imtpe) {
 		  return false;
 	      }	      
+
 	  }
 	  else {
 	      // Agent not found
@@ -374,15 +321,28 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  }
       }
   }
-  
+
+  public void activateReplicas(Properties props) {
+      Properties newProps = (Properties)props.clone();
+      newProps.setProperty(Profile.MASTER_NODE_NAME, getID().getName());
+      if(replicasAddresses != null) {
+	  for(int i = 0; i < replicasAddresses.length; i++) {
+	      try {
+		  newProps.setProperty(Profile.CONTAINER_NAME, getID().getName() + "-Replica-" + (i + 1));
+		  newProps.setProperty(Profile.BE_REPLICA_INDEX, Integer.toString(i + 1));
+		  myConnectionManager.activateReplica(replicasAddresses[i], newProps);
+	      }
+	      catch(IMTPException imtpe) {
+		  System.out.println("--- Replica activation failed [" + replicasAddresses[i] + "] ---");
+	      }
+	  }
+      }
+  }
+
   /**
    */
   public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
-  	AgentImage image = (AgentImage) agentImages.get(agentID);
-  	if (image == null) {
-      throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
-  	}
-  	image.setPrincipal(certs);
+      throw new IMTPException("Unsupported operation");
   }
   
   /**
@@ -402,33 +362,33 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
   	throw new IMTPException("Unsupported operation");
   }
-  
+
+  public CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
+      return super.createCertificateFolder(agentID);
+  }
+
+    public void exit() {
+	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
+
+	myCommandProcessor.processOutgoing(cmd);
+    }
+
   /**
    */
-  public void exit() throws IMTPException {
-  	// Forward the exit command to the FrontEnd
-  	try {
-  		myFrontEnd.exit(false);
-  	}
-  	catch (IMTPException imtpe) {
-  		// The FrontEnd is disconnected. Force the shutdown of the connection
-  		myConnectionManager.shutdown();
-  	}
-  	
-  	// "Kill" all agent images
-	Enumeration e = agentImages.keys();
-	while (e.hasMoreElements()) {
-	    AID id = (AID) e.nextElement();
-	    try {
-		handleEnd(id);
-	    }
-	    catch (Exception ex) {
-		ex.printStackTrace();
-	    }
-	}
-	agentImages.clear();
-  	
-	shutDown();
+  public void shutDown() {
+
+      agentImages.clear();
+
+      // Forward the exit command to the FrontEnd
+      try {
+	  myFrontEnd.exit(false);
+      }
+      catch (IMTPException imtpe) {
+	  // The FrontEnd is disconnected. Force the shutdown of the connection
+	  myConnectionManager.shutdown();
+      }
+
+      super.shutDown();
   }
 
     /**
@@ -484,15 +444,61 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
     }
 
+    private String[] parseAddressList(String toParse) {
+
+	StringTokenizer lexer = new StringTokenizer(toParse, ADDR_LIST_DELIMITERS);
+	List addresses = new ArrayList();
+	while(lexer.hasMoreTokens()) {
+	    String tok = lexer.nextToken();
+	    addresses.add(tok);
+	}
+
+	Object[] objs = addresses.toArray();
+	String[] result = new String[objs.length];
+	for(int i = 0; i < result.length; i++) {
+	    result[i] = (String)objs[i];
+	}
+
+	return result;
+
+    }
+
     /**
        Inner class AgentImage
     */
-    private class AgentImage extends Agent {
+    public class AgentImage extends Agent {
 	private AgentImage(AID id) {
 	    super(id);
-	}  	
+	    setToolkit(BackEndContainer.this);
+	}
     }
 
+    // Factory method for the inner class
+    public AgentImage createAgentImage(AID id) {
+	return new AgentImage(id);
+    }
+
+    public AgentImage addAgentImage(AID id, AgentImage img) {
+	return (AgentImage)agentImages.put(id, img);
+    }
+
+    public AgentImage removeAgentImage(AID id) {
+	return (AgentImage)agentImages.remove(id);
+    }
+
+    public AgentImage getAgentImage(AID id) {
+	return (AgentImage)agentImages.get(id);
+    }
+
+    public AID[] getAgentImages() {
+	Object[] objs = agentImages.keySet().toArray();
+	AID[] result = new AID[objs.length];
+	for(int i = 0; i < result.length; i++) {
+	    result[i] = (AID)objs[i];
+	}
+
+	return result;
+    }
 
 }
 
