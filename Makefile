@@ -50,12 +50,15 @@ demo:
 	@echo Demo applications built.
 
 clean:
-	rm -f *~ "#*#" *.IOR *.URL
+	rm -f *~ "#*#" JADE.IOR JADE.URL
 	cd $(SRCDIR); $(MAKE) clean
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
 	cd $(EXAMPLESDIR); $(MAKE) clean
 	cd $(DEMODIR); $(MAKE) clean
+
+realclean: clean
+	cd $(SRCDIR); $(MAKE) idlclean
 
 archive: clean
 	cd $(ROOTDIR)/..; \
