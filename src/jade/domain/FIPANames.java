@@ -34,13 +34,13 @@ package jade.domain;
  * @version $Date$ $Revision$
  **/
 
-public class FIPANames {
+public interface FIPANames {
     /**
      * Set of constants that identifies the Codec of ACL Messages and
      * that can be assigned via 
      * <code> ACLMessage.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.BITEFFICIENT); </code>
      **/
-    public static class ACLCodec {
+    public static interface ACLCodec {
 	/** Syntactic representation of ACL in string form 
 	 * @see <a href=http://www.fipa.org/specs/fipa00070/XC00070f.html>FIPA Spec</a>
 	 **/
@@ -61,7 +61,22 @@ public class FIPANames {
      * <code>ACLMessage.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST)
      * </code>
      **/
-    public static class InteractionProtocol implements jade.proto.FIPAProtocolNames {
+    public static interface InteractionProtocol {
+	    //achieve rational effect protocol
+	    public static final String FIPA_REQUEST = "fipa-request";
+	    public static final String FIPA_QUERY =  "fipa-query" ;
+			public static final String FIPA_REQUEST_WHEN = "fipa-request-when";
+			public static final String FIPA_BROKERING = "fipa-brokering";
+			public static final String FIPA_RECRUITING = "fipa-recruiting";
+			public static final String FIPA_PROPOSE = "fipa-propose";
+		
+			//auction protocol
+			public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
+			public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
+		
+		
+			public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
+			public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";
     }
 
     /**
@@ -70,17 +85,17 @@ public class FIPANames {
      * <code>ACLMessage.setLanguage(FIPANames.ContentLanguage.SL0)
      * </code>
      **/
-    public static class ContentLanguage {
-	public static final String FIPA_SL0 = "FIPA-SL0";
-	public static final String FIPA_SL1 = "FIPA-SL1";
-	public static final String FIPA_SL2 = "FIPA-SL2";
-	public static final String FIPA_SL  = "FIPA-SL";
+    public static interface ContentLanguage {
+	public static final String FIPA_SL0 = "fipa-sl0";
+	public static final String FIPA_SL1 = "fipa-sl1";
+	public static final String FIPA_SL2 = "fipa-sl2";
+	public static final String FIPA_SL  = "fipa-sl";
     }
 
     /**
      * Set of constants that identifies the Message Transport Protocols. 
      **/
-    public static class MTP {
+    public static interface MTP {
 	/**
 	 * IIOP-based MTP
 	 * @see <a href=http://www.fipa.org/specs/fipa00075/XC00075e.html>FIPA Spec</a>
