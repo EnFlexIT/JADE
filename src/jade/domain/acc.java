@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/12/08 00:08:41  rimassa
+  Removed handmade content message parsing. Now updated
+  ACCAction.fromText() method is used.
+
   Revision 1.6  1998/10/23 21:43:26  Giovanni
   Activated some instrumentation code. Now both ParseException and
   TokenMgrError are dumped when catched.
@@ -46,8 +50,6 @@ public class acc extends Agent {
 
       try {
 	String content = myRequest.getContent();
-	// Remove 'action acc' from content string
-	content = content.substring(content.indexOf("acc") + 3); // FIXME: ACC could crash for a bad msg
 
 	// Obtain an ACC action from message content
 	try {
