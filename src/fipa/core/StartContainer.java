@@ -48,6 +48,9 @@ public class StartContainer {
 	  ++n;
 	  // FIXME: Add reading agent names from a file
 	}
+	else if(args[n].equals("-help") || args[n].equals("-h")) {
+	  usage();
+	}
 	else {
 	  /* Every other string is supposed to be the name of an
 	     agent, in the form name:class. The two parts must be at
@@ -64,7 +67,11 @@ public class StartContainer {
 	}
 	n++;
       }
-    } catch( Exception e ) { e.printStackTrace(); }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
 
     // Build the complete URL of the agent platform from default values and command line options
     String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
