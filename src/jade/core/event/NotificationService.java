@@ -1,0 +1,906 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+package jade.core.event;
+
+import jade.core.ServiceFinder;
+import jade.core.VerticalCommand;
+import jade.core.GenericCommand;
+import jade.core.Service;
+import jade.core.BaseService;
+import jade.core.Filter;
+import jade.core.Node;
+
+import jade.core.Agent;
+import jade.core.AgentContainerImpl;
+import jade.core.MainContainerImpl;
+import jade.core.AID;
+import jade.core.ContainerID;
+import jade.core.BehaviourID;
+import jade.core.AgentState;
+import jade.core.Channel;
+import jade.core.Profile;
+import jade.core.ProfileException;
+import jade.core.ServiceException;
+import jade.core.IMTPException;
+import jade.core.NotFoundException;
+import jade.core.UnreachableException;
+
+import jade.core.behaviours.Behaviour;
+
+import jade.lang.acl.ACLMessage;
+import jade.security.AgentPrincipal;
+import jade.tools.ToolNotifier;
+
+import jade.util.SynchList;
+import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
+
+
+/**
+
+   The JADE service to manage the event notification subsystem installed
+   on the platform.
+
+   @author Giovanni Rimassa - FRAMeTech s.r.l.
+
+*/
+public class NotificationService extends BaseService {
+
+    /**
+       The name of this service.
+    */
+    public static final String NAME = "Notification";
+
+    /**
+       This command name represents the action of activating an
+       instance of the Sniffer agent.
+    */
+    public static final String SNIFF_ON = "Sniff-On";
+
+    /**
+       This command name represents the action of deactivating a
+       previously started instance of the Sniffer agent.
+    */
+    public static final String SNIFF_OFF = "Sniff-Off";
+
+    /**
+       This command name represents the action of activating an
+       instance of the Introspector agent.
+    */
+    public static final String DEBUG_ON = "Debug-On";
+
+    /**
+       This command name represents the action of deactivating a
+       previously started instance of the Introspector agent.
+    */
+    public static final String DEBUG_OFF = "Debug-Off";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>MessagePosted</code> event.
+    */
+    public static final String NOTIFY_POSTED = "Notify-Posted";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>MessageReceived</code> event.
+    */
+    public static final String NOTIFY_RECEIVED = "Notify-Received";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedAgentState</code> event.
+    */
+    public static final String NOTIFY_CHANGED_AGENT_STATE = "Notify-Changed-Agent-State";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedAgentPrincipal</code> event.
+    */
+    public static final String NOTIFY_CHANGED_AGENT_PRINCIPAL = "Notify-Changed-Agent-Principal";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>BehaviourAdded</code> event.
+    */
+    public static final String NOTIFY_BEHAVIOUR_ADDED = "Notify-BehaviourAdded";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>BehaviourRemoved</code> event.
+    */
+    public static final String NOTIFY_BEHAVIOUR_REMOVED = "Notify-Behaviour-Removed";
+
+    /**
+       This command name represents the action of submitting to the
+       Notification Service a <code>ChangedBehaviourState</code> event.
+    */
+    public static final String NOTIFY_CHANGED_BEHAVIOUR_STATE = "Notify-Changed-Behaviour-State";
+
+
+
+
+    public static final String MAIN_SLICE = "Main-Container";
+
+    // The special name of an auxiliary thread used to avoid deadlock when debugging the AMS
+    private final static String AMS_DEBUG_HELPER = "AMS-debug-helper";
+
+    public NotificationService(AgentContainerImpl ac, Profile p) throws ProfileException {
+	super(p);
+
+	myContainer = ac;
+
+	// Create a local slice
+	localSlice = new ServiceComponent();
+
+    }
+
+    public String getName() {
+	return NAME;
+    }
+
+    public Class getHorizontalInterface() {
+	return NotificationSlice.class;
+    }
+
+    public Slice getLocalSlice() {
+	return localSlice;
+    }
+
+    public Filter getCommandFilter() {
+	return localSlice;
+    }
+
+    /**
+       Inner mix-in class for this service: this class receives
+       commands through its <code>Filter</code> interface and serves
+       them, coordinating with remote parts of this service through
+       the <code>NotificationSlice</code> interface (that extends the
+       <code>Service.Slice</code> interface).
+    */
+    private class ServiceComponent implements Filter, NotificationSlice {
+
+
+	// Implementation of the Filter interface
+
+	public void accept(VerticalCommand cmd) {
+
+	    try {
+		String name = cmd.getName();
+		if(name.equals(SNIFF_ON)) {
+		    handleSniffOn(cmd);
+		}
+		if(name.equals(SNIFF_OFF)) {
+		    handleSniffOff(cmd);
+		}
+		else if(name.equals(DEBUG_ON)) {
+		    handleDebugOn(cmd);
+		}
+		else if(name.equals(DEBUG_OFF)) {
+		    handleDebugOff(cmd);
+		}
+		else if(name.equals(jade.core.messaging.MessagingService.SEND_MESSAGE)) {
+		    handleSendMessage(cmd);
+		}
+		else if(name.equals(NOTIFY_POSTED)) {
+		    handleNotifyPosted(cmd);
+		}
+		else if(name.equals(NOTIFY_RECEIVED)) {
+		    handleNotifyReceived(cmd);
+		}
+		else if(name.equals(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED)) {
+		    handleNotifyChangedAgentState(cmd);
+		}
+		else if(name.equals(NOTIFY_CHANGED_AGENT_PRINCIPAL)) {
+		    handleNotifyChangedAgentPrincipal(cmd);
+		}
+		else if(name.equals(NOTIFY_BEHAVIOUR_ADDED)) {
+		    handleNotifyAddedBehaviour(cmd);
+		}
+		else if(name.equals(NOTIFY_BEHAVIOUR_REMOVED)) {
+		    handleNotifyRemovedBehaviour(cmd);
+		}
+		else if(name.equals(NOTIFY_CHANGED_BEHAVIOUR_STATE)) {
+		    handleNotifyChangedBehaviourState(cmd);
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during an event notification operation", imtpe));
+	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(new UnreachableException("A service slice was not found during an event notification operation", se));
+	    }
+	    catch(NotFoundException nfe) {
+		cmd.setReturnValue(nfe);
+	    }
+	}
+
+	public void setBlocking(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+    	public boolean isBlocking() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+	public void setSkipping(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+	public boolean isSkipping() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+
+	// Implementation of the Service.Slice interface
+
+	public Service getService() {
+	    return NotificationService.this;
+	}
+
+	public Node getNode() throws ServiceException {
+	    try {
+		return NotificationService.this.getLocalNode();
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+
+	// Implementation of the service-specific horizontal interface NotificationSlice
+
+	public void sniffOn(AID snifferName, AID targetName) throws IMTPException {
+
+	    ToolNotifier tn = findNotifier(snifferName);
+	    if(tn == null) { // Need a new notifier 
+		tn = new ToolNotifier(snifferName);
+		AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
+		try {
+		    myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
+		    addMessageListener(tn);
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+	    tn.addObservedAgent(targetName);
+
+	}
+
+	public void sniffOff(AID snifferName, AID targetName) throws IMTPException {
+	    ToolNotifier tn = findNotifier(snifferName);
+	    if(tn != null) { 
+		tn.removeObservedAgent(targetName);
+		if(tn.isEmpty()) {
+		    removeMessageListener(tn);
+		    tn.doDelete();
+		}
+	    }
+	}
+
+	public void debugOn(AID introspectorName, AID targetName) throws IMTPException {
+
+	    // AMS debug enabling must be done by a separated Thread to avoid
+	    // deadlock with ToolNotifier startup
+	    if (targetName.equals(myContainer.getAMS()) && !(Thread.currentThread().getName().equals(AMS_DEBUG_HELPER))) {
+		final AID in = introspectorName;
+		final AID tn = targetName;
+  		Thread helper = new Thread(new Runnable() {
+  			public void run() {
+			    try {
+				debugOn(in, tn);
+			    }
+			    catch(IMTPException imtpe) {
+				imtpe.printStackTrace();
+			    }
+  			}
+		});
+  		helper.setName(AMS_DEBUG_HELPER);
+  		helper.start();
+  		return;
+	    }
+  	
+	    // Get the ToolNotifier for the indicated debugger (or create a new one
+	    // if not yet there)
+	    ToolNotifier tn = findNotifier(introspectorName);
+	    if(tn == null) { // Need a new notifier
+		tn = new ToolNotifier(introspectorName);
+		AID id = new AID(introspectorName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
+		try {
+		    myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
+		    if (targetName.equals(myContainer.getAMS())) {
+			// If we are debugging the AMS, let's wait for the ToolNotifier 
+			// be ready to avoid deadlock problems. Note also that in 
+			// this case this code is executed by the helper thread and not
+			// by the AMS thread
+			tn.waitUntilStarted();
+		    }
+		    addMessageListener(tn);
+		    addAgentListener(tn);
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+	    tn.addObservedAgent(targetName);
+
+	    // Update the map of debuggers currently debugging the targetName agent
+	    synchronized (debuggers) {
+		List l = (List) debuggers.get(targetName);
+		if (l == null) {
+		    l = new LinkedList();
+		    debuggers.put(targetName, l);
+		}
+		if (!l.contains(introspectorName)) {
+		    l.add(introspectorName);
+		}
+	    }
+
+	    Agent a = myContainer.acquireLocalAgent(targetName);
+
+	    // Activate generation of behaviour-related events on the
+	    // target agent
+	    a.setGenerateBehaviourEvents(true);
+
+	    //  Retrieve the current agent state
+	    AgentState as = a.getAgentState();
+
+	    // Retrieve the list of pending ACL messages
+	    List messages = new LinkedList();
+	    myContainer.fillListFromMessageQueue(messages, a);
+
+	    // Retrieve the list of ready and blocked agent behaviour IDs
+	    List readyBehaviours = new LinkedList();
+	    myContainer.fillListFromReadyBehaviours(readyBehaviours, a);
+	    List blockedBehaviours = new LinkedList();
+	    myContainer.fillListFromBlockedBehaviours(blockedBehaviours, a);
+
+	    myContainer.releaseLocalAgent(targetName);
+
+
+	    // Notify all the needed events
+
+	    fireChangedAgentState(targetName, as, as);
+
+	    Iterator itReady = readyBehaviours.iterator();
+	    while(itReady.hasNext()) {
+		BehaviourID bid = (BehaviourID)itReady.next();
+		AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, bid, myContainer.getID());
+		tn.addedBehaviour(ev);
+	    }
+
+	    Iterator itBlocked = blockedBehaviours.iterator();
+	    while(itBlocked.hasNext()) {
+		BehaviourID bid = (BehaviourID)itBlocked.next();
+		AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, bid, myContainer.getID());
+		tn.addedBehaviour(ev);
+		ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, targetName, bid, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED, myContainer.getID());
+		tn.changedBehaviourState(ev);
+	    }
+
+	    Iterator itMessages = messages.iterator();
+	    while(itMessages.hasNext()) {
+		ACLMessage msg = (ACLMessage)itMessages.next();
+		MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, targetName, myContainer.getID());
+		tn.postedMessage(ev);
+	    }
+
+	    /***
+
+	    Agent a = localAgents.acquire(targetName);
+	    AgentState as = a.getAgentState();
+	    Scheduler s = a.getScheduler();
+	    MessageQueue mq = a.getMessageQueue();
+	    a.setGenerateBehaviourEvents(true);
+	    localAgents.release(targetName);
+    
+	    // Notify current agent state
+	    fireChangedAgentState(targetName, as, as);
+    
+	    // Notify currently loaded behaviour 
+	    // (Mutual exclusion with Scheduler.add(), remove()...)
+	    synchronized (s) {
+		Iterator it = s.readyBehaviours.iterator();
+		while (it.hasNext()) {
+		    Behaviour b = (Behaviour) it.next();
+		    // We can't just call fireAddedBehaviour() as we must only notify the 
+		    // ToolNotifier associated with introspectorName (NOT all AgentListeners)
+		    AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, new BehaviourID(b), myID());
+		    tn.addedBehaviour(ev);
+		}
+    	
+		it = s.blockedBehaviours.iterator();
+		while (it.hasNext()) {
+		    Behaviour b = (Behaviour) it.next();
+		    BehaviourID bid = new BehaviourID(b);
+		    AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, bid, myID());
+		    tn.addedBehaviour(ev);
+		    ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, targetName, bid, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED, myID());
+		    tn.changedBehaviourState(ev);
+		}
+	    }
+    
+	    // Notify messages currently pending in the message queue
+	    // (Mutual exclusion with Agent.receive(), blockingReceive(), postMessage()...)
+	    synchronized (mq) {
+		Iterator it = mq.iterator();
+		while (it.hasNext()) {
+		    ACLMessage msg = (ACLMessage) it.next();
+		    // We can't just call firePostedMessage() as we must only notify the 
+		    // ToolNotifier associated with introspectorName (NOT all AgentListeners)
+		    MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, targetName, myID());
+		    tn.postedMessage(ev);
+		}
+	    }
+	    ***/
+
+	}
+
+	public void debugOff(AID introspectorName, AID targetName) throws IMTPException {
+
+	    ToolNotifier tn = findNotifier(introspectorName);
+	    if(tn != null) { 
+		tn.removeObservedAgent(targetName);
+		if(tn.isEmpty()) {
+		    removeMessageListener(tn);
+		    removeAgentListener(tn);
+		    tn.doDelete();
+		}
+	    }
+
+	    boolean resetGenerateBehaviourEvents = true;
+	    synchronized (debuggers) {
+		List l = (List) debuggers.get(targetName);
+		if (l != null) {
+		    l.remove(introspectorName);
+		    if (l.size() > 0) {
+    			// There is still at least 1 debugger debugging the agent 
+    			// Do not stop generation of behaviour events
+    			resetGenerateBehaviourEvents = false;
+		    }
+		    else {
+    			debuggers.remove(targetName);
+		    }
+		}
+	    }
+    
+	    if (resetGenerateBehaviourEvents) {
+		Agent a = myContainer.acquireLocalAgent(targetName);
+		if (a != null) {
+		    a.setGenerateBehaviourEvents(false);
+		}
+		myContainer.releaseLocalAgent(targetName);
+	    }
+
+	}
+
+
+
+	// Vertical command handler methods
+
+
+	private void handleSniffOn(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID sniffer = (AID)params[0];
+	    List targets = (List)params[1];
+
+	    MainContainerImpl impl = myContainer.getMain();
+	    if(impl != null) {
+
+		// Activate sniffing each element of the list
+		Iterator it = targets.iterator();
+		while(it.hasNext()) {
+
+		    AID target = (AID)it.next();
+		    ContainerID cid = impl.getContainerID(target);
+
+		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
+		    slice.sniffOn(sniffer, target);
+
+		}
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleSniffOff(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID sniffer = (AID)params[0];
+	    List targets = (List)params[1];
+
+	    MainContainerImpl impl = myContainer.getMain();
+	    if(impl != null) {
+
+		// Deactivate sniffing each element of the list
+		Iterator it = targets.iterator();
+		while(it.hasNext()) {
+
+		    AID target = (AID)it.next();
+		    ContainerID cid = impl.getContainerID(target);
+
+		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
+		    slice.sniffOff(sniffer, target);
+
+		}
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleDebugOn(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID introspector = (AID)params[0];
+	    List targets = (List)params[1];
+
+	    MainContainerImpl impl = myContainer.getMain();
+	    if(impl != null) {
+
+		// Activate debugging each element of the list
+		Iterator it = targets.iterator();
+		while(it.hasNext()) {
+
+		    AID target = (AID)it.next();
+		    ContainerID cid = impl.getContainerID(target);
+
+		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
+		    slice.debugOn(introspector, target);
+
+		}
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleDebugOff(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID introspector = (AID)params[0];
+	    List targets = (List)params[1];
+
+	    MainContainerImpl impl = myContainer.getMain();
+	    if(impl != null) {
+
+		// Deactivate debugging each element of the list
+		Iterator it = targets.iterator();
+		while(it.hasNext()) {
+
+		    AID target = (AID)it.next();
+		    ContainerID cid = impl.getContainerID(target);
+
+		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
+		    slice.debugOff(introspector, target);
+
+		}
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleSendMessage(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID sender = (AID)params[1];
+
+	    fireSentMessage(msg, sender);
+	}
+
+	private void handleNotifyPosted(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID receiver = (AID)params[1];
+
+	    firePostedMessage(msg, receiver);
+	}
+
+	private void handleNotifyReceived(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID receiver = (AID)params[1];
+
+	    fireReceivedMessage(msg, receiver);
+	}
+
+	private void handleNotifyChangedAgentState(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    AgentState from = (AgentState)params[1];
+	    AgentState to = (AgentState)params[2];
+
+	    fireChangedAgentState(id, from, to);
+	}
+
+	private void handleNotifyChangedAgentPrincipal(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    AgentPrincipal from = (AgentPrincipal)params[1];
+	    AgentPrincipal to = (AgentPrincipal)params[2];
+
+	    fireChangedAgentPrincipal(id, from, to);
+	}
+
+	private void handleNotifyAddedBehaviour(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    Behaviour b = (Behaviour)params[1];
+
+	    fireAddedBehaviour(id, b);
+	}
+
+	private void handleNotifyRemovedBehaviour(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    Behaviour b = (Behaviour)params[1];
+
+	    fireRemovedBehaviour(id, b);
+	}
+
+	private void handleNotifyChangedBehaviourState(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID id = (AID)params[0];
+	    Behaviour b = (Behaviour)params[1];
+	    String from = (String)params[2];
+	    String to = (String)params[3];
+
+	    fireChangedBehaviourState(id, b, from, to);
+	}
+
+
+    } // End of ServiceComponent class
+
+
+
+    // Event dispatching methods
+    private void fireSentMessage(ACLMessage msg, AID sender) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = messageListeners.startScanning();
+	if (l != null) {
+	    MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		MessageListener ml = (MessageListener) it.next();
+		ml.sentMessage(ev);
+	    }
+	    messageListeners.stopScanning();
+	}	
+    }
+
+    private void firePostedMessage(ACLMessage msg, AID receiver) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = messageListeners.startScanning();
+	if (l != null) {
+	    MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		MessageListener ml = (MessageListener) it.next();
+		ml.postedMessage(ev);
+	    }
+	    messageListeners.stopScanning();
+	}
+    }
+
+    private void fireReceivedMessage(ACLMessage msg, AID receiver) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = messageListeners.startScanning();
+	if (l != null) {
+	    MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		MessageListener ml = (MessageListener) it.next();
+		ml.receivedMessage(ev);
+	    }
+	    messageListeners.stopScanning();
+	}
+    }
+
+    private void fireRoutedMessage(ACLMessage msg, Channel from, Channel to) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = messageListeners.startScanning();
+	if (l != null) {
+	    MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		MessageListener ml = (MessageListener) it.next();
+		ml.routedMessage(ev);
+	    }
+	    messageListeners.stopScanning();
+	}
+    }
+
+    private void fireAddedBehaviour(AID agentID, Behaviour b) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = agentListeners.startScanning();
+	if (l != null) {
+	    AgentEvent ev = null;
+	    if (b == b.root()) {
+    		// The behaviour has been added to the Agent
+		ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+	    }
+	    else {
+    		// The behaviour is actually a new child that has been added to a CompositeBehaviour
+		//FIXME: TO be done
+    		//ev = new AgentEvent(AgentEvent.ADDED_SUB_BEHAVIOUR, agentID, new BehaviourID(b.getParent()), new BehaviourID(b), myID());
+	    }
+
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		AgentListener al = (AgentListener) it.next();
+		al.addedBehaviour(ev);
+	    }
+	    agentListeners.stopScanning();
+	}
+    }
+
+    private void fireRemovedBehaviour(AID agentID, Behaviour b) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = agentListeners.startScanning();
+	if (l != null) {
+	    AgentEvent ev = new AgentEvent(AgentEvent.REMOVED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		AgentListener al = (AgentListener) it.next();
+		al.removedBehaviour(ev);
+	    }
+	    agentListeners.stopScanning();
+	}
+    }
+
+    private void fireChangedBehaviourState(AID agentID, Behaviour b, String from, String to) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = agentListeners.startScanning();
+	if (l != null) {
+	    AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, agentID, new BehaviourID(b), from, to, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		AgentListener al = (AgentListener) it.next();
+		al.changedBehaviourState(ev);
+	    }
+	    agentListeners.stopScanning();
+	}
+    }
+  
+
+
+
+    //__SECURITY__BEGIN
+    private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = agentListeners.startScanning();
+	if (l != null) {
+	    AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_PRINCIPAL, agentID, from, to, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		AgentListener al = (AgentListener) it.next();
+		al.changedAgentPrincipal(ev);
+	    }
+	    agentListeners.stopScanning();
+	}
+    }
+    //__SECURITY__END
+
+    private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
+  	// NOTE: A normal synchronized block could create deadlock problems
+  	// as it prevents concurrent scannings of the listeners list.
+	List l = agentListeners.startScanning();
+	if (l != null) {
+	    AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID());
+	    Iterator it = l.iterator();
+	    while (it.hasNext()) {
+		AgentListener al = (AgentListener) it.next();
+		al.changedAgentState(ev);
+	    }
+	    agentListeners.stopScanning();
+	}
+    }
+
+    private ToolNotifier findNotifier(AID observerName) {
+	ToolNotifier tn = null;
+	// Note that if a ToolNotifier exists it must be among the messageListeners
+	// --> There is no need to search it also among the agentListeners.
+	List l = messageListeners.startScanning();
+	if (l != null) {
+	    Iterator it = l.iterator();
+	    while(it.hasNext()) {
+	    	Object obj = it.next();
+	    	if(obj instanceof ToolNotifier) {
+		    ToolNotifier tni = (ToolNotifier) obj;
+		    AID id = tni.getObserver();
+		    if(id.equals(observerName)) {
+			tn = tni;
+			break;
+		    }
+		}
+	    }
+	    messageListeners.stopScanning();
+	}
+
+	if(tn != null && tn.getState() == Agent.AP_DELETED) { // A formerly dead notifier
+	    removeMessageListener(tn);
+	    removeAgentListener(tn);
+	    tn = null;
+	}
+	return tn;
+    }
+
+    private void addMessageListener(MessageListener ml) {
+	List l = messageListeners.startModifying();
+	l.add(ml);
+	messageListeners.stopModifying();
+    }
+
+    private void removeMessageListener(MessageListener ml) {
+	List l = messageListeners.startModifying();
+	l.remove(ml);
+	messageListeners.stopModifying();    
+    }
+
+    private void addAgentListener(AgentListener al) {
+	List l = agentListeners.startModifying();
+	l.add(al);
+	agentListeners.stopModifying();    
+    }
+
+    private void removeAgentListener(AgentListener al) {
+	List l = agentListeners.startModifying();
+	l.remove(al);
+	agentListeners.stopModifying();    
+    }
+
+    private ContainerID myID() {
+  	return (ContainerID) myContainer.here();
+    }
+
+
+    // The concrete agent container, providing access to LADT, etc.
+    private AgentContainerImpl myContainer;
+
+    // The local slice for this service
+    private ServiceComponent localSlice;
+
+    // The list of all listeners of ACL messaging related events (uses RW-locking)
+    private SynchList messageListeners = new SynchList();
+
+    // The list of all listeners of agent life cycle events (uses RW-locking)
+    private SynchList agentListeners = new SynchList();
+
+    // This maps a debugged agent into the list of debuggers that are 
+    // currently debugging it. It is used to know when an agent is no longer
+    // debugged by any debugger.
+    private Map debuggers = new HashMap();
+
+}
