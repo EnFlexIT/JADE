@@ -23,21 +23,35 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.security.AgentPrincipal;
+import jade.security.CertificateFolder;
 
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+   Hold all information about an agent
+   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Caire - TILAB
+   @version $Date$ $Revision$
 */
 
 class AgentDescriptor {
-
+	private AMSAgentDescription description;
   private AgentProxy proxy;
   private ContainerID containerID;
   private AgentPrincipal principal;
-  private boolean locked = false;
+	private CertificateFolder amsDelegation;
 
+	// AMS description
+  public void setDescription(AMSAgentDescription dsc) {
+    description = dsc;
+  }
+
+  public AMSAgentDescription getDescription() {
+    return description;
+  }
+
+  // Agent proxy
   public void setProxy(AgentProxy rp) {
     proxy = rp;
   }
@@ -46,6 +60,7 @@ class AgentDescriptor {
     return proxy;
   }
 
+  // Container ID
   public void setContainerID(ContainerID cid) {
     containerID = cid;
   }
@@ -54,6 +69,7 @@ class AgentDescriptor {
     return containerID;
   }
 
+  // Agent principal
   public void setPrincipal(AgentPrincipal p) {
     principal = p;
   }
@@ -62,21 +78,12 @@ class AgentDescriptor {
     return principal;
   }
 
-  public synchronized void lock() {
-    while(locked) {
-      try {
-	wait();
-      }
-      catch(InterruptedException ie) {
-	ie.printStackTrace();
-      }
-    }
-    locked = true;
+  // AMS delegation
+  public void setAMSDelegation(CertificateFolder cf) {
+    amsDelegation = cf;
   }
 
-  public synchronized void unlock() {
-    locked = false;
-    notifyAll();
+  public CertificateFolder getAMSDelegation() {
+    return amsDelegation;
   }
-
 }

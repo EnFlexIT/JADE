@@ -34,14 +34,16 @@ import jade.core.event.MTPListener;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-//__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AgentPrincipal;
 import jade.security.AuthException;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
-//__SECURITY__END
+
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.FIPAAgentManagement.AlreadyRegistered;
+import jade.domain.FIPAAgentManagement.NotRegistered;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -65,41 +67,48 @@ public interface AgentManager {
   public static interface Listener extends PlatformListener, MTPListener {
   }
 
+  // Listeners related methods
   void addListener(Listener l);
   void removeListener(Listener l);
 
+  // Platform information retrieval methods
   ContainerID[] containerIDs();
   AID[] agentNames();
-  String[] platformAddresses();
-
+  List containerMTPs(ContainerID cid) throws NotFoundException;
+  List containerAgents(ContainerID cid) throws NotFoundException;
+  
   ContainerID getContainerID(AID agentID) throws NotFoundException;
+  AMSAgentDescription getAMSDescription(AID agentID) throws NotFoundException;
+  CertificateFolder getAMSDelegation(AID agentID);
+  
+  Authority getAuthority();
+  
+  // JADE actions method
   void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException;
-
-  void killContainer(ContainerID cid) throws NotFoundException, AuthException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
-
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
-
-//__SECURITY__BEGIN
-  void take(AID agentID, String username, byte[] password) throws NotFoundException, UnreachableException, AuthException;
-  Authority getAuthority();
-//__SECURITY__END
-
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
   void wake(AID agentID, String password) throws NotFoundException, UnreachableException;
-
-  void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
-  void sniffOff(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
-
-  void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
-  void debugOff(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
 
   void move(AID agentID, Location where) throws NotFoundException, UnreachableException, AuthException;
   void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, UnreachableException, AuthException;
 
+  void killContainer(ContainerID cid) throws NotFoundException, AuthException;
   MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
   void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;
 
+  void take(AID agentID, String username, byte[] password) throws NotFoundException, UnreachableException, AuthException;
+
+  void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
+  void sniffOff(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException;
+  void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
+  void debugOff(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException;
+
+  // FIPA actions method
+  void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, AuthException;
+  void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, AuthException;
+  void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, AuthException; 
+  List amsSearch(AMSAgentDescription template, long maxResults);
 }
 

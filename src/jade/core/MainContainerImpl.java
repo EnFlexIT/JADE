@@ -46,6 +46,9 @@ import jade.core.event.MTPEvent;
 
 import jade.domain.ams;
 import jade.domain.df;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.FIPAAgentManagement.AlreadyRegistered;
+import jade.domain.FIPAAgentManagement.NotRegistered;
 
 import jade.lang.acl.ACLMessage;
 
@@ -53,7 +56,6 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
-//__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
@@ -64,7 +66,7 @@ import jade.security.DelegationCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.CertificateFolder;
-//__SECURITY__END
+import jade.security.PrivilegedExceptionAction;
 
 
 /**
@@ -82,7 +84,9 @@ import jade.security.CertificateFolder;
 
 */
 class MainContainerImpl implements Platform, AgentManager {
-
+  
+	// this variable holds a progressive number just used to name new containers
+  private static int containersProgNo = 0;
 
   // The two mandatory system agents.
   private ams theAMS;
@@ -100,6 +104,7 @@ class MainContainerImpl implements Platform, AgentManager {
   private Profile myProfile;
 
 	MainContainerImpl(Profile p) throws ProfileException {
+		System.out.println("New Main active");
 	    myProfile = p;
 		myIMTPManager = p.getIMTPManager();
 		platformID = p.getParameter(Profile.PLATFORM_ID, null);
@@ -149,10 +154,12 @@ class MainContainerImpl implements Platform, AgentManager {
 		
 	}
 	
-	public Authority getAuthority() {
-		return authority;
-	}
-
+	////////////////////////////////////////////////////
+	// Platform interface implementation
+	////////////////////////////////////////////////////
+	/**
+	   Registers a container to the platform
+	 */
 	public void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 
 		cid.setName(MAIN_CONTAINER_NAME);
@@ -208,6 +215,9 @@ class MainContainerImpl implements Platform, AgentManager {
 		myIMTPManager.remotize(this);
 	}
 
+	/**
+	   Deregister a container from the platform
+	 */
   public void deregister(AgentContainer ac) throws IMTPException {
     // Deregister yourself as a container
     containers.removeContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
@@ -257,16 +267,18 @@ class MainContainerImpl implements Platform, AgentManager {
     myIMTPManager.unremotize(this);
   }
 
+  /**
+     Dispatch a message to an agent living in the platform
+   */
   public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException {
   	// Directly use the GADT
   	while (true) {
-	    AgentDescriptor ad = platformAgents.get(receiverID);
+	    AgentDescriptor ad = platformAgents.acquire(receiverID);
   	  if(ad == null) {
     	  throw new NotFoundException("Agent " + receiverID.getName() + " not found in GADT.");
     	}
-    	ad.lock();
     	AgentProxy ap = ad.getProxy();
-    	ad.unlock();
+    	platformAgents.release(receiverID);;
     	try {
 		    ap.dispatch(msg);
 		    // Dispatch OK --> break out the loop
@@ -279,36 +291,1125 @@ class MainContainerImpl implements Platform, AgentManager {
   	}
   }
 
-  // this variable holds a progressive number just used to name new containers
-  private static int containersProgNo = 0;
+	///////////////////////////////////////////////////////
+	// MainContainer interface implementation.
+  // All these methods can be called from a remote site
+  // and can therefore throws IMTPException
+	///////////////////////////////////////////////////////
+	/**
+	   Return the name of the platform
+	 */
+  public String getPlatformName() throws IMTPException {
+    return platformID;
+  }
+	
+  /**
+     Add a new container to the platform
+   */
+	public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 
+		// Set the container name
+		if (cid.getName().equals("No-Name")) { // no name => assign a new name
+                     String name = AUX_CONTAINER_NAME + containersProgNo;
+		     containersProgNo++;
+                     cid.setName(name);
+		} else { // if this name exists already, assign a new name
+		    try {
+			containers.getContainer(cid);
+			String name = cid.getName() + containersProgNo;
+			containersProgNo++;
+			cid.setName(name);
+		    } catch (NotFoundException e) { 
+			// no container with this name exists, ok, go on.
+		    }
+		}
 
+		// Authenticate user
+		ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
+		CertificateFolder certs = authority.authenticate(principal, password);
+		authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
+		
+		// Set the container-principal
+		ac.changeContainerPrincipal(certs);
 
-  ContainerID getContainerIDFromAgent(AID agentID) throws NotFoundException {
-	AgentDescriptor ad = platformAgents.get(agentID);
-	if (ad == null) {
-		throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerFromAgent()");
+		// add to the platform's container list
+		containers.addContainer(cid, ac, principal);
+
+		// Send all platform addresses to the new container
+		ContainerID[] containerNames = containers.names();
+		for(int i = 0; i < containerNames.length; i++) {
+			ContainerID name = containerNames[i];
+			
+			try {
+				AgentContainer cont = containers.getContainer(name);
+					List mtps = containers.getMTPs(name);
+					Iterator it = mtps.iterator();
+					while(it.hasNext()) {
+						MTPDescriptor mtp = (MTPDescriptor)it.next();
+						ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, cont);
+					}
+			}
+			catch(NotFoundException nfe) {
+				nfe.printStackTrace();
+			}
+		}
+
+		// Spawn a blocking call to the remote container in a separate
+		// thread. This is a failure notification technique.
+		Thread t = new Thread(new FailureMonitor(ac, cid));
+		t.start();
+
+		// Notify listeners
+		fireAddedContainer(cid);
+
+		// Return the name given to the new container
+		return cid.getName();
 	}
-	ad.lock();
-	ContainerID cid = ad.getContainerID();
-	ad.unlock();
-	return cid;
+
+	/**
+	   Remove a container from the platform
+	 */
+  public void removeContainer(ContainerID cid) throws IMTPException {
+    containers.removeContainer(cid);
+
+    // Notify listeners
+    fireRemovedContainer(cid);
   }
 
-  AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
-    AgentDescriptor ad = platformAgents.get(agentID);
-    if(ad == null) {
-      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerFromAgent()");
-    }
-    ad.lock();
-    ContainerID cid = ad.getContainerID();
+  /**
+     Return the AgentContainer corresponding to a given ContainerID
+   */
+  public AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException {
     AgentContainer ac = containers.getContainer(cid);
-    ad.unlock();
     return ac;
   }
 
+  /**
+     Notify the platform that an agent has just born on a container
+   */
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    // verify identity certificate
+    authority.verify(certs.getIdentityCertificate());
 
-  // Inner class to detect agent container failures
+    AgentDescriptor ad = new AgentDescriptor();
+    AgentContainer ac = containers.getContainer(cid);
+    AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
+    ad.setProxy(ap);
+    ad.setContainerID(cid);
+    AgentPrincipal principal = (AgentPrincipal) certs.getIdentityCertificate().getSubject();
+    ad.setPrincipal(principal);
+    // CertificateFolder to be used by the AMS to perform actions on
+    // behalf of (requested  by) the new agent
+    ad.setAMSDelegation(prepareAMSDelegation(certs));
+    // Registration to the With Pages service
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(name);
+    amsd.setOwnership(principal.getOwnership());
+    amsd.setState(AMSAgentDescription.ACTIVE);
+    ad.setDescription(amsd);
+    
+    AgentDescriptor old = platformAgents.put(name, ad);
+    // exception unless the old agent's container is dead.
+    if(old != null) {
+    	// There's already an agent with name 'name'
+      AgentProxy oldProxy = old.getProxy();
+      if (oldProxy != null) {
+      	// The agent lives in the platform. Make sure it is reachable 
+      	// and then restore it and throw an Exception 
+      	try {
+					oldProxy.ping(); 
+					platformAgents.put(name, old);
+					throw new NameClashException("Agent " + name + " already present in the platform ");
+      	}
+      	catch(UnreachableException ue) {
+					System.out.println("Replacing a dead agent ...");
+					fireDeadAgent(old.getContainerID(), name);
+      	}
+      }
+      else {
+      	// The agent lives outside the platform. Can't check whether it is 
+      	// reachable. Restore it and throw an Exception
+				platformAgents.put(name, old);
+				throw new NameClashException("Agent " + name + " already registered to the platform ");
+      }
+    }
+
+    // Notify listeners
+    fireBornAgent(cid, name, principal);
+  }
+  
+  /**
+     Notify the platform that an agent has just died
+   */
+  public void deadAgent(AID name) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.acquire(name);
+    if(ad == null)
+      throw new NotFoundException("DeadAgent failed to find " + name);
+    ContainerID cid = ad.getContainerID();
+    platformAgents.remove(name);
+
+    // Notify listeners
+    fireDeadAgent(cid, name);
+  }
+
+  /**
+     Notify the platform that an agent has just suspended
+   */
+  public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+  	AgentDescriptor ad = platformAgents.acquire(name);
+    if (ad == null)
+      throw new NotFoundException("SuspendedAgent failed to find " + name);
+    AMSAgentDescription amsd = ad.getDescription();
+    if (amsd != null) {
+    	amsd.setState(AMSAgentDescription.SUSPENDED);
+    }
+    ContainerID cid = ad.getContainerID();
+		platformAgents.release(name);
+		
+    // Notify listeners
+    fireSuspendedAgent(cid, name);
+  }
+
+  /**
+     Notify the platform that an agent has just resumed
+   */
+  public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.acquire(name);
+    if(ad == null)
+      throw new NotFoundException("ResumedAgent failed to find " + name);
+    AMSAgentDescription amsd = ad.getDescription();
+    if (amsd != null) {
+    	amsd.setState(AMSAgentDescription.ACTIVE);
+    }
+    ContainerID cid = ad.getContainerID();
+		platformAgents.release(name);
+
+    // Notify listeners
+    fireResumedAgent(cid, name);
+  }
+
+  /**
+     Notify the platform that the principal of an agent has changed
+   */
+	public void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException {
+		// FIXME: Probably we should let the AuthException pass through as in bornAgent()
+		try {
+			authority.verify(certs.getIdentityCertificate());
+			
+			AgentDescriptor ad = platformAgents.acquire(name);
+			if (ad == null)
+				throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);			
+			AgentPrincipal from = ad.getPrincipal();
+			AgentPrincipal to = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
+			ad.setPrincipal(to);
+			AMSAgentDescription amsd = ad.getDescription();
+			if (amsd != null) {
+				amsd.setOwnership(to.getOwnership());
+			}
+			ad.setAMSDelegation(prepareAMSDelegation(certs));
+			ContainerID cid = ad.getContainerID();
+			platformAgents.release(name);
+			
+			// Add the new principal to the principals table of all the containers. 
+      // Synchronized to avoid additions/removals of containers during update
+      synchronized(containers) {
+				AgentContainer[] allContainers = containers.containers();
+				for (int i = 0; i < allContainers.length; i++) {
+					AgentContainer ac = allContainers[i];
+					// FIXME: If some container is temporarily disconnected it will not be
+					// notified. We should investigate the side-effects
+					try {
+						ac.changedAgentPrincipal(name, to);
+					}
+					catch (IMTPException imtpe) {
+						imtpe.printStackTrace();
+					}
+				}
+      }
+			
+			// Notify listeners
+			fireChangedAgentPrincipal(cid, name, from, to);    
+		}
+		catch (AuthException ae) {
+			System.err.println(ae.getMessage());
+		}
+	}
+	
+  /**
+     Notify the platform that a new MTP has bocome active on a given container
+   */
+  public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
+    try {
+      String containerName = cid.getName();
+      String[] mtpAddrs = mtp.getAddresses();
+      String mtpAddress = mtpAddrs[0];
+      platformAddresses.add(mtpAddress);
+      containers.addMTP(cid, mtp);
+      AgentContainer target = containers.getContainer(cid);
+
+			// Add the new MTP to the routing tables of all the containers. 
+      // Synchronized to avoid additions/removals of containers during update
+      synchronized(containers) {
+				AgentContainer[] allContainers = containers.containers();
+				for(int i = 0; i < allContainers.length; i++) {
+	  			AgentContainer ac = allContainers[i];
+					// FIXME: If some container is temporarily disconnected it will not be
+					// notified. We should investigate the side-effects
+	  			try {
+		    		ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, target);
+	  			}
+	  			catch (IMTPException imtpe) {
+	  				System.out.println("Can't update routing table!");
+	  			}
+      	}
+      }
+
+      // Update the AMS-descriptions of all registered agents living in the platform
+	    AID[] allIds = platformAgents.keys();
+	    for (int i = 0; i < allIds.length; ++i) {
+	    	AgentDescriptor ad = platformAgents.acquire(allIds[i]);
+	      AMSAgentDescription dsc = ad.getDescription();	
+	      if (dsc != null && ad.getProxy() != null) {
+					AID id = dsc.getName();
+					id.addAddresses(mtpAddress);
+	      } 
+	    	platformAgents.release(allIds[i]);
+	  	}
+      
+      // Notify listeners (typically the AMS)
+      fireAddedMTP(mtp, cid);
+    }
+    catch(NotFoundException nfe) {
+      System.out.println("Error: the container " + cid.getName() + " was not found.");
+    }
+  }
+
+  /**
+     Notify the platform that an MTP is no longer active on a given container
+   */
+  public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
+    try {
+      String containerName = cid.getName();
+      String[] mtpAddrs = mtp.getAddresses();
+      String mtpAddress = mtpAddrs[0];
+      platformAddresses.remove(mtpAddress);
+      containers.removeMTP(cid, mtp);
+      AgentContainer target = containers.getContainer(cid);
+
+			// Remove the dead MTP from the routing tables of all the containers. 
+      // Synchronized to avoid additions/removals of containers during update
+      synchronized(containers) {
+				AgentContainer[] allContainers = containers.containers();
+				for(int i = 0; i < allContainers.length; i++) {
+	  			AgentContainer ac = allContainers[i];
+					// FIXME: If some container is temporarily disconnected it will not be
+					// notified. We should investigate the sideeffects
+	  			try {
+		    		ac.updateRoutingTable(AgentContainer.DEL_RT, mtp, target);
+	  			}
+	  			catch (IMTPException imtpe) {
+	  				System.out.println("Warning: Container has just died or disconnected. Can't update routing table!");
+	  			}
+      	}
+      }
+
+      // Update the AMS-descriptions of all agents living in the platform
+	    AID[] allIds = platformAgents.keys();
+	    for (int i = 0; i < allIds.length; ++i) {
+	    	AgentDescriptor ad = platformAgents.acquire(allIds[i]);
+	      AMSAgentDescription dsc = ad.getDescription();	
+	      if (ad.getProxy() != null) {
+					AID id = dsc.getName();
+					id.removeAddresses(mtpAddress);
+	      } 
+	    	platformAgents.release(allIds[i]);
+	  	}
+      
+      // Notify listeners (typically the AMS)
+      fireRemovedMTP(mtp, cid);
+    }
+    catch(NotFoundException nfe) {
+      System.out.println("Error: the container " + cid.getName() + " was not found.");
+    }
+  }
+
+  /**
+     Retrieve the proxy to be used to dispatch messages to a given agent
+   */
+  public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
+    AgentProxy ap;
+    AgentDescriptor ad = platformAgents.acquire(agentID);
+
+    if(ad == null) {
+      throw new NotFoundException("getProxy() failed to find " + agentID.getName());
+    }
+    else {
+      ap = ad.getProxy();
+      platformAgents.release(agentID);
+      try {
+				ap.ping();
+      }
+      catch(UnreachableException ue) {
+				throw new NotFoundException("Container for " + agentID.getName() + " is unreachable");
+      }
+      return ap;
+    }
+  }
+
+  /**
+     Transfer the "identity" of a moving agent from a source container
+     to a destination container. From this point on messages for that 
+     agent will be routed to the destination container.
+   */
+  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.acquire(agentID);
+    if(ad == null)
+      throw new NotFoundException("transferIdentity() unable to find agent " + agentID.getName());
+    AgentContainer srcAC = lookup(src);
+    AgentContainer destAC = lookup(dest);
+    try {
+      srcAC.ping(false);
+      destAC.ping(false);
+    }
+    catch(IMTPException re) {
+      // Abort transaction
+      return false;
+    }
+
+    // Commit transaction and notify listeners
+    ad.setProxy(myIMTPManager.createAgentProxy(destAC, agentID));
+    ad.setContainerID(dest);
+    fireMovedAgent(src, dest, agentID);
+    platformAgents.release(agentID);
+    return true;
+  }
+  
+  /**
+     Return the principal of an agent
+   */
+	public AgentPrincipal getAgentPrincipal(AID agentID) throws IMTPException, NotFoundException {
+		return getPrincipal(agentID);
+	}
+
+	/**
+	   Make the platform authority sign a certificate
+	 */
+  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException {
+    authority.sign(certificate, certs);
+    return certificate;
+  }
+  
+  /**
+     Return the public key of the platform
+   */
+  public byte[] getPublicKey() throws IMTPException {
+  	return authority.getPublicKey();
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  // AgentManager interface implementation.
+  // These methods are called by the AMS to execute the actions that can 
+  // be requested by agents in the platform.
+  //////////////////////////////////////////////////////////////////////
+  /**
+     Create an agent on a given container
+   */
+  public void create(final String name, final String className, final String args[], ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException {
+  	// Get the container where to create the agent
+  	// If it is not specified or does not exist, assume it is the Main
+  	AgentContainer where = null;
+  	if (cid == null || cid.getName() == null) {
+  		cid = new ContainerID(MAIN_CONTAINER_NAME, null);
+  	} 
+    try {
+			where = containers.getContainer(cid);
+    }
+    catch (NotFoundException nfe) {
+  		cid = new ContainerID(MAIN_CONTAINER_NAME, null);
+      try {
+      	where = containers.getContainer(cid);
+      }
+		  catch (NotFoundException nfe2) {
+		  	// Should never happen
+		  	nfe2.printStackTrace();
+		  }
+    }
+  		
+    // Check permissions
+    authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
+    authority.checkAction(Authority.CONTAINER_CREATE_IN, getPrincipal(cid), null);
+
+    // Do the action (we need again full permissions to execute a remote call)
+    final AgentContainer ac = where;
+    try {
+	    authority.doPrivileged(new PrivilegedExceptionAction() {
+  	  	public Object run() throws IMTPException {
+    			ac.createAgent(new AID(name, AID.ISLOCALNAME), className, args, ownership, certs, AgentContainer.START);
+    			return null;
+    		}
+    	} );
+    }
+    catch (IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+    catch (Exception e) {
+			// Should never happen
+    	e.printStackTrace();
+    }
+  }
+
+  /**
+     Kill an agent wherever it is
+   */
+	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		// Check permissions
+		authority.checkAction(Authority.CONTAINER_KILL_IN, getPrincipal(getContainerID(agentID)), null);
+		authority.checkAction(Authority.AGENT_KILL, getPrincipal(agentID), null);
+		
+		// Do the action (we need again full permissions to execute a remote call)
+		try {
+			authority.doPrivileged(new PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).killAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+    catch(NotFoundException nfe) {
+      // Forward the exception
+      throw nfe;
+    }
+		catch (Exception e) {
+    	// Should never happen
+			e.printStackTrace();
+		}
+	}
+
+  /**
+     Suspend an agent wherever it is
+   */
+	public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		// Check permissions
+		authority.checkAction(Authority.AGENT_SUSPEND, getPrincipal(agentID), null);
+		
+		// Do the action (we need again full permissions to execute a remote call)
+		try {
+			authority.doPrivileged(new PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).suspendAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+	}
+
+  /**
+     Resume an agent wherever it is
+   */
+	public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
+		// Check permissions
+		authority.checkAction(Authority.AGENT_RESUME, getPrincipal(agentID), null);
+		
+		// Do the action (we need again full permissions to execute a remote call)
+		try {
+			authority.doPrivileged(new PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).resumeAgent(agentID);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+	}
+
+  /**
+     Put an agent in the WAITING state wherever it is
+   */
+  public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
+    try {
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.waitAgent(agentID);
+    }
+    catch (IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+  /**
+     Wake-up an agent wherever it is
+   */
+  public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
+    try {
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.wakeAgent(agentID);
+    }
+    catch (IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+  /**
+     Move an agent to a given destination
+   */
+  public void move(final AID agentID, final Location where) throws NotFoundException, UnreachableException, AuthException {
+ 		ContainerID from = getContainerID(agentID);
+ 		ContainerID to = (ContainerID)where;
+		
+ 		// Check whether the destination exists
+ 		containers.getContainer(to);
+		
+ 		// Check permissions
+		authority.checkAction(Authority.CONTAINER_MOVE_FROM, getPrincipal(from), null);
+		authority.checkAction(Authority.CONTAINER_MOVE_TO, getPrincipal(to), null);
+		authority.checkAction(Authority.AGENT_MOVE, getPrincipal(agentID), null);
+    
+		// Do the action (we need again full permissions to execute a remote call)
+		try {
+			authority.doPrivileged(new PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).moveAgent(agentID, where);
+	  			return null;
+				}
+			});
+    }
+    catch (IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+    catch (NotFoundException ne) {
+			// Forward the exception
+    	throw ne;
+    }
+    catch (AuthException aue) {
+    	// Forward the exception
+			throw aue;
+    }
+    catch (Exception e) {
+			// Should never happen...
+			e.printStackTrace();
+    }
+  }
+
+  /**
+     Clone an agent to a given destination
+   */
+  public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
+ 		ContainerID from = getContainerID(agentID);
+ 		ContainerID to = (ContainerID)where;
+		
+ 		// Check whether the destination exists
+ 		containers.getContainer(to);
+
+ 		// Check permissions
+ 		authority.checkAction(Authority.AGENT_CLONE, getPrincipal(agentID), null);
+		authority.checkAction(Authority.CONTAINER_CLONE_FROM, getPrincipal(from), null);
+		authority.checkAction(Authority.CONTAINER_CLONE_TO, getPrincipal(to), null);
+    
+		// Do the action (we need again full permissions to execute a remote call)
+		try {
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException, AuthException {
+	  			getContainerFromAgent(agentID).copyAgent(agentID, where, newName);
+	  			return null;
+				}
+			});
+    }
+    catch (IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+    catch (NotFoundException ne) {
+			throw ne;
+    }
+    catch (AuthException aue) {
+			throw aue;
+    }
+    catch (Exception e) {
+			// Should never happen...
+			e.printStackTrace();
+    }
+  }
+
+  /** 
+     Kill a given container
+   */
+  public void killContainer(final ContainerID cid) throws NotFoundException, AuthException {
+  	// Check permissions
+    authority.checkAction(Authority.CONTAINER_KILL, getPrincipal(cid), null);
+        
+    // Do the action in a separate thread to avoid deadlock (we need 
+    // again full permissions to start a thread and execute a remote call)
+    final AgentContainer ac = containers.getContainer(cid);
+    try {
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+			  public Object run() {
+			  	Thread auxThread = new Thread() {
+			 			public void run() {
+			   			try {
+			     			 ac.exit();
+			   			}
+			   			catch (IMTPException imtp1) {
+			     			System.out.println("Container " + cid.getName() + " is unreachable. Ignoring...");
+			     			handleCrash(cid);
+			     			try {
+			     				removeContainer(cid);
+			     			}
+			     			catch (IMTPException imtpe2) {
+			     				// Should never happen as this is a local call
+			     				imtpe2.printStackTrace();
+			     			}
+			   			}
+			 			}
+			    };
+			  		
+			    auxThread.start();
+		  		return null;
+				}
+			});
+    }
+    catch (Exception e) {
+      // Should never happen
+      e.printStackTrace();
+    }
+  }
+
+  /** 
+     Install a new MTP on a given container
+   */
+  public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
+    String containerName = cid.getName();
+    AgentContainer target = containers.getContainer(cid);
+    try {
+      return target.installMTP(address, className);
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException("Container " + containerName + " is unreachable.");
+    }
+
+  }
+
+  /** 
+     Uninstall an MTP on a given container
+   */
+  public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
+    String containerName = cid.getName();
+    AgentContainer target = containers.getContainer(cid);
+    try {
+      target.uninstallMTP(address);
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException("Container " + containerName + " is unreachable.");
+    }
+  }
+
+  /**
+     Change the principal of an agent
+   */
+	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
+		// Check permissions	
+		authority.checkAction(Authority.AGENT_TAKE, getPrincipal(agentID), null);
+
+		// Create the certificate folder for the new principal
+		final AgentPrincipal principal = authority.createAgentPrincipal(agentID, username);
+		final CertificateFolder certs = authority.authenticate(principal, password);
+		
+		// Do the action (we need again full permissions to execute a remote call)
+		try {	
+			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
+		  	public Object run() throws IMTPException, NotFoundException {
+	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, certs);
+	  			return null;
+				}
+			});
+		}
+		catch (IMTPException re) {
+			throw new UnreachableException(re.getMessage());
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	   Activate sniffing on a given agent
+	 */
+  public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
+    Iterator it = toBeSniffed.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.enableSniffer(snifferName, id);
+      }
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+
+  }
+
+	/**
+	   Deactivate sniffing on a given agent
+	 */
+  public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
+    Iterator it = notToBeSniffed.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.disableSniffer(snifferName, id);
+      }
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+
+  }
+
+	/**
+	   Activate debugging on a given agent
+	 */
+  public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
+    Iterator it = toBeDebugged.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.enableDebugger(debuggerName, id);
+      }
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+	/**
+	   Deactivate debugging on a given agent
+	 */
+  public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
+    Iterator it = notToBeDebugged.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.disableDebugger(debuggerName, id);
+      }
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+  /**
+     Register an agent to the White Pages service of this platform
+   */
+  public void amsRegister(AMSAgentDescription dsc) throws AlreadyRegistered, AuthException {
+  	// Mandatory slots have already been checked
+  	AID agentID = dsc.getName();
+  	
+		// Check permissions	
+		authority.checkAction(Authority.AMS_REGISTER, getPrincipal(agentID), null);
+
+  	AgentDescriptor ad = platformAgents.acquire(agentID);
+  	if (ad == null) {
+  		System.out.println("No descriptor found for agent "+agentID);
+  		// This is a foreign agent registering to this platform
+  		ad = new AgentDescriptor();
+  		ad.setDescription(dsc);
+  		platformAgents.put(agentID, ad);
+  	}
+  	else {
+  		if (ad.getDescription() == null) {
+  			System.out.println("Descriptor with null AMSD found for agent "+agentID);
+  			// This is an agent living in the platform that had previously deregistered 
+  			ad.setDescription(dsc);
+  			platformAgents.release(agentID);
+  		}
+  		else {
+  			System.out.println("Descriptor with NON null AMSD found for agent "+agentID);
+  			// This agent is already registered --> Exception
+  			platformAgents.release(agentID);
+	  		throw new AlreadyRegistered();
+  		}
+  	}
+  }
+  
+  /**
+     Deregister an agent from the White Pages service of this platform
+   */
+  public void amsDeregister(AMSAgentDescription dsc) throws NotRegistered, AuthException {
+  	// Mandatory slots have already been checked
+  	AID agentID = dsc.getName();
+  	
+		// Check permissions	
+		authority.checkAction(Authority.AMS_DEREGISTER, getPrincipal(agentID), null);
+  	
+		AgentDescriptor ad = platformAgents.acquire(agentID);
+  	if (ad != null) {
+  		if (ad.getDescription() != null) {
+	  		if (ad.getProxy() != null) {
+	  			// This is an agent living in the platform --> just clear its registration
+	  			ad.setDescription(null);
+	  			platformAgents.release(agentID);
+	  		}
+	  		else {
+	  			// This is a foreign agent --> remove the descriptor completely
+	  			platformAgents.remove(agentID);
+	  		}
+	  		return;
+  		}
+  	}
+  	// This agent was not registered --> Exception
+	  throw new NotRegistered();
+  }
+  
+  /**
+     Modify the registration of an agent to the White Pages service of 
+     this platform.
+     If the modification implies a change in the agent state (and the agent
+     lives in the platform) --> force that chage 
+     If the modification implies a change in the agent ownership (and the agent
+     lives in the platform) --> force that chage 
+   */
+  public void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, AuthException {
+  	// Mandatory slots have already been checked
+  	AID agentID = dsc.getName();
+  	
+		// Check permissions	
+		authority.checkAction(Authority.AMS_MODIFY, getPrincipal(agentID), null);
+
+  	AgentDescriptor ad = platformAgents.acquire(agentID);
+  	if (ad != null) {
+  		AMSAgentDescription oldDsc = ad.getDescription();
+  		if (oldDsc != null) {
+  			ad.setDescription(dsc);
+  			String newState = dsc.getState();
+  			String newOwnership = dsc.getOwnership();
+  			if (newOwnership == null) {
+  				newOwnership = oldDsc.getOwnership();
+  			}
+  			platformAgents.release(agentID);
+	  		if (ad.getProxy() != null) {
+	  			// This is an agent living in the platform --> if necessary
+	  			// force changes in agent state and ownership 
+	  			if (AMSAgentDescription.SUSPENDED.equals(newState) && !AMSAgentDescription.SUSPENDED.equals(oldDsc.getState())) {
+	  				suspend(agentID);
+	  			}
+	  			if (AMSAgentDescription.ACTIVE.equals(newState) && !AMSAgentDescription.ACTIVE.equals(oldDsc.getState())) {
+	  				activate(agentID);
+	  			}
+	  			if (newOwnership != null && newOwnership != oldDsc.getOwnership()) {
+						byte[] password = Agent.extractPassword(newOwnership);
+						String username = Agent.extractUsername(newOwnership);
+						take(agentID, username, password);
+	  			}
+	  		}
+	  		return;
+  		}
+  	}
+  	// This agent was not registered --> Exception
+	  throw new NotRegistered();
+  }
+  
+  /**
+     Searches the White Pages for agents whose description matches a given
+     template.
+   */
+  public List amsSearch(AMSAgentDescription template, long maxResults) {
+  	List results = new ArrayList();
+  	AID[] ids = platformAgents.keys();
+  	for (int i = 0; i < ids.length; ++i) {
+  		try {
+				AMSAgentDescription amsd = getAMSDescription(ids[i]); 
+				if (match(template, amsd)) {
+					results.add(amsd);
+					if (results.size() >= maxResults) {
+						break;
+					}
+				}
+  		}
+  		catch (NotFoundException nfe) {
+  			// The agent disappeared while we were looping. Ignore it
+  		}
+  	}
+  	return results;
+  }
+  
+  /**
+     Return the IDs of all containers in the platform
+   */
+  public ContainerID[] containerIDs() {
+  	return containers.names();
+  }
+
+  /**
+     Return the IDs of all agents in the platform
+   */
+  public AID[] agentNames() {
+    return platformAgents.keys();
+  }
+
+  /**
+     Return all MTPs in a given container
+   */
+  public List containerMTPs(ContainerID cid) throws NotFoundException {
+  	return containers.getMTPs(cid);
+  }
+
+  /**
+     Return all agents living on a container
+   */
+  public List containerAgents(ContainerID cid) throws NotFoundException {
+  	List agents = new ArrayList();
+    AID[] allIds = platformAgents.keys();
+
+    for (int i = 0; i < allIds.length; ++i) {
+    	AID    id = allIds[i];
+    	AgentDescriptor ad = platformAgents.acquire(id);
+      ContainerID cid1 = ad.getContainerID();
+
+      if (cid.equals(cid1)) {
+				agents.add(id);
+      } 
+    	platformAgents.release(id);
+  	} 
+  	return agents;
+  }
+  
+  /**
+     Return the ID of the container an agent lives in
+   */
+  public ContainerID getContainerID(AID agentID) throws NotFoundException {
+    AgentDescriptor ad = platformAgents.acquire(agentID);
+    if(ad == null)
+      throw new NotFoundException("getContainerID() failed to find agent " + agentID.getName());
+    ContainerID result = ad.getContainerID();
+    platformAgents.release(agentID);
+    return result;
+  }
+  
+  /**
+     Return the AMS description of an agent
+   */
+  public AMSAgentDescription getAMSDescription(AID agentID) throws NotFoundException {
+    AgentDescriptor ad = platformAgents.acquire(agentID);
+    if(ad == null)
+      throw new NotFoundException("getAMSDescription() failed to find agent " + agentID.getName());
+    AMSAgentDescription amsd = ad.getDescription();
+    platformAgents.release(agentID);
+    return amsd;
+  }
+  
+  /**
+     Return the delegation certificate to be used by the AMS to executed
+     actions on behalf of (requested by) a given agent
+   */
+  public CertificateFolder getAMSDelegation(AID agentID) {
+    AgentDescriptor ad = platformAgents.acquire(agentID);
+    if (ad == null) {
+    	// Create a CertificateFolder with no delegated permissions
+    	// FIXME: With should give the permissions of the AgentPrincipal.NONE user
+	    try {
+	    	AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+		    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+		    amsDelegation.setSubject(amsPrincipal);
+		    authority.sign(amsDelegation, theAMS.getCertificateFolder());
+		    return new CertificateFolder(theAMS.getCertificateFolder().getIdentityCertificate(), amsDelegation);
+	    }
+	    catch (AuthException ae) {
+	    	// Should never happen
+	    	ae.printStackTrace();
+	    }
+    }
+    CertificateFolder cf = ad.getAMSDelegation();
+    platformAgents.release(agentID);
+    return cf;
+  }
+
+  /**
+     Return the platform main authority
+   */
+	public Authority getAuthority() {
+		return authority;
+	}
+  
+  /**
+     Add a listener of platform events
+   */
+  public void addListener(AgentManager.Listener l) {
+    platformListeners.add(l);
+  }
+
+  /**
+     Remove a listener of platform events
+   */
+  public void removeListener(AgentManager.Listener l) {
+    platformListeners.remove(l);
+  }
+
+  ////////////////////////////////////////////////
+  // Private utility methods
+  ////////////////////////////////////////////////
+  private AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
+    return containers.getContainer(getContainerID(agentID));
+  }
+
+  private CertificateFolder prepareAMSDelegation(CertificateFolder certs) throws AuthException {
+    AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+    amsDelegation.setSubject(amsPrincipal);
+    for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
+      amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+    }
+    authority.sign(amsDelegation, certs);
+    return new CertificateFolder(theAMS.getCertificateFolder().getIdentityCertificate(), amsDelegation);
+  }
+
+	public AgentPrincipal getPrincipal(AID agentID) {
+		AgentPrincipal ap;
+		AgentDescriptor ad = platformAgents.acquire(agentID);
+
+		if (ad == null) {
+			return authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+		}
+		else {
+			ap = ad.getPrincipal();
+			platformAgents.release(agentID);
+			return ap;
+		}
+	}
+	
+  private ContainerPrincipal getPrincipal(ContainerID cid) {
+	 	ContainerPrincipal cp = null;
+	 	try {
+			cp = containers.getPrincipal(cid);
+	 	}
+	 	catch (NotFoundException nfe) {
+	 	}
+	 	if (cp == null) {
+	 		cp = authority.createContainerPrincipal(cid, ContainerPrincipal.NONE);
+	 	}
+	 	return cp;
+  }
+  
+  /**
+     Inner class to detect AgentContainer failures
+   */
   private class FailureMonitor implements Runnable {
 
     private AgentContainer target;
@@ -333,7 +1434,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	    			target.ping(false); // Try a non blocking ping to check
 	  			}
 	  			catch(IMTPException imtpe2) { // Object down
-						cleanTables(targetID);
+						handleCrash(targetID);
 	    			active = false;
 	  			}
 				}
@@ -355,15 +1456,15 @@ class MainContainerImpl implements Platform, AgentManager {
   
   } // END of inner class FailureMonitor
 
-  private void cleanTables(ContainerID crashedID) {
+  private void handleCrash(ContainerID crashedID) {
     // If a container has crashed all its agents
-    // appear to be still alive both in the GADT and in the AMS -->
-  	// Clean them 
+    // appear to be still alive in the GADT --> Clean them 
     AID[] allIds = platformAgents.keys();
 
     for (int i = 0; i < allIds.length; ++i) {
     	AID    id = allIds[i];
-      ContainerID cid = platformAgents.get(id).getContainerID();
+    	AgentDescriptor ad = platformAgents.acquire(id);
+      ContainerID cid = ad.getContainerID();
 
       if (crashedID.equals(cid)) {
       	// This agent was living in the container that has crashed
@@ -371,6 +1472,9 @@ class MainContainerImpl implements Platform, AgentManager {
         platformAgents.remove(id);
         fireDeadAgent(crashedID, id);
     	} 
+    	else {
+    		platformAgents.release(id);
+    	}
   	} 
   	
   	// Also notify listeners and other containers that the MTPs that 
@@ -397,7 +1501,89 @@ class MainContainerImpl implements Platform, AgentManager {
   	}
   }
 
-  // Private methods to notify platform listeners of a significant event.
+  private boolean match(AMSAgentDescription templateDesc, AMSAgentDescription factDesc) {
+		try {
+		  String o1 = templateDesc.getOwnership();
+		  if(o1 != null) {
+		    String o2 = factDesc.getOwnership();
+		    if((o2 == null) || (!o1.equalsIgnoreCase(o2)))
+		      return false;
+		  }
+	
+		  String s1 = templateDesc.getState();
+		  if(s1 != null) {
+		    String s2 = factDesc.getState();
+		    if((s2 == null) || (!s1.equalsIgnoreCase(s2)))
+		      return false;
+		  }
+	
+		  AID id1 = templateDesc.getName();
+		  if(id1 != null) {
+		    AID id2 = factDesc.getName();
+		    if((id2 == null) || (!matchAID(id1, id2)))
+		      return false;
+		  }
+	
+		  return true;
+		}
+		catch (ClassCastException cce) {
+		  return false;
+		}
+  }
+  
+  // Helper method to match two Agent Identifiers
+  private final boolean matchAID(AID template, AID fact) {
+    // Match the GUID in the ':name' slot
+    String templateName = template.getName();
+    if(templateName != null) {
+      String factName = fact.getName();
+      if((factName == null) || (!templateName.equalsIgnoreCase(factName)))
+				return false;
+    }
+
+    // Match the address sequence. See 'FIPA Agent Management Specification, Sect. 6.4.2.1'
+    Iterator itTemplate = template.getAllAddresses();
+    Iterator itFact = fact.getAllAddresses();
+
+    // All the elements in the template sequence must appear in the
+    // fact sequence, in the same order
+    while(itTemplate.hasNext()) {
+      String templateAddr = (String)itTemplate.next();
+
+      // Search 'templateAddr' into the remaining part of the fact sequence
+      boolean found = false;
+      while(!found && itFact.hasNext()) {
+				String factAddr = (String)itFact.next();
+				found = templateAddr.equalsIgnoreCase(factAddr);
+      }
+      if(!found) // An element of the template does not appear in the fact sequence
+				return false;
+    }
+
+    // Match the resolvers sequence. See 'FIPA Agent Management Specification, Sect. 6.4.2.1'
+    itTemplate = template.getAllResolvers();
+    itFact = fact.getAllResolvers();
+
+    while(itTemplate.hasNext()) {
+      AID templateRes = (AID)itTemplate.next();
+
+      // Search 'templateRes' into the remaining part of the fact sequence
+      boolean found = false;
+      while(!found && itFact.hasNext()) {
+				AID factRes = (AID)itFact.next();
+				found = matchAID(templateRes, factRes); // Recursive call
+      }
+      if(!found) // An element of the template does not appear in the fact sequence
+				return false;
+    }
+    
+    return true;
+  }
+
+  /////////////////////////////////////////////////////////////////
+  // Private methods to notify platform listeners of significant 
+  // events.
+  /////////////////////////////////////////////////////////////////
 
   private void fireAddedContainer(ContainerID cid) {
     PlatformEvent ev = new PlatformEvent(PlatformEvent.ADDED_CONTAINER, cid);
@@ -463,7 +1649,6 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-//__SECURITY__BEGIN
 	private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal from, AgentPrincipal to) {
 		if (from == null) {
 			from = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
@@ -475,7 +1660,6 @@ class MainContainerImpl implements Platform, AgentManager {
 			l.changedAgentPrincipal(ev);
 		}
 	}
-//__SECURITY__END
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
   	PlatformEvent ev = new PlatformEvent(agentID, from, to);
@@ -507,758 +1691,4 @@ class MainContainerImpl implements Platform, AgentManager {
       l.removedMTP(ev);
    }
   }
-
-  public String getPlatformName() throws IMTPException {
-    return platformID;
-  }
-
-	public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
-
-		// Set the container name
-		if (cid.getName().equals("No-Name")) { // no name => assign a new name
-                     String name = AUX_CONTAINER_NAME + containersProgNo;
-		     containersProgNo++;
-                     cid.setName(name);
-		} else { // if this name exists already, assign a new name
-		    try {
-			containers.getContainer(cid);
-			String name = cid.getName() + containersProgNo;
-			containersProgNo++;
-			cid.setName(name);
-		    } catch (NotFoundException e) { 
-			// no container with this name exists, ok, go on.
-		    }
-		}
-
-		// Authenticate user
-		ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
-		CertificateFolder certs = authority.authenticate(principal, password);
-		authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
-		
-		// Set the container-principal
-		ac.changeContainerPrincipal(certs);
-
-		// add to the platform's container list
-		containers.addContainer(cid, ac, principal);
-
-		// Send all platform addresses to the new container
-		ContainerID[] containerNames = containers.names();
-		for(int i = 0; i < containerNames.length; i++) {
-			ContainerID name = containerNames[i];
-			
-			try {
-				AgentContainer cont = containers.getContainer(name);
-					List mtps = containers.getMTPs(name);
-					Iterator it = mtps.iterator();
-					while(it.hasNext()) {
-						MTPDescriptor mtp = (MTPDescriptor)it.next();
-						ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, cont);
-					}
-			}
-			catch(NotFoundException nfe) {
-				nfe.printStackTrace();
-			}
-		}
-
-
-
-		// Spawn a blocking call to the remote container in a separate
-		// thread. This is a failure notification technique.
-		Thread t = new Thread(new FailureMonitor(ac, cid));
-		t.start();
-
-		// Notify listeners
-		fireAddedContainer(cid);
-
-		// Return the name given to the new container
-		return cid.getName();
-
-	}
-
-  public void removeContainer(ContainerID cid) throws IMTPException {
-    containers.removeContainer(cid);
-
-    // Notify listeners
-    fireRemovedContainer(cid);
-  }
-
-  public AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException {
-    AgentContainer ac = containers.getContainer(cid);
-    return ac;
-  }
-
-  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
-
-    // verify identity certificate
-    authority.verify(certs.getIdentityCertificate());
-
-    AgentDescriptor desc = new AgentDescriptor();
-    AgentContainer ac = containers.getContainer(cid);
-    AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
-    desc.setProxy(ap);
-    desc.setContainerID(cid);
-    desc.setPrincipal((AgentPrincipal)certs.getIdentityCertificate().getSubject());
-    AgentDescriptor old = platformAgents.put(name, desc);
-
-    // If there's already an agent with name 'name' throw a name clash
-    // exception unless the old agent's container is dead.
-    if(old != null) {
-      AgentProxy oldProxy = old.getProxy();
-      try {
-	oldProxy.ping(); // Make sure agent is reachable, then raise a name clash exception
-	platformAgents.put(name, old);
-	throw new NameClashException("Agent " + name + " already present in the platform ");
-      }
-      catch(UnreachableException ue) {
-	System.out.println("Replacing a dead agent ...");
-	fireDeadAgent(old.getContainerID(), name);
-      }
-    }
-
-    // Delegate ams
-    AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-    amsDelegation.setSubject(amsPrincipal);
-    for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
-      amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-    }
-    authority.sign(amsDelegation, certs);
-    theAMS.setDelegation(name, amsDelegation);
-    
-    // Notify listeners
-    fireBornAgent(cid, name, (AgentPrincipal)certs.getIdentityCertificate().getSubject());
-  }
-
-  public void deadAgent(AID name) throws IMTPException, NotFoundException {
-    AgentDescriptor ad = platformAgents.get(name);
-    if(ad == null)
-      throw new NotFoundException("DeadAgent failed to find " + name);
-    ContainerID cid = ad.getContainerID();
-    platformAgents.remove(name);
-
-    // Notify listeners
-    fireDeadAgent(cid, name);
-  }
-
-  public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
-    AgentDescriptor ad = platformAgents.get(name);
-    if (ad == null)
-      throw new NotFoundException("SuspendedAgent failed to find " + name);
-    ContainerID cid = ad.getContainerID();
-
-    // Notify listeners
-    fireSuspendedAgent(cid, name);
-  }
-
-  public void resumedAgent(AID name) throws IMTPException, NotFoundException {
-    AgentDescriptor ad = platformAgents.get(name);
-    if(ad == null)
-      throw new NotFoundException("ResumedAgent failed to find " + name);
-    ContainerID cid = ad.getContainerID();
-
-    // Notify listeners
-    fireResumedAgent(cid, name);
-  }
-
-//__SECURITY__BEGIN
-	public void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException {
-		AgentDescriptor ad = platformAgents.get(name);
-		if (ad == null)
-			throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
-		
-		try {
-			authority.verify(certs.getIdentityCertificate());
-			
-			AgentPrincipal from = ad.getPrincipal();
-			AgentPrincipal to = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
-			ad.setPrincipal(to);
-			ContainerID cid = ad.getContainerID();
-			
-			AgentContainer[] allContainers = containers.containers();
-			for (int i = 0; i < allContainers.length; i++) {
-				AgentContainer ac = allContainers[i];
-				// FIXME: If some container is temporarily disconnected it will not be
-				// notified. We should investigate the sideeffects
-				try {
-					ac.changedAgentPrincipal(name, to);
-				}
-				catch (IMTPException imtpe) {
-					imtpe.printStackTrace();
-				}
-			}
-			
-			// Notify listeners
-			fireChangedAgentPrincipal(cid, name, from, to);
-    
-			// Delegate to the ams all the permissions associated to the new principal
-			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-			amsDelegation.setSubject(amsPrincipal);
-			for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
-				amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-			}
-			authority.sign(amsDelegation, certs);
-			theAMS.setDelegation(name, amsDelegation);
-		}
-		catch (AuthException ae) {
- 			//ae.printStackTrace();
-			System.err.println(ae.getMessage());
-		}
-	}
-	
-	public AgentPrincipal getAgentPrincipal(AID agentID) throws IMTPException, NotFoundException {
-		AgentPrincipal ap;
-		AgentDescriptor ad = platformAgents.get(agentID);
-
-		if (ad == null) {
-			//!!! throw new NotFoundException("getPrincipal() failed to find " + agentID.getName());
-			return authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
-		}
-		else {
-			ad.lock();
-			ap = ad.getPrincipal();
-			ad.unlock();
-			return ap;
-		}
-	}
-//__SECURITY__END
-
-  public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
-    AgentProxy ap;
-    AgentDescriptor ad = platformAgents.get(agentID);
-
-    if(ad == null)
-      throw new NotFoundException("getProxy() failed to find " + agentID.getName());
-    else {
-      ad.lock();
-      ap = ad.getProxy();
-      ad.unlock();
-      try {
-	ap.ping();
-      }
-      catch(UnreachableException ue) {
-	throw new NotFoundException("Container for " + agentID.getName() + " is unreachable");
-      }
-      return ap;
-    }
-  }
-
-  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException {
-    AgentDescriptor ad = platformAgents.get(agentID);
-    if(ad == null)
-      throw new NotFoundException("transferIdentity() unable to find agent " + agentID.getName());
-    AgentContainer srcAC = lookup(src);
-    AgentContainer destAC = lookup(dest);
-    try {
-      srcAC.ping(false);
-      destAC.ping(false);
-    }
-    catch(IMTPException re) {
-      // Abort transaction
-      return false;
-    }
-
-    // Commit transaction and notify listeners
-    ad.lock();
-    ad.setProxy(myIMTPManager.createAgentProxy(destAC, agentID));
-    ad.setContainerID(dest);
-    fireMovedAgent(src, dest, agentID);
-    ad.unlock();
-    return true;
-  }
-  
-  // These methods dispatch agent management operations to
-  // appropriate Agent Container through a suitable IMTP.
-
-	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-		try {
-			authority.checkAction(Authority.CONTAINER_KILL_IN, getContainerPrincipal(getContainerIDFromAgent(agentID)), null);
-
-			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null);
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).killAgent(agentID);
-	  			return null;
-				}
-			});
-		}
-		catch (IMTPException re) {
-			throw new UnreachableException(re.getMessage());
-		}
-                catch(NotFoundException nfe) {
-                    // Let it through
-                    throw nfe;
-                }
-		catch (Exception e) {
-			if (e instanceof AuthException)
-				throw (AuthException)e;
-                    // It should never happen...
-		}
-	}
-
-	public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-		try {
-			authority.checkAction(Authority.AGENT_SUSPEND, getAgentPrincipal(agentID), null);
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).suspendAgent(agentID);
-	  			return null;
-				}
-			});
-		}
-		catch (IMTPException re) {
-			throw new UnreachableException(re.getMessage());
-		}
-		catch (Exception e) {
-			if (e instanceof AuthException)
-				throw (AuthException)e;
-			// It should never happen...
-		}
-	}
-
-	public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-		try {
-			authority.checkAction(Authority.AGENT_RESUME, getAgentPrincipal(agentID), null);
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).resumeAgent(agentID);
-	  			return null;
-				}
-			});
-		}
-		catch (IMTPException re) {
-			throw new UnreachableException(re.getMessage());
-		}
-		catch (Exception e) {
-			if (e instanceof AuthException)
-				throw (AuthException)e;
-			// It should never happen...
-		}
-	}
-
-//__SECURITY__BEGIN
-	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
-		try {
-			authority.checkAction(Authority.AGENT_TAKE, getAgentPrincipal(agentID), null);
-
-			final AgentPrincipal principal = authority.createAgentPrincipal(agentID, username);
-			final CertificateFolder certs = authority.authenticate(principal, password);
-			
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, certs);
-	  			return null;
-				}
-			});
-		}
-		catch (IMTPException re) {
-			throw new UnreachableException(re.getMessage());
-		}
-		catch (Exception e) {
-			if (e instanceof AuthException)
-				throw (AuthException)e;
-		}
-	}
-//__SECURITY__END
-
-  public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
-    try {
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.waitAgent(agentID);
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
-
-  public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
-    try {
-      AgentContainer ac = getContainerFromAgent(agentID);
-      ac.wakeAgent(agentID);
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
-
-  public void move(final AID agentID, final Location where) throws NotFoundException, UnreachableException, AuthException {
-    try {
-     		ContainerID from = getContainerIDFromAgent(agentID);
-     		ContainerID to = (ContainerID)where;
-		containers.getContainer(to); // this method call just checks if
-		// the recipient container exists, if not exist then it throws
-		// a NotFoundException. there is no other effect for this call
-			authority.checkAction(Authority.CONTAINER_MOVE_FROM, getContainerPrincipal(from), null);
-			authority.checkAction(Authority.CONTAINER_MOVE_TO, getContainerPrincipal(to), null);
-
-			authority.checkAction(Authority.AGENT_MOVE, getAgentPrincipal(agentID), null);
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).moveAgent(agentID, where);
-	  			return null;
-				}
-			});
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-    catch (NotFoundException ne) {
-	throw ne;
-    }
-    catch (AuthException aue) {
-	throw aue;
-    }
-    catch (Exception e) {
-	e.printStackTrace();
-	// It should never happen...
-    }
-  }
-
-  public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
-    try {
-	(new Exception()).printStackTrace();
-	    	ContainerID from = getContainerIDFromAgent(agentID);
-    	 	ContainerID to = (ContainerID)where;
-		containers.getContainer(to); // this method call just checks if
-		// the recipient container exists, if not exist then it throws
-		// a NotFoundException. there is no other effect for this call
- 			authority.checkAction(Authority.AGENT_CLONE, getAgentPrincipal(agentID), null);
- 			authority.checkAction(Authority.CONTAINER_CLONE_FROM, getContainerPrincipal(from), null);
- 			authority.checkAction(Authority.CONTAINER_CLONE_TO, getContainerPrincipal(to), null);
-
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).copyAgent(agentID, where, newName);
-	  			return null;
-				}
-			});
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-    catch (NotFoundException ne) {
-	throw ne;
-    }
-    catch (AuthException aue) {
-	throw aue;
-    }
-    catch (Exception e) {
-	e.printStackTrace();
-	// It should never happen...
-    }
-  }
-
-
-  // Methods for Message Transport Protocols management
-
-
-  public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
-    try {
-      String containerName = cid.getName();
-      String[] mtpAddrs = mtp.getAddresses();
-      String mtpAddress = mtpAddrs[0];
-      platformAddresses.add(mtpAddress);
-      containers.addMTP(cid, mtp);
-      AgentContainer target = containers.getContainer(cid);
-
-      // To avoid additions/removals of containers during MTP tables update
-      synchronized(containers) {
-
-	// Add the new MTP to the routing tables of all the containers. 
-	AgentContainer[] allContainers = containers.containers();
-	for(int i = 0; i < allContainers.length; i++) {
-	  AgentContainer ac = allContainers[i];
-	  // Skip target container
-	  if(ac != target)
-			// FIXME: If some container is temporarily disconnected it will not be
-			// notified. We should investigate the sideeffects
-	  	try {
-		    ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, target);
-	  	}
-	  	catch (IMTPException imtpe) {
-	  	}
-	}
-
-      }
-
-      // Notify listeners (typically the AMS)
-      fireAddedMTP(mtp, cid);
-    }
-    catch(NotFoundException nfe) {
-      System.out.println("Error: the container " + cid.getName() + " was not found.");
-    }
-  }
-
-  public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
-    try {
-      String containerName = cid.getName();
-      String[] mtpAddrs = mtp.getAddresses();
-      String mtpAddress = mtpAddrs[0];
-      platformAddresses.remove(mtpAddress);
-      containers.removeMTP(cid, mtp);
-      AgentContainer target = containers.getContainer(cid);
-
-      // To avoid additions/removals of containers during MTP tables update
-      synchronized(containers) {
-
-	// Remove the dead MTP from the routing tables of all the containers. 
-	AgentContainer[] allContainers = containers.containers();
-	for(int i = 0; i < allContainers.length; i++) {
-	  AgentContainer ac = allContainers[i];
-	  // Skip target container
-	  if(ac != target)
-			// FIXME: If some container is temporarily disconnected it will not be
-			// notified. We should investigate the sideeffects
-	  	try {
-		    ac.updateRoutingTable(AgentContainer.DEL_RT, mtp, target);
-	  	}
-	  	catch (IMTPException imtpe) {
-	  	}
-	}
-
-      }
-
-      // Notify listeners (typically the AMS)
-      fireRemovedMTP(mtp, cid);
-
-    }
-    catch(NotFoundException nfe) {
-      System.out.println("Error: the container " + cid.getName() + " was not found.");
-      nfe.printStackTrace();
-    }
-
-  }
-
-  public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
-    String containerName = cid.getName();
-    AgentContainer target = containers.getContainer(cid);
-    try {
-      return target.installMTP(address, className);
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException("Container " + containerName + " is unreachable.");
-    }
-
-  }
-
-  public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
-    String containerName = cid.getName();
-    AgentContainer target = containers.getContainer(cid);
-    try {
-      target.uninstallMTP(address);
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException("Container " + containerName + " is unreachable.");
-    }
-
-  }
-
-
-  // These methods are to be used only by AMS agent.
-
-  public void addListener(AgentManager.Listener l) {
-    platformListeners.add(l);
-  }
-
-  public void removeListener(AgentManager.Listener l) {
-    platformListeners.remove(l);
-  }
-
-  // This is used by AMS to obtain the set of all the Agent Containers of the platform.
-  public ContainerID[] containerIDs() {
-  	return containers.names();
-  }
-
-  // This is used by AMS to obtain the list of all the agents of the platform.
-  public AID[] agentNames() {
-    return platformAgents.keys();
-  }
-
-  public String[] platformAddresses() {
-    Object[] objs = platformAddresses.toArray();
-    String[] result = new String[objs.length];
-    System.arraycopy(objs, 0, result, 0, result.length);
-    return result;
-  }
-
-  // This maps the name of an agent to the ID of the Agent Container the agent lives in.
-  public ContainerID getContainerID(AID agentID) throws NotFoundException {
-    AgentDescriptor ad = platformAgents.get(agentID);
-    if(ad == null)
-      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerID()");
-    ad.lock();
-    ContainerID result = ad.getContainerID();
-    ad.unlock();
-    return result;
-  }
-
-  // This is called in response to a 'create-agent' action
-  public void create(final String agentName, final String className, final String args[], final ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException {
-    try {
-      authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
-      authority.checkAction(Authority.CONTAINER_CREATE_IN, getContainerPrincipal(cid), null);
-
-      String containerName = cid.getName();
-      AgentContainer where;
-      // If no name is given, the agent is started on the MainContainer itself
-      if (containerName == null)
-        cid.setName(MAIN_CONTAINER_NAME);
-      try {
-				where = containers.getContainer(cid);
-      }
-      catch (NotFoundException nfe) {
-        try {
-	  			// If a wrong name is given, then again the agent starts on the MainContainer itself
-          where = containers.getContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
-        }
-        catch (NotFoundException nfe2) {
-          throw new UnreachableException(nfe2.getMessage());
-        }
-      }
-
-      final AID id = new AID(agentName, AID.ISLOCALNAME);
-      final AgentContainer ac = where;
-      authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-      	public Object run() throws IMTPException {
-      		ac.createAgent(id, className, args, ownership, certs, AgentContainer.START);
-      		return null;
-      	}
-      });
-    }
-    catch (IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-    catch (Exception e) {
-			if (e instanceof AuthException)
-				throw (AuthException)e;
-			// It should never happen...
-    }
-  }
-
-  public void killContainer(ContainerID cid) throws NotFoundException, AuthException {
-
-    // This call spawns a separate thread in order to avoid deadlock.
-    try {
-      final ContainerID contID = cid;
-      final AgentContainer ac = containers.getContainer(cid);
-      authority.checkAction(Authority.CONTAINER_KILL, getContainerPrincipal(cid), null);
-      final Thread auxThread = new Thread(new Runnable() {
-	 			public void run() {
-	   			try {
-	     			 ac.exit();
-	   			}
-	   			catch (IMTPException imtp1) {
-	     			System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
-	     			cleanTables(contID);
-	     			try {
-	     				removeContainer(contID);
-	     			}
-	     			catch (IMTPException imtpe2) {
-	     				// Should never happen as this is a local call
-	     				imtpe2.printStackTrace();
-	     			}
-	   			}
-	 			}
-      });
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws NotFoundException {
-		      auxThread.start();
-	  			return null;
-				}
-			});
-    }
-    catch (NotFoundException nfe) {
-        // Let it through
-        throw nfe;
-    }
-    catch (Exception e) {
-        // Never thrown
-        e.printStackTrace();
-    }
-  }
-
-
-  public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
-    Iterator it = toBeSniffed.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableSniffer(snifferName, id);
-      }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-
-  }
-
-  public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
-    Iterator it = notToBeSniffed.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableSniffer(snifferName, id);
-      }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-
-  }
-
-  public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
-    Iterator it = toBeDebugged.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableDebugger(debuggerName, id);
-      }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
-
-  public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
-    Iterator it = notToBeDebugged.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableDebugger(debuggerName, id);
-      }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
-
-  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException {
-    authority.sign(certificate, certs);
-    return certificate;
-  }
-  
-  public byte[] getPublicKey() throws IMTPException {
-  	return authority.getPublicKey();
-  }
-
-
-
-  private ContainerPrincipal getContainerPrincipal(ContainerID cid) {
- 	ContainerPrincipal cp = null;
- 	try {
-		cp = containers.getPrincipal(cid);
- 	}
- 	catch (NotFoundException nfe) {
- 	}
- 	if (cp == null) {
- 		cp = authority.createContainerPrincipal(cid, ContainerPrincipal.NONE);
- 	}
- 	return cp;
-  }
-
-  
 }
