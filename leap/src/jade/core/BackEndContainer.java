@@ -205,11 +205,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
   	}
   	
-	// Mark this thread as an outgoing message dispatcher. This is 
-	// necessary, in the case some of the receivers lives in the FrontEnd,
-	// to avoid sending him back the message (see dispatch()).
-	Thread.currentThread().setName(OUTGOING_NAME+outCnt++);
-
 	try {
 
 	    // An AuthException will be thrown if the sender does not have
@@ -284,10 +279,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		  // The receiver must be in the FrontEnd
 		  AgentImage image = (AgentImage) agentImages.get(receiverID);
 		  if(image != null) {
-	      if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
+	      if (agentImages.containsKey(msg.getSender())) {
 				  // The message was sent by an agent living in the FrontEnd. The
 				  // receiverID (living in the FrontEnd too) has already received
 				  // the message.
+	      	// FIXME: This does not take into account that an agent not living 
+	      	// in the FrontEnd may send a message on behalf of an agent living 
+	      	// in the FrontEnd. 
 				  return true;
 	      }
 
@@ -423,7 +421,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   /**
    */
   public void shutDown() {
-
       // Stop monitoring replicas, if active
       stopReplicaMonitor();
 
