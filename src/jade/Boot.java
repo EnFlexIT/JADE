@@ -46,6 +46,7 @@ import jade.core.Profile;
 import jade.core.Specifier;
 import jade.util.BasicProperties;
 import jade.util.PropertiesException;
+import jade.security.SecurityFactory;
 
 /**
  * Boots <B><em>JADE</em></b> system, parsing command line arguments.
@@ -122,51 +123,12 @@ public class Boot {
         }
 
 
+        // --- initialize JVM-scoped Security Factory ---
+        // (the security settings contained into this profile
+        //  will be used for all containers into this JVM in
+        //  despite of settings into profile of other future containers)
+        SecurityFactory sf = SecurityFactory.getSecurityFactory(profile);
 
-	// check if username:password has been provided
-	String own = properties.getProperty(profile.OWNER);
-	if (own != null) {
-		String user = "";
-		char[] passwd = new char[1]; // initial value to avoid java error;
-		
-		// separate username:password
-		int sep = own.indexOf(':');
-		if (sep>0) {
-			user = own.substring(0, sep);
-			passwd = new char[(own.length())-sep];
-			own.getChars( sep+1, own.length(), passwd, 0 );
-		} else {
-			// no ":" found
-			user = own;
-			if (sep==0) user="";
-		}
-
-		// if username or passwd have not been provided
-		// ask for them
-		try {		
-		if ( (user.length()==0) ) {
-			  // ask for user:password
-			  jade.security.PwdDialog pwdD = profile.getPwdDialog();
-			  pwdD.ask();
-			  user = pwdD.getUserName();
-			  passwd = pwdD.getPassword();
-		} else {
-			if ( ( sep<0) ) {
-				// ask for the password
-			  	jade.security.PwdDialog pwdD = profile.getPwdDialog();
-			  	pwdD.setUserName(user);
-			  	pwdD.ask();
-			  	user = pwdD.getUserName();
-			  	passwd = pwdD.getPassword();
-			} // end if
-		} // end if
-		} catch (jade.core.ProfileException e) {
-			  e.printStackTrace();
-		}
-		
-		// set username:password
-		profile.setParameter(profile.OWNER, user+":"+new String(passwd) );
-	}
 
         // Exit the JVM when there are no more containers around
         Runtime.instance().setCloseVM(true);
@@ -549,4 +511,66 @@ public class Boot {
             }
         }    //END if not container -- i.e. (this is a platform)
     }
-}
+
+
+
+/*    
+     -- Authentication is moving to a service --
+ 
+    // get user/pass from the user and 
+    // put them into the profile
+    private void getUsernamePassword(SecurityFactory sf) {
+
+      // check if username:password has been provided
+      String own = properties.getProperty(profile.OWNER);
+      if (own != null) {
+        String user = "";
+        char[] passwd = new char[1]; // initial value to avoid java error;
+  
+        // separate username:password
+        int sep = own.indexOf(':');
+        if (sep > 0) {
+          user = own.substring(0, sep);
+          passwd = new char[ (own.length()) - sep];
+          own.getChars(sep + 1, own.length(), passwd, 0);
+        }
+        else {
+          // no ":" found
+          user = own;
+          if (sep == 0)
+            user = "";
+        }
+  
+        // if username or passwd have not been provided
+        // ask for them
+        try {
+          if ( (user.length() == 0)) {
+            // ask for user:password
+            jade.security.PwdDialog pwdD = sf.getPwdDialog();
+            pwdD.ask();
+            user = pwdD.getUserName();
+            passwd = pwdD.getPassword();
+          }
+          else {
+            if ( (sep < 0)) {
+              // ask for the password
+              jade.security.PwdDialog pwdD = sf.getPwdDialog();
+              pwdD.setUserName(user);
+              pwdD.ask();
+              user = pwdD.getUserName();
+              passwd = pwdD.getPassword();
+            } // end if
+          } // end if
+        }
+        catch (Exception e) {
+          //} catch (jade.core.ProfileException e) {
+          e.printStackTrace();
+        }
+  
+        // set username:password
+        profile.setParameter(profile.OWNER, user + ":" + new String(passwd));
+      } // end if (own != null) 
+    } // end getUsernamePassword()
+*/
+
+} // end class Boot

@@ -63,7 +63,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String ACLCODEC_KEY = "aclcodec";
     public static final String AGENTS_KEY = "agents";
     public static final String SERVICES_KEY = "services";
-    public static final String AUTHORITY_KEY = "authority";
+    //public static final String AUTHORITY_KEY = "authority";
     public static final String CONF_KEY = "conf";
     public static final String CONTAINER_KEY = "container";
     public static final String DUMP_KEY = "dump";
@@ -72,14 +72,14 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String HOST_KEY = "host";
     public static final String LOCALHOST_KEY = "local-host";
     public static final String LOCALPORT_KEY = "local-port";
-    public static final String MAINAUTH_KEY = "mainauth";
+    //public static final String MAINAUTH_KEY = "mainauth";
     public static final String MTP_KEY = "mtp";
     public static final String NOMTP_KEY = "nomtp";
     public static final String IMTP_KEY = "imtp";
     public static final String NAME_KEY = "name";
     public static final String OWNER_KEY = "owner";
-    public static final String PASSWD_KEY = "jade.security.passwd";
-    public static final String POLICY_KEY = "java.security.policy";
+    //public static final String PASSWD_KEY = "jade.security.passwd";
+    //public static final String POLICY_KEY = "java.security.policy";
     public static final String PORT_KEY = "port";
     public static final String SM_KEY = "backupmain";
     public static final String SMHOST_KEY = "smhost";
@@ -175,7 +175,7 @@ public class BootProfileImpl extends ProfileImpl {
 	if(sm != null) {
 	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER, sm);
 	}
-
+/*
         value = argProp.getProperty(AUTHORITY_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.AUTHORITY_CLASS, value);
@@ -188,9 +188,9 @@ public class BootProfileImpl extends ProfileImpl {
 
         value = argProp.getProperty(POLICY_KEY);
         if (value != null) {
-            profileProp.setProperty(Profile.POLICY_FILE, value);
+            //profileProp.setProperty(Profile.POLICY_FILE, value);
         }
-
+*/
 		/* PER IL DF
         value = argProp.getProperty(df.KBDF_MAX_RESULTS);
         if (value != null) {
@@ -205,11 +205,12 @@ public class BootProfileImpl extends ProfileImpl {
             profileProp.setProperty(df.DBDF_URL, value);
         }*/
 
+/*
         value = argProp.getProperty(PASSWD_KEY);
         if (value != null) {
-            profileProp.setProperty(Profile.PASSWD_FILE, value);
+            //profileProp.setProperty(Profile.PASSWD_FILE, value);
         }
-
+*/
         value = argProp.getProperty(OWNER_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.OWNER, value);
