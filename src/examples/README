@@ -167,6 +167,13 @@ that implement the 'fipa-query' protocol and the 'fipa-request' protocol.
                        protocol and register another initiator behaviour
                        to handle one of the states of the protocol. 
 
+-InitiatorHandler      This examples shows an agent sending two different 
+			request message to the ResponderHandler agents passed as argument.
+
+-ResponderHandler      This agent performs the role of responder of the message 
+			sent by the InitiatorHandler responding with a different
+			INFORM according to the action required. ( It shows how to
+			use the HandlerSelector state into a AchieveREResponder)
 
 
 'receivers' subdirectory
