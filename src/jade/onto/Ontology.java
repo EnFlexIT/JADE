@@ -135,9 +135,9 @@ public interface Ontology {
      <li><it> The class must have an accessible method, named
      <code>init()</code>, with the following signature:</it>
        <ul>
-       <li> <code>void init(Frame f, Ontology o)</code> <it>, for concept roles</it>
-       <li> <code>void init(Action a, Ontology o)</code> <it>, for action roles</it>
-       <li> <code>void init(Predicate p, Ontology o)</code> <it>, for predicate roles</it>
+       <li> <code>void init(Frame f)</code> <it>, for concept roles</it>
+       <li> <code>void init(Action a)</code> <it>, for action roles</it>
+       <li> <code>void init(Predicate p)</code> <it>, for predicate roles</it>
        </ul>
 
      <li><it> For every <code>TermDescriptor</code> object of the
@@ -190,7 +190,7 @@ public interface Ontology {
      @param roleName The name of the role the given Java class wants
      to play.
      @param c An user-defined class, obeying to the rules given above.
-     @exception OntologyException if no role named
+     @exception OntologyException If no role named
      <code>roleName</code> is defined in this ontology, or if the
      given class violates some rule for representing the given
      concept.
@@ -213,22 +213,174 @@ public interface Ontology {
     @see jade.onto.TermDescriptor
   */
   void addConcept(String conceptName, TermDescriptor[] slots) throws OntologyException;
+
+  /**
+    Adds a new action role to the ontology, defined by the structure
+    of all its arguments.
+    @param actionName The name of this action role (names are case
+    preserving but the match is case insensitive)
+    @param args An array of descriptors; each one of them describes an
+    argument of the action, providing:
+    <ul>
+    <li> The name of the argument.
+    <li> The type of the argument.
+    <li> The optionality of the argument (i.e. whether a value is required or not).
+    <li> The position of the argument (implicitly defined by the position in the array).
+    </ul>
+    @see jade.onto.TermDescriptor
+  */
   void addAction(String actionName, TermDescriptor[] args) throws OntologyException; 
+
+  /**
+    Adds a new predicate role to the ontology, defined by the structure
+    of all its terms.
+    @param predicateName The name of this predicate role (names are case
+    preserving but the match is case insensitive)
+    @param terms An array of descriptors; each one of them describes a
+    term of the predicate, providing:
+    <ul>
+    <li> The name of the term.
+    <li> The type of the term.
+    <li> The optionality of the term (i.e. whether a value is required or not).
+    <li> The position of the term (implicitly defined by the position in the array).
+    </ul>
+    @see jade.onto.TermDescriptor
+  */
   void addPredicate(String predicateName, TermDescriptor[] terms) throws OntologyException;
 
-  Object createObject(Frame f, String roleName) throws OntologyException;
-  Object createObject(Action a, String roleName) throws OntologyException;
-  Object createObject(Predicate p, String roleName) throws OntologyException;
+  /**
+    Creates a Java object representing a given concept, getting the
+    information from a given <code>Frame</code> object. A suitable
+    Java class must be registered for the role played by the
+    <code>Frame</code>.
+    @param f A <code>Frame</code> object, from which a Java object is built.
+    @return A Java Object, representing the given <code>Frame</code> as a user-defined type.
+    @exception OntologyException If the given <code>Frame</code> does
+    not play any role in the current ontology, or if the registered
+    class does not follows the rules for representing a concept.
+  */
+  Object createObject(Frame f) throws OntologyException;
 
+  /**
+    Creates a Java object representing a given action, getting the
+    information from a given <code>Action</code> object. A suitable
+    Java class must be registered for the role played by the
+    <code>Action</code>.
+    @param a An <code>Action</code> object, from which a Java object is built.
+    @return A Java Object, representing the given <code>Action</code> as a user-defined type.
+    @exception OntologyException If the given <code>Action</code> does
+    not play any role in the current ontology, or if the registered
+    class does not follows the rules for representing a concept.
+  */
+  Object createObject(Action a) throws OntologyException;
+
+  /**
+    Creates a Java object representing a given predicate, getting the
+    information from a given <code>Predicate</code> object. A suitable
+    Java class must be registered for the role played by the
+    <code>Predicate</code>.
+    @param p A <code>Predicate</code> object, from which a Java object
+    is built.
+    @return A Java Object, representing the given
+    <code>Predicate</code> as a user-defined type.
+    @exception OntologyException If the given <code>Predicate</code> does
+    not play any role in the current ontology, or if the registered
+    class does not follows the rules for representing a concept.
+  */
+  Object createObject(Predicate p) throws OntologyException;
+
+  /**
+    Creates a <code>Frame</code> object from a given Java object. A
+    suitable class must be registered in the ontology to play the
+    given role, and the given object must be an instance of that class
+    (or a subclass).
+    @param o The Java object, from which the <code>Frame</code> will
+    be built.
+    @param roleName The name of the role played in this ontology by
+    the class of the given object.
+    @return A <code>Frame</code> object playing the given role, built
+    from the given <code>Object</code>.
+    @exception OntologyException If the given role does not exist, or
+    the given object is not of the correct class.
+  */
   Frame createConcept(Object o, String roleName) throws OntologyException;
+
+  /**
+    Creates an <code>Action</code> object from a given Java object. A
+    suitable class must be registered in the ontology to play the
+    given role, and the given object must be an instance of that class
+    (or a subclass).
+    @param o The Java object, from which the <code>Action</code> will
+    be built.
+    @param roleName The name of the role played in this ontology by
+    the class of the given object.
+    @return A <code>Action</code> object playing the given role, built
+    from the given <code>Object</code>.
+    @exception OntologyException If the given role does not exist, or
+    the given object is not of the correct class.
+   */
   Action createAction(Object o, String roleName) throws OntologyException;
+
+  /**
+    Creates a <code>Predicate</code> object from a given Java object. A
+    suitable class must be registered in the ontology to play the
+    given role, and the given object must be an instance of that class
+    (or a subclass).
+    @param o The Java object, from which the <code>Predicate</code> will
+    be built.
+    @param roleName The name of the role played in this ontology by
+    the class of the given object.
+    @return A <code>Predicate</code> object playing the given role, built
+    from the given <code>Object</code>.
+    @exception OntologyException If the given role does not exist, or
+    the given object is not of the correct class.
+   */
   Predicate createPredicate(Object o, String roleName) throws OntologyException;
 
-  void check(Frame f, String roleName) throws OntologyException;
-  void check(Action a, String roleName) throws OntologyException;
-  void check(Predicate p, String roleName) throws OntologyException;
+  /**
+    Checks whether the given <code>Frame</code> object is a valid
+    instance of some role, making sure that every slot has the correct
+    type and that no mandatory slot has a <code>null</code> value.
+    @param f The <code>Frame</code> object to check.
+    @exception OntologyException If the check fails.
+  */
+  void check(Frame f) throws OntologyException;
+
+  /**
+    Checks whether the given <code>Action</code> object is a valid
+    instance of some role, making sure that every slot has the correct
+    type and that no mandatory slot has a <code>null</code> value.
+    @param a The <code>Action</code> object to check.
+    @exception OntologyException If the check fails.
+  */
+  void check(Action a) throws OntologyException;
+
+  /**
+    Checks whether the given <code>Predicate</code> object is a valid
+    instance of some role, making sure that every slot has the correct
+    type and that no mandatory slot has a <code>null</code> value.
+    @param p The <code>Predicate</code> object to check.
+    @exception OntologyException If the check fails.
+  */
+  void check(Predicate p) throws OntologyException;
+
+  /**
+    Checks whether the given Java object is a valid instance of some
+    role, making sure that every slot has the correct type and that no
+    mandatory slot has a <code>null</code> value.
+    @param o The Java object to check.
+    @param roleName The role against which to check the given object.
+    @exception OntologyException If the check fails.  */
   void check(Object o, String roleName) throws OntologyException;
 
+  /**
+    Returns the array of <code>TermDescriptor</code> objects that
+    represent the elements of the given ontological role (concept,
+    action or predicate).
+    @param roleName The name of the ontological role to examine.
+    @return The descriptors for the selected ontology role.
+    @see jade.onto.TermDescriptor
+   */
   TermDescriptor[] getTerms(String roleName) throws OntologyException;
 
 }
