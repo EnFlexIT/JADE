@@ -174,7 +174,7 @@ public class TestDFSubscription extends Test {
   				}
   				break;
   			case 2:
-  				// Register 3nd DFD (not matching)
+  				// Register 3rd DFD (not matching)
   				dfd = new DFAgentDescription();
   				dfd.setName(new AID("a3", AID.ISLOCALNAME));
   				dfd.addServices(TestDFHelper.getSampleSD2());
@@ -222,4 +222,21 @@ public class TestDFSubscription extends Test {
   	
   	return pb;
   }
+  
+  public void clean(Agent a) {
+  	// Deregister all descriptions
+  	try {
+  		DFAgentDescription dfd = new DFAgentDescription();
+  		dfd.setName(new AID("a1", AID.ISLOCALNAME));
+	  	DFService.deregister(a, a.getDefaultDF(), dfd);
+  		dfd.setName(new AID("a2", AID.ISLOCALNAME));
+	  	DFService.deregister(a, a.getDefaultDF(), dfd);
+  		dfd.setName(new AID("a3", AID.ISLOCALNAME));
+	  	DFService.deregister(a, a.getDefaultDF(), dfd);
+  	}
+  	catch (FIPAException fe) {
+  		fe.printStackTrace();
+  	}
+  }
+  	
 }

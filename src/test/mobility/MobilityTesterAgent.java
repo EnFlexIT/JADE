@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package test.domain.df;
+package test.mobility;
 
 import jade.core.Agent;
 import jade.core.Runtime;
@@ -43,17 +43,31 @@ import test.common.*;
 /**
    @author Giovanni Caire - TILAB
  */
-public class DFTesterAgent extends TesterAgent {
+public class MobilityTesterAgent extends TesterAgent {
+	public static final String CONTAINER1_KEY = "C1";
+	public static final String CONTAINER2_KEY = "C2";
 	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup(new String[] {
-  		"test.domain.df.tests.TestSearchUntilFound",
-  		"test.domain.df.tests.TestDFService",
-  		"test.domain.df.tests.TestLightDFService",
-  		"test.domain.df.tests.TestFIPAManagementOntology_DF",
-  		"test.domain.df.tests.TestFederation",
-  		"test.domain.df.tests.TestDFSubscription"
-		} ); 				
+  		"test.mobility.tests.TestDoMove"
+		} ) {
+			 
+			private RemoteController rc1;
+			private RemoteController rc2;
+			
+			protected void initialize(Agent a) throws TestException {
+				rc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -port 8888"), null); 
+				setArgument(CONTAINER1_KEY, rc1.getContainerName());
+				
+				rc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -port 8888"), null); 
+				setArgument(CONTAINER2_KEY, rc2.getContainerName());
+			}
+			protected void shutdown(Agent a) {
+				rc1.kill();
+				rc2.kill();
+			}
+		};
+		
 		return tg;
 	}
 				
@@ -73,7 +87,7 @@ public class DFTesterAgent extends TesterAgent {
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
-      AgentController tester = mc.createNewAgent("tester", "test.domain.DFTesterAgent", args);
+      AgentController tester = mc.createNewAgent("tester", "test.mobility.MobilityTesterAgent", args);
       tester.start();
 		}
 		catch (Exception e) {
