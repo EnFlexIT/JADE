@@ -351,29 +351,36 @@ public class PersistentDeliveryService extends BaseService {
 	    AID receiver = (AID)params[1];
     	ACLMessage acl = msg.getACLMessage();
 
-		  //log("Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName(), 2);
-                  if(logger.isLoggable(Logger.FINE))
-                    logger.log(Logger.FINE,"Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName());
+      if(logger.isLoggable(Logger.FINE))
+        logger.log(Logger.FINE,"Processing failed message "+MessageManager.stringify(msg)+" for agent "+receiver.getName());
 
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
 
-	    // Ask all slices whether the failed message should be stored
+      // Ask all slices whether the failed message should be stored
 	    Service.Slice[] slices = getAllSlices();
 	    for(int i = 0; i < slices.length; i++) {
 		PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 		try {
-		    boolean accepted = slice.storeMessage(null, msg, receiver);
+			boolean firstTime = acl.getUserDefinedParameter(ACL_USERDEF_DUE_DATE) != null;
+			  boolean accepted = false;
+			  try {
+			    accepted = slice.storeMessage(null, msg, receiver);
+			  }
+				catch(IMTPException imtpe) {
+				    // Try to get a fresh slice and repeat...
+				    slice = (PersistentDeliverySlice)getFreshSlice(slice.getNode().getName());
+				    accepted = slice.storeMessage(null, msg, receiver);
+				}
 
 		    if(accepted) {
-          logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
-
+          logger.log((firstTime ? Logger.INFO : Logger.FINE) ,"Message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" stored on node "+slice.getNode().getName());
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
-        logger.log(Logger.WARNING,"Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName());
+        logger.log(Logger.WARNING,"Error trying to store message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" on node "+slice.getNode().getName());
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -423,11 +430,8 @@ public class PersistentDeliveryService extends BaseService {
 							    slice.flushMessages(agentID);
 							}
 							catch(Exception e) {
-								//log("Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName(), 1);
-                                                                if(logger.isLoggable(Logger.WARNING))
-                                                                  logger.log(Logger.WARNING,"Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName());
-
-							    // Ignore it and try other slices...
+                logger.log(Logger.WARNING,"Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName());
+						    // Ignore it and try other slices...
 							}
 				    }
 	    		}
@@ -532,53 +536,46 @@ public class PersistentDeliveryService extends BaseService {
 	   whether or not the message must be stored.
 	 */
 	private boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, ServiceException {
-
-		boolean	firstTime = false;
-		long now = System.currentTimeMillis();
-		long dueDate = now;
-		try {
-			// If the due-date parameter is already set, this is a re-transmission
-			// attempt --> Use the due-date value
+		// We store a message only if there is a message filter
+		if (messageFilter != null) {
+			boolean	firstTime = false;
+			long now = System.currentTimeMillis();
+			long dueDate = now;
+			try {
+				// If the due-date parameter is already set, this is a re-transmission
+				// attempt --> Use the due-date value
 		    String dd = msg.getACLMessage().getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
-			dueDate = Long.parseLong(dd);
-		}
-		catch (Exception e) {
-			// Due date not yet set (or unknown value)
-		    long delay = messageFilter.delayBeforeExpiration(msg.getACLMessage());
-	    if (delay != PersistentDeliveryFilter.NOW) {
-	    	dueDate = (delay == PersistentDeliveryFilter.NEVER ? delay : now+delay);
-        msg.getACLMessage().addUserDefinedParameter(ACL_USERDEF_DUE_DATE, String.valueOf(dueDate));
-		    firstTime = true;
+				dueDate = Long.parseLong(dd);
+			}
+			catch (Exception e) {
+				// Due date not yet set (or unknown value)
+			  long delay = messageFilter.delayBeforeExpiration(msg.getACLMessage());
+		    if (delay != PersistentDeliveryFilter.NOW) {
+		    	dueDate = (delay == PersistentDeliveryFilter.NEVER ? delay : now+delay);
+	        msg.getACLMessage().addUserDefinedParameter(ACL_USERDEF_DUE_DATE, String.valueOf(dueDate));
+			    firstTime = true;
+		    }
+			}
+	
+			if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) {
+				try {
+				    if (firstTime) {
+				      if(logger.isLoggable(Logger.INFO))
+				        logger.log(Logger.INFO,"Storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
+				    }
+				    else {
+		          if(logger.isLoggable(Logger.FINE))
+				        logger.log(Logger.FINE,"Re-storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
+				    }
+				    myManager.storeMessage(storeName, msg, receiver);
+				    return true;
+				}
+				catch(IOException ioe) {
+				    throw new ServiceException("I/O Error in message storage", ioe);
+				}
 	    }
 		}
-
-		if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) {
-			try {
-			    if (firstTime) {
-
-			    	//log("Storing message\n"+msg+"\nDue date is "+dueDate, 1);
-                                    if(logger.isLoggable(Logger.CONFIG))
-                                      logger.log(Logger.CONFIG,"Storing message\n"+msg+"\nDue date is "+dueDate);
-
-
-			    }
-			    else {
-
-			    	//log("Re-Storing message\n"+msg+"\nDue date is "+dueDate, 2);
-                                    if(logger.isLoggable(Logger.CONFIG))
-                                      logger.log(Logger.CONFIG,"Re-Storing message\n"+msg+"\nDue date is "+dueDate);
-
-			    }
-			    myManager.storeMessage(storeName, msg, receiver);
-			    return true;
-			}
-			catch(IOException ioe) {
-			    throw new ServiceException("I/O Error in message storage", ioe);
-			}
-    }
-    else {
-			return false;
-    }
+		return false;
 	}
 
 	/**
@@ -595,14 +592,6 @@ public class PersistentDeliveryService extends BaseService {
     } // End of ServiceComponent class
 
 
-    private class DefaultMessageFilter implements PersistentDeliveryFilter {
-
-	// Never store messages
-	public long delayBeforeExpiration(ACLMessage msg) {
-	    return NOW;
-	}
-    } // End of DefaultMessageFilter class
-
 
     /**
        Activates the ACL codecs and MTPs as specified in the given
@@ -612,16 +601,13 @@ public class PersistentDeliveryService extends BaseService {
     **/
     public void boot(Profile myProfile) throws ServiceException {
 	try {
-	    // Load the supplied class to filter messages, or use the default
+	    // Load the supplied class to filter messages if any
 	    String className = myProfile.getParameter(Profile.PERSISTENT_DELIVERY_FILTER, null);
 	    if(className != null) {
-		Class c = Class.forName(className);
-		messageFilter = (PersistentDeliveryFilter)c.newInstance();
+				Class c = Class.forName(className);
+				messageFilter = (PersistentDeliveryFilter)c.newInstance();
+	      logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
 	    }
-	    else {
-		messageFilter = new DefaultMessageFilter();
-	    }
-      logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
 	}
 	catch(Exception e) {
 	    throw new ServiceException("Exception in message filter initialization", e);
