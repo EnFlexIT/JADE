@@ -56,6 +56,18 @@ class DummyAgentGui extends JFrame implements ActionListener
 		agentName = myAgent.getLocalName();
 		currentDir = null;
 
+		////////////////////////////////////////////////////////////////
+		// Prepare for killing the agent when the agent window is closed
+    		addWindowListener(new	WindowAdapter()
+		                      	{
+							// This is executed when the user attempts to close the DummyAgent 
+							// GUI window using the button on the upper right corner
+  							public void windowClosing(WindowEvent e) 
+							{
+								myAgent.doDelete();
+							}
+						} );
+
 		//////////////////////////
 		// Set title in GUI window
 		setTitle(agentName + ":DummyAgent");
@@ -68,7 +80,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// Add the queued message scroll pane to the CENTER part of the border layout manager
 		queuedMsgListModel = new DefaultListModel();
 		queuedMsgList = new JList(queuedMsgListModel);
-        queuedMsgList.setCellRenderer(new ToFromCellRenderer());
+		queuedMsgList.setCellRenderer(new ToFromCellRenderer());
 		JScrollPane pane = new JScrollPane();
 		pane.getViewport().setView(queuedMsgList);
 		getContentPane().add("Center", pane);
