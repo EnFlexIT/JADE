@@ -42,22 +42,21 @@ import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
 
   /*
-   * This behaviour extends FipaRequestInitiatorBehaviour in order
+   * This behaviour extends SimpleAchieveREInitiator in order
    * to request to the AMS the list of available locations where
    * the agent can move.
    * Then, it displays these locations into the GUI
    * @author Fabio Bellifemine - CSELT S.p.A.
    * @version $Date$ $Revision$
    */
-public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviour {
+public class GetAvailableLocationsBehaviour extends SimpleAchieveREInitiator {
 
     private ACLMessage request;
-  private static MessageTemplate template = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-
+ 
    public GetAvailableLocationsBehaviour(MobileAgent a) {
      // call the constructor of FipaRequestInitiatorBehaviour
-     super(a, new ACLMessage(ACLMessage.REQUEST), template);
-     request = getRequest();
+       super(a, new ACLMessage(ACLMessage.REQUEST));
+     request = (ACLMessage)getDataStore().get(REQUEST_KEY);
      // fills all parameters of the request ACLMessage
      request.clearAllReceiver();
      request.addReceiver(a.getAMS());
@@ -77,10 +76,10 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
        fe.printStackTrace();
      }
      // creates the Message Template
-     template = MessageTemplate.and(MessageTemplate.MatchOntology(MobilityOntology.NAME),template);
+     // template = MessageTemplate.and(MessageTemplate.MatchOntology(MobilityOntology.NAME),template);
      // reset the fiparequestinitiatorbheaviour in order to put new values
      // for the request aclmessage and the template
-     reset(request,template);
+     reset(request);
    }
 
    protected void handleNotUnderstood(ACLMessage reply) {
