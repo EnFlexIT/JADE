@@ -132,7 +132,7 @@ public class AgentManagementService extends BaseService {
     private class CommandSourceSink implements Sink {
 
 	public void consume(VerticalCommand cmd) {
-
+		
 	    try {
 		String name = cmd.getName();
 		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
@@ -457,7 +457,7 @@ public class AgentManagementService extends BaseService {
     private class CommandTargetSink implements Sink {
 
 	public void consume(VerticalCommand cmd) {
-
+		
 	    try {
 		String name = cmd.getName();
 		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
@@ -660,6 +660,7 @@ public class AgentManagementService extends BaseService {
 		    impl.bornAgent(name, cid, certs, false); 
 		}
 		catch(NameClashException nce) {
+			//#CUSTOMJ2SE_EXCLUDE_BEGIN
 		    try {
 			ContainerID oldCid = impl.getContainerID(name);
 			Node n = impl.getContainerNode(oldCid);
@@ -677,14 +678,53 @@ public class AgentManagementService extends BaseService {
 			// Ping failed: forcibly replace the dead agent...
 			impl.bornAgent(name, cid, certs, true);
 		    }
+			//#CUSTOMJ2SE_EXCLUDE_END
+			/*#CUSTOMJ2SE_INCLUDE_BEGIN
+			try {
+				System.out.println("Replacing old agent "+name.getName());
+				dyingAgents.add(name);
+				((jade.core.AgentManager) impl).kill(name);
+				waitUntilDead(name);
+		    impl.bornAgent(name, cid, certs, false); 
+			}
+			catch (Exception e) {
+				dyingAgents.remove(name);
+				impl.bornAgent(name, cid, certs, true);
+			}				
+			#CUSTOMJ2SE_INCLUDE_END*/
 		}
 	    }
 	}
 
+	/*#CUSTOMJ2SE_INCLUDE_BEGIN
+	private jade.util.leap.List dyingAgents = new jade.util.leap.ArrayList();
+	
+	private void waitUntilDead(AID id) {
+		synchronized (dyingAgents) {
+			while (dyingAgents.contains(id)) {
+				try {
+					dyingAgents.wait();
+    		}
+    		catch (Exception e) {}
+    	}
+    }
+  }
+  
+	private void notifyDead(AID id) {
+		synchronized (dyingAgents) {
+			dyingAgents.remove(id);
+			dyingAgents.notifyAll();
+    }
+  }
+	#CUSTOMJ2SE_INCLUDE_END*/
+    
 	private void deadAgent(AID name) throws NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.deadAgent(name);
+		/*#CUSTOMJ2SE_INCLUDE_BEGIN
+		notifyDead(name);
+		#CUSTOMJ2SE_INCLUDE_END*/
 	    }
 	}
 
