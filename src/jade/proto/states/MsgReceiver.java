@@ -39,13 +39,17 @@ import jade.lang.acl.*;
  **/
 public class MsgReceiver extends SimpleBehaviour {
 
-    public static final int TIMEOUT_EXPIRED = -1;
+    public static final int TIMEOUT_EXPIRED = -1001;
+    public static final int INTERRUPTED = -1002;
 	
+    public static final int INFINITE = -1;
+    
     private MessageTemplate template;
     private long deadline;
     private Object receivedMsgKey;
     private boolean received;
     private boolean expired;
+    private boolean interrupted;
     private int ret;
 	
     /**
@@ -68,9 +72,16 @@ public class MsgReceiver extends SimpleBehaviour {
 		receivedMsgKey = msgKey;
 		received = false;
 		expired = false;
+		interrupted = false;
 	}
 	
 	public void action() {
+		if (interrupted) {
+			getDataStore().put(receivedMsgKey, null); 
+			ret = INTERRUPTED;
+			return;
+		}
+		
 		ACLMessage msg = null;
 	    
 		if (template != null) {
@@ -110,30 +121,38 @@ public class MsgReceiver extends SimpleBehaviour {
 	}
 	
 	public boolean done() {
-		return received || expired;
+		return received || expired || interrupted;
 	}
 	
     /**
-     * @return the performative if a message is arrived
-     * @return TIMEOUT_EXPIRED if the timeout expired
+     * @return the performative if a message arrived,
+     * <code>TIMEOUT_EXPIRED</code> if the timeout expired or
+     * <code>INTERRUPTED</code> if this <code>MsgReceiver</code>
+     * was interrupted calling the <code>interrupt()</code> method.
      **/
 	public int onEnd() {
 		received =false;
 		expired =false;
+		interrupted =false;
 		return ret;
 	}
 	
 
     public void reset(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 	super.reset();
-	set(mt, deadline, s, msgKey);
 	received = false;
 	expired = false;
+	interrupted =false;
+	setTemplate(mt);
+	setDeadline(deadline);
+	setDataStore(s);
+	setReceivedKey(msgKey);
     }
 
     /**
      * This method allows to modify the values of the parameters passed in 
      * the constructor.
+     * @deprecated 
      **/
     public void set(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 	setDataStore(s);
@@ -143,11 +162,30 @@ public class MsgReceiver extends SimpleBehaviour {
     }
 	
     /**
-     * This method allows modifying the timeout
+     * This method allows modifying the deadline
      **/
     public void setDeadline(long deadline) {
 	this.deadline = deadline;
     }
 	
+    /**
+     * This method allows modifying the template
+     **/
+    public void setTemplate(MessageTemplate mt) {
+	template=mt;
+    }
+	
+    /**
+     * This method allows modifying the key in the DS where to put the 
+     * received message
+     **/
+    public void setReceivedKey(Object key) {
+	receivedMsgKey = key;
+    }
+	
+    public void interrupt() {
+    	interrupted = true;
+    	restart();
+    }
 }
 	
