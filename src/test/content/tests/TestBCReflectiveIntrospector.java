@@ -30,48 +30,32 @@ import jade.content.ContentManager;
 import test.common.*;
 import test.content.*;
 import test.content.testOntology.*;
-import examples.content.musicShopOntology.*;
 
-public class TestByteSeq extends Test{
+public class TestBCReflectiveIntrospector extends Test{
   public String getName() {
-  	return "Byte-sequence-attribute";
+  	return "Backward-compatible-Reflective-Introspector";
   }
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type byte-sequence");
-  	sb.append("\n");
-  	sb.append("NOTE: When using the SL language this test is PASSED if the above operation fails"); 
+  	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type sequence using the Backward compatible Reflective Introspector");
   	return sb.toString();
   }
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		Object[] args = getGroupArguments();
   		final ACLMessage msg = (ACLMessage) args[0];
-  		if (!msg.getLanguage().startsWith("FIPA-SL")) {
-  			return new SuccessExpectedInitiator(a, ds, resultKey) {
-  				protected ACLMessage prepareMessage() throws Exception {
-  					Track t = new Track();
-  					t.setName("Blowing in the wind");
-  					t.setDuration(new Integer(240));
-  					t.setPcm(new byte[3000]);
-  					Exists e = new Exists(t);
-  					myAgent.getContentManager().fillContent(msg, e);
-  					return msg;
-  				}
-  			};
-  		}
-  		else {
-  			return new FailureExpectedInitiator(a, ds, resultKey) {
-  				protected ACLMessage prepareMessage() throws Exception {
-  					Track t = new Track();
-  					t.setName("Blowing in the wind");
-  					t.setDuration(new Integer(240));
-  					t.setPcm(new byte[3000]);
-  					Exists e = new Exists(t);
-  					myAgent.getContentManager().fillContent(msg, e);
-  					return msg;
-  				}
-  			};
-  		}
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Route r = new Route();
+  				r.setEstimatedTime(new Long(234567));
+  				r.addElements(new Position(0, 0));
+  				r.addElements(new Position(1, 1));
+  				r.addElements(new Position(2, 2));
+  				r.addElements(new Position(3, 3));
+  				Exists e = new Exists(r);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
   	catch (Exception e) {
   		throw new TestException("Wrong group argument", e);

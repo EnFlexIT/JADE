@@ -62,7 +62,8 @@ public class ContentTesterAgent extends Agent {
   		"test.content.tests.TestTypedAggregate",
   		"test.content.tests.TestCardinality",
   		"test.content.tests.TestCorrectIRE",
-  		"test.content.tests.TestOntoACLMessage"
+  		"test.content.tests.TestOntoACLMessage",
+  		"test.content.tests.TestBCReflectiveIntrospector"
 		} ) {
 			
 			private AID resp;

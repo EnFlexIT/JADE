@@ -39,7 +39,7 @@ public class Responder extends CyclicBehaviour {
 	public static final String TEST_CONVERSATION = "_Test_";
 	public static final String TEST_RESPONSE_ID = "_Response_";
 	
-	private boolean verbose = false;
+	private boolean verbose = true;
 	
   private MessageTemplate mt = MessageTemplate.and(
   	MessageTemplate.MatchConversationId(TEST_CONVERSATION),
@@ -55,7 +55,7 @@ public class Responder extends CyclicBehaviour {
   		ACLMessage reply = msg.createReply();
   		try {
   			handleContent(msg);
-  			// Condent handling OK --> reply with an empty INFORM message
+  			// Content handling OK --> reply with an empty INFORM message
   			reply.setPerformative(ACLMessage.INFORM);
   		}
   		catch (Throwable t) {
@@ -78,6 +78,14 @@ public class Responder extends CyclicBehaviour {
   		ContentElement ce = myAgent.getContentManager().extractContent(msg);
   		if (verbose) {
   			System.out.println(ce);
+  			System.out.println("Its representation as an abstract descriptor is:");
+  			try {
+	  			Ontology o = myAgent.getContentManager().getOntology(msg);
+  				System.out.println(o.fromObject(ce));
+  			}
+  			catch (Exception e) {
+  				e.printStackTrace();
+  			}
   		}
   	}
   	catch (UngroundedException ue) {

@@ -28,6 +28,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.content.onto.OntologyException;
+import jade.content.lang.Codec.CodecException;
 
 import test.common.Test;
 
@@ -51,6 +52,14 @@ public abstract class FailureExpectedInitiator extends OneShotBehaviour {
   		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
   		if (verbose) {
   			oe.printStackTrace();
+  		}
+  		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+  		return;
+  	}
+  	catch (CodecException ce) {
+  		System.out.println("Codec exception thrown as expected: "+ce.getMessage());
+  		if (verbose) {
+  			ce.printStackTrace();
   		}
   		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
   		return;

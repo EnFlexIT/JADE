@@ -48,6 +48,10 @@ public class TestOntology extends Ontology {
   public static final String MOVE = "MOVE";
   public static final String MOVE_DESTINATION = "destination";
   
+  public static final String ROUTE = "ROUTE";
+  public static final String ROUTE_ELEMENTS = "elements";
+  public static final String ROUTE_EST_TIME = "estimated-time";
+  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new TestOntology(MusicShopOntology.getInstance());
 	
@@ -59,12 +63,13 @@ public class TestOntology extends Ontology {
    * Constructor
    */
   private TestOntology(Ontology base) {
-  	super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
+  	super(ONTOLOGY_NAME, base, new BCReflectiveIntrospector());
 
     try {
     	add(new PredicateSchema(EXISTS), Exists.class);
     	add(new ConceptSchema(POSITION), Position.class);
     	add(new ConceptSchema(MOVE), Move.class);
+    	add(new ConceptSchema(ROUTE), Route.class);
     	
     	PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
     	ps.add(EXISTS_WHAT, (ConceptSchema) ConceptSchema.getBaseSchema());
@@ -75,6 +80,10 @@ public class TestOntology extends Ontology {
 
     	cs = (ConceptSchema) getSchema(MOVE);
     	cs.add(MOVE_DESTINATION, (ConceptSchema) getSchema(POSITION));
+    	
+    	cs = (ConceptSchema) getSchema(ROUTE);
+    	cs.add(ROUTE_ELEMENTS, (ConceptSchema) getSchema(POSITION), 2, ObjectSchema.UNLIMITED);
+    	cs.add(ROUTE_EST_TIME, (PrimitiveSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();
