@@ -91,7 +91,11 @@ public class GenericCommand implements HorizontalCommand, VerticalCommand  {
     public void removeParam(Object obj) {
 	params.remove(obj);
     }
-
+    
+    public void clear() {
+    	params.clear();
+    }
+    
     public void setReturnValue(Object rv) {
 	returnValue = rv;
     }
