@@ -265,8 +265,14 @@ AbsPrimitive Constant() :
 	        val = AbsPrimitive.wrap(true);	
         else if (CaseInsensitiveString.equalsIgnoreCase(s, "false"))  
 	        val = AbsPrimitive.wrap(false);
-	else
-		val = AbsPrimitive.wrap(s);
+	else {
+        if (  (CaseInsensitiveString.equalsIgnoreCase(s,"\"true\""))
+            ||(CaseInsensitiveString.equalsIgnoreCase(s,"\"false\"")) )
+                  // in this case leading/trailing quotes were added by the
+                  // encoder and now they must be removed. 
+                  s = unescape(s);
+		    val = AbsPrimitive.wrap(s);
+        }
                 }
   | val=Number() 
   | t=<DATETIME> { 
@@ -509,9 +515,21 @@ String String() :
 { Token t;}
 {
    t=<WORD2>  		{return t.image;}            
- | t=<STRING_LITERAL2>  {return unescape(t.image);}
+ | t=<STRING_LITERAL2>  {if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\"true\""))
+                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\"false\"")) )
+                            // in this case leading/trailing quotes must be left
+                            // otherwise the value is confused with a boolean
+                            return t.image;  
+                         else
+                            return unescape(t.image);}
  | t=<WORD>		{return t.image;}            
- | t=<STRING_LITERAL>	{return unescape(t.image);}
+ | t=<STRING_LITERAL>	{if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\"true\""))
+                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\"false\"")) )
+                            // in this case leading/trailing quotes must be left
+                            // otherwise the value is confused with a boolean
+                            return t.image;  
+                         else
+                            return unescape(t.image);}
 }
  
 

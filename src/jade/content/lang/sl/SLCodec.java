@@ -355,12 +355,20 @@ public class SLCodec extends StringCodec {
 	Object v = val.getObject();
 	if (v instanceof Date)
 	    return ISO8601.toString((Date)v);
-	else if (v instanceof Number)
+	else if (v instanceof Number) 
 		  return v.toString();
   else if (v instanceof byte[])
   	throw new CodecException("SL_does_not_allow_encoding_sequencesOfBytes");
-  else	
-	  return encode(v.toString());
+  else if (v instanceof Boolean) 
+			return v.toString();
+	else {
+			String vs = v.toString();
+			if ( (CaseInsensitiveString.equalsIgnoreCase("true",vs)) ||
+					 (CaseInsensitiveString.equalsIgnoreCase("false",vs)) )
+					return '"' + vs + '"';  // quote true and false to avoid confusion with booleans
+			else
+					return encode(vs);
+	}
     }
 
     private String toString(AbsObject val) throws CodecException { 
