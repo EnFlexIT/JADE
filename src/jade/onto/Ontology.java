@@ -1,6 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -111,7 +112,7 @@ public interface Ontology {
      class, obeying to some rules.
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
-     @see jade.onto.Ontology#addClass(String roleName, Class c)
+     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
   static final short CONCEPT_TYPE = 10;
 
@@ -122,8 +123,8 @@ public interface Ontology {
      as <code>Action</code> instances or as instances of a user-defined
      class, obeying to some rules.
      @see jade.onto.TermDescriptor
-     @see jade.onto.Action
-     @see jade.onto.Ontology#addClass(String roleName, Class c)
+     @see jade.onto.Frame
+     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
   static final short ACTION_TYPE = 11;
 
@@ -133,8 +134,8 @@ public interface Ontology {
      as <code>Predicate</code> instances or as instances of a user-defined
      class, obeying to some rules.
      @see jade.onto.TermDescriptor
-     @see jade.onto.Predicate
-     @see jade.onto.Ontology#addClass(String roleName, Class c)
+     @see jade.onto.Frame
+     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
   static final short PREDICATE_TYPE = 12;
 
@@ -146,7 +147,6 @@ public interface Ontology {
   static final String typeNames[] = { "boolean", "byte", "char", "double",
 				      "float", "int", "long", "short",
 				      "String", "Binary", "Concept", "Action", "Predicate" };
-
 
   /**
      Adds a user-defined class to this Ontology, to play a certain
@@ -160,14 +160,6 @@ public interface Ontology {
      by the Ontology object:
 
      <ol>
-
-     <li><it> The class must have an accessible method, named
-     <code>init()</code>, with the following signature:</it>
-       <ul>
-       <li> <code>void init(Frame f)</code> <it>, for concept roles</it>
-       <li> <code>void init(Action a)</code> <it>, for action roles</it>
-       <li> <code>void init(Predicate p)</code> <it>, for predicate roles</it>
-       </ul>
 
      <li><it> For every <code>TermDescriptor</code> object of the
      array, of type <code>T</code> and named <code>XXX</code>, the
@@ -222,8 +214,9 @@ public interface Ontology {
      @exception OntologyException If no role named
      <code>roleName</code> is defined in this ontology, or if the
      given class violates some rule for representing the given
-     concept.  */
-  void addClass(String roleName, Class c) throws OntologyException;
+     concept.
+  */
+
 
   /*
     Adds a new concept role to the ontology, defined by the structure
@@ -246,26 +239,34 @@ public interface Ontology {
     @see jade.onto.Ontology#CONCEPT
     @see jade.onto.Ontology#ACTION
     @see jade.onto.Ontology#PREDICATE
-    @see jade.onto.TermDescriptor
   */
   void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException;
 
-  /**
-    Initializes a Java object representing a given concept, getting
-    the information from a given <code>Frame</code> object. A suitable
-    Java class must be registered for the role played by the
-    <code>Frame</code>.
-    @param f A <code>Frame</code> object, from which a Java object is written.
-    @param concept A pre-built object, where the information is written.
-    @return A Java object, representing the given <code>Frame</code>
-    as a user-defined type. This is the same object passed as argument.
-    @exception OntologyException If the given <code>Frame</code> does
-    not play any role in the current ontology, or if the object's
-    class does not follow the rules for representing a concept.
-    @see jade.onto.Ontology#initObject(Frame f)
-  */
-  Object initObject(Frame f, Object concept) throws OntologyException;
-
+  /*
+    Adds a new concept role to the ontology, defined by the structure
+    of all its slots.
+    @param conceptName The name of this concept role (names are case
+    preserving but the match is case insensitive).
+    @param kind Tells whether the Frame represents an <it><b>Object
+    Descriptor</b></it>, an <it><b>Action</b></it>, or a
+    <it><b>Predicate</b></it> in this ontology. Use the three
+    constants in Ontology interface to select one among the three
+    options.
+    @param slots An array of descriptors; each one of them describes a
+    slot of the frame, providing:
+    <ul>
+    <li> The name of the slot.
+    <li> The type of the slot.
+    <li> The optionality of the slot (i.e. whether a value is required or not).
+    <li> The position of the slot (implicitly defined by the position in the array).
+    </ul>
+    @param c A <code>Factory</code> object, which will be used to
+    create user defined Java objects playing the given role.
+    @see jade.onto.Ontology#CONCEPT
+    @see jade.onto.Ontology#ACTION
+    @see jade.onto.Ontology#PREDICATE
+ */
+  void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException;
 
   /**
      Creates a Java object representing a given concept, getting the
@@ -279,12 +280,9 @@ public interface Ontology {
      @exception OntologyException If the given <code>Frame</code> does
      not play any role in the current ontology, or if the registered
      class does not follow the rules for representing a concept.
-     @see jade.onto.Ontology#addClass(String roleName, Class c)
-     @see jade.onto.Ontology#initObject(Frame f, Object o)
-
+     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
-  Object initObject(Frame f) throws OntologyException;
-
+  Object createObject(Frame f) throws OntologyException;
 
   /**
     Creates a <code>Frame</code> object from a given Java object. A
