@@ -181,7 +181,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		String agentOwnership = username;
 
 		// Start the AMS
-		theAMS = new ams(this, myProfile);
+		theAMS = new ams(this);
 		theAMS.setOwnership(agentOwnership);
 		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), username);
 		CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
