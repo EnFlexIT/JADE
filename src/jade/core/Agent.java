@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.40  1999/03/24 12:12:12  rimassa
+  Ported most of Agent data structures to new Java 2 Collection
+  framework.
+
   Revision 1.39  1999/03/15 15:20:33  rimassa
   Added automatic sender setting when no one is specified.
 
@@ -221,7 +225,8 @@ import java.io.Serializable;
 import java.io.InterruptedIOException;
 
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import jade.lang.acl.*;
@@ -328,7 +333,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int D_MAX = 41;    // Hand-made type checking
 
-  protected Vector msgQueue = new Vector();
+  protected LinkedList msgQueue = new LinkedList();
   protected Vector listeners = new Vector();
 
   private String myName = null;
@@ -402,9 +407,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // State transition methods for Agent Platform Life-Cycle
+  /**
+     Read current agent state. This method can be used to query an
+     agent for its state from the outside.
+     @return the Agent Platform Life Cycle state this agent is currently in.
+   */
+  public int getState() {
+    return myAPState;
+  }
 
-  // FIXME: Some race conditions still present in the middle of the methods
+  // State transition methods for Agent Platform Life-Cycle
 
   /**
      Make a state transition from <em>initiated</em> to
@@ -735,7 +747,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void send(ACLMessage msg) {
     if(msg.getSource() == null)
-      msg.setSource(getLocalName());
+      msg.setSource(myName);
     CommEvent event = new CommEvent(this, msg);
     broadcastEvent(event);
   }
@@ -756,7 +768,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void send(ACLMessage msg, AgentGroup g) {
     if(msg.getSource() == null)
-      msg.setSource(getLocalName());
+      msg.setSource(myName);
     CommEvent event = new CommEvent(this, msg, g);
     broadcastEvent(event);
   }
@@ -772,17 +784,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.lang.acl.ACLMessage
   */
   public final ACLMessage receive() {
-      //    synchronized(waitLock) {
+    synchronized(waitLock) {
       if(msgQueue.isEmpty()) {
 	return null;
       }
       else {
-	ACLMessage msg = (ACLMessage)msgQueue.firstElement();
-	currentMessage = msg;
-	msgQueue.removeElementAt(0);
-	return msg;
+	currentMessage = (ACLMessage)msgQueue.removeFirst();
+	return currentMessage;
       }
-      //    }
+    }
   }
 
   /**
@@ -800,14 +810,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public final ACLMessage receive(MessageTemplate pattern) {
     ACLMessage msg = null;
     synchronized(waitLock) {
-      Enumeration messages = msgQueue.elements();
+      Iterator messages = msgQueue.iterator();
 
-      while(messages.hasMoreElements()) {
-	ACLMessage cursor = (ACLMessage)messages.nextElement();
+      while(messages.hasNext()) {
+	ACLMessage cursor = (ACLMessage)messages.next();
 	if(pattern.match(cursor)) {
 	  msg = cursor;
 	  currentMessage = cursor;
-	  msgQueue.removeElement(cursor);
+	  msgQueue.remove(cursor);
 	  break; // Exit while loop
 	}
       }
@@ -871,7 +881,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void putBack(ACLMessage msg) {
     synchronized(waitLock) {
-      msgQueue.insertElementAt(msg,0);
+      msgQueue.addFirst(msg);
     }
   }
 
@@ -1278,9 +1288,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
     else {
       // Put constraints into action
-      Enumeration e = constraints.elements();
-      while(e.hasMoreElements()) {
-	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)e.nextElement();
+      Iterator i = constraints.iterator();
+      while(i.hasNext()) {
+	AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint)i.next();
 	a.addConstraint(c);
       }
     }
@@ -1316,28 +1326,28 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // Broadcast communication event to registered listeners
   private void broadcastEvent(CommEvent event) {
-    Enumeration e = listeners.elements();
-    while(e.hasMoreElements()) {
-      CommListener l = (CommListener)e.nextElement();
+    Iterator i = listeners.iterator();
+    while(i.hasNext()) {
+      CommListener l = (CommListener)i.next();
       l.CommHandle(event);
     }
   }
 
   // Register a new listener
   public final void addCommListener(CommListener l) {
-    listeners.addElement(l);
+    listeners.add(l);
   }
 
   // Remove a registered listener
   public final void removeCommListener(CommListener l) {
-    listeners.removeElement(l);
+    listeners.remove(l);
   }
 
   // Notify listeners of the destruction of the current agent
   private void notifyDestruction() {
-    Enumeration e = listeners.elements();
-    while(e.hasMoreElements()) {
-      CommListener l = (CommListener)e.nextElement();
+    Iterator i = listeners.iterator();
+    while(i.hasNext()) {
+      CommListener l = (CommListener)i.next();
       l.endSource(myName);
     }
   }
@@ -1364,7 +1374,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void postMessage (ACLMessage msg) {
     synchronized(waitLock) {
-      if(msg != null) msgQueue.addElement(msg);
+      if(msg != null) msgQueue.addLast(msg);
       doWake();
     }
   }
