@@ -211,18 +211,21 @@ public abstract class CompositeBehaviour extends Behaviour {
      recursively called for each child behaviour. 
   */
   public void reset() {
+  	resetChildren();
 
-  	Iterator it = getChildren().iterator();
-  	while (it.hasNext()) {
-  		Behaviour b = (Behaviour) it.next();
-  		b.reset();
-  	}
-  	
     starting = true;
     finished = false;
     super.reset();
   }
-
+  
+  protected void resetChildren() {
+  	Iterator it = getChildren().iterator();
+  	while (it.hasNext()) {
+  		Behaviour b = (Behaviour) it.next();
+  		b.reset();
+  	}  	
+  }
+  
   /**
      Associates this behaviour with the agent it belongs to.
      Overrides the method in the base class to propagate the
