@@ -35,6 +35,8 @@ public interface PlatformListener extends EventListener
   void movedAgent(PlatformEvent ev);
   void suspendedAgent(PlatformEvent ev);
   void resumedAgent(PlatformEvent ev);
+  void frozenAgent(PlatformEvent ev);
+  void thawedAgent(PlatformEvent ev);
 //__SECURITY__BEGIN  
   void changedAgentPrincipal(PlatformEvent ev);
   void changedContainerPrincipal(PlatformEvent ev);
