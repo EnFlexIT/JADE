@@ -65,7 +65,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private JICPServer        myJICPServer;
   private String            myID;
 
-  private byte lastSid = 0x10;
+  private byte lastSid = 0x0f;
   private int inpCnt = 0;
   private boolean active = true;
 
