@@ -331,6 +331,7 @@ public class MessageTemplate implements Serializable {
      value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
+     @deprecated Use MatchReceiver(AID[]) instead
   */
   public static MessageTemplate MatchReceiver(java.util.List values) {
     ArrayList l = new ArrayList();
@@ -403,6 +404,7 @@ public class MessageTemplate implements Serializable {
      value of the message slot will be matched.
      @return A new <code>MessageTemplate</code> matching the given
      value.
+     @deprecated Use MatchReplyTo(AID[])
   */
   public static MessageTemplate MatchReplyTo(java.util.List values) {
     ArrayList l = new ArrayList();
