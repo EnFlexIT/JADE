@@ -187,10 +187,10 @@ public class AbsObjectImpl implements AbsObject {
 
    		int sum = 0;
    		int counter = 0;
-   		Enumeration enum = v.elements(); 
-   		while(enum.hasMoreElements())
+   		Enumeration enumeration = v.elements(); 
+   		while(enumeration.hasMoreElements())
    		{
-   			sum += ((Integer)enum.nextElement()).intValue() * x^counter;
+   			sum += ((Integer)enumeration.nextElement()).intValue() * x^counter;
    			counter++;
    		}
    		return sum;
