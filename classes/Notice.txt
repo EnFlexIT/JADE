@@ -1,4 +1,0 @@
-This JAR file is empty, but it automatically links the real,
-finer-grained JAR files. It can be used to shorten the class path, but
-it is not mandatory. All the JADE binary content is within the lower
-level JAR files.
