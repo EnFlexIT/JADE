@@ -6,9 +6,6 @@ package jade.domain;
 
 import java.io.StringReader;
 
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
-
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
@@ -300,8 +297,6 @@ public class df extends Agent {
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
-    System.out.println("Just added Agent Descriptor: ");
-    dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     System.out.println("");
 
   }
