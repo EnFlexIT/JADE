@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,17 +31,19 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
-import jade.domain.introspection.JADEIntrospectionOntology;
+
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.*;
+import jade.domain.JADEAgentManagement.*;
+import jade.domain.introspection.*;
 import jade.domain.introspection.Event;
 import jade.domain.introspection.EventRecord;
 import jade.domain.introspection.Occurred;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.sl.SL0Codec;
 
+import jade.content.lang.sl.SLCodec;
 
 /**
 
@@ -62,7 +64,6 @@ public abstract class ToolAgent extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-
   // Used by AMSListenerBehaviour
   // FIXME. This interface should have been declared protected. However JDK1.2.2 complains and
   // requires it to be declared public.
@@ -81,8 +82,8 @@ public abstract class ToolAgent extends Agent {
 
     protected AMSListenerBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME);
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchInReplyTo("tool-subscription");
@@ -111,20 +112,19 @@ public abstract class ToolAgent extends Agent {
       if(current != null) {
 	// Handle 'inform' messages from the AMS
   try {
-	  List l = extractMsgContent(current);
-	  Occurred o = (Occurred)l.get(0);
-	  EventRecord er = o.get_0();
+	  Occurred o = (Occurred)getContentManager().extractContent(current);
+	  EventRecord er = (EventRecord)o.getWhat();
 	  Event ev = er.getWhat();
 	  String eventName = ev.getName();
 	  EventHandler h = (EventHandler)handlers.get(eventName);
 	  if(h != null)
 	    h.handle(ev);
 	}
-	catch(FIPAException fe) {
+        catch(ClassCastException cce) {
+          cce.printStackTrace();
+        }
+	catch(Exception fe) {
 	  fe.printStackTrace();
-	}
-	catch(ClassCastException cce) {
-	  cce.printStackTrace();
 	}
       }
       else
@@ -167,21 +167,20 @@ public abstract class ToolAgent extends Agent {
 
   public final void setup() {
 
-    // Register the supported ontologies 
-    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
-    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
-    registerOntology(JADEIntrospectionOntology.NAME, JADEIntrospectionOntology.instance());
+    // Register the supported ontologies
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(IntrospectionOntology.getInstance());
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 
     // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());
+    getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     // Fill ACL messages fields
-
     AMSSubscription.setSender(getAID());
     AMSSubscription.clearAllReceiver();
     AMSSubscription.addReceiver(getAMS());
-    AMSSubscription.setLanguage(SL0Codec.NAME);
-    AMSSubscription.setOntology(JADEIntrospectionOntology.NAME);
+    AMSSubscription.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    AMSSubscription.setOntology(IntrospectionOntology.NAME);
     AMSSubscription.setReplyWith("tool-subscription");
     AMSSubscription.setConversationId(getLocalName());
 
@@ -191,8 +190,8 @@ public abstract class ToolAgent extends Agent {
     AMSCancellation.setSender(getAID());
     AMSCancellation.clearAllReceiver();
     AMSCancellation.addReceiver(getAMS());
-    AMSCancellation.setLanguage(SL0Codec.NAME);
-    AMSCancellation.setOntology(JADEIntrospectionOntology.NAME);
+    AMSCancellation.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    AMSCancellation.setOntology(IntrospectionOntology.NAME);
     AMSCancellation.setReplyWith("tool-cancellation");
     AMSCancellation.setConversationId(getLocalName());
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
@@ -201,7 +200,7 @@ public abstract class ToolAgent extends Agent {
     AMSRequest.clearAllReceiver();
     AMSRequest.addReceiver(getAMS());
     AMSRequest.setProtocol("fipa-request");
-    AMSRequest.setLanguage(SL0Codec.NAME);
+    AMSRequest.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 
     // Call tool-specific setup
     toolSetup();
