@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1999/06/09 12:59:46  rimassa
+  Improved screen presentation adding support for main window and dialog
+  centering.
+
   Revision 1.3  1999/06/06 21:54:20  rimassa
   Removed useless main() function.
   Added an error dialog to be shown when some 'failure' or 'refuse'
@@ -90,13 +94,13 @@ class AMSMainFrame extends JFrame {
   public AMSMainFrame (rma anRMA) {
     super("JADE Remote Agent Management GUI");
  
-    setJMenuBar(new AMSMenu(anRMA));
+    setJMenuBar(new AMSMenu(anRMA, this));
 
-    tree = new AMSTree(anRMA);
+    tree = new AMSTree(anRMA, this);
     setForeground(Color.black);
     setBackground(Color.lightGray);
     addWindowListener(new WindowCloser(anRMA));
-    getContentPane().add(new AMSToolBar(tree, anRMA),"North");
+    getContentPane().add(new AMSToolBar(tree, anRMA, this),"North");
 
     getContentPane().add(tree,"Center");
 
@@ -108,6 +112,10 @@ class AMSMainFrame extends JFrame {
   public void ShowCorrect() {
     pack();
     setSize(600,400);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int centerX = (int)screenSize.getWidth() / 2;
+    int centerY = (int)screenSize.getHeight() / 2;
+    setLocation(centerX - 300, centerY - 200);
     tree.adjustDividerLocation();
     setVisible(true);
     toFront();
