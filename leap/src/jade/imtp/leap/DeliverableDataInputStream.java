@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 import jade.core.*;
+import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
@@ -108,6 +109,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeAID();
                 case Serializer.AIDARRAY_ID:
 		    						return deserializeAIDArray();
+                case Serializer.GENERICMESSAGE_ID:
+		    						return deserializeGenericMessage();
                 case Serializer.STRING_ID:
                     return readUTF();
                 case Serializer.CONTAINERID_ID:
@@ -487,6 +490,14 @@ class DeliverableDataInputStream extends DataInputStream {
         return aida;
     } 
 
+  private GenericMessage deserializeGenericMessage() throws IOException, LEAPSerializationException {
+    byte[] payload = deserializeByteArray();    
+  	Envelope env = (Envelope) readObject();
+  	GenericMessage gm = new GenericMessage(env, payload);
+  	gm.setAMSFailure(readBoolean());
+  	return gm;
+  }
+  
     /**
      * Package scoped as it is called by the CommandDispatcher
      */

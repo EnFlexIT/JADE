@@ -68,13 +68,13 @@ class SerializationEngine {
 	}
 
 	final static Command deserialize(byte[] data) throws LEAPSerializationException {
-  	DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
+		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
     try { 
     	int type = (int) dis.readByte();
       Command cmd = new Command(type);
       int paramCnt = (int) dis.readByte();
       for (int i = 0; i < paramCnt; ++i) {
-        cmd.addParam(deserializeObject(dis));
+        cmd.addParam(deserializeObject(dis, data));
       } 
       //Logger.println("De-serialized command. Type = "+cmd.getCode()+". Length = "+(data != null ? data.length : 0));
       return cmd;
@@ -138,7 +138,7 @@ class SerializationEngine {
    * deserialization or the object is an instance of a class that cannot be
    * deserialized.
    */
-  private final static Object deserializeObject(DataInputStream dis) throws LEAPSerializationException {
+  private final static Object deserializeObject(DataInputStream dis, byte[] data) throws LEAPSerializationException {
     String className = null;    
     try {
       byte id = dis.readByte();
@@ -154,6 +154,21 @@ class SerializationEngine {
       case BOOLEAN_ID:
       	return new Boolean(dis.readBoolean());
       default:
+      	/*System.out.println("Packet was:");
+      	jade.imtp.leap.JICP.JICPPacket pkt = jade.imtp.leap.JICP.BIFEDispatcher.lastResponseCazzo;
+      	System.out.println("Type = "+pkt.getType());
+      	System.out.println("Info = "+pkt.getInfo());
+      	System.out.println("Sid = "+pkt.getSessionID());
+      	System.out.println("recipientID = "+pkt.getRecipientID());
+      	System.out.println("Data.length = "+pkt.getData().length);
+      		
+				System.out.println("Data to deserialize is:");
+				for (int i = 0; i < data.length; ++i) {
+					System.out.print(data[i]+" ");
+					if ((i % 16) == 0 && i != 0) {
+						System.out.println("");
+					}
+				}*/
       	throw new LEAPSerializationException("Unknown class ID: "+id);
       }
     }      // END of try

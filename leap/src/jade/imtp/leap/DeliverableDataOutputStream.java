@@ -42,7 +42,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 import jade.core.*;
+import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.LEAPACLCodec;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
@@ -120,9 +122,13 @@ class DeliverableDataOutputStream extends DataOutputStream {
           writeByte(Serializer.AID_ID);
           serializeAID((AID) o);
         } 
-        else if (o instanceof AID[]) {                     // AID array
+        else if (o instanceof AID[]) {                   // AID array
           writeByte(Serializer.AIDARRAY_ID);
           serializeAIDArray((AID[]) o);
+        } 
+        else if (o instanceof GenericMessage) {          // GenericMessage
+          writeByte(Serializer.GENERICMESSAGE_ID);
+          serializeGenericMessage((GenericMessage) o);
         } 
         else if (o instanceof String) {                  // String
           writeByte(Serializer.STRING_ID);
@@ -218,7 +224,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
         }
         /*#MIDP_INCLUDE_BEGIN
         // In J2SE and PJAVA we use Java serialization to transport 
-        // Throwable objects so that we keep the message.        
+        // Throwable objects so that we keep the correct message.        
         else if(o instanceof Throwable) {                   // Throwable
           writeByte(Serializer.THROWABLE_ID);
           serializeThrowable((Throwable) o);
@@ -234,9 +240,9 @@ class DeliverableDataOutputStream extends DataOutputStream {
           serializeByteArray(bytes);
         }
         //#MIDP_EXCLUDE_END
-        // Delegate serialization of other classes 
-        // to a proper Serializer object
         else {
+	        // Delegate serialization of other classes 
+	        // to a proper Serializer object
           Serializer s = getSerializer(o);
 
           writeByte(Serializer.DEFAULT_ID);
@@ -581,6 +587,20 @@ class DeliverableDataOutputStream extends DataOutputStream {
     } 
   } 
 
+  private void serializeGenericMessage(GenericMessage gm) throws IOException, LEAPSerializationException {
+  	byte[] payload = gm.getPayload();
+  	if (payload == null) {
+      payload = (new LEAPACLCodec()).encode(gm.getACLMessage(), null);
+    }
+    serializeByteArray(payload);
+    
+  	Envelope env = gm.getEnvelope();
+  	if (env != null) {
+  		writeObject(env);
+  	}	
+  	writeBoolean(gm.isAMSFailure());
+  }
+  
   /**
    * Package scoped as it is called by the CommandDispatcher
    */
