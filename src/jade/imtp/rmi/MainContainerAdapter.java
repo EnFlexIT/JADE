@@ -114,6 +114,24 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
+  public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+    try {
+      adaptee.suspendedAgent(name);
+    }
+    catch(RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
+  public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+    try {
+      adaptee.resumedAgent(name);
+    }
+    catch(RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
   public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
     try {
       return adaptee.addContainer(manager.getRMIStub(ac), cid);

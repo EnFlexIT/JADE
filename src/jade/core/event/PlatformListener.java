@@ -33,4 +33,6 @@ public interface PlatformListener extends EventListener
   void bornAgent(PlatformEvent ev);
   void deadAgent(PlatformEvent ev);
   void movedAgent(PlatformEvent ev);
+  void suspendedAgent(PlatformEvent ev);
+  void resumedAgent(PlatformEvent ev);
 }

@@ -129,6 +129,14 @@ class MainContainerProxy implements Platform {
       adaptee.deadAgent(name);
     }
 
+    public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+      adaptee.suspendedAgent(name);
+    }
+
+    public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+      adaptee.resumedAgent(name);
+    }
+
     public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
       return adaptee.addContainer(ac, cid);
     }

@@ -337,6 +337,24 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
+  private void fireSuspendedAgent(ContainerID cid, AID agentID) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.SUSPENDED_AGENT, agentID, cid);
+
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.suspendedAgent(ev);
+    }
+  }
+
+  private void fireResumedAgent(ContainerID cid, AID agentID) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.RESUMED_AGENT, agentID, cid);
+
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.resumedAgent(ev);
+    }
+  }
+
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
     PlatformEvent ev = new PlatformEvent(agentID, from, to);
 
@@ -458,6 +476,26 @@ class MainContainerImpl implements Platform, AgentManager {
 
     // Notify listeners
     fireDeadAgent(cid, name);
+  }
+
+  public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.get(name);
+    if(ad == null)
+      throw new NotFoundException("SuspendedAgent failed to find " + name);
+    ContainerID cid = ad.getContainerID();
+
+    // Notify listeners
+    fireSuspendedAgent(cid, name);
+  }
+
+  public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.get(name);
+    if(ad == null)
+      throw new NotFoundException("ResumedAgent failed to find " + name);
+    ContainerID cid = ad.getContainerID();
+
+    // Notify listeners
+    fireResumedAgent(cid, name);
   }
 
   public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {

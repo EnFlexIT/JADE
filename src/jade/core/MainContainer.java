@@ -51,6 +51,9 @@ public interface MainContainer {
     void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
 
+    void suspendedAgent(AID name) throws IMTPException, NotFoundException;
+    void resumedAgent(AID name) throws IMTPException, NotFoundException;
+
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
 

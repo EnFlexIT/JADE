@@ -90,6 +90,14 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.deadAgent(name);
     }
     
+    public void suspendedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
+      impl.suspendedAgent(name);
+    }
+    
+    public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
+      impl.resumedAgent(name);
+    }
+    
     public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
       impl.newMTP(mtp, cid);
     }
