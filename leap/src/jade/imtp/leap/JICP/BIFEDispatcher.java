@@ -122,8 +122,17 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    	myLogger.log(Logger.FINE, "Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA));
 	    }
 
+	    // Mediator class
+	    String tmp = props.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
+	    if (tmp != null) {
+	    	myMediatorClass = tmp;
+	    }
+	    if (myLogger.isLoggable(Logger.FINE)) {
+	    	myLogger.log(Logger.FINE, "Mediator class="+myMediatorClass);
+	    }
+	    
 	    // Read (re)connection retry time
-	    String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
+	    tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
 	    try {
 				retryTime = Long.parseLong(tmp);
 	    }
