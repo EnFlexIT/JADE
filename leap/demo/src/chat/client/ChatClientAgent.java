@@ -69,8 +69,10 @@ public class ChatClientAgent extends Agent {
 	
 	protected void setup() {
 		// Register language and ontology
-		getContentManager().registerLanguage(codec);
-		getContentManager().registerOntology(onto);
+		ContentManager cm = getContentManager();
+		cm.registerLanguage(codec);
+		cm.registerOntology(onto);
+		cm.setValidationMode(false);
 		
 		// Add initial behaviours
 		addBehaviour(new ParticipantsManager(this));
