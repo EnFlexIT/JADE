@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.7  1998/11/01 19:12:25  rimassa
+ * Added two methods from now-removed MessageDispatcher interface.
+ *
  * Revision 1.6  1998/10/25 23:55:19  rimassa
  * Added some function for remote agent management.
  *
@@ -16,6 +19,7 @@ package jade.core;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import jade.lang.acl.ACLMessage;
 
 public interface AgentContainer extends Remote {
 
@@ -27,6 +31,8 @@ public interface AgentContainer extends Remote {
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
 
+  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+  void ping() throws RemoteException;
 
   void invalidateCacheEntry(String key) throws RemoteException;
 
