@@ -27,11 +27,11 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/SenderBehaviour.java \
 		jade/core/ReceiverBehaviour.java \
 		jade/domain/rma.java \
-		jade/domain/FipaRequestClientBehaviour.java \
 		jade/domain/SearchDFBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
 		jade/proto/Standard.java \
 		jade/proto/Waker.java \
+		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
 		jade/proto/FipaContractNetResponderBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
