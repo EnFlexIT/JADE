@@ -144,6 +144,32 @@ public class FixApp extends Frame
 		setTitle(title);
 	}
 
+	public void addNotify()
+	{
+	    // Record the size of the window prior to calling parents addNotify.
+	    Dimension d = getSize();
+	    
+		super.addNotify();
+
+		if (fComponentsAdjusted)
+			return;
+
+		// Adjust components according to the insets
+		setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
+		Component components[] = getComponents();
+		for (int i = 0; i < components.length; i++)
+		{
+			Point p = components[i].getLocation();
+			p.translate(insets().left, insets().top);
+			components[i].setLocation(p);
+		}
+		fComponentsAdjusted = true;
+	}
+
+    // Used for addNotify check.
+	boolean fComponentsAdjusted = false;
+
+
     MeetingSchedulerAgent myAgent; 
     public FixApp(MeetingSchedulerAgent a, String selectedDate) {
         this();
@@ -286,9 +312,11 @@ public class FixApp extends Frame
 	      a.addInvitedPersons(myAgent.getPerson(listInvitedPersons.getItem(i)));
 	    try {
 	      a.isValid();
+	      System.err.println(" Fixing appointment "+a.toString());
 	      GuiEvent ev = new GuiEvent(this, myAgent.FIXAPPOINTMENT);
 	      ev.addParameter(a);
 	      myAgent.postGuiEvent(ev); 
+	      dispose();
 	    }
 	    catch (Exception e) { 
 	      showErrorMessage(e.getMessage());

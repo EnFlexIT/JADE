@@ -37,6 +37,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.DFServiceCommunicator;
 import jade.domain.FIPAException;
 
+import jade.onto.basic.Action;
+
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 
@@ -52,10 +54,9 @@ public class MeetingSchedulerAgent extends GuiAgent {
     String user; // this is the name of the current user
     Vector knownDF = new Vector(); // list of known DF with which the agent is registered
     mainFrame mf; // pointer to the main frame of the GUI
-    Hashtable knownPersons = new Hashtable(10, 0.8f); // list of known persons: (String)name -> Person
-    Hashtable appointments = new Hashtable(10, 0.8f); // list of appointments:  (String)date -> Appointment
-    final static long REPLYBY = 59000; // 59 seconds
-  private ACLMessage cancelMsg;
+    Hashtable knownPersons = new Hashtable(); // list of known persons: (String)name -> Person
+    private Hashtable appointments = new Hashtable(); // list of appointments:  (String)date -> Appointment
+    private ACLMessage cancelMsg;
 
     
   protected void setup() {
@@ -78,6 +79,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
   final static int FIXAPPOINTMENT = 3;
   final static int REGISTERWITHDF = 4;
   final static int CANCELAPPOINTMENT = 5;
+  final static int SEARCHWITHDF = 6;
 
   /**
    * This method is executed by the Agent thread when the GUI
@@ -96,15 +98,22 @@ public class MeetingSchedulerAgent extends GuiAgent {
     case REGISTERWITHDF:
       AID dfName = new AID((String)ev.getParameter(0));
       try {
+	mf.showErrorMessage("Registering with "+dfName.getName()+" ...");
 	DFServiceCommunicator.register(this,dfName,getDFAgentDescription());
+	mf.showErrorMessage("Done registration with "+dfName.getName()+".");
       } catch (FIPAException e) {
 	e.printStackTrace();
 	mf.showErrorMessage(e.getMessage());
       }
       break;
     case CANCELAPPOINTMENT:
-      Appointment a1 = (Appointment)ev.getParameter(0);
-      cancelAppointment(a1);
+      Date d = (Date)ev.getParameter(0);
+      cancelAppointment(d);
+      break;
+    case SEARCHWITHDF:
+      AID dfName2 = (AID)ev.getParameter(0);
+      mf.showErrorMessage("Updating with DF: "+dfName2.getName()+" ...");
+      searchPerson(dfName2, null);
       break;
     default:
       System.err.println("Received unexpexcted GuiEvent of type:"+ev.getType());
@@ -117,10 +126,11 @@ public class MeetingSchedulerAgent extends GuiAgent {
   private void startTasks(String userName){
     setUser(userName);
     mf = new mainFrame(this,getUser() + " - Appointment Scheduler" );
+    mf.setVisible(true);
     try {
       DFServiceCommunicator.register(this,getDFAgentDescription());
       knownDF.add(getDefaultDF());
-      addKnownPerson(new Person(getUser(), getDFAgentDescription(), getDefaultDF()));
+      addKnownPerson(new Person(getUser(), getAID(), getDefaultDF()));
     } catch (FIPAException e) {
       e.printStackTrace();
       mf.showErrorMessage(e.getMessage());
@@ -133,7 +143,8 @@ public class MeetingSchedulerAgent extends GuiAgent {
   protected void searchPerson(AID dfname, String personName) {
     ServiceDescription sd = new ServiceDescription();
     sd.setType("personal-agent");
-    sd.setOwnership(personName);
+    if (personName != null)
+      sd.setOwnership(personName);
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.addOntologies("pa-ontology");
     dfd.addServices(sd);
@@ -143,7 +154,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
       // add values to knownPersons
       for (Iterator i=l.iterator(); i.hasNext(); ) {
 	dfd = (DFAgentDescription)i.next();
-	Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd,dfname); 
+	Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd.getName(),dfname); 
 	  addKnownPerson(prs);
       }
     } catch (FIPAException fe) {
@@ -211,22 +222,12 @@ protected Person getPersonbyAgentName(AID agentname) {
    * this method is called after a GUIEvent is received
    */
 private void fixAppointment(Appointment a) {
-  System.err.println("fix Appointment" + a.toString());
-    
-  ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-  cfp.setReplyByDate(new Date(System.currentTimeMillis()+REPLYBY));
+
   List ag = new ArrayList();
-  int numberOfInvited = 0;
-  AID name;
-  String listOfNames = "";
-  for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); ) {
-    numberOfInvited++;
-    name = ((Person)i.next()).getAID();
-    ag.add(name);
-    listOfNames = listOfNames + name + " ";
-  }
+  for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); ) 
+    ag.add(((Person)i.next()).getAID());
     
-  if (numberOfInvited == 0) { // there is only me. Just find a free day
+  if (ag.size() == 0) {//there is only me, nobody invited. Just find a free day
     Date goodDate = findADate(a);
     if (goodDate == null) 
       mf.showErrorMessage("No free date for "+a.toString());
@@ -235,40 +236,30 @@ private void fixAppointment(Appointment a) {
       addMyAppointment(a);
     }
   } else {
-    if (numberOfInvited > 1) 
-      listOfNames = "(" + listOfNames + ")"; // becomes a list
-    String possibleAppList = possibleAppointments(a);
-    if (possibleAppList != null) {
-      cfp.setContent("( (action " + " * " + " (possible-appointments " + possibleAppList + ")) true )");   
-      addBehaviour(new myFipaContractNetInitiatorBehaviour(this,cfp,ag)); 
-    } else 
+    if (fillAppointmentWithPossibleDates(a)) 
+      // if returns True than there are available dates
+	addBehaviour(new myFipaContractNetInitiatorBehaviour(this,a,ag)); 
+    else 
       mf.showErrorMessage("No free date for "+a.toString());
   }
 }
 
 
 /**
-* This function returns a string representing the list of available days for this
-* appointment
+* This function fills the Appointment with all the dates when this user
+* is available 
 * @param a the Appointment
-* @return a String representing the list of valid dates, e.g. (list 21 22),
-* returns null if no date is available
+* @return true if there was at least one day available, false otherwise
 */
-//FIXME it is using FIPA Seoul syntax. May need changes
-  String possibleAppointments(Appointment a) {
-    String str = "(list ";
-    boolean nodatepossible = true;
-    Date ds = a.getStartingOn(); 
+  private boolean fillAppointmentWithPossibleDates(Appointment a) {
+    Date ds = (Date)a.getStartingOn().clone(); 
     Date de = a.getEndingWith();
     while (! ds.after(de)) {     
-      if (! appointments.containsKey(key(ds))) {
-	nodatepossible = false;
-        str = str+ds.getDate() + " "; // mette solo il giorno tra 1 e 31
-      }
+      if (! appointments.containsKey(key(ds))) 
+	a.addPossibleDates((Date)ds.clone());
       ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day    
     }
-    if (nodatepossible) return null;
-    else return str + ")";
+    return a.getAllPossibleDates().hasNext();
   }
 
   /**
@@ -292,6 +283,10 @@ private void fixAppointment(Appointment a) {
     }
   
 
+  boolean isFree(Date d) {
+    return !appointments.containsKey(key(d));
+  }
+
 private Appointment getMyAppointment(Appointment app) {
   return (Appointment)appointments.get(key(app.getFixedDate()));
 }
@@ -301,9 +296,12 @@ private Appointment getMyAppointment(Appointment app) {
   /**
    * This method is called after a GuiEvent is received.
   **/
-  void cancelAppointment(Appointment app) {
-    System.err.println("Cancel Appointment: " + app.toString());
-    Appointment a = getMyAppointment(app);
+  void cancelAppointment(Date d) {
+    Appointment a = getMyAppointment(d);
+    if (a == null) { 
+      mf.showErrorMessage("Nothing to cancel: no appointmen was fixed on "+d.toString());
+      return;
+    }
 
     // set the receivers of the message
     cancelMsg.clearAllReceiver();
@@ -312,9 +310,7 @@ private Appointment getMyAppointment(Appointment app) {
 
     try {
       if (a.getAllInvitedPersons().hasNext()) { // there was at least a receiver
-	List l = new ArrayList();
-	l.add(a);
-	fillContent(cancelMsg,l);
+	fillAppointment(cancelMsg,a);
 	send(cancelMsg);
       }
       removeMyAppointment(a);
@@ -337,32 +333,53 @@ void removeMyAppointment(Appointment app) {
   }
 }
 
-private void addMyAppointment(Appointment a) {
-  System.err.println("addAppointment: "+a.toString());
+  // called by myFipaContractNetInitiatorBehaviour
+void addMyAppointment(Appointment a) {
   appointments.put(key(a.getFixedDate()),a);
   mf.calendar1_Action(null);	
   mf.showErrorMessage(a.toString());
 }
 
+
 /**
 * This function return the key to be used in the Hashtable
 */
 private String key(Date d) {
-    return ""+d.getYear()+d.getMonth()+d.getDate();
+  return ""+d.getYear()+d.getMonth()+d.getDate();
 }
-protected Appointment getAppointment(Date date) {
-    return (Appointment)appointments.get(key(date));
+
+  // it used by mainFrame
+Appointment getMyAppointment(Date date) {
+  return (Appointment)appointments.get(key(date));
 }
 
 protected void setUser(String username) {
-    user = username;
+  user = username;
 }
 
 protected String getUser() {
-    return user;
+  return user;
 }
 
 
+  /**
+    this method extract an appointment data structure from a message
+  **/
+  Appointment extractAppointment(ACLMessage msg) throws FIPAException {
+    List l = extractContent(msg);
+    return (Appointment)((Action)l.get(0)).get_1();
+  }
 
+  /**
+   * this method fills an aclmessage with an appointment
+   **/
+  void fillAppointment(ACLMessage msg, Appointment app) throws FIPAException {
+    List l = new ArrayList(1);
+    Action a = new Action();
+    a.setActor(getAID());
+    a.setAction(app);
+    l.add(a);
+    fillContent(msg,l);
+  }
 } // end Agent.java
 

@@ -123,30 +123,6 @@ public PasswordDialog(MeetingSchedulerAgent a, String title) {
 		passTextField.setText(pass);
 	}
 
-	public void addNotify()
-	{
-	    // Record the size of the window prior to calling parents addNotify.
-	    Dimension d = getSize();
-	    
-		super.addNotify();
-
-		if (fComponentsAdjusted)
-			return;
-
-		// Adjust components according to the insets
-		setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
-		Component components[] = getComponents();
-		for (int i = 0; i < components.length; i++)
-		{
-			Point p = components[i].getLocation();
-			p.translate(insets().left, insets().top);
-			components[i].setLocation(p);
-		}
-		fComponentsAdjusted = true;
-	}
-	
-    // Used for addNotify check.
-	boolean fComponentsAdjusted = false;
 
 	//{{DECLARE_CONTROLS
 	java.awt.Label nameLabel;

@@ -48,11 +48,13 @@ This behaviour serves all CANCEL messages received by the agent.
 */
 public class CancelAppointmentBehaviour extends CyclicBehaviour {
 
-  MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
-  ACLMessage cancel; 
+  private MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
+  private ACLMessage cancel; 
+  private MeetingSchedulerAgent myAgent;
 
-  CancelAppointmentBehaviour(Agent a) {
+  CancelAppointmentBehaviour(MeetingSchedulerAgent a) {
     super(a);
+    myAgent = a;
   }
 
   public void action(){
@@ -61,15 +63,14 @@ public class CancelAppointmentBehaviour extends CyclicBehaviour {
       block();
       return;
     }
-    System.err.println("CancelAppointmentBehaviour: received "+cancel.toString());
+    //System.err.println("CancelAppointmentBehaviour: received "+cancel.toString());
     try {
-      List l = myAgent.extractContent(cancel);
-      Action a = (Action)l.get(0);
-      Appointment app = (Appointment)a.get_1(); 
+      Appointment app = myAgent.extractAppointment(cancel);
       if (app.getInviter().equals(myAgent.getAID())) 
 	// I called the appointment and I have to inform other agents of that
-	((MeetingSchedulerAgent)myAgent).cancelAppointment(app);
-      ((MeetingSchedulerAgent)myAgent).removeMyAppointment(app);
+	myAgent.cancelAppointment(app.getFixedDate());
+      else
+	myAgent.removeMyAppointment(app);
     }catch (FIPAException e) {
       e.printStackTrace();
     }

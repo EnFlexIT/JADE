@@ -144,6 +144,31 @@ public mainFrame(String title) {
   setTitle(title);
 }
 	
+	public void addNotify()
+	{
+		// Record the size of the window prior to calling parents addNotify.
+		Dimension d = getSize();
+		
+		super.addNotify();
+	
+		if (fComponentsAdjusted)
+			return;
+	
+		// Adjust components according to the insets
+		setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
+		Component components[] = getComponents();
+		for (int i = 0; i < components.length; i++)
+		{
+			Point p = components[i].getLocation();
+			p.translate(insets().left, insets().top);
+			components[i].setLocation(p);
+		}
+		fComponentsAdjusted = true;
+	}
+	
+	// Used for addNotify check.
+	boolean fComponentsAdjusted = false;
+
   //{{DECLARE_CONTROLS
   symantec.itools.awt.util.Calendar calendar1;
   java.awt.TextArea textArea1;
@@ -225,7 +250,7 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	void miExit_Action(java.awt.event.ActionEvent event)
 	{
 	  // Action from Exit Create and show as modal
-	  System.err.println("miExit_ACtion");
+	  //System.err.println("miExit_ACtion");
 	}
 	
 	void miRegWithDF_Action(java.awt.event.ActionEvent event)
@@ -245,7 +270,7 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	  listNames.clear();
 	  for (Enumeration e = myAgent.getKnownPersons(); e.hasMoreElements(); ) 
             listNames.addItem(((Person)e.nextElement()).getName());
-	  currentAction = VIEWKNOWNPERSONS;
+	  currentAction=VIEWKNOWNPERSONS;
 	  listNames.select(0);
 	  listNames_ItemStateChanged(null); 
 	}
@@ -256,7 +281,7 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	  textArea1.setVisible(true);
 	  calendar1.setVisible(true);
 	  textArea1.setText("");
-	  Appointment a = myAgent.getAppointment((new Date(calendar1.getDate())));
+	  Appointment a = myAgent.getMyAppointment((new Date(calendar1.getDate())));
 	  if (a != null)
             textArea1.setText(a.getDescription());
 	}
@@ -301,8 +326,9 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	  clearFrame();
 	  while (e.hasMoreElements()) {
             dfName=(AID)e.nextElement();
-            showErrorMessage("Updating with DF: "+dfName.getName()+" ...");
-            myAgent.searchPerson(dfName, null);
+	    GuiEvent ev = new GuiEvent(this,myAgent.SEARCHWITHDF);
+	    ev.addParameter(dfName);
+	    myAgent.postGuiEvent(ev);	  
 	  } 
 	}
 
@@ -317,7 +343,6 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	void textFieldDFaddress_EnterHit(java.awt.event.ActionEvent event)
 	{
 	  clearFrame();	 
-	  showErrorMessage("Registering with "+textFieldDFaddress.getText()+" ...");
 	  GuiEvent ev = new GuiEvent(this,myAgent.REGISTERWITHDF);
 	  ev.addParameter(textFieldDFaddress.getText());
 	  myAgent.postGuiEvent(ev);	  
@@ -345,7 +370,7 @@ public void actionPerformed(java.awt.event.ActionEvent event)
 	  if (currentAction == VIEWKNOWNPERSONS)
 	    textArea1.setText(myAgent.getPerson(cur).toString());
 	  else if (currentAction == VIEWKNOWNDF)
-	    textArea1.setText(listNames.getSelectedItem());
+	    textArea1.setText(cur); 
 	}
 
 	void menuItem5_ActionPerformed(java.awt.event.ActionEvent event)

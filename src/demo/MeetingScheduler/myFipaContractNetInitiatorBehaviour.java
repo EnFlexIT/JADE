@@ -25,11 +25,12 @@ package demo.MeetingScheduler;
 import java.util.*;
 
 import jade.lang.acl.ACLMessage;
-
 import jade.core.*;
-
 import jade.proto.FipaContractNetInitiatorBehaviour;
+import jade.domain.FIPAException;
+import jade.lang.sl.SL0Codec;
 
+import demo.MeetingScheduler.Ontology.*;
 
 /**
 Javadoc documentation for the file
@@ -39,117 +40,97 @@ Javadoc documentation for the file
 
 public class myFipaContractNetInitiatorBehaviour extends FipaContractNetInitiatorBehaviour {
 
-    public myFipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, List group) {
-      super(a,msg,group);
+  private ACLMessage cfpMsg = new ACLMessage(ACLMessage.CFP);
+  private final static long TIMEOUT = 60000; // 1 minute
+  private Appointment pendingApp;
+  private MeetingSchedulerAgent myAgent;
+
+    public myFipaContractNetInitiatorBehaviour(MeetingSchedulerAgent a, Appointment app, List group) {
+      super(a,new ACLMessage(ACLMessage.CFP),group);
+      myAgent = a;
+      // fill the fields of the cfp message
+      cfpMsg.setLanguage(SL0Codec.NAME);
+      cfpMsg.setOntology(MSOntology.NAME);
+      cfpMsg.setReplyByDate(new Date(System.currentTimeMillis()+TIMEOUT));
+
+      try {// fill the content
+	myAgent.fillAppointment(cfpMsg,app);
+      } catch (FIPAException e) {
+	e.printStackTrace();
+	myAgent.doDelete();
+      }
+      pendingApp = (Appointment)app.clone();
+      reset(cfpMsg,group); // updates the message to be sent
       //System.err.println("myFipaContractNetInitiatorBehaviour with these agents: " + group.toString());
     }
 
-  // FIXME This method is called to handle message different from proposal
+  // This method is called to handle message different from proposal
   public void handleOtherMessages(ACLMessage msg) {
     System.err.println("!!! FipaContractNetInitiator handleOtherMessages: "+msg.toString());
   }
   
 
-public String createCfpContent(String basicContent, AID receiver) {
-  int p = basicContent.indexOf('*');
-  if (p != -1) 
-    //replace with the actual actor name that is 1 actor for each message.
-    return basicContent.substring(0,p-1) + receiver.getName() + basicContent.substring(p+1,basicContent.length());
-  else
-    return basicContent;
-}  
-  
-  Appointment pendingAppointment;
 
 public Vector handleProposeMessages(Vector proposals) {
   System.err.println(myAgent.getLocalName()+": FipacontractNetInitiator is evaluating the proposals");
   Vector retMsgs = new Vector(proposals.size());
   ACLMessage msg;
-  Vector acceptableDates = new Vector();
-  Vector acceptedDates;
-  SL0Parser parser;
-  MultiValue mv;
-  Action a;
-  Proposition  possApp;
+  ArrayList acceptableDates = new ArrayList();
+  ArrayList acceptedDates = new ArrayList();
   
   if (proposals.size()==0)
     return null;
-  
-  try {
-    parser = SL0Parser.create();
-    mv = (MultiValue)parser.parse(new StringReader(cfpMsg.getContent()), ACLMessage.getPerformative(cfpMsg.getPerformative()));
-    a = (Action)mv.getValue(0);
-    possApp = (Proposition)a.getActionParameter("list");
-    if ( (a==null) || (possApp == null) ) {
-      //fixme send not understood
-    } else {
-      for (int i=0; i<possApp.getNumberOfTerms(); i++) {
-	int dateNumber = Integer.parseInt(possApp.getTerm(i).toString());
-	Date d = new Date();
-	if ((dateNumber > 0) && (dateNumber < 32)) { // if is a valid day
-	  d.setDate(dateNumber);
-	  if ((Appointment)((MeetingSchedulerAgent)myAgent).getAppointment(d) == null) // is free
-	    acceptableDates.addElement(new Integer(dateNumber)); 
-	}
-      }
-    }
-  } catch (demo.MeetingScheduler.CLP.ParseException e) {
-    e.printStackTrace();
-    finished = true;
-    return null;
-  }
-  // now acceptableDates contains all the dates when I have no appointment and were in the cfp
-    
+
+  for (Iterator i=pendingApp.getAllPossibleDates(); i.hasNext(); )
+    acceptableDates.add(new Integer(((Date)i.next()).getDate()));
+
   for (int i=0; i<proposals.size(); i++) {
     //System.err.println("EvaluateProposals, start round "+i+" acceptableDates = "+acceptableDates.toString());
     msg = (ACLMessage)proposals.elementAt(i);
     if (msg.getPerformative() == ACLMessage.PROPOSE) {
+      acceptedDates = new ArrayList();
+      
       try {
-	acceptedDates = new Vector();
-	parser = SL0Parser.create();
-	mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), ACLMessage.getPerformative(msg.getPerformative()));
-	a = (Action)mv.getValue(0);
-	possApp = (Proposition)a.getActionParameter("list");
-	for (int ii=0; ii<possApp.getNumberOfTerms(); ii++) {
-	  int dateNumber = Integer.parseInt(possApp.getTerm(ii).toString());
-	  if (acceptableDates.contains(new Integer(dateNumber)))
-	    acceptedDates.addElement(new Integer(dateNumber));     
+	Appointment a = myAgent.extractAppointment(msg);
+	for (Iterator ii=a.getAllPossibleDates(); ii.hasNext(); ) {
+	  Integer day = new Integer(((Date)ii.next()).getDate());
+	  if (acceptableDates.contains(day))
+	    acceptedDates.add(day);
 	}
-	acceptableDates = acceptedDates;
+	acceptableDates = (ArrayList)acceptedDates.clone();
 	if (msg.getReplyWith() != null)
 	  msg.setInReplyTo(msg.getReplyWith());
 	msg.clearAllReceiver();
 	msg.addReceiver(msg.getSender());
+	msg.setSender(myAgent.getAID());
 	retMsgs.addElement(msg);
-      } catch (ParseException e) {
+      } catch (FIPAException e) {
 	e.printStackTrace();
       }
     } // end if "propose"
   } // end of for proposals.size()   
   //System.err.println("EvaluateProposals, end rounds acceptableDates = "+acceptableDates.toString());
-  
-  String content = "( (action "+ " * " +" (possible-appointments (list ";
-  int msgType;
+
+  ACLMessage replyMsg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+  replyMsg.setLanguage(SL0Codec.NAME);
+  replyMsg.setOntology(MSOntology.NAME);
   if (acceptableDates.size() > 0) {
-    pendingAppointment = new Appointment(myAgent.getName());
     Date d = new Date();
-    int dateNumber = ((Integer)acceptableDates.elementAt(0)).intValue();
+    int dateNumber = ((Integer)acceptableDates.get(0)).intValue();
     d.setDate(dateNumber);
-    pendingAppointment.setFixedDate(d);
-    //FIXME I should here also add the invited Persons otherwise the cancel
-    // does not work.
-    content = content + acceptableDates.elementAt(0) + "))) true )";
-    msgType = ACLMessage.ACCEPT_PROPOSAL;
-  } else {
-    content = content + "))) false )";
-    msgType = ACLMessage.REJECT_PROPOSAL;
-  }
+    pendingApp.setFixedDate(d);
+    try {
+      myAgent.fillAppointment(replyMsg,pendingApp);
+    } catch (FIPAException e) {
+      e.printStackTrace();
+      myAgent.doDelete();
+    }
+  } else 
+    replyMsg.setPerformative(ACLMessage.REJECT_PROPOSAL);
   
-  int p = content.indexOf('*'); // the actor name '*' must be replaced with 
-  // the actual actor name (1 actor for each message)
   for (int i=0; i<retMsgs.size(); i++) {
-    ((ACLMessage)retMsgs.elementAt(i)).setPerformative(msgType);
-    ((ACLMessage)retMsgs.elementAt(i)).setContent(content.substring(0,p-1) + ((ACLMessage)retMsgs.elementAt(i)).getSender().getName() + content.substring(p+1,content.length())); // for each message replace '*' with the right actor name
+    ((ACLMessage)retMsgs.elementAt(i)).setPerformative(replyMsg.getPerformative());
+    ((ACLMessage)retMsgs.elementAt(i)).setContent(replyMsg.getContent()); 
   }
   
   return retMsgs;
@@ -160,18 +141,19 @@ public Vector handleFinalMessages(Vector messages) {
   ACLMessage msg;
   boolean accepted=false;
   Person p;
+  pendingApp.clearAllInvitedPersons();
   for (int i=0; i<messages.size(); i++) {    
     msg = (ACLMessage)messages.elementAt(i);
     if (msg.getPerformative() == ACLMessage.INFORM) {
       accepted = true;
-      p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSender());
+      p = myAgent.getPersonbyAgentName(msg.getSender());
       if (p == null) 
-	p = new Person(msg.getSender().getName());
-      pendingAppointment.addInvitedPerson(p);
+	p = new Person(msg.getSender().getName(),null,null);
+      pendingApp.addInvitedPersons(p);
     }
   }
   if (accepted)
-    ((MeetingSchedulerAgent)myAgent).addAppointment(pendingAppointment);            
+    myAgent.addMyAppointment(pendingApp);            
   return new Vector();
   }
 } 

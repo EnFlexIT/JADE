@@ -23,9 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler.Ontology;
 
-
-import jade.domain.FIPAAgentManagement.DFAgentDescription; 
-import jade.core.Agent;
 import jade.core.AID;
 
 /**
@@ -38,15 +35,19 @@ public class Person
 {
     String name;   // name of the person
     AID dfName; // name of the DF with which this person is known
-    DFAgentDescription dfd; // description registered with the DF
+  AID aid;   // aid of the agent
     
-public Person(){
+  // used by the Ontology support //
+public Person() { }
+
+public Person(String userName){
+  this(userName, new AID(userName), new AID("unkwnown"));
 }
 
-public Person(String userName, DFAgentDescription desc, AID dfName) {
+public Person(String userName, AID agentName,  AID dfName) {
   name=userName;
-  dfd = desc;
   this.dfName=dfName;
+  aid = agentName;
 }
 
     public String getName() {
@@ -57,24 +58,21 @@ public void setName(String n) {
   name = n;
 }
 
-public void setAgentDescription(DFAgentDescription d) {
-  dfd = d;
-}
 
-public void setDF(AID df){ dfName = df; }
 
+public void setDFName(AID df){ dfName = df; }
+public AID getDFName() { return dfName; }
   /**
    * This method returns the AID of the agent corresponding to this person
    **/
 public AID getAID(){
-  if (dfd != null)
-    return dfd.getName();
-  else
-    return new AID(name);
+    return aid; 
 }
+
+public void setAID(AID n){ aid=n; }
 	
 public String toString() {
-  return name + " - " + dfName + " - " + dfd.toString();
+  return "Mr./Mrs. "+ name + " - "+aid.toString()+" registered with DF " + dfName.getName();
 }
 
 }

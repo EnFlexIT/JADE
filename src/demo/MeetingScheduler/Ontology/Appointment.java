@@ -31,12 +31,13 @@ Javadoc documentation for the file
 @version $Date$ $Revision$
 */
 
-public class Appointment {
+public class Appointment implements Cloneable {
 
     private String description = new String();
     private Date startingOn;
     private Date endingWith;
-    private List invited = new ArrayList(); // Vector of Persons
+    private ArrayList invited = new ArrayList(); // Vector of Persons
+    private ArrayList possibleDates = new ArrayList(); // Vector of Date
     private Date fixedDate;
     private AID invitingAgent;
     
@@ -47,7 +48,7 @@ public class Appointment {
     public Appointment() {
         startingOn = new Date();
         endingWith = new Date();
-        description = "Appointment called by "+invitingAgent.toString();
+        description = "Unknown description";
     }
 
   public void setInviter(AID name){
@@ -59,8 +60,9 @@ public class Appointment {
     return invitingAgent;
   }
 
+
    public void setDescription (String descr) {
-        description = descr;
+        description = descr.replace(' ','_');
     }
 
    public String getDescription() {
@@ -91,6 +93,21 @@ public class Appointment {
     return invited.iterator();
   }
 
+public void clearAllInvitedPersons() {
+  invited.clear();
+}
+
+public void addPossibleDates(Date d) {
+  possibleDates.add(d);
+}
+
+public Iterator getAllPossibleDates() {
+  return possibleDates.iterator();
+}
+
+public void clearAllPossibleDates() {
+  possibleDates.clear();
+}
 
   
     public Date getFixedDate() {
@@ -101,6 +118,20 @@ public class Appointment {
 
 public void setFixedDate(Date date) {
     fixedDate = date;
+}
+
+
+public synchronized Object clone() {
+  Appointment result;
+  try {
+    result = (Appointment)super.clone();
+    result.invited = (ArrayList)invited.clone();
+    result.possibleDates = (ArrayList)possibleDates.clone();
+  } catch (CloneNotSupportedException e) {
+    e.printStackTrace(); // this should never happen
+    result=null;
+  }
+  return result;
 }
 
 
@@ -123,9 +154,13 @@ public void setFixedDate(Date date) {
         } else str = str + ":fixed-on \"" + fixedDate.toString() + "\" ";
         str = str + ":invited (set ";
         for (int i=0; i<invited.size(); i++)
-                str = str + ((Person)invited.get(i)).getName() + " ";
+                str = str + "(" + invited.get(i).toString() + ") ";
         str = str + ") ";
-        str = str + ":called-by " +invitingAgent;
+        str = str + ":called-by " +invitingAgent.toString();
+	str = str+" :possible-dates (set ";
+	for (int i=0; i<possibleDates.size(); i++)
+	  str = str + "\"" + possibleDates.get(i).toString() + "\" ";
+	str = str + ")";
         return str + ")";        
     }
     

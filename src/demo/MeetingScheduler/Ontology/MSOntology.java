@@ -34,7 +34,6 @@ public class MSOntology {
 
   public static final String PERSON = "Person";
   public static final String APPOINTMENT = "Appointment";
-  public static final String POSSIBLEAPPOINTMENT = "PossibleAppointment";
 
   private static Ontology theInstance = new DefaultOntology();
 
@@ -59,7 +58,9 @@ public class MSOntology {
       // Adds the roles of the basic ontology (ACTION, AID,...)
       theInstance.joinOntology(BasicOntologyManager.instance());
       theInstance.addRole(PERSON, new SlotDescriptor[] {
-	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	new SlotDescriptor("AID", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O),
+	new SlotDescriptor("DFName", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.O)
 	  }, new RoleEntityFactory() {
              public Object create(Frame f) { return new Person(); }
 	     public Class getClassForRole() { return Person.class; }
@@ -69,16 +70,12 @@ public class MSOntology {
 	new SlotDescriptor("description", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	new SlotDescriptor("starting-on", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
 	new SlotDescriptor("ending-with", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
-	new SlotDescriptor("invited-persons", Ontology.SET_SLOT, PERSON, Ontology.O)
+	new SlotDescriptor("fixed-date", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
+	new SlotDescriptor("invited-persons", Ontology.SET_SLOT, PERSON, Ontology.O),
+	new SlotDescriptor("possible-dates", Ontology.SET_SLOT, Ontology.DATE_TYPE, Ontology.O)
 	  }, new RoleEntityFactory() {
              public Object create(Frame f) { return new Appointment(); }
 	     public Class getClassForRole() { return Appointment.class; }
-	  });
-      theInstance.addRole(POSSIBLEAPPOINTMENT, new SlotDescriptor[] {
-	new SlotDescriptor("available-days", Ontology.SET_SLOT, Ontology.DATE_TYPE, Ontology.M)
-	  }, new RoleEntityFactory() {
-             public Object create(Frame f) { return new PossibleAppointment(); }
-	     public Class getClassForRole() { return PossibleAppointment.class; }
 	  });
     } catch (OntologyException oe) {
       oe.printStackTrace();

@@ -22,11 +22,19 @@ Boston, MA  02111-1307, USA.
 
 
 package demo.MeetingScheduler;
+
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.FipaContractNetResponderBehaviour;
+import jade.domain.FIPAException;
+
+
+import demo.MeetingScheduler.Ontology.Appointment;
 
 /**
 Javadoc documentation for the file
@@ -35,8 +43,11 @@ Javadoc documentation for the file
 */
 public class myFipaContractNetResponderBehaviour extends FipaContractNetResponderBehaviour {
 
-public myFipaContractNetResponderBehaviour(Agent a) {
+MeetingSchedulerAgent myAgent;
+
+public myFipaContractNetResponderBehaviour(MeetingSchedulerAgent a) {
 super(a);
+myAgent = a;
 }
 
 public void handleOtherMessages(ACLMessage msg) {
@@ -44,43 +55,20 @@ public void handleOtherMessages(ACLMessage msg) {
 }
 
  public ACLMessage handleAcceptProposalMessage(ACLMessage msg) {
-    Person p;
-    ACLMessage inform = new ACLMessage(ACLMessage.INFORM);
-    try {
-        SL0Parser parser = SL0Parser.create();
-        MultiValue mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), ACLMessage.getPerformative(msg.getPerformative()));
-        Action a = (Action)mv.getValue(0);
-        Proposition possApp = (Proposition)a.getActionParameter("list");
-        
-        int dateNumber = Integer.parseInt(possApp.getTerm(0).toString());
-        Date d = new Date();
-        if ((dateNumber > 0) && (dateNumber < 32)) { // if is a valid day
-                d.setDate(dateNumber);
-                if ((Appointment)((MeetingSchedulerAgent)myAgent).getAppointment(d) == null) {
-                    // is free
-                    Appointment app = new Appointment(msg.getSender().getName());
-                    app.setFixedDate(d);
-		    p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSender());
-		    if (p == null) p = new Person(msg.getSender().getName());
-		    app.addInvitedPerson(p);
-                    ((MeetingSchedulerAgent)myAgent).addAppointment(app);
-                    inform.setContent("(done (action " +myAgent.getName() + 
-                        " (possible-appointments (list " + dateNumber + "))))");
-                } else {
-                    inform.setPerformative(ACLMessage.FAILURE);
-                    inform.setContent("(action " + myAgent.getName() + 
-                        " (possible-appointments (list " + dateNumber + "))) (busy-date))");
-                }
-        } else {
-	  inform.setPerformative(ACLMessage.FAILURE);
-	  inform.setContent("(action " + myAgent.getName() + 
-                        " (possible-appointments (list" + dateNumber + "))) (invalid-date))");
-        }
-    } catch (ParseException e) {
-        e.printStackTrace();
-        finished=true;
-    }
-    return inform;
+   ACLMessage reply = msg.createReply();
+   try {
+     Appointment app = myAgent.extractAppointment(msg); 
+     if (myAgent.isFree(app.getFixedDate())) {
+       myAgent.addMyAppointment(app);
+       reply.setPerformative(ACLMessage.INFORM);
+     } else 
+       reply.setPerformative(ACLMessage.FAILURE);
+   } catch (FIPAException e) {
+     e.printStackTrace();
+     reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+     reply.setContent(e.getMessage());
+   }
+   return reply;
  }
 
 
@@ -91,42 +79,33 @@ public void handleOtherMessages(ACLMessage msg) {
 
 
  public ACLMessage handleCfpMessage(ACLMessage cfp) {
-   boolean isacceptable = false;
-   ACLMessage propose = new ACLMessage(ACLMessage.PROPOSE);
-   propose.addReceiver(cfp.getSender());
+   ACLMessage propose = cfp.createReply();
+
    try {
-     SL0Parser parser = SL0Parser.create();
-     MultiValue mv = (MultiValue)parser.parse(new StringReader(cfp.getContent()), ACLMessage.getPerformative(cfp.getPerformative()));
-     Action a = (Action)mv.getValue(0);
-     Proposition possApp = (Proposition)a.getActionParameter("list");
-     String proposeContent = "( (action "+myAgent.getName()+" (possible-appointments (list ";
-     for (int i=0; i<possApp.getNumberOfTerms(); i++) {
-       int dateNumber = Integer.parseInt(possApp.getTerm(i).toString());
-       Date d = new Date();
-       if ((dateNumber > 0) && (dateNumber < 32)) { // if is a valid day
-	 d.setDate(dateNumber);
-	 if ((Appointment)((MeetingSchedulerAgent)myAgent).getAppointment(d) == null) { // is free
-	   proposeContent = proposeContent + dateNumber + " ";
-	   isacceptable = true;
-	 }
-       }
+     Appointment app = myAgent.extractAppointment(cfp); 
+     Appointment proposal = (Appointment)app.clone();
+     proposal.clearAllPossibleDates();
+     for (Iterator i=app.getAllPossibleDates(); i.hasNext(); ) {
+       Date d = (Date)i.next();
+       if (myAgent.isFree(d))
+	 proposal.addPossibleDates(d);
      }
-     if (isacceptable)
-       propose.setContent(proposeContent + "))) true)");
-     else {
+
+     if (proposal.getAllPossibleDates().hasNext()) {
+       // there is at least one possible date that is ok for me
+       propose.setPerformative(ACLMessage.PROPOSE);
+       myAgent.fillAppointment(propose,proposal);
+     } else {
        propose.setPerformative(ACLMessage.REFUSE);
-       propose.setContent(proposeContent + "))) noavailabledate)");
+       propose.setContent("( noavailabledate)");
      }
-     return propose;
-    }
-    catch (demo.MeetingScheduler.CLP.ParseException pe) {
-        pe.printStackTrace();
-        propose.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-        propose.setContent("(parser error)");
-        myAgent.send(propose);
-        return null;
-      }
-}
+   } catch (FIPAException e) {
+     e.printStackTrace();
+     propose.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+     propose.setContent(e.getMessage());
+   }
+   return propose;
+ }
 
 }
 
