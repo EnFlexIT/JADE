@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import jade.core.AID;
-
 import jade.core.Agent;
+import jade.core.AgentState;
 
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SenderBehaviour;
@@ -50,7 +50,8 @@ import jade.domain.introspection.Occurred;
 import jade.domain.introspection.EventRecord;
 import jade.domain.introspection.SentMessage;
 import jade.domain.introspection.PostedMessage;
-
+import jade.domain.introspection.ReceivedMessage;
+import jade.domain.introspection.ChangedAgentState;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.StringACLCodec;
@@ -186,7 +187,33 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void receivedMessage(MessageEvent ev) {
-    // Do nothing
+    AID id = ev.getAgent();
+    if(observedAgents.contains(id)) {
+      ACLMessage msg = ev.getMessage();
+
+      jade.domain.introspection.ACLMessage m = new jade.domain.introspection.ACLMessage();
+      Object env = msg.getEnvelope();
+      if(env != null) {
+	m.setEnvelope(msg.getEnvelope());
+	m.setAclRepresentation(StringACLCodec.NAME);
+      }
+
+      m.setPayload(msg.toString());
+
+      ReceivedMessage rm = new ReceivedMessage();
+      rm.setReceiver(id);
+      rm.setMessage(m);
+
+      EventRecord er = new EventRecord(rm, here());
+      Occurred o = new Occurred();
+      o.set_0(er);
+
+      List l = new ArrayList(1);
+      l.add(o);
+
+      informObserver(l);
+
+    }
   }
 
   public void routedMessage(MessageEvent ev) {
@@ -194,7 +221,27 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void changedAgentState(AgentEvent ev) {
-    // Do nothing
+    AID id = ev.getAgent();
+    if(observedAgents.contains(id)) {
+
+      AgentState from = ev.getFrom();
+      AgentState to = ev.getTo();
+
+      ChangedAgentState cas = new ChangedAgentState();
+      cas.setAgent(id);
+      cas.setFrom(from);
+      cas.setTo(to);
+
+      EventRecord er = new EventRecord(cas, here());
+      Occurred o = new Occurred();
+      o.set_0(er);
+
+      List l = new ArrayList(1);
+      l.add(o);
+
+      informObserver(l);
+
+    }
   }
 
   public void addedBehaviour(AgentEvent ev) {
