@@ -27,13 +27,16 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.util.Collections;
+import java.util.Enumeration;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.HashSet;
 
 import jade.core.*;
@@ -80,6 +83,8 @@ import jade.tools.introspector.gui.MainWindow;
   @author Giovanni Caire, -  TILAB
 */
 public class Introspector extends ToolAgent {
+
+    private Hashtable preload = null;
 
     private class AMSRequester extends SimpleAchieveREInitiator {
 
@@ -174,6 +179,8 @@ public class Introspector extends ToolAgent {
 	    String container = cid.getName();
 	    AID agent = ba.getAgent();
 	    myGUI.addAgent(container, agent);
+        if( preloadContains( agent.getName() ) != null )
+            Introspector.this.addAgent( agent );
 	    if(agent.equals(getAID()))
 	      myContainerName = container;
 	  }
@@ -259,6 +266,21 @@ public class Introspector extends ToolAgent {
   			}
     	}
     }	);
+
+
+    preload = new Hashtable();
+
+    /*
+     * preload agents from argument array if arguments present
+     */
+    Object[] arguments = getArguments();
+    if ( arguments != null )
+    {
+        for( int i=0; i < arguments.length; ++i )
+        {
+            parsePreloadDescription( (String)arguments[i] );
+        }
+    }
 
     // Show Graphical User Interface
     myGUI = new IntrospectorGUI(this);
@@ -626,4 +648,81 @@ public class Introspector extends ToolAgent {
 	  	super.doDelete();
   	}
   }
+
+    /**
+     * Search keys in preload for a string which matches (using isMatch method)
+     * the agent name.
+     * @param agentName The agent name.
+     * @return String The key which matched.
+     */
+    protected String preloadContains(String agentName) {
+        for (Enumeration enum = preload.keys(); enum.hasMoreElements() ;) {
+            String key = (String)enum.nextElement();
+            if (isMatch(key, agentName)) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+   /**
+    * Given two strings determine if they match. We iterate over the match expression
+    * string from left to right as follows:
+    * <ol>
+    * <li> If we encounter a '*' in the expression token they match.
+    * <li> If there aren't any more characters in the subject string token they don't match.
+    * <li> If we encounter a '?' in the expression token we ignore the subject string's
+    * character and move on to the next iteration.
+    * <li> If the character in the expression token isn't equal to the character in
+    * the subject string they don't match.
+    * </ol>
+    * If we complete the iteration they match only if there are the same number of
+    * characters in both strings.
+    * @param aMatchExpression An expression string with special significance to '?' and '*'.
+    * @param aString The subject string.
+    * @return True if they match, false otherwise.
+    */
+   protected boolean isMatch(String aMatchExpression, String aString)
+   {
+      int expressionLength = aMatchExpression.length();
+      for (int i = 0; i < expressionLength; i++)
+      {
+         char expChar = aMatchExpression.charAt(i);
+         if (expChar == '*')
+            return true;   // * matches the remainder of anything
+         if (i == aString.length())
+            return false;  // if we run out of characters they don't match
+         if (expChar == '?')
+            continue;      // ? matches any single character so keep going
+         if (expChar != aString.charAt(i))
+            return false;  // if non wild then must be exactly equal
+      }
+      return (expressionLength == aString.length());
+   }
+
+    private void parsePreloadDescription(String aDescription) {
+        StringTokenizer st = new StringTokenizer(aDescription);
+        String name = st.nextToken();
+        if (!name.endsWith("*")) {
+            int atPos = name.lastIndexOf('@');
+            if(atPos == -1) {
+                name = name + "@" + getHap();
+            }
+        }
+
+        int performativeCount = ACLMessage.getAllPerformativeNames().length;
+        boolean[] filter = new boolean[performativeCount];
+        boolean initVal = (st.hasMoreTokens() ? false : true);
+        for (int i=0; i<performativeCount; i++) {
+            filter[i] = initVal;
+        }
+        while (st.hasMoreTokens())
+        {
+            int perfIndex = ACLMessage.getInteger(st.nextToken());
+            if (perfIndex != -1) {
+                filter[perfIndex] = true;
+            }
+        }
+        preload.put(name, filter);
+    }
 }
