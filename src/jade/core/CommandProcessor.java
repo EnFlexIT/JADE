@@ -37,7 +37,8 @@ import jade.util.leap.LinkedList;
 public class CommandProcessor {
 
     public CommandProcessor() {
-	filters = new LinkedList();
+	inFilters = new LinkedList();
+	outFilters = new LinkedList();
 	updateFiltersArray();
     }
 
@@ -46,13 +47,21 @@ public class CommandProcessor {
        Add a new filter to the filter chain.
 
        @param f The new filter to add.
+       @param direction Whether to add this filter to the outgoing or
+       incoming filter chain.
     */
-    public synchronized void addFilter(Filter f) {
+    public synchronized void addFilter(Filter f, boolean direction) {
 
 	// FIXME: How do we know the right position for this filter in
 	// the filter chain?
 
-	filters.add(f);
+	if(direction == Filter.INCOMING) {
+	    inFilters.add(f);
+	}
+	else {
+	    outFilters.add(f);
+	}
+
 	updateFiltersArray();
     }
 
@@ -61,8 +70,14 @@ public class CommandProcessor {
 
        @param f The filter to remove.
     */
-    public synchronized void removeFilter(Filter f) {
-	filters.remove(f);
+    public synchronized void removeFilter(Filter f, boolean direction) {
+	if(direction == Filter.INCOMING) {
+	    inFilters.remove(f);
+	}
+	else {
+	    outFilters.remove(f);
+	}
+
 	updateFiltersArray();
     }
 
@@ -78,33 +93,46 @@ public class CommandProcessor {
 
 	// FIXME: Should manage the blocking and skipping filter states...
 
-	// Pass the command through every filter
-	Filter[] arr = filtersArray;
+	// Pass the command through every outgoing filter
+	Filter[] arr = outFiltersArray;
 	for(int i = 0; i < arr.length; i++) {
 	    Filter f = arr[i];
 	    f.accept(cmd);
 	}
+
+	// FIXME: Should dispatch to the proper sink...
 
 	return cmd.getReturnValue();
 
     }
 
 
-    private final List filters;
+    private final List inFilters;
+    private final List outFilters;
 
 
-    // Array representation of the filter chain, cached to allow concurrent iteration.
-    private Filter[] filtersArray;
+    // Array representation of the filter chains, cached to allow concurrent iteration.
+    private Filter[] inFiltersArray;
+    private Filter[] outFiltersArray;
 
 
     private void updateFiltersArray() {
-	filtersArray = new Filter[filters.size()];
-	Object[] objs = filters.toArray();
+	inFiltersArray = new Filter[inFilters.size()];
+	Object[] objs = inFilters.toArray();
 
 	// Copy the elements
 	for(int i = 0; i < objs.length; i++) {
-	    filtersArray[i] = (Filter)objs[i];
+	    inFiltersArray[i] = (Filter)objs[i];
 	}
+
+	outFiltersArray = new Filter[outFilters.size()];
+	objs = outFilters.toArray();
+
+	// Copy the elements
+	for(int i = 0; i < objs.length; i++) {
+	    outFiltersArray[i] = (Filter)objs[i];
+	}
+
     }
 
 }
