@@ -52,7 +52,8 @@ import java.util.Enumeration;
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	
-    public static final String RESYNCH = "resynch";
+		public static final String USE_BACKEND_MANAGER = "jade_core_BackEndContainer_usebemanager";
+		public static final String RESYNCH = "jade_core_BackEndContainer_resynch";
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
     public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
 
@@ -67,7 +68,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     // The manager of the connection with the FrontEnd
     private BEConnectionManager myConnectionManager;
 
-    private CommandProcessor myCommandProcessor;
+    private BackEndManager theBEManager;
 
     private Map agentImages = new HashMap(1);
     private boolean refreshPlatformInfo = true;
@@ -103,8 +104,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	
     public boolean connect() {
 			try {
-		    myCommandProcessor = myProfile.getCommandProcessor();
-	
+				// Initialize the BackEndManager if required
+		    if (myProfile.getBooleanProperty(USE_BACKEND_MANAGER, false)) {
+					theBEManager = initBEManager();
+		    }
+		    
 		    String beAddrs = myProfile.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
 		    if(beAddrs != null) {
 					replicasAddresses = parseAddressList(beAddrs);
@@ -115,8 +119,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		    myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ...");
 		    Runtime.instance().beginContainer();
 		    boolean connected = joinPlatform();
-		    myLogger.log(Logger.FINE, "Join platform OK");
 		    if (connected) {
+		    	myLogger.log(Logger.FINE, "Join platform OK");
 		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
 				    myLogger.log(Logger.INFO, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
 		    		resynch();
@@ -159,8 +163,15 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
     }
-	  // This call can modify the name of this container
-	  getServiceManager().addNode(getNodeDescriptor(), descriptors);
+    
+	  // Actually join the platform (this call can modify the name of this container)
+	  if (theBEManager != null) {
+    	myNodeDescriptor.setParentNode(theBEManager.getNode());
+	  }
+	  getServiceManager().addNode(myNodeDescriptor, descriptors);
+	  if (theBEManager != null) {
+	    theBEManager.register(myNodeDescriptor);
+	  }
 
 	  // Boot all basic services
     for (int i = 0; i < descriptors.length; ++i) {
@@ -421,6 +432,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
       agentImages.clear();
 		
+      if (theBEManager != null) {
+      	theBEManager.deregister(myNodeDescriptor);
+      }
       super.shutDown();
   }
 
@@ -554,6 +568,17 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     }
 
+    private BackEndManager initBEManager() {
+    	Profile p = new ProfileImpl(false);
+    	try {
+    		return BackEndManager.getInstance(p);
+    	}
+    	catch (Exception e) {
+    		myLogger.log(Logger.WARNING, "Cannot retrieve BackEndManager. "+e);
+    		e.printStackTrace();
+    	}
+    	return null;
+    }
     
     
     /**
