@@ -27,6 +27,7 @@ package jade.content.lang.sl;
 import jade.content.*;
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.content.abs.AbsPredicate;
 import jade.core.CaseInsensitiveString;
 
 /**
@@ -53,9 +54,9 @@ class SL1Ontology extends SL0Ontology implements SL1Vocabulary {
   	super(name, base);
   	
   	try {
-  		add(new PredicateSchema(AND), absPredicateClass);
-  		add(new PredicateSchema(OR), absPredicateClass);
-	  	add(new PredicateSchema(NOT), absPredicateClass);
+  		add(new PredicateSchema(AND), AbsPredicate.getJavaClass());
+  		add(new PredicateSchema(OR), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(NOT), AbsPredicate.getJavaClass());
   	
   		PredicateSchema ps = (PredicateSchema) getSchema(AND);
   		ps.add(AND_LEFT, (PredicateSchema) PredicateSchema.getBaseSchema());

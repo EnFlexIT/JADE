@@ -25,7 +25,9 @@
 package jade.content.lang.sl;
 
 import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
 import jade.content.abs.*;
+import jade.content.schema.ObjectSchema;
 import jade.content.lang.StringCodec;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.Iterator;
@@ -49,17 +51,6 @@ import java.io.InputStreamReader; // only for debugging purposes in the main
  * @version $Date$ $Revision$
  */
 public class SLCodec extends StringCodec {
-
-    /*FIXME JUST FOR COMPILING THIS CLASS
-    private interface SL0Ontology {
-	boolean isUnaryLogicalOp(String symbol);
-	boolean isBinaryLogicalOp(String symbol);
-	boolean isQuantifier(String symbol);
-	boolean isModalOp(String symbol);
-	boolean isActionOp(String symbol);
-	boolean isBinaryTermOp(String symbol);
-	boolean isSLFunctionSymbol(String symbol);
-    }*/ 
 
     private SLParser parser;
     private SL0Ontology slOnto; // ontology of the content language
@@ -195,11 +186,10 @@ public class SLCodec extends StringCodec {
     private String toString(AbsPredicate val) throws CodecException {
 	String propositionSymbol = val.getTypeName();
 	if (val.getCount() > 0) { // predicate with arguments
-	    //FIXME chiedere i nomi degli slot alla ontologia domainOnto
-	    // per preservare l órdine degli slot
-	    String[] slotNames = val.getNames();
+			String[] slotNames = getSlotNames(val);
 	    StringBuffer str = new StringBuffer("(");
 	    if (slOnto.isUnaryLogicalOp(propositionSymbol)) {
+	    	// Unary logical operator of the SL language (NOT)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
@@ -208,6 +198,7 @@ public class SLCodec extends StringCodec {
 		    throw new CodecException("A UnaryLogicalOp requires a formula argument",e);
 		}
 	    } else if (slOnto.isBinaryLogicalOp(propositionSymbol)) {
+	    	// Bynary logical operator of the SL language (AND, OR)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
@@ -218,16 +209,18 @@ public class SLCodec extends StringCodec {
 		    throw new CodecException("A BinaryLogicalOp requires 2 formula arguments",e);
 		}
 	    } else if (slOnto.isQuantifier(propositionSymbol)) {
+	    	// Quantifier operator of the SL language (EXISTS, FORALL)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
-		    str.append(toString((AbsVariable)val.getAbsObject(slotNames[0]))); //FIXME. The hypothesis is tha the first slot is the variable
+		    str.append(toString((AbsVariable)val.getAbsObject(slotNames[0]))); //FIXME. The hypothesis is that the first slot is the variable
 		    str.append(" ");
 		    str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
 		} catch (Exception e) {
 		    throw new CodecException("A Quantifier requires a variable and a formula arguments",e);
 		}
 	    } else if (slOnto.isModalOp(propositionSymbol)) {
+	    	// Modal operator of the SL language (B, I, U, PG)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
@@ -238,11 +231,12 @@ public class SLCodec extends StringCodec {
 		    throw new CodecException("A ModalOp requires a concept and a formula arguments",e);
 		}
 	    } else if (slOnto.isActionOp(propositionSymbol)) {
+	    	// Action operator of the SL language (DONE, FEASIBLE)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
 		    str.append(toString((AbsTerm)val.getAbsObject(slotNames[0]))); //FIXME check it is an action expression
-		    if (slotNames.length > 1) {
+		    if (slotNames.length > 1) { // Second argument is optional
 			str.append(" ");
 			str.append(toString((AbsPredicate)val.getAbsObject(slotNames[1])));
 		    }
@@ -250,6 +244,7 @@ public class SLCodec extends StringCodec {
 		    throw new CodecException("An ActionOp requires an actionexpression and (optionally) a formula arguments",e);
 		}
 	    } else if (slOnto.isBinaryTermOp(propositionSymbol)) {
+	    	// Binary term operator of the SL language (RESULT, =)
 		str.append(propositionSymbol);
 		str.append(" ");
 		try {
@@ -261,19 +256,21 @@ public class SLCodec extends StringCodec {
 		}
 	    } else {
 		str.append(encode(propositionSymbol));
+	    	// Predicate in the ontology
 		try {
 		    for (int i=0; i<slotNames.length; i++) {
 			str.append(" ");
 			str.append(toString((AbsTerm)val.getAbsObject(slotNames[i])));
 		    }
 		} catch (Exception e) {
-		    throw new CodecException("A Predicate requires only term arguments",e);
+		    throw new CodecException("SL allows predicates with term arguments only",e);
 		}
 	    }
 	    str.append(")");
 	    return str.toString();
 	} else
-	    return encode(propositionSymbol); // proposition symbol 
+			// Proposition
+	    return encode(propositionSymbol);  
     }
 
     private String toString(AbsIRE val) throws CodecException {
@@ -292,7 +289,7 @@ public class SLCodec extends StringCodec {
     private String toString(AbsConcept val) throws CodecException {
 	String functionSymbol = val.getTypeName();
 	StringBuffer str = new StringBuffer("(");
-	String[] slotNames = val.getNames();
+	String[] slotNames = getSlotNames(val);
 	if (slOnto.isSLFunctionWithoutSlotNames(functionSymbol)) { //functionSymbol Term*
 	    str.append(functionSymbol);
 	    try {
@@ -435,5 +432,30 @@ public class SLCodec extends StringCodec {
     public Ontology getInnerOntology() {
     	return SLOntology.getInstance();
     }
+    
+		private String[] getSlotNames(AbsObject abs) throws CodecException {
+    	String[] slotNames = null;
+    	String type = abs.getTypeName();
+			if (domainOnto != null) {
+				// If an ontology is specified, get the slot names from it 
+				// (and not directly from the abstract descriptor val) to preserve 
+				// the order
+				try {
+					ObjectSchema s = domainOnto.getSchema(type);
+					if (s == null) {
+						throw new CodecException("No schema found for symbol "+type);
+					}
+					slotNames = s.getNames();
+				}
+				catch (OntologyException oe) {
+					throw new CodecException("Error getting schema for symbol "+type, oe);
+				}
+			}
+			else {
+	    	slotNames = abs.getNames();
+			}
+			return slotNames;
+		}
+    
 }
 

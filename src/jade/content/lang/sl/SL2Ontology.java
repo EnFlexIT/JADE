@@ -27,6 +27,7 @@ package jade.content.lang.sl;
 import jade.content.*;
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.content.abs.*;
 import jade.core.CaseInsensitiveString;
 
 /**
@@ -52,17 +53,19 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   	super(name, base);
   	
   	try {
-    	add(VariableSchema.getBaseSchema(), absVariableClass);
-  		add(new IRESchema(IOTA), absIREClass);
-  		add(new IRESchema(ANY), absIREClass);
-  		add(new IRESchema(ALL), absIREClass);
-	  	add(new PredicateSchema(FORALL), absPredicateClass);
-	  	add(new PredicateSchema(EXISTS), absPredicateClass);
-	  	add(new PredicateSchema(BELIEF), absPredicateClass);
-	  	add(new PredicateSchema(UNCERTAINTY), absPredicateClass);
-	  	add(new PredicateSchema(PERSISTENT_GOAL), absPredicateClass);
-	  	add(new PredicateSchema(INTENTION), absPredicateClass);
-	  	add(new PredicateSchema(FEASIBLE), absPredicateClass);
+    	add(VariableSchema.getBaseSchema(), AbsVariable.getJavaClass());
+  		add(new IRESchema(IOTA), AbsIRE.getJavaClass());
+  		add(new IRESchema(ANY), AbsIRE.getJavaClass());
+  		add(new IRESchema(ALL), AbsIRE.getJavaClass());
+	  	add(new PredicateSchema(FORALL), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(EXISTS), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(BELIEF), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(UNCERTAINTY), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(PERSISTENT_GOAL), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(INTENTION), AbsPredicate.getJavaClass());
+	  	add(new PredicateSchema(FEASIBLE), AbsPredicate.getJavaClass());
+	  	add(new AgentActionSchema(ACTION_SEQUENCE), AbsAgentAction.getJavaClass());
+	  	add(new AgentActionSchema(ACTION_ALTERNATIVE), AbsAgentAction.getJavaClass());
   	
   		PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
   		ps.add(EXISTS_WHAT, (VariableSchema) VariableSchema.getBaseSchema());
@@ -92,6 +95,14 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   		ps.add(FEASIBLE_ACTION, (VariableSchema) VariableSchema.getBaseSchema());
 	  	ps.add(FEASIBLE_CONDITION, (PredicateSchema) PredicateSchema.getBaseSchema(), ObjectSchema.OPTIONAL);
   	
+  		AgentActionSchema as = (AgentActionSchema) getSchema(ACTION_SEQUENCE);
+  		as.add(ACTION_SEQUENCE_FIRST, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		as.add(ACTION_SEQUENCE_SECOND, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		
+  		as = (AgentActionSchema) getSchema(ACTION_ALTERNATIVE);
+  		as.add(ACTION_ALTERNATIVE_FIRST, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		as.add(ACTION_ALTERNATIVE_SECOND, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		
     } 
     catch (OntologyException oe) {
       oe.printStackTrace();

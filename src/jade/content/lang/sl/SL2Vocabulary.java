@@ -61,5 +61,10 @@ public interface SL2Vocabulary extends SL1Vocabulary {
   public static final String         FEASIBLE_CONDITION = "condition";
   
   public static final String         ACTION_SEQUENCE = ";";
+  public static final String         ACTION_SEQUENCE_FIRST = "first";
+  public static final String         ACTION_SEQUENCE_SECOND = "second";
+  
   public static final String         ACTION_ALTERNATIVE = "|";
+  public static final String         ACTION_ALTERNATIVE_FIRST = "first";
+  public static final String         ACTION_ALTERNATIVE_SECOND = "second";
 }
