@@ -624,15 +624,16 @@ public class ams extends Agent implements AgentManager.Listener {
 	identity.setSubject(agent);
 	authority.sign(identity, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 	
-	final DelegationCertificate delegation = authority.createDelegationCertificate();
+	DelegationCertificate delegation = null;
 	if (ca.getDelegation() != null) {
-	    delegation.decode(ca.getDelegation());
+		delegation = authority.createDelegationCertificate(ca.getDelegation());
 	}
 	else {
-	    delegation.setSubject(agent);
-	    if (creatorDelegation != null)
-		delegation.addPermissions(creatorDelegation.getPermissions());
-	    authority.sign(delegation, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
+		delegation = authority.createDelegationCertificate();
+		delegation.setSubject(agent);
+		if (creatorDelegation != null)
+			delegation.addPermissions(creatorDelegation.getPermissions());
+		authority.sign(delegation, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 	}
 	final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
