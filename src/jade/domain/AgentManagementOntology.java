@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.17  1998/11/30 00:17:58  rimassa
+  Added a DFSearchResult inner class to model the result of a 'search' DF action.
+  Changed some badly named DFAgentDescriptor methods.
+  Added a new getException() method.
+
   Revision 1.16  1998/11/23 00:15:26  rimassa
   Fixed a small bug: a method was missing the 'public' modifier.
 
@@ -408,7 +413,7 @@ public class AgentManagementOntology {
       return addresses.elements();
     }
 
-    public void addService(ServiceDescriptor sd) {
+    public void addAgentService(ServiceDescriptor sd) {
       services.addElement(sd);
     }
 
@@ -556,7 +561,49 @@ public class AgentManagementOntology {
       return arg;
     }
 
-  }
+  } // End of Constraint class
+
+
+  public static class DFSearchResult {
+
+    private Hashtable results = new Hashtable();
+
+    public static DFSearchResult fromText(Reader r) throws ParseException {
+      return parser.parseSearchResult(r);
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( result ( ");
+	Enumeration e = results.elements();
+	while(e.hasMoreElements()) {
+	  w.write("(" + DFAction.ARGNAME + " ");
+	  DFAgentDescriptor current = (DFAgentDescriptor)e.nextElement();
+	  current.toText(w);
+	  w.write(" )");
+	}
+	w.write(" ) )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+    public void put(String agentName, DFAgentDescriptor dfd) {
+      results.put(agentName, dfd);
+    }
+
+    public DFAgentDescriptor get(String agentName) {
+      return (DFAgentDescriptor)results.get(agentName);
+    }
+
+    public Enumeration elements() {
+      return results.elements();
+    }
+
+  } // End of DFSearchResult class
+
 
   public static interface PropertyContainer {
     void addProperty(String name, String value);
@@ -1089,10 +1136,11 @@ public class AgentManagementOntology {
     static final String AGENTALREADYREG = "agent-already-registered";
     static final String UNAUTHORISED = "unauthorised";
     static final String AMSOVERLOADED = "ams-overloaded";
+    static final String FAILEDMANACTION = "failed-management-action";
 
     // Mapping of messages in 'fipa-man-ams-exception'
     // objects to Java exception objects
-    private static Hashtable JavaExceptions = new Hashtable(12, 1.0f);
+    private static Hashtable JavaExceptions = new Hashtable(13, 1.0f);
 
     // Utility class; can't be instantiated
     private Exception() {
@@ -1164,6 +1212,7 @@ public class AgentManagementOntology {
     Exception.JavaExceptions.put(Exception.AGENTALREADYREG, new AgentAlreadyRegisteredException());
     Exception.JavaExceptions.put(Exception.UNAUTHORISED, new UnauthorisedException());
     Exception.JavaExceptions.put(Exception.AMSOVERLOADED, new AMSOverloadedException());
+    Exception.JavaExceptions.put(Exception.FAILEDMANACTION, new FailedManagementActionException());
 
 
     // Fill in action names for AMS and DF agents
@@ -1295,7 +1344,23 @@ public class AgentManagementOntology {
   // Return the Java exception corresponding to a given message
   public FIPAException getException(String message) {
     FIPAException fe = (FIPAException)Exception.JavaExceptions.get(message);
+    if(fe == null)
+      fe = new FIPAException(message);
     fe.fillInStackTrace();
+    return fe;
+  }
+
+  public FIPAException getException(Reader r) {
+    FIPAException fe = null;
+    try {
+      fe = parser.parseFIPAException(r, this);
+    }
+    catch(ParseException pe) {
+      fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
+    }
+    catch(TokenMgrError tme) {
+      fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
+    }
     return fe;
   }
 
