@@ -386,7 +386,7 @@ public class LEAPCodec extends ByteArrayCodec {
     	else {
     		stream.writeByte(tag);
     		stream.writeUTF(s);
-    		if (stringReferences.size() < 256) {
+    		if ((s.length() > 1) && stringReferences.size() < 256) {
     			stringReferences.addElement(s);
     		}
     	}
@@ -394,7 +394,7 @@ public class LEAPCodec extends ByteArrayCodec {
     
     private final String readString(DataInputStream stream, byte tag) throws Throwable {
     	if ((tag&MODIFIER) != 0) {
-    		int index = stream.readByte();
+    		int index = stream.readUnsignedByte();
     		return (String) stringReferences.elementAt(index);
     	}
     	else {
