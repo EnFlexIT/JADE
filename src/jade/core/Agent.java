@@ -144,14 +144,16 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
 
-  // Event based message sending -- serialized object
+  // Event based message sending -- unicast
   public final void send(ACLMessage msg) {
     CommEvent event = new CommEvent(this, msg);
-    Enumeration e = listeners.elements();
-    while(e.hasMoreElements()) {
-      CommListener l = (CommListener)e.nextElement();
-      l.CommHandle(event);
-    }
+    broadcastEvent(event);
+  }
+
+  // Event based message sending -- multicast
+  public final void send(ACLMessage msg, AgentGroup g) {
+    CommEvent event = new CommEvent(this, msg, g);
+    broadcastEvent(event);
   }
 
   // Non-blocking receive
@@ -206,6 +208,8 @@ public class Agent implements Runnable, CommBroadcaster {
     return msg;
   }
 
+
+  // Build an ACL message from a character stream
   public ACLMessage parse(Reader text) {
     ACLMessage msg = null;
     try {
@@ -218,16 +222,31 @@ public class Agent implements Runnable, CommBroadcaster {
     return msg;
   }
 
+
+
   // Event handling methods
 
+
+  // Broadcast communication event to registered listeners
+  private void broadcastEvent(CommEvent event) {
+    Enumeration e = listeners.elements();
+    while(e.hasMoreElements()) {
+      CommListener l = (CommListener)e.nextElement();
+      l.CommHandle(event);
+    }
+  }
+
+  // Register a new listener
   public final void addCommListener(CommListener l) {
     listeners.addElement(l);
   }
 
+  // Remove a registered listener
   public final void removeCommListener(CommListener l) {
     listeners.removeElement(l);
   }
 
+  // Puts an incoming message in agent's message queue
   public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
     System.out.println("Agent: receiving from " + msg.getSource());
