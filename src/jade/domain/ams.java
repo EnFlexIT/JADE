@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.34  1999/06/06 21:52:28  rimassa
+  Modified 'create-agent' action to notify an agent's creator when a
+  subsequent AMS registration fails.
+
   Revision 1.33  1999/06/04 07:58:23  rimassa
   Replaced direct AgentPlatformImpl usage with a more restricted
   AgentManager interface, to tighten jade.core encapsulation.
@@ -111,6 +115,8 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.NoSuchElementException;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Vector;
 
 import jade.core.*;
@@ -269,18 +275,37 @@ public class ams extends Agent {
 
       checkMandatory(amsd);
 
+      // This agent was created by some other, which is still
+      // waiting for an 'inform' message. Recover the buffered
+      // message from the Map and send it back.
+      ACLMessage informCreator = (ACLMessage)pendingInforms.remove(amsd.getName());
+
       // Write new agent data in Global Agent Descriptor Table
       try {
 	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
 			      amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
 	sendAgree();
 	sendInform();
+
+	// Inform agent creator that registration was successful.
+	if(informCreator !=  null) {
+	informCreator.setType("inform");
+	informCreator.setContent("( done ( " + a.getName() + " ) )");
+	send(informCreator);
+	}
+
       }
       catch(AgentAlreadyRegisteredException aare) {
 	sendAgree();
 	sendFailure(aare.getMessage());
-      }
 
+	// Inform agent creator that registration failed.
+	if(informCreator != null) {
+	  informCreator.setType("failure");
+	  informCreator.setContent("( ( action " + getLocalName() + " " + a.getName() + " ) " + aare.getMessage() + ")");
+	  send(informCreator);
+	}
+      }
     }
 
   } // End of RegBehaviour class
@@ -564,12 +589,21 @@ public class ams extends Agent {
       String className = caa.getClassName();
       String containerName = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
 
+      sendAgree();
+
       // Create a new agent
       AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
       myPlatform.AMSCreateAgent(amsd.getName(), className, containerName);
 
-      sendAgree();
-      sendInform();
+      // An 'inform Done' message will be sent to the requester only
+      // when the newly created agent will register itself with the
+      // AMS. The new agent's name will be used as the key in the map.
+      ACLMessage reply = getReply();
+      reply = (ACLMessage)reply.clone();
+
+      pendingInforms.put(amsd.getName(), reply);
+
+      //      sendInform();
 
     }
 
@@ -639,6 +673,8 @@ public class ams extends Agent {
   private Vector deadContainersBuffer = new Vector();
   private Vector newAgentsBuffer = new Vector();
   private Vector deadAgentsBuffer = new Vector();
+
+  private Map pendingInforms = new HashMap();
 
   /**
      This constructor creates a new <em>AMS</em> agent. Since a direct
