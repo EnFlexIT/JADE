@@ -29,6 +29,13 @@ import jade.content.*;
 public class Item implements Concept {
 	private int serialID;
 	
+	public Item() {
+	}
+	
+	public Item(int id) {
+		setSerialID(id);
+	}
+	
 	public void setSerialID(int id) {
 		serialID = id;
 	}

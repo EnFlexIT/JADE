@@ -32,6 +32,15 @@ public class Sell implements AgentAction {
 	private Item item;
 	private CreditCard creditCard;
 	
+	public Sell() {
+	}
+	
+	public Sell(AID buyer, Item item, CreditCard cc) {
+		setBuyer(buyer);
+		setItem(item);
+		setCreditCard(cc);
+	}
+	
 	public AID getBuyer() {
 		return buyer;
 	}
