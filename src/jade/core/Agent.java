@@ -52,16 +52,17 @@ public class Agent implements Runnable, CommBroadcaster {
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
 
-
   protected String myName = null;
   protected String myAddress = null;
 
   protected Thread myThread;
   protected Scheduler myScheduler;
+  protected Behaviour currentBehaviour;
   protected ACLMessage currentMessage;
 
   private int myAPState;
   private int myDomainState;
+  private Vector blockedBehaviours = new Vector();
 
   protected ACLParser myParser = ACLParser.create();
 
@@ -149,14 +150,22 @@ public class Agent implements Runnable, CommBroadcaster {
     while(myAPState != AP_DELETED) {
 
       // Select the next behaviour to execute
-      Behaviour b = myScheduler.schedule();
+      currentBehaviour = myScheduler.schedule();
 
       // Just do it!
-      b.execute();
+      currentBehaviour.execute();
 
-      // When is needed no more, delete it from the behaviours queue
-      if(b.done()) {
-	myScheduler.remove(b);
+      // When it is needed no more, delete it from the behaviours queue
+      if(currentBehaviour.done()) {
+	myScheduler.remove(currentBehaviour);
+	currentBehaviour = null;
+      }
+      else if(!currentBehaviour.isRunnable()) {
+	// Remove blocked behaviours from scheduling queue and put it
+	// in blocked behaviours queue
+	myScheduler.remove(currentBehaviour);
+	blockedBehaviours.addElement(currentBehaviour);
+	currentBehaviour = null;
       }
 
       // Now give CPU control to other agents
@@ -305,7 +314,7 @@ public class Agent implements Runnable, CommBroadcaster {
     ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
     // FIXME: Should unmarshal content of 'refuse' and 'failure'
-    // messages and convert them in Java exceptions
+    // messages and convert them to Java exceptions
     if(reply.getType().equalsIgnoreCase("agree")) {
       reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
@@ -345,10 +354,21 @@ public class Agent implements Runnable, CommBroadcaster {
     listeners.removeElement(l);
   }
 
-  // Puts an incoming message in agent's message queue
+  private void activateAllBehaviours() {
+    // Put all blocked behaviours back in ready queue
+    while(!blockedBehaviours.isEmpty()) {
+      Behaviour b = (Behaviour)blockedBehaviours.lastElement();
+      blockedBehaviours.removeElementAt(blockedBehaviours.size() - 1);
+      b.restart();
+      myScheduler.add(b);
+    }
+  }
+
+  // Put an incoming message in agent's message queue and activate all
+  // blocking behaviours waiting for a message
   public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
-    System.out.println("Agent: receiving from " + msg.getSource());
+    activateAllBehaviours();
     doWake();
   }
 
