@@ -39,6 +39,7 @@ import java.net.InetAddress;
 
 import jade.gui.AgentTree;
 import jade.core.AID;
+import jade.util.BasicProperties;
 
   /**
    Javadoc documentation for the file
@@ -62,11 +63,13 @@ public class MainWindow extends JFrame {
   protected ActionProcessor actPro; // Making this public allows us to get directly to the sniff agent action.
   private PopupMenuAgent popA;
   private Sniffer mySniffer;
+  private BasicProperties myProperties;
   private String snifferLogo = "images/sniffer.gif";
   
-  public MainWindow(Sniffer mySniffer) {
-   super(mySniffer.getName() + " - Sniffer Agent");
+  public MainWindow(Sniffer mySniffer, BasicProperties myProperties) {
+     super(mySniffer.getName() + " - Sniffer Agent");
      this.mySniffer=mySniffer;
+     this.myProperties=myProperties;
      mainPanel = new MainPanel(mySniffer, this);
      actPro=new ActionProcessor(mySniffer,mainPanel);
      setJMenuBar(new MainMenu(this,actPro));
@@ -92,6 +95,9 @@ public class MainWindow extends JFrame {
   toFront();
  }
 
+ public BasicProperties getProperties() {
+    return myProperties;
+ }
 
  /**
  * Tells the Agent Tree to add a container.
