@@ -91,9 +91,28 @@ public class ThreadedBehaviourFactory {
 	/**
 	   Blocks until all threads dedicated to the execution of threaded 
 	   behaviours complete.
+	   @param timeout The maximum timeout to wait for threaded behaviour
+	   termination.
+	   @return <code>true</code> if all threaded behaviour have actually
+	   completed, <code>false</code> otherwise.
 	 */
-	public synchronized void waitUntilEmpty() {
-		// FIXME: to be implemented
+	public synchronized boolean waitUntilEmpty(long timeout) {
+		long time = System.currentTimeMillis();
+		long deadline = time + timeout;
+  	try {
+	    while(!threadedBehaviours.isEmpty()) {
+	    	if (timeout > 0 && time >= deadline) {
+	    		// Timeout expired
+	    		break;
+	    	}
+	      wait(deadline - time);
+	      time = System.currentTimeMillis();
+		  }
+  	}
+  	catch (InterruptedException ie) {
+  		// Interrupted while waiting for threaded behaviour termination
+  	}
+  	return threadedBehaviours.isEmpty();  	
 	}
 
 	/**
@@ -197,6 +216,10 @@ public class ThreadedBehaviourFactory {
 								wait();
 							}
 						}
+					}
+					
+					if (Thread.currentThread().isInterrupted()) {
+						throw new InterruptedException();
 					}
 				}
 				exitValue = myBehaviour.onEnd();
