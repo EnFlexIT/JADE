@@ -84,7 +84,7 @@ import jade.security.PrivilegedExceptionAction;
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @author Giovanni Caire - TILAB
   @version $Date$ $Revision$
 */
