@@ -63,10 +63,11 @@ import jade.onto.Ontology;
  * added to the queue of the agent behaviours, as usual, by using 
  * <code>Agent.addBehaviour()</code>. 
  * @author Fabio Bellifemine - CSELT S.p.A.
- @version $Date$ $Revision$ 
- @deprecated Use AMSService instead
+  @version $Date$ $Revision$ 
  **/
-public class AMSServiceCommunicator extends FIPAServiceCommunicator {
+public class AMSService extends FIPAServiceCommunicator {
+  private static Codec c = new SL0Codec();
+  private static Ontology o = FIPAAgentManagementOntology.instance();
 
   /**
    * check that the <code>AMSAgentDescription</code> contains the mandatory
@@ -74,7 +75,10 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
    * @throw a MissingParameter exception is it is not valid
    */
   static void checkIsValid(AMSAgentDescription amsd) throws MissingParameter {
-  	AMSService.checkIsValid(amsd);
+    if (amsd.getName()==null) 
+      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+    if (amsd.getState()==null) 
+      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
   }
 
   /**
@@ -95,7 +99,29 @@ since <b>AMS</b> registration and
      the method locally discovers that the amsdescription is not valid.
    */
   public static void register(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.register(a, AMSName, amsd);
+    ACLMessage request = createRequestMessage(a, AMSName);
+
+    if (amsd.getName() == null)
+      amsd.setName(a.getAID());
+    if (amsd.getState() == null)
+      amsd.setState(AMSAgentDescription.ACTIVE);
+    checkIsValid(amsd);
+
+    // Build a AMS action object for the request
+    Register r = new Register();
+    r.set_0(amsd);
+
+    Action act = new Action();
+    act.set_0(AMSName);
+    act.set_1(r);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
 
@@ -104,7 +130,7 @@ since <b>AMS</b> registration and
    * @see #register(Agent,AID,AMSAgentDescription)
    **/
   public static void register(Agent a, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.register(a, amsd);
+    register(a,a.getAMS(),amsd);
   }
 
   /**
@@ -120,7 +146,28 @@ since <b>AMS</b> registration and
      the method locally discovers that the amsdescription is not valid.
   */
   public static void deregister(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.deregister(a, AMSName, amsd);
+
+    ACLMessage request = createRequestMessage(a, AMSName);
+
+    if (amsd.getName() == null)
+      amsd.setName(a.getAID());
+    if (amsd.getState() == null)
+      amsd.setState(AMSAgentDescription.ACTIVE);
+    // Build a AMS action object for the request
+    Deregister d = new Deregister();
+    d.set_0(amsd);
+
+    Action act = new Action();
+    act.set_0(AMSName);
+    act.set_1(d);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
   /**
@@ -128,7 +175,7 @@ The AID of the AMS is defaulted to the AMS of this platform.
 @see #deregister(Agent a, AID AMSName, AMSAgentDescription amsd)
   **/
   public static void deregister(Agent a, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.deregister(a, amsd);
+    deregister(a,a.getAMS(),amsd);
   }
 
   /**
@@ -137,7 +184,9 @@ are set (state is set to ACTIVE).
 @see #deregister(Agent a, AID AMSName, AMSAgentDescription amsd)
 **/
   public static void deregister(Agent a, AID AMSName) throws FIPAException {
-		AMSService.deregister(a, AMSName);
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(a.getAID());
+    deregister(a,AMSName,amsd);
   }
 
   /**
@@ -147,7 +196,9 @@ The AID of the AMS is defaulted to the AMS of this platform.
 @see #deregister(Agent a, AID AMSName, AMSAgentDescription amsd)
 **/
   public static void deregister(Agent a) throws FIPAException {
-		AMSService.deregister(a);
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(a.getAID());
+    deregister(a,amsd);
   }
 
 
@@ -164,7 +215,26 @@ The AID of the AMS is defaulted to the AMS of this platform.
      the method locally discovers that the amsdescription is not valid.
   */
   public static void modify(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.modify(a, AMSName, amsd);
+    ACLMessage request = createRequestMessage(a, AMSName);
+
+    if (amsd.getName() == null)
+      amsd.setName(a.getAID());
+    checkIsValid(amsd);
+    // Build a AMS action object for the request
+    Modify m = new Modify();
+    m.set_0(amsd);
+
+    Action act = new Action();
+    act.set_0(AMSName);
+    act.set_1(m);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
   /**
@@ -172,7 +242,7 @@ The AID of the AMS is defaulted to the AMS of this platform.
 @see #modify(Agent a, AID AMSName, AMSAgentDescription amsd)
 **/
   public static void modify(Agent a, AMSAgentDescription amsd) throws FIPAException {
-		AMSService.modify(a, amsd);
+    modify(a,a.getAMS(),amsd);
   }
 
   /**
@@ -183,22 +253,51 @@ The AID of the AMS is defaulted to the AMS of this platform.
      data to search for; this parameter is used as a template to match
      data against.
      @param constraints of the search 
-     @return A <code>List</code> 
+     @return An array of <code>AMSAgentDescription</code> 
      containing all found
-     <code>AMSAgentDescription</code> objects matching the given
+     items matching the given
      descriptor, subject to given search constraints for search depth
      and result size.
      @exception FIPAException A suitable exception can be thrown when
      a <code>refuse</code> or <code>failure</code> messages are
      received from the AMS to indicate some error condition.
   */
-  public static java.util.List search(Agent a, AID AMSName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
-		AMSAgentDescription[] r = AMSService.search(a, AMSName, amsd, constraints);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static AMSAgentDescription[] search(Agent a, AID AMSName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
+    ACLMessage request = createRequestMessage(a, AMSName);
+
+    // Build a AMS action object for the request
+    Search s = new Search();
+    s.set_0(amsd);
+    s.set_1(constraints);
+
+    Action act = new Action();
+    act.set_0(AMSName);
+    act.set_1(s);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    ACLMessage inform = doFipaRequestClient(a,request);
+
+    ResultPredicate r = null;
+    synchronized(c) { //must be synchronized because this is a static method
+      r = extractContent(inform.getContent(),c,o);
+    }
+    Iterator i = r.getAll_1(); //this is the set of AMSAgentDescription
+    int j = 0;
+    while (i.hasNext()) {
+      ++j;
+    }
+    AMSAgentDescription[] result = new AMSAgentDescription[j];
+    i = r.getAll_1();
+    j = 0; 
+    while (i.hasNext()) {
+    	result[j++] = (AMSAgentDescription) i.next();
+    }
+    return result;
   }
 
 
@@ -206,13 +305,8 @@ The AID of the AMS is defaulted to the AMS of this platform.
    * searches with the default AMS
    * @see #search(Agent,AID,AMSAgentDescription,SearchConstraints)
    **/
-  public static java.util.List search(Agent a, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
-		AMSAgentDescription[] r = AMSService.search(a, amsd, constraints);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static AMSAgentDescription[] search(Agent a, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
+    return search(a,a.getAMS(),amsd,constraints);
   }
 
   /**
@@ -221,13 +315,9 @@ The AID of the AMS is defaulted to the AMS of this platform.
    * both unspecified and left to the choice of the responder AMS.
    * @see #search(Agent,AID,AMSAgentDescription,SearchConstraints)
    **/
-  public static java.util.List search(Agent a, AMSAgentDescription amsd) throws FIPAException {
-		AMSAgentDescription[] r = AMSService.search(a, amsd);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static AMSAgentDescription[] search(Agent a, AMSAgentDescription amsd) throws FIPAException {
+    SearchConstraints constraints = new SearchConstraints();
+    return search(a,a.getAMS(),amsd,constraints);
   }
 
   /**
@@ -236,13 +326,9 @@ The AID of the AMS is defaulted to the AMS of this platform.
    * both unspecified and left to the choice of the responder AMS.
    * @see #search(Agent,AID,AMSAgentDescription,SearchConstraints)
    **/
-  public static java.util.List search(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
-		AMSAgentDescription[] r = AMSService.search(a, AMSName, amsd);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static AMSAgentDescription[] search(Agent a, AID AMSName, AMSAgentDescription amsd) throws FIPAException {
+    SearchConstraints constraints = new SearchConstraints();
+    return search(a,AMSName,amsd,constraints);
   }
 
 
@@ -271,7 +357,7 @@ call getLastMsg() and getSearchResults() where both throw a NotYetReadyException
 @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
      **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID AMSName, String actionName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, AMSName, actionName, amsd, constraints);
+    return new RequestFIPAServiceBehaviour(a,AMSName,actionName,amsd,constraints);
   }
 
   /**
@@ -279,7 +365,7 @@ the default AMS is used.
 @see #getNonBlockingBehaviour(Agent a, AID AMSName, String actionName, AMSAgentDescription amsd, SearchConstraints constraints)
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, actionName, amsd, constraints);
+    return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
 
   /**
@@ -290,7 +376,10 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #search(Agent,AID,AMSAgentDescription)
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, actionName);
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(a.getAID());
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
 
   /**
@@ -300,7 +389,10 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #search(Agent,AID,AMSAgentDescription)
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID amsName, String actionName) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, amsName, actionName);
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(a.getAID());
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,amsName,actionName,amsd,constraints);
   }
 
   /**
@@ -311,7 +403,8 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #search(Agent,AID,AMSAgentDescription)
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, AMSAgentDescription amsd) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, actionName, amsd);
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,a.getAMS(),actionName,amsd,constraints);
   }
 
   /**
@@ -321,9 +414,9 @@ the default SearchContraints are used.
    * @see #search(Agent,AID,AMSAgentDescription)
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID amsName, String actionName, AMSAgentDescription amsd) throws FIPAException {
-    return AMSService.getNonBlockingBehaviour(a, amsName, actionName, amsd);
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,amsName,actionName,amsd,constraints);
   }
 
 }
-
 

@@ -54,11 +54,10 @@ import jade.onto.Ontology;
  * added to the queue of the agent behaviours, as usual, by using 
  * <code>Agent.addBehaviour()</code>. 
  * @author Fabio Bellifemine (CSELT S.p.A.)
-   @version $Date$ $Revision$ 
-   @deprecated Use DFService instead.
+  @version $Date$ $Revision$ 
  * 
  **/
-public class DFServiceCommunicator extends FIPAServiceCommunicator {
+public class DFService extends FIPAServiceCommunicator {
 
   private static Codec c = new SL0Codec();
   private static Ontology o = FIPAAgentManagementOntology.instance();
@@ -70,7 +69,17 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
    * @throw a MissingParameter exception is it is not valid
    */
   static void checkIsValid(DFAgentDescription dfd) throws MissingParameter {
-		DFService.checkIsValid(dfd);
+    if (dfd.getName()==null) 
+      throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
+    Iterator i = dfd.getAllServices();
+    ServiceDescription sd;
+    while (i.hasNext()) {
+      sd = (ServiceDescription)i.next();
+      if (sd.getName() == null)
+	throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
+      if (sd.getType() == null)
+	throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
+    }
   }
 
   /**
@@ -87,7 +96,25 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
      the method locally discovers that the DFDescription is not valid.
    */
   public static void register(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
-		DFService.register(a, dfName, dfd);
+    ACLMessage request = createRequestMessage(a, dfName);
+
+    if (dfd.getName() == null)
+      dfd.setName(a.getAID());
+    checkIsValid(dfd);
+
+    // Build a DF action object for the request
+    Register r = new Register();
+    r.set_0(dfd);
+
+    Action act = new Action();
+    act.set_0(dfName);
+    act.set_1(r);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      request.setContent(encode(act,c,o));
+    }
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
 
@@ -96,7 +123,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
    * @see #register(Agent,AID,DFAgentDescription)
    **/
   public static void register(Agent a, DFAgentDescription dfd) throws FIPAException {
-		DFService.register(a, dfd);
+    register(a,a.getDefaultDF(),dfd);
   }
 
   /**
@@ -109,7 +136,25 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
      received from the DF to indicate some error condition.
   */
   public static void deregister(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
-		DFService.deregister(a, dfName, dfd);
+
+    ACLMessage request = createRequestMessage(a, dfName);
+
+    if (dfd.getName() == null)
+      dfd.setName(a.getAID());
+    // Build a DF action object for the request
+    Deregister d = new Deregister();
+    d.set_0(dfd);
+
+    Action act = new Action();
+    act.set_0(dfName);
+    act.set_1(d);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
   /**
@@ -117,7 +162,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 @see #deregister(Agent a, AID dfName, DFAgentDescription dfd) 
   **/
   public static void deregister(Agent a, DFAgentDescription dfd) throws FIPAException {
-		DFService.deregister(a, dfd);
+    deregister(a,a.getDefaultDF(),dfd);
   }
 
   /**
@@ -126,7 +171,9 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 @see #deregister(Agent a, AID dfName, DFAgentDescription dfd) 
   **/
   public static void deregister(Agent a, AID dfName) throws FIPAException {
-		DFService.deregister(a, dfName);
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(a.getAID());
+    deregister(a,dfName,dfd);
   }
 
   /**
@@ -136,7 +183,9 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 @see #deregister(Agent a, AID dfName, DFAgentDescription dfd) 
   **/
   public static void deregister(Agent a) throws FIPAException {
-		DFService.deregister(a);
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(a.getAID());
+    deregister(a,dfd);
   }
 
 
@@ -153,7 +202,26 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
      received from the DF to indicate some error condition.
   */
   public static void modify(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
-		DFService.modify(a, dfName, dfd);
+    ACLMessage request = createRequestMessage(a, dfName);
+
+    if (dfd.getName() == null)
+      dfd.setName(a.getAID());
+    checkIsValid(dfd);
+    // Build a DF action object for the request
+    Modify m = new Modify();
+    m.set_0(dfd);
+
+    Action act = new Action();
+    act.set_0(dfName);
+    act.set_1(m);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    doFipaRequestClient(a,request);
   }
 
   /**
@@ -161,7 +229,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 @see #modify(Agent a, AID dfName, DFAgentDescription dfd)
   **/
   public static void modify(Agent a, DFAgentDescription dfd) throws FIPAException {
-		DFService.modify(a, dfd);
+    modify(a,a.getDefaultDF(),dfd);
   }
 
   /**
@@ -172,22 +240,51 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
      data to search for; this parameter is used as a template to match
      data against.
      @param constraints of the search 
-     @return A <code>List</code> 
+     @return An array of <code>DFAgentDescription</code> 
      containing all found
-     <code>DFAgentDescription</code> objects matching the given
+     items matching the given
      descriptor, subject to given search constraints for search depth
      and result size.
      @exception FIPAException A suitable exception can be thrown when
      a <code>refuse</code> or <code>failure</code> messages are
      received from the DF to indicate some error condition.
   */
-  public static java.util.List search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
-		DFAgentDescription[] r = DFService.search(a, dfName, dfd, constraints);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static DFAgentDescription[] search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
+    ACLMessage request = createRequestMessage(a, dfName);
+
+    // Build a DF action object for the request
+    Search s = new Search();
+    s.set_0(dfd);
+    s.set_1(constraints);
+
+    Action act = new Action();
+    act.set_0(dfName);
+    act.set_1(s);
+
+    synchronized(c) { //must be synchronized because this is a static method
+      // Write the action in the :content slot of the request
+      request.setContent(encode(act,c,o));
+    }
+
+    // Send message and collect reply
+    ACLMessage inform = doFipaRequestClient(a,request);
+
+    ResultPredicate r = null;
+    synchronized(c) { //must be synchronized because this is a static method
+      r = extractContent(inform.getContent(),c,o);
+    }
+    Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
+    int j = 0;
+    while (i.hasNext()) {
+      ++j;
+    }
+    DFAgentDescription[] result = new DFAgentDescription[j];
+    i = r.getAll_1();
+    j = 0; 
+    while (i.hasNext()) {
+    	result[j++] = (DFAgentDescription) i.next();
+    }
+    return result;
   }
 
 
@@ -195,13 +292,8 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
    * The default DF is used.
 @see #search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
-  public static java.util.List search(Agent a, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
-		DFAgentDescription[] r = DFService.search(a, dfd, constraints);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static DFAgentDescription[] search(Agent a, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
+    return search(a,a.getDefaultDF(),dfd,constraints);
   }
 
   /**
@@ -210,13 +302,9 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
    * defaulted to null value for all slots.
 @see #search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
-  public static java.util.List search(Agent a, DFAgentDescription dfd) throws FIPAException {
-		DFAgentDescription[] r = DFService.search(a, dfd);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static DFAgentDescription[] search(Agent a, DFAgentDescription dfd) throws FIPAException {
+    SearchConstraints constraints = new SearchConstraints();
+    return search(a,a.getDefaultDF(),dfd,constraints);
   }
 
   /**
@@ -224,13 +312,9 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
    * defaulted to null value for all slots.
 @see #search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
-  public static java.util.List search(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
-		DFAgentDescription[] r = DFService.search(a, dfName, dfd);
-		java.util.List l = new java.util.ArrayList();
-		for (int i = 0; i < r.length; ++i) {
-			l.add(r[i]);
-		}
-		return l;
+  public static DFAgentDescription[] search(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
+    SearchConstraints constraints = new SearchConstraints();
+    return search(a,dfName,dfd,constraints);
   }
 
 
@@ -260,7 +344,7 @@ call getLastMsg() and getSearchResults() where both throw a NotYetReadyException
 @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
      **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
+    return new RequestFIPAServiceBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
   /**
@@ -268,7 +352,7 @@ call getLastMsg() and getSearchResults() where both throw a NotYetReadyException
    * @see #getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,actionName,dfd,constraints);
+    return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
   /**
@@ -278,7 +362,10 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,actionName);
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(a.getAID());
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
 
@@ -288,7 +375,10 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,dfName,actionName);
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(a.getAID());
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
 
@@ -298,7 +388,8 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,actionName,dfd);
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
   /**
@@ -306,7 +397,8 @@ a default AgentDescription is used, where only the agent AID is set.
    * @see #getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd) throws FIPAException {
-    return DFService.getNonBlockingBehaviour(a,dfName,actionName,dfd);
+    SearchConstraints constraints = new SearchConstraints();
+    return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
 }

@@ -205,7 +205,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	{
   		super.handleInform(reply);
   		try{
-  			rsh.addResults(this,getSearchResult());
+  			// Convert search result from array to list
+  			Object[] r = getSearchResults();
+  			List l = new ArrayList();
+  			for (int i = 0; i < r.length; ++i) {
+  				l.add(r[i]);
+  			}
+  			rsh.addResults(this, l);
   		}catch (FIPAException e){ e.printStackTrace();
   		}catch(NotYetReady nyr){ nyr.printStackTrace();}
   	}
@@ -567,8 +573,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
  						  List l = extractContent2(request);
 	            Action a = (Action)l.get(0);
             
- 					  
- 					  	List result = previousStep.getSearchResult();
+  						// Convert search result from array to list
+  						Object[] r = previousStep.getSearchResults();
+  						List result = new ArrayList();
+  						for (int i = 0; i < r.length; ++i) {
+  							result.add(r[i]);
+  						}
  				 
 	            ResultPredicate rp = new ResultPredicate();
 	            rp.set_0(a);
@@ -1011,7 +1021,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
   				{ //the applet can request a search on a different df so the gui can be null
   					//the lastSearchResult table is update also in this case.
   					gui.showStatusMsg("Search request Processed. Ready for new request");
-  				  gui.refreshLastSearchResults(getSearchResult(),msg.getSender());
+  					// Convert search result from array to list
+  					Object[] r = getSearchResults();
+  					List result = new ArrayList();
+  					for (int i = 0; i < r.length; ++i) {
+  						result.add(r[i]);
+  					}
+  				  gui.refreshLastSearchResults(result, msg.getSender());
   				}
   			}catch (Exception e){
   			e.printStackTrace();// should never happen

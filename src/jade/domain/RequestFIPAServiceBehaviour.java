@@ -239,25 +239,46 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     return lastMsg;
   }
 
+  //__BACKWARD_COMPATIBILITY__BEGIN
   /**
     This public method allows to get the results of a search operation. 
-    *@return the List of Objects received an a result of the search. 
+    @return the List of Objects received an a result of the search. 
+    @exception FIPAException A suitable exception can be thrown 
+    when the protocol was finished with a FAILURE/REFUSE or NOT-UNDERSTOOD
+    performative.
+    @exception NotYetReady is thrown if the protocol is not yet finished.  
+    @deprecated Use getSearchResults() instead.
+   */
+  public java.util.List getSearchResult() throws FIPAException,NotYetReady {
+		Object[] r = getSearchResults();
+		java.util.List l = new java.util.ArrayList();
+		for (int i = 0; i < r.length; ++i) {
+			l.add(r[i]);
+		}
+		return l;
+  }
+  //__BACKWARD_COMPATIBILITY__BEGIN
+    
+  /**
+    This public method allows to get the results of a search operation. 
+    *@return An array of Objects containing the items found as 
+    the result of the search. 
      @exception FIPAException A suitable exception can be thrown 
       when the protocol was finished with a FAILURE/REFUSE or NOT-UNDERSTOOD
       * performative.
       * @exception NotYetReady is thrown if the protocol is not yet finished.
   **/
-  public List getSearchResult() throws FIPAException,NotYetReady {
+  public Object[] getSearchResults() throws FIPAException,NotYetReady {
     if (notYetReady)
       throw new NotYetReady();
     if (lastMsg.getPerformative() != ACLMessage.INFORM)
       throw new FIPAException(lastMsg);
     ResultPredicate r = FIPAServiceCommunicator.extractContent(lastMsg.getContent(),c,o); 
-    Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
+    Iterator i = r.getAll_1(); 
     List l = new ArrayList(); 
     while (i.hasNext())
       l.add(i.next());
-    return l; 
+    return l.toArray(); 
   }
-    
+
 }
