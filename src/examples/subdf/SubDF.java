@@ -29,11 +29,13 @@ import java.io.InterruptedIOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+
 import jade.core.*;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
+import jade.domain.DFServiceCommunicator;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -64,7 +66,7 @@ public class SubDF extends jade.domain.df {
      else
        parentName=getDefaultDF();
       
-     registerWithDF(parentName,getDescription());
+     DFServiceCommunicator.register(this,parentName,getDescription());
 		
       //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
       //(i.e. register, unregister,modify, and search).
