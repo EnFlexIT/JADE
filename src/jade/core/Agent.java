@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.67  1999/09/03 13:05:49  rimassa
+  Fixed a bug in send() methods, due to the fact that now an ACL message
+  slot is never null.
+
   Revision 1.66  1999/09/01 00:14:00  rimassa
   Added a package-scoped messages() method.
 
@@ -1321,7 +1325,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.lang.acl.ACLMessage
   */
   public final void send(ACLMessage msg) {
-    if(msg.getSource() == null)
+    if(msg.getSource().length() < 1)
       msg.setSource(myName);
     CommEvent event = new CommEvent(this, msg);
     broadcastEvent(event);
@@ -1342,7 +1346,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.AgentGroup
   */
   public final void send(ACLMessage msg, AgentGroup g) {
-    if(msg.getSource() == null)
+    if(msg.getSource().length() < 1)
       msg.setSource(myName);
     CommEvent event = new CommEvent(this, msg, g);
     broadcastEvent(event);
