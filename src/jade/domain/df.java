@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1998/10/18 17:37:34  rimassa
+  Minor changes towards 'search' action implementation.
+
   Revision 1.9  1998/10/04 18:01:37  rimassa
   Added a 'Log:' field to every source file.
 
@@ -8,6 +11,8 @@
 package jade.domain;
 
 import java.io.StringReader;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -80,11 +85,11 @@ public class df extends Agent {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	//      pe.printStackTrace();
+	//	pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
       catch(TokenMgrError tme) {
-	//      tme.printStackTrace();
+	//	tme.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
@@ -106,7 +111,7 @@ public class df extends Agent {
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException;
+    protected abstract void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException;
 
     public void action() {
 
@@ -116,7 +121,7 @@ public class df extends Agent {
 	crackMessage();
 
 	// Do real action, deferred to subclasses
-	processArgs(myAction.getArg());
+	processAction(myAction);
 
       }
       catch(FIPAException fe) {
@@ -192,7 +197,8 @@ public class df extends Agent {
       return new RegBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFRegister(dfd);
       sendAgree(myReply);
       sendInform(myReply);
@@ -214,7 +220,8 @@ public class df extends Agent {
       return new DeregBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFDeregister(dfd);
       sendAgree(myReply);
       sendInform(myReply);
@@ -236,7 +243,8 @@ public class df extends Agent {
       return new ModBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFModify(dfd);
       sendAgree(myReply);
       sendInform(myReply);
@@ -258,8 +266,11 @@ public class df extends Agent {
       return new SrchBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
-      DFSearch(dfd);
+    protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+      AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
+      AgentManagementOntology.DFSearchAction dfsa = (AgentManagementOntology.DFSearchAction)dfa;
+      Enumeration constraints = dfsa.getConstraints();
+      DFSearch(dfsa, dfd, constraints);
       sendAgree(myReply);
       sendInform(myReply);
     }
@@ -354,8 +365,8 @@ public class df extends Agent {
     
   }
 
-  private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd) {
-
+  private void DFSearch(AgentManagementOntology.DFSearchAction dfsa, AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
+    dfsa.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     // FIXME: To be implemented
   }
 
