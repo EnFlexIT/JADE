@@ -1,36 +1,76 @@
+////////////////////////////////////////////////////////////////////////
+// Copyright (c) 1998 FIPA All Rights Reserved
+//
+// This software module was developed by
+// CSELT (Centro Studi e Laboratori Telecomunicazioni S.p.A)
+// and DII University of Parma
+// in the course of development of the FIPA97 standard. 
+// It is an implementation of the parser of the 
+// FIPA97 Agent Communication Language
+// specified by the FIPA97 standard.
+//
+//
+//
+// The copyright of this software belongs to FIPA. FIPA gives
+// free license to its members to use this software module or
+// modifications thereof for hardware or software products claiming
+// conformance to the FIPA97 standard.
+//
+//
+//
+// Those intending to use this software module in hardware or software
+// products are advised that use may infringe existing  patents. The
+// original developers of this software module and their companies, the
+// subsequent editors and their companies, and FIPA have no liability
+// for use of this software module or modification thereof in an
+// implementation.
+//
+//
+//
+// FIPA thanks Fabio Bellifemine, Agostino Poggi, and Paolo Marenzoni
+// for releasing the copyright of this software.
+// Part of this software has been developed within the framework of the
+// FACTS project, AC317, of the European ACTS Programme.
+////////////////////////////////////////////////////////////////////////
 /*
- * $Id$
- */
+ $Id$
+ $Log$
+ Revision 1.3  1998/08/08 18:06:53  rimassa
+ Used official FIPA version of Java class for ACL messages. Some minor changes:
+
+  - Changed class name from 'alcMessage' to 'ACLMessage'.
+  - Added 'package jade.lang.acl` declaration.
+  - Added 'implements Serializable' to be able to send ACL messages with Java RMI.
+
+*/
 
 package jade.lang.acl;
 
-import java.net.*;
-import java.io.*;
-
 /**
- * La classe aclMessage rappresenta l'astrazione di un messaggio ACL conforme alle
- * specifiche FIPA. Tutti i campi sono costituiti da una coppia <IT>keyword: value</IT>.
- * Le keyword sono delle strighe di tipo <em>final</em>, quindi parametri.
- * I valori sono settati con i metodi <em>set</em> e letti con i metodi <em>get</em>.
+ * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
+ * All parameters are couples <IT>keyword: value</IT>.
+ * All keywords are private final String.
+ * All values can be set by using the methods <em>set</em> and can be read by using
+ * the methods <em>get</em>.
  */
 public class ACLMessage implements Serializable {
 
-  private final String SOURCE          = new String(" :sender ");
-  private final String DEST            = new String(" :receiver ");
-  private final String CONTENT         = new String(" :content ");
-  private final String REPLY_WITH      = new String(" :reply-with ");
-  private final String IN_REPLY_TO     = new String(" :in-reply-to ");
-  private final String ENVELOPE        = new String(" :envelope ");
-  private final String LANGUAGE        = new String(" :language ");
-  private final String ONTOLOGY        = new String(" :ontology ");
-  private final String REPLY_BY        = new String(" :reply-by ");
-  private final String PROTOCOL        = new String(" :protocol ");
-  private final String CONVERSATION_ID = new String(" :conversation-id ");
+  private static final String SOURCE          = new String(" :sender ");
+  private static final String DEST            = new String(" :receiver ");
+  private static final String CONTENT         = new String(" :content ");
+  private static final String REPLY_WITH      = new String(" :reply-with ");
+  private static final String IN_REPLY_TO     = new String(" :in-reply-to ");
+  private static final String ENVELOPE        = new String(" :envelope ");
+  private static final String LANGUAGE        = new String(" :language ");
+  private static final String ONTOLOGY        = new String(" :ontology ");
+  private static final String REPLY_BY        = new String(" :reply-by ");
+  private static final String PROTOCOL        = new String(" :protocol ");
+  private static final String CONVERSATION_ID = new String(" :conversation-id ");
 
   private String        source;
   private String        dest;
   private String        msgType;
-  private String        msgContent;
+  private String        content;
   private String        reply_with;
   private String        in_reply_to;
   private String        envelope;
@@ -40,106 +80,66 @@ public class ACLMessage implements Serializable {
   private String        protocol;
   private String        conversation_id;
 
-  private int           srcPort;
 
-/**
- * Questo e' l'array di byte che serve direttamente per la trasmissione sul socket.
- * @see Agent#send
- */
-  private byte          message[];
-
-/**
- * Questo e' un buffer usato durante la costruzione del messaggio dai metodi <em>set</em>.
- */
-  private StringBuffer  tempMessage; // temporaneous message during preparation for transmission 
-
-/**
- * Costruttore usato durante la fase di ricezione, nella quale non serve riempire
- * i campi durante la costruzione del messaggio.
- */
   public ACLMessage() {
-    tempMessage = new StringBuffer();
   }
 
-/**
- * Costruttore usato surante la fase di spedizione.
- * Costruisce e appende il campo <IT>source</IT>.
- * NOTICE: Agent name not compliant with section 7.5.1 of FIPA 97 Part I (at least target is missing)
- */
-  public ACLMessage( String source, int port ) {
-    this();
-    this.source = new String( source );
-    //this.source = new String( source + "@localhost:" + port );
-    //this.source = new String( "iiop://localhost/" + source + ":" + port );
-    tempMessage.append(SOURCE + this.source);
-    srcPort     = port;
-  }
 
 /**
- * Metodi per il settaggio dei campi del messaggio ACL
+ * <em>set</em> methods to set the actual values of parameters.
  * NOTICE: correctness of actual value of parameters is not checked
  */
   public void setSource( String source ) {
     this.source = new String(source);
-    tempMessage.append(SOURCE + source);
   }
 
   public void setDest( String dest ) {
     this.dest = new String(dest);
-    tempMessage.append(DEST + dest);
   }
 
   public void setType( String type ) {
     msgType = new String(type);
-    tempMessage.insert(0, "(" + type);
   }
 
   public void setContent( String content ) {
-    msgContent = new String(content);
-    tempMessage.append(CONTENT + content);
+    this.content = new String(content);
   }
 
   public void setReplyWith( String reply ) {
     reply_with = new String(reply);
-    tempMessage.append(REPLY_WITH + reply);
   }
 
   public void setReplyTo( String reply ) {
     in_reply_to = new String(reply);
-    tempMessage.append(IN_REPLY_TO + reply);
   }
   
   public void setEnvelope( String str ) {
     envelope = new String(str);
-    tempMessage.append(ENVELOPE + str);
   }
 
   public void setLanguage( String str ) {
     language = new String(str);
-    tempMessage.append(LANGUAGE + str);
   }
 
   public void setOntology( String str ) {
     ontology = new String(str);
-    tempMessage.append(ONTOLOGY + str);
   }
 
   public void setReplyBy( String str ) {
     reply_by = new String(str);
-    tempMessage.append(REPLY_BY + str);
   }
 
   public void setProtocol( String str ) {
     protocol = new String(str);
-    tempMessage.append(PROTOCOL + str);
   }
 
   public void setConversationId( String str ) {
     conversation_id = new String(str);
-    tempMessage.append(CONVERSATION_ID + str);
   }
 
-  // Methods to get parameters of the message
+ /**
+ * <em>get</em> methods to read the actual values of parameters.
+ */
   public String getDest() {
     return dest;
   }
@@ -153,11 +153,7 @@ public class ACLMessage implements Serializable {
   }
 
   public String getContent() {
-    return msgContent;
-  }
-
-  public int getSrcPort() {
-    return srcPort;
+    return content;
   }
 
   public String getReplyWith() {
@@ -191,174 +187,159 @@ public class ACLMessage implements Serializable {
   public String getConversationId() {
     return conversation_id;
   }
-  
-/**
- * Metodo usato in preparazione alla vera fase di spedizione.
- * Costruisce l'array di bytes che verra' spedito sul socket a partire
- * dai valori dei campi appena settati.
- * N.B.: termina il messaggio con un <it>'\0'</it>.
+ 
+ /**
+ * this method returns the message in a sequence of byte format.
  */
-  public void send() {
+ public byte[] getMessage() {
 
-    message = new byte[tempMessage.length()+2];
+    byte message[];
+    int  msgLength=0;
+    
+    if (this.source != null) 
+       msgLength = msgLength + this.SOURCE.length() + this.source.length();
+    if (this.dest != null) 
+       msgLength = msgLength + this.DEST.length() + this.dest.length();
+    if (this.content != null) 
+       msgLength = msgLength + this.CONTENT.length() + this.content.length();
+    if (this.reply_with != null) 
+       msgLength = msgLength + this.REPLY_WITH.length() + this.reply_with.length();
+    if (this.in_reply_to != null) 
+       msgLength = msgLength + this.IN_REPLY_TO.length() + this.in_reply_to.length();
+    if (this.envelope != null) 
+       msgLength = msgLength + this.ENVELOPE.length() + this.envelope.length();
+    if (this.language != null) 
+       msgLength = msgLength + this.LANGUAGE.length() + this.language.length();
+    if (this.ontology != null) 
+       msgLength = msgLength + this.ONTOLOGY.length() + this.ontology.length();
+    if (this.reply_by != null) 
+       msgLength = msgLength + this.REPLY_BY.length() + this.reply_by.length();
+    if (this.protocol != null) 
+       msgLength = msgLength + this.PROTOCOL.length() + this.protocol.length();
+    if (this.conversation_id != null) 
+       msgLength = msgLength + this.CONVERSATION_ID.length() + this.conversation_id.length();
+   
+    msgLength = msgLength + 3 + this.msgType.length();
 
-    int pos = 0;
-    for( pos=0; pos<tempMessage.length(); pos++) message[pos] = (byte)tempMessage.charAt(pos);
+    message = new byte[msgLength];
+
+    int pos = 0; 
+    int i = 0;
+    message[pos++] = (byte)'(';
+    for (i=0; i<this.msgType.length(); i++) 
+       message[pos++] = (byte)this.msgType.charAt(i);
+    if (this.source != null) { 
+       for (i=0; i<this.SOURCE.length(); i++) 
+          message[pos++] = (byte)this.SOURCE.charAt(i);
+       for (i=0; i<this.source.length(); i++) 
+          message[pos++] = (byte)this.source.charAt(i);
+    }
+    if (this.dest != null) { 
+       for (i=0; i<this.DEST.length(); i++) 
+          message[pos++] = (byte)this.DEST.charAt(i);
+       for (i=0; i<this.dest.length(); i++) 
+          message[pos++] = (byte)this.dest.charAt(i);
+    }
+    if (this.content != null) { 
+       for (i=0; i<this.CONTENT.length(); i++) 
+          message[pos++] = (byte)this.CONTENT.charAt(i);
+       for (i=0; i<this.content.length(); i++) 
+          message[pos++] = (byte)this.content.charAt(i);
+    }
+    if (this.reply_with != null) { 
+       for (i=0; i<this.REPLY_WITH.length(); i++) 
+          message[pos++] = (byte)this.REPLY_WITH.charAt(i);
+       for (i=0; i<this.reply_with.length(); i++) 
+          message[pos++] = (byte)this.reply_with.charAt(i);
+    }
+    if (this.in_reply_to != null) { 
+       for (i=0; i<this.IN_REPLY_TO.length(); i++) 
+          message[pos++] = (byte)this.IN_REPLY_TO.charAt(i);
+       for (i=0; i<this.in_reply_to.length(); i++) 
+          message[pos++] = (byte)this.in_reply_to.charAt(i);
+    }
+    if (this.envelope != null) { 
+       for (i=0; i<this.ENVELOPE.length(); i++) 
+          message[pos++] = (byte)this.ENVELOPE.charAt(i);
+       for (i=0; i<this.envelope.length(); i++) 
+          message[pos++] = (byte)this.envelope.charAt(i);
+    }
+    if (this.language != null) { 
+       for (i=0; i<this.LANGUAGE.length(); i++) 
+          message[pos++] = (byte)this.LANGUAGE.charAt(i);
+       for (i=0; i<this.language.length(); i++) 
+          message[pos++] = (byte)this.language.charAt(i);
+    }
+    if (this.ontology != null) { 
+       for (i=0; i<this.ONTOLOGY.length(); i++) 
+          message[pos++] = (byte)this.ONTOLOGY.charAt(i);
+       for (i=0; i<this.ontology.length(); i++) 
+          message[pos++] = (byte)this.ontology.charAt(i);
+    }
+    if (this.reply_by != null) { 
+       for (i=0; i<this.REPLY_BY.length(); i++) 
+          message[pos++] = (byte)this.REPLY_BY.charAt(i);
+       for (i=0; i<this.reply_by.length(); i++) 
+          message[pos++] = (byte)this.reply_by.charAt(i);
+    }
+    if (this.protocol != null) { 
+       for (i=0; i<this.PROTOCOL.length(); i++) 
+          message[pos++] = (byte)this.PROTOCOL.charAt(i);
+       for (i=0; i<this.protocol.length(); i++) 
+          message[pos++] = (byte)this.protocol.charAt(i);
+    }
+    if (this.conversation_id != null) { 
+       for (i=0; i<this.CONVERSATION_ID.length(); i++) 
+          message[pos++] = (byte)this.CONVERSATION_ID.charAt(i);
+       for (i=0; i<this.conversation_id.length(); i++) 
+          message[pos++] = (byte)this.conversation_id.charAt(i);
+    }
     message[pos++] = (byte)')';
     message[pos] = (byte)'\n';
-    String s = new String( message, 0x00, 0, pos );
-    System.out.println(s);
-
-  }
-
-/**
- * Metodo usato per fare il parsing di un array di byte nel quale rintracciare
- * le coppie keyword-valore per poter riempire i campi del messaggio.
- * @param s E' l'array di byte di cui fare il parsing.
- */
-  public void receive( String s ) {
-
-    //System.out.println("receiving: " + s);
-    try {
-      StreamTokenizer st = new StreamTokenizer( new  StringBufferInputStream( s ));
-
-      st.wordChars( '_', '_' );
-      st.wordChars( '_', '_' );
-      st.wordChars( ';', ';' );
-      //st.wordChars( ':', ':' );
-      st.wordChars( '/', '/' );
-      st.wordChars( '"', '"' );
-      st.wordChars( '?', '?' );
-      st.wordChars( '&', '&' );
-      st.wordChars( '%', '%' );
-      st.wordChars( '=', '=' );
-      st.wordChars( ''', ''' );
-      st.wordChars( '@', '@' );
-      st.quoteChar( '"' );
-
-      st.nextToken();
-
-      st.wordChars( '(', '(' );
-      st.wordChars( ')', ')' );
-
-      st.nextToken();
-      StringBuffer tempString = new StringBuffer( st.sval );
-      boolean after = false;
-      int type = 2;
-
-      st.nextToken();
-      for(; st.ttype != st.TT_EOF; st.nextToken()) {
-
-	if( st.ttype == ':' ) after = true;
-	else if( st.ttype == st.TT_WORD ){
-	  if( after ) {
-	    if( st.sval.equalsIgnoreCase("sender") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 0;
-	    } else if( st.sval.equalsIgnoreCase("receiver") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 1;
-	    } else if( st.sval.equalsIgnoreCase("content") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 3;
-	    } else if( st.sval.equalsIgnoreCase("reply-with") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 4;
-	    } else if( st.sval.equalsIgnoreCase("in-reply-to") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 5;
-	    } else if( st.sval.equalsIgnoreCase("ontology") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 6;
-	    } else if( st.sval.equalsIgnoreCase("protocol") ) {
-	      setOldString(tempString, type); tempString = new StringBuffer(); after = false; type = 7;
-	    } else {
-	      if( st.sval != null && st.sval.equals("agent-services") ) tempString.append(" "); 
-	      tempString.append(":"); tempString.append( st.sval ); after = false; 
-	    }
-	  } else {
-	    if( tempString.length() > 0 ) tempString.append(" ");
-	    tempString.append( st.sval ); after = false;
-	  }
-	} else if( st.ttype == st.TT_NUMBER ) {
-	  if( after ) { tempString.append(":"); after = false; }
-	  else if( tempString.length() > 0 ) tempString.append(" ");
-	  tempString.append( new Integer((int)st.nval).toString() );
-	} else if( st.ttype == '"' ) {
-	  if( tempString.length() > 0 ) tempString.append(" \"");
-	  //System.out.println(" reading: " + st.sval);
-	  tempString.append( st.sval );
-	  tempString.append("\"");
-	  after = false;
-	}
-      }
-      setOldString(tempString, type);
-    } catch( IOException ioe ) {
-      ioe.printStackTrace();
-    }
-
-  }
-
-/**
- * Metodo ausiliario usato durante la fase di parsing.
- */
-  private void setOldString( StringBuffer s, int type ) {
-
-    if( s != null ) {
-      if( type == 0 )      source      = new String( s.toString() );
-      else if( type == 1 ) dest        = new String( s.toString() );
-      else if( type == 2 ) msgType     = new String( s.toString() );
-      else if( type == 3 ) msgContent  = new String( s.toString() );
-      else if( type == 4 ) reply_with  = new String( s.toString() );
-      else if( type == 5 ) in_reply_to = new String( s.toString() );
-      else if( type == 6 ) ontology    = new String( s.toString() );
-      else if( type == 7 ) protocol    = new String( s.toString() );
-    }
-
-  }
-
-/**
- * Metodo usato dall'agente chiamate per farsi restituire l'array di byte
- * ottenuto dopo aver riempito tutti i campi del messaggio.
- * @return L'array di byte pronto per essere spedito sul socket.
- */
-  public byte[] getMessage() {
+    // String s = new String( message, 0x00, 0, pos );
+    // System.out.println(s);
     return message;
   }
 
 
-  private static int counter = 0; // This variable is only used as a counter in dump()
-  public void dump() {
 
+  private static int counter = 0; // This variable is only used as a counter in dump()
+ /**
+ * this method dumps the message.
+ */
+  public void dump() {
     counter++;	
     System.out.println( counter + ") " + msgType.toUpperCase());
-    if (source != null && source.length() > 0)                   System.out.println("   " + SOURCE + source);
-    if (dest!= null && dest.length() > 0)                        System.out.println("   " + DEST + dest);
-    if (msgContent != null && msgContent.length() > 0)           System.out.println("   " + CONTENT + msgContent);
-    if (reply_with != null && reply_with.length() > 0)           System.out.println("   " + REPLY_WITH + reply_with);
-    if (in_reply_to != null && in_reply_to.length() > 0)         System.out.println("   " + IN_REPLY_TO + in_reply_to);
-    if (envelope != null && envelope.length() > 0)               System.out.println("   " + ENVELOPE + envelope);
-    if (language != null && language.length() > 0)               System.out.println("   " + LANGUAGE + language);
-    if (ontology != null && ontology.length() > 0)               System.out.println("   " + ONTOLOGY + ontology);
-    if (reply_by != null && reply_by.length() > 0)               System.out.println("   " + REPLY_BY + reply_by);
-    if (protocol != null && protocol.length() > 0)               System.out.println("   " + PROTOCOL + protocol);
-    if (conversation_id != null && conversation_id.length() > 0) System.out.println("   " + CONVERSATION_ID + conversation_id);
+    if (source != null)          System.out.println("   " + SOURCE + source);
+    if (dest!= null)             System.out.println("   " + DEST + dest);
+    if (content != null)         System.out.println("   " + CONTENT + content);
+    if (reply_with != null)      System.out.println("   " + REPLY_WITH + reply_with);
+    if (in_reply_to != null)     System.out.println("   " + IN_REPLY_TO + in_reply_to);
+    if (envelope != null)        System.out.println("   " + ENVELOPE + envelope);
+    if (language != null)        System.out.println("   " + LANGUAGE + language);
+    if (ontology != null)        System.out.println("   " + ONTOLOGY + ontology);
+    if (reply_by != null)        System.out.println("   " + REPLY_BY + reply_by);
+    if (protocol != null)        System.out.println("   " + PROTOCOL + protocol);
+    if (conversation_id != null) System.out.println("   " + CONVERSATION_ID + conversation_id);
     System.out.println();
   }
 
-/**
- * Metodo usato per duplicare un messaggio appena letto e riempire il buffer <it>tempMessage</it>.
- * In questo modo il messaggio puo' essere rispedito, ad esempio dall'ACC, ad una nuova destinazione.
- * @see dfWorker#parseMsg
+
+ /**
+ * This method is used by ACLParser to reset the data structure
  */
-  public void duplicate() {
-
-    tempMessage.append("(" + msgType + " ");
-    if (source.length() > 0)                                     tempMessage.append(SOURCE + source);
-    if (dest.length() > 0)                                       tempMessage.append(DEST + dest);
-    if (msgContent != null && msgContent.length() > 0)           tempMessage.append(CONTENT + msgContent);
-    if (reply_with != null && reply_with.length() > 0)           tempMessage.append(REPLY_WITH + reply_with);
-    if (in_reply_to != null && in_reply_to.length() > 0)         tempMessage.append(IN_REPLY_TO + in_reply_to);
-    if (envelope != null && envelope.length() > 0)               tempMessage.append(ENVELOPE + envelope);
-    if (language != null && language.length() > 0)               tempMessage.append(LANGUAGE + language);
-    if (ontology != null && ontology.length() > 0)               tempMessage.append(ONTOLOGY + ontology);
-    if (reply_by != null && reply_by.length() > 0)               tempMessage.append(REPLY_BY + reply_by);
-    if (protocol != null && protocol.length() > 0)               tempMessage.append(PROTOCOL + protocol);
-    if (conversation_id != null && conversation_id.length() > 0) tempMessage.append(CONVERSATION_ID + conversation_id);
-  }
-
+ public void reset() {
+  source=null;
+  dest=null;
+  msgType=null;
+  content=null;
+  reply_with=null;
+  in_reply_to=null;
+  envelope=null;
+  language=null;
+  ontology=null;
+  reply_by=null;
+  protocol=null;
+  conversation_id=null;
+ }
 }
