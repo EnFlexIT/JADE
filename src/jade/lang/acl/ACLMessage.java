@@ -35,6 +35,10 @@
 /*
  $Id$
  $Log$
+ Revision 1.5  1998/09/02 00:42:16  rimassa
+ Added code to make ACLMessages cloneable. Now a public clone() method
+ is provided to make copies of an ACL message.
+
  Revision 1.4  1998/08/08 21:37:22  rimassa
  Added a missing import clause: 'import java.ioSerializable'.
 
@@ -58,7 +62,7 @@ import java.io.Serializable;
  * All values can be set by using the methods <em>set</em> and can be read by using
  * the methods <em>get</em>.
  */
-public class ACLMessage implements Serializable {
+public class ACLMessage implements Cloneable, Serializable {
 
   private static final String SOURCE          = new String(" :sender ");
   private static final String DEST            = new String(" :receiver ");
@@ -329,6 +333,19 @@ public class ACLMessage implements Serializable {
     System.out.println();
   }
 
+  public synchronized Object clone() {
+
+    Object result;
+
+    try {
+      result = super.clone();
+    }
+    catch(CloneNotSupportedException cnse) {
+      throw new InternalError(); // This should never happen
+    }
+
+    return result;
+  }
 
  /**
  * This method is used by ACLParser to reset the data structure
