@@ -55,15 +55,16 @@ import java.io.StringReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 class SL0Parser {
 
 
   /**
-  * @return a Vector of Frame, each Frame represents an element of a t-uple
+  * @return a List of Frame, each Frame represents an element of a t-uple
   */
-  public Vector parse(String s) throws ParseException, TokenMgrError {
+  public List parse(String s) throws ParseException, TokenMgrError {
     ReInit(new StringReader(s));
     return SL0Content();
   }
@@ -78,7 +79,7 @@ class SL0Parser {
     while (true) {
 	System.out.println("insert an SL0 expression to parse: ");
       try {
-	Vector result = theParser.SL0Content();
+	List result = theParser.SL0Content();
 	System.out.println("AFTER ENCODING: "+codec.encode(result,o));
       }
       catch(ParseException pe) {
@@ -129,10 +130,10 @@ PARSER_END(SL0Parser)
 * <code>request</code>, predicate for <code>inform</code>, etc.), any
 * allowed SL content expression can be parsed from here.
 */
-Vector SL0Content() :
+List SL0Content() :
 { 
   Frame result;
-  Vector tuple = new Vector();
+  List tuple = new ArrayList();
 }
 {
  <LBRACE> (result = ContentExpression() {tuple.add(result);})+ <RBRACE>

@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package jade.onto;
+import java.util.List;
 
 /**
   Abstract interface for application defined ontology. Through this interface it
@@ -47,8 +48,6 @@ package jade.onto;
      <ul>
      <li> <code>Iterator getAllXXX()</code>
      <li> <code>void addXXX(T t)</code>
-     <li> <code>boolean removeXXX(T t)</code>
-     <li> <code>void clearAllXXX()</code>
      </ul>
 
    <li><i> For every <code>TermDescriptor</code> object of the
@@ -94,6 +93,8 @@ package jade.onto;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
+//     <li> <code>boolean removeXXX(T t)</code>
+//     <li> <code>void clearAllXXX()</code>
 
 public interface Ontology {
 
@@ -264,19 +265,21 @@ public interface Ontology {
 
   /**
      Creates a Java object representing a given concept, getting the
-     information from a given <code>Frame</code> object. This method
+     information from a given <code>List</code> of <code>Frame</code> 
+     objects. This method
      requires that a factory for the given role is registered in this ontology,
      because it creates internally the returned object.
-     @param f A <code>Frame</code> object, from which a Java object is
-     built.
-     @return A newly created Java object, representing the given
+     @param f A <code>List</code> of <code>Frame</code> objects, 
+     from which a <code>List</code> of Java objects is built.
+     @return A newly created <code>List</code> of Java objects, 
+     each Java object representing a 
      <code>Frame</code> as a user-defined type.
-     @exception OntologyException If the given <code>Frame</code> does
+     @exception OntologyException If a <code>Frame</code> does
      not play any role in the current ontology, or if the registered
      class does not follow the rules for representing a concept.
      @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
-  Object createObject(Frame f) throws OntologyException;
+  List createObject(List v) throws OntologyException;
 
   /**
     Creates a <code>Frame</code> object from a given Java object. A

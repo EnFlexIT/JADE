@@ -73,13 +73,6 @@ class FrameSchema implements Cloneable, Serializable {
     return functorKind == Ontology.CONCEPT_TYPE;
   }
 
-  public boolean isAction() {
-    return functorKind == Ontology.ACTION_TYPE;
-  }
-
-  public boolean isPredicate() {
-    return functorKind == Ontology.PREDICATE_TYPE;
-  }
 
   public void checkAgainst(Frame f) throws OntologyException {
     for(int i = 0; i < terms.size(); i++) {
@@ -138,9 +131,9 @@ class FrameSchema implements Cloneable, Serializable {
 	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BINARY_TYPE]); 
 	  break;
 	}
-	case Ontology.CONCEPT_TYPE:
-	case Ontology.ACTION_TYPE:
-	case Ontology.PREDICATE_TYPE: {
+	case Ontology.CONCEPT_TYPE: {
+	  //case Ontology.ACTION_TYPE:
+	  //case Ontology.PREDICATE_TYPE: {
 	  if(!(o instanceof Frame))
 	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CONCEPT_TYPE]); 
 	  myOntology.check((Frame)o);

@@ -127,22 +127,30 @@ public final class DefaultOntology implements Ontology {
     addFactoryToTable(conceptName, rf);
   }
 
+
   /**
-    Creates a Java object from the given frame.
-    @see jade.onto.Ontology#createObject(Frame f)
+    Creates a Java object from the given vector of frame.
+    @see jade.onto.Ontology#createObject(Vector v)
   */
-  public Object createObject(Frame f) throws OntologyException {
+  public List createObject(List v) throws OntologyException {
+    List outvec = new ArrayList();
+    for (int i=0; i<v.size(); i++) 
+      outvec.add(createSingleObject( (Frame)v.get(i) ));
+    return outvec;
+  }
+		 
+  private Object createSingleObject(Frame f) throws OntologyException {
 
-    String roleName = f.getName();
-    RoleFactory fac = lookupFactory(roleName);
+      String roleName = f.getName();
+      RoleFactory fac = lookupFactory(roleName);
 
-    if(fac == null)
-      throw new OntologyException("No class able to play " + roleName + " role. Check the definition of the ontology.");
+      if(fac == null)
+	throw new OntologyException("No class able to play " + roleName + " role. Check the definition of the ontology.");
 
-    Class c = fac.getClassForRole();
+      Class c = fac.getClassForRole();
 
-    Object o = fac.create(f);
-    return initObject(f, o, c);
+      Object o = fac.create(f);
+      return initObject(f, o, c);
 
   }
 
@@ -341,15 +349,15 @@ public final class DefaultOntology implements Ontology {
    *  <ul>
    *  <li> <code>Iterator getAllXXX()</code>
    *  <li> <code>void addXXX(T t)</code>
-   *  <li> <code>boolean removeXXX(T t)</code>
-   *  <li> <code>void clearAllXXX()</code>
    *  </ul>
    */
+  //   *  <li> <code>boolean removeXXX(T t)</code>
+  // *  <li> <code>void clearAllXXX()</code>
   private Class checkGetAndSet2(String name, Class c) throws OntologyException {
     Method getMethod = findMethodCaseInsensitive("getAll" + name, c);
     Method addMethod = findMethodCaseInsensitive("add" + name, c);
-    Method remMethod = findMethodCaseInsensitive("remove" + name, c);
-    Method clrMethod = findMethodCaseInsensitive("clearAll" + name, c);
+    //Method remMethod = findMethodCaseInsensitive("remove" + name, c);
+    //Method clrMethod = findMethodCaseInsensitive("clearAll" + name, c);
     Class result = getArgumentType(addMethod,0);  
     //FIXME. The type of result should be taken from the TermDescriptor 
     // and not directly from the method argument. 
@@ -368,20 +376,20 @@ public final class DefaultOntology implements Ontology {
     if (!getReturnType(addMethod).equals(Void.TYPE))
       throw new OntologyException("Wrong class: method " +  addMethod.getName() + "() must return a void.");
 
-    // check remove method
+    /* check remove method
     if (getArgumentLength(remMethod) != 1)
       throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() must take one argument.");
     if (!getArgumentType(remMethod,0).equals(result))
       throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() has the wrong argument type.");
     if (!getReturnType(remMethod).equals(Boolean.TYPE))
       throw new OntologyException("Wrong class: method " +  remMethod.getName() + "() must return a boolean.");
-
-    // check clear method
+      */
+    /* check clear method
     if (getArgumentLength(clrMethod) != 0)
       throw new OntologyException("Wrong class: method " +  clrMethod.getName() + "() must take no arguments.");
     if (!getReturnType(clrMethod).equals(Void.TYPE))
       throw new OntologyException("Wrong class: method " +  clrMethod.getName() + "() must return a void.");
-
+      */
     return result;
 
   }
@@ -395,7 +403,7 @@ public final class DefaultOntology implements Ontology {
     Iterator it = fs.subSchemas();
     while(it.hasNext()) {
       TermDescriptor desc = (TermDescriptor)it.next();
-      System.err.println("checkClass. TermDescriptor="+desc.toString());
+      //System.err.println("checkClass. TermDescriptor="+desc.toString());
       String termName = translateName(desc.getName());
       try {
 	// Check for correct set and get methods for the current
@@ -452,8 +460,8 @@ public final class DefaultOntology implements Ontology {
 	
 	// For complex slots, transform from sub-frame to sub-object.
 	// This is performed calling createObject() recursively.
-	if(desc.isComplex())
-	  slotValue = createObject((Frame)slotValue);
+	if(desc.isComplex()) 
+	  slotValue = createSingleObject((Frame)slotValue);
 
 	  
 	setMethod.invoke(concept, new Object[] { slotValue });

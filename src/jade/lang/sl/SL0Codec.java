@@ -31,7 +31,7 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 
@@ -77,14 +77,14 @@ public class SL0Codec implements Codec {
   private SL0Parser parser = new SL0Parser(new StringReader(""));
   private SL0Encoder encoder = new SL0Encoder();
 
-  public String encode(Vector v, Ontology o) {
+  public String encode(List v, Ontology o) {
     StringBuffer s = new StringBuffer("(");
     for (int i=0; i<v.size(); i++)
-      s.append(encoder.encode((Frame)v.elementAt(i))+" ");
+      s.append(encoder.encode((Frame)v.get(i))+" ");
    return s.append(")").toString();
   }
 
-  public Vector decode(String s, Ontology o) throws Codec.CodecException {
+  public List decode(String s, Ontology o) throws Codec.CodecException {
     try {
      return parser.parse(s);
     }
