@@ -743,6 +743,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			    // The agent has moved in the meanwhile or the slice may be obsolete 
 			    // => try again
 			}
+			catch(NullPointerException npe) {
+			    // The agent was found in the GADT, but his container has probably 
+					// disappeared in the meanwhile ==> Try again.
+			}
 		    }
 		}
 		else {
@@ -806,9 +810,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			ok = true;
 		}
 		catch(NotFoundException nfe) {
-		    ok = false; // Stale proxy again, maybe the receiver is running around. Try again...
+		    // Stale proxy again, maybe the receiver is running around. Try again...
+		    ok = false; 
 		}
-
+		catch(NullPointerException npe) {
+		    // The agent was found in the GADT, but his container has probably 
+				// disappeared in the meanwhile ==> Try again.
+		    ok = false; 
+		}
 	    } while(!ok);
 	}
 
