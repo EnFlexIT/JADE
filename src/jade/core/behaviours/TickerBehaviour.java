@@ -62,19 +62,22 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	}
 	
 	public final void action() {
-    long blockTime = wakeupTime - System.currentTimeMillis();
-    if (blockTime <= 0) {
-      // Timeout is expired --> execute the user defined action and
-    	// re-initialize wakeupTime
-    	tickCount++;
-    	onTick();
-			wakeupTime = System.currentTimeMillis() + period;
-			blockTime = period;
-    }
-    // Maybe this behaviour has been removed within the onTick() method
-    if (myAgent != null) {
-	    block(blockTime);
-    }
+		// Someone else may have stopped us in the meanwhile
+		if (!finished) {
+	    long blockTime = wakeupTime - System.currentTimeMillis();
+	    if (blockTime <= 0) {
+	      // Timeout is expired --> execute the user defined action and
+	    	// re-initialize wakeupTime
+	    	tickCount++;
+	    	onTick();
+				wakeupTime = System.currentTimeMillis() + period;
+				blockTime = period;
+	    }
+	    // Maybe this behaviour has been removed within the onTick() method
+	    if (myAgent != null) {
+		    block(blockTime);
+	    }
+		}
 	} 
 
 	public final boolean done() {
