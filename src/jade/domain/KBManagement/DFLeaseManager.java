@@ -27,37 +27,29 @@ package jade.domain.KBManagement;
 
 //#MIDP_EXCLUDE_FILE
 
-/**
- * @author Elisabetta Cortese - TILab
- *
- */
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.KBManagement.*;
 
 import java.util.Date;
 
-
+/**
+   This class manages lease times for DF agent description 
+   registrations. By default the policy is to accept whatever 
+   requested lease time. You can change this policy by extending 
+   this class redefining the <code>grantLeaseTime()</code> method
+   and telling the DF to use the extended class. The latter can 
+   be done by specifying the command line option
+   -jade_domain_df_lease-manager <lease manager class>
+   @author Elisabetta Cortese - TILab
+ */
 public class DFLeaseManager implements LeaseManager{
 	
 	public Date getLeaseTime(Object item){
-		if(item instanceof DFAgentDescription){
-			return ((DFAgentDescription) item).getLeaseTime();
-		}
-		else{
-			return DEFAULT_LEASE_TIME;
-		}
+		return ((DFAgentDescription) item).getLeaseTime();
 	}
 	
 	public void setLeaseTime(Object item, Date lease){
-		
-		if(item instanceof DFAgentDescription){
-			if(isValid(lease)){
-				((DFAgentDescription) item).setLeaseTime(lease);
-			}
-			else{
-				((DFAgentDescription) item).setLeaseTime(DEFAULT_LEASE_TIME);
-			}
-		}
+		((DFAgentDescription) item).setLeaseTime(lease);
 	}
 
 	public Object grantLeaseTime(Object item){
@@ -65,11 +57,7 @@ public class DFLeaseManager implements LeaseManager{
 		return item;
 	}
 	
-	public boolean isValid(Date lease){
-		
-		if(lease.getTime() >= System.currentTimeMillis() || lease.getTime() == -1)
-			return true;
-		return false;
+	public boolean isExpired(Date lease){
+		return (lease != null && (lease.getTime() <= System.currentTimeMillis()));
 	}
-
 }

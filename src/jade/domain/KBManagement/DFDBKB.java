@@ -36,6 +36,7 @@ import jade.proto.SubscriptionResponder;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.LinkedList;
+import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 
 
@@ -49,7 +50,7 @@ import java.util.Date;
 /**
  * @author Elisabetta Cortese - TILab
  */
-public class DFDBKB extends DBKB{
+public class DFDBKB extends DBKB {
 
 	private static final String[] tableNemas = {"dfagentdescr","aidaddress","aidresolver","agentprotocol","agentontology", 
 												  "agentlanguage","agentservice", "agentserviceprotocol",
@@ -280,7 +281,7 @@ public class DFDBKB extends DBKB{
 	// 2. deregistra il precedente se c'era
 	// 3. esegue la insert
 	// 4. ritornare null se l'oggetto non esisteva prima altrimenti il vecchio
-  	public Object register(Object name, Object fact) {
+  	public Object insert(Object name, Object fact) {
 		Statement s = null;
 		int insertedRows = 0;
 		// qui dai controlli effettuati dal DFService sono 
@@ -288,15 +289,8 @@ public class DFDBKB extends DBKB{
 		DFAgentDescription dfd = (DFAgentDescription) fact;
 		DFAgentDescription dfdToReturn = null;
 
-		Date leaseCheck = dfd.getLeaseTime();
-		if(!lm.isValid(leaseCheck))
-			dfd.setLeaseTime(lm.DEFAULT_LEASE_TIME);
-
-		AID aidTemp = (AID)deregister(dfd.getName());
-		if(aidTemp != null){
-			dfdToReturn = new DFAgentDescription();
-			dfdToReturn.setName(aidTemp);
-		}
+		dfdToReturn = (DFAgentDescription) deregister(dfd.getName());
+		
 		// a questo punto sono sicura che il dfd non esiste
 		List l = dfdToInsertQueries(dfd);
 		try{
@@ -326,15 +320,17 @@ public class DFDBKB extends DBKB{
 
 	// ritorna la lista delle insert che si devono effettuare 
 	// sulle varie tabelle del db per fare una registrazione
-	public List dfdToInsertQueries(DFAgentDescription dfd){
+	private List dfdToInsertQueries(DFAgentDescription dfd){
 
-		LinkedList listQuery = new LinkedList();
+		ArrayList listQuery = new ArrayList();
 		AID agentAID = dfd.getName();
 		
 		String agentName = agentAID.getName();
 		String query = ""; 
 		
-		query = "INSERT INTO dfagentdescr VALUES ('"+agentName+"', '"+(dfd.getLeaseTime()).getTime()+"')";
+		Date leaseTime = dfd.getLeaseTime();
+		long lt = (leaseTime != null ? leaseTime.getTime() : -1);
+		query = "INSERT INTO dfagentdescr VALUES ('"+agentName+"', '"+lt+"')";
 		listQuery.add(query);
 		
 		Iterator iter = agentAID.getAllAddresses();
@@ -406,7 +402,9 @@ public class DFDBKB extends DBKB{
 	}
 	
 
-	// torna l'AID dell'oggetto cancellato se esisteva
+	// torna l'oggetto cancellato se esisteva
+	// FIXME: Currently it does not return the deleted DFD but an
+	// empty DFD with just the name field set.
   	public Object deregister(Object name) {
 
   		AID agentAID = (AID) name;
@@ -436,11 +434,13 @@ public class DFDBKB extends DBKB{
   		}catch(SQLException se){
   			System.out.println("Deregistration error: "+se.getMessage());
   		}
-		if(cancelled == false){
-			name = null;
-		}
-		
-    	return name;
+  		
+  		DFAgentDescription dfd = null;
+			if(cancelled){
+				dfd = new DFAgentDescription();
+				dfd.setName(agentAID);
+			}
+    	return dfd;
   	}
 
 
@@ -470,10 +470,11 @@ public class DFDBKB extends DBKB{
         		String aidS = rs.getString("aid");
 
 				String sLease = rs.getString("lease");
-		        long leaseRis = Long.parseLong(sLease);
-		        long currentLease = System.currentTimeMillis();
-				// se ancora deve scadere oppure il leaseRis del db e' infinito
-		        if(currentLease < leaseRis || leaseRis == (lm.INFINITE_LEASE_TIME).getTime()){
+		        long lease = Long.parseLong(sLease);
+		        if (!lm.isExpired(lease != -1 ? new Date(lease) : null)) {
+		        //long currentLease = System.currentTimeMillis();
+						// se ancora deve scadere oppure il leaseRis del db e' infinito
+		        //if(currentLease < leaseRis || leaseRis == (lm.INFINITE_LEASE_TIME).getTime()){
 		        	aidList.add(aidS);
 		        	AIDfound++;
 		        }
@@ -515,7 +516,10 @@ public class DFDBKB extends DBKB{
 					aidAg.setName(rs.getString("aid"));
 					dfd.setName(aidAg);
 					String sLease = rs.getString("lease");
-					dfd.setLeaseTime(new Date(Long.parseLong(sLease)));
+					long lease = Long.parseLong(sLease);
+					if (lease != -1) {
+						dfd.setLeaseTime(new Date(lease));
+					}
 				}
 				query = "SELECT address FROM aidaddress WHERE aid='"+aidN+"'";
 				rs = s.executeQuery(query);
@@ -628,11 +632,8 @@ public class DFDBKB extends DBKB{
 		// Da migliorare!!!
 		Date lease = dfdTemplate.getLeaseTime();
 		
-		if(lease.compareTo(lm.INFINITE_LEASE_TIME) != 0){
+		if(lease != null){
 			lW.add(" dfagentdescr.lease > '"+lease.getTime()+"'");
-		}
-		if(lease.compareTo(lm.INFINITE_LEASE_TIME) ==0){
-//			lW.add(" dfagentdescr.lease = '"+lease.getTime()+"'");
 		}
 		Iterator iter = dfdTemplate.getAllLanguages();
 		int i=0;

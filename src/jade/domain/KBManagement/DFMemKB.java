@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.Date;
 
 import jade.util.leap.Iterator;
+import jade.util.leap.ArrayList;
 
 import jade.proto.SubscriptionResponder;
 import jade.core.AID;
@@ -64,22 +65,21 @@ public class DFMemKB extends MemKB{
 	}
 
 	
-	// clean
-	//1. scorre tutta la hash
-	//2. per ogni entry controlla il lease
-	//3. per quelli scaduti li cancella dalla HashMap
+	/**
+	   Scan the facts and remove those whose lease time has expired.
+	 */
 	protected void clean(){
+		ArrayList toBeRemoved = new ArrayList();
 		Iterator iter = facts.values().iterator();		
 		while(iter.hasNext()){
 			DFAgentDescription dfd = (DFAgentDescription) iter.next();
-			long leaseR = dfd.getRemainingLeaseTime();
-			Date lease = dfd.getLeaseTime();
-			long leaseLong = lease.getTime();
-//			if(leaseR < 0 && lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 ){
-			if(leaseR < 0 && leaseLong != (lm.INFINITE_LEASE_TIME).getTime() ){
-				AID aidToClean = dfd.getName();
-				facts.remove(aidToClean);
+			if(dfd.checkLeaseTimeExpired()) {
+				toBeRemoved.add(dfd.getName());
 			}
+		}
+		iter = toBeRemoved.iterator();
+		while (iter.hasNext()) {
+			facts.remove((AID) iter.next());
 		}
 	}
 
@@ -89,6 +89,10 @@ public class DFMemKB extends MemKB{
 		try {
 		  DFAgentDescription templateDesc = (DFAgentDescription)template;
 		  DFAgentDescription factDesc = (DFAgentDescription)fact;
+	    // We must not return facts whose lease time has expired (no 
+		  // matter if they match)
+		  if(factDesc.checkLeaseTimeExpired())
+		  	return false;
 		  
 		  // Match name
 		  AID id1 = templateDesc.getName();
@@ -97,14 +101,6 @@ public class DFMemKB extends MemKB{
 		    if((id2 == null) || (!matchAID(id1, id2)))
 		      return false;
 		  }
-		  // Match lease ritorno false se il lease e' scaduto
-		  Date lease = factDesc.getLeaseTime();	
-		  long leaseLong = lease.getTime();
-		  long leaseR = factDesc.getRemainingLeaseTime();
-		  
-//	    if(lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 && leaseR < 0)
-	    if(leaseLong != (lm.INFINITE_LEASE_TIME).getTime() && leaseR < 0)
-		      return false;
 	
 		  // Match protocol set
 		  Iterator itTemplate = templateDesc.getAllProtocols();
@@ -201,191 +197,5 @@ public class DFMemKB extends MemKB{
 		
 		long endTime = System.currentTimeMillis();
 		System.out.println("Registration time Mem: "+(endTime-startTime));
-
-//		// CREO IL DFD
-//	    for(int i = 0; i<5000; i++){
-//		    DFAgentDescription dfd = new DFAgentDescription();
-//			AID aidAgent;
-//		    ServiceDescription sd = new ServiceDescription();
-//		    aidAgent = new AID("rosalba@napoli.it"+i, true);
-//		    aidAgent.addAddresses("http://cit.it");
-//		    dfd.setName(aidAgent);
-//		    dfd.setLease(System.currentTimeMillis()+(600000*24));
-//		    dfd.addLanguages("potentino");
-//		    dfd.addLanguages("kif");
-//		    dfd.addProtocols("tlc-application-protocol");
-//		    sd.setName("wireless");
-//		    sd.setType("web-services");
-//		    sd.setOwnership("Free");
-//		    sd.addLanguages("SQL");
-//		    sd.addProtocols("FIPA-REQUEST");
-//		    dfd.addServices(sd);
-//		   	// REGISTRO
-//		    db.register("rosalba@napoli.it"+i, dfd);
-//	    }
-// 		System.out.println("FINITO");
-//
-//	    for(int i = 5000; i<10000; i++){
-//		    DFAgentDescription dfd = new DFAgentDescription();
-//		    AID aidAgent1 = new AID("filippo@lecce.com"+i, true);
-//		    aidAgent1.addAddresses("http://lecce.com");
-//		    dfd.setName(aidAgent1);
-//		    dfd.setLease(System.currentTimeMillis()+(60000*30));
-//		    dfd.addLanguages("kif");
-//		    dfd.addLanguages("pugliese");
-//		    ServiceDescription sd= new ServiceDescription();
-//		    sd.setType("seller");
-//		    dfd.addServices(sd);
-//			
-//			db.register("filippo@lecce.com"+i, dfd);
-// 		}
-// 		System.out.println("FINITO");
-//		
-//
-//	    for(int i = 10000; i<20000; i++){
-//		    DFAgentDescription dfd = new DFAgentDescription();
-//		    AID aidAgent2 = new AID("Lisa@napoli.it"+i, true);
-//		    dfd.setName(aidAgent2);
-//		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-//		    dfd.addProtocols("FIPA-REQUEST");
-//		    dfd.addLanguages("napoletano");
-//		    dfd.addLanguages("kif");
-//		    ServiceDescription sd= new ServiceDescription();
-//		    sd.setName("pizzaiola");
-//		    sd.setType("food");
-//		    dfd.addServices(sd);
-//			
-//			db.register("lisa@napoli.it"+i,dfd);
-// 		}
-// 		System.out.println("FINITO");
-////
-////
-//	    for(int i = 20000; i<30000; i++){
-//		    DFAgentDescription dfd = new DFAgentDescription();
-//		    AID aidAgent2 = new AID("infinito@napoli.it"+i, true);
-//		    dfd.setName(aidAgent2);
-//		    dfd.setLease(-1);
-//		    dfd.addLanguages("SQL");
-//		    dfd.addLanguages("kif");
-//			db.register("infinito@napoli.it"+i,dfd);
-// 		}
-// 		System.out.println("FINITO");
-//
-//// 		
-////	    for(int i = 20000; i<40000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("giosue@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-////		    dfd.addProtocols("FIPA-REQUEST");
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("kif");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setName("pizzaiola");
-////		    sd.setType("food");
-////		    dfd.addServices(sd);
-////			
-////			db.register("giosue@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO ");
-////
-////	    for(int i =40000; i<60000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent1 = new AID("roberto@ariano.com"+i, true);
-////		    dfd.setName(aidAgent1);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*20));
-////		    dfd.addLanguages("kif");
-////		    dfd.addLanguages("SQL");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setType("seller");
-////		    dfd.addServices(sd);
-////			
-////			db.register("roberto@ariano.com"+i, dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-////
-////	    for(int i =60000; i<80000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent1 = new AID("maurizio@napoli.com"+i, true);
-////		    dfd.setName(aidAgent1);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*10));
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("SQL");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setType("seller");
-////		    dfd.addServices(sd);
-////			
-////			db.register("maurizio@napoli.com"+i, dfd);
-//// 		}
-//// 		System.out.println("FINITO 80000");
-//////
-//
-//
-////	    for(int i = 0; i<100; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("Lisa@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-////		    dfd.addProtocols("FIPA-REQUEST");
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("kif");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setName("pizzaiola");
-////		    sd.setType("food");
-////		    dfd.addServices(sd);
-////			
-////			db.register("lisa@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-//
-//
-//////
-//////		// SEARCH
-////		DFAgentDescription dfdTempalete = new DFAgentDescription();
-////		dfdTempalete.addOntologies("meeting-scheduler");
-////		dfdTempalete.addLanguages("fipa-sl0");
-////		dfdTempalete.addLanguages("kif");
-////		ServiceDescription sdT = new ServiceDescription();
-////		sdT.setName("profiling");
-////		sdT.setType("user-profiling");
-////		dfdTempalete.addServices(sdT);
-////		
-////		db.search(dfdTempalete);
-//
-//		DFAgentDescription dfdT = new DFAgentDescription();
-//		dfdT.addLanguages("napoletano");
-//		db.search(dfdT);
-//
-//
-//		long endTime = System.currentTimeMillis();
-//		
-//		System.out.println("TEMPO IMPIEGATO: "+(endTime-startTime));
-//
-//
-////		DFAgentDescription dfdT2 = new DFAgentDescription();
-////		dfdT2.addLanguages("fipa-sl0");
-////		dfdT2.addLanguages("kif");
-////		ServiceDescription sdT2 = new ServiceDescription();
-////		sdT2.addLanguages("SQL");
-////		dfdT2.addServices(sdT2);
-////		
-////		db.search(dfdT2);
-//
-////		DFAgentDescription dfdT = new DFAgentDescription();
-////		dfdT.addLanguages("napoletano");
-////		//dfdT.setLease(System.currentTimeMillis());		
-////		db.search(dfdT);
-//
-//	    //System.out.println("Effattuata registrazione! ");
-//		//DEREGISTRO		
-////		for(int i =0; i<1001; i++)
-////		    db.deregister(new AID("rosalba@napoli.it"+i, true));
-////	    db.deregister(aidAgent1);
-////	    db.deregister(aidAgent2);
-////	    System.out.println("Effattuata deregistrazione! ");
-
   }
-
-
-
 }

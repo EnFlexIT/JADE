@@ -35,12 +35,11 @@ import java.util.Date;
  */
 public interface LeaseManager {
 	
-	final static Date INFINITE_LEASE_TIME = new Date(-1);
-	final static Date DEFAULT_LEASE_TIME = INFINITE_LEASE_TIME;
+	//final static Date INFINITE_LEASE_TIME = new Date(-1);
+	//final static Date DEFAULT_LEASE_TIME = INFINITE_LEASE_TIME;
 
 	Date getLeaseTime(Object item);
 	void setLeaseTime(Object item, Date lease);
-	boolean isValid(Date lease);
 	Object grantLeaseTime(Object item);
-	
+	boolean isExpired(Date lease);
 }

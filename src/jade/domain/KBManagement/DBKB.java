@@ -43,7 +43,7 @@ import jade.proto.SubscriptionResponder;
  * 
  * @author Elisabetta Cortese (TiLab S.p.A.)
  */
-abstract class DBKB implements KB {
+abstract class DBKB extends KB {
 	
 	// il database e' generico per JADE, ora viene usato solo dal
 	// DF ma in futuro potra' essere usato anche dall'AMS
@@ -53,8 +53,8 @@ abstract class DBKB implements KB {
 	private String driver = "sun.jdbc.odbc.JdbcOdbcDriver";
 	protected Connection conn = null;
 
-	protected LeaseManager lm;
-	protected SubscriptionResponder sr;
+	//protected LeaseManager lm;
+	//protected SubscriptionResponder sr;
 	
 	// se il driver  l'indirizzo sono stati
 	// forniti in input alla piattaforma usa 
@@ -103,11 +103,11 @@ abstract class DBKB implements KB {
 	protected void setup() throws SQLException {
 	}
 	
-	public void setSubscriptionResponder(SubscriptionResponder sResp){
+	/*public void setSubscriptionResponder(SubscriptionResponder sResp){
 		sr = sResp;
 	}
 	
 	public void setLeaseManager(LeaseManager leaseMng){
 		lm = leaseMng;
-	}
+	}*/
 }

@@ -42,17 +42,39 @@ import java.util.Enumeration;
  */
 
 
-/** Interface for AMS and DF Knowledge Base*/
-public interface KB {
-	Object register(Object name, Object fact);
-	Object deregister(Object name);
-	List search(Object template);
+/** Base class for AMS and DF Knowledge Base*/
+public abstract class KB {
+	protected LeaseManager lm;
+	protected SubscriptionResponder sr;
+	
+	public void setSubscriptionResponder(SubscriptionResponder sResp){
+		sr = sResp;
+	}
+	
+	public void setLeaseManager(LeaseManager leaseMng){
+		lm = leaseMng;
+	}
+
+	public Object register(Object name, Object fact) {
+		// We don't want to register a fact whose lease time has 
+		// already expired
+		if (lm.isExpired(lm.getLeaseTime(fact))) {
+			System.out.println("Fact with lease time already expired");
+			return null;
+		}
+		
+		// Now apply lease manager policy on requested lease time.
+		lm.grantLeaseTime(fact);
+
+		return insert(name, fact);
+	}
+	
+	public abstract Object deregister(Object name);
+	public abstract List search(Object template);
 	 
-	void setLeaseManager(LeaseManager lm);
+	protected abstract Object insert(Object name, Object fact);
 	  
-	void setSubscriptionResponder(SubscriptionResponder sr);
-	  
-	void subscribe(Object aclMessage, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
-	Enumeration getSubscriptions();
-	void unsubscribe(SubscriptionResponder.Subscription sub);
+	public abstract void subscribe(Object aclMessage, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
+	public abstract Enumeration getSubscriptions();
+	public abstract void unsubscribe(SubscriptionResponder.Subscription sub);
 }

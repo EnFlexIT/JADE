@@ -34,6 +34,7 @@ import java.util.Vector;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
 
@@ -52,7 +53,7 @@ import jade.core.AID;
  *
  */
 /** Common base class for AMS and DF Knowledge Base*/
-abstract class MemKB implements KB {
+abstract class MemKB extends KB {
 
 	protected Map facts = new HashMap();
 	protected Hashtable subscriptions = new Hashtable();
@@ -68,7 +69,7 @@ abstract class MemKB implements KB {
 		
 	}
 	
-	public Object register(Object name, Object fact) {
+	protected Object insert(Object name, Object fact) {
 		currentReg ++;
 		if(currentReg > MAX_REGISTER_WITHOUT_CLEAN){
 			clean();
@@ -88,7 +89,7 @@ abstract class MemKB implements KB {
 	protected abstract void clean();
 	
 	public List search(Object template) {
-		List result = new LinkedList();
+		List result = new ArrayList();
 	    Iterator it = facts.values().iterator();
 		int found = 0;
 	    while(it.hasNext() && found < RESULT_TO_RETURN) {
@@ -158,13 +159,13 @@ abstract class MemKB implements KB {
 		}
 	}
 	
-	public void setSubscriptionResponder(SubscriptionResponder sResp){
+	/*public void setSubscriptionResponder(SubscriptionResponder sResp){
 		sr = sResp;
 	}
 	
 	public void setLeaseManager(LeaseManager leaseMng){
 		lm = leaseMng;
-	}
+	}*/
 
 	
 	// Helper method to match two Agent Identifiers
