@@ -65,6 +65,7 @@ public interface MainContainer {
 //__SECURITY__BEGIN
     void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException;
     DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException;
+    byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;

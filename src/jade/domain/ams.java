@@ -1,7 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 The updating of this file to JADE 2.0 has been partially supported by the IST-1999-10211 LEAP Project
 
@@ -9,8 +9,8 @@ GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -84,7 +84,7 @@ import jade.security.AuthException;
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
 
-  
+
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
@@ -96,7 +96,7 @@ public class ams extends Agent implements AgentManager.Listener {
       extends FipaRequestResponderBehaviour.ActionHandler
       implements FipaRequestResponderBehaviour.Factory {
 
-	
+
     protected AMSBehaviour(ACLMessage req) {
       super(ams.this,req);
     }
@@ -108,7 +108,7 @@ public class ams extends Agent implements AgentManager.Listener {
      * @return a String with the content ready to be set into the message
      **/
     protected String createAgreeContent(Action a) {
-	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
+	ACLMessage temp = new ACLMessage(ACLMessage.AGREE);
 	temp.setLanguage(getRequest().getLanguage());
 	temp.setOntology(getRequest().getOntology());
 	List l = new ArrayList(2);
@@ -213,154 +213,151 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of AMSBehaviour class
 
 
-  // These four concrete classes serve both as a Factory and as an
-  // Action: when seen as Factory they can spawn a new
-  // Behaviour to process a given request, and when seen as
-  // Action they process their request and terminate.
+	// These four concrete classes serve both as a Factory and as an
+	// Action: when seen as Factory they can spawn a new
+	// Behaviour to process a given request, and when seen as
+	// Action they process their request and terminate.
 
-  private class RegBehaviour extends AMSBehaviour {
+	private class RegBehaviour extends AMSBehaviour {
+		public RegBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new RegBehaviour(msg);
+		}
 
-    public RegBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new RegBehaviour(msg);
-    }
+		protected void processAction(Action a) throws FIPAException, AuthException {
+			Register r = (Register)a.getAction();
+			AMSAgentDescription amsd = (AMSAgentDescription)r.get_0();
 
-    protected void processAction(Action a) throws FIPAException, AuthException {
-      Register r = (Register)a.getAction();
-      AMSAgentDescription amsd = (AMSAgentDescription)r.get_0();
+			// This agent was created by some other, which is still
+			// waiting for an 'inform' message. Recover the buffered
+			// message from the Map and send it back.
+			CreationInfo creation = (CreationInfo)pendingInforms.remove(amsd.getName());
+			// The message in pendingInforms can be registered with only the localName
+			// without the platformID
+			if (creation == null) {
+				String name = amsd.getName().getName();
+				int atPos = name.lastIndexOf('@');
+				if (atPos > 0) {
+					name = name.substring(0, atPos);
+					creation = (CreationInfo)pendingInforms.remove(name);
+				}
+			}
 
-      // This agent was created by some other, which is still
-      // waiting for an 'inform' message. Recover the buffered
-      // message from the Map and send it back.
-      ACLMessage informCreator = (ACLMessage)pendingInforms.remove(amsd.getName());
+			try {
+				// Write new agent data in AMS Agent Table
+				AMSRegister(amsd, getRequest().getSender(), creation);
+				sendReply(ACLMessage.AGREE, createAgreeContent(a));
+				sendReply(ACLMessage.INFORM, doneAction(a));
+				// Inform agent creator that registration was successful.
+				if (creation !=  null) {
+					send(creation.getReply());
+				}
+			}
+			catch (AlreadyRegistered are) {
+				sendReply(ACLMessage.AGREE, createAgreeContent(a));
+				String ontoName = getRequest().getOntology();
+				sendReply(ACLMessage.FAILURE, createExceptionalMsgContent(a, ontoName, are));
+				// Inform agent creator that registration failed.
+				if (creation != null) {
+					ACLMessage creationReply = creation.getReply();
+					creationReply.setPerformative(ACLMessage.FAILURE);
+					creationReply.setContent(createExceptionalMsgContent(a, ontoName, are));
+					send(creationReply);
+				}
+			}
+		}
 
-      //The message in pendingInforms can be registered with only the localName 
-      //without the platformID
-      if(informCreator == null) {
-	String name = amsd.getName().getName();
-	int atPos = name.lastIndexOf('@');
-	if(atPos > 0) {
-	  name = name.substring(0, atPos);
-	  informCreator = (ACLMessage)pendingInforms.remove(name);
-	}
-      }
+	} // End of RegBehaviour class
 
-      try {
-	// Write new agent data in AMS Agent Table
-	AMSRegister(amsd);
-	sendReply(ACLMessage.AGREE,createAgreeContent(a));
-	sendReply(ACLMessage.INFORM, doneAction(a));
+	private class DeregBehaviour extends AMSBehaviour {
+		public DeregBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new DeregBehaviour(msg);
+		}
 
-	// Inform agent creator that registration was successful.
-	if(informCreator !=  null) {
-	  send(informCreator);
-	}
-      }
-      catch(AlreadyRegistered are) {
-	sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	String ontoName = getRequest().getOntology();
-	sendReply(ACLMessage.FAILURE,createExceptionalMsgContent(a, ontoName, are));
-	// Inform agent creator that registration failed.
-	if(informCreator != null) {
-	  informCreator.setPerformative(ACLMessage.FAILURE);
-	  informCreator.setContent(createExceptionalMsgContent(a, ontoName, are));
-	  send(informCreator);
-	}
-      }
-    }
+		protected void processAction(Action a) throws FIPAException, AuthException {
+			Deregister d = (Deregister)a.getAction();
+			AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
+			AMSDeregister(amsd, getRequest().getSender());
+			sendReply(ACLMessage.AGREE, createAgreeContent(a));
+			sendReply(ACLMessage.INFORM,doneAction(a));
+		}
 
-  } // End of RegBehaviour class
+	} // End of DeregBehaviour class
 
-  private class DeregBehaviour extends AMSBehaviour {
-    public DeregBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new DeregBehaviour(msg);
-    }
+	private class ModBehaviour extends AMSBehaviour {
+		public ModBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new ModBehaviour(msg);
+		}
 
-    protected void processAction(Action a) throws FIPAException {
-      Deregister d = (Deregister)a.getAction();
-      AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
-      AMSDeregister(amsd);
-      sendReply(ACLMessage.AGREE, createAgreeContent(a));
-      sendReply(ACLMessage.INFORM,doneAction(a));
-    }
+		protected void processAction(Action a) throws FIPAException, AuthException {
+			Modify m = (Modify)a.getAction();
+			AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
+			AMSModify(amsd, getRequest().getSender());
+			sendReply(ACLMessage.AGREE, createAgreeContent(a));
+			sendReply(ACLMessage.INFORM,doneAction(a));
+		}
 
-  } // End of DeregBehaviour class
+	} // End of ModBehaviour class
 
-  private class ModBehaviour extends AMSBehaviour {
-    public ModBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new ModBehaviour(msg);
-    }
+	private class SrchBehaviour extends AMSBehaviour {
+		public SrchBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new SrchBehaviour(msg);
+		}
 
-    protected void processAction(Action a) throws FIPAException, AuthException {
-      Modify m = (Modify)a.getAction();
-      AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
-      AMSModify(amsd);
-      sendReply(ACLMessage.AGREE, createAgreeContent(a));
-      sendReply(ACLMessage.INFORM,doneAction(a));
-    }
+		protected void processAction(Action a) throws FIPAException, AuthException {
+			Search s = (Search)a.getAction();
+			AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
+			SearchConstraints constraints = s.get_1();
+			List l = AMSSearch(amsd, constraints, getReply(), getRequest().getSender());
+			sendReply(ACLMessage.AGREE,createAgreeContent(a));
+			ACLMessage msg = getRequest().createReply();
+			msg.setPerformative(ACLMessage.INFORM);
+			ResultPredicate r = new ResultPredicate();
+			r.set_0(a);
+			for (int i=0; i<l.size(); i++)
+				r.add_1(l.get(i));
+			l.clear();
+			l.add(r);
+			fillMsgContent(msg,l);
+			send(msg);
+		}
 
-  } // End of ModBehaviour class
+	} // End of SrchBehaviour class
 
-  private class SrchBehaviour extends AMSBehaviour {
-    public SrchBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new SrchBehaviour(msg);
-    }
+	private class GetDescriptionBehaviour extends AMSBehaviour {
+		public GetDescriptionBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new GetDescriptionBehaviour(msg);
+		}
 
-    protected void processAction(Action a) throws FIPAException {
-      Search s = (Search)a.getAction();
-      AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
-      SearchConstraints constraints = s.get_1();
-      List l = AMSSearch(amsd, constraints, getReply());
-      sendReply(ACLMessage.AGREE,createAgreeContent(a));
-      ACLMessage msg = getRequest().createReply();
-      msg.setPerformative(ACLMessage.INFORM);
-      ResultPredicate r = new ResultPredicate();
-      r.set_0(a);
-      for (int i=0; i<l.size(); i++)
-      	r.add_1(l.get(i));
-      l.clear();
-      l.add(r);
-      fillMsgContent(msg,l); 
-      send(msg);
-    }
+		protected void processAction(Action a) throws FIPAException {
+			sendReply(ACLMessage.AGREE, createAgreeContent(a));
+			ACLMessage reply = getReply();
+			reply.setPerformative(ACLMessage.INFORM);
+			List l = new ArrayList(1);
+			ResultPredicate rp = new ResultPredicate();
+			rp.set_0(a);
+			rp.add_1(theProfile);
+			ArrayList list = new ArrayList(1);
+			list.add(rp);
+			fillMsgContent(reply, list);
+			send(reply);
+		}
 
-  } // End of SrchBehaviour class
-
-  private class GetDescriptionBehaviour extends AMSBehaviour {
-    public GetDescriptionBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new GetDescriptionBehaviour(msg);
-    }
-
-    protected void processAction(Action a) throws FIPAException {
-
-      sendReply(ACLMessage.AGREE, createAgreeContent(a));
-      ACLMessage reply = getReply();
-      reply.setPerformative(ACLMessage.INFORM);
-      List l = new ArrayList(1);
-      ResultPredicate rp = new ResultPredicate();
-      rp.set_0(a);
-      rp.add_1(theProfile);
-      ArrayList list = new ArrayList(1);
-      list.add(rp);
-      fillMsgContent(reply,list);
-      send(reply);
-    }
-
-  } // End of GetDescriptionBehaviour class
+	} // End of GetDescriptionBehaviour class
 
 
   // These Behaviours handle interactions with platform tools.
@@ -444,20 +441,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	  }
 
 	  // Send all agent principals.
-	  for(int i = 0; i < agents.length; i++) {
+	  for (int i = 0; i < agents.length; i++) {
 
 	    AID agentName = agents[i];
 	    ContainerID cid = myPlatform.getContainerID(agentName);
 
-      // Let's find the agent principal
-      AMSAgentDescription amsd = new AMSAgentDescription();
-      amsd.setName(agentName);
-      amsd = (AMSAgentDescription)agentDescriptions.search(amsd).get(0);
-    
 	    ChangedAgentOwnership cao = new ChangedAgentOwnership();
 	    cao.setAgent(agentName);
 	    cao.setFrom(AgentPrincipal.NONE);
-	    cao.setTo(amsd.getOwnership());
+	    cao.setTo(getAgentOwnership(agentName));
 	    cao.setWhere(cid);
 
 	    EventRecord er = new EventRecord(cao, here());
@@ -494,22 +486,22 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    send(toolNotification);
 	  }
-	  
+
 	  //Notification to the RMA of the APDescription
 	   PlatformDescription ap = new PlatformDescription();
 	   ap.setPlatform(theProfile);
-	   
+
 	   EventRecord er = new EventRecord(ap,here());
 	   Occurred o = new Occurred();
 	   o.set_0(er);
-	   
+
 	   List l = new ArrayList(1);
 	   l.add(o);
 	   toolNotification.clearAllReceiver();
 	   toolNotification.addReceiver(newTool);
 	   fillMsgContent(toolNotification, l);
 	   send(toolNotification);
-	 
+
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
 
@@ -555,7 +547,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// Remove this tool to tools agent group.
 	tools.remove(current.getSender());
-        
+
       }
       else
 	block();
@@ -592,7 +584,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  // Put all tools in the receiver list
 	  toolNotification.clearAllReceiver();
 	  Iterator toolIt = tools.iterator();
-          
+
 	  while(toolIt.hasNext()) {
 	    AID tool = (AID)toolIt.next();
 	    toolNotification.addReceiver(tool);
@@ -628,49 +620,89 @@ public class ams extends Agent implements AgentManager.Listener {
 
   } // End of KillContainerBehaviour class
 
-  private class CreateBehaviour extends AMSBehaviour {
-    public CreateBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new CreateBehaviour(msg);
-    }
+	private class CreateBehaviour extends AMSBehaviour {
+		public CreateBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+			return new CreateBehaviour(msg);
+		}
 
-    protected void processAction(Action a) throws FIPAException, AuthException {
-      CreateAgent ca = (CreateAgent)a.get_1();
+		protected void processAction(Action a) throws FIPAException, AuthException {
+			CreateAgent ca = (CreateAgent)a.get_1();
 
-      String agentName = ca.getAgentName();
-      String className = ca.getClassName();
-      ContainerID container = ca.getContainer();
-      Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
-      //create the array of string
-      ArrayList listArg = new ArrayList();
-      while(arg.hasNext())
-       	listArg.add(arg.next().toString());
-      String[] arguments = new String[listArg.size()];
-      for(int n = 0; n< listArg.size(); n++)
-       	arguments[n] = (String)listArg.get(n);
+			String agentName = ca.getAgentName();
+			String className = ca.getClassName();
+			ContainerID container = ca.getContainer();
+			Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
+			//create the array of string
+			ArrayList listArg = new ArrayList();
+			while(arg.hasNext())
+				listArg.add(arg.next().toString());
+			String[] arguments = new String[listArg.size()];
+			for(int n = 0; n< listArg.size(); n++)
+				arguments[n] = (String)listArg.get(n);
 
-      sendReply(ACLMessage.AGREE, createAgreeContent(a));
+			String ownership = UserPrincipal.NONE;
+			AID creator = getRequest().getSender();
+			ownership = getAgentOwnership(creator);
 
-      try {
-	myPlatform.create(agentName, className, arguments, container, jade.security.JADEPrincipal.NONE); //!!!
-	// An 'inform Done' message will be sent to the requester only
-	// when the newly created agent will register itself with the
-	// AMS. The new agent's name will be used as the key in the map.
-	ACLMessage reply = getReply();
-	reply = (ACLMessage)reply.clone();
-	reply.setPerformative(ACLMessage.INFORM);
-	reply.setContent(doneAction(a));
+			Authority authority = getAuthority();
+			UserPrincipal user = authority.createUserPrincipal();
+			user.init(ownership);
+			AgentPrincipal agent = authority.createAgentPrincipal();
+			agent.init(new AID(agentName, AID.ISGUID), user);
 
-	pendingInforms.put(agentName, reply);
-      }
-      catch(UnreachableException ue) {
-	  throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage()); 
-      }
-    }
+			IdentityCertificate identity = authority.createIdentityCertificate();
+			if (identity != null) {
+				identity.setSubject(agent);
+				authority.sign(identity, getIdentity(), new DelegationCertificate[] {getDelegation()});
+			}
 
-  } // End of CreateBehaviour class
+			DelegationCertificate delegation = authority.createDelegationCertificate();
+			if (delegation != null) {
+				if (ca.getDelegation() != null) {
+					delegation.decode(ca.getDelegation());
+				}
+				else {
+					DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator);
+					delegation.setSubject(agent);
+					if (creatorDelegation != null)
+						for (Iterator i = creatorDelegation.getPermissions().iterator(); i.hasNext(); )
+							delegation.addPermission(i.next());
+					authority.sign(delegation, getIdentity(), new DelegationCertificate[] {creatorDelegation});
+				}
+			}
+
+			sendReply(ACLMessage.AGREE, createAgreeContent(a));
+
+			try {
+				authority.checkAction(Authority.AGENT_CREATE, agent, getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(creator)});
+
+				myPlatform.create(agentName, className, arguments, container, ownership);
+				// An 'inform Done' message will be sent to the requester only
+				// when the newly created agent will register itself with the
+				// AMS. The new agent's name will be used as the key in the map.
+				ACLMessage reply = getReply();
+				reply = (ACLMessage)reply.clone();
+				reply.setPerformative(ACLMessage.INFORM);
+				reply.setContent(doneAction(a));
+
+				pendingInforms.put(agentName, new CreationInfo(getRequest(), reply, ownership, identity, delegation));
+			}
+			catch(UnreachableException ue) {
+				throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
+			}
+			catch(AuthException ae) {
+				ACLMessage failure = getReply();
+				failure.setPerformative(ACLMessage.FAILURE);
+				failure.setContent(createExceptionalMsgContent(a, getRequest().getOntology(), new FIPAException(ae.getMessage())));
+				send(failure);
+			}
+
+		}
+
+	} // End of CreateBehaviour class
 
   private class KillBehaviour extends AMSBehaviour {
     public KillBehaviour(ACLMessage msg) {
@@ -703,7 +735,7 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of KillBehaviour class
 
 
-  private class SniffAgentOnBehaviour extends AMSBehaviour { 
+  private class SniffAgentOnBehaviour extends AMSBehaviour {
     public SniffAgentOnBehaviour(ACLMessage msg) {
       super(msg);
     }
@@ -754,7 +786,7 @@ public class ams extends Agent implements AgentManager.Listener {
   } // End of SniffAgentOffBehaviour class
 
 
-  private class DebugAgentOnBehaviour extends AMSBehaviour { 
+  private class DebugAgentOnBehaviour extends AMSBehaviour {
     public DebugAgentOnBehaviour(ACLMessage msg) {
       super(msg);
     }
@@ -864,7 +896,44 @@ public class ams extends Agent implements AgentManager.Listener {
 
 
 
-  // The AgentPlatform where information about agents is stored 
+	private class CreationInfo {
+		private ACLMessage request;
+		private ACLMessage reply;
+		private String ownership;
+		private IdentityCertificate identity;
+		private DelegationCertificate delegation;
+
+		public CreationInfo(ACLMessage request, ACLMessage reply, String ownership, IdentityCertificate identity, DelegationCertificate delegation) {
+			this.request = request;
+			this.reply = reply;
+			this.ownership = ownership;
+			this.identity = identity;
+			this.delegation = delegation;
+		}
+
+		public ACLMessage getRequest() {
+			return request;
+		}
+
+		public ACLMessage getReply() {
+			return reply;
+		}
+
+		public String getOwnership() {
+			return ownership;
+		}
+
+		public IdentityCertificate getIdentity() {
+			return identity;
+		}
+
+		public DelegationCertificate getDelegation() {
+			return delegation;
+		}
+
+	}
+
+  // The AgentPlatform where information about agents is stored
   /**
   @serial
   */
@@ -960,12 +1029,12 @@ public class ams extends Agent implements AgentManager.Listener {
     myPlatform = ap;
     myPlatform.addListener(this);
 
-    MessageTemplate mtFIPA = 
+    MessageTemplate mtFIPA =
       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			  MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
     dispatcher = new FipaRequestResponderBehaviour(this, mtFIPA);
 
-    MessageTemplate mtJADE = 
+    MessageTemplate mtJADE =
       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			  MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME));
     extensionsDispatcher = new FipaRequestResponderBehaviour(this, mtJADE);
@@ -1014,14 +1083,14 @@ public class ams extends Agent implements AgentManager.Listener {
     theProfile.setName("\"" + getHap() + "\"");
     writeAPDescription();
 
-    // Register the supported ontologies 
+    // Register the supported ontologies
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
     registerOntology(JADEIntrospectionOntology.NAME, JADEIntrospectionOntology.instance());
     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
 
     // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());	
+    registerLanguage(SL0Codec.NAME, new SL0Codec());
 
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction with 'fipa-agent-management' ontology.
@@ -1041,19 +1110,19 @@ public class ams extends Agent implements AgentManager.Listener {
     addBehaviour(notifyTools);
 
   }
-	
+
 	public Authority getAuthority() {
 		return myPlatform.getAuthority();
 	}
-	
-	public void addDelegation(AID agentID, DelegationCertificate delegation) {
+
+	public void setDelegation(AID agentID, DelegationCertificate delegation) {
 		delegations.put(agentID, delegation);
 	}
 
   /**
   * checks that all the mandatory slots for a register/modify/deregister action
   * are present.
-  * @param actionName is the name of the action (one of 
+  * @param actionName is the name of the action (one of
   * <code>FIPAAgentManagementOntology.REGISTER</code>,
   * <code>FIPAAgentManagementOntology.MODIFY</code>,
   * <code>FIPAAgentManagementOntology.DEREGISTER</code>)
@@ -1079,7 +1148,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
       }
   }
-  
+
   /**
      @serial
    */
@@ -1118,166 +1187,230 @@ public class ams extends Agent implements AgentManager.Listener {
       }
     };
 
-  /** it is called also by Agent.java **/
-  public void AMSRegister(AMSAgentDescription amsd) throws FIPAException, AuthException {
-    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
-    AID id = amsd.getName();
-    AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(id);
-    if (old != null) {
-      agentDescriptions.register(id, old);
-      throw new NotRegistered();
-    }
+	/** it is called also by Agent.java **/
+	public void AMSRegister(AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
+		checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
+		if (old != null) {
+			agentDescriptions.register(amsd.getName(), old);
+			throw new AlreadyRegistered();
+		}
 
-    String[] addresses = myPlatform.platformAddresses();
-    for(int i = 0; i < addresses.length; i++)
-      id.addAddresses(addresses[i]);
+		old = new AMSAgentDescription();
+		old.setName(amsd.getName());
+		old.setState(old.ACTIVE);
+		if (creation != null)
+			old.setOwnership(creation.getOwnership());
+		else
+			old.setOwnership(UserPrincipal.NONE);
 
-    try {
-    	Authority authority = getAuthority();
+		String[] addresses = myPlatform.platformAddresses();
+		for (int i = 0; i < addresses.length; i++)
+			old.getName().addAddresses(addresses[i]);
 
-      String ownership = amsd.getOwnership();
-      if (ownership != null) {
-	  UserPrincipal user = null;
-	  byte[] word = null;
-	  int dot2 = ownership.indexOf(':');
-	  if (dot2 != -1) {
-	      user = authority.createUserPrincipal();
-	      user.init(ownership.substring(0, dot2));
-	      word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-	  }
-	  else {
-	      user = authority.createUserPrincipal();
-	      user.init(ownership);
-	      word = new byte[] {};
-	  }
+		AMSModify(Authority.AMS_REGISTER, old, amsd, sender, creation);
+	}
 
-	  IdentityCertificate identity = authority.createIdentityCertificate();
-	  DelegationCertificate delegation = authority.createDelegationCertificate();
-	  if (identity != null && delegation != null) {
-	      AgentPrincipal ap = authority.createAgentPrincipal();
-	      ap.init(id, user);
-	      identity.setSubject(ap);
-	      delegation.setSubject(ap);
-	      authority.authenticateUser(identity, delegation, word);
+	/** it is called also by Agent.java **/
+	public void AMSDeregister(AMSAgentDescription amsd, AID sender) throws FIPAException, AuthException {
+		checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
+		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
+		if (old == null)
+			throw new NotRegistered();
+		AMSModify(Authority.AMS_DEREGISTER, old, amsd, sender, null);
+	}
 
-	      myPlatform.changeAgentPrincipal(id, identity, delegation);
-	    }
+	private void AMSModify(AMSAgentDescription amsd, AID sender) throws FIPAException, AuthException {
+		checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
+		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
+		if (old == null)
+			throw new NotRegistered();
+		try {
+			AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
+		}
+		catch (AuthException ae) {
+			agentDescriptions.register(old.getName(), old);
+			throw ae;
+		}
+	}
 
-	  amsd.setOwnership(user.getName());
-      }
-      agentDescriptions.register(id, amsd);
-    }
-    catch (NotFoundException nfe) {
-      nfe.printStackTrace();
-    }
-    catch (UnreachableException ue) {
-      ue.printStackTrace();
-    }
-  }
+	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
+		Authority authority = getAuthority();
 
-  /** it is called also by Agent.java **/
-  public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
-    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
-    Object old = agentDescriptions.deregister(amsd.getName());
-    if(old == null)
-      throw new NotRegistered();
-    // System.out.println(amsd.getName().getName()+ " deregistered from AMS" );
-  }
+		AID name = old.getName();
 
-  private void AMSModify(AMSAgentDescription amsd) throws FIPAException, AuthException {
-    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
-    AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
-    if (old == null)
-      throw new NotRegistered();
+		String oldOwnership = old.getOwnership();
+		String newOwnership = amsd.getOwnership();
+		String oldState = old.getState();
+		String newState = amsd.getState();
 
-    try {
-    	// modify agent state
-      if (!old.getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
-        myPlatform.suspend(amsd.getName(), "");
-      if (old.getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
-        myPlatform.activate(amsd.getName(), "");
-      old.setState(amsd.getState());
+		UserPrincipal oldUser = authority.createUserPrincipal();
+		oldUser.init(oldOwnership);
+		AgentPrincipal oldAgent = authority.createAgentPrincipal();
+		oldAgent.init(old.getName(), oldUser);
 
-//__SECURITY__BEGIN        
-    	// modify agent ownership
-      String ownership = amsd.getOwnership();
-      if (ownership != null) {
-	  UserPrincipal user = null;
-	  byte[] word = null;
-	  int dot2 = ownership.indexOf(':');
-	  if (dot2 != -1) {
-	      user = getAuthority().createUserPrincipal();
-	      user.init(ownership.substring(0, dot2));
-	      word = ownership.substring(dot2 + 1, ownership.length()).getBytes();
-	  }
-	  else {
-	      user = getAuthority().createUserPrincipal();
-	      user.init(ownership);
-	      word = new byte[] {};
-	  }
-	  myPlatform.changeAgentPrincipal(amsd.getName(), null, null); //!!!
-	  old.setOwnership(user.getName()); //FIXME Should this instruction be amsd.setOwnership instead of old.set...?
-      }
-//__SECURITY__END
-    }
-    catch (NotFoundException nfe) {
-      nfe.printStackTrace();
-    }
-    catch (UnreachableException ue) {
-      ue.printStackTrace();
-    }
-    catch (AuthException ae) {
-	    agentDescriptions.register(old.getName(), old);
-      throw ae;
-    }
+		UserPrincipal newUser = authority.createUserPrincipal();
+		byte[] word = null;
+		int dot2 = newOwnership.indexOf(':');
+		if (dot2 != -1) {
+			newUser.init(newOwnership.substring(0, dot2));
+			word = newOwnership.substring(dot2 + 1, newOwnership.length()).getBytes();
+		}
+		else {
+			newUser.init(newOwnership);
+			word = new byte[] {};
+		}
+		AgentPrincipal newAgent = authority.createAgentPrincipal();
+		newAgent.init(name, newUser);
 
-    agentDescriptions.register(amsd.getName(), amsd);
-  }
+		// we have to find the "subject" of this action
+		IdentityCertificate actorIdentity = null;
+		DelegationCertificate actorDelegation = null;
+		if (!newOwnership.equals(oldOwnership)) {
+			// we use new ownership to authenticate new user
+			actorIdentity = authority.createIdentityCertificate();
+			actorDelegation = authority.createDelegationCertificate();
+			if (actorIdentity != null && actorDelegation != null) {
+				actorIdentity.setSubject(newAgent);
+				actorDelegation.setSubject(newAgent);
+				authority.authenticateUser(actorIdentity, actorDelegation, word);
+			}
+		}
+		else if (creation != null) {
+			// we use creation certificates
+			actorIdentity = creation.getIdentity();
+			actorDelegation = creation.getDelegation();
+		}
+		else {
+			// we use sender's delegation to ams
+			actorIdentity = getIdentity();
+			actorDelegation = (DelegationCertificate)delegations.get(sender);
+		}
 
-  private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
-    // Search has no mandatory slots
-    return agentDescriptions.search(amsd);
-  }
+		try {
+			authority.checkAction(action, oldAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
 
-  // This one is called in response to a 'move-agent' action
-  void AMSMoveAgent(AID agentID, Location where) throws FIPAException {
-    try {
-      myPlatform.move(agentID, where, "");
-    }
-    catch(UnreachableException ue) {
-      throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-    }
-    catch(NotFoundException nfe) {
-      throw new NotRegistered();
-    }
-  }
+			if (action.equals(Authority.AMS_DEREGISTER))
+				return;
 
-  // This one is called in response to a 'clone-agent' action
-  void AMSCloneAgent(AID agentID, Location where, String newName) throws FIPAException {
-    try {
-      myPlatform.copy(agentID, where, newName, "");
-    }
-    catch(UnreachableException ue) {
-      throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-    }
-    catch(NotFoundException nfe) {
-      throw new NotRegistered();
-    }
-  }
+			// change agent principal
+			if (!newOwnership.equals(oldOwnership)) {
+				if (!sender.equals(getAID()))
+					authority.checkAction(Authority.AGENT_TAKE, oldAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
+
+				IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+				DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+				if (agentIdentity != null && agentDelegation != null) {
+					agentIdentity.setSubject(newAgent);
+					agentDelegation.setSubject(newAgent);
+					authority.authenticateUser(agentIdentity, agentDelegation, word);
+				}
+				myPlatform.changeAgentPrincipal(name, agentIdentity, agentDelegation);
+				old.setOwnership(newUser.getName());
+				agentDescriptions.register(old.getName(), old);
+			}
+			else if (creation != null) {
+				myPlatform.changeAgentPrincipal(name, creation.getIdentity(), creation.getDelegation());
+				old.setOwnership(creation.getOwnership());
+				agentDescriptions.register(old.getName(), old);
+			}
+
+			// change agent state
+			if (!oldState.equals(old.SUSPENDED) && newState.equals(old.SUSPENDED)) {
+				authority.checkAction(Authority.AGENT_SUSPEND, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				myPlatform.suspend(name, "");
+				old.setState(newState);
+				agentDescriptions.register(old.getName(), old);
+			}
+			if (oldState.equals(old.SUSPENDED) && !newState.equals(old.SUSPENDED)) {
+				authority.checkAction(Authority.AGENT_RESUME, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				myPlatform.activate(name, "");
+				old.setState(newState);
+				agentDescriptions.register(old.getName(), old);
+			}
+		}
+		catch (NotFoundException nfe) {
+			nfe.printStackTrace();
+		}
+		catch (UnreachableException ue) {
+			ue.printStackTrace();
+		}
+		catch (AuthException ae) {
+			agentDescriptions.register(old.getName(), old);
+			throw ae;
+		}
+	}
+
+	private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply, AID senderID) throws FIPAException, AuthException {
+		// Search has no mandatory slots
+		return agentDescriptions.search(amsd);
+	}
+
+	// This one is called in response to a 'move-agent' action
+	void AMSMoveAgent(AID agent, Location where, AID sender) throws FIPAException, AuthException {
+		checkAction(Authority.AGENT_MOVE, agent, sender);
+		try {
+			myPlatform.move(agent, where, "");
+		}
+		catch (UnreachableException ue) {
+			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+		}
+		catch (NotFoundException nfe) {
+			throw new NotRegistered();
+		}
+	}
+
+	// This one is called in response to a 'clone-agent' action
+	void AMSCloneAgent(AID agent, Location where, String newName, AID sender) throws FIPAException, AuthException {
+		checkAction(Authority.AGENT_COPY, agent, sender);
+		try {
+			myPlatform.copy(agent, where, newName, "");
+		}
+		catch(UnreachableException ue) {
+			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+		}
+		catch(NotFoundException nfe) {
+			throw new NotRegistered();
+		}
+	}
 
 
-  // This one is called in response to a 'where-is-agent' action
-  Location AMSWhereIsAgent(AID agentID) throws FIPAException {
-    try {
-      ContainerID cid = myPlatform.getContainerID(agentID);
-      String containerName = cid.getName();
-      return mobilityMgr.getLocation(containerName);
-    }
-    catch(NotFoundException nfe) {
-      nfe.printStackTrace();
-      throw new NotRegistered();
-    }
-  }
+	// This one is called in response to a 'where-is-agent' action
+	Location AMSWhereIsAgent(AID agent, AID sender) throws FIPAException, AuthException {
+		try {
+			ContainerID cid = myPlatform.getContainerID(agent);
+			String containerName = cid.getName();
+			return mobilityMgr.getLocation(containerName);
+		}
+		catch(NotFoundException nfe) {
+			nfe.printStackTrace();
+			throw new NotRegistered();
+		}
+	}
+
+	void checkAction(String action, AID agent, AID sender) throws AuthException {
+		getAuthority().checkAction(action, getAgentPrincipal(agent), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender)});
+	}
+	
+	AgentPrincipal getAgentPrincipal(AID agent) {
+		Authority authority = getAuthority();
+		UserPrincipal user = authority.createUserPrincipal();
+		user.init(getAgentOwnership(agent));
+		AgentPrincipal principal = authority.createAgentPrincipal();
+		principal.init(agent, user);
+		return principal;
+	}
+
+	String getAgentOwnership(AID agent) {
+		AMSAgentDescription amsd = new AMSAgentDescription();
+		amsd.setName(agent);
+		List l = agentDescriptions.search(amsd);
+		if (l.size() == 0)
+			return UserPrincipal.NONE;
+
+		amsd = (AMSAgentDescription)l.get(0);
+		return amsd.getOwnership();
+	}
 
   // Methods to be called from AgentPlatform to notify AMS of special events
 
@@ -1342,36 +1475,39 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public synchronized void deadAgent(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    AID agentID = ev.getAgent();
+	/**
+		Post an event to the AMS agent. This method must not be used by
+		application agents.
+	*/
+	public synchronized void deadAgent(PlatformEvent ev) {
+		ContainerID cid = ev.getContainer();
+		AID agentID = ev.getAgent();
 
-    // Deregister the agent, if it's still there.
-    try {
-      AMSAgentDescription amsd = new AMSAgentDescription();
-      amsd.setName(agentID);
-      AMSDeregister(amsd);
-    }
-    catch(NotRegistered nr){
-	//the agent deregistered already during his dodolete method.
-    }
-    catch(FIPAException fe) {
-      fe.printStackTrace();
-      }
+		// Deregister the agent, if it's still there.
+		try {
+			AMSAgentDescription amsd = new AMSAgentDescription();
+			amsd.setName(agentID);
+			AMSDeregister(amsd, agentID);
+		}
+		catch(NotRegistered nr) {
+			//the agent deregistered already during his dodolete method.
+		}
+		catch(FIPAException fe) {
+			fe.printStackTrace();
+		}
+		catch(AuthException ae) {
+			ae.printStackTrace();
+		}
 
-    DeadAgent da = new DeadAgent();
-    da.setAgent(agentID);
-    da.setWhere(cid);
+		DeadAgent da = new DeadAgent();
+		da.setAgent(agentID);
+		da.setWhere(cid);
 
-    EventRecord er = new EventRecord(da, here());
-    er.setWhen(ev.getTime());
-    eventQueue.add(er);
-    doWake();
-  }
+		EventRecord er = new EventRecord(da, here());
+		er.setWhen(ev.getTime());
+		eventQueue.add(er);
+		doWake();
+	}
 
   /**
     Post an event to the AMS agent. This method must not be used by
@@ -1381,8 +1517,8 @@ public class ams extends Agent implements AgentManager.Listener {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
 
-    // Registry needs an update here!
-    
+    // Registry needs an update here!!!
+
     SuspendedAgent sa = new SuspendedAgent();
     sa.setAgent(agentID);
     sa.setWhere(cid);
@@ -1399,12 +1535,12 @@ public class ams extends Agent implements AgentManager.Listener {
   */
   public synchronized void resumedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
-    AID agentID = ev.getAgent();
+    AID aid = ev.getAgent();
 
-    // Registry needs an update here!
-    
+    // Registry needs an update here!!!
+
     ResumedAgent ra = new ResumedAgent();
-    ra.setAgent(agentID);
+    ra.setAgent(aid);
     ra.setWhere(cid);
 
     EventRecord er = new EventRecord(ra, here());
@@ -1413,32 +1549,27 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public synchronized void changedAgentPrincipal(PlatformEvent ev) {
+	/**
+		Post an event to the AMS agent. This method must not be used by
+		application agents.
+	*/
+	public synchronized void changedAgentPrincipal(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
-    AID agentID = ev.getAgent();
+    AID aid = ev.getAgent();
 
-    // Registry needs an update here!!! ???
-    /*
-    AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(agentID);
-    amsd.setOwnership(ev.getNewOwnership());
-    agentDescriptions.register(amsd.getName(), amsd);
-    
-    ChangedAgentOwnership cao = new ChangedAgentOwnership();
-    cao.setAgent(agentID);
-    cao.setFrom(ev.getOldPrincipal().getName());
-    cao.setTo(ev.getNewPrincipal().getName());
-    cao.setWhere(cid);
+    // Registry needs an update here!!!
 
-    EventRecord er = new EventRecord(cap, here());
+		ChangedAgentOwnership cao = new ChangedAgentOwnership();
+		cao.setAgent(aid);
+		cao.setWhere(cid);
+		cao.setFrom(ev.getOldPrincipal().getUser().getName());
+		cao.setTo(ev.getNewPrincipal().getUser().getName());
+
+		EventRecord er = new EventRecord(cao, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
-    doWake();
-    */
-  }
+		eventQueue.add(er);
+		doWake();
+	}
 
   /**
     Post an event to the AMS agent. This method must not be used by
@@ -1490,7 +1621,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AID name = ad.getName();
       name.addAddresses(address);
     }
-    
+
     // Generate a suitable AMS event
     AddedMTP amtp = new AddedMTP();
     amtp.setAddress(address);
@@ -1591,7 +1722,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	f.flush();
     	f.close();
     }catch(java.io.IOException ioe){ioe.printStackTrace();}
-    
+
 
   }
 

@@ -23,8 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import jade.security.leap.PrivilegedAction;
-
+import jade.core.MainContainer;
 import jade.core.Profile;
 
 
@@ -38,11 +37,39 @@ import jade.core.Profile;
 */
 public interface Authority {
 	
+	public final String AMS_REGISTER        = "ams-register";
+	public final String AMS_DEREGISTER      = "ams-deregister";
+	public final String AMS_MODIFY          = "ams-modify";
+	
+	public final String AGENT_CREATE        = "agent-create";
+	public final String AGENT_KILL          = "agent-kill";
+	public final String AGENT_SUSPEND       = "agent-suspend";
+	public final String AGENT_RESUME        = "agent-resume";
+	public final String AGENT_TAKE          = "agent-take";
+	public final String AGENT_SEND_TO       = "agent-send-to";
+	public final String AGENT_SEND_AS       = "agent-send-as";
+	public final String AGENT_RECEIVE_FROM  = "agent-receive-from";
+	public final String AGENT_MOVE          = "agent-move";
+	public final String AGENT_COPY          = "agent-copy";
+	
+	public final String CONTAINER_CREATE    = "container-create";
+	public final String CONTAINER_KILL      = "container-kill";
+	public final String CONTAINER_CREATE_IN = "container-create-in";
+	public final String CONTAINER_MOVE_FROM = "container-move-from";
+	public final String CONTAINER_MOVE_TO   = "container-move-to";
+	public final String CONTAINER_COPY_FROM = "container-copy-from";
+	public final String CONTAINER_COPY_TO   = "container-copy-to";
+
+	public final String PLATFORM_CREATE     = "platform-create";
+	public final String PLATFORM_KILL       = "platform-kill";
+
+	public void init(Profile profile, MainContainer platform) throws AuthException;
+	
 	/**
-		Set the name of the authority.
+		Sets the name of the authority.
 		@param name The name of the authority.
 	*/
-	public void setName(String name);
+	public void setName(String name) throws AuthException;
 	
 	/**
 		Returns the name of the authority.
@@ -50,7 +77,7 @@ public interface Authority {
 	*/
 	public String getName();
 	
-	public void init(Profile profile) throws AuthException;
+	public byte[] getPublicKey();
 	
 	/**
 		Checks the validity of a given certificate.
@@ -83,9 +110,9 @@ public interface Authority {
 
 	public void authenticateUser(IdentityCertificate identity, DelegationCertificate delegation, byte[] passwd) throws AuthException;
 	
-	public Object doAs(PrivilegedAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public Object doAs(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
 	
-	public void checkPermission(String type, String name, String actions) throws AuthException;
+	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
 	
 	public AgentPrincipal createAgentPrincipal();
 

@@ -279,7 +279,7 @@ class MainContainerProxy implements Platform {
 
       // Restore the registration of local MTPs 
       for(int i = 0; i < localMTPs.size(); i++) {
-	adaptee.newMTP((MTPDescriptor)localMTPs.get(i), myID); // Remote call
+        adaptee.newMTP((MTPDescriptor)localMTPs.get(i), myID); // Remote call
       }
 
     }
@@ -293,6 +293,10 @@ class MainContainerProxy implements Platform {
   
   public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
     return adaptee.sign(certificate, identity, delegations);
+  }
+  
+  public byte[] getPublicKey() throws IMTPException {
+  	return adaptee.getPublicKey();
   }
 
 }

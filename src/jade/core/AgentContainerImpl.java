@@ -121,31 +121,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     // Set up attributes for agents thread group
     //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
-
-	  // create and init container-authority
-	  try {
-	  	String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
-	    if (type != null) {
-	    	authority = (Authority)Class.forName(type).newInstance();
-	    	authority.setName("container-authority");
-	    	authority.init(myProfile);
-			}
-	  }
-	  catch (Exception e1) {
-	  	e1.printStackTrace();
-	  }
-	  
-	  try {
-	    if (authority == null) {
-	    	authority = new jade.security.DummyAuthority();
-	    	authority.setName("container-authority");
-	    	authority.init(myProfile);
-	  	}
-	  }
-		catch (Exception e2) {
-	    e2.printStackTrace();
-	  }
-	  
   }
 
 
@@ -491,6 +466,30 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   		// Get the Main
       myPlatform = myProfile.getPlatform();
 
+		  // Create and init container-authority
+		  try {
+	  		String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
+	    	if (type != null) {
+	    		authority = (Authority)Class.forName(type).newInstance();
+		    	authority.setName("container-authority");
+		    	authority.init(myProfile, myPlatform);
+				}
+	  	}
+	  	catch (Exception e1) {
+	  		e1.printStackTrace();
+	  	}
+	  	
+	  	try {
+	    	if (authority == null) {
+		    	authority = new jade.security.dummy.DummyAuthority();
+		    	authority.setName("container-authority");
+	  	  	authority.init(myProfile, myProfile.getPlatform());
+	  		}
+		  }
+			catch (Exception e2) {
+	    	e2.printStackTrace();
+	  	}
+	  	
       // This string will be used to build the GUID for every agent on
       // this platform.
       platformID = myPlatform.getPlatformName();

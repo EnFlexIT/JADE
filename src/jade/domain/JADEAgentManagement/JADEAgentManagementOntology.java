@@ -121,6 +121,7 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("arguments",Ontology.SET_SLOT,Ontology.ANY_TYPE, Ontology.O),	
 	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
+	  new SlotDescriptor("delegation", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, CreateAgent.class);
 

@@ -64,8 +64,10 @@ import jade.content.ContentManager;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AgentPrincipal;
+import jade.security.UserPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
+import jade.security.AuthException;
 //__SECURITY__END
 
 /**
@@ -934,33 +936,56 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return msgQueue.getMaxSize();
   }
 
-  //__SECURITY__BEGIN
 	public void setOwnership(String ownership) {
 	  this.ownership = ownership;
 	}
 
+	//__SECURITY__BEGIN
 	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
-    if (identity != null && delegation != null) {
-      synchronized(principalLock) {
-        this.identity = identity;
-        this.delegation = delegation;
-        AgentPrincipal old = principal;
-        principal = (AgentPrincipal)identity.getSubject();
-        if (getState() != AP_INITIATED)
-          notifyChangedAgentPrincipal(old, principal);
-      }
-    }
-  }
+		if (identity != null && delegation != null) {
+			synchronized (principalLock) {
+				AgentPrincipal old = getPrincipal();
+				this.identity = identity;
+				this.delegation = delegation;
+				principal = (AgentPrincipal)identity.getSubject();
+				if (getState() != AP_INITIATED)
+					notifyChangedAgentPrincipal(old, principal);
+			}
+		}
+	}
 
-  public AgentPrincipal getPrincipal() {
-    AgentPrincipal p;
-    synchronized(principalLock) {
-      p = getAuthority().createAgentPrincipal();
-      p.init(principal.getName());
-    }
-    return p;
-  }
-  //__SECURITY__END
+	public AgentPrincipal getPrincipal() {
+		AgentPrincipal p = null;
+		synchronized (principalLock) {
+			Authority authority = getAuthority();
+			if (principal == null) {
+				UserPrincipal user = null;
+				int dot2 = ownership.indexOf(':');
+				if (dot2 != -1) {
+					user = authority.createUserPrincipal();
+					user.init(ownership.substring(0, dot2));
+				}
+				else {
+					user = authority.createUserPrincipal();
+					user.init(ownership);
+				}
+				principal = authority.createAgentPrincipal();
+				principal.init(myAID, user);
+			}
+			p = authority.createAgentPrincipal();
+			p.init(principal.getName());
+		}
+		return p;
+	}
+
+	public IdentityCertificate getIdentity() {
+		return identity;
+	}
+	
+	public DelegationCertificate getDelegation() {
+		return delegation;
+	}
+	//__SECURITY__END
 
   private void setState(int state) {
     synchronized(stateLock) {
@@ -1450,9 +1475,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	// No 'break' statement - fall through
       case AP_ACTIVE:
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd);
+	  ((jade.domain.ams)this).AMSRegister(amsd, myAID, null);
 	else
-	  AMSService.register(this,amsd);
+	  AMSService.register(this, amsd);
         notifyStarted();
 	setup();
 	break;
@@ -1463,9 +1488,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
       case AP_COPY:
 	doExecute();
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd);
+	  ((jade.domain.ams)this).AMSRegister(amsd, myAID, null);
 	else
-	  AMSService.register(this,amsd);
+	  AMSService.register(this, amsd);
 	afterClone();
 	break;
       }
@@ -1701,6 +1726,44 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    }
 	  }
 
+
+	  // Remember how many messages arrived
+	  int oldMsgCounter = messageCounter;
+
+	  // Just do it!
+	  currentBehaviour.actionWrapper();
+
+	  // If the current Behaviour is blocked and more messages
+	  // arrived, restart the behaviour to give it another chance
+	  if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
+	    currentBehaviour.restart();
+
+
+	  // When it is needed no more, delete it from the behaviours queue
+	  if(currentBehaviour.done()) {
+	  	currentBehaviour.onEnd();
+	    myScheduler.remove(currentBehaviour);
+	    currentBehaviour = null;
+	  }
+	  else {
+	      synchronized(myScheduler) {
+		  // Need syncrhonzied block (Crais Sayers, HP): What if
+		  // 1) it checks to see if its runnable, sees its not,
+		  //    so it begins to enter the body of the if clause
+		  // 2) meanwhile, in another thread, a message arrives, so
+		  //    the behaviour is restarted and moved to the ready list.
+		  // 3) now back in the first thread, the agent executes the
+		  //    body of the if clause and, by calling block(), moves
+		  //   the behaviour back to the blocked list.
+		  if(!currentBehaviour.isRunnable()) {
+		      // Remove blocked behaviour from ready behaviours queue
+		      // and put it in blocked behaviours queue
+		      myScheduler.block(currentBehaviour);
+		      currentBehaviour = null;
+		  }
+	      }
+	  }
+	  break;
 	  // Now give CPU control to other agents
 	  Thread.yield();
 	}
@@ -1766,28 +1829,34 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
   }
 
-  private void destroy() { 
-    try {
-      if (myAID.equals(getAMS())) { //special version for the AMS to avoid deadlock 
-	AMSAgentDescription amsd = new AMSAgentDescription();
-	amsd.setName(getAID());
-	((jade.domain.ams)this).AMSDeregister(amsd);
-      } else
-	AMSService.deregister(this);
-    }
-    catch(FIPAException fe) {
-      fe.printStackTrace();
-    }
+	private void destroy() { 
+		try {
+			if (myAID.equals(getAMS())) {
+				//special version for the AMS to avoid deadlock 
+				AMSAgentDescription amsd = new AMSAgentDescription();
+				amsd.setName(getAID());
+				((jade.domain.ams)this).AMSDeregister(amsd, myAID);
+			}
+			else {
+				AMSService.deregister(this);
+			}
+		}
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
+		catch (AuthException ae) {
+			ae.printStackTrace();
+		}
 
-    // Remove all pending timers
-    Iterator it = pendingTimers.timers();
-    while(it.hasNext()) {
-      Timer t = (Timer)it.next();
-      theDispatcher.remove(t);
-    }
+		// Remove all pending timers
+		Iterator it = pendingTimers.timers();
+		while (it.hasNext()) {
+			Timer t = (Timer)it.next();
+			theDispatcher.remove(t);
+		}
 
-    notifyDestruction();
-  }
+		notifyDestruction();
+	}
 
   /**
      This method adds a new behaviour to the agent. This behaviour

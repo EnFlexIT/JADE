@@ -68,7 +68,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.newMTP(mtp, cid);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -79,7 +79,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
       manager.adopt(ap); // This needs to be restored by hand, since it must not be serialized...
       return ap;
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -88,7 +88,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.bornAgent(name, cid);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -97,7 +97,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       return adaptee.getPlatformName();
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -106,7 +106,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       return new AgentContainerAdapter(adaptee.lookup(cid), manager);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -115,7 +115,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.deadAgent(name);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -124,7 +124,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.suspendedAgent(name);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -133,7 +133,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.resumedAgent(name);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -142,7 +142,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.changedAgentPrincipal(name, from, to);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -151,7 +151,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       return adaptee.addContainer(manager.getRMIStub(ac), cid, user, passwd);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -169,7 +169,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.deadMTP(mtp, cid);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -178,7 +178,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       return adaptee.transferIdentity(agentID, src, dest);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -187,7 +187,7 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       adaptee.removeContainer(cid);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }
@@ -205,7 +205,16 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     try {
       return adaptee.sign(certificate, identity, delegations);
     }
-    catch(RemoteException re) {
+    catch (RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
+  public byte[] getPublicKey() throws IMTPException {
+    try {
+      return adaptee.getPublicKey();
+    }
+    catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
     }
   }

@@ -42,6 +42,7 @@ public class CreateAgent {
   private String className;
   private ContainerID container;
   private String password;
+  private String delegation;
   private List arguments = new ArrayList();
   
   public void setAgentName(String an) {
@@ -74,6 +75,14 @@ public class CreateAgent {
 
   public String getPassword() {
     return password;
+  }
+
+  public void setDelegation(String d) {
+    delegation = d;
+  }
+
+  public String getDelegation() {
+    return delegation;
   }
   
   

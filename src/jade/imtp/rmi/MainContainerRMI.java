@@ -60,5 +60,6 @@ public interface MainContainerRMI extends Remote {
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException;
     public void removeContainer(ContainerID cid) throws RemoteException, IMTPException;
     public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException;
+    public byte[] getPublicKey() throws RemoteException, IMTPException;
 }
 

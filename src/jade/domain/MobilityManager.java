@@ -51,200 +51,207 @@ import jade.onto.OntologyException;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
-/**
-   This behaviour manages all the mobility-related features of the AMS.
+import jade.security.AuthException;
 
-  Javadoc documentation for the file
-  @author Giovanni Rimassa - Universita` di Parma
-  @version $Date$ $Revision$
+/**
+	 This behaviour manages all the mobility-related features of the AMS.
+
+	Javadoc documentation for the file
+	@author Giovanni Rimassa - Universita` di Parma
+	@version $Date$ $Revision$
 
  */
 
 class MobilityManager {
 
-  private ams theAMS;
-  private Map locations;
-  private FipaRequestResponderBehaviour main;
+	private ams theAMS;
+	private Map locations;
+	private FipaRequestResponderBehaviour main;
 
-  public MobilityManager(ams a) {
-    theAMS = a;
-    locations = new HashMap();
-    MessageTemplate mt = 
-      MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
-			  MessageTemplate.MatchOntology(MobilityOntology.NAME));
-    main = new FipaRequestResponderBehaviour(theAMS, mt);
+	public MobilityManager(ams a) {
+		theAMS = a;
+		locations = new HashMap();
+		MessageTemplate mt = 
+			MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
+				MessageTemplate.MatchOntology(MobilityOntology.NAME));
 
-    main.registerFactory(MobilityOntology.MOVE,
+		main = new FipaRequestResponderBehaviour(theAMS, mt);
+
+		main.registerFactory(MobilityOntology.MOVE,
 			 new FipaRequestResponderBehaviour.Factory() {
 				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-				     return new MoveBehaviour(msg);
+						 return new MoveBehaviour(msg);
 				 }
-			     });
-    main.registerFactory(MobilityOntology.CLONE,
+			 });
+		main.registerFactory(MobilityOntology.CLONE,
 			 new FipaRequestResponderBehaviour.Factory() {
 				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-				     return new CloneBehaviour(msg);
+						 return new CloneBehaviour(msg);
 				 }
-			     });
-    main.registerFactory(MobilityOntology.WHERE_IS,
+			 });
+		main.registerFactory(MobilityOntology.WHERE_IS,
 			 new FipaRequestResponderBehaviour.Factory() {
 				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-				     return new WhereIsBehaviour(msg);
+						 return new WhereIsBehaviour(msg);
 				 }
-			     });
-    main.registerFactory(MobilityOntology.QUERY_PLATFORM_LOCATIONS,
+			 });
+		main.registerFactory(MobilityOntology.QUERY_PLATFORM_LOCATIONS,
 			 new FipaRequestResponderBehaviour.Factory() {
 				 public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-				     return new QPLBehaviour(msg);
+						 return new QPLBehaviour(msg);
 				 }
-			     });
+			 });
 
-  }
-
-  public Behaviour getMain() {
-    return main;
-  }
-
-
-  private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.ActionHandler {
-
-    MobilityBehaviour(ACLMessage msg) {
-      super(MobilityManager.this.theAMS,msg);
-    }
-
-    protected abstract void doAction(Action a) throws FIPAException;
-
-    public final void action() {
-      Object o;
-      ACLMessage msg = getRequest();
-      try {
-	List l = theAMS.extractMsgContent(msg);
-	Action a = (Action)l.get(0);
-	sendReply(ACLMessage.AGREE,"(true)");
-	try {
-	  doAction(a);
 	}
-	catch(FIPAException fe) {
-	  sendReply(ACLMessage.FAILURE,"("+fe.getMessage()+")");
-	  return;
+
+	public Behaviour getMain() {
+		return main;
 	}
-      }
-      catch(FIPAException fe) {
-	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
-      }
-    }
-
-    public final boolean done() {
-      return true;
-    }
-
-    public final void reset() {
-      // Empty
-    }
-
-  } // End of MobilityBehaviour class
 
 
-  private class MoveBehaviour extends MobilityBehaviour {
-    public MoveBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    protected void doAction(Action a) throws FIPAException {
-      MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)a.get_1();
-      MobilityOntology.MobileAgentDescription desc = action.get_0();
+	private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.ActionHandler {
 
-      AID agentName = desc.getName();
-      Location destination = desc.getDestination();
-      theAMS.AMSMoveAgent(agentName, destination);
-      sendReply(ACLMessage.INFORM,"FIXME");
-    }
+		MobilityBehaviour(ACLMessage msg) {
+			super(MobilityManager.this.theAMS, msg);
+		}
 
-  }
+		protected abstract void doAction(Action a) throws FIPAException, AuthException;
 
-  private class CloneBehaviour extends MobilityBehaviour {
-    public CloneBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    protected void doAction(Action a) throws FIPAException {
-      MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)a.get_1();
-      MobilityOntology.MobileAgentDescription desc = action.get_0();
+		public final void action() {
+			Object o;
+			ACLMessage msg = getRequest();
+			try {
+				List l = theAMS.extractMsgContent(msg);
+				Action a = (Action)l.get(0);
+				sendReply(ACLMessage.AGREE, "(true)");
+				try {
+					doAction(a);
+				}
+				catch (FIPAException fe) {
+					sendReply(ACLMessage.FAILURE, "(" + fe.getMessage() + ")");
+					return;
+				}
+				catch (AuthException ae) {
+					sendReply(ACLMessage.FAILURE, "(" + ae.getMessage() + ")");
+					return;
+				}
+			}
+			catch (FIPAException fe) {
+				sendReply(ACLMessage.REFUSE, "(" + fe.getMessage() + ")");
+			}
+		}
 
-      AID agentName = desc.getName();
-      Location destination = desc.getDestination();
-      String newName = action.get_1();
-      theAMS.AMSCloneAgent(agentName, destination, newName);
-      sendReply(ACLMessage.INFORM,"FIXME");
-    }
+		public final boolean done() {
+			return true;
+		}
 
-  }
+		public final void reset() {
+			// Empty
+		}
 
-  private class WhereIsBehaviour extends MobilityBehaviour {
-    public WhereIsBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    protected void doAction(Action a) throws FIPAException {
-      MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)a.get_1();
+	} // End of MobilityBehaviour class
 
-      AID agentName = action.get_0();
-      Location where = theAMS.AMSWhereIsAgent(agentName);
 
-      ACLMessage reply = getReply();
-      reply.setPerformative(ACLMessage.INFORM);
-      reply.setLanguage(SL0Codec.NAME);
-      reply.setOntology(MobilityOntology.NAME);
-      ResultPredicate r = new ResultPredicate();
-      r.set_0(a);
-      r.add_1(where);
-      List l = new ArrayList(1);
-      l.add(r);
-      theAMS.fillMsgContent(reply, l);
-      theAMS.send(reply);
-    }
+	private class MoveBehaviour extends MobilityBehaviour {
+		public MoveBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		protected void doAction(Action a) throws FIPAException, AuthException {
+			MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)a.get_1();
+			MobilityOntology.MobileAgentDescription desc = action.get_0();
 
-  }
+			AID agentName = desc.getName();
+			Location destination = desc.getDestination();
+			theAMS.AMSMoveAgent(agentName, destination, getRequest().getSender());
+			sendReply(ACLMessage.INFORM, "FIXME");
+		}
 
-  private class QPLBehaviour extends MobilityBehaviour {
-    public QPLBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    protected void doAction(Action a) throws FIPAException {
-      MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)a.get_1();
+	}
 
-      ACLMessage reply = getReply();
-      reply.setPerformative(ACLMessage.INFORM);
-      reply.setLanguage(SL0Codec.NAME);
-      reply.setOntology(MobilityOntology.NAME);
-      ResultPredicate r = new ResultPredicate();
-      r.set_0(a);
+	private class CloneBehaviour extends MobilityBehaviour {
+		public CloneBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		protected void doAction(Action a) throws FIPAException, AuthException {
+			MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)a.get_1();
+			MobilityOntology.MobileAgentDescription desc = action.get_0();
 
-      // Mutual exclusion with addLocation() and removeLocation() methods
-      synchronized(locations) {
-	Iterator it = locations.values().iterator();
-	while(it.hasNext())
-	  r.add_1(it.next());
-      }
-      List l = new ArrayList();
-      l.add(r);
-      theAMS.fillMsgContent(reply,l); 
-      theAMS.send(reply);
-    }
+			AID agentName = desc.getName();
+			Location destination = desc.getDestination();
+			String newName = action.get_1();
+			theAMS.AMSCloneAgent(agentName, destination, newName, getRequest().getSender());
+			sendReply(ACLMessage.INFORM,"FIXME");
+		}
 
-  }
+	}
 
-  public void addLocation(String name, Location l) {
-    synchronized(locations) {
-      locations.put(new CaseInsensitiveString(name), l);
-    }
-  }
+	private class WhereIsBehaviour extends MobilityBehaviour {
+		public WhereIsBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		protected void doAction(Action a) throws FIPAException, AuthException {
+			MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)a.get_1();
 
-  public void removeLocation(String name) {
-    synchronized(locations) {
-      locations.remove(new CaseInsensitiveString(name));
-    }
-  }
+			AID agentName = action.get_0();
+			Location where = theAMS.AMSWhereIsAgent(agentName, getRequest().getSender());
 
-  public Location getLocation(String containerName) {
-    return (Location)locations.get(new CaseInsensitiveString(containerName));
-  }
+			ACLMessage reply = getReply();
+			reply.setPerformative(ACLMessage.INFORM);
+			reply.setLanguage(SL0Codec.NAME);
+			reply.setOntology(MobilityOntology.NAME);
+			ResultPredicate r = new ResultPredicate();
+			r.set_0(a);
+			r.add_1(where);
+			List l = new ArrayList(1);
+			l.add(r);
+			theAMS.fillMsgContent(reply, l);
+			theAMS.send(reply);
+		}
+
+	}
+
+	private class QPLBehaviour extends MobilityBehaviour {
+		public QPLBehaviour(ACLMessage msg) {
+			super(msg);
+		}
+		protected void doAction(Action a) throws FIPAException {
+			MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)a.get_1();
+
+			ACLMessage reply = getReply();
+			reply.setPerformative(ACLMessage.INFORM);
+			reply.setLanguage(SL0Codec.NAME);
+			reply.setOntology(MobilityOntology.NAME);
+			ResultPredicate r = new ResultPredicate();
+			r.set_0(a);
+
+			// Mutual exclusion with addLocation() and removeLocation() methods
+			synchronized(locations) {
+				Iterator it = locations.values().iterator();
+				while(it.hasNext())
+					r.add_1(it.next());
+			}
+			List l = new ArrayList();
+			l.add(r);
+			theAMS.fillMsgContent(reply, l); 
+			theAMS.send(reply);
+		}
+
+	}
+
+	public void addLocation(String name, Location l) {
+		synchronized (locations) {
+			locations.put(new CaseInsensitiveString(name), l);
+		}
+	}
+
+	public void removeLocation(String name) {
+		synchronized (locations) {
+			locations.remove(new CaseInsensitiveString(name));
+		}
+	}
+
+	public Location getLocation(String containerName) {
+		return (Location)locations.get(new CaseInsensitiveString(containerName));
+	}
 
 }

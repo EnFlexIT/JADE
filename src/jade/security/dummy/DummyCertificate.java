@@ -21,27 +21,32 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.security;
+package jade.security.dummy;
+
+import jade.security.*;
 
 import jade.util.leap.List;
+
 import java.util.Date;
 
 
-public interface DelegationCertificate extends jade.util.leap.Serializable {
+public class DummyCertificate implements IdentityCertificate, DelegationCertificate {
 	
-	public void setSubject(JADEPrincipal subject);
-	public JADEPrincipal getSubject();
+	JADEPrincipal subject = new DummyPrincipal();
 	
-	public void setNotBefore(Date notBefore);
-	public Date getNotBefore();
+	public void setSubject(JADEPrincipal subject) { this.subject = subject; }
+	public JADEPrincipal getSubject() { return subject; }
 	
-	public void setNotAfter(Date notAfter);
-	public Date getNotAfter();
+	public void setNotBefore(Date notBefore) { }
+	public Date getNotBefore() { return null; }
 	
-	public String encode();
-	public void decode(String encoded);
+	public void setNotAfter(Date notAfter) { }
+	public Date getNotAfter() { return null; }
 	
-	public void addPermission(Object permission);
-	public List getPermissions();
+	public String encode() { return subject.getName(); }
+	public void decode(String encoded) { subject = new DummyPrincipal(encoded); }
+	
+	public void addPermission(Object permission) { }
+	public List getPermissions() { return new jade.util.leap.ArrayList(); }
 	
 }

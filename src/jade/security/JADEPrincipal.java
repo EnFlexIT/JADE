@@ -23,15 +23,18 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import jade.security.leap.Principal;
 
-
-public interface JADEPrincipal extends Principal {
+public interface JADEPrincipal extends
+//__JADE_ONLY__BEGIN
+		java.security.Principal,
+//__JADE_ONLY__END
+		jade.util.leap.Serializable
+{
 
 	public static final String NONE = "none";
 
-
 	public void init(String name);
+
 	public String getName();
 
 }

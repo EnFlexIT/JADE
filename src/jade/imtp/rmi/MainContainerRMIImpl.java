@@ -49,70 +49,75 @@ import jade.security.DelegationCertificate;
  */
 public class MainContainerRMIImpl extends UnicastRemoteObject implements MainContainerRMI {
 
-    private MainContainer impl;
-    private RMIIMTPManager manager;
+  private MainContainer impl;
+  private RMIIMTPManager manager;
 
-    /** Creates new MainContainerRMIImpl */
-    public MainContainerRMIImpl(MainContainer mc, RMIIMTPManager mgr) throws RemoteException {
-      impl = mc;
-      manager = mgr;
-    }
+  /** Creates new MainContainerRMIImpl */
+  public MainContainerRMIImpl(MainContainer mc, RMIIMTPManager mgr) throws RemoteException {
+    impl = mc;
+    manager = mgr;
+  }
 
-    public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException {
-      AgentContainer ac = impl.lookup(cid);
-      return manager.getRMIStub(ac);
-    }
+  public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException {
+    AgentContainer ac = impl.lookup(cid);
+    return manager.getRMIStub(ac);
+  }
 
-    public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
-      impl.deadMTP(mtp, cid);
-    }
+  public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
+    impl.deadMTP(mtp, cid);
+  }
 
-    public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
-      return impl.getProxy(id);
-    }
+  public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
+    return impl.getProxy(id);
+  }
 
-    public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException {
-      return impl.transferIdentity(agentID, src, dest);
-    }
+  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException {
+    return impl.transferIdentity(agentID, src, dest);
+  }
 
-    public String getPlatformName() throws RemoteException, IMTPException {
-      return impl.getPlatformName();
-    }
+  public String getPlatformName() throws RemoteException, IMTPException {
+    return impl.getPlatformName();
+  }
 
-    public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException {
-      impl.bornAgent(name, cid);
-    }
-    
-    public void removeContainer(ContainerID cid) throws RemoteException, IMTPException {
-      impl.removeContainer(cid);
-    }
-    
-    public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, AuthException {
-      AgentContainer cont = manager.getAdapter(ac);
-      return impl.addContainer(cont, cid, user, passwd);
-    }
+  public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException {
+    impl.bornAgent(name, cid);
+  }
+  
+  public void removeContainer(ContainerID cid) throws RemoteException, IMTPException {
+    impl.removeContainer(cid);
+  }
+  
+  public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, AuthException {
+    AgentContainer cont = manager.getAdapter(ac);
+    return impl.addContainer(cont, cid, user, passwd);
+  }
 
-    public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
-      impl.deadAgent(name);
-    }
-    
-    public void suspendedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
-      impl.suspendedAgent(name);
-    }
-    
-    public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
-      impl.resumedAgent(name);
-    }
-    
-    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws RemoteException, NotFoundException, IMTPException {
-      impl.changedAgentPrincipal(name, from, to);
-    }
-    
-    public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
-      impl.newMTP(mtp, cid);
-    }
-    
-    public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
-      return impl.sign(certificate, identity, delegations);
-    }
+  public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
+    impl.deadAgent(name);
+  }
+  
+  public void suspendedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
+    impl.suspendedAgent(name);
+  }
+  
+  public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
+    impl.resumedAgent(name);
+  }
+  
+  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws RemoteException, NotFoundException, IMTPException {
+    impl.changedAgentPrincipal(name, from, to);
+  }
+  
+  public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {
+    impl.newMTP(mtp, cid);
+  }
+  
+  public DelegationCertificate sign(DelegationCertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
+    return impl.sign(certificate, identity, delegations);
+  }
+  
+  public byte[] getPublicKey() throws RemoteException, IMTPException {
+    return impl.getPublicKey();
+  }
+
 }
