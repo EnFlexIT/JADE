@@ -50,6 +50,7 @@ import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
+import jade.security.PrivilegedExceptionAction;
 //__SECURITY__END
 
 
@@ -610,19 +611,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch (IMTPException imtpe) {
           System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
           imtpe.printStackTrace();
-          Runtime.instance().endContainer();
+          endContainer();
           return;
       }
       catch (AuthException ae) {
           System.err.println("Authentication or authorization failure while contacting agent platform.");
           ae.printStackTrace();
-          Runtime.instance().endContainer();
+          endContainer();
           return;
       }
       catch (Exception e) {
           System.err.println("Some problem occurred while contacting agent platform.");
           e.printStackTrace();
-          Runtime.instance().endContainer();
+          endContainer();
           return;
       }
       
@@ -748,8 +749,25 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     myResourceManager.releaseResources();
     
     // Notify the JADE Runtime that the container has terminated execution
-    Runtime.instance().endContainer();
+    endContainer();
   }
+
+  // calls Runtime.instance().endContainer()
+  // with the security priviledges of AgentContainerImpl 
+  // no matter priviledges of who originaltely triggered this action 
+  private void endContainer() {
+	try {
+	authority.doPrivileged(new PrivilegedExceptionAction() {
+	        public Object run() {
+					Runtime.instance().endContainer();
+	            return null; // nothing to return
+	        }
+	});
+	} catch(Exception e) {
+		e.printStackTrace();
+	}
+  }
+
 
 
   // Implementation of AgentToolkit interface
@@ -1061,3 +1079,5 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 //__JADE_ONLY__END  
 }
+
+
