@@ -270,7 +270,7 @@ public class HashMap implements Map, Serializable {
    */
   private Iterator getMapIterator(int type) {
     if (size() == 0) {
-      return new EmptyMapIterator();
+      return EmptyIterator.getInstance();
     } 
     else {
       return new MapIterator(type);
@@ -337,38 +337,6 @@ public class HashMap implements Map, Serializable {
   private static final int KEYS = 0;
   private static final int VALUES = 1;
   private static final int ENTRIES = 2;
-
-  /**
-   * Iterator for an empty Map
-   */
-  private class EmptyMapIterator implements Iterator {
-
-    /**
-     * Constructor declaration
-     * 
-     */
-    EmptyMapIterator() {
-    } 
-
-    /**
-     */
-    public boolean hasNext() {
-      return false;
-    } 
-
-    /**
-     */
-    public Object next() {
-      throw new NoSuchElementException();
-    } 
-
-    /**
-     */
-    public void remove() {
-      throw new RuntimeException();
-    } 
-
-  }
 
   /**
    * Implementation of an Iterator for an non-empty Map
