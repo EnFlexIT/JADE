@@ -302,7 +302,7 @@ public class StringACLCodec implements ACLCodec {
   }
 
   /**
-   * @see ACLCodec#decode()
+   * @see ACLCodec#decode(byte[] data)
    */
   public ACLMessage decode(byte[] data) throws ACLCodec.CodecException {
     try {

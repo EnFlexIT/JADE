@@ -1427,7 +1427,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
      will be queued. If the passed value is 0, no maximum limit is set
      up for the queue.
 
-     @see jade.wrapper.Agent#putO2AObject(Object o)
+     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
      @see jade.core.Agent#getO2AObject()
 
    */

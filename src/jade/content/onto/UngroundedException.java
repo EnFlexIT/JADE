@@ -30,7 +30,7 @@ package jade.content.onto;
  * Typically, thrown when applying <code>Ontology.toObject(AbsObject)</code>
  * to an ungrouded abstract descriptor.
  *
- * @see    jade.content.Ontology
+ * @see    jade.content.onto
  * @author Federico Bergenti - Universita` di Parma
  */
 public class UngroundedException extends OntologyException {

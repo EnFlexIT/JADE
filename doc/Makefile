@@ -214,13 +214,13 @@ API_FILES5 =	jade/gui/package.html \
 		jade/onto/basic/TrueProposition.java
 
 API_FILES6 =	jade/proto/package.html \
+		jade/proto/states/package.html \
 		jade/proto/states/HandlerSelector.java \
 		jade/proto/states/MsgReceiver.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
-		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FIPAProtocolNames.java \
 		jade/tools/DummyAgent/package.html \
 		jade/tools/DummyAgent/DummyAgent.java \
@@ -362,25 +362,12 @@ API_FILES9 =	jade/tools/sniffer/PanelCanvas.java \
 		jade/tools/sniffer/ViewMessage.java \
 		jade/tools/sniffer/WriteLogFileAction.java \
 		jade/tools/sniffer/WriteMessageListAction.java \
+		jade/util/*.java \
+		jade/util/package.html \
 		jade/util/leap/package.html \
-		jade/util/leap/ArrayList.java \
-		jade/util/leap/Collection.java \
-		jade/util/leap/Comparable.java \
-		jade/util/leap/HashMap.java \
-		jade/util/leap/Iterator.java \
-		jade/util/leap/Properties.java \
-		jade/util/leap/Serializable.java \
-		jade/util/leap/LinkedList.java \
-		jade/util/leap/List.java \
-		jade/util/leap/Map.java \
-		jade/util/leap/Set.java \
-		jade/util/leap/SortedSet.java \
-		jade/util/leap/SortedSetImpl.java \
+		jade/util/leap/*.java \
 		jade/wrapper/package.html \
-		jade/wrapper/Agent.java \
-		jade/wrapper/AgentContainer.java \
-		jade/wrapper/MainContainer.java \
-		jade/wrapper/StaleProxyException.java \
+		jade/wrapper/*.java \
 		jade/content/abs/AbsAgentAction.java \
 		jade/content/abs/AbsAggregate.java \
 		jade/content/abs/AbsConcept.java \

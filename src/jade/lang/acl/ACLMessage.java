@@ -397,7 +397,7 @@ private int performative; // keeps the performative type of this object
    * is equal to getByteSequenceContent()
    * </code>
    * @param content The new value for the slot.
-   * @see jade.lang.acl.ACLMessage#setContent()
+   * @see jade.lang.acl.ACLMessage#setContent(String s)
    * @see jade.lang.acl.ACLMessage#getByteSequenceContent()
    * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
    */

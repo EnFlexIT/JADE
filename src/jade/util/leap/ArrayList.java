@@ -142,7 +142,6 @@ public class ArrayList implements List, Serializable {
              * 
              * @return
              * 
-             * @see
              */
             public boolean hasNext() {
                 return it.hasNext();
@@ -153,7 +152,6 @@ public class ArrayList implements List, Serializable {
              * 
              * @return
              * 
-             * @see
              */
             public Object next() {
                 return it.next();
@@ -162,7 +160,6 @@ public class ArrayList implements List, Serializable {
             /**
              * Method declaration
              * 
-             * @see
              */
             public void remove() {
                 it.remove();
@@ -190,7 +187,6 @@ public class ArrayList implements List, Serializable {
      * 
      * @return
      * 
-     * @see
      */
     public Object clone() {
         return (new ArrayList((java.util.ArrayList) realHiddenList.clone()));    // FIXME: To be checked if this is a real cloning
@@ -201,7 +197,6 @@ public class ArrayList implements List, Serializable {
      * 
      * @return
      * 
-     * @see
      */
     public java.util.List toList() {
         return realHiddenList;

@@ -110,7 +110,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * @param id The event ID must be either
    * {@link #BORN_AGENT BORN_AGENT},
    * {@link #DEAD_AGENT DEAD_AGENT},
-   * {@link #_SUSPENDED_AGENT _SUSPENDED_AGENT} or
+   * {@link #SUSPENDED_AGENT SUSPENDED_AGENT} or
    * {@link #RESUMED_AGENT RESUMED_AGENT}.
    * @param The {@link jade.core.AID AID} of the new or dead agent.
    * @param eventSource The container id of the source of the event.

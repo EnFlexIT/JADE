@@ -257,7 +257,7 @@ public class Ontology {
      * @throws UngroundedException if the abstract descriptor contains a 
      * variable
      * @throws OntologyException if some mismatch with the schema is found
-     * @see fromObject(Object)
+     * @see #fromObject(Object)
      */
   	public Object toObject(AbsObject abs) throws OntologyException, UngroundedException {
 			if (abs == null) {
@@ -280,7 +280,7 @@ public class Ontology {
      * @param obj the object
      * @return the abstract descriptor.
      * @throws OntologyException if some mismatch with the schema is found
-     * @see toObject(AbsObject)
+     * @see #toObject(AbsObject)
      */
     public AbsObject fromObject(Object obj) throws OntologyException {
     	if (obj == null) {

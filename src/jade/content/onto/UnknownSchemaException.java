@@ -31,7 +31,7 @@ package jade.content.onto;
  * This particular case of OntologyException is handled differently
  * as the schema can be defined in one of the base ontologies.
  *
- * @see    jade.content.Ontology
+ * @see    jade.content.onto
  * @author Giovanni Caire - TILAB
  */
 public class UnknownSchemaException extends OntologyException {

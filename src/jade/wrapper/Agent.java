@@ -41,13 +41,13 @@ public class Agent implements AgentController {
 
   /**
      Constant representing an asynchronous rendez-vous policy.
-     @see jade.wrapper.Agent#putO2AObject(Object o)
+     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
    */
   public static final boolean ASYNC = false;
 
   /**
      Constant representing a synchronous rendez-vous policy.
-     @see jade.wrapper.Agent#putO2AObject(Object o)
+     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
    */
   public static final boolean SYNC = true;
 

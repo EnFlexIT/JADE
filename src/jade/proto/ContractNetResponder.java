@@ -89,8 +89,8 @@ import java.util.Date;
 * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
 * that describes
 * the usage of this class.
-* @see jade.proto.ContractNetInitiator;
-* @see jade.proto.AchieveREresponder;
+* @see jade.proto.ContractNetInitiator
+* @see jade.proto.AchieveREresponder
 * 
 * @author Fabio Bellifemine - TILAB
 * @author Giovanni Caire - TILAB
