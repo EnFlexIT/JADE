@@ -195,9 +195,7 @@ public class SentReceivedGUI extends Frame
 	
 	void SentReceivedGUI_WindowClosing(java.awt.event.WindowEvent event)
 	{
-		setVisible(false);	// hide the Frame
-		dispose();			// free the system resources
-		System.exit(0);		// close the application
+	  miExit_Action(null);
 	}
 	
 	class SymAction implements java.awt.event.ActionListener
