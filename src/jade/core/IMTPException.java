@@ -28,9 +28,8 @@ package jade.core;
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
  */
-public class IMTPException extends Exception {
-
-  private Throwable nested;
+ public class IMTPException extends Exception {
+ 	private Throwable nested;
 
   /**
    * Constructs an <code>IMTPException</code> with the specified detail message.
@@ -58,6 +57,5 @@ public class IMTPException extends Exception {
     else
       return base + " [Wrapping an " + nested.getClass().getName() + ": " + nested.getMessage() + "]";
   }
-
 }
 

@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
@@ -69,15 +72,69 @@ class FullAcc implements acc, InChannel.Dispatcher {
   }
 
   public void initialize(AgentContainerImpl ac, Profile p) {
-    try {
+  	// Initialize its own ID
+  	try {
       String platformID = p.getParameter(Profile.PLATFORM_ID);
       myContainer = ac;
       accID = "fipa-mts://" + platformID + "/acc";
-    }
+  	}
     catch(ProfileException pe) {
       accID = "fipa-mts://" + "localhost:0/JADE";
     }
+      	
+    // Install all ACL Codecs and MTPs specified in the Profile
+    try {
+    	// Codecs
+    	List l = p.getSpecifiers(Profile.ACLCODECS);
+    	Iterator codecs = l.iterator();
+    	while (codecs.hasNext()) {
+    		Specifier codec = (Specifier) codecs.next();
+	      myContainer.installACLCodec(codec.getClassName());
+      }
 
+      // MTPs
+      l = p.getSpecifiers(Profile.MTPS);
+      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myContainer.here().getName() + ".txt"));
+
+      Iterator mtps = l.iterator();
+      while (mtps.hasNext()) {
+      	Specifier spec = (Specifier) mtps.next();
+				String className = spec.getClassName();
+				String addressURL = null;
+				String[] args = spec.getArgs();
+				if (args != null && args.length > 0) {
+					addressURL = args[0];
+					if(addressURL.equals("")) {
+	  				addressURL = null;
+					}
+				}
+				String s = myContainer.installMTP(addressURL, className);
+				f.println(s);
+				System.out.println(s);
+      }
+
+      f.close();      
+    }
+    catch (ProfileException pe1) {
+    	System.out.println("Error reading MTPs/Codecs");
+    	pe1.printStackTrace();
+    }
+    catch(jade.lang.acl.ACLCodec.CodecException ce) {
+    	System.out.println("Error installing ACL Codec");
+    	ce.printStackTrace();
+		}    	
+    catch(MTPException me) {
+    	System.out.println("Error installing MTP");
+    	me.printStackTrace();
+		}    	
+    catch(IOException ioe) {
+    	System.out.println("Error writing platform address");
+    	ioe.printStackTrace();
+		}    	
+    catch(IMTPException imtpe) {
+    	// Should never happen as this is a local call
+    	imtpe.printStackTrace();
+		}    	
   }
 
   public void addACLCodec(ACLCodec codec) {
@@ -302,23 +359,24 @@ class FullAcc implements acc, InChannel.Dispatcher {
   }
 
   public void shutdown() {
-      /*
-    // Remove all locally installed MTPs
-    while(!localAddresses.isEmpty()) {
-      String addr = (String)localAddresses.get(0);
+    // Close all MTP links to the outside world
+    Object[] addresses = localAddresses.toArray();
+    for(int i = 0; i < addresses.length; i++) {
       try {
-	myContainer.uninstallMTP(addr);
+				String addr = (String) addresses[i];
+				myContainer.uninstallMTP(addr);
       }
-      catch(java.rmi.RemoteException re) {
-	// It should never happen
-	re.printStackTrace();
+      catch(IMTPException imtpe) {
+				// It should never happen as this is a local call
+      	imtpe.printStackTrace();
       }
       catch(NotFoundException nfe) {
-	System.out.println("Failed to find MTP [" + addr + "]");
-	nfe.printStackTrace();
+				nfe.printStackTrace();
+      }
+      catch(MTPException mtpe) {
+				mtpe.printStackTrace();
       }
     }
-      */
   }
 
   public void dispatchMessage(Envelope env, byte[] payload) {

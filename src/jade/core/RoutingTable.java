@@ -53,8 +53,8 @@ class RoutingTable {
       try {
 	container.routeOut(msg, receiver, address);
       }
-      catch(IMTPException ie) {
-	throw new MTPException("Container unreachable during routing", ie);
+      catch(IMTPException imtpe) {
+	throw new MTPException("Container unreachable during routing", imtpe);
       }
     }
 

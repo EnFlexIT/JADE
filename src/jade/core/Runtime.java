@@ -23,10 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.net.MalformedURLException;
+//import java.net.MalformedURLException;
 
-import java.rmi.*; // FIXME: This will go away...
-import java.rmi.registry.*; // FIXME: This will go away...
+//import java.rmi.*; // FIXME: This will go away...
+//import java.rmi.registry.*; // FIXME: This will go away...
 
 import java.util.LinkedList;
 
@@ -64,25 +64,26 @@ public class Runtime {
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
 
-    try {
-      String host = p.getParameter(Profile.MAIN_HOST);
-      String port = p.getParameter(Profile.MAIN_PORT);
+    //try {
+      //String host = p.getParameter(Profile.MAIN_HOST);
+      //String port = p.getParameter(Profile.MAIN_PORT);
 
-      String platformRMI = "rmi://" + host + ":" + port + "/JADE";
-      String[] empty = new String[] { };
+      //String platformRMI = "rmi://" + host + ":" + port + "/JADE";
+      //String[] empty = new String[] { };
       
       AgentContainerImpl impl = new AgentContainerImpl(p);
 
       // Look the remote Main Container up into the
       // RMI Registry, then create a Smart Proxy for it.
-      MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
-      MainContainer mc = new MainContainerProxy(remoteMC);
+      //MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
+      //MainContainer mc = new MainContainerProxy(remoteMC);
 
-      impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
+      //impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
+      impl.joinPlatform();
 
       return new jade.wrapper.AgentContainer(impl);
-    }
+    /*}
     catch(RemoteException re) {
       throw new InternalError("Remote exception in a local call.");
     }
@@ -94,7 +95,7 @@ public class Runtime {
     }
     catch(ProfileException pe) {
       throw new InternalError("Can't read configuration from Profile.");
-    }
+    }*/
 
   }
 
@@ -106,28 +107,29 @@ public class Runtime {
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
 
-    try {
-      String host = p.getParameter(Profile.MAIN_HOST);
-      String port = p.getParameter(Profile.MAIN_PORT);
+    //try {
+      //String host = p.getParameter(Profile.MAIN_HOST);
+      //String port = p.getParameter(Profile.MAIN_PORT);
 
-      String platformRMI = "rmi://" + host + ":" + port + "/JADE";
+      //String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
       AgentContainerImpl impl = new AgentContainerImpl(p);
-      MainContainerImpl mc = new MainContainerImpl(p);
+      //MainContainerImpl mc = new MainContainerImpl(p);
 
       // Create an embedded RMI Registry within the platform and
       // bind the Agent Platform to it
 
-      int portNumber = Integer.parseInt(port);
+      //int portNumber = Integer.parseInt(port);
 
-      Registry theRegistry = LocateRegistry.createRegistry(portNumber);
-      Naming.bind(platformRMI, new jade.imtp.rmi.MainContainerRMIImpl(mc));
-      String[] empty = new String[] { };
-      impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
+      //Registry theRegistry = LocateRegistry.createRegistry(portNumber);
+      //Naming.bind(platformRMI, mc);
+      //String[] empty = new String[] { };
+      //impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
+      impl.joinPlatform();
 
       return new jade.wrapper.MainContainer(impl);
-    }
+    /*}
     catch(RemoteException re) {
       throw new InternalError("Remote Exception"); // FIXME: Need to throw a suitable exception
     }
@@ -139,7 +141,7 @@ public class Runtime {
     }
     catch(ProfileException pe) {
       throw new InternalError("Can't read configuration from Profile.");
-    }
+    }*/
 
   }
 

@@ -23,9 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class allows retrieving configuration-dependent classes.
@@ -41,7 +41,7 @@ public abstract class Profile {
      boolean indicating if this is the Main Container or a peripheral
      container.
    */
-  public static final String MAIN = "main";
+  //public static final String MAIN = "main";
   
   /**
      This constant is the name of the property whose value is a String
@@ -99,6 +99,14 @@ public abstract class Profile {
    */
   public static final String ACLCODECS = "aclcodecs";
   
+    /**
+     */
+    protected abstract MainContainer getMain() throws ProfileException;
+    
+    /**
+     */
+    protected abstract IMTPManager getIMTPManager() throws ProfileException;
+    
     /**
      */
     protected abstract acc getAcc() throws ProfileException;

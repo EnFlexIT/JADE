@@ -23,7 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.net.InetAddress;
+//import java.net.InetAddress;
+import jade.mtp.TransportAddress;
 
 public class ContainerID implements Location {
 
@@ -37,10 +38,10 @@ public class ContainerID implements Location {
   public ContainerID() {
   }
 
-  public ContainerID(String n, InetAddress a) {
+  public ContainerID(String n, TransportAddress a) {
     name = n;
     if(a != null)
-      address = a.getHostName();
+      address = a.getHost();
     else
       address = "<Unknown Host>";
   }

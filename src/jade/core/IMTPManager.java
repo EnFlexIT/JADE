@@ -22,7 +22,7 @@
  */
 package jade.core;
 
-import jade.util.leap.List;
+import java.util.List;
 
 /**
  * @author Giovanni Caire - Telecom Italia Lab

@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.rmi.RemoteException;
+//import java.rmi.RemoteException;
 
 /**
  
@@ -35,10 +35,12 @@ import java.rmi.RemoteException;
 */
 class MainContainerProxy implements MainContainer {
 
+	private Profile myProfile;
     private MainContainer adaptee;
 
-    MainContainerProxy(MainContainer mc) {
-      adaptee = mc;
+    MainContainerProxy(Profile p, MainContainer mc) {
+    	myProfile = p;
+    	adaptee = mc;
     }
 
     public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {

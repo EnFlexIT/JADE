@@ -25,9 +25,9 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.util.leap.LEAPProperties;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.io.IOException;
 import java.net.*;
 
@@ -43,6 +43,13 @@ import java.net.*;
  */
 public class ProfileImpl extends Profile {
 
+	/**
+       This constant is the name of the property whose value contains a
+       boolean indicating if this is the Main Container or a peripheral
+       container.
+	*/
+	public static final String MAIN = "main";
+	
     /**
      * Key to retrieve the MobilityHandler implementation class among
      * the configuration properties.
@@ -70,7 +77,11 @@ public class ProfileImpl extends Profile {
      * @see jade.util.leap.LEAPProperties
      */
     public static final String IMTP = "imtp";
+    
     private LEAPProperties     props = null;
+    private MainContainer myMain = null;
+    private IMTPManager myIMTPManager = null;
+    private acc myACC = null;
 
     /**
        Creates a Profile implementation that gets the configuration from 
@@ -112,18 +123,6 @@ public class ProfileImpl extends Profile {
      */
 	public ProfileImpl() {
 		this(null);
-        /*props = new LEAPProperties();
-    	try {
-      		String host = InetAddress.getLocalHost().getHostName();
-      		props.setProperty(MAIN, "true");
-      		props.setProperty(MAIN_PROTO, "rmi");
-      		props.setProperty(MAIN_HOST, host);
-      		props.setProperty(MAIN_PORT, "1099");
-      		props.setProperty(PLATFORM_ID, host + ":1099/JADE");
-    	}
-    	catch(UnknownHostException uhe) {
-      		uhe.printStackTrace();
-    	}*/
   	}
 
 
@@ -152,23 +151,89 @@ public class ProfileImpl extends Profile {
     	}
 	}
 
+    
+    
+    /**
+     */
+    protected MainContainer getMain() throws ProfileException { 
+    	if (myMain == null) {
+    		createMain();
+    	}
+    	return myMain;
+    }
+    
+    /**
+     */
+    protected IMTPManager getIMTPManager() throws ProfileException {
+    	if (myIMTPManager == null) {
+    		createIMTPManager();
+    	}
+    	return myIMTPManager;
+    } 
+    
     /**
      */
     protected acc getAcc() throws ProfileException {
-        String className = props.getProperty(ACC);
+    	if (myACC == null) {
+    		createACC();
+    	}
+    	return myACC;
+    }
+    
+    private void createMain() throws ProfileException {
+			// Be sure that the IMTPManager is not null
+    	getIMTPManager();   
+    	
+    	try {
+        	String isMain = props.getProperty(MAIN);
+        	if(isMain == null || isMain.equalsIgnoreCase("true")) {
+        		// The real Main
+        		myMain = new MainContainerImpl(this);
+        		myIMTPManager.remotize(myMain);
+        	}
+        	else {
+        		// A proxy to the main
+        		myMain = new MainContainerProxy(this, myIMTPManager.getMain());
+        	}
+    	}
+    	catch (IMTPException imtpe) {
+    		throw new ProfileException(imtpe.getMessage());
+    	}
+    }
+    
+    private void createIMTPManager() throws ProfileException {
+	    String className = props.getProperty(IMTP);
 
-        if(className == null) {
-          // Use the Full ACC by default
-          className = new String("jade.core.FullAcc");
+    	if(className == null) {
+      	// Use the RMI IMTP by default
+        className = new String("jade.imtp.rmi.RMIIMTPManager");
+      }
+
+      try {
+        myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
+        myIMTPManager.initialize(this);
+      } 
+      catch (Exception e) {
+      	e.printStackTrace();
+	  		throw new ProfileException("Error loading IMTPManager class " + className);
+      }
+    }
+    
+    private void createACC() throws ProfileException {
+       	String className = props.getProperty(ACC);
+
+    	if(className == null) {
+            // Use the Full ACC by default
+          	className = new String("jade.core.FullAcc");
         }
 
         try {
-            return (acc) Class.forName(className).newInstance();
+            myACC = (acc) Class.forName(className).newInstance();
         } 
         catch (Exception e) {
-	  throw new ProfileException("Error loading acc class " + className);
-        } 
-    } 
+	  		throw new ProfileException("Error loading acc class " + className);
+        }
+    }
 
     /**
      *
@@ -211,26 +276,6 @@ public class ProfileImpl extends Profile {
 	*/
 	
     /**
-     *
-    protected IMTPManager getIMTPManager() throws ProfileException {
-        String className = props.getProperty(IMTP);
-
-        if (className == null) {
-        	// Use RMIIMTPManager by default
-            className = new String("jade.imtp.rmi.RMIIMTPManager");
-        } 
-
-        try {
-            return (IMTPManager) Class.forName(className).newInstance();
-        } 
-        catch (Exception e) {
-            throw new ProfileException("Error loading IMTPManager class" 
-                                       + className);
-        } 
-    } 
-	*/
-	
-    /**
      * Retrieve a String value from the configuration properties.
      * If no parameter corresponding to the specified key is found,
      * null is returned.
@@ -254,6 +299,20 @@ public class ProfileImpl extends Profile {
         ArrayList specs = new ArrayList();
         String    specsLine = props.getProperty(key);
 
+        // If the GUI must be activated, then add the rma to the list of
+        // initial agents.
+        if (key.equalsIgnoreCase(AGENTS)) {
+	        String hasGUI = props.getProperty("gui");
+
+  	      if (hasGUI != null && hasGUI.equals("true")) {
+    	    	Specifier rmaSpec = new Specifier();
+
+      	  	rmaSpec.setName("rma");
+        		rmaSpec.setClassName("jade.tools.rma.rma");
+        		specs.add(rmaSpec);
+        	}
+        }
+        	
         if (specsLine != null &&!specsLine.equals("")) {
 
             // Copy the string with the specifiers into an array of char

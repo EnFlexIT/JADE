@@ -391,7 +391,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     // Commit transaction and notify listeners
     ad.lock();
-    ad.setProxy(new RemoteProxyRMI(destAC, agentID));
+    ad.setProxy(new RemoteContainerProxy(destAC, agentID));
     ad.setContainerID(dest);
     fireMovedAgent(src, dest, agentID);
     ad.unlock();
