@@ -51,13 +51,15 @@ class JICPPacket {
   private byte   type;
 
   /**
-   * Some bit encoded information about the packet:
-   * - Whether the payload is compressed 
-   * - Whether the recipientID field is present
-   * - Whether this packet carries a PING command
+   * Bit encoded information about the content of the packet:
    */
   private byte   info;
 
+  /**
+   * An optional identifier for the session this packet belongs to
+   */
+  private byte   sessionID;
+  
   /**
    * An optional field indicating the actual recipient for this JICPPacket. 
    * - A JICPServer receiving a JICPPacket from a remote container
@@ -106,7 +108,7 @@ class JICPPacket {
       explanation = explanation+": "+e.toString();
     } 
 
-    init(JICPProtocol.ERROR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, explanation.getBytes());
+    init(JICPProtocol.ERROR_TYPE, JICPProtocol.DEFAULT_INFO, null, explanation.getBytes());
   }
 
   /**
@@ -114,6 +116,7 @@ class JICPPacket {
   private void init(byte t, byte i, String id, byte[] d) {
     type = t;
   	info = i;
+  	sessionID = -1;
     data = d;
     
     setRecipientID(id);
@@ -138,6 +141,28 @@ class JICPPacket {
    */
   byte getInfo() {
     return info;
+  } 
+
+  /**
+   * @return The sessionID of this packet.
+   */
+  byte getSessionID() {
+    return sessionID;
+  } 
+
+  /**
+   * Set the sessionID of this packet and adjust the info field
+   * accordingly.
+   */
+  void setSessionID(byte id) {
+    sessionID = id;
+    
+    if (sessionID >= 0) {
+    	info |= JICPProtocol.SESSION_ID_PRESENT_INFO;
+    }
+    else {
+    	info &= (~JICPProtocol.SESSION_ID_PRESENT_INFO);
+    }
   } 
 
   /**
@@ -182,7 +207,7 @@ class JICPPacket {
   } 
 
   /**
-   * Writes the packet into the provided <code>DataOutputStream</code>.
+   * Writes the packet into the provided <code>OutputStream</code>.
    * The packet is serialized in an internal representation, so the
    * data should be retrieved and deserialized with the
    * <code>readFrom()</code> static method below. The output stream is flushed
@@ -201,10 +226,17 @@ class JICPPacket {
       // Write the packet info
       out.write(info);
 
+      // Write the session ID if present
+      if (sessionID >= 0) {
+	      out.write(sessionID);
+	      cnt++;
+      }
+
       // Write recipient ID only if != null
       if (recipientID != null) {
       	out.write(recipientID.length());
       	out.write(recipientID.getBytes());
+      	cnt += (1 + recipientID.length());
       } 
 
       // Write data only if != null
@@ -213,6 +245,7 @@ class JICPPacket {
       	int size = data.length;
       	out.write(size);
       	out.write(size >> 8);
+      	cnt += 2;
       	// Payload
       	if (size > 0) {
         	out.write(data, 0, size);
@@ -246,6 +279,11 @@ class JICPPacket {
     // Read the packet info
     p.info = (byte) in.read();
 
+    // Read session ID if present
+    if ((p.info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+    	p.sessionID = (byte) in.read();
+    }
+    	
     // Read recipient ID if present
     if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
     	int size = (byte) (in.read() & 0x000000ff);
@@ -278,7 +316,7 @@ class JICPPacket {
       	while (cnt < size);
 
       	if (cnt < size) {
-        	Logger.println("WARNING: only "+cnt+" bytes received back, while "+size+" were expected");
+        	Logger.println("WARNING: only "+cnt+" bytes received, while "+size+" were expected");
       	} 
     	}
       //Logger.println("JICPPacket read. Type:"+p.type+" Info:"+p.info+" RID:"+p.recipientID+" Data-length:"+(p.data != null ? p.data.length : 0));
@@ -290,7 +328,7 @@ class JICPPacket {
   } 
 
   public int getLength() {      
-  	return (2 + (recipientID != null ? recipientID.length()+4 : 0) + (data != null ? 4+data.length : 0));
+  	return (2 + (sessionID >= 0 ? 1 : 0) + (recipientID != null ? 1+recipientID.length() : 0) + (data != null ? 2+data.length : 0));
   }
   
 }
