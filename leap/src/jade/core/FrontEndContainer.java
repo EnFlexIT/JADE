@@ -44,7 +44,7 @@ import java.util.Enumeration;
 
 class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
-	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.FrontEndDispatcher";
+	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.BIFEDispatcher";
 	
 	// The table of local agents
 	private Hashtable localAgents = new Hashtable(1);
@@ -256,6 +256,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
+	    
+	    // Stop the TimerDispatcher if it was activated
+	    TimerDispatcher.getTimerDispatcher().stop();
   	}
   }
   
