@@ -127,6 +127,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			throw new ICPException("Error creating profile");
     }
   }
+
+  public void activateReplica(String addr, Properties props) {
+      throw new RuntimeException("FIXME: Not Implemented");
+  }
   
   /**
      Shutdown forced by the JICPServer this BackEndContainer is attached 
@@ -135,15 +139,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
      re-established.
    */
   public void kill() {
-  	// Force the BackEndContainer to terminate. This will also
-  	// cause this HTTPBEDispatcher to terminate 
-  	try {
-  		myContainer.exit();
-  	}
-  	catch (IMTPException imtpe) {
-  		// Should never happen as this is a local call
-  		imtpe.printStackTrace();
-  	}
+      // Force the BackEndContainer to terminate. This will also
+      // cause this HTTPBEDispatcher to terminate 
+      myContainer.exit();
   }
   
   /**
