@@ -48,7 +48,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import jade.lang.acl.*;
-
+import jade.domain.MobilityOntology;
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -58,6 +58,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   private static final int CACHE_SIZE = 10;
 
+  
   // Local agents, indexed by agent name
   protected LADT localAgents = new LADT();
 
@@ -137,9 +138,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
           Constructor[] constr = agentDefinition.getConstructors();
       
       	  Constructor stringArgsConstructor = agentDefinition.getConstructor(stringArgsClass);
-
+      	  	
       	  Object[] objArg = new Object[] {args};
-    
+          
         	agent = (Agent)stringArgsConstructor.newInstance(objArg);
         }  
     }
@@ -148,7 +149,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       return;
     }catch(java.lang.NoSuchMethodException nsme){
     
-    	System.err.println("Not found an appropriate construcotor for agent " + agentID +" class "+className);
+    	System.err.println("Not found an appropriate constructor for agent " + agentID +" class "+className);
     	return;
     }
     catch( Exception e ){
@@ -595,7 +596,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
     synchronized(localAgents) {
       try {
         String proto = where.getProtocol();
-	if(!proto.equalsIgnoreCase("JADE-IPMT"))
+	if(!proto.equalsIgnoreCase(MobilityOntology.Location.DEFAULT_LOCATION_TP))
 	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
 
 	String destName = where.getName();
@@ -663,7 +664,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
   public void handleClone(AID agentID, Location where, String newName) {
     try {
       String proto = where.getProtocol();
-      if(!proto.equalsIgnoreCase("JADE-IPMT"))
+      if(!proto.equalsIgnoreCase(MobilityOntology.Location.DEFAULT_LOCATION_TP))
 	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
       AgentContainer ac = myPlatform.lookup(where.getName());
       Agent a = localAgents.get(agentID);
