@@ -226,6 +226,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private Codec codec = new SLCodec();
   
   private DFFipaAgentManagementBehaviour fipaRequestResponder;
+  private DFIteratedSearchManagementBehaviour iteratedSearchResponder; 
   private DFJadeAgentManagementBehaviour jadeRequestResponder;
   private DFAppletManagementBehaviour appletRequestResponder;
   private SubscriptionResponder dfSubscriptionResponder;
@@ -347,7 +348,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				logger.log(Logger.WARNING,"The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS);
 		}else if(maxResultLimit > Integer.parseInt(DEFAULT_MAX_RESULTS)){
 			if(logger.isLoggable(Logger.WARNING))
-				logger.log(Logger.WARNING,"Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !! It has been set to the default value: " + DEFAULT_MAX_RESULTS);
+				logger.log(Logger.WARNING,"Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!");
 		}
   	}
   	catch (Exception e) {
@@ -475,7 +476,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	
     // Behaviour dealing with FIPA management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
+    mt1 = MessageTemplate.and(mt1, MessageTemplate.not(MessageTemplate.MatchProtocol("iterated-fipa-request")));
     fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
+    addBehaviour(fipaRequestResponder);
+
+    // Behaviour dealing with iterated searches according to the iterated-fipa-request protocol
+		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
+		// FIXME: Use a proper constant
+    mt1 = MessageTemplate.and(mt1, MessageTemplate.MatchProtocol("iterated-fipa-request"));
+    iteratedSearchResponder = new DFIteratedSearchManagementBehaviour(this, mt1);
     addBehaviour(fipaRequestResponder);
 
     // Behaviour dealing with JADE management actions
@@ -588,6 +597,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		//#PJAVA_EXCLUDE_END
   }  // End of method setup()
 
+  
   /**
     Cleanup <em>DF</em> on exit. This method performs all necessary
     cleanup operations during agent shutdown.
@@ -864,6 +874,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
     return agentDescriptions.search(dfd, maxResults);
   }
 	
+  KBIterator DFIteratedSearch(DFAgentDescription dfd) {
+    return agentDescriptions.iterator(dfd);
+  }
+	
         
 	////////////////////////////////////////////////////////////////
 	// Methods serving the actions of the FIPA Management ontology
@@ -989,6 +1003,22 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		return result;
 	}
   	
+  /**
+     Serve a Search action of the FIPA management ontology requested
+     using an iterated-fipa-request protocol.
+     Package scoped since it is called by DFIteratedSearchManagementBehaviour.
+     @return an iterator over the DFAgentDescription matching the specified
+     search template.
+	 */
+	KBIterator iteratedSearchAction(Search s, AID requester) throws FIPAException {
+		DFAgentDescription dfd = (DFAgentDescription) s.getDescription();
+		
+    if(logger.isLoggable(Logger.CONFIG))
+    	logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action Iterated-Search");
+		
+    return DFIteratedSearch(dfd);
+	}
+		
 	////////////////////////////////////////////////////////////////
 	// Methods serving the actions of the JADE Management ontology
 	////////////////////////////////////////////////////////////////
@@ -1546,8 +1576,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
    * infinite, but for practical reason we prefer to limit it)
    * <li> constraints.maxResults otherwise
    * </ul>
+   * This is package-scoped since it is also used by the DFIteratedSearchManagementBehaviour 
    **/
-  private int getActualMaxResults(SearchConstraints constraints) {
+  int getActualMaxResults(SearchConstraints constraints) {
       int maxResult = (constraints.getMaxResults() == null ? 1 : constraints.getMaxResults().intValue());
       maxResult = (maxResult < 0 ? maxResultLimit : maxResult); // limit the max num of results
       return maxResult;              

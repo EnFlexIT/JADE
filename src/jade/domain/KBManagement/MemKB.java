@@ -99,7 +99,14 @@ public abstract class MemKB extends KB {
       	}
         return result;
 	}
-
+	
+	/**
+	   Iterated search is only supported in a DB-based KB.
+	   Throw a RuntimeException. The requester will get back a FAILURE
+	 */
+	public KBIterator iterator(Object template) {
+		throw new RuntimeException("Iterated search non supported");
+	}
 
 	//
 	public void subscribe(Object dfd, SubscriptionResponder.Subscription s) throws NotUnderstoodException{
