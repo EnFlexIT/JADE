@@ -59,6 +59,8 @@ public class MicroBoot {
 	  		PJAVA_INCLUDE_END*/
 	  	}
   	
+	  	customize(props);
+	  	
     	MicroRuntime.startJADE(props, new Runnable() {
 		    public void run() {
 		    	// Wait a bit before killing the JVM
@@ -121,20 +123,22 @@ public class MicroBoot {
   	Logger.println("     where agent-specifier = <agent-name>:<agent-class>[(comma separated args)]"); 
   	Logger.println();
   }
+  
+  protected static void customize(Properties props) {
+  }
 }
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
-public class MicroBoot extends MIDlet {
-	private static FrontEnd myFrontEnd;
+public class MicroBoot extends MIDlet implements Runnable {
 
   // Start-up the JADE runtime system
   public void startApp() throws MIDletStateChangeException {
-  	if (myFrontEnd != null) {
+  	if (Agent.midlet != null) {
+  		// This can happen when the MIDlet is paused and then resumed
   		Logger.println("JADE runtime already active");
-  		notifyDestroyed();
   		return;
   	}
-  	
+  	    
     Agent.midlet = this;
     
     try {
@@ -146,7 +150,7 @@ public class MicroBoot extends MIDlet {
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.MIDP);
 	  	}
   	
-      Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
+  		customize(props);
 
       // small trick - moving much memory consuming instruction to the point where it is not so important
       if (null instanceof jade.lang.acl.ACLMessage) {
@@ -155,38 +159,39 @@ public class MicroBoot extends MIDlet {
 
     	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
 			rt.gc();
-    	myFrontEnd = MicroRuntime.startJADE(props, new Runnable() {
-	      public void run() {
-	        Agent.midlet.notifyDestroyed();
-	        Agent.midlet = null;
-	        myFrontEnd = null;
-	      }
-		  });
-			//#NODEBUG_EXCLUDE_BEGIN
+    	MicroRuntime.startJADE(props, this);
 			rt.gc();
+			
+			//#NODEBUG_EXCLUDE_BEGIN
       System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      System.err.println("Error reading configuration properties");
+      Logger.println("Error reading configuration properties");
       e.printStackTrace();
+      Agent.midlet = null;
       notifyDestroyed();
     } 
   } 
 
   public void pauseApp() {
+		Logger.println("pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-  	try {
-  		// Self-initiated shutdown
-  		System.out.println("destroyApp() called");
-	  	myFrontEnd.exit(true);
-		}
-		catch (IMTPException imtpe) {
-			// Should never happen as this is a local call
-		}
+		// Self-initiated shutdown
+		Logger.println("destroyApp() called");
+  	MicroRuntime.stopJADE();
   } 
+  
+  public void run() {
+    Agent.midlet.notifyDestroyed();
+    Agent.midlet = null;
+  }
+  
+  protected void customize(Properties props) {
+    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
+  }
 }
 #MIDP_INCLUDE_END*/
 

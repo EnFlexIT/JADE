@@ -253,9 +253,11 @@ public class Boot extends MIDlet {
   } 
 
   public void pauseApp() {
+    System.out.println("MIDlet paused");
   } 
 
   public void destroyApp(boolean unconditional) {
+    System.out.println("MIDlet destroyed");
   } 
 #MIDP_INCLUDE_END*/
 }
