@@ -129,38 +129,38 @@ class MainContainerProxy implements Platform {
     int i = 0;
     do {
 
-      AgentProxy proxy;
+      AgentProxy proxy = null;
       try {
-	// Try first with the local container	  
-	localContainer.dispatch(msg, receiverID);
-	proxy = new LocalProxy(localContainer, receiverID);
-	cachedProxies.put(receiverID, proxy);
-	ok = true;
+				// Try first with the local container	  
+				localContainer.dispatch(msg, receiverID);
+				proxy = new LocalProxy(localContainer, receiverID);
+				cachedProxies.put(receiverID, proxy);
+				ok = true;
       }
       catch(NotFoundException nfe) {
-	// Try with the Main Container: if this call raises a
-	// NotFoundException, the agent is not found in the whole
-	// GADT, so the exception breaks out of the loop and ends the
-	// dispatch attempts.
-	try {
-	  proxy = adaptee.getProxy(receiverID);
-	}
-	catch(IMTPException imtpe) {
-	  throw new NotFoundException("Communication problem: " + imtpe.getMessage());
-	}
-	try {
-	  proxy.dispatch(msg);
-	  cachedProxies.put(receiverID, proxy);
-	  ok = true;
-	}
-	catch(NotFoundException nfe2) {
-	  // Stale proxy: need to check again.
-	  ok = false;
-	}
+				// Try with the Main Container: if this call raises a
+				// NotFoundException, the agent is not found in the whole
+				// GADT, so the exception breaks out of the loop and ends the
+				// dispatch attempts.
+				try {
+	  			proxy = adaptee.getProxy(receiverID);
+				}
+				catch(IMTPException imtpe) {
+	  			throw new NotFoundException("Communication problem: " + imtpe.getMessage());
+				}
+				try {
+	  			proxy.dispatch(msg);
+	  			cachedProxies.put(receiverID, proxy);
+	  			ok = true;
+				}
+				catch(NotFoundException nfe2) {
+	  			// Stale proxy: need to check again.
+	  			ok = false;
+				}
       }
       catch(IMTPException imtpe) {
-	// It should never happen, since this really is a local call
-	throw new InternalError("Error: cannot contact the local container.");
+				// It should never happen, since this really is a local call
+				throw new InternalError("Error: cannot contact the local container.");
       }
 
       /*
