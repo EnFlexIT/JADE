@@ -220,12 +220,48 @@ public interface Service {
        distinguishing between the two filter chains managed by the
        command processor.
        @return A <code>Filter</code> object, used by this service to
-       intercept and process kernel-level commands.
+       intercept and process kernel-level commands. If the service
+       does not wish to install a command filter for one or both
+       directions, it can just return <code>null</code> when
+       appropriate.
        @see jade.core.CommandProcessor
     */
     Filter getCommandFilter(boolean direction);
 
 
+    /**
+       Access the command sink this service uses to handle its own
+       vertical commands.
+       @param side One of the two constants
+       <code>Sink.COMMAND_SOURCE</code> or
+       <code>Sink.COMMAND_TARGET</code>, to state whether this sink
+       will handle locally issued commands or commands incoming from
+       remote nodes.
+       @return Concrete services must return their own implementation
+       of the <code>Sink</code> interface, that will be invoked by the
+       kernel in order to consume any incoming vertical command owned
+       by this service. If the service does not wish to install a
+       command sink, it can just return <code>null</code>.
 
+       @see jade.core.Service#getOwnedCommands()
+    */
+    Sink getCommandSink(boolean side);
+
+
+    /**
+       Access the names of the vertical commands this service wants to
+       handle as their final destination. This set must not overlap
+       with the owned commands set of any previously installed
+       service, or an exception will be raised and service
+       activation will fail.
+
+       @return An array containing the names of all the vertical
+       commands this service wants to own. If this service has no such
+       commands (it acts purely as a command filter), it can return an
+       empty array, or <code>null</code> as well.
+
+       @see jade.core.Service#getCommandSink()
+    */
+    String[] getOwnedCommands();
 
 }

@@ -25,12 +25,13 @@ package jade.core;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
-
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 /**
 
-   Processes JADE kernel-level commands, managing a filter chain to
-   support dynamically configurable platform services.
+   Processes JADE kernel-level commands, managing a filter/sink system
+   to support dynamically configurable platform services.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
@@ -39,6 +40,8 @@ public class CommandProcessor {
     public CommandProcessor() {
 	inFilters = new LinkedList();
 	outFilters = new LinkedList();
+	sourceSinks = new HashMap();
+	targetSinks = new HashMap();
 	updateFiltersArray();
     }
 
@@ -82,14 +85,78 @@ public class CommandProcessor {
     }
 
     /**
-       Process a command object, carrying out the action it
+       Register a command sink object to handle the given vertical commmand set.
+
+       @param snk A service-specific implementation of the
+       <code>Sink</code> interface, managing a set of vertical
+       commands.
+       @param side One of the two constants
+       <code>Sink.COMMAND_SOURCE</code> or
+       <code>Sink.COMMAND_TARGET</code>, to state whether this sink
+       will handle locally issued commands or commands incoming from
+       remote nodes.
+       @param commandNames An array containing all the names of the
+       vertical commands the new sink wants to handle.
+       @throws ServiceException If some other sink is already
+       registered for a member of the <code>commandNames</code> set.
+    */
+    public synchronized void registerSink(Sink snk, boolean side, String[] commandNames) throws ServiceException {
+
+	Map sinks;
+	if(side == Sink.COMMAND_SOURCE) {
+	    sinks = sourceSinks;
+	}
+	else {
+	    sinks = targetSinks;
+	}
+	for(int i = 0; i < commandNames.length; i++) {
+	    Object old = sinks.put(commandNames[i], snk);
+	    if(old != null) { // Command name owned by another service
+		sinks.put(commandNames[i], old);
+		throw new ServiceException("Command <" + commandNames[i] + "> has a sink already.");
+	    }
+	}
+    }
+
+    /**
+       Deregister a sink that is currently handling a given set of vertical commands.
+
+       @param side One of the two constants
+       <code>Sink.COMMAND_SOURCE</code> or
+       <code>Sink.COMMAND_TARGET</code>, to state whether the sink to
+       be removed is handling locally issued commands or commands
+       incoming from remote nodes.
+       @param commandNames An array containing all the names of the
+       vertical commands currently handled by the sink to be removed.
+       @throws ServiceException If a member of the
+       <code>commandNames</code> set has no associated command sink.
+    */
+    public synchronized void deregisterSink(boolean side, String[] commandNames) throws ServiceException {
+	
+	Map sinks;
+	if(side == Sink.COMMAND_SOURCE) {
+	    sinks = sourceSinks;
+	}
+	else {
+	    sinks = targetSinks;
+	}
+	for(int i = 0; i < commandNames.length; i++) {
+	    Object snk = sinks.remove(commandNames[i]);
+	    if(snk == null) {
+		throw new ServiceException("No sink is registered for command <" + commandNames[i] + ">");
+	    }
+	}
+    }
+
+    /**
+       Process an outgoing command object, carrying out the action it
        represents.  This method is not synchronized and it must be
        reentrant and as fast as possible, because it is going to be a
        bottleneck of the kernel call flow.
 
        @param cmd The <code>VerticalCommand</code> object to process.
     */
-    public Object process(VerticalCommand cmd) {
+    public Object processOutgoing(VerticalCommand cmd) {
 
 	// FIXME: Should manage the blocking and skipping filter states...
 
@@ -100,7 +167,37 @@ public class CommandProcessor {
 	    f.accept(cmd);
 	}
 
-	// FIXME: Should dispatch to the proper sink...
+	Sink s = (Sink)sourceSinks.get(cmd.getName());
+	if(s != null) {
+	    s.consume(cmd);
+	}
+
+	return cmd.getReturnValue();
+
+    }
+
+    /**
+       Process an incoming command object, carrying out the action it
+       represents.  This method is not synchronized and it must be
+       reentrant and as fast as possible, because it is going to be a
+       bottleneck of the kernel call flow.
+
+       @param cmd The <code>VerticalCommand</code> object to process.
+    */
+    public Object processIncoming(VerticalCommand cmd) {
+	// FIXME: Should manage the blocking and skipping filter states...
+
+	// Pass the command through every outgoing filter
+	Filter[] arr = inFiltersArray;
+	for(int i = 0; i < arr.length; i++) {
+	    Filter f = arr[i];
+	    f.accept(cmd);
+	}
+
+	Sink s = (Sink)targetSinks.get(cmd.getName());
+	if(s != null) {
+	    s.consume(cmd);
+	}
 
 	return cmd.getReturnValue();
 
@@ -109,6 +206,8 @@ public class CommandProcessor {
 
     private final List inFilters;
     private final List outFilters;
+    private final Map sourceSinks;
+    private final Map targetSinks;
 
 
     // Array representation of the filter chains, cached to allow concurrent iteration.

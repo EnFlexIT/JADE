@@ -87,7 +87,7 @@ public class LEAPIMTPManager implements IMTPManager {
   /**
    * Initialize the support for intra-platform communication
    */
-  public void initialize(Profile p) throws IMTPException {
+  public void initialize(Profile p, CommandProcessor cp) throws IMTPException {
     theProfile = p;
 
     if (!CommandDispatcher.create(theProfile)) {
@@ -122,8 +122,8 @@ public class LEAPIMTPManager implements IMTPManager {
 
       // Initialize the local node
       localNode = new NodeAdapter("No-Name", theDispatcher);
- 
-    } 
+      localNode.setCommandProcessor(cp);
+    }
     catch (ProfileException pe) {
       // Just print a warning
       Logger.println("Profile error. "+pe.getMessage());

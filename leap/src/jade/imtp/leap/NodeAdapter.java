@@ -25,9 +25,11 @@ package jade.imtp.leap;
 
 import jade.core.BaseNode;
 import jade.core.Service;
+import jade.core.CommandProcessor;
 import jade.core.HorizontalCommand;
+import jade.core.VerticalCommand;
 import jade.core.IMTPException;
-
+import jade.core.ServiceException;
 
 
 /**
@@ -52,8 +54,20 @@ class NodeAdapter extends BaseNode {
 	adaptee = node;
     }
 
+    public void setCommandProcessor(CommandProcessor cp) {
+	processor = cp;
+    }
+
     public Object accept(HorizontalCommand cmd) throws IMTPException {
 	return adaptee.accept(cmd, null, null);
+    }
+
+    public Object serve(VerticalCommand cmd) throws ServiceException {
+	if(processor == null) {
+	    throw new ServiceException("No command processor for node <" + getName() + ">");
+	}
+
+	return processor.processIncoming(cmd);
     }
 
     public Service.Slice getSlice(String serviceName) {
@@ -75,5 +89,6 @@ class NodeAdapter extends BaseNode {
 
 
     private NodeLEAP adaptee;
+    private transient CommandProcessor processor;
 
 }

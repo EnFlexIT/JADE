@@ -36,7 +36,7 @@ public interface IMTPManager {
     /**
      * Initialize this IMTPManager
      */
-    void initialize(Profile p) throws IMTPException;
+    void initialize(Profile p, CommandProcessor cp) throws IMTPException;
 
     /**
        Connects the local container to the rest of the platform, over

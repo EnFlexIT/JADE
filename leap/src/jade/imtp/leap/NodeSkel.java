@@ -26,6 +26,7 @@ package jade.imtp.leap;
 
 import jade.core.HorizontalCommand;
 import jade.core.Service;
+import jade.core.ServiceException;
 import jade.core.IMTPException;
 
 
@@ -38,10 +39,10 @@ import jade.core.IMTPException;
 */
 class NodeSkel extends Skeleton implements NodeLEAP {
 
-    private NodeAdapter impl;
+    private NodeAdapter myNode;
 
     public NodeSkel(NodeAdapter na) {
-	impl = na;
+	myNode = na;
     }
 
     public Command executeCommand(Command command) throws Throwable {
@@ -102,26 +103,12 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 
 	***/
 
-
-	String serviceName = cmd.getService();
-	String commandName = cmd.getName();
-	Object[] commandParams = cmd.getParams();
-
-	// Look up in the local slices table and find the slice to dispatch to
-	Service.Slice slice = impl.getSlice(serviceName);
-
-	if(slice != null) {
-	    slice.serve(cmd);
-	    return cmd.getReturnValue();
+	try {
+	    return myNode.serve(cmd);
 	}
-	else {
-	    // FIXME: Throw something to mean 'Service Unknown'
-	    System.out.println("-- Service Unknown --");
+	catch(ServiceException se) {
+	    throw new IMTPException("Service Error", se);
 	}
-
-	// FIXME: Make it so that the execution never reaches here (i.e. throw in every catch clause)
-	return null;
-
     }
 
     public void ping(boolean hang) throws IMTPException {

@@ -33,6 +33,7 @@ import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
+import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 
@@ -78,6 +79,27 @@ public class NotificationService extends BaseService {
 
     public static final String MAIN_SLICE = "Main-Container";
 
+
+    /**
+       The name of this service.
+    */
+    static final String NAME = "jade.core.event.Notification";
+
+    private static final String[] OWNED_COMMANDS = new String[] {
+	NotificationSlice.SNIFF_ON,
+	NotificationSlice.SNIFF_OFF,
+	NotificationSlice.DEBUG_ON,
+	NotificationSlice.DEBUG_OFF,
+	NotificationSlice.NOTIFY_POSTED,
+	NotificationSlice.NOTIFY_RECEIVED,
+	NotificationSlice.NOTIFY_CHANGED_AGENT_STATE,
+	NotificationSlice.NOTIFY_CHANGED_AGENT_PRINCIPAL,
+	NotificationSlice.NOTIFY_BEHAVIOUR_ADDED,
+	NotificationSlice.NOTIFY_BEHAVIOUR_REMOVED,
+	NotificationSlice.NOTIFY_CHANGED_BEHAVIOUR_STATE	
+    };
+
+
     // The special name of an auxiliary thread used to avoid deadlock when debugging the AMS
     private final static String AMS_DEBUG_HELPER = "AMS-debug-helper";
 
@@ -104,8 +126,22 @@ public class NotificationService extends BaseService {
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return localSlice;
+	if(direction == Filter.OUTGOING) {
+	    return localSlice;
+	}
+	else {
+	    return null;
+	}
     }
+
+    public Sink getCommandSink(boolean side) {
+	return null;
+    }
+
+    public String[] getOwnedCommands() {
+	return OWNED_COMMANDS;
+    }
+
 
     /**
        Inner mix-in class for this service: this class receives

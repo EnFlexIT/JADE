@@ -173,7 +173,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(instance);
       cmd.addParam(new Boolean(startIt));
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
 
 	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
@@ -255,7 +255,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       try {
           // Create and initialize the IMTPManager
           myIMTPManager = myProfile.getIMTPManager();
-          myIMTPManager.initialize(myProfile);
+          myIMTPManager.initialize(myProfile, myCommandProcessor);
 
 	  // Get the Service Manager and the Service Finder
 	  myServiceManager = myProfile.getServiceManager();
@@ -562,7 +562,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
 	cmd.addParam(msg);
 	cmd.addParam(sender);
-	Object lastException = myCommandProcessor.process(cmd);
+	Object lastException = myCommandProcessor.processOutgoing(cmd);
 
 	if((lastException != null) && (lastException instanceof AuthException)) {
 	    throw (AuthException)lastException;
@@ -585,7 +585,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
 
   }
   //#MIDP_EXCLUDE_END
@@ -597,7 +597,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
 
   }
   //#MIDP_EXCLUDE_END
@@ -608,7 +608,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(b);
 
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
   //#MIDP_EXCLUDE_END
 
@@ -618,7 +618,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(b);
 
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
   //#MIDP_EXCLUDE_END
 
@@ -630,7 +630,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(from);
       cmd.addParam(to);
 
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
   //#MIDP_EXCLUDE_END
 
@@ -661,7 +661,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(from);
       cmd.addParam(to);
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
 
   }
 
@@ -678,32 +678,32 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void handleEnd(AID agentID) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleMove(AID agentID, Location where) throws AuthException, NotFoundException, IMTPException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_MOVED, jade.core.mobility.AgentMobilityService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_MOVED, jade.core.mobility.AgentMobilitySlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
   public void handleClone(AID agentID, Location where, String newName) throws AuthException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.INFORM_CLONED, jade.core.mobility.AgentMobilityService.NAME, null);
+      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_CLONED, jade.core.mobility.AgentMobilitySlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
       cmd.addParam(newName);
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
   //#MIDP_EXCLUDE_END
 
   public void setPlatformAddresses(AID id) {
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(id);
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
 	
   public AID getAMS() {
@@ -725,7 +725,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_START, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
     }
 
     LADT getLocalAgents() {

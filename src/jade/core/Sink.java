@@ -38,6 +38,9 @@ package jade.core;
 */
 public interface Sink {
 
+    static final boolean COMMAND_SOURCE = false;
+    static final boolean COMMAND_TARGET = true;
+
     /**
        Definitely consume a command object. This method is invoked by
        the kernel when all incoming filters have been applied to the

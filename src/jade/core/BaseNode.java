@@ -76,6 +76,33 @@ public abstract class BaseNode implements Node, Serializable {
 	return (Service.Slice)localSlices.get(serviceName);
     }
 
+
+    public Object serve(HorizontalCommand cmd) throws ServiceException {
+
+	String serviceName = cmd.getService();
+	String commandName = cmd.getName();
+	Object[] commandParams = cmd.getParams();
+
+	// Look up in the local slices table and find the slice to dispatch to
+	Service.Slice slice = getSlice(serviceName);
+
+	if(slice != null) {
+	    VerticalCommand vCmd = slice.serve(cmd);
+
+	    if(vCmd != null) {
+		// Hand it to the command processor
+		serve(vCmd);
+		return vCmd.getReturnValue();
+	    }
+	    else {
+		return cmd.getReturnValue();
+	    }
+	}
+	else {
+	    throw new ServiceException("-- Service Unknown --");
+	}
+    }
+
     // The name of this node
     private String myName;
 

@@ -253,23 +253,39 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    ServiceEntry e = new ServiceEntry(svc);
 	    services.put(name, e);
 
-	    // Export the local slice so that it can be reached through the network
+	    // Export the *REAL* local slice so that it can be reached through the network
 	    Service.Slice localSlice = svc.getLocalSlice();
 	    if(localSlice != null) {
 		myIMTPManager.exportSlice(name, localSlice);
 	    }
 
-	    // Put the local slice into the Service Finder so that it can be found later
+	    // Put the *PROXY* local slice into the Service Finder so that it can be found later
 	    Node here = myIMTPManager.getLocalNode();
-	    e.addSlice(here.getName(), svc.getLocalSlice(), here);
+	    Service.Slice localProxy = myIMTPManager.createSliceProxy(name, null, here);
+	    e.addSlice(here.getName(), localProxy, here);
 
 	    System.out.println("Added a local slice <" + name + ";" + here.getName() + ">");
 
-	    // Install the service filter
-	    Filter f = svc.getCommandFilter(Filter.OUTGOING);
-	    myCommandProcessor.addFilter(f, Filter.OUTGOING);
+	    // Install the service filters
+	    Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
+	    if(fOut != null) {
+		myCommandProcessor.addFilter(fOut, Filter.OUTGOING);
+	    }
+	    Filter fIn = svc.getCommandFilter(Filter.INCOMING);
+	    if(fIn != null) {
+		myCommandProcessor.addFilter(fIn, Filter.INCOMING);
+	    }
 
-	    // FIXME: Should also add incoming filters and sink
+	    // Install the service sinks
+	    String[] commandNames = svc.getOwnedCommands();
+	    Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
+	    if(sSrc != null) {
+		myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, commandNames);
+	    }
+	    Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
+	    if(sTgt != null) {
+		myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, commandNames);
+	    }
 	}
     }
 
@@ -282,11 +298,26 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	    Service svc = e.getService();
 
-	    // Uninstall the service filter
-	    Filter f = svc.getCommandFilter(Filter.OUTGOING);
-	    myCommandProcessor.removeFilter(f, Filter.OUTGOING);
+	    // Uninstall the service filters
+	    Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
+	    if(fOut != null) {
+		myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
+	    }
+	    Filter fIn = svc.getCommandFilter(Filter.INCOMING);
+	    if(fIn != null) {
+		myCommandProcessor.removeFilter(fIn, Filter.INCOMING);
+	    }
 
-	    // FIXME: Should also remove incoming filters and sink
+	    // Uninistall the service sinks
+	    String[] commandNames = svc.getOwnedCommands();
+	    Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
+	    if(sSrc != null) {
+		myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, commandNames);
+	    }
+	    Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
+	    if(sTgt != null) {
+		myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, commandNames);
+	    }
 
 	    // Uninstall the service
 	    services.remove(name);

@@ -375,7 +375,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
   /**
      Notify the platform that an agent has just born on a container
    */
-  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws IMTPException, NameClashException, NotFoundException, AuthException {
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException {
 
     // verify identity certificate
     authority.verify(certs.getIdentityCertificate());
@@ -425,7 +425,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
   /**
      Notify the platform that an agent has just died
    */
-  public void deadAgent(AID name) throws IMTPException, NotFoundException {
+  public void deadAgent(AID name) throws NotFoundException {
     AgentDescriptor ad = platformAgents.acquire(name);
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
@@ -439,7 +439,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
   /**
      Notify the platform that an agent has just suspended
    */
-  public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+  public void suspendedAgent(AID name) throws NotFoundException {
   	AgentDescriptor ad = platformAgents.acquire(name);
     if (ad == null)
       throw new NotFoundException("SuspendedAgent failed to find " + name);
@@ -457,7 +457,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
   /**
      Notify the platform that an agent has just resumed
    */
-  public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+  public void resumedAgent(AID name) throws NotFoundException {
     AgentDescriptor ad = platformAgents.acquire(name);
     if(ad == null)
       throw new NotFoundException("ResumedAgent failed to find " + name);
@@ -643,7 +643,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(ownership);
       cmd.addParam(certs);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
@@ -678,7 +678,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_KILL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
     }
 
     /**
@@ -697,7 +697,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED));
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
     }
 
     /**
@@ -716,7 +716,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
     }
 
 
@@ -728,7 +728,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING));
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
     }
 
     /**
@@ -739,7 +739,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 	cmd.addParam(agentID);
 	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
   }
 
     /**
@@ -763,11 +763,11 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_MOVE, jade.core.mobility.AgentMobilityService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.REQUEST_MOVE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 
-	myCommandProcessor.process(cmd);
+	myCommandProcessor.processOutgoing(cmd);
 
     }
 
@@ -791,12 +791,12 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 
 	// --- End of code that should go into the Security Service ---
 
-	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityService.REQUEST_CLONE, jade.core.mobility.AgentMobilityService.NAME, null);
+	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.REQUEST_CLONE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
 	cmd.addParam(newName);
 
-	Object result = myCommandProcessor.process(cmd);
+	Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
@@ -837,7 +837,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
 				public void run() {
 				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 				    cmd.addParam(cid);
-				    myCommandProcessor.process(cmd);
+				    myCommandProcessor.processOutgoing(cmd);
 				}
 			    };
 
@@ -862,7 +862,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(cid);
       cmd.addParam(className);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
 
       if(result instanceof NotFoundException) {
 	  throw (NotFoundException)result;
@@ -901,7 +901,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(address);
       cmd.addParam(cid);
 
-      myCommandProcessor.process(cmd);
+      myCommandProcessor.processOutgoing(cmd);
   }
 
   /**
@@ -942,7 +942,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(snifferName);
       cmd.addParam(toBeSniffed);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
@@ -962,7 +962,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(snifferName);
       cmd.addParam(notToBeSniffed);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
@@ -981,7 +981,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(debuggerName);
       cmd.addParam(toBeDebugged);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;
@@ -1000,7 +1000,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
       cmd.addParam(debuggerName);
       cmd.addParam(notToBeDebugged);
 
-      Object result = myCommandProcessor.process(cmd);
+      Object result = myCommandProcessor.processOutgoing(cmd);
       if(result != null) {
 	  if(result instanceof NotFoundException) {
 	      throw (NotFoundException)result;

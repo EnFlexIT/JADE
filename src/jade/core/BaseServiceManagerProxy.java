@@ -327,12 +327,28 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     }
 
     // Private helper method, common to one-shot and batch service activation
-    private void installServiceLocally(String name, Service svc) throws IMTPException {
-	// Install the service filter
-	Filter f = svc.getCommandFilter(Filter.OUTGOING);
-	myCommandProcessor.addFilter(f, Filter.OUTGOING);
+    private void installServiceLocally(String name, Service svc) throws IMTPException, ServiceException {
 
-	// FIXME: Should also register the incoming filters annd the sink
+	// Install the service filters
+	Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
+	if(fOut != null) {
+	    myCommandProcessor.addFilter(fOut, Filter.OUTGOING);
+	}
+	Filter fIn = svc.getCommandFilter(Filter.INCOMING);
+	if(fIn != null) {
+	    myCommandProcessor.addFilter(fIn, Filter.INCOMING);
+	}
+
+	// Install the service sinks
+	String[] commandNames = svc.getOwnedCommands();
+	Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
+	if(sSrc != null) {
+	    myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, commandNames);
+	}
+	Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
+	if(sTgt != null) {
+	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, commandNames);
+	}
 
 	// Export the local slice so that it can be reached through the network
 	Service.Slice localSlice = svc.getLocalSlice();
@@ -345,17 +361,34 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     }
 
     // Private helper method, common to one-shot and batch service deactivation
-    private void uninstallServiceLocally(String name) throws IMTPException {
+    private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
+
 	// FIXME: It should remove the service only if there are no more active slices in the whole platform.
 	Service svc = (Service)services.get(name); // Find the local copy of the service
 	services.remove(name);
 	myIMTPManager.unexportSlice(name, svc.getLocalSlice());
 
-	// Uninstall the service filter
-	Filter f = svc.getCommandFilter(Filter.OUTGOING);
-	myCommandProcessor.removeFilter(f, Filter.OUTGOING);
+	// Uninstall the service filters
+	Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
+	if(fOut != null) {
+	    myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
+	}
+	Filter fIn = svc.getCommandFilter(Filter.INCOMING);
+	if(fIn != null) {
+	    myCommandProcessor.removeFilter(fIn, Filter.INCOMING);
+	}
 
-	// FIXME: Should also remove incoming filters and sink
+	// Uninistall the service sinks
+	String[] commandNames = svc.getOwnedCommands();
+	Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
+	if(sSrc != null) {
+	    myCommandProcessor.deregisterSink(Sink.COMMAND_SOURCE, commandNames);
+	}
+	Sink sTgt = svc.getCommandSink(Sink.COMMAND_TARGET);
+	if(sTgt != null) {
+	    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, commandNames);
+	}
+
     }
 
 
