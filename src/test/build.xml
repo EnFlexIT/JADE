@@ -4,8 +4,6 @@
 <project name="testsuite" default="run" basedir="../..">
   <description>Test Suite build file</description>
   
-  <property name="version" value="3.3"/>
-
   <property environment="env"/>
   <path id="project.class.path">
     <!--pathelement path="${env.CLASSPATH}"/-->
@@ -37,7 +35,11 @@
                                compile
          _______________________________________________ -->
   <target name="compile" depends="init" description="compile the tests">
-  	
+    <echo message="Compiling JADE and the examples " />
+  	<ant antfile="build.xml" target="examples"/>
+    <echo message="Compiling the testSuite add-on" />
+  	<ant antfile="add-ons/testSuite/build.xml" target="compile"/>
+
   	<!-- Compile the java code source files -->
   	<javac srcdir="src" 
   	       destdir="classes" 
@@ -53,38 +55,14 @@
   	<!-- RMIC the TSDaemon -->
     <rmic classname="test.common.remote.TSDaemon" base="classes"/>
     
-    <!-- Copy images -->
-    <copy todir="classes/test/common/testSuite/gui/images">
-      <fileset dir="src/test/common/testSuite/gui/images"/>
-    </copy> 
-    
     <!-- Copy xml configuration files -->
-    <copy todir="classes" >
+    <copy todir="classes" overWrite="yes">
      <fileset dir="src" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
      <fileset dir="src" includes="**/*.properties **/**/*.properties **/**/**/*.properties **/**/**/**/*.properties"/>
     </copy>
   </target>
 
 
-  <!--  __________________________________________________
-                            lib
-        __________________________________________________ -->
-  <target name="lib" depends="compile" 
-          description="Create a jar file including all Jade tests and the necessary examples">
-  	<delete file="src/test/jadeTestSuite.jar" quiet="true"/>
-		<jar jarfile="src/test/jadeTestSuite.jar">
-			<fileset dir="classes">
-				<include name="**/test/**"/>
-				<include name="**/examples/mobile/**"/>
-				<include name="**/examples/content/**"/>
-				<include name="**/examples/thanksAgent/**"/>
-  			<exclude name="**/test/mobility/separate/**"/>
-  			<exclude name="**/test/leap/midp/**"/>
-			</fileset>
-		</jar>
-	</target>
-
-	
   <!--  __________________________________________________
                             separate
         __________________________________________________ -->
@@ -232,7 +210,6 @@
     <delete includeEmptyDirs="true">
       <fileset dir="classes/test"/>
     </delete>
-    <delete file="lib/jadeTestSuite.jar"/>
   </target>
 
 
@@ -255,27 +232,6 @@
       <sysproperty key="test.common.testSuite.TestSuiteAgent.runAutomatic" value="true"/>
   	  <classpath refid="project.class.path"/>
    </java>
-  </target>
-
-  <!--  __________________________________________________
-                            dist
-        __________________________________________________ -->
-  <target name="dist" description="create the distribution file">
-   <echo message="REMIND TO PUT IN THIS DIRECTORY THE PDF FILE JADE_TestSuite.pdf"/>
-   <mkdir dir="doc"/>
-   <mkdir dir="doc/tutorials"/>
-   <copy file="src/test/JADE_TestSuite.pdf" todir="doc/tutorials"/>
-   <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml" overwrite="true"/>
-   <jar jarfile="../JADE-testSuite-${version}.zip">
-      <fileset dir=".." includes="jade/src/test/COPYING"/>
-      <fileset dir=".." includes="jade/src/test/ChangeLog"/>
-      <fileset dir=".." includes="jade/src/test/License"/>
-      <fileset dir=".." includes="jade/src/test/build.xml"/>
-      <fileset dir=".." includes="jade/src/test/testerList.xml"/>
-      <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite.pdf"/>
-      <fileset dir=".." includes="jade/src/test/common/**"/>
-      <fileset dir=".." includes="jade/src/test/interPlatform/**"/>
-   </jar>
   </target>
 
 </project>
