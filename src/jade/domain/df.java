@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1998/11/30 00:24:34  rimassa
+  Finished basic support for 'search' action: still missing search
+  constraint management.
+
   Revision 1.12  1998/11/23 00:14:17  rimassa
   Added a match() method to aid in 'search' DF action. Now a complete
   match is performed on every attribute of a 'df-agent-descriptor'
@@ -24,6 +28,7 @@ package jade.domain;
 import java.lang.reflect.Method;
 
 import java.io.StringReader;
+import java.io.StringWriter;
 
 // FIXME: Just for debug
 import java.io.BufferedWriter;
@@ -32,7 +37,6 @@ import java.io.OutputStreamWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
-import java.util.Vector;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -182,7 +186,7 @@ public class df extends Agent {
       msg.setContent("( action df " + myActionName + " )");
       send(msg);
     }
-    
+
     // Send an 'inform' message back to the requester
     protected void sendInform(ACLMessage msg) {
       msg.setType("inform");
@@ -285,10 +289,19 @@ public class df extends Agent {
     protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
       AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       AgentManagementOntology.DFSearchAction dfsa = (AgentManagementOntology.DFSearchAction)dfa;
+
       Enumeration constraints = dfsa.getConstraints();
-      DFSearch(dfd, constraints);
+      AgentManagementOntology.DFSearchResult dfdList = DFSearch(dfd, constraints);
+
       sendAgree(myReply);
-      sendInform(myReply); // FIXME: To change, since it must send a result instead of Done(action)
+
+      StringWriter text = new StringWriter();
+      dfdList.toText(text);
+      String content = text.toString();
+
+      myReply.setContent(content);
+      myReply.setType("inform");
+      send(myReply);
     }
 
   } // End of SrchBehaviour class
@@ -296,6 +309,7 @@ public class df extends Agent {
   private AgentManagementOntology myOntology;
   private FipaRequestServerBehaviour dispatcher;
   private Hashtable descriptors = new Hashtable();
+  private Hashtable subDFs = new Hashtable();
 
   public df() {
 
@@ -327,8 +341,17 @@ public class df extends Agent {
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
-    System.out.println("");
 
+    // Update sub-DF table if needed
+    Enumeration e = dfd.getAgentServices();
+    while(e.hasMoreElements()) {
+      AgentManagementOntology.ServiceDescriptor current = (AgentManagementOntology.ServiceDescriptor)e.nextElement();
+      String type = current.getType();
+      if(type == null)
+	return;
+      if(type.equalsIgnoreCase("fipa-df"))
+	subDFs.put(dfd.getName(), dfd);
+    }
   }
 
   protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
@@ -336,6 +359,9 @@ public class df extends Agent {
     AgentManagementOntology.DFAgentDescriptor toRemove = (AgentManagementOntology.DFAgentDescriptor)o;
     if(toRemove == null)
       throw myOntology.getException(AgentManagementOntology.Exception.UNABLETODEREG);
+
+    // Update sub-DF table if needed
+    subDFs.remove(dfd.getName());
   }
 
   protected void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
@@ -355,7 +381,7 @@ public class df extends Agent {
     if(e.hasMoreElements())
       toChange.removeAgentServices();
     while(e.hasMoreElements())
-      toChange.addService((AgentManagementOntology.ServiceDescriptor)e.nextElement());
+      toChange.addAgentService((AgentManagementOntology.ServiceDescriptor)e.nextElement());
 
     String s = dfd.getType();
     if(s != null)
@@ -378,32 +404,27 @@ public class df extends Agent {
     s = dfd.getDFState();
     if(s != null)
       toChange.setDFState(s);
-    
+
   }
 
-  private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
+  private AgentManagementOntology.DFSearchResult DFSearch(AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints) {
 
-    Vector matchesFound = new Vector();
+    AgentManagementOntology.DFSearchResult matchesFound = new AgentManagementOntology.DFSearchResult();
     Enumeration e = descriptors.elements();
 
     while(e.hasMoreElements()) {
       Object obj = e.nextElement();
       AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
       if(match(dfd, current)) {
-	matchesFound.addElement(current);
+	matchesFound.put(current.getName(), current);
       }
 
     }
 
-    e = matchesFound.elements();
-    while(e.hasMoreElements()) {
-      Object obj = e.nextElement();
-      AgentManagementOntology.DFAgentDescriptor current = (AgentManagementOntology.DFAgentDescriptor)obj;
+    // FIXME: Must consider search constraints
 
-      current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    return matchesFound;
 
-    }
-    // FIXME: To be completed
   }
 
   
