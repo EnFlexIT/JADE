@@ -214,7 +214,7 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
      int AllReceiver = 0;  
      int receiverForAMessage = 0;
      while(it.hasNext()) {
-  
+       // FIXME: Sometimes this code throws ConcurrentModificationException
        Message mess = (Message)it.next();
        String senderName = mess.getSender().getName();    
        xSource = otherCanv.al.getPos(senderName);
@@ -528,7 +528,7 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
    *
    * @param agent agent to be add
    */
-         
+
  public void rAgfromNoSniffVector(Agent agent) {
   if (checkNoSniffedVector(agent)) {
    noSniffAgents.remove(positionAgent);
@@ -569,7 +569,6 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
   // method to repaint the  NoSniffed agent
 
   public void repaintNoSniffedAgent(Agent agent) {
-   Agent agentToCompare;
     if(!checkNoSniffedVector(agent)) noSniffAgents.add(agent);
     repaintBothCanvas();
   }
