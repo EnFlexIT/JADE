@@ -23,83 +23,150 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
 /**
 
   This class represents the Life-Cycle state of an agent.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 */
 public class AgentState {
 
-  public static AgentState getInstance(int value) {
-      for(int i = 0; i < STATES.length; i++) {
-	  AgentState as = STATES[i];
-	  if(as.getValue() == value) {
-	      return as;
-	  }
-      }
+    /**
+       Static access method to retrieve a prototype object for an
+       agent life-cycle state.
 
-      return null;
-  }
+       @param value One of the <code>AP_XXX</code> constants defined
+       in the <code>Agent</code> class.
+       @return A prototype object for the requested state.
+    */
+    public static AgentState getInstance(int value) {
+	for(int i = 0; i < STATES.length; i++) {
+	    AgentState as = STATES[i];
+	    if(as.getValue() == value) {
+		return as;
+	    }
+	}
 
-  public static AgentState[] getAllInstances() {
-      return STATES;
-  }
-
-  public AgentState() {
-  }
-
-  private AgentState(String n, int v) {
-    name = n;
-    value = v;
-  }
-
-  public void setName(String n) { 
-    name = n;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setValue(int v) {
-      value = v;
-  }
-
-  public int getValue() {
-      return value;
-  }
-
-  public boolean equals(Object o) {
-
-    if(o instanceof String) {
-      return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
-    }
-    try {
-      AgentState as = (AgentState)o;
-      return CaseInsensitiveString.equalsIgnoreCase(name, as.name);
-    }
-    catch(ClassCastException cce) {
-      return false;
+	return null;
     }
 
-  }
+    /**
+       Access the whole prototypes array.
+       @return All the defined prototype objects for the life-cycle
+       states.
+    */
+    public static AgentState[] getAllInstances() {
+	return STATES;
+    }
 
-  public String toString() {
-      return name;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       this class because it is used in the
+       <code>jade-introspection</code> ontology. Application code
+       should use the static access method <code>getInstance()</code>,
+       however.
+    */
+    public AgentState() {
+    }
 
-  public int compareTo(Object o) {
-    AgentState as = (AgentState)o;
-		return name.toLowerCase().toUpperCase().compareTo(as.name.toLowerCase().toUpperCase());
-  }
 
-  public int hashCode() {
-    return name.toLowerCase().hashCode();
-  }
+    private AgentState(String n, int v) {
+	name = n;
+	value = v;
+    }
+
+    /**
+       Set the name of this state.
+       @param n The name to give.
+    */
+    public void setName(String n) { 
+	name = n;
+    }
+
+    /**
+       Retrieve the name of this state.
+       @return The state name.
+    */
+    public String getName() {
+	return name;
+    }
+
+    /**
+       Set the numeric value of this state, in agreement with the
+       <code>AP_XXX</code> constants defined in the <code>Agent</code>
+       class.
+       @param v The numeric value for this state.
+    */
+    public void setValue(int v) {
+	value = v;
+    }
+
+    /**
+       Retrieve the numeric value of this state, in agreement with the
+       <code>AP_XXX</code> constants defined in the <code>Agent</code>
+       class.
+       @return The numeric value set for this state.
+    */
+    public int getValue() {
+	return value;
+    }
+
+    /**
+       Equality operations between agent states. The equality
+       operation is defined as equality by state name (case
+       insensitive string comparison is used).
+       @param o The right-hand side of the equality.
+       @return If the current object and the parameter are equal
+       (according to the criterion above), this method returns
+       <code>true</code>, otherwise it returns <code>false</code>.
+    */
+    public boolean equals(Object o) {
+
+	if(o instanceof String) {
+	    return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
+	}
+	try {
+	    AgentState as = (AgentState)o;
+	    return CaseInsensitiveString.equalsIgnoreCase(name, as.name);
+	}
+	catch(ClassCastException cce) {
+	    return false;
+	}
+
+    }
+
+    /**
+       Retrieve a string representation for this agent state.
+       @return The state name.
+    */
+    public String toString() {
+	return name;
+    }
+
+    /**
+       Compares two agent states. A lexicographical, case insensitive
+       comparison on state name is used.
+       @param o The object to compare the current object to.
+       @return An integer value, <code>-1</code>, <code>0</code> or
+       <code>1</code> depending upon whether the current object is
+       lesser, equal or greater than the given parameter.
+       @throws java.lang.ClassCastException If the given parameter is
+       not an instance of <code>AgentState</code>.
+    */
+    public int compareTo(Object o) {
+	AgentState as = (AgentState)o;
+	return name.toLowerCase().toUpperCase().compareTo(as.name.toLowerCase().toUpperCase());
+    }
+
+    /**
+       Calculate an hash code for this agent state.
+       @return An integer value, complying with the defined equality
+       operation on <code>AgentState</code> instances.
+    */
+    public int hashCode() {
+	return name.toLowerCase().hashCode();
+    }
 
     private static final AgentState[] STATES = new AgentState[] { 
 	new AgentState("Illegal MIN state", Agent.AP_MIN),
@@ -132,7 +199,6 @@ public class AgentState {
 
     private String name;
     private int value;
-
 
 
 }
