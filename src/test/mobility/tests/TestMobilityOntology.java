@@ -97,7 +97,7 @@ public class TestMobilityOntology extends Test {
   			request.setOntology(mobOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Done d = (Done) cm.extractContent(inform);
   				l.log(myAgent.getLocalName()+": Agent correctly moved");
   			}
@@ -144,7 +144,7 @@ public class TestMobilityOntology extends Test {
   			slAct.setAction(cloneAct);
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Done d = (Done) cm.extractContent(inform);
   				l.log(myAgent.getLocalName()+": Agent correctly cloned");
   			}

@@ -42,7 +42,7 @@ import jade.core.behaviours.*;
 import jade.tools.introspector.gui.IntrospectorGUI;
 
 import jade.domain.FIPANames;
-import jade.domain.FIPAServiceCommunicator;
+import jade.domain.FIPAService;
 import jade.domain.introspection.*;
 
 // FIXME: These three imports will not be needed anymore, when
@@ -361,7 +361,7 @@ public class Introspector extends ToolAgent {
 
       try {
 		getContentManager().fillContent(msg, a);
-		FIPAServiceCommunicator.doFipaRequestClient(this, msg);
+		FIPAService.doFipaRequestClient(this, msg);
       }
       catch(Exception fe) {
     	// When the AMS replies the tool notifier is no longer registered.

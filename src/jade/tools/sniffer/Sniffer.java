@@ -41,7 +41,7 @@ import jade.core.behaviours.*;
 import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
-import jade.domain.FIPAServiceCommunicator;
+import jade.domain.FIPAService;
 import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLMessage;
@@ -546,7 +546,7 @@ public class Sniffer extends ToolAgent {
     // the sniffer is shutting down
     try {
       if(request != null)
-	FIPAServiceCommunicator.doFipaRequestClient(this,request);
+	FIPAService.doFipaRequestClient(this,request);
     }
     catch(jade.domain.FIPAException e) {
     	// When the AMS replies the tool notifier is no longer registered.

@@ -86,7 +86,7 @@ public class TestInstallMTP extends Test {
   			request.setOntology(jadeOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Result r = (Result) cm.extractContent(inform);
   				List items = r.getItems();
   				address = (String) items.get(0);
@@ -187,7 +187,7 @@ public class TestInstallMTP extends Test {
   			request.setOntology(fipaOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Result r = (Result) cm.extractContent(inform);
   				List items = r.getItems();
   				APDescription dsc = (APDescription) items.get(0);
@@ -244,7 +244,7 @@ public class TestInstallMTP extends Test {
   			request.setOntology(jadeOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Done d = (Done) cm.extractContent(inform);
   				l.log("MTP correctly un-installed.");
   			}
@@ -343,7 +343,7 @@ public class TestInstallMTP extends Test {
   			request.setOntology(fipaOnto.getName());
   			try {
   				cm.fillContent(request, slAct);
-  				ACLMessage inform = FIPAServiceCommunicator.doFipaRequestClient(myAgent, request);
+  				ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request);
   				Result r = (Result) cm.extractContent(inform);
   				List items = r.getItems();
   				APDescription dsc = (APDescription) items.get(0);
