@@ -31,7 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.*;
 
-import jade.onto.JadeMetaOntology.*;
+import jade.onto.JADEMetaOntology.*;
 
 import jade.lang.sl.SL0Codec;
 import jade.lang.Codec.CodecException;
