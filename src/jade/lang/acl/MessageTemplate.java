@@ -1,42 +1,24 @@
-/*
-  $Log$
-  Revision 1.18  1999/11/19 13:22:24  rimassaJade
-  Some changes to the class implementation, in order to comply with the
-  new ACLMessage class.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.17  1999/09/02 15:03:28  rimassa
-  Added a 'throws ParseException' specification to fromText() method.
+GNU Lesser General Public License
 
-  Revision 1.16  1999/08/10 15:40:00  rimassa
-  Added serialization to MessageTemplate class and to all its inner
-  classes.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.15  1999/07/11 20:27:08  rimassa
-  Reimplemented the whole class using Interpreter design pattern. Now
-  complete logical expressions with AND, OR and NOT operators are
-  supported.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.14  1999/06/08 00:02:26  rimassa
-  Removed an useless comment.
-  Put some dead code to start implementing complete Bool algebra for
-  message templates.
-
-  Revision 1.13  1999/05/19 18:23:10  rimassa
-  Changed static or() method access from public to private, since it
-  isn't implemented yet.
-
-  Revision 1.12  1999/04/06 00:10:10  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.11  1998/10/18 16:03:40  rimassa
-  Modified code to avoid using deprecated ACLMessage constructor.
-  Removed dump() method, now a toText() method is provided to print a
-  MessageTemplate on any stream.
-
-  Revision 1.10  1998/10/04 18:02:11  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.lang.acl;
 
@@ -55,7 +37,8 @@ import java.util.LinkedList;
    build complex slot patterns to select ACL messages. These patterns
    can then be used in <code>receive()</code> operations.
    @see jade.core.Agent#receive(MessageTemplate mt)
-
+   
+   Javadoc documentation for the file
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

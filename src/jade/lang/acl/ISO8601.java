@@ -1,12 +1,24 @@
-/*
-  $Log$
-  Revision 1.2  1999/04/06 00:10:09  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.1  1999/02/22 09:29:38  rimassa
-  This class handles FIPA-mandated ISO 8601 time format.
+GNU Lesser General Public License
 
-*/
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.lang.acl;
 
@@ -16,7 +28,8 @@ import java.text.SimpleDateFormat;
 /**
  * This class contains a set of static methods that allow to convert
  * to/from the Date Time format specified by ISO8601 and adopted by FIPA.
-
+ 
+ Javadoc documentation for the file
  @author Fabio Bellifemine - CSELT
  @version $Date$ $Revision$
 

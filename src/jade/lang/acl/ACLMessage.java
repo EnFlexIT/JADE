@@ -1,128 +1,25 @@
-////////////////////////////////////////////////////////////////////////
-// Copyright (c) 1998 FIPA All Rights Reserved
-//
-// This software module was developed by
-// CSELT (Centro Studi e Laboratori Telecomunicazioni S.p.A)
-// and DII University of Parma
-// in the course of development of the FIPA97 standard. 
-// It is an implementation of the parser of the 
-// FIPA97 Agent Communication Language
-// specified by the FIPA97 standard.
-//
-//
-//
-// The copyright of this software belongs to FIPA. FIPA gives
-// free license to its members to use this software module or
-// modifications thereof for hardware or software products claiming
-// conformance to the FIPA97 standard.
-//
-//
-//
-// Those intending to use this software module in hardware or software
-// products are advised that use may infringe existing  patents. The
-// original developers of this software module and their companies, the
-// subsequent editors and their companies, and FIPA have no liability
-// for use of this software module or modification thereof in an
-// implementation.
-//
-//
-//
-// FIPA thanks Fabio Bellifemine, Agostino Poggi, and Paolo Marenzoni
-// for releasing the copyright of this software.
-// Part of this software has been developed within the framework of the
-// FACTS project, AC317, of the European ACTS Programme.
-////////////////////////////////////////////////////////////////////////
-/*
- $Log$
- Revision 1.23  1999/11/19 13:21:20  rimassaJade
- Changed representation for ACL performatives: now simple integer
- constants are used, and no more StringBuffer objects.
- Changed ACLMessage interface for setting and getting the performative,
- and deprecated the older interface.
 
- Revision 1.22  1999/09/03 10:42:05  rimassa
- Added support for serialized Java objects within message content,
- using a Base64 codec.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
- Revision 1.21  1999/09/02 15:02:50  rimassa
- Removed obsolete getMessage() method.
- Avoided null values for message slots.
- Added a 'throws ParseException' specification to fromText() method.
+GNU Lesser General Public License
 
- Revision 1.20  1999/09/01 13:40:54  rimassa
- Added a createReply() method to handle automatically
- ':conversation-id' and ':reply-with' slots.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
- Revision 1.19  1999/07/25 23:52:36  rimassa
- Replaced String data members with StringBuffer, to overcome an UTF
- data format limitation to 64 kB in size.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
- Revision 1.18  1999/06/25 12:40:52  rimassa
- Fixed a bug in toText() method: missing parentheses when multiple
- receivers were present.
-
- Revision 1.17  1999/04/08 12:01:21  rimassa
- Changed clone() method to correctly implement a deep copy.
-
- Revision 1.16  1999/04/06 13:24:46  rimassa
- Fixed a wrong link in Javadoc comments.
-
- Revision 1.15  1999/04/06 00:10:08  rimassa
- Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
- Revision 1.14  1999/03/09 13:23:24  rimassa
- Added a 'getFirstDest()' method and made older, deprecated 'getDest()'
- method call it.
-
- Revision 1.13  1999/03/07 22:56:47  rimassa
- Deprecated getMessage() method.
- Added support for more agent names in ':receiver' slot. Now methods
- getDest() and setDest() are deprecated and addDest(), removeDest(),
- getDests() and removeAllDests() methods have been added.
-
- Revision 1.12  1999/02/22 09:25:18  rimassa
- Added support for ISO 8601 time format using a custom new class for
- all format conversions.
-
- Revision 1.11  1999/02/04 11:28:26  rimassa
- Added checks for null object references in modifier methods.
- Removed redundant code from time handling.
-
- Revision 1.10  1999/02/03 11:53:59  rimassa
- Added a more flexible time handling to use in ':reply-by' ACL message
- field.
-
- Revision 1.9  1998/10/18 16:01:17  rimassa
- Deprecated constructor without arguments and dump() method. Added a
- newer constructor and a fromText() static Factory Method.
- Modified toText() output formatting to insert a newline character
- after each message field.
-
- Revision 1.8  1998/10/04 18:02:09  rimassa
- Added a 'Log:' field to every source file.
-
- Revision 1.7  1998/10/04 15:25:19  rimassa
- Fixed a bug: an 'if' clause tested the wrong variable.
-
- Revision 1.6  1998/09/28 22:40:44  Giovanni
- Added a 'toText()' method to write an ACLMessage on an arbitrary
- Writer (String, OutputStream, File, ecc.).
-
- Revision 1.5  1998/09/02 00:42:16  rimassa
- Added code to make ACLMessages cloneable. Now a public clone() method
- is provided to make copies of an ACL message.
-
- Revision 1.4  1998/08/08 21:37:22  rimassa
- Added a missing import clause: 'import java.ioSerializable'.
-
- Revision 1.3  1998/08/08 18:06:53  rimassa
- Used official FIPA version of Java class for ACL messages. Some minor changes:
-
-  - Changed class name from 'alcMessage' to 'ACLMessage'.
-  - Added 'package jade.lang.acl` declaration.
-  - Added 'implements Serializable' to be able to send ACL messages with Java RMI.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.lang.acl;
 
@@ -151,11 +48,13 @@ import starlight.util.Base64;
  * The methods <code> setContentBase64() </code> and 
  * <code> getContentBase64() </code> allow to send
  * serialized Java objects over the content of an ACLMessage.
-
+ 
+ Javadoc documentation for the file
  @author Fabio Bellifemine - CSELT
  @version $Date$ $Revision$
 
  */
+ 
 public class ACLMessage implements Cloneable, Serializable {
 
   /** constant identifying the FIPA performative **/
