@@ -132,8 +132,8 @@ import jade.util.leap.Serializable;
  **/
 public class ContractNetInitiator extends Initiator {
 	
-  // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
-  //using the same data store the new values overrides the old one. 
+  // Private data store keys (can't be static since if we register another instance of this class as state of the FSM 
+  // using the same data store the new values overrides the old one. 
   /** 
    * key to retrieve from the DataStore of the behaviour the ACLMessage 
    *	object passed in the constructor of the class.
@@ -167,6 +167,9 @@ public class ContractNetInitiator extends Initiator {
   public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
   // FSM states names
+  private static final String HANDLE_PROPOSE = "Handle-propose";
+  private static final String HANDLE_REFUSE = "Handle-refuse";
+  private static final String HANDLE_INFORM = "Handle-inform";
   private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
   private static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
 	
@@ -203,13 +206,53 @@ public class ContractNetInitiator extends Initiator {
 		super(a, cfp, store);
 		
 		// Register the FSM transitions specific to the ContractNet protocol
-		registerTransition(CHECK_IN_SEQ, HANDLE_POSITIVE_RESPONSE, ACLMessage.PROPOSE);		
+		registerTransition(CHECK_IN_SEQ, HANDLE_PROPOSE, ACLMessage.PROPOSE);		
+		registerTransition(CHECK_IN_SEQ, HANDLE_REFUSE, ACLMessage.REFUSE);
+		registerTransition(CHECK_IN_SEQ, HANDLE_INFORM, ACLMessage.INFORM);		
+		registerDefaultTransition(HANDLE_PROPOSE, CHECK_SESSIONS);
+		registerDefaultTransition(HANDLE_REFUSE, CHECK_SESSIONS);
+		registerDefaultTransition(HANDLE_INFORM, CHECK_SESSIONS);
 		registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
 		registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
-		registerDefaultTransition(HANDLE_ALL_RESPONSES, SEND_INITIATIONS, toBeReset);
+		registerDefaultTransition(HANDLE_ALL_RESPONSES, SEND_INITIATIONS, getToBeReset());
 			
 		// Create and register the states specific to the ContractNet protocol
 		Behaviour b = null;
+		// HANDLE_PROPOSE
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 3487495895819003L;
+	  	
+			public void action() {
+				Vector acceptances = (Vector) getDataStore().get(ALL_ACCEPTANCES_KEY);
+				ACLMessage propose = (ACLMessage) getDataStore().get(REPLY_K);
+				handlePropose(propose, acceptances);
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_PROPOSE);
+		
+		// HANDLE_REFUSE
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 3487495895819004L;
+	  	
+			public void action() {
+			    handleRefuse((ACLMessage) getDataStore().get(REPLY_K));
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_REFUSE);
+		
+		// HANDLE_INFORM
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 3487495895818006L;
+	  	
+			public void action() {
+			    handleInform((ACLMessage) getDataStore().get(REPLY_K));
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_INFORM);
+	
 		// HANDLE_ALL_RESPONSES
 		b = new OneShotBehaviour(myAgent) {
 		
@@ -322,13 +365,6 @@ public class ContractNetInitiator extends Initiator {
   }
   
   /**
-   */
-  protected void handlePositiveResponse(ACLMessage positiveResp) {
-		Vector acceptances = (Vector) getDataStore().get(ALL_ACCEPTANCES_KEY);
-		handlePropose(positiveResp, acceptances);
-  }
-  
-  /**
      Check the status of the sessions after the reception of the last reply
      or the expiration of the timeout
    */    
@@ -355,6 +391,24 @@ public class ContractNetInitiator extends Initiator {
 	  return ret;
   }
   
+	private String[] toBeReset = null;
+		
+  /**
+   */
+  protected String[] getToBeReset() {
+  	if (toBeReset == null) {
+			toBeReset = new String[] {
+				HANDLE_PROPOSE, 
+				HANDLE_REFUSE,
+				HANDLE_NOT_UNDERSTOOD,
+				HANDLE_INFORM,
+				HANDLE_FAILURE,
+				HANDLE_OUT_OF_SEQ
+			};
+  	}
+  	return toBeReset;
+  }
+    
   /**
    * This method must return the vector of ACLMessage objects to be
    * sent. It is called in the first state of this protocol.
@@ -400,17 +454,6 @@ public class ContractNetInitiator extends Initiator {
   }
 
   /**
-   * This method is called every time a <code>not-understood</code>
-   * message is received, which is not out-of-sequence according
-   * to the protocol rules.
-   * This default implementation does nothing; programmers might
-   * wish to override the method in case they need to react to this event.
-   * @param notUnderstood the received not-understood message
-   **/
-  protected void handleNotUnderstood(ACLMessage notUnderstood) {
-  }
-    
-  /**
    * This method is called every time a <code>inform</code>
    * message is received, which is not out-of-sequence according
    * to the protocol rules.
@@ -419,28 +462,6 @@ public class ContractNetInitiator extends Initiator {
    * @param inform the received inform message
    **/
   protected void handleInform(ACLMessage inform) {
-  }
-    
-  /**
-   * This method is called every time a <code>failure</code>
-   * message is received, which is not out-of-sequence according
-   * to the protocol rules.
-   * This default implementation does nothing; programmers might
-   * wish to override the method in case they need to react to this event.
-   * @param failure the received failure message
-   **/
-  protected void handleFailure(ACLMessage failure) {
-  }
-    
-  /**
-   * This method is called every time a 
-   * message is received, which is out-of-sequence according
-   * to the protocol rules.
-   * This default implementation does nothing; programmers might
-   * wish to override the method in case they need to react to this event.
-   * @param msg the received message
-   **/
-  protected void handleOutOfSequence(ACLMessage msg) {
   }
     
   /**
@@ -512,9 +533,46 @@ public class ContractNetInitiator extends Initiator {
      @param b the Behaviour that will handle this state
    */
   public void registerHandlePropose(Behaviour b) {
-    registerHandlePositiveResponse(b);
+		registerState(b, HANDLE_PROPOSE);
+		b.setDataStore(getDataStore());
   }
      
+  /**
+     This method allows to register a user defined <code>Behaviour</code>
+     in the HANDLE_REFUSE state.
+     This behaviour would override the homonymous method.
+     This method also set the 
+     data store of the registered <code>Behaviour</code> to the
+     DataStore of this current behaviour.
+     The registered behaviour can retrieve
+     the <code>refuse</code> ACLMessage object received
+     from the datastore at the <code>REPLY_KEY</code>
+     key.
+     @param b the Behaviour that will handle this state
+   */
+  public void registerHandleRefuse(Behaviour b) {
+		registerState(b, HANDLE_REFUSE);
+		b.setDataStore(getDataStore());
+  }
+    
+  /**
+     This method allows to register a user defined <code>Behaviour</code>
+     in the HANDLE_INFORM state.
+     This behaviour would override the homonymous method.
+     This method also set the 
+     data store of the registered <code>Behaviour</code> to the
+     DataStore of this current behaviour.
+     The registered behaviour can retrieve
+     the <code>inform</code> ACLMessage object received
+     from the datastore at the <code>REPLY_KEY</code>
+     key.
+     @param b the Behaviour that will handle this state
+   */
+  public void registerHandleInform(Behaviour b) {
+		registerState(b, HANDLE_INFORM);
+		b.setDataStore(getDataStore());
+  }
+  
     /**
        This method allows to register a user defined <code>Behaviour</code>
        in the HANDLE_ALL_RESPONSES state.

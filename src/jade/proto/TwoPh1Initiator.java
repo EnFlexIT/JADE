@@ -36,27 +36,72 @@ import jade.util.leap.*;
 /**
  * Class description
  * @author Elena Quarantotto - TILAB
+ * @author Giovanni Caire - TILAB
  */
-public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
-    /* Data store keys */
-    public final String REPLY_KEY = REPLY_K;
-    public final String ALL_QUERYIFS_KEY = ALL_INITIATIONS_K;
-    public final String ALL_CONFIRMS_KEY = "__all-confirms" + hashCode();
-    public final String ALL_DISCONFIRMS_KEY = "__all-disconfirms" + hashCode();
-    public final String ALL_INFORMS_KEY = "__all-informs" + hashCode();
-    /* FSM states names */
-    private static final String HANDLE_CONFIRM = "Handle-Confirm";
-    private static final String HANDLE_DISCONFIRM = "Handle-Disconfirm";
-    private static final String HANDLE_INFORM = "Handle-Inform";
-    private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
-    /* Unique conversation Id */
-    private String conversationId = null;
-    /* Data store input key */
-    private String inputKey = null;
-    /* Data store output key */
-    private String outputKey = null;
-    /* QueryIfs messages still pending (i.e. for which it doesn't still received a response */
-    private Vector ph1Pendings = new Vector();
+public class TwoPh1Initiator extends Initiator {
+  // Data store keys 
+	// Private data store keys (can't be static since if we register another instance of this class as state of the FSM 
+	// using the same data store the new values overrides the old one.
+  /** 
+     key to retrieve from the DataStore of the behaviour the ACLMessage 
+     object passed in the constructor of the class.
+   */
+  public final String QUERYIF_KEY = INITIATION_K;
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     QUERY_IF messages that have to be sent.
+   */
+  public final String ALL_QUERYIFS_KEY = ALL_INITIATIONS_K;
+  /** 
+     key to retrieve from the DataStore of the behaviour the last
+     ACLMessage object that has been received (null if the timeout
+     expired). 
+   */
+  public final String REPLY_KEY = REPLY_K;
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     all messages that have been received as response.
+   */
+  public final String ALL_RESPONSES_KEY = "__all-responses" + hashCode();
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     CONFIRM messages that have been received as response.
+   */
+  public final String ALL_CONFIRMS_KEY = "__all-confirms" + hashCode();
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     DISCONFIRM messages that have been received as response.
+   */
+  public final String ALL_DISCONFIRMS_KEY = "__all-disconfirms" + hashCode();
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     INFORM messages that have been received as response.
+   */
+  public final String ALL_INFORMS_KEY = "__all-informs" + hashCode();
+  /** 
+     key to retrieve from the DataStore of the behaviour the Vector of
+     QUERY_IF messages for which a response has not been received yet.
+   */
+  public final String ALL_PENDINGS_KEY = "__all-pendings" + hashCode();
+    
+  /* FSM states names */
+  private static final String HANDLE_CONFIRM = "Handle-Confirm";
+  private static final String HANDLE_DISCONFIRM = "Handle-Disconfirm";
+  private static final String HANDLE_INFORM = "Handle-Inform";
+  private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
+
+  private static final int ALL_RESPONSES_RECEIVED = 1;
+  /* Data store input key */
+  //private String inputKey = null;
+  
+  /* Data store output key */
+  private String outputKey = null;
+  /* QueryIfs messages still pending (i.e. for which it doesn't still received a response */
+  //private Vector ph1Pendings = new Vector();
+  private int totSessions;
+
+  private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+  private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
 
     /**
      * Constructs a <code>TwoPh1Initiator</code> behaviour.
@@ -70,8 +115,8 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
      * If phase 1 ends with all confirm or inform than messages prepared are
      * <code>accept-proposal</code>, otherwise they are <code>reject-proposal</code>.
      */
-    public TwoPh1Initiator(Agent a, String conversationId, String inputKey, String outputKey) {
-        this(a, conversationId, inputKey, outputKey, new DataStore());
+    public TwoPh1Initiator(Agent a, ACLMessage queryIf, String outputKey) {
+        this(a, queryIf, outputKey, new DataStore());
     }
 
     /**
@@ -87,11 +132,9 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
      * <code>accept-proposal</code>, otherwise they are <code>reject-proposal</code>.
      * @param store <code>DataStore</code> that will be used by this <code>TwoPh1Initiator</code>.
      */
-    public TwoPh1Initiator(Agent a, String conversationId,
-                           String inputKey, String outputKey, DataStore store) {
-        super(a, null, store);
-        this.conversationId = conversationId;
-        this.inputKey = inputKey;
+    public TwoPh1Initiator(Agent a, ACLMessage queryIf, String outputKey, DataStore store) {
+        super(a, queryIf, store);
+        //this.inputKey = inputKey;
         this.outputKey = outputKey;
         /* Register the FSM transitions specific to the Two-Phase1-Commit protocol */
         registerTransition(CHECK_IN_SEQ, HANDLE_CONFIRM, ACLMessage.CONFIRM);
@@ -100,10 +143,10 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         registerDefaultTransition(HANDLE_CONFIRM, CHECK_SESSIONS);
         registerDefaultTransition(HANDLE_DISCONFIRM, CHECK_SESSIONS);
         registerDefaultTransition(HANDLE_INFORM, CHECK_SESSIONS);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_CONFIRM);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, SOME_DISCONFIRM);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, PH1_TIMEOUT_EXPIRED);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_CONFIRM_OR_INFORM);
+        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
+        //registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, SOME_DISCONFIRM);
+        //registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, PH1_TIMEOUT_EXPIRED);
+        //registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_CONFIRM_OR_INFORM);
         registerDefaultTransition(HANDLE_ALL_RESPONSES, DUMMY_FINAL);
 
         /* Create and register the states specific to the Two-Phase1-Commit protocol */
@@ -112,17 +155,9 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         /* HANDLE_CONFIRM state activated if arrived a confirm message compliant with
         conversationId and a receiver of one of queryIf messages sent. */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_CONFIRM started ************");
-                super.onStart();
-            }
             public void action() {
                 ACLMessage confirm = (ACLMessage) (getDataStore().get(REPLY_KEY));
                 handleConfirm(confirm);
-            }
-            public int onEnd() {
-                System.out.println("************ HANDLE_CONFIRM ended ************");
-                return super.onEnd();
             }
         };
         b.setDataStore(getDataStore());
@@ -132,17 +167,9 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         compliant with conversationId and a receiver of one of queryIf messages
         sent. */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_DISCONFIRM started ************");
-                super.onStart();
-            }
             public void action() {
                 ACLMessage disconfirm = (ACLMessage) (getDataStore().get(REPLY_KEY));
                 handleDisconfirm(disconfirm);
-            }
-            public int onEnd() {
-                System.out.println("************ HANDLE_DISCONFIRM ended ************");
-                return super.onEnd();
             }
         };
         b.setDataStore(getDataStore());
@@ -152,17 +179,9 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         compliant with conversationId and a receiver of one of queryIf messages
         sent. */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_INFORM started ************");
-                super.onStart();
-            }
             public void action() {
                 ACLMessage inform = (ACLMessage) (getDataStore().get(REPLY_KEY));
                 handleInform(inform);
-            }
-            public int onEnd() {
-                System.out.println("************ HANDLE_INFORM ended ************");
-                return super.onEnd();
             }
         };
         b.setDataStore(getDataStore());
@@ -171,46 +190,97 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         /* HANDLE_ALL_RESPONSES state activated when timeout is expired or
         all the answers have been received. */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_ALL_RESPONSES started ************");
-                super.onStart();
-            }
             public void action() {
+                Vector responses = (Vector) getDataStore().get(ALL_RESPONSES_KEY);
                 Vector confirms = (Vector) getDataStore().get(ALL_CONFIRMS_KEY);
                 Vector disconfirms = (Vector) getDataStore().get(ALL_DISCONFIRMS_KEY);
                 Vector informs = (Vector) getDataStore().get(ALL_INFORMS_KEY);
-                Vector responses = (Vector) getDataStore().get(TwoPh1Initiator.this.outputKey);
-                handleAllResponses(confirms, disconfirms, informs,
-                        ph1Pendings, responses);
-            }
-            public int onEnd() {
-                System.out.println("************ HANDLE_ALL_RESPONSES ended ************");
-                return super.onEnd();
+                Vector pendings = (Vector) getDataStore().get(ALL_PENDINGS_KEY);
+          			Vector nextPhMsgs = (Vector) getDataStore().get(TwoPh1Initiator.this.outputKey);
+                handleAllResponses(responses, confirms, disconfirms, informs,
+                        pendings, nextPhMsgs);
             }
         };
         b.setDataStore(getDataStore());
         registerState(b, HANDLE_ALL_RESPONSES);
 
         /* DUMMY_FINAL state returns ALL_CONFIRM, ALL_CONFIRM_OR_INFORM,
-        SOME_DISCONFIRM or PH1_TIMEOUT_EXPIRED code. */
+        SOME_DISCONFIRM or PH1_TIMEOUT_EXPIRED code. 
         b = new OneShotBehaviour(myAgent) {
             public void onStart() {
-                System.out.println("\n\n************ DUMMY_FINAL started ************");
+                Logger.log("(TwoPh1Initiator, TwoPh1Initiator(), DUMMY_FINAL, " + myAgent.getName() + "): " +
+                        "started", logging);
                 super.onStart();
             }
             public void action() {
             }
             public int onEnd() {
-                System.out.println("value returned = " + getState(CHECK_SESSIONS).onEnd());
-                System.out.println("************ DUMMY_FINAL ended ************");
-                return getState(CHECK_SESSIONS).onEnd();
+                // fix:
+                int result;
+                Vector responses = (Vector) getDataStore().get(TwoPh1Initiator.this.outputKey); // update1
+                Logger.log("(TwoPh1Initiator, TwoPh1Initiator(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                    "responses is null? " + (responses == null), currentLogging);
+                if(responses.size() != 0)
+                    result = getState(CHECK_SESSIONS).onEnd();
+                else
+                    result = 0;
+                Logger.log("(TwoPh1Initiator, TwoPh1Initiator(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                    "value returned (NO_MESSAGES = 0, ALL_CONFIRM = 1, ALL_CONFIRM_OR_INFORM = 2, SOME_DISCONFIRM = 3, " +
+                    "PH1_TIMEOUT_EXPIRED = -1001, -1) = " + result, currentLogging);
+                return result;
             }
         };
         b.setDataStore(getDataStore());
-        registerLastState(b, DUMMY_FINAL);
+        registerLastState(b, DUMMY_FINAL);*/
     }
 
+    public int onEnd() {
+      Vector nextPhMsgs = (Vector) getDataStore().get(outputKey);
+      if (nextPhMsgs.size() != 0) {
+        return ((ACLMessage) nextPhMsgs.get(0)).getPerformative();
+      }
+      else {
+      	return -1;
+      }
+    }
+
+	private String[] toBeReset = null;
+		
+  /**
+   */
+  protected String[] getToBeReset() {
+  	if (toBeReset == null) {
+			toBeReset = new String[] {
+				HANDLE_CONFIRM, 
+				HANDLE_DISCONFIRM, 
+				HANDLE_INFORM, 
+				HANDLE_NOT_UNDERSTOOD,
+				HANDLE_FAILURE,
+				HANDLE_OUT_OF_SEQ
+			};
+  	}
+  	return toBeReset;
+  }
+    
     /* User can override these methods */
+
+    /**
+     * This method must return the vector of ACLMessage objects to be sent.
+     * It is called in the first state of this protocol. This default
+     * implementation just returns the ACLMessage object (a QUERY_IF) passed in
+     * the constructor. Programmers might prefer to override this method in order
+     * to return a vector of QUERY_IF objects for 1:N conversations.
+     * @param queryIf the ACLMessage object passed in the constructor
+     * @return a Vector of ACLMessage objects. The value of the <code>reply-with</code>
+     * slot is ignored and regenerated automatically by this
+     * class. Instead user can specify <code>reply-by</code> slot representing phase0
+     * timeout.
+     */
+    protected Vector prepareQueryIfs(ACLMessage queryIf) {
+        Vector v = new Vector(1);
+        v.addElement(queryIf);
+        return v;
+    }
 
     /**
      * This method is called every time a <code>confirm</code> message is received,
@@ -243,16 +313,6 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
     }
 
     /**
-     * This method is called every time a message is received, which is out-of-sequence
-     * according to the protocol rules. This default implementation does nothing;
-     * programmers might wish to override the method in case they need to react
-     * to this event.
-     * @param msg the received message
-     **/
-    protected void handleOutOfSequence(ACLMessage msg) {
-    }
-
-    /**
      * This method is called when all the responses have been collected or when
      * the timeout is expired. The used timeout is the minimum value of the slot
      * <code>reply-By</code> of all the sent messages. By response message we
@@ -267,13 +327,21 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
      * @param responses prepared responses for next phase: <code>accept-proposal</code>
      * or <code>reject-proposal</code>
      */
-    protected void handleAllResponses(Vector confirms, Vector disconfirms,
-                                      Vector informs, Vector pendings, Vector responses) {
+    protected void handleAllResponses(Vector responses, Vector confirms, Vector disconfirms,
+                                      Vector informs, Vector pendings, Vector nextPhMsgs) {
     }
 
-    /*public void registerPrepareQueryIfs(Behaviour b) {
+    /** This method allows to register a user-defined <code>Behaviour</code> in the
+     * PREPARE_QUERYIFS state. This behaviour would override the homonymous method. This
+     * method also set the data store of the registered <code>Behaviour</code> to the
+     * DataStore of this current behaviour. It is responsibility of the registered
+     * behaviour to put the <code>Vector</code> of ACLMessage objects to be sent into
+     * the datastore at the <code>ALL_QUERYIFS_KEY</code> key.
+     * @param b the Behaviour that will handle this state
+     */
+    public void registerPrepareQueryIfs(Behaviour b) {
         registerPrepareInitiations(b);
-    }*/
+    }
 
     /**
      * This method allows to register a user defined <code>Behaviour</code> in the
@@ -336,13 +404,12 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
     /* User CAN'T override these methods */
 
     /**
-     * Returns vector of queryif stored in the data store at key <code>inputKey</code>
-     * from previouse phase.
-     * @param initiation ignored
+     * Prepare vector containing queryIfs.
+     * @param initiation queryIf passed in the constructor
      * @return Vector of queryIfs
      */
     protected final Vector prepareInitiations(ACLMessage initiation) {
-        return (Vector) getDataStore().get(inputKey);
+      return prepareQueryIfs(initiation);
     }
 
     /**
@@ -353,46 +420,54 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
      * @param initiations vector prepared in PREPARE_QUERYIFS state
      */
     protected final void sendInitiations(Vector initiations) {
-        long currentTime = System.currentTimeMillis();
-        long minTimeout = -1;
-        long deadline = -1;
-        replyTemplate = MessageTemplate.and(
-                MessageTemplate.MatchProtocol(JADE_TWO_PHASE_COMMIT),
-                MessageTemplate.MatchConversationId(conversationId));
-        System.out.println("initiations size = " + initiations.size());
-        for(Enumeration e = initiations.elements(); e.hasMoreElements();) {
-            ACLMessage msg = (ACLMessage) e.nextElement();
-            if (msg != null) {
-                ACLMessage toSend = (ACLMessage) msg.clone();
-                toSend.setProtocol(JADE_TWO_PHASE_COMMIT);
-                toSend.setConversationId(conversationId);
-                for(Iterator receivers = msg.getAllReceiver(); receivers.hasNext();) {
-                    toSend.clearAllReceiver();
-                    AID r = (AID) receivers.next();
-                    toSend.addReceiver(r);
-                    String sessionKey = "R_" + r.getName() + "_PH1";
-                    toSend.setReplyWith(sessionKey);
-                    /* Creates an object Session for all receivers */
-                    sessions.put(sessionKey, new Session());
-                    /* If initiator coincides with receiver */
-                    adjustReplyTemplate(toSend);
-                    myAgent.send(toSend);
-                    System.out.println("---> " + toSend);
-                    ph1Pendings.add(toSend);
-                }
-                Date d = msg.getReplyByDate();
-                if(d != null) {
-                    long timeout = d.getTime() - currentTime;
-                    if(timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-                        minTimeout = timeout;
-                        deadline = d.getTime();
-                    }
-                }
-            }
-        }
-        replyReceiver.setTemplate(replyTemplate);
-        replyReceiver.setDeadline(deadline);
-        getDataStore().put(outputKey, new Vector());
+      long currentTime = System.currentTimeMillis();
+      long minTimeout = -1;
+      long deadline = -1;
+        
+      Vector pendings = new Vector();
+			String conversationID = createConvId(initiations);
+			replyTemplate = MessageTemplate.MatchConversationId(conversationID);
+			
+		  totSessions = 0; // counter of sessions
+      for(Enumeration e = initiations.elements(); e.hasMoreElements();) {
+          ACLMessage msg = (ACLMessage) e.nextElement();
+          if (msg != null) {
+              for(Iterator receivers = msg.getAllReceiver(); receivers.hasNext();) {
+	              ACLMessage toSend = (ACLMessage) msg.clone();
+	              //toSend.setProtocol(JADE_TWO_PHASE_COMMIT);
+	              toSend.setConversationId(conversationID);
+                toSend.clearAllReceiver();
+                AID r = (AID) receivers.next();
+                toSend.addReceiver(r);
+								String sessionKey = "R" + hashCode()+  "_" + Integer.toString(totSessions) + "_PH1";
+                //String sessionKey = "R_" + r.getName() + "_PH1";
+                toSend.setReplyWith(sessionKey);
+                /* Creates an object Session for all receivers */
+                sessions.put(sessionKey, new Session());
+                /* If initiator coincides with receiver */
+                adjustReplyTemplate(toSend);
+                myAgent.send(toSend);
+                pendings.add(toSend);
+                totSessions++;
+              }
+              
+					    // Update the timeout (if any) used to wait for replies according
+					    // to the reply-by field: get the miminum.
+              Date d = msg.getReplyByDate();
+              if(d != null) {
+                  long timeout = d.getTime() - currentTime;
+                  if(timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
+                      minTimeout = timeout;
+                      deadline = d.getTime();
+                  }
+              }
+          }
+      }
+		  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
+		  // state to accept replies, and store the Vector of pending CFPs
+      replyReceiver.setTemplate(replyTemplate);
+      replyReceiver.setDeadline(deadline);
+      getDataStore().put(ALL_PENDINGS_KEY, pendings);
     }
 
     /**
@@ -402,76 +477,123 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
      * @return true if reply is compliant with flow of protocol, false otherwise
      */
     protected final boolean checkInSequence(ACLMessage reply) {
-        boolean ret = false;
-        String inReplyTo = reply.getInReplyTo();
-        Session s = (Session) sessions.get(inReplyTo);
-        if(s != null) {
-            int perf = reply.getPerformative();
-            if(s.update(perf)) {
-                /* The reply is compliant to the protocol */
-                switch(perf) {
-                    case ACLMessage.CONFIRM:
-                        ((Vector) getDataStore().get(ALL_CONFIRMS_KEY)).add(reply);
-                    case ACLMessage.DISCONFIRM:
-                        ((Vector) getDataStore().get(ALL_DISCONFIRMS_KEY)).add(reply);
-                    case ACLMessage.INFORM:
-                        ((Vector) getDataStore().get(ALL_INFORMS_KEY)).add(reply);
-                }
-                for(int i=0; i<ph1Pendings.size(); i++) {
-                    ACLMessage pendingMsg = (ACLMessage) ph1Pendings.get(i);
-                    if(pendingMsg.getReplyWith().equals(reply.getInReplyTo())) {
-                        ph1Pendings.remove(i);
-                        break;
-                    }
-                }
-                ret = true;
-            }
-            if(s.isCompleted())
-                sessions.remove(inReplyTo);
+      boolean ret = false;
+      String inReplyTo = reply.getInReplyTo();
+      Session s = (Session) sessions.get(inReplyTo);
+      if(s != null) {
+        int perf = reply.getPerformative();
+        if(s.update(perf)) {
+          // The reply is compliant to the protocol 
+          ((Vector) getDataStore().get(ALL_RESPONSES_KEY)).add(reply);
+          
+          switch(perf) {
+              case ACLMessage.CONFIRM: {
+                  ((Vector) getDataStore().get(ALL_CONFIRMS_KEY)).add(reply);
+                  break;
+              }
+              case ACLMessage.DISCONFIRM: {
+                  ((Vector) getDataStore().get(ALL_DISCONFIRMS_KEY)).add(reply);
+                  break;
+              }
+              case ACLMessage.INFORM: {
+                  ((Vector) getDataStore().get(ALL_INFORMS_KEY)).add(reply);
+                  break;
+              }
+          }
+          updatePendings(inReplyTo);
+          ret = true;
         }
-        return ret;
+        if (s.isCompleted()) {
+            sessions.remove(inReplyTo);
+        }
+      } 
+      return ret;
     }
 
+    private void updatePendings(String key) {
+    	Vector pendings = (Vector) getDataStore().get(ALL_PENDINGS_KEY);
+      for(int i=0; i<pendings.size(); i++) {
+          ACLMessage pendingMsg = (ACLMessage) pendings.get(i);
+          if(pendingMsg.getReplyWith().equals(key)) {
+              pendings.remove(i);
+              break;
+          }
+      }
+    }
+    	
     /**
      * Check if there are still active sessions or if timeout is expired.
      * @param reply last message received
-     * @return ALL_CONFIRM, ALL_CONFIRM_OR_INFORM, SOME_DISCONFIRM, PH1_TIMEOUT_EXPIRED,
-     * -1 (still active sessions)
+     * @return ALL_RESPONSES_RECEIVED or -1 (still active sessions)
      */
     protected final int checkSessions(ACLMessage reply) {
-        int ret;
+    	if (reply == null) {
+    		// Timeout expired --> clear all sessions 
+    		sessions.clear();
+    	}
+    	if (sessions.size() == 0) {
+    		// We have finished --> fill the Vector of initiation messages for next 
+    		// phase (unless already filled by the user)
+        DataStore ds = getDataStore();
+    		Vector nextPhMsgs = (Vector) ds.get(outputKey);
+    		if (nextPhMsgs.size() == 0) {
+	        Vector confirms = (Vector) ds.get(ALL_CONFIRMS_KEY);
+	        Vector informs = (Vector) ds.get(ALL_INFORMS_KEY);
+	        Vector pendings = (Vector) ds.get(ALL_PENDINGS_KEY);
+	        fillNextPhInitiations(nextPhMsgs, confirms, informs, pendings);
+    		}
+        return ALL_RESPONSES_RECEIVED;
+    	}
+    	else {
+    		// We are still waiting for some responses
+    		return -1;
+    	}
+        /*int ret;
         Vector responses = (Vector) getDataStore().get(outputKey);
         Vector confirms = (Vector) getDataStore().get(ALL_CONFIRMS_KEY);
         Vector disconfirms = (Vector) getDataStore().get(ALL_DISCONFIRMS_KEY);
         Vector informs = (Vector) getDataStore().get(ALL_INFORMS_KEY);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "confirms = " + confirms, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "disconfirms = " + disconfirms, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "informs = " + informs, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "responses = " + responses, logging);
         if(reply != null) {
             if(sessions.size() > 0) {
-                /* If there are still active sessions */
+                // If there are still active sessions 
                 ret = -1;
-                System.out.println("still active sessions, ret = -1");
+                Logger.log("(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "still active sessions, ret = -1", logging);
             } else {
-                /* All responses received before timeout has been expired */
+                // All responses received before timeout has been expired 
                 if(disconfirms.size() != 0) {
-                    /* Received some disconfirms, so prepare vector containing reject
-                    messages stored in the datastore at outputKey. Content for all
-                    rejects will be replaced by the user during handleAllResponse
-                    method call. CheckSessions returns SOME_DISCONFIRM. */
+                    // Received some disconfirms, so prepare vector containing reject
+                    //messages stored in the datastore at outputKey. Content for all
+                    //rejects will be replaced by the user during handleAllResponse
+                    //method call. CheckSessions returns SOME_DISCONFIRM. 
                     for(int i=0; i<confirms.size(); i++) {
                         ACLMessage msg = (ACLMessage) confirms.get(i);
-                        ACLMessage reject = (ACLMessage) msg.clone();
+                        // fix: invertire sender con receiver
+                        //ACLMessage reject = (ACLMessage) msg.clone(); 
+                        ACLMessage reject = msg.createReply();
                         reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
                         responses.add(reject);
                     }
                     ret = SOME_DISCONFIRM;
                 } else {
-                    /* Received all confirms or informs, so prepare vector containing
-                    accept-proposal messages stored in the datastore at outputKey and
-                    returns ALL_CONFIRM or ALL_CONFIRM_OR_INFORM. Receivers of accept-
-                    proposal messages are all confirms. Content of accept messages is
-                    replaced by the user during handleAllResponses method call. */
+                    // Received all confirms or informs, so prepare vector containing
+                    //accept-proposal messages stored in the datastore at outputKey and
+                    //returns ALL_CONFIRM or ALL_CONFIRM_OR_INFORM. Receivers of accept-
+                    //proposal messages are all confirms. Content of accept messages is
+                    //replaced by the user during handleAllResponses method call. 
                     for(int i=0; i<confirms.size(); i++) {
                         ACLMessage msg = (ACLMessage) confirms.get(i);
-                        ACLMessage accept = (ACLMessage) msg.clone();
+                        // fix: invertire sender con receiver
+                        //ACLMessage accept = (ACLMessage) msg.clone(); 
+                        ACLMessage accept = msg.createReply();
                         accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
                         responses.add(accept);
                     }
@@ -481,65 +603,107 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
             }
         }
         else {
-            /* Timeout was expired or we were interrupted, so clear all remaining
-            sessions, prepare vector containing reject messages stored in the datastore
-            at outputKey and returns PH1_TIMEOUT_EXPIRED. Receivers of reject messages
-            are all confirms or pendings. Content of reject messages is replaced by
-            the user during handleAllResponses method call. */
+            // Timeout was expired or we were interrupted, so clear all remaining
+            //sessions, prepare vector containing reject messages stored in the datastore
+            //at outputKey and returns PH1_TIMEOUT_EXPIRED. Receivers of reject messages
+            //are all confirms or pendings. Content of reject messages is replaced by
+            //the user during handleAllResponses method call. 
             sessions.clear();
-            Vector confirmsAndPendings = (Vector) getDataStore().get(ALL_CONFIRMS_KEY);
-            confirmsAndPendings.addAll(ph1Pendings);
-            for(int i=0; i<confirmsAndPendings.size(); i++) {
-                ACLMessage msg = (ACLMessage) confirmsAndPendings.get(i);
+            // fix: caricavo in ALL_CONFIRMS_KEY anche i ph1Pendings!
+            //Vector confirmsAndPendings = (Vector) getDataStore().get(ALL_CONFIRMS_KEY);
+            //confirmsAndPendings.addAll(ph1Pendings);
+            //for(int i=0; i<confirmsAndPendings.size(); i++) {
+            //    ACLMessage msg = (ACLMessage) confirmsAndPendings.get(i);
+            //    ACLMessage reject = (ACLMessage) msg.clone();
+            //    reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
+            //    responses.add(reject);
+            //}
+            for(int i=0; i<confirms.size(); i++) {
+                ACLMessage msg = (ACLMessage) confirms.get(i);
+                ACLMessage reject = msg.createReply();
+                reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                responses.add(reject);
+            }
+            for(int i=0; i<ph1Pendings.size(); i++) {
+                ACLMessage msg = (ACLMessage) ph1Pendings.get(i);
                 ACLMessage reject = (ACLMessage) msg.clone();
                 reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
                 responses.add(reject);
             }
             getDataStore().put(outputKey, responses);
             ret = PH1_TIMEOUT_EXPIRED;
-            System.out.println("timeout expired, ret = TIMEOUT_EXPIRED");
+            Logger.log("(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                    "timeout expired, ret = TIMEOUT_EXPIRED", logging);
         }
-        System.out.println("checkSessions() - " + ret);
-        return ret;
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+            "value returned (ALL_CONFIRM = 1, ALL_CONFIRM_OR_INFORM = 2, SOME_DISCONFIRM = 3, " +
+            "PH1_TIMEOUT_EXPIRED = -1001, -1) = " + ret, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "confirms = " + confirms, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "disconfirms = " + disconfirms, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "informs = " + informs, logging);
+        Logger.log("\n\n(TwoPh1Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
+                        "responses = " + responses, logging);
+        return ret;*/
     }
 
-    protected final void handlePositiveResponse(ACLMessage positiveResp) {
+    private void fillNextPhInitiations(Vector nextPhMsgs, Vector confirms, Vector informs, Vector pendings) {
+    	if ((confirms.size()+informs.size()) == totSessions) {
+    		// All responders replied with CONFIRM or INFORM --> Fill the vector 
+    		// of initiation messages for next phase with ACCEPT_PROPOSAL
+        for(int i=0; i<confirms.size(); i++) {
+          ACLMessage msg = (ACLMessage) confirms.get(i);
+          ACLMessage accept = msg.createReply();
+          accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+          nextPhMsgs.add(accept);
+        }
+    	}
+    	else {
+    		// At least one responder disconfirmed, failed or didn't reply --> Fill the vector 
+    		// of initiation messages for next phase with REJECT_PROPOSALS
+        for(int i=0; i<confirms.size(); i++) {
+          ACLMessage msg = (ACLMessage) confirms.get(i);
+          ACLMessage reject = msg.createReply();
+          reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
+          nextPhMsgs.add(reject);
+        }
+        for(int i=0; i<pendings.size(); i++) {
+          ACLMessage msg = (ACLMessage) pendings.get(i);
+          ACLMessage reject = (ACLMessage) msg.clone();
+          reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
+          nextPhMsgs.add(reject);
+        }
+    	}
     }
-
-    protected final void handleFailure(ACLMessage failure) {
-    }
-
-    protected final void handleNotUnderstood(ACLMessage notUnderstood) {
-    }
-
-    protected final void handleRefuse(ACLMessage refuse) {
-    }
-
-    public void reset(ACLMessage cfp) {
-        super.reset(cfp);
+    		
+    		
+    public void reset(ACLMessage queryIf) {
+        super.reset(queryIf);
     }
 
     /**
      * Initialize the data store.
      * @param msg Ignored
      */
-    protected final void initializeDataStore(ACLMessage msg) {
+    protected void initializeDataStore(ACLMessage msg) {
         super.initializeDataStore(msg);
+        getDataStore().put(ALL_RESPONSES_KEY, new Vector());
         getDataStore().put(ALL_CONFIRMS_KEY, new Vector());
         getDataStore().put(ALL_DISCONFIRMS_KEY, new Vector());
         getDataStore().put(ALL_INFORMS_KEY, new Vector());
+        getDataStore().put(outputKey, new Vector());
     }
 
     /**
      * Inner class Session
      */
     class Session implements Serializable {
-        /* Possible Session states */
+        // Session states 
         static final int INIT = 0;
-        static final int CONFIRM_RECEIVED = 1;
-        static final int DISCONFIRM_RECEIVED = 2;
-        static final int INFORM_RECEIVED = 3;
-        /* Session state */
+        static final int REPLY_RECEIVED = 1;
+
         private int state = INIT;
 
         /**
@@ -550,11 +714,15 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         public boolean update(int perf) {
             if(state == INIT) {
                 switch(perf) {
-                    case ACLMessage.CONFIRM: state = CONFIRM_RECEIVED;
-                    case ACLMessage.DISCONFIRM: state = DISCONFIRM_RECEIVED;
-                    case ACLMessage.INFORM: state = INFORM_RECEIVED;
-                    return true;
-                    default: return false;
+                    case ACLMessage.CONFIRM: ;
+                    case ACLMessage.DISCONFIRM: ;
+                    case ACLMessage.INFORM: ;
+                    case ACLMessage.NOT_UNDERSTOOD:
+                    case ACLMessage.FAILURE:
+                      state = REPLY_RECEIVED;
+                    	return true;
+                    default: 
+                    	return false;
                 }
             }
             else {
@@ -567,8 +735,7 @@ public class TwoPh1Initiator extends Initiator implements TwoPhConstants {
         }
 
         public boolean isCompleted() {
-            return(state == CONFIRM_RECEIVED || state == DISCONFIRM_RECEIVED ||
-                    state == INFORM_RECEIVED);
+            return (state == REPLY_RECEIVED);
         }
     }
 }

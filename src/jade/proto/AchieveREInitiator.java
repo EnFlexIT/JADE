@@ -89,8 +89,8 @@ import jade.util.leap.Serializable;
  **/
 public class AchieveREInitiator extends Initiator {
 	
-    // Private data store keys (can't be static since if we register another instance of this class as stare of the FSM 
-    //using the same data store the new values overrides the old one. 
+    // Private data store keys (can't be static since if we register another instance of this class as state of the FSM 
+    // using the same data store the new values overrides the old one. 
     /** 
      * key to retrieve from the DataStore of the behaviour the ACLMessage 
      *	object passed in the constructor of the class.
@@ -119,6 +119,9 @@ public class AchieveREInitiator extends Initiator {
     public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
     // FSM states names specific to the Achieve-RE protocol 
+    private static final String HANDLE_AGREE = "Handle-agree";
+    private static final String HANDLE_REFUSE = "Handle-refuse";
+    private static final String HANDLE_INFORM = "Handle-inform";
     private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
     private static final String HANDLE_ALL_RESULT_NOTIFICATIONS = "Handle-all-result-notifications";
     private static final String CHECK_AGAIN = "Check-again";
@@ -156,7 +159,12 @@ public class AchieveREInitiator extends Initiator {
 	super(a, msg, store);
 
 	// Register the FSM transitions specific to the Achieve-RE protocol
-	registerTransition(CHECK_IN_SEQ, HANDLE_POSITIVE_RESPONSE, ACLMessage.AGREE);		
+	registerTransition(CHECK_IN_SEQ, HANDLE_AGREE, ACLMessage.AGREE);		
+	registerTransition(CHECK_IN_SEQ, HANDLE_INFORM, ACLMessage.INFORM);		
+	registerTransition(CHECK_IN_SEQ, HANDLE_REFUSE, ACLMessage.REFUSE);		
+	registerDefaultTransition(HANDLE_AGREE, CHECK_SESSIONS);
+	registerDefaultTransition(HANDLE_INFORM, CHECK_SESSIONS);
+	registerDefaultTransition(HANDLE_REFUSE, CHECK_SESSIONS);
 	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
 	registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
 	registerDefaultTransition(HANDLE_ALL_RESPONSES, CHECK_AGAIN);
@@ -165,6 +173,39 @@ public class AchieveREInitiator extends Initiator {
 			
 	// Create and register the states specific to the Achieve-RE protocol
 	Behaviour b = null;
+	// HANDLE_AGREE
+	b = new OneShotBehaviour(myAgent) {
+  	private static final long     serialVersionUID = 3487495895818003L;
+  	
+		public void action() {
+		    handleAgree((ACLMessage) getDataStore().get(REPLY_K));
+		}
+	};
+	b.setDataStore(getDataStore());		
+	registerState(b, HANDLE_AGREE);
+	
+	// HANDLE_REFUSE
+	b = new OneShotBehaviour(myAgent) {
+  	private static final long     serialVersionUID = 3487495895818004L;
+  	
+		public void action() {
+		    handleRefuse((ACLMessage) getDataStore().get(REPLY_K));
+		}
+	};
+	b.setDataStore(getDataStore());		
+	registerState(b, HANDLE_REFUSE);
+		
+	// HANDLE_INFORM
+	b = new OneShotBehaviour(myAgent) {
+  	private static final long     serialVersionUID = 3487495895818006L;
+  	
+		public void action() {
+		    handleInform((ACLMessage) getDataStore().get(REPLY_K));
+		}
+	};
+	b.setDataStore(getDataStore());		
+	registerState(b, HANDLE_INFORM);
+	
 	// HANDLE_ALL_RESPONSES
 	b = new OneShotBehaviour(myAgent) {
 		
@@ -235,8 +276,7 @@ public class AchieveREInitiator extends Initiator {
 			    }
 			  
 			    // Update the timeout (if any) used to wait for replies according
-			    // to the reply-by field
-			    // get the miminum  
+			    // to the reply-by field: get the miminum.  
 			    Date d = request.getReplyByDate();
 			    if (d != null) {
 						long timeout = d.getTime()- currentTime;
@@ -287,12 +327,6 @@ public class AchieveREInitiator extends Initiator {
 				}
 			}
 			return false;
-    }
-    
-    /**
-     */
-    protected void handlePositiveResponse(ACLMessage positiveResp) {
-    	handleAgree(positiveResp);
     }
     
     /**
@@ -351,6 +385,24 @@ public class AchieveREInitiator extends Initiator {
 		  return ret;
     }
     
+		private String[] toBeReset = null;
+		
+    /**
+     */
+    protected String[] getToBeReset() {
+    	if (toBeReset == null) {
+				toBeReset = new String[] {
+					HANDLE_AGREE, 
+					HANDLE_REFUSE,
+					HANDLE_NOT_UNDERSTOOD,
+					HANDLE_INFORM,
+					HANDLE_FAILURE,
+					HANDLE_OUT_OF_SEQ
+				};
+    	}
+    	return toBeReset;
+    }
+    
     /**
      * This method must return the vector of ACLMessage objects to be
      * sent. It is called in the first state of this protocol.
@@ -393,17 +445,6 @@ public class AchieveREInitiator extends Initiator {
     }
 
     /**
-     * This method is called every time a <code>not-understood</code>
-     * message is received, which is not out-of-sequence according
-     * to the protocol rules.
-     * This default implementation does nothing; programmers might
-     * wish to override the method in case they need to react to this event.
-     * @param notUnderstood the received not-understood message
-     **/
-    protected void handleNotUnderstood(ACLMessage notUnderstood) {
-    }
-    
-    /**
      * This method is called every time a <code>inform</code>
      * message is received, which is not out-of-sequence according
      * to the protocol rules.
@@ -412,28 +453,6 @@ public class AchieveREInitiator extends Initiator {
      * @param inform the received inform message
      **/
     protected void handleInform(ACLMessage inform) {
-    }
-    
-    /**
-     * This method is called every time a <code>failure</code>
-     * message is received, which is not out-of-sequence according
-     * to the protocol rules.
-     * This default implementation does nothing; programmers might
-     * wish to override the method in case they need to react to this event.
-     * @param failure the received failure message
-     **/
-    protected void handleFailure(ACLMessage failure) {
-    }
-    
-    /**
-     * This method is called every time a 
-     * message is received, which is out-of-sequence according
-     * to the protocol rules.
-     * This default implementation does nothing; programmers might
-     * wish to override the method in case they need to react to this event.
-     * @param msg the received message
-     **/
-    protected void handleOutOfSequence(ACLMessage msg) {
     }
     
     /**
@@ -504,7 +523,44 @@ public class AchieveREInitiator extends Initiator {
        @param b the Behaviour that will handle this state
     */
     public void registerHandleAgree(Behaviour b) {
-    	registerHandlePositiveResponse(b);
+			registerState(b, HANDLE_AGREE);
+			b.setDataStore(getDataStore());
+    }
+    
+    /**
+       This method allows to register a user defined <code>Behaviour</code>
+       in the HANDLE_INFORM state.
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>inform</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
+     */
+    public void registerHandleInform(Behaviour b) {
+			registerState(b, HANDLE_INFORM);
+			b.setDataStore(getDataStore());
+    }
+    
+    /**
+       This method allows to register a user defined <code>Behaviour</code>
+       in the HANDLE_REFUSE state.
+       This behaviour would override the homonymous method.
+       This method also set the 
+       data store of the registered <code>Behaviour</code> to the
+       DataStore of this current behaviour.
+       The registered behaviour can retrieve
+       the <code>refuse</code> ACLMessage object received
+       from the datastore at the <code>REPLY_KEY</code>
+       key.
+       @param b the Behaviour that will handle this state
+     */
+    public void registerHandleRefuse(Behaviour b) {
+			registerState(b, HANDLE_REFUSE);
+			b.setDataStore(getDataStore());
     }
     
     /**
@@ -543,8 +599,6 @@ public class AchieveREInitiator extends Initiator {
 	b.setDataStore(getDataStore());
     }
     
-    //FIXME: Need to call handleAgree also when
-    // the INFORM/FAILURE is received before or by skipping the AGREE? 
     /**
      * reset this behaviour
      * @param msg is the ACLMessage to be sent

@@ -33,61 +33,63 @@ import java.util.Vector;
 /**
  * Class description
  * @author Elena Quarantotto - TILAB
+ * @author Giovanni Caire - TILAB
  */
-public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
+public class TwoPhInitiator extends FSMBehaviour {
     /* FSM states names */
-    private static final String PH0_STATE = "Ph0";
-    private static final String PH1_STATE = "Ph1";
-    private static final String PH2_STATE = "Ph2";
+    public static final String PH0_STATE = "Ph0";
+    public static final String PH1_STATE = "Ph1";
+    public static final String PH2_STATE = "Ph2";
     private static final String DUMMY_FINAL = "Dummy-final";
-    private static final String PREVIOUS_PHASE_RESPONSES = "Previous-Phase-Responses";
+    private static final String TEMP = "__temp";
+
+    private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+    private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
 
     /**
-     * Constructs a <code>TwoPh2Initiator</code> behaviour.
+     * Constructs a <code>TwoPhInitiator</code> behaviour.
      * @param a The agent performing the protocol.
      * @param cfp The message that must be used to initiate the protocol.
      * Notice that the default implementation of the <code>prepareCfps</code> method
      * returns an array composed of that message only.
-     * @param conversationId <code>Conversation-id</code> slot used for all the
-     * duration of the protocol.
      */
-    public TwoPhInitiator(Agent a, ACLMessage cfp, String conversationId) {
-        this(a, cfp, conversationId, null);
+    public TwoPhInitiator(Agent a, ACLMessage cfp) {
+        this(a, cfp, new DataStore());
     }
 
     /**
-     * Constructs a <code>TwoPh2Initiator</code> behaviour.
+     * Constructs a <code>TwoPhInitiator</code> behaviour.
      * @param a The agent performing the protocol.
      * @param cfp The message that must be used to initiate the protocol.
      * Notice that the default implementation of the <code>prepareCfps</code> method
      * returns an array composed of that message only.
-     * @param conversationId <code>Conversation-id</code> slot used for all the
-     * duration of the protocol.
      * @param ds <code>DataStore</code> that will be used by this <code>TwoPhInitiator</code>.
      */
-    public TwoPhInitiator(Agent a, ACLMessage cfp, String conversationId, DataStore ds) {
+    public TwoPhInitiator(Agent a, ACLMessage cfp, DataStore ds) {
         super(a);
-        if (ds != null) {
-	        setDataStore(ds);
-        }
+        setDataStore(ds);
         /* Register the FSM transitions specific to the Two-Phase-Commit protocol */
-        registerDefaultTransition(PH0_STATE, PH0_STATE);
+        //registerDefaultTransition(PH0_STATE, PH0_STATE); // if it's sent more than one block of cfps.
+        /* update1
         registerTransition(PH0_STATE, PH1_STATE, ALL_PROPOSE);
         registerTransition(PH0_STATE, PH2_STATE, PH0_TIMEOUT_EXPIRED);
         registerTransition(PH0_STATE, PH2_STATE, SOME_FAILURE);
-        registerTransition(PH1_STATE, PH2_STATE, SOME_DISCONFIRM);
-        registerTransition(PH1_STATE, PH2_STATE, PH1_TIMEOUT_EXPIRED);
-        registerTransition(PH1_STATE, PH2_STATE, ALL_CONFIRM);
-        registerTransition(PH1_STATE, PH2_STATE, ALL_CONFIRM_OR_INFORM);
-        registerDefaultTransition(PH2_STATE, DUMMY_FINAL);
-
+        */
+        registerTransition(PH0_STATE, PH1_STATE, ACLMessage.QUERY_IF); // update1
+        registerTransition(PH0_STATE, PH2_STATE, ACLMessage.REJECT_PROPOSAL); // update1
+        registerTransition(PH0_STATE, DUMMY_FINAL, -1);
+        
+        registerTransition(PH1_STATE, PH2_STATE, ACLMessage.ACCEPT_PROPOSAL);
+        registerTransition(PH1_STATE, PH2_STATE, ACLMessage.REJECT_PROPOSAL);
+        registerTransition(PH1_STATE, DUMMY_FINAL, -1); // fix
+        
         /* Create and register the states specific to the Two-Phase-Commit protocol */
         Behaviour b;
 
         /* PH0_STATE activated for the first time. It sends cfps messages and wait
         for a propose (operation completed), a failure (operation failed) or
         expiration of timeout. */
-        b = new TwoPh0Initiator(myAgent, cfp, conversationId, PREVIOUS_PHASE_RESPONSES) {
+        b = new TwoPh0Initiator(myAgent, cfp, TEMP, ds) {
             protected Vector prepareCfps(ACLMessage cfp) {
                 return TwoPhInitiator.this.prepareCfps(cfp);
             }
@@ -100,13 +102,17 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
                 TwoPhInitiator.this.handleFailure(failure);
             }
 
-            protected void handleOutOfSequence(ACLMessage msg) {
-                TwoPhInitiator.this.handlePh0OutOfSequence(msg);
+            protected void handleNotUnderstood(ACLMessage notUnderstood) {
+                TwoPhInitiator.this.handleNotUnderstood(notUnderstood);
             }
 
-            protected void handleAllResponses(Vector proposes, Vector failures,
-                                              Vector pendings, Vector responses) {
-                TwoPhInitiator.this.handlePh0AllResponses(proposes, failures, pendings, responses);
+            protected void handleOutOfSequence(ACLMessage msg) {
+                TwoPhInitiator.this.handleOutOfSequence(msg);
+            }
+
+            protected void handleAllResponses(Vector responses, Vector proposes,
+                                              Vector pendings, Vector nextPhMsgs) {
+                TwoPhInitiator.this.handleAllPh0Responses(responses, proposes, pendings, nextPhMsgs);
             }
         };
         registerFirstState(b, PH0_STATE);
@@ -115,8 +121,14 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
         sends queryIf messages and wait for a confirm (receiver prepared), a
         disconfirm (receiver aborted), an inform (receiver not changed) or
         expiration of timeout. */
-        b = new TwoPh1Initiator(myAgent, conversationId, PREVIOUS_PHASE_RESPONSES,
-                PREVIOUS_PHASE_RESPONSES, getDataStore())  {
+        b = new TwoPh1Initiator(myAgent, null, TEMP, ds)  {
+			    protected void initializeDataStore(ACLMessage msg) {
+        		// Use the QUERY_IF messages prepared in previous phase
+        		Vector v = (Vector) getDataStore().get(TEMP);
+        		getDataStore().put(ALL_QUERYIFS_KEY, v);
+			    	super.initializeDataStore(msg);
+        	}
+        	
             protected void handleConfirm(ACLMessage confirm) {
                 TwoPhInitiator.this.handleConfirm(confirm);
             }
@@ -129,13 +141,21 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
                 TwoPhInitiator.this.handlePh1Inform(inform);
             }
 
-            protected void handleOutOfSequence(ACLMessage msg) {
-                TwoPhInitiator.this.handlePh1OutOfSequence(msg);
+            protected void handleFailure(ACLMessage failure) {
+                TwoPhInitiator.this.handleFailure(failure);
             }
 
-            protected void handleAllResponses(Vector confirms, Vector disconfirms,
-                                              Vector informs, Vector pendings, Vector responses) {
-                TwoPhInitiator.this.handlePh1AllResponses(confirms, disconfirms, informs, pendings, responses);
+            protected void handleNotUnderstood(ACLMessage notUnderstood) {
+                TwoPhInitiator.this.handleNotUnderstood(notUnderstood);
+            }
+
+            protected void handleOutOfSequence(ACLMessage msg) {
+                TwoPhInitiator.this.handleOutOfSequence(msg);
+            }
+
+            protected void handleAllResponses(Vector responses, Vector confirms, Vector disconfirms,
+                                              Vector informs, Vector pendings, Vector nextPhMsgs) {
+                TwoPhInitiator.this.handleAllPh1Responses(responses, confirms, disconfirms, informs, pendings, nextPhMsgs);
             }
         };
         registerState(b, PH1_STATE);
@@ -144,8 +164,14 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
         of timeout), phase 1 fails (some disconfirm or expiration of timeout) or
         phase 1 succeds (no disconfirms). In the first and third case it sends
         reject-proposal; in the second case it sends accept-proposal. */
-        b = new TwoPh2Initiator(myAgent, conversationId,
-                PREVIOUS_PHASE_RESPONSES, getDataStore()) {
+        b = new TwoPh2Initiator(myAgent, null, ds) {
+			    protected void initializeDataStore(ACLMessage msg) {
+        		// Use the acceptance messages prepared in previous phase
+        		Vector v = (Vector) getDataStore().get(TEMP);
+        		getDataStore().put(ALL_ACCEPTANCES_KEY, v);
+			    	super.initializeDataStore(msg);
+        	}
+        	
             protected void handleInform(ACLMessage inform) {
                 TwoPhInitiator.this.handlePh2Inform(inform);
             }
@@ -154,15 +180,31 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
                 TwoPhInitiator.this.handleOldResponse(old);
             }
 
-            protected void handleOutOfSequence(ACLMessage msg) {
-                TwoPhInitiator.this.handlePh2OutOfSequence(msg);
+            protected void handleFailure(ACLMessage failure) {
+                TwoPhInitiator.this.handleFailure(failure);
             }
 
+            protected void handleNotUnderstood(ACLMessage notUnderstood) {
+                TwoPhInitiator.this.handleNotUnderstood(notUnderstood);
+            }
+
+            protected void handleOutOfSequence(ACLMessage msg) {
+                TwoPhInitiator.this.handleOutOfSequence(msg);
+            }
+            
             protected void handleAllResponses(Vector responses) {
-                TwoPhInitiator.this.handlePh2AllResponses(responses);
+                TwoPhInitiator.this.handleAllPh2Responses(responses);
             }
         };
-        registerState(b, PH2_STATE);
+        registerLastState(b, PH2_STATE);
+
+        /* DUMMY_FINAL */
+        b = new OneShotBehaviour(myAgent) {
+            public void action() {
+            }
+        };
+        b.setDataStore(getDataStore());
+        registerLastState(b, DUMMY_FINAL);
     }
 
     /**
@@ -204,32 +246,30 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
     }
 
     /**
-     * This method is called every time a message is received in phase 0, which is
-     * out-of-sequence according to the protocol rules. This default implementation
-     * does nothing; programmers might wish to override the method in case they need
-     * to react to this event.
-     * @param msg the received message
-     */
-    protected void handlePh0OutOfSequence(ACLMessage msg) {
-    }
-
-    /**
      * This method is called when all the responses of phase 0 have been collected or when
      * the timeout is expired. The used timeout is the minimum value of the slot
-     * <code>reply-By</code> of all the sent messages. By response message we
-     * intend here all the <code>propose, failure</code> received messages, which
+     * <code>reply-By</code> of all the CFP messages sent.By response message we
+     * intend here all the <code>propose, failure, not-understood</code> received messages, which
      * are not out-of-sequence according to the protocol rules.
      * This default implementation does nothing; programmers might
-     * wish to override the method in case they need to react to this event
-     * by analysing all the messages in just one call.
-     * @param proposes all proposes received
-     * @param failures all failures received
-     * @param pendings all cfps still pending
-     * @param responses prepared responses for next phase: <code>queryIfs</code> for phase 1 or
-     * <code>reject-proposal</code> for phase 2
+     * wish to override this method to modify the Vector of initiation messages 
+     * (<code>nextPhMsgs</code>) for next phase. More in details this Vector 
+     * already includes messages with the performative set according to the 
+     * default protocol rules i.e. QUERY_IF (if all responders replied with 
+     * PROPOSE) or REJECT_PROPOSAL (if at least one responder failed or didn't reply).
+     * In particular, by setting the <code>reply-by</code> slot, users can 
+     * specify a timeout for next phase.
+     * @param responses The Vector of all messages received as response in phase 0
+     * @param proposes The Vector of PROPOSE messages received as response in phase 0
+     * @param pendings The Vector of CFP messages for which a response has not 
+     * been received yet.
+     * @param nextPhMsgs The Vector of initiation messages for next phase already
+     * filled with <code>QUERY_IF</code> messages (if all responders replied with 
+     * <code>PROPOSE</code>) or <code>REJECT_PROPOSAL</code> (if at least one 
+     * responder failed or didn't reply). 
      */
-    protected void handlePh0AllResponses(Vector proposes, Vector failures,
-                                      Vector pendings, Vector responses) {
+    protected void handleAllPh0Responses(Vector responses, Vector proposes,
+                                      Vector pendings, Vector nextPhMsgs) {
     }
 
     /**
@@ -263,16 +303,6 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
     }
 
     /**
-     * This method is called every time a message is received in phase 1, which is
-     * out-of-sequence according to the protocol rules. This default implementation
-     * does nothing; programmers might wish to override the method in case they need
-     * to react to this event.
-     * @param msg the received message
-     */
-    protected void handlePh1OutOfSequence(ACLMessage msg) {
-    }
-
-    /**
      * This method is called in phase 1 when all the responses have been collected or when
      * the timeout is expired. The used timeout is the minimum value of the slot
      * <code>reply-By</code> of all the sent messages. By response message we
@@ -281,14 +311,15 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
      * implementation does nothing; programmers might wish to override the method
      * in case they need to react to this event by analysing all the messages in
      * just one call.
+     * @param responses The Vector of all messages received as response in phase 1
      * @param confirms all confirms received
      * @param disconfirms all disconfirms received
      * @param pendings all queryIfs still pending
-     * @param responses prepared responses for next phase: <code>accept-proposal</code>
+     * @param nextPhMsgs prepared responses for next phase: <code>accept-proposal</code>
      * or <code>reject-proposal</code>
      */
-    protected void handlePh1AllResponses(Vector confirms, Vector disconfirms,
-                                      Vector informs, Vector pendings, Vector responses) {
+    protected void handleAllPh1Responses(Vector responses, Vector confirms, Vector disconfirms,
+                                      Vector informs, Vector pendings, Vector nextPhMsgs) {
     }
 
     /**
@@ -313,16 +344,6 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
     }
 
     /**
-     * This method is called every time a message is received in phase 2, which is
-     * out-of-sequence according to the protocol rules. This default implementation
-     * does nothing; programmers might wish to override the method in case they need
-     * to react to this event.
-     * @param msg the received message
-     */
-    protected void handlePh2OutOfSequence(ACLMessage msg) {
-    }
-
-    /**
      * This method is called in phase 2 when all the responses have been collected.
      * By response message we intend here all the <code>inform</code> (phase 2),
      * <code>failure</code> (phase 0), <code>disconfirm</code> (phase 1) and
@@ -330,8 +351,30 @@ public class TwoPhInitiator extends FSMBehaviour implements TwoPhConstants {
      * according to the protocol rules. This default implementation does nothing;
      * programmers might wish to override the method in case they need to react to
      * this event by analysing all the messages in just one call.
-     * @param responses all responses received
+     * @param responses all responses received in phase 2
      */
-    protected void handlePh2AllResponses(Vector responses) {
+    protected void handleAllPh2Responses(Vector responses) {
+    }
+
+    /**
+     * This method is called every time a message is received in phase n (use
+     * <code>getCurrentPhase</code> method to know the phase), which is
+     * out-of-sequence according to the protocol rules. This default implementation
+     * does nothing; programmers might wish to override the method in case they need
+     * to react to this event.
+     * @param msg the received message
+     */
+    protected void handleOutOfSequence(ACLMessage msg) {
+    }
+
+    protected void handleNotUnderstood(ACLMessage notUnderstood) {
+    }
+
+    public String getCurrentPhase() {
+        return getCurrent().getBehaviourName();
+    }
+
+    public Behaviour getPhase(String name) {
+    	return getState(name);
     }
 }

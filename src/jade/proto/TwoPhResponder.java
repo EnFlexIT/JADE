@@ -33,12 +33,14 @@ import jade.domain.FIPAAgentManagement.FailureException;
 import jade.proto.states.*;
 
 /**
- * todo@ Inserire commenti!!!
+ * Class description
+ * @author Elena Quarantotto - TILAB
+ * @author Giovanni Caire - TILAB
  */
 public class TwoPhResponder extends FSMBehaviour {
     /* FSM states names */
     private static final String RECEIVE_CFP_STATE = "Receive-CallForProposal";
-    private static final String PREPARE_PROPOSE_STATE = "Prepare-Propose";
+    private static final String HANDLE_CFP = "Handle-Cfp";
     private static final String SEND_PROPOSE_STATE = "Send-Propose";
     private static final String RECEIVE_QUERY_IF_STATE = "Receive-Query-If";
     private static final String HANDLE_OUT_OF_SEQUENCE_PH1_STATE = "Handle-Out-Of-Sequence-Ph1";
@@ -51,31 +53,37 @@ public class TwoPhResponder extends FSMBehaviour {
     private static final String DUMMY_FINAL = "Dummy-final";
 
     /* Data store keys */
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object received by the responder.
      **/
     public final String CFP_KEY = "__Cfp_key" + hashCode();
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object sent as a response to the initiator's ACLMessage CFP.
      **/
     public final String PROPOSE_KEY = "__Propose_key" + hashCode();
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object received after an ACLMessage PROPOSE reply.
      **/
-    public final String QUERY_IF_KEY = "__Query_If_key" + hashCode();
+    //fix: public final String QUERY_IF_KEY = "__Query_If_key" + hashCode();*/
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object sent by SEND_CONFIRM_STATE.
      **/
     public final String REPLY_KEY = "__Reply_key" + hashCode();
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object received after an ACLMessage CONFIRM reply.
      **/
-    public final String ACCEPTANCE_KEY = "__Acceptance_key" + hashCode();
+    //fix: public final String ACCEPTANCE_KEY = "__Acceptance_key" + hashCode();
+
     /**
      * key to retrieve from the DataStore of the behaviour the ACLMessage
      * object received by SEND_CONFIRM_STATE.
@@ -86,6 +94,8 @@ public class TwoPhResponder extends FSMBehaviour {
     private MsgReceiver cfp_req, accept_req, queryIf_req;
     //private SequentialBehaviour queryIf_req;
     private MessageTemplate msgt = null;
+
+    private boolean logging = false; /**@todo REMOVE IT!!!!!!!!!!! */
 
     /**
     * Constructor of the behaviour that creates a new empty DataStore
@@ -110,15 +120,15 @@ public class TwoPhResponder extends FSMBehaviour {
         super(a);
         setDataStore(store);
         this.msgt = mt;
-        registerDefaultTransition(RECEIVE_CFP_STATE, PREPARE_PROPOSE_STATE);
-        registerDefaultTransition(PREPARE_PROPOSE_STATE, SEND_PROPOSE_STATE);
+        registerDefaultTransition(RECEIVE_CFP_STATE, HANDLE_CFP);
+        registerDefaultTransition(HANDLE_CFP, SEND_PROPOSE_STATE);
         registerTransition(SEND_PROPOSE_STATE, RECEIVE_QUERY_IF_STATE, ACLMessage.PROPOSE);
         registerTransition(SEND_PROPOSE_STATE, DUMMY_FINAL, ACLMessage.FAILURE);
         registerDefaultTransition(RECEIVE_QUERY_IF_STATE, HANDLE_OUT_OF_SEQUENCE_PH1_STATE);
         registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_PH1_STATE, RECEIVE_QUERY_IF_STATE);
         registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_QUERY_IF_STATE, ACLMessage.QUERY_IF);
         registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_REJECT_STATE, ACLMessage.REJECT_PROPOSAL);
-        registerTransition(RECEIVE_QUERY_IF_STATE, PREPARE_PROPOSE_STATE, ACLMessage.CFP);
+        registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_CFP, ACLMessage.CFP);
         registerDefaultTransition(HANDLE_QUERY_IF_STATE, SEND_CONFIRM_STATE);
         registerDefaultTransition(HANDLE_REJECT_STATE, SEND_CONFIRM_STATE);
         registerTransition(SEND_CONFIRM_STATE, RECEIVE_ACCEPTANCE_STATE, ACLMessage.CONFIRM);
@@ -134,22 +144,13 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* RECEIVE_CFP */
         cfp_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), CFP_KEY) {
-            public void onStart() {
-                System.out.println("\n\n************ RECEIVE_CFP started ************");
-                System.out.println("msgt = " + msgt.toString());
-                super.onStart();
-            }
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(CFP_KEY);
-                System.out.println("Received msg put in CFP_KEY");
-                System.out.println("CFP_KEY = (" + ACLMessage.getPerformative(msg.getPerformative()) + "," + msg.getContent() + ")");
                 msgt = MessageTemplate.and(
                         MessageTemplate.MatchConversationId(msg.getConversationId()),
                         MessageTemplate.MatchProtocol(TwoPhConstants.JADE_TWO_PHASE_COMMIT));
                 queryIf_req.setTemplate(msgt);
-                System.out.println("msgt = " + msgt.toString());
-                System.out.println("************ RECEIVE_CFP ended ************");
                 return super.onEnd();
             }
         };
@@ -158,74 +159,46 @@ public class TwoPhResponder extends FSMBehaviour {
         /* PREPARE_PROPOSE */
         b = new OneShotBehaviour(myAgent) {
             ACLMessage response = null;
-            public void onStart() {
-                System.out.println("\n\n************ PREPARE_PROPOSE started ************");
-                super.onStart();
-            }
 
             public void action() {
-                DataStore ds = getDataStore();
-                ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-                try {
-                    response = preparePropose(cfp);
-                }
-                catch(NotUnderstoodException e) {
-                    response = e.getACLMessage();
-                }
-                ds.put(PROPOSE_KEY, response);
+                ACLMessage cfp = (ACLMessage) getDataStore().get(CFP_KEY);
+                response = preparePropose(cfp);
+                getDataStore().put(PROPOSE_KEY, response);
             }
+
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(PROPOSE_KEY);
-                System.out.println("Response msg put in PROPOSE_KEY");
-                System.out.println("PROPOSE_KEY = (" + ACLMessage.getPerformative(msg.getPerformative()) + "," + msg.getContent() + ")");
-                System.out.println("************ PREPARE_PROPOSE ended ************");
                 return response.getPerformative();
             }
         };
-        registerDSState(b, PREPARE_PROPOSE_STATE);
+        registerDSState(b, HANDLE_CFP);
 
         /* SEND_PROPOSE */
         b = new ReplySender(myAgent, PROPOSE_KEY, CFP_KEY) {
-            public void onStart() {
-                System.out.println("\n\n************ SEND_PROPOSE started ************");
-                super.onStart();
-            }
-
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage toReply = (ACLMessage) ds.get(CFP_KEY);
                 ACLMessage msg = (ACLMessage) ds.get(PROPOSE_KEY);
-                System.out.println("Msg to reply CFP_KEY = (" + ACLMessage.getPerformative(toReply.getPerformative()) +
-                        "," + toReply.getContent() + ")");
-                System.out.println("Response msg PROPOSE_KEY = (" + ACLMessage.getPerformative(msg.getPerformative()) +
-                        "," + msg.getContent() + ")");
-                System.out.println("************ SEND_PROPOSE ended ************");
                 return super.onEnd();
             }
         };
         registerDSState(b, SEND_PROPOSE_STATE);
 
         /* RECEIVE_QUERY_IF */
-        queryIf_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_IF_KEY) {
-            public void onStart() {
-                System.out.println("\n\n************ RECEIVE_QUERY_IF started ************");
-                System.out.println("msgt = " + msgt.toString());
-                super.onStart();
-            }
+        /* fix:
+        queryIf_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_IF_KEY) {*/
+        queryIf_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_KEY) {
 
             public int onEnd() {
                 DataStore ds = getDataStore();
-                ACLMessage request = (ACLMessage) ds.get(QUERY_IF_KEY);
-                ds.put(QUERY_KEY, request);
-                System.out.println("Received msg put in QUERY_IF_KEY and QUERY_KEY");
-                System.out.println("QUERY_IF_KEY = QUERY_KEY = (" + ACLMessage.getPerformative(request.getPerformative()) +
-                        "," + request.getContent() + ")");
+                /*
+                fix: ACLMessage request = (ACLMessage) ds.get(QUERY_IF_KEY);
+                ds.put(QUERY_KEY, request);*/
+                ACLMessage request = (ACLMessage) ds.get(QUERY_KEY);
                 if(request.getPerformative() == ACLMessage.CFP) {
-                    System.out.println("Received msg put in CFP_KEY");
                     ds.put(CFP_KEY, request);
                 }
-                System.out.println("************ RECEIVE_QUERY_IF ended ************");
 			    return super.onEnd();
             }
         };
@@ -233,21 +206,19 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* HANDLE_OUT_OF_SEQUENCE_PH1 */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_OUT_OF_SEQUENCE_PH1 started ************");
-                super.onStart();
-            }
-
             public void action() {
                 DataStore ds = getDataStore();
-                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_IF_KEY);
+                /* fix:
+                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_IF_KEY);*/
+                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_KEY);
                 handleOutOfSequencePh1(outMsg);
             }
 
             public int onEnd() {
                 DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(QUERY_IF_KEY);
-                System.out.println("************ HANDLE_OUT_OF_SEQUENCE_PH1 ended ************");
+                /* fix:
+                ACLMessage msg = (ACLMessage) ds.get(QUERY_IF_KEY); */
+                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
                 return msg.getPerformative();
             }
         };
@@ -255,34 +226,19 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* HANDLE_QUERY_IF */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_QUERY_IF started ************");
-                super.onStart();
-            }
-
             public void action() {
                 DataStore ds = getDataStore();
+                /* fix: carico da QUERY_KEY
                 ACLMessage queryIf = (ACLMessage) ds.get(QUERY_IF_KEY);
-                ds.put(QUERY_KEY, queryIf);
-                System.out.println("Msg to reply QUERY_IF_KEY = (" + ACLMessage.getPerformative(queryIf.getPerformative()) +
-                        "," + queryIf.getContent() + ")");
-                System.out.println("QUERY_IF_KEY put in QUERY_KEY");
-                ACLMessage response = null;
-                try {
-                    response = handleQueryIf(queryIf);
-                }
-                catch(FailureException e) {
-                    response = e.getACLMessage();
-                }
+                ds.put(QUERY_KEY, queryIf);*/
+                ACLMessage queryIf = (ACLMessage) ds.get(QUERY_KEY);
+                ACLMessage response = handleQueryIf(queryIf);
                 ds.put(REPLY_KEY, response);
             }
 
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                System.out.println("Response msg put in REPLY_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                        "," + msg.getContent() + ")");
-                System.out.println("************ HANDLE_QUERY_IF ended ************");
                 return msg.getPerformative();
             }
         };
@@ -290,33 +246,19 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* HANDLE_REJECT */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_REJECT started ************");
-                super.onStart();
-            }
-
             public void action() {
                 DataStore ds = getDataStore();
+                /* fix: caricato in QUERY_KEY
                 ACLMessage reject = (ACLMessage) ds.get(QUERY_IF_KEY);
-                System.out.println("Msg to reply QUERY_IF_KEY = (" + ACLMessage.getPerformative(reject.getPerformative()) +
-                        "," + reject.getContent() + ")");
-                ds.put(QUERY_KEY, reject);
-                System.out.println("QUERY_IF_KEY put in QUERY_KEY");
-                ACLMessage response = null;
-                try {
-                    response = handleRejectProposal(reject);
-                }
-                catch(FailureException e) {
-                    response = e.getACLMessage();
-                }
+                ds.put(QUERY_KEY, reject);*/
+                ACLMessage reject = (ACLMessage) ds.get(QUERY_KEY);
+                ACLMessage response = handleRejectProposal(reject);
                 ds.put(REPLY_KEY, response);
             }
+
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                System.out.println("Response msg put in REPLY_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                                        "," + msg.getContent() + ")");
-                System.out.println("************ HANDLE_REJECT ended ************");
                 return msg.getPerformative();
             }
         };
@@ -324,41 +266,28 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* SEND_CONFIRM */
         b = new ReplySender(myAgent, REPLY_KEY, QUERY_KEY) {
-            public void onStart() {
-                System.out.println("\n\n************ SEND_CONFIRM started ************");
-                super.onStart();
-            }
-
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
                 ACLMessage query = (ACLMessage) ds.get(QUERY_KEY);
-                System.out.println("Msg to reply QUERY_KEY = (" + ACLMessage.getPerformative(query.getPerformative()) +
-                        "," + query.getContent() + ")");
-                System.out.println("Response msg REPLY_KEY = (" + ACLMessage.getPerformative(msg.getPerformative()) +
-                        "," + msg.getContent() + ")");
-
                 accept_req.setTemplate(msgt);
-                System.out.println("************ SEND_CONFIRM endend ************");
                 return super.onEnd();
             }
         };
         registerDSState(b, SEND_CONFIRM_STATE);
 
         /* WAIT_ACCEPTANCE */
-        accept_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), ACCEPTANCE_KEY) {
-            public void onStart() {
-                System.out.println("\n\n************ WAIT_ACCEPTANCE started ************");
-                System.out.println("msgt = " + msgt.toString());
-                super.onStart();
-            }
-
+        /* fix: carico in QUERY_KEY
+        accept_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), ACCEPTANCE_KEY) { */
+        accept_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_KEY) {
             public int onEnd() {
                 DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);
-                System.out.println("Received msg put in ACCEPTANCE_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                                        "," + msg.getContent() + ")");
-                System.out.println("************ WAIT_ACCEPTANCE ended ************");
+                /*
+                fix: ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);
+                Logger.log("(TwoPhResponder, TwoPhResponder(), WAIT_ACCEPTANCE, " + myAgent.getLocalName() + "): " +
+                        "Received msg put in ACCEPTANCE_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
+                                        "," + msg.getContent() + ")", logging); */
+                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
                 return super.onEnd();
             }
         };
@@ -366,23 +295,19 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* HANDLE_OUT_OF_SEQUENCE_PH2 */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_OUT_OF_SEQUENCE_PH2 started ************");
-                super.onStart();
-            }
-
             public void action() {
                 DataStore ds = getDataStore();
-                ACLMessage outMsg = (ACLMessage) ds.get(ACCEPTANCE_KEY);
+                /* fix:
+                ACLMessage outMsg = (ACLMessage) ds.get(ACCEPTANCE_KEY);*/
+                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_KEY);
                 handleOutOfSequencePh2(outMsg);
             }
 
             public int onEnd() {
                 DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);
-                System.out.println("ACCEPTANCE_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                                        "," + msg.getContent() + ")");
-                System.out.println("************ HANDLE_OUT_OF_SEQUENCE_PH2 ended ************");
+                /*
+                ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);*/
+                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
                 return msg.getPerformative();
             }
         };
@@ -390,34 +315,21 @@ public class TwoPhResponder extends FSMBehaviour {
 
         /* HANDLE_ACCEPTANCE */
         b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                System.out.println("\n\n************ HANDLE_ACCEPTANCE started ************");
-                super.onStart();
-            }
-
             public void action() {
                 DataStore ds = getDataStore();
+                /* fix:
                 ACLMessage accept = (ACLMessage) ds.get(ACCEPTANCE_KEY);
-                System.out.println("Msg to reply ACCEPTANCE_KEY = (" + ACLMessage.getPerformative(accept.getPerformative()) +
-                        "," + accept.getContent() + ")");
-                ds.put(QUERY_KEY, accept);
-                System.out.println("ACCEPTANCE_KEY put in QUERY_KEY");
-                ACLMessage response = null;
-                try {
-                    response = handleAcceptance(accept);
-                }
-                catch(FailureException e) {
-                    response = e.getACLMessage();
-                }
+                Logger.log("(TwoPhResponder, TwoPhResponder(), HANDLE_ACCEPTANCE, " + myAgent.getLocalName() + "): " +
+                        "Received msg put in ACCEPTANCE_KEY = " + accept, logging);
+                ds.put(QUERY_KEY, accept);*/
+                ACLMessage accept = (ACLMessage) ds.get(QUERY_KEY);
+                ACLMessage response = handleAcceptProposal(accept);
                 ds.put(REPLY_KEY, response);
             }
 
             public int onEnd() {
                 DataStore ds = getDataStore();
                 ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                System.out.println("Response msg put in REPLY_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                                        "," + msg.getContent() + ")");
-                System.out.println("************ HANDLE_ACCEPTANCE ended ************");
                 return super.onEnd();
             }
 
@@ -427,7 +339,6 @@ public class TwoPhResponder extends FSMBehaviour {
         /* DUMMY_FINAL */
         b = new OneShotBehaviour(myAgent) {
             public void action() {
-                System.out.println("\n\n************ DUMMY_FINAL ************");
             }
         };
         registerLastState(b, DUMMY_FINAL);
@@ -447,9 +358,7 @@ public class TwoPhResponder extends FSMBehaviour {
      * to create a valid reply message
      * @see jade.lang.acl.ACLMessage#createReply()
      **/
-    protected ACLMessage preparePropose(ACLMessage cfp)
-        throws NotUnderstoodException {
-        System.out.println("preparePropose() method not re-defined");
+    protected ACLMessage preparePropose(ACLMessage cfp) {
         return null;
     }
 
@@ -465,9 +374,7 @@ public class TwoPhResponder extends FSMBehaviour {
     * to create a valid reply message
     * @see jade.lang.acl.ACLMessage#createReply()
     **/
-    protected ACLMessage handleQueryIf(ACLMessage queryIf)
-        throws FailureException {
-        System.out.println("handleQueryIf() method not re-defined");
+    protected ACLMessage handleQueryIf(ACLMessage queryIf) {
         return null;
     }
 
@@ -482,9 +389,7 @@ public class TwoPhResponder extends FSMBehaviour {
     * to create a valid reply message
     * @see jade.lang.acl.ACLMessage#createReply()
     **/
-    protected ACLMessage handleRejectProposal(ACLMessage reject)
-        throws FailureException {
-        System.out.println("handleRejectProposal() method not re-defined");
+    protected ACLMessage handleRejectProposal(ACLMessage reject) {
         return null;
     }
 
@@ -499,9 +404,7 @@ public class TwoPhResponder extends FSMBehaviour {
     * the class ACLMessage in order to create a valid reply message
     * @see jade.lang.acl.ACLMessage#createReply()
     **/
-    protected ACLMessage handleAcceptance(ACLMessage accept)
-        throws FailureException {
-        System.out.println("handleAcceptance() method not re-defined");
+    protected ACLMessage handleAcceptProposal(ACLMessage accept) {
         return null;
     }
 
@@ -514,7 +417,6 @@ public class TwoPhResponder extends FSMBehaviour {
     * @param  outOfSequenceMsg the received message that does not respect the protocol
     **/
     protected void handleOutOfSequencePh1(ACLMessage outOfSequenceMsg) {
-        System.out.println("handleOutOfSequencePh1() method not re-defined");
     }
 
     /**
@@ -526,7 +428,6 @@ public class TwoPhResponder extends FSMBehaviour {
     * @param  outOfSequenceMsg the received message that does not respect the protocol
     **/
     protected void handleOutOfSequencePh2(ACLMessage outOfSequenceMsg) {
-        System.out.println("handleOutOfSequencePh2() method not re-defined");
     }
 
     /**
@@ -539,7 +440,7 @@ public class TwoPhResponder extends FSMBehaviour {
      * @param b the Behaviour that will handle this state
      **/
     public void registerPreparePropose(Behaviour b) {
-        registerDSState(b, PREPARE_PROPOSE_STATE);
+        registerDSState(b, HANDLE_CFP);
     }
 
     /**
@@ -629,9 +530,9 @@ public class TwoPhResponder extends FSMBehaviour {
 		DataStore ds = getDataStore();
 		ds.remove(CFP_KEY);
 		ds.remove(PROPOSE_KEY);
-		ds.remove(QUERY_IF_KEY);
+		//fix ds.remove(QUERY_IF_KEY);
         ds.remove(REPLY_KEY);
-        ds.remove(ACCEPTANCE_KEY);
+        //fix ds.remove(ACCEPTANCE_KEY);
         ds.remove(REPLY_KEY);
 		ds.remove(QUERY_KEY);
         msgt = createMessageTemplate();

@@ -50,10 +50,7 @@ abstract class Initiator extends FSMBehaviour {
     protected static final String SEND_INITIATIONS = "Send-initiations";
     protected static final String RECEIVE_REPLY = "Receive-reply";
     protected static final String CHECK_IN_SEQ = "Check-in-seq";
-    protected static final String HANDLE_POSITIVE_RESPONSE = "Handle-positive-response";
     protected static final String HANDLE_NOT_UNDERSTOOD = "Handle-not-understood";
-    protected static final String HANDLE_REFUSE = "Handle-refuse";
-    protected static final String HANDLE_INFORM = "Handle-inform";
     protected static final String HANDLE_FAILURE = "Handle-failure";
     protected static final String HANDLE_OUT_OF_SEQ = "Handle-out-of-seq";
     protected static final String CHECK_SESSIONS = "Check-sessions";
@@ -68,22 +65,6 @@ abstract class Initiator extends FSMBehaviour {
     // The MessageTemplate used by the replyReceiver
 		protected MessageTemplate replyTemplate = null; 
 		
-		// These states must be reset before they are visited again.
-		// Note that resetting a state before visiting it again is required
-		// only if
-		// - The onStart() method is redefined
-		// - The state has an "internal memory"
-		// The states below must be reset as the user can redefine them -->
-		// They can fall in one of the above categories.
-		protected String[] toBeReset = new String[] {
-			HANDLE_POSITIVE_RESPONSE, 
-			HANDLE_REFUSE,
-			HANDLE_NOT_UNDERSTOOD,
-			HANDLE_INFORM,
-			HANDLE_FAILURE,
-			HANDLE_OUT_OF_SEQ
-		};
-    
     private ACLMessage initiation;
     
     /**
@@ -114,18 +95,13 @@ abstract class Initiator extends FSMBehaviour {
 	registerTransition(RECEIVE_REPLY, CHECK_SESSIONS, MsgReceiver.TIMEOUT_EXPIRED); 
 	registerTransition(RECEIVE_REPLY, CHECK_SESSIONS, MsgReceiver.INTERRUPTED); 
 	registerDefaultTransition(RECEIVE_REPLY, CHECK_IN_SEQ);
-	registerTransition(CHECK_IN_SEQ, HANDLE_REFUSE, ACLMessage.REFUSE);		
 	registerTransition(CHECK_IN_SEQ, HANDLE_NOT_UNDERSTOOD, ACLMessage.NOT_UNDERSTOOD);		
-	registerTransition(CHECK_IN_SEQ, HANDLE_INFORM, ACLMessage.INFORM);		
 	registerTransition(CHECK_IN_SEQ, HANDLE_FAILURE, ACLMessage.FAILURE);		
 	registerDefaultTransition(CHECK_IN_SEQ, HANDLE_OUT_OF_SEQ);		
-	registerDefaultTransition(HANDLE_POSITIVE_RESPONSE, CHECK_SESSIONS);
-	registerDefaultTransition(HANDLE_REFUSE, CHECK_SESSIONS);
 	registerDefaultTransition(HANDLE_NOT_UNDERSTOOD, CHECK_SESSIONS);
-	registerDefaultTransition(HANDLE_INFORM, CHECK_SESSIONS);
 	registerDefaultTransition(HANDLE_FAILURE, CHECK_SESSIONS);
 	registerDefaultTransition(HANDLE_OUT_OF_SEQ, RECEIVE_REPLY);
-	registerDefaultTransition(CHECK_SESSIONS, RECEIVE_REPLY, toBeReset);
+	registerDefaultTransition(CHECK_SESSIONS, RECEIVE_REPLY, getToBeReset());
 			
 	// Create and register the states that make up the FSM
 	Behaviour b = null;
@@ -135,8 +111,11 @@ abstract class Initiator extends FSMBehaviour {
 			
 		public void action() {
 		  DataStore ds = getDataStore();
-		  Vector allInitiations = prepareInitiations((ACLMessage) ds.get(INITIATION_K));
-		  getDataStore().put(ALL_INITIATIONS_K, allInitiations);
+		  Vector allInitiations = (Vector) ds.get(ALL_INITIATIONS_K);
+		  if (allInitiations == null || allInitiations.size() == 0) {
+			  allInitiations = prepareInitiations((ACLMessage) ds.get(INITIATION_K));
+			  ds.put(ALL_INITIATIONS_K, allInitiations);
+		  }
 		}
 	};
 	b.setDataStore(getDataStore());		
@@ -183,28 +162,6 @@ abstract class Initiator extends FSMBehaviour {
 	};
 	b.setDataStore(getDataStore());		
 	registerState(b, CHECK_IN_SEQ);
-	
-	// HANDLE_POSITIVE_RESPONSE
-	b = new OneShotBehaviour(myAgent) {
-  	private static final long     serialVersionUID = 3487495895818003L;
-  	
-		public void action() {
-		    handlePositiveResponse((ACLMessage) getDataStore().get(REPLY_K));
-		}
-	};
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_POSITIVE_RESPONSE);
-	
-	// HANDLE_REFUSE
-	b = new OneShotBehaviour(myAgent) {
-  	private static final long     serialVersionUID = 3487495895818004L;
-  	
-		public void action() {
-		    handleRefuse((ACLMessage) getDataStore().get(REPLY_K));
-		}
-	};
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_REFUSE);
 		
 	// HANDLE_NOT_UNDERSTOOD
 	b = new OneShotBehaviour(myAgent) {
@@ -216,17 +173,6 @@ abstract class Initiator extends FSMBehaviour {
 	};
 	b.setDataStore(getDataStore());		
 	registerState(b, HANDLE_NOT_UNDERSTOOD);
-	
-	// HANDLE_INFORM
-	b = new OneShotBehaviour(myAgent) {
-  	private static final long     serialVersionUID = 3487495895818006L;
-  	
-		public void action() {
-		    handleInform((ACLMessage) getDataStore().get(REPLY_K));
-		}
-	};
-	b.setDataStore(getDataStore());		
-	registerState(b, HANDLE_INFORM);
 	
 	// HANDLE_FAILURE
 	b = new OneShotBehaviour(myAgent) {
@@ -276,6 +222,7 @@ abstract class Initiator extends FSMBehaviour {
     }
 
     /**
+       Specialize (if necessary) the initiation message for each receiver
      */    
     protected abstract Vector prepareInitiations(ACLMessage initiation);
     /**
@@ -287,58 +234,56 @@ abstract class Initiator extends FSMBehaviour {
      */    
     protected abstract boolean checkInSequence(ACLMessage reply);
     /**
-     */
-    protected abstract void handlePositiveResponse(ACLMessage positiveResp);
-    /**
-     */
-    protected abstract void handleRefuse(ACLMessage refuse);
-    /**
-     */
-    protected abstract void handleNotUnderstood(ACLMessage notUnderstood);
-    /**
-     */
-    protected abstract void handleInform(ACLMessage inform);
-    /**
-     */
-    protected abstract void handleFailure(ACLMessage failure);
-    /**
-     */
-    protected abstract void handleOutOfSequence(ACLMessage msg);
-    /**
        Check the global status of the sessions after the reception of the last reply
        or the expiration of the timeout
      */    
     protected abstract int checkSessions(ACLMessage reply);
+    /**
+		   Return the states that must be reset before they are visited again.
+		   Note that resetting a state before visiting it again is required
+		   only if
+		   - The onStart() method is redefined
+		   - The state has an "internal memory"
+     */
+    protected abstract String[] getToBeReset();
+    
+    /**
+     * This method is called every time a <code>not-understood</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param notUnderstood the received not-understood message
+     **/
+    protected void handleNotUnderstood(ACLMessage notUnderstood) {
+    }
+    
+    /**
+     * This method is called every time a <code>failure</code>
+     * message is received, which is not out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param failure the received failure message
+     **/
+    protected void handleFailure(ACLMessage failure) {
+    }
+    
+    /**
+     * This method is called every time a 
+     * message is received, which is out-of-sequence according
+     * to the protocol rules.
+     * This default implementation does nothing; programmers might
+     * wish to override the method in case they need to react to this event.
+     * @param msg the received message
+     **/
+    protected void handleOutOfSequence(ACLMessage msg) {
+    }
     
     /**
      */
     protected void registerPrepareInitiations(Behaviour b) {
 			registerState(b, PREPARE_INITIATIONS);
-			b.setDataStore(getDataStore());
-    }
-    
-    /**
-     */
-    protected void registerHandlePositiveResponse(Behaviour b) {
-			registerState(b, HANDLE_POSITIVE_RESPONSE);
-			b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_REFUSE state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>refuse</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleRefuse(Behaviour b) {
-			registerState(b, HANDLE_REFUSE);
 			b.setDataStore(getDataStore());
     }
     
@@ -357,24 +302,6 @@ abstract class Initiator extends FSMBehaviour {
     */
     public void registerHandleNotUnderstood(Behaviour b) {
 			registerState(b, HANDLE_NOT_UNDERSTOOD);
-			b.setDataStore(getDataStore());
-    }
-    
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the HANDLE_INFORM state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       The registered behaviour can retrieve
-       the <code>inform</code> ACLMessage object received
-       from the datastore at the <code>REPLY_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-    public void registerHandleInform(Behaviour b) {
-			registerState(b, HANDLE_INFORM);
 			b.setDataStore(getDataStore());
     }
     
@@ -454,7 +381,6 @@ abstract class Initiator extends FSMBehaviour {
     	}
     }
     
-    
     /**
        Initialize the data store. 
      **/
@@ -489,7 +415,6 @@ abstract class Initiator extends FSMBehaviour {
 					MessageTemplate.not(MessageTemplate.MatchCustom(msg, true)));
 			}
     }
-    
 }
 	
 		

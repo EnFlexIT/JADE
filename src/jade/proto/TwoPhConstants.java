@@ -30,16 +30,20 @@ import jade.proto.states.*;
 /**
  * Interface description
  * @author Elena Quarantotto - TILAB
+ * @author Giovanni Caire - TILAB
  */
 public interface TwoPhConstants {
     public static final String JADE_TWO_PHASE_COMMIT = "Jade-Two-Phase-Commit";
     /* Possible TwoPh0Initiator's returned values */
+    /* update1
     public static final int ALL_PROPOSE = 1;
     public static final int PH0_TIMEOUT_EXPIRED = MsgReceiver.TIMEOUT_EXPIRED;
     public static final int SOME_FAILURE = 2;
+    */
+    public static final int ALL_RESPONSES_RECEIVED = 1; // update1
     /* Possible TwoPh1Initiator's returned values */
     public static final int ALL_CONFIRM = 1;
-    public static final int ALL_CONFIRM_OR_INFORM = 3;
-    public static final int SOME_DISCONFIRM = 2;
+    public static final int ALL_CONFIRM_OR_INFORM = 2;
+    public static final int SOME_DISCONFIRM = 3;
     public static final int PH1_TIMEOUT_EXPIRED = MsgReceiver.TIMEOUT_EXPIRED;
 }
