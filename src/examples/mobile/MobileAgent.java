@@ -110,9 +110,11 @@ public class MobileAgent extends GuiAgent {
 	}
 
 	public void takeDown() {
-	  gui.dispose();
-	  gui.setVisible(false);
-	  System.out.println(getLocalName()+" is now shutting down.");
+	  if (gui!=null) {
+            gui.dispose();
+	    gui.setVisible(false);
+	  }
+          System.out.println(getLocalName()+" is now shutting down.");
 	}
 
   /**
