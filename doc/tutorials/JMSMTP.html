@@ -1,0 +1,411 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0033)http://ecrg.it.nuigalway.ie/jade/ -->
+<!-- saved from url=(0033)http://ecrg.it.nuigalway.ie/jade/ --><HTML><HEAD><TITLE>How to use the Java Messaging Service (JMS) MTP with JADE</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<META content="Microsoft FrontPage 4.0" name=GENERATOR></HEAD>
+<BODY bgColor=#ffffff>
+<H1>How to use the Java Messaging Service (JMS) MTP with JADE</H1><I>Author: <A 
+href="mailto:edward.curry@nuigalway.ie">Edward Curry</A> (<A 
+href="http://ecrg.it.nuigalway.ie/">ECRG, NUI, Galway</A>)</I> 
+<P><I>Date: March 27, 2003</I> 
+<P><I>Java platform: Sun JDK 1.2 Linux</I> 
+<P><I><A href="http://jade.cselt.it/">JADE</A> version 2.1</I> 
+<P>Since JADE 2.1, FIPA-compliant Message Transport Protocols (MTP) can be 
+plugged and activated at run-time on any JADE container. By default, a JADE 
+platform uses a Sun ORB implementation of an MTP . However, as an alternative, a 
+Java Messaging Service (JMS) implementation is also available. This tutorial 
+describes how to install and use this JMS implementation in JADE. 
+<H2>Installation</H2>In order to install the JMS-MTP the following steps must be 
+performed: 
+<UL>
+  <LI>The JMS-MTP must be downloaded from the <A href="http://jade.cselt.it/" 
+  target=new>JADE</A>  add-ons download page. It can also be downloaded from <A 
+  href="http://ecrg.it.nuigalway.ie/downloads/jmsmtp-0.5.zip">http://ecrg.it.nuigalway.ie/downloads/jmsmtp-0.5.zip</A> 
+
+  <LI>After downloading, extract the JMS-MTP package under the root of your jade 
+  installation. You should have a hierarchy like jade/add-ons/jmsmtp 
+  <LI>The following table shows the required files needed to run the JMS-MTP. 
+  The common support files are mandatory, they must be downloaded. 
+  <LI>You must also download the support libraries for the JMS provider(s) you 
+  want to run and place them in the specified directory. (Note these directory 
+  locations may be changed via the jms-mtp.properties file) </LI></UL>
+<TABLE width="92%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="32%"><B>Common Support Libraries</B></TD>
+    <TD width="18%">&nbsp;</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%"><BR><B>Location</B></TD>
+    <TD width="18%"><B>Library</B></TD>
+    <TD width="19%"><B>Available From</B></TD>
+    <TD width="31%"><B>Notes</B></TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common </TD>
+    <TD width="18%">jdom.jar</TD>
+    <TD width="19%"><A 
+      href="http://www.jdom.org/dist/binary/jdom-b9-rc2.zip">jdom-b9-rc2.zip</A></TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common </TD>
+    <TD width="18%">log4j-1.2.8.jar </TD>
+    <TD width="19%"><A 
+      href="http://jakarta.apache.org/log4j/jakarta-log4j-1.2.8.zip">jakarta-log4j-1.2.8.zip</A></TD>
+    <TD width="31%">Supports log4j-1.2.7 +</TD></TR>
+  <TR>
+    <TD width="32%" height=24>
+      <P>&nbsp;</P></TD>
+    <TD width="18%" height=24>&nbsp;</TD>
+    <TD width="19%" height=24>&nbsp;</TD>
+    <TD width="31%" height=24>&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%"><B>JBossMQ Support Libraries</B></TD>
+    <TD width="18%">&nbsp;</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%"><BR><B>Location</B></TD>
+    <TD width="18%"><B>Library</B></TD>
+    <TD width="19%"><B>Available From</B></TD>
+    <TD width="31%"><B>Notes</B></TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/jbossmq</TD>
+    <TD width="18%">jbossall-client.jar</TD>
+    <TD width="19%"><A 
+    href="http://www.jboss.org/">http://www.jboss.org/</A></TD>
+    <TD width="31%">Download JBoss server, files located in /client</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/jbossmq</TD>
+    <TD width="18%">jbossjmx-ant.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">. </TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/jbossmq</TD>
+    <TD width="18%">xercesImpl.jar</TD>
+    <TD width="19%"><A 
+      href="http://xml.apache.org/dist/xerces-j/Xerces-J-bin.2.4.0.zip">Xerces-J-bin.2.4.0.zip</A></TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/jbossmq</TD>
+    <TD width="18%">xmlParserAPIs.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">&nbsp;</TD>
+    <TD width="18%">&nbsp;</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%"><B>SonicMQ Support Libraries</B></TD>
+    <TD width="18%">&nbsp;</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%"><BR><B>Location</B></TD>
+    <TD width="18%"><B>Library</B></TD>
+    <TD width="19%"><B>Available From</B></TD>
+    <TD width="31%"><B>Notes</B></TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">jmxri.jar </TD>
+    <TD width="19%"><A 
+      href="http://www.sonicmq.com/">http://www.sonicmq.com/</A></TD>
+    <TD width="31%">Download SonicMQ, files located in /lib</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">jndi.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">mfcontext.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">mgmt_agent.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">mgmt_client.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">mgmt_config.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">sonic_Client.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">sonic_mgmt_client.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">sonic_mgmt.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">&nbsp;</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">xercesImpl.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">Must be file from SonicMQ distribution</TD></TR>
+  <TR>
+    <TD width="32%">add-ons/jmsmtp/lib/common/sonicmq</TD>
+    <TD width="18%">xmlParserAPIs.jar</TD>
+    <TD width="19%">&nbsp;</TD>
+    <TD width="31%">Must be file from SonicMQ distribution</TD></TR></TBODY></TABLE>
+<P>&nbsp;</P>
+<H2>Compiling</H2>The Jade Makefile will not compile the JMS-MTP. To compile the 
+JMS-MTP you have to use the 'build.xml' ant-file located in the jmsmtp 
+directory. The following rules are available: 
+<UL>
+  <LI>ant compile - compiles the JMS-MTP classes 
+  <LI>ant lib - creates the jmsmtp.jar archive 
+  <LI>ant clean - removes the compiled classes and the .jar archive 
+  <LI>ant doc - creates javadoc for the JMS-MTP </LI></UL>
+<H2>Usage</H2>
+<P>The current implementation ships with support for the following JMS 
+Providers:</P>
+<TABLE width=220 border=1>
+  <TBODY>
+  <TR>
+    <TD>JMS Provider</TD>
+    <TD>Support Files</TD></TR>
+  <TR>
+    <TD><A href="http://www.jboss.org/" target=new>JBossMQ</A></TD>
+    <TD>jmsmtp/lib/jbossmq</TD></TR>
+  <TR>
+    <TD><A href="http://www.sonicmq.com/" target=new>SonicMQ</A></TD>
+    <TD>jmsmtp/lib/sonicmq</TD></TR></TBODY></TABLE><BR><B>Important JBossMQ 
+Note:</B><BR>
+<P>When activated the JMS-MTP which uses the JBossMQ provider you will need to 
+change the port JADE run on (1099) as this is also the same port number that is 
+used by JBoss's JNDI service. To specify a port for JADE to run on simple use 
+the -port switch on startup. </P>
+<P>In order to use the JMS-MTP, the jmsmtp.jar and jms-mtp.properties file must 
+be on the classpath when starting( either by including it into the $CLASSPATH 
+environment variable - %CLASSPATH% under windows or by specifying it on the 
+command line ).<BR><BR>Here is an example of how you would start the platform 
+assuming you are in the root of the Jade directory: <BR></P><CODE>java 
+-classpath 
+./lib/jade.jar:./lib/jadeTools.jar:./add-ons/jmsmtp/lib:./add-ons/jmsmtp/lib/jmsmtp.jar. 
+jade.Boot </CODE>( for Unix ) <BR>or<BR><CODE>java -classpath 
+.\lib\jade.jar;.\lib\jadeTools.jar;.\add-ons\jmsmtp\lib;.\add-ons\jmsmtp\lib\jmsmtp.jar. 
+jade.Boot</CODE> ( for Windows )<BR>
+<P>Once the MTP starts it loads the jars it needs from the following default 
+locations: 
+<UL>
+  <LI>Common JMS-MTP Library: /usr/local/jade/add-ons/jmsmtp/lib/common 
+  <LI>JBossMQ JMS Provider Library: /usr/local/jade/add-ons/jmsmtp/lib/jbossmq 
+  <LI>SonicMQ JMS Provider Library: /usr/local/jade/add-ons/jmsmtp/lib/sonicmq 
+  </LI></UL>
+<P>The location of each of these libraries can be changed via the 
+jms-mtp.properties file (covered later in the tutorial). </P>
+<P>It is possible to activate one ore more communication endpoints. There are 
+two main ways for doing such an activation:</P>
+<P><B>Activating a JMS-MTP from the command line</B> </P>
+<P>When you start a JADE container it is possible to configure a MTP from the 
+command line. Using the -mtp command line option, a transport endpoint lives as 
+long as its container is up; when a container is shut down, the JMS-MTP will be 
+deactivated and the AMS information is updated accordingly. To start a JMS-MTP 
+on JADE startup, the following parameter must be specified on the command line. 
+<P><CODE>-mtp 
+ie.nuigalway.ecrg.jade.jmsmtp.MtpBoot(<B>jms:</B><I>provider_type</I><B>:</B><I>message_type</I><B>:</B><I>persistence</I>:<I>username</I><B>:</B><I>password</I><B>:</B><I>hostname</I><B>:</B><I>port</I><B>/</B><I>queuename</I>)</CODE></P>
+<P>To activate the JMS-MTP to connect to the 'jade/frodo' queue on a JBossMQ 
+broker on msgserver.foobar.com:1099 using no username or password with xml, non 
+persistent messages you would use the following line (For more information on 
+JMS-MTP Address Structure see the next section):</P>
+<P><CODE>-mtp 
+ie.nuigalway.ecrg.jade.jmsmtp.MtpBoot(jms:jbossmq:xml:non_persistent:::msgserver.foobar.com:1099/jade/frodo)</CODE></P>
+<P><B>Activating a JMS-MTP from the graphical management console</B> </P>
+<P>The JADE RMA console enables a more flexible management of the MTPs, allowing 
+to activate and deactivate transport protocols during normal platform 
+operations. 
+<P>Select a container from the GUI, click the right button of the mouse and a 
+popup menu appears. Choose the <CODE>Install a new MTP</CODE> option and a 
+dialog will be shown. Here the following information can be set: the container 
+to install the new MTP on (if different from the selected one), the fully 
+qualified name of the class implementing the <CODE>jade.mtp.MTP</CODE> 
+interface, and (if it is supported by the chosen protocol) the transport address 
+that will be used to contact the new MTP. 
+<P>In order to install a new JMS-MTP one should input the following information 
+<UL>
+  <LI><CODE>ie.nuigalway.ecrg.jade.jmsmtp.MtpBoot</CODE> as the class name 
+  <LI>optionally the transport address that will be used by the new MTP. 
+</LI></UL>
+<P>Choosing Uninstall an MTP shows a dialog where the user can select from a 
+list one of the currently installed MTPs and remove it from the platform. </P>
+<H2>Configuration</H2>
+<H3>JMS-MTP Address Structure</H3>
+<P>Addresses used with the JMS-MTP are in the following format:</P>
+<P><CODE><B>jms:</B><I>provider_type</I><B>:</B><I>messge_type</I><B>:</B><I>persistence</I>:<I>username</I><B>:</B><I>password</I><B>:</B><I>hostname</I><B>:</B><I>port</I><B>/</B><I>queuename</I></CODE> 
+</P><B>Address Makeup</B> 
+<UL>
+  <LI><B>Protocol : </B>Mandatory prefix to identify protocol -- 'jms:' 
+  <LI><B>Provider Type : </B>JMS provider used by this address, MTP currently 
+  supports JBossMQ and SonicMQ-- ( 'jbossmq' | 'sonicmq' ) 
+  <LI><B>Message Type : </B>Message Type used at by this address -- ( 'xml | 
+  'map' )' 
+  <LI><B>Message Persistence : </B>Persistence setting for the Address -- ( 
+  'persistent' | 'non_persistent' ) 
+  <LI><B>Username : </B>Optional username for this address (Security implemented 
+  by JMS provider) 
+  <LI><B>Password : </B><B></B>Optional password for this address (Security 
+  implemented by JMS provider) 
+  <LI><B>Broker URL : </B>URL of the message broker servicing this address -- 
+  'message.broker.foobar.com:1099' 
+  <LI><B>Queue Name : </B>Name of the queue on the broker for this address -- 
+  'jade/jade-platform.foobar.com:1098' </LI></UL>The following is an example of an 
+address which uses the settings: 
+<UL>
+  <LI><B>Provider Type : </B>SonicMQ -- 'sonicmq' 
+  <LI><B>Message Type : </B>FIPA XML -- 'xml 
+  <LI><B>Message Persistence : </B>Persistent -- 'persistent' 
+  <LI><B>Username : -- </B>'edcurry' 
+  <LI><B>Password : </B><B></B>-- 'edspass' 
+  <LI><B>Broker URL : </B>-- 'message.broker.foobar.com:1099' 
+  <LI><B>Queue Name : </B>-- 'jade/jade-platform.foobar.com:1098' </LI></UL>
+<P><CODE>jms:sonicmq:xml:persistent:edcurry:edspass:message.broker.foobar.com:1099/jade/jade-platform.foobar.com:1098</CODE> 
+<BR><BR>
+<H3>Message Settings</H3><B>Message Type</B><BR>Messages sent over the JMS MTP 
+can be encoded into two formats, FIPA compatible XML or a custom JMS-MTP 
+MapMessage. 
+<UL>
+  <LI><B>FIPA XML -- 'xml'</B><BR>Messages encoded as XML are converted into the 
+  FIPA Agent Message Transport Envelope Representation in XML Specification. 
+  Messages are encoded and decoded using Xerces as the default parser (the 
+  parser used can be altered in the configuration file). 
+  <LI><B>JMS-MTP MapMessage -- 'map'</B><BR>The overhead of parsing XML may 
+  elongate the time required for the consumer to process the message, thereby 
+  limiting the overall message throughput of the application. In many cases, the 
+  MapMessage has all the same virtues as XML without the performance hit of text 
+  parsing. With respect to portability, most JMS vendors will automatically 
+  convert a MapMessage produced by a Java application to a non-Java environment, 
+  hence the MapMessage is an alternative to using the FIPA XML format. 
+  <BR><BR>However currently there is no FIPA specification for a MapMessage 
+  format, thus usage of this format is limited to scenarios where both sides of 
+  the communication are taking place using the JMS-MTP. It is our hope that FIPA 
+  will address this issue by defining a standard specification for a MapMessage. 
+  </LI></UL><B>Message Persistence</B><BR>JMS defines two message delivery modes: 
+persistent and non-persistent. 
+<UL>
+  <LI><B>Persistent -- 'persistent' </B><BR>When messages are marked as 
+  persistent, it is the responsibility of the JMS provider to guarantee that the 
+  message will never be lost. In order to fulfill this responsibility the JMS 
+  provider must store the message in a non-volatile medium such as a hard disk. 
+  <LI><B>Non Persistent -- 'non_persistent' </B><BR>With Non-persistence 
+  messages the server does not have this responsibility and therefore doesn't 
+  need to persist the messages to disk, hence non-persistent messages generally 
+  require less resources and can be delivered in less time than persistent ones. 
+  Higher levels of message throughput can also be achieved by using 
+  non-persistent messages at the expense of reliability. </LI></UL>
+<H3>Configuration File</H3>
+<P>The JMS-MTP is configurable by altering its jms-mtp.properties file. Aspects 
+of the JMS-MTP configurable from this file include the xml parser used, default 
+address settings and any jms provider specific configurations. For the SonicMQ 
+provider broker administration details and queue properties are configurable. 
+For more information on these settings please see the JMS-MTP SonicMQ Provider 
+tutorial <B>(TODO)</B>.</P><B>jms-mtp.properties</B><BR>
+<P>### JMS-MTP 
+Configuration<BR>#############################################<BR>ie.nuigalway.ecrg.jade.jmsmtp.fipaxmlutil.parser=org.apache.xerces.parsers.SAXParser</P>
+<P>### Default Address 
+Settings<BR>############################<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.providerType=jbossmq<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.brokerURL=127.0.0.1:1099<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.queueName=/jade/127.0.0.1<BR></P>
+<P>## Location of JMS-MTP Library 
+<BR>ie.nuigalway.ecrg.jade.jmsmtp.lib=/usr/local/jade/add-ons/jmsmtp/lib </P>
+<P>### Optional: Username and password for 
+queue<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.username= 
+<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.password=<BR><BR>### Message 
+Persistence options: persistent | 
+non_persistent<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.messagePersistence=persistent</P>
+<P>### Message Type options: xml | 
+hashmap<BR>ie.nuigalway.ecrg.jade.jmsmtp.default.messageType=xml</P>
+<P>### JMS Provider 
+Settings<BR>#############################################</P>
+<P>### 
+JBossMQ<BR>############<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.jbossmq.providerAdmin.className=ie.nuigalway.ecrg.jade.jmsmtp.JBossMqProviderAdmin<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.jbossmq.lib=/usr/local/jade/add-ons/jmsmtp/lib/jbossmq<BR><BR>
+<P>### 
+SonicMQ<BR>############<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.providerAdmin.className=ie.nuigalway.ecrg.jade.jmsmtp.SonicMqProviderAdmin<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.lib=/usr/local/jade/add-ons/jmsmtp/lib/sonicmq<BR><BR>### 
+SonicMQ Broker Domain 
+settings<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.domain.name=Domain1<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.domain.username=Administrator<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.domain.password=Administrator<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.domain.brokerViewName=Brokers/Broker1</P>
+<P>### SonicMQ default queue 
+settings<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.queue.maxSize=50000<BR>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.Queue.saveThreshold=25000 
+</P>
+<H2>Adding Support for Additional JMS Providers</H2>
+<P>JMS is based on the concept of universal interfaces to proprietary vendor 
+specific Messaging Systems. Numerous vendors currently ship JMS compatible MOM 
+products, these include IBM MQSeries, Sun JMQ, Sonic Software's SonicMQ and 
+JBoss Group's JBossMQ.</P>
+<P>The JMS specification provides a consistent API set that gives access to the 
+common features of messaging system, however it does not define aspect of the 
+administration of a messaging service. Hence the administration of the service 
+is still vendor specific, for example, the dynamic creation of a queue at 
+runtime is still provider specific. Since the JMS MTP relies on the ability of a 
+platform to create a new queue on a provider at runtime, we have exposed an 
+interface to allow new JMS providers, with their vendor specific code, to be 
+easily 'plugable' into the JMS MTP.</P>
+<P>To add support for an additional JMS provider you will need to implement the 
+ProviderAdmin interface in the ie.nuigalway.ecrg.jade.jmsmtp.common package. 
+This interface has the following two methods: 
+<UL>
+  <LI><CODE>public abstract QueueConnectionFactory 
+  getQueueConnectionFactory(JMSAddress jmsTA) throws Exception; </CODE><BR>-- 
+  Method used to get get a queue connection factory on the JMS provider <BR>
+  <LI><CODE>public abstract Queue getOrCreateQueue(JMSAddress jmsTA) throws 
+  Exception; </CODE><BR>-- Method used to get or create the queue contained in 
+  the transport address on the JMS provider<BR></LI></UL>
+<P>Once this interface has been implemented you will need to include it in the 
+JMS-MTP configuration file. The following property will need to be set in the 
+jms-mtp.properties file. 
+<P><CODE>ie.nuigalway.ecrg.jade.jmsmtp.providerType.XXX.providerAdmin.className=YYY</CODE></P>
+<P>Where XXX is the name by which your provider will be identified in JMS 
+Addresses. ie. SonicMQ is known as 'sonicmq'.<BR>Where YYY is the fully 
+qualified classname of your implementation of the ProviderAdmin interface</P>
+<P>It is also possible for JMS Providers to be configured from the 
+jms-mtp.properties file by using the following method:</P>
+<P><CODE>JmsMtpConfig.getProperty(String propName, String 
+defaultValue)</CODE></P>
+<P>For example the SonicMQ provider allow for the Maximum Queue size to be set 
+in the configuration file with the following key:</P>
+<P><CODE>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.queue.maxSize=50000</CODE></P>
+<P>The directory containing support files (jars) for the provider must be 
+specified in the configuration file under the following key: 
+<P><CODE>ie.nuigalway.ecrg.jade.jmsmtp.providerType.XXX.lib=YYY</CODE> 
+<P>Where XXX is the name by which your provider will be identified in JMS 
+Addresses. ie. SonicMQ is known as 'sonicmq'.<BR>Where YYY is the directory 
+containing the jms providers jars, for example the following configuration 
+locates the support files for the SonicMQ JMS provider in the 
+<CODE>'/usr/local/jade/add-ons/jmsmtp/lib/sonicmq</CODE>' 
+directory..<BR><BR><CODE>ie.nuigalway.ecrg.jade.jmsmtp.providerType.sonicmq.lib=/usr/local/jade/add-ons/jmsmtp/lib/sonicmq<BR><BR></CODE>
+<P>The JMS MTP currently ships with support for the following JMS providers: 
+<UL>
+  <LI>JBossMQ [13] 
+  <LI>SonicMQ [14] </LI></UL>
+<HR>
+
+<CENTER>
+<P><FONT face=Arial><FONT size=-1><A href="http://jade.cselt.it/">JADE</A> is a 
+trademark of <A href="http://www.cselt.it/">CSELT</A>.<BR>SonicMQ is a trademark 
+of <A href="http://www.sonicsoftware.com/">Sonic Software</A>.<BR>JBoss and 
+JBoss Group are a registered trademark and servicemark of Marc Fleury under 
+operation by <A href="http://www.jboss.org/">The JBoss Group, LLC.</A><BR><A 
+href="http://jade.cselt.it/">JADE</A> has been developed jointly by <A 
+href="http://www.cselt.it/">CSELT</A> and the <A 
+href="http://www.ce.unipr.it/">Computer Engineering Group</A> of the <A 
+href="http://www.unipr.it/">University of Parma</A>.</FONT></FONT> <BR><FONT 
+face=Arial><FONT size=-1>The JMS-MTP was developed in the <FONT size=-1><A 
+href="http://ecrg.it.nuigalway.ie/">Enterprise Computing Research Group 
+(ECRG)</A> at the <A href="http://www.nuigalway.ie/">National University of 
+Ireland, Galway</A> by <A href="mailto:edward.curry@nuigalway.ie">Edward 
+Curry</A>.<BR>The support of the Informatics Research Initiative of<A 
+href="http://www.enterprise-ireland.com/"> Enterprise Ireland</A> is gratefully 
+acknowledged.<BR>Copyright 2002 Enterprise Computing Research Group. 
+</FONT></FONT></FONT></CENTER>
+<P><BR></P></BODY></HTML>
