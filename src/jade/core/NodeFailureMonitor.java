@@ -93,5 +93,8 @@ public class NodeFailureMonitor implements Runnable {
 	}
 
     }
-  
+    
+    public Node getNode() {
+    	return target;
+    }
 }

@@ -249,7 +249,6 @@ public class Runtime {
       //#MIDP_EXCLUDE_BEGIN
       t.setDaemon(false);
       //#MIDP_EXCLUDE_END
-      t.start();
       
       // Terminate the TimerDispatcher and release its resources
     	TimerDispatcher.getTimerDispatcher().stop();
@@ -270,6 +269,7 @@ public class Runtime {
 				criticalThreads = null;
       }
       //#MIDP_EXCLUDE_END
+      t.start();
     }
   }
 

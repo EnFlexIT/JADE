@@ -121,14 +121,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // Package scoped constructor, so that only the Runtime  
   // class can actually create a new Agent Container.
   AgentContainerImpl(Profile p) {
-    try {
-	myProfile = p;
-	myCommandProcessor = myProfile.getCommandProcessor();
-    }
-    catch(ProfileException pe) {
-	pe.printStackTrace();
-    }
-    
+		myProfile = p;
   }
 
   //#MIDP_EXCLUDE_BEGIN
@@ -307,26 +300,29 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   protected void init() throws IMTPException, ProfileException {
+			myCommandProcessor = myProfile.getCommandProcessor();
 
       // Create and initialize the IMTPManager
       myIMTPManager = myProfile.getIMTPManager();
-      myIMTPManager.initialize(myProfile, myCommandProcessor);
-
+      myIMTPManager.initialize(myProfile);
+			
       // Get the Service Manager and the Service Finder
       myServiceManager = myProfile.getServiceManager();
       myServiceFinder = myProfile.getServiceFinder();
 
+      // Attach CommandProcessor and ServiceManager to the local node
+			BaseNode localNode = (BaseNode) myIMTPManager.getLocalNode();
+			localNode.setCommandProcessor(myCommandProcessor);
+			localNode.setServiceManager(myServiceManager);
+			
       //#MIDP_EXCLUDE_BEGIN
-
-      // FIXME: It should probably go away...
       myMainContainer = myProfile.getMain();
-
       //#MIDP_EXCLUDE_END
           
       // This string will be used to build the GUID for every agent on
       // this platform.
       AID.setPlatformID(myServiceManager.getPlatformName());
-
+      
       // Build the Agent IDs for the AMS and for the Default DF.
       theAMS = new AID("ams", AID.ISLOCALNAME);
       theDefaultDF = new AID("df", AID.ISLOCALNAME);
@@ -338,7 +334,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
 
-      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), null, null);
+      myNodeDescriptor = new NodeDescriptor(myID, localNode, null, null);
   }
 
   protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
@@ -523,9 +519,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
 
 	myServiceManager.removeNode(myNodeDescriptor);
-
-	myIMTPManager.unexportServiceManager(myServiceManager);
-	myIMTPManager.disconnect(myID);
+	myIMTPManager.shutDown();
 
     }
     catch(IMTPException imtpe) {

@@ -61,11 +61,9 @@ public class ProfileImpl extends Profile {
   private Properties props = null;
 
 
-	//#MIDP_EXCLUDE_BEGIN
   // Keys to retrieve the implementation classes for configurable
   // functionalities among the bootstrap properties.
   private static final String RESOURCE = "resource";
-	//#MIDP_EXCLUDE_END
 
   private static final String IMTP = "imtp";
 
@@ -76,7 +74,6 @@ public class ProfileImpl extends Profile {
   //#ALL_EXCLUDE_BEGIN
   private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.rmi.RMIIMTPManager";
   //#ALL_EXCLUDE_END
-
   /*#ALL_INCLUDE_BEGIN
   private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.leap.LEAPIMTPManager";
   #ALL_INCLUDE_END*/
@@ -86,8 +83,8 @@ public class ProfileImpl extends Profile {
   //#MIDP_EXCLUDE_END
 
 
+  private PlatformManager myPlatformManager = null;
   private ServiceManager myServiceManager = null;
-  private ServiceFinder myServiceFinder = null;
   private CommandProcessor myCommandProcessor = null;
   private IMTPManager     myIMTPManager = null;
   private ResourceManager myResourceManager = null;
@@ -159,8 +156,6 @@ public class ProfileImpl extends Profile {
        		setIntProperty(MAIN_PORT, port);
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
-     	else 
-	    updatePlatformID();
  	}
 
 
@@ -242,10 +237,6 @@ public class ProfileImpl extends Profile {
     }
 
     setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
-    String platformID = props.getProperty(PLATFORM_ID);
-    if(platformID == null) {
-	updatePlatformID();
-    }
 
     //#MIDP_EXCLUDE_BEGIN
     // Set agents as a list to handle the "gui" option
@@ -285,14 +276,6 @@ public class ProfileImpl extends Profile {
 
   }
 
-    //#APIDOC_EXCLUDE_BEGIN
-    protected void updatePlatformID() {
-	String h = props.getProperty(MAIN_HOST);
-	String p = props.getProperty(MAIN_PORT);
-	props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
-    }
-    //#APIDOC_EXCLUDE_END
-
     /**
      * Return the underlying properties collection.
      * @return Properties The properties collection.
@@ -318,217 +301,10 @@ public class ProfileImpl extends Profile {
    * @param value is the property value
    */
   public void setSpecifiers(String key, List value) {
-      //#MIDP_EXCLUDE_BEGIN
-      props.put(key, value);
-      //#MIDP_EXCLUDE_END
-  } 
-
-    //#APIDOC_EXCLUDE_BEGIN
-
-    /**
-       Access the platform service manager.
-       @return The platform service manager, either the real
-       implementation or a remote proxy object.
-       @throws ProfileException If some needed information is wrong or
-       missing from the profile.
-    */
-    protected ServiceManager getServiceManager() throws ProfileException {
-	if(myServiceManager == null) {
-	    //#MIDP_EXCLUDE_BEGIN
-	    createServiceManager();
-	    //#MIDP_EXCLUDE_END
-
-	    /*#MIDP_INCLUDE_BEGIN
-	    try {
-	        myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
-	    }
-	    catch(IMTPException imtpe) {
-	        ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
-	        throw pe;
-	    }
-	    #MIDP_INCLUDE_END*/
-      }
-
-      return myServiceManager;
-    }
-
-  /**
-     Access the platform service finder.
-     @return The platform service finder, either the real
-     implementation or a remote proxy object.
-     @throws ProfileException If some needed information is wrong or
-     missing from the profile.
-  */
-  protected ServiceFinder getServiceFinder() throws ProfileException {
-      if(myServiceFinder == null) {
-	  //#MIDP_EXCLUDE_BEGIN
-	  createServiceFinder();
-	  //#MIDP_EXCLUDE_END
-
-	  /*#MIDP_INCLUDE_BEGIN
-	  try {
-	      myServiceFinder = myIMTPManager.createServiceFinderProxy();
-	  }
-	  catch(IMTPException imtpe) {
-	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Finder", imtpe);
-	      throw pe;
-	  }
-	  #MIDP_INCLUDE_END*/
-      }
-
-      return myServiceFinder;
-  }
-
-  protected CommandProcessor getCommandProcessor() throws ProfileException {
-      if(myCommandProcessor == null) {
-	  createCommandProcessor();
-      }
-
-      return myCommandProcessor;
-  }
-
-
-    //#MIDP_EXCLUDE_BEGIN
-    protected MainContainerImpl getMain() throws ProfileException {
-	return myMain;
-    }
-    //#MIDP_EXCLUDE_END
-
-
-  /**
-   */
-  protected IMTPManager getIMTPManager() throws ProfileException {
-    if (myIMTPManager == null) {
-  		//#MIDP_EXCLUDE_BEGIN
-      createIMTPManager();
-  		//#MIDP_EXCLUDE_END
-	  	/*#MIDP_INCLUDE_BEGIN
-	    String className = getParameter(IMTP, "jade.imtp.leap.LEAPIMTPManager");
-	    try {
-	      myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
-	    } 
-	    catch (Exception e) {
-	      throw new ProfileException("Error loading IMTPManager class"+className);
-	    }
-	  	#MIDP_INCLUDE_END*/
-    }
-
-    return myIMTPManager;
-
-  }
-
-  /**
-   */
-  public ResourceManager getResourceManager() throws ProfileException {
   	//#MIDP_EXCLUDE_BEGIN
-    if (myResourceManager == null) {
-      createResourceManager();
-    }
-
-    return myResourceManager;
+      props.put(key, value);
   	//#MIDP_EXCLUDE_END
-  	/*#MIDP_INCLUDE_BEGIN
-    return new LightResourceManager();
-  	#MIDP_INCLUDE_END*/
-  }
-
-
-    //#APIDOC_EXCLUDE_END
-
-
-    //#MIDP_EXCLUDE_BEGIN
-    private void createServiceManager() throws ProfileException {
-	try {
-	    // Make sure the IMTP manager is initialized
-	    myIMTPManager = getIMTPManager();
-
-	    // Make sure the Command Processor is initialized
-	    myCommandProcessor = getCommandProcessor();
-
-	    if(isMain()) {
-		// This is a main container: create a real Service Manager and export it
-		myMain = new MainContainerImpl(this);
-		myServiceManager = new ServiceManagerImpl(this, myMain);
-		myIMTPManager.exportServiceManager((ServiceManagerImpl)myServiceManager);
-	    }
-	    else {
-		// This is a peripheral container: create a Service Manager Proxy
-		myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
-	    }
-	}
-	catch(IMTPException imtpe) {
-	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager", imtpe);
-	    throw pe;
-	}
-    }
-    //#MIDP_EXCLUDE_END
-
-    //#MIDP_EXCLUDE_BEGIN
-    private void createServiceFinder() throws ProfileException {
-	try {
-	    // Make sure the IMTP manager is initialized
-	    myIMTPManager = getIMTPManager();
-
-	    if(isMain()) {
-		// This is a main container: use the real
-		// implementation of the Service Manager as the
-		// service finder.
-		myServiceFinder = (ServiceFinder)myServiceManager;
-	    }
-	    else {
-		// This is a peripheral container: create a Service Finder Proxy
-		myServiceFinder = myIMTPManager.createServiceFinderProxy();
-	    }
-	}
-	catch(IMTPException imtpe) {
-	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager", imtpe);
-	    throw pe;
-	}
-    }
-    //#MIDP_EXCLUDE_END
-
-    private void createCommandProcessor() throws ProfileException {
-	try {
-	    myCommandProcessor = new CommandProcessor();
-	}
-	catch(Exception e) {
-	    ProfileException pe = new ProfileException("Exception creating the Command Processor", e);
-	    throw pe;
-	}
-    }
-
-  //#MIDP_EXCLUDE_BEGIN
-  private void createIMTPManager() throws ProfileException {
-
-    String className = getParameter(IMTP, DEFAULT_IMTPMANAGER_CLASS);
-
-    try {
-      myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
-    }
-    catch (Exception e) {
-      throw new ProfileException("Error loading IMTPManager class"+className);
-    }
-  }
-  //#MIDP_EXCLUDE_END
-
-  //#MIDP_EXCLUDE_BEGIN
-  private void createResourceManager() throws ProfileException {
-  	//#PJAVA_EXCLUDE_BEGIN
-    String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
-  	//#PJAVA_EXCLUDE_END
-  	/*#PJAVA_INCLUDE_BEGIN
-    String className = getParameter(RESOURCE, "jade.core.LightResourceManager");
-  	#PJAVA_INCLUDE_END*/
-
-    try {
-      myResourceManager = (ResourceManager) Class.forName(className).newInstance();
-    }
-    catch (Exception e) {
-      throw new ProfileException("Error loading ResourceManager class"+className);
-    }
-  }
-  //#MIDP_EXCLUDE_END
-
+  } 
 
   /**
    * Retrieve a String value from the configuration properties.
@@ -553,7 +329,7 @@ public class ProfileImpl extends Profile {
    * @param aDefault The value to return when there is no property
    * set for the given key, or its value cannot be converted to a
    * boolean value.
-   */
+   *
   public boolean getParameter(String key, boolean aDefault) {
       String v = props.getProperty(key);
       if(v == null) {
@@ -570,7 +346,7 @@ public class ProfileImpl extends Profile {
 	      return aDefault;
 	  }
       }
-  }
+  }*/
 
   /**
    * Retrieve a list of Specifiers from the configuration properties.
@@ -610,6 +386,34 @@ public class ProfileImpl extends Profile {
     }
   }
 
+  /**
+   * Retrieve a boolean value for a configuration property.  If no
+   * corresponding property is found or if its string value cannot
+   * be converted to a boolean one, a default value is returned.
+   * @param key The key identifying the parameter to be retrieved
+   * among the configuration properties.
+   * @param aDefault The value to return when there is no property
+   * set for the given key, or its value cannot be converted to a
+   * boolean value.
+   */
+  public boolean getBooleanProperty(String aKey, boolean aDefault) {
+    String v = props.getProperty(aKey);
+    if(v == null) {
+		  return aDefault;
+    }
+    else {
+		  if(CaseInsensitiveString.equalsIgnoreCase(v, "true")) {
+	      return true;
+	  	}
+	  	else if(CaseInsensitiveString.equalsIgnoreCase(v, "false")) {
+      	return false;
+	  	}
+	  	else {
+      	return aDefault;
+	  	}
+    }
+  }
+
     /**
        Creates a string representation of this profile. The returned
        string has the format
@@ -628,27 +432,136 @@ public class ProfileImpl extends Profile {
 	return str.toString();
     }
 
+    //#APIDOC_EXCLUDE_BEGIN
+
+    protected PlatformManager getPlatformManager() throws ProfileException {
+    	if (myPlatformManager == null) {
+    		createPlatformManager();
+    	}
+    	return myPlatformManager;
+    }
+    
+    /**
+       Access the platform service manager.
+       @return The platform service manager, either the real
+       implementation or a remote proxy object.
+       @throws ProfileException If some needed information is wrong or
+       missing from the profile.
+    */
+    protected ServiceManager getServiceManager() throws ProfileException {
+			if(myServiceManager == null) {
+				myServiceManager = new ServiceManagerImpl(this, getPlatformManager());
+      }
+      return myServiceManager;
+    }
+
+	  /**
+	     Access the platform service finder.
+	     @return The platform service finder, either the real
+	     implementation or a remote proxy object.
+	     @throws ProfileException If some needed information is wrong or
+	     missing from the profile.
+	  */
+	  protected ServiceFinder getServiceFinder() throws ProfileException {
+	  	return (ServiceFinder) getServiceManager();
+	  }
+
+	  protected CommandProcessor getCommandProcessor() throws ProfileException {
+	    if(myCommandProcessor == null) {
+		    myCommandProcessor = new CommandProcessor();
+	    }
+	    return myCommandProcessor;
+	  }
+
+
+    //#MIDP_EXCLUDE_BEGIN
+    protected MainContainerImpl getMain() throws ProfileException {
+			return myMain;
+    }
+    //#MIDP_EXCLUDE_END
+
+
+  /**
+   */
+  protected IMTPManager getIMTPManager() throws ProfileException {
+    if (myIMTPManager == null) {
+      createIMTPManager();
+    }
+    return myIMTPManager;
+  }
+
+  /**
+   */
+  public ResourceManager getResourceManager() throws ProfileException {
+    if (myResourceManager == null) {
+      createResourceManager();
+    }
+    return myResourceManager;
+  }
+
+
+    //#APIDOC_EXCLUDE_END
+
+
+    private void createPlatformManager() throws ProfileException {
+			try {
+		    myIMTPManager = getIMTPManager();
+	
+		    //#MIDP_EXCLUDE_BEGIN
+		    if(isMain()) {
+					// This is a main container: create a real PlatformManager,
+				  // export it and get the MainContainer. 
+				  PlatformManagerImpl pm = new PlatformManagerImpl(this);
+					myIMTPManager.exportPlatformManager(pm);
+					myMain = pm.getMain();
+					myPlatformManager = pm;
+					return;
+		    }
+		    //#MIDP_EXCLUDE_END
+		    
+				// This is a peripheral container: create a proxy to the PlatformManager
+				myPlatformManager = myIMTPManager.getPlatformManagerProxy();
+			}
+			catch(IMTPException imtpe) {
+		    throw new ProfileException("Can't get a proxy to the Platform Manager", imtpe);
+			}
+    }
+    
+
+
+  private void createIMTPManager() throws ProfileException {
+    String className = getParameter(IMTP, DEFAULT_IMTPMANAGER_CLASS);
+    try {
+      myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
+    }
+    catch (Exception e) {
+      throw new ProfileException("Error loading IMTPManager class "+className);
+    }
+  }
+
+  private void createResourceManager() throws ProfileException {
+  	//#PJAVA_EXCLUDE_BEGIN
+    String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
+  	//#PJAVA_EXCLUDE_END
+  	/*#PJAVA_INCLUDE_BEGIN
+    String className = getParameter(RESOURCE, "jade.core.LightResourceManager");
+  	#PJAVA_INCLUDE_END*/
+
+    try {
+      myResourceManager = (ResourceManager) Class.forName(className).newInstance();
+    }
+    catch (Exception e) {
+      throw new ProfileException("Error loading ResourceManager class "+className);
+    }
+  }
+
+
     private void setPropertyIfNot(String key, String value) {
-	String old = props.getProperty(key);
-	if(old == null) {
-	    props.setProperty(key, value);
-	}
+			String old = props.getProperty(key);
+			if(old == null) {
+			    props.setProperty(key, value);
+			}
     }
-
-    //#J2ME_EXCLUDE_BEGIN
-    private boolean getBooleanProperty(String aKey, boolean aDefaultValue) {
-        boolean result = aDefaultValue;
-
-        try {
-            String value = props.getProperty(aKey);
-            result = (value != null) && value.equalsIgnoreCase("true");
-        }
-	catch (Exception e) {
-	}
-
-        return result;
-    }
-    //#J2ME_EXCLUDE_END
 
     private void setIntProperty(String aKey, int aValue) {
         props.setProperty(aKey, Integer.toString(aValue));
@@ -674,47 +587,13 @@ public class ProfileImpl extends Profile {
     //#APIDOC_EXCLUDE_BEGIN
 
     protected boolean isMain() {
-	String result = props.getProperty(MAIN);
-	if(result == null || CaseInsensitiveString.equalsIgnoreCase(result, "true")) {
-	    return true;
-	}
-	else {
-	    return false;
-	}
+    	return getBooleanProperty(MAIN, false);
     }
 
-    // True if this is a Main Container and there are no other,
-    // already existing Main Containers in the platform.
+    // True if this is a Main Container and the LOCAL_SERVICE_MANAGER
+    // option is set to false or not set
     protected boolean isFirstMain() {
-	if(isMain()) {
-	    String result = props.getProperty(LOCAL_SERVICE_MANAGER);
-	    if(result == null || CaseInsensitiveString.equalsIgnoreCase(result, "false")) {
-		return true;
-	    }
-	    else {
-		return false;
-	    }
-	}
-	else {
-	    return false;
-	}
-    }
-
-    protected String getDefaultNetworkName() {
-		  String host = "localhost";
-		  //#MIDP_EXCLUDE_BEGIN
-			try {
-		  	host = InetAddress.getLocalHost().getHostAddress(); 
-		
-		    if ("127.0.0.1".equals(host)) {
-		      // Try with the name
-		      host = InetAddress.getLocalHost().getHostName();
-		    }
-			}
-			catch(Exception e) {
-			}
-		  //#MIDP_EXCLUDE_END
-			return host;
+			return isMain() && !getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
     }
 
     //#APIDOC_EXCLUDE_END

@@ -70,15 +70,6 @@ public interface ServiceManager {
 
 
     /**
-       Retrieves the list of the addresses where this distributed
-       <i>Service Manager</i> is listening for commands.
-       @return An array of strings, each containing the representation
-       of an address of the Service Manager.
-       @throws IMTPException If an underlying network error occurs.
-    */
-    String[] getAddresses() throws IMTPException;
-
-    /**
        Access the address exported by this copy of the <i>Service
        Manager</i>.
        @return The locally exported address.

@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
-
+import jade.util.leap.Serializable;
 
 /**
 
@@ -40,7 +40,7 @@ package jade.core;
    @see jade.core.Service
 
 */
-public class ServiceDescriptor {
+public class ServiceDescriptor implements Serializable {
 
     /**
        Builds a new service descriptor, describing the given service
@@ -104,6 +104,30 @@ public class ServiceDescriptor {
     }
 
     private String myName;
-    private Service myService;
+    private transient Service myService;
 
+	//#MIDP_EXCLUDE_BEGIN
+  private String serviceClass;
+  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+		if (myService != null) {
+			serviceClass = myService.getClass().getName();
+		}
+    out.defaultWriteObject();
+  }
+
+  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+    in.defaultReadObject();
+		if (serviceClass != null) {
+  		try {
+  			myService = (Service) Class.forName(serviceClass).newInstance();
+  		}
+  		catch (ClassNotFoundException cnfe) {
+  			throw cnfe;
+  		}
+  		catch (Throwable t) {
+  			throw new java.io.IOException("Can't create service "+serviceClass+". "+t.getMessage());
+  		}
+		}			
+  }
+	//#MIDP_EXCLUDE_END
 }

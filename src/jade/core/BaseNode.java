@@ -41,14 +41,10 @@ import jade.util.leap.Serializable;
  */
 public abstract class BaseNode implements Node, Serializable {
 
-    public BaseNode(String name, boolean hasSM) {
+    public BaseNode(String name, boolean hasPM) {
 	myName = name;
-	hasLocalSM = hasSM;
+	hasLocalPM = hasPM;
 	localSlices = new HashMap();
-    }
-
-    public BaseNode(String name) {
-	this(name, false);
     }
 
     public void setName(String name) {
@@ -59,8 +55,8 @@ public abstract class BaseNode implements Node, Serializable {
 	return myName;
     }
 
-    public boolean hasServiceManager() {
-	return hasLocalSM;
+    public boolean hasPlatformManager() {
+	return hasLocalPM;
     }
 
     public void exportSlice(String serviceName, Service.Slice localSlice) {
@@ -107,7 +103,8 @@ public abstract class BaseNode implements Node, Serializable {
 	    }
 	}
 	else {
-	    throw new ServiceException("-- Service Unknown --");
+		String s = new String("Node "+getName()+": Service "+serviceName+" Unknown. Command = "+commandName);
+	    throw new ServiceException("-- "+s+" --");
 	}
     }
 
@@ -115,6 +112,15 @@ public abstract class BaseNode implements Node, Serializable {
 	processor = cp;
     }
 
+    public void setServiceManager(ServiceManager mgr) {
+    	myServiceManager = mgr;
+    }
+    
+    public void platformManagerDead(String deadPMAddr, String notifyingPMAddr) throws IMTPException {
+    	myServiceManager.addAddress(notifyingPMAddr);
+    	myServiceManager.removeAddress(deadPMAddr);
+    }
+    
     /**
        Serves an incoming vertical command, locally. This method is
        invoked if a new <code>VerticalCommand</code> object is
@@ -138,17 +144,17 @@ public abstract class BaseNode implements Node, Serializable {
 	return processor.processIncoming(cmd);
     }
 
+    protected transient ServiceManager myServiceManager;
     private transient CommandProcessor processor;
+    
     // The name of this node
     private String myName;
-
-    // True if a local copy of the Service Manager is deployed at this Node
-    private boolean hasLocalSM;
+    
+    // True if a local copy of the Platform Manager is deployed at this Node
+    private boolean hasLocalPM = false;
 
     // A map, indexed by service name, of all the local slices of this
     // node. This map is used to dispatch incoming commands to the
     // service they belong to.
     private transient Map localSlices;
-
-
 }

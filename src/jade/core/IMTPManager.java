@@ -38,28 +38,12 @@ public interface IMTPManager {
     /**
      * Initialize this IMTPManager
      */
-    void initialize(Profile p, CommandProcessor cp) throws IMTPException;
+    void initialize(Profile p) throws IMTPException;
 
     /**
-       Connects the local container to the rest of the platform, over
-       the IMTP managed by this <code>IMTPManager</code> object.
-
-       @param id The container ID for the local container. It may be
-       modified by this call.
-       @throws IMTPException If something goes wrong during the
-       container registration.
-    */
-    void connect(ContainerID id) throws IMTPException;
-
-    /**
-       Disconnects the local container from the rest of the platform,
-       over the IMTP managed by this <code>IMTPManager</code> object.
-
-       @param id The container ID for the local container.
-       @throws IMTPException If something goes wrong during the
-       container deregistration.
-    */
-    void disconnect(ContainerID id) throws IMTPException;
+     * Release all resources of this IMTPManager
+     */
+    void shutDown();
 
     /**
        Access the node that represents the local JVM.
@@ -71,6 +55,7 @@ public interface IMTPManager {
     */
     Node getLocalNode() throws IMTPException;
 
+	  //#MIDP_EXCLUDE_BEGIN
     /**
        Makes the platform <i>Service Manager</i> available through
        this IMTP.
@@ -79,7 +64,8 @@ public interface IMTPManager {
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void exportServiceManager(ServiceManager mgr) throws IMTPException;
+    void exportPlatformManager(PlatformManager mgr) throws IMTPException;
+
 
     /**
        Stops making the platform <i>Service Manager</i> available
@@ -87,131 +73,30 @@ public interface IMTPManager {
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void unexportServiceManager(ServiceManager sm) throws IMTPException;
-
+    void unexportPlatformManager(PlatformManager sm) throws IMTPException;
+	  //#MIDP_EXCLUDE_END
+    
     /**
-       Adds a new address to the <i>Service Manager</i> address
-       list. New nodes can join the distributed platform by contacting
-       the <i>Service Manager</i> at any among its addresses.
-       @param addr A stringified URL referring to a valid address in
-       the IMTP managed by this IMTP manager.
+       Retrieve a proxy to the PlatformManager specified in the local 
+       Profile
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void addServiceManagerAddress(String addr) throws IMTPException;
-
+    PlatformManager getPlatformManagerProxy() throws IMTPException;
+    
     /**
-       Removes an address from the <i>Service Manager</i> address
-       list. New nodes can join the distributed platform by contacting
-       the <i>Service Manager</i> at any among its addresses.
-       @param addr A stringified URL referring to a valid address in
-       the IMTP managed by this IMTP manager.
+       Retrieve a proxy to the PlatformManager listening at a given address
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void removeServiceManagerAddress(String addr) throws IMTPException;
+    PlatformManager getPlatformManagerProxy(String addr) throws IMTPException;
 
     /**
-       Retrieves the list of the (remote) addresses for the <i>Service
-       Manager</i>. Notice that the locally exported address (if any)
-       is not included in the list.
-
-       @return A string array containing all the remote addresses
-       through which the platform <i>Service Manager</i> can be reached.
-       @throws IMTPException If something goes wrong in the underlying
-       network transport.
-       @see jade.core.ServiceManager#getLocalAddress()
-    */
-    String[] getServiceManagerAddresses() throws IMTPException;
-
-    /**
-       Informs this IMTP Manager that a new node joined the
-       distributed platform.
-       @param desc The description of the newly added node.
-       @param svcNames The list of the names of the services deployed
-       on the newly added node.
-       @param svcInterfaces The list of the <code>Class</code> objects
-       representing the horizontal slice interfaces for each service.
-    */
-    void nodeAdded(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, int nodeCnt, int mainCnt) throws IMTPException;
-
-    /**
-       Informs this IMTP Manager that a node left the distributed
-       platform.
-       @param desc The description of the newly added node.
-    */
-    void nodeRemoved(NodeDescriptor desc) throws IMTPException;
-
-    /**
-       Informs this IMTP Manager that a new service was activated on a
-       node of the distributed platform.
-       @param svcName The name of the newly activated service.
-       @param svcItf The horizontal slice interface of the newly
-       activated service.
-       @param where The node of the distributed platform where the
-       service is deployed.
-    */
-    void serviceActivated(String svcName, Class svcItf, Node where) throws IMTPException;
-
-    /**
-       Informs this IMTP Manager that a new service was deactivated on
-       a node of the distributed platform.
-       @param svcName The name of the newly activated service.
-       @param where The node of the distributed platform where the
-       service is deployed.
-    */
-    void serviceDeactivated(String svcName, Node where) throws IMTPException;
-
-    /**
-       Builds a proxy object for the (possibly remote) platform
-       service manager.
-       @param proc The local Command Processor to which the service
-       manager proxy can be attached.
-       @return The newly created <code>ServiceManager</code>
-       @throws IMTPException If something goes wrong in the underlying
-       network transport.
-    */
-    ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException;
-
-    /**
-       Builds a proxy object for the (possibly remote) platform
-       service finder.
-       @return The newly created <code>ServiceFinder</code>
-       @throws IMTPException If something goes wrong in the underlying
-       network transport.
-    */
-    ServiceFinder createServiceFinderProxy() throws IMTPException;
-
-    /**
-       Exports the locally installed slice of a service, so that it
-       can be accessed across the network.
-
-       @param serviceName The name of the service this slice is part of.
-       @param localSlice The locally installed slice, that will answer
-       to remote invocations made through the horizontal interface of
-       the service.
-       @throws IMTPException If something goes wrong in the underlying
-       network transport.
-       @see jade.core.Service#getLocalSlice()
-       @see jade.core.Service#getHorizontalInterface()
-    */
-    void exportSlice(String serviceName, Service.Slice localSlice) throws IMTPException;
-
-    /**
-       Unexports the locally installed slice of a service, so that it
-       cannot be accessed across the network anymore.
-
-       @param serviceName The name of the service this slice is part of.
-       @param localSlice The locally installed slice, that answers
-       to remote invocations made through the horizontal interface of
-       the service.
-       @throws IMTPException If something goes wrong in the underlying
-       network transport.
-       @see jade.core.Service#getLocalSlice()
-       @see jade.core.Service#getHorizontalInterface()
-    */
-    void unexportSlice(String serviceName, Service.Slice localSlice) throws IMTPException;
-
+       Inform the local IMTPManager that this node is now connected to 
+       the given PlatformManager
+     */
+    void reconnected(PlatformManager pm);
+    
     /**
        Builds a proxy object for a remote service slice.
 
@@ -227,11 +112,6 @@ public interface IMTPManager {
        @see jade.core.Service
     */
     Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException;
-
-    /**
-     * Release all resources of this IMTPManager
-     */
-    void shutDown();
 
     /**
        Return the the List of TransportAddress where this IMTP is 

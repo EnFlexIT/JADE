@@ -98,9 +98,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private ams theAMS;
     private df defaultDF;
 
-    private String platformID;
     private ContainerID localContainerID;
     private IMTPManager myIMTPManager;
+    private PlatformManager myPlatformManager;
 
     // FIXME: Temporary Hack
     private CommandProcessor myCommandProcessor;
@@ -115,23 +115,13 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private Authority authority;
     private Profile myProfile;
 
-    public MainContainerImpl(Profile p) throws ProfileException {
+    public MainContainerImpl(Profile p, PlatformManager pm) throws ProfileException {
 	myProfile = p;
 	myIMTPManager = p.getIMTPManager();
 	myCommandProcessor = p.getCommandProcessor();
+	myPlatformManager = pm;
 
-	platformID = p.getParameter(Profile.PLATFORM_ID, null);
-	if (platformID == null || platformID.equals("")) {
-	    try {
-		// Build the PlatformID using the local host and port
-		List l = myIMTPManager.getLocalAddresses();
-		TransportAddress localAddr = (TransportAddress) l.get(0);
-		platformID = localAddr.getHost() + ":" + localAddr.getPort() + "/JADE";
-	    }
-	    catch (Exception e) {
-		throw new ProfileException("Can't set PlatformID");
-	    }
-	}
+	
 /*
 	try {
 	    if (p.getParameter(Profile.OWNER, null) != null) {
@@ -166,7 +156,11 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
 	
     }
-
+	
+    public PlatformManager getPlatformManager() {
+    	return myPlatformManager;
+    }
+    
     public void addLocalContainer(NodeDescriptor desc) throws IMTPException, AuthException {
 
 	Node node = desc.getNode();
@@ -325,10 +319,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     void uninstallAMSBehaviour(Behaviour b) {
 	theAMS.removeBehaviour(b);
     }
-
-  public String getPlatformName() {
-    return platformID;
-  }
 
   /**
      Notify the platform that an agent has just born on a container
@@ -981,26 +971,44 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     **/
     public void shutdownPlatform() throws AuthException {
 
-	// Kill every other container
+	// First kill all peripheral containers
 	ContainerID[] allContainers = containers.names();
-
 	for(int i = 0; i < allContainers.length; i++) {
 	    ContainerID targetID = allContainers[i];
 	    try {
-		if(!targetID.equals(localContainerID)) {
-		    killContainer(targetID);
-		    containers.waitForRemoval(targetID);
-		}
+				if(!getContainerNode(targetID).hasPlatformManager()) {
+				    killContainer(targetID);
+				    containers.waitForRemoval(targetID);
+				}
 	    }
 	    catch(AuthException ae) {
-		System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
+				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
 	    }
 	    catch(NotFoundException nfe) {
-		// Ignore the exception as we are removing a non-existing container
-	        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
+				// Ignore the exception as we are removing a non-existing container
+        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
 	    }
 	}
 
+	// Then kill all other main containers
+	allContainers = containers.names();
+	for(int i = 0; i < allContainers.length; i++) {
+	    ContainerID targetID = allContainers[i];
+	    try {
+				if(!targetID.equals(localContainerID)) {
+				    killContainer(targetID);
+				    containers.waitForRemoval(targetID);
+				}
+	    }
+	    catch(AuthException ae) {
+				System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
+	    }
+	    catch(NotFoundException nfe) {
+				// Ignore the exception as we are removing a non-existing container
+        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
+	    }
+	}
+	
 	// Finally, kill the local container
 	try {
 	    killContainer(localContainerID);
@@ -1486,7 +1494,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     return cf;
   }*/
 
-  public void addServiceManagerAddress(String smAddr) {
+  /*public void addServiceManagerAddress(String smAddr) {
       GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_ADDED, jade.core.replication.AddressNotificationSlice.NAME, null);
       cmd.addParam(smAddr);
 
@@ -1508,7 +1516,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       		((Throwable) ret).printStackTrace();
       	}
       }
-  }
+  }*/
 
 
   /**

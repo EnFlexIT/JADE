@@ -246,11 +246,13 @@ public abstract class BaseService implements Service {
 
     //#MIDP_EXCLUDE_BEGIN
     protected jade.util.Logger myLogger;
+    //#MIDP_EXCLUDE_END
     
     protected void log(String msg, int level) {
+    	//#MIDP_EXCLUDE_BEGIN
     	if (myLogger != null) {
     		myLogger.log(msg, level);
     	}
+    	//#MIDP_EXCLUDE_END
     }
-    //#MIDP_EXCLUDE_END
 }

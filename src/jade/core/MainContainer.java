@@ -40,8 +40,6 @@ import jade.util.leap.List;
 
 public interface MainContainer {
 
-    String getPlatformName();
-
     void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws NotFoundException;
     void suspendedAgent(AID name) throws NotFoundException;

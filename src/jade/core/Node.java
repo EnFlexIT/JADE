@@ -43,8 +43,8 @@ public interface Node extends Serializable {
 
     void setName(String name);
     String getName();
-    boolean hasServiceManager();
-
+    
+    boolean hasPlatformManager();
 
     void exportSlice(String serviceName, Service.Slice localSlice);
     void unexportSlice(String serviceName);
@@ -73,5 +73,5 @@ public interface Node extends Serializable {
 
     void interrupt() throws IMTPException;
     void exit() throws IMTPException;
-
+    void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws IMTPException;
 }

@@ -1372,9 +1372,10 @@ public class Agent implements Runnable, Serializable
   public void doDelete() {
     synchronized(stateLock) {
       if(myAPState != AP_DELETED && !terminating) {
-	changeStateTo(AP_DELETED);
-	if((myThread != null) && !myThread.equals(Thread.currentThread()))
-          interruptThread();
+				changeStateTo(AP_DELETED);
+				if((myThread != null) && !myThread.equals(Thread.currentThread())) {
+	          interruptThread();
+				}
       }
     }
   }

@@ -303,7 +303,7 @@ public abstract class Profile {
      * set for the given key, or its value cannot be converted to a
      * boolean value.
      */
-    public abstract boolean getParameter(String key, boolean aDefault);
+    public abstract boolean getBooleanProperty(String key, boolean aDefault);
 
     /**
      * Retrieve a list of Specifiers from the configuration properties.
@@ -334,6 +334,23 @@ public abstract class Profile {
      */
     public abstract void setSpecifiers(String key, List value);
 
+
+    public static String getDefaultNetworkName() {
+		  String host = "localhost";
+		  //#MIDP_EXCLUDE_BEGIN
+			try {
+		  	host = java.net.InetAddress.getLocalHost().getHostAddress(); 
+		
+		    if ("127.0.0.1".equals(host)) {
+		      // Try with the name
+		      host = java.net.InetAddress.getLocalHost().getHostName();
+		    }
+			}
+			catch(Exception e) {
+			}
+		  //#MIDP_EXCLUDE_END
+			return host;
+    }
 
 }
 
