@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -25,7 +26,10 @@ package jade.domain;
 
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
+import jade.onto.TermDescriptor;
+import jade.onto.RoleFactory;
 import jade.onto.OntologyException;
+
 /**
 Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
@@ -38,6 +42,12 @@ Javadoc documentation for the file
    @see jade.domain.MobilityOntology#instance()
  */
 public class MobilityOntology {
+
+  private static final String MOBILE_AGENT_DESCRIPTION = ":mobile-agent-description";
+  private static final String MOBILE_AGENT_PROFILE = ":mobile-agent-profile";
+  private static final String MOBILE_AGENT_SYSTEM = ":mobile-agent-system";
+  private static final String MOBILE_AGENT_LANGUAGE = ":mobile-agent-language";
+  private static final String MOBILE_AGENT_OS = ":mobile-agent-os";
 
   private static Ontology theInstance = new DefaultOntology();
 
@@ -59,40 +69,96 @@ public class MobilityOntology {
   }
 
   private void initInstance() {
-    
+    try {
+	theInstance.addFrame(MOBILE_AGENT_DESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor(":address", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor(":destination", Ontology.CONCEPT_TYPE, LOCATION, Ontology.M),
+	  new TermDescriptor(":agent-profile", Ontology.CONCEPT_TYPE, MOBILE_AGENT_PROFILE, Ontology.O),
+	  new TermDescriptor(":agent-version", Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor(":signature", Ontology.BINARY_TYPE, Ontology.O)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MobileAgentDescription(); }
+	     public Class getClassForRole() { return MobileAgentDescription.class; }
+	   });
+
+	theInstance.addFrame(MOBILE_AGENT_PROFILE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(":system", Ontology.CONCEPT_TYPE, MOBILE_AGENT_SYSTEM, Ontology.O),
+	  new TermDescriptor(":language", Ontology.CONCEPT_TYPE, MOBILE_AGENT_LANGUAGE, Ontology.O),
+          new TermDescriptor(":os", Ontology.CONCEPT_TYPE, MOBILE_AGENT_OS, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MobileAgentProfile(); }
+	     public Class getClassForRole() { return MobileAgentProfile.class; }
+	   });
+
+	theInstance.addFrame(MOBILE_AGENT_SYSTEM, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
+	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
+	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MobileAgentSystem(); }
+	     public Class getClassForRole() { return MobileAgentSystem.class; }
+	   });
+
+	theInstance.addFrame(MOBILE_AGENT_LANGUAGE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
+	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
+	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MobileAgentLanguage(); }
+	     public Class getClassForRole() { return MobileAgentLanguage.class; }
+	   });
+
+	theInstance.addFrame(MOBILE_AGENT_OS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor(":major-version", Ontology.SHORT_TYPE, Ontology.M),
+	  new TermDescriptor(":minor-version", Ontology.SHORT_TYPE, Ontology.O),
+	  new TermDescriptor(":dependencies", Ontology.STRING_TYPE, Ontology.O)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MobileAgentOS(); }
+	     public Class getClassForRole() { return MobileAgentOS.class; }
+	   });
+
+	theInstance.addFrame(LOCATION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	    new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
+	    new TermDescriptor(":transport-protocol", Ontology.STRING_TYPE, Ontology.M),
+	    new TermDescriptor(":transport-address", Ontology.STRING_TYPE, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { // Use Indexed Creation }
+	     public Class getClassForRole() { return Location.class; }
+	   });
+
+    }
+    catch(OntologyException oe) {
+
+    }
   }
 
   public static class MobileAgentDescription {
 
-    private String agentName;
+    private String name;
     private String address;
     private Location destination;
     private MobileAgentProfile agentProfile;
     private String agentVersion;
+    private byte[] signature;
 
-    public MobileAgentDescription(Frame f) {
-      try {
-	String an = f.getStringSlot(":agent-name");
-      }
-      catch(OntologyException oe) {
-
-      }
+    public void setName(String n) {
+      name = n;
     }
 
-    public void setAgentName(String an) {
-      agentName = new String(an);
-    }
-
-    public String getAgentName() {
-      return new String(agentName);
+    public String getName() {
+      return name;
     }
 
     public void setAddress(String a) {
-      address = new String(a);
+      address = a;
     }
 
     public String getAddress() {
-      return new String(address);
+      return address;
     }
 
     public void setDestination(Location d) {
@@ -112,14 +178,26 @@ public class MobilityOntology {
     }
 
     public void setAgentVersion(String v) {
-      agentVersion = new String(v);
+      agentVersion = v;
     }
 
     public String getAgentVersion() {
-      return new String(agentVersion);
+      return agentVersion;
+    }
+
+    public void setSignature(byte[] s) {
+      signature = new byte[s.length];
+      System.arraycopy(s, 0, signature, s.length);
+    }
+
+    public byte[] getSignature() {
+      byte[] result = new byte[s.length];
+      System.arraycopy(signature, 0, result, signature.length);
+      return result;
     }
 
   } // End of MobileAgentDescription class
+
 
   public static class MobileAgentProfile {
 
@@ -160,55 +238,123 @@ public class MobilityOntology {
   public static class MobileAgentSystem {
 
     private String name;
-    private String majorVersion;
-    private String minorVersion;
+    private short majorVersion;
+    private short minorVersion;
     private String dependencies;
 
-    public MobileAgentSystem(Frame f) {
-
-    }
-
     public void setName(String n) {
-      name = new String(n);
+      name = n;
     }
 
     public String getName() {
-      return new String(name);
+      return name;
     }
 
-    public void setMajorVersion(String v) {
-      majorVersion = new String(v);
+    public void setMajorVersion(short v) {
+      majorVersion = v;
     }
 
-    public String getMajorVersion() {
-      return new String(majorVersion);
+    public short getMajorVersion() {
+      return majorVersion;
     }
 
-    public void setMinorVersion(String v) {
-      minorVersion = new String(v);
+    public void setMinorVersion(short v) {
+      minorVersion = v;
     }
 
-    public String getMinorVersion() {
-      return new String(minorVersion);
+    public short getMinorVersion() {
+      return minorVersion;
     }
 
     public void setDependencies(String d) {
-      dependencies = new String(d);
+      dependencies = d;
     }
 
     public String getDependencies() {
-      return new String(dependencies);
+      return dependencies;
     }
-
-
 
   } // End of MobileAgentSystem class
 
+
   public static class MobileAgentLanguage {
+    private String name;
+    private short majorVersion;
+    private short minorVersion;
+    private String dependencies;
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setMajorVersion(short v) {
+      majorVersion = v;
+    }
+
+    public short getMajorVersion() {
+      return majorVersion;
+    }
+
+    public void setMinorVersion(short v) {
+      minorVersion = v;
+    }
+
+    public short getMinorVersion() {
+      return minorVersion;
+    }
+
+    public void setDependencies(String d) {
+      dependencies = d;
+    }
+
+    public String getDependencies() {
+      return dependencies;
+    }
 
   } // End of MobileAgentLanguage class
 
+
   public static class MobileAgentOS {
+    private String name;
+    private short majorVersion;
+    private short minorVersion;
+    private String dependencies;
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setMajorVersion(short v) {
+      majorVersion = v;
+    }
+
+    public short getMajorVersion() {
+      return majorVersion;
+    }
+
+    public void setMinorVersion(short v) {
+      minorVersion = v;
+    }
+
+    public short getMinorVersion() {
+      return minorVersion;
+    }
+
+    public void setDependencies(String d) {
+      dependencies = d;
+    }
+
+    public String getDependencies() {
+      return dependencies;
+    }
 
   } // End of MobileAgentOS class
 
