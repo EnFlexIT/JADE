@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.20  1998/11/03 00:27:52  rimassa
+  Fixed a bug in ACL message multicast send: a reset() call was missing
+  on target AgentGroup.
+
   Revision 1.19  1998/11/01 19:13:43  rimassa
   Removed every reference to now-deleted MessageDispatcher
   interface. Added code to do what MessageDispatcherImpl used to do.
@@ -281,6 +285,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // present in ':receiver' field.
     if(event.isMulticast()) {
       AgentGroup group = event.getRecipients();
+      group.reset();
       while(group.hasMoreMembers()) {
 	msg.setDest(group.getNextMember());
 	unicastPostMessage(msg);
@@ -302,6 +307,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(RemoteException re) {
       re.printStackTrace();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
     }
   }
 
