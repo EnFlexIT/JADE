@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/03/09 12:50:29  rimassa
+  Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
+  calls.
+
   Revision 1.6  1999/02/14 22:48:52  rimassa
   Renamed addBehaviour() calls to addSubBehaviour() calls.
 
@@ -43,12 +47,13 @@ public class AgentBroadcaster extends Agent {
       myMessage = new ACLMessage("request");
       myMessage.setSource(source);
       myMessage.setContent(content);
-      myMessage.setDest(dest);
+      myMessage.removeAllDests();
+      myMessage.addDest(dest);
     }
 
     public void action() {
       if(msgSent == false) {
-	System.out.println("Sending to " + myMessage.getDest());
+	System.out.println("Sending to " + myMessage.getFirstDest());
 	send(myMessage);
 	msgSent = true;
       }

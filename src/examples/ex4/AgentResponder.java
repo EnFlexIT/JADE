@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/03/09 12:52:36  rimassa
+  Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
+  calls.
+
   Revision 1.6  1999/02/14 22:51:23  rimassa
   Changed a getName() call to getLocalName().
 
@@ -69,7 +73,8 @@ public class AgentResponder extends Agent {
 
       ACLMessage reply = new ACLMessage("not-understood");
       reply.setSource(getLocalName());
-      reply.setDest(myPeer);
+      reply.removeAllDests();
+      reply.addDest(myPeer);
       reply.setProtocol("fipa-request");
       reply.setConversationId(myConvId);
 

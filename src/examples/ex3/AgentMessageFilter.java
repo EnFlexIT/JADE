@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1999/03/09 12:52:01  rimassa
+  Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
+  calls.
+
   Revision 1.6  1998/10/18 16:10:28  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -35,8 +39,9 @@ public class AgentMessageFilter extends Agent {
 	System.out.println("Received from " + source + ": " + content);
 	System.out.println("Sending back reply to " + source + "...");
 	ACLMessage reply = new ACLMessage("inform");
-	reply.setSource(getName());
-	reply.setDest(source);
+	reply.setSource(getLocalName());
+	reply.removeAllDests();
+	reply.addDest(source);
 	reply.setContent("Thank you for adhering to alt.agents.fipa discussion thread, " + source);
 	reply.setReplyTo("alt.agents.fipa");
 	send(reply);
