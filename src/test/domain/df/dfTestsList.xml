@@ -166,6 +166,19 @@
 			<WhenTestPass> The test passes if the different queires obtain the expected results and no
 					exception is thrown.
 obtained by the DFService.search()</WhenTestPass>
+		</Test>
+			<Test name="RegistrationRenewer Behaviour" skip="false">
+			<TestClassName>test.domain.df.tests.TestRegistrationRenewer</TestClassName>
+			<WhatTest>The behaviour jade.domain.DFRegistrationRenewer is used to keep registered a DFAgentDescription if the leasetime requested 
+is greater than the leasetime assigned to the DFAgentDescription
+			</WhatTest>
+			<HowWorkTest>
+			Create an agent with AID 'RenewerAgent'. The agent registers itself for 5000ms and than it
+uses the behaviour jade.domain.RegistrationRenewerBehaviour to keep itself registered for other 10000ms. 
+In parallel the TesterAgent performs several searches in order to test if the agent is still kept registered.
+		  </HowWorkTest>
+			<WhenTestPass>After 15000ms the agent 'RenewerAgent" deregisters itself.</WhenTestPass>
 		</Test>		
+		
 	</TestsList>
 
