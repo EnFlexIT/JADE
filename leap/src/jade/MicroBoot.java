@@ -28,6 +28,7 @@ import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.util.leap.Properties;
 import jade.util.Logger;
+import java.io.IOException;
 
 /*#MIDP_INCLUDE_BEGIN
 import jade.core.Agent;
@@ -48,8 +49,13 @@ public class MicroBoot {
    * Fires up the <b><em>JADE</em></b> runtime.
    */
   public static void main(String args[]) {
+  	String propsFile = null;
     try {
     	Properties props = parseCmdLineArgs(args);
+    	propsFile = props.getProperty("conf");
+    	if (propsFile != null) {
+    		props.load(propsFile);
+    	}
 	  	if (props.getProperty(MicroRuntime.JVM_KEY) == null) {
 	  		//PJAVA_EXCLUDE_BEGIN
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.J2SE);
@@ -75,8 +81,14 @@ public class MicroBoot {
 		  });
     }
     catch (IllegalArgumentException iae) {
-      Logger.println("Error reading configuration properties. "+iae.getMessage());
+      Logger.println("Error reading command line configuration properties. "+iae.getMessage());
       iae.printStackTrace();
+      printUsage();
+      System.exit(-1);
+    }
+    catch (IOException ioe) {
+      Logger.println("Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
+      ioe.printStackTrace();
       printUsage();
       System.exit(-1);
     }
@@ -125,6 +137,9 @@ public class MicroBoot {
   	Logger.println("Usage:");
   	Logger.println("java -cp <classpath> jade.MicroBoot [options] [agents]");
   	Logger.println("Options:");
+  	Logger.println("    -conf <file-name>. Read configuration properties from the specified file name");
+  	Logger.println("    -host <host-name>. The name/address of the host where the BackEnd has to be created");
+  	Logger.println("    -port <port-number>. The port of the J2SE container active on \"host\"");
   	Logger.println("    -<key> <value>");
   	Logger.println("Agents: [-agents] <semicolon-separated agent-specifiers>");
   	Logger.println("     where agent-specifier = <agent-name>:<agent-class>[(comma separated args)]"); 
