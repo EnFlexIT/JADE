@@ -298,6 +298,7 @@
     	<include name="add-ons/leap/README.txt"/>
     	<include name="add-ons/leap/buildLEAP.properties"/>
     	<include name="add-ons/leap/build.xml"/>
+    	<include name="add-ons/leap/jade-leap.jad"/>
     	<include name="add-ons/leap/LEAPUserGuide.pdf"/>
     	<include name="add-ons/leap/demo/*.bat"/>
     	<include name="add-ons/leap/demo/demo.jad"/>
