@@ -53,7 +53,6 @@ public abstract class WrapperException extends Exception {
     return super.getMessage();
   }
 
-//__CLDC_UNSUPPORTED__BEGIN
   public void printStackTrace() {
     super.printStackTrace();
     if(nested != null) {
@@ -61,7 +60,6 @@ public abstract class WrapperException extends Exception {
       nested.printStackTrace();
     }
   }
-//__CLDC_UNSUPPORTED__END
 
   /**
      Reads the exception wrapped by this object.
