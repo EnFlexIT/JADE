@@ -11,22 +11,41 @@ import java.util.*;
 public class SocketProxyAgent extends Agent {
 
 BufferedWriter logFile;
+BufferedReader in;
+Server s;
 
 protected void setup() {
   try {
-    BufferedReader in = new BufferedReader(new FileReader(getLocalName()+".inf"));
+    in = new BufferedReader(new FileReader(getLocalName()+".inf"));
     logFile = new BufferedWriter(new FileWriter(getLocalName()+".log"));
     int portNumber = Integer.parseInt(in.readLine());
     Vector agentNames = new Vector();
     StringTokenizer st = new StringTokenizer(in.readLine());
     while (st.hasMoreTokens()) agentNames.add(st.nextToken());
-    Server s = new Server(portNumber, this, agentNames);
+    s = new Server(portNumber, this, agentNames);
   } catch(Exception e) {
     System.err.println(getLocalName()+" NEEDS THE FILE "+getLocalName()+".inf IN THE WORKING DIRECTORY WITH ITS PARAMETERS (port number and agent names)");
     e.printStackTrace();
     doDelete();
   } 
 
+}
+
+protected void takeDown(){
+  try {
+    if (in != null) 
+      in.close();
+  } catch (Exception e) {}
+
+  try {
+    if (logFile != null) 
+      logFile.close();
+  } catch (Exception e) {}
+
+  try {
+    if (s != null) 
+      s.stop();
+  } catch (Exception e) {}
 }
 
 public synchronized void log(String str) {
@@ -38,6 +57,9 @@ public synchronized void log(String str) {
   }
 }
 }
+
+
+
 
 class Server extends Thread {
   private final static int DEFAULT_PORT = 6789;
@@ -69,6 +91,9 @@ class Server extends Thread {
     start();
   }
 
+  Socket client_socket;
+  Connection c;
+
   /**
    * The body of the server thread. It is executed when the start() method
    * of the server object is called.
@@ -83,12 +108,27 @@ class Server extends Thread {
   public void run() {
     try {
       while (true) {
-	Socket client_socket = listen_socket.accept();
+	client_socket = listen_socket.accept();
 	((SocketProxyAgent)myAgent).log("New Connection with "+client_socket.getInetAddress().toString()+" on remote port "+client_socket.getPort());
-	Connection c = new Connection(client_socket,myAgent,myOnlyReceivers);
+	c = new Connection(client_socket,myAgent,myOnlyReceivers);
       }
     } catch (IOException e) {e.printStackTrace(); myAgent.doDelete();}
   }
+
+protected void finalize() {
+  try {
+    if (listen_socket != null)
+      listen_socket.close();
+  } catch (Exception e) {}
+  try {
+    if (client_socket != null)
+      client_socket.close();
+  } catch (Exception e) {}
+  try {
+    if (c != null)
+      c.stop();
+  } catch (Exception e) {}
+}
 }
 
 class Connection extends Thread {
@@ -151,6 +191,20 @@ class Connection extends Thread {
     e.printStackTrace();
   }
 
+protected void finalize() {
+  try {
+    if (client != null)
+      client.close();
+  } catch (Exception e) {}
+  try {
+    if (in != null)
+      in.close();
+  } catch (Exception e) {}
+  try {
+    if (out != null)
+      out.close();
+  } catch (Exception e) {}
+}
 }
 
 class WaitAnswersBehaviour extends SimpleBehaviour {
