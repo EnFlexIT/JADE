@@ -212,14 +212,18 @@ class DeliverableDataOutputStream extends DataOutputStream {
           writeByte(Serializer.SLICEPROXY_ID);
           serializeSliceProxy((Service.SliceProxy) o);
         }
-        else if(o instanceof Throwable) {                   // Throwable
-          writeByte(Serializer.THROWABLE_ID);
-          serializeThrowable((Throwable) o);
-        }
         else if(o instanceof Property) {                   // Property
           writeByte(Serializer.PROPERTY_ID);
           serializeProperty((Property) o);
         }
+        /*#MIDP_INCLUDE_BEGIN
+        // In J2SE and PJAVA we use Java serialization to transport 
+        // Throwable objects so that we keep the message.        
+        else if(o instanceof Throwable) {                   // Throwable
+          writeByte(Serializer.THROWABLE_ID);
+          serializeThrowable((Throwable) o);
+        }
+        #MIDP_INCLUDE_END*/
         //#MIDP_EXCLUDE_BEGIN
         else if (o instanceof java.io.Serializable) {       // Serializable 
           writeByte(Serializer.SERIALIZABLE_ID);
