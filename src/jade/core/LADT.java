@@ -116,8 +116,12 @@ class LADT {
 
 
     //private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
-    private Map agents = new HashMap();
-
+    private Map agents;
+    
+    public LADT(int size) {
+    	agents = new HashMap(size);
+    }
+    
     public Agent put(AID aid, Agent a) {
         Row r;
         synchronized(agents) {
