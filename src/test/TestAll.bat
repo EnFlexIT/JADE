@@ -12,6 +12,8 @@ pause check now that the JVM is actually 1.2. Otherwise abort the testing
 idlj
 pause check that idlj is an unrecognized command such that the FIPa classes will remain clean. Otherwise abort the testing
 
+echo off
+
 set JADEJAR=..\..\lib\jade.jar
 set JADEIIOP=..\..\lib\iiop.jar
 set JADETOOLSJAR=..\..\lib\jadeTools.jar
@@ -70,13 +72,18 @@ pause
 :SKIPCOMPILATION
 
 echo Starting the Agent Platform
-START %JAVA% -cp %CLASSPATH% jade.Boot -gui
-pause Press a key when the platform is ready
+START %JAVA% -cp %CLASSPATH% jade.Boot -gui -nomtp
+echo Press a key when the platform is ready
+pause
 
 REM goto :STARTHERE 
 
 echo Each example will be executed into a remote container. To pass to the
 echo next example, just kill the container (NOT the platform) from the RMA GUI
+
+echo Running the Party example. Select 1000 agents and check everything is ok
+%JAVA% -cp %CLASSPATH% jade.Boot -container host:examples.party.HostAgent
+
 echo Running Base64 example. Federate the DF where the reader is running
 echo with the DF where the writer is running.
 echo Test: DFFederation, DFSearch and registration, inter-platform IIOP Sun
