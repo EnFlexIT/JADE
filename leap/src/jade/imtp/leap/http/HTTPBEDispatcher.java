@@ -59,7 +59,7 @@ import java.util.*;
  */
 public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMediator {
 	
-  private JICPServer myJICPServer;
+  private JICPMediatorManager myMediatorManager;
   private String myID;
 
   private MicroSkeleton mySkel = null;
@@ -78,11 +78,15 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
+  public String getId() {
+  	return myID;
+  }
+  
   /**
      Initialize parameters and activate the BackEndContainer
    */
-  public void init(JICPServer srv, String id, Properties props) throws ICPException {
-    myJICPServer = srv;
+  public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
+    myMediatorManager = mgr;
     myID = id;
     
     // Read parameters
@@ -216,9 +220,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
      The HTTPBEDispatcher reacts to this call by resetting the current
      situation
    */
-  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
     myOutgoingsHandler.setConnecting();
-    return null;
+    return false;
   }
 
   private void ensureFERunning(final long timeout) {
@@ -296,7 +300,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 
     // Deregister from the JICPServer
     if (myID != null) {
-	    myJICPServer.deregisterMediator(myID);
+	    myMediatorManager.deregisterMediator(myID);
   	  myID = null;
     }
 

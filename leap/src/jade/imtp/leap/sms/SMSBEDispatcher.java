@@ -44,7 +44,7 @@ public class SMSBEDispatcher extends BIBEDispatcher implements Constants {
 	private SMSManager theSMSManager; 
 	private String msisdn;
 	
-  public void init(JICPServer srv, String id, Properties props) throws ICPException {
+  public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
   	// Get the msisdn
   	msisdn = props.getProperty("msisdn");
   	if (msisdn == null) {
@@ -55,12 +55,12 @@ public class SMSBEDispatcher extends BIBEDispatcher implements Constants {
 		if (theSMSManager == null) {
 			throw new ICPException("Cannot attach to the SMSManager");
 		}
-		super.init(srv, id, props);
+		super.init(mgr, id, props);
   }
   
   /**
    */
-  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {  	
+  public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {  	
   	connectionDropped = false;
   	return super.handleIncomingConnection(c, pkt, addr, port);
   } 

@@ -37,7 +37,6 @@ package jade.imtp.leap.JICP;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.Profile;
-import jade.core.IMTPManager;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.util.Logger;
@@ -57,11 +56,12 @@ import java.util.StringTokenizer;
  * @author Nicolas Lhuillier - Motorola
  * @author Steffen Rusitschka - Siemens
  */
-public class JICPServer extends Thread implements PDPContextManager.Listener {
-	public static final String LEAP_PROPERTY_FILE = "leap-property-file";
-	private static final String LEAP_PROPERTY_FILE_DEFAULT = "leap.properties";
-	private static final String PDP_CONTEXT_MANAGER_CLASS = "pdp-context-manager";
-	
+public class JICPServer extends Thread 
+	//#J2ME_EXCLUDE_BEGIN
+	implements PDPContextManager.Listener, JICPMediatorManager 
+	//#J2ME_EXCLUDE_END
+	{	
+		
 	private static final int LISTENING = 0;
 	private static final int TERMINATING = 1;
  
@@ -73,8 +73,10 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
   
   private int            mediatorCnt = 1;
   private Hashtable      mediators = new Hashtable();
+	//#J2ME_EXCLUDE_BEGIN
   private Properties     leapProps = new Properties();
   private PDPContextManager  myPDPContextManager;
+	//#J2ME_EXCLUDE_END
   
   private int handlersCnt = 0;
   private int maxHandlers;
@@ -142,6 +144,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
     	}
     } 
 	  	
+		//#J2ME_EXCLUDE_BEGIN
 		// Read the LEAP configuration properties
 		sb.setLength(idLength);
 		sb.append(LEAP_PROPERTY_FILE);
@@ -168,6 +171,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 				myPDPContextManager = null;
 			}
 		}
+		//#J2ME_EXCLUDE_END
 		
 		// Create the ServerSocket
 		server = myPeer.getServerSocket(host, port, changePortIfBusy);
@@ -261,6 +265,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 
     server = null;
 
+    //#J2ME_EXCLUDE_BEGIN
     // Close all mediators
     Enumeration e = mediators.elements();
     while (e.hasMoreElements()) {
@@ -268,20 +273,14 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
       m.kill();
     } 
     mediators.clear();
+    //#J2ME_EXCLUDE_END
   } 
 
-  /**
-   * Called by a Mediator to notify that it is no longer active
-   */
-  public void deregisterMediator(String id) {
-  	myLogger.log(Logger.FINE, "Deregistering mediator "+id);
-    mediators.remove(id);
-  } 
-  
   /**
      Called by the JICPPeer ticker at each tick
   */
   public void tick(long currentTime) {
+  	//#J2ME_EXCLUDE_BEGIN
   	synchronized (mediators) {
 	    Enumeration e = mediators.elements();
 	    while (e.hasMoreElements()) {
@@ -289,15 +288,9 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	      m.tick(currentTime);
 	    }
   	}
+  	//#J2ME_EXCLUDE_END
   }
   
-  /**
-     Called by the PDPContextManager (if any)
-  */
-  public void handlePDPContextClosed(String id) {
-  	// FIXME: to be implemented
-  }
-  	
   /**
      Inner class ConnectionHandler.
      Handle a connection accepted by this JICPServer
@@ -345,6 +338,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
             if(myLogger.isLoggable(Logger.FINEST))
             	myLogger.log(Logger.FINEST,"Recipient: "+recipientID);
 	          if (recipientID != null) {
+	          	//#J2ME_EXCLUDE_BEGIN
 	            // The recipient is one of the mediators
 	            JICPMediator m = (JICPMediator) mediators.get(recipientID);
 	            if (m != null) {
@@ -358,6 +352,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	              	reply = new JICPPacket("Unknown recipient "+recipientID, null);
 	          		}
 	            } 
+	          	//#J2ME_EXCLUDE_END
 	          } 
 	          else {
 	          	// The recipient is my ICP.Listener (the local CommandDispatcher)
@@ -380,6 +375,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          } 
 	          break;
 	
+            //#J2ME_EXCLUDE_BEGIN
 	        case JICPProtocol.GET_ADDRESS_TYPE:
 	          // Respond sending back the caller address
 	          if(myLogger.isLoggable(Logger.INFO))
@@ -387,7 +383,6 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          break;
 
-            //#PJAVA_EXCLUDE_BEGIN
 	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
 	          if(myLogger.isLoggable(Logger.INFO))
 	          	myLogger.log(Logger.INFO,"Received a CREATE_MEDIATOR request from "+ addr + ":" + port);
@@ -451,7 +446,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 
 	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
-		  			m.handleIncomingConnection(c, pkt, addr, port);
+		  			closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
 
 	          if(myLogger.isLoggable(Logger.FINE))
 					  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
@@ -461,7 +456,6 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          String replyMsg = id+'#'+addr.getHostAddress();
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 	          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
-	          closeConnection = false;
 	        	break;
 	
 	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
@@ -476,8 +470,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          if (m != null) {
 	          	// Don't close the connection, but pass it to the proper 
 	          	// mediator. 
-	          	m.handleIncomingConnection(c, pkt, addr, port);
-	          	closeConnection = false;
+	          	closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
 		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          }
 	          else {
@@ -486,7 +479,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
 	          }
 	          break;
-			  		//#PJAVA_EXCLUDE_END
+			  		//#J2ME_EXCLUDE_END
 	          
 	        default:
 	          // Send back an error response
@@ -569,6 +562,22 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
     } 
   } // END of inner class ConnectionHandler
 
+  //#J2ME_EXCLUDE_BEGIN
+  /**
+   * Called by a Mediator to notify that it is no longer active
+   */
+  public void deregisterMediator(String id) {
+  	myLogger.log(Logger.FINE, "Deregistering mediator "+id);
+    mediators.remove(id);
+  } 
+  
+  /**
+     Called by the PDPContextManager (if any)
+  */
+  public void handlePDPContextClosed(String id) {
+  	// FIXME: to be implemented
+  }
+  	
   private Properties parseProperties(String s) throws ICPException {
   	StringTokenizer st = new StringTokenizer(s, "=#");
   	Properties p = new Properties();
@@ -611,5 +620,6 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
   	catch (InterruptedException ie) {
   	}
   }
+  //#J2ME_EXCLUDE_END
 }
 

@@ -62,7 +62,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private long              keepAliveTime;
   private long              lastReceivedTime;
 
-  private JICPServer        myJICPServer;
+  private JICPMediatorManager        myMediatorManager;
   private String            myID;
 
   private byte lastSid = 0x0f;
@@ -87,11 +87,15 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
+  public String getId() {
+  	return myID;
+  }
+  
   /**
      Initialize parameters and start the embedded thread
    */
-  public void init(JICPServer srv, String id, Properties props) throws ICPException {
-    myJICPServer = srv;
+  public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
+    myMediatorManager = mgr;
     myID = id;
 
 		// Verbosity
@@ -172,7 +176,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	mySkel = new BackEndSkel(myContainer);
 
 			if(masterNode == null) {
-		    String masterAddr = InetAddress.getLocalHost().getHostName() + ':' + myJICPServer.getLocalPort();
+		    String masterAddr = myMediatorManager.getLocalHost() + ':' + myMediatorManager.getLocalPort();
 		    props.put(Profile.BE_REPLICA_ZERO_ADDRESS, masterAddr);
 		    myContainer.activateReplicas();
 			}
@@ -185,9 +189,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	// should never happen
     	pe.printStackTrace();
 			throw new ICPException("Error creating profile");
-    }
-    catch(UnknownHostException uhe) {
-			uhe.printStackTrace();
     }
   }
 
@@ -223,7 +224,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
      This is called by the JICPServer when a JICP CREATE_MEDIATOR or
      CONNECT_MEDIATOR is received.
    */
-  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
   	boolean inp = false;
   	byte[] data = pkt.getData();
   	if (data.length == 1) {
@@ -251,7 +252,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	myContainer.becomeMaster();
 			start();
     }
-    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+    return true;
   }
 
   public void tick(long currentTime) {
@@ -354,7 +355,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 
     // Deregister from the JICPServer
     if (myID != null) {
-	    myJICPServer.deregisterMediator(myID);
+	    myMediatorManager.deregisterMediator(myID);
   	  myID = null;
     }
 

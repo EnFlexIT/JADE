@@ -62,7 +62,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	
   private long              maxDisconnectionTime;
 
-  private JICPServer        myJICPServer;
+  private JICPMediatorManager        myMediatorManager;
   private String            myID;
 
   // The permanent connection to the remote FrontEnd
@@ -82,12 +82,16 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
+  public String getId() {
+  	return myID;
+  }
+  
   /**
      Initialize parameters and start the embedded thread
    */
-  public void init(JICPServer srv, String id, Properties props) throws ICPException {
+  public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
 
-    myJICPServer = srv;
+    myMediatorManager = mgr;
     myID = id;
     
 		// Verbosity
@@ -143,7 +147,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	mySkel = new BackEndSkel(myContainer);
 
 	if(masterNode == null) {
-	    String masterAddr = InetAddress.getLocalHost().getHostName() + ':' + myJICPServer.getLocalPort();
+	    String masterAddr = myMediatorManager.getLocalHost() + ':' + myMediatorManager.getLocalPort();
 	    props.put(Profile.BE_REPLICA_ZERO_ADDRESS, masterAddr);
 	    myContainer.activateReplicas();
 	}
@@ -154,9 +158,6 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	// should never happen
     	pe.printStackTrace();
 	throw new ICPException("Error creating profile");
-    }
-    catch(UnknownHostException uhe) {
-	uhe.printStackTrace();
     }
   }
   
@@ -254,7 +255,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 
     // Deregister from the JICPServer
     if (myID != null) {
-	    myJICPServer.deregisterMediator(myID);
+	    myMediatorManager.deregisterMediator(myID);
   	  myID = null;
     }
 
@@ -341,7 +342,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
    * attached to as soon as the FrontEnd container (re)connects.
    * @param c the connection to the FrontEnd container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  public synchronized boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
    	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
@@ -357,7 +358,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     }
 
     notifyAll();
-    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+    return true;
   } 
   
   //////////////////////////////////////////////////////////////////////

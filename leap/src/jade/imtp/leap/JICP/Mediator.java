@@ -60,7 +60,7 @@ public class Mediator extends EndPoint implements JICPMediator {
   // Lock for handling blocking PING
   private Object            pingLock = new Object();
 
-  private JICPServer        myJICPServer;
+  private JICPMediatorManager        myMediatorManager;
   private String            myID;
 
   // The socket connected to the mediated container
@@ -73,11 +73,15 @@ public class Mediator extends EndPoint implements JICPMediator {
   public Mediator() { 
   }
 
+  public String getId() {
+  	return myID;
+  }
+  
   /**
      Initialize this JICPMediator
    */
-  public void init(JICPServer srv, String id, Properties props) throws ICPException {
-    myJICPServer = srv;
+  public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
+    myMediatorManager = mgr;
     myID = id;
     try {
 	    maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
@@ -101,7 +105,7 @@ public class Mediator extends EndPoint implements JICPMediator {
 
     // Deregister from the JICPServer
     if (myID != null) {
-	    myJICPServer.deregisterMediator(myID);
+	    myMediatorManager.deregisterMediator(myID);
 	    myID = null;
     }
 
@@ -280,7 +284,7 @@ public class Mediator extends EndPoint implements JICPMediator {
    * as soon as the mediated container (re)connects.
    * @param c the connection to the mediated container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  public synchronized boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
     if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
@@ -289,7 +293,7 @@ public class Mediator extends EndPoint implements JICPMediator {
     conn = c;
     newConnectionReady = true;
     notifyAll();
-    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+    return true;
   } 
   
   /**
