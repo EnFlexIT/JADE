@@ -42,6 +42,9 @@ public class PlatformEvent extends JADEEvent {
   public static final int BORN_AGENT = 3;
   public static final int DEAD_AGENT = 4;
   public static final int MOVED_AGENT = 5;
+  public static final int SUSPENDED_AGENT = 6;
+  public static final int RESUMED_AGENT = 7;
+  public static final int CHANGED_AGENT_PRINCIPAL = 8;
 
   private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
@@ -83,19 +86,24 @@ public class PlatformEvent extends JADEEvent {
   /**
    * This constructor is used to create a PlatformEvent when an agent is
    * born or dies.  If the id parameter is not either
-   * {@link #BORN_AGENT BORN_AGENT} or {@link #DEAD_AGENT DEAD_AGENT},
+   * {@link #BORN_AGENT BORN_AGENT}, {@link #DEAD_AGENT DEAD_AGENT},
+   * {@link #SUSPENDED_AGENT SUSPENDED_AGENT} or {@link #RESUMED_AGENT RESUMED_AGENT},
    * an {@link jade.domain.FIPAAgentManagement.InternalError InternalError}
    * exception will be thrown.
    * <p>
    * The {@link #getContainer() getContainer()} method can be used to get
    * the event source.
    * The {@link #getNewContainer() getNewContainer()} method will return null
-   * for a {@link #BORN_AGENT BORN_AGENT} or
-   * {@link #DEAD_AGENT DEAD_AGENT} event.
+   * for a {@link #BORN_AGENT BORN_AGENT},
+   * {@link #DEAD_AGENT DEAD_AGENT},
+   * {@link #SUSPENDED_AGENT SUSPENDED_AGENT} or
+   * {@link #RESUMED_AGENT RESUMED_AGENT} event.
    * <p>
    * @param id The event ID must be either
-   * {@link #BORN_AGENT BORN_AGENT} or
-   * {@link #DEAD_AGENT DEAD_AGENT}.
+   * {@link #BORN_AGENT BORN_AGENT},
+   * {@link #DEAD_AGENT DEAD_AGENT},
+   * {@link #_SUSPENDED_AGENT _SUSPENDED_AGENT} or
+   * {@link #RESUMED_AGENT RESUMED_AGENT}.
    * @param The {@link jade.core.AID AID} of the new or dead agent.
    * @param eventSource The container id of the source of the event.
    * The container ID of the container where the agent was born or died should
@@ -217,7 +225,8 @@ public class PlatformEvent extends JADEEvent {
    * {@link #DEAD_AGENT DEAD_AGENT}, otherwise, false is returned.
    */
   public boolean isAgentBD() {
-    return (myID == BORN_AGENT) || (myID == DEAD_AGENT);
+    return (myID == BORN_AGENT) || (myID == DEAD_AGENT) ||
+        (myID == SUSPENDED_AGENT) || (myID == RESUMED_AGENT);
   }
   
   /**
@@ -225,7 +234,9 @@ public class PlatformEvent extends JADEEvent {
    * {@link #ADDED_CONTAINER ADDED_CONTAINER},
    * {@link #REMOVED_CONTAINER REMOVED_CONTAINER},
    * {@link #BORN_AGENT BORN_AGENT},
-   * {@link #DEAD_AGENT DEAD_AGENT}, or
+   * {@link #DEAD_AGENT DEAD_AGENT},
+   * {@link #SUSPENDED_AGENT SUSPENDED_AGENT},
+   * {@link #RESUMED_AGENT RESUMED_AGENT}, or
    * {@link #MOVED_AGENT MOVED_AGENT}.
    * <p>
    * @return The event type.
@@ -257,6 +268,14 @@ public class PlatformEvent extends JADEEvent {
               break;
           case DEAD_AGENT:
               buf.append("dead agent: ").append(agent)
+              .append(" in ").append(getSource());
+              break;
+          case SUSPENDED_AGENT:
+              buf.append("suspended agent: ").append(agent)
+              .append(" in ").append(getSource());
+              break;
+          case RESUMED_AGENT:
+              buf.append("resumed agent: ").append(agent)
               .append(" in ").append(getSource());
               break;
           case MOVED_AGENT:
