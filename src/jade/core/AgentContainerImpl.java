@@ -232,7 +232,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
    */
    public void initAgent(
         AID agentID, Agent instance, 
-        JADEPrincipal ownerPrincipal, Credentials ownerCredentials)
+        JADEPrincipal ownerPrincipal, Credentials initialCredentials)
       throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
       
       // Setting the AID and toolkit here is redundant, but 
@@ -245,7 +245,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(instance);
       cmd.addParam( ownerPrincipal );
-      cmd.addParam( ownerCredentials );
+      cmd.addParam( initialCredentials );
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {

@@ -221,7 +221,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	try {
 	    theAMS.resetEvents(true);
 	    AID amsId = ac.getAMS();
-	    ac.initAgent(amsId, theAMS, cp, cr); 
+	    ac.initAgent(amsId, theAMS, cp, null); 
 	    ac.powerUpLocalAgent(amsId);
 	    theAMS.waitUntilStarted();
 	}
@@ -232,7 +232,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
  
 	try {
 	    AID dfId = ac.getDefaultDF();
-	    ac.initAgent(dfId, defaultDF, cp, cr);
+	    ac.initAgent(dfId, defaultDF, cp, null);
 	    ac.powerUpLocalAgent(dfId);
 	    defaultDF.waitUntilStarted();
 	}

@@ -57,7 +57,7 @@ public interface AgentContainer {
     AID getDefaultDF();
 
     void initAgent(AID agentID, Agent instance,  
-                   JADEPrincipal creator, Credentials creds                  
+                   JADEPrincipal ownerPrincipal, Credentials initialCredentials                  
                    ) throws NameClashException, IMTPException, NotFoundException, JADESecurityException;
     void powerUpLocalAgent(AID agentID) throws NotFoundException;
     Agent addLocalAgent(AID id, Agent a) throws JADESecurityException;
