@@ -358,12 +358,13 @@ public class ams extends Agent implements AgentManager.Listener {
         });
         handlers.put(BornAgent.NAME, new Handler() {
             public void handle(Event ev) {
-
                 BornAgent ba = (BornAgent)ev;
                 AID agentID = ba.getAgent();
                 String ownership = ba.getOwnership();
-                if(creations.get(agentID) == null)
-                    creations.put(agentID, new CreationInfo(null, null, ownership, null));
+            		//System.out.println("ams.born: " + agentID + ", " + ownership + ";");
+                if (creations.get(agentID) == null) {
+                	creations.put(agentID, new CreationInfo(null, null, ownership, null));
+                }
             }
         });
         handlers.put(DeadAgent.NAME, new Handler() {
@@ -1126,7 +1127,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				return;
 
 			// change agent principal
-			if (! newOwnership.equals(oldOwnership) || password != null) {
+			if (! newOwnership.equals(oldOwnership) || password != null && password.length > 0) {
 				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
 					public Object run() throws NotFoundException, UnreachableException, AuthException {
 						myPlatform.take(name, username, password);
@@ -1318,6 +1319,15 @@ public class ams extends Agent implements AgentManager.Listener {
     AID agentID = ev.getAgent();
     String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
 
+		//System.out.println("ams.suddenborn: " + agentID + ", " + ownership + ";");
+    if (creations.get(agentID) == null) {
+    	creations.put(agentID, new CreationInfo(null, null, ownership, null));
+    }
+
+    //REMOVED BY MICHLE
+    //creationinfo has to bestored immediately!!!
+    //if needed, synchronization can be added
+    /*
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);
     ba.setWhere(cid);
@@ -1330,6 +1340,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	eventQueue.add(er);
     }
     doWake();
+    */
   }
 
     /**

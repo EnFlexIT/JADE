@@ -814,6 +814,8 @@ class MainContainerImpl implements Platform, AgentManager {
 			throw new UnreachableException(re.getMessage());
 		}
 		catch (Exception e) {
+			if (e instanceof AuthException)
+				throw (AuthException)e;
 		}
 	}
 //__SECURITY__END
