@@ -48,8 +48,8 @@ public class MainBarListener implements ActionListener{
 
       case 2: //view message+state
         JCheckBoxMenuItem item=(JCheckBoxMenuItem) source;
-        if (item.isSelected()) mainWnd.setStatePanelVisible(true);
-        else mainWnd.setStatePanelVisible(false);
+        if (item.isSelected()) mainWnd.setMessagePanelVisible(true);
+        else mainWnd.setMessagePanelVisible(false);
         break;
       case 3://view Behaviour
         JCheckBoxMenuItem item1=(JCheckBoxMenuItem) source;
