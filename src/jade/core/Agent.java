@@ -1744,10 +1744,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    int oldMsgCounter = messageCounter;
 
 	    // Just do it!
-    	currentBehaviour.actionWrapper();
+	    currentBehaviour.actionWrapper();
 
-	    // If the current Behaviour is blocked and more messages
-	    // arrived, restart the behaviour to give it another chance
+	    // If the current Behaviour has blocked and more messages arrived
+	    // in the meanwhile, restart the behaviour to give it another chance
 	    if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
 	      currentBehaviour.restart();
 
