@@ -161,23 +161,28 @@ public class JICPPeer implements ICP {
   
   protected ServerSocket getServerSocket(String host, int port, boolean changePortIfBusy) throws ICPException {
     try {
+      //ServerSocket s = new ServerSocket(port, 50, InetAddress.getByName(host));
       ServerSocket s = new ServerSocket(port);
       return s;
     } 
-    catch (IOException ioe) {
+    catch (BindException be) {
     	if (changePortIfBusy) {
     		// The specified port is busy. Let the system find a free one
     		try {
+      		//return new ServerSocket(0, 50, InetAddress.getByName(host));
       		return new ServerSocket(0);
     		}
-    		catch (IOException ioe2) {
-      		throw new ICPException("Problems initializing server socket. No free port found");
+    		catch (IOException ioe) {
+      		throw new ICPException("Cannot create server socket on a free port. ", ioe);
 				}
     	}
     	else {
-	      throw new ICPException("I/O error opening server socket on port "+port);
+	      throw new ICPException("Cannot bind server socket to host "+host+" port "+port);
     	}
-    } 
+    }
+    catch (IOException ioe2) {
+  		throw new ICPException("Cannot create server socket. ", ioe2);
+		}
   }
   
   /**
