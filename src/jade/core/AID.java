@@ -23,94 +23,85 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.*;
-import java.io.*;
+
+import java.io.Serializable;
+import java.io.Writer; // FIXME: This must go away
+import java.io.IOException; // FIXME: This must go away
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Enumeration;
 
 /**
- * This class represents the AgentIdentifier concept in this ontology.
- * It has various get- and set- methods, according to the 
- * rules for ontological classes in JADE.
- * <p>
- * This class complies with the frame specified in the Agent Management
- * document no. 23 of FIPA 2000.
- * The name is a GUID for the agent. A simple way to construct it is
- * by concatenating the local name to the HAP identifier.
-    @see jade.onto.Ontology
-  */
-public class AID implements Cloneable, Serializable {
- private String name = new String();
- private List addresses = new ArrayList();
- private List resolvers = new ArrayList();
- private Properties userDefSlots = new Properties();
+ This class represents a JADE Agent Identifier. JADE internal agent
+ tables use this class to record agent names and addresses.
+ */
+public class AID implements Cloneable, Comparable, Serializable {
+  private String name = new String();
+  private List addresses = new ArrayList();
+  private List resolvers = new ArrayList();
+  private Properties userDefSlots = new Properties();
 
+  public void setName(String n){
+    name = n;
+  }
 
-public AID(){}
+  public String getName(){
+    return name;
+  }
 
-  /**
-   * constructor
-   * @param guid is the globally unique id that is the name attribute of this AID
-   */
-public AID(String guid) {
-  name = guid;
-}
-  
-public void setName(String n){
- name = n;
-}
+  public void addAddresses(String url) {
+    addresses.add(url);
+  }
 
-public String getName(){
-return name;
-}
+  public boolean removeAddresses(String url) {
+    return addresses.remove(url);
+  }
 
-public void addAddresses(String url) {
- addresses.add(url);
-}
+  public void clearAllAddresses(){
+    addresses.clear();
+  }
 
-public boolean removeAddresses(String url) {
-  return addresses.remove(url);
-}
+  public Iterator getAllAddresses(){
+    return addresses.iterator();
+  }
 
-public void clearAllAddresses(){
-  addresses.clear();
-}
+  public void addResolvers(AID aid){
+    resolvers.add(aid);
+  }
 
-public Iterator getAllAddresses(){
-  return addresses.iterator();
-}
+  public boolean removeResolvers(AID aid){
+    return resolvers.remove(aid);
+  }
 
-public void addResolvers(AID aid){
-  resolvers.add(aid);
-}
+  public void clearAllResolvers(){
+    resolvers.clear();
+  }
 
-public boolean removeResolvers(AID aid){
-  return resolvers.remove(aid);
-}
+  public Iterator getAllResolvers() {
+    return resolvers.iterator();
+  }
 
-public void clearAllResolvers(){
-  resolvers.clear();
-}
-
-public Iterator getAllResolvers() {
-  return resolvers.iterator();
-}
-
-public void addUserDefinedSlot(String key, String value){
-  userDefSlots.setProperty(key,value);
-}
+  public void addUserDefinedSlot(String key, String value){
+    userDefSlots.setProperty(key, value);
+  }
 
   /**
    * @return all the user-defined slots as a <code>java.util.Properties</code> java Object.
    */
-public Properties getAllUserDefinedSlot(){
-  return userDefSlots;
-}
+  public Properties getAllUserDefinedSlot(){
+    return userDefSlots;
+  }
+
   /**
    * This method is called from ACLMessage in order to create
    * the String encoding of an ACLMessage.
    */
   public void toText(Writer w) {
   try {
-    w.write("(AID ");
+    w.write("( agent-identifier ");
     if ((name!=null)&&(name.length()>0))
       w.write(":name "+name);
     if (addresses.size()>0)
@@ -182,12 +173,27 @@ public Properties getAllUserDefinedSlot(){
     }
     try {
       AID id = (AID)o;
-      return name.equalsIgnoreCase(id.getName());
+      return name.equalsIgnoreCase(id.name);
     }
     catch(ClassCastException cce) {
       return false;
     }
 
+  }
+
+
+  /**
+     Comparison operation. This operation imposes a total order
+     relationship over Agent IDs.
+     @param o Another <code>AID</code> object, that will be compared
+     with the current <code>AID</code>.
+     @return -1, 0 or 1 according to the lexicographical order of the
+     <em>GUID</em> of the two agent IDs, apart from differences in
+     case.
+  */
+  public int compareTo(Object o) {
+    AID id = (AID)o;
+    return name.compareToIgnoreCase(id.name);
   }
 
 
@@ -201,32 +207,26 @@ public Properties getAllUserDefinedSlot(){
     return name.toLowerCase().hashCode();
   }
 
+  // Package scoped method, to allow setting the agent GUID only
+  // within the jade.core package.
+  void setGUID(String g) {
+    name = g;
+  }
 
-  //FIXME. GIOVANNI CONTROLLA QUESTI METODI CHE HO AGGIUNTO E CHE VENGONO CHIAMATI DAL CORE
   String getLocalName() {
-    try {
-      return name.substring(0,name.lastIndexOf('@'));
-    } catch (Exception e) {
-      return "";
-    }
+    int atPos = name.lastIndexOf('@');
+    if(atPos == -1)
+      return name;
+    else
+      return name.substring(0, atPos);
   }
 
   String getHap() {
-    try {
-      String result = name.substring(name.lastIndexOf('@')+1);
-      System.out.println("getHAP="+result);
-      return result;
-    } catch (Exception e) {
-      return "";
-    }
-  }
-
-  void setGUID(String n) {
-    setName(n);
-  }
-
-  int compareTo(AID to) {
-    return 0;
+    int atPos = name.lastIndexOf('@');
+    if(atPos == -1)
+      return name;
+    else
+      return name.substring(atPos + 1);
   }
 
 }
