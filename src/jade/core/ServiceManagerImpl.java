@@ -293,7 +293,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	// Retrieve the node information
 	Node localNode = desc.getNode();
 	if(!localNode.equals(myIMTPManager.getLocalNode())) {
-	    throw new ServiceException("A remote node cannot be added with this method call");
+	    throw new ServiceException("A remote node cannot be removed with this method call");
 	}
 
 	// Deactivate all the node services
