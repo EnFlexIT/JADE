@@ -50,6 +50,8 @@ public class TestMainFault extends Test {
   		throw new TestException("This test can only be executed from the JADE TestSuite");
   	}
   	
+  	enablePause(true);
+  	
   	SequentialBehaviour sb = new SequentialBehaviour(a);
   	// Step 1: Start a backup main container
   	sb.addSubBehaviour(new OneShotBehaviour(a) {
@@ -57,8 +59,9 @@ public class TestMainFault extends Test {
   			try {
 	  			// Start a backup main container
 					log("1) Starting backup main container ...");
-					backupMain = TestUtility.launchJadeInstance("Backup-Main", null, "-backupmain -nomtp -services "+TestSuiteAgent.MAIN_SERVICES+" -local-port "+BACKUPMAIN_PORT+" -host "+TestUtility.getLocalHostName()+" -port "+Test.DEFAULT_PORT, null);
+					backupMain = TestUtility.launchJadeInstance("Backup-Main", null, "-backupmain -nomtp -name "+TestSuiteAgent.TEST_PLATFORM_NAME+" -services "+TestSuiteAgent.MAIN_SERVICES+" -local-port "+BACKUPMAIN_PORT+" -host "+TestUtility.getLocalHostName()+" -port "+Test.DEFAULT_PORT, null);
 					log("Backup main container correctly started");
+					pause(myAgent);
   			}
   			catch (Exception e) {
   				failed("Error creating backup main container. "+e.getMessage());
@@ -78,6 +81,7 @@ public class TestMainFault extends Test {
 					// Start a peripheral container connecting to the backup main
 					peripheral = TestUtility.launchJadeInstance("Peripheral", null, "-container -services jade.core.replication.AddressNotificationService -local-port "+PERIPHERAL_PORT+" -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" rma1:jade.tools.rma.rma", null);
 					log("Peripheral container correctly connected to the backup main");
+					pause(myAgent);
   			}
   			catch (Exception e) {
   				failed("Error attaching a peripheral container to the backup main. "+e.getMessage());
@@ -104,6 +108,7 @@ public class TestMainFault extends Test {
   			catch (Exception e) {
   				e.printStackTrace();
   			}
+				pause(myAgent);
   		}
   	} );
   	
@@ -114,6 +119,7 @@ public class TestMainFault extends Test {
   			try {
 	  			check(myAgent, 1);
 	  			log("The platform works properly after master main container fault.");
+					pause(myAgent);
   			}
   			catch (Exception e) {
   				failed("The platform does not work properly after master main container fault. "+e.getMessage());
@@ -127,8 +133,9 @@ public class TestMainFault extends Test {
   		public void action() {
 				log("5) Restoring old master (now backup) main container ...");
   			try {
-					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES, null);
+					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES+" -container-name Main-Container -name "+TestSuiteAgent.TEST_PLATFORM_NAME, null);
 					log("Old master (now backup) main container correctly restored");
+					pause(myAgent);
   			}
   			catch (Exception e) {
   				failed("Error restoring old master main container. "+e.getMessage());
@@ -149,6 +156,7 @@ public class TestMainFault extends Test {
   			catch (Exception e) {
   				e.printStackTrace();
   			}
+				pause(myAgent);
   		}
   	} );
   	
@@ -158,6 +166,7 @@ public class TestMainFault extends Test {
 				log("7) Checking platform activity ...");
   			try {
 	  			check(myAgent, 2);
+					pause(myAgent);
 	  			passed("The platform works properly after new master main container fault.");
   			}
   			catch (Exception e) {
