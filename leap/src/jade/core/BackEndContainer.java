@@ -319,42 +319,49 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      dispatch has already taken place in the FrontEnd (see messageOut()).
    */
   public void dispatch(final ACLMessage msg, final AID receiverID) throws IMTPException, NotFoundException {
-  	AgentImage image = (AgentImage) agentImages.get(receiverID);
-  	if (image != null) {
-  		if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
-  			// The message was sent by an agent living in the FrontEnd. The
-  			// receiverID (living in the FrontEnd too) has already received
-  			// the message.
-  			return;
-  		}
-  		
-  		// FIXME: The right way to do things should be i) check permission
-  		// ii) call messageIn() iii) notify listeners. On the other hand 
-  		// handlePosted() currently does i) and iii). 
-  		try {
-	  		// An AuthException will be thrown if the receiver does not have
-	  		// the permission to receive messages from the sender of this message
-	  		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-					public Object run() throws AuthException {
-		  			handlePosted(receiverID, msg);
-						return null;
-					}
-				}, image.getCertificateFolder());
-  		}
-  		catch (AuthException ae) {
-  			String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
-		  	System.out.println(errorMsg+". "+ae.getMessage());
-      	notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
-  		}
-  		catch (Exception e) {
-  			// Should never happen
-  			e.printStackTrace();
-  		}
-  		// Forward the message to the FrontEnd
-	  	myFrontEnd.messageIn(msg, receiverID.getLocalName());
+  	// Try first in the real LADT
+  	try {
+  		super.dispatch(msg, receiverID);
   	}
-  	else {
-			throw new NotFoundException("DispatchMessage failed to find " + receiverID);
+  	catch (NotFoundException nfe) {
+  		// The receiver must be in the FrontEnd
+	  	AgentImage image = (AgentImage) agentImages.get(receiverID);
+	  	if (image != null) {
+	  		if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
+	  			// The message was sent by an agent living in the FrontEnd. The
+	  			// receiverID (living in the FrontEnd too) has already received
+	  			// the message.
+	  			return;
+	  		}
+	  		
+	  		// FIXME: The right way to do things should be i) check permission
+	  		// ii) call messageIn() iii) notify listeners. On the other hand 
+	  		// handlePosted() currently does i) and iii). 
+	  		try {
+		  		// An AuthException will be thrown if the receiver does not have
+		  		// the permission to receive messages from the sender of this message
+		  		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+						public Object run() throws AuthException {
+			  			handlePosted(receiverID, msg);
+							return null;
+						}
+					}, image.getCertificateFolder());
+	  		}
+	  		catch (AuthException ae) {
+	  			String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
+			  	System.out.println(errorMsg+". "+ae.getMessage());
+	      	notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
+	  		}
+	  		catch (Exception e) {
+	  			// Should never happen
+	  			e.printStackTrace();
+	  		}
+	  		// Forward the message to the FrontEnd
+		  	myFrontEnd.messageIn(msg, receiverID.getLocalName());
+	  	}
+	  	else {
+				throw new NotFoundException("DispatchMessage failed to find " + receiverID);
+	  	}
   	}
   }
   
