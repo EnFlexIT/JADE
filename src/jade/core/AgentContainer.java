@@ -74,7 +74,7 @@ interface AgentContainer extends Remote {
   void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException;
 
   void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException;
-  void route(Object env, byte[] payload, String address) throws RemoteException, MTPException;
+  void routeOut(ACLMessage msg, AID receiver, String address) throws RemoteException, MTPException;
 
   void enableSniffer(AID snifferName , AID toBeSniffed) throws RemoteException;
   void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException;
