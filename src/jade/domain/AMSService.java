@@ -457,7 +457,96 @@ the default SearchContraints are used.
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,amsName,actionName,amsd,constraints);
   }
-
+  
+  /**
+     Extracts the receiver a message could not be delivered to from
+     a FAILURE message received by the AMS.
+     @param a The agent that is calling this method.
+     @param failure The FAILURE message received by thye AMS.
+     @return the receiver a message could not be delivered to.
+   */
+  public static AID getFailedReceiver(Agent a, ACLMessage failure) throws FIPAException {
+  	if (failure.getPerformative() != ACLMessage.FAILURE || !failure.getSender().equals(a.getAMS())) {
+  		throw new FIPAException("Invalid AMS FAILURE message");
+  	}
+  	try {
+	  	String content = failure.getContent();
+	  	int start = content.indexOf("MTS-error");
+	  	start = content.indexOf(SL0Vocabulary.AID, start);
+	  	SimpleSLTokenizer parser = new SimpleSLTokenizer(content.substring(start));
+	  	return parseAID(parser);
+  	}
+  	catch (Exception e) {
+  		throw new FIPAException("Invalid content. "+e);
+  	}
+  }
+  
+  	
+  /**
+     The parser content has the form:
+     agent-identifier ......) <possibly something else>
+   */
+  private static AID parseAID(SimpleSLTokenizer parser) throws Exception {
+  	AID id = new AID("", AID.ISGUID); // Dummy temporary name
+ 		// Skip "agent-identifier"
+		parser.getElement();
+		while (parser.nextToken().startsWith(":")) {
+			String slotName = parser.getElement();
+			// Name
+			if (slotName.equals(SL0Vocabulary.AID_NAME)) {
+				id.setName(parser.getElement());
+			}
+			// Addresses
+			else if (slotName.equals(SL0Vocabulary.AID_ADDRESSES)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addAddresses((String) it.next());
+				}
+			}
+			//#CUSTOM_EXCLUDE_BEGIN
+			// Resolvers
+			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addResolvers((AID) it.next());
+				}
+			}
+			//#CUSTOM_EXCLUDE_END
+		}
+		parser.consumeChar(')');
+		return id;
+  }
+  
+  /**
+     The parser content has the form:
+     (sequence <val> <val> ......) <possibly something else>
+     or 
+     (set <val> <val> ......) <possibly something else>
+   */
+  private static List parseAggregate(SimpleSLTokenizer parser) throws Exception {
+  	List l = new ArrayList();
+		// Skip first (
+  	parser.consumeChar('(');
+  	// Skip "sequence" or "set" (no matter)
+		parser.getElement();
+		String next = parser.nextToken();
+		while (!next.startsWith(")")) {
+			if (!next.startsWith("(")) {
+				l.add(parser.getElement());
+			}
+			else {
+				parser.consumeChar('(');
+				next = parser.nextToken();
+				if (next.equals(SL0Vocabulary.AID)) {
+					l.add(parseAID(parser));
+				}
+			}
+			next = parser.nextToken();
+		}
+		parser.consumeChar(')');
+		return l;
+  }
+  
   /**
      Default constructor.
   */
