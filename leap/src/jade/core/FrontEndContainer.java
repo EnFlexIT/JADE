@@ -351,6 +351,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException {
   }
   
+  public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
+  }
+
+  public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
+  }
+
   public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
   }
   
