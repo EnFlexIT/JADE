@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
+import jade.core.AID;
+import jade.core.ContainerID;
+import jade.core.Channel;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -34,15 +37,60 @@ import jade.lang.acl.ACLMessage;
  */
 public class MessageEvent extends JADEEvent {
 
-  private ACLMessage message;
+  public static final int SENT_MESSAGE = 1;
+  public static final int POSTED_MESSAGE = 2;
+  public static final int RECEIVED_MESSAGE = 3;
+  public static final int ROUTED_MESSAGE = 4;
 
-  public MessageEvent(ACLMessage msg) {
-    super(null); // FIXME: must put the location for the current container...
+  private int myID;
+
+  private ACLMessage message;
+  private AID agent;
+  private Channel from;
+  private Channel to;
+
+  public MessageEvent(int id, ACLMessage msg, AID aid, ContainerID cid) {
+    super(cid);
+    myID = id;
+    if(isRouting()) {
+      throw new InternalError("Bad event kind: it must not be a 'message-routed' event.");
+    }
     message = msg;
+    agent = aid;
+    from = null;
+    to = null;
+  }
+
+  public MessageEvent(int id, ACLMessage msg, Channel f, Channel t, ContainerID cid) {
+    super(cid);
+    myID = id;
+    if(!isRouting()) {
+      throw new InternalError("Bad event kind: it must be a 'message-routed' event.");
+    }
+    message = msg;
+    agent = null;
+    from = f;
+    to = t;
   }
 
   public ACLMessage getMessage() {
     return message;
+  }
+
+  public AID getAgent() {
+    return agent;
+  }
+
+  public Channel getFrom() {
+    return from;
+  }
+
+  public Channel getTo() {
+    return to;
+  }
+
+  public boolean isRouting() {
+    return myID == ROUTED_MESSAGE;
   }
 
 }
