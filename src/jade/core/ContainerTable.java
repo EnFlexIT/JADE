@@ -82,6 +82,13 @@ class ContainerTable {
     entries.remove(new CaseInsensitiveString(containerName));
   }
 
+  public synchronized void removeAddress(String containerName, String address) throws NotFoundException {
+    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
+    if(e == null)
+      throw new NotFoundException("No container named " + containerName + " was found.");
+    List l = e.getAddresses();
+    l.remove(address);
+  }
 
   public synchronized AgentContainer getContainer(String containerName) throws NotFoundException {
     Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
