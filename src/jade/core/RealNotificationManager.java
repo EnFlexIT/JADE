@@ -129,8 +129,9 @@ class RealNotificationManager implements NotificationManager {
 
     //  FIXME: Need to send a complete, transactional snapshot of the
     //  agent state.
-    Agent a = localAgents.get(toBeDebugged);
+    Agent a = localAgents.acquire(toBeDebugged);
     AgentState as = a.getAgentState();
+    localAgents.release(toBeDebugged);
     fireChangedAgentState(toBeDebugged, as, as);
 
   }
