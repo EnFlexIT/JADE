@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/02/04 13:35:10  rimassa
+  Added actual interface type ID value to 'wrong type ID' exception.
+
   Revision 1.1  1999/02/03 10:20:57  rimassa
   New class to model outgoing IIOP connections. It can hold a CORBA object
   reference for FIPA_Agent_97 IDL interface and convert it among various formats,
@@ -76,7 +79,7 @@ class OutGoingIIOP {
     // Read 'string type_id' field
     String typeID = codecStrategy.readString();
     if(!typeID.equalsIgnoreCase(TYPE_ID))
-      throw new IIOPFormatException("Invalid type ID");
+      throw new IIOPFormatException("Invalid type ID" + typeID);
 
     // Read 'sequence<TaggedProfile> profiles' field
     // Read sequence length
