@@ -714,27 +714,16 @@ class MainContainerImpl implements Platform, AgentManager {
   //////////////////////////////////////////////////////////////////////
   /**
      Create an agent on a given container
+     @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException
    */
-  public void create(final String name, final String className, final String args[], ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException {
+  public void create(final String name, final String className, final String args[], ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException {
   	// Get the container where to create the agent
-  	// If it is not specified or does not exist, assume it is the Main
+  	// If it is not specified, assume it is the Main
   	AgentContainer where = null;
   	if (cid == null || cid.getName() == null) {
   		cid = new ContainerID(MAIN_CONTAINER_NAME, null);
   	} 
-    try {
-			where = containers.getContainer(cid);
-    }
-    catch (NotFoundException nfe) {
-  		cid = new ContainerID(MAIN_CONTAINER_NAME, null);
-      try {
-      	where = containers.getContainer(cid);
-      }
-		  catch (NotFoundException nfe2) {
-		  	// Should never happen
-		  	nfe2.printStackTrace();
-		  }
-    }
+	where = containers.getContainer(cid);
   		
     // Check permissions
     authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);

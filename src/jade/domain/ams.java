@@ -250,7 +250,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
 	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
 					myPlatform.create(agentName, className, args, container, ownership, agentCerts);
 					return null;
 		    }
@@ -265,6 +265,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		}
 		catch (UnreachableException ue) {
 	    throw new InternalError("Destination container unreachable. "+ue.getMessage());
+		}
+		catch (NotFoundException nfe) {
+	    throw new InternalError("Destination container notfound. "+nfe.getMessage());
 		}
 		catch (Exception e) {
 			e.printStackTrace();

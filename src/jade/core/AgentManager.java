@@ -86,7 +86,14 @@ public interface AgentManager {
   Authority getAuthority();
   
   // JADE actions method
-  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException;
+    /**
+     * Create an agent on the given container. If the container-name is null
+     * then the agent is created on the main-container.
+     * @throws NotFoundException if the passed container does not exist
+     * @throws UnreachableException if the container is unreachable 
+     * @throws AuthException if this action is not authorized
+     **/
+  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
