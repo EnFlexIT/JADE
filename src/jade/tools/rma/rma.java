@@ -229,8 +229,11 @@ public class rma extends Agent {
   */
   public void setup() {
 
-    // Register 'jade-agent-management' ontology
+    // Register the supported ontologies 
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+
+    // register the supported languages
+    registerLanguage(SL0Codec.NAME,new SL0Codec());	
 
     // Fill ACL messages fields
 
