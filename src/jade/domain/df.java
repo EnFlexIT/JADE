@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.25  1999/09/02 14:59:57  rimassa
+  Separated DF GUI from DF agent. Now the DF GUI lives in jade.gui
+  package.
+
   Revision 1.24  1999/06/22 13:17:22  rimassa
   Added support for showing the GUI on demand.
 
@@ -96,6 +100,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.proto.FipaRequestResponderBehaviour;
+import jade.gui.DFGUI;
+import jade.gui.GUI2DFCommunicatorInterface;
 
 /**
   Standard <em>Directory Facilitator</em> agent. This class implements
@@ -117,7 +123,7 @@ import jade.proto.FipaRequestResponderBehaviour;
   @version $Date$ $Revision$
 
 */
-public class df extends Agent {
+public class df extends Agent implements GUI2DFCommunicatorInterface {
 
   private abstract class DFBehaviour
     extends FipaRequestResponderBehaviour.Action 
@@ -156,12 +162,12 @@ public class df extends Agent {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	// pe.printStackTrace();
+	pe.printStackTrace();
 	// System.out.println("DF ParseException with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	// tme.printStackTrace();
+	tme.printStackTrace();
 	// System.out.println("DF TokenMgrError with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
@@ -499,7 +505,8 @@ public class df extends Agent {
       //      DFRegister(dfd);
       sendAgree();
       if (gui == null) {
-	gui = new DFGUI((df)myAgent);
+	//GUI2DFCommunicator dfc = new GUI2DFCommunicator(myAgent);
+	gui = new DFGUI(df.this);
 	gui.setVisible(true);
 	sendInform();
       } else
@@ -592,7 +599,7 @@ public class df extends Agent {
   private DFGUI gui;
   private Vector eventQueue = new Vector();
 
-  Enumeration getDFAgentDescriptors() {
+  public Enumeration getDFAgentDescriptors() {
     return descriptors.elements();
   }
 
@@ -992,12 +999,12 @@ public class df extends Agent {
 
   }
 
-  void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
     eventQueue.addElement(new GUIEvent(GUIEvent.EV_REG, dfName, dfd));
     doWake();
   }
 
-  void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
     eventQueue.addElement(new GUIEvent(GUIEvent.EV_DEREG, dfName, dfd));
     doWake();
   }
