@@ -529,10 +529,8 @@ public class RMIIMTPManager implements IMTPManager {
 		  String[] addrs = getAddresses();
 		  for(int i = 0; i < addrs.length; i++) {
 		      try {
-			  System.out.println("--- Trying <" + addrs[i] + "> ---");
 			  remoteSvcMgr = (ServiceManagerRMI)Naming.lookup(addrs[i] + SERVICE_MANAGER_NAME);
 			  remoteSvcMgr.adopt(localNode);
-			  System.out.println("--- Service Manager found at <" + addrs[i] + "> ---");
 			  return true;
 		      }
 		      catch(Exception e) {
@@ -540,7 +538,6 @@ public class RMIIMTPManager implements IMTPManager {
 		      }
 		  }
 
-		  System.out.println("--- No Service Managers found ---");
 		  return false;
 	      }
 
@@ -549,13 +546,6 @@ public class RMIIMTPManager implements IMTPManager {
 
 	  // Add the initial addresses to the proxy
 	  myServiceManagerProxy.addAddress(baseRMI);
-	  myServiceManagerProxy.addAddress("rmi://Monfortino:1100/");
-	  myServiceManagerProxy.addAddress("rmi://Monfortino:1101/");
-
-	  /***
-	  // Let the Service Manager know about the proxy
-	  myServiceManagerProxy.attach();
-	  ***/
 
 	  return myServiceManagerProxy;
       }
