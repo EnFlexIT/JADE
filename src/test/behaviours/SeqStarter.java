@@ -44,7 +44,7 @@ public class SeqStarter extends Agent {
   	  	String receiverName = new String("r"+i);
     		// Launch the sender on the main
     		String[] agentArgs = new String[] {receiverName, String.valueOf(nMessages), String.valueOf(shortestPeriod*(i+1))}; 
-    		TestUtility.createAgent(this, senderName, SENDER_CLASS, agentArgs, getAMS(), AgentManager.MAIN_CONTAINER_NAME); 
+    		TestUtility.createAgent(this, senderName, SENDER_CLASS, agentArgs, getAMS(), AgentContainer.MAIN_CONTAINER_NAME); 
 				// Launch the receiver on container-1 (it exists for sure)
     		agentArgs = new String[] {getLocalName()};
     		TestUtility.createAgent(this, receiverName, RECEIVER_CLASS, agentArgs, getAMS(), "Container-1");
