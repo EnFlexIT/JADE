@@ -156,7 +156,7 @@ public class ACLMessageNode extends DefaultMutableTreeNode {
       this.theDate = dateFormat.parse(time);
     }
     catch (Exception ex) {
-      System.out.println(ex.getMessage());
+      jade.util.Logger.getMyLogger(this.getClass().getName()).log(jade.util.Logger.WARNING,ex.getMessage());
     }
   }
 

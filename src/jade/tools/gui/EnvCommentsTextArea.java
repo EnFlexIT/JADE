@@ -34,6 +34,7 @@ import javax.swing.event.*;
 import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLMessage;
+import jade.util.Logger;
 
 /**
  *  This class displays a singe string from an ACLMessage
@@ -62,7 +63,7 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
       setText(res != null ? res.toString() : "");
     }
     catch (Exception ex) {
-      System.out.println("failed class: " + theObj.getClass() + " for " + methodName);
+      Logger.getMyLogger(this.getClass().getName()).log(Logger.WARNING,"failed class: " + theObj.getClass() + " for " + methodName);
       ex.printStackTrace();
     }
 

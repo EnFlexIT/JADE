@@ -33,6 +33,8 @@ import java.text.*;
 import jade.core.*;
 import jade.lang.acl.*;
 
+import jade.util.Logger;
+
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -47,6 +49,9 @@ class MsgIndication
 	public ACLMessage msg;
 	public int    direction;
 	public Date   date;
+	
+	//logging
+	private static Logger logger = Logger.getMyLogger(MsgIndication.class.getName());
 
 	private static DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
@@ -120,7 +125,7 @@ class MsgIndication
 
 			w.flush();
 		}
-		catch(IOException e) { System.out.println("IO Exception in MsgIndication.toText()"); }
+		catch(IOException e) { logger.log(Logger.WARNING,"IO Exception in MsgIndication.toText()"); }
 	}
 
 	static MsgIndication fromText(BufferedReader r)
@@ -154,9 +159,9 @@ class MsgIndication
 			line = r.readLine();
  
 		}
-		catch(IOException e) { System.out.println("IO Exception in MsgIndication.fromText()"); }
-		catch (java.text.ParseException e1) { System.out.println("ParseException in MsgIndication.fromText()"); }
-		catch (ACLCodec.CodecException e2) { System.out.println("ParseException in parsing the ACL message"); } //Exception thrown by ACLMessage.fromText()
+		catch(IOException e) { logger.log(Logger.WARNING,"IO Exception in MsgIndication.fromText()"); }
+		catch (java.text.ParseException e1) { logger.log(Logger.WARNING,"ParseException in MsgIndication.fromText()"); }
+		catch (ACLCodec.CodecException e2) {logger.log(Logger.WARNING,"ParseException in parsing the ACL message"); } //Exception thrown by ACLMessage.fromText()
 
 		return(mi);
 	}

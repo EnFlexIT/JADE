@@ -78,7 +78,7 @@ public class ACLTextField extends JTextField implements Observer {
       setText(res != null ? res.toString() : "");
     }
     catch (Exception ex) {
-      System.out.println("failed class: " + theObj.getClass() + " for " + methodName);
+      jade.util.Logger.getMyLogger(this.getClass().getName()).log(jade.util.Logger.WARNING,"failed class: " + theObj.getClass() + " for " + methodName);
       ex.printStackTrace();
     }
 

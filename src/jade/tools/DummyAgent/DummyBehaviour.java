@@ -102,7 +102,6 @@ class DummyBehaviour extends SimpleBehaviour
         }
         codec.decode(codec.encode(msg,charset),charset);
 		  } catch (ACLCodec.CodecException ce) {
-					System.out.println("Received a wrong ACL Message");
 					ce.printStackTrace();
 		  }
 		}

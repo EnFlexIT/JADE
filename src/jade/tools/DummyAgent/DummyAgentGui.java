@@ -40,6 +40,8 @@ import jade.lang.acl.*;
 import jade.gui.*;
 import jade.domain.FIPAAgentManagement.Envelope;
 
+import jade.util.Logger;
+
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -54,6 +56,9 @@ class DummyAgentGui extends JFrame
 	File              currentDir;
   String 						logoDummy = "images/dummyagent.gif";
 	DummyAgentGui thisGUI;
+	
+	//logging
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
   // Constructor
 	DummyAgentGui(DummyAgent a)
@@ -180,7 +185,7 @@ class DummyAgentGui extends JFrame
           myAgent.send(m);
 		    } 
         catch (ACLCodec.CodecException ce) {	
-		  	  System.out.println("Wrong ACL Message " + m.toString());
+		  	  logger.log(Logger.WARNING,"Wrong ACL Message " + m.toString());
 			    ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
         }
@@ -210,9 +215,9 @@ class DummyAgentGui extends JFrame
 				}
 				catch(FileNotFoundException e1) {
 						JOptionPane.showMessageDialog(null,"File not found: "+ fileName + e1.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
-					System.out.println("File Not Found: " + fileName); }
+					logger.log(Logger.WARNING,"File Not Found: " + fileName); }
 				catch (ACLCodec.CodecException e2) {
-					System.out.println("Wrong ACL Message in file: " +fileName);
+					logger.log(Logger.WARNING,"Wrong ACL Message in file: " +fileName);
 					// e2.printStackTrace(); 
 					JOptionPane.showMessageDialog(null,"Wrong ACL Message in file: "+ fileName +"\n"+ e2.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 				}
@@ -243,8 +248,8 @@ class DummyAgentGui extends JFrame
 				  	codec.write(ACLmsg);
             f.close();
 				  }
-				  catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
-				  catch(IOException e4) { System.out.println("IO Exception"); }
+				  catch(FileNotFoundException e3) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				  catch(IOException e4) {logger.log(Logger.WARNING,"IO Exception"); }
 			  } 
 	  	}
 		};
@@ -283,7 +288,7 @@ class DummyAgentGui extends JFrame
 						Integer nn = new Integer(inp.readLine());
 						n = nn.intValue();
 					}
-					catch(IOException ioEx) { System.out.println("IO Exception reading the number of messages in the queue"); }
+					catch(IOException ioEx) { logger.log(Logger.WARNING,"IO Exception reading the number of messages in the queue"); }
 					
 					// Read the messages and insert them in the queue
 					MsgIndication mi; 
@@ -293,8 +298,8 @@ class DummyAgentGui extends JFrame
 						queuedMsgListModel.add(i, (Object) mi);
 					}
 				}
-				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
-				catch(IOException e6) { System.out.println("IO Exception"); }
+				catch(FileNotFoundException e5) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				catch(IOException e6) { logger.log(Logger.WARNING,"IO Exception"); }
 			} 
 
 	  	}
@@ -324,7 +329,7 @@ class DummyAgentGui extends JFrame
 						out.write(String.valueOf(queuedMsgListModel.getSize()));
 						out.newLine();
 					}
-					catch(IOException ioEx) { System.out.println("IO Exception writing the number of messages in the queue"); }
+					catch(IOException ioEx) { logger.log(Logger.WARNING,"IO Exception writing the number of messages in the queue"); }
 
 					// Write the messages
 					MsgIndication mi;
@@ -334,8 +339,8 @@ class DummyAgentGui extends JFrame
 						mi.toText(out);
 					}
 				}
-				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
-				catch(IOException e6) { System.out.println("IO Exception"); }
+				catch(FileNotFoundException e5) { logger.log(Logger.WARNING,"Can't open file: " + fileName); }
+				catch(IOException e6) { logger.log(Logger.WARNING,"IO Exception"); }
 			} 
 
 	  }

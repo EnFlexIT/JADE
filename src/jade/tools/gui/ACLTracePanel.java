@@ -47,6 +47,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.StringACLCodec;
 import jade.tools.sl.SLFormatter;
 import jade.util.leap.*;
+import jade.util.Logger;
 
 /**
  *  This class show a List of incoming and outgoing ACLmessages. When clicking
@@ -59,6 +60,9 @@ import jade.util.leap.*;
 
 public class ACLTracePanel extends JPanel {
 
+  //logging
+  
+  private Logger logger = Logger.getMyLogger(this.getClass().getName());
   /**
    *  Constructor for the ACLTreePanel object
    *
@@ -94,7 +98,7 @@ public class ACLTracePanel extends JPanel {
     if (currentACL == null) {
       return;
     }
-    System.out.println("\n" + currentACL.toString() + "\n");
+    logger.log(Logger.CONFIG,"\n" + currentACL.toString() + "\n");
   }
 
 
@@ -321,10 +325,10 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-        System.out.println("Can't open file: " + fileName);
+       logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        System.out.println("IO Exception");
+        logger.log(Logger.WARNING,"IO Exception");
       }
     }
 
@@ -387,10 +391,10 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-        System.out.println("Can't open file: " + fileName);
+        logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        System.out.println("IO Exception");
+        logger.log(Logger.WARNING,"IO Exception");
       }
     }
   }
@@ -443,10 +447,10 @@ public class ACLTracePanel extends JPanel {
 
       }
       catch (FileNotFoundException e3) {
-        System.out.println("Can't open file: " + fileName);
+        logger.log(Logger.WARNING,"Can't open file: " + fileName);
       }
       catch (IOException e4) {
-        System.out.println("IO Exception");
+        logger.log(Logger.WARNING,"IO Exception");
       }
       catch (Exception ex) {
         ex.printStackTrace();
