@@ -595,7 +595,7 @@ public class MessageTemplate implements Serializable {
      @return A new <code>MessageTemplate</code> object.
      @see jade.lang.acl.MessageTemplate#and(MessageTemplate op1, MessageTemplate op2)
   */
-  private static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
+  public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
     OrExpression e = new OrExpression(op1.toMatch, op2.toMatch);
     MessageTemplate result = new MessageTemplate(e);
     return result;
@@ -609,7 +609,7 @@ public class MessageTemplate implements Serializable {
      @param op The <em>not</em> operand.
      @return A new <code>MessageTemplate</code> object.
   */
-  private static MessageTemplate not(MessageTemplate op) {
+  public static MessageTemplate not(MessageTemplate op) {
     NotExpression e = new NotExpression(op.toMatch);
     MessageTemplate result = new MessageTemplate(e);
     return result;
