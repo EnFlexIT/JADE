@@ -29,6 +29,7 @@ import jade.content.onto.OntologyException;
 import jade.content.abs.*;
 import jade.content.schema.ObjectSchema;
 import jade.content.lang.StringCodec;
+//__CLDC_UNSUPPORTED__BEGIN
 import jade.lang.acl.ISO8601;
 import jade.util.leap.Iterator;
 import jade.domain.FIPANames;
@@ -38,7 +39,6 @@ import java.util.Date;
 import java.util.Vector;
 import java.io.StringReader;
 
-//__CLDC_UNSUPPORTED__BEGIN
 import java.io.BufferedReader; // only for debugging purposes in the main
 import java.io.InputStreamReader; // only for debugging purposes in the main
 //__CLDC_UNSUPPORTED__END
@@ -53,6 +53,10 @@ import java.io.InputStreamReader; // only for debugging purposes in the main
  * @author Fabio Bellifemine - TILAB 
  * @version $Date$ $Revision$
  */
+/*__J2ME_COMPATIBILITY__BEGIN
+public class SLCodec extends SimpleSLCodec {
+__J2ME_COMPATIBILITY__END*/
+//__CLDC_UNSUPPORTED__BEGIN
 public class SLCodec extends StringCodec {
 
     private SLParser parser;
@@ -514,5 +518,6 @@ public class SLCodec extends StringCodec {
 				}
 		  }
     }
+//__CLDC_UNSUPPORTED__END
 }
 
