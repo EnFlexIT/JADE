@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
 
 import jade.core.*;
-import jade.lang.acl.*;
+import jade.lang.acl.ACLMessage;
 
 
 /**************************************************************
@@ -31,7 +31,7 @@ import jade.lang.acl.*;
 ****************************************************************/
 public class ams extends Agent { // FIXME: Must become a Singleton
 
-  private abstract class AMSBehaviour extends SimpleBehaviour {
+  private abstract class AMSBehaviour extends SimpleBehaviour implements BehaviourPrototype {
 
     // This String will be set by subclasses
     private String myActionName;
@@ -65,11 +65,6 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       myTokenizer = st;
       myOntology = AgentManagementOntology.instance();
     }
-
-    // This method creates a copy of an AMS behaviour, passing the
-    // reply message and a StringTokenizer that is reading the content
-    // of a received message.
-    public abstract Behaviour instance(ACLMessage msg, StringTokenizer st);
 
     // This method throws a FIPAException if the attribute is
     // mandatory for the current AMS action but it is a null object
@@ -157,52 +152,52 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     }
 
 
-  // The following methods handle the various possibilities arising in
-  // AMS <-> Agent interaction. They all receive an ACL message as an
-  // argument, most of whose fields have already been set. Only the
-  // message type and message content have to be filled in.
+    // The following methods handle the various possibilities arising in
+    // AMS <-> Agent interaction. They all receive an ACL message as an
+    // argument, most of whose fields have already been set. Only the
+    // message type and message content have to be filled in.
 
-  // Send a 'not-understood' message back to the requester
-  private void sendNotUnderstood(ACLMessage msg) {
-    msg.setType("not-understood");
-    msg.setContent("");
-    send(msg);
-  }
+    // Send a 'not-understood' message back to the requester
+    protected void sendNotUnderstood(ACLMessage msg) {
+      msg.setType("not-understood");
+      msg.setContent("");
+      send(msg);
+    }
 
-  // Send a 'refuse' message back to the requester
-  private void sendRefuse(ACLMessage msg, String reason) {
-    msg.setType("refuse");
-    msg.setContent("( ams action " + myActionName + " ) " + reason);
-    send(msg);
-  }
+    // Send a 'refuse' message back to the requester
+    protected void sendRefuse(ACLMessage msg, String reason) {
+      msg.setType("refuse");
+      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      send(msg);
+    }
 
-  // Send a 'failure' message back to the requester
-  private void sendFailure(ACLMessage msg, String reason) {
-    msg.setType("failure");
-    msg.setContent("( ams action " + myActionName + " ) " + reason);
-    send(msg);
-  }
+    // Send a 'failure' message back to the requester
+    protected void sendFailure(ACLMessage msg, String reason) {
+      msg.setType("failure");
+      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      send(msg);
+    }
 
-  // Send an 'agree' message back to the requester
-  private void sendAgree(ACLMessage msg) {
-    msg.setType("agree");
-    msg.setContent("( ams action " + myActionName + " )");
-    send(msg);
-  }
+    // Send an 'agree' message back to the requester
+    protected void sendAgree(ACLMessage msg) {
+      msg.setType("agree");
+      msg.setContent("( ams action " + myActionName + " )");
+      send(msg);
+    }
 
-  // Send an 'inform' message back to the requester
-  private void sendInform(ACLMessage msg) {
-    msg.setType("inform");
-    msg.setContent("( done ( " + myActionName + " ) )");
-    send(msg);
-  }
+    // Send an 'inform' message back to the requester
+    protected void sendInform(ACLMessage msg) {
+      msg.setType("inform");
+      msg.setContent("( done ( " + myActionName + " ) )");
+      send(msg);
+    }
 
 
   } // End of AMSBehaviour class
 
 
   // These four concrete classes serve both as a Prototype and as an
-  // Instance: when seen as amsBehaviourPrototype they can spawn a new
+  // Instance: when seen as BehaviourPrototype they can spawn a new
   // Behaviour to process a given request, and when seen as
   // Behaviour they process their request and terminate.
 
@@ -344,110 +339,32 @@ public class ams extends Agent { // FIXME: Must become a Singleton
   } // End of ModBehaviour class
 
 
-  // This behaviour receives incoming request messages and starts
-  // specific sub-behaviours according to the kind of action
-  // requested.
-  private class DispatcherBehaviour implements Behaviour {
-
-    private MessageTemplate requestTemplate;
-
-    public DispatcherBehaviour() {
-      MessageTemplate mt1 = 
-	MessageTemplate.and(MessageTemplate.MatchProtocol("fipa-request"),
-			    MessageTemplate.MatchType("request"));
-      MessageTemplate mt2 = 
-	MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
-			    MessageTemplate.MatchOntology("fipa-agent-management"));
-      requestTemplate = MessageTemplate.and(mt1, mt2);
-    }
-
-    public void execute() {
-      ACLMessage msg = receive(requestTemplate);
-      if(msg != null) {
-
-	ACLMessage reply = new ACLMessage();
-
-
-	// Write content-independent fields of reply message
-
-	reply.setDest(msg.getSource());
-	reply.setSource(msg.getDest());
-	reply.setProtocol("fipa-request");
-	reply.setOntology("fipa-agent-management");
-	reply.setLanguage("SL0");
-
-	String s = msg.getReplyWith();
-	if(s != null)
-	  reply.setReplyTo(s);
-	s =msg.getConversationId();
-	if(s != null)
-	  reply.setConversationId(s);
-
-
-	// Start reading message content and spawn a suitable
-	// Behaviour according to action kind
-
-	StringTokenizer st = new StringTokenizer(msg.getContent()," \t\n\r()",false);
-
-	String token = st.nextToken();
-	if(token.equalsIgnoreCase("action")) {
-	  token = st.nextToken(); // Now 'token' is the name of the AMS agent
-	  token = st.nextToken(); // Now 'token' is the action name
-
-	  AMSBehaviour action = (AMSBehaviour)actions.get(token);
-	  if(action == null) {
-	    sendNotUnderstood(reply);
-	    return;
-	  }
-	  else
-	    addBehaviour(action.instance(reply, st));
-	}
-	else
-	  sendNotUnderstood(reply);
-      }
-
-    }
-
-    public boolean done() {
-      return false;
-    }
-
-    // Send a 'not-understood' message back to the requester
-    private void sendNotUnderstood(ACLMessage msg) {
-      msg.setType("not-understood");
-      msg.setContent("");
-      send(msg);
-    }
-
-  } // End of DispatcherBehaviour class
-
-
   // The AgentPlatform where information about agents is stored 
   private AgentPlatformImpl myPlatform;
 
   // Maintains an association between action names and behaviours
-  private Hashtable actions;
+  private FipaRequestServerBehaviour dispatcher;
 
   public ams(AgentPlatformImpl ap, String name) {
     myPlatform = ap;
     myName = name;
 
+    dispatcher = new FipaRequestServerBehaviour(this);
+
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
-    actions = new Hashtable(4, 1.0f);
 
-    actions.put(AgentManagementOntology.AMSActions.AUTHENTICATE, new AuthBehaviour());
-    actions.put(AgentManagementOntology.AMSActions.REGISTERAGENT, new RegBehaviour());
-    actions.put(AgentManagementOntology.AMSActions.DEREGISTERAGENT, new DeregBehaviour());
-    actions.put(AgentManagementOntology.AMSActions.MODIFYAGENT, new ModBehaviour());
-
+    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.AUTHENTICATE, new AuthBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.REGISTERAGENT, new RegBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.DEREGISTERAGENT, new DeregBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSActions.MODIFYAGENT, new ModBehaviour());
 
   }
 
   protected void setup() {
 
     // Add a dispatcher behaviour
-    addBehaviour(new DispatcherBehaviour());
+    addBehaviour(dispatcher);
 
   }
 
