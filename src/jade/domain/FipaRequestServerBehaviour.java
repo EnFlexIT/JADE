@@ -14,7 +14,7 @@ import jade.lang.acl.*;
 // This behaviour receives incoming 'fipa-request' request messages
 // and starts specific sub-behaviours according to the kind of
 // action requested.
-class FipaRequestServerBehaviour implements Behaviour {
+class FipaRequestServerBehaviour extends CyclicBehaviour {
 
   private Agent myAgent;
 
@@ -35,7 +35,7 @@ class FipaRequestServerBehaviour implements Behaviour {
     requestTemplate = MessageTemplate.and(mt1, mt2);
   }
 
-  public void execute() {
+  public void action() {
     ACLMessage msg = myAgent.receive(requestTemplate);
     if(msg != null) {
 
@@ -78,14 +78,13 @@ class FipaRequestServerBehaviour implements Behaviour {
       else
 	sendNotUnderstood(reply);
     }
+    else block();
 
   }
 
-  public boolean done() {
-    return false;
-  }
 
-  // These two methods allow to 
+  // These two methods allow to add and remove prototype Behaviours to
+  // be associated to action names
   public void registerPrototype(String actionName, BehaviourPrototype bp) {
     actions.put(actionName, bp);
   }
@@ -101,5 +100,5 @@ class FipaRequestServerBehaviour implements Behaviour {
     myAgent.send(msg);
   }
 
-} // End of DispatcherBehaviour class
+} // End of FipaRequestServerBehaviour class
 
