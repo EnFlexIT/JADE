@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.40  1999/08/31 17:23:57  rimassa
+  Added a method to transfer agent identity between two agent
+  containers.
+
   Revision 1.39  1999/08/27 15:44:43  rimassa
   Added Agent Descriptor locking in GADT lookup, to support
   transactional agent migration.
@@ -463,6 +467,29 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       }
       return rp;
     }
+  }
+
+  public boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException {
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null)
+      throw new NotFoundException("transferIdentity() unable to find agent " + agentName);
+    AgentContainer srcAC = lookup(src);
+    AgentContainer destAC = lookup(dest);
+    try {
+      srcAC.ping();
+      destAC.ping();
+    }
+    catch(RemoteException re) {
+      // Abort transaction
+      return false;
+    }
+
+    // Commit transaction and notify AMS
+    ad.lock();
+    ad.setProxy(new RemoteProxyRMI(destAC));
+    theAMS.postMovedAgent(agentName, src, dest);
+    ad.unlock();
+    return true;
   }
 
   // This method overrides AgentContainerImpl.shutDown(); besides
