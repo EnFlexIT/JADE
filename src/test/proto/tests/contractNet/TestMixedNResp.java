@@ -67,7 +67,7 @@ public class TestMixedNResp extends TestBase {
   	msg.addReceiver(new AID(new String(RESPONDER_NAME+9), AID.ISLOCALNAME));
 
   	return new BasicContractNetInitiator(a, msg, ds, resultKey, 10000,
-  		new int[] {4, 1, 1, 1, 1, 4}); // 4 PROPOSE, 4 OUT_OF_SEQ
+  		new int[] {4, 1, 1, 1, 2, 3}); // 4 PROPOSE, 2 FAILURE, 3 OUT_OF_SEQ
   }
   
 }

@@ -67,10 +67,10 @@ public class TestMixedNResp2Rounds extends TestBase {
   	msg.addReceiver(new AID(new String(RESPONDER_NAME+9), AID.ISLOCALNAME));
 
   	BasicContractNetInitiator b1 = new BasicContractNetInitiator(a, msg, ds, null, 10000,
-  		new int[] {4, 1, 1, 1, 1, 4});
+  		new int[] {4, 1, 1, 1, 2, 3});
   	
   	BasicContractNetInitiator b2 = new BasicContractNetInitiator(a, msg, ds, resultKey, 10000, 
-  		new int[] {4, 1, 1, 1, 1, 4}) {
+  		new int[] {4, 1, 1, 1, 2, 3}) {
   		
   		public Vector prepareCfps(ACLMessage cfp) {
   			BasicContractNetInitiator p = (BasicContractNetInitiator) parent;
