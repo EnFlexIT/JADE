@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 /**************************************************************
 
@@ -335,8 +336,10 @@ public class df extends Agent {
   private FipaRequestServerBehaviour dispatcher;
 
   public df() {
-
-    dispatcher = new FipaRequestServerBehaviour(this);
+    MessageTemplate mt = 
+      MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
+			  MessageTemplate.MatchOntology("fipa-agent-management"));
+    dispatcher = new FipaRequestServerBehaviour(this, mt);
 
     // Associate each DF action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
