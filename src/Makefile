@@ -24,6 +24,7 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/SimpleBehaviour.java \
 		jade/core/SenderBehaviour.java \
 		jade/core/ReceiverBehaviour.java \
+		jade/domain/rma.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
 		jade/proto/Standard.java \
 		jade/gui/AMSMainFrame.java
