@@ -841,18 +841,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		          // The agent was found in the GADT, but his container has probably
 		          // disappeared in the meanwhile ==> Try again.
 		        }
-		        catch(IMTPException imtpe1) {
-		          // The agent was found in the GADT, but his container is unreachable.
-		        	if (receiverID.equals(myContainer.getAMS())) {
-		        		// If the receiver is the AMS this may be due to a fault
-		        		// of the master main container (the new AMS and DF have not started
-		        		// yet). Wait a bit and try one more time.
-		        		waitABit(3000);
-		        	}
-		        	else {
-		        		throw imtpe1;
-		        	}
-		        }
           }
         }
         else {
@@ -916,12 +904,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           		t.printStackTrace();
           		throw ((IMTPException) t);
           	}
-          	//log("Fresh slice is "+targetSlice, 4);
                   if (logger.isLoggable(Logger.FINEST))
                     logger.log(Logger.FINEST,"Fresh slice is "+targetSlice);
 
             targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
-          	//log("Dispatch successful", 4);
                   if (logger.isLoggable(Logger.FINEST))
                     logger.log(Logger.FINEST,"Dispatch successful");
 
@@ -940,27 +926,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           // The agent was found in the GADT, but his container has probably
           // disappeared in the meanwhile ==> Try again.
         }
-        catch(IMTPException imtpe1) {
-          // The agent was found in the GADT, but his container is unreachable.
-        	if (receiverID.equals(myContainer.getAMS())) {
-        		// If the receiver is the AMS this may be due to a fault
-        		// of the master main container (the new AMS and DF have not started
-        		// yet). Wait a bit and try one more time.
-        		waitABit(3000);
-        	}
-        	else {
-        		throw imtpe1;
-        	}
-        }
 	    } while(!ok);
     }
-
-		private void waitABit(long t) {
-			try {
-				Thread.sleep(t);
-			}
-			catch (InterruptedException ie) {}
-		}
 
     // Implementation of the Service.Slice interface
 
@@ -1338,17 +1305,30 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * the Message Transport Service.
    */
   public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
-    GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
-    cmd.addParam(msg);
-    cmd.addParam(receiver);
-    cmd.addParam(ie);
-
-    try {
-	    submit(cmd);
+    if (receiver.equals(myContainer.getAMS()) && msg.getAttemptCnt() < 3) {
+    	// The receiver of the message was the AMS. The AMS must always be
+    	// there --> It is probably due to a fault of the main container.
+    	// Print a warning then wait a bit then try again: if there is a 
+    	// backup main the delivery will succeed. If there is no backup 
+    	// main, do not retry to many times to avoid stack overflow.
+    	myLogger.log(Logger.WARNING, "Error \""+ie.getErrorMessage()+"\" delivering message to the AMS. It must be due to a main fault recovery in progress. Wait a bit then try again");
+    	msg.incAttemptCnt();
+    	waitABit(3000);
+    	deliverNow(msg, receiver);
     }
-    catch(ServiceException se) {
-	    // It should never happen
-	    se.printStackTrace();
+    else {	
+	  	GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
+	    cmd.addParam(msg);
+	    cmd.addParam(receiver);
+	    cmd.addParam(ie);
+	
+	    try {
+		    submit(cmd);
+	    }
+	    catch(ServiceException se) {
+		    // It should never happen
+		    se.printStackTrace();
+	    }
     }
   }
 
@@ -1435,6 +1415,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     return false;
   }
 
+	private void waitABit(long t) {
+		try {
+			Thread.sleep(t);
+		}
+		catch (InterruptedException ie) {}
+	}
+  
   // Work-around for PJAVA compilation
   protected Service.Slice getFreshSlice(String name) throws ServiceException {
     return super.getFreshSlice(name);

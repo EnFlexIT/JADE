@@ -56,6 +56,7 @@ public class GenericMessage implements Serializable {
   private transient Credentials senderCredentials;
   private boolean isAMSFailure = false;
   private transient boolean foreignReceiver = false;
+  private transient int attemptCnt = 0;
 
   public GenericMessage(){
   }
@@ -69,58 +70,66 @@ public class GenericMessage implements Serializable {
     this.payload = payload;
   }
 
-  public byte[] getPayload(){
+  public final byte[] getPayload(){
     return payload;
   }
 
-  public Envelope getEnvelope(){
+  public final Envelope getEnvelope(){
     return env;
   }
 
-  public ACLMessage getACLMessage(){
+  public final ACLMessage getACLMessage(){
     return msg;
   }
 
-  public void setACLMessage(ACLMessage msg){
+  public final void setACLMessage(ACLMessage msg){
     this.msg = msg;
   }
 
-  public void update(ACLMessage msg, Envelope env, byte[]payload){
+  public final void update(ACLMessage msg, Envelope env, byte[]payload){
     this.msg = msg;
     this.env = env;
     this.payload = payload;
   }
 
-  void setSenderPrincipal(JADEPrincipal senderPrincipal) {
+  final void setSenderPrincipal(JADEPrincipal senderPrincipal) {
   	this.senderPrincipal = senderPrincipal;
   }
   
-  JADEPrincipal getSenderPrincipal() {
+  final JADEPrincipal getSenderPrincipal() {
   	return senderPrincipal;
   }
   
-  void setSenderCredentials(Credentials senderCredentials) {
+  final void setSenderCredentials(Credentials senderCredentials) {
   	this.senderCredentials = senderCredentials;
   }
   
-  Credentials getSenderCredentials() {
+  final Credentials getSenderCredentials() {
   	return senderCredentials;
   }
 
-  public boolean isAMSFailure() {
+  public final boolean isAMSFailure() {
     return isAMSFailure;
   }
 
-  public void setAMSFailure(boolean b) {
+  public final void setAMSFailure(boolean b) {
     isAMSFailure=b;
   }
   
-  boolean hasForeignReceiver() {
+  final boolean hasForeignReceiver() {
   	return foreignReceiver;
   }
   
-  void setForeignReceiver(boolean b) {
+  final void setForeignReceiver(boolean b) {
   	foreignReceiver = b;
+  }
+  
+  final int getAttemptCnt() {
+  	return attemptCnt;
+  }
+  
+  final void incAttemptCnt() {
+  	attemptCnt++;
   }
   
 	//#MIDP_EXCLUDE_BEGIN
@@ -133,7 +142,7 @@ public class GenericMessage implements Serializable {
   }
 	//#MIDP_EXCLUDE_END
 
-  public AID getSender(){
+  public final AID getSender(){
     if (msg!=null) return msg.getSender();
     else if (env!=null) return env.getFrom();
     else return null;
@@ -144,7 +153,7 @@ public class GenericMessage implements Serializable {
     return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
   }
 
-  public int length() {
+  public final int length() {
   	int length = 0;
 		if (payload != null) {
 			length = payload.length;
