@@ -230,7 +230,7 @@ private int performative; // keeps the performative type of this object
   */
   public static java.util.List getAllPerformatives()
   {
-  	return performatives.toList();
+  	return ((ArrayList) performatives).toList();
   }
   //__BACKWARD_COMPATIBILITY__END
   
