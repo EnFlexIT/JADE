@@ -99,6 +99,23 @@ public class Runtime {
   }
 
 
+  /**
+     This method just wraps <code>createAgentContainer()</code> and
+     is here for compatibility with PersonalJava.
+     @parameter p the profile containing boostrap and configuration
+     data for this container
+     @see jade.core.Runtime#createAgentContainer(Profile p)
+   */
+  public void startUp(Profile p) {    
+        // Set Runtime so that this JVM exits 
+        // when there are no more containers around
+        Runtime.instance().setCloseVM(true);
+        
+        // Start the platform
+        Runtime.instance().createAgentContainer(p);
+  }
+
+
   // Called by jade.Boot to make the VM terminate when all the
   // containers are closed.
   public void setCloseVM(boolean flag) {

@@ -53,5 +53,11 @@ class JADEClassLoader extends ClassLoader {
     else
       throw new ClassNotFoundException();
   }
-
+  
+  /*__J2ME_COMPATIBILITY__BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
+  protected Class loadClass(String name,	
+    	                    boolean resolve) throws ClassNotFoundException {
+      return loadClass(name);
+  }
+	__J2ME_COMPATIBILITY__END*/
 }
