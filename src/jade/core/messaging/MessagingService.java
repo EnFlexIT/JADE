@@ -305,212 +305,73 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private class CommandTargetSink implements Sink {
 
-	public void consume(VerticalCommand vCmd) {
-	    System.out.println("--- Consuming command <" + vCmd.getName() + "> ---");
-	}
-
-    } // End of CommandTargetSink class
-
-
-    /**
-       Inner class for this service: this class receives commands from
-       service <code>Sink</code> and serves them, coordinating with
-       remote parts of this service through the <code>Slice</code>
-       interface (that extends the <code>Service.Slice</code>
-       interface).
-    */
-    private class ServiceComponent implements MessagingSlice {
-
-	public Iterator getAddresses() {
-	    return routes.getAddresses();
-	}
-
-	// Entry point for the ACL message dispatching process
-	public void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
+	public void consume(VerticalCommand cmd) {
 	    try {
-		MainContainer impl = myContainer.getMain();
-		if(impl != null) {
-		    while(true) {
-			// Directly use the GADT on the main container
-			ContainerID cid = impl.getContainerID(receiverID);
-			MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-			try {
-			    targetSlice.dispatchLocally(msg, receiverID);
-			    return; // Message dispatched
-			}
-			catch(NotFoundException nfe) {
-			    // The agent was found in he GADT, but not in the target LADT => try again
-			}
-		    }
+		String name = cmd.getName();
+		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
+		    handleSendMessage(cmd);
 		}
-		else {
-
-		    // Try first with the cached <AgentID;Container ID> pairs
-		    MessagingSlice cachedSlice = (MessagingSlice)cachedSlices.get(receiverID);
-		    if(cachedSlice != null) { // Cache hit :-)
-			try {
-			    //System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
-			    cachedSlice.dispatchLocally(msg, receiverID);
-			}
-			catch(IMTPException imtpe) {
-			    cachedSlices.remove(receiverID); // Eliminate stale cache entry
-			    deliverUntilOK(msg, receiverID);
-			}
-			catch(NotFoundException nfe) {
-			    cachedSlices.remove(receiverID); // Eliminate stale cache entry
-			    deliverUntilOK(msg, receiverID);
-			}
-		    }
-		    else { // Cache miss :-(
-			//System.out.println("--- Cache Miss for AID [" + receiverID.getLocalName() + "] ---");
-			deliverUntilOK(msg, receiverID);
-		    }
+		if(name.equals(MessagingSlice.INSTALL_MTP)) {
+		    Object result = handleInstallMTP(cmd);
+		    cmd.setReturnValue(result);
+		}
+		else if(name.equals(MessagingSlice.UNINSTALL_MTP)) {
+		    handleUninstallMTP(cmd);
+		}
+		else if(name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
+		    handleSetPlatformAddresses(cmd);
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		throw new UnreachableException("Unreachable network node", imtpe);
+		imtpe.printStackTrace();
+	    }
+	    catch(NotFoundException nfe) {
+		nfe.printStackTrace();
 	    }
 	    catch(ServiceException se) {
-		throw new UnreachableException("Unreachable service slice:", se);
+		se.printStackTrace();
+	    }
+	    catch(MTPException mtpe) {
+		mtpe.printStackTrace();
 	    }
 	}
 
-	private void deliverUntilOK(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
-	    boolean ok = false;
-	    do {
-		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-		ContainerID cid = mainSlice.getAgentLocation(receiverID);
+	private void handleSendMessage(VerticalCommand cmd) throws NotFoundException {
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID receiverID = (AID)params[1];
 
-		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
-		try {
-		    targetSlice.dispatchLocally(msg, receiverID);
-		    System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
-		    // On successful message dispatch, put the slice into the slice cache
-		    cachedSlices.put(receiverID, targetSlice);
-		    ok = true;
-		}
-		catch(NotFoundException nfe) {
-		    ok = false; // Stale proxy again, maybe the receiver is running around. Try again...
-		}
+	    dispatchLocally(msg, receiverID);
+	}
 
-	    } while(!ok);
+	private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, MTPException {
+	    Object[] params = cmd.getParams();
+	    String address = (String)params[0];
+	    String className = (String)params[1];
+
+	    return installMTP(address, className);
+	}
+
+	private void handleUninstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
+	    Object[] params = cmd.getParams();
+	    String address = (String)params[0];
+
+	    uninstallMTP(address);
+	}
+
+	private void handleSetPlatformAddresses(VerticalCommand cmd) {
+
 	}
 
 
-	// Implementation of the Service.Slice interface
-
-	public Service getService() {
-	    return MessagingService.this;
-	}
-
-	public Node getNode() throws ServiceException {
-	    try {
-		return MessagingService.this.getLocalNode();
-	    }
-	    catch(IMTPException imtpe) {
-		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
-	    }
-	}
-
-	public VerticalCommand serve(HorizontalCommand cmd) {
-	    VerticalCommand result = null;
-	    try {
-		String cmdName = cmd.getName();
-		Object[] params = cmd.getParams();
-
-		if(cmdName.equals(H_DISPATCHLOCALLY)) {
-		    ACLMessage msg = (ACLMessage)params[0];
-		    AID receiverID = (AID)params[1];
-
-		    dispatchLocally(msg, receiverID);
-		    result = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-		}
-		else if(cmdName.equals(H_ROUTEOUT)) {
-		    ACLMessage msg = (ACLMessage)params[0];
-		    AID receiverID = (AID)params[1];
-		    String address = (String)params[2];
-
-		    routeOut(msg, receiverID, address);
-		}
-		else if(cmdName.equals(H_GETAGENTLOCATION)) {
-		    AID agentID = (AID)params[0];
-
-		    cmd.setReturnValue(getAgentLocation(agentID));
-		}
-		else if(cmdName.equals(H_INSTALLMTP)) {
-		    String address = (String)params[0];
-		    String className = (String)params[1];
-
-		    cmd.setReturnValue(installMTP(address, className));
-		}
-		else if(cmdName.equals(H_UNINSTALLMTP)) {
-		    String address = (String)params[0];
-
-		    uninstallMTP(address);
-		}
-		else if(cmdName.equals(H_NEWMTP)) {
-		    MTPDescriptor mtp = (MTPDescriptor)params[0];
-		    ContainerID cid = (ContainerID)params[1];
-
-		    newMTP(mtp, cid);
-		}
-		else if(cmdName.equals(H_DEADMTP)) {
-		    MTPDescriptor mtp = (MTPDescriptor)params[0];
-		    ContainerID cid = (ContainerID)params[1];
-
-		    deadMTP(mtp, cid);
-		}
-		else if(cmdName.equals(H_ADDROUTE)) {
-		    MTPDescriptor mtp = (MTPDescriptor)params[0];
-		    String sliceName = (String)params[1];
-
-		    addRoute(mtp, sliceName);
-		}
-		else if(cmdName.equals(H_REMOVEROUTE)) {
-		    MTPDescriptor mtp = (MTPDescriptor)params[0];
-		    String sliceName = (String)params[1];
-
-		    removeRoute(mtp, sliceName);
-		}
-	    }
-	    catch(Throwable t) {
-		cmd.setReturnValue(t);
-	    }
-	    finally {
-		return result;
-	    }
-	}
-
-
-	// Implementation of the service-specific horizontal interface MessagingSlice
-
-	public void dispatchLocally(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
+	private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
 	    boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
 	    if(!found) {
 		throw new NotFoundException("Messaging service slice failed to find " + receiverID);
 	    }
 	}
 
-	public void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
-	    RoutingTable.OutPort out = routes.lookup(address);
-	    if(out != null)
-		out.route(msg, receiverID, address);
-	    else
-		throw new MTPException("No suitable route found for address " + address + ".");
-	}
-
-	public ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
-	    MainContainer impl = myContainer.getMain();
-	    if(impl != null) {
-		return impl.getContainerID(agentID);
-	    }
-	    else {
-		// Do nothing for now, but could also have a local GADT copy, thus enabling e.g. Main Container replication
-		return null;
-	    }
-	}
-
-	public MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException {
+	private MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException {
 
 	    try {
 		// Create the MTP
@@ -621,7 +482,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {
+	private void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {
 
 	    MTP proto = routes.removeLocalMTP(address);
 	    if(proto != null) {
@@ -637,7 +498,209 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
+
+
+
+    } // End of CommandTargetSink class
+
+
+    /**
+       Inner class for this service: this class receives commands from
+       service <code>Sink</code> and serves them, coordinating with
+       remote parts of this service through the <code>Slice</code>
+       interface (that extends the <code>Service.Slice</code>
+       interface).
+    */
+    private class ServiceComponent implements Service.Slice {
+
+	public Iterator getAddresses() {
+	    return routes.getAddresses();
+	}
+
+	// Entry point for the ACL message dispatching process
+	public void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
+	    try {
+		MainContainer impl = myContainer.getMain();
+		if(impl != null) {
+		    while(true) {
+			// Directly use the GADT on the main container
+			ContainerID cid = impl.getContainerID(receiverID);
+			MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
+			try {
+			    targetSlice.dispatchLocally(msg, receiverID);
+			    return; // Message dispatched
+			}
+			catch(NotFoundException nfe) {
+			    // The agent was found in he GADT, but not in the target LADT => try again
+			}
+		    }
+		}
+		else {
+
+		    // Try first with the cached <AgentID;Container ID> pairs
+		    MessagingSlice cachedSlice = (MessagingSlice)cachedSlices.get(receiverID);
+		    if(cachedSlice != null) { // Cache hit :-)
+			try {
+			    //System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
+			    cachedSlice.dispatchLocally(msg, receiverID);
+			}
+			catch(IMTPException imtpe) {
+			    cachedSlices.remove(receiverID); // Eliminate stale cache entry
+			    deliverUntilOK(msg, receiverID);
+			}
+			catch(NotFoundException nfe) {
+			    cachedSlices.remove(receiverID); // Eliminate stale cache entry
+			    deliverUntilOK(msg, receiverID);
+			}
+		    }
+		    else { // Cache miss :-(
+			//System.out.println("--- Cache Miss for AID [" + receiverID.getLocalName() + "] ---");
+			deliverUntilOK(msg, receiverID);
+		    }
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		throw new UnreachableException("Unreachable network node", imtpe);
+	    }
+	    catch(ServiceException se) {
+		throw new UnreachableException("Unreachable service slice:", se);
+	    }
+	}
+
+	private void deliverUntilOK(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
+	    boolean ok = false;
+	    do {
+		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
+		ContainerID cid = mainSlice.getAgentLocation(receiverID);
+
+		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
+		try {
+		    targetSlice.dispatchLocally(msg, receiverID);
+		    System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
+		    // On successful message dispatch, put the slice into the slice cache
+		    cachedSlices.put(receiverID, targetSlice);
+		    ok = true;
+		}
+		catch(NotFoundException nfe) {
+		    ok = false; // Stale proxy again, maybe the receiver is running around. Try again...
+		}
+
+	    } while(!ok);
+	}
+
+
+	// Implementation of the Service.Slice interface
+
+	public Service getService() {
+	    return MessagingService.this;
+	}
+
+	public Node getNode() throws ServiceException {
+	    try {
+		return MessagingService.this.getLocalNode();
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+	public VerticalCommand serve(HorizontalCommand cmd) {
+	    VerticalCommand result = null;
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(MessagingSlice.H_DISPATCHLOCALLY)) {
+		    GenericCommand gCmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+		    ACLMessage msg = (ACLMessage)params[0];
+		    AID receiverID = (AID)params[1];
+		    gCmd.addParam(msg);
+		    gCmd.addParam(receiverID);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
+		    ACLMessage msg = (ACLMessage)params[0];
+		    AID receiverID = (AID)params[1];
+		    String address = (String)params[2];
+
+		    routeOut(msg, receiverID, address);
+		}
+		else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
+		    AID agentID = (AID)params[0];
+
+		    cmd.setReturnValue(getAgentLocation(agentID));
+		}
+		else if(cmdName.equals(MessagingSlice.H_INSTALLMTP)) {
+		    GenericCommand gCmd = new GenericCommand(MessagingSlice.INSTALL_MTP, MessagingSlice.NAME, null);
+		    String address = (String)params[0];
+		    String className = (String)params[1];
+		    gCmd.addParam(address);
+		    gCmd.addParam(className);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(MessagingSlice.H_UNINSTALLMTP)) {
+		    GenericCommand gCmd = new GenericCommand(MessagingSlice.UNINSTALL_MTP, MessagingSlice.NAME, null);
+		    String address = (String)params[0];
+		    gCmd.addParam(address);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(MessagingSlice.H_NEWMTP)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+
+		    newMTP(mtp, cid);
+		}
+		else if(cmdName.equals(MessagingSlice.H_DEADMTP)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+
+		    deadMTP(mtp, cid);
+		}
+		else if(cmdName.equals(MessagingSlice.H_ADDROUTE)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    String sliceName = (String)params[1];
+
+		    addRoute(mtp, sliceName);
+		}
+		else if(cmdName.equals(MessagingSlice.H_REMOVEROUTE)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    String sliceName = (String)params[1];
+
+		    removeRoute(mtp, sliceName);
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
+	    }
+	    finally {
+		return result;
+	    }
+	}
+
+
+	private void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
+	    RoutingTable.OutPort out = routes.lookup(address);
+	    if(out != null)
+		out.route(msg, receiverID, address);
+	    else
+		throw new MTPException("No suitable route found for address " + address + ".");
+	}
+
+	private ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		return impl.getContainerID(agentID);
+	    }
+	    else {
+		// Do nothing for now, but could also have a local GADT copy, thus enabling e.g. Main Container replication
+		return null;
+	    }
+	}
+
+	private  void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
 	    MainContainer impl = myContainer.getMain();
 
 	    if(impl != null) {
@@ -670,7 +733,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
+	private void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
 	    MainContainer impl = myContainer.getMain();
 
 	    if(impl != null) {
@@ -703,7 +766,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
+	private void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 
 	    MessagingSlice slice = (MessagingSlice)getSlice(sliceName);
 	    routes.addRemoteMTP(mtp, sliceName, slice);
@@ -714,7 +777,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
+	private void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 	    MessagingSlice slice = (MessagingSlice)getSlice(sliceName);
 	    routes.removeRemoteMTP(mtp, sliceName, slice);
 
@@ -723,9 +786,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		myContainer.removeAddressFromLocalAgents(addresses[i]);
 	    }
 	}
-
-
-	private RoutingTable routes = new RoutingTable(MessagingService.this);
 
     } // End of ServiceComponent class
 
@@ -786,7 +846,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    }
 		}
 
-		MTPDescriptor mtp = localSlice.installMTP(addressURL, className);
+		MessagingSlice s = (MessagingSlice)getSlice(getLocalNode().getName());
+		MTPDescriptor mtp = s.installMTP(addressURL, className);
 		String[] mtpAddrs = mtp.getAddresses();
 		f.println(mtpAddrs[0]);
 		System.out.println(mtpAddrs[0]);
@@ -1045,6 +1106,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // The cached AID -> MessagingSlice associations
     private final Map cachedSlices;
+
+    // The routing table mapping MTP addresses to their hosting slice
+    private RoutingTable routes = new RoutingTable(MessagingService.this);
 
     private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
     // The table of the locally installed ACL message encodings
