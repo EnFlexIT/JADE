@@ -1772,7 +1772,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				if (pattern == null || pattern.match(cursor)) {
 					try {
 						//messages.remove(); 
-						msgQueue.remove(msg);
+						msgQueue.remove(cursor);
 						//#MIDP_EXCLUDE_BEGIN
 						notifyReceived(cursor);
 						//#MIDP_EXCLUDE_END
