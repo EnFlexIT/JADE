@@ -77,29 +77,29 @@ public interface JADEManagementVocabulary {
   public static final String SHOWGUI = "showgui";
 
   // Exception Predicates
-  public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NOTREGISTERED;
+  public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.NOTREGISTERED;
   
-  public static final String INTERNALERROR = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.INTERNALERROR;
+  public static final String INTERNALERROR = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.INTERNALERROR;
   public static final String INTERNALERROR_MESSAGE = "_0";
 
-  public static final String UNSUPPORTEDVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNSUPPORTEDVALUE;
+  public static final String UNSUPPORTEDVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNSUPPORTEDVALUE;
   public static final String UNSUPPORTEDVALUE_VALUE = "_0";
 
-  public static final String UNRECOGNISEDVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNRECOGNISEDVALUE;
+  public static final String UNRECOGNISEDVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNRECOGNISEDVALUE;
   public static final String UNRECOGNISEDVALUE_VALUE = "_0";
 
-  public static final String UNSUPPORTEDFUNCTION = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNSUPPORTEDFUNCTION;
+  public static final String UNSUPPORTEDFUNCTION = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNSUPPORTEDFUNCTION;
   public static final String UNSUPPORTEDFUNCTION_FUNCTION = "_0";
 
-  public static final String MISSINGPARAMETER = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.MISSINGPARAMETER;
+  public static final String MISSINGPARAMETER = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.MISSINGPARAMETER;
   public static final String MISSINGPARAMETER_OBJECT_NAME = "_0";
   public static final String MISSINGPARAMETER_PARAMETER_NAME = "_1";
 
-  public static final String UNEXPECTEDPARAMETER = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNEXPECTEDPARAMETER;
+  public static final String UNEXPECTEDPARAMETER = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNEXPECTEDPARAMETER;
   public static final String UNEXPECTEDPARAMETER_OBJECT_NAME = "_0";
   public static final String UNEXPECTEDPARAMETER_PARAMETER_NAME = "_1";
 
-  public static final String UNRECOGNISEDPARAMETERVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNRECOGNISEDPARAMETERVALUE;
+  public static final String UNRECOGNISEDPARAMETERVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNRECOGNISEDPARAMETERVALUE;
   public static final String UNRECOGNISEDPARAMETERVALUE_OBJECT_NAME = "_0";
   public static final String UNRECOGNISEDPARAMETERVALUE_PARAMETER_NAME = "_1";
 }

@@ -178,7 +178,7 @@ public void refreshDFGUI()
 	SearchConstraints sc = new SearchConstraints();
 	try{
 		
-		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.SEARCH,dfd,sc);
     arp.doProto();
     Iterator result = arp.getSearchResult().iterator();
     ArrayList listOfAID = new ArrayList();
@@ -192,7 +192,7 @@ public void refreshDFGUI()
     	}
   
     //second request the df the parent
-    JADEAppletRequestProto getParent = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.GETPARENT,null,null);
+    JADEAppletRequestProto getParent = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.GETPARENT,null,null);
     getParent.doProto();
     Iterator parents = getParent.getResult().iterator();
   
@@ -220,7 +220,7 @@ private void RegisterNewAgent(GuiEvent event)
 	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
 	  try{
 	  	//register an agent with this df.
-		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.REGISTER,dfd,null);
+		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.REGISTER,dfd,null);
 	    rf.doProto();
 	  }catch(FIPAException e){
 	  e.printStackTrace();
@@ -228,7 +228,7 @@ private void RegisterNewAgent(GuiEvent event)
 	else
 	//request the df to register an agent with another df.
 	try{
-		JADEAppletRequestProto requestBehav = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.REGISTERWITH,dfd,df);
+		JADEAppletRequestProto requestBehav = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.REGISTERWITH,dfd,df);
     requestBehav.doProto();
 	}catch(FIPAException e){
 		e.printStackTrace();
@@ -244,7 +244,7 @@ private void DeregisterAgent(GuiEvent event)
 	DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
 	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
 	  try{
-		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.DEREGISTER,dfd,null);
+		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.DEREGISTER,dfd,null);
 	    rf.doProto();
 	  }catch(FIPAException e){
 	  e.printStackTrace();
@@ -253,7 +253,7 @@ private void DeregisterAgent(GuiEvent event)
     //deregister the df from a parent
   	try
 	  {
-		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.DEREGISTERFROM,dfd,df);
+		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.DEREGISTERFROM,dfd,df);
       rf.doProto();
 	  }catch(FIPAException e){
 	  e.printStackTrace();
@@ -272,14 +272,14 @@ private void SearchAgents(GuiEvent event)
 	SearchConstraints sc = (SearchConstraints)event.getParameter(2);
 	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
 	try{
-		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.SEARCH,dfd,sc);
     rf.doProto();
 	}catch(FIPAException e){
 	e.printStackTrace();
 	}
   else
   	try{
-  		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(),DFAppletManagementOntology.SEARCHON,dfd,df,sc);
+  		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(),DFAppletVocabulary.SEARCHON,dfd,df,sc);
   		rf.doProto();
   	}catch(FIPAException e){
   	e.printStackTrace();
@@ -296,14 +296,14 @@ private void Modify(GuiEvent event)
 	
 	if(df.equals(thisDF.getName()))
 	try{
-		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.MODIFY,dfd,null);
+		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.MODIFY,dfd,null);
     rf.doProto();
 	}catch(FIPAException e){
 	e.printStackTrace();
 	}
 	else
 	try{
-		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,thisDF.getName(),DFAppletManagementOntology.MODIFYON,dfd,df);
+		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,thisDF.getName(),DFAppletVocabulary.MODIFYON,dfd,df);
 		rf.doProto();
 	}catch(FIPAException e){
 	e.printStackTrace();
@@ -327,7 +327,7 @@ private void Federate(GuiEvent event)
 		DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
 	  try
 	  {
-		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.FEDERATEWITH,dfd,parentDF);
+		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.FEDERATEWITH,dfd,parentDF);
       rf.doProto();
 	  }catch(FIPAException e){
 	  e.printStackTrace();
@@ -351,7 +351,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
 	SearchConstraints sc = new SearchConstraints();
 	
 	try{
-		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAManagementVocabulary.SEARCH,dfd,sc);
     arp.doProto();
     Iterator result = arp.getSearchResult().iterator();
     if(result.hasNext())
@@ -378,7 +378,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
 	    System.out.println(df.getName());
 	    try
  	    {
-		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletManagementOntology.GETDEFAULTDESCRIPTION,null,null);
+		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletVocabulary.GETDEFAULTDESCRIPTION,null,null);
         rf.doProto();
 	    }catch(FIPAException e){
 	    e.printStackTrace();
@@ -399,7 +399,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
     DFAgentDescription output = null;
   	try{
     	
-    	JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.GETDESCRIPTIONUSED,null,df);
+    	JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.GETDESCRIPTIONUSED,null,df);
     	rf.doProto();                                           
     	List result = rf.getResult();
     	

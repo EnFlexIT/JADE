@@ -25,9 +25,7 @@ package jade.domain;
 
 import jade.core.CaseInsensitiveString;
 
-//import jade.onto.basic.Action;
-//import jade.onto.basic.ResultPredicate;
-// NEW Ontology
+
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
 

@@ -35,7 +35,7 @@ import jade.domain.FIPAAgentManagement.APDescription;
 
 public class PlatformDescription implements Event{
 
-  public static final String NAME = JADEIntrospectionOntology.PLATFORMDESCRIPTION;
+  public static final String NAME = IntrospectionVocabulary.PLATFORMDESCRIPTION;
 
   private APDescription platform;
   

@@ -30,17 +30,16 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
+import jade.content.ContentManager;
+import jade.content.lang.StringCodec;
+import jade.content.lang.sl.SLCodec;
 
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
 
-import jade.onto.Ontology;
-import jade.onto.Frame;
-import jade.onto.OntologyException;
-
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+import jade.content.onto.Ontology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 
 import java.util.Date;
 
@@ -69,8 +68,8 @@ public class FIPAServiceCommunicator {
     request.setSender(sender.getAID());
     request.addReceiver(receiver);
     request.setProtocol("fipa-request");
-    request.setLanguage(SL0Codec.NAME);
-    request.setOntology(FIPAAgentManagementOntology.NAME);
+    request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    request.setOntology(FIPAManagementOntology.NAME);
     request.setReplyWith("rw"+sender.getName()+(new Date()).getTime());
     request.setConversationId("conv"+sender.getName()+(new Date()).getTime());
     return request;
@@ -119,37 +118,5 @@ public class FIPAServiceCommunicator {
       throw new FIPAException(reply.getContent());
   }
 
-  /**
-   * this method is here to avoid any agent using this class to register before
-   * the SL-0 codec and the fipa-agent-management ontology
-   */
-  static String encode(Action act, Codec c, Ontology o) throws FIPAException {
-    // Write the action in the :content slot of the request
-    List l = new ArrayList();
-    try {
-      Frame f = o.createFrame(act, o.getRoleName(act.getClass()));
-      l.add(f);
-    } catch (OntologyException oe) {
-      throw new FIPAException(oe.getMessage());
-    }
-    return c.encode(l,o);
-  }
-  
-  /**
-   * this method is here to avoid any agent using this class to register before
-   * the SL-0 codec and the fipa-agent-management ontology
-   */
-  static ResultPredicate extractContent(String content, Codec c, Ontology o) throws FIPAException {
-    try {
-      List tuple = c.decode(content,o);
-      tuple = o.createObject(tuple);
-      return (ResultPredicate)tuple.get(0);
-    } catch (Codec.CodecException e1) {
-      e1.printStackTrace();
-      throw new FIPAException(e1.getMessage());
-    } catch (OntologyException e2) {
-      e2.printStackTrace();
-      throw new FIPAException(e2.getMessage());
-    }
-  }
+
 }

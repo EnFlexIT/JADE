@@ -33,14 +33,17 @@ import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.*;
 
-import jade.onto.basic.Action;
-import jade.onto.basic.ResultPredicate;
+import jade.content.onto.Ontology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
-import jade.onto.Ontology;
+import jade.content.ContentElementList;
+
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 
 import jade.proto.SimpleAchieveREInitiator;
 
@@ -78,10 +81,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
     }
   }
 
-    /* private static final MessageTemplate mt = 
-       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
-       MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
-    */
+    
   /**
   @serial
 	*/
@@ -93,15 +93,11 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
   /**
   @serial
 	*/
-  private Codec c; 
-
-    //to set a timeout for the search request: 5 minutes.
+      //to set a timeout for the search request: 5 minutes.
     private long timeout = 300000;
     
 
-  private static Ontology o = FIPAAgentManagementOntology.instance();
-
-    /**
+  /**
   *  Create a behaviour to request an agent to perform a specific action. 
   *  Using this constructor, is possible to pass all information necessary to
   *  request a search operation. 
@@ -120,40 +116,46 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
        super(a,new ACLMessage(ACLMessage.REQUEST));
        ACLMessage msg = FIPAServiceCommunicator.createRequestMessage(a,receiver);
      Action act = new Action();
-     act.set_0(receiver);
-     if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER)) {
+     act.setActor(receiver);
+     if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.REGISTER)) {
        Register action = new Register();
-       action.set_0(agentDescription);
-       act.set_1(action);
+       action.setDescription(agentDescription);
+       act.setAction(action);
      }
-     else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER)) {
+     else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.DEREGISTER)) {
        Deregister action = new Deregister();
-       action.set_0(agentDescription);
-       act.set_1(action);
+       action.setDescription(agentDescription);
+       act.setAction(action);
      }
-     else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.MODIFY)) {
+     else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.MODIFY)) {
        Modify action = new Modify();
-       action.set_0(agentDescription);
-       act.set_1(action);
+       action.setDescription(agentDescription);
+       act.setAction(action);
      }
-     else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH)) {
+     else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.SEARCH)) {
        Search action = new Search();
-       action.set_0(agentDescription);
-       action.set_1(constraints);
-       act.set_1(action);
+       action.setDescription(agentDescription);
+       action.setConstraints(constraints);
+       act.setAction(action);
        // set a timeout for the recursive search.
        msg.setReplyByDate(new Date(System.currentTimeMillis()+ timeout));
      }
      else
        throw new UnsupportedFunction();
 
-     // initialize SL0 Codec and FIPAAgentManagementOntology
-     c = a.lookupLanguage(SL0Codec.NAME);
-     if (c == null)
-       c = new SL0Codec();
+     // initialize SL0 Codec and FIPAManagementVocabulary
+     if (a.getContentManager().lookupOntology(FIPAManagementOntology.NAME) == null)
+     	a.getContentManager().registerOntology(FIPAManagementOntology.getInstance());    
+     if (a.getContentManager().lookupLanguage(FIPANames.ContentLanguage.FIPA_SL0) == null)
+     	a.getContentManager().registerLanguage(new SLCodec(0),FIPANames.ContentLanguage.FIPA_SL0);
 
      // Write the action in the :content slot of the request
-     msg.setContent(FIPAServiceCommunicator.encode(act,c,o));
+     try {
+     	a.getContentManager().fillContent(msg, act);
+  	 } catch (Exception e) {
+  	 	e.printStackTrace();
+  	 	throw new UnrecognisedValue("content");
+  	 } 	
      reset(msg);
      notYetReady=true;
   }
@@ -305,12 +307,17 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
       throw new NotYetReady();
     if (lastMsg.getPerformative() != ACLMessage.INFORM)
       throw new FIPAException(lastMsg);
-    ResultPredicate r = FIPAServiceCommunicator.extractContent(lastMsg.getContent(),c,o); 
-    Iterator i = r.getAll_1(); 
-    List l = new ArrayList(); 
-    while (i.hasNext())
-      l.add(i.next());
-    return l.toArray(); 
+      
+    List l = null;
+    try {
+    	Result r = (Result)((ContentElementList)myAgent.getContentManager().extractContent(lastMsg)).get(0); 
+    	l = r.getItems(); 
+	} catch (Exception e) {
+	    e.printStackTrace();
+  	 	throw new UnrecognisedValue("content");		
+	}
+	return l.toArray(); 
+	
   }
 
 }

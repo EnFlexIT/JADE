@@ -113,7 +113,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
 
     Action act = new Action();
     act.setActor(receiver);
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.FEDERATEWITH))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.FEDERATEWITH))
     {
 
     	Federate action = new Federate();
@@ -124,21 +124,21 @@ public class JADEAppletRequestProto extends AppletRequestProto
 
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETDEFAULTDESCRIPTION))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETDEFAULTDESCRIPTION))
     	act.setAction(new GetDefaultDescription());
 
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETPARENT))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETPARENT))
     	act.setAction(new GetParent());
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.GETDESCRIPTIONUSED))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETDESCRIPTIONUSED))
     {
       GetDescriptionUsed action = new GetDescriptionUsed();
       action.setParentDF(parentDF);
       act.setAction(action);
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.DEREGISTERFROM))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.DEREGISTERFROM))
     {
     	DeregisterFrom action = new DeregisterFrom();
     	action.setParentDF(parentDF);
@@ -147,7 +147,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	act.setAction(action);
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.REGISTERWITH))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.REGISTERWITH))
     {
     	RegisterWith action = new RegisterWith();
     	action.setDf((AID)parentDF);
@@ -156,7 +156,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	act.setAction(action);
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.SEARCHON))
     {
     	SearchOn action = new SearchOn();
     	action.setDf((AID)parentDF);
@@ -166,7 +166,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
     	act.setAction(action);
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletManagementOntology.MODIFYON))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.MODIFYON))
     {
     	ModifyOn action = new ModifyOn();
     	action.setDf((AID)parentDF);
@@ -238,13 +238,13 @@ public class JADEAppletRequestProto extends AppletRequestProto
    		try{
    	      notYetReady = false;
    				lastMsg = (ACLMessage)msg.clone();
-   				if(this.action.equalsIgnoreCase(DFAppletManagementOntology.FEDERATEWITH))
+   				if(this.action.equalsIgnoreCase(DFAppletVocabulary.FEDERATEWITH))
    				   {
    				   	  gui.showStatusMsg("Request processed. Ready for new  request.");
    				   	  gui.addParent(this.parent);
    				   }
    				 else
-   				 if(this.action.equalsIgnoreCase(DFAppletManagementOntology.GETDEFAULTDESCRIPTION))
+   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETDEFAULTDESCRIPTION))
    				 {
    				 	//UPDATE the thisDf variable.
    				  try{
@@ -256,25 +256,25 @@ public class JADEAppletRequestProto extends AppletRequestProto
    				  }
    				 }
    				 else
-   				 if(this.action.equalsIgnoreCase(DFAppletManagementOntology.GETPARENT))
+   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETPARENT))
              	gui.showStatusMsg("Request processed. Ready for new Request.");
            else
-           if(this.action.equalsIgnoreCase(DFAppletManagementOntology.DEREGISTERFROM))
+           if(this.action.equalsIgnoreCase(DFAppletVocabulary.DEREGISTERFROM))
            {
            		gui.showStatusMsg("Request processed. Ready for a new request");
            		gui.removeParent(this.parent);
            }
            else
-           if(this.action.equalsIgnoreCase(DFAppletManagementOntology.REGISTERWITH))
+           if(this.action.equalsIgnoreCase(DFAppletVocabulary.REGISTERWITH))
            	gui.showStatusMsg("Request processed. Ready for new request.");
            else
-           if(this.action.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
+           if(this.action.equalsIgnoreCase(DFAppletVocabulary.SEARCHON))
            {
            	gui.refreshLastSearchResults(getResult(),(AID)parent);
            	gui.showStatusMsg("Request processed. Ready for new request.");
            }
            else
-           if(this.action.equalsIgnoreCase(DFAppletManagementOntology.MODIFYON))
+           if(this.action.equalsIgnoreCase(DFAppletVocabulary.MODIFYON))
              gui.showStatusMsg("Request processed. Ready for new request.");
 
    		}catch(Exception e){

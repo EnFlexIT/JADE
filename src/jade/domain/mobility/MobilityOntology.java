@@ -32,8 +32,6 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
-import jade.lang.Codec;
-
 import jade.core.AID;
 import jade.core.Location;
 import jade.core.ContainerID;

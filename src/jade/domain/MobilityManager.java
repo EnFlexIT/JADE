@@ -41,16 +41,9 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.lang.Codec;
-import jade.lang.sl.SL0Codec;
-
 import jade.content.onto.basic.Action;
 
 import jade.content.onto.basic.Result;
-
-import jade.onto.Frame;
-import jade.onto.Ontology;
-import jade.onto.OntologyException;
 
 import jade.proto.SimpleAchieveREResponder;
 

@@ -104,22 +104,22 @@ public class FIPAAppletRequestProto extends AppletRequestProto
 
     Action act = new Action();
     act.setActor(receiver);
-    if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER))
+    if(actionName.equalsIgnoreCase(FIPAManagementVocabulary.REGISTER))
     {
     	Register action = new Register();
     	action.setDescription(agentDescription);
     	act.setAction(action);
-    }else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER)) {
+    }else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.DEREGISTER)) {
        Deregister action = new Deregister();
        action.setDescription(agentDescription);
        act.setAction(action);
      }
-     else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.MODIFY)) {
+     else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.MODIFY)) {
        Modify action = new Modify();
        action.setDescription(agentDescription);
        act.setAction(action);
      }
-     else if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH)) {
+     else if (actionName.equalsIgnoreCase(FIPAManagementVocabulary.SEARCH)) {
        Search action = new Search();
        action.setDescription(agentDescription);
        action.setConstraints(sc);
@@ -163,7 +163,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
    		notYetReady = false;
       lastMsg = (ACLMessage)msg.clone();
    		try{
-   		  if (this.action.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER))
+   		  if (this.action.equalsIgnoreCase(FIPAManagementVocabulary.REGISTER))
    		  {    // refresh the gui
    		  	   // I register a df, so it will be a child.
    		  		if(dfApplet.isADF((DFAgentDescription)this.dfd))
@@ -173,7 +173,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
 
    		  }
    		  else
-   		  if(this.action.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH))
+   		  if(this.action.equalsIgnoreCase(FIPAManagementVocabulary.SEARCH))
    		  { //extract the results and  update the gui
    		  	try{
             gui.showStatusMsg("Search request Processed. Ready for new request.");
@@ -182,7 +182,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
    		  	}catch(FIPAException e){}
 
    		  }
-   		  else if(this.action.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+   		  else if(this.action.equalsIgnoreCase(FIPAManagementVocabulary.DEREGISTER))
    		  {
    		  	//update the gui
    		  	try{
@@ -192,7 +192,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
    		    gui.removeAgentDesc(((DFAgentDescription)dfd).getName(),dfApplet.getDescriptionOfThisDF().getName());
    		  	gui.showStatusMsg("Deregistration of agent: "+((DFAgentDescription)dfd).getName().getName() + " done.");
 
-   		  }else if(this.action.equalsIgnoreCase(FIPAAgentManagementOntology.MODIFY))
+   		  }else if(this.action.equalsIgnoreCase(FIPAManagementVocabulary.MODIFY))
    		  {
    		  	gui.removeAgentDesc(((DFAgentDescription)dfd).getName(),dfApplet.getDescriptionOfThisDF().getName());
    		  	gui.addAgentDesc(((DFAgentDescription)dfd).getName());

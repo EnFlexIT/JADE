@@ -45,9 +45,6 @@ import jade.domain.FIPAAgentManagement.APDescription;
 import jade.domain.FIPAAgentManagement.APTransportDescription;
 import jade.domain.FIPAAgentManagement.MTPDescription;
 
-//import jade.onto.basic.*;  // to import Done, Action, ...
-//import jade.onto.*;
-
 
 /**
    This class represents the ontology <code>jade-introspection</code>,

@@ -27,6 +27,7 @@ import jade.lang.acl.ACLMessage;
 
 import jade.mtp.MTPDescriptor;
 
+import jade.domain.FIPANames;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
@@ -270,8 +271,8 @@ class MainContainerProxy implements Platform {
       ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
       regMsg.setSender(localContainer.getAMS());
       regMsg.addReceiver(localContainer.getAMS());
-      regMsg.setLanguage(jade.lang.sl.SL0Codec.NAME);
-      regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
+      regMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+      regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.NAME);
       regMsg.setProtocol("fipa-request");
 
       Agent[] agents = localContainer.getLocalAgents().values();

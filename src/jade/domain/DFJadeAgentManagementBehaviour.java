@@ -27,7 +27,6 @@ package jade.domain;
 
 import jade.util.leap.List;
 
-//import jade.onto.basic.Action;
 import jade.content.onto.basic.Action;
 
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;

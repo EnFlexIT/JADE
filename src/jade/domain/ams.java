@@ -60,10 +60,6 @@ import jade.content.lang.sl.*;
 import jade.content.lang.Codec.*;
 import jade.content.onto.basic.Action;
 
-/*import jade.onto.Ontology;
-import jade.onto.OntologyException;
-import jade.onto.Frame;*/
-
 import jade.mtp.MTPException;
 
 //__SECURITY__BEGIN
@@ -943,12 +939,13 @@ public class ams extends Agent implements AgentManager.Listener {
     myPlatform.addListener(this);
 
  
-    MessageTemplate mtF = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
+    MessageTemplate mtF = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAManagementVocabulary.NAME));
     fipaResponderB = new AMSFipaAgentManagementBehaviour(this,mtF);
 
 	mobilityMgr = new MobilityManager(this);
  
-    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.or(MessageTemplate.MatchOntology(JADEManagementOntology.NAME), MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME)));
+    // FIXME MobilityOntology is matched for JADE 2.5 Backward compatibility
+    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.or(MessageTemplate.MatchOntology(JADEManagementVocabulary.NAME), MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME)));
     //mtJ = MessageTemplate.or(mtJ,MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
     jadeResponderB = new AMSJadeAgentManagementBehaviour(this, mobilityMgr, mtJ);
     
@@ -960,7 +957,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     toolNotification.setSender(new AID());
     toolNotification.setLanguage("FIPA-SL0");
-    toolNotification.setOntology(JADEIntrospectionOntology.NAME);
+    toolNotification.setOntology(IntrospectionOntology.NAME);
     toolNotification.setInReplyTo("tool-subscription");
    
   }
@@ -1029,19 +1026,19 @@ public class ams extends Agent implements AgentManager.Listener {
     try {
       AID name = amsd.getName();
       if ((name == null)||(name.getName().length() == 0))
-	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+	throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "name");
     } catch (Exception e) {
       e.printStackTrace();
-      throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
+      throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "name");
     }
-    if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
+    if (!actionName.equalsIgnoreCase(FIPAManagementVocabulary.DEREGISTER))
       try {
 	String state = amsd.getState();
 	if((state == null)||(state.length() == 0))
-	  throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
+	  throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "state");
       } catch (Exception e) {
 	e.printStackTrace();
-	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
+	throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "state");
       }
   }
 
@@ -1087,7 +1084,7 @@ public class ams extends Agent implements AgentManager.Listener {
     //	public void AMSRegister(AMSAgentDescription amsd, AID sender) throws FIPAException, AuthException {
 	public void AMSRegister(AMSAgentDescription amsd, AID sender) throws AlreadyRegistered, AuthException,MissingParameter {
 
-	        checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
+	        checkMandatorySlots(FIPAManagementVocabulary.REGISTER, amsd);
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old != null) {
 			agentDescriptions.register(old.getName(), old);
@@ -1114,7 +1111,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	/** it is called also by Agent.java **/
  
     public void AMSDeregister(AMSAgentDescription amsd, AID sender) throws NotRegistered, AuthException,MissingParameter {
-	checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
+	checkMandatorySlots(FIPAManagementVocabulary.DEREGISTER, amsd);
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old == null)
 			throw new NotRegistered();
@@ -1123,7 +1120,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
  
     void AMSModify(AMSAgentDescription amsd, AID sender) throws NotRegistered, AuthException, MissingParameter {
-		checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
+		checkMandatorySlots(FIPAManagementVocabulary.MODIFY, amsd);
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old == null)
 			throw new NotRegistered();
