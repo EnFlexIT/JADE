@@ -1655,6 +1655,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     stateLock = new Object();
     suspendLock = new Object();
     waitLock = new Object();
+    principalLock = new Object();
     pendingTimers = new AssociationTB();
     languages = new HashMap();
     ontologies = new HashMap();
@@ -1787,11 +1788,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	      }
 	  }
 	  break;
-	  
-	  // Now give CPU control to other agents
-	  // !!!MICHELE: I've got a cvs conflict here
-	  // Thread.yield();
 	}
+
+	// Now give CPU control to other agents
+	Thread.yield();
       }
       catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
