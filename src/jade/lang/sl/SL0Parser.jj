@@ -67,6 +67,7 @@ class SL0Parser {
   * @return a List of Frame, each Frame represents an element of a t-uple
   */
   public List parse(String s) throws ParseException, TokenMgrError {
+    if (s == null) s = new String();
     ReInit(new StringReader(s));
     return SL0Content();
   }

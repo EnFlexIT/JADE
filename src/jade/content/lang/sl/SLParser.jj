@@ -118,6 +118,7 @@ class SLParser {
   */
   AbsContentElement parse(Ontology o, String content) throws ParseException, TokenMgrError{
     curOntology = o;
+    if (content == null) content = new String();
     ReInit(new StringReader(content));
     AbsContentElementList tuple = Content();
     if (tuple.size() > 1)
