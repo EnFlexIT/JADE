@@ -24,12 +24,20 @@ Boston, MA  02111-1307, USA.
 package examples.thanksAgent;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFServiceCommunicator;
 import jade.domain.FIPAException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+/* THESE 4 IMPORTS ARE NEEDED AFTER JADE 2.3 */
+import jade.core.Runtime;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.wrapper.*;
+
 
 /**
  * This agent has the following functionality: 
@@ -67,21 +75,68 @@ public class ThanksAgent extends Agent {
 
 	if (IAmTheCreator) {
 	    IAmTheCreator = false;  // next agent in this JVM will not be a creator
+
 	    // create another two ThanksAgent
-	    ThanksAgent t1 = new ThanksAgent();
-	    t1.doStart(getLocalName()+"t1");
-	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1.getLocalName());
-	    ThanksAgent t2 = new ThanksAgent();
-	    t2.doStart(getLocalName()+"t2");
-	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2.getLocalName());
+
+	    /* THIS CODE WORKS FOR JADE 2.3 
+	       ThanksAgent t1 = new ThanksAgent();
+	       t1.doStart(getLocalName()+"t1");
+	       System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1.getLocalName());
+	       ThanksAgent t2 = new ThanksAgent();
+	       t2.doStart(getLocalName()+"t2");
+	       System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2.getLocalName()); 
+	    */
+
+	    /* THIS CODE WORKS AFTER JADE 2.3 */
+	    // Get a hold on JADE runtime
+	    Runtime rt = Runtime.instance();
+	    // Create a default profile
+	    ProfileImpl p = new ProfileImpl();
+	    // set the profile to be non-main container
+	    p.putProperty(Profile.MAIN, "false");
+
+	    String t1AgentName = getLocalName()+"t1";
+	    String t2AgentName = getLocalName()+"t2";
+	    try {
+		// Create a new non-main container, connecting to the default
+		// main container (i.e. on this host, port 1099)
+		AgentContainer ac = rt.createAgentContainer(p);
+		// create a new agent
+		jade.wrapper.Agent t1 = ac.createAgent(t1AgentName,getClass().getName(),new Object[0]);
+		// fire-up the agent
+		t1.start();
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName);
+		// create a new agent
+		jade.wrapper.Agent t2 = ac.createAgent(t2AgentName,getClass().getName(),new Object[0]);
+		// fire-up the agent
+		t2.start();
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName);
+	    } catch (Exception e2) {
+		e2.printStackTrace();
+	    }
+
+
 	    // send them a GREETINGS message
 	    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 	    msg.setContent(GREETINGS);
-	    msg.addReceiver(t1.getAID());
-	    msg.addReceiver(t2.getAID());
+	    /* THIS CODE WORKS FOR JADE 2.3
+	       msg.addReceiver(t1.getAID());
+	       msg.addReceiver(t2.getAID());
+	    */
+	    /* THIS CODE WORKS AFTER JADE 2.3 */
+	    msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
+	    msg.addReceiver(new AID(t2AgentName, AID.ISLOCALNAME));
+
 	    send(msg);
 	    System.out.println(getLocalName()+" SENT GREETINGS MESSAGE : "+msg); 
-	}
+	}  /* IF YOU COMMENTED OUT THIS ELSE CLAUSE, THEN YOU WOULD GENERATE
+	      AN INTERESTING INFINITE LOOP WITH INFINTE AGENTS AND AGENT 
+	      CONTAINERS BEING CREATED 
+	      else {
+	      IAmTheCreator = true;
+	      doWait(2000); // wait two seconds
+	      }
+	   */
 
 	// add a Behaviour that listen if a greeting message arrives
 	// and sends back an ANSWER.
