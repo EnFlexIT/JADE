@@ -529,9 +529,6 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     // Close down the ACC
     theACC.shutdown();
 
-    // Shuts down the Timer Dispatcher
-    Agent.stopDispatcher();
-
     // Deregister yourself as a container
     containers.removeContainer(MAIN_CONTAINER_NAME);
 
@@ -586,6 +583,30 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     }
     catch(RemoteException re) {
       re.printStackTrace();
+    }
+
+    // Destroy the (now empty) thread groups
+
+    try {
+      agentThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+      System.out.println("Active threads in 'JADE-Agents' thread group:");
+      agentThreads.list();
+    }
+    finally {
+      agentThreads = null;
+    }
+
+    try {
+      systemAgentsThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+      System.out.println("Active threads in 'JADE-System-Agents' thread group:");
+      systemAgentsThreads.list();
+    }
+    finally {
+      systemAgentsThreads = null;
     }
 
     // Notify the JADE Runtime that the container has terminated
