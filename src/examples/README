@@ -1,4 +1,4 @@
-README file for JADE 0.91 - Example programs.
+README file for JADE $Name$ - Example programs.
 
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
@@ -80,7 +80,13 @@ The following list describes all the example programs found in
                                 prints the concatenation of the three
                                 replies.
 
-
+ - FilebasedSenderAgent.class	This is a simple GUI-based agent. It
+				can read an ACL message from a user
+				specified file and send it to other
+				agents; besides, outgoing and incoming
+				messages are logged in two
+				panels. This agent can be useful for
+				debugging and testing.
 
 'ex3' subdirectory
 ==================
