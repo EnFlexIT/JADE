@@ -359,6 +359,9 @@ public class AgentContainer implements PlatformController {
   	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
  			System.out.println("Changed agent principal");
   	} 
+  	public void changedContainerPrincipal(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Changed container principal");
+  	} 
 //__SECURITY__END 
   }
 }
