@@ -28,6 +28,6 @@ package jade.imtp.leap;
  * @author Giovanni Caire - TILAB
  */
 public interface Dispatcher {
-	byte[] dispatch(byte[] cmd) throws ICPException;
+	byte[] dispatch(byte[] cmd, boolean flush) throws ICPException;
 }
 

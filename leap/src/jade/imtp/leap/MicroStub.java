@@ -47,7 +47,7 @@ public class MicroStub {
 		try {
   		disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
-			byte[] rsp = myDispatcher.dispatch(cmd);
+			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
 			Command r = SerializationEngine.deserialize(rsp);
 			if (r.getCode() == Command.ERROR) {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
@@ -83,12 +83,12 @@ public class MicroStub {
 	}
 	
 	private void postpone(Command c) {
-		Logger.println(Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
+		//Logger.println(Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		pendingCommands.addElement(c);
 	}
 	
 	
-	public void flush() {
+	public boolean flush() {
 		if (pendingCommands.size() > 0) {
 			// This is called by the main thread of the underlying EndPoint
 			// --> The actual flushing must be done asynchronously to avoid
@@ -109,8 +109,8 @@ public class MicroStub {
 						flushing = true;
 					}
 					
-					Logger.println("Start flushing");
 					// Flush the buffer of pending commands
+					Logger.println("Start flushing");
 					Enumeration e = pendingCommands.elements();
 					while (e.hasMoreElements()) {
 						Command c = (Command) e.nextElement();
@@ -118,6 +118,7 @@ public class MicroStub {
 						// was delayed for disconnection problems can and must not
 						// be handled!!!
 						try {
+							Logger.println("Flushing command "+c.getCode());
 							Command r = executeRemotely(c, 0);
 							if (r.getCode() == Command.ERROR) {
 								Logger.println("WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
@@ -138,7 +139,9 @@ public class MicroStub {
 				}
 			};
 			flusher.start();
+			return true;
 		}
+		return false;
 	}
 	
 	/**
