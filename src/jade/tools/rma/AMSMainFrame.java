@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.3  1999/06/06 21:54:20  rimassa
+  Removed useless main() function.
+  Added an error dialog to be shown when some 'failure' or 'refuse'
+  message is received from the AMS.
+
   Revision 1.2  1999/06/06 17:49:29  rimassa
   Made this class package scoped instead of public.
   Added a call to AMSTree to adjust initial separator position for
@@ -59,6 +64,8 @@ import java.util.Enumeration;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.tree.*;
+
+import jade.lang.acl.ACLMessage;
 
 /**
  * A class representing the main window of the Management System
@@ -211,6 +218,21 @@ class AMSMainFrame extends JFrame {
     }
   }
 
+  public void showErrorDialog(String text, ACLMessage msg) {
+    String messages[] = new String[3];
+    messages[0] = text;
+    messages[1] = "";
+    messages[2] = "Do you want to view the ACL message ?";
+    int answer = JOptionPane.showConfirmDialog(this, messages, "RMA Error !!!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+    switch(answer) {
+    case JOptionPane.YES_OPTION:
+      jade.tools.DummyAgent.AclGui.showMsgInDialog(msg, this);
+      break;
+    default:
+      break;
+    }
+  }
+
   private void setUI(String ui) {
     try {
       UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
@@ -250,21 +272,4 @@ class AMSMainFrame extends JFrame {
     setUI("metal.MetalLookAndFeel");   
   }
 
-  public static void main (String[] argv) {
-    AMSMainFrame jf = new AMSMainFrame(null);
-
-    if (argv.length >= 1) {
-      if (argv[0].equals("-me"))
-	jf.setUI2Metal();
-      else if (argv[0].equals("-mo"))
-	jf.setUI2Motif();
-      else if (argv[0].equals("-wi"))
-	jf.setUI2Windows();
-      else if (argv[0].equals("-mu"))
-	jf.setUI2Multi();
-      else if (argv[0].equals("-h"))
-	System.out.println("Usage : java AMSMainFrame -[wi][mo][mu]");
-    }
-    jf.ShowCorrect();
-  }
 }
