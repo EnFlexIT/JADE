@@ -69,19 +69,6 @@ class AgentDescriptor {
 	return description;
     }
 
-
-    /**
-  // Agent proxy
-  public void setProxy(AgentProxy rp) {
-    proxy = rp;
-  }
-
-  public AgentProxy getProxy() {
-    return proxy;
-  }
-    **/
-
-
     // Is this agent a foreign agent?
     public boolean isForeign() {
 	return foreign;
