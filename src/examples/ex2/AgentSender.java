@@ -1,3 +1,9 @@
+/*
+  $Id$
+*/
+
+package examples.ex2;
+
 import java.io.StringReader;
 import java.io.IOException;
 
