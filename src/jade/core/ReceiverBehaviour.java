@@ -29,7 +29,7 @@ public class ReceiverBehaviour extends Behaviour {
     this(a, msg, null);
   }
 
-  public void execute() {
+  public void action() {
     ACLMessage msg = null;
     if(template == null)
       msg = myAgent.receive();
