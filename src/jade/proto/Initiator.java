@@ -365,7 +365,11 @@ abstract class Initiator extends FSMBehaviour {
 			super.reset();
 			replyReceiver.reset(null, MsgReceiver.INFINITE, getDataStore(),REPLY_K);
 			initiation = msg;
-			sessions.clear();
+			sessions.clear(); 
+			DataStore ds = getDataStore();
+			ds.remove(INITIATION_K);
+			ds.remove(ALL_INITIATIONS_K);
+			ds.remove(REPLY_K);
   	}
 
     /** 
