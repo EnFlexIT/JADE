@@ -119,7 +119,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		// Build the PlatformID using the local host and port
 		List l = myIMTPManager.getLocalAddresses();
 		TransportAddress localAddr = (TransportAddress) l.get(0);
-		platformID = localAddr.getHost()+":"+localAddr.getPort()+"/JADE";
+		platformID = localAddr.getHost() + ":" + localAddr.getPort() + "/JADE";
 	    }
 	    catch (Exception e) {
 		throw new ProfileException("Can't set PlatformID");
@@ -246,6 +246,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// Eradicate all the entries for agents living on the dead container
 	removeAllAgents(cid);
+
+	// Eradicate all MTPs installed on the dead container
+	removeAllMTPs(cid);
 
 	// Notify listeners
 	fireRemovedContainer(cid);
@@ -1558,6 +1561,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 	    }
 	}
+    }
+
+    private void removeAllMTPs(ContainerID cid) {
+	// FIXME: To be implemented
     }
 
     public void lockEntryForAgent(AID agentID) {
