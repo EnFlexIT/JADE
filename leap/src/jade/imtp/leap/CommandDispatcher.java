@@ -218,13 +218,16 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         mainTA = stringToAddr(mainURL);
       } 
       catch (DispatcherException de) {
-
-        // Failure --> A suitable protocol class must be explicitly
-        // indicated in the profile
-        String            mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
-        TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
-
-        mainTA = tp.stringToAddr(mainURL);
+        // Failure --> A suitable protocol class may be explicitly
+        // indicated in the profile (otherwise rethrow the exception)
+        String mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
+        if (mainTPClass != null) {
+	        TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
+	        mainTA = tp.stringToAddr(mainURL);
+        }
+        else {
+        	throw de;
+        }
       } 
 
       // If the router TA was not set --> use the mainTA as default

@@ -232,8 +232,7 @@ class FullCommandDispatcher extends CommandDispatcher {
         // protocol. Use the first one.
         return ((ICP) ((List) peers.nextElement()).get(0)).getProtocol().stringToAddr(url);
       } 
-      catch (ICPException icpe) {
-
+      catch (Throwable t) {
         // Do nothing and try the next one.
       } 
     } 
