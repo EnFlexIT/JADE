@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * JADE - Java Agent DEvelopment Framework is a framework to develop
@@ -97,6 +95,33 @@ public class Specifier {
     public String[] getArgs() {
         return args;
     } 
+
+    /**
+     * This method is used by Boot, ProfileImpl, and RMA in order
+     * to have a String representation of this Specifier according to the
+     * format <code>name:className(arg1 arg2 argn)</code>
+     **/
+    public String toString() {
+	// TAKE CARE: do not change this method otherwise Boot might fail
+	StringBuffer tmp = new StringBuffer();
+	if (name != null) {
+	    tmp.append(name);
+	    tmp.append(":");
+	}
+	if (className != null) {
+	    tmp.append(className);
+	}
+	if (args != null) {
+	    tmp.append("(");
+	    for (int i=0; i<args.length; i++) {
+		tmp.append(args[i]);
+		if (i<args.length-1)
+		    tmp.append(" ");
+	    }
+	    tmp.append(")");
+	}
+	return tmp.toString();
+    }
 
 }
 
