@@ -81,13 +81,6 @@ public class ContentTesterAgent extends TesterAgent {
 			
 			public void initialize(Agent a) throws TestException {
 				// Load the codec to be used in the tests
-				/*Object[] args = ContentTesterAgent.this.getArguments();
-    		String codecClassName = "jade.content.lang.sl.SLCodec";
-    		Codec codec = null;
-    		if (args != null && args.length > 0) {
-    			codecClassName = (String) args[0];
-    		}*/
-    		
     		Codec codec = null;
     		String codecClassName = (String) getArgument(CODEC_CLASS_NAME);
     		try {
