@@ -59,16 +59,17 @@ public class MusicOntology extends Ontology {
   	super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
 
     try {
-    	ConceptSchema cdSchema = new ConceptSchema(CD);
-    	cdSchema.addSuperSchema((ConceptSchema) getSchema(ECommerceOntology.ITEM));
-    	cdSchema.add(CD_TITLE, (TermSchema) getSchema(BasicOntology.STRING));
-    	cdSchema.add(CD_TRACKS, (TermSchema) getSchema(BasicOntology.SEQUENCE));
-    	add(cdSchema, CD.class);
-    	
     	ConceptSchema trackSchema = new ConceptSchema(TRACK);
     	trackSchema.add(TRACK_NAME, (TermSchema) getSchema(BasicOntology.STRING));
     	trackSchema.add(TRACK_DURATION, (TermSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     	add(trackSchema, Track.class);
+    	
+    	ConceptSchema cdSchema = new ConceptSchema(CD);
+    	cdSchema.addSuperSchema((ConceptSchema) getSchema(ECommerceOntology.ITEM));
+    	cdSchema.add(CD_TITLE, (TermSchema) getSchema(BasicOntology.STRING));
+    	cdSchema.add(CD_TRACKS, (TermSchema) getSchema(BasicOntology.SEQUENCE));
+    	cdSchema.addFacet(CD_TRACKS, new TypedAggregateFacet(trackSchema)); 
+    	add(cdSchema, CD.class);
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();

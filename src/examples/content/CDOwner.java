@@ -69,6 +69,12 @@ public class CDOwner extends Agent {
 			t2.setName("King-of-pain");
 			t2.setDuration(new Integer(240000));
 			tracks.add(t2);
+			
+			/*CD cd = new CD();
+			cd.setTitle("Pippo");
+			cd.setTracks(new ArrayList());
+			tracks.add(cd);
+			*/
 			myCd.setTracks(tracks);
 					
 			addBehaviour(new ItemInformSender(this, myCd));      
