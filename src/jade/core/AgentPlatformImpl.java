@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.44  1999/11/08 15:19:41  rimassaJade
+  Added sniffOn() and sniffOff() methods to control message sniffing.
+
   Revision 1.43  1999/10/08 08:28:40  rimassa
   Added some fault tolerance to the platform in dealing with unreachable
   containers.
@@ -750,6 +753,39 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       }
     });
     auxThread.start();
+  }
+
+
+  public void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException  {
+
+    Collection myContainersColl = containers.values();
+    Iterator myContainers = myContainersColl.iterator();
+
+    while (myContainers.hasNext()) {
+      try {
+	AgentContainer ac = (AgentContainer)myContainers.next();
+	ac.enableSniffer(SnifferName, ToBeSniffed); // RMI call
+      }
+      catch (RemoteException re) {
+	throw new UnreachableException(re.getMessage());
+      } 
+    }
+  }
+
+  public void sniffOff(String SnifferName, Map NotToBeSniffed) throws UnreachableException {
+
+    Collection myContainersColl = containers.values();
+    Iterator myContainers = myContainersColl.iterator();
+
+    while (myContainers.hasNext()) {
+      try {
+	AgentContainer ac = (AgentContainer)myContainers.next();
+	ac.disableSniffer(SnifferName, NotToBeSniffed); // RMI call
+      }
+      catch (RemoteException re) {
+	throw new UnreachableException(re.getMessage());
+      }
+    }
   }
 
 
