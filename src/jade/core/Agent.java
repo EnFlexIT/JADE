@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.47  1999/04/13 15:58:05  rimassa
+  Added a fix for GUI deadlock problem during platform startup: a global
+  lock is acquired to force mutual exclusion among all setup() methods.
+
   Revision 1.46  1999/04/06 00:09:33  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -279,6 +283,12 @@ import jade.domain.FIPAException;
  */
 public class Agent implements Runnable, Serializable, CommBroadcaster {
 
+  // FIXME: This static lock is used to execute setup() methods in
+  // mutual exclusion between all the agent within this Agent
+  // Container; this is a hack to avoid a mysterious deadlock problem
+  // arising when many GUI main windows start together.
+  private static Object globalAgentLock = new Object();
+
   // This inner class is used to force agent termination when a signal
   // from the outside is received
   private class AgentDeathError extends Error {
@@ -368,8 +378,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public static final int MSG_QUEUE_SIZE = 100;
 
-  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE); // PP
-  private Vector listeners = new Vector(); // PP
+  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+  private Vector listeners = new Vector();
 
   private String myName = null;
   private String myAddress = null;
@@ -377,8 +387,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private Object waitLock = new Object(); // Used for agent waiting
   private Object suspendLock = new Object(); // Used for agent suspension
 
-  private Thread myThread; // PP
-  private Scheduler myScheduler; // PP
+  private Thread myThread;
+  private Scheduler myScheduler;
 
   /**
      The <code>Behaviour</code> that is currently executing.
@@ -668,7 +678,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     try{
       registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
 
-      setup();
+      synchronized(globalAgentLock) {
+	setup();
+      }
 
       mainLoop();
 
