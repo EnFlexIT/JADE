@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1998/11/05 23:33:22  rimassa
+  Added some String constants and toText() method for CreateAgentAction
+  and KillAgentAction inner classes.
+
   Revision 1.12  1998/11/03 00:33:43  rimassa
   Complete implementation of a class hierarchy for AMS events; now each
   AMS event has set()/get() methods for all its fields and a couple of
@@ -606,10 +610,17 @@ public class AgentManagementOntology {
 
   public static class CreateAgentAction extends AMSAction {
 
+    public static final String AGENTCODE = ":agent-code";
+    public static final String AGENTPROPERTIES = ":agent-properties";
+
     public static final String CONTAINER = ":container";
 
     private String className = "jade.core.Agent";
     private Properties agentProperties = new Properties();
+
+    public CreateAgentAction() {
+      setName(CREATEAGENT);
+    }
 
     public void setClassName(String cn) {
       className = cn;
@@ -631,12 +642,43 @@ public class AgentManagementOntology {
       agentProperties.remove(name.toLowerCase());
     }
 
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write("( " + ARGNAME + " ");
+	arg.toText(w);
+	w.write(" )");
+	w.write(" ( " + AGENTCODE + " " + className + " )");
+	w.write(" ( " + AGENTPROPERTIES + " ");
+
+	Enumeration propNames = agentProperties.propertyNames();
+	while(propNames.hasMoreElements()) {
+	  String name = (String)propNames.nextElement();
+	  w.write(" ( " + name + " " + agentProperties.getProperty(name) + " ) ");
+	}
+
+	w.write(" ) ");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
   }
 
   public static class KillAgentAction extends AMSAction {
 
-    private String agentName = "";
-    private String password = "";
+    public static final String AGENTNAME = ":agent-name";
+    public static final String PASSWORD = ":password";
+
+    private String agentName;
+    private String password;
+
+    public KillAgentAction() {
+      setName(KILLAGENT);
+    }
 
     public void setAgentName(String an) {
       agentName = an;
@@ -652,6 +694,20 @@ public class AgentManagementOntology {
 
     public String getPassword() {
       return password;
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write("( " + AGENTNAME + " " + agentName + " )");
+	if(password != null)
+	  w.write("( " + PASSWORD + " " + password + " )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
     }
 
   }
