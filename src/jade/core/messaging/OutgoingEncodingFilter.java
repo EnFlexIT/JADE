@@ -77,7 +77,7 @@ public class OutgoingEncodingFilter extends Filter {
     // The awaited command should contain an ACLMessage
     if(name.equals(MessagingSlice.SEND_MESSAGE)) {
       // DEBUG
-      //      System.out.println("-- Filtering a SEND_MESSAGE command (outgoing) --");
+      //System.out.println("-- Filtering a SEND_MESSAGE command (outgoing)--");
 
       GenericMessage gmsg = (GenericMessage)params[1];
       AID sender = (AID) params[0];
@@ -93,7 +93,7 @@ public class OutgoingEncodingFilter extends Filter {
         msg.setSender(sender);
       }
       //DEBUG
-      //      System.out.println(gmsg);
+      //System.out.println(gmsg);
 
       // checks if the agent is on the same container or not
       synchronized (myAgentContainer){
@@ -108,18 +108,7 @@ public class OutgoingEncodingFilter extends Filter {
         } else {
           // add necessary fields to the envelope
           prepareEnvelope(msg,receiver);
-          if (myAgentContainer.livesHere(receiver)){
-            // intra-platform message
-            //DEBUG
-            //            System.out.println("[EncodingService] Intra-platform message");
-            // set the representation to an "efficient" encoding
-            msg.getEnvelope().setAclRepresentation(LEAPACLCodec.NAME.toLowerCase());
-          } else {
-            //DEBUG
-            //            System.out.println("[EncodingService] Inter-platform message");
-            // inter-platform message
-            // in that case use information in the envelope
-          }
+
         }
       }
 
@@ -130,14 +119,13 @@ public class OutgoingEncodingFilter extends Filter {
         // DEBUG
         //        System.out.println("[EncodingService] msg encoded.");
         Envelope env =  msg.getEnvelope();
-        env.setPayloadLength(new Long(payload.length));
+        if (env!=null)
+          env.setPayloadLength(new Long(payload.length));
 
         // update the ACLMessage: some information is kept because it is 
         // required in other services
-               
-        if (myAgentContainer.livesHere(receiver)){
-          ((GenericMessage)cmd.getParams()[1]).update(msg,null,payload);
-        } else ((GenericMessage)cmd.getParams()[1]).update(msg,env,payload);
+        ((GenericMessage)cmd.getParams()[1]).update(msg,env,payload);
+
       } catch (MessagingService.UnknownACLEncodingException ee){
         //FIXME
         ee.printStackTrace();
@@ -168,7 +156,10 @@ public class OutgoingEncodingFilter extends Filter {
    */
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
     Envelope env = msg.getEnvelope();
-    if(env == null) {
+    if ((env == null)&&(myAgentContainer.livesHere(receiver))){
+      return;
+    }
+    else if(env == null) {
 	    msg.setDefaultEnvelope();
 	    env = msg.getEnvelope();
     }
@@ -233,7 +224,9 @@ public class OutgoingEncodingFilter extends Filter {
   public byte[] encodeMessage(ACLMessage msg) throws MessagingService.UnknownACLEncodingException{
 
     Envelope env = msg.getEnvelope();
-    String enc = env.getAclRepresentation();
+    String enc;
+    if (env==null) enc = LEAPACLCodec.NAME;
+    else enc = env.getAclRepresentation();
 
     if(enc != null) { // A Codec was selected
 	    ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
