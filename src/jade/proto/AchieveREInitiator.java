@@ -47,7 +47,7 @@ import jade.util.leap.Serializable;
  * This implementation works both for 1:1 and 1:N conversation.
  * <p>
  * FIPA has already specified a number of these interaction protocols, like 
- * FIPA-Request, FIPA-query, FIPA-propose, FIPA-Request-When, FIPA-recruiting,
+ * FIPA-Request, FIPA-query, FIPA-Request-When, FIPA-recruiting,
  * FIPA-brokering, that allows the initiator to verify if the 
  * expected rational effect of a single communicative act has been achieved. 
  * <p>

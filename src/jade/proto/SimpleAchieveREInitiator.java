@@ -48,7 +48,7 @@ import jade.core.AID;
 
  * <p>
  * FIPA has already specified a number of these interaction protocols, like 
- * FIPA-Request, FIPA-query, FIPA-propose, FIPA-Request-When, FIPA-recruiting,
+ * FIPA-Request, FIPA-query, FIPA-Request-When, FIPA-recruiting,
  * FIPA-brokering, FIPA-subscribe, that allows the initiator to verify if the 
  * expected rational effect of a single communicative act has been achieved. 
  * <p>
