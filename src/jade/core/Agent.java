@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.59  1999/06/30 10:34:37  rimassa
+  Fixed erroneous Javadoc '@see' tag.
+
   Revision 1.58  1999/06/25 12:26:56  rimassa
   Fixed a bug with timed blockingReceive(): when called with a 0 timeout
   (i.e. a 'forever' timeout), sometimes an IllegalArgumentException was
@@ -524,7 +527,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
      The <code>Behaviour</code> that is currently executing.
-     @see jade.core.Behaviour
+     @see jade.core.behaviours.Behaviour
   */
   protected Behaviour currentBehaviour;
 
@@ -861,7 +864,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <code>Behaviour</code> object to the agent, in order for it to be
      able to do anything.
      @see jade.core.Agent#addBehaviour(Behaviour b)
-     @see jade.core.Behaviour
+     @see jade.core.behaviours.Behaviour
   */
   protected void setup() {}
 
@@ -986,7 +989,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      dynamically.
      @param b The new behaviour to add to the agent.
      @see jade.core.Agent#setup()
-     @see jade.core.Behaviour
+     @see jade.core.behaviours.Behaviour
   */
   public void addBehaviour(Behaviour b) {
     myScheduler.add(b);
@@ -998,7 +1001,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      but can also be called from a behaviour to terminate itself or
      some other behaviour.
      @param b The behaviour to remove.
-     @see jade.core.Behaviour
+     @see jade.core.behaviours.Behaviour
   */
   public void removeBehaviour(Behaviour b) {
     myScheduler.remove(b);
