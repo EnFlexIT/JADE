@@ -244,7 +244,7 @@ public class JICPPacket {
 	      // Size
       	int size = data.length;
       	out.write(size);
-      	out.write(size >> 8);
+      	out.write(size >> 8);      	
       	cnt += 2;
       	// Payload
       	if (size > 0) {
@@ -274,19 +274,19 @@ public class JICPPacket {
     JICPPacket p = new JICPPacket();
 
     // Read packet type
-    p.type = (byte) in.read();
+    p.type = read(in);
 
     // Read the packet info
-    p.info = (byte) in.read();
+    p.info = read(in);
 
     // Read session ID if present
     if ((p.info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-    	p.sessionID = (byte) in.read();
+    	p.sessionID = read(in);
     }
     	
     // Read recipient ID if present
     if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-    	int size = (byte) (in.read() & 0x000000ff);
+    	int size = (read(in) & 0x000000ff);
     	byte[] bb = new byte[size];
     	in.read(bb, 0, size);
       p.recipientID = new String(bb);
@@ -294,8 +294,8 @@ public class JICPPacket {
 
     // Read data if present
     if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	int b1 = in.read();
-    	int b2 = in.read();
+    	int b1 = read(in);
+    	int b2 = read(in);
     	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
     	if (size == 0) {
       	p.data = new byte[0];
@@ -309,15 +309,11 @@ public class JICPPacket {
       	do {
         	n = in.read(p.data, cnt, size-cnt);
         	if (n == -1) {
-          	break;
+          	throw new EOFException("EOF reading packet data");
         	} 
         	cnt += n;
       	} 
       	while (cnt < size);
-
-      	if (cnt < size) {
-        	Logger.println("WARNING: only "+cnt+" bytes received, while "+size+" were expected");
-      	} 
     	}
       //Logger.println("JICPPacket read. Type:"+p.type+" Info:"+p.info+" RID:"+p.recipientID+" Data-length:"+(p.data != null ? p.data.length : 0));
     } 
@@ -327,6 +323,14 @@ public class JICPPacket {
     return p;
   } 
 
+  private static final byte read(InputStream in) throws IOException {
+  	int i = in.read();
+  	if (i == -1) {
+  		throw new EOFException("EOF reading packet header");
+  	}
+  	return (byte) i;
+  }
+  
   public int getLength() {      
   	return (2 + (sessionID >= 0 ? 1 : 0) + (recipientID != null ? 1+recipientID.length() : 0) + (data != null ? 2+data.length : 0));
   }
