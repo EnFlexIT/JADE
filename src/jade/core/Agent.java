@@ -203,7 +203,7 @@ public class Agent implements Runnable, Serializable {
   void doTimeOut(Timer t) {
     Behaviour b = pendingTimers.getPeer(t);
     if(b != null) {
-      activateBehaviour(b);
+      b.restart();
     }
   }
 
@@ -222,6 +222,12 @@ public class Agent implements Runnable, Serializable {
       pendingTimers.removeMapping(b);
       theDispatcher.remove(t);
     }
+
+    // Did this restart() cause the root behaviour to become runnable ?
+    // If so, put the root behaviour back into the ready queue.
+    Behaviour root = b.root();
+    if(root.isRunnable())
+      myScheduler.restart(root);
   }
 
   /**
@@ -426,11 +432,6 @@ public class Agent implements Runnable, Serializable {
   @serial
   */
   private int myBufferedState = AP_MIN;
-
-  /**
-  @serial
-  */
-  private List blockedBehaviours = new ArrayList();
 
   /**
      Default constructor.
@@ -1279,10 +1280,9 @@ public class Agent implements Runnable, Serializable {
 	    currentBehaviour = null;
 	  }
 	  else if(!currentBehaviour.isRunnable()) {
-	    // Remove blocked behaviours from scheduling queue and put it
-	    // in blocked behaviours queue
-	    myScheduler.remove(currentBehaviour);
-	    blockedBehaviours.add(currentBehaviour);
+	    // Remove blocked behaviour from ready behaviours queue
+	    // and put it in blocked behaviours queue
+	    myScheduler.block(currentBehaviour);
 	    currentBehaviour = null;
 	  }
 	  break;
@@ -1379,6 +1379,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.core.behaviours.Behaviour
   */
   public void addBehaviour(Behaviour b) {
+    b.setAgent(this);
     myScheduler.add(b);
   }
 
@@ -1391,6 +1392,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.core.behaviours.Behaviour
   */
   public void removeBehaviour(Behaviour b) {
+    b.setAgent(null);
     myScheduler.remove(b);
   }
 
@@ -1580,11 +1582,6 @@ public class Agent implements Runnable, Serializable {
 
 
 
-
-
-
-
-
   final void setToolkit(AgentToolkit at) {
     myToolkit = at;
   }
@@ -1617,23 +1614,8 @@ public class Agent implements Runnable, Serializable {
     myToolkit.handleClone(myAID, myDestination, myNewName);
   }
 
-  private void activateBehaviour(Behaviour b) {
-    Behaviour root = b.root();
-    blockedBehaviours.remove(root);
-    b.restart();
-    myScheduler.add(root);
-  }
-
   private void activateAllBehaviours() {
-    // Put all blocked behaviours back in ready queue,
-    // atomically with respect to the Scheduler object
-    synchronized(myScheduler) {
-      while(!blockedBehaviours.isEmpty()) {
-	Behaviour b = (Behaviour)blockedBehaviours.remove(blockedBehaviours.size() - 1);
-	b.restart();
-	myScheduler.add(b);
-      }
-    }
+    myScheduler.restartAll();
   }
 
 
