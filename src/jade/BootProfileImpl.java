@@ -122,7 +122,7 @@ public class BootProfileImpl extends ProfileImpl {
         
         // Configure Java runtime system to put the selected host address in RMI messages
 
-  	    boolean isMain = fetchAndVerifyBoolean(CONTAINER_KEY);
+  	    boolean isMain = !fetchAndVerifyBoolean(CONTAINER_KEY);
   	                
         try {
 
