@@ -45,36 +45,42 @@ import jade.gui.AboutJadeAction;
   private JMenu menu;
   private JMenuItem tmp;
 
-  void paintM(boolean enable,Icon icon,RMAAction obj){
+  
+ 
+  void paintM(boolean enable,RMAAction obj){
     tmp = menu.add(obj);
     tmp.setEnabled(enable);
-    tmp.setIcon(icon);
   }
+
+
   public MainMenu (Frame mainWnd,ActionProcessor actPro) {
 
     super();
     this.actPro=actPro;
 
     menu = new JMenu ("File");
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.CLOSE_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.EXIT_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.SHUTDOWN_ACTION));
+ 
+    paintM(true,(RMAAction)actPro.actions.get(actPro.CLOSE_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.EXIT_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.SHUTDOWN_ACTION));
     add(menu);
 
     menu = new JMenu ("Actions");
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.START_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.KILL_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.RESUME_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
+   
+    paintM(true,(RMAAction)actPro.actions.get(actPro.START_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.KILL_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.RESUME_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
     add(menu);
 
     menu = new JMenu ("Tools");
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.SNIFFER_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.DUMMYAG_ACTION));
-    paintM(true,null,(RMAAction)actPro.actions.get(actPro.SHOWDF_ACTION));
+    
+    paintM(true,(RMAAction)actPro.actions.get(actPro.SNIFFER_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.DUMMYAG_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.SHOWDF_ACTION));
     add(menu);
     
     menu = new JMenu("Help");
@@ -85,7 +91,3 @@ import jade.gui.AboutJadeAction;
 
   } // End Builder
 }
-
-
-
-

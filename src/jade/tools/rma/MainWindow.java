@@ -41,7 +41,7 @@ import jade.gui.AgentTreeModel;
 import jade.gui.AgentTree;
 
 import jade.lang.acl.ACLMessage;
-
+import jade.gui.GuiProperties;
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -53,9 +53,10 @@ class MainWindow extends JFrame {
   private ActionProcessor actPro;
   private PopupMenuAgent popA;
   private PopupMenuContainer popC;
-
+ 	private String logojade = "images/logosmall.jpg";
+ 	
   public MainWindow (rma anRMA) {
-    super("JADE Remote Agent Management GUI");
+    super(anRMA.getName() +" - JADE Remote Agent Management GUI");
     tree = new MainPanel(anRMA, this);
     actPro = new ActionProcessor(anRMA, this, tree);
     setJMenuBar(new MainMenu(this,actPro));
@@ -67,6 +68,8 @@ class MainWindow extends JFrame {
 
     setForeground(Color.black);
     setBackground(Color.lightGray);
+    Image image = getToolkit().getImage(getClass().getResource(logojade));
+    setIconImage(image);
     addWindowListener(new WindowCloser(anRMA));
 
     getContentPane().add(new ToolBar(tree,this,actPro),"North"); // new ToolBar(tree, this, ActionProcessor.actions)

@@ -51,7 +51,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 	DefaultListModel  queuedMsgListModel;
 	JList             queuedMsgList;
 	File              currentDir;
-
+  String 						logoDummy = "images/dummyagent.gif";
 	// Constructor
 	DummyAgentGui(DummyAgent a)
 	{
@@ -83,9 +83,13 @@ class DummyAgentGui extends JFrame implements ActionListener
 		//////////////////////////
 		// Set title in GUI window
 		try{
-			setTitle(agentName.getName() + ":DummyAgent");
+			setTitle(agentName.getName() + " - DummyAgent");
 		}catch(Exception e){setTitle("DummyAgent");}
 		
+	  Image image = getToolkit().getImage(getClass().getResource(logoDummy));
+    setIconImage(image);
+
+
 		////////////////////////////////
 		// Set GUI window layout manager
 		getContentPane().setLayout(new BorderLayout());
@@ -119,33 +123,53 @@ class DummyAgentGui extends JFrame implements ActionListener
 		generalMenu.add (item = new JMenuItem ("Exit"));
 		item.addActionListener (this);
 		jmb.add (generalMenu);
-
-
-		JMenu currentMsgMenu = new JMenu ("Current message");
+		
+    Icon resetImg = GuiProperties.getIcon("reset");
+    Icon sendImg = GuiProperties.getIcon("send");
+		Icon openImg = GuiProperties.getIcon("open");
+    Icon saveImg = GuiProperties.getIcon("save");
+    Icon openQImg = GuiProperties.getIcon("openq");
+    Icon saveQImg = GuiProperties.getIcon("saveq");
+    Icon setImg = GuiProperties.getIcon("set");
+    Icon replyImg = GuiProperties.getIcon("reply");
+    Icon viewImg = GuiProperties.getIcon("view");
+    Icon deleteImg = GuiProperties.getIcon("delete");
+    		
+    JMenu currentMsgMenu = new JMenu ("Current message");
 		currentMsgMenu.add (item = new JMenuItem ("Reset"));
 		item.addActionListener (this);
+		item.setIcon(resetImg);
 		currentMsgMenu.add (item = new JMenuItem ("Send"));
 		item.addActionListener (this);
+		item.setIcon(sendImg);
 		currentMsgMenu.add (item = new JMenuItem ("Open"));
 		item.addActionListener (this);
+		item.setIcon(openImg);
 		currentMsgMenu.add (item = new JMenuItem ("Save"));
 		item.addActionListener (this);
+		item.setIcon(saveImg);
 		currentMsgMenu.addSeparator();
 		jmb.add (currentMsgMenu);
 
 		JMenu queuedMsgMenu = new JMenu ("Queued message");
 		queuedMsgMenu.add (item = new JMenuItem ("Open queue"));
 		item.addActionListener (this);
+		item.setIcon(openQImg);
 		queuedMsgMenu.add (item = new JMenuItem ("Save queue"));
 		item.addActionListener (this);
+		item.setIcon(saveQImg);
 		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
 		item.addActionListener (this);
+		item.setIcon(setImg);
 		queuedMsgMenu.add (item = new JMenuItem ("Reply"));
 		item.addActionListener (this);
+		item.setIcon(replyImg);
 		queuedMsgMenu.add (item = new JMenuItem ("View"));
 		item.addActionListener (this);
+		item.setIcon(viewImg);
 		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
 		item.addActionListener (this);
+		item.setIcon(deleteImg);
 		jmb.add (queuedMsgMenu);
 
 		setJMenuBar(jmb);
@@ -154,88 +178,91 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// Add Toolbar to the NORTH part of the border layout 
 		JToolBar bar = new JToolBar();
 
-		Icon resetImg = GuiProperties.getIcon("reset");
+		
 		JButton resetB = new JButton();
-		resetB.setText("Reset");
+	  //resetB.setText("Reset");
 		resetB.setIcon(resetImg);
 		resetB.setToolTipText("New the current ACL message");
 		resetB.addActionListener(this);
-		bar.add(resetB);
-											
-		Icon sendImg = GuiProperties.getIcon("send");
+		bar.add(resetB);	
+		
 		JButton sendB = new JButton();
-		sendB.setText("Send");
+	  //sendB.setText("Send");
 		sendB.setIcon(sendImg);
 		sendB.setToolTipText("Send the current ACL message");
 		sendB.addActionListener(this);
-		bar.add(sendB);
-
-		Icon openImg = GuiProperties.getIcon("open");
+		bar.add(sendB);		
+		
 		JButton openB = new JButton();
-		openB.setText("Open");
+		//openB.setText("Open");
 		openB.setIcon(openImg);
 		openB.setToolTipText("Read the current ACL message from file");
 		openB.addActionListener(this);
 		bar.add(openB);
 
-		Icon saveImg = GuiProperties.getIcon("save");
+		
 		JButton saveB = new JButton();
-		saveB.setText("Save");
+		//saveB.setText("Save");
 		saveB.setIcon(saveImg);
 		saveB.setToolTipText("Save the current ACL message to file");
 		saveB.addActionListener(this);
 		bar.add(saveB);
 
-		bar.addSeparator();
+		bar.addSeparator(new Dimension(50,30));
 
-		Icon openQImg = GuiProperties.getIcon("openq");
+	
 		JButton openQB = new JButton();
-		openQB.setText("Open queue");
+	  //openQB.setText("Open queue");
 		openQB.setIcon(openQImg);
 		openQB.setToolTipText("Read the queue of sent/received messages from file");
 		openQB.addActionListener(this);
 		bar.add(openQB);
 
-		Icon saveQImg = GuiProperties.getIcon("saveq");
+
 		JButton saveQB = new JButton();
-		saveQB.setText("Save queue");
+	  //saveQB.setText("Save queue");
 		saveQB.setIcon(saveQImg);
 		saveQB.setToolTipText("Save the queue of sent/received messages to file");
 		saveQB.addActionListener(this);
 		bar.add(saveQB);
 
-		Icon setImg = GuiProperties.getIcon("set");
+		bar.addSeparator();
+		
 		JButton setB = new JButton();
-		setB.setText("Set as current");
+		//setB.setText("Set as current");
 		setB.setIcon(setImg);
 		setB.setToolTipText("Set the selected ACL message to be the current message");
 		setB.addActionListener(this);
 		bar.add(setB);
 
-		Icon replyImg = GuiProperties.getIcon("reply");
+
 		JButton replyB = new JButton();
-		replyB.setText("Reply");
+	  //replyB.setText("Reply");
 		replyB.setIcon(replyImg);
 		replyB.setToolTipText("Prepare a message to reply to the selected message");
 		replyB.addActionListener(this);
 		bar.add(replyB);
 
-		Icon viewImg = GuiProperties.getIcon("view");
+		bar.addSeparator();
+	
 		JButton viewB = new JButton();
-		viewB.setText("View");
+		//viewB.setText("View");
 		viewB.setIcon(viewImg);
 		viewB.setToolTipText("View the selected ACL message");
 		viewB.addActionListener(this);
 		bar.add(viewB);
 
-		Icon deleteImg = GuiProperties.getIcon("delete");
+
 		JButton deleteB = new JButton();
-		deleteB.setText("Delete");
+	//deleteB.setText("Delete");
 		deleteB.setIcon(deleteImg);
 		deleteB.setToolTipText("Delete the selected ACL message");
 		deleteB.addActionListener(this);
 		bar.add(deleteB);
 
+		bar.addSeparator(new Dimension(180,30));
+		JadeLogoButton logo = new JadeLogoButton();
+		bar.add(logo);
 		getContentPane().add("North", bar);
 	}
 

@@ -42,7 +42,7 @@ class CloseRMAAction extends FixedAction {
   private rma myRMA;
 
   public CloseRMAAction (rma anRMA,ActionProcessor actPro) {
-    super ("SuspendActionIcon","Close RMA Agent",actPro);
+    super ("CloseRMAIcon","Close RMA Agent",actPro);
     myRMA = anRMA;
   }
 

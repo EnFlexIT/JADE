@@ -46,8 +46,11 @@ abstract class RMAAction extends AbstractAction {
   public RMAAction(String IconKey,String ActionName) {
     this.img = GuiProperties.getIcon("RMAAction."+IconKey);
     this.ActionName = ActionName;
-    putValue(Action.SMALL_ICON,img);
-    putValue(Action.DEFAULT,img);
+    if(this.img != null)
+    {
+    	putValue(Action.SMALL_ICON,img);
+    	putValue(Action.DEFAULT,img);
+    }
     putValue(Action.NAME,ActionName);
   }
 

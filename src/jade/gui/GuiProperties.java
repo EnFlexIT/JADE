@@ -43,9 +43,9 @@ import java.util.Properties;
     Object[] icons = {
       "RMAAction.AddAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/cervello.gif"),
       "RMAAction.CustomActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/custom.gif"),
-      "RMAAction.ExitActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/kill.gif"),
+      //"RMAAction.ExitActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/kill.gif"),
       "RMAAction.KillActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/kill.gif"),
-       "RMAAction.RemoveActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/ex.gif"),
+      "RMAAction.RemoveActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/ex.gif"),
       "RMAAction.ResumeActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/sveglia.gif"),
       "RMAAction.SnifferActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/sniffer.gif"),
       "RMAAction.StartActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/start.gif"),
@@ -58,6 +58,7 @@ import java.util.Properties;
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),
       "TreeData.FolderIcon1",LookAndFeel.makeIcon(foo.getClass(),"images/TreeRoot.gif"),
       "RMAAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif"),
+	    "RMAAction.DGGUIActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/dfsmall.gif"), 
       };
 
     MyDefaults = new UIDefaults (icons);     // (My)Create a defaults table initialized with the specified key/value pairs.
@@ -66,8 +67,9 @@ import java.util.Properties;
   public static final Icon getIcon(String key) {
     Icon i = MyDefaults.getIcon(key);       // Le controlla tutte ?
     if (i == null) {
-      System.out.println(key);
-      System.exit(-1);
+      //System.out.println(key);
+      //System.exit(-1);
+    	//no icon associated to the action.
       return null;
     }
     else return MyDefaults.getIcon(key);

@@ -28,9 +28,9 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JToolBar;
-import javax.swing.JComboBox;
+//import javax.swing.JComboBox;
 import javax.swing.JButton;
-
+import jade.gui.JadeLogoButton;
 
 /**
    
@@ -39,12 +39,12 @@ import javax.swing.JButton;
  */
 final class ToolBar  extends JToolBar  implements ActionListener {
 
-  protected JComboBox ShowChoice = new JComboBox ();
+  //protected JComboBox ShowChoice = new JComboBox ();
   protected MainPanel tree;
   protected Frame mainWnd;
   protected ActionProcessor actPro;
   private RMAAction obj;
-
+ 
   public ToolBar  (MainPanel treeP, Frame mainWnd,ActionProcessor actPro) { // RMAAction[] actions come arg 3
     super();
     tree = treeP;
@@ -53,12 +53,18 @@ final class ToolBar  extends JToolBar  implements ActionListener {
     this.actPro=actPro;
     addSeparator();
     addAction();
-    ShowChoice.setToolTipText("Show Agent as...");
-    ShowChoice.addItem("White Pages");
-    ShowChoice.addItem("Yellow Pages");
-    ShowChoice.addActionListener(this);
-    ShowChoice.setEnabled(false);      // Disabled
-    add(ShowChoice);
+    
+    addSeparator(new java.awt.Dimension(185,30));
+    
+	  JadeLogoButton logo = new JadeLogoButton();	
+    add(logo);
+    
+    //ShowChoice.setToolTipText("Show Agent as...");
+    //ShowChoice.addItem("White Pages");
+    //ShowChoice.addItem("Yellow Pages");
+    //ShowChoice.addActionListener(this);
+    //ShowChoice.setEnabled(false);      // Disabled
+    //add(ShowChoice);
   }
 
   private void setButton(JButton b) {
@@ -105,5 +111,7 @@ final class ToolBar  extends JToolBar  implements ActionListener {
     //TreeIconRenderer.setShowType(ShowChoice.getSelectedIndex());
     tree.repaint();
   }
+  
+  
 
 }

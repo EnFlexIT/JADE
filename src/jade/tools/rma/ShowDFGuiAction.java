@@ -49,7 +49,7 @@ class ShowDFGuiAction extends FixedAction
      // Note: this class uses the DummyAgentActionIcon just because it
      // never displays an icon, but a parameter must anyway be passed.
 
-     super ("DummyAgentActionIcon","Show the DF GUI",actPro);
+     super ("DGGUIActionIcon","Show the DF GUI",actPro);
      myRMA = anRMA;
      msg = new ACLMessage(ACLMessage.REQUEST);
      msg.addReceiver(myRMA.getDefaultDF());
@@ -73,6 +73,5 @@ class ShowDFGuiAction extends FixedAction
   }
 
 }  // End of ShowDFGuiAction
-
 
 

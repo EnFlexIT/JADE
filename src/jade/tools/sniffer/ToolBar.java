@@ -25,9 +25,12 @@ package jade.tools.sniffer;
 import javax.swing.JToolBar;        
 import javax.swing.JButton;
 import java.awt.Insets;
+import java.awt.Dimension;
+
+import jade.gui.JadeLogoButton;
 
    /**
-   Javadoc documentation for the file
+ 
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    <Br>
    <a href="mailto:a_soracchi@libero.it"> Andrea Soracchi(e-mail) </a>
@@ -49,6 +52,9 @@ final public class ToolBar extends JToolBar {
   this.actPro=actPro;
   addSeparator();
   addAction();
+  addSeparator(new Dimension(350,30));
+  JadeLogoButton logo = new JadeLogoButton();
+  add(logo);
  }
 
  private void setButton(JButton b) {

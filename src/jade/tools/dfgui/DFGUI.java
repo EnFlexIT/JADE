@@ -42,6 +42,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.core.AID;
 import jade.domain.DFGUIAdapter;
 import jade.gui.AboutJadeAction;
+import jade.gui.JadeLogoButton;
 
 /**
 * This class implements the GUI of the Directory Facilitator.
@@ -184,8 +185,18 @@ to set the agent with which the gui interacts.
 		super();
 		lastSearchResults = new HashMap();
 	
+		Image image = getToolkit().getImage(getClass().getResource("images/df.gif"));
+    setIconImage(image);
+
     setSize(550,450);
   
+    Icon viewImg = DFGuiProperties.getIcon("view");
+		Icon modifyImg = DFGuiProperties.getIcon("modify");
+		Icon deregImg = DFGuiProperties.getIcon("deregister");
+    Icon regNewImg = DFGuiProperties.getIcon("registeragent");
+		Icon fedDFImg = DFGuiProperties.getIcon("federatedf");
+		Icon searchImg = DFGuiProperties.getIcon("search");
+		
 		/////////////////////////////////////
 		// Add main menu to the GUI window
 		JMenuBar jmb = new JMenuBar();
@@ -210,10 +221,16 @@ to set the agent with which the gui interacts.
 	
 		
 		item = catalogueMenu.add(dfViewAction);
+		item.setIcon(viewImg);
 		item = catalogueMenu.add(dfModifyAction);
+		item.setIcon(modifyImg);
 		item = catalogueMenu.add(dfDeregAction);
+		item.setIcon(deregImg);
 		item = catalogueMenu.add(dfRegAction);
+		item.setIcon(regNewImg);
 		item = catalogueMenu.add(dfSearchAction);
+		item.setIcon(searchImg);
+
 
 		
 		jmb.add (catalogueMenu);
@@ -221,6 +238,7 @@ to set the agent with which the gui interacts.
 		JMenu superDFMenu = new JMenu ("Super DF");
 		dfFedAction = new DFGUIFederateAction(this);
 		item = superDFMenu.add(dfFedAction);
+		item.setIcon(fedDFImg);
 		jmb.add (superDFMenu);
 
 		JMenu helpMenu = new JMenu ("Help");
@@ -259,31 +277,31 @@ to set the agent with which the gui interacts.
 		bar.addSeparator();
 
 		// CATALOGUE
-		Icon viewImg = DFGuiProperties.getIcon("view");
+		
 		viewB  = bar.add(new DFGUIViewAction(this));
 		viewB.setText("");
 		viewB.setIcon(viewImg);
 		viewB.setToolTipText("View the services provided by the selected agent");
 											
-		Icon modifyImg = DFGuiProperties.getIcon("modify");
+		
 		modifyB = bar.add(new DFGUIModifyAction(this));
 		modifyB.setText("");
 		modifyB.setIcon(modifyImg);
 		modifyB.setToolTipText("Modify the services provided by the selected agent");
 
-		Icon deregImg = DFGuiProperties.getIcon("deregister");
+	
 		deregB  = bar.add(new DFGUIDeregisterAction(this));
 		deregB.setText("");
 		deregB.setIcon(deregImg);
 		deregB.setToolTipText("Deregister the selected agent");
 
-		Icon regNewImg = DFGuiProperties.getIcon("registeragent");
+	
 		regNewB  = bar.add(new DFGUIRegisterAction(this));
 		regNewB.setText("");
 		regNewB.setIcon(regNewImg);
 		regNewB.setToolTipText("Register a new agent with this DF");
 
-		Icon searchImg = DFGuiProperties.getIcon("search");
+	
 		searchB  = bar.add(new DFGUISearchAction(this));
 		searchB.setText("");
 		searchB.setIcon(searchImg);
@@ -293,7 +311,6 @@ to set the agent with which the gui interacts.
 		bar.addSeparator();
 
 		// SUPER DF
-		Icon fedDFImg = DFGuiProperties.getIcon("federatedf");
 		fedDFB  = bar.add(new DFGUIFederateAction(this));
 		fedDFB.setText("");
 		fedDFB.setIcon(fedDFImg);
@@ -307,6 +324,11 @@ to set the agent with which the gui interacts.
 		aboutB.setText("");
 		aboutB.setIcon(aboutImg);
 		aboutB.setToolTipText("About DF");
+		
+		bar.addSeparator(new Dimension(140,30));
+		
+		JadeLogoButton logo = new JadeLogoButton();
+		bar.add(logo);
 
 		getContentPane().add(bar, BorderLayout.NORTH);
 
@@ -575,11 +597,11 @@ public DFGUI(DFGUIAdapter a)
   public void setAdapter(DFGUIAdapter a)
   {
   	try{
-			setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
+			setTitle(a.getDescriptionOfThisDF().getName().getName() + "- DF Gui");
 			myAgent = a;
 		}catch(NullPointerException e){
 			e.printStackTrace();
-			setTitle("DF:Unknown");}
+			setTitle("Unknown DF - DF Gui");}
     
 
   }

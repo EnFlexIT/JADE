@@ -35,7 +35,7 @@ package jade.tools.rma;
   private rma myRMA;
 
   public ShutDownAction (rma anRMA,ActionProcessor actPro) {
-    super ("SuspendActionIcon","Shut down Agent Platform",actPro);
+    super ("ShutDownActionIcon","Shut down Agent Platform",actPro);
     myRMA = anRMA;
   }
 

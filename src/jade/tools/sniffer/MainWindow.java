@@ -24,12 +24,12 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import javax.swing.tree.MutableTreeNode;
-import jade.gui.AgentTree;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Color;
+import java.awt.Image;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JOptionPane;
@@ -37,6 +37,7 @@ import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 import java.net.InetAddress;
 
+import jade.gui.AgentTree;
 import jade.core.AID;
 
   /**
@@ -61,9 +62,10 @@ public class MainWindow extends JFrame {
   private ActionProcessor actPro;
   private PopupMenuAgent popA;
   private Sniffer mySniffer;
-
+  private String snifferLogo = "images/sniffer.gif";
+  
   public MainWindow(Sniffer mySniffer) {
-   super("Sniffer");
+   super(mySniffer.getName() + " - Sniffer Agent");
      this.mySniffer=mySniffer;
      mainPanel = new MainPanel(mySniffer, this);
      actPro=new ActionProcessor(mySniffer,mainPanel);
@@ -71,6 +73,9 @@ public class MainWindow extends JFrame {
      popA=new PopupMenuAgent(actPro);
      setForeground(Color.black);
      setBackground(Color.lightGray);
+     Image image = getToolkit().getImage(getClass().getResource(snifferLogo));
+     setIconImage(image);
+
      addWindowListener(new ProgramCloser());
      mainPanel.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
      mainPanel.treeAgent.register("FIPACONTAINER",null,"images/TreeClosed.gif");
