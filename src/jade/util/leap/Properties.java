@@ -180,7 +180,7 @@ public class Properties extends Hashtable {
   /*#MIDP_INCLUDE_BEGIN
   public String getProperty(String key) {
     String prop = (String) super.get(key);
-    if (prop == null && fromJad) {
+    if (prop == null && fromJad && jade.core.Agent.midlet != null) {
       prop = jade.core.Agent.midlet.getAppProperty("MIDlet-LEAP-" + key);
     } 
     return prop;
