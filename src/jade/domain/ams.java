@@ -390,10 +390,10 @@ public class ams extends Agent implements AgentManager.Listener {
 				    myPlatform.killContainer(cid);
 				}
 				catch(AuthException ae) {
-				    log("Agent does not have permission to perform action Shutdown-Platform: " + ae, 0);
+				    log("Agent does not have permission to perform action Kill-container: " + ae, 0);
 				}
 				catch(NotFoundException nfe) {
-				    log("The ontainer to kill was not found: " + nfe, 0);
+				    log("The Container to kill was not found: " + nfe, 0);
 				}
 			    }
 			};
@@ -492,7 +492,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// SNIFF ON
 	void sniffOnAction(SniffOn so, AID requester) throws FIPAException {
-		log("Agent "+requester+" requesting Sniff-off", 2);
+		log("Agent "+requester+" requesting Sniff-on", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
@@ -507,7 +507,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// SNIFF OFF
 	void sniffOffAction(SniffOff so, AID requester) throws FIPAException {
-		log("Agent "+requester+" requesting Sniff-on", 2);
+		log("Agent "+requester+" requesting Sniff-off", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
