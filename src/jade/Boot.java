@@ -28,6 +28,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.util.Vector;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.lang.Boolean;
+import java.io.*;
+import javax.swing.JOptionPane;
+
+import jade.gui.BootGUI;
 
 /**
    Boots <B><em>JADE</em></b> system, parsing command line arguments.
@@ -43,6 +50,7 @@ public class Boot {
   // This separates agent name from agent class on the command line
   private static final String SEPARATOR = ":";
 
+  
   // Private constructor to forbid instantiation
   private Boot() {
   }
@@ -58,11 +66,13 @@ public class Boot {
     int dollarPos = CVSname.lastIndexOf('$');
     String name = CVSname.substring(colonPos + 1, dollarPos);
     if(name.indexOf("JADE") == -1)
-	name = "JADE snapshot";
+	
+    	name = "JADE snapshot";
     else {
         name = name.replace('-', ' ');
-	name = name.replace('_', '.');
-	name = name.trim();
+	
+    name = name.replace('_', '.');
+	  name = name.trim();
     }
     colonPos = CVSdate.indexOf(':');
     dollarPos = CVSdate.lastIndexOf('$');
@@ -79,78 +89,157 @@ public class Boot {
    * Valid command line arguments:
    *
    * <ul>
-   * <li>  <b>-host</b>     <em>Host name where the platform is.</em>
-   * <li>  <b>-port</b>     <em>Port number where the RMI registry for
+   * <li>  <b>-host <host name></b>     <em>Host name where the platform is.</em>
+   * <li>  <b>-port <port number></b>     <em>Port number where the RMI registry for
    *                            the platform is.</em>
-   * <li>  <b>-file</b>     <em>File name to retrieve agent names from.</em>
+   * <li>  <b>-file <file name></b>     <em>File name to retrieve agent names from.</em>
    * <li>  <b>-gui</b>      <em>Starts the Remote Management Agent.</em>
-   * <li>  <b>-platform</b> <em>When specified, an Agent Platform is started.
-   *                            Otherwise, an Agent Container is added to an
-   *                            existing Agent Platform.</em>
+   * <li>  <b>-platform</b> <em>If specified, a new Agent Platform is created.</em>
+   * <li>  <b>-container</b> <em>If specified, a new Agent Container is added to an existing platform</em>
+   *                         <em>Otherwise a new Agent Platform is created.</em>
+   * <li>  <b>-conf</b>     <em>Shows the gui to set the configuration properties to start JADE.</em>
+   * <li>  <b>-conf <filename></b> <em>To start JADE using the configuration properties read in the specified file.</em>
    * <li>  <b>-version</b>  <em>Prints out version information and exits.</em>
    * <li>  <b>-help</b>     <em>Prints out usage informations.</em>
+   *   
    * </ul>
    *
+   * In any case the properties specified by command line replace the properties read by a file (if specified) or the default ones.
    */
   public static void main(String args[]) {
 
     System.out.println(getCopyrightNotice());
     // Default values for looking RMI registry bind/lookup
-
-    String platformHost = null;
+  
+    boolean withConf = false;
+    boolean fromFile = false;
     
-    // Host inserted from command line
-    String insertedHost = null;
+    String platformHost = null;
     
     try {
       platformHost = InetAddress.getLocalHost().getHostName();
+      
     }
     catch(UnknownHostException uhe) {
       System.out.print("Unknown host exception in getLocalHost(): ");
       System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
       System.exit(1);
     }
-
-    String platformPort = "1099";
+    
+    
+    //This vector stores all the properties used to start JADE.When new properties need to be added
+    //then they must be added to this vector.The PropertyType provide a constructor to initialize a property with its
+    //name,type, default value, meaning. The last value states if the property is mandatory or not. 
+    
+    Vector propertyVector = new Vector();
+    PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name", false);
+    PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "to view the RMA Gui", false);
+    PropertyType PlatformProperty = new PropertyType("platform",PropertyType.BOOLEAN_TYPE,"true", "to start a platform", false);
+    PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,"1099", "port number", false);
+    PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "to start a container",false);
+    
+    propertyVector.addElement(HostProperty);
+    propertyVector.addElement(GuiProperty);
+    propertyVector.addElement(PlatformProperty);
+    propertyVector.addElement(PortProperty);
+    propertyVector.addElement(ContainerProperty);
+    
+    String platformPort = null;
     String platformName = "JADE";
+    
     boolean isPlatform = false;
     boolean hasGUI = false;
-
+    boolean isContainer = false;
+    
+    Properties p = new Properties();
+    
+    String fileName = null;
+    
     Vector agents = new Vector();
-
+    Vector arguments = new Vector(); 
+    
+        
     try{
 
       int n = 0;
       while( n < args.length ){
-	if(args[n].equals("-host")) {
-	  if(++n  == args.length) usage();
-	  insertedHost = args[n]; 
-	  
-	}
-	else if(args[n].equals("-port")) {
-	  if(++n  == args.length) usage();
-	  platformPort = args[n];
-	}
-	else if(args[n].equals("-file")) {
-	  if(++n  == args.length) usage();
-	  // fileName = args[n];
-	  ++n;
+      	
+      	if(args[n].equals("-conf"))
+      	{
+      	
+      		if(++n == args.length)
+      			{	
+      				withConf = true;
+      				continue;
+      			}
+      			
+      		String tmp = args[n];
+      		if (tmp.startsWith("-"))
+      		{
+      			  // In this case the gui for configuration parameters will be initialized with default or command line values.
+      				withConf = true;
+      				continue;
+      			}
+      		else
+      		{
+      			//Reading properties from file
+      			fileName = tmp;
+      			try{
+      				loadPropertiesFromFile(fileName, propertyVector);
+      				fromFile = true;
+      			}catch (FileNotFoundException fe)
+      			{
+      				Object[] options = {"Yes", "No"};
+      				int val = JOptionPane.showOptionDialog(null,"WARNING: file "+fileName +" not found.\n" + "Using command line or default properties.", "WARNING MESSAGE", JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE, null, options,options[0]);
+      				
+      				fileName = null;
+      				//FILE Not found --> EXIT
+      				if(val == JOptionPane.NO_OPTION)
+      					System.exit(0);
+      					
+      			}catch(IOException ioe)
+      			{
+      				JOptionPane.showMessageDialog(null,"WARNING: IO Exception\n" + "Using default configuration values.", "WARNING MESSAGE",JOptionPane.WARNING_MESSAGE);
+      			}
+      			
+      		}
+      			
+      	}
+      	else
+      	if(args[n].equals("-host")) {
+      		if(++n  == args.length) usage();
+      		  HostProperty.setCommandLineValue(args[n]);
+      		
+      	}
+      	else if(args[n].equals("-port")) {
+      		if(++n  == args.length) usage();
+      		PortProperty.setCommandLineValue(args[n]);
+      	}
+      	else if(args[n].equals("-file")) {
+      		if(++n  == args.length) 
+      			usage();
+	        // fileName = args[n];
+	      ++n;
 	  // FIXME: Add reading agent names from a file
-	}
-	else if(args[n].equals("-platform")) {
-	  isPlatform = true;
-	}
-	else if(args[n].equals("-gui")) {
-	  hasGUI = true;
-	}
-	else if(args[n].equals("-version") || args[n].equals("-v")) {
+      	}
+      	else if(args[n].equals("-platform")) {
+      		PlatformProperty.setCommandLineValue("true");
+	      }
+	      else if(args[n].equals("-container")){
+	        ContainerProperty.setCommandLineValue("true");
+	        PlatformProperty.setDefaultValue("false");
+	      }
+	      else if(args[n].equals("-gui")) {
+	      	GuiProperty.setCommandLineValue("true");
+	      }
+	      else if(args[n].equals("-version") || args[n].equals("-v")) {
           System.out.println(getCopyrightNotice());
-	  System.exit(0);
-	}
-	else if(args[n].equals("-help") || args[n].equals("-h")) {
-	  usage();
-	}
-	else {
+          System.exit(0);
+	      }
+	      else if(args[n].equals("-help") || args[n].equals("-h")) {
+	      	usage();
+	      }
+	      else {
 	  /* 
 	     Every other string is supposed to be the name of an
 	     agent, in the form name:class. The two parts must be at
@@ -159,6 +248,7 @@ public class Boot {
 	  */
 	  int separatorPos = args[n].indexOf(SEPARATOR);
 	  if((separatorPos > 0)&&(separatorPos < args[n].length())) {
+	  	arguments.add(args[n]);
 	    String agentName = args[n].substring(0,separatorPos);
 	    String agentClass = args[n].substring(separatorPos + 1);
 	    agents.addElement(new String(agentName));
@@ -173,18 +263,98 @@ public class Boot {
       System.exit(1);
     }
 
-    // If -host is given with a platform different from local host
-    // the platform exit.
-    if (isPlatform) {
-    	if ((insertedHost != null) && (!(platformHost.equalsIgnoreCase(insertedHost))))
-           {
-            System.out.println("    WARNING: Not possible to lunch a platform on a different host.");
-            System.out.println("    The platform will be launched on local host.\n");
-           }
+    if (withConf)
+    {
+    //in this case the gui for the configuration properties is shown.
+    //the gui returns the properties after making the needed checking. 
+    BootGUI guiForConf = new BootGUI();
+    p = guiForConf.ShowBootGUI(propertyVector);
+    
+    /*System.out.println("Properties used to run JADE - FROM GUI");
+    p.list(System.out);*/
     }
-    else 
-    if (insertedHost != null)
-    	platformHost = insertedHost;
+    else
+    if(fromFile)
+    {
+      p = new Properties();
+      
+      Enumeration e = propertyVector.elements();
+      while(e.hasMoreElements())
+      {
+      	PropertyType pt = (PropertyType)e.nextElement();
+      	String fileValue = pt.getFileValue();
+      	p.put(pt.getName(),fileValue !=null ? fileValue : pt.getDefaultValue());
+      }
+
+    	try{
+      	checkProperties(p);
+      }catch(BootException be){
+      	System.out.println(be.getMessage());
+      }
+      
+
+    }
+    else
+    {	
+      
+      // the command line are translate to properties
+      p = new Properties();
+      
+      Enumeration e = propertyVector.elements();
+      while(e.hasMoreElements())
+      {
+      	PropertyType pt = (PropertyType)e.nextElement();
+      	String commandValue = pt.getCommandLineValue();
+      	p.put(pt.getName(),commandValue !=null ? commandValue:pt.getDefaultValue());
+      }
+      
+      /*System.out.println("Properties used to run JADE - FROM COMMAND LINE BEFORE CHECK");
+      p.list(System.out);*/
+      
+      // check if the command line are corrected.
+      try{
+      		checkProperties(p);
+      	  
+      }catch(BootException be){
+      	System.out.println(be.getMessage());
+      }
+      
+    }
+    
+    //since the args[] is passed to some method it is necessary to re-build this vector
+    hasGUI = (Boolean.valueOf(p.getProperty("gui"))).booleanValue();
+    arguments.add("-gui");
+    platformHost = p.getProperty("host");
+    arguments.add("-host");
+    arguments.add(platformHost);
+    platformPort = p.getProperty("port");
+    arguments.add("-port");
+    arguments.add(platformPort);
+    
+    isPlatform = (Boolean.valueOf(p.getProperty("platform"))).booleanValue();
+    
+    if(isPlatform)
+    	arguments.add("-platform");
+    else
+      arguments.add("-container");
+    
+    
+    if(fromFile)
+    {
+    	String output = "Agent " + (isPlatform ? "platform on " : "container connecting to ") + "host " + platformHost  + " on port "+platformPort+"\n";
+    	System.out.println(output);
+    }
+    
+    //re-build the vector or string according to the properties used
+    int size = arguments.size();
+    String result[] = new String[size];
+    Enumeration e1 = arguments.elements();
+    for(int i = 0; e1.hasMoreElements(); i++)
+    {
+    	result[i] = (String)e1.nextElement();
+    }
+    
+    args = result;
     
     // If '-gui' option is given, add 'RMA:jade.domain.rma' to
     // startup agents, making sure that the RMA starts before all
@@ -208,13 +378,17 @@ public class Boot {
     System.out.println("Usage: java jade.Boot [options] [agent specifiers]");
     System.out.println("");
     System.out.println("where options are:");
-    System.out.println("  -host\t\tHost where RMI registry for the platform is located");
-    System.out.println("  -port\t\tThe port where RMI registry for the platform resides");
-    System.out.println("  -file\t\tA file name containing tne agent specifiers");
-    System.out.println("  -gui\t\tIf specified, a new Remote Management Agent is created.");
-    System.out.println("  -platform\tIf specified, a new Agent Platform is created.");
-    System.out.println("  \t\tOtherwise a new Agent Container is added to an existing platform");
-    System.out.println("  -version\tIf specified, current JADE version number and build date is printed.");
+    System.out.println("  -host <host name>\tHost where RMI registry for the platform is located");
+    System.out.println("  -port <port number>\tThe port where RMI registry for the platform resides");
+    System.out.println("  -file <file name>\tA file name containing tne agent specifiers");
+    System.out.println("  -gui\t\t\tIf specified, a new Remote Management Agent is created.");
+    System.out.println("  -platform\t\tIf specified, a new Agent Platform is created.");
+    System.out.println("  -container\t\tIf specified, a new Agent Container is added to an existing platform");
+    System.out.println("  \t\t\tOtherwise a new Agent Platform is created");
+    System.out.println("  -conf\t\t\tShows the gui to set the configuration properties to start JADE.");
+    System.out.println("  -conf <file name>\tStarts JADE using the configuration properties read in the specified file.");	
+    System.out.println("  -version\t\tIf specified, current JADE version number and build date is printed.");
+    System.out.println("  -help \t\tPrints out usage informations.");
     System.out.println("");
     System.out.print("An agent specifier is made by an agent name and an agent class, separated by \"");
     System.out.println(SEPARATOR + "\"");
@@ -222,17 +396,91 @@ public class Boot {
     System.out.println("Examples:");
     System.out.println("  Connect to default platform, starting an agent named 'peter'");
     System.out.println("  implemented in 'myAgent' class:");
-    System.out.println("  \tjava jade.Boot peter:myAgent");
+    System.out.println("  \tjava jade.Boot -container peter:myAgent");
     System.out.println("");
     System.out.println("  Connect to a platform on host zork.zot.za, on port 1100,");
     System.out.println("  starting two agents");
-    System.out.println("  java jade.Boot -host zork.zot.za -port 1100 peter:heAgent paula:sheAgent");
+    System.out.println("  java jade.Boot -container -host zork.zot.za -port 1100 peter:heAgent paula:sheAgent");
     System.out.println("");
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
-    System.out.println("  \tjava jade.Boot -platform Willy:searchAgent");
+    System.out.println("  \tjava jade.Boot Willy:searchAgent");
     System.out.println("");
     System.exit(0);
   }
 
+  //Reads the properties from file then update the vector of properties.
+  
+  static void loadPropertiesFromFile(String fileName, Vector prop) throws FileNotFoundException, IOException
+  {
+  	Properties p = new Properties();
+  	FileInputStream in = new FileInputStream(fileName);
+  	p.load(in);
+  	in.close();
+  	
+  	// update the properties in the vector of properties
+  	Enumeration e = prop.elements();
+  	
+  	while(e.hasMoreElements())
+  	{
+  		PropertyType pt = (PropertyType)e.nextElement();
+  		String name = pt.getName();
+  		pt.setFileValue(p.getProperty(name));
+  	}
+  	
+  }
+  
+  /*
+  This method verifies the configuration properties and eventually correct them.
+  If both the properties "platform" and "container" are set to true the a platform will 
+  be launched an and exception will be thrown.
+  If the user wants to start a platform the host must be the local host so 
+  if a different name is speficied it will be corrected and an exception will be thrown.  
+  */
+  public static void checkProperties(Properties p) throws BootException
+  {
+  	
+  	String platform = p.getProperty("platform");
+  	boolean isPlatform = (Boolean.valueOf(platform)).booleanValue();
+  	
+  	String container = p.getProperty("container");
+    boolean isContainer = (Boolean.valueOf(container)).booleanValue();	
+  
+  	if(isPlatform && isContainer)
+  	{
+  		p.remove("container");
+  		p.put("container", "false");
+  		throw new BootException("WARNING:Not possible to lunch at the same \ntime a platform and a container.");
+  	}
+  	else
+  	if(!isPlatform && !isContainer)
+  		{
+  			p.remove("platform");
+  			p.put("platform","true");
+  			isPlatform = true;
+  			throw new BootException("Please, specify if to start a platform or a container.");
+  		}
+  		
+    if(isPlatform)
+  	   {
+  	   	String host = p.getProperty("host");
+  	   	try {
+  	   		String platformHost = InetAddress.getLocalHost().getHostName();
+          if(!(platformHost.equalsIgnoreCase(host)))
+          {
+          	p.remove("host");
+          	p.put("host",platformHost);
+          	throw new BootException("WARNING: Not possible to lunch a platform \non a different host.\nA platform must be launched on local host.");
+          }
+  	   	}
+        catch(UnknownHostException uhe) {
+           System.out.print("Unknown host exception in getLocalHost(): ");
+           System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
+           System.exit(1);
+        }
+
+  	   } 	
+  
+  }
+ 
 
 }
