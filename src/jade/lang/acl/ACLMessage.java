@@ -541,32 +541,6 @@ private int performative; // keeps the performative type of this object
   }
 
 
-  //#MIDP_EXCLUDE_BEGIN
-  /**
-     Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
-     checks are made to validate the slot value.</em>
-     @param str The new value for the slot, as ISO8601 time.
-     @see jade.lang.acl.ACLMessage#getReplyBy()
-     @see jade.lang.acl.ACLMessage#setReplyByDate(Date)
-     @deprecated The value of the <code>reply-by</code> slot
-     must be a valid Date, the method <code>setReplyByDate</code> should
-     be used that guarantees avoiding problems. If the passed
-     parameter represents a wrong date, this method silently converts
-     its value to null.
-  *
-  public void setReplyBy(String str) {
-    if (str != null) {
-      try {
-	reply_byInMillisec = ISO8601.toDate(str).getTime();
-      } catch (Exception e) {
-	reply_byInMillisec = 0; 
-      }
-    } else {
-      reply_byInMillisec = 0; 
-    }
-  }*/	
-  //#MIDP_EXCLUDE_END
-
   /**
      Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
