@@ -66,7 +66,7 @@ public class Variable extends Term {
      *
      */
     public void setTypeName(String name) {
-        this.name = name;
+        this.typeName = name;
     } 
 
     /**
@@ -76,7 +76,7 @@ public class Variable extends Term {
      *
      */
     public String getTypeName() {
-        return name;
+        return typeName;
     } 
 
 }
