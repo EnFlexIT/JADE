@@ -42,6 +42,5 @@ interface AgentToolkit {
   void handleReceived(AID agentID, ACLMessage msg);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to);
-	void addPlatformAddresses(AID id);
-	void setPlatformAddresses(AID id);
+  void setPlatformAddresses(AID id);
 }
