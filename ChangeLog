@@ -1,0 +1,261 @@
+MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
+=============================================
+- Fixed bugs in behaviour scheduling (blocked behaviour could not be removed, 
+  timers could not be reset properly). 
+- Added support for pluggable MTPs (Message Transport Protocols). 
+- Added command line options and RMA GUI actions to install and uninstall MTPs. 
+- Split the programmer's guide into: this ChangeLog file with the release notes, the
+  programmer's guide, and the administrator's guide with installation notes.
+- Added arguments to the Agent constructor. They can be passed either from the command-line,
+  from the RMA or from the configuration GUI.
+- Added capability of moving and cloning agents from the RMA GUI. 
+- Added capability of a/deactivating MTPs from command-line, from the RMA or from the   
+  configuration GUI.
+- Fixed bug in the method reset() of the behaviours. Their scope has been promoted to 
+  public and blocked behaviours are waken up after being reset.
+- The GUI that displays/edit an ACLMessage has been extended in order to show also the  
+  envelope of the message.
+- A bug of the sniffer has been removed which did not allow having multiple sniffers on 
+  the same containers. The look&feel of the sniffer GUI has also been improved.
+- Fixed bug in agent mobility
+- Modified JADE.IOR file with MTPs-MainContainer.txt and MTPs-Container-xx.txt
+- Ontology can now be serialized by using SL and the JADE-MetaOntology
+- Moved jade.onto.Name into jade.core
+- Made mobility case-insensitive for what regards the container-name
+- Upgrade of the Jess example to JESS 5.1 kindly provided by Kaveh Kamyab
+- Integrated ORBacus
+- Integrated applet to control the DF GUI via Web
+- Added button to main GUIs to open a web browser to the JADE url.
+
+
+MAJOR CHANGES IN JADE 2.01 (September 19, 2000)
+===============================================
+- fixed bug about JADE integration with JSP (both the method Agent.doStart() and the 
+  examples). An inner class (SecurityManager) has been included within the Agent class as 
+  a first step towards managing security in JADE.
+- fixed bug about jade.core.AgentManager inner interface that some JVM require to be 
+  declared public
+- fixed bug in the sniffer that did not sniff agents on remote containers
+- improved the configuration gui with help button and agent specifiers.
+
+
+MAJOR CHANGES IN JADE 2.0 (September 12, 2000)
+==============================================
+JADE 2.0 is based on and complies with the new FIPA 2000 specifications. The major changes
+in these specifications that affect JADE 2.0 are the following:
+- the agent name is no more a String composed of the concatenation of the agent local name     + the address of its home agent platform. It is now, instead, a structure, called
+  AgentIdentifier or AID, composed of several slots: the globally unique identifier of the   agent, its set of addresses, and its set of resolvers (i.e. the AMS and all those   white-page agents where the agent is registered).
+- the parameter envelope in the ACLMessage has been removed and two new parameters, 
+  reply-to and encoding, have been added. Also a couple of new performatives has been added.
+- When a message is transmitted, an envelope is attached that contains information relevant
+  to the delivery of the message. As a consequence, the IDL IIOP interface is also changed.
+- The SL-0 parser has been improved and some bugs fixed. The concepts of set and sequence 
+  of terms have been introduced. The content of an ACLMessage must now be a t-uple of 
+  expressions.
+- The FIPA-Agent-Management ontology changed considerably and the AMS now supports a new 
+  action (search).
+
+As a consequence of these changes in FIPA, and also based on the feedback received by the 
+JADE users, the following is the list, probably non-exhaustive, of the major changes in 
+JADE 2.0.
+- The agent name is no more a String but an object of the class jade.core.AID
+- The class Agent has been modified to work with AID's rather than Strings and by adding 
+  the two methods getDefaultDF and getAMS() 
+- All the methods to access the services of the DF and the AMS have been moved from the 
+  class Agent into the classes DFServiceCommunicator and AMSServiceCommunicator, that have 
+  been added to the package jade.domain.
+- the class ACLMessage has been modified to comply with the new FIPA specifications and, 
+  as a consequence, also the MessageTemplate class has been updated. The methods setSource 
+  and addDest have been renamed into setSender and addReceiver(). The methods dump(), 
+  toText() and fromText() have been removed from this class. Care must be taken because the 
+  getXXX() methods return null, while in the previous release they returned an empty string,
+  when the parameter has not been set.
+- the interface jade.lang.acl.Codec has been added and the class StringACLCodec has been 
+  implemented to support String encoding. 
+- The interface of the content language codec (jade.lang.Codec) has been changed to take 
+  into account t-uples as a content of the ACLMessage.
+- The IIOP IDL interface has been modified to comply with the new FIPA specs
+- The names of some classes of the jade.core package have been improved and the AgentGroup 
+  class has been removed
+- The class FIPAAgentManagement and its inner classes have been moved into the package 
+  jade.domain.FIPAAgentManagement
+- A new package jade.domain.JADEAgentManagement has been added to include the JADE 
+  non-standard extensions to the FIPA-Agent-Management ontology. 
+- The support to user-defined ontologies has been modified by fixing the bug reported by 
+  Kaveh Kamyab, renaming some classes, improving the API and implementing the support to 
+  set, sequences, and unspecified types. 
+- The interface of the class FIPARequestResponderBehaviour has been slightly modified.
+- A Message Transport Protocol (MTP) interface has been added to allow the future 
+  implementation of plug-and-play of new MTP's
+- Some new classes have been added in the package jade.gui to display common concepts like 
+  an AID, a DFDescription, a ServiceDescription, 
+- the GUI of the DF has been modified to comply with the new FIPA-Agent-Management ontology
+  and has been improved to allow the full control of a network of federated DF's. 
+  The classes implementing this GUI have been moved from jade.gui into jade.tools.DFGUI.
+- the command line option -conf has been added and the option -platform has been set to 
+  default
+- several sections of the programmer's guide have been rewritten in the hope of improving 
+  the clarity
+- a new example was included about the integration of JADE within the JSP environment. The 
+  example, and a brief tutorial about that, was kindly provided by Daniel Le Berre that we 
+  gratefully acknowledge.
+- The MeetingScheduler example has been rewritten in order to use the new support for 
+  user-defined content languages and ontologies and the bug reported by Matthew Mishrikey 
+  has been fixed.
+- A bug, reported by Ijsbrand Zeelte, on agent cloning has been fixed; and a button to 
+  clone agents has been added to the MobileAgent example.
+
+
+MAJOR CHANGES IN JADE 1.4 (June 6, 2000)
+========================================
+- The visibility of the two methods getContentBase64 and setContentBase64 in ACLMessage 
+  has been restricted to private. They have been replaced by setContentObject and 
+  getContentObject as kindly suggested by Vasu Chandrasekhara (EML). This is the only 
+  modification that might impact the source code of your application agents.
+- Agent mobility, including the migration of the code, has been implemented.
+- Support to user-defined content languages and ontologies has been implemented. In this 
+  way, the  encoding of the content message (e.g. String) is completely hidden to the 
+  programmer that can internally use Java objects instead.
+- A bug has been removed that caused an agent deadlock when waiting for messages.
+- The GUI of the Directory Facilitator has been completed, including the possibility of 
+  expressing constraints to the search operation and creating a federation of DFs.
+- The death of a container is now notified to the RMA and the GUI is automatically updated.
+- All the examples have been improved and more examples have been added.
+- The method MatchType in MessageTemplate has been deprecated and replaced by 
+  MatchPerformative
+- All deprecated calls have been removed, just the call to the methods, not the methods 
+  themselves. Notice that we plan to remove all deprecated methods in the next release of 
+  JADE.
+- Added "About" in all the GUIs.
+- More than one RMA can now be executed on the same container
+- The internal representation of the performative in the class ACLMessage is now an integer
+  and no more a String
+- From the command line it is no more possible to pass both "-platform" and "-host" 
+  parameters.
+
+
+MAJOR CHANGES IN JADE 1.3 (February 25, 2000)
+=============================================
+- Made JADE Open Source under LGPL License restrictions.
+- Removed some bugs.
+- Ported the GUI of the DF in Swing.
+- Added some examples.
+
+
+MAJOR CHANGES IN JADE 1.2 (November 22, 1999)
+=============================================
+- Sniffer Agent. From the main GUI you can run the so-called sniffer agent that allows you 
+  to sniff and log the messages sent between agents.
+- ACLMessage class. We have improved this class by deprecating the usage of Strings when 
+  you set/get the performative of a message (i.e. "request", "inform", ...). As probably 
+  you have noticed already, the usage of Strings requires you to remember using case 
+  insensitive comparison. Now a set of constants has been defined in the ACLMessage class: 
+  ACLMessage.INFORM, ...
+- removed some bugs 
+- improved the documentation.
+
+
+MAJOR CHANGES IN JADE 1.1 (October 8, 1999)
+===========================================
+- support for Java serialization and transmission of sequence of bytes
+- removed a bug in the DF parser that did not allow the registration of attribute values 
+  starting with a ':' character
+- introduced support for intra-platform mobility of agents. This feature is still at an 
+  experimental level, testing is still on-going and no documentation is yet available.
+- made case-sensitive the class jade.core.AgentGroup and the agent names in the ACLMessage 
+  class
+- introduced support for Fipa-Iterated-Contract-Net protocol.
+
+
+MAJOR CHANGES IN JADE 1.0 (July 2, 1999)
+========================================
+- Timeout support on message receive, both agent-level and behaviour-level. Now a timeout 
+  version of blockingReceive() is available, and a new constructor has been added to 
+  ReceiverBehaviour class to support timeout. Moreover, a block() version with timeout has 
+  been added to Behaviour class.
+- AgentReceiver example program in directory src/examples/ex2 was modified and now times 
+  out every 10 seconds if no message is received.
+- A new example program, AgentTimeout, was added to directory src/examples/ex2 to how new 
+  ReceiverBehaviour support for timeouts.
+- Moved all behaviours in a separate package. Now they are in jade.core.behaviours package. 
+  User application must be updated to either 'import jade.core.behaviours.*' or the 
+  individual behaviours they use. 
+- Moved RMA agent in a different package; now the Remote Management Agent has class named 
+  jade.tools.rma.rma. It can still be started with '-gui' command line option.
+- Multiple RMAs can be started on the same platform; they can be given any name and still 
+  perform their functions.
+- When requesting AMS actions via an RMA, if a 'refuse' or a 'failure' message is received, 
+  a suitable error dialog pops out, allowing to view the ACL message.
+- Fixed a bug in RMA graphical user interface, which sometimes caused a deadlock on 
+  platform startup.
+- When an ACL message has an empty ':sender' slot, JADE puts the sender agent name in it 
+  automatically.
+- Added a new tool agent: jade.tools.DummyAgent.DummyAgent, allowing ACL messages 
+  manipulations through a GUI. This agent can be either started from an RMA or directly, 
+  since is an ordinary agent.
+- Javadoc-generated HTML documentation for all JADE public classes.
+- jade.domain.FipaRequestClientBehaviour has been replaced by   
+  jade.proto.FipaRequestInitiatorBehaviour and a new   FipaRequestResponderBehaviour has 
+  been added in jade.proto package.
+- ACL messages now can have many agent names in ':receiver' slot. This required making some
+  changes to ACLMessage interface. Please see HTML documentation for ACLMessage class.
+- Agents can be suspended and resumed by the GUI or they can suspend themselves; user 
+  should not suspend neither the AMS nor the RMA, since they obviously wouldn't be able to 
+  resume then back.
+- Now an agent can create another agent and starting it up with Agent.doStart(String name).
+- The gui of the DF is not shown at startup of the platform but only when requested via the 
+  RMA gui.
+
+
+MAJOR CHANGES IN JADE 0.97 (February 17, 1999)
+==============================================
+- IIOP support for inter-platform communication (see section 5.2).
+- Now JDK 1.2 is required to run JADE.
+- GUI for DF management.
+- Modified Agent class (getName()/getLocalName() methods). (may need change to your source 
+  file!)
+- Modified AgentGroup class. (may need change to your source file!)
+- Renamed ComplexBehaviour.addBehaviour() to addSubBehaviour(). (may need change to your 
+  source file!) 
+- Renamed ComplexBehaviour.removeBehaviour() to removeSubBehaviour().(may need change to 
+  your source file!)
+- Implemented some FIPA interaction protocols.
+- Added javadoc documentation.
+
+
+MAJOR CHANGES IN JADE 0.92
+==========================
+- Complete support for FIPA system agents.
+- Many examples revised, particularly examples.ex5.dfTester now is complete and usable.
+- Added examples.ex5.subDF example to show multiple agent domains.
+- Added examples.ex2.filebasedSenderAgent to help in debugging and testing.
+- Updated and completed documentation, which is now included as part of JADE package.
+
+
+MAJOR CHANGES IN JADE 0.9 (November 11, 1998)
+=============================================
+- RMI Registry included within the Agent Platform. Therefore, it is no more necessary to 
+  run a shell with the rmiregistry; 
+- added reset() method in the Behaviour class to allow complex and repetitive behaviours;
+- modifications to the method in the Agent class that make the state transitions: doDelete 
+  and doWake() to wake-up all the blocked behaviours. Therefore to wake-up an agent it is 
+  possible to call the method doWake() or to send it a message;
+- included the RMA (remote management agent), that is a GUI to control the agent platform. 
+  This agent can be executed via the option ‘-gui’ on the command line or as a normal agent;
+- the AMS is now able to create-agent, kill-agent, and manages subscribe messages from the 
+  RMA, and it is also able to manage several RMAs. When a new container or a new agent is 
+  born or is killed, the AMS sends an inform to all the registered RMAs;
+- included option '-version' on the command line to print the current version of Jade. 
+
+
+MAJOR CHANGES FROM JADE 0.71+ TO JADE 0.79+ (September 30, 1998)
+================================================================
+- included this programmer’s guide;
+- implemented DF, AMS, and ACC that now are activated at the bootstrap of the Agent 
+  platform;
+- modified Behaviour that is now an Abstract class and no more an Interface;
+- included SenderBehaviour and ReceiverBehaviour that are more suitable to send and receive 
+  messages;
+- implemented new Behaviours, like OneShotBehaviour, CyclicBehaviour;
+- unified method name: the execute() method of the behaviours is now always called action(); 
+- included an example, which is a ready-to-use agent, of Jess-based agent.
