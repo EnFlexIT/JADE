@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
-// FIXME: Temporary Hack
-import java.lang.reflect.*;
 
 import jade.core.HorizontalCommand;
 import jade.core.Service;
