@@ -25,7 +25,7 @@ package examples.protocols;
 import jade.proto.*;
 import jade.core.*;
 import jade.core.behaviours.*;
-import jade.util.leap.*;
+import java.util.*;
 import jade.lang.acl.*;
 
 /**
@@ -73,21 +73,21 @@ public class ComplexInitiator extends Initiator {
 	Object rk, wk;
 	boolean wl;
 
-	RWBehaviour(Object readKey, Object writeKey, boolean writeAList) {
+	RWBehaviour(Object readKey, Object writeKey, boolean writeAVector) {
 	    super(ComplexInitiator.this);
 	    //setDataStore(b.getDataStore());
 	    rk = readKey;
 	    wk = writeKey;
-	    wl = writeAList;
+	    wl = writeAVector;
 	}
 
 	public void action() {
 	    if (rk != null) {
 		System.out.print(myAgent.getLocalName()+" read from datastore at key "+rk+":");
 		Object val = getDataStore().get(rk);
-		if (val instanceof List)
-		    for (Iterator i=((List)val).iterator(); i.hasNext(); )
-			System.out.print("  "+ACLMessage.getPerformative(((ACLMessage)i.next()).getPerformative()));
+		if (val instanceof Vector) 
+		    for (Enumeration i=((Vector)val).elements(); i.hasMoreElements(); )
+			System.out.print("  "+ACLMessage.getPerformative(((ACLMessage)i.nextElement()).getPerformative()));
 		else 
 		    System.out.print("  "+ACLMessage.getPerformative(((ACLMessage)val).getPerformative()));
 		System.out.println();
@@ -96,18 +96,15 @@ public class ComplexInitiator extends Initiator {
 		Object valR = getDataStore().get(rk);
 		Object valW;
 		if (wl) {
-		    if (valR instanceof List) 
+		    if (valR instanceof Vector)
 			valW = valR;
 		    else {
-			valW = new ArrayList();
-			((List)valW).add(valR);
+			valW = new Vector();
+			((Vector)valW).addElement(valR);
 		    }
-		    /*System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":");
-		    for (Iterator i=((List)valW).iterator(); i.hasNext(); )
-		    System.out.println("  "+i.next());*/
 		} else {
-		    if (valR instanceof List) 
-			valW = ((List)valR).get(0);
+		    if (valR instanceof Vector)
+			valW = ((Vector)valR).elementAt(0);
 		    else
 			valW = valR;
 		    /*System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":"+valW);*/

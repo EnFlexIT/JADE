@@ -27,8 +27,14 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import jade.proto.states.MsgReceiver;
-import jade.util.leap.*;
 import java.util.Date;
+import java.util.Vector;
+import java.util.Enumeration;
+import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
 /**
  * This is a single homogeneous and effective implementation of
@@ -90,7 +96,7 @@ public class AchieveREInitiator extends FSMBehaviour {
      **/
     public final String REQUEST_KEY = "__request" + hashCode();
     /** 
-     * key to retrieve from the DataStore of the behaviour the list of
+     * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been sent.
      **/
     public final String ALL_REQUESTS_KEY = "__all-requests" +hashCode();
@@ -101,18 +107,17 @@ public class AchieveREInitiator extends FSMBehaviour {
      **/
     public final String REPLY_KEY = "__reply" + hashCode();
     /** 
-     * key to retrieve from the DataStore of the behaviour the list of
+     * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been received as response.
      **/
     public final String ALL_RESPONSES_KEY = "__all-responses" + hashCode();
     /** 
-     * key to retrieve from the DataStore of the behaviour the list of
+     * key to retrieve from the DataStore of the behaviour the vector of
      * ACLMessage objects that have been received as result notifications.
      **/
     public final String ALL_RESULT_NOTIFICATIONS_KEY = "__all-result-notifications" +hashCode();
  
     // FSM states names
-    //FIXME: prova a vedere se registrando un altra classe analoga come stato funziona tutto OK.
     private static final String PREPARE_REQUESTS = "Prepare-requests";
     private static final String SEND_REQUESTS = "Send-requests";
     private static final String RECEIVE_REPLY = "Receive-reply";
@@ -169,7 +174,7 @@ public class AchieveREInitiator extends FSMBehaviour {
      * Notice that the default implementation of the 
      * <code>prepareMessage</code>
      * method returns
-     * a <code>List</code> including that message only.
+     * an array including that message only.
      * @param s The <code>DataStore</code> that will be used by this 
      * <code>AchieveREInitiator</code>
      */
@@ -212,7 +217,7 @@ public class AchieveREInitiator extends FSMBehaviour {
 			
 		public void action() {
 		    DataStore ds = getDataStore();
-		    List allReq = prepareRequests((ACLMessage) ds.get(REQUEST_KEY));
+		    Vector allReq = prepareRequests((ACLMessage) ds.get(REQUEST_KEY));
 		    getDataStore().put(ALL_REQUESTS_KEY, allReq);
 		}
 	    };
@@ -230,11 +235,10 @@ public class AchieveREInitiator extends FSMBehaviour {
 		    sessions = new HashMap();
 		    
 		    DataStore ds = getDataStore();
-		    List allReq = (List) ds.get(ALL_REQUESTS_KEY);
-		    Iterator it = allReq.iterator();
+		    Vector allReq = (Vector) ds.get(ALL_REQUESTS_KEY);
 		    int cnt = 0; // counter for reply-with
-		    while(it.hasNext()) {
-			ACLMessage request = (ACLMessage) it.next();
+		    for (Enumeration it=allReq.elements(); it.hasMoreElements(); ) {
+			ACLMessage request = (ACLMessage) it.nextElement();
 			if (request != null) {
 			    // Update the list of sessions on the basis of the receivers
 			    // FIXME: Maybe this should take the envelope into account first
@@ -306,14 +310,14 @@ public class AchieveREInitiator extends FSMBehaviour {
 			    case NEGATIVE_RESPONSE_RECEIVED:
 				// The reply is a response
 				ret = perf;
-				List allRsp = (List) ds.get(ALL_RESPONSES_KEY);
-				allRsp.add(reply);
+				Vector allRsp = (Vector) ds.get(ALL_RESPONSES_KEY);
+				allRsp.addElement(reply);
 				break;
 			    case RESULT_NOTIFICATION_RECEIVED:
 				// The reply is a resultNotification
 				ret = perf;
-				List allNot = (List) ds.get(ALL_RESULT_NOTIFICATIONS_KEY);
-				allNot.add(reply);
+				Vector allNot = (Vector) ds.get(ALL_RESULT_NOTIFICATIONS_KEY);
+				allNot.addElement(reply);
 				break;
 			    default:
 				// Something went wrong. Just do nothing and  
@@ -475,7 +479,7 @@ public class AchieveREInitiator extends FSMBehaviour {
 	b = new OneShotBehaviour(myAgent) {
 		
 		public void action() {
-		    handleAllResponses((List) getDataStore().get(ALL_RESPONSES_KEY));
+		    handleAllResponses((Vector) getDataStore().get(ALL_RESPONSES_KEY));
 		}
 	    };
 	b.setDataStore(getDataStore());		
@@ -485,7 +489,7 @@ public class AchieveREInitiator extends FSMBehaviour {
 	b = new OneShotBehaviour(myAgent) {
 		
 		public void action() {
-		    handleAllResultNotifications((List) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY));
+		    handleAllResultNotifications((Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY));
 		}
 	    };
 	b.setDataStore(getDataStore());		
@@ -499,20 +503,18 @@ public class AchieveREInitiator extends FSMBehaviour {
     }
 
     /**
-     * This method must return the list of ACLMessage objects to be
+     * This method must return the vector of ACLMessage objects to be
      * sent. It is called in the first state of this protocol.
      * This default implementation just return the ACLMessage object
      * passed in the constructor. Programmers might prefer to override
-     * this method in order to return a list of objects for 1:N conversations
+     * this method in order to return a vector of objects for 1:N conversations
      * or also to prepare the messages during the execution of the behaviour.
      * @param request the ACLMessage object passed in the constructor
-     * @return a List of ACLMessage objects
+     * @return a Vector of ACLMessage objects
      **/    
-    protected List prepareRequests(ACLMessage request) {
-	List l = new ArrayList();
-	if (request != null) {
-	    l.add(request);
-	}
+    protected Vector prepareRequests(ACLMessage request) {
+	Vector l = new Vector(1);
+	l.addElement(request);
 	return l;
     }
     
@@ -594,9 +596,9 @@ public class AchieveREInitiator extends FSMBehaviour {
      * This default implementation does nothing; programmers might
      * wish to override the method in case they need to react to this event
      * by analysing all the messages in just one call.
-     * @param responses the List of ACLMessage object received 
+     * @param responses the Vector of ACLMessage objects that have been received 
      **/
-    protected void handleAllResponses(List responses) {
+    protected void handleAllResponses(Vector responses) {
     }
     
     /**
@@ -610,9 +612,9 @@ public class AchieveREInitiator extends FSMBehaviour {
      * This default implementation does nothing; programmers might
      * wish to override the method in case they need to react to this event
      * by analysing all the messages in just one call.
-     * @param resultNodifications the List of ACLMessage object received 
+     * @param resultNodifications the Vector of ACLMessage object received 
      **/
-    protected void handleAllResultNotifications(List resultNotifications) {
+    protected void handleAllResultNotifications(Vector resultNotifications) {
     }
     
     
@@ -624,7 +626,7 @@ public class AchieveREInitiator extends FSMBehaviour {
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        It is responsibility of the registered behaviour to put the
-       List of ACLMessage objects to be sent 
+       Vector of ACLMessage objects to be sent 
        into the datastore at the <code>ALL_REQUESTS_KEY</code>
        key.
        @param b the Behaviour that will handle this state
@@ -732,7 +734,7 @@ public class AchieveREInitiator extends FSMBehaviour {
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        The registered behaviour can retrieve
-       the List of ACLMessage objects, received as a response,
+       the vector of ACLMessage objects, received as a response,
        from the datastore at the <code>ALL_RESPONSES_KEY</code>
        key.
        @param b the Behaviour that will handle this state
@@ -750,7 +752,7 @@ public class AchieveREInitiator extends FSMBehaviour {
        data store of the registered <code>Behaviour</code> to the
        DataStore of this current behaviour.
        The registered behaviour can retrieve
-       the List of ACLMessage objects, received as a result notification,
+       the Vector of ACLMessage objects, received as a result notification,
        from the datastore at the <code>ALL_RESULT_NOTIFICATIONS_KEY</code>
        key.
        @param b the Behaviour that will handle this state
@@ -784,7 +786,7 @@ public class AchieveREInitiator extends FSMBehaviour {
     }
 
     /** 
-       Override the onStart() method to initialize the lists that
+       Override the onStart() method to initialize the vectors that
        will keep all the replies in the data store.
      */
     public void onStart() {
@@ -809,10 +811,9 @@ public class AchieveREInitiator extends FSMBehaviour {
        Initialize the data store. 
      **/
     private void initializeDataStore(ACLMessage msg){
-	List l = new ArrayList();
-	
+	Vector l = new Vector();
 	getDataStore().put(ALL_RESPONSES_KEY, l);
-	l = new ArrayList();
+	l = new Vector();
 	getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, l);
 	
 	getDataStore().put(REQUEST_KEY, msg);

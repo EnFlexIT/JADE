@@ -29,7 +29,8 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
-import jade.util.leap.*;
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
  * This example shows an agent performing the role of the initiator of a FIPARequest of FIPAQuery protocol.
@@ -139,21 +140,19 @@ public class Initiator extends Agent {
 	protected void handleInform(ACLMessage inform) {
 	    System.out.println(myAgent.getLocalName()+ " in handleInform: " + inform);
 	}
-	protected void handleAllResponses(List allResponses) {
+	protected void handleAllResponses(Vector allResponses) {
 	    System.out.print(myAgent.getLocalName()+ " in handleAllResponses: ");
-	    Iterator it = allResponses.iterator();
-	    while(it.hasNext()) {
-		ACLMessage rsp = (ACLMessage) it.next();
+	    for (Enumeration it = allResponses.elements(); it.hasMoreElements(); ) {
+		ACLMessage rsp = (ACLMessage) it.nextElement();
 		System.out.print(ACLMessage.getPerformative(rsp.getPerformative())+" ");
 	    }
 	    System.out.println();
 	}
 
-	protected void handleAllResultNotifications(List allResultNotifications) {
+	protected void handleAllResultNotifications(Vector allResultNotifications) {
 	    System.out.println(myAgent.getLocalName()+ " in handleAllResultNotifications: ");
-	    Iterator it = allResultNotifications.iterator();
-	    while(it.hasNext()) {
-		ACLMessage rsp = (ACLMessage) it.next();
+	    for (Enumeration it = allResultNotifications.elements(); it.hasMoreElements(); ) {
+		ACLMessage rsp = (ACLMessage) it.nextElement();
 		System.out.print(ACLMessage.getPerformative(rsp.getPerformative())+" ");
 	    }
 	    System.out.println();
@@ -163,10 +162,10 @@ public class Initiator extends Agent {
 	    System.out.println(myAgent.getLocalName()+ " in handleOutOfSequence: " + msg);
 	}
 	
-	protected List prepareRequests(ACLMessage msg) {
-	    List l = super.prepareRequests(msg);
+	protected Vector prepareRequests(ACLMessage msg) {
+	    Vector l = super.prepareRequests(msg);
 	    if (l.size() == 0) //msg was null because the beahviour was reset
-		l.add(createNewMessage());
+		l.addElement(createNewMessage());
 	    return l;
 	}
 
