@@ -25,9 +25,9 @@ package jade.gui;
 
 // Import required Jade classes
 import jade.core.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
 This class defines the object type <code>GuiEvent</code> used to notify 
