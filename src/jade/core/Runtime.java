@@ -134,23 +134,57 @@ public class Runtime {
     closeVM = flag;
   }
 
-  // Called by a starting up container
+  // Called by a starting up container.
   void beginContainer() {
+    if(activeContainers == 0) {
+
+      // Set up group and attributes for time critical threads
+      criticalThreads = new ThreadGroup("JADE time-critical threads");
+      criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
+
+      // Initialize and start up the timer dispatcher
+      theDispatcher = new TimerDispatcher();
+      Thread t = new Thread(criticalThreads, theDispatcher);
+      t.setPriority(criticalThreads.getMaxPriority());
+      theDispatcher.setThread(t);
+      theDispatcher.start();
+
+    }
+
     ++activeContainers;
   }
 
   // Called by a terminating container.
   void endContainer() {
     --activeContainers;
-    if((activeContainers == 0) && closeVM)
-      System.exit(0);
+    if(activeContainers == 0) {
+      theDispatcher.stop();
+
+      try {
+	criticalThreads.destroy();
+      }
+      catch(IllegalThreadStateException itse) {
+	System.out.println("Time-critical threads still active: ");
+	criticalThreads.list();
+      }
+      finally {
+	criticalThreads = null;
+      }
+
+      if(closeVM)
+	System.exit(0);
+    }
+
   }
 
+  TimerDispatcher getTimerDispatcher() {
+    return theDispatcher;
+  }
 
+  private ThreadGroup criticalThreads;
+  private TimerDispatcher theDispatcher;
   private int activeContainers = 0;
   private boolean closeVM = false;
-
-
 
   /********** FIXME: This is just to support the JSP example *************/
 
