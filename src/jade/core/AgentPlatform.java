@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1998/10/11 19:21:32  rimassa
+  Added the new name clash exception to bornAgent() throws clause.
+
   Revision 1.5  1998/10/04 18:01:00  rimassa
   Added a 'Log:' field to every source file.
 
@@ -31,7 +34,7 @@ public interface AgentPlatform extends AgentContainer {
   public void addContainer(AgentContainer ac) throws RemoteException;
   public void removeContainer(AgentContainer ac) throws RemoteException;
 
-  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException;
+  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
   public void deadAgent(String name) throws RemoteException;
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
