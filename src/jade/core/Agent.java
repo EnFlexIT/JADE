@@ -246,47 +246,53 @@ public class Agent implements Runnable, Serializable {
   public static final int AP_ACTIVE = 2;
 
   /**
+     Represents the <em>idle</em> agent state.
+  */
+  public static final int AP_IDLE = 3;
+
+  /**
      Represents the <em>suspended</em> agent state.
   */
-  public static final int AP_SUSPENDED = 3;
+  public static final int AP_SUSPENDED = 4;
 
   /**
      Represents the <em>waiting</em> agent state.
   */
-  public static final int AP_WAITING = 4;
+  public static final int AP_WAITING = 5;
 
   /**
      Represents the <em>deleted</em> agent state.
   */
-  public static final int AP_DELETED = 5;
+  public static final int AP_DELETED = 6;
 
   /**
      Represents the <code>transit</code> agent state.
   */
-  public static final int AP_TRANSIT = 6;
+  public static final int AP_TRANSIT = 7;
 
   // Non compliant states, used internally. Maybe report to FIPA...
   /**
      Represents the <code>copy</code> agent state.
   */
-  static final int AP_COPY = 7;
+  static final int AP_COPY = 8;
 
   /**
      Represents the <code>gone</code> agent state. This is the state
      the original instance of an agent goes into when a migration
      transaction successfully commits.
   */
-  static final int AP_GONE = 8;
+  static final int AP_GONE = 9;
 
   /**
      Out of band value for Agent Platform Life Cycle states.
   */
-  public static final int AP_MAX = 9;    // Hand-made type checking
+  public static final int AP_MAX = 10;    // Hand-made type checking
 
   private static final AgentState[] STATES = new AgentState[] { 
     new AgentState("Illegal MIN state"),
     new AgentState("Initiated"),
     new AgentState("Active"),
+    new AgentState("Idle"),
     new AgentState("Suspended"),
     new AgentState("Waiting"),
     new AgentState("Deleted"),
@@ -869,7 +875,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doSuspend() {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) {
 	myBufferedState = myAPState;
 	setState(AP_SUSPENDED);
       }
@@ -955,7 +961,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doWake() {
     synchronized(stateLock) {
-      if(myAPState == AP_WAITING) {
+      if((myAPState == AP_WAITING) || (myAPState == AP_IDLE)) {
 	setState(AP_ACTIVE);
       }
     }
@@ -985,6 +991,14 @@ public class Agent implements Runnable, Serializable {
 	if(!myThread.equals(Thread.currentThread()))
 	  myThread.interrupt();
       }
+    }
+  }
+
+  // This is to be called only by the scheduler
+  void doIdle() {
+    synchronized(stateLock) {
+      if(myAPState != AP_IDLE)
+	setState(AP_IDLE);
     }
   }
 
@@ -1270,7 +1284,10 @@ public class Agent implements Runnable, Serializable {
 	case AP_ACTIVE:
 	  try {
 	    // Select the next behaviour to execute
+	    int oldState = myAPState;
 	    currentBehaviour = myScheduler.schedule();
+	    if(myAPState != oldState)
+	      setState(oldState);
 	  }
 	  // Someone interrupted the agent. It could be a kill or a
 	  // move/clone request...
@@ -1281,6 +1298,8 @@ public class Agent implements Runnable, Serializable {
 	    case AP_TRANSIT:
 	    case AP_COPY:
 	      throw new AgentInMotionError();
+	    case AP_ACTIVE:
+	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName());
 	    }
 	  }
 
