@@ -28,7 +28,8 @@ import jade.security.AuthException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.Authority;
-import jade.security.DelegationCertificate;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 //#MIDP_EXCLUDE_END
 
 /**
@@ -38,14 +39,14 @@ import jade.security.DelegationCertificate;
 
 interface AgentToolkit {
   Location here();
-  void handleStart(String localName, Agent instance);
+  //void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
-  void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/;
+  void handleSend(ACLMessage msg, AID sender);
 
   //#MIDP_EXCLUDE_BEGIN
-  void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/;
-  void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/;
+  void handlePosted(AID agentID, ACLMessage msg);
+  void handleReceived(AID agentID, ACLMessage msg);
   void handleBehaviourAdded(AID agentID, Behaviour b);
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
@@ -59,6 +60,7 @@ interface AgentToolkit {
   void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
   void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
 
+  jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials);
   //#MIDP_EXCLUDE_END
 
   void setPlatformAddresses(AID id);

@@ -94,6 +94,8 @@ public abstract class BaseNode implements Node, Serializable {
 	    VerticalCommand vCmd = slice.serve(cmd);
 
 	    if(vCmd != null) {
+	  vCmd.setPrincipal(cmd.getPrincipal());
+	  vCmd.setCredentials(cmd.getCredentials());
 		// Hand it to the command processor
 		serveVerticalCommand(vCmd);
 		return vCmd.getReturnValue();

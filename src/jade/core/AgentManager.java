@@ -39,12 +39,12 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.Authority;
 import jade.security.AuthException;
-import jade.security.DelegationCertificate;
+import jade.security.Credentials;
+import jade.security.JADEPrincipal;
 
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
-import jade.security.Credentials;
 
 /**
 @author Giovanni Rimassa - Universita' di Parma
@@ -93,7 +93,7 @@ public interface AgentManager {
      * @throws UnreachableException if the container is unreachable 
      * @throws AuthException if this action is not authorized
      **/
-  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, Credentials creds) throws UnreachableException, AuthException, NotFoundException, NameClashException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, AuthException, NotFoundException, NameClashException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;

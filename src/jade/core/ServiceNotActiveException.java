@@ -26,8 +26,6 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 
-import jade.util.WrapperException;
-
 
 public class ServiceNotActiveException extends ServiceException {
 

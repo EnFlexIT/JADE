@@ -57,9 +57,9 @@ final class DummyToolkit implements AgentToolkit {
         return null;
     }
     
-    public void handleStart(String localName, Agent instance) {
+    /*public void handleStart(String localName, Agent instance) {
         throw new InternalError("Trying to start an agent without proper runtime support.");
-    }
+    }*/
 
     //FIXME should we here throw an InternalError also?
     public void handleEnd(AID agentID) {}
@@ -76,6 +76,10 @@ final class DummyToolkit implements AgentToolkit {
     public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
     public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {}
 
+  	public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials) {
+  		return null;
+  	}
+  		
     //__SECURITY__BEGIN
     public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal from, Credentials creds) {}
     public Authority getAuthority() {

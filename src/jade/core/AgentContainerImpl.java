@@ -50,6 +50,7 @@ import jade.mtp.TransportAddress;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AuthException;
+import jade.security.CredentialsHelper;
 import jade.security.PrivilegedExceptionAction;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
@@ -122,47 +123,117 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   //#MIDP_EXCLUDE_BEGIN
-  /**
-   * Get the agentcontroller for a local agent given its AID.
-   * @param agentID The agentID of the desired agent.
-   * @see jade.wrapper.PlatformController#getAgent(String)
-   * @since JADE2.6
-   */
-  public jade.wrapper.AgentController getAgent(AID agentID) {
-      // This method is called by jade.wrapper.AgentContainer
-      // FIXME. To check for security permissions
-      Agent agent = localAgents.acquire(agentID);
-      localAgents.release(agentID);
-      if (agent != null)
-	  return new jade.wrapper.Agent(agentID, agent); 
-      else
-	  return null;
+  /////////////////////////////////////////////////
+  // Support for the in-process interface section 
+  ///////////////////////////////////////////////// 
+  jade.wrapper.AgentContainer getContainerController() {
+  	return getContainerController(ownerPrincipal, ownerCredentials);
   }
+  
+  public jade.wrapper.AgentContainer getContainerController(final JADEPrincipal principal, final Credentials credentials) {
+		return new jade.wrapper.AgentContainer(new jade.wrapper.ContainerProxy() {
+			GenericCommand dummyCmd = new GenericCommand(null, null, null);
+			
+			{
+				dummyCmd.setPrincipal(principal);
+				dummyCmd.setCredentials(credentials);
+			}
+			
+			public void createAgent(AID id, String className, Object[] args) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				target.createAgent(id, className, args, principal, null, dummyCmd);
+			}
+			
+			public void killContainer() throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.exitContainer();
+			}
+			
+			public MTPDescriptor installMTP(String address, String className) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.messaging.MessagingSlice target = (jade.core.messaging.MessagingSlice) getProxyToLocalSlice(jade.core.messaging.MessagingSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				return target.installMTP(address, className);
+			}
+			
+			public void uninstallMTP(String address) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.messaging.MessagingSlice target = (jade.core.messaging.MessagingSlice) getProxyToLocalSlice(jade.core.messaging.MessagingSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.uninstallMTP(address);
+			}
+			
+			public void suspendAgent(AID id) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.changeAgentState(id, Agent.AP_SUSPENDED);
+			}
+			
+			public void activateAgent(AID id) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.changeAgentState(id, Agent.AP_ACTIVE);
+			}
+			
+			public void killAgent(AID id) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.killAgent(id);
+			}
+			
+			public void moveAgent(AID id, Location where) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.mobility.AgentMobilitySlice target = (jade.core.mobility.AgentMobilitySlice) getProxyToLocalSlice(jade.core.mobility.AgentMobilitySlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.moveAgent(id, where);
+			}
+			
+			public void cloneAgent(AID id, Location where, String newName) throws Throwable {
+				// Do as if it was a remote call from the main to allows 
+				// security checks to take place if needed
+				jade.core.mobility.AgentMobilitySlice target = (jade.core.mobility.AgentMobilitySlice) getProxyToLocalSlice(jade.core.mobility.AgentMobilitySlice.NAME);
+				// FIXME: set Principal and Credentials 
+				target.copyAgent(id, where, newName);
+			}
+			
+			private Service.SliceProxy getProxyToLocalSlice(String serviceName) throws Throwable {
+				Service svc = myServiceFinder.findService(serviceName);
+				return (Service.SliceProxy) myIMTPManager.createSliceProxy(serviceName, svc.getHorizontalInterface(), myIMTPManager.getLocalNode());
+			}
+		}, this, getPlatformID());
+  }
+  ////////////////////////////////////////////////////////
+  // END of support for the in-process interface section 
+  //////////////////////////////////////////////////////// 
   //#MIDP_EXCLUDE_END
 
+  /**
+     Create an agent, put it in the LADT, notify the main, but 
+     does not start the embedded Thread
+   */
   private void createAgent(AID agentID, String className, Object[] args,
-                           JADEPrincipal creator, Credentials creds, boolean startIt) 
+                           JADEPrincipal creator, Credentials creds) 
           throws AuthException {
 
       Agent agent = null;
       try {
           agent = (Agent)Class.forName(new String(className)).newInstance();
           agent.setArguments(args);
-          //#MIDP_EXCLUDE_BEGIN
-          // Set agent principal and certificates
-//          if(certs != null) {
-//              agent.setPrincipal(certs);
-//          }
-          // Set agent ownership
-//          if(ownership != null)
-//              agent.setOwnership(ownership);
-//          else if(certs.getIdentityCertificate() != null)
-//              agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
-          //#MIDP_EXCLUDE_END
-
-          initAgent(agentID, agent, startIt, creator, creds);
-
-
+          initAgent(agentID, agent, creator, creds);
       } 
       catch(AuthException e) { throw e; }
       catch(ClassNotFoundException cnfe) {
@@ -173,24 +244,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
 
-  public void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException {
-      initAgent(agentID, instance, startIt, (JADEPrincipal) null, (Credentials) null);
-  }
-
-   /**
-    */
+  /**
+     Issue an INFORM_CREATED vertical command
+   */
    public void initAgent(
-        AID agentID, Agent instance, boolean startIt,
-        JADEPrincipal creator, Credentials creds)
+        AID agentID, Agent instance, 
+        JADEPrincipal ownerPrincipal, Credentials ownerCredentials)
       throws NameClashException, IMTPException, NotFoundException, AuthException {
-
 
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
-      cmd.addParam(new Boolean(startIt));
-      cmd.setPrincipal( creator );
-      cmd.setCredentials( creds );
+      cmd.setPrincipal(ownerPrincipal);
+      cmd.setCredentials(ownerCredentials);
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
@@ -475,7 +541,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
               try {
                   createAgent(agentID, s.getClassName(), s.getArgs(),
-                              myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials(), CREATE_ONLY);
+                              myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials());
               } catch (AuthException ae) {
                   Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
@@ -488,7 +554,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               AID id = allLocalNames[i];
 
               if(!id.equals(theAMS) && !id.equals(theDefaultDF)) { 
-                  startAgent(id);
+              	try {
+                  powerUpLocalAgent(id);
+              	}
+              	catch (NotFoundException nfe) {
+              		// Should never happen 
+              		nfe.printStackTrace();
+              	}
               }
           }
       }
@@ -584,7 +656,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return myID;
   }
 
-  public void handleSend(ACLMessage msg, AID sender) /*throws AuthException*/ {
+  /**
+     Issue a SEND_MESSAGE VerticalCommand for each receiver
+   */
+  public void handleSend(ACLMessage msg, AID sender) {
     Iterator it = msg.getAllIntendedReceiver();
     while (it.hasNext()){
       AID receiver = (AID)it.next();
@@ -592,6 +667,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(sender);
       cmd.addParam(new GenericMessage((ACLMessage)msg.clone()));
       cmd.addParam(receiver);
+      // Set the credentials of the sender
+      initCredentials(cmd, sender);
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof Throwable) {
@@ -603,17 +680,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handlePosted(AID agentID, ACLMessage msg) /*throws AuthException*/ {
-
-		/*AgentPrincipal target = getAgentPrincipal(msg.getSender());
-	
-		// --- This code could go into a Security Service, intercepting the agent creation...
-	
-		authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
-	
-		// --- End of Security code
-		*/
-	
+  // FIXME: to be removed
+  public void handlePosted(AID agentID, ACLMessage msg) {
 		GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_POSTED, jade.core.event.NotificationSlice.NAME, null);
 		cmd.addParam(msg);
 		cmd.addParam(agentID);
@@ -628,11 +696,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handleReceived(AID agentID, ACLMessage msg) /*throws AuthException*/ {
-
+  /**
+     Issue a NOTIFY_RECEIVED VerticalCommand
+   */
+  public void handleReceived(AID agentID, ACLMessage msg) {
 	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_RECEIVED, jade.core.event.NotificationSlice.NAME, null);
 	cmd.addParam(msg);
 	cmd.addParam(agentID);
+	// No security check is meaningful on this action --> don't even set the Credentials
 
 	Object ret = myCommandProcessor.processOutgoing(cmd);
   if (ret != null) {
@@ -649,6 +720,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(b);
+			// No security check is meaningful on this action --> don't even set the Credentials
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
@@ -664,6 +736,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(b);
+			// No security check is meaningful on this action --> don't even set the Credentials
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
@@ -681,6 +754,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(b);
       cmd.addParam(from);
       cmd.addParam(to);
+			// No security check is meaningful on this action --> don't even set the Credentials
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
@@ -718,6 +792,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(from);
       cmd.addParam(to);
+			// No security check is meaningful on this action --> don't even set the Credentials
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof Throwable) {
@@ -726,7 +802,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
 
-  public void handleStart(String localName, Agent instance) {
+  // FIXME: kept only to make jade.wrapper compile
+  /*public void handleStart(String localName, Agent instance) {
       try {
 	  AID agentID = new AID(localName, AID.ISLOCALNAME);
 	  startAgent(agentID);
@@ -734,11 +811,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch(Exception e) {
 	  e.printStackTrace();
       }
-  }
+  }*/
 
   public void handleEnd(AID agentID) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
+			// No security check is meaningful on this action --> don't even set the Credentials
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof Throwable) {
@@ -752,6 +831,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand("Save-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
+      // Set the credentials of the agent to be saved
+      initCredentials(cmd, agentID);
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof ServiceException) {
@@ -774,6 +856,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand("Reload-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
       cmd.addParam(repository);
+      // Set the credentials of the agent to be reloaded
+      initCredentials(cmd, agentID);
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof ServiceException) {
@@ -797,6 +882,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(agentID);
       cmd.addParam(repository);
       cmd.addParam(bufferContainer);
+      // Set the credentials of the agent to be frozen
+      initCredentials(cmd, agentID);
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof ServiceException) {
@@ -817,6 +905,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void setPlatformAddresses(AID id) {
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(id);
+			// No security check is meaningful on this action --> don't even set the Credentials
+      
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof Throwable) {
@@ -859,17 +949,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // Private and package scoped methods
 
 
-    private void startAgent(AID agentID) {
-	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_START, jade.core.management.AgentManagementSlice.NAME, null);
-	cmd.addParam(agentID);
-
-	myCommandProcessor.processOutgoing(cmd);
-    }
-
-    LADT getLocalAgents() {
-	return localAgents;
-    }
-
 
     /**
      * This method is used by the class AID in order to get the HAP.
@@ -880,32 +959,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     public Agent addLocalAgent(AID id, Agent a) throws AuthException {
 
-      /*
-	// --- This code could go into a Security Service, intercepting the agent creation...
-
-	//#MIDP_EXCLUDE_BEGIN
-	CertificateFolder agentCerts = a.getCertificateFolder();
-
-	if(agentCerts.getIdentityCertificate() == null) {
-	    AgentPrincipal principal = authority.createAgentPrincipal(id, AgentPrincipal.NONE);
-	    IdentityCertificate identity = authority.createIdentityCertificate();
-	    identity.setSubject(principal);
-	    authority.sign(identity, certs);
-	    agentCerts.setIdentityCertificate(identity);
-	}
-
-	// --- End of security code
-
-	//#MIDP_EXCLUDE_END
-       */
-
 	a.setToolkit(this);
 	return localAgents.put(id, a);
     }
 
-    public void powerUpLocalAgent(AID agentID, Agent instance) {
-	Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), instance);
-	instance.powerUp(agentID, t);
+    public void powerUpLocalAgent(AID agentID) throws NotFoundException {
+    	Agent instance = localAgents.acquire(agentID);
+    	if (instance == null) {
+    		throw new NotFoundException("powerUpLocalAgent() failed to find agent "+agentID.getName());
+    	}
+			Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), instance);
+			instance.powerUp(agentID, t);
+			localAgents.release(agentID);
     }
 
     public void removeLocalAgent(AID id) {
@@ -1095,4 +1160,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	m.removeListener(l);
   }
 //#ALL_EXCLUDE_END  
+  
+  private void initCredentials(Command cmd, AID id) {
+  	Agent agent = localAgents.acquire(id);
+  	if (agent != null) {
+  		try {
+		  	CredentialsHelper ch = (CredentialsHelper) agent.getHelper("jade.core.security.Security");
+	  		cmd.setPrincipal(ch.getPrincipal()); 
+	  		cmd.setCredentials(ch.getCredentials());
+	  	}
+	  	catch (ServiceException se) {
+	  		// The security plug-in is not there. Just ignore it
+	  	}
+  	}  
+  	localAgents.release(id);
+  }
 }

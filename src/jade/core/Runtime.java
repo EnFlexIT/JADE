@@ -111,8 +111,12 @@ public class Runtime {
       p.setParameter(Profile.MAIN, "false"); // set to an agent container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
-      impl.joinPlatform();
-		  return new jade.wrapper.AgentContainer(impl, impl.getPlatformID());
+      if (impl.joinPlatform()) {
+			  return impl.getContainerController();
+      }
+      else {
+	      return null;
+      }
   	}
   	else {
   		throw new IllegalStateException("Single-container modality already activated");
@@ -133,14 +137,18 @@ public class Runtime {
      was previously activated by calling the <code>startUp()</code> 
      method.
    */
-  public jade.wrapper.MainContainer createMainContainer(Profile p) {
+  public jade.wrapper.AgentContainer createMainContainer(Profile p) {
   	if (mode == UNKNOWN_MODE || mode == MULTIPLE_MODE) {
   		mode = MULTIPLE_MODE;
       p.setParameter(Profile.MAIN, "true"); // set to a main container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
-      impl.joinPlatform();
-      return new jade.wrapper.MainContainer(impl, impl.getPlatformID());
+      if (impl.joinPlatform()) {
+			  return impl.getContainerController();
+      }
+      else {
+      	return null;
+      }
   	}
   	else {
   		throw new IllegalStateException("Single-container modality already activated");

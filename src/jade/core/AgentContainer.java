@@ -46,8 +46,8 @@ public interface AgentContainer {
   static final String UNNAMED_CONTAINER_NAME = "No-Name";
 
 
-    static final boolean CREATE_AND_START = true;
-    static final boolean CREATE_ONLY = false;
+    //static final boolean CREATE_AND_START = true;
+    //static final boolean CREATE_ONLY = false;
 
 
     ContainerID getID();
@@ -59,12 +59,11 @@ public interface AgentContainer {
     AID getAMS();
     AID getDefaultDF();
 
-    void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException;
-    void initAgent(AID agentID, Agent instance, boolean startIt, 
+    void initAgent(AID agentID, Agent instance,  
                    JADEPrincipal creator, Credentials creds                  
                    ) throws NameClashException, IMTPException, NotFoundException, AuthException;
     Agent addLocalAgent(AID id, Agent a) throws AuthException;
-    void powerUpLocalAgent(AID agentID, Agent instance);
+    void powerUpLocalAgent(AID agentID) throws NotFoundException;
     void removeLocalAgent(AID id);
     Agent acquireLocalAgent(AID id);
     void releaseLocalAgent(AID id);

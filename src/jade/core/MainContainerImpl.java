@@ -265,7 +265,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	try {
 	    theAMS.resetEvents(true);
-	    ac.initAgent(ac.getAMS(), theAMS, AgentContainerImpl.CREATE_AND_START, (JADEPrincipal) null, (Credentials)null);
+	    AID amsId = ac.getAMS();
+	    ac.initAgent(amsId, theAMS, (JADEPrincipal) null, (Credentials)null);
+	    ac.powerUpLocalAgent(amsId);
 	    theAMS.waitUntilStarted();
 	}
 	catch(Exception e) {
@@ -274,7 +276,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
  
 	try {
-	    ac.initAgent(ac.getDefaultDF(), defaultDF, AgentContainerImpl.CREATE_AND_START, (JADEPrincipal)null, (Credentials)null);
+	    AID dfId = ac.getDefaultDF();
+	    ac.initAgent(dfId, defaultDF, (JADEPrincipal)null, (Credentials)null);
+	    ac.powerUpLocalAgent(dfId);
 	    defaultDF.waitUntilStarted();
 	}
 	catch(Exception e) {
@@ -602,7 +606,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Create an agent on a given container
      @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException
    */
-  public void create(String name, String className, String args[], ContainerID cid, String ownership, Credentials creds) throws UnreachableException, AuthException, NotFoundException, NameClashException {
+  public void create(String name, String className, String args[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, AuthException, NotFoundException, NameClashException {
 
       // Get the container where to create the agent
       // If it is not specified, assume it is the Main
@@ -610,22 +614,16 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	  cid = localContainerID;
       }
 
-      // --- This code should go into the Security Service ---
-
-      // Check permissions
-      //authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
-      //authority.checkAction(Authority.CONTAINER_CREATE_IN, getPrincipal(cid), null);
-
-      // --- End of code that should go into the Security Service ---
-
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_CREATE, jade.core.management.AgentManagementSlice.NAME, null);
 
       cmd.addParam(name);
       cmd.addParam(className);
       cmd.addParam(args);
       cmd.addParam(cid);
-      //cmd.addParam(ownership);  //TOFIX
-      //cmd.addParam(certs);
+      cmd.addParam(owner);
+      cmd.addParam(initialCredentials);
+      cmd.setPrincipal(requesterPrincipal);
+      cmd.setCredentials(requesterCredentials);
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
