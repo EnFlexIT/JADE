@@ -1,3 +1,48 @@
+MAJOR CHANGES in JADE Snapshot (6 June 2002) 
+==========================================================================
+GENERAL:
+- reengineered AMS
+- Content support:
+  added support for ordered-based encoding of concept slots
+  Minor modifications to make it compatible with J2ME.
+- Made multi-threaded the Message Manager
+- Added class jade.util.leap.RoundList.java
+- Added removeUserDefinedSlot method in jade.core.AID
+- All the properties on the command line and in the configuration file are now
+  set in the Profile and can be read by all classes that can access the Profile
+- HTTP-MTP add-on: Version 2.5 patch 7 of Ion Constantinescu.
+  Cleaned-up the core queues and added a pool thread mechanism. Also
+  modified the socket binding and creating options. This should be
+  considered as a major rewrite.
+- Added notification of behaviour addition/remotion and change state.
+  Modified the Introspector tool to handle these notifications.
+- Added new method Agent.getCurQueueSize() 
+- Added new add-on with a JADE tag library provided by Daniel Le Berre
+- Added the ability to clip specified prefixes from agent names in the Sniffer 
+  (Dick Cowan). 
+
+BUG FIXES:
+- remote containers did not start
+- fixed makefile
+- ContentManager: made transient languages and ontologies
+- Fixed a problem with exceptions from initAgent() not passing through,
+  thus not letting the AMS know that agent creation failed.
+- AchieveREInitiator: Made serializable the inner class Session
+- Fixed bug in agent migration that caused an endless loop
+- AMS and DF variables are no more static in the Agent class in order to
+  support multiple JADE platforms on the same JVM
+- the AIDs for the AMS and the Default DF are kept up to
+  date with all the MTPs installed in the whole platform
+- fixed bug in the Envelope that caused problems in sending a message
+  to multiple agents
+- fixed born-event bug in the AMS
+- Jess example: Commented the load of the package jess.miscFunctions 
+  because no more used in JESS6.0
+- added sanity check for null arguments passed to jade.core.Agent and 
+  for null pointer exception in SenderBehaviour
+- fixed deadlock when shutting down the platform (Dick Cowan)
+- fixed bug in managing SequentialBehaviour
+	
 MAJOR CHANGES in JADE Snapshot (17 April 2002) 
 ==========================================================================
 GENERAL:
