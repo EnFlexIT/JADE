@@ -70,7 +70,8 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
    */
   protected ACLMessage performAction(Action slAction, ACLMessage request) throws FIPAException {
   	Concept action = slAction.getAction();
-  	List resultItems = null;
+  	Object result = null;
+  	boolean resultNeeded = false;
   	Object asynchNotificationKey = null;
   	
   	// CREATE AGENT
@@ -101,8 +102,8 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	// INSTALL MTP
   	else if (action instanceof InstallMTP) {
   		MTPDescriptor dsc = theAMS.installMTPAction((InstallMTP) action, request.getSender());
-  		resultItems = new ArrayList();
-  		resultItems.add(dsc.getAddresses()[0]);
+  		result = dsc.getAddresses()[0];
+  		resultNeeded = true;
   	}
   	// UNINSTALL MTP
   	else if (action instanceof UninstallMTP) {
@@ -126,26 +127,27 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	}
   	// WHERE IS AGENT
   	else if (action instanceof WhereIsAgentAction) {
-  		Location l = theAMS.whereIsAgentAction((WhereIsAgentAction) action, request.getSender());
-  		resultItems = new ArrayList();
-  		resultItems.add(l);
+  		result = theAMS.whereIsAgentAction((WhereIsAgentAction) action, request.getSender());
+  		resultNeeded = true;
   	}
   	// QUERY PLATFORM LOCATIONS
   	else if (action instanceof QueryPlatformLocationsAction) {
-  		resultItems = theAMS.queryPlatformLocationsAction((QueryPlatformLocationsAction) action, request.getSender());
+  		result = theAMS.queryPlatformLocationsAction((QueryPlatformLocationsAction) action, request.getSender());
+  		resultNeeded = true;
   	}
   	// QUERY AGENTS ON LOCATION
   	else if (action instanceof QueryAgentsOnLocation) {
-  		resultItems = theAMS.queryAgentsOnLocationAction((QueryAgentsOnLocation) action, request.getSender());
+  		result = theAMS.queryAgentsOnLocationAction((QueryAgentsOnLocation) action, request.getSender());
+  		resultNeeded = true;
   	}
   	
   	// Prepare the notification
   	ACLMessage notification = request.createReply();
   	notification.setPerformative(ACLMessage.INFORM);
   	Predicate p = null;
-  	if (resultItems != null) {
+  	if (resultNeeded) {
   		// The action produced a result
-  		p = new Result(slAction, resultItems);
+  		p = new Result(slAction, result);
   	}
   	else {
   		p = new Done(slAction);
