@@ -357,7 +357,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   			if (value == null) {
   				// Check optionality
   				if (dsc.optionality == MANDATORY) {
-  					throw new OntologyException("Missing value for mandatory slot "+slotName);
+  					throw new OntologyException("Missing value for mandatory slot "+slotName+". Schema is "+this);
   				}
   				// Don't need to check facets on a null value for an optional slot
   				return true;
