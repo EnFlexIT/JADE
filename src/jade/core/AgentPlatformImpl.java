@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.12  1998/10/07 22:16:21  Giovanni
+  Changed code in various places to make agent descriptor tables
+  case-insensitive. Now upper or lower case in agent names and addresses
+  make no more difference; this is to comply with FIPA specification.
+
   Revision 1.11  1998/10/04 18:01:01  rimassa
   Added a 'Log:' field to every source file.
 
@@ -120,7 +125,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-    Object o = platformAgents.get(agentName);
+    Object o = platformAgents.get(agentName.toLowerCase());
     if(o == null)
       throw new NotFoundException("Failed to find " + agentName);
     else
@@ -139,7 +144,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     try {
       // Extract the agent name from the beginning to the '@'
       String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName);
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
@@ -176,7 +181,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     try {
       // Extract the agent name from the beginning to the '@'
       agentName = agentName.substring(0,agentName.indexOf('@'));
-      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
+      AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
@@ -229,7 +234,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void AMSDumpData(String agentName) {
     // Extract the agent name from the beginning to the '@'
     agentName = agentName.substring(0,agentName.indexOf('@'));
-    AgentDescriptor desc = (AgentDescriptor)platformAgents.get(agentName);
+    AgentDescriptor desc = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     AgentManagementOntology.AMSAgentDescriptor amsd = desc.getDesc();
     amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
