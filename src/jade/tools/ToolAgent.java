@@ -112,7 +112,7 @@ public abstract class ToolAgent extends Agent {
       ACLMessage current = receive(listenTemplate);
       if(current != null) {
 	// Handle 'inform' messages from the AMS
-	try {
+  try {
 	  List l = extractContent(current);
 	  Occurred o = (Occurred)l.get(0);
 	  EventRecord er = o.get_0();

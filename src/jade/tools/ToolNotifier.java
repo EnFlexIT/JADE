@@ -65,7 +65,37 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   private AID observerAgent;
   private Set observedAgents = new HashSet();
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
+  
+  /**
+     Inner class NotifierAMSListenerBehaviour
+   */
+  class NotifierAMSListenerBehaviour extends AMSListenerBehaviour {
+  	protected void installHandlers(Map handlersTable) {
+    	// Fill the event handler table.
+      handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+      	public void handle(Event ev) {
+	    		DeadAgent da = (DeadAgent)ev;
+	    		AID dead = da.getAgent();
+	    		removeObservedAgent(dead);
+	    		if(isEmpty()) {
+	      		// FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
+	      		doDelete();
+	    		}
+	  		}
+      });
 
+      handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+      	public void handle(Event ev) {
+	    		// FIXME: Should follow the mobile agent
+	  		}
+      });
+
+    } // END of installHandlers() method
+  	
+  } // END of inner class NotifierAMSListenerBehaviour
+  
+  
+  
   public ToolNotifier(AID id) {
     observerAgent = id;
   }
@@ -77,7 +107,8 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
 
     // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
+    AMSSubscribe.addSubBehaviour(new NotifierAMSListenerBehaviour());
+    /*AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
 
       protected void installHandlers(Map handlersTable) {
 
@@ -103,6 +134,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       } // End of installHandlers() method
 
     });
+    */
 
     // Schedule Behaviours for execution
     addBehaviour(AMSSubscribe);
@@ -131,6 +163,11 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void sentMessage(MessageEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
       ACLMessage msg = ev.getMessage();
@@ -157,6 +194,11 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void postedMessage(MessageEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
       ACLMessage msg = ev.getMessage();
@@ -187,6 +229,11 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void receivedMessage(MessageEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
       ACLMessage msg = ev.getMessage();
@@ -217,10 +264,20 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void routedMessage(MessageEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     // Do nothing
   }
 
   public void changedAgentState(AgentEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     AID id = ev.getAgent();
     if(observedAgents.contains(id)) {
 
@@ -245,14 +302,29 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
   }
 
   public void addedBehaviour(AgentEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     // Do nothing
   }
 
   public void removedBehaviour(AgentEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     // Do nothing
   }
 
   public void changedBehaviourState(AgentEvent ev) {
+  	// Do nothing if this ToolNotifier agent is shutting down
+  	if (getState() == AP_DELETED) {
+  		return;
+  	}
+  	
     // Do nothing
   }
 
