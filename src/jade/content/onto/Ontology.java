@@ -290,10 +290,10 @@ public class Ontology implements Serializable {
       ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
 
       if (ret == null) {
-        logger.log(Logger.WARNING,"Ontology "+getName()+". Schema for "+name+" not found");
+        logger.log(Logger.FINE,"Ontology "+getName()+". Schema for "+name+" not found");
         for (int i = 0; i < base.length; ++i) {
           if (base[i] == null) {
-            logger.log(Logger.WARNING,"Base ontology # "+i+" for ontology "+getName()+" is null");
+            logger.log(Logger.FINE,"Base ontology # "+i+" for ontology "+getName()+" is null");
           }
           ret = base[i].getSchema(name);
           if (ret != null) {
@@ -408,10 +408,10 @@ public class Ontology implements Serializable {
     protected Object toObject(AbsObject abs, String lcType, Ontology globalOnto) 
     			throws UnknownSchemaException, UngroundedException, OntologyException {
       
-    	logger.log(Logger.CONFIG,"Ontology "+getName()+". Abs is: "+abs);
+    	logger.log(Logger.FINE,"Ontology "+getName()+". Abs is: "+abs);
       // Retrieve the schema
       ObjectSchema schema = (ObjectSchema) elements.get(lcType);
-      logger.log(Logger.CONFIG,"Ontology "+getName()+". Schema is: "+schema);
+      logger.log(Logger.FINE,"Ontology "+getName()+". Schema is: "+schema);
       if (schema != null) {
             
         // Retrieve the java class

@@ -268,13 +268,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	}
 				
   	// Instantiate the knowledge base 
-		logger.log(Logger.INFO,"DF KB configuration:");
+		logger.log(Logger.CONFIG,"DF KB configuration:");
 		if (dbUrl != null) {
-			logger.log(Logger.INFO,"- Type = persistent");
-			logger.log(Logger.INFO,"- DB url = "+dbUrl);
-			logger.log(Logger.INFO,"- DB driver = "+dbDriver);
-			logger.log(Logger.INFO,"- DB username = "+dbUsername);
-			logger.log(Logger.INFO,"- DB password = "+dbPassword);
+			logger.log(Logger.CONFIG,"- Type = persistent");
+			logger.log(Logger.CONFIG,"- DB url = "+dbUrl);
+			logger.log(Logger.CONFIG,"- DB driver = "+dbDriver);
+			logger.log(Logger.CONFIG,"- DB username = "+dbUsername);
+			logger.log(Logger.CONFIG,"- DB password = "+dbPassword);
 			try {
 	  			agentDescriptions = new DFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
 			}
@@ -284,11 +284,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			}
 		}
 		if (agentDescriptions == null) {
-			logger.log(Logger.INFO,"- Type = volatile");
+			logger.log(Logger.CONFIG,"- Type = volatile");
 			agentDescriptions = new DFMemKB(maxResultLimit);
 		}
-		logger.log(Logger.INFO,"- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"));
-		logger.log(Logger.INFO,"- Max search result = "+maxResultLimit);
+		logger.log(Logger.CONFIG,"- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"));
+		logger.log(Logger.CONFIG,"- Max search result = "+maxResultLimit);
 		//#PJAVA_EXCLUDE_END
 		/*#PJAVA_INCLUDE_BEGIN
 		agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
@@ -538,7 +538,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    		logger.log(Logger.SEVERE,"WARNING: Error decoding reply from federated DF "+inform.getSender().getName()+" during recursive search ["+e.toString()+"]."); 
 	    	}
     	}
-	    logger.log(Logger.CONFIG,cnt+" new items found."); 
+	    logger.log(Logger.FINE,cnt+" new items found."); 
     }
     
     protected void handleRefuse(ACLMessage refuse) {
@@ -668,7 +668,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, true);
-    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Register for "+dfd.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action Register for "+dfd.getName());
 		
 		// Avoid autoregistration
 		if (dfd.getName().equals(getAID())) {
@@ -688,7 +688,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, false);
-    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Deregister for "+dfd.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action Deregister for "+dfd.getName());
 		
 		// Do it
 		DFDeregister(dfd);
@@ -703,7 +703,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, true);
-    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Modify for "+dfd.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action Modify for "+dfd.getName());
 		
 		// Do it
 		DFModify(dfd);
@@ -722,7 +722,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		SearchConstraints constraints = s.getConstraints();
 		List result = null;
 		
-    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Search");
+    logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action Search");
 		
     // Avoid loops in searching on federated DFs
 		checkSearchId(constraints.getSearchId());
@@ -764,7 +764,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	   error occurs creating the GUI.
 	 */
   void showGuiAction(ShowGui sg, AID requester) throws FailureException {
-    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action ShowGui");
+    logger.log(Logger.CONFIG,"Agent "+requester.getName()+" requesting action ShowGui");
 		if (!showGui()){
 	    throw new FailureException("Gui_is_being_shown_already");
 		}
@@ -779,7 +779,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   List getParentsAction(GetParents action, AID requester) {
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetParents.");
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action GetParents.");
   	return parents;
   }
 
@@ -789,7 +789,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   List getDescriptionAction(GetDescription action, AID requester) {
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetDescription.");
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action GetDescription.");
 	  // FIXME: This embeds the description into a list since the Applet still expects a List
   	List tmp = new ArrayList();
 	  tmp.add(getDescriptionOfThisDF());
@@ -802,7 +802,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   List getDescriptionUsedAction(GetDescriptionUsed action, AID requester) {
   	AID parent = action.getParentDF();
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetDescriptionUsed to federate with "+parent.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action GetDescriptionUsed to federate with "+parent.getName());
 	  // FIXME: This embeds the description into a list since the Applet still expects a List
   	List tmp = new ArrayList();
 	  tmp.add(getDescriptionOfThisDF(parent));
@@ -815,7 +815,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void federateAction(final Federate action, AID requester) {
 		AID remoteDF = action.getDf();
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action Federate with DF "+remoteDF.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action Federate with DF "+remoteDF.getName());
 		Register r = new Register();
 		DFAgentDescription tmp = action.getDescription();
 		final DFAgentDescription dfd = (tmp != null ? tmp : getDescriptionOfThisDF());
@@ -839,7 +839,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void registerWithAction(final RegisterWith action, AID requester){
 		AID remoteDF = action.getDf();
-    	logger.log(Logger.INFO,"Agent "+requester+" requesting action RegisterWith on DF "+remoteDF.getName());
+    	logger.log(Logger.CONFIG,"Agent "+requester+" requesting action RegisterWith on DF "+remoteDF.getName());
 		Register r = new Register();
 		final DFAgentDescription dfd = action.getDescription();
 		r.setDescription(dfd);
@@ -865,7 +865,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void deregisterFromAction(final DeregisterFrom action, AID requester){
 		AID remoteDF = action.getDf();
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action DeregisterFrom on DF "+remoteDF.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action DeregisterFrom on DF "+remoteDF.getName());
 		Deregister d = new Deregister();
 		final DFAgentDescription dfd = action.getDescription();
 		d.setDescription(dfd);
@@ -891,7 +891,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void modifyOnAction(final ModifyOn action, AID requester){
 		AID remoteDF = action.getDf();
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action ModifyOn on DF "+remoteDF.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action ModifyOn on DF "+remoteDF.getName());
 		Modify m = new Modify();
 		m.setDescription(action.getDescription());
     Behaviour b = new RemoteDFRequester(remoteDF, m) {
@@ -909,7 +909,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void searchOnAction(final SearchOn action, AID requester){
 		AID remoteDF = action.getDf();
-    logger.log(Logger.INFO,"Agent "+requester+" requesting action SearchOn on DF "+remoteDF.getName());
+    logger.log(Logger.CONFIG,"Agent "+requester+" requesting action SearchOn on DF "+remoteDF.getName());
 		Search s = new Search();
 		s.setDescription(action.getDescription());
 		s.setConstraints(action.getConstraints());
