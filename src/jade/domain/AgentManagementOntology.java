@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.26  1999/07/19 00:08:45  rimassa
+  Added support for a Java representation of a FIPA 98 compliant
+  platform profile ontology object.
+
   Revision 1.25  1999/06/09 12:54:46  rimassa
   Added missing synchronization on parsing methods.
 
@@ -183,7 +187,7 @@ public class AgentManagementOntology {
      */
     public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       synchronized(parserLock) {
-      return AgentManagementOntology.parser.parseServiceDescriptor(r);
+	return AgentManagementOntology.parser.parseServiceDescriptor(r);
       }
     }
 
@@ -309,7 +313,7 @@ public class AgentManagementOntology {
      */
     public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       synchronized(parserLock) {
-      return AgentManagementOntology.parser.parseAMSDescriptor(r);
+	return AgentManagementOntology.parser.parseAMSDescriptor(r);
       }
     }
 
@@ -676,7 +680,7 @@ public class AgentManagementOntology {
        @return A new <code>DFSearchResult</code> object,
        initialized from stream data.
      */
-    public static DFSearchResult fromText(Reader r) throws ParseException {
+    public static DFSearchResult fromText(Reader r) throws ParseException, TokenMgrError {
       synchronized(parserLock) {
       AgentManagementOntology o = AgentManagementOntology.instance();
       DFSearchResult dfsr;
@@ -788,13 +792,15 @@ public class AgentManagementOntology {
     public static final String REGISTERAGENT = "register-agent";
     public static final String DEREGISTERAGENT = "deregister-agent";
     public static final String MODIFYAGENT = "modify-agent";
+    public static final String QUERYPLATFORMPROFILE = "query-platform-profile";
+    public static final String SEARCHAGENT = "search-agent";
     public static final String KILLCONTAINER = "kill-container";
     public static final String CREATEAGENT = "create-agent";
     public static final String KILLAGENT = "kill-agent";
 
     static final String ARGNAME = ":ams-description";
 
-    private static Hashtable actions = new Hashtable(7, 1.0f);
+    private static Hashtable actions = new Hashtable(9, 1.0f);
     protected String name;
     protected String actor;
     protected AMSAgentDescriptor arg;
@@ -810,7 +816,7 @@ public class AgentManagementOntology {
      */
     public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
       synchronized(parserLock) {
-      return AgentManagementOntology.parser.parseAMSAction(r);
+	return AgentManagementOntology.parser.parseAMSAction(r);
       }
     }
 
@@ -906,6 +912,25 @@ public class AgentManagementOntology {
     }
 
   } // End of KillContainerAction class
+
+  /**
+    Models <code>query-platform-profile</code> <em>AMS</em> action.
+  */
+  public static class QueryPlatformProfileAction extends AMSAction {
+
+    public void toText(Writer w) {
+      try {
+	w.write("( action " + getActor() + " ");
+	w.write("( " + name + " )");
+	w.write(")");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of QueryPlatformProfileAction
 
   /**
     Models <code>create-agent</code> <em>AMS</em> action.
@@ -1309,7 +1334,7 @@ public class AgentManagementOntology {
      */
     public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
       synchronized(parserLock) {
-      return AgentManagementOntology.parser.parseACCAction(r);
+        return AgentManagementOntology.parser.parseACCAction(r);
       }
     }
 
@@ -1405,30 +1430,186 @@ public class AgentManagementOntology {
   } // End of DomainLifeCycle class
 
   /**
-     This class contains the string constants for Agent Platform
-     Profile.
+     This class represents the Agent Platform Profile.
   */
   public static class PlatformProfile {
 
     // These String constants are the keywords in
-    // 'fipa-man-platform-profile' objects.
+    // 'ap-profile' objects.
     static final String NAME = ":platform-name";
     static final String IIOP = ":iiop-url";
     static final String DYNAMICREG = ":dynamic-registration";
     static final String MOBILITY = ":mobility";
     static final String OWNERSHIP = ":ownership";
     static final String CERTAUTH = ":certification-authority";
-    static final String DEFAULTDF = ":default-df";
+    static final String FIPAVERSION = ":fipa-man-compliance";
 
     public static final String MAIN_CONTAINER_NAME = "Front-End";
     public static final String AUX_CONTAINER_NAME = "Container-";
+
+    private static final String APPROFILE = ":ap-profile";
 
     // Table of allowed keywords in 'fipa-man-platform-profile'
     // objects
     private static Hashtable keywords = new Hashtable(7, 1.0f);
 
-    // Utility class; can't be instantiated
-    private PlatformProfile() {
+    private String platformName;
+    private String iiopURL;
+    private String dynReg;
+    private String mobility;
+    private String ownership;
+    private String certAuth;
+    private String fipaVersion;
+
+    /**
+     Default constructor.
+     */
+    public PlatformProfile() {
+    }
+
+    /**
+     This <em>Factory Method</em> reads an <code>ap-profile</code>
+     object from a stream.
+    */
+    public static PlatformProfile fromText(Reader r) throws ParseException, TokenMgrError {
+      synchronized(parserLock) {
+	return AgentManagementOntology.parser.parsePlatformProfile(r);
+      }
+    }
+
+    /**
+     Write <code>:plaform-name</code> slot.
+     @param pn The new slot value.
+     */
+    public void setPlatformName(String pn) {
+      platformName = pn;
+    }
+
+    /**
+     Read <code>:platform-name</code> slot.
+     @return The current slot value.
+     */
+    public String getPlatformName() {
+      return platformName;
+    }
+
+    /**
+     Write <code>:iiop-url</code> slot.
+     @param iu The new slot value.
+     */
+    public void setIiopURL(String iu) {
+      iiopURL = iu;
+    }
+
+    /**
+     Read <code>:iiop-url</code> slot.
+     @return The current slot value.
+     */
+    public String getIiopURL() {
+      return iiopURL;
+    }
+
+    /**
+     Write <code>:dynamic-registration</code> slot.
+     @param yn The new slot value. Must be either <em>"yes"</em> or
+     <em>"no"</em>
+     */
+    public void setDynReg(String yn) {
+      dynReg = yn;
+    }
+
+    /**
+     Read <code>:dynamic-registration</code> slot.
+     @return The current slot value.
+     */
+    public String getDynReg() {
+      return dynReg;
+    }
+
+    /**
+     Write <code>:mobility</code> slot.
+     @param yn The new slot value. Must be either <em>"yes"</em> or
+     <em>"no:"</em>
+     */
+    public void setMobility(String yn) {
+      mobility = yn;
+    }
+
+    /**
+     Read <code>:mobility</code> slot.
+     @return The current slot value.
+     */
+    public String getMobility() {
+      return mobility;
+    }
+
+    /**
+     Write <code>:ownership</code> slot.
+     @param o The new slot value.
+     */
+    public void setOwnership(String o) {
+      ownership = o;
+    }
+
+    /**
+     Read <code>:ownership</code> slot.
+     @return The current slot value.
+     */
+    public String getOwnership() {
+      return ownership;
+    }
+
+    /**
+     Write <code>:certification-authority</code> slot.
+     @param a The new slot value.
+     */
+    public void setCertificationAuthority(String a) {
+      certAuth = a;
+    }
+
+    /**
+     Read <code>:certification-authority</code> slot.
+     @return The current slot value.
+     */
+    public String getCertificationAuthority() {
+      return certAuth;
+    }
+
+    /**
+     Write <code>:fipa-version</code> slot.
+     @param fv The new slot value.
+     */
+    public void setFipaVersion(String fv) {
+      fipaVersion = fv;
+    }
+
+    /**
+     Read <code>:fipa-version</code> slot.
+     @return The current slot value.
+     */
+    public String getFipaVersion() {
+      return fipaVersion;
+    }
+
+    /**
+     Writes an <code>ap-profile</code> on a stream.
+     */
+    public void toText(Writer w) {
+      try {
+	w.write(" ( " + APPROFILE);
+	w.write(" ( " + NAME + " " + platformName + " ) ");
+	w.write(" ( " + IIOP + " " + iiopURL + " ) ");
+	w.write(" ( " + DYNAMICREG + " " + dynReg + " ) ");
+	w.write(" ( " + MOBILITY + " " + mobility + " ) ");
+	w.write(" ( " + OWNERSHIP + " " + ownership + " ) ");
+	w.write(" ( " + CERTAUTH + " " + certAuth + " ) ");
+	w.write(" ( " + FIPAVERSION + " " + fipaVersion + " ) ");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
     }
 
   } // End of PlatformProfile class
@@ -1504,7 +1685,7 @@ public class AgentManagementOntology {
     PlatformProfile.keywords.put(PlatformProfile.MOBILITY, PlatformProfile.MOBILITY);
     PlatformProfile.keywords.put(PlatformProfile.OWNERSHIP, PlatformProfile.OWNERSHIP);
     PlatformProfile.keywords.put(PlatformProfile.CERTAUTH, PlatformProfile.CERTAUTH);
-    PlatformProfile.keywords.put(PlatformProfile.DEFAULTDF, PlatformProfile.DEFAULTDF);
+    PlatformProfile.keywords.put(PlatformProfile.FIPAVERSION, PlatformProfile.FIPAVERSION);
 
     ServiceDescriptor.keywords.put(ServiceDescriptor.NAME, ServiceDescriptor.NAME);
     ServiceDescriptor.keywords.put(ServiceDescriptor.TYPE, ServiceDescriptor.TYPE);
@@ -1559,6 +1740,8 @@ public class AgentManagementOntology {
     AMSAction.actions.put(AMSAction.CREATEAGENT, new Integer(4));
     AMSAction.actions.put(AMSAction.KILLAGENT, new Integer(5));
     AMSAction.actions.put(AMSAction.KILLCONTAINER, new Integer(6));
+    AMSAction.actions.put(AMSAction.QUERYPLATFORMPROFILE, new Integer(7));
+    AMSAction.actions.put(AMSAction.SEARCHAGENT, new Integer(8));
 
     DFAction.actions.put(DFAction.REGISTER, new Integer(0));
     DFAction.actions.put(DFAction.DEREGISTER, new Integer(1));
