@@ -84,6 +84,7 @@ DOCUMENTATION
 - Programmer's Guide: added description of AchieveREInitiator/Responder
   and removed the description of fipaRequest and fipaQuery interaction
   protocols. Added appendix on new support for message content 
+- Added a description of the examples.
 SUPPORT FOR MESSAGE CONTENT
 - The old jade.onto support for content languages and ontologies is going
   to be deprecated and then definitevely removed in the next versions of JADE
