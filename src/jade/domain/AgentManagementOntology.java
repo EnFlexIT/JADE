@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.28  1999/11/08 15:22:20  rimassaJade
+  Added ontological classes to support message sniffing.
+
   Revision 1.27  1999/08/31 17:25:55  rimassa
   Added AMSMotionEvent inner class to represent AMS notifications of
   moved agents.
@@ -103,6 +106,10 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Iterator;
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -294,6 +301,8 @@ public class AgentManagementOntology {
     static final String DELEGATE = ":delegate-agent-name";
     static final String FORWARD = ":forward-address";
     static final String OWNERSHIP = ":ownership";
+    static final String SNAME = ":sniffer-name";
+    static final String AGLIST = ":agent-list";
 
     // Table of allowed keywords in 'FIPA-AMS-description' objects
     private static Hashtable keywords = new Hashtable(7, 1.0f);
@@ -801,10 +810,12 @@ public class AgentManagementOntology {
     public static final String KILLCONTAINER = "kill-container";
     public static final String CREATEAGENT = "create-agent";
     public static final String KILLAGENT = "kill-agent";
+    public static final String SNIFFAGENTON = "sniff-agent-on";
+    public static final String SNIFFAGENTOFF = "sniff-agent-off";
 
     static final String ARGNAME = ":ams-description";
 
-    private static Hashtable actions = new Hashtable(9, 1.0f);
+    private static Hashtable actions = new Hashtable(11, 1.0f);
     protected String name;
     protected String actor;
     protected AMSAgentDescriptor arg;
@@ -1006,6 +1017,165 @@ public class AgentManagementOntology {
     }
 
   }
+
+
+  public static class SniffAgentOnAction extends AMSAction {
+
+    public static final String SNIFFERNAME = ":sniffer-name";
+    public static final String AGENTLIST = ":agent-list";
+
+    private String mySnifferName;
+    
+    private Map myAgentList = new HashMap();
+
+    public SniffAgentOnAction() {
+      setName(SNIFFAGENTON);
+    }
+
+    public void setSnifferName( String sn ) {
+      mySnifferName = sn;
+    }
+ 
+    public String getSnifferName() {
+      return mySnifferName; 
+    }
+
+    public Iterator getAgents() {
+      Set mySet = myAgentList.keySet();
+      Iterator myIt = mySet.iterator();
+      return myIt;
+    }
+
+    public void addSniffedAgent(String ag) {
+      myAgentList.put(ag,mySnifferName); // Overwrites old value, if present
+    }
+
+    public void put(String ag, String sn) {
+      myAgentList.put(ag,sn); // Overwrites old value, if present
+    }
+
+    public String getSniffer( String i ) {
+      return (String)myAgentList.get(i);
+    }
+
+    public int getListSize() {
+      return myAgentList.size();
+    }	
+
+    public Map getEntireList() { 
+      return myAgentList;
+    }
+
+    /**
+       Writes an object to a stream. This method writes a
+       <code>CreateAgentAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
+    
+    public void toText(Writer w) {
+    	
+      Iterator agl = this.getAgents();
+    	
+      try {
+	w.write("( action " + getActor() + " ");
+	w.write("( " + getName() + " ");
+	w.write("( " + SNIFFERNAME + " " + mySnifferName + " ");
+	w.write(" " + AGENTLIST + " { ");
+	while ( agl.hasNext() )
+	  w.write((String)agl.next() + " ");
+	w.write(" }");					
+	w.write(" ) ");
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  }
+
+
+  public static class SniffAgentOffAction extends AMSAction {
+
+    public static final String SNIFFERNAME = ":sniffer-name";
+    public static final String AGENTLIST = ":agent-list";
+
+    private String mySnifferName;
+    
+    private Map myAgentList = new HashMap();
+
+    public SniffAgentOffAction() {
+      setName(SNIFFAGENTOFF);
+    }
+
+    public void setSnifferName( String sn ) {
+      mySnifferName = sn;
+    }
+	
+    public String getSnifferName() {
+      return mySnifferName;
+    } 
+
+    public Iterator getAgents() {
+      Set mySet = myAgentList.keySet();
+      Iterator myIt = mySet.iterator();
+      return myIt;
+    }
+
+    public void addNotSniffedAgent(String ag) {
+      myAgentList.put(ag,mySnifferName);
+    }
+
+    public void put(String ag, String sn) {
+      myAgentList.put(ag,sn);
+    }
+
+    public String getNotSniffedAgent( String i ) {
+      return (String)myAgentList.get(i);
+    }
+
+    public int getListSize() {
+      return myAgentList.size();
+    }
+		
+    public Map getEntireList() { 
+      return myAgentList;
+    }
+
+    /**
+       Writes an object to a stream. This method writes a
+       <code>CreateAgentAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
+    
+    public void toText(Writer w) {
+    	
+      Iterator agl = this.getAgents();
+    	    	
+      try {
+	w.write("( action " + getActor() + " ");
+	w.write("( " + getName() + " ");
+	w.write("( " + SNIFFERNAME + " " + mySnifferName + " ");
+	w.write(" " + AGENTLIST + " { ");
+	while ( agl.hasNext() )
+	  w.write((String)agl.next() + " ");
+	w.write(" }");
+	w.write(" ) ");
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  }
+
 
   /**
     Models <code>kill-agent</code> <em>AMS</em> action.
