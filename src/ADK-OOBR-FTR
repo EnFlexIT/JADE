@@ -1,26 +1,16 @@
 
 /home/Giovanni/DEVEL/ADK/src/fipa/core/Agent.java
 Agent@- CommChanged@public synchronized void CommChanged( CommEvent event ) {
-Agent@- CommListener@public void CommListener( CommListener l ) {
-Agent@- FipaRequest@public int FipaRequest( String content, String reply, String dest, String cont1, String cont2, int status ) {
-Agent@- SendReceive@public int SendReceive( String type, String content, String reply, String dest, String type1, int status ) {
+Agent@- addCommListener@public void addCommListener( CommListener l ) {
 Agent@- addLightTask@public void addLightTask( String task ) {
-Agent@- blockingFipaRequest@public synchronized void blockingFipaRequest( String content, String dest, String cont1, String cont2 ) {
-Agent@- blockingSendReceive@public synchronized void blockingSendReceive( String type, String content, String reply, String dest, String type1 ) {
-Agent@- deregister@public void deregister() {
-Agent@- deregisterAgent@public void deregisterAgent() {
 Agent@- getAgentName@public String getAgentName() {
-Agent@- getServices@public int getServices() {
 Agent@- localCommChanged@public synchronized void localCommChanged( CommEvent event ) {
 Agent@- local_startup@protected void local_startup() {
 Agent@- parseMsg@protected void parseMsg( aclMessage msg ) {
 Agent@- play@public void play( String host, int port, URL codeBase, boolean isApplet, String[] args ) {
 Agent@- processCommEvent@public void processCommEvent( CommEvent event ) {
 Agent@- receiveIf@public synchronized aclMessage receiveIf( String source, String type, String content, String reply ) {
-Agent@- register@public int register() {
-Agent@- registerAgent@public void registerAgent() {
 Agent@- removeCommListener@public void removeCommListener( CommListener l ) {
-Agent@- retrieveDFAddress@public int retrieveDFAddress() {
 Agent@- run@public void run() {
 Agent@- schedule@public void schedule() {
 Agent@- send@public void send( aclMessage msg ) {
