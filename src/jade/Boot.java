@@ -611,7 +611,6 @@ public class Boot {
       	commaPos = argList.length();
       	
       String arg = argList.substring(cursor,commaPos);
-      System.out.println("Arg: " + arg + "Commapos: " + commaPos + "Cursor: " + cursor);
       
       int openBracketPos = arg.indexOf('(');
       int closedBracketPos = arg.indexOf(')');
