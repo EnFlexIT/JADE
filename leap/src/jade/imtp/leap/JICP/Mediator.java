@@ -133,17 +133,18 @@ public class Mediator extends EndPoint implements JICPMediator {
    * Called by the JICPServer this Mediator is attached to.
    */
   public JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException {
+  	JICPPacket r = null;
   	if (isPing(p)) {
   		// If the command is a PING handle it locally
-			return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, Command.getSerializedOk());   		
+			r = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, getSerializedPingResponse(true));   		
   	}
   	else {
   		// Otherwise forward it to the mediated container
-  		JICPPacket r = deliverCommand(p);
+  		r = deliverCommand(p);
   		updateTransmitted(p.getLength());
   		updateReceived(r.getLength());
-  		return r;
   	}
+		return r;
   } 
 
   /**
@@ -152,8 +153,9 @@ public class Mediator extends EndPoint implements JICPMediator {
    * it is a blocking or non-blocking PING)
    */
   private boolean isPing(JICPPacket p) {
-    int dataInfo = p.getInfo();
-    if ((dataInfo&JICPProtocol.BLOCKING_IMTP_PING_INFO) != 0) {
+    byte[] data = p.getData();
+    int code = getCommandCode(data);
+    if (code == Command.PING_NODE_BLOCKING) {
       // The JICPPacket carries a blocking PING command
       synchronized (pingLock) {
         try {
@@ -168,7 +170,7 @@ public class Mediator extends EndPoint implements JICPMediator {
       } 
       return true;
     } 
-    else if ((dataInfo&JICPProtocol.NON_BLOCKING_IMTP_PING_INFO) != 0) {
+    else if (code == Command.PING_NODE_NONBLOCKING) {
       // The JICPPacket carries a NON-blocking PING command
       log("Handling NON-blocking PING command --> reply directly");
       return true;
@@ -201,6 +203,8 @@ public class Mediator extends EndPoint implements JICPMediator {
 			
 			// Adjust the recipient ID
 			cmd.setRecipientID(destTa.getFile());
+			// Notify the server that this connection is not reusable
+			cmd.setTerminatedInfo();
 			
 			// Open a connection to the destination
       s = new Socket(destTa.getHost(), Integer.parseInt(destTa.getPort()));
@@ -281,6 +285,45 @@ public class Mediator extends EndPoint implements JICPMediator {
     notifyAll();
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
+  
+  /**
+     Inspect a serialized command and retrieve the command code
+   */
+  private int getCommandCode(byte[] serializedCommand) {
+    // the command code is an int at the beginning of the
+    // byte array (see serializeCommand() in DeliverableDataOutputStream
+    int ret = 0;
+    for (int i = 0; i < 4; ++i) {
+      // System.out.print(" " + serializedCommand[i]);
+      ret <<= 8;
+      ret |= ((int) serializedCommand[i])&255;
+    } 
+    return ret;
+  } 
+
+  /**
+     Create an array of bytes that represent a serialized response to 
+     a PING command
+   */
+  private byte[] getSerializedPingResponse(boolean b) {
+  	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(baos);
+    	
+		try {
+			dos.writeInt(Command.OK);   		
+			dos.writeInt(Command.DUMMY_ID);   		
+			dos.writeInt(1);  // 1 param   		
+			dos.writeBoolean(true); // Presence flag for param 1
+			dos.writeByte((byte) 3); // Serializer.BOOLEAN_ID
+			dos.writeBoolean(b);
+    } 
+    catch (IOException ioe) {
+    	// Should never happen
+      ioe.printStackTrace();
+      return null;
+    } 
+    return baos.toByteArray();
+  }
   
   //////////////////////////////////////////////////////////////////////
   // This part is only related to counting transmitted/received bytes

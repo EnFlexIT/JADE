@@ -84,8 +84,8 @@ public class JICPProtocol extends TransportProtocol {
   public static final byte OK_INFO = 32;                      // bit 6 == 1
   public static final byte TERMINATED_INFO = 64;              // bit 7 == 1
   // Always distinguished from the context
-  public static final byte BLOCKING_IMTP_PING_INFO = RECONNECT_INFO;
-  public static final byte NON_BLOCKING_IMTP_PING_INFO = OK_INFO;  
+  //public static final byte BLOCKING_IMTP_PING_INFO = RECONNECT_INFO;
+  //public static final byte NON_BLOCKING_IMTP_PING_INFO = OK_INFO;  
 
   /**
    * Default recipient ID
