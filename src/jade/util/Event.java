@@ -25,7 +25,9 @@
 package jade.util;
  
 import java.util.Vector;
+//__CLDC_UNSUPPORTED__BEGIN
 import java.util.EventObject;
+//__CLDC_UNSUPPORTED__END
 
 /**
  * This class represents a generic event carrying some information
@@ -35,7 +37,15 @@ import java.util.EventObject;
  * methods.
  * @author Giovanni Caire - TILab 
  */
-public class Event extends EventObject {
+ public class Event 
+    //__CLDC_UNSUPPORTED__BEGIN
+ 		extends EventObject
+    //__CLDC_UNSUPPORTED__END
+    {
+    	
+	/*__J2ME_COMPATIBILITY__BEGIN
+  protected Object source;
+	__J2ME_COMPATIBILITY__END*/
 	protected int type; 
 	private Vector param = null;
 	
@@ -49,7 +59,12 @@ public class Event extends EventObject {
 	   @param source The source that generated the event
 	 */
 	public Event(int type, Object source) {
+    //__CLDC_UNSUPPORTED__BEGIN
 		super(source);
+    //__CLDC_UNSUPPORTED__END    	
+		/*__J2ME_COMPATIBILITY__BEGIN
+  	this.source = source;
+		__J2ME_COMPATIBILITY__END*/
 		this.type = type;
 	}
 	
@@ -63,10 +78,15 @@ public class Event extends EventObject {
 	   accessed using the <code>getParameter(0)</code> method
 	 */
 	public Event(int type, Object source, Object info) {
-		super(source);
-		this.type = type;
+		this(type, source);
 		addParameter(info);
 	}
+	
+	/*__J2ME_COMPATIBILITY__BEGIN
+  public Object getSource() {
+  	return source;
+  }
+	__J2ME_COMPATIBILITY__END*/
 	
 	/**
 	   @return the type of this <code>Event</code> object
