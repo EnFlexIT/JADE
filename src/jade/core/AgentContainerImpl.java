@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.47  1999/09/03 13:07:52  rimassa
+  Fixed a bug: agents started on peripheral containers on the command
+  line were not inserted into Global Agent Descriptor Table.
+
   Revision 1.46  1999/09/01 00:15:17  rimassa
   Added support for message queue transfer during agent migration.
 
@@ -270,8 +274,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
 
-    RemoteProxyRMI rp = new RemoteProxyRMI(this);
-
     // Subscribe as a listener for the new agent
     instance.addCommListener(this);
 
@@ -280,6 +282,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
     if(startIt) {
       try {
+	RemoteProxyRMI rp = new RemoteProxyRMI(this);
 	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
       }
       catch(NameClashException nce) {
@@ -429,9 +432,15 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
       try {
 	createAgent(agentName, agentClass, NOSTART);
+	RemoteProxyRMI rp = new RemoteProxyRMI(this);
+	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName);
       }
       catch(RemoteException re) { // It should never happen
 	re.printStackTrace();
+      }
+      catch(NameClashException nce) {
+	System.out.println("Agent name already in use");
+	localAgents.remove(agentName.toLowerCase());
       }
 
     }
