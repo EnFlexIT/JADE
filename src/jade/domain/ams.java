@@ -370,6 +370,25 @@ public class ams extends Agent implements AgentManager.Listener {
 	    send(toolNotification);
 	  }
 
+	  // Send the list of the installed MTPs
+	  String[] addresses = myPlatform.platformAddresses();
+	  for(int i = 0; i < addresses.length; i++) {
+	    NewMTP nmtp = new NewMTP();
+	    nmtp.setAddress(addresses[i]);
+	    nmtp.setWhere(AgentManager.MAIN_CONTAINER_NAME);
+	    EventOccurred eo = new EventOccurred();
+	    eo.setEvent(nmtp);
+
+	    List l = new ArrayList(1);
+	    l.add(eo);
+
+	    toolNotification.clearAllReceiver();
+	    toolNotification.addReceiver(newTool);
+	    fillContent(toolNotification, l);
+
+	    send(toolNotification);
+	  }
+
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
 
@@ -1057,7 +1076,11 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-  public void handleNewAddress(String address) {
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
+  public synchronized void handleNewAddress(String address, String container) {
     // Add the new address to the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
     MTPDescription desc = new MTPDescription();
@@ -1079,9 +1102,20 @@ public class ams extends Agent implements AgentManager.Listener {
       name.addAddresses(address);
     }
 
+    // Generate a suitable AMS event
+    NewMTP nmtp = new NewMTP();
+    nmtp.setAddress(address);
+    nmtp.setWhere(container);
+    eventQueue.add(nmtp);
+    doWake();
+
   }
 
-  public void handleDeadAddress(String address) {
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
+  public synchronized void handleDeadAddress(String address, String container) {
 
     // Remove the dead address from the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
@@ -1108,6 +1142,14 @@ public class ams extends Agent implements AgentManager.Listener {
       AID name = desc.getName();
       name.removeAddresses(address);
     }
+
+    // Generate a suitable AMS event
+    DeadMTP dmtp = new DeadMTP();
+    dmtp.setAddress(address);
+    dmtp.setWhere(container);
+    eventQueue.add(dmtp);
+    doWake();
+
   }
 
 
