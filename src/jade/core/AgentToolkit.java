@@ -35,7 +35,7 @@ import jade.security.CertificateFolder;
 //#MIDP_EXCLUDE_END
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 
@@ -53,15 +53,19 @@ interface AgentToolkit {
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
-  void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException;
-  void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException, NameClashException;
 
+  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
   Authority getAuthority();
+
+  // FIXME: Needed due to the Persistence Service being an add-on
+  void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+  void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
+
   //#MIDP_EXCLUDE_END
 
   void setPlatformAddresses(AID id);
   AID getAMS();
   AID getDefaultDF();
   String getProperty(String key, String aDefault);
-  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
+
 }
