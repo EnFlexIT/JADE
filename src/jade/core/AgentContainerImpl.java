@@ -49,6 +49,8 @@ import java.util.Set;
 
 import jade.lang.acl.*;
 import jade.domain.MobilityOntology;
+import jade.mtp.*;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -72,11 +74,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   protected MainContainer myPlatform;
 
   protected String myName;
-
-  // FIXME: Temporary hack...
-  String getName() {
-    return myName;
-  }
 
   // The Agent Communication Channel, managing the external MTPs.
   protected acc theACC;
@@ -378,6 +375,55 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
+
+  public String installMTP(String address, String className) throws RemoteException {
+    try {
+      Class c = Class.forName(className);
+      MTP proto = (MTP)c.newInstance();
+      TransportAddress ta = theACC.addMTP(proto, address);
+      return proto.addrToStr(ta);
+    }
+    catch(ClassNotFoundException cnfe) {
+      System.out.println("ERROR: The class for the IIOP MTP was not found");
+      return null;
+    }
+    catch(InstantiationException ie) {
+      ie.printStackTrace();
+      return null;
+    }
+    catch(IllegalAccessException iae) {
+      iae.printStackTrace();
+      return null;
+    }
+    catch(MTP.MTPException mtpe) {
+      System.out.println("ERROR: Could not initialize MTP from class " + className + "!!!");
+      mtpe.printStackTrace();
+      return null;
+    }
+  }
+
+  public void uninstallMTP(String address) throws RemoteException, NotFoundException {
+    // FIXME: To be implemented
+  }
+
+  public void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException {
+    switch(op) {
+    case ADD_RT:
+      theACC.addRoute(address, ac);
+      break;
+    case DEL_RT:
+      theACC.removeRoute(address, ac);
+      break;
+    }
+
+  }
+
+  public void route(Object env, byte[] payload, String address) throws RemoteException, NotFoundException {
+    boolean ok = theACC.routeMessage(env, payload, address);
+    if(!ok)
+      throw new NotFoundException("MTP not found on this container.");
+  }
+
   public void joinPlatform(String pID, Iterator agentSpecifiers) {
 
     // This string will be used to build the GUID for every agent on this platform.
@@ -391,10 +437,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       String platformRMI = "rmi://" + platformID;
       myPlatform = lookup3(platformRMI);
 
+      theACC = new acc(this);
+
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call
 
-      theACC = new acc(this, myPlatform);
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -837,15 +884,6 @@ private List getSniffer(AID id, java.util.Map theMap) {
       }
     }
     else { // It lives outside: then it's a job for the ACC...
-    
-    	// if the agent apparently does not live here, but it has the same address
-    	// of this platform, then maybe the GUID must be updated by concatenating the hap
-    	for (Iterator i=id.getAllAddresses(); i.hasNext(); )
-    	  if (theACC.isAPlatformAddress((String)i.next())) {
-    	  	id.setName(id.getName()+'@'+platformID);
-    	  	return getFreshProxy(id);
-    	  }
-    	// else the agent has no local addresses, then it is surely remote
       result = theACC.getProxy(id);
     }
 
