@@ -1,6 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -54,10 +55,9 @@ private Vector sniffedAgents=new Vector();
  }
 
   public void doAction(AgentTree.AgentNode node){
-     String realName;
      doSniff(node.getName());
   }
-  
+
   /** Given an agent name, sniff it.
    * @param agentName - the String name of the agent.
    * Note, this was originally buried in doAction, but we want the ability to
@@ -71,14 +71,11 @@ private Vector sniffedAgents=new Vector();
      if (!mainPanel.panelcan.canvAgent.isPresent(realName))
        mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
 
-     mainPanel.panelcan.canvAgent.rAgfromNoSniffVector(new Agent(realName));
+     mainPanel.panelcan.canvAgent.rAgfromNoSniffVector(agent);
 
      sniffedAgents.addElement(agent);
-  }
-
-  public void sendAgentVector() {
-   mySniffer.sniffMsg(sniffedAgents,Sniffer.SNIFF_ON);   // Sniff the Agents
-   sniffedAgents.removeAllElements();
+     mySniffer.sniffMsg(sniffedAgents,Sniffer.SNIFF_ON);   // Sniff the Agents
+     sniffedAgents.removeAllElements();
   }
 
   private String checkString(String nameAgent) {
@@ -88,7 +85,6 @@ private Vector sniffedAgents=new Vector();
    if (index != -1) return nameAgent.substring(0,index);
    else {
      System.out.println("The agent's name is not correct");
-     System.exit(-1);
      return null;
    }
   }
