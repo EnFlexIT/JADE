@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1999/08/31 17:23:08  rimassa
+  Removed useless 'public' specifier from interface methods.
+  Added a method to perform agent identity transfer.
+
   Revision 1.12  1999/08/10 15:31:31  rimassa
   Added a lookup() method to retrieve an AgentContainer object reference by name.
 
@@ -39,16 +43,18 @@ import java.rmi.RemoteException;
 
 interface AgentPlatform extends AgentContainer {
 
-  public String getAddress() throws RemoteException;
+  String getAddress() throws RemoteException;
 
-  public String addContainer(AgentContainer ac) throws RemoteException;
-  public void removeContainer(String name) throws RemoteException;
+  String addContainer(AgentContainer ac) throws RemoteException;
+  void removeContainer(String name) throws RemoteException;
 
-  public AgentContainer lookup(String name) throws RemoteException, NotFoundException;
+  AgentContainer lookup(String name) throws RemoteException, NotFoundException;
 
-  public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
-  public void deadAgent(String name) throws RemoteException, NotFoundException;
+  void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
+  void deadAgent(String name) throws RemoteException, NotFoundException;
 
-  public RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException;
+  boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException;
+
+  RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException;
 
 }
