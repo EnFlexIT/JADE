@@ -43,9 +43,10 @@ import javax.microedition.rms.RecordStore;
 public class Logger{
 
 	/*#MIDP_INCLUDE_BEGIN
+	private static final String OUTPUT = "OUTPUT";
 	static {
 		try {
-			RecordStore.deleteRecordStore("OUTPUT");
+			RecordStore.deleteRecordStore(OUTPUT);
 		}
 		catch (Exception e) {
 			// The RS does not exist yet --> No need to reset it
@@ -65,7 +66,7 @@ public class Logger{
 		
 		/*#MIDP_INCLUDE_BEGIN
 		try{
-			RecordStore rs =	RecordStore.openRecordStore("OUTPUT", true);
+			RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
 			byte[] bb = s.getBytes();
 			rs.addRecord(bb,0,bb.length);
 			rs.closeRecordStore();
