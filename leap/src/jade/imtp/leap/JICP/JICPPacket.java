@@ -198,7 +198,8 @@ class JICPPacket {
    * @exception May send a large bunch of exceptions, mainly in the IO
    * package.
    */
-  void writeTo(DataOutputStream out) throws IOException {
+  int writeTo(DataOutputStream out) throws IOException {
+  	int cnt = 2;
     try {
       // Write the data type
       out.writeByte(dataType);
@@ -209,6 +210,7 @@ class JICPPacket {
       // Write recipient ID only if != null
       if (recipientID != null) {
         out.writeUTF(recipientID);
+        cnt += (4+recipientID.length());
       } 
 
       // Write data only if != null
@@ -219,10 +221,12 @@ class JICPPacket {
       	// Payload
       	if (size > 0) {
         	out.write(data, 0, size);
+        	cnt += size;
       	}
       }
     	// DEBUG
     	//System.out.println(getLength()+" bytes written");
+      return cnt;
     } 
     finally {
       out.flush();
@@ -285,7 +289,7 @@ class JICPPacket {
   } 
 
   public int getLength() {      
-  	return (2 + (recipientID != null ? recipientID.length()+2 : 0) + (data != null ? 4+data.length : 0));
+  	return (2 + (recipientID != null ? recipientID.length()+4 : 0) + (data != null ? 4+data.length : 0));
   }
 }
 

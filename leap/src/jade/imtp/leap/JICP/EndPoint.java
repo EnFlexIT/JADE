@@ -54,7 +54,12 @@ public abstract class EndPoint extends Thread {
   
 	private int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
+  
+  // The following variables are protected as they can be set by
+  // extending classes
   protected int verbosity = 1;
+  protected long respTimeout = 20000; // 20 sec
+  protected int packetSize = 1024;  	
 
   /**
    * Constructor declaration
@@ -186,14 +191,13 @@ public abstract class EndPoint extends Thread {
   /**
      Mutual exclusion with setConnection() and resetConnection()
    */
-  private boolean push(byte id, JICPPacket pkt) {
+  private int push(byte id, JICPPacket pkt) {
   	synchronized (connectionLock) {
   		if (connected) {
   			try {
 			    // Write the session id and the packet
 			    out.writeByte(id);
-				  pkt.writeTo(out);
-        	return true;
+				  return pkt.writeTo(out);
 		    }
 		    catch (IOException ioe) {
 	        // The connection is down! Reset it so that the EndPoint thread
@@ -201,7 +205,7 @@ public abstract class EndPoint extends Thread {
   				resetConnection();
 		    }
   		}
-  		return false;
+  		return -1;
   	}
   } 
 
@@ -276,7 +280,7 @@ public abstract class EndPoint extends Thread {
     	}
 
     	// Push back the response
-      if (!push(id, rsp)) {
+      if (push(id, rsp) == -1) {
       	// The connection went down while we were serving the command.
       	// This is the worst case as it may lead to inconsistencies.
       	log("WARNING: Can't push back response. INC-SID="+id, 0);
@@ -315,7 +319,8 @@ public abstract class EndPoint extends Thread {
 	    log("Start serving outgoing command. OUT-SID="+myId);
   	
   		// Push the command
-    	if (!push(myId, cmd)) {  	
+	    int size = push(myId, cmd);
+    	if (size == -1) {  	
     		// We are disconnected --> Deregister and throw an Exception
     		log("WARNING: Can't push command. OUT-SID="+myId, 0);
     		deregisterOutgoing(myId);
@@ -326,7 +331,7 @@ public abstract class EndPoint extends Thread {
     	}
     	
 			// Wait until the EndPoint thread receives the response
-			waitForResponse();
+			waitForResponse(respTimeout * (1+size/packetSize));
 			
 			// When we get here rsp has been filled by the EndPoint thread
 			return rsp;
@@ -337,11 +342,11 @@ public abstract class EndPoint extends Thread {
      * the Connection or a timeout has expired.
      * Mutual exclusion with setResponse()
      */
-    private synchronized final void waitForResponse() throws ICPException {
+    private synchronized final void waitForResponse(long timeout) throws ICPException {
       while (!rspReceived) {
         try {
         	int oldCnt = pktCnt;
-          wait(20000);
+          wait(timeout);
           if (pktCnt == oldCnt) {
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
