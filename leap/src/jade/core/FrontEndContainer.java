@@ -252,14 +252,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 	  		localAgents.clear();
 	  	}
-	  	if(logger.isLoggable(Logger.INFO))
-	  		logger.log(Logger.INFO,"Local agents terminated");
+	  	if(logger.isLoggable(Logger.FINE))
+	  		logger.log(Logger.FINE,"Local agents terminated");
 	  	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
-	  	if(logger.isLoggable(Logger.INFO))
-	  		logger.log(Logger.INFO,"Connection manager closed");
+	  	if(logger.isLoggable(Logger.FINE))
+	  		logger.log(Logger.FINE,"Connection manager closed");
 	  	
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
@@ -342,11 +342,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	}
   }
   
-  public final void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
+  public final void handleChangedAgentState(AID agentID, int from, int to) {
   	// FIXME: This should call myBackEnd.suspendedAgent()/resumedAgent()
   }
   
-  public final void handleSend(ACLMessage msg, AID sender) /*throws JADESecurityException*/ {
+  public final void handleSend(ACLMessage msg, AID sender) {
 		Iterator it = msg.getAllIntendedReceiver();
 		// If some receiver is local --> directly post the message
 		int remoteCnt = 0;
@@ -402,10 +402,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
   }
 
-  public void handlePosted(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {
+  public void handlePosted(AID agentID, ACLMessage msg) {
   }
   
-  public void handleReceived(AID agentID, ACLMessage msg) /*throws JADESecurityException*/ {
+  public void handleReceived(AID agentID, ACLMessage msg) {
   }
   
   public void handleBehaviourAdded(AID agentID, Behaviour b) {
