@@ -25,6 +25,9 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
+import jade.util.leap.List;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Iterator;
 
 /**
 
@@ -41,6 +44,8 @@ public class NodeFailureMonitor implements Runnable {
     private NodeEventListener listener;
     private boolean nodeExited = false;
     private boolean stopped = false;
+    
+    private List childNodes = new LinkedList();
 
     public NodeFailureMonitor(Node n, NodeEventListener nel) {
       target = n;
@@ -48,38 +53,46 @@ public class NodeFailureMonitor implements Runnable {
     }
 
     public void run() {
-	listener.nodeAdded(target);
-	while(!nodeExited && !stopped) {
-	    try {
-		nodeExited = target.ping(true); // Hang on this call
-		System.out.println("PING from node " + target.getName() + " returned [" + (nodeExited ? "EXIT]" : "GO ON]"));
-	    }
-	    catch(IMTPException imtpe1) { // Connection down
-		System.out.println("PING from node " + target.getName() + " exited with exception");
-		if(!stopped) {
-		    listener.nodeUnreachable(target);
-		}
-		try {
-		    target.ping(false); // Try a non blocking ping to check
-
-		    System.out.println("PING from node " + target.getName() + " returned OK");
-		    if(!stopped) {
-			listener.nodeReachable(target);
+			listener.nodeAdded(target);
+			while(!nodeExited && !stopped) {
+		    try {
+					nodeExited = target.ping(true); // Hang on this call
+					System.out.println("PING from node " + target.getName() + " returned [" + (nodeExited ? "EXIT]" : "GO ON]"));
 		    }
-		}
-		catch(IMTPException imtpe2) { // Object down
-		    nodeExited = true;
-		}
-	    }
-	    catch(Throwable t) {
-		t.printStackTrace();
-	    }
-	} // END of while
+		    catch(IMTPException imtpe1) { // Connection down
+					System.out.println("PING from node " + target.getName() + " exited with exception");
+					if(!stopped) {
+				    listener.nodeUnreachable(target);
+					}
+					try {
+				    target.ping(false); // Try a non blocking ping to check
+		
+				    System.out.println("PING from node " + target.getName() + " returned OK");
+				    if(!stopped) {
+							listener.nodeReachable(target);
+				    }
+					}
+					catch(IMTPException imtpe2) { // Object down
+				    nodeExited = true;
+					}
+		    }
+		    catch(Throwable t) {
+					t.printStackTrace();
+		    }
+			} // END of while
       
-	// If we reach this point without being explicitly stopped the node is no longer active
-	if(!stopped) {
-	    listener.nodeRemoved(target);
-	}
+			// If we reach this point without being explicitly stopped the node is no longer active
+			if(!stopped) {
+		    listener.nodeRemoved(target);
+		    synchronized (this) {
+		    	Iterator it = childNodes.iterator();
+		    	while (it.hasNext()) {
+		    		Node n = (Node) it.next();
+		    		listener.nodeRemoved(n);
+		    	}
+		    	childNodes.clear();
+		    }
+			}
     }
 
     public void stop() {
@@ -96,5 +109,14 @@ public class NodeFailureMonitor implements Runnable {
     
     public Node getNode() {
     	return target;
+    }
+    
+    public synchronized void addChild(Node n) {
+    	childNodes.add(n);
+			listener.nodeAdded(n);
+    }
+    
+    public synchronized void removeChild(Node n) {
+    	childNodes.remove(n);
     }
 }

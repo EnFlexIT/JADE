@@ -33,6 +33,9 @@ import java.util.Vector;
    @author Giovanni Caire - TILAB
  */
 public interface PlatformManager {
+	static final String NO_NAME = "No-Name";
+	static final String AUX_NODE_NAME = "Aux-Node";
+	
     String getPlatformName() throws IMTPException;
     
 	  String getLocalAddress();	
@@ -54,6 +57,6 @@ public interface PlatformManager {
     Service.Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException;
     Vector findAllSlices(String serviceKey) throws IMTPException, ServiceException;
     
-    void adopt(Node n) throws IMTPException;
+    void adopt(Node n, Node[] children) throws IMTPException;
     void ping() throws IMTPException;
 }

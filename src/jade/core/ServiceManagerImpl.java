@@ -370,7 +370,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 	private synchronized boolean reconnect() {
 		// Check if the current PlatformManager is actually down (another thread
-		// may have reconnected in the meanwhile
+		// may have reconnected in the meanwhile)
 		try {
 			myPlatformManager.ping();
 			return true;
@@ -386,7 +386,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	        if(myLogger.isLoggable(Logger.INFO)) {
 	          myLogger.log(Logger.INFO,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
 	        }
-				  myPlatformManager.adopt(localNode);
+				  myPlatformManager.adopt(localNode, null);
           if(myLogger.isLoggable(Logger.INFO)) {
             myLogger.log(Logger.INFO,"Reconnection OK"); 
           }

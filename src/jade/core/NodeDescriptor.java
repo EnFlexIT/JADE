@@ -79,7 +79,6 @@ public class NodeDescriptor implements Serializable {
        @see jade.core.NodeDescriptor#setNode(Node node)
     */
     public NodeDescriptor() {
-	this(null, null);
     }
 
     /**
@@ -132,6 +131,14 @@ public class NodeDescriptor implements Serializable {
 	return myContainer;
     }
 
+    public void setParentNode(Node n) {
+    	parentNode = n;
+    }
+    
+    public Node getParentNode() {
+    	return parentNode;
+    }
+    
     /**
        Set the username of the owner of the described node
      */
@@ -210,6 +217,8 @@ public class NodeDescriptor implements Serializable {
 
     private String myName;
     private Node myNode;
+    
+    private Node parentNode;
 
     private ContainerID myContainer;
     private String username;
