@@ -76,7 +76,7 @@ START %JAVA% -cp %CLASSPATH% jade.Boot -gui -nomtp
 echo Press a key when the platform is ready
 pause
 
-REM goto :STARTHERE 
+goto :STARTHERE 
 
 echo Each example will be executed into a remote container. To pass to the
 echo next example, just kill the container (NOT the platform) from the RMA GUI
@@ -157,6 +157,7 @@ pause shutdown the current Agent Platform before continuing
 cd ..\demo\MeetingScheduler
 CALL run
 
+:STARTHERE
 echo Running the TestAgent (testing the messages)
 echo type as input file testmessages.msg
 cd test
@@ -165,12 +166,22 @@ cd test
 echo Running the Test of the Wrapper
 %JAVA% -cp %CLASSPATH% test.wrapper.TestListener
 
-
+echo Running the tests on CL and ontology support for LEAP Codec
+%JAVA% -cp %CLASSPATH% test.content.ContentTesterAgent
+pause
+echo Running the tests on CL and ontology support for SL Codec
+%JAVA% -cp %CLASSPATH% test.content.ContentTesterAgent jade.content.lang.sl.SLCodec
+pause
+	
+echo Running the tests on fipa-contract-net protocol
+%JAVA% -cp %CLASSPATH% test.proto.ContractNetTesterAgent 
+pause
+	
 echo Running the LEAP Testsuite 
 cd ..\..\..\leapTestSuite
 CALL makeTestSuite.bat
 cd ..\jade\src\test
-:STARTHERE
+REM :STARTHERE
 
 echo Running the behaviours test FIXME (per Giovanni Caire)
 
