@@ -79,4 +79,8 @@ public class ChangedBehaviourState implements Event {
   public String getName() {
       return NAME;
   }
+
+  public String toString() {
+  	return new String(NAME+ " Name: "+behaviour.getName()+" from: "+from+" to: "+to);
+  }
 }

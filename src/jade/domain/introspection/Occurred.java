@@ -37,6 +37,14 @@ public class Occurred implements Predicate {
 
   private EventRecord arg;
 
+  public void setWhat(EventRecord er) {
+    arg = er;
+  }
+
+  public EventRecord getWhat() {
+  	return arg;
+  }
+
   public void set_0(EventRecord er) {
     arg = er;
   }

@@ -152,15 +152,15 @@ public interface IntrospectionVocabulary {
   
     // Actions
   public static final String STARTNOTIFY = "start-notify";
-  public static final String STARTNOTIFY_OBSERVER = "observer";
+  public static final String STARTNOTIFY_OBSERVED = "observed";
   public static final String STARTNOTIFY_EVENTS = "events";
   
   public static final String STOPNOTIFY = "stop-notify";
-  public static final String STOPNOTIFY_OBSERVER= "observer";
+  public static final String STOPNOTIFY_OBSERVED= "observed";
   public static final String STOPNOTIFY_EVENTS = "events";
 
   // Predicates
   public static final String OCCURRED = "occurred";
-  public static final String OCCURRED_EVENTRECORD = "event-record";
+  public static final String OCCURRED_WHAT = "what";
 	
 }

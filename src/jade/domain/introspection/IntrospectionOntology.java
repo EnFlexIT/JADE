@@ -265,16 +265,15 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		cs.add(ROUTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
 		
 		AgentActionSchema as = (AgentActionSchema)getSchema(STARTNOTIFY);
-		as.add(STARTNOTIFY_OBSERVER, (ConceptSchema)getSchema(BasicOntology.AID));
-		as.add(STARTNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+		as.add(STARTNOTIFY_OBSERVED, (ConceptSchema)getSchema(BasicOntology.AID));
+		as.add(STARTNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
 
 	    as = (AgentActionSchema)getSchema(STOPNOTIFY);
-		as.add(STOPNOTIFY_OBSERVER, (ConceptSchema)getSchema(BasicOntology.AID));
-		as.add(STOPNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+		as.add(STOPNOTIFY_OBSERVED, (ConceptSchema)getSchema(BasicOntology.AID));
+		as.add(STOPNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
 	
 		PredicateSchema ps = (PredicateSchema)getSchema(OCCURRED);
-		//ps.add(OCCURRED_EVENTRECORD, (ConceptSchema)getSchema(EVENTRECORD));
-	    ps.add("_0", (ConceptSchema)getSchema(EVENTRECORD));
+	    ps.add(OCCURRED_WHAT, (ConceptSchema)getSchema(EVENTRECORD));
     }
     catch(OntologyException oe) {
       oe.printStackTrace();

@@ -42,16 +42,16 @@ import jade.content.AgentAction;
 */
 public class StartNotify implements AgentAction {
 
-  private AID observer;
+  private AID observed;
   private List events = new ArrayList();
 
 
-  public void setObserver(AID id) {
-    observer = id;
+  public void setObserved(AID id) {
+    observed = id;
   }
 
-  public AID getObserver() {
-    return observer;
+  public AID getObserved() {
+    return observed;
   }
 
   public void addEvents(String evName) {

@@ -281,13 +281,13 @@ public class JADEIntrospectionOntology {
 	}, Channel.class);
 
 	theInstance.addRole(STARTNOTIFY, new SlotDescriptor[] {
-	  new SlotDescriptor("observer", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("events", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	  new SlotDescriptor("observed", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("events", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, StartNotify.class);
 
 	theInstance.addRole(STOPNOTIFY, new SlotDescriptor[] {
-	  new SlotDescriptor("observer", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor("events", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	  new SlotDescriptor("observed", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("events", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, StopNotify.class);
 
 	theInstance.addRole(OCCURRED, new SlotDescriptor[] {
