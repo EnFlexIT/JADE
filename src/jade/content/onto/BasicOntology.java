@@ -26,8 +26,16 @@ package jade.content.onto;
 
 import jade.content.*;
 import jade.content.schema.*;
+import jade.content.abs.*;
+import jade.content.OntoAID;
+import jade.content.OntoACLMessage;
+import jade.content.ContentElementList;
+import jade.content.onto.basic.*;
 import jade.core.AID;
-import jade.util.leap.List;
+import jade.core.CaseInsensitiveString;
+import jade.lang.acl.ACLMessage;
+import jade.util.leap.*;
+import java.util.Date;
 
 /**
  * Ontology containing basic concepts.
@@ -103,10 +111,15 @@ public class BasicOntology extends Ontology {
    * Constructor
    */
   private BasicOntology() {
-  	super("BASIC_ONTOLOGY", new BasicIntrospector());
+  	super("BASIC_ONTOLOGY", (Ontology) null);
   }
   
   private void initialize() {
+    // Note that the association between schemas and classes is not 
+    // necessary for the elements of the BasicOntology as the
+    // BasicOntology does not use schemas to translate between 
+    // Java objects and abstract descriptors, but performs a hardcoded
+    // translation  
     try {
     	// Schemas for primitives
       add(new PrimitiveSchema(STRING));
@@ -120,13 +133,6 @@ public class BasicOntology extends Ontology {
       add(new AggregateSchema(SEQUENCE));
       add(new AggregateSchema(SET));
 
-
-      // Note that the association between schemas and classes is not 
-      // necessary for the elements of the BasicOntology as the
-      // BasicIntrospector does not use schemas to translate between 
-      // Java objects and abstract descriptors, but performs a hardcoded
-      // translation
-      
       // Content element list Schema
       add(ContentElementListSchema.getBaseSchema()); 
       
@@ -193,5 +199,181 @@ public class BasicOntology extends Ontology {
    */
   public static Ontology getInstance() {
     return theInstance;
-  } 
+  }
+  
+  /**
+   * This method is redefined as BasicOntology does not use an
+   * Introspector for performance reason
+   * @see Ontology#toObject(AbsObject, Ontology)
+   */
+  protected Object toObject(AbsObject abs, String lcType, Ontology referenceOnto) throws UngroundedException, OntologyException {
+    try {
+      if (abs == null) {
+        return null;
+      } 
+
+     	// PRIMITIVE
+      if (abs instanceof AbsPrimitive) {
+        return ((AbsPrimitive) abs).getObject();
+      } 
+      // AGGREGATES
+     	if (abs instanceof AbsAggregate) {
+        return AbsHelper.internaliseList((AbsAggregate) abs, referenceOnto);
+      } 
+			// CONTENT ELEMENT LIST
+      if (abs instanceof AbsContentElementList) {
+        return AbsHelper.internaliseContentElementList((AbsContentElementList) abs, referenceOnto);
+      } 
+			// AID
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.AID)) { 
+				return AbsHelper.internaliseAID((AbsConcept) abs);
+	    }
+	    // TRUE_PROPOSITION
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.TRUE_PROPOSITION)) { 
+				TrueProposition t = new TrueProposition();
+				return t;
+	    }
+	    // DONE
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
+				Done d = new Done();
+  			d.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.DONE_ACTION))); 
+				return d;
+	    }
+	    // RESULT
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
+				Result r = new Result();
+  			r.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ACTION))); 
+  			r.setItems((List) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ITEMS))); 
+				return r;
+	    }
+	    // EQUALS
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.EQUALS)) { 
+				Equals e = new Equals();
+  			e.setLeft(referenceOnto.toObject(abs.getAbsObject(BasicOntology.EQUALS_LEFT))); 
+  			e.setRight(referenceOnto.toObject(abs.getAbsObject(BasicOntology.EQUALS_RIGHT))); 
+				return e;
+	    }
+	    // ACTION
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.ACTION)) { 
+	    	Action a = new Action();
+	    	a.internalise(abs, referenceOnto);
+	    	return a;
+	    }
+			// ACLMESSAGE
+	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.ACLMSG)) { 
+				return AbsHelper.internaliseACLMessage((AbsAgentAction) abs, referenceOnto);
+	    }
+	    			
+	    throw new UnknownSchemaException();
+    } 
+    catch (OntologyException oe) {
+      // Forward the exception
+      throw oe;
+    } 
+    catch (Throwable t) {
+      throw new OntologyException("Unexpected error internalising "+abs+".", t);
+    }
+  }
+		
+  /**
+   * This method is redefined as BasicOntology does not use an
+   * Introspector for performance reason
+   * @see Ontology#toObject(AbsObject, Ontology)
+   */
+  protected AbsObject fromObject(Object obj, Ontology referenceOnto) throws OntologyException{
+    try {
+      if (obj == null) {
+        return null;
+      } 
+
+      if (obj instanceof String) {
+        return AbsPrimitive.wrap((String) obj);
+      } 
+      if (obj instanceof Boolean) {
+        return AbsPrimitive.wrap(((Boolean) obj).booleanValue());
+      } 
+      if (obj instanceof Integer) {
+        return AbsPrimitive.wrap(((Integer) obj).intValue());
+      } 
+      if (obj instanceof Long) {
+        return AbsPrimitive.wrap(((Long) obj).longValue());
+      } 
+      //__CLDC_UNSUPPORTED__BEGIN
+      if (obj instanceof Float) {
+        return AbsPrimitive.wrap(((Float) obj).floatValue());
+      } 
+      if (obj instanceof Double) {
+        return AbsPrimitive.wrap(((Double) obj).doubleValue());
+      } 
+      //__CLDC_UNSUPPORTED__END
+      if (obj instanceof Date) {
+        return AbsPrimitive.wrap((Date) obj);
+      } 
+      if (obj instanceof byte[]) {
+        return AbsPrimitive.wrap((byte[]) obj);
+      } 
+
+
+      if (obj instanceof List) {
+        return AbsHelper.externaliseList((List) obj, referenceOnto);
+      }
+
+	    if (obj instanceof Iterator) {
+				return AbsHelper.externaliseIterator((Iterator) obj, referenceOnto);
+	    }
+	    
+	    if(obj instanceof AID) {
+				return AbsHelper.externaliseAID((AID)obj);
+	    }
+
+      if (obj instanceof ContentElementList) {
+        return AbsHelper.externaliseContentElementList((ContentElementList) obj, referenceOnto);
+      } 
+	    
+	    if(obj instanceof TrueProposition) {
+	    	AbsPredicate absTrueProp = new AbsPredicate(BasicOntology.TRUE_PROPOSITION);
+				return absTrueProp;
+	    }
+
+	    if(obj instanceof Done) {
+	    	AbsPredicate absDone = new AbsPredicate(BasicOntology.DONE);
+  			absDone.set(BasicOntology.DONE_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Done) obj).getAction()));
+				return absDone;
+	    }
+
+	    if(obj instanceof Result) {
+	    	AbsPredicate absResult = new AbsPredicate(BasicOntology.RESULT);
+  			absResult.set(BasicOntology.RESULT_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Result) obj).getAction()));
+  			absResult.set(BasicOntology.RESULT_ITEMS, (AbsAggregate) referenceOnto.fromObject(((Result) obj).getItems()));
+				return absResult;
+	    }
+
+	    if(obj instanceof Equals) {
+	    	AbsPredicate absEquals = new AbsPredicate(BasicOntology.EQUALS);
+  			absEquals.set(BasicOntology.EQUALS_LEFT, (AbsTerm) referenceOnto.fromObject(((Equals) obj).getLeft()));
+  			absEquals.set(BasicOntology.EQUALS_RIGHT, (AbsTerm) referenceOnto.fromObject(((Equals) obj).getRight()));
+				return absEquals;
+	    }
+
+	    if (obj instanceof Action) {
+	    	AbsAgentAction absAction = new AbsAgentAction(BasicOntology.ACTION);
+	    	((Action) obj).externalise(absAction, referenceOnto);
+	    	return absAction;
+	    }
+	    			
+	    if (obj instanceof ACLMessage) {
+				return AbsHelper.externaliseACLMessage((ACLMessage)obj, referenceOnto);
+	    }
+	    			
+      throw new UnknownSchemaException();
+    } 
+    catch (OntologyException oe) {
+      // Forward the exception
+      throw oe;
+    } 
+    catch (Throwable t) {
+      throw new OntologyException("Unexpected error externalising "+obj+".", t);
+    }
+	}
+  
 }

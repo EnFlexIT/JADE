@@ -24,10 +24,12 @@
  */
 package jade.content.abs;
 
+import jade.content.AgentAction;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAgentAction extends AbsConcept implements AbsContentElement {
+public class AbsAgentAction extends AbsConcept implements AbsContentElement, AgentAction {
 
     /**
      * Construct an Abstract descriptor to hold an agent action of

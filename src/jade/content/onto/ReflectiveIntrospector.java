@@ -38,31 +38,22 @@ import jade.core.CaseInsensitiveString;
  */
 public class ReflectiveIntrospector implements Introspector {
 
-    /**
-     * Translate an object of a class representing an element in an
-     * ontology into a proper abstract descriptor 
-     * @param onto The ontology that uses this Introspector.
-     * @param referenceOnto The reference ontology in the context of
-     * this translation i.e. the most extended ontology that extends 
-     * <code>onto</code> (directly or indirectly). 
-     * @param obj The Object to be translated
-     * @return The Abstract descriptor produced by the translation 
-		 * @throws UnknownSchemaException If no schema for the object to be
-		 * translated is defined in the ontology that uses this Introspector
-		 * @throws OntologyException If some error occurs during the translation
-     */
-    public AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
-    				throws UnknownSchemaException, OntologyException {
+	/**
+   * Translate an object of a class representing an element in an
+   * ontology into a proper abstract descriptor 
+   * @param obj The Object to be translated
+   * @param schema The schema for the ontological element this object
+   * is an instance of.
+   * @param javaClass The class of the Object to be translated
+   * @param referenceOnto The reference ontology in the context of
+   * this translation. 
+   * @return The Abstract descriptor produced by the translation 
+   * @throws OntologyException If some error occurs during the translation
+   */
+  public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+    				throws OntologyException {
         try {
-            Class        javaClass = obj.getClass();            
-            ObjectSchema schema = onto.getSchema(javaClass);
-            if (schema == null) {
-            	throw new UnknownSchemaException();
-            }
-            //DEBUG 
-            //System.out.println("Schema is: "+schema);
-            AbsObject    abs = schema.newInstance();
-            
+            AbsObject    abs = schema.newInstance();            
             String[]     names = schema.getNames();
 
             // Loop on slots
@@ -74,8 +65,6 @@ public class ReflectiveIntrospector implements Introspector {
       				// Retrieve the accessor method from the class and call it
       				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
         			AbsObject value = invokeGetMethod(referenceOnto, getMethod, obj);
-        			//DEBUG 
-        			//System.out.println("Attribute value is: "+value);
 
         			if (value != null) {
           			Ontology.setAttribute(abs, slotName, value);
@@ -92,7 +81,7 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    private AbsObject invokeGetMethod(Ontology onto, Method method, 
+    protected AbsObject invokeGetMethod(Ontology onto, Method method, 
                                       Object obj) throws OntologyException {
         Object result = null;
         try {
@@ -113,46 +102,25 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    /**
-     * Translate an abstract descriptor into an object of a proper class 
-     * representing an element in an ontology 
-     * @param onto The ontology that uses this Introspector.
-     * @param referenceOnto The reference ontology in the context of
-     * this translation i.e. the most extended ontology that extends 
-     * <code>onto</code> (directly or indirectly). 
-     * @param abs The abstract descriptor to be translated
-     * @return The Java object produced by the translation 
-     * @throws UngroundedException If the abstract descriptor to be translated 
-     * contains a variable
-		 * @throws UnknownSchemaException If no schema for the abstract descriptor
-		 * to be translated is defined in the ontology that uses this Introspector
-     * @throws OntologyException If some error occurs during the translation
-     */
-    public Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
-            throws UngroundedException, UnknownSchemaException, OntologyException {
+  /**
+   * Translate an abstract descriptor into an object of a proper class 
+   * representing an element in an ontology 
+   * @param abs The abstract descriptor to be translated
+   * @param schema The schema for the ontological element this abstract descriptor
+   * is an instance of.
+   * @param javaClass The class of the Object to be produced by the translation
+   * @param referenceOnto The reference ontology in the context of
+   * this translation. 
+   * @return The Java object produced by the translation 
+   * @throws UngroundedException If the abstract descriptor to be translated 
+   * contains a variable
+   * @throws OntologyException If some error occurs during the translation
+   */
+  public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+            throws UngroundedException, OntologyException {
 
         try {
-        		String type = abs.getTypeName();
-        		//DEBUG System.out.println("Abs is "+abs);
-        		// Retrieve the schema
-            ObjectSchema schema = onto.getSchema(type, false);
-            if (schema == null) {
-            	throw new UnknownSchemaException();
-            }
-            //DEBUG System.out.println("Schema is: "+schema);
-        		if (schema instanceof IRESchema || schema instanceof VariableSchema) {
-        			throw new UngroundedException();
-        		}
-            
-            Class        javaClass = onto.getClassForElement(type);
-        		if (javaClass == null) {
-        			throw new OntologyException("No java class associated to type "+type);
-        		}
-            //DEBUG System.out.println("Class is: "+javaClass.getName());
-            
-            Object       obj = javaClass.newInstance();
-            //DEBUG System.out.println("Object created");
-            
+            Object       obj = javaClass.newInstance();            
             String[]     names = schema.getNames();
 
     				// LOOP on slots 
@@ -174,12 +142,18 @@ public class ReflectiveIntrospector implements Introspector {
         catch (OntologyException oe) {
             throw oe;
         } 
+        catch (InstantiationException ie) {
+            throw new OntologyException("Class "+javaClass+" can't be instantiated", ie);
+        } 
+        catch (IllegalAccessException iae) {
+            throw new OntologyException("Class "+javaClass+" does not have an accessible constructor", iae);
+        } 
         catch (Throwable t) {
             throw new OntologyException("Schema and Java class do not match", t);
         } 
     } 
 
-    private void invokeSetMethod(Ontology onto, Method method, Object obj, 
+    protected void invokeSetMethod(Ontology onto, Method method, Object obj, 
                                  AbsObject value) throws OntologyException {
         try {
             Object objValue = onto.toObject(value);
@@ -203,12 +177,10 @@ public class ReflectiveIntrospector implements Introspector {
         				Integer i = new Integer((int) ((Long) objValue).longValue());
         				params[0] = i;
         			}
-        			//__CLDC_UNSUPPORTED__BEGIN
         			else if (objValue instanceof Double) {
         				Float f = new Float((float) ((Double) objValue).doubleValue());
         				params[0] = f;
         			}
-        			//__CLDC_UNSUPPORTED__END
         			method.invoke(obj, params);
         		}
         } 
@@ -234,7 +206,7 @@ public class ReflectiveIntrospector implements Introspector {
     	// FIXME: Not yet implemented
     }
     
-  private Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
+  protected Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
     Method[] methods = c.getMethods();
     for(int i = 0; i < methods.length; i++) {
       String ithName = methods[i].getName();
@@ -244,7 +216,7 @@ public class ReflectiveIntrospector implements Introspector {
     throw new OntologyException("Method " + name + " not found in class "+c.getName());
   }
   
-	private String translateName(String name) {
+	protected String translateName(String name) {
 		StringBuffer buf = new StringBuffer();
 
 		boolean capitalize = false;

@@ -24,10 +24,12 @@
  */
 package jade.content.abs;
 
+import jade.content.Predicate;
+
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement {
+public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement, Predicate {
 
     /**
      * Construct an Abstract descriptor to hold a predicate of

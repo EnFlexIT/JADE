@@ -45,8 +45,8 @@ public interface Introspector {
 		 * translated is defined in the ontology that uses this Introspector
 		 * @throws OntologyException If some error occurs during the translation
      */
-    AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
-    				throws UnknownSchemaException, OntologyException;
+    AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+    				throws OntologyException;
 
     /**
      * Translate an abstract descriptor into an object of a proper class 
@@ -63,8 +63,8 @@ public interface Introspector {
 		 * to be translated is defined in the ontology that uses this Introspector
      * @throws OntologyException If some error occurs during the translation
      */
-    Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
-    	throws UngroundedException, UnknownSchemaException, OntologyException;
+    Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+    	throws UngroundedException, OntologyException;
     				
     /**
        Check the structure of a java class associated to an ontological element 

@@ -24,12 +24,12 @@
  */
 package jade.content.abs;
 
-import java.util.Date;
+import jade.content.Concept;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm {
+public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm, Concept {
 
     /**
      * Construct an Abstract descriptor to hold a concept of

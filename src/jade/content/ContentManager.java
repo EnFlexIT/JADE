@@ -61,7 +61,10 @@ public class ContentManager implements Serializable {
      * @param c the <code>Codec</code> to be registered.
      */
     public void registerLanguage(Codec c) {
-        registerLanguage(c, c.getName());
+    	if (c == null) {
+    		throw new IllegalArgumentException("Null codec registered");
+    	}
+    	registerLanguage(c, c.getName());
     }
 
     /**
@@ -71,7 +74,10 @@ public class ContentManager implements Serializable {
      * @param name the name associated to the registered codec.
      */
     public void registerLanguage(Codec c, String name) {
-        languages.put(name, c);
+    	if (c == null) {
+    		throw new IllegalArgumentException("Null codec registered");
+    	}
+      languages.put(name, c);
     }
 
     /**
@@ -83,7 +89,10 @@ public class ContentManager implements Serializable {
      * @param o the <code>Ontology</code> to be registered.
      */
     public void registerOntology(Ontology o) {
-        registerOntology(o, o.getName());
+    	if (o == null) {
+    		throw new IllegalArgumentException("Null ontology registered");
+    	}
+      registerOntology(o, o.getName());
     }
 
     /**
@@ -92,7 +101,10 @@ public class ContentManager implements Serializable {
      * @param name the name associated to the registered Ontology.
      */
     public void registerOntology(Ontology o, String name) {
-        ontologies.put(name, o);
+    	if (o == null) {
+    		throw new IllegalArgumentException("Null ontology registered");
+    	}
+      ontologies.put(name, o);
     }
 
     /**
@@ -137,10 +149,14 @@ public class ContentManager implements Serializable {
     public void fillContent(ACLMessage msg, AbsContentElement content) 
             throws CodecException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-
-        // DEBUG
-        // System.out.println("Filling content with "+content);
+    		if (codec == null) {
+    			throw new CodecException("Unknown language "+msg.getLanguage());
+    		}
+    		Ontology o = lookupOntology(msg.getOntology());
+    		if (o == null) {
+    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		}
+        Ontology onto  = getMergedOntology(codec, o);
         
         validate(content, onto);
 
@@ -163,13 +179,17 @@ public class ContentManager implements Serializable {
     public void fillContent(ACLMessage msg, ContentElement content) 
             throws CodecException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-
+    		if (codec == null) {
+    			throw new CodecException("Unknown language "+msg.getLanguage());
+    		}
+    		Ontology o = lookupOntology(msg.getOntology());
+    		if (o == null) {
+    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		}
+        Ontology onto  = getMergedOntology(codec, o);
+        
         AbsContentElement abs = (AbsContentElement) onto.fromObject(content);
        
-        // DEBUG
-        // System.out.println("Filling content with "+abs);
-        
         validate(abs, onto);
         
         encode(msg, abs, codec, onto);
@@ -191,8 +211,15 @@ public class ContentManager implements Serializable {
     public AbsContentElement extractAbsContent(ACLMessage msg) 
             throws CodecException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-
+    		if (codec == null) {
+    			throw new CodecException("Unknown language "+msg.getLanguage());
+    		}
+    		Ontology o = lookupOntology(msg.getOntology());
+    		if (o == null) {
+    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		}
+        Ontology onto  = getMergedOntology(codec, o);
+        
         AbsContentElement content = decode(msg, codec, onto);
         
         validate(content, onto);
@@ -216,7 +243,14 @@ public class ContentManager implements Serializable {
     public ContentElement extractContent(ACLMessage msg) 
             throws CodecException, UngroundedException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
+    		if (codec == null) {
+    			throw new CodecException("Unknown language "+msg.getLanguage());
+    		}
+    		Ontology o = lookupOntology(msg.getOntology());
+    		if (o == null) {
+    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		}
+        Ontology onto  = getMergedOntology(codec, o);
         
         AbsContentElement content = decode(msg, codec, onto);
         

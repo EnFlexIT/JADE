@@ -43,16 +43,10 @@ public class MicroIntrospector implements Introspector {
 		 * translated is defined in the ontology that uses this Introspector
 		 * @throws OntologyException If some error occurs during the translation
      */
-    public AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
-    			throws UnknownSchemaException, OntologyException {
+    public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+    				throws OntologyException {
     				
     	try {
-        Class        javaClass = obj.getClass();            
-        ObjectSchema schema = onto.getSchema(javaClass);
-        if (schema == null) {
-        	throw new UnknownSchemaException();
-        }
-        //DEBUG System.out.println("Schema is: "+schema);
         AbsObject abs = schema.newInstance();
         
     		Introspectable intro = (Introspectable) obj;
@@ -66,8 +60,8 @@ public class MicroIntrospector implements Introspector {
     	catch (ClassCastException cce) {
     		throw new OntologyException("Object "+obj+" is not Introspectable");
     	}
-    	catch (Exception e) {
-    		throw new OntologyException("Unexpected error");
+    	catch (Throwable t) {
+        throw new OntologyException("Schema and Java class do not match", t);
     	}
     } 
 
@@ -84,27 +78,9 @@ public class MicroIntrospector implements Introspector {
 		 * to be translated is defined in the ontology that uses this Introspector
      * @throws OntologyException If some error occurs during the translation
      */
-    public Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
-    			throws UngroundedException, UnknownSchemaException, OntologyException {
+    public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+            throws UngroundedException, OntologyException {
     	try {
-        String type = abs.getTypeName();
-       	//DEBUG System.out.println("Abs is "+abs);
-        // Retrieve the schema
-        ObjectSchema schema = onto.getSchema(type, false);
-        if (schema == null) {
-          throw new UnknownSchemaException();
-        }
-        //DEBUG System.out.println("Schema is: "+schema);
-        if (schema instanceof IRESchema || schema instanceof VariableSchema) {
-        	throw new UngroundedException();
-        }
-
-        Class        javaClass = onto.getClassForElement(type);
-        if (javaClass == null) {
-        	throw new OntologyException("No java class associated to type "+type);
-        }
-        //DEBUG System.out.println("Class is: "+javaClass.getName());
-        
         Object obj = javaClass.newInstance();
         //DEBUG System.out.println("Object created");
         
@@ -119,8 +95,8 @@ public class MicroIntrospector implements Introspector {
     	catch (ClassCastException cce) {
     		throw new OntologyException("Class for type "+abs.getTypeName()+" is not Introspectable");
     	}
-    	catch (Exception e) {
-    		throw new OntologyException("Unexpected error");
+    	catch (Throwable t) {
+        throw new OntologyException("Schema and Java class do not match", t);
     	}
     } 
 

@@ -24,9 +24,11 @@
  */
 package jade.content.abs;
 
+import jade.content.ContentElement;
+
 /**
  * Represent an Abstract descriptor that can hold a content element
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface AbsContentElement extends AbsObject {
+public interface AbsContentElement extends AbsObject, ContentElement {
 }

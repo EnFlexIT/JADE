@@ -34,13 +34,13 @@ package jade.content.onto;
  * @see    jade.content.onto
  * @author Giovanni Caire - TILAB
  */
-public class UnknownSchemaException extends OntologyException {
+class UnknownSchemaException extends OntologyException {
 
     /**
      * Constructor
      */
     public UnknownSchemaException() {
-        super("Unknown schema");
+        super(null);
     }
 }
 

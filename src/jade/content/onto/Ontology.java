@@ -148,16 +148,33 @@ import jade.core.CaseInsensitiveString;
  * @author Giovanni Caire - TILAB
  */
 public class Ontology {
-	  private static final String DEFAULT_INTROSPECTOR_CLASS = "jade.content.onto.ReflectiveIntrospector";
+		private static final String DEFAULT_INTROSPECTOR_CLASS = "jade.content.onto.ReflectiveIntrospector";
     private Ontology[]   base = new Ontology[0];
     private String       name = null;
     private Introspector introspector = null;
     
-    private Hashtable    elements = new Hashtable();
-    private Hashtable    classes  = new Hashtable();
-    private Hashtable    schemas  = new Hashtable();
+    private Hashtable    elements = new Hashtable(); // Maps type-names to schemas
+    private Hashtable    classes  = new Hashtable(); // Maps type-names to java classes
+    private Hashtable    schemas  = new Hashtable(); // Maps java classes to schemas
     
-
+    // These are required for compatibility with CLDC MIDP where XXX.class 
+    // is not supported 
+		private static Class absObjectClass = null;
+		protected static Class absConceptClass = null;
+		protected static Class absPredicateClass = null;
+		protected static Class absAgentActionClass = null;
+		static {
+			try {
+				absObjectClass = Class.forName("jade.content.abs.AbsObject");
+				absConceptClass = Class.forName("jade.content.abs.AbsConcept");
+				absPredicateClass = Class.forName("jade.content.abs.AbsPredicate");
+				absAgentActionClass = Class.forName("jade.content.abs.AbsAgentAction");
+			}
+			catch (Exception e) {
+				// Should never happen
+			}
+		}
+		
     /**
      * Construct an Ontology object with a given <code>name</code> 
      * that extends a given ontology.
@@ -242,16 +259,27 @@ public class Ontology {
         if (schema.getTypeName() == null) {
             throw new OntologyException("Invalid schema identifier");
         } 
-        
-	if (introspector != null)
-	    introspector.checkClass(schema, javaClass);
-        
+                
         CaseInsensitiveString s = new CaseInsensitiveString(schema.getTypeName());
         elements.put(s, schema);
 
         if (javaClass != null) {
             classes.put(s, javaClass);
-            schemas.put(javaClass, schema);
+            if (!absObjectClass.isAssignableFrom(javaClass)) {
+							if (introspector != null) {
+	    					introspector.checkClass(schema, javaClass);
+							}
+            	schemas.put(javaClass, schema);
+            }
+            else {
+            	// If the java class is an abstract descriptor check the
+            	// coherence between the schema and the abstract descriptor
+            	if ( (javaClass.equals(absConceptClass) && !(schema instanceof ConceptSchema)) ||
+            		   (javaClass.equals(absAgentActionClass) && !(schema instanceof AgentActionSchema)) ||
+            		   (javaClass.equals(absPredicateClass) && !(schema instanceof PredicateSchema))) {
+            		throw new OntologyException("Java class "+javaClass+" not compatible with schema "+schema);
+            	}
+            }
         } 
     } 
 
@@ -264,7 +292,25 @@ public class Ontology {
      * @throws OntologyException 
      */
     public ObjectSchema getSchema(String name) throws OntologyException {
-    	return getSchema(name, true);
+      if (name == null) {
+        throw new OntologyException("Null schema identifier");
+      } 
+
+      ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
+
+      if (ret == null) {
+        //DEBUG System.out.println("Ontology "+getName()+". Schema for "+name+" not found");
+        for (int i = 0; i < base.length; ++i) {
+          if (base[i] == null) {
+            System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
+          }
+          ret = base[i].getSchema(name);
+          if (ret != null) {
+            return ret;
+          }
+        } 
+    	} 
+      return ret;
 		}		
             
     /**
@@ -282,7 +328,7 @@ public class Ontology {
 			}
 			
   		try {
-  			return toObject(abs, this);
+  			return toObject(abs, abs.getTypeName().toLowerCase(), this);
   		}
       catch (UnknownSchemaException use) {
       	// If we get this exception here, the schema is globally unknown 
@@ -323,7 +369,7 @@ public class Ontology {
      * found.
      * @return the schema.
      * @throws OntologyException
-     */
+     *
     ObjectSchema getSchema(String name, boolean searchInBase) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
@@ -351,7 +397,7 @@ public class Ontology {
         } 
 
         return ret;
-    } 
+    } */
 
     /**
      * Retrieves the schema associated with <code>javaClass</code>
@@ -359,13 +405,13 @@ public class Ontology {
      * @param javaClass the Java class
      * @return the schema
      * @throws OntologyException
-     */
+     *
     ObjectSchema getSchema(Class javaClass) throws OntologyException {
         if (javaClass == null) {
             throw new OntologyException("Null schema identifier");
         } 
         return (ObjectSchema) schemas.get(javaClass);
-    } 
+    }*/ 
 
     /**
      * Retrieves the concrete class associated with <code>name</code> in
@@ -373,48 +419,72 @@ public class Ontology {
      * @param name the name of the schema.
      * @return the Java class.
      * @throws OntologyException
-     */
+     *
     Class getClassForElement(String name) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
         } 
 
         return (Class) classes.get(name.toLowerCase());
-    } 
+    } */
     
     /**
      * Converts an abstract descriptor to a Java object of the proper class.
      * @param abs the abstract descriptor.
+     * @param lcType the type of the abstract descriptor to be translated 
+     * aconverted into lower case. This is passed as parameters to avoid 
+     * making the conversion to lower case for each base ontology.
      * @param globalOnto The ontology this ontology is part of (i.e. the 
      * ontology that extends this ontology).
      * @return the object
-     * @throws OntologyException if some mismatch with the schema is found
+		 * @throws UnknownSchemaException If no schema for the abs descriptor
+		 * to be translated is defined in this ontology.
      * @throws UngroundedException if the abstract descriptor contains a 
      * variable
+     * @throws OntologyException if some mismatch with the schema is found      * ontology. In this case UnknownSchema
      */ 
-    private Object toObject(AbsObject abs, Ontology globalOnto) throws UngroundedException, OntologyException {
-    		try {
-    			if (introspector != null) {
-        		//DEBUG System.out.println("Try to internalise "+abs+" through "+introspector);
-        		return introspector.internalise(this, globalOnto, abs);
-    			}
-    			else {
-    				// If the introspector is not set all schemas are unknown
-    				throw new UnknownSchemaException();
-    			}
+    protected Object toObject(AbsObject abs, String lcType, Ontology globalOnto) 
+    			throws UnknownSchemaException, UngroundedException, OntologyException {
+      
+    	//DEBUG System.out.println("Ontology "+getName()+". Abs is: "+abs);
+      // Retrieve the schema
+      ObjectSchema schema = (ObjectSchema) elements.get(lcType);
+      //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
+      if (schema != null) {
+      	if (schema instanceof IRESchema || schema instanceof VariableSchema) {
+        	throw new UngroundedException();
         }
-        catch (UnknownSchemaException use1) {
-        	// Try to convert the abstract descriptor using the base ontologies
-        	for (int i = 0; i < base.length; ++i) {
-        		try {
-        			return base[i].toObject(abs, globalOnto);
-        		}
-        		catch (UnknownSchemaException use2) {
-        			// Try the next one
-        		}	
-        	}
-        	throw use1;
-        }    		
+            
+        // Retrieve the java class
+        Class javaClass = (Class) classes.get(lcType);
+        if (javaClass == null) {
+        	throw new OntologyException("No java class associated to type "+abs.getTypeName());
+        }
+        //DEBUG System.out.println("Ontology "+getName()+". Class is: "+javaClass.getName());
+        		
+        // If the Java class is an Abstract descriptor --> just return abs
+	      if (absObjectClass.isAssignableFrom(javaClass)) {
+	        return abs;
+	      }
+        		
+    		if (introspector != null) {
+        	//DEBUG System.out.println("Ontology "+getName()+". Try to internalise "+abs+" through "+introspector);
+        	return introspector.internalise(abs, schema, javaClass, globalOnto);
+    		}
+      }
+        
+      // If we get here --> This ontology is not able to translate abs	
+      // --> Try to convert it using the base ontologies
+      for (int i = 0; i < base.length; ++i) {
+        try {
+        	return base[i].toObject(abs, lcType, globalOnto);
+        }
+        catch (UnknownSchemaException use) {
+        	// Try the next one
+        }
+      }
+      
+      throw new UnknownSchemaException();
     } 
 
     /**
@@ -427,35 +497,40 @@ public class Ontology {
 		 * translated is defined in this ontology.
      * @throws OntologyException if some mismatch with the schema is found
      */
-    private AbsObject fromObject(Object obj, Ontology globalOnto) 
+    protected AbsObject fromObject(Object obj, Ontology globalOnto) 
     			throws UnknownSchemaException, OntologyException {
     				
-        // If the object is already an abstract descriptor, just return it
-    		//if (obj instanceof AbsObject) {
-    		//	return (AbsObject) obj;
-    		//}
+      // If obj is already an abstract descriptor --> just return it
+    	if (obj instanceof AbsObject) {
+    		return (AbsObject) obj;
+    	}
     		
-    		try {
-    			if (introspector != null) {
-        		//DEBUG System.out.println("Try to externalise "+obj+" through "+introspector);
-        		return introspector.externalise(this, globalOnto, obj);
-    			}
-    			else {
-    				throw new UnknownSchemaException();
-    			}
-    		}
-        catch (UnknownSchemaException use1) {
-        	// Try to convert the object using the base ontologies
-        	for (int i = 0; i < base.length; ++i) {
-        		try {
-	        		return base[i].fromObject(obj, globalOnto);
-        		}
-        		catch (UnknownSchemaException use2) {
-        			// Try the next one
-        		}
-        	}
-        	throw use1;
+    	// Retrieve the Java class
+      Class        javaClass = obj.getClass();            
+      //DEBUG System.out.println("Ontology "+getName()+". Class is: "+javaClass);
+        
+      // Retrieve the schema
+      ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
+      //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
+      if (schema != null) {        
+    		if (introspector != null) {
+        	//DEBUG System.out.println("Ontology "+getName()+". Try to externalise "+obj+" through "+introspector);
+        	return introspector.externalise(obj, schema, javaClass, globalOnto);
         }
+    	}
+      
+      // If we get here --> This ontology is not able to translate obj	
+      // --> Try to convert it using the base ontologies
+      for (int i = 0; i < base.length; ++i) {
+        try {
+	        return base[i].fromObject(obj, globalOnto);
+        }
+        catch (UnknownSchemaException use) {
+        	// Try the next one
+        }
+      }
+      
+      throw new UnknownSchemaException();
     } 
 
     
