@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.33  1999/03/29 10:40:58  rimassa
+  Fixed a bug raising a ConcurrentModificationException during Agent
+  Platform shutdown.
+  Made system agents (ACC, AMS and Default DF) run at a higher priority
+  with respect to user agents.
+
   Revision 1.32  1999/03/24 12:19:02  rimassa
   Ported most data structures to the newer Java 2 Collection framework.
 
@@ -141,6 +147,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -207,7 +214,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public AgentPlatformImpl(String args[]) throws RemoteException {
     super(args);
     myName = MAIN_CONTAINER_NAME;
-    systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY);
+    systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
     initIIOP();
     initAMS();
     initACC();
@@ -316,9 +323,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     // Notify AMS
     theAMS.postNewContainer(MAIN_CONTAINER_NAME);
 
-    theAMS.doStart(AMS_NAME, platformAddress, systemAgentsThreads);
-    theACC.doStart(ACC_NAME, platformAddress, systemAgentsThreads);
-    defaultDF.doStart(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
+    Agent a = theAMS;
+    a.doStart(AMS_NAME, platformAddress, systemAgentsThreads);
+    a = theACC;
+    a.doStart(ACC_NAME, platformAddress, systemAgentsThreads);
+    a = defaultDF;
+    a.doStart(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
 
     for(int i = 0; i < agentNamesAndClasses.size(); i += 2) {
       String agentName = (String)agentNamesAndClasses.elementAt(i);
@@ -432,19 +442,18 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     containers.remove(MAIN_CONTAINER_NAME);
 
     // Kill every other container
-    Set s = containers.keySet();
-    Iterator i = s.iterator();
-    while(i.hasNext()) {
-      String containerName = (String)i.next();
-      AgentContainer ac = (AgentContainer)containers.get(containerName);
-      APKillContainer(ac);
+    Collection c = containers.values();
+    Object[] allContainers = c.toArray();
+    for(int i = 0; i < allContainers.length; i++) {
+      AgentContainer ac = (AgentContainer)allContainers[i];
+      APKillContainer(ac); // This call removes 'ac' from 'container' map and from the collection 'c'
     }
 
     // Kill all non-system agents
-    Set names = localAgents.keySet();
-    Iterator nameList = names.iterator();
-    while(nameList.hasNext()) {
-      String name = (String)nameList.next();
+    Set s = localAgents.keySet();
+    Object[] allLocalAgents = s.toArray(); 
+    for(int i = 0; i < allLocalAgents.length; i++) {
+      String name = (String)allLocalAgents[i];
       if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
 	 name.equalsIgnoreCase(theACC.getLocalName()) ||
 	 name.equalsIgnoreCase(defaultDF.getLocalName()))
