@@ -417,7 +417,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       String platformRMI = "rmi://" + platformID;
       myPlatform = lookup3(platformRMI);
 
-      theACC = new acc(this);
+      theACC = new acc(this, platformID);
 
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call

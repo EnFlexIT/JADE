@@ -136,7 +136,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       e.printStackTrace();
     }
 
-    theACC = new acc(this);
+    theACC = new acc(this, platformID);
 
     try {
 
