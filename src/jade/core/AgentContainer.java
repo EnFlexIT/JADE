@@ -1,53 +1,26 @@
-/*
- * $Log$
- * Revision 1.18  1999/11/08 15:16:48  rimassaJade
- * Added two remote methods to enable/disable the message sniffer.
- *
- * Revision 1.17  1999/11/04 09:51:12  rimassaJade
- * Removed TransientException exception declaration.
- *
- * Revision 1.16  1999/09/01 00:16:23  rimassa
- * Small changes to the interface to allow message queue transfer during
- * agent migration.
- *
- * Revision 1.15  1999/08/31 17:20:37  rimassa
- * Added a couple of constant definitions to support agent migration.
- *
- * Revision 1.14  1999/08/27 15:41:51  rimassa
- * Made some interface changes to better support agent migration.
- *
- * Revision 1.13  1999/08/10 15:27:28  rimassa
- * Changed the signature of copyAgent() method
- *
- * Revision 1.12  1999/07/19 00:03:24  rimassa
- * Added a moveAgent() method.
- *
- * Revision 1.11  1999/06/04 07:42:32  rimassa
- * Made this previously public class package scoped.
- *
- * Revision 1.10  1999/03/17 12:49:45  rimassa
- * Removed an obsolete method.
- *
- * Revision 1.9  1999/03/03 16:08:31  rimassa
- * Added remote methods to suspend and resume an agent.
- *
- * Revision 1.8  1998/11/09 22:11:07  Giovanni
- * Added exit() method to allow shutting down an AgentContainer from a
- * remote host.
- *
- * Revision 1.7  1998/11/01 19:12:25  rimassa
- * Added two methods from now-removed MessageDispatcher interface.
- *
- * Revision 1.6  1998/10/25 23:55:19  rimassa
- * Added some function for remote agent management.
- *
- * Revision 1.5  1998/10/11 19:12:26  rimassa
- * Added a method to invalidate an entry of remote agents cache.
- *
- * Revision 1.4  1998/10/04 18:00:56  rimassa
- * Added a 'Log:' field to every source file.
- *
- */
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+
 
 package jade.core;
 
@@ -57,6 +30,12 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 
 import jade.lang.acl.ACLMessage;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Universita` di Parma
+@version $Date$ $Revision$
+*/
 
 interface AgentContainer extends Remote {
 
