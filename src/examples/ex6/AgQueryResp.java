@@ -44,7 +44,7 @@ public ACLMessage handleQueryMessage(ACLMessage msg) {
   msg.dump();
   ACLMessage msg1 = msg.createReply(); 
   msg1.setContent(msg.getContent());
-  msg1.setType("inform");
+  msg1.setPerformative(ACLMessage.INFORM);
   return msg1;
  }
 

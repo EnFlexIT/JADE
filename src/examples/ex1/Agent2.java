@@ -60,7 +60,7 @@ public class Agent2 extends Agent {
       System.out.println("Message Template 1 AND Message Template 2:");
       mtAnd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
-      ACLMessage msg = new ACLMessage("inform");
+      ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
       msg.setProtocol("fipa-request");
       msg.setOntology("pifa-chicken-management");

@@ -47,7 +47,7 @@ public class AgentMessageFilter extends Agent {
 	String content = msg.getContent();
 	System.out.println("Received from " + source + ": " + content);
 	System.out.println("Sending back reply to " + source + "...");
-	ACLMessage reply = new ACLMessage("inform");
+	ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
 	reply.setSource(getLocalName());
 	reply.removeAllDests();
 	reply.addDest(source);

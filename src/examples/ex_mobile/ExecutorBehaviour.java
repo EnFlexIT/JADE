@@ -105,7 +105,7 @@ class ExecutorBehaviour extends SimpleBehaviour
 
 			// Reply
 			ACLMessage replyMsg = msg.createReply();
-			replyMsg.setType("inform");
+			replyMsg.setPerformative(ACLMessage.INFORM);
 			replyMsg.setContent(replySentence);
 			myAgent.send(replyMsg);
 		}

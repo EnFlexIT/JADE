@@ -77,7 +77,7 @@ public class AgentResponder extends Agent {
       // probability. If a request is agreed, there is still a 40%
       // failure probability.
 
-      ACLMessage reply = new ACLMessage("not-understood");
+      ACLMessage reply = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
       reply.setSource(getLocalName());
       reply.removeAllDests();
       reply.addDest(myPeer);
@@ -93,7 +93,7 @@ public class AgentResponder extends Agent {
       }
       else if(chance < 0.5) {
 	// Reply with 'refuse'
-	reply.setType("refuse");
+	reply.setPerformative(ACLMessage.REFUSE);
 	reply.setLanguage("\"Plain Text\"");
 	reply.setContent("I'm too busy at the moment. Retry later.");
 	reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
@@ -101,20 +101,20 @@ public class AgentResponder extends Agent {
       }
       else {
 	// Reply with 'agree' and schedule next message
-	reply.setType("agree");
+	reply.setPerformative(ACLMessage.AGREE);
 	reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	send(reply);
 
 	chance = Math.random();
 	if(chance < 0.4) {
 	  // Select a 'failure' message
-	  reply.setType("failure");
+	  reply.setPerformative(ACLMessage.FAILURE);
 	  reply.setLanguage("\"Plain Text\"");
 	  reply.setContent("Something went wrong with the teleport.");
 	}
 	else {
 	  // Select an 'inform' message
-	  reply.setType("inform");
+	  reply.setPerformative(ACLMessage.INFORM);
 	  reply.setLanguage("\"Plain Text\"");
 	  reply.setContent("I hereby inform you that the action has been done.");
 	}

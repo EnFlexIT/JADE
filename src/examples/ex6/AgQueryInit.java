@@ -60,7 +60,7 @@ public void handleInformMessages(java.util.Vector messages) {
   for (int i=0; i<messages.size(); i++)
     ((ACLMessage)(messages.elementAt(i))).dump();
   System.out.println(myAgent.getLocalName()+" - Please use the GUI to enter the query message");
-  ACLMessage msg = new ACLMessage("query-if");
+  ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
   msg.setSource(getLocalName());
   ACLMessage msgquery = jade.gui.AclGui.editMsgInDialog(msg, null);
   if (msgquery == null) {
@@ -78,7 +78,7 @@ public void handleInformMessages(java.util.Vector messages) {
 
 protected void setup() {
   System.out.println(getLocalName()+" - Please use the GUI to enter the query message");
-  ACLMessage msg = new ACLMessage("query-if");
+  ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
   msg.setSource(getLocalName());
   ACLMessage msgquery = jade.gui.AclGui.editMsgInDialog(msg, null);
   if (msgquery == null) {

@@ -51,7 +51,7 @@ public class AgentReceiver extends Agent {
 	  msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
 	  System.out.println("Sending back reply to sender ...");
-	  ACLMessage reply = new ACLMessage("inform");
+	  ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
 	  reply.setSource(getLocalName());
 	  reply.removeAllDests();
 	  reply.addDest(msg.getSource());

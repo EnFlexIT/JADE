@@ -52,7 +52,7 @@ public class AgentBroadcaster extends Agent {
 
 
     public BehaviourElement(String source, String dest, String content) {
-      myMessage = new ACLMessage("request");
+      myMessage = new ACLMessage(ACLMessage.REQUEST);
       myMessage.setSource(source);
       myMessage.setContent(content);
       myMessage.removeAllDests();

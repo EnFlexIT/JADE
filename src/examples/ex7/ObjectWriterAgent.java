@@ -71,9 +71,9 @@ protected void setup() {
     }
 
     try {
-      ACLMessage msg = new ACLMessage("inform");
+      ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
-      msg.setDest(reader);
+      msg.addDest(reader);
 
       ByteArrayOutputStream c = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(c);

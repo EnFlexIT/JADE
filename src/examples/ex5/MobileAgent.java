@@ -40,7 +40,7 @@ public class MobileAgent extends Agent {
       reset();
     }
   };
-  private ACLMessage replyMsg = new ACLMessage("inform");
+  private ACLMessage replyMsg = new ACLMessage(ACLMessage.INFORM);
 
   public void setup() {
 
