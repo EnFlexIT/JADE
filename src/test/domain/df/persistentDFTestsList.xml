@@ -21,6 +21,15 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
+		<Test name="Registration from remote platform" skip="false">
+			<TestClassName>test.domain.df.tests.TestRemoteRegistration</TestClassName>
+			<WhatTest> Tests accessing the DF agent by an agent living on a remote platform.</WhatTest>
+			<HowWorkTest> In the load phase a remote platform is started with an agent on it. Another container with the IIOP MTP is also started in the local platform to enable inter-platform communication.
+				In the actual test the agent on the remote platform i) waits for a startup message from the tester ii) registers with the DF of the local platform iii) waits for a continuation message from the tester and iv) deregisters with the df.
+				The tester agent searches the DF after the registration and the de-registration
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if the 2 searches result in finding the remote agent and finding no agent respectively.</WhenTestPass>
+		</Test>		
 		<Test name="DF Lease Time" skip="false">
 			<TestClassName>test.domain.df.tests.TestDFLeaseTime</TestClassName>
 			<WhatTest> Tests lease time functionality of the DF agent.</WhatTest>
