@@ -126,11 +126,9 @@ public class MobilityOntology {
 		// the new ontology support
   	public Frame createFrame(Object o, String roleName) throws OntologyException {
   		if (o instanceof ContainerID) {
-  			System.out.println("Converting ContainerID into a BCLocation");
   			o = BCLocation.wrap((ContainerID) o);
   		}
   		if (roleName.equalsIgnoreCase("location")) {
-  			System.out.println("Converting location into a container-id");
   			roleName = "container-ID";
   		}
   		return super.createFrame(o, roleName);

@@ -174,7 +174,6 @@ public class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#createFrame(Object o, String roleName)
   */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
-    System.out.println("Object is "+o+", role is "+roleName);
   	Class theRoleClass = getClassForRole(roleName);
     if (theRoleClass == null)
       throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
