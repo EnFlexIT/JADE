@@ -332,6 +332,7 @@ StartPlatform@- main@public static void main(String args[]) {
 ComplexBehaviour@- BehaviourList@private class BehaviourList {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
+ComplexBehaviour@> action@protected abstract boolean action();
 ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
 ComplexBehaviour@- done@public boolean done() {
 ComplexBehaviour@- execute@public final void execute() {
@@ -341,7 +342,7 @@ ComplexBehaviour@- postAction@protected void postAction() {
 ComplexBehaviour@- preAction@protected void preAction() {
 ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
 ComplexBehaviour@= starting@private boolean starting =
-ComplexBehaviour@= subBehaviours@private BehaviourList subBehaviours =
+ComplexBehaviour@= subBehaviours@protected BehaviourList subBehaviours =
 
 /home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
@@ -510,16 +511,25 @@ MessageTemplate@- MatchSource@public static MessageTemplate MatchSource(String v
 MessageTemplate@+ MessageTemplate@private MessageTemplate(ACLMessage msg) {
 MessageTemplate@+ MessageTemplate@private MessageTemplate() {
 MessageTemplate@- allWildCard@private static ACLMessage allWildCard() {
-MessageTemplate@- and@public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) {
+MessageTemplate@- and@public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
+MessageTemplate@= fieldNames@private static final String[] fieldNames =
 MessageTemplate@- match@public boolean match(ACLMessage msg) {
 MessageTemplate@- or@public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
 MessageTemplate@= template@private ACLMessage template;
 MessageTemplate@= wildCard@private static final String wildCard =
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java
-Protocol@= initiatorRole@public static final int initiatorRole =
-Protocol@= responderRole@public static final int responderRole =
-Protocol@= startingPoint@private CommunicativeAction startingPoint;
+Protocol@+ Protocol@public Protocol(CommunicativeAction start) {
+Protocol@= START_NAME@private static final int START_NAME =
+Protocol@- addCA@public void addCA(CommunicativeAction ca, String name) {
+Protocol@- getAnswers@public CAGroup getAnswers(String name) {
+Protocol@- getAnswers@public CAGroup getAnswers(CommunicativeAction ca) {
+Protocol@- getCA@public CommunicativeAction getCA(String name) {
+Protocol@- getStart@public CommunicativeAction getStart() {
+Protocol@= initiatorRole@static final int initiatorRole =
+Protocol@= myElements@protected Hashtable myElements;
+Protocol@= responderRole@static final int responderRole =
+Protocol@= startingPoint@protected CommunicativeAction startingPoint;
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentGroup.java
 AgentGroup@- addMember@public void addMember(String name) {
@@ -529,3 +539,39 @@ AgentGroup@= iterator@private Enumeration iterator =
 AgentGroup@= memberNames@private Vector memberNames =
 AgentGroup@- removeMember@public void removeMember(String name) {
 AgentGroup@- resetCursor@public void resetCursor() {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
+NonDeterministicBehaviour@+ NonDeterministicBehaviour@public NonDeterministicBehaviour(Agent a) {
+NonDeterministicBehaviour@+ NonDeterministicBehaviour@public NonDeterministicBehaviour() {
+NonDeterministicBehaviour@- action@protected boolean action() {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
+SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour(Agent a) {
+SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour() {
+SequentialBehaviour@- action@protected boolean action() {
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
+CommunicativeAction@+ CommunicativeAction@public CommunicativeAction(ACLMessage msg, Protocol p) {
+CommunicativeAction@- addAnswer@public void addAnswer(CommunicativeAction ca) {
+CommunicativeAction@= allowedAnswers@private Vector allowedAnswers =
+CommunicativeAction@- getAnswers@public Enumeration getAnswers() {
+CommunicativeAction@- getMessage@public ACLMessage getMessage() {
+CommunicativeAction@- getRole@public int getRole() {
+CommunicativeAction@- makeInitiator@public void makeInitiator() {
+CommunicativeAction@- makeResponder@public void makeResponder() {
+CommunicativeAction@= myMessage@private ACLMessage myMessage;
+CommunicativeAction@= myProtocol@private Protocol myProtocol;
+CommunicativeAction@= myRole@private int myRole;
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/Standard.java
+Standard@+ Standard@private Standard() {
+Standard@- getProtocol@public static Protocol getProtocol(String name) {
+Standard@- initProtocols@private static void initProtocols() {
+Standard@= mutex@private static Object mutex =
+Standard@= stdProtocols@private static Hashtable stdProtocols =
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/MessageHandler.java
+MessageHandler@= handle@public void handle(ACLMessage msg, Interaction i);
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/MessageSelector.java
+MessageSelector@= select@public void select(MessageGroup answers, Interaction i);
