@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
+import jade.content.Concept;
+
 /**
 * @author Angelo Difino - CSELT S.p.A
 * @version $Date$ $Revision$
 */
-public class Company {
+public class Company implements Concept {
 	
 	private String 	_name;						//Company's name
 	private Address	_address;					//Headquarter's address

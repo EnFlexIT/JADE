@@ -23,30 +23,31 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
+import jade.content.Concept;
 import jade.core.AID;
 
 /**
 * @author Angelo Difino - CSELT S.p.A
 * @version $Date$ $Revision$
 */
-public class Engage {
+public class Engage implements Concept {
 	
 	private Company	_company;							//Company engager
 	private Person	_person;							//Person engaged
 	private AID   	_actor;
 	
 	//These methods are used by the JADE-framework
-	public void set_0(Person person) {
+	public void setPerson(Person person) {
 		_person=person;
 	}
-	public Person get_0() {
+	public Person getPerson() {
 		return _person;
 	}
 
-	public void set_1(Company company) {
+	public void setCompany(Company company) {
 		_company=company;
 	}
-	public Company get_1() {
+	public Company getCompany() {
 		return _company;
 	}
 

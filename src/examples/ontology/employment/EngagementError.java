@@ -24,5 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
-public class EngagementError {
+import jade.content.Predicate;
+
+public class EngagementError implements Predicate {
 }

@@ -24,14 +24,23 @@ Boston, MA  02111-1307, USA.
 package examples.ontology;
 
 import jade.lang.acl.ACLMessage;
+
 import jade.core.*;
 import jade.core.behaviours.*;
+
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
-import jade.proto.AchieveREInitiator;
-import jade.lang.sl.*;
-import jade.onto.*;
-import jade.onto.basic.*;
+
+import jade.proto.SimpleAchieveREInitiator;
+
+import jade.content.lang.Codec;
+import jade.content.lang.sl.*;
+
+import jade.domain.*;
+import jade.content.*;
+import jade.content.abs.*;
+import jade.content.onto.*;
+import jade.content.onto.basic.*;
 import examples.ontology.employment.*;
 
 import java.util.Vector;
@@ -102,39 +111,29 @@ public class RequesterAgent extends Agent {
 				a.setCity(buff.readLine());
 				p.setAddress(a);
 				
-				/* For debugging purpose only
-				Person p = new Person();
-				Address a = new Address();
-				aaa p.setName("\"Giovanni Caire\"");
-				p.setAge(new Long(33));
-				a.setStreet("\"Corso Cosenza\"");
-				a.setNumber(new Long(61));
-				a.setCity("Turin");
-				p.setAddress(a);
-				*/
-				
 				// Create an object representing the fact that person p works for company c
 				WorksFor wf = new WorksFor();
-				wf.set_0(p);
-				wf.set_1(((RequesterAgent) myAgent).c);
-			
+				wf.setPerson(p);
+				wf.setCompany(((RequesterAgent) myAgent).c);
+				
+				Ontology o = myAgent.getContentManager().lookupOntology(EmploymentOntology.NAME);		
 				// Create an ACL message to query the engager agent if the above fact is true or false
 				ACLMessage queryMsg = new ACLMessage(ACLMessage.QUERY_IF);
 				queryMsg.addReceiver(((RequesterAgent) myAgent).engager);
-				queryMsg.setLanguage(SL0Codec.NAME);
+				queryMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 				queryMsg.setOntology(EmploymentOntology.NAME);
-    		// Write the works for predicate in the :content slot of the message
-		    List l = new ArrayList(1);
-		    l.add(wf);
-		    myAgent.fillMsgContent(queryMsg, l);
+    			// Write the works for predicate in the :content slot of the message
+		    
+		    	try {
+		    		myAgent.getContentManager().fillContent(queryMsg, wf);
+		    	} catch (Exception e) {
+		    		e.printStackTrace();
+		    	}
 				
 		    // Create and add a behaviour to query the engager agent whether
 				// person p already works for company c following a FIPAQeury protocol
 				queryBehaviour = new CheckAlreadyWorkingBehaviour(myAgent, queryMsg);
 				addSubBehaviour(queryBehaviour);
-			}
-			catch (FIPAException fe) {
-				System.err.println("FIPAException in fillMsgContent: " + fe.getMessage());
 			}
 			catch (IOException ioe) { 
 				System.err.println("I/O error: " + ioe.getMessage()); 
@@ -155,7 +154,6 @@ public class RequesterAgent extends Agent {
 					    myAgent.addBehaviour(this);
 					}
 				else
-				
 				    myAgent.doDelete(); // Exit
 			}
 			catch (IOException ioe) { 
@@ -185,51 +183,49 @@ public class RequesterAgent extends Agent {
 		already working for the indicated company.
 		This is done following a FIPA-Query interaction protocol
 	*/
-	class CheckAlreadyWorkingBehaviour extends AchieveREInitiator {
+	class CheckAlreadyWorkingBehaviour extends SimpleAchieveREInitiator {
 		// Constructor
 		public CheckAlreadyWorkingBehaviour(Agent myAgent, ACLMessage queryMsg){
 			super(myAgent, queryMsg);
 			queryMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_QUERY);
 		}
 		
-		public void handleAllResultNotifications(Vector messages) {
-			ACLMessage msg = (ACLMessage) messages.get(0);
+		protected void handleInform(ACLMessage msg) {
 			try{
-				List l = myAgent.extractMsgContent(msg);
-				Object resp = l.get(0);
-				Ontology o = myAgent.lookupOntology(msg.getOntology());
-				String respName = o.getRoleName(resp.getClass());
-				if (respName == EmploymentOntology.WORKS_FOR){
+				AbsPredicate cs = (AbsPredicate)myAgent.getContentManager().extractAbsContent(msg);
+				Ontology o = myAgent.getContentManager().lookupOntology(EmploymentOntology.NAME);
+				if (cs.getTypeName().equals(EmploymentOntology.WORKS_FOR)) {
 					// The indicated person is already working for company c. 
 					// Inform the user
-					WorksFor wf = (WorksFor) resp;
-					Person p = (Person) wf.get_0();
-					Company c = (Company) wf.get_1();
+					WorksFor wf = (WorksFor)o.toObject((AbsObject)cs);
+					Person p = (Person) wf.getPerson();
+					Company c = (Company) wf.getCompany();
 					System.out.println("Person " + p.getName() + " is already working for " + c.getName());
 				}
-				else if (respName == BasicOntology.NOT){
+				else if (cs.getTypeName().equals(SLVocabulary.NOT)){
 					// The indicated person is NOT already working for company c.
 					// Get person and company details and create an object representing the engagement action
-					WorksFor wf = (WorksFor) ((Not) resp).get_0();
-					Person p = (Person) wf.get_0();
-					Company c = (Company) wf.get_1();
+					WorksFor wf = (WorksFor)o.toObject(cs.getAbsObject(SLVocabulary.NOT_WHAT));
+					Person p = (Person) wf.getPerson();
+					Company c = (Company) wf.getCompany();
 					Engage e = new Engage();
-					e.set_0(p);
-					e.set_1(c);
+					e.setPerson(p);
+					e.setCompany(c);
 					Action a = new Action();
-					a.set_0(((RequesterAgent) myAgent).engager);
-					a.set_1(e);
+					a.setActor(((RequesterAgent) myAgent).engager);
+					a.setAction(e);
 			
 					// Create an ACL message to request the above action
 					ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
 					requestMsg.addReceiver(((RequesterAgent) myAgent).engager);
-					requestMsg.setLanguage(SL0Codec.NAME);
+					requestMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 					requestMsg.setOntology(EmploymentOntology.NAME);
     			// Write the action in the :content slot of the message
-		    	l = new ArrayList(1);
-		    	l.add(a);
-		    	myAgent.fillMsgContent(requestMsg, l);
-				
+		    		
+		    		try {
+		    			myAgent.getContentManager().fillContent(requestMsg, a);
+					} catch (Exception pe) {
+					}
 					// Create and add a behaviour to request the engager agent to engage
 					// person p in company c following a FIPARequest protocol
 					((HandleEngagementBehaviour) parent).requestBehaviour = new RequestEngagementBehaviour(myAgent, requestMsg);
@@ -242,7 +238,7 @@ public class RequesterAgent extends Agent {
 				}
 				
 			} // End of try
-			catch (FIPAException fe) {
+			catch (Codec.CodecException fe) {
 				System.err.println("FIPAException in fill/extract Msgcontent:" + fe.getMessage());
 			}
 			catch (OntologyException fe) {
@@ -258,7 +254,7 @@ public class RequesterAgent extends Agent {
 		in the indicated company.
 		This is done following a FIPA-Request interaction protocol
 	*/
-	class RequestEngagementBehaviour extends AchieveREInitiator {
+	class RequestEngagementBehaviour extends SimpleAchieveREInitiator {
 		// Constructor
 		public RequestEngagementBehaviour(Agent myAgent, ACLMessage requestMsg){
 			super(myAgent, requestMsg);
@@ -278,13 +274,11 @@ public class RequesterAgent extends Agent {
 			System.out.println("Engagement failed");
 			// Get the failure reason and communicate it to the user
 			try{
-				List l = myAgent.extractMsgContent(msg);
-				Object reason = l.get(1); 
-				Ontology o = myAgent.lookupOntology(msg.getOntology());
-				String reasonName = o.getRoleName(reason.getClass());
-				System.out.println("The reason is: " + reasonName);
+				AbsPredicate absPred =(AbsPredicate)myAgent.getContentManager().extractContent(msg);
+				
+				System.out.println("The reason is: " + absPred.getTypeName());
 			}
-			catch (FIPAException fe){
+			catch (Codec.CodecException fe){
 				System.err.println("FIPAException reading failure reason: " + fe.getMessage());
 			}
 			catch (OntologyException oe){
@@ -295,13 +289,11 @@ public class RequesterAgent extends Agent {
 			System.out.println("Engagement refused");
 			// Get the refusal reason and communicate it to the user
 			try{
-				List l = myAgent.extractMsgContent(msg);
-				Object reason = l.get(1); 
-				Ontology o = myAgent.lookupOntology(msg.getOntology());
-				String reasonName = o.getRoleName(reason.getClass());
-				System.out.println("The reason is: " + reasonName);
+				AbsContentElementList list =(AbsContentElementList)myAgent.getContentManager().extractAbsContent(msg);
+				AbsPredicate absPred = (AbsPredicate)list.get(1);
+				System.out.println("The reason is: " + absPred.getTypeName());
 			}
-			catch (FIPAException fe){
+			catch (Codec.CodecException fe){
 				System.err.println("FIPAException reading refusal reason: " + fe.getMessage());
 			}
 			catch (OntologyException oe){
@@ -320,19 +312,19 @@ public class RequesterAgent extends Agent {
 	protected void setup() {
 		
 		// Register the codec for the SL0 language
-		registerLanguage(SL0Codec.NAME, new SL0Codec());	
+		getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);	
 		
 		// Register the ontology used by this application
-		registerOntology(EmploymentOntology.NAME, EmploymentOntology.instance());
+		getContentManager().registerOntology(EmploymentOntology.getInstance());
 	
 		// Get from the user the name of the agent the engagement requests
 		// will have to be sent to
 		try {
 			BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+			
 			System.out.print("ENTER the local name of the Engager agent --> ");
-			String name = buff.readLine() + '@' + getHap();
-			engager = (AID) getAID().clone();
-			engager.setName(name);
+			String name = buff.readLine();
+			engager = new AID(name, AID.ISLOCALNAME);
 		
 			// Get from the user the details of the company where people will 
 			// be engaged
@@ -353,21 +345,6 @@ public class RequesterAgent extends Agent {
 		catch (IOException ioe) { 
 			System.err.println("I/O error: " + ioe.getMessage()); 
 		}
-		
-		
-		/* For debugging purpose only
-		String name = "ea" + '@' + getHap();
-		engager = (AID) getAID().clone();
-		engager.setName(name);
-		va
-		c = new Company();
-		Address a = new Address();
-		c.setName("CSELT");
-		a.setStreet("\"Via Reiss Romoli\"");
-		a.setNumber(new Long(274));
-		a.setCity("Turin");
-		c.setAddress(a);
-		*/
 		
 		// Create and add the main behaviour of this agent
   	addBehaviour(new HandleEngagementBehaviour(this));

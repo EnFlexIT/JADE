@@ -23,17 +23,29 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
-import jade.proto.FipaQueryResponderBehaviour;
-import jade.proto.FipaRequestResponderBehaviour;
+//import jade.proto.FipaQueryResponderBehaviour;
+//import jade.proto.FipaRequestResponderBehaviour;
+import jade.proto.FIPAProtocolNames;
+import jade.proto.SimpleAchieveREResponder;
+
 import jade.core.*;
 import jade.core.behaviours.*;
-import jade.domain.FIPAException;
-import jade.onto.*;
-import jade.lang.sl.*;
+
+import jade.domain.*;
+
+import jade.content.lang.Codec;
+import jade.content.*;
+import jade.content.abs.*;
+import jade.content.onto.*;
+import jade.content.onto.basic.*;
+import jade.content.lang.sl.*;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
 import examples.ontology.employment.*;
-import jade.onto.basic.*;
+
+import jade.content.onto.basic.*;
 import jade.util.leap.*;
 
 /**
@@ -52,7 +64,7 @@ public class EngagerAgent extends Agent {
 		This behaviour handles all queries about people working for a company
 		following the FIPA-Query protocol
 	*/
-	class HandleEnganementQueriesBehaviour extends FipaQueryResponderBehaviour{
+	class HandleEnganementQueriesBehaviour extends SimpleAchieveREResponder {
 		/**
 			Constructor for the <code>HandleEnganementQueriesBehaviour</code>
 			class.
@@ -61,7 +73,7 @@ public class EngagerAgent extends Agent {
 		*/
 		public HandleEnganementQueriesBehaviour(Agent myAgent){
 			super(myAgent, MessageTemplate.and(
-												MessageTemplate.MatchProtocol("FIPA-Query"),
+												MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_QUERY),
 												MessageTemplate.MatchOntology(EmploymentOntology.NAME)));
 		}
 		
@@ -72,58 +84,55 @@ public class EngagerAgent extends Agent {
 			@return The ACL message to be sent back as reply
 			@see jade.proto.FipaQueryResponderBehaviour
 		*/
-		public ACLMessage handleQueryMessage(ACLMessage msg){
+		public ACLMessage prepareResponse(ACLMessage msg){
+			
 			ACLMessage reply = msg.createReply();
 			
 			// The QUERY message could be a QUERY-REF. In this case reply 
 			// with NOT_UNDERSTOOD
+			
 			if (msg.getPerformative() != ACLMessage.QUERY_IF){
 				reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-  			String content = "(" + msg.toString() + ")"; 
+  				String content = "(" + msg.toString() + ")"; 
 				reply.setContent(content);
 				return(reply);
 			}
 			
-			try{
+			try {
 				// Get the predicate for which the truth is queried	
-				List l = myAgent.extractMsgContent(msg);
-				Object requestedInfo = l.get(0);
-				Ontology o = myAgent.lookupOntology(msg.getOntology());
-				String requestedInfoName = o.getRoleName(requestedInfo.getClass());
+				Predicate pred = (Predicate)myAgent.getContentManager().extractContent(msg);
+				if (!(pred instanceof WorksFor)) {
 				// If the predicate for which the truth is queried is not WORKS_FOR
 				// reply with NOT_UNDERSTOOD
-				if (requestedInfoName != EmploymentOntology.WORKS_FOR){
 					reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-  				String content = "(" + msg.toString() + ")"; 
+  					String content = "(" + msg.toString() + ")"; 
 					reply.setContent(content);
 					return(reply);
 				}
 			
 				// Reply 
 				reply.setPerformative(ACLMessage.INFORM);
-				WorksFor wf = (WorksFor) requestedInfo;
-				Person p = wf.get_0();
-				Company c = wf.get_1();
-				if (((EngagerAgent) myAgent).isWorking(p, c))
+				WorksFor wf = (WorksFor)pred;
+				Person p = wf.getPerson();
+				Company c = wf.getCompany();
+				if (((EngagerAgent) myAgent).isWorking(p, c)) 
 					reply.setContent(msg.getContent());
-				else{
+				 else {
 					// Create an object representing the fact that the WORKS_FOR 
 					// predicate is NOT true.
-					Not not = new Not();
-					not.set_0(wf);
-    			// Write the NOT object in the :content slot of the reply message
-		    	l = new ArrayList(1);
-		    	l.add(not);
-		    	myAgent.fillMsgContent(reply, l);
+					Ontology o = getContentManager().lookupOntology(EmploymentOntology.NAME);
+					AbsPredicate not = new AbsPredicate(SLVocabulary.NOT);
+  					not.set(SLVocabulary.NOT_WHAT, o.fromObject(wf));
+		    		myAgent.getContentManager().fillContent(reply, not);
 				}
 			}
-			catch (FIPAException fe) {
+			catch (Codec.CodecException fe) {
 				System.err.println(myAgent.getLocalName()+" Fill/extract content unsucceeded. Reason:" + fe.getMessage());
 			}
 			catch (OntologyException oe){
 				System.err.println(myAgent.getLocalName()+" getRoleName() unsucceeded. Reason:" + oe.getMessage());
 			}
-				
+			
 			return (reply);
 			
 		} // END of handleQueryMessage() method
@@ -134,11 +143,8 @@ public class EngagerAgent extends Agent {
 	/**
 		This behaviour handles a single engagement action that has been  
 		requested following the FIPA-Request protocol
-		@see jade.proto.FipaRequestResponderBehaviour
 	*/
-	class HandleEngageBehaviour 
-		extends FipaRequestResponderBehaviour.ActionHandler 
-  	implements FipaRequestResponderBehaviour.Factory {
+	class HandleEngageBehaviour extends SimpleAchieveREResponder {
   		
   	/**
   		Constructor for the <code>HandleEngageBehaviour</code> class.
@@ -147,8 +153,8 @@ public class EngagerAgent extends Agent {
   		@param requestMsg The ACL message by means of which the engagement
   		action has been requested
   	*/
-  	public HandleEngageBehaviour(Agent myAgent, ACLMessage requestMsg){
-  		super(myAgent, requestMsg);
+  	public HandleEngageBehaviour(Agent myAgent){
+			super(myAgent, MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST));
   	}
   	
   	/**
@@ -161,91 +167,91 @@ public class EngagerAgent extends Agent {
   		@param msg The ACL message by means of which the engagement
   		action has been requested
   	*/
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new HandleEngageBehaviour(EngagerAgent.this, msg);
-    }
-    
     /**
     	This method actually handles the engagement action
      */
-		public void action(){
-			// Prepare a dummy ACLMessage used to create the content of all reply messages
-			ACLMessage tmp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-			tmp.setLanguage(SL0Codec.NAME);
-			tmp.setOntology(EmploymentOntology.NAME);
-			
-			// Get the request message
-			ACLMessage msg = getRequest();
-			
+     
+    public ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) {
+    		// Prepare a dummy ACLMessage used to create the content of all reply messages
+   			ACLMessage msg = request.createReply();
+
 			try{
-				// Get the requested action. 
-				List l = myAgent.extractMsgContent(msg);
-				Action a = (Action) l.get(0);
-				Engage e = (Engage) a.get_1();
-				Person p = e.get_0();
-				Company c = e.get_1();
+				// Get the requested action
+				Action a = (Action)myAgent.getContentManager().extractContent(request);
+				Engage e = (Engage) a.getAction();
+				Person p = e.getPerson();
+				Company c = e.getCompany();
 				
 				// Check person's age. If < 35 --> AGREE, else REFUSE and exit
-				if (p.getAge().intValue() < 35){
-					// AGREE to accomplish the engagement action without any 
-					// special condition.
-					l.clear();
-					l.add(a);
-					l.add(new TrueProposition());
-					myAgent.fillMsgContent(tmp, l);
-					sendReply(ACLMessage.AGREE,tmp.getContent());
-				}
-				else {
-					l.clear();
-					l.add(a);
-					l.add(new PersonTooOld());
-					myAgent.fillMsgContent(tmp, l);
-					sendReply(ACLMessage.REFUSE,tmp.getContent());
-					return;
-				}
-				
 				// Perform the engagement action
 				int result = ((EngagerAgent) myAgent).doEngage(p, c);
 				
 				// Reply according to the result
 				if (result > 0){
 					// OK --> INFORM action done
-					DonePredicate d = new DonePredicate();
-					d.set_0(a);
-					l.clear();
-					l.add(d);
-					myAgent.fillMsgContent(tmp, l);
-      		sendReply(ACLMessage.INFORM, tmp.getContent());
+					Done d = new Done();
+					d.setAction(a);
+					myAgent.getContentManager().fillContent(msg, d);
+					msg.setPerformative(ACLMessage.INFORM);
 				}
 				else{
 					// NOT OK --> FAILURE
-					l.clear();
+					ContentElementList l = new ContentElementList();
 					l.add(a);
 					l.add(new EngagementError());
-					myAgent.fillMsgContent(tmp, l);
-      		sendReply(ACLMessage.FAILURE, tmp.getContent());
+					myAgent.getContentManager().fillContent(msg, l);
+					msg.setPerformative(ACLMessage.FAILURE);
 				}
+				
 			}
-			catch (FIPAException fe){
+			catch (Exception fe){
 				System.out.println(myAgent.getName() + ": Error handling the engagement action.");
 				System.out.println(fe.getMessage().toString());
 			}
+			
+			// System.out.println(msg);
+			return msg;
 		}
 		
-		/**
-			This is a "one shot behaviour"
-		 */
-		public boolean done(){
-			return true;
+	     
+	public ACLMessage prepareResponse(ACLMessage request) {
+			// Prepare a dummy ACLMessage used to create the content of all reply messages
+			ACLMessage temp = request.createReply();
+						
+			try{
+				// Get the requested action. 
+				Action a = (Action)getContentManager().extractContent(request);
+				Engage e = (Engage) a.getAction();
+				Person p = e.getPerson();
+				Company c = e.getCompany();
+			
+				// Check person's age. If < 35 --> AGREE, else REFUSE and exit
+				if (p.getAge().intValue() < 35){
+					// AGREE to accomplish the engagement action without any 
+					// special condition.
+					ContentElementList l = new ContentElementList();
+					l.add(a);
+					l.add(new TrueProposition());
+					getContentManager().fillContent(temp, l);
+					temp.setPerformative(ACLMessage.AGREE);
+				}
+				else {
+					ContentElementList l = new ContentElementList();
+					l.add(a);
+					l.add(new PersonTooOld());
+					getContentManager().fillContent(temp, l);
+					temp.setPerformative(ACLMessage.REFUSE);
+				}
+
+			} catch (Exception fe){
+				fe.printStackTrace();
+				System.out.println(getName() + ": Error handling the engagement action.");
+				System.out.println(fe.getMessage().toString());
+			}
+			
+			return temp;
 		}
-		
-		/**
-			No need for any specific action to reset this behaviour 
-		 */
-		public void reset(){
-		}
-	}
-	
+	}	
 	
 	// AGENT LOCAL VARIABLES
 	private Company representedCompany; // The company on behalf of which this agent is able to engage people 
@@ -270,21 +276,22 @@ public class EngagerAgent extends Agent {
 	protected void setup() {
 		
 		// Register the codec for the SL0 language
-		registerLanguage(SL0Codec.NAME, new SL0Codec());	
+		getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);	
 		
 		// Register the ontology used by this application
-		registerOntology(EmploymentOntology.NAME, EmploymentOntology.instance());
+		getContentManager().registerOntology(EmploymentOntology.getInstance());
 			
 		// Create and add the behaviour for handling QUERIES using the employment-ontology
-  	addBehaviour(new HandleEnganementQueriesBehaviour(this));
+  		addBehaviour(new HandleEnganementQueriesBehaviour(this));
   	
 		// Create and add the behaviour for handling REQUESTS using the employment-ontology
 		MessageTemplate mt = MessageTemplate.and(
 														MessageTemplate.MatchProtocol("FIPA-Request"),
 														MessageTemplate.MatchOntology(EmploymentOntology.NAME));
-  	FipaRequestResponderBehaviour b = new FipaRequestResponderBehaviour(this, mt);
-  	b.registerFactory(EmploymentOntology.ENGAGE, new HandleEngageBehaviour(this, new ACLMessage(ACLMessage.NOT_UNDERSTOOD)));
+  	HandleEnganementQueriesBehaviour b = new HandleEnganementQueriesBehaviour(this);
+  	HandleEngageBehaviour c = new HandleEngageBehaviour(this);
   	addBehaviour(b);
+  	addBehaviour(c);
 	}
 	
 	// AGENT METHODS

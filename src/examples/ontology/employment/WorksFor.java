@@ -23,27 +23,29 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
+import jade.content.Predicate;
+
 /**
 * @author Giovanni Caire - CSELT S.p.A
 * @version $Date$ $Revision$
 */
-public class WorksFor {
+public class WorksFor implements Predicate {
 	
 	private Company	_company;							//Company employer
 	private Person	_person;							//Person employee
 	
 	//These methods are used by the JADE-framework
-	public void set_0(Person person) {
+	public void setPerson(Person person) {
 		_person=person;
 	}
-	public Person get_0() {
+	public Person getPerson() {
 		return _person;
 	}
 	
-	public void set_1(Company company) {
+	public void setCompany(Company company) {
 		_company=company;
 	}
-	public Company get_1() {
+	public Company getCompany() {
 		return _company;
 	}
 

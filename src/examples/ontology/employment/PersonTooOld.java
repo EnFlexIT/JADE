@@ -24,5 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
-public class PersonTooOld {
+import jade.content.Predicate;
+
+public class PersonTooOld implements Predicate {
 }

@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology.employment;
 
+import jade.content.Predicate;
+
 /**
 * @author Angelo Difino - CSELT S.p.A
 * @version $Date$ $Revision$
 */
-public class Person {
+public class Person implements Predicate {
 	
 	private String 	_name;						//Person's name
 	private Long    _age;							//Person's age
