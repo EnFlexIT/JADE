@@ -175,7 +175,7 @@ class RealMobilityManager implements MobilityManager {
      */
     public void moveAgent(AID agentID, 
                           Location where) throws NotFoundException {
-        Agent agent = localAgents.get(agentID);
+        Agent agent = localAgents.acquire(agentID);
 
         if (agent == null) {
             throw new NotFoundException("MoveAgent failed to find " 
@@ -183,6 +183,7 @@ class RealMobilityManager implements MobilityManager {
         } 
 
         agent.doMove(where);
+	localAgents.release(agentID);
     } 
 
     /**
@@ -190,7 +191,7 @@ class RealMobilityManager implements MobilityManager {
      */
     public void copyAgent(AID agentID, Location where, 
                           String newName) throws NotFoundException {
-        Agent agent = localAgents.get(agentID);
+        Agent agent = localAgents.acquire(agentID);
 
         if (agent == null) {
             throw new NotFoundException("CopyAgent failed to find " 
@@ -198,132 +199,126 @@ class RealMobilityManager implements MobilityManager {
         } 
 
         agent.doClone(where, newName);
-    } 
+	localAgents.release(agentID);
+    }
 
     /**
        @see jade.core.MobilityManager#handleTransferResult()
      */
     public void handleTransferResult(AID agentID, boolean result, 
                                      List messages) throws NotFoundException {
-        synchronized (localAgents) {
-            Agent agent = localAgents.get(agentID);
+	Agent agent = localAgents.acquire(agentID);
 
-            if ((agent == null) || (agent.getState() != Agent.AP_TRANSIT)) {
-                throw new NotFoundException("handleTransferResult() unable to find a suitable agent.");
-            } 
+	if ((agent == null) || (agent.getState() != Agent.AP_TRANSIT)) {
+	    localAgents.release(agentID);
+	    throw new NotFoundException("handleTransferResult() unable to find a suitable agent.");
+	} 
 
-            if (result == TRANSFER_ABORT) {
-                localAgents.remove(agentID);
-            } 
-            else {
+	if (result == TRANSFER_ABORT) {
+	    localAgents.remove(agentID);
+	} 
+	else {
 
-                // Insert received messages at the start of the queue
-                for (int i = messages.size(); i > 0; i--) {
-                    agent.putBack((ACLMessage) messages.get(i - 1));
-                } 
+	    // Insert received messages at the start of the queue
+	    for (int i = messages.size(); i > 0; i--) {
+		agent.putBack((ACLMessage) messages.get(i - 1));
+	    } 
 
-                agent.powerUp(agentID, myResourceManager);
-            } 
-        } 
+	    agent.powerUp(agentID, myResourceManager);
+	    localAgents.release(agentID);
+	} 
     } 
 
     /**
        @see jade.core.MobilityManager#handleMove()
      */
     public void handleMove(AID agentID, Location where) {
-        // Mutual exclusion with AgentContainerImpl.dispatch() method
-        synchronized (localAgents) {
-            try {
-                String proto = where.getProtocol();
+	try {
+	    String proto = where.getProtocol();
 
-								if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
-                    throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
-                } 
+	    if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
+		throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
+	    }
 
-                AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
-                Agent          a = localAgents.get(agentID);
+	    AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
+	    Agent a = localAgents.acquire(agentID);
 
-                if (a == null) {
-                    throw new NotFoundException("Internal error: handleMove() called with a wrong name !!!");
-                } 
+	    if (a == null) {
+		throw new NotFoundException("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
+	    } 
 
-                // Handle special 'running to stand still' case
-                if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
-                    a.doExecute();
-                    return;
-                } 
+	    // Handle special 'running to stand still' case
+	    if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
+		a.doExecute();
+		localAgents.release(agentID);
+		return;
+	    } 
 
-                // Serialize the agent
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                try {
-                    ObjectOutputStream encoder = new ObjectOutputStream(out);
-                    encoder.writeObject(a);
-                } 
-                catch (IOException ioe) {
-                    ioe.printStackTrace();
-                } 
-                byte[]         bytes = out.toByteArray();
+	    // Serialize the agent
+	    ByteArrayOutputStream out = new ByteArrayOutputStream();
+	    try {
+		ObjectOutputStream encoder = new ObjectOutputStream(out);
+		encoder.writeObject(a);
+	    } 
+	    catch (IOException ioe) {
+		ioe.printStackTrace();
+	    } 
+	    byte[]         bytes = out.toByteArray();
 
-                // Gets the container where the agent classes can be retrieved
-                AgentContainer classSite = (AgentContainer) sites.get(a);
-                if (classSite == null) {    
-                	// The agent was born on this container
-                  classSite = myContainer;
-                } 
+	    // Gets the container where the agent classes can be retrieved
+	    AgentContainer classSite = (AgentContainer) sites.get(a);
+	    if (classSite == null) {    
+		// The agent was born on this container
+		classSite = myContainer;
+	    } 
 
-                // Create the agent on the destination container
-                dest.createAgent(agentID, bytes, classSite, AgentContainer.NOSTART);
+	    // Create the agent on the destination container
+	    dest.createAgent(agentID, bytes, classSite, AgentContainer.NOSTART);
 
-                // Perform an atomic transaction for agent identity transfer
-                boolean transferResult = myProfile.getPlatform().transferIdentity(agentID, 
-                        (ContainerID) myContainer.here(), (ContainerID) where);
+	    // Perform an atomic transaction for agent identity transfer
+	    boolean transferResult = myProfile.getPlatform().transferIdentity(agentID, 
+               (ContainerID) myContainer.here(), (ContainerID) where);
                         
-                List    messages = new ArrayList();
-                if (transferResult == TRANSFER_COMMIT) {
-                    // Send received messages to the destination container
-                    Iterator i = a.messages();
-                    while (i.hasNext()) {
-                        messages.add(i.next());
-                    } 
+	    List    messages = new ArrayList();
+	    if (transferResult == TRANSFER_COMMIT) {
+		// Send received messages to the destination container
+		Iterator i = a.messages();
+		while (i.hasNext()) {
+		    messages.add(i.next());
+		} 
 
-                    dest.postTransferResult(agentID, transferResult, messages);
+		dest.postTransferResult(agentID, transferResult, messages);
 
-                    // From now on, messages will be routed to the new agent
-                    a.doGone();
-                    localAgents.remove(agentID);
-                   	sites.remove(a);
-                } 
-                else {
-                    a.doExecute();
-                    dest.postTransferResult(agentID, transferResult, messages);
-                } 
-            } 
-      			catch(IMTPException imtpe) {
-							imtpe.printStackTrace();
-							// FIXME: Complete undo on exception
-							Agent a = localAgents.get(agentID);
-							if(a != null){
-	  						a.doDelete();
-							}
-      			}
-      			catch(NotFoundException nfe) {
-							nfe.printStackTrace();
-							// FIXME: Complete undo on exception
-							Agent a = localAgents.get(agentID);
-							if(a != null) {
-	  						a.doDelete();
-							}
-      			}
-      			catch(ProfileException pe) {
-							pe.printStackTrace();
-							// FIXME: Complete undo on exception
-							Agent a = localAgents.get(agentID);
-							if(a != null) {
-	  						a.doDelete();
-							}
-      			}
-        }  // END of synchronized
-    } 
+		// From now on, messages will be routed to the new agent
+		a.doGone();
+		localAgents.release(agentID);
+
+		localAgents.remove(agentID);
+		sites.remove(a);
+	    } 
+	    else {
+		a.doExecute();
+		dest.postTransferResult(agentID, transferResult, messages);
+		localAgents.release(agentID);
+	    } 
+	}
+	catch(IMTPException imtpe) {
+	    imtpe.printStackTrace();
+	    // FIXME: Complete undo on exception
+	}
+	catch(NotFoundException nfe) {
+	    nfe.printStackTrace();
+	    System.exit(0);
+	    // FIXME: Complete undo on exception
+	}
+	catch(ProfileException pe) {
+	    pe.printStackTrace();
+	    // FIXME: Complete undo on exception
+	}
+	finally {
+	  localAgents.release(agentID);
+	}
+    }
 
     /**
        @see jade.core.MobilityManager#handleClone()
@@ -337,7 +332,7 @@ class RealMobilityManager implements MobilityManager {
             } 
 
             AgentContainer dest = myProfile.getPlatform().lookup((ContainerID) where);
-            Agent          a = localAgents.get(agentID);
+            Agent          a = localAgents.acquire(agentID);
 
             if (a == null) {
                 throw new NotFoundException("Internal error: handleClone() called with a wrong name !!!");
@@ -374,6 +369,9 @@ class RealMobilityManager implements MobilityManager {
     		catch(ProfileException pe) {
       		pe.printStackTrace();
     		}
+	finally {
+	    localAgents.release(agentID);
+	}
     } 
 
 }
