@@ -12,7 +12,10 @@ ant testsuite - to compile test Suite
   <property name="classpath" value="classes"/>
   <property name="src" value="src"/>
   <property name="dest" value="classes"/>
-
+  <!--
+  <property name="separate-classpath" value="add-ons/leap/pjava/lib/JadeLeap.jar"/>
+	-->
+	
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -27,14 +30,15 @@ ant testsuite - to compile test Suite
   	</echo>
   	
   	<!-- Compile the java code source files -->
-  	
   	<javac srcdir="${src}/test" 
   	       destdir="${dest}" 
-  	       excludes="**/TestAgent.java"
   	       classpath="${classpath}" 
   	       optimize="on" 
-  	       deprecation="off"/>
-
+  	       deprecation="off">
+  		<exclude name="TestAgent.java"/>
+  		<exclude name="mobility/separate/**"/>
+  	</javac>
+  				
   	<!-- RMIC the TSDaemon -->
     <rmic classname="test.common.remote.TSDaemon" base="${dest}"/>
     
@@ -72,8 +76,35 @@ ant testsuite - to compile test Suite
 				<include name="**/test/**"/>
 				<include name="**/examples/mobile/**"/>
 				<include name="**/examples/content/**"/>
+  			<exclude name="**/test/mobility/separate/**"/>
 			</fileset>
 		</jar>
+	</target>
+	
+  <!--  __________________________________________________
+                            separate
+        __________________________________________________ -->
+  <target name="separate" depends="init" 
+          description="Compile files that must be in a separate classpath for mobility tests">
+  	<echo>NOTE that this target should be executed setting JAVA_HOME to jdk1.3 or earlier versions of Java to avoid problems when testing mobility on a PJAVA container
+  	</echo>
+  	
+  	<javac srcdir="${src}/test" 
+  	       destdir="${dest}" 
+  	       includes="**/mobility/separate/**"
+  	       classpath="${classpath}"
+  	       target="1.1"
+	         compiler="javac1.1"
+  	       deprecation="off"/>
+  	       
+		<delete file="${src}/test/separate.jar" quiet="true"/>
+		<jar jarfile="${src}/test/separate.jar">
+			<fileset dir="${dest}">
+  			<include name="**/test/mobility/separate/**"/>
+			</fileset>
+		</jar>
+		
+		<delete dir = "${dest}/test/mobility/separate"/>
 	</target>
 	
   <!--  __________________________________________________
