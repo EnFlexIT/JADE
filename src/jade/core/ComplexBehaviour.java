@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/02/15 11:44:19  rimassa
+  Changed removeBehaviour() method name to removeSubBehaviour().
+
   Revision 1.10  1999/02/14 23:15:06  rimassa
   Changed addBehaviour() method name to addSubBehaviour() to avoid
   confusion with Agent.addBehaviour().
@@ -205,7 +208,7 @@ public abstract class ComplexBehaviour extends Behaviour {
     b.setParent(this);
   }
 
-  public void removeBehaviour(Behaviour b) {
+  public void removeSubBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
     if(rc) {
       b.setParent(null);
