@@ -53,7 +53,6 @@
 			<HowWorkTest> It includes a concept with an attribute of type byte-sequence.</HowWorkTest>
 			<WhenTestPass> 
 				Test passed if no exception is fired.
-				<br></br><em>NOTE: When using the SL language this test is PASSED if the above operation fails</em>
 			</WhenTestPass>
 		</Test>		
 		<Test name="Agent Action" skip="false">
