@@ -26,13 +26,14 @@ package jade.tools.rma;
 import java.awt.Frame;
 
 import jade.gui.AgentTree;
-import jade.Boot;
+import jade.BootHelper;
 import jade.core.Specifier;
 
 import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.Enumeration;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
 
 /**
    
@@ -69,12 +70,13 @@ class StartNewAgentAction extends ContainerAction {
       {
       	  String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
       	  //not remove '"'and '\'
-      	  ArrayList al = Boot.T2(agentSpecifier,true);
+	  BootHelper helperParser = new BootHelper();
+      	  Vector al = helperParser.T2(agentSpecifier,true);
       	  
       	  ArrayList argList = new ArrayList();
       	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
-	  Iterator it = Boot.getCommandLineAgentSpecifiers(al);
-	  Object[] arg = (it.hasNext()?((Specifier)it.next()).getArgs():new Object[0]);
+	  Enumeration it = helperParser.getCommandLineAgentSpecifiers(al);
+	  Object[] arg = (it.hasMoreElements()?((Specifier)it.nextElement()).getArgs():new Object[0]);
       	  myRMA.newAgent(agentName, className, arg, container);
       }
     }

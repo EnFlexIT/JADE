@@ -30,6 +30,7 @@ import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import jade.util.BasicProperties;
 import java.io.IOException;
 import java.net.*;
 import java.util.Hashtable;
@@ -50,7 +51,15 @@ import java.util.Hashtable;
  */
 public class ProfileImpl extends Profile {
 
-  private Properties  props = null;
+  // HP Patch begin ----------------------------------------------------------------------------------
+  private BasicProperties  props = null;
+  // private Properties props = null;
+
+  /**
+   * Default communication port number.
+   */
+  public static final int DEFAULT_PORT = 1099;
+  // HP Patch end ------------------------------------------------------------------------------------
 
 
   private Platform        myPlatform = null;
@@ -60,6 +69,10 @@ public class ProfileImpl extends Profile {
   private NotificationManager myNotificationManager = null;
   private ResourceManager myResourceManager = null;
 
+  public ProfileImpl(BasicProperties aProp) {
+    props = aProp;
+  }
+
   /**
    * Creates a Profile implementation with the default configuration
    * for launching a main-container on the localhost, 
@@ -67,7 +80,7 @@ public class ProfileImpl extends Profile {
    * iiop MTP.
    */
   public ProfileImpl() {
-    props = new Properties();
+    props = new BasicProperties();
 
     try {
       // Set default values
@@ -75,8 +88,8 @@ public class ProfileImpl extends Profile {
       props.setProperty(MAIN, "true");
       props.setProperty(MAIN_PROTO, "rmi");
       props.setProperty(MAIN_HOST, host);
-      props.setProperty(MAIN_PORT, "1099");
-      props.setProperty(PLATFORM_ID, host+":1099/JADE");
+      props.setProperty(MAIN_PORT, Integer.toString(DEFAULT_PORT));
+      updatePlatformID();
       Specifier s = new Specifier();
       s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
       List l = new ArrayList(1);
@@ -108,16 +121,53 @@ public class ProfileImpl extends Profile {
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
      	if(port > 0)
-       		props.setProperty(MAIN_PORT, Integer.toString(port));
+       		props.setIntProperty(MAIN_PORT, port);
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
-     	else {
-       		String h = props.getProperty(MAIN_HOST);
-       		String p = props.getProperty(MAIN_PORT);
-       		props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
-     	}
+     	else 
+	    updatePlatformID();
  	}
-      
+
+    public void updatePlatformID() {
+	String h = props.getProperty(MAIN_HOST);
+	String p = props.getProperty(MAIN_PORT);
+	props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
+    }
+
+    /**
+     * Copy a collection of properties into this profile.
+     * @param source The collection to be copied.
+     */
+    void copyProperties(BasicProperties source) {
+        props.copyProperties(source);
+    }
+  
+    /**
+     * Return the underlying properties collection.
+     * @return BasicProperties The properties collection.
+     */
+    public BasicProperties getProperties() {
+        return props;
+    }      
+
+    /** HP.
+    private MainContainerImpl theMainContainer = null;
+
+    public void addPlatformListener(AgentManager.Listener aListener) throws NotFoundException {
+        if (theMainContainer == null) {
+            throw new NotFoundException("Unable to add listener, main container not set");
+        }
+        theMainContainer.addListener(aListener);
+    }
+
+    public void removePlatformListener(AgentManager.Listener aListener) throws NotFoundException {
+        if (theMainContainer == null) {
+            throw new NotFoundException("Unable to remove listener, main container not set");
+        }
+        theMainContainer.removeListener(aListener);
+    }
+    **/
+
 
   /**
    * Assign the given value to the given property name.
@@ -129,8 +179,6 @@ public class ProfileImpl extends Profile {
 	props.put(key, value);
     }
 
-
-
   /**
    * Assign the given property value to the given property name
    *
@@ -140,6 +188,8 @@ public class ProfileImpl extends Profile {
   public void setSpecifiers(String key, List value) {
     props.put(key, value);
   } 
+
+
 
   /**
    */
@@ -212,12 +262,13 @@ public class ProfileImpl extends Profile {
   	try {
 	    String isMain = props.getProperty(MAIN);
   	  if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
-    	  // The real Main
-      	myPlatform = new MainContainerImpl(this);
+	      // The real Main
+	      myPlatform = new MainContainerImpl(this);
+	      // HP myPlatform = theMainContainer = new MainContainerImpl(this);
     	} 
     	else {
-      	// A proxy to the Main
-      	myPlatform = new MainContainerProxy(this);
+	    // A proxy to the Main
+	    myPlatform = new MainContainerProxy(this);
     	}
   	}
   	catch (IMTPException imtpe) {
