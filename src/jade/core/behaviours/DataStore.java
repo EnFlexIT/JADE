@@ -19,15 +19,27 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.behaviours;
 
+import jade.util.leap.*;
+
 /**
    @author Giovanni Caire - TILab S.p.A.
    @version $Date$ $Revision$
 **/
 
-public class DataStore extends jade.util.leap.HashMap {
+public class DataStore extends HashMap {
 
     public DataStore() {
 	super();
-	}
+    }
+    
+    /** 
+       Remove all data from this </code>DataStore</code>
+     */
+    public void clear() {
+    	Iterator it = keySet().iterator();
+    	while (it.hasNext()) {
+    		remove(it.next());
+    	}
+    }
        
 }
