@@ -27,28 +27,60 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 /**
- * This class contains a set of static methods that allow to convert
- * to/from the Date Time format specified by ISO8601 and adopted by FIPA.
- 
- 
- @author Fabio Bellifemine - CSELT
- @version $Date$ $Revision$
-
+ * This class contains a set of static methods that convert
+ * to/from the Date Time format adopted by FIPA.
+ * The FIPA format is based on ISO8601, with the addition of milliseconds.
+ * Using the <code>java.text.SimpleDateFormat</code> notation, it is: 
+ * <code>yyyyMMdd'T'HHmmssSSS'Z'</code>
+ * , where the <code>'T'</code> serves to separate the Day from the Time, 
+ * and the <code>'Z'</code> indicates that the time is in UTC.
+ *
+ * The FIPA specs permit either local or UTC time, however, they do 
+ * express a preference for UTC time (this is particularly helpful when 
+ * passing messages between agents running on machines in different timezones).
+ * <UL>
+ * <LI> Older versions of this code:
+ *      <UL>
+ *      <LI> read DateTime as local time
+ *      <LI> wrote DateTime as local time
+ *      </UL>
+ * <LI> Current versions of this code:
+ *      <UL>
+ *      <LI> read DateTime in both local time and UTC time
+ *      <LI> write DateTime as UTC time by default (can generate local time 
+ *           if <code>toString(false)</code> is called). 
+ *      </UL>
+ * </UL> 
+ *
+ * @author Fabio Bellifemine - CSELT
+ * @version $Date$ $Revision$
+ * Modified by:
+ * @author Craig Sayers, HP Labs, Palo Alto, California
  */
 public class ISO8601 {
 
+    
+    private static SimpleDateFormat utcDateFormat;
+    private static SimpleDateFormat localDateFormat;
+ 
+    /* Initialize the date formats for later use in toDate and toString */
+    static {
+        utcDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS'Z'");
+        utcDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        localDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS");
+    }
+    
   /**
-   * This method converts a String, that represents a Date Time Token
-   * in IS8601 format, to a java.util.Date object.
+   * This method converts a FIPA DateTime token to a <code>java.util.Date</code>.  
+   * It will accept both local and UTC time formats.
    */
 public static Date toDate(String dateTimeToken) throws Exception {
     if (dateTimeToken == null)
       return new Date();
-    else {
-      int pos;
-      if(dateTimeToken.substring(0, 1).equals("+")) {
-	// add current time
-	pos = 1;
+    else if( dateTimeToken.startsWith("+") ) {
+	// add current time for backwards compatability - does the FIPA spec
+        // permit a DateTime token starting with '+'?
+	int pos = 1;
 	long millisec = Integer.parseInt(dateTimeToken.substring(pos, pos + 4))*365*24*60*60*1000+
 	  Integer.parseInt(dateTimeToken.substring(pos + 4, pos + 6))*30*24*60*60*1000+
 	  Integer.parseInt(dateTimeToken.substring(pos + 6, pos + 8))*24*60*60*1000+
@@ -56,30 +88,48 @@ public static Date toDate(String dateTimeToken) throws Exception {
 	  Integer.parseInt(dateTimeToken.substring(pos + 11, pos + 13))*60*1000+
 	  Integer.parseInt(dateTimeToken.substring(pos + 13, pos + 15))*1000;
 	return(new Date((new Date()).getTime() + millisec));
-      } else {
-    	pos = 0;
-	GregorianCalendar cal = new GregorianCalendar(
-		Integer.parseInt(dateTimeToken.substring(pos, pos + 4)),
-		Integer.parseInt(dateTimeToken.substring(pos + 4, pos + 6))-1,
-		Integer.parseInt(dateTimeToken.substring(pos + 6, pos + 8)),
-		Integer.parseInt(dateTimeToken.substring(pos + 9, pos +11)),
-		Integer.parseInt(dateTimeToken.substring(pos + 11, pos + 13)),
-		Integer.parseInt(dateTimeToken.substring(pos + 13, pos + 15))
-		);
-	return cal.getTime();
-      }
+    }        
+    else if( dateTimeToken.endsWith("Z")) {
+        // Preferred format is to pass UTC times, indicated by trailing 'Z'
+        return utcDateFormat.parse(dateTimeToken);
+    }
+    else {
+        // Alternate format is to use local times - no trailing 'Z'
+        return localDateFormat.parse(dateTimeToken);
     }
 }
 
   /**
-   * This method converts a <code>java.util.Date</code> into a String
-   * in ISO8601 format.
-   * @return a String, e.g. "19640625T073000000" to represent the 7:30 of the
-   * 25th of June of 1964.
+   * This method converts a <code>java.util.Date</code> into a FIPA DateTime token.
+   *
+   * Note: the current default behaviour is to generate dates in UTC time.
+   * see <code>ISO8601.useUTCtime</code> for details.
+   * @param useUTCtime controls the style used by <code>toString</code>,
+   *  'true' generates tokens using UTC time, 'false' using local time.
+   * If you need to send messages to agents compiled with older versions 
+   * of Jade, then set this to <code>false</code>.
+   * @return a String, e.g. "19640625T073000000Z" to represent 7:30AM on the
+   * 25th of June of 1964, UTC time.
+   */
+public static String toString(Date d, boolean useUTCtime){
+    if( useUTCtime ) {
+        // perferred style is to generate UTC times, indicated by trailing 'Z'
+        return utcDateFormat.format(d);
+    } else {
+        // for backwards compatability, also support generating local times.
+        return localDateFormat.format(d);
+    }
+}
+
+
+  /**
+   * This method converts a <code>java.util.Date</code> into a FIPA DateTime 
+   * token by using the UTC time.
+   * @return a String, e.g. "19640625T073000000Z" to represent 7:30AM on the
+   * 25th of June of 1964, UTC time.
    */
 public static String toString(Date d){
-   SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS");
-   return formatter.format(d);
+    return toString(d, true);
 }
 
   /**
@@ -143,23 +193,33 @@ private static String zeroPaddingNumber(long value, int digits) {
    * <code> java jade.lang.acl.ISO8601 <yourtoken> </code>
    */
 public static void main(String argv[]) {
-  System.out.println(argv[0]);
-  System.out.println("USAGE: java pacselt.ISO8601 DateTimetoken");
-  try {
-    System.out.println("ISO8601.toDate("+argv[0]+") returns:" + ISO8601.toDate(argv[0]));
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
-  
-  try {
-    System.out.println("ISO8601.toRelativeTimeString("+argv[0]+") returns:" + ISO8601.toRelativeTimeString(Long.parseLong(argv[0])));
-  
-    Date d = new Date(Integer.parseInt(argv[0]));
-    System.out.println("ISO8601.toString("+d+") returns:" + ISO8601.toString(d));
-  } catch (Exception e1) {
-  }
-  
-  Date d1 = new Date();
-  System.out.println("ISO8601.toString("+d1+") returns:" + ISO8601.toString(d1));
+    System.out.println("USAGE: java ISO8601 DateTimetoken");
+    System.out.println(argv[0]);
+    try {
+        System.out.println("Testing default behaviour (using UTC DateTime):");
+        System.out.println("  ISO8601.toDate("+argv[0]+") returns:" + ISO8601.toDate(argv[0]));
+        System.out.println("  converting that back to a string gives:" + ISO8601.toString(ISO8601.toDate(argv[0])));
+        Date d1 = new Date();
+        System.out.println("  ISO8601.toString( new Date() ) returns:" + ISO8601.toString(d1));
+        System.out.println("  converting that back to a date gives:" + ISO8601.toDate(ISO8601.toString(d1)));
+        
+        System.out.println("Testing local time (for backwards compatability):");
+        // ISO8601.useUTCtime = false;
+        System.out.println("  ISO8601.toDate("+argv[0]+") returns:" + ISO8601.toDate(argv[0]));
+        System.out.println("  converting that back to a string gives:" + ISO8601.toString(ISO8601.toDate(argv[0]), false));
+        System.out.println("  ISO8601.toString( new Date(), false ) returns:" + ISO8601.toString(d1, false));
+        System.out.println("  converting that back to a date gives:" + ISO8601.toDate(ISO8601.toString(d1, false)));
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    
+    try {
+        System.out.println("ISO8601.toRelativeTimeString("+argv[0]+") returns:" + ISO8601.toRelativeTimeString(Long.parseLong(argv[0])));
+        
+        Date d = new Date(Integer.parseInt(argv[0]));
+        System.out.println("ISO8601.toString("+d+", false) returns:" + ISO8601.toString(d, false));
+    } catch (Exception e1) {
+    }
+    
 }
 }
