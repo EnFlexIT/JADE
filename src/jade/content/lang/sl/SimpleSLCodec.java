@@ -13,6 +13,7 @@ import jade.util.leap.Iterator;
 import java.util.Date;
 
 class SimpleSLCodec extends StringCodec {
+	private static final String illegalFirstChar = "#0123456789:-?";
 	private int indent = 0;
 	
 	public SimpleSLCodec() {
@@ -160,13 +161,13 @@ class SimpleSLCodec extends StringCodec {
 	    return false; // words must have at least one character
 		}
 		
-		String illegalFirstChar = new String("#0123456789:-?"); 
+		//String illegalFirstChar = new String("#0123456789:-?"); 
 		if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 ) {
 	    return false;
 		}
 		for( int i=0; i< s.length(); i++) {
-	    if( s.charAt(i) == '"' || s.charAt(i) == '(' || 
-					s.charAt(i) == ')' || s.charAt(i) <= 0x20 ) {
+			char c = s.charAt(i);
+	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 ) {
 				return false;
 			}
 		}		
