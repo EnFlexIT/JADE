@@ -34,6 +34,9 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import jade.lang.acl.ACLMessage;
 
+import jade.security.Authority;
+import jade.security.AuthException;
+
 /**
  * Class declaration
  */
@@ -138,6 +141,30 @@ class RealMobilityManager implements MobilityManager {
         ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSite);
         Agent             instance = (Agent) in.readObject();
 
+
+		// check for security permissions - see also: RealMobilityManager.createAgent()
+        // agent is about to be created on the destination Container, 
+        // let's check for permissions before
+
+		// does the agent come from a MOVE or a CLONE ?
+		switch (instance.getState()) {
+		case Agent.AP_TRANSIT:  // MOVED
+		  // checking CONTAINER_MOVE_TO...
+		  myContainer.getAuthority().checkAction(
+		  		Authority.CONTAINER_MOVE_TO, 
+				myContainer.getContainerPrincipal(), 
+		  		instance.getCertificateFolder()  );
+		break;
+		case Agent.AP_COPY:  // CLONED
+		  // checking CONTAINER_CLONE_TO...
+		  myContainer.getAuthority().checkAction(
+		  		Authority.CONTAINER_CLONE_TO, 
+		  		myContainer.getContainerPrincipal(), 
+		  		instance.getCertificateFolder()  );
+		break;
+		} // end switch
+    
+
         // Store the container where the classes for this agent can be
         // retrieved
         sites.put(instance, classSite);
@@ -175,6 +202,7 @@ class RealMobilityManager implements MobilityManager {
      */
     public void moveAgent(AID agentID, 
                           Location where) throws NotFoundException {
+                          	
         Agent agent = localAgents.acquire(agentID);
 
         if (agent == null) {
@@ -236,7 +264,8 @@ class RealMobilityManager implements MobilityManager {
     /**
        @see jade.core.MobilityManager#handleMove()
      */
-    public void handleMove(AID agentID, Location where) {
+    public void handleMove(AID agentID, Location where) throws AuthException {
+
         Agent a = null;
         try {
 	    String proto = where.getProtocol();
@@ -249,6 +278,16 @@ class RealMobilityManager implements MobilityManager {
 	    if (a == null) {
 		throw new NotFoundException("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
 	    } 
+
+
+        // check for security permissions - see also: RealMobilityManager.createAgent()
+        // agent is about to leave, let's check for permissions before
+		myContainer.getAuthority().checkAction(
+				Authority.AGENT_MOVE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
+
+		myContainer.getAuthority().checkAction(
+				Authority.CONTAINER_MOVE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
+
 
 	    AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
 
@@ -332,7 +371,7 @@ class RealMobilityManager implements MobilityManager {
     /**
        @see jade.core.MobilityManager#handleClone()
      */
-    public void handleClone(AID agentID, Location where, String newName) { 
+    public void handleClone(AID agentID, Location where, String newName) throws AuthException { 
         try {
             String proto = where.getProtocol();
 
@@ -346,6 +385,15 @@ class RealMobilityManager implements MobilityManager {
             if (a == null) {
                 throw new NotFoundException("Internal error: handleClone() called with a wrong name !!!");
             } 
+
+	        // check for security permissions - see also: RealMobilityManager.createAgent()
+	        // agent is about to be cloned, let's check for permissions before
+			myContainer.getAuthority().checkAction(
+					Authority.AGENT_CLONE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
+	
+			myContainer.getAuthority().checkAction(
+					Authority.CONTAINER_CLONE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
+
 
             // Serialize the agent
             ByteArrayOutputStream out = new ByteArrayOutputStream();
