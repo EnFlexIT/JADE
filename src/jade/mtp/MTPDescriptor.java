@@ -30,17 +30,23 @@ import jade.util.leap.Serializable;
 
 public class MTPDescriptor implements Serializable {
   private String name;
+  private String className;
   private String[] addresses;
   private String[] protoNames;
 
-  public MTPDescriptor(String n, String[] a, String[] pn) {
+  public MTPDescriptor(String n, String cn, String[] a, String[] pn) {
     name = n;
+    className = cn;
     addresses = a;
     protoNames = pn;
   }
 
   public String getName() {
     return name;
+  }
+
+  public String getClassName() {
+      return className;
   }
 
   public String[] getAddresses() {
@@ -83,6 +89,51 @@ public class MTPDescriptor implements Serializable {
   		return false;
   	}
   }
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private MTPDescriptor() {
+    }
+
+    // For persistence service
+    private void setName(String n) {
+	name = n;
+    }
+
+    // For persistence service
+    private void setClassName(String cn) {
+	className = cn;
+    }
+
+    // For persistence service
+    private void setAddresses(String[] a) {
+	addresses = a;
+    }
+
+    // For persistence service
+    private void setSupportedProtocols(String[] sp) {
+	protoNames = sp;
+    }
+
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
+
+    //#MIDP_EXCLUDE_END
+
 }
 
 
