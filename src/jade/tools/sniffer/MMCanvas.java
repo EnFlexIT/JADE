@@ -37,6 +37,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -53,6 +54,7 @@ import jade.lang.acl.ACLMessage;
    <Br>
    <a href="mailto:a_soracchi@libero.it"> Andrea Soracchi(e-mail) </a>
    @version $Date$ $Revision$
+   @version $Date$ Modiefied by RR Kessler and ML Griss
  */
 
  /**
@@ -65,7 +67,6 @@ import jade.lang.acl.ACLMessage;
  */
 
 public class MMCanvas extends JPanel implements MouseListener, Serializable {
-
 
   private static final int V_TOL = 4;
   private static final int H_TOL = 4;
@@ -84,9 +85,20 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
   private List noSniffAgents=new ArrayList();
   private Font font1 = new Font("Helvetica",Font.ITALIC,12);
   private Font font2 = new Font("SanSerif",Font.BOLD,12);
+  // font3 is used to display the name of the performative above the messages.
+  // Needed something a bit smaller than 1 or 2 above so it isn't too obtrusive.
+  private Font font3 = new Font("SanSerif", Font.PLAIN, 10);
   private MMCanvas otherCanv;
   public AgentList al;
   public MessageList ml;
+  
+  // These vars are used to make messages grouped by conversationID appear as the
+  // same color.  It makes it easier to pick out various conversations.
+  private HashMap mapToColor = new HashMap();
+  // Removed green, orange, and pink.  They were too hard to see.
+  private Color colorTable[] = {Color.blue, Color.black, Color.cyan, 
+  Color.magenta, Color.red, Color.white, Color.yellow};
+  private Integer colorCounter = new Integer(-1);
 
   public MMCanvas(boolean type,MainWindow mWnd, PanelCanvas panCan, MainPanel mPan, MMCanvas other ) {
    super();
@@ -137,8 +149,32 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
 
        g.setColor(Color.black);
        FontMetrics fm = g.getFontMetrics();
-       g.drawString(agent.agentName,x+(Agent.bRet-fm.stringWidth(agent.agentName))/2,Agent.yRet+(Agent.hRet/2) + (fm.getAscent()/2));
-
+       int nameWidth = fm.stringWidth(agent.agentName);
+       if (nameWidth < Agent.bRet) {
+           g.drawString(agent.agentName,x+(Agent.bRet-nameWidth)/2,Agent.yRet+(Agent.hRet/2) + (fm.getAscent()/2));
+       } else {
+           // Need to chop the string up into at most 2 pieces, truncating the rest.
+           int len = agent.agentName.length();
+           String part1;
+           String part2;
+           if (nameWidth < Agent.bRet * 2) {
+               // Ok, it is not quite twice as big, so cut in half
+               part1 = agent.agentName.substring(0, len/2);
+               part2 = agent.agentName.substring(len/2+1);
+           } else {
+               // This is rounded down the size of each char.
+               int approxCharWidth = nameWidth / agent.agentName.length();
+               int charCount = Agent.bRet / approxCharWidth;
+               part1 = agent.agentName.substring(0, charCount-1);
+               if (agent.agentName.length() < (charCount * 2) - 1) {
+                   part2 = agent.agentName.substring(charCount);
+               } else {
+                   part2 = agent.agentName.substring(charCount, (charCount * 2)-1);
+               }
+           }
+           g.drawString(part1, x+(Agent.bRet-fm.stringWidth(part1))/2,Agent.yRet+(Agent.hRet/2) - (int)(fm.getAscent() * 0.2));
+           g.drawString(part2, x+(Agent.bRet-fm.stringWidth(part2))/2,Agent.yRet+(Agent.hRet/2) + (int)(fm.getAscent() * 0.9));
+       }
      }
 
      horDim = 100+(xCanvDim*80);
@@ -188,16 +224,84 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
 	        xCoords[2] = x2+2;
         }
 
-        g.setColor(Color.blue);
+        // First we lookup convID, replywith and replyto to see if any of them
+        // have a colorindex.  If any of them do, then that becomes the one that
+        // we will use.
+        Integer colorIndex = new Integer(-1);
+        //System.out.println("Starting color:" + mess.getPerformative() +
+        //    " CID:" + mess.getConversationId() +
+        //    " RW:" + mess.getReplyWith() +
+        //    " RT:" + mess.getInReplyTo());
+        if (mess.getConversationId() != null) {
+            if (mapToColor.containsKey(mess.getConversationId())) {
+                colorIndex = (Integer)mapToColor.get(mess.getConversationId());
+                //System.out.println("Found CID:" + colorIndex);
+            }
+        }
+        if (mess.getReplyWith() != null && colorIndex.intValue() == -1) {
+            if (mapToColor.containsKey(mess.getReplyWith())) {
+                colorIndex = (Integer)mapToColor.get(mess.getReplyWith());
+                //System.out.println("Found RW:" + colorIndex);
+            }
+        } 
+        if (mess.getInReplyTo() != null && colorIndex.intValue() == -1) {
+            if (mapToColor.containsKey(mess.getInReplyTo())) {
+                colorIndex = (Integer)mapToColor.get(mess.getInReplyTo());
+                //System.out.println("Found RT:" + colorIndex);
+            }
+        }
+
+        // If not, then we get the next color value.
+        if (colorIndex.intValue() == -1) {
+            colorCounter = new Integer(colorCounter.intValue() + 1);
+            colorIndex = colorCounter;
+            //System.out.println("Making new:" + colorIndex);
+        }
+
+        // Now, we store this value on all non-null ids.
+        if (mess.getConversationId() != null) {
+            //System.out.println("CID:" + mess.getConversationId()+ " was: " + mapToColor.get(mess.getConversationId()));
+            mapToColor.put(mess.getConversationId(), colorIndex);
+        }
+        if (mess.getReplyWith() != null) {
+            //System.out.println("RW:" + mess.getReplyWith()+ " was: " + mapToColor.get(mess.getReplyWith()));
+            mapToColor.put(mess.getReplyWith(), colorIndex);
+        }
+        if (mess.getInReplyTo() != null) {
+            //System.out.println("RT:" + mess.getInReplyTo() + " was: " + mapToColor.get(mess.getInReplyTo()));
+            mapToColor.put(mess.getInReplyTo(), colorIndex);
+        }
+        //System.out.println("Done");
+        g.setColor(colorTable[colorIndex.intValue() % colorTable.length]);
         g.drawRect(x1-3,y-4,4,8);
         g.fillRect(x1-3,y-4,4,8);
 
+        // This code displays the name of the performative centered above the
+        // arrow.  At some point, might want to make this optional.
+        g.setFont(font3);
+        FontMetrics fmPerf = g.getFontMetrics();
+        String perf = mess.getPerformative(mess.getPerformative());
+   // Add ConversationId and ReplyWith
+        int numberToShow=3;
+        perf=perf + ":" + colorIndex
+                  + " (" + tail(numberToShow,mess.getConversationId()) 
+                  + "  " + tail(numberToShow,mess.getReplyWith()) 
+                  + "  " + tail(numberToShow,mess.getInReplyTo()) + " )";
+
+        int perfWidth = fmPerf.stringWidth(perf);
+        if (x2 > x1) {
+            g.drawString(perf, x1+((x2-x1)/2)-perfWidth/2, y-4);
+        } else {
+            g.drawString(perf, x2+((x1-x2)/2)-perfWidth/2, y-4);
+        }
+        
         // disegno segmento messaggio
         for(int k=-1; k<=1; k++) {
-          if(x2 > x1)
-	         g.drawLine(x1,y+k,x2,y+k);
-	        else
-	         g.drawLine(x1,y+k,x2+4,y+k);
+            if (x2 > x1) {
+	        g.drawLine(x1,y+k,x2,y+k);
+            } else {
+	        g.drawLine(x1,y+k,x2+4,y+k);
+            }
         }
 
         // disegno freccetta del receiver
@@ -221,6 +325,7 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
          	for(Iterator j = msg.getAllReceiver(); j.hasNext(); )
          	{  j.next();
          	   singleMsgCounter++;
+                   msg.setMessageNumber(counter + singleMsgCounter);
          	}
           counter = counter + singleMsgCounter;        
          }
@@ -240,7 +345,6 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
 
  } // Method
 
-
   /**
    * Method invoked everytime the use clicks on a blue arrow: it updates the TextMessage
    * component displaying the type of the message.
@@ -250,14 +354,29 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
   public void mousePressed(MouseEvent evt) {
    Message mess;
    String info;
+   int numberToShow=5;
 
     if( ((mess = selMessage(evt)) != null) && (typeCanv == false)) {
-       info = "                                                Message Performative: ";
+       info = "  Message:" + mess.getMessageNumber() + " ";
        mPan.textArea.setText(" ");
        //mPan.textArea.setFont(font1);
        mPan.textArea.setText(info);
        mPan.textArea.setFont(font2);
-       mPan.textArea.append(ACLMessage.getPerformative(mess.getPerformative()));
+       mPan.textArea.append(ACLMessage.getPerformative(
+        mess.getPerformative())
+         + " ( cid=" + tail(numberToShow,mess.getConversationId()) 
+         + " rw="   + tail(numberToShow,mess.getReplyWith()) 
+         + " irt="   + tail(numberToShow,mess.getInReplyTo()) 
+         + " proto=" + mess.getProtocol()
+         + " onto=" + mess.getOntology()
+         + " )" );
+    } else {
+        Agent selectedAgent = selAgent(evt);
+        if ((selectedAgent != null) && (typeCanv == true)) {
+            mPan.textArea.setText("Agent: ");
+            mPan.textArea.setFont(font2);
+            mPan.textArea.append(selectedAgent.agentName);
+        }
     }
 
    }
@@ -519,5 +638,12 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
    addMessage(newMess);
   }
 
+  private String tail(int n, String s) {
+   if (s == null)  {
+    return " ";
+   } else {
+    return s.substring(s.length()-n,s.length());
+   }
+  }
 
 } // end of class MMCanvas

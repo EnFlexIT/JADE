@@ -38,6 +38,8 @@ import jade.lang.acl.ACLMessage;
  * be drawn on the Message Canvas
  *
  * @see jade.lang.acl.ACLMessage
+
+ * MLG added private messageNumber, get and set.
  */
 
 public class Message extends jade.lang.acl.ACLMessage implements Serializable {
@@ -52,6 +54,7 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
   private int yDim = 0;
   private int xS = 0;
   private int xD = 0;
+  private int messageNumber=0;
 
   public Message(AID s, AID r){
 
@@ -98,6 +101,14 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
   public int getOrdSeg(int yDim){
     y = (yDim * 20) + step - 50;
     return y;
+  }
+
+  public int getMessageNumber(){
+    return messageNumber;
+  }  
+
+  public void setMessageNumber(int n){
+    messageNumber=n;
   }
 
 } // End of class Message

@@ -64,7 +64,13 @@ public class MainPanel extends JPanel {
     treeAgent = new AgentTree(f);
 
     panelcan = new PanelCanvas(mwnd,this,mySniffer);
-    pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,new JScrollPane(treeAgent.tree),new JScrollPane(panelcan));
+    // Slight edit to this by R. Kessler.  We use a Scrollpane's ability to have
+    // a column header by setting the columnheaderview to be the canvAgent.  Now,
+    // when you get too long, the agents are still available on the top.
+    JScrollPane pc = new JScrollPane();
+    pc.setColumnHeaderView(panelcan.canvAgent);
+    pc.setViewportView(panelcan);
+    pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,new JScrollPane(treeAgent.tree),pc);
     pane.setContinuousLayout(true);
     add(pane);
     textArea=new JTextArea();

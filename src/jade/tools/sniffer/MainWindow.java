@@ -59,7 +59,7 @@ import jade.core.AID;
 public class MainWindow extends JFrame {
 
   protected MainPanel mainPanel;
-  private ActionProcessor actPro;
+  protected ActionProcessor actPro; // Making this public allows us to get directly to the sniff agent action.
   private PopupMenuAgent popA;
   private Sniffer mySniffer;
   private String snifferLogo = "images/sniffer.gif";

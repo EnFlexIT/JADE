@@ -54,13 +54,20 @@ private Vector sniffedAgents=new Vector();
  }
 
   public void doAction(AgentTree.AgentNode node){
-   String realName;
-
-     //Check if the agent is in the canvas
-
-     realName=checkString(node.getName());
+     String realName;
+     doSniff(node.getName());
+  }
+  
+  /** Given an agent name, sniff it.
+   * @param agentName - the String name of the agent.
+   * Note, this was originally buried in doAction, but we want the ability to
+   * sniff with just a name.
+   */
+  public void doSniff (String agentName) {
+     String realName=checkString(agentName);
      agent=new Agent(realName);
 
+     //Check if the agent is in the canvas
      if (!mainPanel.panelcan.canvAgent.isPresent(realName))
        mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
 
