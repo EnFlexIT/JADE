@@ -34,7 +34,7 @@
  */
 package jade.imtp.leap.JICP;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
@@ -45,11 +45,15 @@ import java.net.*;
  * @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */
 public interface JICPMediator {
+	/**
+	   Retrieve the ID of this mediator
+	 */
+	String getId();
 	
   /**
      Initialize this JICPMediator
    */
-  void init(JICPServer srv, String id, Properties props) throws ICPException;
+  void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException;
   
   /**
      Kill this JICPMediator 
@@ -66,8 +70,10 @@ public interface JICPMediator {
    * opening this connection
    * @param addr the address of the mediated entity
    * @param port the local port used by the mediated entity
+   * @return an indication to the JICPMediatorManager to keep the 
+   * connection open.
    */
-  JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port);
+  boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port);
   
   /**
    * Passes to this JICPMediator a JICP packet.
