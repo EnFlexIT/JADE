@@ -567,9 +567,13 @@ public class ams extends Agent implements AgentManager.Listener {
 	    myPlatform.killContainer(cid);
 	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
 	    //sendReply(ACLMessage.INFORM, doneAction(a));
-	}catch(AuthException au){
+	}
+        catch(AuthException au) {
 	    throw new Unauthorised();
 	}
+        catch(NotFoundException nfe) {
+            throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");   
+        }
     }
 
     //create an agent.
@@ -673,9 +677,9 @@ public class ams extends Agent implements AgentManager.Listener {
         throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
       catch (NotFoundException nfe) {
-	  nfe.printStackTrace();
         throw new NotRegistered();
-      }catch(AuthException au){
+      }
+      catch(AuthException au){
 	  au.printStackTrace();
 	  throw new Unauthorised();
       }
