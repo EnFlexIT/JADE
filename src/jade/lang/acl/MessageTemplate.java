@@ -1,5 +1,8 @@
-package jade.lang.acl;
+/*
+  $Id$
+*/
 
+package jade.lang.acl;
 
 import java.util.Hashtable;
 
