@@ -55,12 +55,12 @@ class ObjectSchemaImpl extends ObjectSchema {
     }
     
     
-    private Hashtable       slots = new Hashtable();
-    private Vector       		slotNames = new Vector();
-    private Vector          superSchemas = new Vector();
     private String          typeName = null;
-    private Hashtable       facets = new Hashtable();
-
+    private Hashtable       slots;
+    private Vector       		slotNames; 
+    private Vector          superSchemas; 
+    private Hashtable       facets; 
+    
     static {
     	baseSchema = new ObjectSchemaImpl();
     }
@@ -90,8 +90,12 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     protected void add(String name, ObjectSchema slotSchema, int optionality) {
     	CaseInsensitiveString ciName = new CaseInsensitiveString(name);
+    	if (slots == null) {
+    		slots = new Hashtable();
+    		slotNames = new Vector();
+    	}
       if (slots.put(ciName, new SlotDescriptor(name, slotSchema, optionality)) == null) {
-        	slotNames.addElement(ciName);
+        slotNames.addElement(ciName);
       }
     } 
 
@@ -159,7 +163,10 @@ class ObjectSchemaImpl extends ObjectSchema {
      * @param superSchema the super schema.
      */
     protected void addSuperSchema(ObjectSchema superSchema) {
-        superSchemas.addElement(superSchema);
+    	if (superSchemas == null) {
+    		superSchemas = new Vector();
+    	}
+      superSchemas.addElement(superSchema);
     } 
 
     /** 
@@ -173,6 +180,9 @@ class ObjectSchemaImpl extends ObjectSchema {
 		protected void addFacet(String slotName, Facet f) throws OntologyException {
 			if (containsSlot(slotName)) {
 				CaseInsensitiveString ciName = new CaseInsensitiveString(slotName);
+				if (facets == null) {
+					facets = new Hashtable();
+				}
 				Vector v = (Vector) facets.get(ciName);
 				if (v == null) {
 					v = new Vector();
@@ -225,18 +235,20 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     public ObjectSchema getSchema(String name) throws OntologyException {
         CaseInsensitiveString ciName = new CaseInsensitiveString(name);
-        SlotDescriptor slot = (SlotDescriptor) slots.get(ciName);
+        SlotDescriptor slot = getSlot(ciName);
 
         if (slot == null) {
-            for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
-                try {
-                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
-                    return superSchema.getSchema(name);
-                } 
-                catch (OntologyException oe) {
-                	// Do nothing. Maybe the slot is defined in another super-schema
-                }
-            } 
+        		if (superSchemas != null) {
+	            for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+	                try {
+	                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+	                    return superSchema.getSchema(name);
+	                } 
+	                catch (OntologyException oe) {
+	                	// Do nothing. Maybe the slot is defined in another super-schema
+	                }
+	            }
+        		}
 
             throw new OntologyException("No slot named: " + name);
         } 
@@ -254,18 +266,20 @@ class ObjectSchemaImpl extends ObjectSchema {
      */
     public boolean containsSlot(String name) {
         CaseInsensitiveString ciName = new CaseInsensitiveString(name);
-        SlotDescriptor slot = (SlotDescriptor) slots.get(ciName);
+        SlotDescriptor slot = getSlot(ciName);
 
         if (slot != null) {
             return true;
         } 
-
-	      for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
-  	        ObjectSchema superSchema = (ObjectSchema) e.nextElement();
-            if (superSchema.containsSlot(name)) {
-               	return true;
-            } 
-        } 
+        
+				if (superSchemas != null) {
+		      for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+	  	        ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+	            if (superSchema.containsSlot(name)) {
+	               	return true;
+	            } 
+	        }
+				}
 
         return false;
     } 
@@ -278,17 +292,21 @@ class ObjectSchemaImpl extends ObjectSchema {
     	throw new OntologyException("AbsObject cannot be instantiated");
     }
 
-    private void fillAllSlotNames(Vector v) {
-    		// Get slot names of super schemas first
-        for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
-            ObjectSchemaImpl superSchema = (ObjectSchemaImpl) e.nextElement();
-
-            superSchema.fillAllSlotNames(v);
-        } 
+    private final void fillAllSlotNames(Vector v) {
+    		// Get slot names of super schemas (if any) first
+    		if (superSchemas != null) {
+	        for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+	            ObjectSchemaImpl superSchema = (ObjectSchemaImpl) e.nextElement();
+	
+	            superSchema.fillAllSlotNames(v);
+	        }
+    		}
 				
         // Then add slot names of this schema
-        for (Enumeration e = slotNames.elements(); e.hasMoreElements(); ) {
-        	v.addElement(e.nextElement());
+        if (slotNames != null) {
+	        for (Enumeration e = slotNames.elements(); e.hasMoreElements(); ) {
+	        	v.addElement(e.nextElement());
+	        }
         }
     } 
     
@@ -344,7 +362,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   		// If the slot is defined in this schema --> check the value
   		// against the schema of the slot. Otherwise let the super-schema
   		// where the slot is defined validate the value
-  		SlotDescriptor dsc = (SlotDescriptor) slots.get(slotName);
+  		SlotDescriptor dsc = getSlot(slotName);
   		if (dsc != null) {
 				// DEBUG
   			//System.out.println("Slot "+slotName+" is defined in schema "+this); 
@@ -378,18 +396,20 @@ class ObjectSchemaImpl extends ObjectSchema {
   			slotFound = true;
   		}
   		else {
-  			Enumeration e = superSchemas.elements();
-  			while (e.hasMoreElements()) {
-  				ObjectSchemaImpl s = (ObjectSchemaImpl) e.nextElement();
-  				if (s.validate(slotName, value, onto)) {
-  					slotFound = true;
-  					// Don't need to check other super-schemas
-  					break;
-  				}
+  			if (superSchemas != null) {
+	  			Enumeration e = superSchemas.elements();
+	  			while (e.hasMoreElements()) {
+	  				ObjectSchemaImpl s = (ObjectSchemaImpl) e.nextElement();
+	  				if (s.validate(slotName, value, onto)) {
+	  					slotFound = true;
+	  					// Don't need to check other super-schemas
+	  					break;
+	  				}
+	  			}
   			}
   		}
   		
-  		if (slotFound) {
+  		if (slotFound && facets != null) {
   			// Check value against the facets (if any) defined for the  
   			// slot in this schema
   			Vector ff = (Vector) facets.get(slotName);
@@ -462,15 +482,17 @@ class ObjectSchemaImpl extends ObjectSchema {
   	   of this schema
   	 */
   	private boolean isSubSchemaOf(ObjectSchema s) {
-  		Enumeration e = superSchemas.elements();
-  		while (e.hasMoreElements()) {
-  			ObjectSchemaImpl s1 = (ObjectSchemaImpl) e.nextElement();
-  			if (s1.equals(s)) {
-  				return true;
-  			}
-  			if (s1.isSubSchemaOf(s)) {
-  				return true;
-  			}
+  		if (superSchemas != null) {
+	  		Enumeration e = superSchemas.elements();
+	  		while (e.hasMoreElements()) {
+	  			ObjectSchemaImpl s1 = (ObjectSchemaImpl) e.nextElement();
+	  			if (s1.equals(s)) {
+	  				return true;
+	  			}
+	  			if (s1.isSubSchemaOf(s)) {
+	  				return true;
+	  			}
+	  		}
   		}
   		return false;
   	}
@@ -493,14 +515,21 @@ class ObjectSchemaImpl extends ObjectSchema {
     * Return null if there aren't facets on the specified slot.
     */
     public Facet[] getFacets(String slotName) {
-    	Vector v = (Vector)facets.get(new CaseInsensitiveString(slotName));
+    	Facet[] temp = null;
+    	if (facets != null) {
+    		Vector v = (Vector)facets.get(new CaseInsensitiveString(slotName));
     	
-    	if (v!=null) {
-    		Facet temp[] = new Facet[v.size()];
-    		for (int i=0; i<v.size()-1; i++) 
-    		temp[i] = (Facet)v.elementAt(i);
-	    	return temp;
-		} else return null;
+	    	if (v!=null) {
+	    		temp = new Facet[v.size()];
+	    		for (int i=0; i<v.size()-1; i++) 
+	    		temp[i] = (Facet)v.elementAt(i);
+				}
+    	}
+    	return temp;
+		}
+	
+	private final SlotDescriptor getSlot(CaseInsensitiveString ciName) {
+		return (slots != null ? (SlotDescriptor) slots.get(ciName) : null);
 	}
 }
 

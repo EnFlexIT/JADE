@@ -30,7 +30,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 import jade.content.schema.facets.*;
-import jade.core.CaseInsensitiveString;
 import jade.util.leap.Serializable;
 
 /**
