@@ -2,6 +2,9 @@ package jade.core;
 
 import java.io.Serializable;
 
+import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAException;
+
 /************************************************************************
 
   Name: AgentDescriptor
@@ -100,5 +103,30 @@ class AgentDescriptor implements Serializable {
     return APState;
   }
 
+  public void dump() {
+
+    AgentManagementOntology o = AgentManagementOntology.instance();
+    try {
+      String APStateName = o.getAPStateByCode(getAPState());
+
+      System.out.println("===========================");
+      System.out.println(":agent-name " + getName());
+      System.out.println(":address " + getAddress());
+      System.out.println(":signature " + getSignature());
+      System.out.println(":delegate-agent " + getDelegateAgent());
+      System.out.println(":forward-address " + getForwardAddress());
+      System.out.println(":ap-state " + APStateName);
+      System.out.println("===========================");
+      System.out.println("");
+    }
+    catch(FIPAException fe) {
+      fe.printStackTrace();
+    }
+
+  }
+
+
 }
+
+
 
