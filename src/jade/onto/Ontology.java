@@ -306,8 +306,42 @@ public interface Ontology {
     mandatory slot has a <code>null</code> value.
     @param o The Java object to check.
     @param roleName The role against which to check the given object.
-    @exception OntologyException If the check fails.  */
+    @exception OntologyException If the check fails.
+  */
   void check(Object o, String roleName) throws OntologyException;
+
+  /**
+    Tells whether the given roleName is a concept in the current
+    ontology.
+    @param roleName The name of the role to check.
+    @return <code>true</code> if the given role is indeed a concept,
+    <code>false</code> otherwise.
+    @exception OntologyException If no role named
+    <code>roleName</code> exists in the current ontology.
+   */
+  boolean isConcept(String roleName) throws OntologyException;
+
+  /**
+    Tells whether the given roleName is an action in the current
+    ontology.
+    @param roleName The name of the role to check.
+    @return <code>true</code> if the given role is indeed an action,
+    <code>false</code> otherwise.
+    @exception OntologyException If no role named
+    <code>roleName</code> exists in the current ontology.
+   */
+  boolean isAction(String roleName) throws OntologyException;
+
+  /**
+    Tells whether the given roleName is a predicate in the current
+    ontology.
+    @param roleName The name of the role to check.
+    @return <code>true</code> if the given role is indeed a predicate,
+    <code>false</code> otherwise.
+    @exception OntologyException If no role named
+    <code>roleName</code> exists in the current ontology.
+   */
+  boolean isPredicate(String roleName) throws OntologyException;
 
   /**
     Returns the array of <code>TermDescriptor</code> objects that
