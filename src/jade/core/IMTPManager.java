@@ -77,7 +77,7 @@ public interface IMTPManager {
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void exportServiceManager(ServiceManagerImpl mgr) throws IMTPException;
+    void exportServiceManager(ServiceManager mgr) throws IMTPException;
 
     /**
        Stops making the platform <i>Service Manager</i> available

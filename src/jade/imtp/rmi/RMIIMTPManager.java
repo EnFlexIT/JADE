@@ -184,7 +184,7 @@ public class RMIIMTPManager implements IMTPManager {
     } // END getRmiRegistry()
 
 
-  public void exportServiceManager(ServiceManagerImpl sm) throws IMTPException {
+  public void exportServiceManager(ServiceManager sm) throws IMTPException {
     try {
 
       String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
