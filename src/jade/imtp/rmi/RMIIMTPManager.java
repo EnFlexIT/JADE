@@ -248,6 +248,11 @@ public class RMIIMTPManager implements IMTPManager {
   public void unremotize(MainContainer mc) throws IMTPException {
     // Unbind the main container from RMI Registry
     // Unexport the RMI object
+    try {
+      Naming.unbind(platformRMI);
+    } catch (Exception any) {
+      // ignore
+    }
   }
 
   public AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException {
