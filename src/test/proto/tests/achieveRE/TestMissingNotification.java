@@ -85,8 +85,7 @@ public class TestMissingNotification extends TestBase {
   		}
   		
   		private void interrupt() {
-  			replyReceiver.setDeadline(0);
-  			sessions.clear();
+  			replyReceiver.interrupt();
   			forceTransitionTo(CHECK_SESSIONS);
   			restart();
   		}	
