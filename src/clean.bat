@@ -22,6 +22,8 @@ del jade\gui\*.class
 del jade\gui\*~
 del jade\lang\acl\*.class
 del jade\lang\acl\*~
+del jade\lang\sl\*.class
+del jade\lang\sl\*~
 del jade\proto\*.class
 del jade\proto\*~
 del jade\tools\DummyAgent\*.class
@@ -38,6 +40,7 @@ del jade\lang\acl\ASCII_CharStream.java
 del jade\lang\acl\ParseException.java
 del jade\lang\acl\Token.java
 del jade\lang\acl\TokenMgrError.java
+
 del jade\domain\AgentManagementParser.java
 del jade\domain\AgentManagementParserConstants.java
 del jade\domain\AgentManagementParserTokenManager.java
@@ -45,6 +48,14 @@ del jade\domain\ASCII_CharStream.java
 del jade\domain\ParseException.java
 del jade\domain\Token.java
 del jade\domain\TokenMgrError.java
+
+del jade\lang\sl\SL0Parser.java
+del jade\lang\sl\SL0ParserConstants.java
+del jade\lang\sl\SL0ParserTokenManager.java
+del jade\lang\sl\ASCII_UCodeESC_CharStream.java
+del jade\lang\sl\ParseException.java
+del jade\lang\sl\Token.java
+del jade\lang\sl\TokenMgrError.java
 
 del examples\ex1\*.class
 del examples\ex1\*~
