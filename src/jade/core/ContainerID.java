@@ -33,6 +33,10 @@ public class ContainerID implements Location {
   private String address;
 
 
+  // Default constructor, used by the ontology engine
+  public ContainerID() {
+  }
+
   public ContainerID(String n, InetAddress a) {
     name = n;
     if(a != null)
