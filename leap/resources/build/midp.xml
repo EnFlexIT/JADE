@@ -154,7 +154,7 @@
                      verbose="false"
                      windowtitle="${midp-title}"
                      packagenames="jade.content.*, jade.*, starlight.*"
-                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.imtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
+                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
 
             <!-- 5) Remove filtered src-->
             <delete dir="${filtered.src}"/>
