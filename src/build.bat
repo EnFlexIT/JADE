@@ -9,3 +9,5 @@ javac examples\ex2\*.java
 javac examples\ex3\*.java
 javac examples\ex4\*.java
 javac examples\ex5\*.java
+javac examples\ex6\*.java
+javac examples\ex7\*.java
