@@ -356,7 +356,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	}
 
-
 	private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
 	    boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
 	    if(!found) {
@@ -546,8 +545,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    }
 		}
 		else {
-
-		    // Try first with the cached <AgentID;Container ID> pairs
+		    // Try first with the cached <AgentID;MessagingSlice> pairs
 		    MessagingSlice cachedSlice = (MessagingSlice)cachedSlices.get(receiverID);
 		    if(cachedSlice != null) { // Cache hit :-)
 			try {
@@ -570,11 +568,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
 		throw new UnreachableException("Unreachable network node", imtpe);
 	    }
 	    catch(ServiceException se) {
-		se.printStackTrace();
 		throw new UnreachableException("Unreachable service slice:", se);
 	    }
 	}
