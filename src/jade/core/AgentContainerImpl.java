@@ -32,7 +32,7 @@ import jade.lang.acl.*;
 
 
 **************************************************************************************/
-class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
+public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
 
   private static final int MAP_SIZE = 20;
   private static final float MAP_LOAD_FACTOR = 0.50f;
@@ -49,7 +49,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // The agent platform this container belongs to
   private AgentPlatform myPlatform;
 
-  public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
+  public AgentContainerImpl() throws RemoteException {
+  }
+
+  public void joinPlatform(String platformURL, Vector agentNamesAndClasses) {
 
     Agent agent = null;
     AgentDescriptor desc = new AgentDescriptor();
@@ -106,8 +109,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       // Build an agent descriptor and send it to the centralized agent table
       desc.set(agentName,myDispatcher);
-      myPlatform.bornAgent(desc);
-
+      try {
+	myPlatform.bornAgent(desc); // RMI call
+      }
+      catch(RemoteException re) {
+	System.out.println("Communication error while adding a new agent to the platform.");
+	re.printStackTrace();
+      }
     }
 
     // Now activate all agents (this call starts their embedded threads)
