@@ -250,6 +250,7 @@ class acc implements InChannel.Dispatcher {
   }
 
   public void shutdown() {
+      /*
     // Remove all locally installed MTPs
     while(!localAddresses.isEmpty()) {
       String addr = (String)localAddresses.get(0);
@@ -265,7 +266,7 @@ class acc implements InChannel.Dispatcher {
 	nfe.printStackTrace();
       }
     }
-
+      */
   }
 
   public void dispatchMessage(Envelope env, byte[] payload) {
