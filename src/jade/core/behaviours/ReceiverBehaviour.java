@@ -190,6 +190,8 @@ public final class ReceiverBehaviour extends Behaviour {
      <code>ReceiverBehaviour</code> object that ends as soon as an ACL
      message matching a given <code>MessageTemplate</code> arrives or
      the passed <code>millis<code> timeout expires.
+     The received message can then be got via the method 
+     <code>getMessage</code>.
      @param a The agent this behaviour belongs to, and that will
      <code>receive()</code> the message.
      @param millis The timeout expressed in milliseconds, an infinite timeout
@@ -319,6 +321,15 @@ public final class ReceiverBehaviour extends Behaviour {
 
 
 
+    /**
+     * This method allows the caller to get the received message.
+     * @return the received message
+     * @exception TimedOut if the timeout passed in the constructor of this
+     * class expired before any message (that eventually matched the passed
+     * message template) arrived
+     * @exception NotYetReady if the message is not yet arrived and the
+     * timeout is not yet expired.
+     **/
     public ACLMessage getMessage() throws TimedOut, NotYetReady {
 	return future.getMessage();
     }
