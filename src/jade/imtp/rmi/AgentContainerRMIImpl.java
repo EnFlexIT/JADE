@@ -28,7 +28,7 @@ import java.rmi.server.*;
 
 import java.util.List;
 
-import jade.core.AgentContainerImpl;
+import jade.core.AgentContainer;
 import jade.core.AID;
 import jade.core.Location;
 import jade.core.NotFoundException;
@@ -44,10 +44,10 @@ import jade.mtp.MTPException;
  */
 public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentContainerRMI {
 
-    private AgentContainerImpl impl;
+    private AgentContainer impl;
 
     /** Creates new AgentContainerRMIImpl */
-    public AgentContainerRMIImpl(AgentContainerImpl ac) throws RemoteException {
+    public AgentContainerRMIImpl(AgentContainer ac) throws RemoteException {
       impl = ac;
     }
 

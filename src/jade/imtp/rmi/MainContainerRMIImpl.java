@@ -28,7 +28,8 @@ import java.rmi.server.UnicastRemoteObject;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.MainContainerImpl;
+//import jade.core.MainContainerImpl;
+import jade.core.MainContainer;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
@@ -40,10 +41,12 @@ import jade.core.RemoteProxy;
  */
 public class MainContainerRMIImpl extends UnicastRemoteObject implements MainContainerRMI {
 
-    private MainContainerImpl impl;
+    //private MainContainerImpl impl;
+    private MainContainer impl;
 
     /** Creates new MainContainerRMIImpl */
-    public MainContainerRMIImpl(MainContainerImpl mc) throws RemoteException {
+    //public MainContainerRMIImpl(MainContainerImpl mc) throws RemoteException {
+    public MainContainerRMIImpl(MainContainer mc) throws RemoteException {
       impl = mc;
     }
 
