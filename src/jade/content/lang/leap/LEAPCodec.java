@@ -364,9 +364,9 @@ public class LEAPCodec extends Codec {
             } 
 
             String       typeName = stream.readUTF();
-            System.out.println("Type is "+typeName);
+            // DEBUG System.out.println("Type is "+typeName);
             ObjectSchema schema = ontology.getSchema(typeName);
-            System.out.println("Schema is "+schema);
+            // DEBUG System.out.println("Schema is "+schema);
             AbsObject    abs = schema.newInstance();
 
             references.addElement(abs);

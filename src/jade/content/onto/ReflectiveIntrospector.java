@@ -58,7 +58,6 @@ public class ReflectiveIntrospector implements Introspector {
             	throw new UnknownSchemaException();
             }
             //DEBUG System.out.println("Schema is: "+schema);
-            System.out.println("Schema is: "+schema);
             AbsObject    abs = schema.newInstance();
             Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
@@ -74,13 +73,10 @@ public class ReflectiveIntrospector implements Introspector {
 
                 if (schema.isSlot(attributeName)) {
             			//DEBUG System.out.println("Handling attribute "+attributeName);
-            			System.out.println("Handling attribute "+attributeName);
                   AbsObject attributeValue = invokeGetMethod(referenceOnto, m, obj);
             			//DEBUG System.out.println("Attribute value is: "+attributeValue);
-            			System.out.println("Attribute value is: "+attributeValue);
 
                   if (attributeValue != null) {
-                    //abs.set(attributeName, attributeValue);
                   	Ontology.setAttribute(abs, attributeName, attributeValue);
                   } 
                 } 
@@ -144,14 +140,11 @@ public class ReflectiveIntrospector implements Introspector {
             	throw new UnknownSchemaException();
             }
             //DEBUG System.out.println("Schema is: "+schema);
-            System.out.println("Schema is: "+schema);
             
             Class        javaClass = onto.getClassForElement(type);
             //DEBUG System.out.println("Class is: "+javaClass.getName());
-            System.out.println("Class is: "+javaClass.getName());
             Object       obj = javaClass.newInstance();
             //DEBUG System.out.println("Object created");
-            System.out.println("Object created");
             
             Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
@@ -165,10 +158,8 @@ public class ReflectiveIntrospector implements Introspector {
 
                 if (schema.isSlot(attributeName)) {
             			//DEBUG System.out.println("Handling attribute "+attributeName);
-            			System.out.println("Handling attribute "+attributeName);
                 	AbsObject attributeValue = abs.getAbsObject(attributeName);
             			//DEBUG System.out.println("Attribute value is: "+attributeValue);
-            			System.out.println("Attribute value is: "+attributeValue);
 
                   if (attributeValue != null) {
                   	invokeSetMethod(referenceOnto, m, obj, attributeValue);

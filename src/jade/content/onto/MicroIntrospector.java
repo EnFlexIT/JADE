@@ -51,7 +51,6 @@ public class MicroIntrospector implements Introspector {
         if (schema == null) {
         	throw new UnknownSchemaException();
         }
-        System.out.println("Schema is "+schema);
         AbsObject abs = schema.newInstance();
         
     		Introspectable intro = (Introspectable) obj;
@@ -93,14 +92,11 @@ public class MicroIntrospector implements Introspector {
           throw new UnknownSchemaException();
         }
         //DEBUG System.out.println("Schema is: "+schema);
-        System.out.println("Schema is: "+schema);
-            
+
         Class        javaClass = onto.getClassForElement(type);
         //DEBUG System.out.println("Class is: "+javaClass.getName());
-        System.out.println("Class is: "+javaClass.getName());
         Object obj = javaClass.newInstance();
         //DEBUG System.out.println("Object created");
-        System.out.println("Object created");
         
     		Introspectable intro = (Introspectable) obj;
     		intro.internalise(abs, referenceOnto);

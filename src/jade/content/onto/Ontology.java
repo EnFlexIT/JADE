@@ -363,7 +363,6 @@ public class Ontology {
     		try {
     			if (introspector != null) {
         		//DEBUG System.out.println("Try to internalise "+abs+" through "+introspector);
-        		System.out.println("Try to internalise "+abs+" through "+introspector);
         		return introspector.internalise(this, globalOnto, abs);
     			}
     			else {
@@ -406,7 +405,6 @@ public class Ontology {
     		try {
     			if (introspector != null) {
         		//DEBUG System.out.println("Try to externalise "+obj+" through "+introspector);
-        		System.out.println("Try to externalise "+obj+" through "+introspector);
         		return introspector.externalise(this, globalOnto, obj);
     			}
     			else {
@@ -529,8 +527,6 @@ public class Ontology {
 				}
 			}
 			else if (abs instanceof AbsVariable) {
-				System.out.println(abs);
-				System.out.println(attrValue);
 				if (attrValue instanceof AbsPrimitive && CaseInsensitiveString.equalsIgnoreCase(attrName, VariableSchema.NAME)) {
 					((AbsVariable) abs).setName(((AbsPrimitive) attrValue).getString());
 					return;
