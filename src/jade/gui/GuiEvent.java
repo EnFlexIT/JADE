@@ -30,6 +30,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
+This class defines the object type <code>GuiEvent</code> used to notify 
+an event to a GuiAgent. It has two mandatory attributes:the source of the event 
+and an integer identifying the type of event and an optional list of parameters 
+than can be added to the event object.The type of each parameter must extends
+<code>java.lang.Object</code>; therefore primitive object (e.g.int) should be wrapped
+into appropriate objects(e.g <code>java.lang.Integer</code>).
+
+@see jade.gui.GuiAgent
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
