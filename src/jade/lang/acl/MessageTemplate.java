@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -459,16 +460,32 @@ public class MessageTemplate implements Serializable {
   }
 
   /**
-     This <em>Factory Method</em> returns a message template that
+     @deprecated This <em>Factory Method</em> returns a message template that
      matches any message with a given message type.
      @param value The value the message slot will be matched against.
      @return A new <code>MessageTemplate</code> matching the given
      value.
+     @see jade.lang.acl.ACLMessage#MatchPerformative(String dest)
+
   */
   public static MessageTemplate MatchType(String value) {
     ACLMessage msg = allWildCard();
     msg.setType(value);
     return new MessageTemplate(msg, true);
+  }
+
+  
+ /**
+ 		 This <em>Factory Method</em> returns a message template that
+ 		 matches any message with a given performative.
+ 		 @param value The value the message slot will be matched against.
+ 		 @return A new <code>MessageTenplate</code>matching the given
+ 		 value.
+ */
+	public static MessageTemplate MatchPerformative(String value){
+  	ACLMessage msg = allWildCard();
+  	msg.setPerformative(ACLMessage.getInteger(value));  	
+  	return new MessageTemplate(msg,true);
   }
 
   /**
