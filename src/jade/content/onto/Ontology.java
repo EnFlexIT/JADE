@@ -27,9 +27,9 @@ package jade.content.onto;
 import java.util.Hashtable;
 import java.util.Date;
 
-import jade.content.*;
-import jade.content.abs.*;
-import jade.content.schema.*;
+import jade.content.Term;
+import jade.content.abs.AbsObject;
+import jade.content.schema.ObjectSchema;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.core.CaseInsensitiveString;
@@ -320,6 +320,10 @@ public class Ontology {
 				return null;
 			}
 			
+			if (!abs.isGrounded()) {
+				throw new UngroundedException();
+			}
+			
   		try {
   			return toObject(abs, abs.getTypeName().toLowerCase(), this);
   		}
@@ -412,14 +416,24 @@ public class Ontology {
      * @param name the name of the schema.
      * @return the Java class.
      * @throws OntologyException
-     *
+     */
     Class getClassForElement(String name) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
         } 
 
-        return (Class) classes.get(name.toLowerCase());
-    } */
+        Class ret = (Class) classes.get(name.toLowerCase());
+        
+      	if (ret == null) {
+        	for (int i = 0; i < base.length; ++i) {
+          	ret = base[i].getClassForElement(name);
+          	if (ret != null) {
+            	return ret;
+          	}
+        	} 
+    		} 
+      	return ret;
+    } 
     
     /**
      * Converts an abstract descriptor to a Java object of the proper class.
@@ -444,9 +458,9 @@ public class Ontology {
       ObjectSchema schema = (ObjectSchema) elements.get(lcType);
       //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
       if (schema != null) {
-      	if (schema instanceof IRESchema || schema instanceof VariableSchema) {
+      	/*if (schema instanceof IRESchema || schema instanceof VariableSchema) {
         	throw new UngroundedException();
-        }
+        }*/
             
         // Retrieve the java class
         Class javaClass = (Class) classes.get(lcType);
@@ -566,7 +580,7 @@ public class Ontology {
      * Set an attribute in an abstract descriptor performing all 
      * necessary type checks.
      * @throws OntologyException if a type mismatch is detected
-     */
+     *
     public static void setAttribute(AbsObject abs, String attrName, AbsObject attrValue) throws OntologyException { 
     	if (abs instanceof AbsAgentAction) {
 				if (attrValue instanceof AbsTerm) {
@@ -612,6 +626,6 @@ public class Ontology {
 			// If we reach this point there is a type incompatibility
 			throw new OntologyException("Type incompatibility: attribute "+attrName+" of "+abs+" is of type "+attrValue); 
     }
-			
+		*/	
     
 }

@@ -67,7 +67,7 @@ public class ReflectiveIntrospector implements Introspector {
         			AbsObject value = invokeGetMethod(referenceOnto, getMethod, obj);
 
         			if (value != null) {
-          			Ontology.setAttribute(abs, slotName, value);
+          			AbsHelper.setAttribute(abs, slotName, value);
         			}             	
             } 
 
@@ -207,7 +207,7 @@ public class ReflectiveIntrospector implements Introspector {
     }
     
   protected Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
-    Method[] methods = c.getMethods();
+  	Method[] methods = c.getMethods();
     for(int i = 0; i < methods.length; i++) {
       String ithName = methods[i].getName();
       if(CaseInsensitiveString.equalsIgnoreCase(ithName, name))

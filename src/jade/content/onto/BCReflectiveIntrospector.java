@@ -87,7 +87,7 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
         //System.out.println("Attribute value is: "+value);
 
         if (value != null) {
-          Ontology.setAttribute(abs, slotName, value);
+          AbsHelper.setAttribute(abs, slotName, value);
         } 
       }
     	return abs;
