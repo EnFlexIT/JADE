@@ -35,6 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 
+import jade.core.Agent;
 import jade.core.AgentState;
 
 /**
@@ -98,7 +99,7 @@ public class StatePanel extends JPanel {
     activeLed.setDisabledIcon(ledOff);
     activeLed.setEnabled(false);
     leds.add(activeLed);
-    ledMap.put(new AgentState("Active"), activeLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_ACTIVE), activeLed);
     ledPanel.add(activeLed);
 
     suspendedLed = new JRadioButton("Suspended", ledOff);
@@ -108,7 +109,7 @@ public class StatePanel extends JPanel {
     suspendedLed.setDisabledIcon(ledOff);
     suspendedLed.setEnabled(false);
     leds.add(suspendedLed);
-    ledMap.put(new AgentState("Suspended"), suspendedLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_SUSPENDED), suspendedLed);
     ledPanel.add(suspendedLed);
 
     idleLed = new JRadioButton("Idle", ledOff);
@@ -118,7 +119,7 @@ public class StatePanel extends JPanel {
     idleLed.setDisabledIcon(ledOff);
     idleLed.setEnabled(false);
     leds.add(idleLed);
-    ledMap.put(new AgentState("Idle"), idleLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_IDLE), idleLed);
     ledPanel.add(idleLed);
 
     waitingLed = new JRadioButton("Waiting", ledOff);
@@ -128,7 +129,7 @@ public class StatePanel extends JPanel {
     waitingLed.setDisabledIcon(ledOff);
     waitingLed.setEnabled(false);
     leds.add(waitingLed);
-    ledMap.put(new AgentState("Waiting"), waitingLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_WAITING), waitingLed);
     ledPanel.add(waitingLed);
 
     movingLed = new JRadioButton("Moving", ledOff);
@@ -138,7 +139,7 @@ public class StatePanel extends JPanel {
     movingLed.setDisabledIcon(ledOff);
     movingLed.setEnabled(false);
     leds.add(movingLed);
-    ledMap.put(new AgentState("Transit"), movingLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_TRANSIT), movingLed);
     ledPanel.add(movingLed);
 
     deletedLed = new JRadioButton("Dead", ledOff);
@@ -148,7 +149,7 @@ public class StatePanel extends JPanel {
     deletedLed.setDisabledIcon(ledOff);
     deletedLed.setEnabled(false);
     leds.add(deletedLed);
-    ledMap.put(new AgentState("Deleted"), deletedLed);
+    ledMap.put(AgentState.getInstance(Agent.AP_DELETED), deletedLed);
     ledPanel.add(deletedLed);
 
     suspendAction = new JButton("Suspend", button);
