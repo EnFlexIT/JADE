@@ -1642,8 +1642,46 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    // Select the next behaviour to execute
 	    int oldState = myAPState;
 	    currentBehaviour = myScheduler.schedule();
-	    if(myAPState != oldState)
+	    if((myAPState != oldState) &&(myAPState != AP_DELETED))
 	      setState(oldState);
+
+	    // Remember how many messages arrived
+	    int oldMsgCounter = messageCounter;
+
+	    // Just do it!
+	    currentBehaviour.actionWrapper();
+
+	    // If the current Behaviour is blocked and more messages
+	    // arrived, restart the behaviour to give it another chance
+	    if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
+	      currentBehaviour.restart();
+
+
+	    // When it is needed no more, delete it from the behaviours queue
+	    if(currentBehaviour.done()) {
+	      currentBehaviour.onEnd();
+	      myScheduler.remove(currentBehaviour);
+	      currentBehaviour = null;
+	    }
+	    else {
+	      synchronized(myScheduler) {
+		// Need synchronized block (Crais Sayers, HP): What if
+		// 1) it checks to see if its runnable, sees its not,
+		//    so it begins to enter the body of the if clause
+		// 2) meanwhile, in another thread, a message arrives, so
+		//    the behaviour is restarted and moved to the ready list.
+		// 3) now back in the first thread, the agent executes the
+		//    body of the if clause and, by calling block(), moves
+		//   the behaviour back to the blocked list.
+		if(!currentBehaviour.isRunnable()) {
+		  // Remove blocked behaviour from ready behaviours queue
+		  // and put it in blocked behaviours queue
+		  myScheduler.block(currentBehaviour);
+		  currentBehaviour = null;
+		}
+	      }
+	    }
+	    break;
 	  }
 	  // Someone interrupted the agent. It could be a kill or a
 	  // move/clone request...
@@ -1655,52 +1693,17 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    case AP_COPY:
 	      throw new AgentInMotionError();
 	    case AP_ACTIVE:
-	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName());
+	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName() + " in AP_ACTIVE state.");
+	      break;
+	    case AP_IDLE:
+	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName() + " in AP_IDLE state.");
+	      break;
 	    }
 	  }
 
-
-	  // Remember how many messages arrived
-	  int oldMsgCounter = messageCounter;
-
-	  // Just do it!
-	  currentBehaviour.actionWrapper();
-
-	  // If the current Behaviour is blocked and more messages
-	  // arrived, restart the behaviour to give it another chance
-	  if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
-	    currentBehaviour.restart();
-
-
-	  // When it is needed no more, delete it from the behaviours queue
-	  if(currentBehaviour.done()) {
-	  	currentBehaviour.onEnd();
-	    myScheduler.remove(currentBehaviour);
-	    currentBehaviour = null;
-	  }
-	  else {
-	      synchronized(myScheduler) {
-		  // Need syncrhonzied block (Crais Sayers, HP): What if
-		  // 1) it checks to see if its runnable, sees its not,
-		  //    so it begins to enter the body of the if clause
-		  // 2) meanwhile, in another thread, a message arrives, so
-		  //    the behaviour is restarted and moved to the ready list.
-		  // 3) now back in the first thread, the agent executes the
-		  //    body of the if clause and, by calling block(), moves
-		  //   the behaviour back to the blocked list.
-		  if(!currentBehaviour.isRunnable()) {
-		      // Remove blocked behaviour from ready behaviours queue
-		      // and put it in blocked behaviours queue
-		      myScheduler.block(currentBehaviour);
-		      currentBehaviour = null;
-		  }
-	      }
-	  }
-	  break;
+	  // Now give CPU control to other agents
+	  Thread.yield();
 	}
-
-	// Now give CPU control to other agents
-	Thread.yield();
       }
       catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
