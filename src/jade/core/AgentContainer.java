@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.18  1999/11/08 15:16:48  rimassaJade
+ * Added two remote methods to enable/disable the message sniffer.
+ *
  * Revision 1.17  1999/11/04 09:51:12  rimassaJade
  * Removed TransientException exception declaration.
  *
@@ -81,5 +84,8 @@ interface AgentContainer extends Remote {
   void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException;
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
   void ping() throws RemoteException;
+
+  void enableSniffer(String SnifferName, java.util.Map ToBeSniffed) throws RemoteException;
+  void disableSniffer(String SnifferName, java.util.Map NotToBeSniffed) throws RemoteException;
 
 }
