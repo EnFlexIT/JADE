@@ -71,9 +71,11 @@ public class JADEAgentManagementOntology {
   public static final String KILLCONTAINER = "kill-container";
   public static final String CREATEAGENT = "create-agent";
   public static final String KILLAGENT = "kill-agent";
+  public static final String INSTALLMTP = "install-mtp";
+  public static final String UNINSTALLMTP = "uninstall-mtp";
   public static final String SNIFFON = "sniff-on";
   public static final String SNIFFOFF = "sniff-off";
-  
+
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
 
@@ -125,6 +127,17 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, KillAgent.class);
+
+	theInstance.addRole(INSTALLMTP, new SlotDescriptor[] {
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, InstallMTP.class);
+
+	theInstance.addRole(UNINSTALLMTP, new SlotDescriptor[] {
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	}, UninstallMTP.class);
 
 	theInstance.addRole(SNIFFON, new SlotDescriptor[] {
 	  new SlotDescriptor("sniffer", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
