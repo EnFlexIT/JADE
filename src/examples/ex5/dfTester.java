@@ -13,10 +13,10 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 
-class Receiver {
+class DFReceiver {
 
   // Utility class with private constructor -- do not instantiate.
-  private Receiver() {
+  private DFReceiver() {
   }
 
   public static final ACLMessage receive(dfTester a, String messageType) {
@@ -39,7 +39,7 @@ class Receiver {
 
   }
 
-} // End of Receiver
+} // End of DFReceiver
 
 
 public class dfTester extends Agent {
@@ -159,7 +159,7 @@ public class dfTester extends Agent {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"not-understood");
+	ACLMessage msg = DFReceiver.receive(myAgent,"not-understood");
 	if(msg != null)
 	  myAgent.dumpMessage(msg);
 	finished = (msg != null);
@@ -171,7 +171,7 @@ public class dfTester extends Agent {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"refuse");
+	ACLMessage msg = DFReceiver.receive(myAgent,"refuse");
 	if(msg != null)
 	  myAgent.dumpMessage(msg);
 	finished = (msg != null);
@@ -183,7 +183,7 @@ public class dfTester extends Agent {
 
       public void action() {
 
-	ACLMessage msg = Receiver.receive(myAgent,"agree");
+	ACLMessage msg = DFReceiver.receive(myAgent,"agree");
 	if(msg != null)
 	  myAgent.receiveAgree(msg);
 	finished = (msg != null);
@@ -206,7 +206,7 @@ public class dfTester extends Agent {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"failure");
+	      ACLMessage msg = DFReceiver.receive(myAgent,"failure");
 	      if(msg != null)
 		myAgent.handleFailure(msg);
 	      finished = (msg != null);
@@ -218,7 +218,7 @@ public class dfTester extends Agent {
 
 	    public void action() {
 
-	      ACLMessage msg = Receiver.receive(myAgent,"inform");
+	      ACLMessage msg = DFReceiver.receive(myAgent,"inform");
 	      if(msg != null)
 		myAgent.handleInform(msg);
 	      finished = (msg != null);
@@ -271,7 +271,7 @@ public class dfTester extends Agent {
       "    :protocol fipa-request" +
       "    :ontology fipa-agent-management" +
       "    :language SL0" +
-      "    :content  ( action df " + myAction;
+      "    :content  ( action df ( " + myAction;
 
     if(name.length() > 0)
       text = text.concat("      :agent-name " + name);
@@ -291,7 +291,7 @@ public class dfTester extends Agent {
       text = text.concat("      :df-state" + DFState);
 
     text = text +
-      " )" +
+      " ) )" +
       "    :conversation-id " + convID +
       ")";
 
