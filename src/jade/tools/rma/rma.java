@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.3  1999/06/06 21:58:14  rimassa
+  Changed handlers for 'failure' and 'receive' ACL messages, to show an
+  error dialog box instead of simply printing an error message on
+  standard output.
+
   Revision 1.2  1999/06/04 07:59:50  rimassa
   Changed package scoping when using some String constants.
 
@@ -137,11 +142,11 @@ public class rma extends Agent {
     }
 
     protected void handleNotUnderstood(ACLMessage reply) {
-      System.out.println("NOT-UNDERSTOOD received by RMA during " + actionName);
+      myGUI.showErrorDialog("NOT-UNDERSTOOD received by RMA during " + actionName, reply);
     }
 
     protected void handleRefuse(ACLMessage reply) {
-      System.out.println("REFUSE received by RMA during " + actionName);
+      myGUI.showErrorDialog("REFUSE received during " + actionName, reply);
     }
 
     protected void handleAgree(ACLMessage reply) {
@@ -149,7 +154,7 @@ public class rma extends Agent {
     }
 
     protected void handleFailure(ACLMessage reply) {
-      System.out.println("FAILURE received by RMA during " + actionName);
+      myGUI.showErrorDialog("FAILURE received during " + actionName, reply);
     }
 
     protected void handleInform(ACLMessage reply) {
