@@ -151,6 +151,7 @@ import jade.core.CaseInsensitiveString;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class Ontology {
+	  private static final String DEFAULT_INTROSPECTOR_CLASS = "jade.content.onto.ReflectiveIntrospector";
     private Ontology[]   base = new Ontology[0];
     private String       name = null;
     private Introspector introspector = null;
@@ -159,6 +160,24 @@ public class Ontology {
     private Hashtable    classes  = new Hashtable();
     private Hashtable    schemas  = new Hashtable();
     
+
+    /**
+     * Construct an Ontology object with a given <code>name</code> 
+     * that extends a given ontology.
+     * The <code>ReflectiveIntrospector</code> is used by default to
+     * convert between Java objects and abstract descriptors.
+     * @param name The identifier of the ontology.
+     * @param base The base ontology.
+     */
+    public Ontology(String name, Ontology base) {
+      this(name, base, null);
+      try {
+      	introspector = (Introspector) Class.forName(DEFAULT_INTROSPECTOR_CLASS).newInstance();
+      }
+      catch (Exception e) {
+      	throw new RuntimeException("Class "+DEFAULT_INTROSPECTOR_CLASS+"for default Introspector not found");
+      }
+    }
 
     /**
      * Construct an Ontology object with a given <code>name</code> 
