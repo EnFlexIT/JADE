@@ -79,6 +79,10 @@ public class TestDFService extends Test {
   			l.log("DF search-1 done");
   			if (result.length != 1 || (!TestDFHelper.compare(result[0], dfd))) {
   				l.log("DF search-1 result different from what was expected");
+  				l.log("Number of items: "+result.length);
+  				for (int i = 0; i < result.length; ++i) {
+  					l.log("- "+result[i].getName());
+  				}
   				ret = Test.TEST_FAILED;
   				return;
   			}
