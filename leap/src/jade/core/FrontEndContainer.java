@@ -99,13 +99,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 		catch (IMTPException imtpe) {
 		  Logger.println("IMTP error. "+imtpe);
 			imtpe.printStackTrace();
-			MicroRuntime.handleTermination();
+			MicroRuntime.handleTermination(true);
 			return;
 		}
 		catch (Exception e) {
 		  Logger.println("Unexpected error. "+e);
 			e.printStackTrace();
-			MicroRuntime.handleTermination();
+			MicroRuntime.handleTermination(true);
 			return;
 		}
 		
@@ -263,7 +263,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit {
 	  	myConnectionManager.shutdown();
 	    
 	    // Notify the JADE Runtime that the container has terminated execution
-	    MicroRuntime.handleTermination();
+	    MicroRuntime.handleTermination(self);
   	}
   }
   

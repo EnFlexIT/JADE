@@ -215,7 +215,7 @@
 	<!-- ******** JADE-LEAP distribution targets ********* -->
 
 	<!-- Create the JADE-LEAP distribution zip files -->
-	<target name="distrib" depends="init"
+	<target name="dist" depends="init"
 	        description="Create the LEAP distribution file">
 	  <echo>${dist}</echo>
 		<delete file="${dist}/leap.zip" quiet="true"/>
@@ -265,6 +265,11 @@
 	</target>
 	<target name = "dotnet-dont" unless = "env.VJSHARPTOOLS">
 		<echo> WARNING: 'VJSHARPTOOLS' environment variable not set. Skipping dotnet build.</echo>
+	</target>
+
+	<target name = "dotnetreset" depends = "init" 
+	        description = "Reset the environment for dotnet compilation">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-reset" dir="."/>
 	</target>
 
 </project>

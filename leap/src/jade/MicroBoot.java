@@ -207,7 +207,7 @@ public class MicroBoot extends MIDlet implements Runnable {
 
   public void destroyApp(boolean unconditional) {
 		Logger.println("destroyApp() called");
-		// If the MIDlet is killed, kill JADE too
+		// When the MIDlet is killed, kill JADE too
   	MicroRuntime.stopJADE();
   } 
   

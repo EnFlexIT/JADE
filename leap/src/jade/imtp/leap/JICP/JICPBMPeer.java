@@ -140,7 +140,6 @@ public class JICPBMPeer extends EndPoint implements ICP {
     // Wait for the embedded Thread to create/connect to the Mediator
     waitUntilConnected();
 		log("Peer activation OK ");
-		verbosity = 3;
 		
     return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);
   } 
@@ -243,7 +242,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 
     // Read the response
     pkt = JICPPacket.readFrom(inp);
-    if (pkt.getDataType() == JICPProtocol.ERROR_TYPE) {
+    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();
     	errorMsg = (data != null ? new String(data) : null);

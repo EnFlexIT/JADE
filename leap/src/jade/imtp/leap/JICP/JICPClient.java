@@ -143,7 +143,7 @@ class JICPClient {
       } 
     } 
 
-    if (reply.getDataType() == JICPProtocol.ERROR_TYPE) {
+    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
       throw new ICPException(new String(reply.getData()));
     } 
 

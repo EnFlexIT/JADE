@@ -791,7 +791,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 	public void handleSend(ACLMessage msg, AID sender) throws AuthException {
-
+		// Set the sender unless already set
+		try {
+			if (msg.getSender().getName().length() < 1)
+				msg.setSender(sender);
+		}
+		catch (NullPointerException e) {
+			msg.setSender(sender);
+		}
+		
 		AgentPrincipal target1 = getAgentPrincipal(msg.getSender());
 		//System.out.println("AgContImpl:  target1="+target1);
 		//System.out.println("AgContImpl:  msg="+msg);

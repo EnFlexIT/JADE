@@ -54,7 +54,6 @@ class AWTChatGui extends Frame implements ChatGui {
 		  	String s = writeTf.getText();
 		  	if (s != null && !s.equals("")) {
 			  	myAgent.handleSpoken(s);
-			  	notifySpoken(myAgent.getLocalName(), s);
 			  	writeTf.setText("");
 		  	}
 			} 

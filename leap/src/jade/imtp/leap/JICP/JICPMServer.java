@@ -168,7 +168,7 @@ public class JICPMServer extends Thread {
 
     // Check that the response is OK
     p = JICPPacket.readFrom(inp);
-    byte type = p.getDataType();
+    byte type = p.getType();
     if (type != JICPProtocol.RESPONSE_TYPE) {
     	// My Mediator does not exist!!!
     	// FIXME: Here we should try to create a new Mediator and connect to it
@@ -245,7 +245,7 @@ public class JICPMServer extends Thread {
       JICPPacket rsp = null;
       log("Start serving command");
       try {
-        if (cmd.getDataType() != JICPProtocol.COMMAND_TYPE) {
+        if (cmd.getType() != JICPProtocol.COMMAND_TYPE) {
           // If the JICP packet to handle is not a COMMAND -->
           // returns back an ERROR
           log("Current JICPPacket does not include an IMTP command. Send back an error response", 1);

@@ -81,8 +81,6 @@ public class ChatClientAgent extends Agent {
 		// Initialize the message used to convey spoken sentences
 		spokenMsg = new ACLMessage(ACLMessage.INFORM);
 		spokenMsg.setConversationId(CHAT_ID);
-		spokenMsg.setLanguage(codec.getName());
-		spokenMsg.setOntology(onto.getName());
 		
 		// Activate the GUI
 		//#MIDP_EXCLUDE_BEGIN
@@ -202,18 +200,7 @@ public class ChatClientAgent extends Agent {
 			ACLMessage msg = myAgent.receive(template);
 			if (msg != null) {
 				if (msg.getPerformative() == ACLMessage.INFORM) {
-					try {
-						AbsPredicate p = (AbsPredicate) myAgent.getContentManager().extractAbsContent(msg);
-						if (p.getTypeName().equals(ChatOntology.SPOKEN)) {
-							String speaker = msg.getSender().getLocalName();
-							String sentence = p.getString(ChatOntology.SPOKEN_WHAT);
-							myGui.notifySpoken(speaker, sentence);
-						}
-					}
-					catch (Exception e) {
-						Logger.println(e.toString());
-						e.printStackTrace();
-					}
+					myGui.notifySpoken(msg.getSender().getLocalName(), msg.getContent());
 				}
 				else {
 					handleUnexpected(msg);
@@ -238,21 +225,14 @@ public class ChatClientAgent extends Agent {
 		}
 		
 		public void action() {
-			try {
-				spokenMsg.clearAllReceiver();
-				Iterator it = participants.iterator();
-				while (it.hasNext()) {
-					spokenMsg.addReceiver((AID) it.next());
-				}
-				AbsPredicate p = new AbsPredicate(ChatOntology.SPOKEN);
-				p.set(ChatOntology.SPOKEN_WHAT, sentence);
-				getContentManager().fillContent(spokenMsg, p);
-				send(spokenMsg);
+			spokenMsg.clearAllReceiver();
+			Iterator it = participants.iterator();
+			while (it.hasNext()) {
+				spokenMsg.addReceiver((AID) it.next());
 			}
-			catch (Exception e) {
-				Logger.println(e.toString());
-				e.printStackTrace();
-			}
+			spokenMsg.setContent(sentence);
+	    myGui.notifySpoken(myAgent.getLocalName(), sentence);
+			send(spokenMsg);
 		}
 	}  // END of inner class ChatSpeaker	
 	

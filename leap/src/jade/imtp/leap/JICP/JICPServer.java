@@ -212,7 +212,7 @@ class JICPServer extends Thread {
         // Reply packet
         JICPPacket reply = null;
 
-        byte       type = request.getDataType();
+        byte       type = request.getType();
         switch (type) {
         case JICPProtocol.COMMAND_TYPE:
           // Get the right recipient and let it process the command.
@@ -279,8 +279,8 @@ class JICPServer extends Thread {
 
         default:
           // Send back an error response
-          log("Uncorrect JICP data type: "+request.getDataType(), 1);
-          reply = new JICPPacket("Uncorrect JICP data type: "+request.getDataType(), null);
+          log("Uncorrect JICP data type: "+request.getType(), 1);
+          reply = new JICPPacket("Uncorrect JICP data type: "+request.getType(), null);
         }
 
         // Send the actual response data

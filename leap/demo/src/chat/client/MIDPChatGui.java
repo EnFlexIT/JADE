@@ -119,7 +119,6 @@ class MIDPChatGui implements ChatGui, CommandListener {
 	    if (c == okCmd) {
 	    	String s = writeTb.getString();
 	    	myAgent.handleSpoken(s);
-	    	notifySpoken(myAgent.getLocalName(), s);
 	    	writeTb.setString("");
 	    }
 	    else if (c == cancelCmd) {

@@ -275,7 +275,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
     // Read the response
     pkt = JICPPacket.readFrom(inp);
-    if (pkt.getDataType() == JICPProtocol.ERROR_TYPE) {
+    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();
     	errorMsg = (data != null ? new String(data) : null);

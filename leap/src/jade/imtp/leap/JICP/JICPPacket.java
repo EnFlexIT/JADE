@@ -45,15 +45,10 @@ import jade.util.Logger;
  */
 class JICPPacket {
 
-  /*
-   * NOTE: The JICPPacket data type definitions are bundled inside
-   * JICPProtocol since JICPPacket is not defined for J2ME
-   */
-
   /**
    * The type of data included in the packet
    */
-  private byte   dataType;
+  private byte   type;
 
   /**
    * Some bit encoded information about the packet:
@@ -61,7 +56,7 @@ class JICPPacket {
    * - Whether the recipientID field is present
    * - Whether this packet carries a PING command
    */
-  private byte   dataInfo;
+  private byte   info;
 
   /**
    * An optional field indicating the actual recipient for this JICPPacket. 
@@ -86,22 +81,20 @@ class JICPPacket {
 
   /**
    * Constructor.
-   * @param dataType The ID code for the type of data included in
-   * the packet
+   * @param type The type of data included in the packet
    * @param data The data itself, as a byte array.
    */
-  JICPPacket(byte dataType, byte dataInfo, byte[] data) {
-    init(dataType, dataInfo, null, data);
+  JICPPacket(byte type, byte info, byte[] data) {
+    init(type, info, null, data);
   }
 
   /**
    * Constructor used to set the recipientID.
-   * @param dataType The ID code for the type of data included in
-   * the packet
+   * @param type The type of data included in the packet
    * @param data The data itself, as a byte array.
    */
-  JICPPacket(byte dataType, byte dataInfo, String recipientID, byte[] data) {
-    init(dataType, dataInfo, recipientID, data);
+  JICPPacket(byte type, byte info, String recipientID, byte[] data) {
+    init(type, info, recipientID, data);
   }
 
   /**
@@ -117,41 +110,34 @@ class JICPPacket {
   }
 
   /**
-   * Method declaration
-   * 
-   * @param dataType
-   * @param dataInfo
-   * @param data
-   * 
-   * @see
    */
-  private void init(byte type, byte info, String id, byte[] d) {
-    dataType = type;
-    dataInfo = info;
+  private void init(byte t, byte i, String id, byte[] d) {
+    type = t;
+  	info = i;
     data = d;
     
     setRecipientID(id);
 
     if (data != null) {
-    	dataInfo |= JICPProtocol.DATA_PRESENT_INFO;
-    	if ((dataInfo & JICPProtocol.COMPRESSED_INFO) != 0) {
-      	data = JICPCompressor.compress(data);
-    	}
+    	info |= JICPProtocol.DATA_PRESENT_INFO;
+    	//if ((info & JICPProtocol.COMPRESSED_INFO) != 0) {
+      //	data = JICPCompressor.compress(data);
+    	//}
     }
   } 
 
   /**
-   * @return The ID code for the type of data included in the packet.
+   * @return The type of data included in the packet.
    */
-  byte getDataType() {
-    return dataType;
+  byte getType() {
+    return type;
   } 
 
   /**
-   * @return the dataInfo of the data
+   * @return the info field of this packet
    */
-  byte getDataInfo() {
-    return dataInfo;
+  byte getInfo() {
+    return info;
   } 
 
   /**
@@ -162,37 +148,37 @@ class JICPPacket {
   } 
 
   /**
-   * Set the recipientID of this packet and adjust the dataInfo field
+   * Set the recipientID of this packet and adjust the info field
    * accordingly.
    */
   void setRecipientID(String id) {
     recipientID = id;
     
     if (recipientID != null) {
-    	dataInfo |= JICPProtocol.RECIPIENT_ID_PRESENT_INFO;
+    	info |= JICPProtocol.RECIPIENT_ID_PRESENT_INFO;
     }
     else {
-    	dataInfo &= (~JICPProtocol.RECIPIENT_ID_PRESENT_INFO);
+    	info &= (~JICPProtocol.RECIPIENT_ID_PRESENT_INFO);
     }
   } 
 
   /**
-   * Set the TERMINATED_INFO flag in the dataInfo.
+   * Set the TERMINATED_INFO flag in the info field.
    */
   void setTerminatedInfo() {
-    dataInfo |= JICPProtocol.TERMINATED_INFO;
+    info |= JICPProtocol.TERMINATED_INFO;
   } 
 
   /**
    * @return The actual data included in the packet, as a byte array.
    */
   byte[] getData() {
-    if (data != null && data.length != 0) {
-      return (dataInfo & JICPProtocol.COMPRESSED_INFO) != 0 ? JICPCompressor.decompress(data) : data;
-    } 
-    else {
+    //if (data != null && data.length != 0) {
+    //  return (info & JICPProtocol.COMPRESSED_INFO) != 0 ? JICPCompressor.decompress(data) : data;
+    //} 
+    //else {
       return data;
-    } 
+    //} 
   } 
 
   /**
@@ -209,11 +195,11 @@ class JICPPacket {
   int writeTo(DataOutputStream out) throws IOException {
   	int cnt = 2;
     try {
-      // Write the data type
-      out.writeByte(dataType);
+      // Write the packet type
+      out.writeByte(type);
 
-      // Write the dataInfo
-      out.writeByte(dataInfo);
+      // Write the packet info
+      out.writeByte(info);
 
       // Write recipient ID only if != null
       if (recipientID != null) {
@@ -257,19 +243,19 @@ class JICPPacket {
   static JICPPacket readFrom(DataInputStream in) throws IOException {
     JICPPacket p = new JICPPacket();
 
-    // Read data type
-    p.dataType = in.readByte();
+    // Read packet type
+    p.type = in.readByte();
 
-    // Read the dataInfo
-    p.dataInfo = in.readByte();
+    // Read the packet info
+    p.info = in.readByte();
 
     // Read recipient ID if present
-    if ((p.dataInfo & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+    if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
       p.recipientID = in.readUTF();
     } 
 
     // Read data if present
-    if ((p.dataInfo & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+    if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
     	//int size = in.readInt();
       // Work-around to avoid bug in readInt() 
     	int b1 = in.readByte();

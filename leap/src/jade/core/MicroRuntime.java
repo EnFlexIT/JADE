@@ -99,24 +99,29 @@ public class MicroRuntime {
 	/**
 	   Activate the Java environment terminator when the JADE runtime
 	   has stopped.
-	   This is done after the thread executing the handleTermination() 
-	   method has terminated to allow it to successfully send back a
-	   response in case the termination was activated by remote.
 	 */
-	static void handleTermination() {
+	static void handleTermination(boolean self) {
 		myFrontEnd = null;
-		final Thread killer = Thread.currentThread();
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					killer.join();
+		Thread t = null;
+		if (self) {
+			t = new Thread(terminator);
+		}
+		else {
+			// If the termination was activated frome remote, then let
+			// the current thread complete before closing down everything
+			final Thread current = Thread.currentThread();
+			t = new Thread(new Runnable() {
+				public void run() {
+					try {
+						current.join();
+					}
+					catch (InterruptedException ie) {
+						Logger.println("Interrupted in join");
+					}
+					terminator.run();
 				}
-				catch (InterruptedException ie) {
-					Logger.println("Interrupted in join");
-				}
-				terminator.run();
-			}
-		} );
+			} );
+		}
 		t.start();
 	}
 }

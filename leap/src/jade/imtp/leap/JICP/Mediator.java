@@ -152,7 +152,7 @@ public class Mediator extends EndPoint implements JICPMediator {
    * it is a blocking or non-blocking PING)
    */
   private boolean isPing(JICPPacket p) {
-    int dataInfo = p.getDataInfo();
+    int dataInfo = p.getInfo();
     if ((dataInfo&JICPProtocol.BLOCKING_IMTP_PING_INFO) != 0) {
       // The JICPPacket carries a blocking PING command
       synchronized (pingLock) {

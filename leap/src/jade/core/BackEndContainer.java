@@ -179,16 +179,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   		throw new NotFoundException("No image for agent "+sender+" on the BackEndContainer");
   	}
   	
-  	// Set the sender field if not yet set
-  	try {
-			if (msg.getSender().getName().length() < 1) {
-				msg.setSender(id);
-			}
-		}
-		catch (NullPointerException e) {
-			msg.setSender(id);
-		}
-
 		// Mark this thread as an outgoing message dispatcher. This is 
 		// necessary, in the case some of the receivers lives in the FrontEnd,
 		// to avoid sending him back the message (see dispatch()).

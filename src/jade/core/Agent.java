@@ -1106,7 +1106,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public static void read(InputStream s, String agentName) throws IOException {
     try {
       ObjectInput in = new ObjectInputStream(s);
-      String name = in.readUTF();
+      String oldName = in.readUTF();
       Agent a = (Agent)in.readObject();
       a.doStart(agentName);
     }
@@ -1686,14 +1686,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.lang.acl.ACLMessage
 	*/
 	public final void send(final ACLMessage msg) {
-		try {
-			if (msg.getSender().getName().length() < 1)
-				msg.setSender(myAID);
-		}
-		catch (NullPointerException e) {
-			msg.setSender(myAID);
-		}
-		
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			doPrivileged(new jade.security.PrivilegedExceptionAction() {

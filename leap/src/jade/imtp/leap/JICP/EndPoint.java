@@ -72,7 +72,7 @@ public abstract class EndPoint extends Thread {
   public JICPPacket deliverCommand(JICPPacket cmd) throws ICPException {
   	OutgoingHandler h = new OutgoingHandler();
   	JICPPacket rsp = h.handle(cmd);
-    if (rsp.getDataType() == JICPProtocol.ERROR_TYPE) {
+    if (rsp.getType() == JICPProtocol.ERROR_TYPE) {
     	// We are connected, but there was a JICP error on the peer
       throw new ICPException(new String(rsp.getData()));
     } 
@@ -140,8 +140,8 @@ public abstract class EndPoint extends Thread {
           byte id = inp.readByte();
           JICPPacket pkt = JICPPacket.readFrom(inp);
           pktCnt = (pktCnt+1) & 0x0fff;
-        	if (pkt.getDataType() == JICPProtocol.COMMAND_TYPE) {
-          	if ((pkt.getDataInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+        	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+          	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
 	          	log("Peer termination notification received", 2);
           		// The remote EndPoint has terminated spontaneously -->
           		// close the connection, notify the local peer and exit
@@ -164,7 +164,7 @@ public abstract class EndPoint extends Thread {
           	OutgoingHandler h = deregisterOutgoing(id);
           	h.setResponse(pkt);
           	
-          	if ((pkt.getDataInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+          	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
           		// The remote EndPoint has terminated as a consequence
           		// of a command issued by the local peer --> 
           		// just close the connection and exit
