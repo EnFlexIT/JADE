@@ -314,3 +314,12 @@ order to create two sample hybrid platforms
   a) java jade.Boot -gui (on out-of-process main container, listening on port 1099)
   b) java examples.inprocess.InProcessTest -container (an in-process container, connecting to the out-of-process platform).
 
+
+'thanksAgent' subdirectory
+========================
+This agent implements the following functionality:
+ - When being born one will register 
+ - It will create a list of agents registered in DF.
+ - It will send a message to them of greeting 
+ - It will listen if there is some answer 
+ - To the agents who answer it will thank to them to answer. 

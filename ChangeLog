@@ -28,7 +28,15 @@ MAJOR CHANGES since JADE 2.3 ($Date$ $Name$)
   - encapsulated the code concerning Mobility into the class MobilityManager
   - encapsulated the code concerning Event Notification into the class 
     NotificationManager
-
+- fixed bug in the HTTP-MTP (Ion Constantinescu)
+- fixed bug in ACLMessage.createReply. The createdEnvelope was not correct
+  as reported by Tianning Zhang
+- fixed bug in Behaviour.block(long) that generated a NullPointerException
+- removed the deprecated constructor of ACLMessage: ACLMessage(String type)
+- added TestReceiverBehaviourAgent in the examples/behaviours
+- fixed bug in ReceiverBehaviour, removed 2 bugged constructors and added
+  getMessage method.
+- added ThanksAgent in examples/thanksAgent
 
 	
 MAJOR CHANGES in JADE 2.3 (11 July 2001) 
