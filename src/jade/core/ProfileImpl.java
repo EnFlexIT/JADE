@@ -77,17 +77,6 @@ public class ProfileImpl extends Profile {
 
   public ProfileImpl(BasicProperties aProp) {
     props = aProp;
-  }
-
-  /**
-   * Creates a Profile implementation with the default configuration
-   * for launching a main-container on the localhost, 
-   * RMI internal Message Transport Protocol, port number 1099,
-   * iiop MTP.
-   */
-  public ProfileImpl() {
-    props = new BasicProperties();
-
     try {
       // Set default values
       String host = InetAddress.getLocalHost().getHostName();
@@ -108,6 +97,16 @@ public class ProfileImpl extends Profile {
     catch (IOException ioe) {
       ioe.printStackTrace();
     } 
+  }
+
+  /**
+   * Creates a Profile implementation with the default configuration
+   * for launching a main-container on the localhost, 
+   * RMI internal Message Transport Protocol, port number 1099,
+   * iiop MTP.
+   */
+  public ProfileImpl() {
+    this(new BasicProperties());
   }
 
     /**
