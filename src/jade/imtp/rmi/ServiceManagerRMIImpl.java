@@ -48,8 +48,8 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 
 
     /** Creates new ServiceManagerRMIImpl */
-    public ServiceManagerRMIImpl(ServiceManagerImpl sm, RMIIMTPManager mgr) throws RemoteException {
-	super(0, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
+    public ServiceManagerRMIImpl(ServiceManagerImpl sm, RMIIMTPManager mgr, int port) throws RemoteException {
+	super(port, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
 	impl = sm;
 	manager = mgr;
     }
