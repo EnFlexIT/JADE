@@ -44,6 +44,7 @@ import java.util.Enumeration;
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
@@ -740,6 +741,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
             writeBoolean(false);
             writeObject(e.getReceived());
             
+	    int numProps=0;
+	    for (Iterator i=e.getAllProperties(); i.hasNext(); ) numProps++;
+	    writeInt(numProps);
+	    for (Iterator i=e.getAllProperties(); i.hasNext(); ) {
+		Property p = (Property)i.next();
+		writeString(p.getName());
+		writeObject(p.getValue());
+	    }
             // writeObject(e.getTransportBehaviour());
         } 
         catch (IOException ioe) {

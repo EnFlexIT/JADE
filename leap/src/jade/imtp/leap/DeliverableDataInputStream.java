@@ -43,6 +43,7 @@ import java.util.Vector;
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.util.leap.Properties;
 import jade.util.leap.ArrayList;
@@ -649,6 +650,12 @@ class DeliverableDataInputStream extends DataInputStream {
 
             e.setReceived((ReceivedObject) readObject());
             
+	    int size = readInt();
+	    int i = 0;
+	    while (i++ < size) {
+		e.addProperties(new Property(readString(), readObject()));
+	    } 
+
             // e.setTransportBehaviour((Properties) readObject());
             return e;
         } 
