@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/08/10 15:37:36  rimassa
+  Added serialization to inner class BehaviourList.
+
   Revision 1.1  1999/05/20 13:43:16  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -29,6 +32,8 @@
 
 package jade.core.behaviours;
 
+import java.io.Serializable;
+
 import java.util.Vector;
 import java.util.Stack;
 
@@ -54,9 +59,9 @@ public abstract class ComplexBehaviour extends Behaviour {
   /**
      Inner class to implement a list of behaviours.
   */
-  protected class BehaviourList {
+  protected class BehaviourList implements Serializable {
 
-    private class Node {
+    private class Node implements Serializable {
       public Behaviour item;
       public Node next;
     }
