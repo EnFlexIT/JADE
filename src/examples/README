@@ -1,4 +1,4 @@
-README file for JADE 0.9 - Example programs.
+README file for JADE 0.91 - Example programs.
 
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
@@ -141,3 +141,8 @@ The following list describes all the example programs found in
                                 user to make requests to DF agent
                                 interactively.
 
+ - SubDF.class			This examples shows how to set up multiple
+				Agent Domains by means of a network of
+				connected Directory Facilitator Agents.
+				This agent can register itself with another
+				DF, exploiting recursive search capabilities.
