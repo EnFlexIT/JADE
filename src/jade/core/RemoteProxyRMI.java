@@ -31,17 +31,19 @@ import jade.lang.acl.ACLMessage;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class RemoteProxyRMI extends RemoteProxy {
+class RemoteProxyRMI implements RemoteProxy {
 
   private AgentContainer ref;
+  private String receiverName;
 
-  public RemoteProxyRMI(AgentContainer ac) {
+  public RemoteProxyRMI(AgentContainer ac, String rn) {
     ref = ac;
+    receiverName = rn;
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
     try {
-	ref.dispatch(msg); // RMI call
+      ref.dispatch(msg, receiverName); // RMI call
     }
     catch(RemoteException re) {
       throw new NotFoundException("RMI communication failure: ["+ re.getMessage() + "]");
