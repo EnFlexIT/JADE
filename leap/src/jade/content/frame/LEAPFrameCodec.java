@@ -36,7 +36,7 @@ import jade.util.leap.Iterator;
 /**
    @author Giovanni Caire - TILAB
  */
-public class LEAPFrameCodec {
+public class LEAPFrameCodec implements jade.util.leap.Serializable {
   public static final String NAME = "LEAP";
   
   private transient ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();

@@ -38,7 +38,7 @@ import jade.lang.acl.ISO8601;
 /**
    @author Giovanni Caire - TILAB
  */
-public class SLFrameCodec {
+public class SLFrameCodec implements jade.util.leap.Serializable {
   public static final String NAME = "FIPA-SL";
     
   /**
