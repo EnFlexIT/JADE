@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.2  1999/06/06 17:51:31  rimassa
+  Some look&feel changes: now the three-pane window uses continuous
+  repaint when moving pane separators, and a better initial position for
+  the horiziontal separator is computed.
+
   Revision 1.1  1999/05/20 15:42:08  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -75,7 +80,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     selArea.setEditable(true);
 
     pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,new JScrollPane(tree),new JScrollPane(selArea));
-    pane.setContinuousLayout(false);
+    pane.setContinuousLayout(true);
     createSplit(table.createTable());		
 
     /* Enable tool tips for the tree, without this tool tips will not
@@ -94,9 +99,15 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
 
   private void createSplit (JScrollPane scroll) {
     pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,pane,scroll);
+    pan.setContinuousLayout(true);
     add(pan);
   }
 
+  public void adjustDividerLocation() {
+    int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
+    System.out.println("rootSize = " + rootSize);
+    pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
+  }
 
   /** 
    * This method is messaged when a SelectionEvent occurs
