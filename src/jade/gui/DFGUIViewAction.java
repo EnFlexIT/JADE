@@ -29,7 +29,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 // Import required Jade classes
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
 /**
@@ -52,8 +52,8 @@ class DFGUIViewAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("VIEW");
-	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-		int kind = gui.kindOfOperation();
+	    DFAgentDescription dfd = new DFAgentDescription();
+	    int kind = gui.kindOfOperation();
 		
 		if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW || kind == DFGUI.LASTSEARCH_VIEW)
 	  {

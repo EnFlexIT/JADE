@@ -30,10 +30,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 
-// Import required Jade classes
+// Import required JADE classes
 import jade.domain.*;
-import jade.core.IIOPAddress;
-import jade.core.IIOPFormatException;
 
 /**
 @author Giovanni Caire Adriana Quinto - CSELT S.p.A.
@@ -104,24 +102,7 @@ class AgentNameTableModel extends AbstractTableModel
 		case 1:
 			if (address != null)
 			{
-				IIOPAddress iiopAddr;
-				try 
-				{
-					iiopAddr = IIOPAddress.createFromIOR(address);
-				}
-				catch (IIOPFormatException iiopExc1)
-				{
-					try
-					{
-						iiopAddr = IIOPAddress.createFromURL(address, IIOPAddress.BIG_ENDIAN);
-					}
-					catch (IIOPFormatException iiopExc2)
-					{
-						return(new String("?????"));
-					}
-				}
-				Integer port = new Integer(iiopAddr.getPort());
-				value = new String(iiopAddr.getHost() + ":" + port.toString());
+			    value = "STUB";
 			}
 			break;
 		case 2:

@@ -29,8 +29,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
 /**
@@ -51,7 +51,7 @@ class DFGUIDeregisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("DEREGISTER");
-		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor ();
+		DFAgentDescription dfd = new DFAgentDescription ();
 	  String df =null;
 	  String name;
 		int kind = gui.kindOfOperation();
@@ -83,7 +83,7 @@ class DFGUIDeregisterAction extends AbstractAction
 			df = gui.getSelectedAgentInTable();
 			if (df != null)
 			{
-				dfd = new AgentManagementOntology.DFAgentDescriptor ();
+			    dfd = new DFAgentDescription ();
 		  	dfd.setName(gui.myAgent.getName());
 		  	
 			}

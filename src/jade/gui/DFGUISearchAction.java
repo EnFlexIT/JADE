@@ -29,8 +29,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.Enumeration;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
 /**
@@ -69,7 +69,7 @@ class DFGUISearchAction extends AbstractAction
 			}
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 	
-		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+		DFAgentDescription editedDfd = dlg.editDFD(null);
 
 		//If no df is selected, the df of the platform is used. 
 		if (editedDfd != null)

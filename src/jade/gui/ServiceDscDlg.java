@@ -28,8 +28,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 /**
 @author Giovanni Caire - Adriana Quinto- CSELT S.p.A.
@@ -57,7 +57,7 @@ class ServiceDscDlg extends JDialog
 		super(parent);
 	}
 
-	AgentManagementOntology.ServiceDescriptor viewSD(AgentManagementOntology.ServiceDescriptor dsc, boolean editable)
+	ServiceDescription viewSD(ServiceDescription dsc, boolean editable)
 	{
 		final IntRetValue  ret = new IntRetValue();
 		ret.setValue(0);
@@ -155,12 +155,13 @@ class ServiceDscDlg extends JDialog
 		if (dsc != null) 
 		{
 			txtName.setText(dsc.getName());
+			/*
 			txtType.setText(dsc.getType());
 			txtOntology.setText(dsc.getOntology());
 			txtFixedProps.setText(dsc.getFixedProps());
 			txtNegProps.setText(dsc.getNegotiableProps());
 			txtCommProps.setText(dsc.getCommunicationProps());
-			
+			*/
 		}
 		
 		//getContentPane().add(p, BorderLayout.CENTER);
@@ -238,15 +239,16 @@ class ServiceDscDlg extends JDialog
 	 
 		if (ret.getValue() == 1)
 		{	
-			AgentManagementOntology.ServiceDescriptor editedDsc = new AgentManagementOntology.ServiceDescriptor(); 	  
+			ServiceDescription editedDsc = new ServiceDescription(); 	  
 		 			
 	  	editedDsc.setName(getSaveText(txtName));
+		/*
 			editedDsc.setType(getSaveText(txtType));
 			editedDsc.setOntology(getSaveText(txtOntology));
 			editedDsc.setFixedProps(getSaveText(txtFixedProps));
 			editedDsc.setNegotiableProps(getSaveText(txtNegProps));
 			editedDsc.setCommunicationProps(getSaveText(txtCommProps)); 
-		
+		*/
 			return(editedDsc);
  		}
 		return(null);		

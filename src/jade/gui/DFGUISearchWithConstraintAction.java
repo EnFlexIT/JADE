@@ -27,11 +27,11 @@ package jade.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.util.Enumeration;
-import java.util.Vector;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+import java.util.List;
+
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
 /**
@@ -51,7 +51,7 @@ class DFGUISearchWithConstraintAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor ();
+		DFAgentDescription dfd = new DFAgentDescription();
 		
 		String df = gui.myAgent.getLocalName();
 		int kind = gui.kindOfOperation(); // to discriminate between the view
@@ -73,7 +73,7 @@ class DFGUISearchWithConstraintAction extends AbstractAction
 		
 		ConstraintDlg constraint = new ConstraintDlg((Frame)gui);
 		
-	  Vector out = constraint.viewConstraint(gui.myAgent.getConstraints());
+	  List out = constraint.viewConstraint(gui.myAgent.getConstraints());
 	  
 	 
 	  if ( out == null)
@@ -82,7 +82,7 @@ class DFGUISearchWithConstraintAction extends AbstractAction
 	  else
 	  { // ok button pressed
 	  	DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-	  	AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+	  	DFAgentDescription editedDfd = dlg.editDFD(null);
 	  	
 	  	if (editedDfd != null)
 	  		gui.myAgent.postSearchWithConstraintEvent((Object) gui,df, editedDfd,out);

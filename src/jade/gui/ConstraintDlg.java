@@ -29,10 +29,9 @@ import javax.swing.border.*;
 
 import java.awt.event.*;
 import java.awt.*;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.List;
 
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 
 /*
 @author Tiziana Trucco - CSELT S.p.A.
@@ -63,11 +62,11 @@ class ConstraintDlg extends JDialog
 		
 		}
 		
-		JPanel newSingleConstraint(AgentManagementOntology.Constraint c)
+		JPanel newSingleConstraint(SearchConstraints c)
 		{
-		
 			Border etched = BorderFactory.createEtchedBorder();
 			JPanel tempPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			/*
 			String[] sel = {"df-depth","resp-req"};
 			JComboBox tempCombo = new JComboBox(sel);
 			tempCombo.setBorder(etched);
@@ -102,18 +101,18 @@ class ConstraintDlg extends JDialog
 			}
 			
 			tempPanel.add(val);
-			
+			*/
 			return tempPanel;
 		}
 	}
 	
-	Vector viewConstraint(Vector initialValue)
+	List viewConstraint(List initialValue)
 	{
 		final IntRetValue ret = new IntRetValue();
 		int counter = 0;
 		
-		Vector constraint = null;
-
+		List constraint = null;
+		/*
 		Border bevelBorder = BorderFactory.createRaisedBevelBorder();
 		
 		ret.setValue(0);
@@ -138,7 +137,7 @@ class ConstraintDlg extends JDialog
 			Enumeration e = initialValue.elements();
 			while(e.hasMoreElements())
 			{
-				AgentManagementOntology.Constraint c = (AgentManagementOntology.Constraint) e.nextElement();
+				SearchConstraints c = (SearchConstraints) e.nextElement();
 				SingleConstraint single = new SingleConstraint();
 				JPanel singleConstraintPanel = single.newSingleConstraint(c);
 				constraintPanel.add(singleConstraintPanel);
@@ -262,7 +261,7 @@ class ConstraintDlg extends JDialog
 				for(int i = 0; i<size; i++)
 				{
 					JPanel p = (JPanel)constraintPanel.getComponent(i);
-					AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+					SearchConstraints c = new SearchConstraints();
 					JComboBox temp = (JComboBox)p.getComponent(0);
 					JComboBox minMax = (JComboBox)p.getComponent(1);
 					JTextField tx = (JTextField)p.getComponent(2);
@@ -300,7 +299,7 @@ class ConstraintDlg extends JDialog
 			}
 			else 
 			constraint = null;
-			
+		*/			
 		return constraint;
 	}
 

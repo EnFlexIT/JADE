@@ -30,11 +30,14 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
-import java.util.*;
+
+import java.util.Iterator;
+
 import java.applet.*;
 
 // Import required Jade classes
 import jade.domain.*;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
 /**
 * This class implements the GUI of the Directory Facilitator.
@@ -703,20 +706,20 @@ public class DFGUI extends JFrame
 	public void refresh() 
 	{
 		registeredModel.clear();
-		Enumeration registered = myAgent.getAllDFAgentDsc();
-		while (registered.hasMoreElements())
+		Iterator registered = myAgent.getAllDFAgentDsc();
+		while (registered.hasNext())
 		{
-			AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) registered.nextElement();
-			registeredModel.add(dfd.getName());
+		    DFAgentDescription dfd = (DFAgentDescription)registered.next();
+		    registeredModel.add(dfd.getName());
 		}
 		registeredModel.fireTableDataChanged();
 		refreshFederation();
 	}
 
-	public void refreshLastSearch(Enumeration e){
+	public void refreshLastSearch(Iterator it){
 		foundModel.clear();
-		while(e.hasMoreElements()){
-		AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) e.nextElement();
+		while(it.hasNext()){
+		DFAgentDescription dfd = (DFAgentDescription) it.next();
 		foundModel.add(dfd.getName());
 		}
 		foundModel.fireTableDataChanged();
@@ -726,19 +729,18 @@ public class DFGUI extends JFrame
 	{
 	
 		parentModel.clear();
-		Enumeration parent = myAgent.getParents();
-		while (parent.hasMoreElements())
+		Iterator parent = myAgent.getParents();
+		while (parent.hasNext())
 		{
-			parentModel.add((String)parent.nextElement());
+		  parentModel.add((String)parent.next());
 		}
 		parentModel.fireTableDataChanged();
 		
     childrenModel.clear();
-		Enumeration children  = myAgent.getChildren();
-		while(children.hasMoreElements())
+		Iterator children  = myAgent.getChildren();
+		while(children.hasNext())
 		{
-			childrenModel.add((String)children.nextElement());
-		
+		  childrenModel.add((String)children.next());
 		}
 		childrenModel.fireTableDataChanged();
 		

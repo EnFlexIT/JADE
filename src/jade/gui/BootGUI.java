@@ -43,7 +43,9 @@ import java.io.IOException;
 
 import java.util.Properties;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -68,7 +70,7 @@ import jade.BootException;
   static String extension = "conf";
   static String title = "--JADE Properties--";
   
- 	Vector propertiesVector; 
+  List propertiesVector; 
   boolean modified;
   File currentDir = null;
   JTextField statusField= new JTextField();
@@ -189,7 +191,7 @@ import jade.BootException;
  	}
  	
  	 	
- 	public Properties ShowBootGUI(Vector properties)
+ 	public Properties ShowBootGUI(List properties)
  	 {
  	 	
  	 	this.propertiesVector = properties;
@@ -207,12 +209,12 @@ import jade.BootException;
  	 	
  	  propertyPanel.setLayout(new BoxLayout(propertyPanel, BoxLayout.Y_AXIS));
  	  
- 	  Enumeration prop = properties.elements();
+ 	  Iterator prop = properties.iterator();
  	  
- 	  while(prop.hasMoreElements())
+ 	  while(prop.hasNext())
  	  {
  	  	singlePanel propPanel = new singlePanel();
- 	  	PropertyType p = (PropertyType) prop.nextElement();
+ 	  	PropertyType p = (PropertyType) prop.next();
  	  	
  	  	JPanel panel = propPanel.newSinglePanel(p);
  	  	propertyPanel.add(panel);
@@ -257,7 +259,6 @@ import jade.BootException;
  	  		  {
  	  		    currentDir = chooser.getCurrentDirectory();
  	  		    String fileName = chooser.getSelectedFile().getAbsolutePath();
- 	  		  	Vector newProp = new Vector();
  	  		    try{
  	  		    	 loadPropertiesFromFile(fileName);
  	  		    	 fileOpened = fileName;
@@ -454,13 +455,13 @@ import jade.BootException;
   	
  	 	int size = propertyPanel.getComponentCount();
  	 	
- 	 	Enumeration en = propertiesVector.elements();
+ 	 	Iterator it = propertiesVector.iterator();
  	 	
- 	 	while(en.hasMoreElements())
+ 	 	while(it.hasNext())
  	 	{
- 	 		PropertyType prop = (PropertyType)en.nextElement();
- 	 		String name = prop.getName();
- 	 		String type = prop.getType();
+		  PropertyType prop = (PropertyType)it.next();
+		  String name = prop.getName();
+		  String type = prop.getType();
  	 	  String defaultVal = prop.getDefaultValue();
  	 	  boolean found = false;
  	 	  for(int i = 0; i<size && !found; i++)
@@ -530,11 +531,11 @@ import jade.BootException;
  	 {
  	 	int size = propertyPanel.getComponentCount();
  	 	
- 	 	Enumeration en = propertiesVector.elements();
+ 	 	Iterator it = propertiesVector.iterator();
  	 	
- 	 	while(en.hasMoreElements())
+ 	 	while(it.hasNext())
  	 	{
- 	 		PropertyType prop = (PropertyType)en.nextElement();
+ 	 		PropertyType prop = (PropertyType)it.next();
  	 		String name = prop.getName();
  	 		String type = prop.getType();
  	 	  String fileValue = prop.getFileValue();
@@ -604,22 +605,22 @@ import jade.BootException;
   	// for every property set the value read in the file and set the command line value to null.
   	
   	Enumeration e = p.propertyNames();
-  	Enumeration e2 = propertiesVector.elements();
+  	Iterator it = propertiesVector.iterator();
   	
   	while(e.hasMoreElements())
   	{
   	
-  		String name = (String)e.nextElement();  
+	  String name = (String)e.nextElement();  
   	  boolean found = false;
   	  
-  	  while(e2.hasMoreElements() && !found)
+  	  while(it.hasNext() && !found)
   	  {
-  	  	PropertyType pt = (PropertyType)e2.nextElement(); 
+  	  	PropertyType pt = (PropertyType)it.next();
   	  	if(pt.getName().equalsIgnoreCase(name))
   	  		{
-  	  			found = true;
-  	  			pt.setCommandLineValue(null);
-  	  			pt.setFileValue(p.getProperty(name));
+			    found = true;
+			    pt.setCommandLineValue(null);
+			    pt.setFileValue(p.getProperty(name));
   	  		}
   	  }
       

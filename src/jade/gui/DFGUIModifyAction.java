@@ -29,8 +29,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
 /**
@@ -54,7 +54,7 @@ class DFGUIModifyAction extends AbstractAction
 		int i = gui.registeredTable.getSelectedRow();
 		if (i != -1)
 		{
-			AgentManagementOntology.DFAgentDescriptor dfd;
+			DFAgentDescription dfd;
 			String name = gui.registeredModel.getElementAt(i);
 			try
 			{
@@ -62,14 +62,14 @@ class DFGUIModifyAction extends AbstractAction
 			}
 			catch (FIPAException fe)
 			{
-				System.out.println("WARNING! No agent called " + name + " is currently resistered with this DF");
+				System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
 				return;
 			}
 			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-			AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(dfd);
+			DFAgentDescription editedDfd = dlg.editDFD(dfd);
 			if (editedDfd != null)
 			{
-				gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
+			    gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
 			}
 		}
 	}

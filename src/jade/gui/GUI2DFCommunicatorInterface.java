@@ -23,11 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This interface must be implemented by a GUI that wants to interact
@@ -43,96 +43,96 @@ public interface GUI2DFCommunicatorInterface {
   /**
    * @see jade.core.Agent#getName()
    */
-  public abstract String getName();
+  String getName();
 
   /**
-   * @see jade.core.Agent#getAddress()
+   * @see jade.core.Agent#getHap()
    */
-  public abstract String getAddress();
+  String getHap();
 
   /**
    * @see jade.core.Agent#getLocalName()
    */
-  public abstract String getLocalName();
+  String getLocalName();
 
   /**
    * this method makes the agent close this gui
    */
-  public void postCloseGuiEvent(Object g);
+  void postCloseGuiEvent(Object g);
 
   /**
    * this method makes the agent exit
    */
-  public void postExitEvent(Object g);
+  void postExitEvent(Object g);
 
   /**
    * this method registers an agent description with the DF
    */
-  public void postRegisterEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  void postRegisterEvent(Object source, String dfName, DFAgentDescription dfd);
 
   /**
    * this method deregisters an agent description with the DF
    */
-  public void postDeregisterEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  void postDeregisterEvent(Object source, String dfName, DFAgentDescription dfd);
 
   /**
    * this method modifies an agent description with the DF
    */
-  public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  void postModifyEvent(Object source, String dfName, DFAgentDescription dfd);
   
   /**
    * this method searches agents with the DF according to the dfd
    */
-  public void postSearchEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd); 
+  void postSearchEvent(Object source, String dfName, DFAgentDescription dfd); 
   
   /**
   * This method federate the df with another df indicated
   */
-  public void postFederateEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
+  void postFederateEvent(Object source, String dfName, DFAgentDescription dfd);
   
   /**
-  * This method searches acconding to the specificated constraints
+  * This method searches according to the specificated constraints
   */
-  public void postSearchWithConstraintEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraint);
+  void postSearchWithConstraintEvent(Object source, String dfName, DFAgentDescription dfd, List constraints);
   
   /**
   * This method returns all the agent descriptions registered with the DF
   */
-  public abstract Enumeration getAllDFAgentDsc();
+  Iterator getAllDFAgentDsc();
 
   /**
    * this method returns the agent description of an agent registered with the DF given the agent name
    */
-  public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException;
+  DFAgentDescription getDFAgentDsc(String name) throws FIPAException;
   
   /**
   * This method returns the descriptor of an agent result of a search
   */
-  public AgentManagementOntology.DFAgentDescriptor getDFAgentSearchDsc(String name) throws FIPAException;
+  DFAgentDescription getDFAgentSearchDsc(String name) throws FIPAException;
   
   /**
   * This methods returns the parent of the df that are the dfs with which this df is federated.
   */
-  public Enumeration getParents();
+  Iterator getParents();
   
   /*
   * This method returns the df-agents registered with this df.
   */
-  public Enumeration getChildren();
+  Iterator getChildren();
   
   /**
   * This method returns the constraints for the search operation.
   */
-  public Vector getConstraints();
+  List getConstraints();
   
   /*
   * This method returns the default description of the df.
   */
+  DFAgentDescription getDescriptionOfThisDF();
 
-  public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF();
-  
   /*
   * This method refresh the GUI for the applet
   */
-  public void postRefreshAppletGuiEvent(Object source);	
+  void postRefreshAppletGuiEvent(Object source);
+
 }

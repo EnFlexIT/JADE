@@ -28,11 +28,13 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.util.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
-import jade.domain.AgentManagementOntology.DFAgentDescriptor;
+import java.util.List;
+import java.util.Iterator;
+
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A
@@ -65,7 +67,7 @@ class DFAgentDscDlg extends JDialog
 		dlgParent = (Dialog) this;
 	}
 
-	void viewDFD(AgentManagementOntology.DFAgentDescriptor dfd)
+	void viewDFD(DFAgentDescription dfd)
 	{
 		setTitle("DF description");
 
@@ -216,7 +218,7 @@ class DFAgentDscDlg extends JDialog
 					if (i != -1)
 					{
 						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),false);
+						dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),false);
 					} 
 				}  
 			} 
@@ -234,7 +236,7 @@ class DFAgentDscDlg extends JDialog
 									if (i != -1)
 									{
 										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),false);
+										dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),false);
 									} 
 								}
 							} 
@@ -251,12 +253,11 @@ class DFAgentDscDlg extends JDialog
 		if (dfd != null)
 		{
 			agentName.setText(dfd.getName());
-		  agentType.setText(dfd.getType());
-			ownership.setText(dfd.getOwnership());
-			dfState.setSelectedItem(dfd.getDFState());
-			ontology.setText(dfd.getOntology());
-			//language.setText(dfd.getLanguage());
-			
+			agentType.setText("STUB");
+			ownership.setText("STUB");
+			dfState.setSelectedItem("STUB");
+			ontology.setText("STUB");
+			/*
 			Enumeration temp;
 			temp = dfd.getAddresses();
 			while (temp.hasMoreElements())
@@ -267,6 +268,7 @@ class DFAgentDscDlg extends JDialog
 			temp = dfd.getAgentServices();
 			while (temp.hasMoreElements())
 				servicesListModel.add(0, temp.nextElement());
+			*/
 		}
 
 		// OK BUTTON
@@ -300,7 +302,7 @@ class DFAgentDscDlg extends JDialog
     
 	}
 
-	AgentManagementOntology.DFAgentDescriptor editDFD(AgentManagementOntology.DFAgentDescriptor dfd)
+	DFAgentDescription editDFD(DFAgentDescription dfd)
 	{
 		final IntRetValue ret = new IntRetValue();
 		ret.setValue(0);
@@ -646,7 +648,7 @@ class DFAgentDscDlg extends JDialog
 					if (i != -1)
 					{
 						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),true);
+						ServiceDescription dsc = dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),true);
 					
 
 						if (dsc != null)
@@ -685,7 +687,7 @@ class DFAgentDscDlg extends JDialog
 								if (param.equals("Add"))
 								{
 									ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-									AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD(null,true);
+									ServiceDescription dsc = dlg.viewSD(null,true);
 									if (dsc != null)
 										servicesListModel.add(0, (Object) dsc);
 								}
@@ -702,7 +704,7 @@ class DFAgentDscDlg extends JDialog
 									if (i != -1)
 									{
 										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),true);
+										ServiceDescription dsc = dlg.viewSD((ServiceDescription) servicesListModel.getElementAt(i),true);
 										if (dsc != null)
 											servicesListModel.setElementAt((Object) dsc, i);
 									} 
@@ -735,12 +737,11 @@ class DFAgentDscDlg extends JDialog
 		if (dfd != null)
 		{
 			agentName.setText(dfd.getName());
-			agentType.setText(dfd.getType());
-			ownership.setText(dfd.getOwnership());
-			dfState.setSelectedItem(dfd.getDFState());
-			ontology.setText(dfd.getOntology());
-			//language.setText(dfd.getLanguage());
-			
+			agentType.setText("STUB");
+			ownership.setText("STUB");
+			dfState.setSelectedItem("STUB");
+			ontology.setText("STUB");
+			/*
 			Enumeration temp;
 			temp = dfd.getAddresses();
 			while (temp.hasMoreElements())
@@ -751,6 +752,7 @@ class DFAgentDscDlg extends JDialog
 			temp = dfd.getAgentServices();
 			while (temp.hasMoreElements())
 				servicesListModel.add(0, temp.nextElement());
+			*/
 		}
 
 		// OK AND CANCEL BUTTONS
@@ -800,9 +802,10 @@ class DFAgentDscDlg extends JDialog
 		show();
 		if (ret.getValue() == 1)
 		{	
-			AgentManagementOntology.DFAgentDescriptor editedDfd = new AgentManagementOntology.DFAgentDescriptor();
+			DFAgentDescription editedDfd = new DFAgentDescription();
 		
 			editedDfd.setName(getSaveText(agentName));
+			/*
 			editedDfd.setDFState((String)dfState.getSelectedItem());
 			editedDfd.setOwnership(getSaveText(ownership));
       editedDfd.setType(getSaveText(agentType));
@@ -821,8 +824,8 @@ class DFAgentDscDlg extends JDialog
 			editedDfd.removeAgentServices();
 			temp = servicesListModel.elements();
 			while (temp.hasMoreElements())
-				editedDfd.addAgentService((AgentManagementOntology.ServiceDescriptor) temp.nextElement()); 
-
+				editedDfd.addAgentService((ServiceDescription) temp.nextElement()); 
+			*/
 			return(editedDfd);
  		}
 		return(null);		

@@ -29,8 +29,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -51,7 +51,7 @@ class DFGUIRegisterAction extends AbstractAction
 	{
 		//System.out.println("REGISTER NEW AGENT");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+		DFAgentDescription editedDfd = dlg.editDFD(null);
 		if (editedDfd != null)
 		{
 			gui.myAgent.postRegisterEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);

@@ -27,10 +27,9 @@ package jade.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-//import java.net.InetAddress;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A
@@ -53,8 +52,8 @@ class DFGUIFederateAction extends AbstractAction
 	
 		gui.setTab("Federate");
 	
-	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-		AgentManagementOntology.DFAgentDescriptor editedDfd ;
+		DFAgentDescription dfd = new DFAgentDescription();
+		DFAgentDescription editedDfd ;
 		dfd = gui.myAgent.getDescriptionOfThisDF();
 		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the full name of the DF with which federate");
 		String parent = insertDlg.editString("");

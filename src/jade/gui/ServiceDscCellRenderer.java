@@ -29,8 +29,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-// Import required Jade classes
-import jade.domain.AgentManagementOntology;
+// Import required JADE classes
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 /**
 @author Giovanni Caire - CSELT S.p.A.
@@ -53,7 +53,7 @@ class ServiceDscCellRenderer extends DefaultListCellRenderer
 	{
 		Font courier = new Font("Courier", Font.PLAIN, 12);
 		setFont(courier);
-		setText(((AgentManagementOntology.ServiceDescriptor) value).getName());
+		setText(((ServiceDescription) value).getName());
 		setBackground(isSelected ? new Color(200,200,255) : Color.white);
 		setForeground(Color.black);
 		return this;
