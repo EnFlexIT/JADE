@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/02/25 08:27:26  rimassa
+  Made AgentGroup case-insensitive with respect to agent names.
+
   Revision 1.6  1999/02/14 23:12:09  rimassa
   Removed reset(), hasMoreMembers() and nextMember() methods. Added
   getMembers() and size() methods.
@@ -39,11 +42,11 @@ public class AgentGroup implements Cloneable {
   private Vector memberNames = new Vector();
 
   public void addMember(String name) {
-    memberNames.addElement(name);
+    memberNames.addElement(name.toLowerCase());
   }
 
   public void removeMember(String name) {
-    memberNames.removeElement(name);
+     memberNames.removeElement(name.toLowerCase());
   }
 
   public Enumeration getMembers(){
