@@ -59,6 +59,7 @@ interface AgentToolkit {
 
   // FIXME: Needed due to the Persistence Service being an add-on
   void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+  void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
   void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
 
   //#MIDP_EXCLUDE_END
