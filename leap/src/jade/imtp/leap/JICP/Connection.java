@@ -80,7 +80,7 @@ public class Connection {
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
     String url = "socket://"+ta.getHost()+":"+ta.getPort();
-    sc = (StreamConnection) Connector.open(url, Connector.READ_WRITE, true);
+    sc = (StreamConnection) Connector.open(url, Connector.READ_WRITE, false);
 		#MIDP_INCLUDE_END*/
   }
 
