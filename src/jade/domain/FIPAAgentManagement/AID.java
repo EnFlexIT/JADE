@@ -43,6 +43,10 @@ public class AID implements Cloneable, Serializable {
  private List resolvers = new ArrayList();
  private Properties userDefSlots = new Properties();
 
+
+
+
+
 public void setName(String n){
  name = n;
 }
@@ -165,7 +169,7 @@ public void addUserDefinedSlot(String key, String value){
     }
     try {
       AID id = (AID)o;
-      return name.equalsIgnoreCase(id.name);
+      return name.equalsIgnoreCase(id.getName());
     }
     catch(ClassCastException cce) {
       return false;
