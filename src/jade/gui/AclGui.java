@@ -42,6 +42,8 @@ import jade.lang.acl.*;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
+import jade.tools.sl.SLFormatter;
+import jade.domain.FIPANames;
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 
@@ -1087,7 +1089,16 @@ public class AclGui extends JPanel
     //to enable the textfields if needed.
     updateEnabled();  
     add(tabbed);
+
+    // Try inserting formatted SL content.
+    // any Exception is catched in order to remove unwished dependency
+    // on the jade.tools.sl package from this package at run-time.
+    try { 
+	slFormatter = new SLFormatter();
+    } catch (Exception e) {
+    }
   }
+    SLFormatter slFormatter;
   ////////////////////
   // PRIVATE METHODS
   ////////////////////
@@ -1348,12 +1359,22 @@ public class AclGui extends JPanel
       else
         protocol.setSelectedIndex(i);
     }
-    if ((param = msg.getLanguage()) == null) param = "";
-    language.setText(param);
+    String lang;
+    if ((lang = msg.getLanguage()) == null) lang = "";
+    language.setText(lang);
     if ((param = msg.getOntology()) == null) param = "";
     ontology.setText(param);
+
     if ((param = msg.getContent()) == null) param = "";
+    if ( (lang.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL0) ||
+	  lang.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL1) ||
+	  lang.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL2) ||
+	  lang.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL)) &&
+	 (slFormatter != null))
+	// Try inserting formatted SL content.
+	    param = slFormatter.format(param);
     content.setText(param);
+
     if((param = msg.getEncoding())== null) param = "";
     encoding.setText(param);
   
