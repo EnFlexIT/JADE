@@ -183,6 +183,7 @@ public class Boot {
            }
     }
     else 
+    if (insertedHost != null)
     	platformHost = insertedHost;
     
     // If '-gui' option is given, add 'RMA:jade.domain.rma' to
