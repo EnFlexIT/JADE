@@ -37,7 +37,10 @@ import FIPA.*; // OMG IDL Stubs
 
 import jade.core.AID;
 
+import jade.mtp.InChannel;
+import jade.mtp.OutChannel;
 import jade.mtp.MTP;
+import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -54,9 +57,9 @@ public class MessageTransportProtocol implements MTP {
 
   private static class MTSImpl extends FIPA._MTSImplBase {
 
-    private MTP.Dispatcher dispatcher;
+    private InChannel.Dispatcher dispatcher;
 
-    public MTSImpl(MTP.Dispatcher disp) {
+    public MTSImpl(InChannel.Dispatcher disp) {
       dispatcher = disp;
     }
 
@@ -153,28 +156,29 @@ public class MessageTransportProtocol implements MTP {
     myORB = ORB.init(new String[0], null);
   }
 
-  public TransportAddress activate(MTP.Dispatcher disp) throws MTP.MTPException {
+  public TransportAddress activate(InChannel.Dispatcher disp) throws MTPException {
     server = new MTSImpl(disp);
     myORB.connect(server);
     return new IIOPAddress(myORB, server);
   }
 
-  public void activate(MTP.Dispatcher disp, TransportAddress ta) throws MTP.MTPException {
-    throw new MTP.MTPException("User supplied transport address not supported.");
+  public void activate(InChannel.Dispatcher disp, TransportAddress ta) throws MTPException {
+    throw new MTPException("User supplied transport address not supported.");
   }
 
-  public void deactivate(TransportAddress ta) throws MTP.MTPException {
-    throw new MTP.MTPException("Individual deactivation not supported.");
-  }
-
-  public void deactivate() throws MTP.MTPException {
+  public void deactivate(TransportAddress ta) throws MTPException {
     myORB.disconnect(server);
   }
 
-  public void deliver(TransportAddress ta, Envelope env, byte[] payload) throws MTP.MTPException {
+  public void deactivate() throws MTPException {
+    myORB.disconnect(server);
+  }
+
+  public void deliver(String addr, Envelope env, byte[] payload) throws MTPException {
     try {
-      IIOPAddress addr = (IIOPAddress)ta;
-      FIPA.MTS objRef = addr.getObject();
+      TransportAddress ta = strToAddr(addr);
+      IIOPAddress iiopAddr = (IIOPAddress)ta;
+      FIPA.MTS objRef = iiopAddr.getObject();
 
       // Fill in the 'to' field of the IDL envelope
       Iterator itTo = env.getAllTo();
@@ -191,12 +195,7 @@ public class MessageTransportProtocol implements MTP {
 
       // Fill in the 'from' field of the IDL envelope
       AID from = env.getFrom();
-      Iterator itFrom = from.getAllAddresses();
-      if(!itFrom.hasNext())
-	from.addAddresses(addrToStr(ta));
-
       FIPA.AgentID[] IDLfrom = new FIPA.AgentID[] { marshalAID(from) };
-
 
 
       // Fill in the 'intended-receiver' field of the IDL envelope
@@ -255,22 +254,22 @@ public class MessageTransportProtocol implements MTP {
     }
     catch(ClassCastException cce) {
       cce.printStackTrace();
-      throw new MTP.MTPException("Address mismatch: this is not a valid IIOP address.");
+      throw new MTPException("Address mismatch: this is not a valid IIOP address.");
     }
 
   }
 
-  public TransportAddress strToAddr(String rep) throws MTP.MTPException {
+  public TransportAddress strToAddr(String rep) throws MTPException {
     return new IIOPAddress(myORB, rep);
   }
 
-  public String addrToStr(TransportAddress ta) throws MTP.MTPException {
+  public String addrToStr(TransportAddress ta) throws MTPException {
     try {
       IIOPAddress addr = (IIOPAddress)ta;
       return addr.getIOR();
     }
     catch(ClassCastException cce) {
-      throw new MTP.MTPException("Address mismatch: this is not a valid IIOP address.");
+      throw new MTPException("Address mismatch: this is not a valid IIOP address.");
     }
   }
 
@@ -347,7 +346,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 
     private CDRCodec codecStrategy;
 
-    public IIOPAddress(ORB anOrb, FIPA.MTS objRef) throws MTP.MTPException {
+    public IIOPAddress(ORB anOrb, FIPA.MTS objRef) throws MTPException {
       orb = anOrb;
       String s = orb.object_to_string(objRef);
       if(s.toLowerCase().startsWith("ior:"))
@@ -357,10 +356,10 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       else if(s.toLowerCase().startsWith("corbaloc:"))
 	initFromURL(s, BIG_ENDIAN);
       else
-	throw new MTP.MTPException("Invalid string prefix");
+	throw new MTPException("Invalid string prefix");
     }
 
-    public IIOPAddress(ORB anOrb, String s) throws MTP.MTPException {
+    public IIOPAddress(ORB anOrb, String s) throws MTPException {
       orb = anOrb;
       if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
@@ -369,11 +368,11 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       else if(s.toLowerCase().startsWith("corbaloc:"))
 	initFromURL(s, BIG_ENDIAN);
       else
-	throw new MTP.MTPException("Invalid string prefix");
+	throw new MTPException("Invalid string prefix");
     }
 
     
-    private void initFromIOR(String s) throws MTP.MTPException {
+    private void initFromIOR(String s) throws MTPException {
 
       // Store stringified IOR
       ior = new String(s.toUpperCase());
@@ -391,12 +390,12 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	codecStrategy = new LittleEndianCodec(hexString);
 	break;
       default:
-	throw new MTP.MTPException("Invalid endianness specifier");
+	throw new MTPException("Invalid endianness specifier");
       }
       // Read 'string type_id' field
       String typeID = codecStrategy.readString();
       if(!typeID.equalsIgnoreCase(TYPE_ID))
-	throw new MTP.MTPException("Invalid type ID" + typeID);
+	throw new MTPException("Invalid type ID" + typeID);
 
       // Read 'sequence<TaggedProfile> profiles' field
       // Read sequence length
@@ -416,14 +415,14 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	    profileBodyCodec = new LittleEndianCodec(profile);
 	    break;
 	  default:
-	    throw new MTP.MTPException("Invalid endianness specifier");
+	    throw new MTPException("Invalid endianness specifier");
 	  }
 
 	  // Read IIOP version
 	  byte versionMajor = profileBodyCodec.readOctet();
 	  byte versionMinor = profileBodyCodec.readOctet();
 	  if(versionMajor != 1)
-	    throw new MTP.MTPException("IIOP version not supported");
+	    throw new MTPException("IIOP version not supported");
 
 	  // Read 'string host' field
 	  host = profileBodyCodec.readString();
@@ -442,14 +441,14 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       }
     }
 
-    private void initFromURL(String s, short endianness) throws MTP.MTPException {
+    private void initFromURL(String s, short endianness) throws MTPException {
 
       // Remove 'iiop://' prefix to get URL host, port and file
       s = s.substring(7);
       int colonPos = s.indexOf(':');
       int slashPos = s.indexOf('/');
       if((colonPos == -1) || (slashPos == -1))
-	throw new MTP.MTPException("Invalid URL string");
+	throw new MTPException("Invalid URL string");
 
       host = new String(s.substring(0, colonPos));
       port = Short.parseShort(s.substring(colonPos + 1, slashPos));
@@ -463,7 +462,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	codecStrategy = new LittleEndianCodec(new byte[0]);
 	break;
       default:
-	throw new MTP.MTPException("Invalid endianness specifier");
+	throw new MTPException("Invalid endianness specifier");
       }
 
       codecStrategy.writeString(TYPE_ID);
@@ -481,7 +480,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	profileBodyCodec = new LittleEndianCodec(new byte[0]);
 	break;
       default:
-	throw new MTP.MTPException("Invalid endianness specifier");
+	throw new MTPException("Invalid endianness specifier");
       }
 
       // Write IIOP 1.0 profile to auxiliary CDR codec
