@@ -29,9 +29,9 @@ import jade.core.Agent;
    Atomic behaviour that must be executed forever. This abstract class
    can be extended by application programmers to create behaviours
    that keep executing continuously (e.g. simple reactive behaviours).
-   
-   
-   @author Giovanni Rimassa - Universita` di Parma
+
+
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
 
  */

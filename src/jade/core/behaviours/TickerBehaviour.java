@@ -121,6 +121,8 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	}
 
 	/**
+	 * Retrieve how many ticks were done (i.e. how many times this
+	 * behaviour was executed) since the last reset.
 	 * @return The number of ticks since the last reset
 	 */
 	public int getTickCount() {
