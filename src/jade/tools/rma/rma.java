@@ -40,22 +40,25 @@ import java.net.URL;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.AMSEvent;
 import jade.domain.FIPAException;
+import jade.domain.FIPAServiceCommunicator;
+import jade.domain.AMSServiceCommunicator;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.introspection.*;
 import jade.domain.MobilityOntology;
 import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
 import jade.lang.sl.SL0Codec;
+
 import jade.onto.basic.ResultPredicate;
 import jade.onto.basic.Action;
-import jade.domain.FIPAServiceCommunicator;
+
 import jade.proto.FipaRequestInitiatorBehaviour;
-import jade.domain.AMSServiceCommunicator;
+
+import jade.tools.ToolAgent;
 
 
 /**
@@ -70,11 +73,8 @@ import jade.domain.AMSServiceCommunicator;
   @version $Date$ $Revision$
 
 */
-public class rma extends Agent {
+public class rma extends ToolAgent {
 
-  private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
-  private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
-  private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
   private APDescription myPlatformProfile;
   
   // Sends requests to the AMS
@@ -164,147 +164,6 @@ public class rma extends Agent {
     }//end handleAddRemotePlatformBehaviour
 
 
-  // Used by AMSListenerBehaviour
-  private interface EventHandler {
-    void handle(AMSEvent ev);
-  }
-
-  // Receives notifications by AMS
-  private class AMSListenerBehaviour extends CyclicBehaviour {
-
-    private MessageTemplate listenTemplate;
-
-    // Ignore case for event names
-    private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-
-    AMSListenerBehaviour() {
-
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
-      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-
-      mt1 = MessageTemplate.MatchInReplyTo("tool-subscription");
-      mt2 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-      listenTemplate = MessageTemplate.and(mt1, mt2);
-      listenTemplate = MessageTemplate.and(listenTemplate, mt12);
-
-
-      // Fill the event handler table.
-
-      handlers.put(JADEAgentManagementOntology.CONTAINERBORN, new EventHandler() {
-	public void handle(AMSEvent ev) {
-	  ContainerBorn cb = (ContainerBorn)ev;
-	  String container = cb.getName();
-	  String host = cb.getHost();
-	  try {
-	    InetAddress addr = InetAddress.getByName(host);
-	    myGUI.addContainer(container, addr);
-	  }
-	  catch(UnknownHostException uhe) {
-	    myGUI.addContainer(container, null);
-	  }
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.CONTAINERDEAD, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  ContainerDead cd = (ContainerDead)ev;
-	  String container = cd.getName();
-	  myGUI.removeContainer(container);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTBORN, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentBorn ab = (AgentBorn)ev;
-	  String container = ab.getContainer();
-	  AID agent = ab.getAgent();
-	  myGUI.addAgent(container, agent);
-	  if(agent.equals(getAID()))
-	    myContainerName = container;
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTDEAD, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentDead ad = (AgentDead)ev;
-	  String container = ad.getContainer();
-	  AID agent = ad.getAgent();
-	  myGUI.removeAgent(container, agent);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTMOVED, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentMoved am = (AgentMoved)ev;
-	  AID agent = am.getAgent();
-	  String from = am.getFrom();
-	  myGUI.removeAgent(from, agent);
-	  String to = am.getTo();
-	  myGUI.addAgent(to, agent);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.NEWMTP, new EventHandler() {
-	public void handle(AMSEvent ev) {
-	  NewMTP nmtp = (NewMTP)ev;
-	  String address = nmtp.getAddress();
-	  String where = nmtp.getWhere();
-	  myGUI.addAddress(address, where);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.DEADMTP, new EventHandler() {
-	public void handle(AMSEvent ev) {
-	  DeadMTP dmtp = (DeadMTP)ev;
-	  String address = dmtp.getAddress();
-	  String where = dmtp.getWhere();
-	  myGUI.removeAddress(address, where);
-	}
-      });
-    
-    //handle the APDescription provided by the AMS 
-    handlers.put(JADEAgentManagementOntology.PLATFORMDESCRIPTION, new EventHandler(){
-    public void handle(AMSEvent ev){
-    
-    	PlatformDescription pd = (PlatformDescription)ev;
-    	APDescription APdesc = pd.getPlatform();
-      myPlatformProfile = APdesc;
-      myGUI.refreshLocalPlatformName(myPlatformProfile.getName());
-    }
-    
-    });
-
-    }
-
-    
-    
-    public void action() {
-      ACLMessage current = receive(listenTemplate);
-      if(current != null) {
-	// Handle 'inform' messages from the AMS
-	try {
-	  List l = extractContent(current);
-	  EventOccurred eo = (EventOccurred)l.get(0);
-	  AMSEvent ev = eo.getEvent();
-	  String eventName = ev.getEventName();
-	  EventHandler h = (EventHandler)handlers.get(eventName);
-	  if(h != null)
-	    h.handle(ev);
-	}
-	catch(FIPAException fe) {
-	  fe.printStackTrace();
-	}
-	catch(ClassCastException cce) {
-	  cce.printStackTrace();
-	}
-      }
-      else
-	block();
-    }
-
-  } // End of AMSListenerBehaviour
-
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
   private transient MainWindow myGUI;
@@ -315,51 +174,110 @@ public class rma extends Agent {
    This method starts the <em>RMA</em> behaviours to allow the agent
    to carry on its duties within <em><b>JADE</b></em> agent platform.
   */
-  public void setup() {
+  protected void toolSetup() {
 
     // Register the supported ontologies 
-    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
-    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-    // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());	
-
-    // Fill ACL messages fields
-
-    AMSSubscription.setSender(getAID());
-    AMSSubscription.clearAllReceiver();
-    AMSSubscription.addReceiver(getAMS());
-    AMSSubscription.setLanguage(SL0Codec.NAME);
-    AMSSubscription.setOntology(JADEAgentManagementOntology.NAME);
-    AMSSubscription.setReplyWith("tool-subscription");
-    AMSSubscription.setConversationId(getLocalName());
-
-    // Please inform me whenever container list changes and send me
-    // the difference between old and new container lists, complete
-    // with every AMS agent descriptor
-    String content = "platform-events";
-    AMSSubscription.setContent(content);
-
-    AMSCancellation.setSender(getAID());
-    AMSCancellation.clearAllReceiver();
-    AMSCancellation.addReceiver(getAMS());
-    AMSCancellation.setLanguage(SL0Codec.NAME);
-    AMSCancellation.setOntology(JADEAgentManagementOntology.NAME);
-    AMSCancellation.setReplyWith("tool-cancellation");
-    AMSCancellation.setConversationId(getLocalName());
-    // No content is needed (cfr. FIPA 97 Part 2 page 26)
-
-    requestMsg.setSender(getAID());
-    requestMsg.clearAllReceiver();
-    requestMsg.addReceiver(getAMS());
-    requestMsg.setProtocol("fipa-request");
-    requestMsg.setLanguage(SL0Codec.NAME);
 
     // Send 'subscribe' message to the AMS
-    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, AMSSubscription));
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
 
     // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour());
+    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
+
+      protected void installHandlers(Map handlersTable) {
+
+	// Fill the event handler table.
+
+	handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+	  public void handle(Event ev) {
+	    AddedContainer ac = (AddedContainer)ev;
+	    ContainerID cid = ac.getContainer();
+	    String name = cid.getName();
+	    String address = cid.getAddress();
+	    try {
+	      InetAddress addr = InetAddress.getByName(address);
+	      myGUI.addContainer(name, addr);
+	    }
+	    catch(UnknownHostException uhe) {
+	      myGUI.addContainer(name, null);
+	    }
+	  }
+	});
+
+	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	  public void handle(Event ev) {
+	    RemovedContainer rc = (RemovedContainer)ev;
+	    ContainerID cid = rc.getContainer();
+	    String name = cid.getName();
+	    myGUI.removeContainer(name);
+	  }
+	});
+
+	handlersTable.put(JADEIntrospectionOntology.BORNAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    BornAgent ba = (BornAgent)ev;
+	    ContainerID cid = ba.getWhere();
+	    String container = cid.getName();
+	    AID agent = ba.getAgent();
+	    myGUI.addAgent(container, agent);
+	    if(agent.equals(getAID()))
+	      myContainerName = container;
+	  }
+	});
+
+        handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    DeadAgent da = (DeadAgent)ev;
+	    ContainerID cid = da.getWhere();
+	    String container = cid.getName();
+	    AID agent = da.getAgent();
+	    myGUI.removeAgent(container, agent);
+	  }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    MovedAgent ma = (MovedAgent)ev;
+	    AID agent = ma.getAgent();
+	    ContainerID from = ma.getFrom();
+	    myGUI.removeAgent(from.getName(), agent);
+	    ContainerID to = ma.getTo();
+	    myGUI.addAgent(to.getName(), agent);
+	  }
+        });
+
+	handlersTable.put(JADEIntrospectionOntology.ADDEDMTP, new EventHandler() {
+	  public void handle(Event ev) {
+	    AddedMTP amtp = (AddedMTP)ev;
+	    String address = amtp.getAddress();
+	    ContainerID where = amtp.getWhere();
+	    myGUI.addAddress(address, where.getName());
+	  }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.REMOVEDMTP, new EventHandler() {
+	  public void handle(Event ev) {
+	    RemovedMTP rmtp = (RemovedMTP)ev;
+	    String address = rmtp.getAddress();
+	    ContainerID where = rmtp.getWhere();
+	    myGUI.removeAddress(address, where.getName());
+	  }
+	});
+	/*
+	//handle the APDescription provided by the AMS 
+	handlersTable.put(JADEIntrospectionOntology.PLATFORMDESCRIPTION, new EventHandler(){
+	  public void handle(Event ev){
+	    PlatformDescription pd = (PlatformDescription)ev;
+	    APDescription APdesc = pd.getPlatform();
+	    myPlatformProfile = APdesc;
+	    myGUI.refreshLocalPlatformName(myPlatformProfile.getName());
+	  }
+        });
+	*/
+      } // End of installHandlers() method
+
+    });
 
     // Schedule Behaviour for execution
     addBehaviour(AMSSubscribe);
@@ -375,8 +293,8 @@ public class rma extends Agent {
    <em>RMA</em> agent is destroyed, disconnecting from <em>AMS</em>
    agent and closing down the platform administration <em>GUI</em>.
   */
-  public void takeDown() {
-    send(AMSCancellation);
+  protected void toolTakeDown() {
+    send(getCancel());
     myGUI.setVisible(false);
     myGUI.disposeAsync();
   }
@@ -386,6 +304,7 @@ public class rma extends Agent {
 
   protected void afterClone() {
     // Add yourself to the RMA list
+    ACLMessage AMSSubscription = getSubscribe();
     AMSSubscription.setSender(getAID());
     send(AMSSubscription);
     myGUI = new MainWindow(this);
@@ -396,7 +315,7 @@ public class rma extends Agent {
    Callback method for platform management <em>GUI</em>.
    */
   public AgentTreeModel getModel() {
-      return myGUI.getModel();
+    return myGUI.getModel();
   }
 
   /**
@@ -411,7 +330,7 @@ public class rma extends Agent {
 
     ca.setAgentName(agentName);
     ca.setClassName(className);
-    ca.setContainerName(containerName);
+    ca.setContainer(new ContainerID(containerName, null));
     for(int i = 0; i<arg.length ; i++)
     	ca.addArguments((Object)arg[i]);
     
@@ -422,6 +341,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
+      ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("CreateAgent", requestMsg));
@@ -449,6 +369,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
+      ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("SuspendAgent", requestMsg));
@@ -484,6 +405,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
+      ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
@@ -516,6 +438,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
+      ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("KillAgent", requestMsg));
@@ -533,7 +456,7 @@ public class rma extends Agent {
 
     KillContainer kc = new KillContainer();
 
-    kc.setName(name);
+    kc.setContainer(new ContainerID(name, null));
 
     try {
       Action a = new Action();
@@ -542,6 +465,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
+      ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(JADEAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("KillContainer", requestMsg));
@@ -555,15 +479,14 @@ public class rma extends Agent {
   /**
   Callback method for platform management
   */
-  
-  public void moveAgent(AID name,String container)
+
+  public void moveAgent(AID name, String container)
   {
      MobilityOntology.MoveAction moveAct = new MobilityOntology.MoveAction();
-     //moveAct.setActor(getAMS().getName());
      MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
      desc.setName(name);
-     MobilityOntology.Location dest = new MobilityOntology.Location(container,getHap());
-     
+     ContainerID dest = new ContainerID(container, null);
+
      desc.setDestination(dest);
      moveAct.set_0(desc);
          	
@@ -573,6 +496,7 @@ public class rma extends Agent {
      	  a.set_1(moveAct);
      	  List l = new ArrayList(1);
      	  l.add(a);
+	  ACLMessage requestMsg = getRequest();
      	  requestMsg.setOntology(MobilityOntology.NAME);
      	  fillContent(requestMsg,l);
      	  addBehaviour(new AMSClientBehaviour("MoveAgent",requestMsg));
@@ -586,10 +510,9 @@ public class rma extends Agent {
   public void cloneAgent(AID name,String newName, String container)
   {
   	MobilityOntology.CloneAction cloneAct = new MobilityOntology.CloneAction();
-  //	cloneAct.setActor(getAMS().getName());
   	MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
   	desc.setName(name);
-  	MobilityOntology.Location dest = new MobilityOntology.Location(container,getHap());
+  	ContainerID dest = new ContainerID(container, null);
   	desc.setDestination(dest);
   	cloneAct.set_0(desc);
   	cloneAct.set_1(newName);
@@ -600,6 +523,7 @@ public class rma extends Agent {
   		a.set_1(cloneAct);
   		List l = new ArrayList(1);
   		l.add(a);
+		ACLMessage requestMsg = getRequest();
   		requestMsg.setOntology(MobilityOntology.NAME);
   		fillContent(requestMsg,l);
   		addBehaviour(new AMSClientBehaviour("CloneAgent",requestMsg));
@@ -625,7 +549,7 @@ public class rma extends Agent {
 
   public void installMTP(String containerName) {
     InstallMTP imtp = new InstallMTP();
-    imtp.setContainer(containerName);
+    imtp.setContainer(new ContainerID(containerName, null));
     if(myGUI.showInstallMTPDialog(imtp)) {
       try {
 	Action a = new Action();
@@ -634,6 +558,7 @@ public class rma extends Agent {
 	List l = new ArrayList(1);
 	l.add(a);
 
+	ACLMessage requestMsg = getRequest();
 	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
 	fillContent(requestMsg, l);
 	addBehaviour(new AMSClientBehaviour("InstallMTP", requestMsg));
@@ -647,7 +572,7 @@ public class rma extends Agent {
 
   public void uninstallMTP(String containerName) {
     UninstallMTP umtp = new UninstallMTP();
-    umtp.setContainer(containerName);
+    umtp.setContainer(new ContainerID(containerName, null));
     if(myGUI.showUninstallMTPDialog(umtp)) {
       try {
 	Action a = new Action();
@@ -656,6 +581,7 @@ public class rma extends Agent {
 	List l = new ArrayList(1);
 	l.add(a);
 
+	ACLMessage requestMsg = getRequest();
 	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
 	fillContent(requestMsg, l);
 	addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
@@ -672,7 +598,7 @@ public class rma extends Agent {
   
   	//System.out.println("AddRemotePlatform");
   	try{
-  		
+
   		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
 		requestMsg.setSender(getAID());
     		requestMsg.clearAllReceiver();
@@ -812,6 +738,7 @@ public class rma extends Agent {
   		a.set_1(register_act);
   		List l = new ArrayList();
   		l.add(a);
+		ACLMessage requestMsg = getRequest();
   		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("Register", requestMsg));

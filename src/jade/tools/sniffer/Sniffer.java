@@ -36,9 +36,9 @@ import java.util.LinkedList;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.AMSEvent;
 import jade.domain.FIPAException;
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.introspection.*;
 import jade.domain.FIPAServiceCommunicator;
 
 import jade.lang.acl.ACLMessage;
@@ -51,6 +51,8 @@ import jade.lang.sl.SL0Codec;
 import jade.onto.basic.Action;
 
 import jade.proto.FipaRequestInitiatorBehaviour;
+
+import jade.tools.ToolAgent;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -117,7 +119,7 @@ import java.io.*;
  *   that would allow you to turn on a sniff all new agents flag.
  *
  */
-public class Sniffer extends jade.core.Agent {
+public class Sniffer extends ToolAgent {
 
   public static final boolean SNIFF_ON = true;
   public static final boolean SNIFF_OFF = false;
@@ -127,9 +129,6 @@ public class Sniffer extends jade.core.Agent {
   private Vector preLoadedAgents; // The agents in the .inf file that we are to pre-sniff.
   private Vector preLoadedFilters; // Filtering array for the pre-sniffed agents.
 
-  private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
-  private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
-  private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
   private LinkedList agentsUnderSniff = new LinkedList();
 
 
@@ -168,127 +167,6 @@ public class Sniffer extends jade.core.Agent {
     }
 
   } // End of AMSClientBehaviour class
-
-
-  // Used by AMSListenerBehaviour
-  private interface EventHandler {
-    void handle(AMSEvent ev);
-  }
-
-  // Receives notifications by AMS
-  private class AMSListenerBehaviour extends CyclicBehaviour {
-
-    private MessageTemplate listenTemplate;
-
-    // Ignore case for event names
-    private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-
-    AMSListenerBehaviour() {
-
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
-      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-
-      mt1 = MessageTemplate.MatchInReplyTo("tool-subscription");
-      mt2 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-      listenTemplate = MessageTemplate.and(mt1, mt2);
-      listenTemplate = MessageTemplate.and(listenTemplate, mt12);
-
-
-      // Fill the event handler table.
-
-      handlers.put(JADEAgentManagementOntology.CONTAINERBORN, new EventHandler() {
-	public void handle(AMSEvent ev) {
-	  ContainerBorn cb = (ContainerBorn)ev;
-	  String container = cb.getName();
-	  String host = cb.getHost();
-	  try {
-	    InetAddress addr = InetAddress.getByName(host);
-	    myGUI.addContainer(container, addr);
-	  }
-	  catch(UnknownHostException uhe) {
-	    myGUI.addContainer(container, null);
-	  }
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.CONTAINERDEAD, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  ContainerDead cd = (ContainerDead)ev;
-	  String container = cd.getName();
-	  myGUI.removeContainer(container);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTBORN, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentBorn ab = (AgentBorn)ev;
-	  String container = ab.getContainer();
-	  AID agent = ab.getAgent();
-	  myGUI.addAgent(container, agent);
-	  if(agent.equals(getAID()))
-	    myContainerName = container;
-          // Here we check to see if the agent is one that we automatically will
-          // start sniffing.  If so, we invoke DoSnifferAction's doSniff and start
-          // the sniffing process.
-          if (preLoadedAgents.contains(agent.getName())) {
-              // System.out.println("Found one: " + agent.getName());
-              ActionProcessor ap = myGUI.actPro;
-              DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
-              sa.doSniff(agent.getName());
-              sa.sendAgentVector();
-          } else {
-              // System.out.println("Agent not in .inf: " + agent.getName());
-          }
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTDEAD, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentDead ad = (AgentDead)ev;
-	  String container = ad.getContainer();
-	  AID agent = ad.getAgent();
-	  myGUI.removeAgent(container, agent);
-	}
-      });
-
-      handlers.put(JADEAgentManagementOntology.AGENTMOVED, new EventHandler() {
-        public void handle(AMSEvent ev) {
-	  AgentMoved am = (AgentMoved)ev;
-	  AID agent = am.getAgent();
-	  String from = am.getFrom();
-	  myGUI.removeAgent(from, agent);
-	  String to = am.getTo();
-	  myGUI.addAgent(to, agent);
-	}
-      });
-    }
-
-    public void action() {
-      ACLMessage current = receive(listenTemplate);
-      if(current != null) {
-	// Handle 'inform' messages from the AMS
-	try {
-	  List l = extractContent(current);
-	  EventOccurred eo = (EventOccurred)l.get(0);
-	  AMSEvent ev = eo.getEvent();
-	  String eventName = ev.getEventName();
-	  EventHandler h = (EventHandler)handlers.get(eventName);
-	  if(h != null)
-	    h.handle(ev);
-	}
-	catch(FIPAException fe) {
-	  fe.printStackTrace();
-	}
-	catch(ClassCastException cce) {
-	  cce.printStackTrace();
-	}
-      }
-      else
-	block();
-    }
-
-  } // End of AMSListenerBehaviour
 
 
   private class SniffListenerBehaviour extends CyclicBehaviour {
@@ -353,53 +231,94 @@ public class Sniffer extends jade.core.Agent {
    * ACLMessages for subscription and unsubscription as <em>rma</em> are created and
    * corresponding behaviours are set up.
    */
-  public void setup() {
-      
-      loadSnifferConfigurationFile();
-      
-      // Register the supported ontology 
-    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+  public void toolSetup() {
 
-    // register the supported languages
-    registerLanguage(SL0Codec.NAME, new SL0Codec());	
-
-    // Fill ACL messages fields
-
-    AMSSubscription.setSender(getAID());
-    AMSSubscription.clearAllReceiver();
-    AMSSubscription.addReceiver(getAMS());
-    AMSSubscription.setLanguage(SL0Codec.NAME);
-    AMSSubscription.setOntology(JADEAgentManagementOntology.NAME);
-    AMSSubscription.setReplyWith("tool-subscription");
-    AMSSubscription.setConversationId(getLocalName());
-
-    // Please inform me whenever container list changes and send me
-    // the difference between old and new container lists, complete
-    // with every AMS agent descriptor
-    String content = "platform-events";
-    AMSSubscription.setContent(content);
-
-    AMSCancellation.setSender(getAID());
-    AMSCancellation.clearAllReceiver();
-    AMSCancellation.addReceiver(getAMS());
-    AMSCancellation.setLanguage(SL0Codec.NAME);
-    AMSCancellation.setOntology(JADEAgentManagementOntology.NAME);
-    AMSCancellation.setReplyWith("tool-cancellation");
-    AMSCancellation.setConversationId(getLocalName());
-    // No content is needed (cfr. FIPA 97 Part 2 page 26)
-
-    requestMsg.setSender(getAID());
-    requestMsg.clearAllReceiver();
-    requestMsg.addReceiver(getAMS());
-    requestMsg.setProtocol("fipa-request");
-    requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-    requestMsg.setLanguage(SL0Codec.NAME);
+    loadSnifferConfigurationFile();
 
     // Send 'subscribe' message to the AMS
-    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, AMSSubscription));
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
 
     // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour());
+    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
+
+      protected void installHandlers(Map handlersTable) {
+
+
+        // Fill the event handler table.
+
+        handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+	  public void handle(Event ev) {
+	    AddedContainer ac = (AddedContainer)ev;
+	    ContainerID cid = ac.getContainer();
+	    String name = cid.getName();
+	    String address = cid.getAddress();
+	    try {
+	      InetAddress addr = InetAddress.getByName(address);
+	      myGUI.addContainer(name, addr);
+	    }
+	    catch(UnknownHostException uhe) {
+	      myGUI.addContainer(name, null);
+	    }
+	  }
+	});
+
+	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	  public void handle(Event ev) {
+	    RemovedContainer rc = (RemovedContainer)ev;
+	    ContainerID cid = rc.getContainer();
+	    String name = cid.getName();
+	    myGUI.removeContainer(name);
+	  }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.BORNAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    BornAgent ba = (BornAgent)ev;
+	    ContainerID cid = ba.getWhere();
+	    String container = cid.getName();
+	    AID agent = ba.getAgent();
+	    myGUI.addAgent(container, agent);
+	    if(agent.equals(getAID()))
+	      myContainerName = container;
+	    // Here we check to see if the agent is one that we automatically will
+	    // start sniffing.  If so, we invoke DoSnifferAction's doSniff and start
+	    // the sniffing process.
+	    if(preLoadedAgents.contains(agent.getName())) {
+	      // System.out.println("Found one: " + agent.getName());
+	      ActionProcessor ap = myGUI.actPro;
+              DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
+              sa.doSniff(agent.getName());
+              sa.sendAgentVector();
+	    } else {
+              // System.out.println("Agent not in .inf: " + agent.getName());
+	    }
+	  }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    DeadAgent da = (DeadAgent)ev;
+	    ContainerID cid = da.getWhere();
+	    String container = cid.getName();
+	    AID agent = da.getAgent();
+	    myGUI.removeAgent(container, agent);
+	  }
+        });
+
+        handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+          public void handle(Event ev) {
+	    MovedAgent ma = (MovedAgent)ev;
+	    AID agent = ma.getAgent();
+	    ContainerID from = ma.getFrom();
+	    myGUI.removeAgent(from.getName(), agent);
+	    ContainerID to = ma.getTo();
+	    myGUI.addAgent(to.getName(), agent);
+	  }
+        });
+
+      } // End of installHandlers() method
+
+    });
 
     // Schedule Behaviours for execution
     addBehaviour(AMSSubscribe);
@@ -472,31 +391,32 @@ public class Sniffer extends jade.core.Agent {
           try { if (in != null) in.close(); } catch (IOException ee) {};
       }
   }
-  
+
 /**
    * Cleanup during agent shutdown. This method cleans things up when
    * <em>Sniffer</em> agent is destroyed, disconnecting from <em>AMS</em>
    * agent and closing down the Sniffer administration <em>GUI</em>.
    * Currently sniffed agents are also unsniffed to avoid errors.
    */
-  public void takeDown() {
-    
+  protected void toolTakeDown() {
+
     List l = (List)(agentsUnderSniff.clone());
     ACLMessage request = getSniffMsg(l, SNIFF_OFF);
     //start a FIPARequestProtocol to sniffOf the agent since the sniffer will die
     try{
     if(request != null)
-        FIPAServiceCommunicator.doFipaRequestClient(this,requestMsg); 
+        FIPAServiceCommunicator.doFipaRequestClient(this,request);
     }catch(jade.domain.FIPAException e){e.printStackTrace();}
-    
+
     myGUI.mainPanel.panelcan.canvMess.ml.removeAllMessages();
-  
+
     // Now we unsubscribe from the rma list
-    send(AMSCancellation);
+    send(getCancel());
     myGUI.setVisible(false);
     myGUI.disposeAsync();
 
   }
+
 /**
  * This method add an AMSBehaviour the perform a request to the AMS for sniffing/unsniffing list of agents.
  **/
@@ -504,7 +424,7 @@ public class Sniffer extends jade.core.Agent {
       ACLMessage request = getSniffMsg(agents,onFlag);
       if (request != null)
         addBehaviour(new AMSClientBehaviour((onFlag?"SniffAgentOn":"SniffAgentOff"),request));
-     
+
  }
   /**
    * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
@@ -543,6 +463,8 @@ public class Sniffer extends jade.core.Agent {
 	  List l = new ArrayList(1);
 	  l.add(a);
 
+	  ACLMessage requestMsg = getRequest();
+	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
 	  fillContent(requestMsg, l);
           return requestMsg;
 	}
@@ -574,6 +496,8 @@ public class Sniffer extends jade.core.Agent {
 	  List l = new ArrayList(1);
 	  l.add(a);
 
+	  ACLMessage requestMsg = getRequest();
+	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
 	  fillContent(requestMsg, l);
           requestMsg.setReplyWith(getName()+ (new Date().getTime()));
           return requestMsg;
