@@ -152,7 +152,7 @@ public class NotificationService extends BaseService {
 
 	// Implementation of the Filter interface
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -202,6 +202,9 @@ public class NotificationService extends BaseService {
 	    catch(NotFoundException nfe) {
 		cmd.setReturnValue(nfe);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 	public void setBlocking(boolean newState) {
