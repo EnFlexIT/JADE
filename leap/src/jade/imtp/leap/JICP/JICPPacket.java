@@ -244,6 +244,8 @@ public class JICPPacket {
     	int size = data.length;
     	out.write(size);
     	out.write(size >> 8);      	
+    	out.write(size >> 16);      	
+    	out.write(size >> 24);      	
     	cnt += 2;
     	// Payload
     	if (size > 0) {
@@ -291,7 +293,9 @@ public class JICPPacket {
     if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
     	int b1 = read(in);
     	int b2 = read(in);
-    	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+    	int b3 = read(in);
+    	int b4 = read(in);
+    	int size = ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000) | ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
     	if (size == 0) {
       	p.data = new byte[0];
     	} 
