@@ -231,25 +231,26 @@ class RealMobilityManager implements MobilityManager {
         finally {
             localAgents.release(agentID);   
         }
-    } 
+    }
 
     /**
        @see jade.core.MobilityManager#handleMove()
      */
     public void handleMove(AID agentID, Location where) {
-	try {
+        Agent a = null;
+        try {
 	    String proto = where.getProtocol();
 
 	    if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
 		throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
 	    }
 
-	    AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
-	    Agent a = localAgents.acquire(agentID);
-
+	    a = localAgents.acquire(agentID);
 	    if (a == null) {
 		throw new NotFoundException("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
 	    } 
+
+	    AgentContainer dest = myProfile.getPlatform().lookup((ContainerID)where);
 
 	    // Handle special 'running to stand still' case
 	    if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
@@ -295,7 +296,6 @@ class RealMobilityManager implements MobilityManager {
 		// From now on, messages will be routed to the new agent
 		a.doGone();
 
-
 		localAgents.remove(agentID);
 		sites.remove(a);
 
@@ -308,14 +308,20 @@ class RealMobilityManager implements MobilityManager {
 	catch(IMTPException imtpe) {
 	    imtpe.printStackTrace();
 	    // FIXME: Complete undo on exception
+            if(a != null)
+                a.doExecute();
 	}
 	catch(NotFoundException nfe) {
 	    nfe.printStackTrace();
 	    // FIXME: Complete undo on exception
-	}
+            if(a != null)
+                a.doExecute();
+        }
 	catch(ProfileException pe) {
 	    pe.printStackTrace();
 	    // FIXME: Complete undo on exception
+            if(a != null)
+                a.doExecute();
 	}
 	finally {
 	  localAgents.release(agentID);
