@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.58  1999/06/25 12:26:56  rimassa
+  Fixed a bug with timed blockingReceive(): when called with a 0 timeout
+  (i.e. a 'forever' timeout), sometimes an IllegalArgumentException was
+  thrown.
+
   Revision 1.57  1999/06/16 12:14:48  rimassa
   Corrected an error in a Javadoc comment.
 
@@ -928,11 +933,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	  long startTime = System.currentTimeMillis();
 	  waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
 	  long elapsedTime = System.currentTimeMillis() - startTime;
-	  timeToWait -= elapsedTime;
 
-	  // If this was a timed wait and the total time has passed, wake up.
-	  if((millis != 0) && (timeToWait <= 0))
+	  // If this was a timed wait, update time to wait; if the
+	  // total time has passed, wake up.
+	  if(millis != 0) {
+	    timeToWait -= elapsedTime;
+
+	    if(timeToWait <= 0)
 	    myAPState = AP_ACTIVE;
+	  }
 
 	}
 	catch(InterruptedException ie) {
@@ -1165,11 +1174,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       long startTime = System.currentTimeMillis();
       doWait(timeToWait);
       long elapsedTime = System.currentTimeMillis() - startTime;
-      timeToWait -= elapsedTime;
 
       msg = receive(pattern);
-      if((millis != 0) && (timeToWait <= 0))
-	break;
+
+      if(millis != 0) {
+	timeToWait -= elapsedTime;
+	if(timeToWait <= 0)
+	  break;
+      }
 
     }
     return msg;
