@@ -122,7 +122,7 @@ import jade.content.abs.*;
   :ontology JADE-Agent-Management :protocol fipa-request)</code>
  
  	@see DFService
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @author Tiziana Trucco - TILAB S.p.A.
   @author Elisabetta Cortese - TILAB S.p.A.
   @version $Date$ $Revision$
