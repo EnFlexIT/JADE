@@ -29,7 +29,6 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.InternalError;
-import jade.util.Logger;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
@@ -42,7 +41,8 @@ import java.util.StringTokenizer;
 import java.util.Enumeration;
 
 /**
-@author Giovanni Caire - TILAB
+   @author Giovanni Caire - TILAB
+   @author Jerome Picault - Motorola Labs
 */
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
@@ -68,6 +68,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     private boolean refreshPlatformInfo = true;
 
     private String[] replicasAddresses;
+
+    private Map principals = new HashMap();
 
     // The original properties passed to this container when it was created
     private Properties creationProperties;
@@ -118,14 +120,53 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 
       protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+        /*
 	  // Register with the platform 
 	  // This call can modify the name of this container
 	  getServiceManager().addNode(getNodeDescriptor(), new ServiceDescriptor[0]);
 
 	  // Activate all the container fundamental services
-	  startService("jade.core.management.BEAgentManagementService");
+	  startService("jade.core.management.BEAgentManagementService", false);
+	  startService("jade.core.messaging.MessagingService", false);
+    */
+	  // Start all the container fundamental services (without activating them)
+  	List basicServices = new ArrayList();
+	  ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
+	  basicServices.add(dsc);
+	  dsc = startService("jade.core.messaging.MessagingService", false);
+	  basicServices.add(dsc);
+    List l = myProfile.getSpecifiers(Profile.SERVICES);
+    myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
+    Iterator serviceSpecifiers = l.iterator();
+    while(serviceSpecifiers.hasNext()) {
+		  Specifier s = (Specifier) serviceSpecifiers.next();
+		  String serviceClass = s.getClassName();
+		  if (serviceClass.equals("jade.core.security.SecurityService")) {
+		  	l.remove(s);
+		  	dsc = startService("jade.core.security.SecurityService", false);
+			  basicServices.add(dsc);
+			  break;
+		  }
+    }
+			  	
+    ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
+    for (int i = 0; i < descriptors.length; ++i) {
+    	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
+    }
+	  // This call can modify the name of this container
+	  getServiceManager().addNode(getNodeDescriptor(), descriptors);
+
+	  // Boot all basic services
+    for (int i = 0; i < descriptors.length; ++i) {
+    	descriptors[i].getService().boot(myProfile);
+    }
+	  	
 	  //#MIDP_EXCLUDE_BEGIN
-	  startService("jade.core.messaging.MessagingService");
+	  // If we are the master main container --> start the AMS and DF
+	  if(myMainContainer != null) {
+	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
+	      myMainContainer.initSystemAgents(this, startThem);
+	  }
 	  //#MIDP_EXCLUDE_END
       }
 
@@ -392,9 +433,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
   /**
    */
-  public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
-      throw new IMTPException("Unsupported operation");
-  }
+  //  public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
+  //      throw new IMTPException("Unsupported operation");
+  //  }
   
   /**
      This method is re-defined to avoid NullPointerException. In fact
@@ -414,9 +455,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	throw new IMTPException("Unsupported operation");
   }
 
-  public CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
-      return null; //super.createCertificateFolder(agentID);
-  }
+  /*
+    public CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
+    return null; //super.createCertificateFolder(agentID);
+    }
+  */
 
   /**
    */
