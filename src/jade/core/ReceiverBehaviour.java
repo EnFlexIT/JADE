@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/10/05 20:16:04  Giovanni
+  Mde 'final' ReceiverBehaviour class.
+
   Revision 1.3  1998/10/04 18:01:13  rimassa
   Added a 'Log:' field to every source file.
 
@@ -9,7 +12,7 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 
-public class ReceiverBehaviour extends Behaviour {
+public final class ReceiverBehaviour extends Behaviour {
 
   // The agent who wants to receive the ACL message
   Agent myAgent;
