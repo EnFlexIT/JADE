@@ -71,7 +71,7 @@
 	</target>
 	
 	
-	<!-- PJAVA (java-1.1-home must be set) -->
+	<!-- PJAVA (java-1.1-home must be set in the buildLEAP.properties file) -->
 	<target name = "pjava" depends = "pjava-do, pjava-dont"
 	        description = "Set the pjava property --> pjava.xml will be called (unless java-1.1-home is not set)"/>
 	<target name = "pjava-do" if = "java-1.1-home">
@@ -82,7 +82,7 @@
 	</target>
 
 
-	<!-- MIDP (j2me-wtk-home must be set) -->
+	<!-- MIDP (j2me-wtk-home must be set in the buildLEAP.properties file) -->
 	<target name = "midp" depends = "midp-do, midp-dont"
 	        description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"/>
 	<target name = "midp-do" if = "j2me-wtk-home">
@@ -93,6 +93,17 @@
 	</target>
 
 
+	<!-- DOTNET (vjc must be set in the buildLEAP.properties file) -->
+	<target name = "dotnet" depends = "dotnet-do, dotnet-dont"
+	        description = "Set the dotnet property --> dotnet.xml will be called (unless vjc is not set)"/>
+	<target name = "dotnet-do" if = "vjc">
+		<property name = "dotnet"  value = "true"/>
+	</target>
+	<target name = "dotnet-dont" unless = "vjc">
+		<echo> WARNING: 'vjc' not specified in buildLEAP.properties. Skipping dotnet build.</echo>
+	</target>
+
+	
 	<!-- ALL -->
 	<target name = "all" depends = "j2se, pjava, midp"
 	        description = "Set the property for all environments"/>
@@ -135,7 +146,7 @@
 	
 	
 	<!-- SETUP the build environment for the selected java environments -->
-	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp"
+	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp, setup-dotnet"
 	        description="Setup the build environment using the appropriate {environment}.xml file"/>
 	<target name="setup-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-setup" dir="."/>
@@ -146,11 +157,15 @@
 	<target name="setup-midp" if="midp">
 		<ant antfile="${buildfiles}/midp.xml" target="do-setup" dir="."/>
 	</target>
+	<target name="setup-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-setup" dir="."/>
+	</target>
 
 	
 	<!-- RESET the jade-leap directory structure for the selected java environments -->
-	<target name="reset" depends="init, reset-j2se, reset-pjava, reset-midp"
-	        description="Reset the directory structure using the appropriate {environment}.xml file"/>
+	<target name="reset" depends="init, reset-j2se, reset-pjava, reset-midp, reset-dotnet"
+	        description="Reset the directory structure using the appropriate {environment}.xml file">
+	</target>
 	<target name="reset-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-reset" dir="."/>
 	</target>	
@@ -160,10 +175,13 @@
 	<target name="reset-midp" if="midp">
 		<ant antfile="${buildfiles}/midp.xml" target="do-reset" dir="."/>
 	</target>
+	<target name="reset-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-reset" dir="."/>
+	</target>
 
 	
 	<!-- CLEAN class files for the selected java environments -->
-	<target name="clean" depends="init, clean-j2se, clean-pjava, clean-midp"
+	<target name="clean" depends="init, clean-j2se, clean-pjava, clean-midp, clean-dotnet"
 	        description="Clean class files using the appropriate {environment}.xml file"/>
 	<target name="clean-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-clean" dir="."/>
@@ -174,11 +192,14 @@
 	<target name="clean-midp" if="midp">
 		<ant antfile="${buildfiles}/midp.xml" target="do-clean" dir="."/>
 	</target>
+	<target name="clean-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-clean" dir="."/>
+	</target>
 
 	
 	<!-- Generate ACL and SL PARSERS from jj files for the selected java environments 
 	     Note that there are no parsers in midp -->
-	<target name="parsers" depends="init, parsers-j2se, parsers-pjava"
+	<target name="parsers" depends="init, parsers-j2se, parsers-pjava, parsers-dotnet"
 	        description="Generate parsers using the appropriate {environment}.xml file"/>
 	<target name="parsers-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-parsers" dir="."/>
@@ -186,10 +207,13 @@
 	<target name="parsers-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-parsers" dir="."/>
 	</target>
+	<target name="parsers-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-parsers" dir="."/>
+	</target>
 
 	
 	<!-- COMPILE jade-leap for the selected java environments -->
-	<target name="compile" depends="init, compile-j2se, compile-pjava, compile-midp"
+	<target name="compile" depends="init, compile-j2se, compile-pjava, compile-midp, compile-dotnet"
 	        description="Compile using the appropriate {environment}.xml file"/>
 	<target name="compile-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-compile" dir="."/>
@@ -199,6 +223,10 @@
 	</target>
 	<target name="compile-midp" if="midp">
 		<ant antfile="${buildfiles}/midp.xml" target="do-compile" dir="."/>
+	</target>
+	<target name="compile-dotnet" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-compile" dir="."/>
 	</target>
 
 	
@@ -237,7 +265,7 @@
 		
 
 	<!-- ******** The COMPLETE build process ********* -->
-	<target name="rebuild" depends="reset, lib"
+	<target name="rebuild" depends="reset, lib, compile-dotnet"
 	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
 
 	<target name="complete" depends="all, rebuild, javadoc"
@@ -300,24 +328,7 @@
 		
 	  <delete dir = "${tmp}/leapTools"/>
   </target>
-
   
-	<!-- ******** JADE-LEAP for Microsoft .NET (experimental) ******** -->
-	<!-- The VJSHARPTOOLS environment variable must be set -->
-	<target name = "dotnet" depends = "init, dotnet-do, dotnet-dont" 
-	        description = "Compile Jade-leap for .NET by calling dotnet.xml (unless The VJSHARPTOOLS environment variable is not set)"/>
-	<target name = "dotnet-do" if = "env.VJSHARPTOOLS">
-		<ant antfile="${buildfiles}/dotnet.xml" target="do-compile" dir="."/>
-	</target>
-	<target name = "dotnet-dont" unless = "env.VJSHARPTOOLS">
-		<echo> WARNING: 'VJSHARPTOOLS' environment variable not set. Skipping dotnet build.</echo>
-	</target>
-
-	<target name = "dotnetreset" depends = "init" 
-	        description = "Reset the environment for dotnet compilation">
-		<ant antfile="${buildfiles}/dotnet.xml" target="do-reset" dir="."/>
-	</target>
-
 	
 	<!-- ******** Minimize a jar file ******** -->
 	
