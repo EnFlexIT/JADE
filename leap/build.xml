@@ -26,11 +26,10 @@
 	<property name="dotnet-root" value="${root}/dotnet"/>	
 	<property name="tmp" value="${root}/tmp"/>	
 	<property name="dist" value="${jade-home}"/>	
-	<property name="version" value="3.0-beta1"/>	
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
-	<property name="version" value="3.0"/>
+	<property name="version" value="3.1"/>	
 	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
 
 	<!-- Properties for compiling the demo -->
@@ -201,19 +200,6 @@
 	</target>
 
 	<!-- Generate filtered JAVADOC -->
-	<!-- To be removed 
-	<target name="apidoc" depends="init, apidoc-j2se, apidoc-pjava, apidoc-midp"
-	        description="Filtered JavaDoc using the appropriate {environment}.xml file"/>
-	<target name="apidoc-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-apidoc" dir="."/>
-	</target>	
-	<target name="apidoc-pjava" if="pjava">
-		<ant antfile="${buildfiles}/pjava.xml" target="do-apidoc" dir="."/>
-	</target>
-	<target name="apidoc-midp" if="midp">
-		<ant antfile="${buildfiles}/midp.xml" target="do-apidoc" dir="."/>
-	</target>
-	-->
 	<target name="apidoc" depends="init"
 	        description="Generate filtered JavaDoc">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-apidoc" dir="."/>

@@ -131,36 +131,6 @@
 		         packagenames="jade.*, starlight.* "/>
 	</target>
 
-				<!-- To be removed -->
-        <target name="do-apidoc" depends="do-setup"
-            description="Generate filtered javadoc">
-            
-            <!-- 1) Create filtered src directory -->
-            <mkdir dir="${filtered.src}"/>
-            
-            <!-- 2) Copy JADE sources -->
-            <copy todir="${filtered.src}" overwrite="yes">
-                    <fileset dir="${src}"/>
-            </copy>
-            
-            <!-- 3) Preprocess-->
-            <pproc basedir="${filtered.src}" type="apidoc"/>
-        
-            <!-- 4) Generates javadoc-->
-            <javadoc sourcepath="${filtered.src}"
-                     destdir="${doc}"
-                     classpath="${classes};${boot-midp-classes}"
-                     doctitle="&lt;h1>${midp-title}&lt;/h1>"
-                     bottom="${javadoc-footer}"
-                     verbose="false"
-                     windowtitle="${midp-title}"
-                     packagenames="jade.content.*, jade.*, starlight.*"
-                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
-
-            <!-- 5) Remove filtered src-->
-            <delete dir="${filtered.src}"/>
-        </target>
-
 
 	<!-- DEMO -->
 	<target name="do-demo" depends="do-init"
