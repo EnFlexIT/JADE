@@ -113,6 +113,7 @@ public interface IntrospectionVocabulary {
   
   public static final String BEHAVIOURID = "behaviour-ID";
   public static final String BEHAVIOURID_NAME = "name";
+  public static final String BEHAVIOURID_CLASS_NAME = "class-name";
   public static final String BEHAVIOURID_KIND = "kind";
   public static final String BEHAVIOURID_CHILDREN = "children";
   
