@@ -143,7 +143,8 @@ class MainContainerImpl implements Platform, AgentManager {
 			}
 		}
 		catch (Exception e2) {
-			e2.printStackTrace();
+			System.err.println("Could not init dummy platform authority");
+			//e2.printStackTrace();
 		}
 		
 	}
@@ -164,7 +165,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 		// Add the calling container as the main container and set its name
 		cid.setName(MAIN_CONTAINER_NAME);
-		containers.addContainer(cid, ac);
+		containers.addContainer(cid, ac, principal);
 		containersProgNo++;
 
 		String agentOwnership = username;
@@ -270,6 +271,18 @@ class MainContainerImpl implements Platform, AgentManager {
   private static int containersProgNo = 0;
 
 
+
+  ContainerID getContainerIDFromAgent(AID agentID) throws NotFoundException {
+	AgentDescriptor ad = platformAgents.get(agentID);
+	if (ad == null) {
+		throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerFromAgent()");
+	}
+	ad.lock();
+	ContainerID cid = ad.getContainerID();
+	ad.unlock();
+	return cid;
+  }
+
   AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
     AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null) {
@@ -281,6 +294,7 @@ class MainContainerImpl implements Platform, AgentManager {
     ad.unlock();
     return ac;
   }
+
 
   // Inner class to detect agent container failures
   private class FailureMonitor implements Runnable {
@@ -517,7 +531,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		// Add the calling container and set its name
 		String name = AUX_CONTAINER_NAME + containersProgNo;
 		cid.setName(name);
-		containers.addContainer(cid, ac);
+		containers.addContainer(cid, ac, principal);
 		containersProgNo++;
 
 		// Spawn a blocking call to the remote container in a separate
@@ -677,7 +691,8 @@ class MainContainerImpl implements Platform, AgentManager {
 			theAMS.setDelegation(name, amsDelegation);
 		}
 		catch (AuthException ae) {
-			ae.printStackTrace();
+ 			//ae.printStackTrace();
+			System.err.println(ae.getMessage());
 		}
 	}
 	
@@ -747,6 +762,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
 		try {
+			authority.checkAction(Authority.CONTAINER_KILL_IN, getContainerPrincipal(getContainerIDFromAgent(agentID)), null);
 			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
@@ -763,6 +779,8 @@ class MainContainerImpl implements Platform, AgentManager {
                     throw nfe;
                 }
 		catch (Exception e) {
+			if (e instanceof AuthException)
+				throw (AuthException)e;
                     // It should never happen...
 		}
 	}
@@ -781,6 +799,9 @@ class MainContainerImpl implements Platform, AgentManager {
 			throw new UnreachableException(re.getMessage());
 		}
 		catch (Exception e) {
+			if (e instanceof AuthException)
+				throw (AuthException)e;
+			// It should never happen...
 		}
 	}
 
@@ -798,6 +819,9 @@ class MainContainerImpl implements Platform, AgentManager {
 			throw new UnreachableException(re.getMessage());
 		}
 		catch (Exception e) {
+			if (e instanceof AuthException)
+				throw (AuthException)e;
+			// It should never happen...
 		}
 	}
 
@@ -848,6 +872,11 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void move(final AID agentID, final Location where) throws NotFoundException, UnreachableException, AuthException {
     try {
+     		ContainerID from = getContainerIDFromAgent(agentID);
+     		ContainerID to = (ContainerID)where;
+			authority.checkAction(Authority.CONTAINER_MOVE_FROM, getContainerPrincipal(from), null);
+			authority.checkAction(Authority.CONTAINER_MOVE_TO, getContainerPrincipal(to), null);
+
 			authority.checkAction(Authority.AGENT_MOVE, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
@@ -860,12 +889,20 @@ class MainContainerImpl implements Platform, AgentManager {
       throw new UnreachableException(re.getMessage());
     }
     catch (Exception e) {
+			if (e instanceof AuthException)
+					throw (AuthException)e;
+			// It should never happen...
     }
   }
 
   public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
     try {
-			authority.checkAction(Authority.AGENT_COPY, getAgentPrincipal(agentID), null);
+	    	ContainerID from = getContainerIDFromAgent(agentID);
+    	 	ContainerID to = (ContainerID)where;
+ 			authority.checkAction(Authority.AGENT_CLONE, getAgentPrincipal(agentID), null);
+ 			authority.checkAction(Authority.CONTAINER_CLONE_FROM, getContainerPrincipal(from), null);
+ 			authority.checkAction(Authority.CONTAINER_CLONE_TO, getContainerPrincipal(to), null);
+
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).copyAgent(agentID, where, newName);
@@ -877,6 +914,9 @@ class MainContainerImpl implements Platform, AgentManager {
       throw new UnreachableException(re.getMessage());
     }
     catch (Exception e) {
+			if (e instanceof AuthException)
+					throw (AuthException)e;
+			// It should never happen...
     }
   }
 
@@ -1028,6 +1068,7 @@ class MainContainerImpl implements Platform, AgentManager {
   public void create(final String agentName, final String className, final String args[], final ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException {
     try {
       authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
+      authority.checkAction(Authority.CONTAINER_CREATE_IN, getContainerPrincipal(cid), null);
 
       String containerName = cid.getName();
       AgentContainer where;
@@ -1059,7 +1100,10 @@ class MainContainerImpl implements Platform, AgentManager {
     catch (IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
-    catch (Exception re) {
+    catch (Exception e) {
+			if (e instanceof AuthException)
+				throw (AuthException)e;
+			// It should never happen...
     }
   }
 
@@ -1069,6 +1113,7 @@ class MainContainerImpl implements Platform, AgentManager {
     try {
       final ContainerID contID = cid;
       final AgentContainer ac = containers.getContainer(cid);
+      authority.checkAction(Authority.CONTAINER_KILL, getContainerPrincipal(cid), null);
       final Thread auxThread = new Thread(new Runnable() {
 	 			public void run() {
 	   			try {
@@ -1171,5 +1216,21 @@ class MainContainerImpl implements Platform, AgentManager {
   public byte[] getPublicKey() throws IMTPException {
   	return authority.getPublicKey();
   }
+
+
+
+  public ContainerPrincipal getContainerPrincipal(ContainerID cid) {
+ 	ContainerPrincipal cp = null;
+ 	try {
+		cp = containers.getPrincipal(cid);
+ 	}
+ 	catch (NotFoundException nfe) {
+ 	}
+ 	if (cp == null) {
+ 		cp = authority.createContainerPrincipal(cid, ContainerPrincipal.NONE);
+ 	}
+ 	return cp;
+  }
+
   
 }

@@ -31,6 +31,9 @@ import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
+import jade.security.ContainerPrincipal;
+
+
 class ContainerTable {
 
   // Initial size of containers hash table
@@ -39,9 +42,16 @@ class ContainerTable {
   private static class Entry {
     private AgentContainer container;
     private List mtps = new LinkedList();
+    private ContainerPrincipal principal;
 
     public Entry(AgentContainer ac) {
       container = ac;
+      principal = null;
+    }
+
+    public Entry(AgentContainer ac, ContainerPrincipal cp) {
+      container = ac;
+      principal = cp;
     }
 
     public void addMTP(MTPDescriptor mtp) {
@@ -50,6 +60,14 @@ class ContainerTable {
 
     public void removeMTP(MTPDescriptor mtp) {
       mtps.remove(mtp);
+    }
+
+    public void setPrincipal(ContainerPrincipal cp) {
+      principal = cp;
+    }
+
+    public ContainerPrincipal getPrincipal() {
+      return principal;
     }
 
     public AgentContainer getContainer() {
@@ -68,6 +86,11 @@ class ContainerTable {
 
   public synchronized void addContainer(ContainerID cid, AgentContainer ac) {
     Entry e = new Entry(ac);
+    entries.put(cid, e);
+  }
+
+  public synchronized void addContainer(ContainerID cid, AgentContainer ac, ContainerPrincipal cp) {
+    Entry e = new Entry(ac, cp);
     entries.put(cid, e);
   }
 
@@ -98,6 +121,20 @@ class ContainerTable {
     if(e == null)
       throw new NotFoundException("No container named " + cid.getName() + " was found.");
     return e.getContainer();
+  }
+
+  public synchronized void setPrincipal(ContainerID cid, ContainerPrincipal cp) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
+    if(e == null)
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
+    e.setPrincipal(cp);
+  }
+
+  public synchronized ContainerPrincipal getPrincipal(ContainerID cid) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
+    if(e == null)
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
+    return e.getPrincipal();
   }
 
   public synchronized List getMTPs(ContainerID cid) throws NotFoundException {
