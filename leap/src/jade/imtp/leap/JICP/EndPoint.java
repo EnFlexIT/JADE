@@ -92,11 +92,11 @@ public abstract class EndPoint extends Thread {
   	// If this is a self-initiated shut down, we must explicitly
   	// notify the peer. Otherwise the TERMINATED_INFO will be appended 
   	// to the response to the command that activated the shutdown.
-  	// Note that in any case TERMINATED_INFO is set within the push() 
+  	// Note that in any case the TERMINATED_INFO is set within the push() 
   	// method.
   	terminator = Thread.currentThread();
   	if ((terminator != this) && !(terminator instanceof IncomingHandler)) {
-  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO), null);
+  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
   		log("Pushing termination notification", 2);
   		push((byte) 0, pkt);
   	} 		
@@ -136,45 +136,9 @@ public abstract class EndPoint extends Thread {
         try {
           log("Waiting for a command...");
 
-          // Read session id and JICPPacket
-          byte id = (byte) inp.read();
-          System.out.println("SessionID read");
+          // Read JICPPacket
           JICPPacket pkt = JICPPacket.readFrom(inp);
-          System.out.println("Packet read");
-          pktCnt = (pktCnt+1) & 0x0fff;
-        	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
-          	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-	          	log("Peer termination notification received", 2);
-          		// The remote EndPoint has terminated spontaneously -->
-          		// close the connection, notify the local peer and exit
-          		shutdown();
-          		resetConnection();
-          		handlePeerExited();
-          	}
-          	else {
-	          	log("Command received. INC-SID="+id);
-	
-	          	// Start a new IncomingHandler for the incoming connection
-	          	IncomingHandler h = new IncomingHandler(id, pkt);
-	          	h.start();
-          	}
-        	}
-        	else {
-          	log("Response received. OUT-SID="+id);
-          	
-          	// Dispatch the response  to the OutgoingHandler that is waiting for it
-          	OutgoingHandler h = deregisterOutgoing(id);
-          	h.setResponse(pkt);
-          	
-          	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-          		// The remote EndPoint has terminated as a consequence
-          		// of a command issued by the local peer --> 
-          		// just close the connection and exit
-          		log("Last response received. Close connection", 2);
-          		shutdown();
-          		resetConnection();
-          	}
-        	}	
+          servePacket(pkt);          
         } 
         catch (Exception e) {
           if (active) {
@@ -191,6 +155,48 @@ public abstract class EndPoint extends Thread {
   } 
   
   /**
+     The following code is isolated in a separate protected method to
+     make it possible to re-use it
+   */
+  protected void servePacket(JICPPacket pkt) {
+    byte id = pkt.getSessionID();
+    pktCnt = (pktCnt+1) & 0x0fff;
+  	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+      	log("Peer termination notification received", 2);
+    		// The remote EndPoint has terminated spontaneously -->
+    		// close the connection, notify the local peer and exit
+    		shutdown();
+    		resetConnection();
+    		handlePeerExited();
+    	}
+    	else {
+      	log("Command received. INC-SID="+id);
+
+      	// Start a new IncomingHandler for the incoming connection
+      	IncomingHandler h = new IncomingHandler(id, pkt);
+      	h.start();
+    	}
+  	}
+  	else {
+    	log("Response received. OUT-SID="+id);
+    	
+    	// Dispatch the response  to the OutgoingHandler that is waiting for it
+    	OutgoingHandler h = deregisterOutgoing(id);
+    	h.setResponse(pkt);
+    	
+    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+    		// The remote EndPoint has terminated as a consequence
+    		// of a command issued by the local peer --> 
+    		// just close the connection and exit
+    		log("Last response received. Close connection", 2);
+    		shutdown();
+    		resetConnection();
+    	}
+  	}
+  }
+
+  /**
      Mutual exclusion with setConnection() and resetConnection()
    */
   private int push(byte id, JICPPacket pkt) {
@@ -202,8 +208,9 @@ public abstract class EndPoint extends Thread {
   					pkt.setTerminatedInfo();
   				}
 			    // Write the session id and the packet
-			    out.write(id);
-				  return pkt.writeTo(out);
+			    //out.write(id);
+  				pkt.setSessionID(id);
+				  return deliver(pkt);
 		    }
 		    catch (IOException ioe) {
 	        // The connection is down! Reset it so that the EndPoint thread
@@ -214,6 +221,14 @@ public abstract class EndPoint extends Thread {
   		return -1;
   	}
   } 
+  
+  /**
+     The following code is isolated in a separate protected method to
+     make it possible to customize it
+   */
+  protected int deliver(JICPPacket pkt) throws IOException {
+  	return pkt.writeTo(out);
+  }
 
   /**
      Mutual exclusion with setConnection() and push()
