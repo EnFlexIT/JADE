@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/06/25 12:55:51  rimassa
+  Changed code to reflect the new jade.gui utility package.
+
   Revision 1.4  1999/06/09 12:59:46  rimassa
   Improved screen presentation adding support for main window and dialog
   centering.
@@ -70,6 +73,7 @@ import javax.swing.border.*;
 import javax.swing.tree.*;
 
 import jade.lang.acl.ACLMessage;
+import jade.gui.*;
 
 /**
  * A class representing the main window of the Management System
@@ -234,7 +238,7 @@ class AMSMainFrame extends JFrame {
     int answer = JOptionPane.showConfirmDialog(this, messages, "RMA Error !!!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
     switch(answer) {
     case JOptionPane.YES_OPTION:
-      jade.tools.DummyAgent.AclGui.showMsgInDialog(msg, this);
+      jade.gui.AclGui.showMsgInDialog(msg, this);
       break;
     default:
       break;
