@@ -72,14 +72,14 @@ public class JICPProtocol extends TransportProtocol {
   /**
    * bit encoded data info constants
    */
-  static final byte          UNCOMPRESSED_INFO = 0;              // All bits = 0
+  static final byte          DEFAULT_INFO = 0;                   // All bits = 0
   static final byte          COMPRESSED_INFO = 1;                // bit 1 == 1
   static final byte          RECIPIENT_ID_PRESENT_INFO = 2;      // bit 2 == 1
-  static final byte          DATA_PRESENT_INFO = 4;              // bit 3 == 1
-  static final byte          BLOCKING_IMTP_PING_INFO = 8;        // bit 4 == 1
-  static final byte          NON_BLOCKING_IMTP_PING_INFO = 16;   // bit 5 == 1
-  static final byte          IMTP_COMMAND_WITH_RESULT_INFO = 32; // bit 6 == 1
-  static final byte          TERMINATED_INFO = 64;            // bit 7 == 1
+  static final byte          SESSION_ID_PRESENT_INFO = 4;        // bit 3 == 1
+  static final byte          DATA_PRESENT_INFO = 8;              // bit 4 == 1
+  static final byte          BLOCKING_IMTP_PING_INFO = 16;       // bit 5 == 1
+  static final byte          NON_BLOCKING_IMTP_PING_INFO = 32;   // bit 6 == 1
+  static final byte          TERMINATED_INFO = 64;               // bit 7 == 1
 
   /**
    * Default recipient ID
