@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.15  1998/10/18 15:53:13  rimassa
+  Added a private lookup3() method to avoid a bug in java.rmi.Naming
+  class.
+  Set Java runtime property "java.rmi.server.hostname" to the complete
+  host name, to allow agent platforms to be distributed over WAN and
+  interoperate without DNS lookups.
+
   Revision 1.14  1998/10/15 18:03:51  Giovanni
   Fixed an horrible bug: a chunk of code was moved from outside a for
   loop to inside the loop !!! This resulted in platform misbehaviour
@@ -29,6 +36,9 @@
   */
 
 package jade.core;
+
+import java.net.InetAddress;
+import java.net.MalformedURLException;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -85,6 +95,15 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public AgentContainerImpl() throws RemoteException {
     myDispatcher = new MessageDispatcherImpl(this, localAgents);
+
+    // Configure Java runtime system to put the whole host address in RMI messages
+    try {
+      System.getProperties().put("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
+    }
+    catch(java.net.UnknownHostException jnue) {
+      // Silently ingnore it
+    }
+
   }
 
 
@@ -106,7 +125,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     // Retrieve agent platform from RMI registry and register as agent container
     try {
-      myPlatform = (AgentPlatform) Naming.lookup(platformRMI);
+      myPlatform = lookup3(platformRMI);
       myPlatform.addContainer(this); // RMI call
     }
     catch(RemoteException re) {
@@ -219,6 +238,29 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     else
       unicastPostMessage(msg);
+  }
+
+  // This hack is needed to overcome a bug in java.rmi.Naming class:
+  // when an object reference is binded, unbinded and then rebinded
+  // with the same URL, the next two lookup() calls will throw an
+  // Exception without a reason.
+  private AgentPlatform lookup3(String URL)
+    throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
+    Object o = null;
+    try {
+      o = Naming.lookup(URL);
+    }
+    catch(RemoteException re1) { // First one
+      try {
+	o = Naming.lookup(URL);
+      }
+      catch(RemoteException re2) { // Second one
+	// Third attempt. If this one fails, there's really
+	// something wrong, so we let the RemoteException go.
+	o = Naming.lookup(URL);
+      }
+    }
+    return (AgentPlatform)o;
   }
 
   private void unicastPostMessage(ACLMessage msg) {
