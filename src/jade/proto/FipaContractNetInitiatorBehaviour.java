@@ -56,7 +56,8 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    */
   public Agent myAgent;
   
-  ACLMessage cfpMsg;
+  /* This is the cfpMsg sent in the first state of the protocol */
+protected ACLMessage cfpMsg; 
   private int state = 0;  // state of the protocol
   long timeout;
   MessageTemplate template;
@@ -130,24 +131,24 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       wakeMsg.setContent("(timeout " + timeout + ")");
       waker = new Waker(myAgent,wakeMsg,timeout);
       waker.start();
-      Enumeration e = proposerAgents.getMembers();
-      String oldcontent = cfpMsg.getContent();
-      int    p  = oldcontent.indexOf('*'); //replace with the actual actor name
-      // that is 1 actor for each message.
-      // FIXME: gestire il caso in cui non c'e' il carattere *
-      String actor;
-      while (e.hasMoreElements()) {
-	actor = (String)e.nextElement();
-	cfpMsg.setContent(oldcontent.substring(0,p-1) + actor + oldcontent.substring(p+1,oldcontent.length()));
-	cfpMsg.setDest(actor);
-	cfpMsg.dump();
-	myAgent.send(cfpMsg);
+      int p = cfpMsg.getContent().indexOf('*');
+      if (p != -1) {
+	//replace with the actual actor name that is 1 actor for each message.
+	String oldcontent = cfpMsg.getContent();
+	String actor;
+	Enumeration e = proposerAgents.getMembers();
+	while (e.hasMoreElements()) {
+	  actor = (String)e.nextElement();
+	  cfpMsg.setContent(oldcontent.substring(0,p-1) + actor + oldcontent.substring(p+1,oldcontent.length()));
+	  cfpMsg.setDest(actor);
+	  myAgent.send(cfpMsg);
+	}
+      } else { // the content does not contain the character '*'
+	myAgent.send(cfpMsg,proposerAgents);
       }
-      System.err.println("FipaContractNetInitiatorBehaviour: send");
-      cfpMsg.dump();
       template = MessageTemplate.MatchReplyTo(cfpMsg.getReplyWith());
       waitedAgents = (AgentGroup)proposerAgents.clone();
-      System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       break;
     }
     case 1: { // waiting for propose
@@ -157,10 +158,10 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
 	block();
 	return;
       }
-      System.err.println("FipaContractNetInitiatorBehaviour: receive");
-      msg.dump();
+      //System.err.println("FipaContractNetInitiatorBehaviour: receive");
+      //msg.dump();
       waitedAgents.removeMember(msg.getSource());
-      System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
 	waker.stop();
 	state=2;
@@ -251,8 +252,8 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       for (int i=0; i<msgFinalAnswers.size(); i++) {
 	((ACLMessage)msgFinalAnswers.elementAt(i)).setSource(myAgent.getName());
 	myAgent.send((ACLMessage)msgFinalAnswers.elementAt(i));
-	System.err.println("FipaContractNetInitiatorBehaviour: send");
-	((ACLMessage)msgFinalAnswers.elementAt(i)).dump();
+	//System.err.println("FipaContractNetInitiatorBehaviour: send");
+	//((ACLMessage)msgFinalAnswers.elementAt(i)).dump();
       }
       break;
     }
@@ -294,6 +295,12 @@ public abstract void handleOtherMessages(ACLMessage msg);
    * protocol. Usually, these messages should be of type 
    * <code>accept-proposal   reject-proposal</code>. If <code>null</code>
    * is returned, then the protocol is prematurely terminated.
+   * REMIND to set the value of <code>:in-reply-to</code> parameter
+   * in all the returned messages of this vector. This implementation of
+   * the protocol is not able to set that value on your behalf because
+   * it implements a one-to-many protocol and, unfortunatelly, 
+   * each of the many might
+   * use a different value of <code>:in-reply-to</code>. 
    */
 public abstract Vector evaluateProposals(Vector proposals);
 
@@ -309,6 +316,12 @@ public abstract Vector evaluateProposals(Vector proposals);
    * @param messages is the Vector of ACLMessage received so far
    * @return a Vector of ACLMessage to be send in the next state of the 
    * protocol. return null to terminate the protocol
+   * REMIND to set the value of <code>:in-reply-to</code> parameter
+   * in all the returned messages of this vector. This implementation of
+   * the protocol is not able to set that value on your behalf because
+   * it implements a one-to-many protocol and, unfortunatelly, 
+   * each of the many might
+   * use a different value of <code>:in-reply-to</code>. 
    */
    public abstract Vector evaluateFinalMessages(Vector messages);
 }
