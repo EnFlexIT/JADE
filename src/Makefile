@@ -38,6 +38,7 @@ ROOTCLASSES =	jade/core/behaviours/CompositeBehaviour.java \
 		jade/tools/introspector/Introspector.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 		jade/tools/applet/DFApplet.java \
+		jade/tools/sl/SLFormatter.java \
 		starlight/util/Base64.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
