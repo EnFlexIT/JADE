@@ -458,24 +458,17 @@ public class ams extends Agent implements AgentManager.Listener {
 	  }
 
 	  //Notification to the RMA of the APDescription
-	  //must be notified to all the the tools ? 
-	   if(newTool.getName().toUpperCase().startsWith("RMA@"))
-	   {
-	   	
-	   	PlatformDescription ap = new PlatformDescription();
-	   	ap.setPlatform(theProfile);
-	   	EventOccurred eo = new EventOccurred();
-		eo.setEvent(ap);
-	   	List l = new ArrayList(1);
-		l.add(eo);
-		toolNotification.clearAllReceiver();
-		toolNotification.addReceiver(newTool);
-		fillContent(toolNotification, l);
-		send(toolNotification);
+	   PlatformDescription ap = new PlatformDescription();
+	   ap.setPlatform(theProfile);
+	   EventOccurred eo = new EventOccurred();
+	   eo.setEvent(ap);
+	   List l = new ArrayList(1);
+	   l.add(eo);
+	   toolNotification.clearAllReceiver();
+	   toolNotification.addReceiver(newTool);
+	   fillContent(toolNotification, l);
+	   send(toolNotification);
   
-	   }
-	   
-
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
 
@@ -521,7 +514,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// Remove this tool to tools agent group.
 	tools.remove(current.getSender());
-
+        
       }
       else
 	block();
@@ -558,6 +551,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	  // Put all tools in the receiver list
 	  toolNotification.clearAllReceiver();
 	  Iterator toolIt = tools.iterator();
+          
 	  while(toolIt.hasNext()) {
 	    AID tool = (AID)toolIt.next();
 	    toolNotification.addReceiver(tool);
