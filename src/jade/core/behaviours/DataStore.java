@@ -32,14 +32,4 @@ public class DataStore extends HashMap {
 	super();
     }
     
-    /** 
-       Remove all data from this </code>DataStore</code>
-     */
-    public void clear() {
-    	Iterator it = keySet().iterator();
-    	while (it.hasNext()) {
-    		remove(it.next());
-    	}
-    }
-       
 }
