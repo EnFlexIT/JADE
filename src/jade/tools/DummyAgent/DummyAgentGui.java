@@ -421,7 +421,6 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// EXIT
 		else if (command.equals("Exit"))
 		{
-			dispose();
 			myAgent.doDelete();
 		}
 	}
