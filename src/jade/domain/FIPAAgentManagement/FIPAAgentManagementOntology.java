@@ -57,7 +57,7 @@ public class FIPAAgentManagementOntology {
   private static Ontology theInstance = new DefaultOntology();
 
   // Concepts
-  public static final String AGENTIDENTIFIER = "AID";
+  public static final String AGENTIDENTIFIER = "agent-identifier";
   public static final String DFAGENTDESCRIPTION = "df-agent-description";
   public static final String SERVICEDESCRIPTION = "service-description";
   public static final String SEARCHCONSTRAINTS = "search-constraints";
@@ -86,9 +86,9 @@ public class FIPAAgentManagementOntology {
   public static final String MISSINGARGUMENT = "missing-argument";
   public static final String UNEXPECTEDARGUMENT = "unexpected-argument";
   public static final String UNEXPECTEDARGUMENTCOUNT = "unexpected-argument-count";
-  public static final String MISSINGATTRIBUTE = "missing-attribute";
-  public static final String UNEXPECTEDATTRIBUTE = "unexpected-attribute";
-  public static final String UNRECOGNISEDATTRIBUTEVALUE = "unrecognised-attribute-value";
+  public static final String MISSINGPARAMETER = "missing-parameter";
+  public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
+  public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
   // Failure Exception Propositions
   public static final String ALREADYREGISTERED = "already-registered";
   public static final String NOTREGISTERED = "not-registered";
@@ -138,7 +138,8 @@ public class FIPAAgentManagementOntology {
 	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("type", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("protocols", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
+	  new TermDescriptor("protocol", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O),
 	  new TermDescriptor("ownership", Ontology.STRING_TYPE, Ontology.O),
 	  new TermDescriptor("properties", Ontology.SET_TYPE, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
@@ -309,28 +310,28 @@ public class FIPAAgentManagementOntology {
 	     public Class getClassForRole() { return UnexpectedArgumentCount.class;}
 	   });
 
-	theInstance.addFrame(MISSINGATTRIBUTE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(MISSINGPARAMETER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) { return new MissingAttribute(); }
-	     public Class getClassForRole() { return MissingAttribute.class;}
+	     public Object create(Frame f) { return new MissingParameter(); }
+	     public Class getClassForRole() { return MissingParameter.class;}
 	   });
 
-	theInstance.addFrame(UNEXPECTEDATTRIBUTE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(UNEXPECTEDPARAMETER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) {return new UnexpectedAttribute(); }
-	     public Class getClassForRole() {return UnexpectedAttribute.class;}
+	     public Object create(Frame f) {return new UnexpectedParameter(); }
+	     public Class getClassForRole() {return UnexpectedParameter.class;}
 	   });
 
-	theInstance.addFrame(UNRECOGNISEDATTRIBUTEVALUE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(UNRECOGNISEDPARAMETERVALUE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M), 
 	  new TermDescriptor(Ontology.STRING_TYPE, Ontology.M) 
 	}, new RoleFactory() {
-	     public Object create(Frame f) {return new UnrecognisedAttributeValue(); }
-	     public Class getClassForRole() {return UnrecognisedAttributeValue.class;}
+	     public Object create(Frame f) {return new UnrecognisedParameterValue(); }
+	     public Class getClassForRole() {return UnrecognisedParameterValue.class;}
 	   });
 
 	theInstance.addFrame(ALREADYREGISTERED, Ontology.CONCEPT_TYPE, new TermDescriptor[] {

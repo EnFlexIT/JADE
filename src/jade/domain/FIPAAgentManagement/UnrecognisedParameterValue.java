@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-public class UnrecognisedAttributeValue extends RefuseException {
+public class UnrecognisedParameterValue extends RefuseException {
 String s1,s2;
 public void set_0(String a){s1=a;}
 public String get_0() {return s1;}

@@ -382,7 +382,7 @@ TOKEN:
 {
   <SET:       "set"        >
 | <SEQUENCE:  "sequence"   >
-| <AID:       "AID"        >
+| <AID:       "agent-identifier"  >
 | <NAME:      ":name"      > : CONTENTSTATE 
 | <ADDRESSES: ":addresses" > 
 | <RESOLVERS: ":resolvers" > 

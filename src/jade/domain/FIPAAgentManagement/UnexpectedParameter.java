@@ -24,10 +24,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-public class MissingAttribute extends RefuseException {
+public class UnexpectedParameter extends RefuseException {
 String s1,s2;
 public void set_0(String a){s1=a;}
 public String get_0() {return s1;}
 public void set_1(String a){s2=a;}
 public String get_1() {return s2;}
+
 }
