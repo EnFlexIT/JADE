@@ -182,7 +182,7 @@ public class MobilityOntology {
 	  new TermDescriptor("destination", Ontology.FRAME_TERM, LOCATION, Ontology.M),
 	  new TermDescriptor("agent-profile", Ontology.FRAME_TERM, MOBILE_AGENT_PROFILE, Ontology.O),
 	  new TermDescriptor("agent-version", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("signature", Ontology.CONSTANT_TERM, Ontology.BINARY_TYPE, Ontology.O)
+	  new TermDescriptor("signature", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MobileAgentDescription(); }
 	     public Class getClassForRole() { return MobileAgentDescription.class; }
@@ -290,7 +290,7 @@ public class MobilityOntology {
     private Location destination;
     private MobileAgentProfile agentProfile;
     private String agentVersion;
-    private Byte[] signature;
+    private String signature;
 
     public void setName(String n) {
       name = n;
@@ -332,17 +332,12 @@ public class MobilityOntology {
       return agentVersion;
     }
 
-    public void setSignature(Byte[] s) {
-      signature = new Byte[s.length];
-      System.arraycopy(s, 0, signature, 0, s.length);
+    public void setSignature(String s) {
+      signature = s; 
     }
 
-    public Byte[] getSignature() {
-      if (signature == null)
-	return null;
-      Byte[] result = new Byte[signature.length];
-      System.arraycopy(signature, 0, result, 0, signature.length);
-      return result;
+    public String getSignature() {
+      return signature;
     }
 
   } // End of MobileAgentDescription class
