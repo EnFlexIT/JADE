@@ -100,8 +100,8 @@ public class TwoPh1Initiator extends Initiator {
   //private Vector ph1Pendings = new Vector();
   private int totSessions;
 
-  private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
-  private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+  private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
+  private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
 
     /**
      * Constructs a <code>TwoPh1Initiator</code> behaviour.

@@ -79,10 +79,9 @@ public abstract class ToolAgent extends Agent {
   	}
   } // End of AMSListenerBehaviour class
 
-
-    /**
-       Default constructor.
-    */
+  /**
+   * Default constructor.
+   */
     public ToolAgent() {
     }
 

@@ -88,8 +88,8 @@ public class TwoPh0Initiator extends Initiator {
     private String outputKey = null;
     private int totSessions;
 
-    private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
-    private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+    private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
+    private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
 
     /**
        Constructs a <code>TwoPh0Initiator</code> behaviour.
