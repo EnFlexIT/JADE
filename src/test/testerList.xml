@@ -26,15 +26,10 @@
 			<Description> This item includes tests related to agent communication across different platforms. </Description>
 			<TestsListRif>test/interPlatform/interPlatformTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Behaviours block/restart" skip="false">
-			<ClassName>test.behaviours.BlockTimeoutTesterAgent</ClassName>
-			<Description> This item includes tests aimed at stressing the behaviour block/restart mechanism </Description>
-			<TestsListRif>test/behaviours/blockTimeOutTestsList.xml</TestsListRif>
-		</Tester>
-		<Tester name="Behaviour performance" skip="true">
-			<ClassName>test.behaviours.PerformanceTesterAgent</ClassName>
-			<Description> This item includes tests that measures the performances of the behaviour scheduling (including addition/remotion) mechanism </Description>
-			<TestsListRif>test/behaviours/performanceTestsList.xml</TestsListRif>
+		<Tester name="Behaviours" skip="false">
+			<ClassName>test.behaviours.BehavioursTesterAgent</ClassName>
+			<Description> This item includes tests related to the behaviour scheduling, execution and block/restart mechanism </Description>
+			<TestsListRif>test/behaviours/behavioursTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="AMS" skip="false">
 			<ClassName>test.domain.ams.AMSTesterAgent</ClassName>

@@ -76,10 +76,9 @@
     </copy> 
     
     <!-- Copy xml configuration files -->
-    <copy file="${src}/test/testerList.xml" todir="${dest}/test"/>
-    <copy file="${src}/test/behaviours/blockTimeOutTestsList.xml" todir="${dest}/test/behaviours"/>
-    <copy file="${src}/test/behaviours/performanceTestsList.xml" todir="${dest}/test/behaviours"/>
     <copy file="${src}/test/common/xml/listTests.dtd" todir="${dest}/test/common/xml"/>
+    <copy file="${src}/test/testerList.xml" todir="${dest}/test"/>
+    <copy file="${src}/test/behaviours/behavioursTestsList.xml" todir="${dest}/test/behaviours"/>
     <copy file="${src}/test/content/contentTestsList.xml" todir="${dest}/test/content"/>
     <copy file="${src}/test/content/SLOperatorTestsList.xml" todir="${dest}/test/content"/>
     <copy file="${src}/test/domain/jadeManagementOntoTestsList.xml" todir="${dest}/test/domain"/>

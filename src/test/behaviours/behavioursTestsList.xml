@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Behaviour Block with timeout stress test" skip="false">
+			<TestClassName>test.behaviours.tests.TestBlockTimeout</TestClassName>
+			<WhatTest> Tests the behaviour block/restart mechanism when a timeout is specified by stressing it.</WhatTest>
+			<HowWorkTest>It should be noticed that passing this test does not ensure the mechanism works correctly, this test will take a while.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+			<Argument key="n-agents" value="10"> Number of senders </Argument>
+			<Argument key="n-messages" value="100"> Number of messages</Argument>
+			<Argument key="period" value="10"> Shortest period in ms</Argument>
+			<Argument key="timeout-increase" value="0"> Failure timeout increase</Argument>
+		</Test>
+		
+		<Test name="Threaded behaviours" skip="false">
+			<TestClassName>test.behaviours.tests.TestThreadedBehaviours</TestClassName>
+			<WhatTest> Tests the mechanism provided by JADE to execute a behaviour in a separated Java Thread.</WhatTest>
+			<HowWorkTest>The test creates a ThreadedBehaviour that calls blockingReceive(), block() and block(timeout).</HowWorkTest>
+			<WhenTestPass> The test passes if the ThreadedBehaviour correctly receives all the expected messages.</WhenTestPass>
+		</Test>
+		
+		<Test name="Behaviour performance" skip="false">
+			<TestClassName>test.behaviours.tests.TestPerformance</TestClassName>
+			<WhatTest> Tests the performance of the behaviour scheduling/blocking/restarting mechanism by running a number of different behaviours that do all these things.</WhatTest>
+			<HowWorkTest>The complete process is repeated several times and the average time is computed.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+			<Argument key="iterations" value="100"> Number of iterations </Argument>
+		</Test>		
+	</TestsList>

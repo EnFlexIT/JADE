@@ -34,28 +34,10 @@ import test.common.*;
  * @author Giovanni Caire - TILAB
  * @author Elisabetta Cortese - TILAB
  */
-public class BlockTimeoutTesterAgent extends TesterAgent {
-	// Names and default values for group arguments
-	public static final String N_AGENTS_NAME = "n-agents";
-	private static final int N_AGENTS_DEFAULT = 10;
-	
-	public static final String N_MESSAGES_NAME = "n-messages";
-	private static final int N_MESSAGES_DEFAULT = 100;
-	
-	public static final String PERIOD_NAME = "period";
-	private static final long PERIOD_DEFAULT = 10;
-	
-	public static final String TIMEOUT_INCREASE_NAME = "timeout-increase";
-	private static final long TIMEOUT_INCREASE_DEFAULT = 0;
+public class BehavioursTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test/behaviours/blockTimeOutTestsList.xml");
-		
-		tg.specifyArgument(N_AGENTS_NAME, "Number of senders", String.valueOf(N_AGENTS_DEFAULT));
-		tg.specifyArgument(N_MESSAGES_NAME, "Number of messages", String.valueOf(N_MESSAGES_DEFAULT));
-		tg.specifyArgument(PERIOD_NAME, "Shortest period in ms", String.valueOf(PERIOD_DEFAULT));
-		tg.specifyArgument(TIMEOUT_INCREASE_NAME, "Failure timeout increase", String.valueOf(TIMEOUT_INCREASE_DEFAULT));
-		
+		TestGroup tg = new TestGroup("test/behaviours/behavioursTestsList.xml");		
 		return tg;
 	}
 		

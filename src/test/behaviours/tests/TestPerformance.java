@@ -27,13 +27,12 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import test.common.*;
-import test.behaviours.PerformanceTesterAgent;
 
 /**
    @author Giovanni Caire - TILAB
  */
 public class TestPerformance extends Test {
-	public static final String TEST_NAME = "Test behaviour performance";
+	public static final String N_ITERATIONS_KEY = "iterations";
 	
 	private static final String HELPER_CLASS = "test.behaviours.PerformanceHelperAgent";
 	private static final String HELPER_NAME = "helper";
@@ -43,17 +42,13 @@ public class TestPerformance extends Test {
   private ACLMessage startMsg = new ACLMessage(ACLMessage.REQUEST);
   private AID helper;
 	
-  public String getName() {
-  	return TEST_NAME;
-  }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException { 
   	try {
   		final DataStore store = ds;
   		final String key = resultKey;
   		
     	// Get arguments
-    	nIterations = Integer.parseInt((String) getGroupArgument(PerformanceTesterAgent.N_ITERATIONS_KEY));
+    	nIterations = Integer.parseInt((String) getTestArgument(N_ITERATIONS_KEY));
     	
 	    // Launch the helper agent that actually runs all the behaviours
     	helper = TestUtility.createAgent(a, HELPER_NAME, HELPER_CLASS, null, a.getAMS(), null); 

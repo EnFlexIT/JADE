@@ -27,13 +27,16 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import test.common.*;
-import test.behaviours.BlockTimeoutTesterAgent;
 
 /**
    @author Giovanni Caire - TILAB
  */
 public class TestBlockTimeout extends Test {
-	public static final String TEST_NAME = "Stress-test-for-timeout-blocking-mechanism";
+	// Names and default values for group arguments
+	public static final String N_AGENTS_NAME = "n-agents";
+	public static final String N_MESSAGES_NAME = "n-messages";
+	public static final String PERIOD_NAME = "period";
+	public static final String TIMEOUT_INCREASE_NAME = "timeout-increase";
 	
 	private static final String SENDER_CLASS = "test.behaviours.SeqSender";
 	private static final String RECEIVER_CLASS = "test.behaviours.SeqReceiver";
@@ -45,20 +48,16 @@ public class TestBlockTimeout extends Test {
   private ACLMessage startMsg = new ACLMessage(ACLMessage.INFORM);
 	private JadeController jc;
 	
-  public String getName() {
-  	return TEST_NAME;
-  }
-  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException { 
   	try {
   		final DataStore store = ds;
   		final String key = resultKey;
   		
     	// Get arguments
-    	nAgents = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_AGENTS_NAME));
-    	nMessages = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_MESSAGES_NAME));
-    	shortestPeriod = Long.parseLong((String) getGroupArgument(BlockTimeoutTesterAgent.PERIOD_NAME));
-    	timeoutIncrease = Long.parseLong((String) getGroupArgument(BlockTimeoutTesterAgent.TIMEOUT_INCREASE_NAME));
+    	nAgents = Integer.parseInt((String) getTestArgument(N_AGENTS_NAME));
+    	nMessages = Integer.parseInt((String) getTestArgument(N_MESSAGES_NAME));
+    	shortestPeriod = Long.parseLong((String) getTestArgument(PERIOD_NAME));
+    	timeoutIncrease = Long.parseLong((String) getTestArgument(TIMEOUT_INCREASE_NAME));
 
     	// Launch a peripheral container
 	    jc = TestUtility.launchJadeInstance("Container", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), new String[] {});
