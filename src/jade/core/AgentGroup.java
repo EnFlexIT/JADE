@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1999/03/09 12:57:44  rimassa
+  Added 'implements Serializable' clause to AgentGroup class, since now
+  it an AgentGroup is part of ACLMessage objects.
+
   Revision 1.8  1999/03/07 22:50:52  rimassa
   Added a reset() method to remove all group members.
 
@@ -24,6 +28,8 @@
 
 package jade.core;
 
+import java.io.Serializable;
+
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -40,7 +46,7 @@ import java.util.Vector;
     (ACLMessage,CommEvent)
 
 ****************************************************************/
-public class AgentGroup implements Cloneable {
+public class AgentGroup implements Cloneable, Serializable {
 
   private Vector memberNames = new Vector();
 
