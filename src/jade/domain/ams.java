@@ -806,7 +806,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	AID newTool = current.getSender();
   toolNotification.clearAllReceiver();
   toolNotification.addReceiver(newTool);
-	    
+
 	try {
 	  // Send a 'Reset' meta-event
 	  ResetEvents re = new ResetEvents();
@@ -1130,31 +1130,31 @@ public class ams extends Agent implements AgentManager.Listener {
 			er = new EventRecord(amtp, here());
 			eventQueue.put(er);
 		    }
+		}
 
-		    // Send all agent names, along with their container name.
-		    AID[] agents = myPlatform.agentNames();
-		    for (int j = 0; j < agents.length; j++) {
+		// Send all agent names, along with their container name.
+		AID[] agents = myPlatform.agentNames();
+		for (int j = 0; j < agents.length; j++) {
 
-			AID agentName = agents[j];
-			ContainerID c = myPlatform.getContainerID(agentName);
-			AMSAgentDescription amsd = myPlatform.getAMSDescription(agentName);
+		    AID agentName = agents[j];
+		    ContainerID c = myPlatform.getContainerID(agentName);
+		    AMSAgentDescription amsd = myPlatform.getAMSDescription(agentName);
 	    
-			BornAgent ba = new BornAgent();
-			// Note that "agentName" may not include agent addresses
-			AID id = agentName;
-			if (amsd != null) {
-			    if (amsd.getName() != null) {
-				id = amsd.getName();
-			    }
-			    ba.setState(amsd.getState());
-			    ba.setOwnership(amsd.getOwnership());
+		    BornAgent ba = new BornAgent();
+		    // Note that "agentName" may not include agent addresses
+		    AID id = agentName;
+		    if (amsd != null) {
+			if (amsd.getName() != null) {
+			    id = amsd.getName();
 			}
-			ba.setAgent(id);
-			ba.setWhere(c);
-
-			er = new EventRecord(ba, here());
-			eventQueue.put(er);
+			ba.setState(amsd.getState());
+			ba.setOwnership(amsd.getOwnership());
 		    }
+		    ba.setAgent(id);
+		    ba.setWhere(c);
+
+		    er = new EventRecord(ba, here());
+		    eventQueue.put(er);
 		}
 	    }
 	    catch(NotFoundException nfe) {
