@@ -47,12 +47,13 @@ import jade.onto.OntologyException;
    */
 public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviour {
 
-  private ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+    private ACLMessage request;
   private static MessageTemplate template = MessageTemplate.MatchLanguage(SL0Codec.NAME);
 
    public GetAvailableLocationsBehaviour(MobileAgent a) {
      // call the constructor of FipaRequestInitiatorBehaviour
-     super(a,request,template);
+     super(a, new ACLMessage(ACLMessage.REQUEST), template);
+     request = getRequest();
      // fills all parameters of the request ACLMessage
      request.removeAllDests();
      request.addDest("AMS");
