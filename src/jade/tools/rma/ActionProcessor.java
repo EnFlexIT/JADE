@@ -42,6 +42,7 @@ class ActionProcessor {
   private RMAAction action;
 
      public static final String  START_ACTION="Start new Agent";
+     public static final String MANAGE_MTPS_ACTION = "Manage Installed MTPs";
      public static final String  INSTALL_MTP_ACTION="Install a new MTP";
      public static final String  UNINSTALL_MTP_ACTION="Uninstall an MTP";
      public static final String  KILL_ACTION="Kill";
@@ -70,6 +71,7 @@ class ActionProcessor {
  public ActionProcessor(rma anRma,MainWindow mWnd,MainPanel panel) {
       this.panel=panel;
       actions.put(START_ACTION,new StartNewAgentAction(anRma, mWnd,this));
+      actions.put(MANAGE_MTPS_ACTION,new ManageMTPsAction(mWnd,this));
       actions.put(INSTALL_MTP_ACTION,new InstallMTPAction(anRma,this));
       actions.put(UNINSTALL_MTP_ACTION,new UninstallMTPAction(anRma,this));
       actions.put(KILL_ACTION,new KillAction(KILL_ACTION, anRma,this));
