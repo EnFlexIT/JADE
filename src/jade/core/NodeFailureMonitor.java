@@ -26,18 +26,18 @@ package jade.core;
 /**
 
    The <code>NodeFailureMonitor</code> class detects node failures and
-   service manager <i>Service Manager</i> and <i>Service Finder</i>
-   implementation.
+   notifies its registered listener.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 
-   @see jade.core.ServiceManagerImpl
+   @see jade.core.NodeEventListener
 */
 public class NodeFailureMonitor implements Runnable {
 
     private Node target;
     private NodeEventListener listener;
-    private boolean active = true;
+    private boolean nodeExited = false;
+    private boolean stopped = false;
 
     public NodeFailureMonitor(Node n, NodeEventListener nel) {
       target = n;
@@ -46,23 +46,26 @@ public class NodeFailureMonitor implements Runnable {
 
     public void run() {
 	listener.nodeAdded(target);
-	while(active) {
+	while(!nodeExited && !stopped) {
 	    try {
-		target.ping(true); // Hang on this call
-		active = false;
-		System.out.println("PING from node "+ target.getName() + " returned normally");
+		nodeExited = target.ping(true); // Hang on this call
+		System.out.println("PING from node " + target.getName() + " returned [" + (nodeExited ? "EXIT]" : "GO ON]"));
 	    }
 	    catch(IMTPException imtpe1) { // Connection down
 		System.out.println("PING from node " + target.getName() + " exited with exception");
-		listener.nodeUnreachable(target);
+		if(!stopped) {
+		    listener.nodeUnreachable(target);
+		}
 		try {
 		    target.ping(false); // Try a non blocking ping to check
 
 		    System.out.println("PING from node " + target.getName() + " returned OK");
-		    listener.nodeReachable(target);
+		    if(!stopped) {
+			listener.nodeReachable(target);
+		    }
 		}
 		catch(IMTPException imtpe2) { // Object down
-		    active = false;
+		    nodeExited = true;
 		}
 	    }
 	    catch(Throwable t) {
@@ -70,8 +73,21 @@ public class NodeFailureMonitor implements Runnable {
 	    }
 	} // END of while
       
-	// If we reach this point the node is no longer active
-	listener.nodeRemoved(target);
+	// If we reach this point without being explicitly stopped the node is no longer active
+	if(!stopped) {
+	    listener.nodeRemoved(target);
+	}
+    }
+
+    public void stop() {
+	try {
+	    stopped = true;
+	    target.interrupt();
+	}
+	catch(IMTPException imtpe) {
+	    System.out.println("-- The node <" + target.getName() + "> is already dead --" );
+	    // Ignore it: the node must be dead already...
+	}
 
     }
   
