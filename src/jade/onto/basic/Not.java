@@ -23,8 +23,24 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
+/**
+   @author Giovanni Caire - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
+
+/**
+   This class represents the fact that a predicate is currently false
+*/
 public class Not {
 	private Object predicate;
+	
+	/**
+  	 Sets the predicate that is asserted to be false.
+	*/
 	public void set_0(Object p) { predicate = p; }
+	
+	/**
+  	 Gets the predicate that is asserted to be false.
+	*/
 	public Object get_0() { return predicate; }
 }

@@ -24,8 +24,30 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
+/**
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
+
+/**
+   This class represents the done predicate ontological role i.e. the 
+   fact that an action has been performed by an agent
+*/
 public class DonePredicate {
-Action s;
-public void set_0(Action a){s=a;}
-public Action get_0() {return s;}
+	Action s;
+	
+	
+	/**
+ 	  This method sets the action expression indicating the action that 
+ 	  has been performed and the agent who performed it.
+ 	  @see jade.onto.basic.Action
+	*/
+	public void set_0(Action a){s=a;}
+	
+	/**
+ 	  This method gets the action expression indicating the action that 
+ 	  has been performed and the agent who performed it.
+ 	  @see jade.onto.basic.Action
+	*/
+	public Action get_0() {return s;}
 }

@@ -26,14 +26,43 @@ package jade.onto.basic;
 
 import java.util.*;
 
+/**
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
+
+/**
+   This class represents the result predicate ontological role, i.e. the
+   result of an action performed by an agent.
+*/
 public class ResultPredicate {
-Action s;
-  //Object result;
-List result = new ArrayList();
-public void set_0(Action a){s=a;}
-public Action get_0() {return s;}
-  //public void set_1(Object o){result=o;}
-  //public Object get_1() {return result;}
-public void add_1(Object o) {result.add(o);}
-public Iterator getAll_1(){return result.iterator();}
+	private Action s;
+	List result = new ArrayList();
+	
+	
+	/**
+ 	  This method sets the action expression for of which the result is
+ 	  indicated.
+ 	  @see jade.onto.basic.Action
+	*/
+	public void set_0(Action a){s=a;}
+	
+	/**
+ 	  This method gets the action expression for of which the result is
+ 	  indicated.
+ 	  @see jade.onto.basic.Action
+	*/
+	public Action get_0() {return s;}
+	
+	/**
+ 	  This method adds an item to the sequence of items representing the 
+ 	  result
+	*/
+	public void add_1(Object o) {result.add(o);}
+	
+	/**
+ 	  This method gets an <code>Iterator</code> over the sequence of 
+ 	  items representing the result
+	*/
+	public Iterator getAll_1(){return result.iterator();}
 }

@@ -24,16 +24,63 @@ Boston, MA  02111-1307, USA.
 package jade.onto.basic;
 import jade.core.AID;
 
+/**
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
+
+/**
+   This class represents the action expression ontological role i.e.
+   a t-uple including an agent identifier and an action performed 
+   by that agent.
+*/
 public class Action {
-AID actor;
-Object action;
-public void set_0(AID a) { actor=a;}
-public AID get_0() {return actor;}
-public void set_1(Object a) { action=a;}
-public Object get_1() {return action;}
-public AID getActor() { return get_0(); }
-public void setActor(AID a) {set_0(a); }
-public Object getAction() { return get_1();}
-public void setAction(Object a) {set_1(a);}
+	AID actor;
+	Object action;
+	
+	
+	/**
+  	 Sets the identifier of the agent performing the action.
+	*/
+	public void set_0(AID a) { actor=a;}
+	
+	/**
+  	 Gets the identifier of the agent performing the action.
+	*/
+	public AID get_0() {return actor;}
+	
+	/**
+  	 Sets the action object 
+	*/
+	public void set_1(Object a) { action=a;}
+	
+	/**
+  	 Gets the action object 
+	*/	
+	public Object get_1() {return action;}
+	
+	/**
+  	 Sets the identifier of the agent performing the action.
+  	 This is equivalent to <code>set_0()</code> 
+	*/	
+	public void setActor(AID a) {set_0(a); }
+	
+	/**
+  	 Gets the identifier of the agent performing the action.
+  	 This is equivalent to <code>get_0()</code> 
+	*/	
+	public AID getActor() { return get_0(); }
+	
+	/**
+  	 Sets the action object. 
+  	 This is equivalent to <code>set_1()</code> 
+	*/	
+	public void setAction(Object a) {set_1(a);}
+	
+	/**
+  	 Gets the action object 
+  	 This is equivalent to <code>get_1()</code> 
+	*/	
+	public Object getAction() { return get_1();}
 
 }

@@ -34,11 +34,19 @@ import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
 
 /**
-   Javadoc documentation for the file
    @author Giovanni Caire - CSELT S.p.A.
    @version $Date$ $Revision$
 */
 
+/**
+   This class represents an ontology including basic concepts
+   that are common to a lot of different applications.
+   There is only a single instance of this class.
+   <p>
+   The <code>jade.onto.basic</code> package contains one class for 
+   each role in this ontology.
+   <p>
+ */
 public class BasicOntology {
 
   /**

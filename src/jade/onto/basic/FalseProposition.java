@@ -24,5 +24,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
+/**
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
+
+/**
+   This class represents the concept of false
+*/
 public class FalseProposition {
 }
