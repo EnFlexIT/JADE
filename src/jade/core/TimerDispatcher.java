@@ -36,6 +36,7 @@ class TimerDispatcher implements Runnable {
   private Thread myThread;
   private SortedSet timers = new TreeSet();
   private boolean active;
+  private int useCount = 0;
 
   TimerDispatcher() {
     active = true;
@@ -119,13 +120,18 @@ class TimerDispatcher implements Runnable {
     // System.out.println("Timer Dispatcher shutting down ...");
   }
 
-  public void start() {
-    myThread.start();
+  public synchronized void start() {
+    if(useCount == 0)
+      myThread.start();
+    ++useCount;
   }
 
-  public void stop() {
-    active = false;
-    myThread.interrupt();
+  public synchronized void stop() {
+    --useCount;
+    if(useCount == 0) {
+      active = false;
+      myThread.interrupt();
+    }
   }
 
 }
