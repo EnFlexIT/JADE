@@ -30,9 +30,14 @@ package jade.core;
    Base class for command filters, that allow to
    set up an open-ended chain of platform services to process commands
    coming from the upper JADE layers. Filters process commands when
-   their <code>filter()</code> method is invoked; a filter can also
-   modify the command object that is passed to its
-   <code>filter()</code> method.
+   their <code>accept()</code> method and <code>postProcess</code> 
+   methods are invoked; Filters in the filter chain are nested. 
+   The <code>accept()</code> method is called before the command is 
+   processed by successive filters in the chain. It should be used
+   to take proper actions before the command consumption. On the other hand
+   the <code>postProcess()</code> method is called after the command
+   has been processed by successive filters in the chain. It should be used
+   to take proper actions after the command consumption.  
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
    @author Giovanni Caire - TILAB
@@ -66,6 +71,8 @@ public abstract class Filter {
     
     // The next filter in the filter chain
     private Filter next;
+    
+    private String myServiceName;
 
     // The preferred position in the filter chain. Package scoped since
     // it can be directly accessed by the CommandProcessor
@@ -88,7 +95,8 @@ public abstract class Filter {
     }
 
     /**
-       Receive a command object for processing.
+       Process a command before it is processed by successive
+       filters in the filter-chain.
 
        @param cmd A <code>VerticalCommand</code> describing what operation has
        been requested from previous layers (that can be the actual
@@ -179,8 +187,12 @@ public abstract class Filter {
     
     ////////////////////////////////////////////////////
     // These methods are called by the CommandProcessor 
-    // when installing the filter
+    // and ServiceManager when installing the filter
     ////////////////////////////////////////////////////
+    final void setServiceName(String s) {
+    	myServiceName = s;
+    }
+    
     final void setNext(Filter f) {
     	next = f;
     }
