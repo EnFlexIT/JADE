@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.20  1998/11/09 22:15:58  Giovanni
+  Added an overridden version of AgentContainerImpl shutDown() method:
+  an AgentPlatform firstly shuts itself down as an ordinary
+  AgentContainer (i.e. it removes itself from container list), then
+  calls exit() remote method for every other AgentContainer in the
+  platform, thereby completely terminating the Agent Platform.
+
   Revision 1.19  1998/11/09 00:13:46  rimassa
   Container list now is an Hashtable instead of a Vector, indexed by a
   String, which is used also as container name in RMA GUI; various
@@ -230,9 +237,27 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
   }
 
+  // This method overrides AgentContainerImpl.shutDown(); first it
+  // behaves like the normal AgentContainer version, then makes all
+  // other agent containers exit.
+  public void shutDown() {
+    // Remove yourself from container list
+    super.shutDown();
+
+    // Then call remote method exit() on every other container
+    Enumeration e = containers.elements();
+    while(e.hasMoreElements()) {
+      AgentContainer ac = (AgentContainer)e.nextElement();
+      try {
+	ac.exit(); // RMI call
+      }
+      catch(RemoteException re) {
+	re.printStackTrace();
+      }
+    }
+  }
 
   // These methods are to be used only by AMS agent.
-
 
 
   // This is used by AMS to obtain the list of all the Agent Containers of the platform.
