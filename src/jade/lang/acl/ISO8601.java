@@ -25,8 +25,8 @@ package jade.lang.acl;
 
 import jade.util.leap.*;
 import java.util.Date;
+import java.util.Calendar;
 import java.util.TimeZone;
-import java.text.SimpleDateFormat;
 
 /**
  * This class contains a set of static methods that convert
@@ -62,42 +62,111 @@ import java.text.SimpleDateFormat;
 public class ISO8601 {
 
     
-    private static SimpleDateFormat utcDateFormat;
-    private static SimpleDateFormat localDateFormat;
- 
-    /* Initialize the date formats for later use in toDate and toString */
-    static {
-        utcDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS'Z'");
-        utcDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        localDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS");
+    private static Calendar localCal = Calendar.getInstance();
+    private static Calendar utcCal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+    /**
+     * parse a date time token in UTC format (i.e. ending with a Z)
+     **/
+    private static Date parseutcDateFormat(String dateTimeToken) throws Exception {
+	subparse(utcCal, dateTimeToken); 
+	return utcCal.getTime();
     }
     
+    /**
+     * parse a date time token in local format (i.e. ending with a Z)
+     **/
+    private static Date parselocalDateFormat(String dateTimeToken) throws Exception {
+	subparse(localCal, dateTimeToken);
+	return localCal.getTime();
+    }
+
+    private static void subparse(Calendar cal, String dateTimeToken) {
+	cal.set(Calendar.YEAR, 
+		Integer.parseInt(dateTimeToken.substring(0,4)));
+	cal.set(Calendar.MONTH, 
+		Integer.parseInt(dateTimeToken.substring(4, 6)) - 1);
+	cal.set(Calendar.DATE, 
+		Integer.parseInt(dateTimeToken.substring(6, 8)));
+	cal.set(Calendar.HOUR, 
+		Integer.parseInt(dateTimeToken.substring(9, 11)));
+	cal.set(Calendar.MINUTE, 
+		Integer.parseInt(dateTimeToken.substring(11, 13))); 
+	cal.set(Calendar.SECOND, 
+		Integer.parseInt(dateTimeToken.substring(13, 15)));
+	cal.set(Calendar.MILLISECOND, 
+		Integer.parseInt(dateTimeToken.substring(15, 18)));
+	cal.set(Calendar.AM_PM, Calendar.AM);
+    }
+
+    private static String formatlocalDate(Date d) {
+        // Initialize time
+        localCal.setTime(d);
+	return subFormatDate(localCal);
+    }
+
+
+    private static String formatutcDate(Date d) {
+        utcCal.setTime(d);
+	return subFormatDate(utcCal)+z;
+    }
+    
+    private static String subFormatDate(Calendar cal) {
+        // Format time
+        StringBuffer formatedDate = new StringBuffer();
+
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.YEAR), 4));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MONTH) + 1, 2));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.DATE), 2));
+        formatedDate.append(t); 
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.HOUR), 2));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MINUTE), 2));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.SECOND), 2));
+        formatedDate.append(zeroPaddingNumber(cal.get(Calendar.MILLISECOND), 3));
+        return formatedDate.toString();
+    }
+
+
+    // set of constants used by the next method
+    private static char plus = '+';
+    private static char minus = '-';
+    private static String z = "Z";
+    private static char t = 'T';
+    private static int year = 365*24*60*60*1000;
+    private static int month = 30*24*60*60*1000;
+    private static int day = 24*60*60*1000;
+    private static int hour = 60*60*1000;
+    private static int minute = 60*1000;
+    private static int sec = 1000;
+
   /**
    * This method converts a FIPA DateTime token to a <code>java.util.Date</code>.  
    * It will accept both local and UTC time formats.
+   * @throws an Exception if the String is not a valid dateTime
+   * @return an absolute value of DateTime
    */
 public synchronized static Date toDate(String dateTimeToken) throws Exception {
     if (dateTimeToken == null)
       return new Date();
-    else if( dateTimeToken.startsWith("+") ) {
-	// add current time for backwards compatability - does the FIPA spec
-        // permit a DateTime token starting with '+'?
-	int pos = 1;
-	long millisec = Integer.parseInt(dateTimeToken.substring(pos, pos + 4))*365*24*60*60*1000+
-	  Integer.parseInt(dateTimeToken.substring(pos + 4, pos + 6))*30*24*60*60*1000+
-	  Integer.parseInt(dateTimeToken.substring(pos + 6, pos + 8))*24*60*60*1000+
-	  Integer.parseInt(dateTimeToken.substring(pos + 9, pos +11))*60*60*1000+
-	  Integer.parseInt(dateTimeToken.substring(pos + 11, pos + 13))*60*1000+
-	  Integer.parseInt(dateTimeToken.substring(pos + 13, pos + 15))*1000;
-	return(new Date((new Date()).getTime() + millisec));
+    char sign = dateTimeToken.charAt(0);
+    if ( (sign == plus) || (sign == minus) ) {
+	// convert a relative time into an absolute time
+	long millisec = Integer.parseInt(dateTimeToken.substring(1, 5)) * year +
+	  Integer.parseInt(dateTimeToken.substring(5, 7))* month +
+	  Integer.parseInt(dateTimeToken.substring(7, 9))* day +
+	  Integer.parseInt(dateTimeToken.substring(10, 12)) * hour +
+	  Integer.parseInt(dateTimeToken.substring(12, 14)) * minute +
+	  Integer.parseInt(dateTimeToken.substring(14, 16)) * sec;
+	millisec = System.currentTimeMillis() + (sign == plus ? millisec : (-millisec));
+	return(new Date(millisec));
     }        
-    else if( dateTimeToken.endsWith("Z")) {
+    else if( dateTimeToken.endsWith(z)) {
         // Preferred format is to pass UTC times, indicated by trailing 'Z'
-        return utcDateFormat.parse(dateTimeToken);
+        return parseutcDateFormat(dateTimeToken);
     }
     else {
         // Alternate format is to use local times - no trailing 'Z'
-        return localDateFormat.parse(dateTimeToken);
+        return parselocalDateFormat(dateTimeToken);
     }
 }
 
@@ -116,10 +185,10 @@ public synchronized static Date toDate(String dateTimeToken) throws Exception {
 public synchronized static String toString(Date d, boolean useUTCtime){
     if( useUTCtime ) {
         // perferred style is to generate UTC times, indicated by trailing 'Z'
-        return utcDateFormat.format(d);
+        return formatutcDate(d);
     } else {
         // for backwards compatability, also support generating local times.
-        return localDateFormat.format(d);
+        return formatlocalDate(d);
     }
 }
 
@@ -142,7 +211,15 @@ public static String toString(Date d){
    * from now
    */
 public static String toRelativeTimeString(long millisec) {
-  if (millisec > 0) { //FIXME
+    StringBuffer str = new StringBuffer();
+
+    if (millisec > 0)
+	str.append(plus);
+    else {
+	str.append(minus);
+	millisec = (-millisec); // get only the absolute value
+    }
+
     long tmp = millisec/1000;
     long msec = millisec - tmp*1000;
     millisec = tmp;
@@ -168,13 +245,16 @@ public static String toRelativeTimeString(long millisec) {
     millisec = tmp;
 
     long year = millisec;
-    return "+"+zeroPaddingNumber(year,4)+zeroPaddingNumber(mon,2)+
-      zeroPaddingNumber(day,2)+"T"+zeroPaddingNumber(h,2)+
-      zeroPaddingNumber(min,2)+zeroPaddingNumber(sec,2)+
-      zeroPaddingNumber(msec,3);
-  }
-  else
-    return "+00000000T000000000";
+
+    str.append(zeroPaddingNumber(year,4));
+    str.append(zeroPaddingNumber(mon,2));
+    str.append(zeroPaddingNumber(day,2));
+    str.append(t);
+    str.append(zeroPaddingNumber(h,2));
+    str.append(zeroPaddingNumber(min,2));
+    str.append(zeroPaddingNumber(sec,2));
+    str.append(zeroPaddingNumber(msec,3));
+    return str.toString();
 }
 
 
@@ -188,6 +268,7 @@ private static String zeroPaddingNumber(long value, int digits) {
 
 
 
+//#MIDP_EXCLUDE_BEGIN
   /**
    * The main is here only for debugging.
    * You can test your conversion by executing the following command:
@@ -195,6 +276,9 @@ private static String zeroPaddingNumber(long value, int digits) {
    * <code> java jade.lang.acl.ISO8601 <yourtoken> </code>
    */
 public static void main(String argv[]) {
+
+    System.out.println(localCal);
+
     System.out.println("USAGE: java ISO8601 DateTimetoken");
     System.out.println(argv[0]);
     try {
@@ -224,4 +308,5 @@ public static void main(String argv[]) {
     }
     
 }
+//#MIDP_EXCLUDE_END
 }
