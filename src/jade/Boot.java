@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 import java.lang.Boolean;
+import java.util.StringTokenizer;
 import java.io.*;
 import javax.swing.JOptionPane;
 
@@ -50,7 +51,8 @@ public class Boot {
  
   // This separates agent name from agent class on the command line
   private static final String SEPARATOR = ":";
-
+  //Default port used to start the platform
+  private static String platformPort = "1099";
   
   // Private constructor to forbid instantiation
   private Boot() {
@@ -93,7 +95,6 @@ public class Boot {
    * <li>  <b>-host <host name></b>     <em>Host name where the platform is.</em>
    * <li>  <b>-port <port number></b>     <em>Port number where the RMI registry for
    *                            the platform is.</em>
-   * <li>  <b>-file <file name></b>     <em>File name to retrieve agent names from.</em>
    * <li>  <b>-gui</b>      <em>Starts the Remote Management Agent.</em>
    * <li>  <b>-container</b> <em>If specified, a new Agent Container is added to an existing platform</em>
    *                         <em>Otherwise a new Agent Platform is created.</em>
@@ -115,6 +116,7 @@ public class Boot {
     
     String platformHost = null;
     
+    
     try {
       platformHost = InetAddress.getLocalHost().getHostName();      
     }
@@ -133,13 +135,15 @@ public class Boot {
     List propertyVector = new ArrayList();
     PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name", false);
     PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "to view the RMA Gui", false);
-    PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,"1099", "port number", false);
+    PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,platformPort, "port number", false);
     PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "to start a container",false);
+    PropertyType AgentToStartProperty = new PropertyType("agent",PropertyType.STRING_TYPE, "","insert the class name of the agent ot start", false);
     
     propertyVector.add(HostProperty);
     propertyVector.add(GuiProperty);
     propertyVector.add(PortProperty);
     propertyVector.add(ContainerProperty);
+    propertyVector.add(AgentToStartProperty);
     
     String platformPort = null;
     String platformName = "JADE";
@@ -171,7 +175,7 @@ public class Boot {
       			}
       			
       		String tmp = args[n];
-      		if (tmp.startsWith("-"))
+      		if (tmp.startsWith("-") || (isAgentName(tmp) > -1))
       		{
       			  // In this case the gui for configuration parameters will be initialized with default or command line values.
       				withConf = true;
@@ -212,13 +216,6 @@ public class Boot {
       		if(++n  == args.length) usage();
       		PortProperty.setCommandLineValue(args[n]);
       	}
-      	else if(args[n].equals("-file")) {
-      		if(++n  == args.length) 
-      			usage();
-	        // fileName = args[n];
-	      ++n;
-	  // FIXME: Add reading agent names from a file
-      	}
       
 	      else if(args[n].equals("-container")){
 	        ContainerProperty.setCommandLineValue("true");
@@ -240,14 +237,16 @@ public class Boot {
 	     least one character long to be put in the List;
 	     otherwise they are ignored.
 	  */
-	  int separatorPos = args[n].indexOf(SEPARATOR);
-	  if((separatorPos > 0)&&(separatorPos < args[n].length())) {
-	    arguments.add(args[n]);
-	    String agentName = args[n].substring(0,separatorPos);
-	    String agentClass = args[n].substring(separatorPos + 1);
-	    agents.add(new String(agentName));
-	    agents.add(new String(agentClass));
+	  if(isAgentName(args[n]) > -1){
+	  	  String prevValues = AgentToStartProperty.getCommandLineValue();
+	  	  if(prevValues != null)
+	  	    prevValues = prevValues + " "+ args[n];
+	  	  else
+	  	    prevValues = args[n];
+	  		AgentToStartProperty.setCommandLineValue(prevValues);
 	  }
+	  		
+	  
 	}
 	n++;
       }
@@ -297,7 +296,7 @@ public class Boot {
       {
       	PropertyType pt = (PropertyType)it.next();
       	String commandValue = pt.getCommandLineValue();
-      	p.put(pt.getName(),commandValue !=null ? commandValue:pt.getDefaultValue());
+      	p.put(pt.getName(),commandValue != null ? commandValue : pt.getDefaultValue());
       }
       
       
@@ -310,6 +309,23 @@ public class Boot {
       }
       
     }
+    
+    String agentNames = p.getProperty("agent");
+    
+    StringTokenizer st = new StringTokenizer(agentNames);
+     while (st.hasMoreTokens()) {
+     	String fullName = st.nextToken();
+     	int pos = isAgentName(fullName);
+         if(pos > -1)
+         {
+         	arguments.add(fullName);
+         	String agentName = fullName.substring(0,pos);
+         	String agentClass = fullName.substring(pos+1);
+         	agents.add(new String(agentName));
+         	agents.add(new String(agentClass));
+         }
+     }
+ 
     
     //since the args[] is passed to some method it is necessary to re-build this vector
     hasGUI = (Boolean.valueOf(p.getProperty("gui"))).booleanValue();
@@ -351,7 +367,7 @@ public class Boot {
       agents.add(1, "jade.tools.rma.rma");
     }
 
-    // Build A unique ID ofr this platform, using host name, port and
+    // Build A unique ID for this platform, using host name, port and
     // object name for the main container, taken from default values
     // and command line options.
     String platformID = platformHost + ":" + platformPort + "/" + platformName;
@@ -362,13 +378,24 @@ public class Boot {
 
   }
 
+  // verify if a string can be an used to start an agent (name + class).  
+  // The string must be of the type agentName:xxx.xxx a string of type agentName: is not considered valid.
+  private static int isAgentName(String name)
+  {
+  	int separatorPos = name.indexOf(SEPARATOR);
+ 
+  	if ((separatorPos > 0) && (separatorPos < (name.length() - 1)))
+  	 return separatorPos;
+  	else
+  	return -1;
+  }
+  
   private static void usage(){
     System.out.println("Usage: java jade.Boot [options] [agent specifiers]");
     System.out.println("");
     System.out.println("where options are:");
     System.out.println("  -host <host name>\tHost where RMI registry for the platform is located");
     System.out.println("  -port <port number>\tThe port where RMI registry for the platform resides");
-    System.out.println("  -file <file name>\tA file name containing tne agent specifiers");
     System.out.println("  -gui\t\t\tIf specified, a new Remote Management Agent is created.");
     System.out.println("  -container\t\tIf specified, a new Agent Container is added to an existing platform");
     System.out.println("  \t\t\tOtherwise a new Agent Platform is created");
@@ -449,6 +476,16 @@ public class Boot {
         }
 
   	   } 	
+  	String port = p.getProperty("port");
+  	int portNumber = Integer.parseInt(port);
+  	if(portNumber <= 0)
+  		{
+  			//set property to default port.
+  			p.remove("port");
+  			p.put("port", platformPort);
+  			throw new BootException("WARNING: Port number must be > 0.");
+  		}
+  		
   
   }
  
