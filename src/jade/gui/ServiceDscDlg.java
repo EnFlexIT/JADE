@@ -57,8 +57,11 @@ class ServiceDscDlg extends JDialog
 		super(parent);
 	}
 
-	void viewSD(AgentManagementOntology.ServiceDescriptor dsc)
+	AgentManagementOntology.ServiceDescriptor viewSD(AgentManagementOntology.ServiceDescriptor dsc, boolean editable)
 	{
+		final IntRetValue  ret = new IntRetValue();
+		ret.setValue(0);
+		
 		setTitle("Service");
 		
 		JPanel main = new JPanel();
@@ -74,7 +77,7 @@ class ServiceDscDlg extends JDialog
 		p.add(l);
 		p.add(Box.createHorizontalGlue());
 		JTextField txtName = new JTextField();
-		txtName.setEditable(false);
+	
 		txtName.setPreferredSize(new Dimension(200,20));
 		p.add(txtName);
 		main.add(p);
@@ -88,7 +91,7 @@ class ServiceDscDlg extends JDialog
     p.add(l);
 		p.add(Box.createHorizontalGlue());
 		JTextField txtType = new JTextField();
-		txtType.setEditable(false);
+		
 		txtType.setPreferredSize(new Dimension (200,20));
 		p.add(txtType);
 		main.add(p);
@@ -102,7 +105,7 @@ class ServiceDscDlg extends JDialog
  		p.add(l);
 		p.add(Box.createHorizontalGlue());
 		JTextField txtOntology = new JTextField();
-		txtOntology.setEditable(false);
+	
 	  txtOntology.setPreferredSize(new Dimension (200,20));
 	  p.add(txtOntology);
 		main.add(p);
@@ -115,7 +118,7 @@ class ServiceDscDlg extends JDialog
 		l.setPreferredSize(new Dimension(130,20));
 		p.add(l);
 		JTextField txtFixedProps = new JTextField();
-		txtFixedProps.setEditable(false);
+	
 		txtFixedProps.setPreferredSize(new Dimension (200,20));
 	  p.add(txtFixedProps);
 		main.add(p);
@@ -128,7 +131,7 @@ class ServiceDscDlg extends JDialog
 		l.setPreferredSize(new Dimension(130,20));
 		p.add(l);
 		JTextField txtNegProps = new JTextField();
-		txtNegProps.setEditable(false);
+	
 	  txtNegProps.setPreferredSize(new Dimension (200,20));
 	  p.add(txtNegProps);
 		main.add(p);
@@ -142,7 +145,7 @@ class ServiceDscDlg extends JDialog
 		l.setPreferredSize(new Dimension(130,20));
 	  p.add(l);
 		JTextField txtCommProps = new JTextField();
-		txtCommProps.setEditable(false);
+	
 		txtCommProps.setPreferredSize(new Dimension (200,20));
 		p.add(txtCommProps);
 		main.add(p);
@@ -164,13 +167,21 @@ class ServiceDscDlg extends JDialog
 		getContentPane().add(main, BorderLayout.NORTH);
 
 		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		JButton bOK = new JButton("OK");
-		p.add(Box.createRigidArea(new Dimension(0,25)));
-		bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
-		p.add(bOK);
-
-		bOK.addActionListener( new ActionListener()
+		
+		if (editable == false) //not editable
+		{	
+			txtName.setEditable(false);
+      txtType.setEditable(false);
+      txtOntology.setEditable(false);
+      txtFixedProps.setEditable(false);
+      txtNegProps.setEditable(false);
+      txtCommProps.setEditable(false);
+      p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+      JButton bOK = new JButton("OK");
+      p.add(Box.createRigidArea(new Dimension(0,25)));
+      bOK.setAlignmentX(Component.CENTER_ALIGNMENT);
+      p.add(bOK);
+      bOK.addActionListener( new ActionListener()
 		                           {
 						   	public void actionPerformed(ActionEvent e)
 							{    
@@ -181,142 +192,19 @@ class ServiceDscDlg extends JDialog
 								}
 							} 
 		                           } );
-		getContentPane().add(p, BorderLayout.SOUTH);
-
-		setModal(true);
-		setResizable(false);
-		setLocation(100, 100);
-		pack();
-		show();
-	}
-
-	AgentManagementOntology.ServiceDescriptor  editSD(AgentManagementOntology.ServiceDescriptor dsc)
-	{
-		final IntRetValue ret = new IntRetValue();
-		ret.setValue(0);
-
-		setTitle("Service");
-		
-		JPanel main = new JPanel();
-		main.setLayout(new BoxLayout (main, BoxLayout.Y_AXIS));
-		JPanel p = new JPanel();
-		
-		/*LayoutFacilitator lf = new LayoutFacilitator(p);
-		lf.formatGrid(6,  // 6 rows
-		              2,  // 2 columns
-		              5,  // 5 pixels as left, right, top and bottom border
-		              5,
-		              5,
-		              5,
-		              2,  // 2 pixels betweens rows and columns 
-		              2); 
-		lf.setGridColumnWidth(0, 150);
-		lf.setGridColumnWidth(1, 200);*/
-
-		JLabel l;
-    
-		//Name
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS)); 
-		l = new JLabel("Name");
-		l.setPreferredSize(new Dimension(130,20));
-		p.add(l);
-		p.add(Box.createHorizontalGlue());
-    JTextField txtName = new JTextField();	
-		txtName.setPreferredSize(new Dimension(200,20));
-		p.add(txtName);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    //Type
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Type");
-		l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
-		p.add(Box.createHorizontalGlue());
-		JTextField txtType = new JTextField();
-		txtType.setPreferredSize(new Dimension (200,20));
-		p.add(txtType);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-    //Ontology
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Ontology");
-		l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
-		p.add(Box.createHorizontalGlue());
-		JTextField txtOntology = new JTextField();
-		txtOntology.setPreferredSize(new Dimension (200,20));
-		p.add(txtOntology);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-		//Fixed Props
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Fixed Props.");
-		l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
-		p.add(Box.createHorizontalGlue());
-		JTextField txtFixedProps = new JTextField();
-	  txtFixedProps.setPreferredSize(new Dimension (200,20));
-		p.add(txtFixedProps);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-
-		//Negotiable props
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Negotiable Props.");
-	  l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
-    p.add(Box.createHorizontalGlue());
-		JTextField txtNegProps = new JTextField();
-	  txtNegProps.setPreferredSize(new Dimension (200,20));
-		p.add(txtNegProps);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,3)));
-
-
-	  //Communication Props
-		p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		l = new JLabel("Communication Props.");
-		l.setPreferredSize(new Dimension(130,20));
-    p.add(l);
-    p.add(Box.createHorizontalGlue());
-		JTextField txtCommProps = new JTextField();
-	  txtCommProps.setPreferredSize(new Dimension (200,20));
-		p.add(txtCommProps);
-		main.add(p);
-		main.add(Box.createRigidArea(new Dimension (0,10)));
-		
-		if (dsc != null) 
-		{
-			txtName.setText(dsc.getName());
-			txtType.setText(dsc.getType());
-			txtOntology.setText(dsc.getOntology());
-			txtFixedProps.setText(dsc.getFixedProps());
-			txtNegProps.setText(dsc.getNegotiableProps());
-			txtCommProps.setText(dsc.getCommunicationProps());
+		  getContentPane().add(p, BorderLayout.SOUTH);	
 		
 		}
-		
-		getContentPane().add(main, BorderLayout.NORTH);
-
-		p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.CENTER));
-    
-		JButton bOK = new JButton("OK");
-		JButton bCancel = new JButton("Cancel");
-		bOK.setPreferredSize(bCancel.getPreferredSize());
-		p.add(bOK);
-		p.add(bCancel);
-		p.add(Box.createRigidArea(new Dimension(0,60)));
-		bOK.addActionListener( new ActionListener()
+		else // editable
+	  {
+	  	p.setLayout(new FlowLayout(FlowLayout.CENTER));
+	  	JButton bOK = new JButton("OK");
+	  	JButton bCancel = new JButton("Cancel");
+	  	bOK.setPreferredSize(bCancel.getPreferredSize());
+	  	p.add(bOK);
+	  	p.add(bCancel);
+	  	p.add(Box.createRigidArea(new Dimension(0,60)));
+	  	bOK.addActionListener( new ActionListener()
 		                           {
 						   	public void actionPerformed(ActionEvent e)
 							{    
@@ -328,7 +216,7 @@ class ServiceDscDlg extends JDialog
 								}
 							} 
 		                           } );
-		bCancel.addActionListener( new ActionListener()
+		  bCancel.addActionListener( new ActionListener()
 		                           {
 						   	public void actionPerformed(ActionEvent e)
 							{    
@@ -340,14 +228,14 @@ class ServiceDscDlg extends JDialog
 								}
 							} 
 		                           } );
-		getContentPane().add(p, BorderLayout.SOUTH);
-
+		  getContentPane().add(p, BorderLayout.SOUTH);
+	  }
 		setModal(true);
 		setResizable(false);
 		setLocation(100, 100);
 		pack();
 		show();
-
+	 
 		if (ret.getValue() == 1)
 		{	
 			AgentManagementOntology.ServiceDescriptor editedDsc = new AgentManagementOntology.ServiceDescriptor(); 	  
@@ -362,10 +250,13 @@ class ServiceDscDlg extends JDialog
 			return(editedDsc);
  		}
 		return(null);		
+			
 	}
+
+	
 	
 	/*
-	return the string relative to service description fields if not empty, null otherwise
+	Return the string relative to service description fields if not empty, null otherwise
 	*/
 	private String getSaveText(JTextField field){
 	try{
