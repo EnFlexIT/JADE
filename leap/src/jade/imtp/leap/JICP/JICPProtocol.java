@@ -68,6 +68,8 @@ public class JICPProtocol extends TransportProtocol {
   public static final byte          CREATE_MEDIATOR_TYPE = 22;
   /** ID code for packets carrying requests to connect to a Mediator */
   public static final byte          CONNECT_MEDIATOR_TYPE = 23;
+  /** ID code for packets carrying requests to drop-down the connection with the mediator */
+  public static final byte          DROP_DOWN_TYPE = 30;
   /** ID code for packets carrying JICP protocol errors */
   public static final byte          ERROR_TYPE = 100;
 
@@ -109,7 +111,8 @@ public class JICPProtocol extends TransportProtocol {
   public static final String RECONNECTION_RETRY_TIME_KEY = "reconnection-retry-time";
   public static final String MAX_DISCONNECTION_TIME_KEY = "max-disconnection-time";
   public static final String KEEP_ALIVE_TIME_KEY = "keep-alive-time";
-  public static final String MEDIATOR_CLASS_KEY = "mediator-class";
+  public static final String DROP_DOWN_TIME_KEY = "drop-down-time";
+	public static final String MEDIATOR_CLASS_KEY = "mediator-class";
 	public static final String MEDIATOR_ID_KEY = "mediator-id";	
 	/**
 	   The key to retrieve the owner of the starting container.
