@@ -30,7 +30,6 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/gui/AMSMainFrame.java
 STUBDIR     =	.
 STUBS       = 	jade.core.AgentContainerImpl \
-		jade.core.MessageDispatcherImpl \
 		jade.core.AgentPlatformImpl
 
 
