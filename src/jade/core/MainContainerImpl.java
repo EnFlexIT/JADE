@@ -50,13 +50,8 @@ import jade.domain.df;
 
 import jade.lang.acl.ACLMessage;
 
-import jade.mtp.*; // FIXME: IIOP is now hardwired into the platform
-
 
 class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
-
-  // Initial size of containers hash table
-  private static final int CONTAINERS_SIZE = 10;
 
   private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
 
@@ -65,7 +60,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   private df defaultDF;
 
   private List platformListeners = new LinkedList();
-  private Map containers = Collections.synchronizedMap(new HashMap(CONTAINERS_SIZE));
+  private List platformAddresses = new LinkedList();
+  private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
 
   public MainContainerImpl() throws RemoteException {
@@ -114,17 +110,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   }
 
-  // FIXME: Temporary hack
-  public void route(jade.domain.FIPAAgentManagement.Envelope env, byte[] payload, String address) throws RemoteException, NotFoundException {
-    try {
-      theACC.forwardMessage(env, payload, address);
-    }
-    catch(MTP.MTPException mtpe) {
-      throw new NotFoundException("Temporary Hack");
-    }
-  }
-
-
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
@@ -150,39 +135,35 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       e.printStackTrace();
     }
 
-    theACC = new acc(this, myPlatform);
+    theACC = new acc(this);
+
+    containers.addContainer(MAIN_CONTAINER_NAME, this);
+    containersProgNo++;
 
     try {
-      Class c = Class.forName("jade.mtp.iiop.MessageTransportProtocol"); // FIXME: Now hardwired, will become configurable
-      MTP iiopMTP = (MTP)c.newInstance();
-      TransportAddress addr = theACC.addMTP(iiopMTP);
-      String s = iiopMTP.addrToStr(addr);
-      System.out.println(s);
+      String s = installMTP(null, myName, "jade.mtp.iiop.MessageTransportProtocol"); // FIXME: Now hardwired, will become configurable
+
       try {
-	FileWriter f = new FileWriter("JADE.IOR");
+	FileWriter f = new FileWriter("JADEaddresses.txt");
 	f.write(s, 0, s.length());
+	f.write('\n');
 	f.close();
       }
       catch (IOException io) {
 	io.printStackTrace();
       }
-    }
-    catch(ClassNotFoundException cnfe) {
-      System.out.println("ERROR: The class for the IIOP MTP was not found");
-    }
-    catch(InstantiationException ie) {
-      ie.printStackTrace();
-    }
-    catch(IllegalAccessException iae) {
-      iae.printStackTrace();
-    }
-    catch(MTP.MTPException mtpe) {
-      System.out.println("ERROR: Could not initialize IIOP MTP !!!");
-      mtpe.printStackTrace();
-    }
 
-    containers.put(MAIN_CONTAINER_NAME, this);
-    containersProgNo++;
+      System.out.println(s);
+
+    }
+    catch(NotFoundException nfe) {
+      System.out.println("ERROR: Could not initialize IIOP MTP !!!");
+      nfe.printStackTrace();
+    }
+    catch(UnreachableException ue) {
+      System.out.println("The container is unreachable.");
+      ue.printStackTrace();
+    }
 
     // Notify platform listeners
     try {
@@ -237,7 +218,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
     ad.lock();
     String name = ad.getContainerName();
-    AgentContainer ac = (AgentContainer)containers.get(name);
+    AgentContainer ac = containers.getContainer(name);
     ad.unlock();
     return ac;
   }
@@ -265,7 +246,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 	  }
 	  catch(RemoteException re2) { // Object down
 
-	    containers.remove(targetName);
+	    containers.removeContainer(targetName);
 	    postDeadContainer(targetName);
 
 	    active = false;
@@ -320,8 +301,29 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
 
+    // Send all platform addresses to the new container
+    String[] containerNames = containers.names();
+    for(int i = 0; i < containerNames.length; i++) {
+      String name = containerNames[i];
+      
+      try {
+	AgentContainer cont = containers.getContainer(name);
+	List addresses = containers.getAddresses(name);
+	Iterator it = addresses.iterator();
+	while(it.hasNext()) {
+	  String a = (String)it.next();
+	  ac.updateRoutingTable(ADD_RT, a, cont);
+	}
+      }
+      catch(NotFoundException nfe) {
+	nfe.printStackTrace();
+      }
+    }
+
+
+
     String name = AUX_CONTAINER_NAME + containersProgNo;
-    containers.put(name, ac);
+    containers.addContainer(name, ac);
     containersProgNo++;
 
     // Spawn a blocking RMI call to the remote container in a separate
@@ -338,16 +340,14 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
   public void removeContainer(String name) throws RemoteException {
-    containers.remove(name);
+    containers.removeContainer(name);
 
     // Notify listeners
     postDeadContainer(name);
   }
 
   public AgentContainer lookup(String name) throws RemoteException, NotFoundException {
-    AgentContainer ac = (AgentContainer)containers.get(name);
-    if(ac == null)
-      throw new NotFoundException("Name Lookup failed: no such container");
+    AgentContainer ac = containers.getContainer(name);
     return ac;
   }
 
@@ -438,13 +438,12 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   public void shutDown() {
 
     // Deregister yourself as a container
-    containers.remove(MAIN_CONTAINER_NAME);
+    containers.removeContainer(MAIN_CONTAINER_NAME);
 
     // Kill every other container
-    Collection c = containers.values();
-    Object[] allContainers = c.toArray();
+    AgentContainer[] allContainers = containers.containers();
     for(int i = 0; i < allContainers.length; i++) {
-      AgentContainer ac = (AgentContainer)allContainers[i];
+      AgentContainer ac = allContainers[i];
       try {
 	APKillContainer(ac); // This call removes 'ac' from 'container' map and from the collection 'c'
       }
@@ -570,6 +569,41 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
+
+  // Methods for Message Transport Protocols management
+
+
+  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException {
+    AgentContainer target = containers.getContainer(containerName);
+
+    try {
+      String result = target.installMTP(address, className);
+      platformAddresses.add(result);
+      containers.addAddress(containerName, result);
+
+      // To avoid additions/removals of containers during MTP tables update
+      synchronized(containers) {
+	AgentContainer[] allContainers = containers.containers();
+	for(int i = 0; i < allContainers.length; i++) {
+	  AgentContainer ac = allContainers[i];
+	  ac.updateRoutingTable(ADD_RT, result, target);
+	}
+
+      }
+
+      return result;
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException("Container " + containerName + " is unreachable.");
+    }
+
+  }
+
+  public void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException {
+    // FIXME: To be implemented
+  }
+
+
   // These methods are to be used only by AMS agent.
 
   public void addListener(AgentManager.Listener l) {
@@ -582,10 +616,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   // This is used by AMS to obtain the set of all the Agent Containers of the platform.
   public String[] containerNames() {
-    Object[] objs = containers.keySet().toArray();
-    String[] names = new String[objs.length];
-    System.arraycopy(objs, 0, names, 0, names.length);
-    return names;
+    return containers.names();
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
@@ -594,8 +625,10 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
   public String[] platformAddresses() {
-    // FIXME: Return the real list of platform addresses
-    return new String[0];
+    Object[] objs = platformAddresses.toArray();
+    String[] result = new String[objs.length];
+    System.arraycopy(objs, 0, result, 0, result.length);
+    return result;
   }
 
   // This maps the name of an agent to the name of the Agent Container the agent lives in.
@@ -616,12 +649,15 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       // If no name is given, the agent is started on the MainContainer itself
       if(containerName == null)
 	ac = this; 
-      else
-	ac = (AgentContainer)containers.get(containerName);
-
-      // If a wrong name is given, then again the agent starts on the MainContainer itself
-      if(ac == null)
-	ac = this;
+      else {
+	try {
+	  ac = containers.getContainer(containerName);
+	}
+	catch(NotFoundException nfe) {
+	  // If a wrong name is given, then again the agent starts on the MainContainer itself
+	  ac = this;
+	}
+      }
       AID id = globalAID(agentName);
       ac.createAgent(id, className, args,START); // RMI call
     }
@@ -633,33 +669,35 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   public void killContainer(String containerName) {
 
     // This call spawns a separate thread in order to avoid deadlock.
-    final AgentContainer ac = (AgentContainer)containers.get(containerName);
-    final String cName = containerName;
-    Thread auxThread = new Thread(new Runnable() {
-      public void run() {
-	try {
-	  APKillContainer(ac);
-	}
-	catch(RemoteException re) {
-	  System.out.println("Container " + cName + " is unreachable.");
-	  containers.remove(cName);
-	  postDeadContainer(cName);
-
-	}
-      }
-    });
-    auxThread.start();
+    try {
+      final AgentContainer ac = containers.getContainer(containerName);
+      final String cName = containerName;
+      Thread auxThread = new Thread(new Runnable() {
+	 public void run() {
+	   try {
+	     APKillContainer(ac);
+	   }
+	   catch(RemoteException re) {
+	     System.out.println("Container " + cName + " is unreachable.");
+	     containers.removeContainer(cName);
+	     postDeadContainer(cName);
+	   }
+	 }
+      });
+      auxThread.start();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+    }
   }
 
 
   public void sniffOn(AID snifferName, List toBeSniffed) throws UnreachableException  {
 
-    Collection myContainersColl = containers.values();
-    Iterator myContainers = myContainersColl.iterator();
-
-    while (myContainers.hasNext()) {
+    AgentContainer[] allContainers = containers.containers();
+    for(int i = 0; i < allContainers.length; i++) {
       try {
-	AgentContainer ac = (AgentContainer)myContainers.next(); 
+	AgentContainer ac = allContainers[i]; 
 	ac.enableSniffer(snifferName, toBeSniffed); // RMI call
       }
       catch (RemoteException re) {
@@ -670,12 +708,10 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   public void sniffOff(AID snifferName, List notToBeSniffed) throws UnreachableException {
 
-    Collection myContainersColl = containers.values();
-    Iterator myContainers = myContainersColl.iterator();
-
-    while (myContainers.hasNext()) {
+    AgentContainer[] allContainers = containers.containers();
+    for(int i = 0; i < allContainers.length; i++) {
       try {
-	AgentContainer ac = (AgentContainer)myContainers.next();
+	AgentContainer ac = allContainers[i];
 	ac.disableSniffer(snifferName, notToBeSniffed); // RMI call
       }
       catch (RemoteException re) {
@@ -683,6 +719,5 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
     }
   }
-
 
 }
