@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.44  1999/03/30 15:40:31  rimassa
+  Some debugging printouts.
+
   Revision 1.43  1999/03/30 06:48:14  rimassa
   Removed a deprecated ACLMessage.setDest() call.
   Removed some debugging printouts.
@@ -715,6 +718,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	break;
       case AP_DELETED:
 	return;
+      case AP_ACTIVE:
+	break;
       }
 
       // When it is needed no more, delete it from the behaviours queue
@@ -754,7 +759,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     synchronized(suspendLock) {
       while(myAPState == AP_SUSPENDED) {
 	try {
+	  System.out.println(getLocalName() + " suspending...");
 	  suspendLock.wait(); // Blocks on suspended state monitor
+	  System.out.println(getLocalName() + " resuming...");
 	}
 	catch(InterruptedException ie) {
 	  myAPState = AP_DELETED;
@@ -1448,6 +1455,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       if(msg != null) msgQueue.addLast(msg);
       doWake();
     }
+    if(getLocalName().equalsIgnoreCase("Denise"))
+      System.out.println("posting a msg to Denise");
   }
 
 }
