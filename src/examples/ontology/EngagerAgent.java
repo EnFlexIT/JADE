@@ -274,6 +274,7 @@ public class EngagerAgent extends Agent {
 	
 	// AGENT SETUP
 	protected void setup() {
+		System.out.println("This is the EngagerAgent representing the company "+representedCompany.getName());
 		
 		// Register the codec for the SL0 language
 		getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);	
