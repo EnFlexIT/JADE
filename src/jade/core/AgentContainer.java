@@ -45,6 +45,9 @@ interface AgentContainer extends Remote {
   static final boolean TRANSFER_ABORT = false;
   static final boolean TRANSFER_COMMIT = true;
 
+  static final int ADD_RT = 1;
+  static final int DEL_RT = 2;
+
   void createAgent(AID agentID, String className,String arguments[], boolean startIt) throws RemoteException;
   void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException;
   byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException;
@@ -64,6 +67,12 @@ interface AgentContainer extends Remote {
   void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException;
   void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException;
   void ping(boolean hang) throws RemoteException;
+
+  String installMTP(String address, String className) throws RemoteException;
+  void uninstallMTP(String address) throws RemoteException, NotFoundException;
+
+  void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException;
+  void route(Object env, byte[] payload, String address) throws RemoteException, NotFoundException;
 
   void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException;
   void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException;
