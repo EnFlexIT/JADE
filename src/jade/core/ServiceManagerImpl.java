@@ -55,9 +55,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
   private Map backupManagers;
 
-  //#MIDP_EXCLUDE_BEGIN
   private jade.util.Logger myLogger;
-  //#MIDP_EXCLUDE_END
 
   /**
      Constructs a new Service Manager implementation complying with
@@ -76,10 +74,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		localServices = new HashMap();
 		backupManagers = new HashMap();
 
-	  //#MIDP_EXCLUDE_BEGIN
-		//myLogger = new jade.util.Logger("ServiceManager", 1, null, "[%t] %m");
-                myLogger = Logger.getMyLogger(this.getClass().getName());
-	  //#MIDP_EXCLUDE_END
+    myLogger = Logger.getMyLogger(this.getClass().getName());
   }
 
 
@@ -103,11 +98,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   public synchronized void addAddress(String addr) throws IMTPException {
-		//log("Adding PlatformManager address "+addr, 2);
-                //#MIDP_EXCLUDE_BEGIN
-                  if(myLogger.isLoggable(Logger.INFO))
-                    myLogger.log(Logger.INFO,"Adding PlatformManager address "+addr);
-                //#MIDP_EXCLUDE_END
+    if(myLogger.isLoggable(Logger.FINE)) {
+	    myLogger.log(Logger.FINE,"Adding PlatformManager address "+addr);
+    }
 
   	if (invalidPlatformManager || !addr.equals(myPlatformManager.getLocalAddress())) {
 	  	backupManagers.put(addr, myIMTPManager.getPlatformManagerProxy(addr));
@@ -118,11 +111,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   public synchronized void removeAddress(String addr) throws IMTPException {
-		//log("Removing PlatformManager address "+addr, 2);
-                //#MIDP_EXCLUDE_BEGIN
-                if(myLogger.isLoggable(Logger.INFO))
-                  myLogger.log(Logger.INFO,"Removing PlatformManager address "+addr);
-                //#MIDP_EXCLUDE_END
+	  if(myLogger.isLoggable(Logger.FINE)) {
+	    myLogger.log(Logger.FINE,"Removing PlatformManager address "+addr);
+	  }
 
   	backupManagers.remove(addr);
   	if (addr.equals(myPlatformManager.getLocalAddress())) {
@@ -390,28 +381,21 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		  	String addr = (String) it.next();
 	      try {
 	      	myPlatformManager = (PlatformManager) backupManagers.get(addr);
-					//log("Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress(), 1);
-                                        //#MIDP_EXCLUDE_BEGIN
-                                        if(myLogger.isLoggable(Logger.WARNING))
-                                          myLogger.log(Logger.WARNING,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
-                                          //#MIDP_EXCLUDE_END
+	        if(myLogger.isLoggable(Logger.INFO)) {
+	          myLogger.log(Logger.INFO,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
+	        }
 				  myPlatformManager.adopt(localNode);
-					//log("Reconnection OK", 1);
-                                        //#MIDP_EXCLUDE_BEGIN
-                                        if(myLogger.isLoggable(Logger.INFO))
-                                          myLogger.log(Logger.INFO,"Reconnection OK");
-                                        //#MIDP_EXCLUDE_END
+          if(myLogger.isLoggable(Logger.INFO)) {
+            myLogger.log(Logger.INFO,"Reconnection OK"); 
+          }
 				  myIMTPManager.reconnected(myPlatformManager);
 				  backupManagers.remove(addr);
 				  invalidPlatformManager = false;
 				  return true;
 	      }
 	      catch(Exception e) {
-					//log("Reconnection failed", 1);
-                                        //#MIDP_EXCLUDE_BEGIN
-                                        if(myLogger.isLoggable(Logger.WARNING))
-                                          myLogger.log(Logger.WARNING,"Reconnection failed");
-                                        //#MIDP_EXCLUDE_END
+	        if(myLogger.isLoggable(Logger.WARNING))
+	          myLogger.log(Logger.WARNING,"Reconnection failed");
 				  // Ignore it and try the next address...
 	      }
 		  }
@@ -430,10 +414,4 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   	}
   	return slice;
   }
-
- /* private void log(String msg, int level) {
-  	//#MIDP_EXCLUDE_BEGIN
-  	myLogger.log(msg, level);
-  	//#MIDP_EXCLUDE_END
-  }*/
 }

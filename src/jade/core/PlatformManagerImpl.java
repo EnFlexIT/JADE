@@ -73,7 +73,6 @@ public class PlatformManagerImpl implements PlatformManager {
     private int nodeNo = 1;
     private int mainNodeNo = 0;
 
-    //private jade.util.Logger myLogger;
     private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
 		/**
@@ -201,14 +200,6 @@ public class PlatformManagerImpl implements PlatformManager {
 			services = new HashMap();
 			replicas = new HashMap();
 
-			// Initialize the logger
-			//String verbosityKey = "jade_core_PlatformManager_verbosity";
-			//String verbosityFormatKey = "jade_core_PlatformManager_verbosity_format";
-			//int verbosity = Integer.parseInt(p.getParameter(verbosityKey, "1"));
-			//String defaultFormat = (verbosity > 1 ? "%t [%i] %m" : "[%t] %m");
-			//String verbosityFormat = p.getParameter(verbosityFormatKey, defaultFormat);
-			//myLogger = new jade.util.Logger("PlatformManager", verbosity, null, verbosityFormat);
-
 			platformID = p.getParameter(Profile.PLATFORM_ID, null);
 			if (platformID == null || platformID.equals("")) {
 			    try {
@@ -279,9 +270,7 @@ public class PlatformManagerImpl implements PlatformManager {
 					throw (JADESecurityException) result;
 				}
 				else if (result instanceof Throwable) {
-                                   //myLogger.log("Unexpected error processing NEW_NODE command. Node is "+dsc.getName(), 0);
-                                        if (myLogger.isLoggable(Logger.SEVERE))
-					    myLogger.log(Logger.SEVERE,"Unexpected error processing NEW_NODE command. Node is "+dsc.getName());
+		    	myLogger.log(Logger.SEVERE,"Unexpected error processing NEW_NODE command. Node is "+dsc.getName());
 					((Throwable) result).printStackTrace();
 				}
 			}
@@ -292,9 +281,9 @@ public class PlatformManagerImpl implements PlatformManager {
 				myMain.addLocalContainer(dsc);
 			}
 			else {
-				//myLogger.log("Adding node <" + dsc.getName() + "> to the platform", 1);
-                                if (myLogger.isLoggable(Logger.INFO))
-                                    myLogger.log(Logger.INFO,"Adding node <" + dsc.getName() + "> to the platform");
+		    if (myLogger.isLoggable(Logger.INFO)) {
+	        myLogger.log(Logger.INFO,"Adding node <" + dsc.getName() + "> to the platform");
+		    }
 
 				// Add the node as a remote agent container
 				myMain.addRemoteContainer(dsc);
@@ -358,11 +347,11 @@ public class PlatformManagerImpl implements PlatformManager {
 				myMain.removeLocalContainer(dsc.getContainer());
 			}
 			else {
-				//myLogger.log("Removing node <" + dsc.getName() + "> from the platform", 1);
-                                if (myLogger.isLoggable(Logger.INFO))
-                                    myLogger.log(Logger.INFO,"Removing node <" + dsc.getName() + "> from the platform");
-
 				// As a remote container
+	      if (myLogger.isLoggable(Logger.INFO)) {
+          myLogger.log(Logger.INFO,"Removing node <" + dsc.getName() + "> from the platform");
+	      }
+
 				myMain.removeRemoteContainer(dsc);
 			}
 
@@ -372,10 +361,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				gCmd.addParam(dsc);
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					//myLogger.log("Unexpected error processing DEAD_NODE command. Node is "+dsc.getName(), 0);
-                                        if (myLogger.isLoggable(Logger.SEVERE))
-                                            myLogger.log(Logger.SEVERE,"Unexpected error processing DEAD_NODE command. Node is "+dsc.getName());
-
+					myLogger.log(Logger.SEVERE, "Unexpected error processing DEAD_NODE command. Node is "+dsc.getName());
 					((Throwable) result).printStackTrace();
 				}
 			}
@@ -410,16 +396,16 @@ public class PlatformManagerImpl implements PlatformManager {
     	ServiceEntry e = (ServiceEntry)services.get(serviceKey);
 
 			if(e == null) {
-				//myLogger.log("Adding entry for service <" + serviceKey + ">", 3);
-                                if (myLogger.isLoggable(Logger.CONFIG))
-                                    myLogger.log(Logger.CONFIG,"Adding entry for service <" + serviceKey + ">");
+        if (myLogger.isLoggable(Logger.CONFIG)) {
+          myLogger.log(Logger.CONFIG,"Adding entry for service <" + serviceKey + ">");
+        }
 
 		    e = new ServiceEntry(service);
 		    services.put(serviceKey, e);
 			}
-			//myLogger.log("Adding slice for service <" + serviceKey+"> on node <"+dsc.getName() + ">", 3);
-                        if (myLogger.isLoggable(Logger.CONFIG))
-                            myLogger.log(Logger.CONFIG,"Adding slice for service <" + serviceKey+"> on node <"+dsc.getName() + ">");
+		  if (myLogger.isLoggable(Logger.CONFIG)) {
+		  	myLogger.log(Logger.CONFIG,"Adding slice for service <" + serviceKey+"> on node <"+dsc.getName() + ">");
+		  }
 
 
 			Node node = dsc.getNode();
@@ -450,10 +436,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				gCmd.addParam(sliceKey);
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					//myLogger.log("Unexpected error processing NEW_SLICE command. Service is "+serviceKey+" node is "+sliceKey, 0);
-                                        if (myLogger.isLoggable(Logger.SEVERE))
-                                            myLogger.log(Logger.SEVERE,"Unexpected error processing NEW_SLICE command. Service is "+serviceKey+" node is "+sliceKey);
-
+          myLogger.log(Logger.SEVERE, "Unexpected error processing NEW_SLICE command. Service is "+serviceKey+" node is "+sliceKey);
 					((Throwable) result).printStackTrace();
 				}
 			}
@@ -486,10 +469,9 @@ public class PlatformManagerImpl implements PlatformManager {
 
 			if(e != null) {
 				if (e.removeSlice(sliceKey) != null) {
-					//myLogger.log("Removing slice for service <" + serviceKey+"> on node <"+sliceKey + ">", 3);
-                                        if (myLogger.isLoggable(Logger.CONFIG))
-                                            myLogger.log(Logger.CONFIG,"Removing slice for service <" + serviceKey+"> on node <"+sliceKey + ">");
-
+	        if (myLogger.isLoggable(Logger.CONFIG)) {
+            myLogger.log(Logger.CONFIG,"Removing slice for service <" + serviceKey+"> on node <"+sliceKey + ">");
+	        }
 				}
 
 				try {
@@ -512,9 +494,7 @@ public class PlatformManagerImpl implements PlatformManager {
 					gCmd.addParam(sliceKey);
 					Object result = myCommandProcessor.processIncoming(gCmd);
 					if (result instanceof Throwable) {
-						//myLogger.log("Unexpected error processing DEAD_SLICE command. Service is "+serviceKey+" node is "+sliceKey, 0);
-                                                if (myLogger.isLoggable(Logger.SEVERE))
-                                                    myLogger.log(Logger.SEVERE,"Unexpected error processing DEAD_SLICE command. Service is "+serviceKey+" node is "+sliceKey);
+            myLogger.log(Logger.SEVERE, "Unexpected error processing DEAD_SLICE command. Service is "+serviceKey+" node is "+sliceKey);
 						((Throwable) result).printStackTrace();
 					}
 				}
@@ -548,10 +528,9 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
     private void localAddReplica(PlatformManager newReplica, boolean propagated)  throws IMTPException, ServiceException {
-			//myLogger.log("Adding replica <" + newReplica.getLocalAddress() + "> to the platform", 2);
-                        if (myLogger.isLoggable(Logger.INFO))
-                            myLogger.log(Logger.INFO,"Adding replica <" + newReplica.getLocalAddress() + "> to the platform");
-
+      if (myLogger.isLoggable(Logger.INFO)) {
+        myLogger.log(Logger.INFO,"Adding replica <" + newReplica.getLocalAddress() + "> to the platform");
+      }
 
     	if (!propagated) {
 		    // Inform the new replica about existing nodes and their installed services...
@@ -582,9 +561,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				gCmd.addParam(newReplica.getLocalAddress());
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					//myLogger.log("Unexpected error processing NEW_REPLICA command. Replica address is "+newReplica.getLocalAddress(), 0);
-                                        if (myLogger.isLoggable(Logger.SEVERE))
-                                            myLogger.log(Logger.SEVERE,"Unexpected error processing NEW_REPLICA command. Replica address is "+newReplica.getLocalAddress());
+					myLogger.log(Logger.SEVERE, "Unexpected error processing NEW_REPLICA command. Replica address is "+newReplica.getLocalAddress());
 					((Throwable) result).printStackTrace();
 				}
     	}
@@ -613,10 +590,9 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
     private void localRemoveReplica(String address, boolean propagated)  throws IMTPException, ServiceException {
-			//myLogger.log("Removing replica <" + address + "> from the platform", 2);
-                        if (myLogger.isLoggable(Logger.INFO))
-                            myLogger.log(Logger.INFO,"Removing replica <" + address + "> from the platform");
-
+		  if (myLogger.isLoggable(Logger.INFO)) {
+	      myLogger.log(Logger.INFO,"Removing replica <" + address + "> from the platform");
+		  }
 
     	// Remove the old replica
     	replicas.remove(address);
@@ -648,9 +624,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				gCmd.addParam(address);
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					//myLogger.log("Unexpected error processing DEAD_REPLICA command. Replica address is "+address, 0);
-                                        if (myLogger.isLoggable(Logger.SEVERE))
-                                            myLogger.log(Logger.SEVERE,"Unexpected error processing DEAD_REPLICA command. Replica address is "+address);
+          myLogger.log(Logger.SEVERE, "Unexpected error processing DEAD_REPLICA command. Replica address is "+address);
 					((Throwable) result).printStackTrace();
 				}
     	}
@@ -827,10 +801,9 @@ public class PlatformManagerImpl implements PlatformManager {
 		// FIXME: Should notify all the interested service slices...
 
 		public void nodeAdded(Node n) {
-		    //myLogger.log("--- Node <" + n.getName() + "> ALIVE ---", 1);
-                    if (myLogger.isLoggable(Logger.INFO))
-                        myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> ALIVE ---");
-
+	    if (myLogger.isLoggable(Logger.INFO)) {
+        myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> ALIVE ---");
+	    }
 		}
 
 		public void nodeRemoved(Node n) {
@@ -838,17 +811,15 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 
 		public void nodeUnreachable(Node n) {
-		    //myLogger.log("--- Node <" + n.getName() + "> UNREACHABLE ---", 1);
-                    if (myLogger.isLoggable(Logger.WARNING))
-                        myLogger.log(Logger.WARNING,"--- Node <" + n.getName() + "> UNREACHABLE ---");
-
+		  if (myLogger.isLoggable(Logger.WARNING)) {
+	      myLogger.log(Logger.WARNING,"--- Node <" + n.getName() + "> UNREACHABLE ---");
+		  }
 		}
 
 		public void nodeReachable(Node n) {
-		    //myLogger.log("--- Node <" + n.getName() + "> REACHABLE ---", 1);
-                    if (myLogger.isLoggable(Logger.INFO))
-                        myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> REACHABLE ---");
-
+		  if (myLogger.isLoggable(Logger.INFO)) {
+	      myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> REACHABLE ---");
+		  }
 		}
 
 	    });
@@ -861,9 +832,9 @@ public class PlatformManagerImpl implements PlatformManager {
 
 
     private void removeTerminatedNode(Node n) {
-	    //myLogger.log("--- Node <" + n.getName() + "> TERMINATED ---", 1);
-            if (myLogger.isLoggable(Logger.INFO))
-                myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> TERMINATED ---");
+      if (myLogger.isLoggable(Logger.INFO)) {
+        myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> TERMINATED ---");
+      }
 
 	    try {
 				removeNode(new NodeDescriptor(n), false);

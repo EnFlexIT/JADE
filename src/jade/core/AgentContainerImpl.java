@@ -409,22 +409,18 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  startNode();
     }
     catch (IMTPException imtpe) {
-      if(myLogger.isLoggable(Logger.SEVERE))
         myLogger.log(Logger.SEVERE,"Communication failure while joining agent platform: " + imtpe.getMessage());
         imtpe.printStackTrace();
         endContainer();
         return false;
     }
     catch (JADESecurityException ae) {
-      if(myLogger.isLoggable(Logger.SEVERE))
         myLogger.log(Logger.SEVERE,"Authentication or authorization failure while joining agent platform.");
         ae.printStackTrace();
         endContainer();
         return false;
     }
     catch (Exception e) {
-
-      if(myLogger.isLoggable(Logger.SEVERE))
         myLogger.log(Logger.SEVERE,"Some problem occurred while joining agent platform.");
         e.printStackTrace();
         endContainer();
@@ -439,7 +435,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	startBootstrapAgents();
   	//#MIDP_EXCLUDE_END
 
-    System.out.println("Agent container " + myID + " is ready.");
+    myLogger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
     return true;
   }
 

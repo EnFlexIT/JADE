@@ -49,38 +49,13 @@ public abstract class BaseService implements Service {
     public static final String THIS_SLICE = ServiceFinder.THIS_SLICE;
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
-	myFinder = p.getServiceFinder();
-	myIMTPManager = p.getIMTPManager();
-
-	slices = new HashMap();
-	aliases = new HashMap();
-
-	//#MIDP_EXCLUDE_BEGIN
-    /*
-        int verbosity = 0;
-	try {
-		String className = getClass().getName();
-		String tmp = className.replace('.', '_');
-		String verbosityKey = tmp+"_verbosity";
-		String verbosityFormatKey = tmp+"_verbosity_format";
-		verbosity = Integer.parseInt(p.getParameter(verbosityKey, null));
-		if (verbosity > 0) {
-			int index = className.lastIndexOf('.');
-			String name = (index < 0 ? className : className.substring(index+1));
-			myLogger = new jade.util.Logger(name, verbosity, null, p.getParameter(verbosityFormatKey, "%t [%i] %m"));
-		}
-
-		log("Initialized", 1);
-
-	}
-	catch (Exception e) {
-		// Ignore and keep default: no logs
-	}*/
-        if (myLogger.isLoggable(jade.util.Logger.INFO))
-            myLogger.log(jade.util.Logger.INFO,"Initialized");
-
-
-	//#MIDP_EXCLUDE_END
+			myFinder = p.getServiceFinder();
+			myIMTPManager = p.getIMTPManager();
+			
+			slices = new HashMap();
+			aliases = new HashMap();
+			
+			myLogger.log(jade.util.Logger.INFO, "Service "+getName()+" initialized");
     }
 
     // Package scoped method to receive the Command Processor from the
@@ -256,17 +231,5 @@ public abstract class BaseService implements Service {
     private Map slices;
     private Map aliases;
 
-    //#MIDP_EXCLUDE_BEGIN
-    // protected jade.util.Logger myLogger;
     protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(this.getClass().getName());
-    //#MIDP_EXCLUDE_END
-
-    /*
-    protected void log(String msg, int level) {
-    	//#MIDP_EXCLUDE_BEGIN
-    	if (myLogger != null) {
-    		myLogger.log(msg, level);
-    	}
-    	//#MIDP_EXCLUDE_END
-    }*/
 }
