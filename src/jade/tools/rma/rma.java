@@ -171,25 +171,10 @@ public class rma extends ToolAgent {
 
   private String myContainerName;
 
-  /**
-   This method starts the <em>RMA</em> behaviours to allow the agent
-   to carry on its duties within <em><b>JADE</b></em> agent platform.
-  */
-  protected void toolSetup() {
-
-    // Register the supported ontologies 
-    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-
-    // Send 'subscribe' message to the AMS
-    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
-
-    // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
-
+  class RMAAMSListenerBehaviour extends AMSListenerBehaviour {
       protected void installHandlers(Map handlersTable) {
 
 	// Fill the event handler table.
-
 	handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedContainer ac = (AddedContainer)ev;
@@ -205,7 +190,8 @@ public class rma extends ToolAgent {
 	    }
 	  }
 	});
-
+	
+	
 	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    RemovedContainer rc = (RemovedContainer)ev;
@@ -276,10 +262,25 @@ public class rma extends ToolAgent {
 	  }
         });
 
-      } // End of installHandlers() method
+      } 
+  } // END of inner class RMAAMSListenerBehaviour
 
-    });
+  
+  /**
+   This method starts the <em>RMA</em> behaviours to allow the agent
+   to carry on its duties within <em><b>JADE</b></em> agent platform.
+  */
+  protected void toolSetup() {
 
+    // Register the supported ontologies 
+    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+
+    // Send 'subscribe' message to the AMS
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
+
+    // Handle incoming 'inform' messages
+    AMSSubscribe.addSubBehaviour(new RMAAMSListenerBehaviour());
+	
     // Schedule Behaviour for execution
     addBehaviour(AMSSubscribe);
 
