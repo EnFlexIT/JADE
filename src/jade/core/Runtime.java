@@ -67,12 +67,13 @@ public class Runtime {
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
 
-    String host = p.getParameter(ProfileImpl.HOST);
-    String port = p.getParameter(ProfileImpl.PORT);
-
-    String platformRMI = "rmi://" + host + ":" + port + "/JADE";
-    String[] empty = new String[] { };
     try {
+      String host = p.getParameter(Profile.MAIN_HOST);
+      String port = p.getParameter(Profile.MAIN_PORT);
+
+      String platformRMI = "rmi://" + host + ":" + port + "/JADE";
+      String[] empty = new String[] { };
+      
       AgentContainerImpl impl = new AgentContainerImpl();
       impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
       beginContainer();
@@ -81,6 +82,9 @@ public class Runtime {
     }
     catch(RemoteException re) {
       throw new InternalError("Remote exception in a local call.");
+    }
+    catch(ProfileException pe) {
+      throw new InternalError("Can't read configuration from Profile.");
     }
 
   }
@@ -93,13 +97,13 @@ public class Runtime {
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
 
-    String host = p.getParameter(ProfileImpl.HOST);
-    String port = p.getParameter(ProfileImpl.PORT);
-    String platformID = p.getParameter(ProfileImpl.PLATFORM_ID);
-
-    String platformRMI = "rmi://" + host + ":" + port + "/JADE";
-
     try {
+      String host = p.getParameter(Profile.MAIN_HOST);
+      String port = p.getParameter(Profile.MAIN_PORT);
+      String platformID = p.getParameter(Profile.PLATFORM_ID);
+
+      String platformRMI = "rmi://" + host + ":" + port + "/JADE";
+
       MainContainerImpl impl = new MainContainerImpl(platformID);
 
       // Create an embedded RMI Registry within the platform and
@@ -123,6 +127,9 @@ public class Runtime {
     }
     catch(AlreadyBoundException abe) {
       throw new InternalError("Already Bound Exception"); // FIXME: Need to throw a suitable exception
+    }
+    catch(ProfileException pe) {
+      throw new InternalError("Can't read configuration from Profile.");
     }
 
   }
