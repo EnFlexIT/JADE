@@ -33,6 +33,8 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/FipaContractNetResponderBehaviour.java \
 		jade/proto/FipaQueryInitiatorBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
+		jade/proto/AchieveREInitiator.java \
+		jade/proto/AchieveREResponder.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
