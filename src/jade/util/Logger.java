@@ -29,6 +29,8 @@ import javax.microedition.rms.RecordStore;
 #MIDP_INCLUDE_END*/
 
 //#MIDP_EXCLUDE_BEGIN
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -68,91 +70,183 @@ public class Logger {
      Print a String in a device dependent way. 
    */
 	public synchronized static void println(String s) {
-		//#MIDP_EXCLUDE_BEGIN
-			// This System.out.println has been excluded in MIDP becuase it is unknown, 
-			// and therefore potentially dangerous, what a mobile phone does with this instruction.
 		System.out.println(s);
-		//#MIDP_EXCLUDE_END
 		
 		/*#MIDP_INCLUDE_BEGIN
-    RecordStore rs = null;
 		try{
-			rs =	RecordStore.openRecordStore(OUTPUT, true);
+			RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
 			byte[] bb = s.getBytes();
-			if (rs.getSizeAvailable() <= bb.length) {
-          // if there is no room available, delete and reopen the Record Store
-			    rs.closeRecordStore();
-          RecordStore.deleteRecordStore(OUTPUT);
-			    rs =	RecordStore.openRecordStore(OUTPUT, true);
-      }
 			rs.addRecord(bb,0,bb.length);
+			rs.closeRecordStore();
 		}
-		catch (Exception e){
-			// Nothing can be done here because the stackTrace is not printed on phone devices
-			// e.printStackTrace();
-		} finally {
-      try {
-         rs.closeRecordStore();
-      } catch (Exception any) {
-      }
-    } 
+		catch (Throwable t){
+			t.printStackTrace();
+		}
 		#MIDP_INCLUDE_END*/
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
+	private static final String DEFAULT_LOG_FORMAT = "%t [LVL-%l][%i][%h] %m";
+	private static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+
+	private static final char TIME = 't';
+	private static final char LEVEL = 'l';
+	private static final char ID = 'i';
+	private static final char THREAD = 'h';
+	private static final char MESSAGE = 'm';
+	
 	private int verbosity;
 	private String id = null;
-	private boolean printThread;
 	private StringBuffer sb = new StringBuffer();
-	private DateFormat formatter = null;
+	private DateFormat timeFormatter = null;
+	private Printer[] myPrinters;
 	
-	public Logger(String id, int verbosity, String timeFormat, boolean printThread) {
-		this.id = id;
-		this.verbosity = verbosity;
-		this.printThread = printThread;
-		if (timeFormat != null) {
-			formatter = new SimpleDateFormat(timeFormat);
-		}
+	public Logger(String id, int verbosity) {
+		this(id, verbosity, null, null);
 	}
 	
+	public Logger(String id, int verbosity, String timeFormat, String logFormat) {
+		this.id = id;
+		this.verbosity = verbosity;
+		if (timeFormat == null) {
+			timeFormat = DEFAULT_TIME_FORMAT;
+		}
+		if (logFormat == null) {
+			logFormat = DEFAULT_LOG_FORMAT;
+		}
+		setTimeFormat(timeFormat);
+		setLogFormat(logFormat);
+	}
+	
+	/**
+	   Log a given message if the <code>level</code> is <= than the
+	   verbosity level of this Logger object.
+	 */
 	public synchronized void log(String msg, int level) {
 		if (verbosity >= level) {
-			// Time
-			if (formatter != null) {
-				sb.append(formatter.format(new Date()));
+			for (int i = 0; i < myPrinters.length; ++i) {
+				myPrinters[i].print(sb, level, msg);
 			}
-			else {
-				sb.append(System.currentTimeMillis());
-			}
-			sb.append(' ');
-			
-			// Level
-			sb.append("[LVL-");
-			sb.append(level);
-			sb.append(']');
-			
-			// ID
-			if (id != null) {
-				sb.append('[');
-				sb.append(id);
-				sb.append(']');
-			}
-		
-			// Thread
-			if (printThread) {
-				sb.append('[');
-				sb.append(Thread.currentThread().getName());
-				sb.append("] ");
-			}
-			
-			// Message
-			sb.append(msg);
 			
 			println(sb.toString());
 			sb.setLength(0);
 		}
 	}
-	//#MIDP_EXCLUDE_END
+	
+	/**
+	   Define the log format of this Logger object.
+	 */
+	public synchronized void setLogFormat(String format) {
+		List l = new ArrayList();
+		int index0 = 0;
+		int index1 = format.indexOf('%');
+		while (index1 >= 0) {
+			if (index1-index0 > 0) {
+				l.add(new StringPrinter(format.substring(index0, index1)));
+			}
+			char type = format.charAt(index1+1);
+			switch (type) {
+				case TIME:
+					l.add(new TimePrinter());
+					break;
+				case LEVEL:
+					l.add(new LevelPrinter());
+					break;
+				case ID:
+					l.add(new StringPrinter(id));
+					break;
+				case THREAD:
+					l.add(new ThreadPrinter());
+					break;
+				case MESSAGE:
+					l.add(new MessagePrinter());
+					break;
+			}
+			index0 = index1+2;
+			index1 = format.indexOf('%', index0);
+		}
+		if (format.length()-index0 > 0) {
+			l.add(new StringPrinter(format.substring(index0)));
+		}
+		// Fill the array of printers
+		myPrinters = new Printer[l.size()];
+		for (int i = 0; i < myPrinters.length; ++i) {
+			myPrinters[i] = (Printer) l.get(i);
+		}
+	}
+	
+	public synchronized void setTimeFormat(String format) {
+		if (format != null) {
+			timeFormatter = new SimpleDateFormat(format);
+		}
+		else {
+			timeFormatter = null;
+		}
+	}
+	
+	/**
+	   Inner interface Printer.
+	 */
+	private interface Printer {
+		void print(StringBuffer sb, int level, String msg);
+	} // END of inner interface Printer
+	
+	/**
+	   Inner class StringPrinter
+	 */
+	private class StringPrinter implements Printer {
+		private String myString;
+		
+		StringPrinter(String s) {
+			myString = s;
+		}
+		
+		public void print(StringBuffer sb, int level, String msg) {
+			sb.append(myString);
+		}
+	} // END of inner class StringPrinter
+	
+	/**
+	   Inner class TimePrinter
+	 */
+	private class TimePrinter implements Printer {
+		public void print(StringBuffer sb, int level, String msg) {
+			if (timeFormatter != null) {
+				sb.append(timeFormatter.format(new Date()));
+			}
+			else {
+				sb.append(System.currentTimeMillis());
+			}
+		}
+	} // END of inner class TimePrinter
+	
+	/**
+	   Inner class ThreadPrinter
+	 */
+	private class ThreadPrinter implements Printer {
+		public void print(StringBuffer sb, int level, String msg) {
+			sb.append(Thread.currentThread().getName());
+		}
+	} // END of inner class ThreadPrinter
+	
+	/**
+	   Inner class LevelPrinter
+	 */
+	private class LevelPrinter implements Printer {
+		public void print(StringBuffer sb, int level, String msg) {
+			sb.append(level);
+		}
+	} // END of inner class LevelPrinter
+	
+	/**
+	   Inner class MessagePrinter
+	 */
+	private class MessagePrinter implements Printer {
+		public void print(StringBuffer sb, int level, String msg) {
+			sb.append(msg);
+		}
+	}  // END of inner class MessagePrinter
+	
 }
 
     
