@@ -2309,7 +2309,7 @@ public class Agent implements Runnable, Serializable
   public final ACLMessage blockingReceive() {
     //ACLMessage msg = null;
     //while(msg == null) {
-      return blockingReceive(0);
+      return blockingReceive(null, 0);
     //}
     //return msg;
   }
@@ -2322,14 +2322,15 @@ public class Agent implements Runnable, Serializable
      amount of time passes without any message reception.
    */
   public final ACLMessage blockingReceive(long millis) {
-    synchronized(msgQueue) {
+    /*synchronized(msgQueue) {
       ACLMessage msg = receive();
       if(msg == null) {
 	doWait(millis);
 	msg = receive();
       }
       return msg;
-    }
+    }*/
+    return blockingReceive(null, millis);
   }
 
   /**
@@ -2347,7 +2348,7 @@ public class Agent implements Runnable, Serializable
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
     //ACLMessage msg = null;
     //while(msg == null) {
-      return blockingReceive(pattern, 0);
+    	return blockingReceive(pattern, 0);
     //}
     //return msg;
   }
@@ -2371,46 +2372,46 @@ public class Agent implements Runnable, Serializable
       msg = receive(pattern);
       long timeToWait = millis;
       while(msg == null) {
-	long startTime = System.currentTimeMillis();
-	//#MIDP_EXCLUDE_BEGIN
-	if (Thread.currentThread().equals(myThread)) {
-		doWait(timeToWait);
-	}
-	else {
-		// blockingReceive() called from an external thread --> Do not change the agent state
-		waitUntilWake(timeToWait);
-	}
-	//#MIDP_EXCLUDE_END
-	/*#MIDP_INCLUDE_BEGIN
-  // As Thread.interrupt() is substituted by interruptThread(),
-  // it is possible to enter this method with the agent state
-  // equals to AP_DELETED. If this is the case the loop
-  // lasts forever as doWait() does nothing -->the monitor
-  // of the msgQueue is not released --> even if a message arrive
-  // the postMessage method can't be executed.
-  // Throwing AgentDeathError is necessary to exit this infinite loop.
-  if (myAPState == AP_ACTIVE) {
-		if (Thread.currentThread().equals(myThread)) {
-			doWait(timeToWait);
-		}
-		else {
-			// blockingReceive() called from an external thread --> Do not change the agent state
-			waitUntilWake(timeToWait);
-		}
-  } 
-  else {
-    throw new AgentDeathError();
-  }
-	#MIDP_INCLUDE_END*/
-	long elapsedTime = System.currentTimeMillis() - startTime;
-
-	msg = receive(pattern);
-
-	if(millis != 0) {
-	  timeToWait -= elapsedTime;
-	  if(timeToWait <= 0)
-	    break;
-	}
+				long startTime = System.currentTimeMillis();
+				//#MIDP_EXCLUDE_BEGIN
+				if (Thread.currentThread().equals(myThread)) {
+					doWait(timeToWait);
+				}
+				else {
+					// blockingReceive() called from an external thread --> Do not change the agent state
+					waitUntilWake(timeToWait);
+				}
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+			  // As Thread.interrupt() is substituted by interruptThread(),
+			  // it is possible to enter this method with the agent state
+			  // equals to AP_DELETED. If this is the case the loop
+			  // lasts forever as doWait() does nothing -->the monitor
+			  // of the msgQueue is not released --> even if a message arrive
+			  // the postMessage method can't be executed.
+			  // Throwing AgentDeathError is necessary to exit this infinite loop.
+			  if (myAPState == AP_ACTIVE) {
+					if (Thread.currentThread().equals(myThread)) {
+						doWait(timeToWait);
+					}
+					else {
+						// blockingReceive() called from an external thread --> Do not change the agent state
+						waitUntilWake(timeToWait);
+					}
+			  } 
+			  else {
+			    throw new AgentDeathError();
+			  }
+				#MIDP_INCLUDE_END*/
+				long elapsedTime = System.currentTimeMillis() - startTime;
+			
+				msg = receive(pattern);
+			
+				if(millis != 0) {
+				  timeToWait -= elapsedTime;
+				  if(timeToWait <= 0)
+				    break;
+				}
 
       }
     }
