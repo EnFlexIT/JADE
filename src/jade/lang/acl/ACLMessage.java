@@ -223,12 +223,31 @@ private int performative; // keeps the performative type of this object
 
   private Envelope messageEnvelope;
 
+  //__BACKWARD_COMPATIBILITY__BEGIN
   /**
   Returns the list of the communicative acts.
+  @deprecated Use getAllPerformativeNames() instead
   */
-  public static List getAllPerformatives()
+  public static java.util.List getAllPerformatives()
   {
-  	return performatives;
+  	return performatives.toList();
+  }
+  //__BACKWARD_COMPATIBILITY__END
+  
+  /**
+  Returns the list of the communicative acts as an array of <code>String</code>.
+  */
+  public static String[] getAllPerformativeNames()
+  {
+  	// FIXME: performatives should become an array and this method should
+  	// just return it.
+  	String[] names = new String[performatives.size()];
+  	int i = 0;
+  	Iterator it = performatives.iterator();
+  	while (it.hasNext()) {
+  		names[i++] = (String) it.next();
+  	}
+  	return names;
   }
   
   /**
