@@ -102,15 +102,21 @@ public class ACLParser {
 
   private String unescape(String s) throws ParseException {
     StringBuffer result = new StringBuffer(s.length());
-    for( int i=0; i<s.length()-1; i++)
-      if( s.charAt(i) == '\\' && s.charAt(i+1) == '\"' )
-	{
-	  result.append("\"");
-	  i++;
-	}
-      else
-	result.append(s.charAt(i));
-    result.append(s.charAt(s.length()-1));	
+    int i;
+    for( i=0; i<s.length()-1; i++) {
+      if( s.charAt(i) == '\\' && s.charAt(i+1) == '\"' ) {
+	  		result.append("\"");
+	  		i++;
+			}
+      else {
+				result.append(s.charAt(i));
+      }
+    }
+    // NOTE: if s terminates with \" (this is the case when i == s.length()) the 
+    // last character should not be appended as it has already been considered.
+    if( i < s.length() ) {
+	    result.append(s.charAt(s.length()-1));
+    }
     return result.toString();
   }
 
