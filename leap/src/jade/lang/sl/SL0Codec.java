@@ -73,7 +73,7 @@ public class SL0Codec {
   /**
    * A symbolic constant, containing the name of this language.
    */
-  public static final String NAME = "FIPA-SL0";
+  public static final String NAME = jade.domain.FIPANames.ContentLanguage.FIPA_SL0;
   private SL0Parser          parser =
     new SL0Parser(new InputStreamReader(new ByteArrayInputStream(new byte[0])));
   private SL0Encoder         encoder = new SL0Encoder();

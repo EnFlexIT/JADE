@@ -75,8 +75,8 @@ public class DFService extends FIPAServiceCommunicator {
   private static Ontology o = FIPAManagementOntology.getInstance();
   private static ContentManager cm = new ContentManager();
   static {
-	  cm.registerLanguage(c, "FIPA-SL0");
-	  cm.registerLanguage(c, "FIPA-SL"); // The subscription message uses full SL
+	  cm.registerLanguage(c, FIPANames.ContentLanguage.FIPA_SL0);
+	  cm.registerLanguage(c, FIPANames.ContentLanguage.FIPA_SL); // The subscription message uses full SL
 		cm.registerOntology(o);
   }
   

@@ -75,7 +75,7 @@ public class AMSService extends FIPAServiceCommunicator {
   private static Ontology o = FIPAManagementOntology.getInstance();
   private static ContentManager cm = new ContentManager();
   static {
-	  cm.registerLanguage(c, "FIPA-SL0");
+	  cm.registerLanguage(c, FIPANames.ContentLanguage.FIPA_SL0);
 		cm.registerOntology(o);
   }
   

@@ -183,7 +183,7 @@ public class ams extends Agent implements AgentManager.Listener {
     eventQueue.associate(eventManager);
 
     // Initialize the message used for tools notification
-    toolNotification.setLanguage("FIPA-SL0");
+    toolNotification.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     toolNotification.setOntology(IntrospectionOntology.NAME);
     toolNotification.setInReplyTo("tool-subscription");   
   }
@@ -695,7 +695,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     RegisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage("FIPA-SL0");
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL0);
       MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
@@ -841,7 +841,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     DeregisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage("FIPA-SL0");
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL0);
       MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
