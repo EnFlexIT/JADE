@@ -75,6 +75,11 @@ public abstract class Profile {
   */
   public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
 
+  public static final String PERSISTENT_DELIVERY_FILTER = "persistent-delivery-filter";
+  public static final String PERSISTENT_DELIVERY_SENDFAILUREPERIOD = "persistent-delivery-sendfailureperiod";
+  public static final String PERSISTENT_DELIVERY_STORAGEMETHOD = "persistent-delivery-storagemethod";
+  public static final String PERSISTENT_DELIVERY_BASEDIR = "persistent-delivery-basedir";
+
   public static final String MASTER_NODE_NAME = "master-node-name";
   public static final String BE_BASE_NAME = "be-base-name";
   public static final String BE_REPLICA_ZERO_ADDRESS = "be-replica-zero-address";
