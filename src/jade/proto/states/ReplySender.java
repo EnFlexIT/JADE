@@ -25,101 +25,95 @@ package jade.proto.states;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
-//import java.util.Vector;
 
 import jade.util.leap.Iterator;
 
 
 /**
- * This behaviour is a simple implementation of a reply message sender.
- * It read in DataStore the message and the reply at the key passed in Constrictor  
- * Set the reply's converationId, protocol and reply-to fields and 
- * reply's receiver and reply-with fields if not setted
+ * This behaviour sends a reply to a given message adjusting all 
+ * protocol fields and receivers.
+ * It reads in DataStore the message and the reply at the keys passed 
+ * in the Constructor.  
  * @author Fabio Bellifemine - TILab
  * @author Giovanni Caire - TILab
  * @author Marco Monticone 
  * @version $Date$ $Revision$
  **/
-
-public class ReplySender extends OneShotBehaviour{
+public class ReplySender extends OneShotBehaviour {
 	
 		public static final int NO_REPLY_SENT = -1;
 		private int ret;
-		private String replyKey,requestKey;
+		private String replyKey, msgKey;
 
  /**
-  *  Constructor.
-  * @param a a reference to the Agent
-  * @param key_response DataStore's key where stored the reply message
-  * @param key_request DataStore's key where stored the message to respond
+  * Constructor.
+  * @param a The Agent executing this behaviour
+  * @param replyKey DataStore's key where to read the reply message
+  * @param msgKey DataStore's key where to read the message to reply to.
   * @param ds the dataStore for this bheaviour
  **/ 
-public ReplySender(Agent a,String key_response,String key_request,DataStore ds){
-		this(a,key_response,key_request);
+public ReplySender(Agent a, String replyKey, String msgKey, DataStore ds) {
+		this(a, replyKey, msgKey);
 		setDataStore(ds);
 }
 		
-/**
-  *  Constructor.
-  * @param a a reference to the Agent
-  * @param key_response DataStore's key where stored the reply message
-  * @param key_request DataStore's key where stored the message to respond
+ /**
+  * Constructor.
+  * @param a The Agent executing this behaviour
+  * @param replyKey DataStore's key where to read the reply message
+  * @param msgKey DataStore's key where to read the message to reply to.
  **/ 
-
-public ReplySender(Agent a,String key_reply,String key_request){
+public ReplySender(Agent a, String replyKey, String msgKey) {
 		super(a);
-	  replyKey=key_reply;
-	  requestKey=key_request;	
+	  this.replyKey = replyKey;
+	  this.msgKey = msgKey;	
 }
 	
-public void onStart(){
-	ret=NO_REPLY_SENT;
-}
-
 public void action(){
+	ret=NO_REPLY_SENT;
 	DataStore ds = getDataStore();
-	ACLMessage reply = (ACLMessage)ds.get(replyKey);
+	ACLMessage reply = (ACLMessage) ds.get(replyKey);
 	if (reply != null) {
-			ACLMessage request = (ACLMessage) ds.get(requestKey);
-			if(request!=null) {
-			  sendReply(request,reply);
+			ACLMessage msg = (ACLMessage) ds.get(msgKey);
+			if (msg != null) {
+			  adjustReply(myAgent, reply, msg);
+			  myAgent.send(reply);
 				ret = reply.getPerformative();
 			}		
 	}
 }
+
  public int onEnd() {
-		    return ret;
+	 return ret;
  }
 
- 
- 
-private void sendReply(ACLMessage message,ACLMessage reply){
-
-                        //set the conversationId
-		
-	
-	
-	reply.setConversationId(message.getConversationId());
-			//set the inReplyTo
-			reply.setInReplyTo(message.getReplyWith());
-			//set the Protocol.
-			reply.setProtocol(message.getProtocol());
-		//set ReplyWith if not yet
-			if (reply.getReplyWith() == null)
-		      reply.setReplyWith(myAgent.getName() + java.lang.System.currentTimeMillis()); 
-    
-			if (!reply.getAllReceiver().hasNext()){
-					//set Receiver if not yet
-					boolean no_reply_to=true;
-					Iterator i=message.getAllReplyTo();
-					while(i.hasNext()){
-						no_reply_to=false;
-						reply.addReceiver((AID)i.next());
-					}
-					if(no_reply_to) 
-						reply.addReceiver(message.getSender());
+	/**
+     Adjust all protocol fields and receivers in a reply to a given
+     message.
+ 	 */
+	public static void adjustReply(Agent myAgent, ACLMessage reply, ACLMessage msg) {
+		// Set the conversationId
+		reply.setConversationId(msg.getConversationId());
+		// Set the inReplyTo
+		reply.setInReplyTo(msg.getReplyWith());
+		// Set the Protocol.
+		reply.setProtocol(msg.getProtocol());
+		// Set ReplyWith if not yet set
+		if (reply.getReplyWith() == null)
+			reply.setReplyWith(myAgent.getName() + java.lang.System.currentTimeMillis()); 
+	    
+		// Set the receivers if not yet set
+		if (!reply.getAllReceiver().hasNext()) {
+			boolean no_reply_to = true;
+			Iterator it = msg.getAllReplyTo();
+			while(it.hasNext()){
+				no_reply_to=false;
+				reply.addReceiver((AID)it.next());
+			}
+			if(no_reply_to) {
+				reply.addReceiver(msg.getSender());
 			}	
-			//send
-			myAgent.send(reply);
-}
+		}
+	}
+	
 }
