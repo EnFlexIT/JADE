@@ -168,7 +168,13 @@ public abstract class Profile {
      platform ID.
    */
   public static final String PLATFORM_ID = "platform-id";
-  
+
+  /**
+     This constant is the name of the property whose value contains
+     the user authentication type to be used to login to the JADE platform.
+   */
+  public static final String USERAUTH_KEY = "userauth-key";
+
   /**
      This constant is the name of the property whose value contains the
      list of agents that have to be launched at bootstrap time
