@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.33  1999/03/24 12:16:57  rimassa
+  Ported most data structures to newer Java 2 Collection
+  framework. Changed unicastPostMessage() method to provide transparent
+  address caching for every kind of agent address (local, RMI or IIOP).
+
   Revision 1.32  1999/03/17 12:55:26  rimassa
   Implemented a complete, general caching mechanism for agent addresses,
   using the same cache to keep local and remote agent proxies. Besides,
@@ -127,7 +132,10 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.omg.CORBA.*;
@@ -136,39 +144,17 @@ import jade.lang.acl.*;
 
 import FIPA_Agent_97;
 
-/***********************************************************************************
 
-  Name: AgentContainerImpl
-
-  Responsibilities and Collaborations:
-
-  + Creates agents on the local Java VM, and starts the message dispatcher.
-    (Agent)
-
-  + Connects with each newly created agent, to allow event-based
-    interaction between the two.
-    (Agent)
-
-  + Routes outgoing messages to the suitable message dispatcher, caching
-    remote agent addresses.
-    (Agent, AgentDescriptor)
-
-  + Holds an RMI object reference for the agent platform, used to
-    retrieve the addresses of unknown agents.
-    (AgentPlatform)
-
-
-**************************************************************************************/
 public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
 
-  private static final int MAP_SIZE = 20;
+  private static final int MAP_SIZE = 50;
   private static final float MAP_LOAD_FACTOR = 0.50f;
 
   // Local agents, indexed by agent name
-  protected Hashtable localAgents = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+  protected Map localAgents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
 
   // Agents cache, indexed by agent name
-  private Hashtable agentCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+  private AgentCache cachedProxies = new AgentCache(MAP_SIZE);
 
   // The agent platform this container belongs to
   protected AgentPlatform myPlatform;
@@ -347,10 +333,11 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
 
     // Now activate all agents (this call starts their embedded threads)
-    Enumeration nameList = localAgents.keys();
+    Set names = localAgents.keySet();
+    Iterator nameList = names.iterator();
     String currentName = null;
-    while(nameList.hasMoreElements()) {
-      currentName = (String)nameList.nextElement();
+    while(nameList.hasNext()) {
+      currentName = (String)nameList.next();
       Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
       agent.doStart(currentName, platformAddress, agentThreads);
     }
@@ -358,12 +345,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void shutDown() {
 
-    Enumeration agentNames = localAgents.keys();
+    Set names = localAgents.keySet();
+    Iterator nameList = names.iterator();
     try {
-
       // Remove all agents
-      while(agentNames.hasMoreElements()) {
-	String name = (String)agentNames.nextElement();
+      while(nameList.hasNext()) {
+	String name = (String)nameList.next();
 	// Kill agent and wait for its termination
 	Agent a = (Agent)localAgents.get(name);
 	a.doDelete();
@@ -410,10 +397,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   public void endSource(String name) {
     try {
-
-      localAgents.remove(name);
+      localAgents.remove(name.toLowerCase());
       myPlatform.deadAgent(name + '@' + platformAddress); // RMI call
-
+      cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
     }
     catch(RemoteException re) {
       re.printStackTrace();
@@ -454,8 +440,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     String receiverName = null;
     String receiverAddr = null;
 
-    completeName = completeName.toLowerCase();
-
     int atPos = completeName.indexOf('@');
     if(atPos == -1) {
       receiverName = completeName;
@@ -467,19 +451,17 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       receiverAddr = completeName.substring(atPos + 1);
     }
 
-    // Starting from here, all three String objects must be lower case.
-
-    AgentProxy ap = (AgentProxy)agentCache.get(completeName);
+    AgentProxy ap = cachedProxies.get(completeName);
     if(ap != null) { // Cache hit :-)
       try {
 	ap.dispatch(msg);
       }
       catch(NotFoundException nfe1) { // Stale cache entry
-	agentCache.remove(completeName);
+	cachedProxies.remove(completeName);
 	try {
           AgentProxy freshOne = getFreshProxy(receiverName, receiverAddr);
 	  freshOne.dispatch(msg);
-	  agentCache.put(completeName, freshOne);
+	  cachedProxies.put(completeName, freshOne);
 	}
 	catch(NotFoundException nfe2) { // Some serious problem
 	  System.err.println("Agent " + receiverName + " was not found on agent platform");
@@ -489,11 +471,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
 
     else { // Cache miss :-(
-
       try {
 	AgentProxy newOne = getFreshProxy(receiverName, receiverAddr);
 	newOne.dispatch(msg);
-	agentCache.put(receiverName, newOne);
+	cachedProxies.put(completeName, newOne);
       }
       catch(NotFoundException nfe) { // Some serious problem
 	System.err.println("Agent " + receiverName + " was not found on agent platform");
@@ -508,14 +489,15 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     AgentProxy result = null;
 
     // Look first in local agents
-    Agent a = (Agent)localAgents.get(name);
-    if(a != null)
+    Agent a = (Agent)localAgents.get(name.toLowerCase());
+    if(a != null) {
       result = new LocalProxy(a);
+    }
     else { // Agent is not local
 
       // Maybe it's registered with this AP on some other container...
       try {
-        result = myPlatform.getProxy(name, addr); // RMI call
+        result = myPlatform.getProxy(name.toLowerCase(), addr.toLowerCase()); // RMI call
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while contacting agent platform");
@@ -523,8 +505,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       }
       catch(NotFoundException nfe) { // Agent is neither local nor registered with this platform
 
-        // Then it must be reachable using IIOP
+        // Then it must be reachable using IIOP, on a different platform
 	try {
+	  if(addr.equalsIgnoreCase(platformAddress))
+	    throw new NotFoundException("No agent named " + name + " present in this platform");
 	  OutGoingIIOP outChannel = new OutGoingIIOP(myORB, addr);
 	  FIPA_Agent_97 dest = outChannel.getObject();
 	  result = new RemoteProxyIIOP(dest, platformAddress);
