@@ -112,30 +112,42 @@ public class MicroStub {
 					// Flush the buffer of pending commands
 					Logger.println("Start flushing");
 					Enumeration e = pendingCommands.elements();
+					int flushedCnt = 0;
 					while (e.hasMoreElements()) {
 						Command c = (Command) e.nextElement();
 						// Exceptions and return values of commands whose delivery
 						// was delayed for disconnection problems can and must not
 						// be handled!!!
 						try {
-							Logger.println("Flushing command "+c.getCode());
+							//Logger.println("Flushing command "+c.getCode());
 							Command r = executeRemotely(c, 0);
+							flushedCnt++;
 							if (r.getCode() == Command.ERROR) {
 								Logger.println("WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
 							}
 						}
 						catch (Exception ex) {
 							Logger.println("WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
+							// We are disconnected again
+							break;
 						}
 					}
-					pendingCommands.removeAllElements();
+					if (flushedCnt == pendingCommands.size()) {
+						pendingCommands.removeAllElements();
+					}
+					else {
+						// Only remove the flushed commands
+						for (int i = flushedCnt-1; i >= 0; i--) {
+							pendingCommands.removeElementAt(i);
+						}
+					}
 					
 					// 3) Unlock the buffer of pending commands
 					synchronized (pendingCommands) {
 						flushing = false;
 						pendingCommands.notifyAll();
 					}
-					Logger.println("Flushing thread terminated");
+					Logger.println("Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
 			flusher.start();
