@@ -56,7 +56,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
 	
   private JADEManagementOntology() {
     //#MIDP_EXCLUDE_BEGIN
-  	super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
+  	super(NAME, ExceptionOntology.getInstance(), new BCReflectiveIntrospector());
     //#MIDP_EXCLUDE_END
     	
 		/*#MIDP_INCLUDE_BEGIN    	
