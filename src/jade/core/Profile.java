@@ -75,6 +75,8 @@ public abstract class Profile {
   */
   public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
 
+  public static final String MASTER_NODE_NAME = "masternodename";
+
 
   public static final String MAINAUTH_CLASS = "main-auth";
   public static final String AUTHORITY_CLASS = "authority";
