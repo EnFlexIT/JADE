@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.11  1999/02/25 07:56:34  rimassa
+  Changed usage of 'myName' and 'myAddress' variables to suitable access
+  methods.
+
   Revision 1.10  1999/02/15 11:40:31  rimassa
   Changed removeBehaviour() calls to removeSubBehaviour() calls.
 
@@ -253,7 +257,7 @@ public class AgentRequester extends Agent {
   }
 
   private String newConvID() {
-    String s = new String(myName + (new Integer(convCounter).toString()));
+    String s = new String(getLocalName() + (new Integer(convCounter).toString()));
     ++convCounter;
     return s;
   } 
