@@ -45,27 +45,31 @@ class BookSellerGui extends JFrame {
 		JPanel p = new JPanel();
 		p.setLayout(new GridLayout(2, 2));
 		p.add(new JLabel("Book title:"));
-		titleField = new JTextField();
+		titleField = new JTextField(15);
 		p.add(titleField);
 		p.add(new JLabel("Price:"));
-		priceField = new JTextField();
+		priceField = new JTextField(15);
 		p.add(priceField);
 		getContentPane().add(p, BorderLayout.CENTER);
 		
 		JButton addButton = new JButton("Add");
 		addButton.addActionListener( new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				String title = titleField.getText();
-				String price = priceField.getText();
 				try {
+					String title = titleField.getText().trim();
+					String price = priceField.getText().trim();
 					myAgent.updateCatalogue(title, Integer.parseInt(price));
+					titleField.setText("");
+					priceField.setText("");
 				}
 				catch (Exception e) {
 					JOptionPane.showMessageDialog(BookSellerGui.this, "Invalid values. "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 
 				}
 			}
 		} );
-		getContentPane().add(addButton, BorderLayout.SOUTH);
+		p = new JPanel();
+		p.add(addButton);
+		getContentPane().add(p, BorderLayout.SOUTH);
 		
 		// Make the agent terminate when the user closes 
 		// the GUI using the button on the upper right corner	

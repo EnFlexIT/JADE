@@ -67,7 +67,7 @@ public class BookSellerAgent extends Agent {
     addBehaviour(new OfferRequestsServer());
 
     // Add the behaviour serving purchase orders from buyer agents
-    //addBehaviour(new PurchaseOrdersServer());
+    addBehaviour(new PurchaseOrdersServer());
   }
 
   // Put agent clean-up operations here
@@ -153,7 +153,7 @@ public class BookSellerAgent extends Agent {
 	      Integer price = (Integer) catalogue.remove(title);
 	      if (price != null) {
 	        reply.setPerformative(ACLMessage.INFORM);
-	        System.out.println(title+" slod to agent "+msg.getSender());
+	        System.out.println(title+" sold to agent "+msg.getSender().getName());
 	      }
 	      else {
 	        // The requested book has been sold to another buyer in the meanwhile .
