@@ -75,7 +75,7 @@ public interface AgentManager {
   ContainerID getContainerID(AID agentID) throws NotFoundException;
   void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException;
 
-  void killContainer(ContainerID cid) throws AuthException;
+  void killContainer(ContainerID cid) throws NotFoundException, AuthException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
 
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
