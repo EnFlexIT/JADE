@@ -1,10 +1,12 @@
 package jade.core.messaging;
 
-import java.util.Hashtable;
+//import java.util.Hashtable;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.RoundList;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
 import jade.core.messaging.MessageManager.Channel;
@@ -26,7 +28,7 @@ class OutBox {
 	
 	// The massages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
-	private final Hashtable messagesByReceiver = new Hashtable(); 
+	private final Map messagesByReceiver = new HashMap(); 
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
 	private final RoundList messagesByOrder = new RoundList();
@@ -45,7 +47,7 @@ class OutBox {
 	 * This method is executed by an agent's thread requesting to deliver 
 	 * a new message.
 	 */
-	synchronized void addLast(AID receiverID, GenericMessage msg, Channel ch) {
+	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
 		if (msg.getPayload() != null) {
 			ACLMessage acl = msg.getACLMessage();
 			if (acl != null) {
@@ -53,19 +55,22 @@ class OutBox {
 			}
 		}
 		
+		// This must fall outside the synchronized block
 		increaseSize(msg.length());
 		
-		Box b = (Box) messagesByReceiver.get(receiverID);
-		if (b == null){
-			// There is no Box of messages for this receiver yet. Create a new one 
-			b = new Box(receiverID);
-			messagesByReceiver.put(receiverID, b);
-			messagesByOrder.add(b);
+		synchronized (this) {
+			Box b = (Box) messagesByReceiver.get(receiverID);
+			if (b == null){
+				// There is no Box of messages for this receiver yet. Create a new one 
+				b = new Box(receiverID);
+				messagesByReceiver.put(receiverID, b);
+				messagesByOrder.add(b);
+			}
+			b.addLast(new PendingMsg(msg, receiverID, ch, -1));
+			//log("Message added", 2);
+			// Wakes up all deliverers
+			notifyAll();
 		}
-		b.addLast(new PendingMsg(msg, receiverID, ch, -1));
-		//log("Message added", 2);
-		// Wakes up all deliverers
-		notifyAll();
 	}
 
 	/**
@@ -91,7 +96,7 @@ class OutBox {
 	 * This is executed by a Deliverer thread just before delivering 
 	 * a message.
 	 */
-	synchronized PendingMsg get(){
+	synchronized final PendingMsg get(){
 		Box b = null;
 		// Wait until an idle (i.e. not busy) receiver is found
 		while( (b = getNextIdle()) == null ){
@@ -117,7 +122,7 @@ class OutBox {
 	 * This method does not need to be synchronized as it is only executed
 	 * inside a synchronized block.
    */
-	private Box getNextIdle(){
+	private final Box getNextIdle(){
 		
 		//log("Searching for an idle receiver. Current size is "+messagesByOrder.size(),2);
 		for (int i = 0; i < messagesByOrder.size(); ++i) {
@@ -136,7 +141,7 @@ class OutBox {
 	 * If the Box of messages for that receiver is now empty --> remove it.
 	 * Otherwise just mark it as idel (not busy).
    */
-	synchronized void handleServed( AID receiverID ){
+	synchronized final void handleServed( AID receiverID ){
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b.isEmpty()) {
 			messagesByReceiver.remove(receiverID);
@@ -148,21 +153,21 @@ class OutBox {
 		}
 	}
 
-	// No need for synchronization since this is called from a synchronized 
-	// block
 	private void increaseSize(int k) {
 		size += k;
-		if (size >= maxSize) {
+		if (size > maxSize) {
 			if (!overMaxSize) {
 				myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize);
 				overMaxSize = true;
 			}
-			System.gc();
+			long sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
+			try {
+				Thread.sleep(sleepTime);
+			}
+			catch (InterruptedException ie) {}
 		}
 	}
 
-	// No need for synchronization since this is called from a synchronized 
-	// block
 	private void decreaseSize(int k) {
 		size -= k;
 		if (size < maxSize) {
