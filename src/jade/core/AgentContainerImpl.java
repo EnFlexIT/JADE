@@ -70,10 +70,10 @@ import jade.security.Credentials;
 */
 class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
-  Logger myLogger = Logger.getMyLogger(this.getClass().getName());
+  private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
   // Local agents, indexed by agent name
-  private LADT localAgents = new LADT();
+  protected LADT localAgents;
 
   // The Profile defining the configuration of this Container
   protected Profile myProfile;
@@ -109,10 +109,15 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private AID theAMS;
   private AID theDefaultDF;
 
+  // Default constructor
+  AgentContainerImpl() {
+  }
+  
   // Package scoped constructor, so that only the Runtime
   // class can actually create a new Agent Container.
   AgentContainerImpl(Profile p) {
 		myProfile = p;
+		localAgents = new LADT(16);
   }
 
   //#MIDP_EXCLUDE_BEGIN
