@@ -32,6 +32,8 @@ import java.io.*;
  **/
 public class StringACLCodec implements ACLCodec {
 
+  public static final String NAME = "fipa.acl.rep.string.std"; 
+
   ACLParser parser;
   Writer out;
 
@@ -91,9 +93,16 @@ public class StringACLCodec implements ACLCodec {
    * @see ACLCodec#encode(ACLMessage msg)
    */
   public byte[] encode(ACLMessage msg) {
-    ByteArrayOutputStream b = new ByteArrayOutputStream();
-    msg.toText(new OutputStreamWriter(b));
-    return b.toByteArray();
+    try {
+      StringWriter w = new StringWriter();
+      msg.toText(w);
+      String s = w.toString();
+      return s.getBytes("US-ASCII");
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+      return new byte[0];
+    }
   }
 
   /**
@@ -113,6 +122,6 @@ public class StringACLCodec implements ACLCodec {
    * @return the name of this encoding according to the FIPA specifications
    */
   public String getName() {
-    return "fipa.acl.rep.string.std"; 
+    return NAME;
   }
 }
