@@ -307,31 +307,36 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     // DEBUG
     //System.out.println("Dispatching command of type " + command.getCode());
-    Command response = null;                            	
-    /*
-    Integer id = new Integer(command.getObjectId());
-    Skeleton skel = (Skeleton) skeletons.get(id);
-    if (skel != null) {
-    	response = skel.processCommand(command);
+    Command response = null;
+    if (isLocal(destTAs)) {
+    	Integer id = new Integer(command.getObjectID());
+	    Skeleton skel = (Skeleton) skeletons.get(id);
+	    if (skel != null) {
+	    	response = skel.processCommand(command);
+	    }
     }
-    else {
-    */
+    if (response == null) {
 	    try {
 	      response = dispatchSerializedCommand(destTAs, serializeCommand(command), name);
-	
-	      // If the dispatched command was an ADD_NODE --> get the
-	      // name from the response and use it as the name of the CommandDispatcher
-	      if (command.getCode() == Command.ADD_NODE && name.equals(DEFAULT_NAME)) {
-	        name = (String) response.getParamAt(0);
-	      }
 	    } 
 	    catch (LEAPSerializationException lse) {
 	      throw new DispatcherException("Error serializing command "+command+" ["+lse.getMessage()+"]");
 	    }
-    //}
+    }
+    
+    // If the dispatched command was an ADD_NODE --> get the
+    // name from the response and use it as the name of the CommandDispatcher
+    if (command.getCode() == Command.ADD_NODE && name.equals(DEFAULT_NAME)) {
+      name = (String) response.getParamAt(0);
+    }
     return response;
   } 
 
+  private boolean isLocal(List destTAs) {
+  	// FIXME: to be implemented 
+  	return false;
+  }
+  
   /**
    * Dispatches the specified serialized command to one of the
    * specified transport addresses (the first where dispatching
@@ -845,7 +850,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       Command response = null;
 
       // DEBUG
-      // System.out.println("Received command of type " + command.getCode());
+      //System.out.println("Received command of type " + command.getCode());
       if (command.getCode() == Command.FORWARD) {
 
         // DEBUG
