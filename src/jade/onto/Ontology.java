@@ -24,19 +24,82 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+  Abstract interface for application defined ontology. Through this interface it
+  is possible to manage a collection of <b><i>Concepts</i></b>, <b><i>Actions
+  </i></b> and <b><i>Predicates</i></b>, along with their structure. User
+  defined Java classes can be registered with an ontology as playing a certain
+  <i>role</i>; then, the <code>Ontology</code> object is able to convert back
+  and forth between user defined Java objects and <code>Frame</code> objects.
+
+  A role can be a <b><i>concept</i></b>, an <b><i>action</i></b>, or a
+  <b><i>predicate</i></b> of the ontology. The role played by the given
+  class must have been previously inserted into this Ontology using the
+  <code>addFrame()</code> method. To play an ontological role, a Java class must
+  obey to some rules:
+
+   <ol>
+
+   <li><i> For every <code>TermDescriptor</code> object of the
+   array, of type <code>T</code> and named <code>XXX</code>, the
+   class must have two accessible methods, with the following
+   signature:</i>
+     <ul>
+     <li> <code>T getXXX()</code>
+     <li> <code>void setXXX(T t)</code>
+     </ul>
+
+   <li><i> For an action role, the class must also have an
+   accessible method, with the following signature:</i>
+     <ul>
+     <li> <code>String getActor()</code>
+     <li> <code>void setActor(String actor)</code>
+     </ul>
+   <i>The two methods above are meant to manage the name of the agent
+   that is to do the action.</i>
+   </ol>
+
+   As long as the above rules are followed, any user-defined class
+   can be added to the Ontology object. As an useful technique, one
+   can define compliant Java interfaces and add them to the
+   Ontology; this way useful OO idioms such as polymorphism and
+   mix-in inheritance can be exploited for the Java representations
+   of ontological objects.
+
+   Due to different lexical conventions between the Java language
+   and FIPA ACL and content languages, some name translation is
+   performed to map the name of a term (that is, of a frame slot or
+   of an action argument) into the name of the corresponding method.
+   Name translation works as follows:
+   <ol>
+   <li> Any <code>':'</code> character is removed.
+   <li> Any <code>'-'</code> character is removed.
+   </ol>
+   Moreover, a case insensitive match is followed.
+
+   As an example, a frame with an integer slot named
+   <code>:user-age</code>, will require the following methods (case
+   is not important, but according to a popular Java coding
+   convention, the two methods have capital letters whenever a
+   <code>'-'</code> is present in the slot name:
+
+   <ul>
+   <li><code>int getUserAge()</code>
+   <li><code>void setUserAge(int age)</code>
+   </ul>
+
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 */
 
 public interface Ontology {
 
   /**
-     Boolean constant for <it>Optional</it>.
+     Boolean constant for <i>Optional</i>.
    */
   static final boolean O = true;
 
   /**
-     Boolean constant for <it>Mandatory</it>.
+     Boolean constant for <i>Mandatory</i>.
    */
   static final boolean M = false;
 
@@ -148,84 +211,13 @@ public interface Ontology {
 				      "String", "Binary", "Concept", "Action", "Predicate" };
 
   /**
-     Adds a user-defined class to this Ontology, to play a certain
-     role. A role can be a <b><it>concept</it></b>, an
-     <b><it>action</it></b>, or a <b><it>predicate</it></b> of the
-     ontology. The role played by the given class must have been
-     previously inserted into this Ontology using the
-     <code>addFrame()</code> method. This associates an array of
-     <code>TermDescriptor</code> objects with a given role. The
-     supplied class must obey to some rules, in order to be accepted
-     by the Ontology object:
-
-     <ol>
-
-     <li><it> For every <code>TermDescriptor</code> object of the
-     array, of type <code>T</code> and named <code>XXX</code>, the
-     class must have two accessible methods, with the following
-     signature:</it>
-       <ul>
-       <li> <code>T getXXX()</code>
-       <li> <code>void setXXX(T t)</code>
-       </ul>
-
-     <li><it> For an action role, the class must also have an
-     accessible method, with the following signature:</it>
-       <ul>
-       <li> <code>String __actor()</code> <it>(double underscore</it>
-       </ul>
-     <it>This method is meant to return the agent name that is to do the action.
-
-     </ol>
-
-     As long as the above rules are followed, any user-defined class
-     can be added to the Ontology object. As an useful technique, one
-     can define compliant Java interfaces and add them to the
-     Ontology; this way useful OO idioms such as polymorphism and
-     mix-in inheritance can be exploited for the Java representations
-     of ontological objects.
-
-     Due to different lexical conventions between the Java language
-     and FIPA ACL and content languages, some name translation is
-     performed to map the name of a term (that is, of a frame slot or
-     of an action argument) into the name of the corresponding method.
-     Name translation works as follows:
-     <ol>
-     <li> Any <code>':'</code> character is removed.
-     <li> Any <code>'-'</code> character is removed.
-     </ol>
-     Moreover, a case insensitive match is followed.
-
-     As an example, a frame with an integer slot named
-     <code>:user-age</code>, will require the following methods (case
-     is not important, but according to a popular Java coding
-     convention, the two methods have capital letters whenever a
-     <code>'-'</code> is present in the slot name:
-
-     <ul>
-     <li><code>int getUserAge()</code>
-     <li><code>void setUserAge(int age)</code>
-     </ul>
-
-     @param roleName The name of the role the given Java class wants
-     to play.
-     @param c An user-defined class, obeying to the rules given above.
-     @exception OntologyException If no role named
-     <code>roleName</code> is defined in this ontology, or if the
-     given class violates some rule for representing the given
-     concept.
-  */
-
-
-  /*
     Adds a new concept role to the ontology, defined by the structure
     of all its slots.
     @param conceptName The name of this concept role (names are case
     preserving but the match is case insensitive).
-    @param kind Tells whether the Frame represents an <it><b>Object
-    Descriptor</b></it>, an <it><b>Action</b></it>, or a
-    <it><b>Predicate</b></it> in this ontology. Use the three
-    constants in Ontology interface to select one among the three
+    @param kind Tells whether the Frame represents an <i><b>Concept</b></i>,
+    an <i><b>Action</b></i>, or a <i><b>Predicate</b></i> in this ontology.
+    Use the three constants in Ontology interface to select one among the three
     options.
     @param slots An array of descriptors; each one of them describes a
     slot of the frame, providing:
@@ -235,21 +227,20 @@ public interface Ontology {
     <li> The optionality of the slot (i.e. whether a value is required or not).
     <li> The position of the slot (implicitly defined by the position in the array).
     </ul>
-    @see jade.onto.Ontology#CONCEPT
-    @see jade.onto.Ontology#ACTION
-    @see jade.onto.Ontology#PREDICATE
+    @see jade.onto.Ontology#CONCEPT_TYPE
+    @see jade.onto.Ontology#ACTION_TYPE
+    @see jade.onto.Ontology#PREDICATE_TYPE
   */
   void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException;
 
-  /*
+  /**
     Adds a new concept role to the ontology, defined by the structure
     of all its slots.
     @param conceptName The name of this concept role (names are case
     preserving but the match is case insensitive).
-    @param kind Tells whether the Frame represents an <it><b>Object
-    Descriptor</b></it>, an <it><b>Action</b></it>, or a
-    <it><b>Predicate</b></it> in this ontology. Use the three
-    constants in Ontology interface to select one among the three
+    @param kind Tells whether the Frame represents an <i><b>Concept</b></i>,
+    an <i><b>Action</b></i>, or a <i><b>Predicate</b></i> in this ontology.
+    Use the three constants in Ontology interface to select one among the three
     options.
     @param slots An array of descriptors; each one of them describes a
     slot of the frame, providing:
@@ -259,18 +250,18 @@ public interface Ontology {
     <li> The optionality of the slot (i.e. whether a value is required or not).
     <li> The position of the slot (implicitly defined by the position in the array).
     </ul>
-    @param c A <code>Factory</code> object, which will be used to
+    @param rf A <code>Factory</code> object, which will be used to
     create user defined Java objects playing the given role.
-    @see jade.onto.Ontology#CONCEPT
-    @see jade.onto.Ontology#ACTION
-    @see jade.onto.Ontology#PREDICATE
+    @see jade.onto.Ontology#CONCEPT_TYPE
+    @see jade.onto.Ontology#ACTION_TYPE
+    @see jade.onto.Ontology#PREDICATE_TYPE
  */
   void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException;
 
   /**
      Creates a Java object representing a given concept, getting the
      information from a given <code>Frame</code> object. This method
-     requires that a suitable class be registered in this ontology,
+     requires that a factory for the given role is registered in this ontology,
      because it creates internally the returned object.
      @param f A <code>Frame</code> object, from which a Java object is
      built.
@@ -285,9 +276,10 @@ public interface Ontology {
 
   /**
     Creates a <code>Frame</code> object from a given Java object. A
-    suitable class must be registered in the ontology to play the
-    given role, and the given object must be an instance of that class
-    (or a subclass).
+    suitable factory must be registered in the ontology to play the
+    given role, and the given object must be an instance of the class returned
+    by the <code>getClassForRole()</code> method of the <code>RoleFactory</code>
+    (an indirect instance, i.e. an instance of the class itself or of a subclass).
     @param o The Java object, from which the <code>Frame</code> will
     be built.
     @param roleName The name of the role played in this ontology by

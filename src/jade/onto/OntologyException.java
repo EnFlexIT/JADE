@@ -25,20 +25,21 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+  This exception is thrown when some inconsistency is detected during some
+  ontological operation.
+
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 */
-
-
 public class OntologyException extends Exception {
 
+  /**
+    Create a new exception object.
+    @param msg The message for this exception object.
+  */
   public OntologyException(String msg) {
-
     super(msg);
-
   }
-
-
 
 }
 

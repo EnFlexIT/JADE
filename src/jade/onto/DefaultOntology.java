@@ -33,10 +33,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+  A simple implementation of the <code>Ontology</code> interface. Instances of
+  this class keeps all the ontology data in memory, and don't support an
+  external archive format.
 
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+*/
 public class DefaultOntology implements Ontology {
 
   private static final List primitiveTypes = new ArrayList(10);
@@ -60,6 +63,9 @@ public class DefaultOntology implements Ontology {
   private Map schemas;
   private Map factories;
 
+  /**
+    Default constructor.
+  */
   public DefaultOntology() {
     schemas = new HashMap();
     factories = new HashMap();
@@ -76,7 +82,11 @@ public class DefaultOntology implements Ontology {
     return (RoleFactory)factories.get(new Name(name));
   }
 
-
+  /**
+    Adds a new frame to this ontology, without an user defined Java class to
+    represent it.
+    @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots)
+  */
   public void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException {
 
     if((kind != CONCEPT_TYPE) && (kind != ACTION_TYPE) && (kind != PREDICATE_TYPE))
@@ -99,6 +109,11 @@ public class DefaultOntology implements Ontology {
 
   }
 
+  /**
+    Adds a new frame to this ontology, with an user defined Java class to
+    represent it.
+    @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
+  */  
   public void addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf) throws OntologyException {
     addFrame(conceptName, kind, slots);
 
@@ -107,6 +122,10 @@ public class DefaultOntology implements Ontology {
     addFactoryToTable(conceptName, rf);
   }
 
+  /**
+    Creates a Java object from the given frame.
+    @see jade.onto.Ontology#createObject(Frame f)
+  */
   public Object createObject(Frame f) throws OntologyException {
 
     String roleName = f.getName();
@@ -122,6 +141,10 @@ public class DefaultOntology implements Ontology {
 
   }
 
+  /**
+    Creates a frame from a given Java Object, playing a given role.
+    @see jade.onto.Ontology#createFrame(Object o, String roleName)
+  */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
     RoleFactory rf = lookupFactory(roleName);
     if(rf == null)
@@ -143,12 +166,21 @@ public class DefaultOntology implements Ontology {
     return f;
   }
 
+  /**
+    Checks whether a given frame is correct with respect to this ontology.
+    @see jade.onto.Ontology#check(Frame f)
+  */
   public void check(Frame f) throws OntologyException {
     String roleName = f.getName();
     FrameSchema fs = lookupSchema(roleName);
     fs.checkAgainst(f);
   }
 
+  /**
+    Checks whether a given Java object is correct with respect to the given role
+    in this ontology.
+    @see jade.onto.Ontology#check(Object o, String roleName)
+  */
   public void check(Object o, String roleName) throws OntologyException {
     /*
      *  Algorithm: 
@@ -196,6 +228,10 @@ public class DefaultOntology implements Ontology {
     }
   }
 
+  /**
+    Checks whether a given frame is a concept in this ontology.
+    @see jade.onto.Ontology#isConcept(String roleName)
+  */
   public boolean isConcept(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
@@ -203,6 +239,10 @@ public class DefaultOntology implements Ontology {
     return fs.isConcept();
   }
 
+  /**
+    Checks whether a given frame is an action in this ontology.
+    @see jade.onto.Ontology#isAction(String roleName)
+  */
   public boolean isAction(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
@@ -210,6 +250,10 @@ public class DefaultOntology implements Ontology {
     return fs.isAction();
   }
 
+  /**
+    Checks whether a given frame is a predicate in this ontology.
+    @see jade.onto.Ontology#isPredicate(String roleName)
+  */
   public boolean isPredicate(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
@@ -217,6 +261,11 @@ public class DefaultOntology implements Ontology {
     return fs.isPredicate();
   }
 
+  /**
+    Get the descriptions for all the slots that made the structure of a given
+    ontological role.
+    @see jade.onto.Ontology#getTerms(String roleName)
+  */
   public TermDescriptor[] getTerms(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
     return fs.termsArray();
@@ -225,7 +274,6 @@ public class DefaultOntology implements Ontology {
 
 
   // Private methods.
-
 
 
   private String translateName(String name) {
@@ -272,33 +320,6 @@ public class DefaultOntology implements Ontology {
     return result;
 
   }
-
-
-  /*************************************************************
-
-  Rules for a concept class:
-
-  1) For every Frame slot named "term", of type T, the class must have
-     two public methods:
-
-       void setTerm(T value)
-       T getTerm()
-
-  2) The two methods above must be such that, for each obj of a
-     concept class and for each object v of type T, after the fragment
-
-       obj.setTerm(v);
-       T v2 = obj.getTerm();
-
-     the postCondition 'v.equals(v2)' must be true
-
-  3) For every sub-frame of the Frame, (i.e. a slot not of
-     boolean, int, double, String, byte[]), named "SubFrame", there
-     must be a class F that must itself obey to the four rules with
-     respect to the "SubFrame" frame (i.e. it must be a valid
-     Concept class).
-
-  **************************************************************/
 
   private void checkClass(String roleName, Class c) throws OntologyException {
 

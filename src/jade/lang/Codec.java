@@ -27,25 +27,40 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-/**
    Interface for Content Language encoders/decoders. This interface
    declares two methods that must convert between text and frame
    representations according to a specific content language.
+
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
  */
 public interface Codec {
 
+  /**
+    This exception is thrown when some problem occurs in the concrete parsing
+    subsystem accessed through this interface. If an exception is thrown by the
+    underlying parser, it is wrapped with a <code>Codec.CodecException</code>,
+    which is then rethrown.
+  */
   public static class CodecException extends Exception {
 
     private Throwable nested;
 
+    /**
+      Construct a new <code>CodecException</code>
+      @param msg The message for this exception.
+      @param t The exception wrapped by this object.
+    */
     public CodecException(String msg, Throwable t) {
       super(msg);
       nested = t;
     }
 
+    /**
+      Reads the exception wrapped by this object.
+      @return the <code>Throwable</code> object that is the exception thrown by
+      the concrete parsing subsystem.
+    */
     public Throwable getNested() {
       return nested;
     }
@@ -62,7 +77,6 @@ public interface Codec {
      symbols.
      @return A Java string, representing the given frame according to
      this content language.
-     @see jade.onto.Ontology
    */
   String encode(Frame f, Ontology o);
 
@@ -77,7 +91,6 @@ public interface Codec {
      @param o The ontology to use to lookup the roles for the various
      symbols.
      @return A frame, representing the given ontological element.
-     @see jade.onto.Ontology
   */
   Frame decode(String s, Ontology o) throws CodecException;
 

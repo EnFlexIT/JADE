@@ -25,12 +25,18 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+  This exception is thrown when some component (agent, agent container, etc.)
+  cannot be found in the agent platform data structures.
 
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+*/
 public class NotFoundException extends Exception {
 
+  /**
+    Construct a <code>NotFoundException</code> with the given message.
+    @param msg The exception message.
+  */
   NotFoundException(String msg) {
     super(msg);
   }

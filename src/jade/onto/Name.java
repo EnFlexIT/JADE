@@ -27,14 +27,22 @@ package jade.onto;
 import java.io.Serializable;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+  A name string, with case insensitive comparison and equality operations.
+  This class holds a <code>String</code> inside, preserving the case; however,
+  all the equality and comparision operations are performed in a case
+  insensitive fashion.
 
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+*/
 public class Name implements Serializable {
 
   String s;
 
+  /**
+    Create a new <code>Name</code> object.
+    @param name The string that will be kept inside this object.
+  */
   public Name(String name) {
 
     s = name;
@@ -42,49 +50,47 @@ public class Name implements Serializable {
   }
 
 
-
+  /**
+    Converts the <code>Name</code> object into a string.
+    @return The string stored inside by the constructor.
+  */
   public String toString() {
 
     return s.toString();
 
   }
 
-
-
-  // These two methods provide case-insensitive comparison and
-
-  // hashing.
-
+  /**
+    Equality operation. This method compares a <code>Name</code> object with
+    another or with a Java <code>String</code>. The comparison is case
+    insensitive.
+    @param o The Java object to compare this <code>Name</code> to.
+    @return <code>true</code> if the strings contained within the two objects
+    are equal, apart from case.
+  */
   public boolean equals(Object o) {
 
     if(o instanceof String) {
-
       return s.equalsIgnoreCase((String)o);
-
     }
-
     try {
-
       Name sn = (Name)o;
-
       return s.equalsIgnoreCase(sn.s);
-
     }
-
     catch(ClassCastException cce) {
-
       return false;
-
     }
 
   }
 
 
-
+  /**
+    Hash code. This method returns an hash code in such a way that two
+    <code>Name</code> objects differing only in case have the same hash code.
+    @return The hash code for this <code>Name</code> object.
+  */
   public int hashCode() {
-
     return s.toLowerCase().hashCode();
-
   }
 
 

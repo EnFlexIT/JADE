@@ -49,18 +49,59 @@ Javadoc documentation for the file
  */
 public class MobilityOntology {
 
+  /**
+    A symbolic constant, containing the name of this ontology.
+   */
   public static final String NAME = "jade-mobility-ontology";
 
+  /**
+    A symbolic constant, containing the name of the concept.
+  */
   public static final String MOBILE_AGENT_DESCRIPTION = ":mobile-agent-description";
+  
+  /**
+    A symbolic constant, containing the name of the concept.
+  */
   public static final String MOBILE_AGENT_PROFILE = ":mobile-agent-profile";
+  
+  /**
+    A symbolic constant, containing the name of the concept.
+  */
   public static final String MOBILE_AGENT_SYSTEM = ":mobile-agent-system";
+  
+  /**
+    A symbolic constant, containing the name of the concept.
+  */
   public static final String MOBILE_AGENT_LANGUAGE = ":mobile-agent-language";
+
+  /**
+    A symbolic constant, containing the name of the concept.
+  */
   public static final String MOBILE_AGENT_OS = ":mobile-agent-os";
+
+  /**
+    A symbolic constant, containing the name of the concept.
+  */  
   public static final String LOCATION = ":location";
 
+  /**
+    A symbolic constant, containing the name of the action.
+  */
   public static final String MOVE = "move-agent";
+  
+  /**
+    A symbolic constant, containing the name of the action.
+  */
   public static final String CLONE = "clone-agent";
+  
+  /**
+    A symbolic constant, containing the name of the action.
+  */
   public static final String WHERE_IS = "where-is-agent";
+  
+  /**
+    A symbolic constant, containing the name of the action.
+  */
   public static final String QUERY_PLATFORM_LOCATIONS = "query-platform-locations";
 
   private static Ontology theInstance = new DefaultOntology();
@@ -178,6 +219,12 @@ public class MobilityOntology {
     }
   }
 
+  /**
+    This class represent the ':mobile-agent-description' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MobileAgentDescription {
 
     private String name;
@@ -240,7 +287,12 @@ public class MobilityOntology {
 
   } // End of MobileAgentDescription class
 
-
+  /**
+    This class represent the ':mobile-agent-profile' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MobileAgentProfile {
 
     private MobileAgentSystem system;
@@ -273,7 +325,12 @@ public class MobilityOntology {
 
   } // End of MobileAgentProfile class
 
-
+  /**
+    This class represent the ':mobile-agent-system' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MobileAgentSystem {
 
     private String name;
@@ -315,7 +372,12 @@ public class MobilityOntology {
 
   } // End of MobileAgentSystem class
 
-
+  /**
+    This class represent the ':mobile-agent-language' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MobileAgentLanguage {
     private String name;
     private short majorVersion;
@@ -356,7 +418,12 @@ public class MobilityOntology {
 
   } // End of MobileAgentLanguage class
 
-
+  /**
+    This class represent the ':mobile-agent-os' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MobileAgentOS {
     private String name;
     private short majorVersion;
@@ -397,7 +464,12 @@ public class MobilityOntology {
 
   } // End of MobileAgentOS class
 
-
+  /**
+    This class represent the ':location' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class Location implements jade.core.Location {
 
     private String name;
@@ -442,7 +514,12 @@ public class MobilityOntology {
 
   } // End of Location class
 
-
+  /**
+    This class represent the 'move-agent' action in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class MoveAction {
 
     private MobileAgentDescription agentToMove;
@@ -466,7 +543,12 @@ public class MobilityOntology {
 
   } // End of MoveAction class
 
-
+  /**
+    This class represent the 'clone-agent' action in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class CloneAction extends MoveAction {
 
     private String newName;
@@ -481,7 +563,12 @@ public class MobilityOntology {
 
   } // End of CloneAction class
 
-
+  /**
+    This class represent the 'where-is-agent' action in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class WhereIsAgentAction {
 
     private String agentName;
@@ -505,7 +592,12 @@ public class MobilityOntology {
 
   } // End of WhereIsAgentAction class
 
-
+  /**
+    This class represent the 'query-platform-locations' action in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
   public static class QueryPlatformLocationsAction {
 
     private String actor;
@@ -521,7 +613,22 @@ public class MobilityOntology {
   } // End of QueryPlatformLocationsAction
 
   /**
-     
+    This method parses the <code>:content</code> slot of the <code>inform</code>
+    message sent by the AMS when a <code>query-platform-locations</code> request
+    succeeds.
+    <i>This method is a temporary workaround and will go away as soon as JADE
+    supports the newest FIPA specifications.</i>
+    @param c The <code>Codec</code> for the content language to use. At present,
+    the JADE AMS uses the <i>SL0</i> language, so an <code>SL0Codec</code> must
+    be used.
+    @param list The string containing the list of the locations. This string
+    must be the <code>:content</code> slot of the <code>inform</code> message
+    for a <code>:query-platform-locations</code> action.
+    @return An array of <code>Location</code> objects, representing all the
+    available locations of the current JADE platform.
+    @exception Codec.CodecException Thrown if some parsing error occurs.
+    @exception OntologyException Thrown if an inconsistency in the JADE mobility
+    ontology is detected.
    */
   public static Location[] parseLocationsList(Codec c, String list) throws Codec.CodecException, OntologyException {
 

@@ -463,6 +463,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      the content language or to the ontology is detected.
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
+     @see jade.core.Agent#fillContent(ACLMessage msg, Object content, String roleName)
    */
   public Object extractContent(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
@@ -487,7 +488,27 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   /**
-     
+    Fills the <code>:content</code> slot of an ACL message with the string
+    representation of a user defined ontological object. The given Java object
+    is first converted into a <code>Frame</code> object according to the
+    ontology present in the <code>:ontology</code> message slot, then the
+    <code>Frame</code> is translated into a <code>String</code> using the codec
+    for the content language indicated by the <code>:language</code> message
+    slot.
+    @param msg The ACL message whose content will be filled.
+    @param content A Java object that will be converted into a string and
+    written inti the <code>:content</code> slot. This object must be an instance
+    of a class registered into the ontology named in the <code>:ontology</code>
+    message slot.
+    @param roleName The name of the role played by the class of the object
+    <code>content</code> into the ontology indicated by the <code>:ontology
+    </code> message slot.
+    @exception jade.domain.FIPAException This exception is thrown if the
+    <code>:language</code> or <code>:ontology</code> message slots contain an
+    unknown name, or if some problem occurs during the various translation steps.
+    @see jade.core.Agent#extractContent(ACLMessage msg)
+    @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
+    @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
   public void fillContent(ACLMessage msg, Object content, String roleName) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
@@ -582,7 +603,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <em>transit</em> within Agent Platform Life Cycle. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a migration process.
-     <em>This method is currently not implemented.</em>
+     @param destination The <code>Location</code> to migrate to.
   */
   public void doMove(Location destination) {
     synchronized(stateLock) {
@@ -604,6 +625,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <em>copy</em> within Agent Platform Life Cycle. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a clonation process.
+     @param destination The <code>Location</code> where the copy agent will start.
+     @param newName The name that will be given to the copy agent.
   */
   public void doClone(Location destination, String newName) {
     synchronized(stateLock) {
@@ -911,16 +934,22 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     finally {
       switch(myAPState) {
       case AP_DELETED:
+	int savedState = getState();
+	myAPState = AP_ACTIVE;
 	takeDown();
 	destroy();
+	myAPState = savedState;
 	break;
       case AP_GONE:
 	break;
       default:
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
+	savedState = getState();
+	myAPState = AP_ACTIVE;
 	takeDown();
 	destroy();
+	myAPState = savedState;
       }
     }
 
@@ -961,22 +990,30 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   protected void takeDown() {}
 
   /**
-     TO DO
+    Actions to perform before moving. This empty placeholder method can be
+    overridden by user defined agents to execute some actions just before
+    leaving an agent container for a migration.
   */
   protected void beforeMove() {}
 
   /**
-     TO DO
+    Actions to perform after moving. This empty placeholder method can be
+    overridden by user defined agents to execute some actions just after
+    arriving to the destination agent container for a migration.
   */
   protected void afterMove() {}
 
   /**
-     TO DO
+    Actions to perform before cloning. This empty placeholder method can be
+    overridden by user defined agents to execute some actions just before
+    copying an agent to another agent container.
   */
   protected void beforeClone() {}
 
   /**
-     TO DO
+    Actions to perform after cloning. This empty placeholder method can be
+    overridden by user defined agents to execute some actions just after
+    creating an agent copy to the destination agent container.
   */
   protected void afterClone() {}
 
@@ -1147,10 +1184,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private void destroy() { 
 
     try {
-      int savedState = getState();
-      myAPState = AP_ACTIVE;
       deregisterWithAMS();
-      myAPState = savedState;
     }
     catch(FIPAException fe) {
       fe.printStackTrace();

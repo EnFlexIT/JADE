@@ -25,6 +25,8 @@ package examples.ontology;
 
 import java.io.*;
 
+import jade.lang.Codec;
+import jade.lang.sl.SL0Codec;
 import jade.onto.*;
 
 /**
@@ -33,6 +35,8 @@ import jade.onto.*;
 */
 
 public class OntologyTest {
+
+  private static Codec c = new SL0Codec();
 
   // These two classes are provided by application programmers...
 
@@ -209,12 +213,6 @@ public class OntologyTest {
     user.putSlot("age", new Integer(28));
     user.putSlot("address", address);
 
-    // Application 1: Using the raw Frame interface, without Java classes.
-    System.out.println("Now using simple Frame objects");
-    System.out.println();
-    user.dump();
-    System.out.println();
-
     Ontology withFrames = new DefaultOntology();
     try {
       withFrames.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
@@ -229,6 +227,12 @@ public class OntologyTest {
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
 	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, "Address", Ontology.M)
 	      });
+
+      // Application 1: Using the raw Frame interface, without Java classes.
+      System.out.println("Now using simple Frame objects");
+      System.out.println();
+      System.out.println(c.encode(user, withFrames));
+      System.out.println();
 
       System.out.print("Checking user frame... ");
       try {
@@ -329,8 +333,7 @@ public class OntologyTest {
       // Now create a Frame object from the user-defined class instance, via Reflection
       Frame personFrame = withClasses.createFrame(pWithFullAddr, "User");
       System.out.println();
-
-      personFrame.dump();
+      System.out.println(c.encode(personFrame, withFrames));
       System.out.println();
       System.out.print("Checking Frame... ");
       try {
@@ -393,7 +396,7 @@ public class OntologyTest {
 	}
       }
 
-      addrFromOrderedCL.dump();
+      System.out.println(c.encode(addrFromOrderedCL, withClasses));
       System.out.println();
       System.out.print("Now checking the newly constructed Frame... ");
       try {

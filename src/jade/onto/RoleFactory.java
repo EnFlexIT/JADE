@@ -23,10 +23,32 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto;
 
+/**
+  Abstract interface to create user defined ontological entities.
+  Implementations of this interface must be able to create an object and to
+  provide its class (or a superclass) on demand.
+
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+*/
 public interface RoleFactory {
 
-  public Object create(Frame f);
+  /**
+    Creates an object, starting from a given frame. This method can just create
+    the object ignoring its argument, or it can use the frame to select the
+    concrete class to instantiate.
+    @param f A frame containing initialization data for the object.
+    @return A Java object, instance of the proper class (either the class
+    returned by <code>getClassForRole()</code>, or one of its subclasses).
+  */
+  Object create(Frame f);
 
-  public Class getClassForRole();
+  /**
+    Provides the Java class associated with this ontological role. This class is
+    usually the class used by the <code>create()</code> method to instantiate
+    objects. An useful technique is returning an interface or an abstract class,
+    while using concrete subclasses to create objects.
+  */
+  Class getClassForRole();
 
 }

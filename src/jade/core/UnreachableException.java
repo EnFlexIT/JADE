@@ -25,12 +25,17 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+  This exception is thrown when some agent container cannot be contacted.
 
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+*/
 public class UnreachableException extends Exception {
 
+  /**
+    Construct an <code>UnreachableException</code> with the given message.
+    @param msg The exception message.
+  */
   UnreachableException(String msg) {
     super(msg);
   }

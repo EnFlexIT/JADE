@@ -31,12 +31,21 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 
 /**
-  Javadoc documentation for the file
+
+  The codec class for the <b><i>SL0</i></b> language. This class
+  implements the <code>Codec</code> interface and allows converting
+  back and forth between strings and frames, according to the SL0
+  grammar.
+
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
+
  */
 public class SL0Codec implements Codec {
 
+  /**
+   A symbolic constant, containing the name of this language.
+   */
   public static final String NAME = "SL0";
 
   private SL0Parser parser = new SL0Parser(new StringReader(""));

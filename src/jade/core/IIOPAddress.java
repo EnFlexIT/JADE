@@ -30,8 +30,8 @@ package jade.core;
 
 public class IIOPAddress
 {
-	public static final short BIG_ENDIAN = 0;
-	public static final short LITTLE_ENDIAN = 1;
+	public static final byte BIG_ENDIAN = 0;
+	public static final byte LITTLE_ENDIAN = 1;
 
 	private static final String TYPE_ID = "IDL:FIPA_Agent_97:1.0";
 	private static final int TAG_INTERNET_IOP = 0;
