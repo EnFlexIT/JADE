@@ -86,7 +86,7 @@ public abstract class Behaviour implements Serializable {
        containment hierarchy; when it is <code>NOTIFY_DOWN</code>, the
        event travels downwards.
     */
-    public void init(boolean b, int d) {
+    void init(boolean b, int d) {
       runnable = b;
       direction = d;
     }
@@ -96,7 +96,7 @@ public abstract class Behaviour implements Serializable {
        Read event source.
        @return The <code>Behaviour</code> object which generated this event.
     */
-    public Behaviour getSource() {
+    Behaviour getSource() {
       return Behaviour.this;
     }
 
@@ -115,7 +115,7 @@ public abstract class Behaviour implements Serializable {
        going from a child behaviour to its parent; <code>false</code>
        otherwise.
     */
-    public boolean isUpwards() {
+    boolean isUpwards() {
       return direction == NOTIFY_UP;
     }
 
