@@ -75,15 +75,16 @@
 				<br><b>Load phase</b></br>
 				<UL>
 	   			<LI>Create another DF agent called DF1</LI>
-	   			<LI>Register a DFD on DF1</LI>
+	   			<LI>Register 3 DFDs with DF1</LI>
+	   			<LI>Register the 2nd with the default DF too</LI>
 	   		</UL>
 	   		<br><b>Actual Test</b></br>
 	   		<UL>
 	   			<LI>Request DF1 to federate with the default DF</LI>
-			    <LI>Searches the default DF specifying maxDepth == 1 (he should find 1 agent);</LI>
+			    <LI>Searches the default DF specifying maxDepth == 1 (should search DF1 too) and maxResults == -1 (should return all items found)</LI>
 			  </UL>			
 		    </HowWorkTest>
-			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+			<WhenTestPass> The test passes if the search produces 3 results and no exception is thrown.</WhenTestPass>
 		</Test>		
 		<Test name="Recursive Search" skip="true">
 			<TestClassName>test.domain.df.tests.TestRecursiveSearch</TestClassName>
