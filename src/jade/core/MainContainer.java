@@ -43,7 +43,8 @@ interface MainContainer extends AgentContainer {
   void bornAgent(AID name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
   void deadAgent(AID name) throws RemoteException, NotFoundException;
 
-  void newMTP(String mtpName, String containerName) throws RemoteException;
+  void newMTP(String mtpAddress, String containerName) throws RemoteException;
+  void deadMTP(String mtpAddress, String containerName) throws RemoteException;
 
   boolean transferIdentity(AID agentID, String src, String dest) throws RemoteException, NotFoundException;
 
