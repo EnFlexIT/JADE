@@ -9,12 +9,12 @@
 			<TestClassName>test.mainReplication.tests.TestMainFault</TestClassName>
 			<WhatTest>Tests the JADE capability of recovering from a main container fault
 			</WhatTest>
-			<HowWorkTest>The test creates a fault tolerence topology by starting a backup main container. 
-			Then a peripheral container is attached to the backup main. 
-			After that the master main container is killed and successively restored (now it plays the role of the backup main). 
+			<HowWorkTest>The test creates a fault tolerence topology with 2 main containers (one master and one backup) and 2 peripheral containers (one per main). 
+			The peripheral container attached to the backup main is launched with the -smaddrs option. 
+			Then the master main container is killed and successively restored (now it plays the role of the backup main). 
 			Finally the new master main container (initial backup) is killed too.
 			</HowWorkTest>
-			<WhenTestPass> The test passes if all the above operations succeeds and the platform continues to work properly.
+			<WhenTestPass> The test passes if all the above operations succeeds, the platform continues to work properly and tool agents are kept up-to-date.
 			</WhenTestPass>
 		</Test>
 		

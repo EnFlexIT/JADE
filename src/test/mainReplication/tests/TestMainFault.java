@@ -25,11 +25,19 @@ package test.mainReplication.tests;
 
 import jade.core.Agent;
 import jade.core.AID;
+import jade.core.ContainerID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.introspection.*;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+
 import test.common.*;
 import test.common.testSuite.TestSuiteAgent;
+
+import java.util.Map;
+import java.util.HashMap;
 
 /**
    Test the recovery capability from a fault of the main container. 
@@ -42,15 +50,21 @@ public class TestMainFault extends Test {
 	private static final String PING_NAME = "ping";
 	private static final String PING_ID = "ping-id";
 	
+	private static final String RMA = "rma1";
+	
 	private JadeController backupMain, peripheral;
+	private String masterMainHost;
 	private String backupMainHost;
+	
+	private HashMap agents = new HashMap();
+	private AMSSubscriber subscriber;
   
   public Behaviour load(Agent a) throws TestException {
   	if (TestSuiteAgent.mainController == null) {
   		throw new TestException("This test can only be executed from the JADE TestSuite");
   	}
   	
-  	enablePause(true);
+  	//enablePause(true);
   	
   	SequentialBehaviour sb = new SequentialBehaviour(a);
   	// Step 1: Start a backup main container
@@ -59,9 +73,10 @@ public class TestMainFault extends Test {
   			try {
 	  			// Start a backup main container
 					log("1) Starting backup main container ...");
-					backupMain = TestUtility.launchJadeInstance("Backup-Main", null, "-backupmain -nomtp -name "+TestSuiteAgent.TEST_PLATFORM_NAME+" -services "+TestSuiteAgent.MAIN_SERVICES+" -local-port "+BACKUPMAIN_PORT+" -host "+TestUtility.getLocalHostName()+" -port "+Test.DEFAULT_PORT, null);
+	  			masterMainHost = TestUtility.getContainerHostName(myAgent, TestSuiteAgent.mainController.getContainerName());
+					backupMain = TestUtility.launchJadeInstance("Backup-Main", null, "-backupmain -nomtp -name "+TestSuiteAgent.TEST_PLATFORM_NAME+" -services "+TestSuiteAgent.MAIN_SERVICES+" -local-port "+BACKUPMAIN_PORT+" -host "+masterMainHost+" -port "+Test.DEFAULT_PORT, null);
 					log("Backup main container correctly started");
-					pause(myAgent);
+					pause();
   			}
   			catch (Exception e) {
   				failed("Error creating backup main container. "+e.getMessage());
@@ -79,9 +94,10 @@ public class TestMainFault extends Test {
 	  			backupMainHost = TestUtility.getContainerHostName(myAgent, backupMain.getContainerName());
 					log("Backup main is running on host "+backupMainHost);
 					// Start a peripheral container connecting to the backup main
-					peripheral = TestUtility.launchJadeInstance("Peripheral", null, "-container -services jade.core.replication.AddressNotificationService -local-port "+PERIPHERAL_PORT+" -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" rma1:jade.tools.rma.rma", null);
+					String smaddrs = masterMainHost+":"+Test.DEFAULT_PORT+";"+backupMainHost+":"+BACKUPMAIN_PORT;
+					peripheral = TestUtility.launchJadeInstance("Peripheral", null, "-container -smaddrs "+smaddrs+" -local-port "+PERIPHERAL_PORT+" -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" "+RMA+":jade.tools.rma.rma", null);
 					log("Peripheral container correctly connected to the backup main");
-					pause(myAgent);
+					pause();
   			}
   			catch (Exception e) {
   				failed("Error attaching a peripheral container to the backup main. "+e.getMessage());
@@ -90,36 +106,30 @@ public class TestMainFault extends Test {
   		}
   	} );
   	
-  	// Step 3: Start a platform events listener agent
-  	sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  		}
-  	} );
-  	
-  	// Step 4: Kill the master main container
-  	sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
+  	// Step 3: Kill the master main container
+  	// We give some time to the RMA to register as a tool 
+  	sb.addSubBehaviour(new WakerBehaviour(a, 10000) {
+  		protected void handleElapsedTimeout() {
   			log("3) Killing master main container...");
   			TestSuiteAgent.mainController.kill();
-  			log("Master main container killed. Wait a bit to enable platform recovery...");
-  			try {
-  				Thread.sleep(5000);
-  			}
-  			catch (Exception e) {
-  				e.printStackTrace();
-  			}
-				pause(myAgent);
+  			log("Master main container killed.");
+				pause();
   		}
   	} );
   	
-  	// Step 5: Check that things still work
-  	sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
+  	// Step 4: Check that things still work
+  	sb.addSubBehaviour(new WakerBehaviour(a, 10000) {
+  		public void onStart() {
+  			log("Wait a bit to enable platform recovery...");
+  			super.onStart();
+  		}
+  		
+  		protected void handleElapsedTimeout() {
 				log("4) Checking platform activity ...");
   			try {
-	  			check(myAgent, 1);
+	  			check(myAgent, 1, backupMain.getContainerName());
 	  			log("The platform works properly after master main container fault.");
-					pause(myAgent);
+					pause();
   			}
   			catch (Exception e) {
   				failed("The platform does not work properly after master main container fault. "+e.getMessage());
@@ -128,14 +138,14 @@ public class TestMainFault extends Test {
   		}
   	} );
   	
-  	// Step 6: Restore the old main container
+  	// Step 5: Restore the old main container
   	sb.addSubBehaviour(new OneShotBehaviour(a) {
   		public void action() {
 				log("5) Restoring old master (now backup) main container ...");
   			try {
 					TestSuiteAgent.mainController = TestUtility.launchJadeInstance("Main", null, "-backupmain -gui -nomtp -host "+backupMainHost+" -port "+BACKUPMAIN_PORT+" -local-port "+Test.DEFAULT_PORT+" -services "+TestSuiteAgent.MAIN_SERVICES+" -container-name Main-Container -name "+TestSuiteAgent.TEST_PLATFORM_NAME, null);
 					log("Old master (now backup) main container correctly restored");
-					pause(myAgent);
+					pause();
   			}
   			catch (Exception e) {
   				failed("Error restoring old master main container. "+e.getMessage());
@@ -144,29 +154,28 @@ public class TestMainFault extends Test {
   		}
   	} );
   	
-  	// Step 7: Kill the new master main container
+  	// Step 6: Kill the new master main container
   	sb.addSubBehaviour(new OneShotBehaviour(a) {
   		public void action() {
   			log("6) Killing new master main container...");
   			backupMain.kill();
-  			log("New master main container killed. Wait a bit to enable platform recovery...");
-  			try {
-  				Thread.sleep(5000);
-  			}
-  			catch (Exception e) {
-  				e.printStackTrace();
-  			}
-				pause(myAgent);
+  			log("New master main container killed.");
+				pause();
   		}
   	} );
   	
-  	// Step 8: Check again that things still work
-  	sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
+  	// Step 7: Check again that things still work
+  	sb.addSubBehaviour(new WakerBehaviour(a, 10000) {
+  		public void onStart() {
+  			log("Wait a bit to enable platform recovery...");
+  			super.onStart();
+  		}
+  		
+  		protected void handleElapsedTimeout() {
 				log("7) Checking platform activity ...");
   			try {
-	  			check(myAgent, 2);
-					pause(myAgent);
+	  			check(myAgent, 2, TestSuiteAgent.mainController.getContainerName());
+					pause();
 	  			passed("The platform works properly after new master main container fault.");
   			}
   			catch (Exception e) {
@@ -176,24 +185,107 @@ public class TestMainFault extends Test {
   		}
   	} );
   	
+		// The AMSSubscriber used to check if AMS notifications are correctly
+  	// sent when a fault occurs
+  	subscriber = new AMSSubscriber() {
+  		protected void installHandlers(Map handlers) {
+	      handlers.put(IntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+	      	public void handle(Event ev) {
+		    		AddedContainer ac = (AddedContainer)ev;
+		    		ContainerID cid = ac.getContainer();
+		    		if (agents.containsKey(cid)) {
+	    				failed("Received ADDED_CONTAINER event for container "+cid.getName()+" that already exists");
+		    		}
+		    		else {
+			    		List l = new ArrayList();
+			    		agents.put(cid, l);
+		    		}
+		  		}
+	      });
+	      
+	      handlers.put(IntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	      	public void handle(Event ev) {
+		    		RemovedContainer rc = (RemovedContainer)ev;
+		    		ContainerID cid = rc.getContainer();
+		    		if (!agents.containsKey(cid)) {
+	    				failed("Received REMOVED_CONTAINER event for unknown container "+cid.getName());
+		    		}
+		    		else {
+			    		agents.remove(cid);
+		    		}
+		  		}
+	      });
+	      
+	      handlers.put(IntrospectionOntology.BORNAGENT, new EventHandler() {
+	      	public void handle(Event ev) {
+		    		BornAgent ba = (BornAgent)ev;
+		    		AID born = ba.getAgent();
+		    		ContainerID cid = ba.getWhere();
+		    		List l = (List) agents.get(cid);
+		    		if (l != null) {
+		    			if (!l.contains(born)) {
+		    				l.add(born);
+		    			}
+		    			else {
+		    				failed("Received BORN_AGENT event for agent "+born.getName()+" that already exists");
+		    			}
+		    		}
+		    		else {
+		    			failed("Received BORN_AGENT event for agent "+born.getName()+" on unknown container "+cid.getName());
+		    		}
+		  		}
+	      });
+
+	      handlers.put(IntrospectionOntology.DEADAGENT, new EventHandler() {
+	      	public void handle(Event ev) {
+		    		DeadAgent da = (DeadAgent)ev;
+		    		AID dead = da.getAgent();
+		    		ContainerID cid = da.getWhere();
+		    		List l = (List) agents.get(cid);
+		    		if (l != null) {
+		    			if (!l.remove(dead)) {
+		    				log("WARNING: Received DEAD_AGENT event for unknown agent "+dead.getName());
+		    			}
+		    		}
+		    		else {
+		    			log("WARNING: Received DEAD_AGENT event for agent "+dead.getName()+" on unknown container "+cid.getName());
+		    		}
+		  		}
+	      });
+
+	      handlers.put(IntrospectionOntology.META_RESETEVENTS, new EventHandler() {
+	      	public void handle(Event ev) {
+	      		agents.clear();
+		  		}
+	      });
+  		}
+  	};
+  	
+  	a.addBehaviour(subscriber);
+  	
   	return sb;
   }
   
   public void clean(Agent a) {
+  	// Remove the AMSSubscriber and unsubscribe from the AMS
+  	a.removeBehaviour(subscriber);
+  	a.send(subscriber.getCancel());
+  	agents.clear();
+  	
   	// Kill the peripheral container
   	if (peripheral != null) {
 			peripheral.kill();
   	}
   }  	
   
-  private void check(Agent a, int step) throws TestException {
+  private void check(Agent a, int step, String mainName) throws TestException {
+  	// Check that agent management and communication works properly
   	AID ping = TestUtility.createAgent(a, PING_NAME+String.valueOf(step), "test.mainReplication.tests.TestMainFault$PingAgent", null, null, peripheral.getContainerName());
   	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
   	msg.addReceiver(ping);
   	msg.setConversationId(PING_ID);
   	a.send(msg);
   	msg = a.blockingReceive(MessageTemplate.MatchConversationId(PING_ID), 10000);
-  	TestUtility.killAgent(a, ping);
   	if (msg != null) {
   		if (msg.getPerformative() != ACLMessage.INFORM) {
   			throw new TestException("FAILURE");
@@ -201,6 +293,39 @@ public class TestMainFault extends Test {
   	}
   	else {
   		throw new TestException("Timeout expired");
+  	}
+  	TestUtility.killAgent(a, ping);
+  	
+  	// Check that AMS subscribers have been correctly notified
+  	// a) Check that my container contains me
+  	List l = (List) agents.get(a.here());
+  	if (l != null) {
+  		if (!l.contains(a.getAID())) {
+  			throw new TestException("Agent "+a.getName()+" not found on container "+a.here().getName());
+  		}
+  	}
+  	else {
+  		throw new TestException("Container "+a.here().getName()+" not found");
+  	}
+  	// b) Check that the peripheral container contains the RMA
+  	l = (List) agents.get(new ContainerID(peripheral.getContainerName(), null));
+  	if (l != null) {
+  		if (!l.contains(new AID(RMA, AID.ISLOCALNAME))) {
+  			throw new TestException("Agent "+RMA+" not found on container "+peripheral.getContainerName());
+  		}
+  	}
+  	else {
+  		throw new TestException("Container "+peripheral.getContainerName()+" not found");
+  	}
+  	// c) Check that the AMS is on the current master main
+  	l = (List) agents.get(new ContainerID(mainName, null));
+  	if (l != null) {
+  		if (!l.contains(a.getAMS())) {
+  			throw new TestException("Agent ams not found on master main container "+mainName);
+  		}
+  	}
+  	else {
+  		throw new TestException("Master main container "+mainName+" not found");
   	}
   }
   
