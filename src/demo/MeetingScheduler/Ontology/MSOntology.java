@@ -23,10 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler.Ontology;
 
-import jade.onto.*;
-import jade.onto.basic.*;
+//import jade.onto.*;
+//import jade.onto.basic.*;
+import jade.content.onto.*;
+import jade.content.schema.*;
+import jade.content.abs.*;
 
-public class MSOntology {
+public class MSOntology extends Ontology {
   /**
     A symbolic constant, containing the name of this ontology.
    */
@@ -35,42 +38,38 @@ public class MSOntology {
   public static final String PERSON = "Person";
   public static final String APPOINTMENT = "Appointment";
 
-  private static Ontology theInstance = new DefaultOntology();
+  private static Ontology theInstance = new MSOntology();
+
+  public static Ontology getInstance(){
+	return theInstance;
+ }
 
 
-  static {
-    initInstance();
-  }
+  private  MSOntology() {
+    		
+    // Adds the roles of the basic ontology (ACTION, AID,...)
+	super(NAME,BasicOntology.getInstance(),new BCReflectiveIntrospector());
+    
+    try{
+		//Concepts.
+		add(new ConceptSchema(PERSON),Person.class);
+		add(new ConceptSchema(APPOINTMENT),Appointment.class);
 
-
-  /**
-     This method grants access to the unique instance of the
-     ontology.
-     @return An <code>Ontology</code> object, containing the concepts
-     of the ontology.
-  */
-  public static Ontology instance() {
-    return theInstance;
-  }
-
-  private static void initInstance() {
-    try {
-      // Adds the roles of the basic ontology (ACTION, AID,...)
-      theInstance.joinOntology(BasicOntology.instance());
-      theInstance.addRole(PERSON, new SlotDescriptor[] {
-	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	new SlotDescriptor("AID", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
-	new SlotDescriptor("DFName", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O)
-	  }, Person.class);
-      theInstance.addRole(APPOINTMENT, new SlotDescriptor[] {
-	new SlotDescriptor("inviter", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
-	new SlotDescriptor("description", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	new SlotDescriptor("starting-on", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
-	new SlotDescriptor("ending-with", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
-	new SlotDescriptor("fixed-date", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
-	new SlotDescriptor("invited-persons", Ontology.SET_SLOT, PERSON, Ontology.O),
-	new SlotDescriptor("possible-dates", Ontology.SET_SLOT, Ontology.DATE_TYPE, Ontology.O)
-	  }, Appointment.class);
+		ConceptSchema cs = (ConceptSchema)getSchema(PERSON);
+		cs.add("name",(PrimitiveSchema)getSchema(BasicOntology.STRING),ObjectSchema.MANDATORY);
+		cs.add("AID",(ConceptSchema) getSchema(BasicOntology.AID),ObjectSchema.OPTIONAL);
+		cs.add("DFName",(ConceptSchema) getSchema(BasicOntology.AID),ObjectSchema.OPTIONAL);
+			
+		
+		cs = (ConceptSchema)getSchema(APPOINTMENT);
+		cs.add("inviter",(ConceptSchema) getSchema(BasicOntology.AID),ObjectSchema.MANDATORY);
+		cs.add("description",(PrimitiveSchema)getSchema(BasicOntology.STRING),ObjectSchema.OPTIONAL);
+		cs.add("startingon",(PrimitiveSchema)getSchema(BasicOntology.DATE),ObjectSchema.OPTIONAL);
+		cs.add("endingwith",(PrimitiveSchema)getSchema(BasicOntology.DATE),ObjectSchema.OPTIONAL);
+	    cs.add("fixeddate",(PrimitiveSchema)getSchema(BasicOntology.DATE),ObjectSchema.OPTIONAL);
+		cs.add("invitedpersons",(ConceptSchema)getSchema(PERSON),0,ObjectSchema.UNLIMITED,BasicOntology.SET);
+		cs.add("possibledates",(PrimitiveSchema)getSchema(BasicOntology.DATE),0,ObjectSchema.UNLIMITED,BasicOntology.SET);
+   
     } catch (OntologyException oe) {
       oe.printStackTrace();
     }

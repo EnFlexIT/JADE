@@ -24,14 +24,14 @@ Boston, MA  02111-1307, USA.
 package demo.MeetingScheduler.Ontology;
 
 import jade.core.AID;
-
+import jade.content.Concept;
 /**
-Javadoc documentation for the file
+
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
-public class Person 
+public class Person implements Concept
 {
     String name;   // name of the person
     AID dfName; // name of the DF with which this person is known

@@ -22,22 +22,24 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package demo.MeetingScheduler.Ontology;
-import java.util.*;
+
+import jade.util.leap.*;
 import jade.core.AID;
+import jade.content.Concept;
+import java.util.Date;
 
 /**
-Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
-public class Appointment implements Cloneable {
+public class Appointment implements Cloneable,Concept{
 
     private String description = new String();
     private Date startingOn;
     private Date endingWith;
-    private ArrayList invited = new ArrayList(); // Vector of Persons
-    private ArrayList possibleDates = new ArrayList(); // Vector of Date
+    private List invited = new ArrayList(); // Vector of Persons
+    private List possibleDates = new ArrayList(); // Vector of Date
     private Date fixedDate;
     private AID invitingAgent;
     
@@ -125,8 +127,8 @@ public synchronized Object clone() {
   Appointment result;
   try {
     result = (Appointment)super.clone();
-    result.invited = (ArrayList)invited.clone();
-    result.possibleDates = (ArrayList)possibleDates.clone();
+    result.invited = (ArrayList)((ArrayList)invited).clone();
+    result.possibleDates = (ArrayList)((ArrayList)possibleDates).clone();
   } catch (CloneNotSupportedException e) {
     e.printStackTrace(); // this should never happen
     result=null;

@@ -24,11 +24,19 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Enumeration;
+import java.util.Calendar;
 
 import demo.MeetingScheduler.Ontology.*;
 import jade.core.Agent;
 import jade.core.AID;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+
 import jade.lang.acl.ACLMessage;
 
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -37,15 +45,19 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 
-import jade.onto.basic.Action;
+import jade.content.onto.basic.Action;
+import jade.content.onto.Ontology;
+import jade.content.*;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.*;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 
-import jade.lang.sl.SL0Codec;
+import jade.domain.FIPANames;
 
 /**
-Javadoc documentation for the file
+
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -57,17 +69,18 @@ public class MeetingSchedulerAgent extends GuiAgent {
     Hashtable knownPersons = new Hashtable(); // list of known persons: (String)name -> Person
     private Hashtable appointments = new Hashtable(); // list of appointments:  (String)date -> Appointment
     private ACLMessage cancelMsg;
-
-    
+	private Ontology MSOnto = MSOntology.getInstance();
+    private Codec SL0Codec = new SLCodec(); 
+		
   protected void setup() {
     // fill the fields of the cancel message
     cancelMsg = new ACLMessage(ACLMessage.CANCEL);
-    cancelMsg.setLanguage(SL0Codec.NAME);
+    cancelMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     cancelMsg.setOntology(MSOntology.NAME);
 
     // register the ontology and the content language
-    registerOntology(MSOntology.NAME, MSOntology.instance());
-    registerLanguage(SL0Codec.NAME, new SL0Codec());
+	getContentManager().registerOntology(MSOnto);
+	getContentManager().registerLanguage(SL0Codec,FIPANames.ContentLanguage.FIPA_SL0);
     // request the user to insert the password and username
     (new PasswordDialog(this, this.getLocalName())).setVisible(true);
     // when the user has inserted password and username, a GuiEvent will be posted
@@ -371,8 +384,14 @@ protected String getUser() {
     this method extract an appointment data structure from a message
   **/
   Appointment extractAppointment(ACLMessage msg) throws FIPAException {
-    jade.util.leap.List l = extractMsgContent(msg);
-    return (Appointment)((Action)l.get(0)).get_1();
+	try{
+		ContentElement l = getContentManager().extractContent(msg);
+		Action a = (Action)l;
+		return (Appointment)a.getAction();
+	}catch(Exception e){
+		e.printStackTrace();
+	}
+	return null;
   }
 
   /**
@@ -384,7 +403,9 @@ protected String getUser() {
     a.setActor(getAID());
     a.setAction(app);
     l.add(a);
-    fillMsgContent(msg,l);
+	try{
+		getContentManager().fillContent(msg,a);
+	}catch(Exception e){e.printStackTrace();}
   }
 } // end Agent.java
 

@@ -25,9 +25,8 @@ package demo.MeetingScheduler;
 
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 
+import jade.util.leap.List;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.ContractNetResponder;

@@ -22,19 +22,22 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 
-import java.util.*;
+import jade.util.leap.*;
+import java.util.Vector;
+import java.util.Date;
+import java.util.Calendar;
 
 import jade.lang.acl.ACLMessage;
 import jade.core.*;
 import jade.proto.ContractNetInitiator;
 import jade.domain.FIPAException;
-import jade.lang.sl.SL0Codec;
+
 import jade.domain.FIPANames;
 
 import demo.MeetingScheduler.Ontology.*;
-
+import jade.domain.FIPANames;
 /**
-Javadoc documentation for the file
+
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -51,7 +54,7 @@ public class myFipaContractNetInitiatorBehaviour extends ContractNetInitiator {
       super(a, null);
       myAgent=a;
            // fill the fields of the cfp message
-      cfpMsg.setLanguage(SL0Codec.NAME);
+      cfpMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
       cfpMsg.setOntology(MSOntology.NAME);
       cfpMsg.setReplyByDate(new Date(System.currentTimeMillis()+TIMEOUT));
       cfpMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
@@ -135,7 +138,7 @@ protected void handleAllResponses(Vector proposals,Vector retMsgs) {
   //System.err.println("EvaluateProposals, end rounds acceptableDates = "+acceptableDates.toString());
 
   ACLMessage replyMsg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-  replyMsg.setLanguage(SL0Codec.NAME);
+  replyMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
   replyMsg.setOntology(MSOntology.NAME);
   if (acceptableDates.size() > 0) {
     Date d = new Date();
