@@ -27,6 +27,7 @@ package jade.core.mobility;
 import jade.core.ServiceFinder;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
+import jade.util.Logger;
 
 
 //#MIDP_EXCLUDE_FILE
@@ -39,9 +40,9 @@ class MobileAgentClassLoader extends ClassLoader {
     private AgentMobilitySlice classServer;
     private String sliceName;
     private ServiceFinder finder;
-    private int verbosity;
+    private Logger myLogger;
 
-    public MobileAgentClassLoader(String sn, ServiceFinder sf, int v) {
+    public MobileAgentClassLoader(String sn, ServiceFinder sf, Logger l) {
 	//#PJAVA_EXCLUDE_BEGIN
 	super(Thread.currentThread().getContextClassLoader());
 	//#PJAVA_EXCLUDE_END
@@ -50,7 +51,7 @@ class MobileAgentClassLoader extends ClassLoader {
 	    sliceName = sn;
 	    finder = sf;
 	    classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
-	    verbosity = v;
+	    myLogger = l;
 	}
 	catch(IMTPException imtpe) {
 	    // It should never happen...
@@ -127,8 +128,8 @@ class MobileAgentClassLoader extends ClassLoader {
     }  	
 	
     private void log(String s, int level) {
-  	if(verbosity >= level) {
-	    System.out.println("MACC-log: "+s);
+  	if(myLogger != null) {
+  		myLogger.log(s, level);
   	}
     }
 }

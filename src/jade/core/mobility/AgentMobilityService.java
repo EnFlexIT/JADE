@@ -78,6 +78,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
+import jade.util.Logger;
 
 /**
 
@@ -113,12 +114,19 @@ public class AgentMobilityService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
+	
+	int verbosity = 0;
 	try {
 		verbosity = Integer.parseInt(p.getParameter(VERBOSITY_KEY, null));
 	}
 	catch (Exception e) {
 		// Ignore and keep default (0)
 	}
+	if (verbosity > 0) {
+		myLogger = new Logger("Mobility-service", verbosity, null, p.getParameter(VERBOSITY_FORMAT_KEY, "%t [%i] %m"));
+	}
+	
+	log("Initialized", 1);
     }
 
     public String getName() {
@@ -172,7 +180,7 @@ public class AgentMobilityService extends BaseService {
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during agent cloning", imtpe));
+		cmd.setReturnValue(imtpe);
 	    }
 	    catch(NotFoundException nfe) {
 		cmd.setReturnValue(nfe);
@@ -184,7 +192,7 @@ public class AgentMobilityService extends BaseService {
 		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
-		cmd.setReturnValue(new UnreachableException("A service slice was not found during agent cloning", se));
+		cmd.setReturnValue(new IMTPException("Service error", se));
 	    }
 	}
 
@@ -413,6 +421,7 @@ public class AgentMobilityService extends BaseService {
 
 	    try {
 
+	  log("Cloning agent " + agentID + " on container " + where.getName(), 1);
 		Agent a = myContainer.acquireLocalAgent(agentID);
 		if (a == null) {
 		    System.out.println("Internal error: handleClone() called with a wrong name (" + agentID + ") !!!");
@@ -424,8 +433,6 @@ public class AgentMobilityService extends BaseService {
 		    return;
 		}
 
-		AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
-
 		// --- This code should go into the Security Service ---
 
 		// Check for security permissions
@@ -433,14 +440,18 @@ public class AgentMobilityService extends BaseService {
 		myContainer.getAuthority().checkAction(Authority.AGENT_CLONE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
 		myContainer.getAuthority().checkAction(Authority.CONTAINER_CLONE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
 
+		log("Permissions for agent " + agentID + " OK", 2);
 		// --- End of code that should go into the Security Service ---
 
-
+		AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
+		log("Destination container for agent " + agentID + " found", 2);
+		
 		// Serialize the agent
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ObjectOutputStream encoder = new ObjectOutputStream(out);
 		encoder.writeObject(a);
 		byte[] bytes = out.toByteArray();
+		log("Agent " + agentID + " correctly serialized", 2);
 
 		// Gets the container where the agent classes can be retrieved
 		String classSiteName = (String)sites.get(a);
@@ -459,6 +470,7 @@ public class AgentMobilityService extends BaseService {
 		    dest = (AgentMobilitySlice)getFreshSlice(where.getName());
 		    dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
 		}
+		log("Cloned Agent " + newID + " correctly created on destination container", 1);
 	    }
 	    catch (IOException ioe) {
 		// Error in agent serialization
@@ -966,7 +978,7 @@ public class AgentMobilityService extends BaseService {
         	throws IOException, ClassNotFoundException {
             MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(classSiteName);
             if (cl == null) {
-                cl = new MobileAgentClassLoader(classSiteName, finder, verbosity);
+                cl = new MobileAgentClassLoader(classSiteName, finder, myLogger);
                 loaders.put(classSiteName, cl);
             }
             Class c = cl.loadClass(v.getName());
@@ -976,8 +988,8 @@ public class AgentMobilityService extends BaseService {
 
 
     private void log(String s, int level) {
-	if (verbosity >= level) {
-	    System.out.println("Mobility-log: " + s);
+	if (myLogger != null) {
+		myLogger.log(s, level);
 	}
     }
 
@@ -996,8 +1008,9 @@ public class AgentMobilityService extends BaseService {
     //private ResourceManager myResourceManager;
     
     private static final String VERBOSITY_KEY = "jade_core_mobility_AgentMobilityService_verbosity";
-    private int verbosity = 0;
-
+    private static final String VERBOSITY_FORMAT_KEY = "jade_core_mobility_AgentMobilityService_verbosity_format";
+		private Logger myLogger;
+		
     // The local slice for this service
     private final ServiceComponent localSlice = new ServiceComponent();
 
