@@ -1,0 +1,2 @@
+cd ..\..
+java -classpath .;..\lib\jade.jar;demo\MeetingScheduler\components.jar jade.Boot -platform Agent1:demo.MeetingScheduler.MeetingSchedulerAgent Agent2:demo.MeetingScheduler.MeetingSchedulerAgent
