@@ -98,7 +98,7 @@ class Scheduler implements Serializable {
 	    blockedBehaviours.add(b);
     }
     //__CLDC_UNSUPPORTED__BEGIN
-    owner.notifyChangeBehaviourState(b, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED);
+    owner.notifyChangeBehaviourState(b, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED);
     //__CLDC_UNSUPPORTED__END
   }
 
@@ -109,7 +109,7 @@ class Scheduler implements Serializable {
     	notify();
     }
     //__CLDC_UNSUPPORTED__BEGIN
-    owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_RUNNING);
+    owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_READY);
     //__CLDC_UNSUPPORTED__END
   }
 
