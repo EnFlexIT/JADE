@@ -505,41 +505,26 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 
 
-  /**
-  * This method must be overridden by programmers in order to pass 
-  * arguments to the agent.
-  * Otherwise, to pass argument to the agent by command line or using the RMA GUI
-  * see the programmer's guide for a better documentation.
-  *
-  * @param args an array of string (as passed on the command line - Unix-like syntax).
-  * @deprecated use the method <code>getArguments</code> instead
-  */
-    //public void setArguments(String args[]) {}
   //#MIDP_EXCLUDE_END
   
     private transient Object[] arguments = null;  // array of arguments
     /**
      * Called by AgentContainerImpl in order to pass arguments to a
-     * just created Agent.
+     * just created Agent. 
+     * <p>Usually, programmers do not need to call this method in their code.
+     * @see #getArguments() how to get the arguments passed to an agent
      **/
     public final void setArguments(Object args[]) {
 	// I have declared the method final otherwise getArguments would not work!
 	arguments=args;
-  //#MIDP_EXCLUDE_BEGIN
-	/*if (arguments != null) { //FIXME. This code goes away with the depcreated setArguments(String[]) method
-	    String sargs[] = new String[args.length];
-	    for (int i=0; i<args.length; i++)
-		sargs[i]=(args[i]==null?null:args[i].toString());
-	    setArguments(sargs);
-	}*/
-  //#MIDP_EXCLUDE_END
     }
 
     /**
-     * Return the array of arguments as they were set by the previous 
-     * call of the method <code>setArguments</code>.
+     * Get the array of arguments passed to this agent.
      * <p> Take care that the arguments are transient and they do not
      * migrate with the agent neither are cloned with the agent!
+     * @return the array of arguments passed to this agent.
+     * @see <a href=../../../tutorials/ArgsAndPropsPassing.htm>How to use arguments or properties to configure your agent.</a>
      **/
     protected Object[] getArguments() {
 	return arguments;
