@@ -260,9 +260,24 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
     private synchronized void sendNotifications() {
     	Iterator it = notifications.iterator();
     	while (it.hasNext()) {
+    		boolean receiversNull = true;
+    		boolean replyWithNull = true;
     		ACLMessage[] tmp = (ACLMessage[]) it.next();
+    		if (tmp[0].getAllReceiver().hasNext()) {
+    			receiversNull = false;
+    		}
+    		if (tmp[0].getReplyWith() != null) {
+    			replyWithNull = false;
+    		}
     		ReplySender.adjustReply(myAgent, tmp[0], tmp[1]);
     		myAgent.send(tmp[0]);
+    		// If the message was modified --> restore it
+    		if (receiversNull) {
+    			tmp[0].clearAllReceiver();
+    		}
+    		if (replyWithNull) {
+    			tmp[0].setReplyWith(null);
+    		}
     	}
     	notifications.clear();
     }
@@ -300,7 +315,6 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
      */
 		public static class Subscription {
 		
-			private List notifications = new LinkedList();
 			private ACLMessage subscription;
 			private SubscriptionResponder myResponder;
 		
@@ -324,7 +338,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolN
 			public ACLMessage getMessage() {
 				return subscription;
 			}
-			
+			 
 			/** 
 			   This method allows sending back a notification message to the subscribed 
 			   agent associated to this <code>Subscription</code> object. The user 
