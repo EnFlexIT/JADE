@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.31  1999/03/15 15:25:10  rimassa
+  Changed priority setting for user agents.
+
   Revision 1.30  1999/03/09 12:54:55  rimassa
   Some minor modifications for a better container name handling.
 
@@ -182,7 +185,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
 
     // Set up attributes for agents thread group
-    agentThreads.setMaxPriority(Thread.MIN_PRIORITY);
+    agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
 
     // Initialize CORBA runtime
     myORB = ORB.init(args, null);
