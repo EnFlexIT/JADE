@@ -74,7 +74,7 @@ public class Runtime {
       String platformRMI = "rmi://" + host + ":" + port + "/JADE";
       String[] empty = new String[] { };
       
-      AgentContainerImpl impl = new AgentContainerImpl();
+      AgentContainerImpl impl = new AgentContainerImpl(p);
       impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
       beginContainer();
 
@@ -100,11 +100,10 @@ public class Runtime {
     try {
       String host = p.getParameter(Profile.MAIN_HOST);
       String port = p.getParameter(Profile.MAIN_PORT);
-      String platformID = p.getParameter(Profile.PLATFORM_ID);
 
       String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
-      MainContainerImpl impl = new MainContainerImpl(platformID);
+      MainContainerImpl impl = new MainContainerImpl(p);
 
       // Create an embedded RMI Registry within the platform and
       // bind the Agent Platform to it

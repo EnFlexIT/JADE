@@ -68,10 +68,12 @@ public class Starter {
 	  // there are no more active containers.
 	  Runtime.instance().setCloseVM(true);
 
+	  Profile p = new ProfileImpl(host, (new Integer(port)).toString(), platformID);
+
 	  String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
 	  if(isPlatform) {
-	      theContainer = new MainContainerImpl(platformID);
+	      theContainer = new MainContainerImpl(p);
 
 	      // Create an embedded RMI Registry within the platform and
 	      // bind the Agent Platform to it
@@ -80,7 +82,7 @@ public class Starter {
 	      Naming.bind(platformRMI, theContainer);
 	  }
 	  else {
-	      theContainer = new AgentContainerImpl();
+	      theContainer = new AgentContainerImpl(p);
 	  }
 	
 	  Runtime.instance().beginContainer();
