@@ -58,7 +58,7 @@ import java.util.Properties;
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),
       "TreeData.FolderIcon1",LookAndFeel.makeIcon(foo.getClass(),"images/TreeRoot.gif"),
       "RMAAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif"),
-	    "RMAAction.DGGUIActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/dfsmall.gif"), 
+	    "RMAAction.DGGUIActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/df.gif"), 
       };
 
     MyDefaults = new UIDefaults (icons);     // (My)Create a defaults table initialized with the specified key/value pairs.
