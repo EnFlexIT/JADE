@@ -23,12 +23,11 @@
 package jade.core;
 
 import jade.util.leap.List;
-//import jade.util.leap.ArrayList;
 import jade.lang.acl.ACLMessage;
-//import jade.lang.acl.ACLCodec;
-//import jade.mtp.MTP;
+
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
+import jade.mtp.MTPDescriptor;
 
 /**
  * Agent Communication Channel.
@@ -37,7 +36,7 @@ import jade.mtp.TransportAddress;
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
  * @see jade.core.LightAcc 
- * @see jade.core.fullAcc
+ * @see jade.core.FullAcc
  * @version $Date$ $Revision$
  */
 interface acc {
@@ -78,38 +77,29 @@ interface acc {
      * 
      * @throws MTPException
      */
-    public String addMTP(String mtpClassName, String address) throws MTPException;
-    
-    public void removeMTP(String address) throws MTPException;
+    public MTPDescriptor addMTP(String mtpClassName, String address) throws MTPException;
+
+    public MTPDescriptor removeMTP(String address) throws MTPException;
 
     public void addACLCodec(String codecClassName) throws jade.lang.acl.ACLCodec.CodecException;
 
     /**
      * Method declaration
      * 
-     * @return
-     * 
-     * @see
+     * @param mtp
+     * @param ac
      */
-    public List getLocalAddresses();
+    public void addRoute(MTPDescriptor mtp, AgentContainer ac);
 
     /**
      * Method declaration
      * 
-     * @param address
-     * @param ac
-     */
-    public void addRoute(String address, AgentContainer ac);
-
-    /**
-     * Method declaration
-     * 
-     * @param address
+     * @param mtp
      * @param ac
      * 
      * @see
      */
-    public void removeRoute(String address, AgentContainer ac);
+    public void removeRoute(MTPDescriptor mtp, AgentContainer ac);
 
     /**
      * Shut down this ACC
