@@ -43,6 +43,8 @@ import test.domain.df.*;
  */
 public class TestFederation extends Test {
 	private AID df1;
+	private DFAgentDescription[] dfds;
+	private static final int N_REGISTRATIONS = 3;
 	
   public String getName() {
   	return "Test Federation";
@@ -57,18 +59,29 @@ public class TestFederation extends Test {
   	
   	// Create another DF called DF1
   	df1 = TestUtility.createAgent(a, "DF1", "jade.domain.df", null, a.getAMS(), null);
-  	// Register a DFD with DF1
-  	final DFAgentDescription dfd = TestDFHelper.getSampleDFD(a.getAID());
-  	try {
-	  	DFService.register(a, a.getDefaultDF(), dfd);
+  	// Register some DFDs with DF1
+  	dfds = new DFAgentDescription[N_REGISTRATIONS];
+  	for (int i = 0; i < N_REGISTRATIONS; ++i) {
+  		dfds[i] = TestDFHelper.getSampleDFD(new AID("a"+i, AID.ISLOCALNAME));
+  		try {
+	  		DFService.register(a, df1, dfds[i]);
+  		}
+  		catch (FIPAException fe) {
+  			throw new TestException("Error registering a dfd", fe);
+  		}
   	}
-  	catch (FIPAException fe) {
-  		throw new TestException("Error registering a dfd", fe);
-  	}	
+  	// Register one of the above dfds with the default DF too.
+  	// If we will find it twice it is an error
+		try {
+  		DFService.register(a, a.getDefaultDF(), dfds[1]);
+		}
+		catch (FIPAException fe) {
+			throw new TestException("Error registering a dfd", fe);
+		}
+  	
   	
     // Register the ontologies and codec required to request the federation
     a.getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
-    //a.getContentManager().registerOntology(FIPAManagementOntology.getInstance());
     a.getContentManager().registerOntology(DFAppletOntology.getInstance());
     
   	// Create the REQUEST message to be sent to df1 to make it federate with the default DF
@@ -103,10 +116,15 @@ public class TestFederation extends Test {
   					DFAgentDescription template = TestDFHelper.getSampleTemplate1();
   					SearchConstraints constraints = new SearchConstraints();
   					constraints.setMaxDepth(new Long(1));
+  					constraints.setMaxResults(new Long(-1));
 	  				DFAgentDescription[] result = DFService.search(myAgent, myAgent.getDefaultDF(), template, constraints);
 	  				l.log("Recursive search done");
-  					if (result.length != 1 || (!TestDFHelper.compare(result[0], dfd))) {
-  						l.log("Recursive search result NOT OK: "+result.length+" items found, while 1 was expected");
+  					if (result.length != N_REGISTRATIONS) {
+  						l.log("Recursive search result NOT OK: "+result.length+" items found, while "+N_REGISTRATIONS+" were expected");
+  						l.log("Items found: ");
+  						for (int i = 0; i < result.length; ++i) {
+  							l.log(result[i].getName().toString());
+  						}
   					}
   					else {
   						l.log("Recursive search result OK");
@@ -149,9 +167,7 @@ public class TestFederation extends Test {
   public void clean(Agent a) {
   	try {
 	  	TestUtility.killAgent(a, df1);
-	  	DFAgentDescription  dfd = new DFAgentDescription();
-	  	dfd.setName(a.getAID());
-	  	DFService.deregister(a, dfd);
+	  	DFService.deregister(a, dfds[1]);
   	}
   	catch (Exception e) {
   		e.printStackTrace();
