@@ -26,6 +26,9 @@ package jade.tools.rma;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.domain.AgentManagementOntology;
@@ -117,13 +120,22 @@ public class rma extends Agent {
 	  int k = amse.getKind();
 
 	  String container = null;
+	  String host = null;
+	  InetAddress addr = null;
 	  AgentManagementOntology.AMSAgentDescriptor amsd = null;
 
 	  switch(k) {
 	  case AgentManagementOntology.AMSEvent.NEWCONTAINER:
 	    AgentManagementOntology.AMSContainerEvent ev1 = (AgentManagementOntology.AMSContainerEvent)amse;
 	    container = ev1.getContainerName();
-	    myGUI.addContainer(container);
+	    host = ev1.getContainerAddr();
+	    try {
+	      addr = InetAddress.getByName(host);
+	    }
+	    catch(UnknownHostException uhe) {
+	      // Do nothing, but leave the address to 'null'
+	    }
+	    myGUI.addContainer(container, addr);
 	    break;
 	  case AgentManagementOntology.AMSEvent.DEADCONTAINER:
 	    AgentManagementOntology.AMSContainerEvent ev2 = (AgentManagementOntology.AMSContainerEvent)amse;
