@@ -40,6 +40,7 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
@@ -124,7 +125,7 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
   
-  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException, AuthException {
     try {
       adaptee.createAgent(agentID, serializedInstance, manager.getRMIStub(classSite), startIt);
     }

@@ -38,6 +38,7 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
@@ -57,7 +58,7 @@ interface AgentContainerRMI extends Remote {
     public void exit() throws RemoteException, IMTPException;
     public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException, IMTPException;
     public void wakeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
-    public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException;
+    public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException, AuthException;
     public void createAgent(AID agentID, String className, Object[] arguments, String ownership, CertificateFolder certs, boolean startIt) throws RemoteException, IMTPException;
     public void killAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public MTPDescriptor installMTP(String address, String className) throws RemoteException, MTPException, IMTPException;
