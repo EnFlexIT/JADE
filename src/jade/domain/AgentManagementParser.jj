@@ -1,0 +1,338 @@
+/*
+  $Id$
+*/
+
+// This file defines a class to parse a 'fipa-df-agent-descriptor'
+// into a DFAgentDescriptor object
+
+options {
+
+  STATIC = false; // This is needed because the parser is not reentrant
+
+}
+
+
+PARSER_BEGIN(AgentManagementParser)
+
+package jade.domain;
+
+import java.io.Reader;
+import java.io.StringReader;
+
+class AgentManagementParser {
+
+  // Temporary reference for result during construction
+  private AgentDescriptor AMSDesc; // FIXME: Non-reentrant parser
+  private DFAgentDescriptor DFDesc; // FIXME: Non-reentrant parser
+  private ServiceDescriptor sd; // FIXME: Non-reentrant parser
+
+  public static void main(String args[]) throws ParseException {
+    AgentManagementParser parser = new AgentManagementParser(System.in);
+
+    while (true) {
+      try {
+	AgentManAction result = parser.AgentManagementAction();
+	result.dump(); 
+      }
+      catch(ParseException pe) {
+	pe.printStackTrace();
+	System.exit(1);
+      }
+    }
+  }
+
+  public static AgentManagementParser create() {
+    return new AgentManagementParser(new StringReader(""));
+  }
+
+  public AgentManAction parseAgentManAction(Reader r) {
+    ReInit(r);
+    return AgentManagementAction();
+  }
+
+  public DFAgentDescriptor parseDFDescriptor(Reader r) throws ParseException {
+    ReInit(r);
+    return DF_description();
+  }
+
+  public AgentDescriptor parseAMSDescriptor(Reader r) throws ParseException {
+    ReInit(r);
+    return AMS_Description();
+  }
+
+}
+
+PARSER_END(AgentManagementParser)
+
+
+
+// JavaCC grammar productions
+
+
+AgentManAction AgentManagementAction() :
+{
+  AgentManAction a;
+}
+{
+  "(" a = AMSAction() | a = DFAction() | a = ACCAction() ")"
+  { return a; }
+}
+
+AgentManAction AMSAction() :
+{
+  AgentManAction a = new AgentManAction();
+  AgentDescriptor amsd;
+  Token t;
+}
+{
+  ( t = <REGISTER_AGENT> | t = <DEREGISTER_AGENT> | t = <AUTHENTICATE> | t = <MODIFY_AGENT>)
+  { a.setName(t.image); }
+  amsd = AMS_Description()
+  { a.setArg(amsd); }
+
+  { return a; }
+}
+
+AgentManAction DFAction() :
+{
+  AgentManAction a = new AgentManAction();
+  DFAgentDescriptor dfd;
+  Token t;
+}
+{
+  ( t = <REGISTER> | t = <DEREGISTER> | t = <MODIFY> | t = <SEARCH> )
+  { a.setName(t.image); }
+  dfd = DF_description() // FIXME: Constraint still missing
+  {
+    a.setArg(dfd);
+    return a;
+  }
+}
+
+AgentManAction ACCAction() :
+{
+  AgentManAction a;
+  ACLMessage msg;
+  token t;
+}
+{
+  t = <FORWARD>
+    // FIXME: Add ACL message parsing
+}
+
+
+AgentDescriptor AMS_Description() :
+{
+  AMSDesc = new AgentDescriptor();
+}
+{
+ "(" <AMS_DESCRIPTION> ( "(" FIPA_AMS_description() ")" )+ ")"
+ {
+   AgentDescriptor result = AMSDesc;
+   AMSDesc = null;
+   return result;
+ }
+
+}
+
+void FIPA_AMS_description() :
+{
+  String s;
+  Token t;
+}
+{
+  <AGENT_NAME> s = AgentName() { AMSDesc.setName(s); }
+| <ADDRESS> ( s = CommAddress() { AMSDesc.addAddress(s); } )+
+| <SIGNATURE> t = <WORD> { AMSDesc.setSignature(t.image); }
+| <AP_STATE> t = <APState> { AMSDesc.setAPState(t.image); }
+| <DELEGATE_AGENT_NAME> s = AgentName() { AMSDesc.setDelegateAgent(s); }
+| <FORWARD_ADDRESS> s = CommAddress() { AMSDesc.setForwardAddress(s); }
+| <OWNERSHIP> t = <WORD> { AMSDesc.setOwnership(t.image); }
+}
+
+DFAgentDescriptor DF_description() :
+{
+  DFDesc = new DFAgentDescriptor();
+}
+{
+ "(" <DF_DESCRIPTION> ( "(" FIPA_DF_description() ")" )+ ")"
+ {
+   DFAgentDescriptor result = DFDesc;
+   DFDesc = null;
+   return result;
+ }
+
+}
+
+void FIPA_DF_description() :
+{
+  String s;
+  Token t;
+}
+{
+   <AGENT_NAME> s = AgentName() { DFDesc.setName(s); }
+ | <AGENT_ADDRESS> ( s = CommAddress() { DFDesc.addAddress(s); } )+
+ | <AGENT_SERVICES> ( FIPA_Service_Desc() )+
+ | <AGENT_TYPE> t = <WORD> { desc.setType(t.image); }
+ | <INTERACTION_PROTOCOLS> "(" ( t = <WORD> { DFDesc.addInteractionProtocol(t.image); } )+ ")"
+ | <ONTOLOGY> s = SL1Term() { DFDesc.setOntology(s); }
+ | <OWNERSHIP> s = SL1Term() { DFDesc.setOwnership(s); }
+ | <DF_STATE> t = <DfLifecycleState> { DFDesc.setDFState(t.image); }
+}
+
+void FIPA_Service_Desc() :
+{
+  sd = new ServiceDescriptor();
+}
+{
+  "(" <SERVICE_DESCRIPTION> ( "(" FIPA_Service_Desc_Item() ")" )+  ")"
+  {
+    DFDesc.addService(sd);
+  }
+}
+
+void FIPA_Service_Desc_Item() :
+{
+  String s;
+  Token t;
+}
+{
+   <SERVICE_NAME> (t = <ServiceTypes> | t = <WORD>) { sd.setName(t.image); }
+|  <SERVICE_TYPE> (t = <ServiceTypes> | t = <WORD>) { sd.setType(t.image); }
+|  <SERVICE_ONTOLOGY> s = SL1Term() { sd.setOntology(s); }
+|  <FIXED_PROPERTIES> s = SL1Term() { sd.setFixedProps(s); }
+| <NEGOTIABLE_PROPERTIES> s = SL1Term() { sd.setNegotiableProps(s); }
+| <COMMUNICATION_PROPERTIES> s = SL1Term() { sd.setCommunicationProps(s); }
+
+}
+
+String AgentName() :
+{
+  Token t;
+  String s;
+}
+{
+  t = <WORD> "@" s = CommAddress() { return t.image + "@" + s; }
+}
+
+String CommAddress() :
+{
+  Token proto;
+  String addr;
+  Token port;
+  String acc;
+}
+{
+  proto = <WORD> "://" (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
+  {
+    String s = proto.image + "://" + addr + ":" + port + "/" + acc;
+    return s;
+  }
+}
+
+String IPAddress() :
+{
+  Token t1;
+  Token t2;
+  Token t3;
+  Token t4;
+}
+{
+  t1 = <INTEGER> "." t2 = <INTEGER> "." t3 = <INTEGER> "." t4 = <INTEGER>
+  {
+    return t1.image + "." + t2.image + "." + t3.image + "." + t4.image;
+  }
+}
+
+String DNSName() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    return t.image;
+  }
+}
+
+String ACCObj() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    return t.image;
+  }
+}
+
+
+
+
+// FIXME: This should be an almighty SL1 term
+// instead of an humble Word
+String SL1Term() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    return t.image;
+  }
+}
+
+
+// JavaCC lexical productions
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DEFAULT>
+TOKEN: 
+{
+  <DF_DESCRIPTION : ":df-description">
+| <AMS_DESCRIPTION : ":ams-description">
+| <REGISTER : "register"> 
+| <DEREGISTER : "deregister">
+| <MODIFY : "modify">
+| <SEARCH : "search">
+| <REGISTER_AGENT : "register-agent">
+| <DEREGISTER_AGENT : "deregister-agent">
+| <AUTHENTICATE : "authenticate">
+| <MODIFY_AGENT : "modify-agent">
+| <FORWARD : "forward">
+| <AGENT_NAME : ":agent-name">
+| <AGENT_ADDRESS : ":agent-address">
+| <AGENT_SERVICES : ":agent-services">
+| <AGENT_TYPE : ":agent-type">
+| <INTERACTION_PROTOCOLS : ":interaction-protocols">
+| <ONTOLOGY : ":ontology">
+| <OWNERSHIP : ":ownership">
+| <DF_STATE : ":df-state">
+| <ADDRESS : ":address">
+| <SIGNATURE : ":signature">
+| <AP_STATE : ":ap-state">
+| <DELEGATE_AGENT_NAME : ":delegate-agent-name">
+| <FORWARD_ADDRESS : ":forward-address">
+| <SERVICE_DESCRIPTION : ":service-description">
+| <SERVICE_NAME : ":service-name">
+| <SERVICE_TYPE : ":service-type">
+| <SERVICE_ONTOLOGY : ":service-ontology"> 
+| <FIXED_PROPERTIES : ":fixed-properties">
+| <NEGOTIABLE_PROPERTIES : ":negotiable-properties">
+| <COMMUNICATION_PROPERTIES : ":communication-properties">
+| <DfLifecycleState : "active" | "suspended" | "retired">
+| <APState : "initiated" | "active" | "suspended" | "waiting">
+| <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
+| <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
+| <INTEGER : ["0"-"9"](["0"-"9"])*>
+| <COMM_PROTOCOL : ["A"-"Z", "a"-"z"](["A"-"Z", "a"-"z", "0"-"9", "_"])*>
+
+}
+
