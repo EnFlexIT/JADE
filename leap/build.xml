@@ -200,7 +200,20 @@
 		<ant antfile="${buildfiles}/midp.xml" target="do-javadoc" dir="."/>
 	</target>
 
-	
+	<!-- Generate filtered JAVADOC for the selected java environments -->
+	<target name="apidoc" depends="init, apidoc-j2se, apidoc-pjava, apidoc-midp"
+	        description="Filtered JavaDoc using the appropriate {environment}.xml file"/>
+	<target name="apidoc-j2se" if="j2se">
+		<ant antfile="${buildfiles}/j2se.xml" target="do-apidoc" dir="."/>
+	</target>	
+	<target name="apidoc-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-apidoc" dir="."/>
+	</target>
+	<target name="apidoc-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-apidoc" dir="."/>
+	</target>
+
+
 	<!-- ******** The COMPLETE build process ********* -->
 	<target name="rebuild" depends="reset, lib"
 	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
