@@ -107,6 +107,9 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
+        // DEBUG
+        //content.dump();
+        
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(content.getTypeName());
         schema.validate(content, onto);
@@ -146,6 +149,9 @@ public class ContentManager implements Serializable {
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
         AbsContentElement abs = (AbsContentElement) onto.fromObject(content);
+       
+        //DEBUG
+        //abs.dump();
         
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(abs.getTypeName());
