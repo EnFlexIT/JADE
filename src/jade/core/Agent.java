@@ -1696,6 +1696,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.lang.acl.ACLMessage
 	*/
 	public final void send(final ACLMessage msg) {
+			// set the sender of the message if not yet set
+			// FIXME. Probably we should always set the sender of the message!
+			if (msg.getSender() == null) 
+				msg.setSender(myAID);
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			doPrivileged(new jade.security.PrivilegedExceptionAction() {
