@@ -128,22 +128,29 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
   }
 
-  protected void finalize() {
-
+  public void shutDown() {
     Enumeration agentNames = localAgents.keys();
 
-    // FIXME: Should stop all agents before removing them to avoid races
-
     try {
+
       // Remove all agents
-      while(agentNames.hasMoreElements())
-	myPlatform.deadAgent((String)agentNames.nextElement()); // RMI call
+      while(agentNames.hasMoreElements()) {
+	String name = (String)agentNames.nextElement();
+	Agent a = (Agent)localAgents.get(name);
+	localAgents.remove(name);
+	a.doDelete();
+	myPlatform.deadAgent(name); // RMI call
+      }
+
       // Deregister itself as a container
       myPlatform.removeContainer(this); // RMI call
     }
     catch(RemoteException re) {
       re.printStackTrace();
     }
+  }
+
+  protected void finalize() {
   }
 
   public void CommHandle(CommEvent event) {
