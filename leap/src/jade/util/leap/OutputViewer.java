@@ -104,19 +104,25 @@ public class OutputViewer extends MIDlet implements CommandListener {
   }
   
   private void readOutput() {
+		RecordStore rs = null;
+    RecordEnumeration rse = null;
   	try {
-  		RecordStore rs = RecordStore.openRecordStore(OUTPUT, true);
-  		int linesCnt = rs.getNumRecords();
-   		for (int i=0; i < linesCnt; ++i) {
-   			byte[] bb = rs.getRecord(i+1);
+  		rs = RecordStore.openRecordStore(OUTPUT, true);
+			for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
+				byte[] bb = rse.nextRecord();
    			StringItem line = new StringItem(null, new String(bb));
    			form.append(line);
    		}
-    	rs.closeRecordStore();
   	}
   	catch (Exception e) {
   		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
-  	}
+  	} finally {
+				try {
+            if (rse != null) rse.destroy();
+						if (rs != null)  rs.closeRecordStore();
+				} catch (Exception any) {
+				}
+		}
   }
   
   private void showError(String msg) {
