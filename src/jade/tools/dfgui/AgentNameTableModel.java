@@ -35,6 +35,10 @@ import jade.domain.*;
 import jade.core.AID;
 
 /**
+This class extends the AbstractTableModel to provide an appropriate model for the table used 
+to display agents in the gui of the DF.
+
+@see javax.swing.table.AbstractTableModel
 @author Giovanni Caire Adriana Quinto - CSELT S.p.A.
 @version $Date$ $Revision$
 */

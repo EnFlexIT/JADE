@@ -48,16 +48,16 @@ import jade.gui.AboutJadeAction;
 * The gui shows a tabbed pane with three different views of the functions  
 * provided by a Directory Facilitator.
 * The three views are: <ul>
-* <li><b>Agents registered with the DF</b> shows a table with all the agents 
+* <li><b>Registrations with this DF</b> shows a table with all the agents 
 * registered with the DF.
-* <li><b>Last Search Result</b> shows a table with the list of agent descriptions that
-* were returned as a result of the last search operation.
+* <li><b>Search Result</b> shows a table with the list of agent descriptions that
+* were returned as a result of the last search operation on a specified df.
 * <li><b>DF Federation</b> shows the DF federation. The Parents table shows the list of DF's 
 * with which this
 * DF is federated, while the Children table shows the list of DF's 
 * that are registered with this DF.</ul>
-* According to the tab selected, only some actions are allowed:
-* <ol><b>Agents registered with the df</b>.
+* According to the tab selected, the actions allowed have a proper meaning:
+* <ol><b>Registrations with this df</b>.
 * <ul>
 * <li><b>View</b> the description of the selected  agent from the table.
 * <li><b>Modify</b> the description of the selected agent.
@@ -65,36 +65,34 @@ import jade.gui.AboutJadeAction;
 * an agent description, notice that  
 * some values are mandatory for registration,
 * <li><b>Deregister</b> an agent selected in the table.
-* <li><b>Search</b> for agent descriptions with this DF. 
+* <li><b>Search</b> for agent descriptions with this DF. The user must first insert the
+* search constraint: <code> maximum depth</code> the depth of propagation of the search 
+* operation to the federate DF's (children);<code> maximum number of results </code>. 
+* If no values are inserted then the default one are used :local search on this df 
+* and all agents found returned.The the user must provide an agent description. 
 * If no value is inserted in the agent description, the search action returns 
 * all the active agents currently registered with this DF.
-* <li><b>Search with constraints</b> allows to make a search with this DF 
-* by adding further constraints, as specified by the FIPA specifications. 
-* The constraints inserted are stored to avoid inserting them again for the next operation.
-* Two kinds of constraints are permitted <code>df-depth</code>: 
-* the depth of propagation of the search operation to the federated DF's,
-* and the <code>resp-req</code>: the number of returned agent descriptions. 
 * <li><b>Federate</b> allow to federate this DF with another DF. First of all, 
-* the user must provide the full name of the DF with 
-* which to federate and then the description of this DF that must be registered with the
-* specified DF. </ul>
-* <b>Last Search Result</b>
+* the user must provide the full name of the DF with which to federate and then the 
+* description of this DF that must be registered with the specified DF. </ul>
+* <b>Search Result</b>
 * <ul>
 * <li><b>View</b> the description of a selected agent on the table of the results.
-* <li><b>Search</b> for agent descriptions with this DF. (see above)
-* <li><b>Search with Constraints</b> (see above).</ul>
+* <li><b>Register</b> a new agent with last DF used for the search operation (indicated in the tab). 
+* <li><b>Modify</b> the agent description of the agent selected in the table (with the appropriate df).
+* <li><b>Search</b> for agent descriptions with the DF involved in the last search operation. (see above)
+* <li><b>Federation</b> (see above)</ul>
 * <b>DF Federation</b>
 * <ul>
 * <li><b>View</b> the description of an agent selected in one of the two tables.
-* If the agent selected is a parent, then the default description 
-* of this DF is shown. Otherwise if the selected agent is a child,
-* then the description of this child DF is shown.
-* <li><b>Deregister</b> If the selected agent is a parent then this DF is 
-* deregistered from the selected one, 
-* otherwise, if the agent selected is a child, this child is deregistered from this DF.
-* <li><b>Search</b> permits to make a search with default constraint with the DF selected in one of the tables. 
-* <li><b>Search with constraints</b> permits to make a search with constraints with the DF selected in one of the tables.
-* <li><b>Federate</b> allows to federate this DF with the selected one.
+* If the agent selected is a parent, then the description of this DF used to fedearate is shown. 
+* Otherwise if the selected agent is a child,then the description of this child DF is shown.
+* <li><b>Register</b> a new agent with the DF selected in one of the two tables.
+* <li><b>Deregister</b> If the selected agent is a parent then this DF is deregistered from 
+* the selected one, otherwise, if the agent selected is a child, this child is deregistered 
+* from this DF.
+* <li><b>Search</b> permits to make a search operation with the DF selected in one of the tables. 
+* <li><b>Federate</b> (see above).
 *</ol>
 * @author Giovanni Caire - Tiziana Trucco - CSELT S.p.A.
 * @version $Date$ $Revision$
@@ -555,7 +553,10 @@ public class DFGUI extends JFrame
   
   }
   
-  //Use this method to show a message on the DF GUI
+  /**
+  * Use this method to show a message on the DF GUI.
+  * @param msg the string to show
+  */
   public void showStatusMsg(String msg) {
     statusField.setText(msg);
   }
@@ -622,6 +623,9 @@ public class DFGUI extends JFrame
 	  dfFedAction.setEnabled(value);
 	}
 	
+	/**
+	* This method permits to set the tabben pane to show.
+	*/
 	public void setTab (String tab, AID df) 
 	{
 		if (tab.equalsIgnoreCase("Search"))
@@ -636,6 +640,9 @@ public class DFGUI extends JFrame
 				 tabbedPane.setSelectedIndex(0);
 			
 	}
+	/**
+	* Returns the AID of an agent selected from one of the tables shown.
+	*/
 	
 	public AID getSelectedAgentInTable()
 	{
@@ -680,7 +687,7 @@ public class DFGUI extends JFrame
 	}
 	
 	/**
-	@return A integer according to the tab selected. 
+	@return an integer according to the tab selected. 
 	*/
 	public int kindOfOperation()
 	{
@@ -708,8 +715,9 @@ public class DFGUI extends JFrame
 						
 				}
 	
-	////////////////////////////////////
-	// Refresh the DF GUI 
+	/**
+	 Refresh the DF GUI 
+	 */
 	public void refresh(Iterator AIDOfAllAgentRegistered,Iterator parents,Iterator children) 
 	{
 		registeredModel.clear();
@@ -728,7 +736,9 @@ public class DFGUI extends JFrame
 		childrenModel.fireTableDataChanged();
 	}
 	
-
+/**
+Refresh the search result.
+*/
 	public void refreshLastSearchResults(List l, AID df){
 		
 		this.lastDF = df; // the last df used
@@ -746,7 +756,7 @@ public class DFGUI extends JFrame
 	}
 	
 	/**
-	remove an agent from the foundModel and lastSearchResult
+	* Removes an agent from the foundModel and lastSearchResult
 	*/
 	public void removeSearchResult(AID name)
 	{
@@ -785,7 +795,7 @@ public class DFGUI extends JFrame
 		childrenModel.fireTableDataChanged();
 	}
 	/**
-	add a new agent desc to registeredModel
+	* Adds a new agent to registeredModel.
 	*/
 	public void addAgentDesc(AID name)
 	{
@@ -795,7 +805,9 @@ public class DFGUI extends JFrame
 	
 	}
 	/**
-	remove an agent descr from registeredModel
+	* Removes an agent descr from registeredModel and if it was found in a search operation
+	* calls <code>removeSearchResult</code>.
+	* @see jade.tools.dfgui#removeSearchResult(AID name)
 	*/
 	public void removeAgentDesc(AID name, AID df)
 	{
@@ -811,6 +823,9 @@ public class DFGUI extends JFrame
 		
 	}
 
+	/**
+	Removes an agent desc from the childrenModel.
+	*/
  public void removeChildren(AID childrenName)
 	{
 		childrenModel.remove(childrenName);
@@ -818,6 +833,9 @@ public class DFGUI extends JFrame
 		childrenTable.clearSelection();
 	}
 	
+	/**
+	Removes an agent desc from the parentModel. 
+	*/
 	public void removeParent(AID parentName)
 	{
 	
@@ -827,8 +845,10 @@ public class DFGUI extends JFrame
 	}
 	
 
-	////////////////////////////////////
-	// Show DF GUI properly
+	
+	/**
+	* Shows DF GUI properly
+	*/
 	public void setVisible(boolean b) 
 	{
 		
@@ -843,9 +863,10 @@ public class DFGUI extends JFrame
 		super.setVisible(b);
 	}
 
-	/////////////////////////////////////////////////////////////////
-	// Perform asynchronous disposal to avoid nasty InterruptedException
-	// printout.
+	/**
+	*  Performs asynchronous disposal to avoid nasty InterruptedException
+  *  printout.
+  */
 	public void disposeAsync() 
 	{
 
@@ -869,13 +890,22 @@ public class DFGUI extends JFrame
 		EventQueue.invokeLater(new disposeIt(this));
 	}
  
+	/**
+	* Checks if the gui is of an applet or not. 
+	* @return true if is the gui of an applet
+	*/
 	public boolean isApplet()
 	{
 		return isGUIForApplet;
 	} 
 	
 	
-	
+	/**
+	* This method returns the <code>DFAgentDescription</code> of an agent found in a search operation.
+	* @param name The AID of the agent. 
+	* @see jade.domain.FIPAAgentManagement.DFAgentDescription
+	* @see jade.core.AID
+	*/
 	public DFAgentDescription getDFAgentSearchDsc(AID name)
 	{	
 	  return (DFAgentDescription)lastSearchResults.get(name); 	

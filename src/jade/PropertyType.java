@@ -27,7 +27,11 @@ import java.lang.Boolean;
 
 /**
    
-   This class defines the necessary information for the configuration properties of JADE
+   This class defines the necessary information for the configuration properties of JADE.
+   For every property some information are necessary to show the correctly:
+   the name, the type (integer, boolean or string), the default Value, the value read by file,
+   the value read from command line, the string to shoe as tooltip in the gui at start up and a
+   boolean to indicate if the property is mandatory or not.
       
    @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
