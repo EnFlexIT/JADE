@@ -119,6 +119,52 @@ public class Boot {
             }
         }
 
+
+
+		// check if username:password has been provided
+		String own = properties.getProperty(profile.OWNER);
+		String user = "";
+		char[] passwd = new char[1]; // initial value to avoid java error;
+		
+		// separate username:password
+		int sep = own.indexOf(':');
+		if (sep>0) {
+			user = own.substring(0, sep);
+			passwd = new char[(own.length())-sep];
+			own.getChars( sep+1, own.length(), passwd, 0 );
+		} else {
+			// no ":" found
+			user = own;
+			if (sep==0) user="";
+		}
+
+		// if username or passwd have not been provided
+		// ask for them
+		try {		
+		if ( (user.length()==0) ) {
+			  // ask for user:password
+			  jade.security.PwdDialog pwdD = profile.getPwdDialog();
+			  pwdD.ask();
+			  user = pwdD.getUserName();
+			  passwd = pwdD.getPassword();
+		} else {
+			if ( ( sep<0) ) {
+				// ask for the password
+			  	jade.security.PwdDialog pwdD = profile.getPwdDialog();
+			  	pwdD.setUserName(user);
+			  	pwdD.ask();
+			  	user = pwdD.getUserName();
+			  	passwd = pwdD.getPassword();
+			} // end if
+		} // end if
+		} catch (jade.core.ProfileException e) {
+			  e.printStackTrace();
+		}
+		
+		// set username:password
+		profile.setParameter(profile.OWNER, user+":"+new String(passwd) );
+
+
         // Exit the JVM when there are no more containers around
         Runtime.instance().setCloseVM(true);
         Runtime.instance().enableDefaultToolkit();    //FIXME Hook for JSP example
@@ -229,9 +275,10 @@ public class Boot {
                 }
             } else if (theArg.equalsIgnoreCase("-owner")) {
                 if (++n == args.length) {
-                    System.err.println("Missing owner");
 
-                    printUsageInfo = true;
+					// "owner:password" not provided on command line
+					results.add("owner:" + ":");
+
                 } else {
                     results.add("owner:" + args[n]);
                 }
