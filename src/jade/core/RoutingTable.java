@@ -31,6 +31,8 @@ import java.util.TreeMap;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
+import jade.lang.acl.ACLMessage;
+
 import jade.mtp.OutChannel;
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
@@ -39,17 +41,17 @@ class RoutingTable {
 
   // This class wraps an MTP installed on a remote container, using
   // RMI to forward the deliver() operation
-  private static class RoutedChannel implements OutChannel {
+  private static class OutViaContainer implements OutPort {
 
     private AgentContainer container;
 
-    public RoutedChannel(AgentContainer ac) {
+    public OutViaContainer(AgentContainer ac) {
       container = ac;
     }
 
-    public void deliver(String addr, Envelope env, byte[] payload) throws MTPException {
+    public void route(ACLMessage msg, AID receiver, String address) throws MTPException {
       try {
-	container.route(env, payload, addr);
+	container.routeOut(msg, receiver, address);
       }
       catch(java.rmi.RemoteException re) {
 	throw new MTPException("Container unreachable during routing");
@@ -58,8 +60,8 @@ class RoutingTable {
 
     public boolean equals(Object o) {
       try {
-	RoutedChannel ch = (RoutedChannel)o;
-	AgentContainer ac = ch.container;
+	OutViaContainer rhs = (OutViaContainer)o;
+	AgentContainer ac = rhs.container;
 	if(container.equals(ac))
 	  return true;
 	else
@@ -69,9 +71,48 @@ class RoutingTable {
 	return false;
       }
     }
+    
+  } // End of OutViaContainer class
 
-  } // End of RoutedMTP class
 
+  // This class wraps an MTP installed locally, using the ACC to encode
+  // the message into an MTP payload.
+  private static class OutViaMTP implements OutPort {
+
+    private FullAcc myACC;
+    private OutChannel myChannel;
+      
+    public OutViaMTP(FullAcc localACC, OutChannel proto) {
+      myACC = localACC;
+      myChannel = proto;
+    }
+
+    public void route(ACLMessage msg, AID receiver, String address) throws MTPException {
+      try {
+        myACC.prepareEnvelope(msg, receiver);
+        Envelope env = msg.getEnvelope();
+        byte[] payload = myACC.encodeMessage(msg);
+        myChannel.deliver(address, env, payload);
+      }
+      catch(NotFoundException nfe) {
+        throw new MTPException("ACL encoding not found.");
+      }
+    }
+
+    public boolean equals(Object o) {
+      try {
+	OutViaMTP rhs = (OutViaMTP)o;
+	OutChannel ch = rhs.myChannel;
+	if(myChannel.equals(ch))
+	  return true;
+	else
+	  return false;
+      }
+      catch(ClassCastException cce) {
+	return false;
+      }
+    }
+  }
 
   private static final boolean LOCAL = true;
   private static final boolean REMOTE = false;
@@ -81,7 +122,7 @@ class RoutingTable {
     private List local = new LinkedList();
     private List remote = new LinkedList();
 
-    public void add(OutChannel port, boolean location) {
+    public void add(OutPort port, boolean location) {
       if(location == LOCAL) {
 	local.add(port);
       }
@@ -90,19 +131,19 @@ class RoutingTable {
       }
     }
 
-    public void remove(OutChannel port) {
+    public void remove(OutPort port) {
       local.remove(port);
       remote.remove(port);
     }
 
-    public OutChannel get() {
+    public OutPort get() {
       // Look first in the local list
       if(!local.isEmpty())
-	return (OutChannel)local.get(0);
+	return (OutPort)local.get(0);
       // Then look in the remote list
       else
 	if(!remote.isEmpty())
-	  return (OutChannel)remote.get(0);
+	  return (OutPort)remote.get(0);
       return null;
     }
 
@@ -113,9 +154,15 @@ class RoutingTable {
   } // End of OutPortList class
 
 
+  private FullAcc myACC;
   private Map inPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private Map outPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private List platformAddresses = new LinkedList();
+
+  
+  public RoutingTable(FullAcc fa) {
+    myACC = fa;   
+  }
 
   /**
      Adds a new locally installed MTP for the URL named
@@ -126,7 +173,8 @@ class RoutingTable {
     inPorts.put(url, proto);
 
     // A local MTP can also send messages
-    addOutPort(url, proto, LOCAL);
+    OutPort out = new OutViaMTP(myACC, proto);
+    addOutPort(url, out, LOCAL);
 
     // The new MTP is a valid address for the platform
     platformAddresses.add(url);
@@ -139,8 +187,10 @@ class RoutingTable {
   public MTP removeLocalMTP(String url) {
     // A local MTP appears both in the input and output port tables
     MTP proto = (MTP)inPorts.remove(url);
-    if(proto != null)
-      removeOutPort(url, proto);
+    if(proto != null) {
+      OutPort out = new OutViaMTP(myACC, proto);
+      removeOutPort(url, out);
+    }
 
     // The MTP address is not a platform address anymore
     platformAddresses.remove(url);
@@ -152,8 +202,8 @@ class RoutingTable {
 
     // A remote MTP can be used only for outgoing messages, through a
     // RoutedChannel
-    RoutedChannel ch = new RoutedChannel(where);
-    addOutPort(url, ch, REMOTE);
+    OutPort out = new OutViaContainer(where);
+    addOutPort(url, out, REMOTE);
 
     // Remote MTPs are valid platform addresses
     platformAddresses.add(url);
@@ -163,7 +213,7 @@ class RoutingTable {
      Removes the MTP for the URL named <code>name</code>.
    */
   public void removeRemoteMTP(String url, AgentContainer where) {
-    RoutedChannel ch = new RoutedChannel(where);
+    OutPort ch = new OutViaContainer(where);
     removeOutPort(url, ch);
 
     // Remote MTPs are valid platform addresses
@@ -174,7 +224,7 @@ class RoutingTable {
      Retrieves an outgoing channel object suitable for
      reaching the address <code>url</code>.
    */
-  public OutChannel lookup(String url) {
+  public OutPort lookup(String url) {
     String proto = extractProto(url);
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
@@ -187,9 +237,7 @@ class RoutingTable {
     return platformAddresses.iterator();
   }
 
-
-
-  private void addOutPort(String url, OutChannel port, boolean location) {
+  private void addOutPort(String url, OutPort port, boolean location) {
     String proto = extractProto(url);
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
@@ -201,7 +249,7 @@ class RoutingTable {
     }
   }
 
-  private void removeOutPort(String url, OutChannel port) {
+  private void removeOutPort(String url, OutPort port) {
     String proto = extractProto(url);
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
