@@ -145,7 +145,9 @@ public abstract class EndPoint extends Thread {
             // Error reading from socket. The connection is no longer valid.
             log("Exception reading from connection: "+e, 1);
           } 
+          log("Wakeing up outgoings", 2);
           wakeupOutgoings();
+          log("Resetting the connection", 2);
           resetConnection();
         } 
       }    // End of loop on connected
@@ -183,15 +185,20 @@ public abstract class EndPoint extends Thread {
     	
     	// Dispatch the response  to the OutgoingHandler that is waiting for it
     	OutgoingHandler h = deregisterOutgoing(id);
-    	h.setResponse(pkt);
-    	
-    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-    		// The remote EndPoint has terminated as a consequence
-    		// of a command issued by the local peer --> 
-    		// just close the connection and exit
-    		log("Last response received. Close connection", 2);
-    		shutdown();
-    		resetConnection();
+    	if (h == null) {
+    		log("WARNING: No OutgoingHandler for id "+id, 1);
+    	}
+    	else {
+	    	h.setResponse(pkt);
+	    	
+	    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+	    		// The remote EndPoint has terminated as a consequence
+	    		// of a command issued by the local peer --> 
+	    		// just close the connection and exit
+	    		log("Last response received. Close connection", 2);
+	    		shutdown();
+	    		resetConnection();
+	    	}
     	}
   	}
   }
@@ -367,9 +374,14 @@ public abstract class EndPoint extends Thread {
      */
     private synchronized final void waitForResponse(long timeout) throws ICPException {
       while (!rspReceived) {
-        try {
+      	try {
+      		long before = System.currentTimeMillis();
           wait(timeout);
           if (pktCnt == oldPktCnt) {
+          	long after = System.currentTimeMillis();
+          	if (after-before < timeout) {
+          		log("WARNING: exiting from wait with no response received and timeout not yet expired: "+String.valueOf(after-before), 0);
+          	}
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down
