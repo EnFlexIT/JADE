@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.16  1999/08/10 15:40:00  rimassa
+  Added serialization to MessageTemplate class and to all its inner
+  classes.
+
   Revision 1.15  1999/07/11 20:27:08  rimassa
   Reimplemented the whole class using Interpreter design pattern. Now
   complete logical expressions with AND, OR and NOT operators are
@@ -32,6 +36,8 @@ package jade.lang.acl;
 import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
+import java.io.Serializable;
+
 import java.lang.reflect.Method;
 
 import java.util.List;
@@ -47,7 +53,7 @@ import java.util.LinkedList;
    @version $Date$ $Revision$
 
 */
-public class MessageTemplate {
+public class MessageTemplate implements Serializable {
 
   private static final String wildCard = "*";
 
@@ -72,7 +78,7 @@ public class MessageTemplate {
     void toText(Writer w);
   }
 
-  private static class AndExpression implements MatchExpression {
+  private static class AndExpression implements MatchExpression, Serializable {
 
     private MatchExpression op1;
     private MatchExpression op2;
@@ -101,7 +107,7 @@ public class MessageTemplate {
 
   } // End of AndExpression class
 
-  private static class OrExpression implements MatchExpression {
+  private static class OrExpression implements MatchExpression, Serializable {
 
     private MatchExpression op1;
     private MatchExpression op2;
@@ -130,7 +136,7 @@ public class MessageTemplate {
 
   } // End of OrExpression class
 
-  private static class NotExpression implements MatchExpression {
+  private static class NotExpression implements MatchExpression, Serializable {
     private MatchExpression op;
 
     public NotExpression(MatchExpression e) {
@@ -153,7 +159,7 @@ public class MessageTemplate {
 
   } // End of NotExpression class
 
-  private static class Literal implements MatchExpression {
+  private static class Literal implements MatchExpression, Serializable {
 
     private ACLMessage template;
 
