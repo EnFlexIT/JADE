@@ -50,8 +50,8 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
      * @param slotSchema schema to add.
      *
      */
-    public void addArgument(String name, PropositionSchema slotSchema) {
-        addAttribute(name, slotSchema);
+    public void add(String name, PropositionSchema slotSchema) {
+        addElement(name, slotSchema);
     } 
 
     /**
@@ -63,9 +63,8 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
      *        mandatory.
      *
      */
-    public void addArgument(String name, PropositionSchema slotSchema, 
-                            int cardinality) {
-        addAttribute(name, slotSchema, cardinality);
+    public void add(String name, PropositionSchema slotSchema, int cardinality) {
+        addElement(name, slotSchema, cardinality);
     } 
 
     /**
@@ -75,8 +74,8 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
      * @param slotSchema schema to add.
      *
      */
-    public void addArgument(String name, TermSchema slotSchema) {
-        addAttribute(name, slotSchema);
+    public void add(String name, TermSchema slotSchema) {
+        addElement(name, slotSchema);
     } 
 
     /**
@@ -88,9 +87,8 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
      *        optional.
      *
      */
-    public void addArgument(String name, TermSchema slotSchema, 
-                            int cardinality) {
-        addAttribute(name, slotSchema, cardinality);
+    public void add(String name, TermSchema slotSchema, int cardinality) {
+        addElement(name, slotSchema, cardinality);
     } 
 
     /**
@@ -102,6 +100,4 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
     public AbsObject newInstance() {
         return new AbsHigherOrderPredicate(getTypeName());
     } 
-
 }
-

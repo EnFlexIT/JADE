@@ -43,8 +43,8 @@ public class VariableSchema extends TermSchema {
     private VariableSchema() {
         super(BASE_NAME);
 
-        addAttribute(NAME, new PrimitiveSchema(BasicOntology.STRING));
-        addAttribute(TYPE_NAME, new PrimitiveSchema(BasicOntology.STRING));
+        addElement(NAME, new PrimitiveSchema(BasicOntology.STRING));
+        addElement(TYPE_NAME, new PrimitiveSchema(BasicOntology.STRING));
     }
 
     /**

@@ -72,6 +72,4 @@ public class AggregateSchema extends TermSchema {
     public static TermSchema getBaseSchema() {
         return baseSchema;
     } 
-
 }
-

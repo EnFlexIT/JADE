@@ -52,11 +52,11 @@ public class IRESchema extends ContentElementSchema {
         BasicOntology basicOntology = BasicOntology.getInstance();
 
         try {
-            addAttribute(KIND, 
-                         basicOntology.getElementSchema(BasicOntology.STRING));
-            addAttribute(VARIABLE, 
-                         basicOntology.getElementSchema(BasicOntology.SET));
-            addAttribute(PROPOSITION, PropositionSchema.getBaseSchema());
+            addElement(KIND, 
+                basicOntology.getSchema(BasicOntology.STRING));
+            addElement(VARIABLE, 
+                basicOntology.getSchema(BasicOntology.SET));
+            addElement(PROPOSITION, PropositionSchema.getBaseSchema());
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -82,6 +82,4 @@ public class IRESchema extends ContentElementSchema {
     public AbsObject newInstance() {
         return new AbsIRE();
     } 
-
 }
-

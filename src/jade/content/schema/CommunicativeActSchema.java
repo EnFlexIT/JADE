@@ -54,13 +54,13 @@ public class CommunicativeActSchema extends GenericActionSchema {
     public CommunicativeActSchema(String name) {
         super(name);
 
-        Ontology basicOntology = BasicOntology.getInstance();
+        FullOntology basicOntology = (FullOntology)BasicOntology.getInstance();
 
         try {
-            addAttribute(SENDER, 
-                         basicOntology.getElementSchema(BasicOntology.AID));
-            addAttribute(RECEIVERS, 
-                         basicOntology.getElementSchema(BasicOntology.SET));
+            addElement(SENDER, 
+                       basicOntology.getSchema(BasicOntology.AID));
+            addElement(RECEIVERS, 
+                       basicOntology.getSchema(BasicOntology.SET));
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -74,9 +74,8 @@ public class CommunicativeActSchema extends GenericActionSchema {
      * @param elementSchema schema of the parameter.
      *
      */
-    public void addParameter(String name, 
-                             ContentElementSchema elementSchema) {
-        addAttribute(name, elementSchema);
+    public void add(String name, ContentElementSchema elementSchema) {
+        addElement(name, elementSchema);
     } 
 
     /**
@@ -88,9 +87,8 @@ public class CommunicativeActSchema extends GenericActionSchema {
      *        optional or mandatory
      *
      */
-    public void addParameter(String name, ContentElementSchema elementSchema, 
-                             int cardinality) {
-        addAttribute(name, elementSchema, cardinality);
+    public void add(String name, ContentElementSchema elementSchema, int cardinality) {
+        add(name, elementSchema, cardinality);
     } 
 
     /**
@@ -112,6 +110,4 @@ public class CommunicativeActSchema extends GenericActionSchema {
     public AbsObject newInstance() {
         return new AbsCommunicativeAct(getTypeName());
     } 
-
 }
-

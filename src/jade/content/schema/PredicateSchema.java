@@ -50,8 +50,8 @@ public class PredicateSchema extends PropositionSchema {
      * @param slotSchema schema of the new argument.
      *
      */
-    public void addArgument(String name, TermSchema slotSchema) {
-        addAttribute(name, slotSchema);
+    public void add(String name, TermSchema slotSchema) {
+        addElement(name, slotSchema);
     } 
 
     /**
@@ -63,9 +63,8 @@ public class PredicateSchema extends PropositionSchema {
      *        optional.
      *
      */
-    public void addArgument(String name, TermSchema slotSchema, 
-                            int cardinality) {
-        addAttribute(name, slotSchema, cardinality);
+    public void add(String name, TermSchema slotSchema, int cardinality) {
+        addElement(name, slotSchema, cardinality);
     } 
 
     /**
@@ -77,6 +76,4 @@ public class PredicateSchema extends PropositionSchema {
     public AbsObject newInstance() {
         return new AbsPredicate(getTypeName());
     } 
-
 }
-

@@ -49,6 +49,4 @@ public class ContentElementListSchema extends ContentElementSchema {
     public AbsObject newInstance() {
         return new AbsContentElementList();
     } 
-
 }
-

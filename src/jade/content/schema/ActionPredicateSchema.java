@@ -48,8 +48,8 @@ public class ActionPredicateSchema extends PropositionSchema {
      * @param actionSchema the schema of the parameter.
      *
      */
-    public void addParameter(String name, GenericActionSchema actionSchema) {
-        addAttribute(name, actionSchema);
+    public void add(String name, GenericActionSchema actionSchema) {
+        addElement(name, actionSchema);
     } 
 
     /**
@@ -60,9 +60,8 @@ public class ActionPredicateSchema extends PropositionSchema {
      * @param cardinality the cardinality, i.e., optional or mandatory.
      *
      */
-    public void addParameter(String name, GenericActionSchema actionSchema, 
-                             int cardinality) {
-        addAttribute(name, actionSchema, cardinality);
+    public void add(String name, GenericActionSchema actionSchema, int cardinality) {
+        addElement(name, actionSchema, cardinality);
     } 
 
     /**
@@ -72,8 +71,8 @@ public class ActionPredicateSchema extends PropositionSchema {
      * @param termSchema schema of the parameter.
      *
      */
-    public void addParameter(String name, TermSchema termSchema) {
-        addAttribute(name, termSchema);
+    public void add(String name, TermSchema termSchema) {
+        addElement(name, termSchema);
     } 
 
    /**
@@ -84,9 +83,8 @@ public class ActionPredicateSchema extends PropositionSchema {
      * @param cardinality the cardinality, i.e., optional or mandatory.
      *
      */
-    public void addParameter(String name, TermSchema termSchema, 
-                             int cardinality) {
-        addAttribute(name, termSchema, cardinality);
+    public void add(String name, TermSchema termSchema, int cardinality) {
+        addElement(name, termSchema, cardinality);
     } 
 
     /**
@@ -98,6 +96,4 @@ public class ActionPredicateSchema extends PropositionSchema {
     public AbsObject newInstance() {
         return new AbsActionPredicate(getTypeName());
     } 
-
 }
-

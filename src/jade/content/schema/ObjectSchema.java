@@ -80,8 +80,7 @@ public abstract class ObjectSchema {
      * @param cardinality cardinality, i.e., optional or mandatory
      *
      */
-    protected void addAttribute(String name, ObjectSchema elementSchema, 
-                                int cardinality) {
+    protected void addElement(String name, ObjectSchema elementSchema, int cardinality) {
         attributeDescriptors.put(name.toUpperCase(), 
                                  new AttributeDescriptor(name, elementSchema, 
                                  cardinality));
@@ -94,8 +93,8 @@ public abstract class ObjectSchema {
      * @param elementSchema schema of the attribute.
      *
      */
-    protected void addAttribute(String name, ObjectSchema elementSchema) {
-        addAttribute(name, elementSchema, MANDATORY);
+    protected void addElement(String name, ObjectSchema elementSchema) {
+        addElement(name, elementSchema, MANDATORY);
     } 
 
     /**
@@ -105,7 +104,7 @@ public abstract class ObjectSchema {
      *
      */
     protected void addBaseSchema(ObjectSchema base) {
-        baseSchemas.addElement(base);
+        baseSchemas.add(base);
     } 
 
     private void getAttributeDescriptorNames(Vector v) {
@@ -117,7 +116,7 @@ public abstract class ObjectSchema {
 
         for (Enumeration e = attributeDescriptors.keys(); 
                 e.hasMoreElements(); ) {
-            v.addElement(e.nextElement());
+            v.add(e.nextElement());
         }
     } 
 
@@ -127,7 +126,7 @@ public abstract class ObjectSchema {
      * @return the names of all attributes.
      *
      */
-    public String[] getAttributeNames() {
+    public String[] getNames() {
         Vector allAttributeDescriptors = new Vector();
 
         getAttributeDescriptorNames(allAttributeDescriptors);
@@ -217,7 +216,7 @@ public abstract class ObjectSchema {
      * @throws OntologyException
      *
      */
-    public ObjectSchema getAttributeSchema(String name) 
+    public ObjectSchema getSchema(String name) 
             throws OntologyException {
         name = name.toUpperCase();
 
@@ -230,7 +229,7 @@ public abstract class ObjectSchema {
                 try {
                     ObjectSchema base = (ObjectSchema) e.nextElement();
 
-                    return base.getAttributeSchema(name);
+                    return base.getSchema(name);
                 } 
                 catch (OntologyException oe) {}
             } 

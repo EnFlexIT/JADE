@@ -48,8 +48,8 @@ public class AgentActionSchema extends GenericActionSchema {
      * @param parameterSchema schema of the parameter.
      *
      */
-    public void addParameter(String name, TermSchema parameterSchema) {
-        addAttribute(name, parameterSchema);
+    public void add(String name, TermSchema parameterSchema) {
+        addElement(name, parameterSchema);
     } 
 
     /**
@@ -60,9 +60,8 @@ public class AgentActionSchema extends GenericActionSchema {
      * @param cardinality
      *
      */
-    public void addParameter(String name, TermSchema parameterSchema, 
-                             int cardinality) {
-        addAttribute(name, parameterSchema, cardinality);
+    public void add(String name, TermSchema parameterSchema, int cardinality) {
+        addElement(name, parameterSchema, cardinality);
     } 
 
     /**
@@ -74,6 +73,4 @@ public class AgentActionSchema extends GenericActionSchema {
     public AbsObject newInstance() {
         return new AbsAgentAction(getTypeName());
     } 
-
 }
-

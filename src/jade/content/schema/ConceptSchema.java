@@ -70,8 +70,8 @@ public class ConceptSchema extends TermSchema {
      * @param slotSchema schema of the slot.
      *
      */
-    public void addSlot(String name, TermSchema slotSchema) {
-        addAttribute(name, slotSchema);
+    public void add(String name, TermSchema slotSchema) {
+        addElement(name, slotSchema);
     } 
 
     /**
@@ -82,8 +82,8 @@ public class ConceptSchema extends TermSchema {
      * @param cardinality cardinality of the slot, i.e., optional or mandatory.
      *
      */
-    public void addSlot(String name, TermSchema slotSchema, int cardinality) {
-        addAttribute(name, slotSchema, cardinality);
+    public void add(String name, TermSchema slotSchema, int cardinality) {
+        addElement(name, slotSchema, cardinality);
     } 
 
     /**
@@ -92,7 +92,7 @@ public class ConceptSchema extends TermSchema {
      * @param superClassSchema
      *
      */
-    public void addSuperClass(ConceptSchema superClassSchema) {
+    public void addSuperSchema(ConceptSchema superClassSchema) {
         addBaseSchema(superClassSchema);
     } 
 
@@ -105,6 +105,4 @@ public class ConceptSchema extends TermSchema {
     public AbsObject newInstance() {
         return new AbsConcept(getTypeName());
     } 
-
 }
-

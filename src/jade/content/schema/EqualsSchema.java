@@ -24,43 +24,37 @@
  */
 package jade.content.schema;
 
+import jade.content.onto.*;
 import jade.content.abs.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class GenericActionSchema extends ContentElementSchema {
-    public static final String         BASE_NAME = "Action";
-    private static GenericActionSchema baseSchema = new GenericActionSchema();
+public class EqualsSchema extends ContentElementSchema {
+    public static final String  BASE_NAME = "Equals";
+    public static final String  IRE = ACLOntology.IRE;
+    public static final String  CONCEPT = ACLOntology.CONCEPT;
+    private static EqualsSchema equalsSchema = new EqualsSchema();
 
     /**
-     * Constructor.
+     * Constructor
      *
      */
-    public GenericActionSchema() {
+    private EqualsSchema() {
         super(BASE_NAME);
+
+        addElement(IRE, IRESchema.getBaseSchema());
+	addElement(CONCEPT, ConceptSchema.getBaseSchema());
     }
 
     /**
-     * Creates a new schema with a given <code>name</code>.
-     *
-     * @param name
-     *
-     */
-    public GenericActionSchema(String name) {
-        super(name);
-
-        addBaseSchema(baseSchema);
-    }
-
-    /**
-     * Retrieves the base schema of this schema.
+     * Retrieves the base schema.
      *
      * @return the base schema.
      *
      */
     public static ContentElementSchema getBaseSchema() {
-        return baseSchema;
+        return equalsSchema;
     } 
 
     /**
@@ -70,6 +64,6 @@ public class GenericActionSchema extends ContentElementSchema {
      *
      */
     public AbsObject newInstance() {
-        return new AbsGenericAction(getTypeName());
+        return new AbsEquals();
     } 
 }

@@ -73,6 +73,4 @@ public class ContentElementSchema extends ObjectSchema {
     public AbsObject newInstance() {
         return new AbsContentElement(getTypeName());
     } 
-
 }
-
