@@ -124,9 +124,6 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	props.setProperty(Profile.MAIN, "false");
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
 	String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
-	if(masterNode == null) {
-	    props.setProperty(Profile.CONTAINER_NAME, "BackEnd-" + myID);
-	}
 
 	// Add the mediator ID to the profile (it's used as a token
 	// to keep related replicas together)
