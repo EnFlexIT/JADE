@@ -716,6 +716,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           log("Added Route-Via-MTP for protocol "+pp[i], 1);
         }
 
+				String[] addresses = result.getAddresses();
+				for(int i = 0; i < addresses.length; i++) {
+						myContainer.addAddressToLocalAgents(addresses[i]);
+				}
+
         GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
         gCmd.addParam(result);
         gCmd.addParam(myContainer.getID());
@@ -742,6 +747,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         proto.deactivate(ta);
         MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
 
+				String[] addresses = desc.getAddresses();
+				for(int i = 0; i < addresses.length; i++) {
+						myContainer.removeAddressFromLocalAgents(addresses[i]);
+				}
 
         GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
         gCmd.addParam(desc);
