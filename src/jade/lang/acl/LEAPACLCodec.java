@@ -189,7 +189,10 @@ public class LEAPACLCodec implements ACLCodec {
       if (content != null) { 
     		// Content present in String form
       	dos.writeByte(1);
-      	dos.writeUTF(content);
+      	// We don't use writeUTF to avoid the 2 bytes length limitation 
+	      byte[] bscontent = content.getBytes();
+	      dos.writeInt(bscontent.length);
+	      dos.write(bscontent, 0, bscontent.length);
       }
       else {
     		// Content NOT present
@@ -248,7 +251,9 @@ public class LEAPACLCodec implements ACLCodec {
     }
     else if (type == 1) {
     	// Content present in String form
-    	msg.setContent(dis.readUTF());
+      byte[] content = new byte[dis.readInt()];
+      dis.read(content, 0, content.length);
+    	msg.setContent(new String(content));
     }
         
     return msg;
