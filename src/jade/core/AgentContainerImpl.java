@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.21  1998/11/09 00:05:31  rimassa
+  Now when an AgentContainer terminates and its shutDown() method is
+  called each agent is killed and the AgentContainer waits for its
+  thread to end by calling Agent.join() method.
+
   Revision 1.20  1998/11/03 00:27:52  rimassa
   Fixed a bug in ACL message multicast send: a reset() call was missing
   on target AgentGroup.
@@ -187,7 +192,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
 
     if(receiver == null) 
-      throw new NotFoundException("Message Dispatcher failed to find " + receiverName);
+      throw new NotFoundException("DispatchMessage failed to find " + receiverName);
 
     receiver.postMessage(msg);
   }
@@ -257,8 +262,11 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Remove all agents
       while(agentNames.hasMoreElements()) {
 	String name = (String)agentNames.nextElement();
+
+	// Kill agent and wait for its termination
 	Agent a = (Agent)localAgents.get(name);
 	a.doDelete();
+	a.join();
       }
 
       // Deregister itself as a container
@@ -300,9 +308,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
       localAgents.remove(name);
       myPlatform.deadAgent(name); // RMI call
-
-      if(localAgents.isEmpty())
-	System.exit(0);
 
     }
     catch(RemoteException re) {
