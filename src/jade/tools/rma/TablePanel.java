@@ -25,21 +25,18 @@ package jade.tools.rma;
 
 import javax.swing.*;
 import javax.swing.table.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
-
+import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
 
-/**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+import jade.gui.AgentTree;
+import jade.gui.GuiProperties;
 
 /**
  * This is the Table on the left
+
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
 public class TablePanel extends JPanel {
 
@@ -89,7 +86,7 @@ public class TablePanel extends JPanel {
 
 
   public JScrollPane createTable() {
-		
+
     // Create a model of the data.
     dataModel = new AbstractTableModel() {
       public int getColumnCount() { return names.length; }
@@ -121,20 +118,27 @@ public class TablePanel extends JPanel {
     return scrollpane;
   }
 
-  public void setData (Vector dat) {
-    data = new Object[dat.size()][3];
-    for (int i=0;i<dat.size();i++)
-      if (dat.elementAt(i) instanceof TreeData) {
-	TreeData current = (TreeData) dat.elementAt(i);
+  public void setData (TreePath paths[]) {
 
-	data[i][0]=current.getName();
-	data[i][1]=current.getAddressesAsString();
-	data[i][2]=current.getType();
+   int numPaths=paths.length;
+   data = new Object[numPaths][3];
+   Object relCur[];
+   AgentTree.AgentNode current;
+    for(int i=0;i<numPaths;i++) {
+       relCur= paths[i].getPath();
+         for (int j=0;j<relCur.length;j++) {
+            if (j==2) {
+              current = (AgentTree.AgentNode)relCur[j];
+              data[i][0] = current.getName();
+              data[i][1] = current.getAddress();
+              data[i][2] = current.getType();
+            }
+         }
       }
-    tableView.repaint();	
-  }
+    tableView.repaint();
+ }
 
-}
+} // End of TablePanel
 
 class ColumnLayout implements LayoutManager {
 
@@ -181,4 +185,4 @@ class ColumnLayout implements LayoutManager {
 
   public void removeLayoutComponent(Component c) {}
 
-}
+}   // End of ColumnLayout

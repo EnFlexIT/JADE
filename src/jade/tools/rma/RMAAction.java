@@ -20,25 +20,51 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
 package jade.tools.rma;
+
+import javax.swing.Icon;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import java.awt.event.ActionEvent;
+import jade.gui.AgentTree;
+import jade.gui.GuiProperties;
 
 /**
    Javadoc documentation for the file
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class ShutDownAction extends FixedAction{
+public abstract class RMAAction extends AbstractAction {
 
-  private rma myRMA;
+  protected Icon img;
+  protected String ActionName = "Action";
+  protected ActionProcessor actPro;
+  protected AgentTree aTree;
 
-  public ShutDownAction (rma anRMA,ActionProcessor actPro) {
-    super ("SuspendActionIcon","Shut down Agent Platform",actPro);
-    myRMA = anRMA;
+  public RMAAction(String IconKey,String ActionName) {
+    this.img = GuiProperties.getIcon("RMAAction."+IconKey);
+    this.ActionName = ActionName;
+    putValue(Action.SMALL_ICON,img);
+    putValue(Action.DEFAULT,img);
+    putValue(Action.NAME,ActionName);
   }
 
-  public void doAction() {
-     myRMA.shutDownPlatform();
+  public RMAAction (String IconPath,String ActionName,ActionProcessor actPro) {
+    this(IconPath,ActionName);
+    this.actPro=actPro;
   }
 
-}  // End of ShutDownAction
+  public String getActionName() {
+    return ActionName;
+  }
 
+  public synchronized void setIcon (Icon i) {
+    img = i;
+  }
+
+ public void actionPerformed(ActionEvent avt) {
+   actPro.process(this);
+  }
+
+}

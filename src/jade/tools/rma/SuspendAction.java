@@ -20,55 +20,34 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
 
-import javax.swing.*;
-import javax.swing.tree.TreeModel;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
+import jade.gui.AgentTree;
+import jade.gui.AgentTreeModel;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/**
- * SuspendAction suspends selected agents
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class SuspendAction extends AMSAbstractAction {
+public class SuspendAction extends  AgentAction {
 
   private rma myRMA;
 
-  public SuspendAction(rma anRMA) {
-    super ("SuspendActionIcon","Suspend Selected Agents");
+  public SuspendAction(rma anRMA,ActionProcessor actPro) {
+    super ("SuspendActionIcon","Suspend",actPro);
     myRMA = anRMA;
   }
+  public void doAction(AgentTree.AgentNode node ) {
+    node.setState("Suspended");
+    node.changeIcon(0);
+    String toSuspend = node.getName();
 
-    public void actionPerformed(ActionEvent evt) {
-      for (int i=0;i<listeners.size();i++) {
-	TreeData current = (TreeData)listeners.elementAt(i);
-	current.setState(TreeData.SUSPENDED);
-	String toSuspend = current.getName();
+    myRMA.suspendAgent(toSuspend);
+    AgentTreeModel myModel = myRMA.getModel();
+    myModel.nodeChanged(node);
 
-	int level = current.getLevel();
+  }
 
-	switch(level) {
-	case TreeData.AGENT:
-	  myRMA.suspendAgent(toSuspend);
-	  break;
-	case TreeData.CONTAINER:
-	  myRMA.suspendContainer(toSuspend);
-	  break;
-	}
-	AMSTreeModel myModel = myRMA.getModel();
-	myModel.nodeChanged(current);
-      }
-      listeners.removeAllElements();
-    }
-
-}
+} // End of SuspendAction
 

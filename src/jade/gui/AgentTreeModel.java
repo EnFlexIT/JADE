@@ -20,52 +20,26 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.rma;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.util.*;
+package jade.gui;
+
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/**
- * The model of the AMSTree
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class AMSTreeModel extends DefaultTreeModel {
+public class AgentTreeModel extends DefaultTreeModel {
 
-  /**
-   * the Root of the Tree
-   */
-  protected static TreeData root = new TreeData ("JADE ",TreeData.SUPER_NODE);
 
-  public AMSTreeModel () {
-    super(root);
+  public AgentTreeModel (AgentTree.Node cNode) {
+    super(cNode);
   }
 
-  /* TreeModel methods */
   public Object getRoot() {
     return root;
   }
 
-  /**
-   * This method must be rewritten if we want
-   * to make possible editing the tree
-   */
-  public void valueForPathChanged(TreePath path, Object newValue) {}
-
-	
-  /**
-   * This method must be rewritten if we want
-   * to make possible editing the tree
-   */
-  protected void fireValueChanged(TreePath path,int[] ind,Object[] children)  {}
-
-}
-
+} // End of AgentTreeModel

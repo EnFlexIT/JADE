@@ -21,9 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
-
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -34,6 +32,7 @@ import jade.domain.AgentManagementOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.gui.AgentTreeModel;
 
 /**
   <em>Remote Management Agent</em> agent. This class implements
@@ -174,7 +173,7 @@ public class rma extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-  private transient AMSMainFrame myGUI = new AMSMainFrame(this);
+  private transient MainWindow myGUI = new MainWindow(this);
 
   private String myContainerName;
 
@@ -248,15 +247,15 @@ public class rma extends Agent {
   protected void afterClone() {
     // Add yourself to the RMA list
     AMSSubscription.setSource(getLocalName());
-    send(AMSSubscription);    
-    myGUI = new AMSMainFrame(this);
+    send(AMSSubscription);
+    myGUI = new MainWindow(this);
     myGUI.ShowCorrect();
   }
 
   /**
    Callback method for platform management <em>GUI</em>.
    */
-  public AMSTreeModel getModel() {
+  public AgentTreeModel getModel() {
     return myGUI.getModel();
   }
 

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -20,38 +21,34 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.gui;
 
-package jade.tools.rma;
+ import java.util.Map;
+ import java.util.HashMap;
+ import javax.swing.JPopupMenu;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
-import java.util.Vector;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/** 
- * Open a Script File Action
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class OpenScriptFileAction extends AMSAbstractAction
-{
-	public OpenScriptFileAction ()
-	{
-		super("OpenScriptFileActionIcon","Open Script File");
-	}
-	public void actionPerformed(ActionEvent evt)
-	{
-		FileDialog fileDialog = new FileDialog(new JFrame());
-		fileDialog.setMode(FileDialog.LOAD);
-		fileDialog.show();
-		System.out.println("Executing script");
-	}
+public class DescriptionNode {
+  private Map descriptiveMap;
 
-}
+  public DescriptionNode() {
+      descriptiveMap=new HashMap();
+  }
 
+  protected void addElementMap(String key,JPopupMenu popMenu) {
+   descriptiveMap.put(key,popMenu);
+  }
+
+  protected boolean existsKey(String key) {
+     return descriptiveMap.containsKey(key);
+  }
+
+  protected JPopupMenu getPopupMenuMap(String key){
+   return (JPopupMenu) descriptiveMap.get(key);
+ }
+} // End of DescriptionNode

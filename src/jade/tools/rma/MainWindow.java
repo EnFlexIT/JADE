@@ -24,56 +24,43 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import java.awt.*;
-import java.awt.event.*;
-
 import java.util.Enumeration;
-
 import javax.swing.*;
-import javax.swing.border.*;
 import javax.swing.tree.*;
-
 import jade.lang.acl.ACLMessage;
-import jade.gui.*;
+import jade.gui.AgentTreeModel;
+import jade.gui.AgentTree;
+import javax.swing.tree.MutableTreeNode;
+import java.util.Vector;
+
 
 /**
- * A class representing the main window of the Management System
- * command line parameters are:
- *				<p>-wi	 enables Windows Look & Feel (default)</P>
- *				<p>-mo			 Motif Look & Feel</P>
- *				<p>-me			 Metal Look & Feel</P>
- *				<p>-mu			 Multi Look & Feel</P>
- *                              <p>-ba                   Basic Look & Feel</P>
- * <pre>
- *    java AMSMainFrame -mo
- * </pre>
- * Javadoc documentation for the file
- * @author  Gianstefano Monni
- * @version $Date$ $Revision$
- * @see     javax.swing.JFrame
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
- 
-class AMSMainFrame extends JFrame {
-  // FIXME: Static Vector 'listeners' prevents two or more rma within the same JVM 
-  private AMSTree tree;
+class MainWindow extends JFrame {
 
-  public AMSMainFrame (rma anRMA) {
+  private MainPanel tree;
+  private ActionProcessor actPro;
+  private PopupMenuAgent popA;
+  private PopupMenuContainer popC;
+
+  public MainWindow (rma anRMA) {
     super("JADE Remote Agent Management GUI");
- 
-    setJMenuBar(new AMSMenu(anRMA, this));
-
-    tree = new AMSTree(anRMA, this);
+    tree = new MainPanel(anRMA, this);
+    actPro=new ActionProcessor(anRMA,this,tree);
+    setJMenuBar(new MainMenu(this,actPro));
+    popA=new PopupMenuAgent(actPro);
+    popC=new PopupMenuContainer(actPro);
     setForeground(Color.black);
     setBackground(Color.lightGray);
     addWindowListener(new WindowCloser(anRMA));
-    getContentPane().add(new AMSToolBar(tree, anRMA, this),"North");
 
+    getContentPane().add(new ToolBar(tree,this,actPro),"North"); // new ToolBar(tree, this, ActionProcessor.actions)
     getContentPane().add(tree,"Center");
-
   }
 
-  /**
-     show the AMSMainFrame packing and setting its size correctly
-  */
   public void ShowCorrect() {
     pack();
     setSize(600,400);
@@ -108,19 +95,16 @@ class AMSMainFrame extends JFrame {
 
   }
 
-  public AMSTreeModel getModel() {
-    return tree.getModel();
+  public AgentTreeModel getModel() {
+    return tree.treeAgent.getModel();
   }
 
   public void addContainer(final String name) {
-
-    // Add a container node to the tree model
     Runnable addIt = new Runnable() {
       public void run() {
-	MutableTreeNode node = tree.createNewNode(name, TreeData.CONTAINER);
-	AMSTreeModel model = tree.getModel();
-	MutableTreeNode root = (MutableTreeNode)model.getRoot();
-	model.insertNodeInto(node, root, root.getChildCount());
+        MutableTreeNode node = tree.treeAgent.createNewNode(name,0);
+	      tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER");
+        tree.treeAgent.setParameter("FIPACONTAINER",popC);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -130,48 +114,22 @@ class AMSMainFrame extends JFrame {
 
     // Remove a container from the tree model
     Runnable removeIt = new Runnable() {
-      public void run() {
 
-	AMSTreeModel model = tree.getModel();
-	MutableTreeNode root = (MutableTreeNode)model.getRoot();
-	Enumeration containers = root.children();
-	while(containers.hasMoreElements()) {
-	  TreeData node = (TreeData)containers.nextElement();
-	  String nodeName = node.getName();
-	  if(nodeName.equalsIgnoreCase(name)) {
-	    model.removeNodeFromParent(node);
-	    return;
-	  }
-	}
-      }
+      public void run() {
+       tree.treeAgent.removeContainerNode(name);
+     }
     };
     SwingUtilities.invokeLater(removeIt);
   }
 
-  public void addAgent(final String containerName, final String agentName, final String agentAddress, final String agentType) {
+  public void addAgent(final String containerName, final String agentName, final String agentAddress, final String typeAgent) {
 
-    // Add an agent to the specified container
-    Runnable addIt = new Runnable() {
+   // Add an agent to the specified container
+     Runnable addIt = new Runnable() {
       public void run() {
-	AMSTreeModel model = tree.getModel();
-	MutableTreeNode root = (MutableTreeNode)model.getRoot();
-
-	// Create a suitable new node
-	TreeData node = tree.createNewNode(agentName, TreeData.AGENT);
-	node.addAddress(agentAddress);
-	node.setType(agentType);
-
-	// Search for the agent container 'containerName'
-	Enumeration containers = root.children();
-	while(containers.hasMoreElements()) {
-	  TreeData container = (TreeData)containers.nextElement();
-	  String contName = container.getName();
-	  if(contName.equalsIgnoreCase(containerName)) {
-	    // Add this new agent to this container and return
-	    model.insertNodeInto(node, container, container.getChildCount());
-	    return;
-	  }
-	}
+       	AgentTree.Node node = tree.treeAgent.createNewNode(agentName,1);
+        tree.treeAgent.addAgentNode(node,containerName,agentName,agentAddress,"FIPAAGENT");
+        tree.treeAgent.setParameter("FIPAAGENT",popA);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -182,29 +140,8 @@ class AMSMainFrame extends JFrame {
     // Remove an agent from the specified container
     Runnable removeIt = new Runnable() {
       public void run() {
-	AMSTreeModel model = tree.getModel();
-	MutableTreeNode root = (MutableTreeNode)model.getRoot();
-
-	// Search for the agent container 'containerName'
-	Enumeration containers = root.children();
-	while(containers.hasMoreElements()) {
-	  TreeData container = (TreeData)containers.nextElement();
-	  String contName = container.getName();
-	  if(contName.equalsIgnoreCase(containerName)) {
-
-	    // Search for the agent 'agentName' in this agent container
-	    Enumeration agents = container.children();
-	    while(agents.hasMoreElements()) {
-	      TreeData agent = (TreeData)agents.nextElement();
-	      String agName = agent.getName();
-	      if(agName.equalsIgnoreCase(agentName)) {
-		model.removeNodeFromParent(agent);
-		return;
-	      }
-	    }
-	  }
-	}
-      }
+       tree.treeAgent.removeAgentNode(containerName,agentName);
+     }
     };
     SwingUtilities.invokeLater(removeIt);
   }
@@ -239,28 +176,28 @@ class AMSMainFrame extends JFrame {
      enables Motif L&F
   */
   public void setUI2Motif() {
-    setUI("motif.MotifLookAndFeel");   
+    setUI("motif.MotifLookAndFeel");
   }
-    
+
   /**
      enables Windows L&F
   */
   public void setUI2Windows() {
-    setUI("windows.WindowsLookAndFeel");   
+    setUI("windows.WindowsLookAndFeel");
   }
 
   /**
      enables Multi L&F
   */
   public void setUI2Multi() {
-    setUI("multi.MultiLookAndFeel");   
+    setUI("multi.MultiLookAndFeel");
   }
 
   /**
      enables Metal L&F
   */
   public void setUI2Metal() {
-    setUI("metal.MetalLookAndFeel");   
+    setUI("metal.MetalLookAndFeel");
   }
 
-}
+} // End of MainWindow

@@ -23,10 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
 Javadoc documentation for the file

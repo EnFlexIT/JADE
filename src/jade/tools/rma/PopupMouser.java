@@ -23,41 +23,64 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import java.applet.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
+import jade.gui.AgentTree;
+import javax.swing.tree.TreeSelectionModel;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-public class PopupMouser extends MouseAdapter
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
+ */
+class PopupMouser extends MouseAdapter
 {
     JPopupMenu popup;
-    
-    public PopupMouser(JPopupMenu p)
-    {
-        popup = p;
+    JTree tree;
+    AgentTree agentTree;
+
+    public PopupMouser(JTree tree,AgentTree agentTree){
+        this.tree=tree;
+        this.agentTree=agentTree;
     }
 
-    public void mouseReleased(MouseEvent e)
-    {
+    public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger())
-        { 
-            popup.show(e.getComponent(), e.getX(), e.getY());
-        }
+         if (setPopup(e)) popup.show(e.getComponent(), e.getX(), e.getY());
+
     }
 
-    public void mousePressed(MouseEvent e)
-    {
+    public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger())
-        { 
-            popup.show(e.getComponent(), e.getX(), e.getY());
-        }
+           if (setPopup(e)) popup.show(e.getComponent(), e.getX(), e.getY());
+
     }
-}
+
+  private boolean setPopup(MouseEvent e){
+    AgentTree.Node current;
+    String typeNode;
+    TreeSelectionModel model;
+
+    int selRow = tree.getRowForLocation(e.getX(), e.getY());
+    TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+    if(selRow != -1) {
+      if(!tree.isRowSelected(selRow)) {
+	model=tree.getSelectionModel();
+	model.setSelectionPath(selPath);
+      }
+      current=(AgentTree.Node)selPath.getLastPathComponent();
+      typeNode=current.getType();
+      if(!typeNode.equals(""))
+	popup=agentTree.getPopupMenu(typeNode);
+      else
+	popup=new JPopupMenu();
+      return true;
+    }
+    else return false;
+  }
+
+} // End of PopupMouser
 

@@ -23,31 +23,23 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
-
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-/** 
- * Exit Action
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class ExitAction extends AMSAbstractAction {
+public class ExitAction extends FixedAction {
 
   private rma myRMA;
 
-  public ExitAction (rma anRMA) {
-    super ("ExitActionIcon","Exit this Container");
+  public ExitAction (rma anRMA,ActionProcessor actPro) {
+    super ("ExitActionIcon","Exit this Container",actPro);
     myRMA = anRMA;
   }
 
-  public void actionPerformed(ActionEvent evt) {
+  public void doAction() {
     myRMA.exit();
   }
-}
+
+} //End of ExitAction
 

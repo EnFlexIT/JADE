@@ -20,33 +20,35 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-/** 
- * Get Node Properties Action
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class getPropertiesAction extends AMSAbstractAction
-{
-	public getPropertiesAction()
-	{
-		super ("getPropertiesActionIcon","Properties");
-	}
+class PopupMenuAgent extends JPopupMenu{
+ public PopupMenuAgent(ActionProcessor actPro) {
+  super();
+   JMenuItem tmp;
 
-   	public void actionPerformed(ActionEvent e) 
-	{
-		System.out.println(ActionName);                                     
-	}
-}
+   tmp=add((RMAAction)actPro.actions.get(actPro.KILL_ACTION));
+   tmp.setIcon(null);
+   addSeparator();
 
+   tmp=add((RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION) );
+   tmp.setIcon(null);
+   
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.RESUME_ACTION) );
+   tmp.setIcon(null);
+   addSeparator();
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION) );
+   tmp.setIcon(null);
+  }
+
+} // End of PopupMenuAgent

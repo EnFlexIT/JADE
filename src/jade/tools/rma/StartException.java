@@ -20,53 +20,31 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.io.*;
-import java.util.*;
+import javax.swing.JFrame;
+import java.lang.Exception;
+import javax.swing.JOptionPane;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-/**
- * The Table with three cols on the left
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class AMSTable extends JPanel
+class StartException extends Exception
 {
-	private AMSTableModel model;
-    public AMSTable() 
+  public static final String ErrorMessage = "You must select an agent-platform or a agent-container in the Tree";
+  public static final String ErrorPaneTitle = "Start Procedure Error";
+
+  public StartException()
+    {}
+
+  public static final void handle ()
     {
-        JTable table;
-  
-   		Font f;
-     
-        f = new Font("SanSerif",Font.PLAIN,24);
-        setFont(f);
-        setLayout(new BorderLayout());
-        
-        model = new AMSTableModel(AMSAbstractAction.getAllListeners());
-        
-        table = new JTable();
-        table.setModel(model);
-        table.createDefaultColumnsFromModel();
-        
-        add(JTable.createScrollPaneForTable(table),"Center");
+      JOptionPane.showMessageDialog(new JFrame(),ErrorMessage,ErrorPaneTitle,JOptionPane.ERROR_MESSAGE);
     }
 
-	public AMSTableModel getModel()
-	{
-		return model;
-	}
+} // End of StartException
 
-    public Dimension getPreferredSize()
-    {
-        return new Dimension(300, 300);
-    }   
-}
+
+

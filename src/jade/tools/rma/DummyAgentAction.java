@@ -22,40 +22,31 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
-
-/**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
+import jade.gui.AgentTree;
 
 /**
  * DummyAgentAction spawns an external application passing as parameters a 
  * String containing ALL agents selected in the Tree
  * @see jade.gui.AMSAbstractAction
  */
-public class DummyAgentAction extends AMSAbstractAction
-{
+
+public class DummyAgentAction extends FixedAction {
   /**
    * Progressive Number to give always a new name to DummyAgent
    */
-  private  static int progressiveNumber = 0;
+  private int progressiveNumber = 0;
 
   private rma myRMA;
 
-    public DummyAgentAction(rma anRMA) {
-      super ("DummyAgentActionIcon","Start DummyAgent");
+   public DummyAgentAction(rma anRMA,ActionProcessor actPro) {
+      super ("DummyAgentActionIcon","Start DummyAgent",actPro);
       progressiveNumber = 0;
       myRMA = anRMA;
     }
-	
-    public void actionPerformed(ActionEvent e) 
-    {
+
+   public void doAction() {
       myRMA.newAgent("da"+progressiveNumber, "jade.tools.DummyAgent.DummyAgent", new String());
       progressiveNumber++;
-    }
-}
+     }
+
+}  // End of DummyAgent

@@ -20,35 +20,29 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
+
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/** 
- * Ping Action. This Action pings ALL the agent loaded in 
- * the vector of listeners (AMSAbstractAction.listeners)
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class PingAction extends AMSAbstractAction
-{
-	public PingAction()
-	{
-		super ("PingActionIcon","Ping Selected Agents");
-	}
-	
-	public void actionPerformed(ActionEvent e) 
-	{
-		System.out.println(ActionName);                                     
-	}
+class PopupMenuContainer extends JPopupMenu{
 
-}
+ public PopupMenuContainer(ActionProcessor actPro) {
+  super();
+   JMenuItem tmp;
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.START_ACTION));
+   tmp.setIcon(null);
+   addSeparator();
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.KILL_ACTION));
+   tmp.setIcon(null);
+ }
+
+} // End of PopupMenuContainer

@@ -23,48 +23,36 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
-
+import java.awt.Frame;
 import jade.lang.acl.ACLMessage;
 import jade.gui.*;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/** 
- * Send Custom message Action
- * @see jade.tools.rma.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class CustomAction extends AMSAbstractAction
-{
-    private rma myRMA;
-    private Frame mainWnd;
-    public CustomAction(rma anRMA, Frame f)
+public class CustomAction extends AgentAction {
+
+ private rma myRMA;
+ private Frame mainWnd;
+
+  public CustomAction(rma anRMA, Frame f,ActionProcessor actPro)
     {
-	super ("CustomActionIcon","Send Custom Message to Selected Agents");
+	super ("CustomActionIcon","Send Message",actPro);
 	myRMA = anRMA;
 	mainWnd = f;
     }
 
-    public void actionPerformed(ActionEvent e) 
-    {
-	ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-	for (int i=0;i<listeners.size();i++) {
-	  TreeData current = (TreeData)listeners.elementAt(i);
-	  if (current.getLevel() == TreeData.AGENT) {
-	    // System.err.println("AddDest "+ current.getName());
-	    msg2.addDest(current.getName());
-	  }
-	}
-	ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
-	if (msg != null)
+  public void doAction(AgentTree.AgentNode nod) {
+
+    AgentTree.Node node=(AgentTree.Node) nod;
+    ACLMessage msg2 = new ACLMessage("not-understood");
+    msg2.addDest(node.getName());
+    ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
+      if (msg != null)
 	  myRMA.send(msg);
 
-    }
-}
+  }
+
+} // End CustomAction

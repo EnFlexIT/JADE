@@ -20,36 +20,33 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
+
+
+import java.awt.Frame;
+import jade.gui.AgentTree;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/**
- * StartNewAgentAction starts a new agent in the selected
- * container or in agent platform.
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-
-public class StartNewAgentAction extends AMSAbstractAction {
+public class StartNewAgentAction extends ContainerAction {
 
   private rma myRMA;
   private Frame mainWnd;
 
-  public StartNewAgentAction(rma anRMA, Frame f) {
-    super ("StartNewAgentActionIcon","Start New Agent");
+  public StartNewAgentAction(rma anRMA, Frame f,ActionProcessor actPro) {
+    super ("StartNewAgentActionIcon","Start New Agent",actPro);
     myRMA = anRMA;
     mainWnd = f;
+  }
+
+  public void doAction(AgentTree.ContainerNode node ) {
+
+               String containerName = node.getName();
+              int result = doStartNewAgent(containerName);
   }
 
   private int doStartNewAgent(String containerName) {
@@ -65,52 +62,9 @@ public class StartNewAgentAction extends AMSAbstractAction {
     return result;
   }
 
-  public void actionPerformed(ActionEvent e) {
-    if (listeners.size() >= 1) { // Some tree node is selected
-      for (int i=0;i<listeners.size();i++) {
-	try {
-
-	  TreeData parent = (TreeData) listeners.elementAt(i);
-	  if (parent.getLevel() == TreeData.AGENT || parent.getLevel() == TreeData.SUPER_NODE) {
-	    throw new StartException();
-	  }
-	  else {
-	    String containerName = parent.getName();
-
-	    int result = doStartNewAgent(containerName);
-	    if (result == StartDialog.OK_BUTTON) {
-	      ((TreeData)listeners.elementAt(i)).setState(TreeData.RUNNING);
- 
-	    }
-	  }
-	}
-	catch (StartException ex) {
-	  StartException.handle();	
-	}
-      }
-    }
-    else
-      doStartNewAgent(null);
-  }
-}
+}  // End of StartNewAgentAction
 
 
-/** 
- * This class is useful to handle user input error
- */
-class StartException extends Exception
-{
-  public static final String ErrorMessage = "You must select an agent-platform or a agent-container in the Tree";
-  public static final String ErrorPaneTitle = "Start Procedure Error";
-  
-  public StartException()
-    {}
-
-  public static final void handle ()
-    {
-      JOptionPane.showMessageDialog(new JFrame(),ErrorMessage,ErrorPaneTitle,JOptionPane.ERROR_MESSAGE);
-    }
-}
 
 
 

@@ -20,34 +20,19 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.tools.rma;
 
-import jade.gui.AgentTree;
 
-public class KillAction extends GenericAction {
+/**
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
+ */
+abstract class FixedAction extends RMAAction{
 
-  private rma myRMA;
-
-  public KillAction(String label, rma anRMA,ActionProcessor actPro) {
-    super ("KillActionIcon", label,actPro);
-    myRMA = anRMA;
+  public FixedAction(String IconPath,String ActionName,ActionProcessor actPro) {
+   super(IconPath,ActionName,actPro);
   }
+  public abstract void doAction();
 
-  public void doAction(AgentTree.AgentNode node ) {
-   if (node!=null) {
-     String toKill = node.getName();
-     myRMA.killAgent(toKill);
-   }
- }
-
-  public void doAction(AgentTree.ContainerNode node ) {
-   if (node!=null) {
-     String toKill = node.getName();
-     myRMA.killContainer(toKill);
-   }
-  }
-
- } //End of KillAction
-
-
+} // End of FixedAction

@@ -1,4 +1,3 @@
-
 /*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
@@ -25,41 +24,38 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
 import jade.lang.acl.ACLMessage;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-class ShowDFGuiAction extends AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
+ */
+class ShowDFGuiAction extends FixedAction
 {
 
   private rma myRMA;
 
-	ShowDFGuiAction(rma anRMA)
-	{
-	  // Note: this class uses the DummyAgentActionIcon just because it 
-	  // never displays an icon, but a parameter must anyway be passed.
-	  super ("DummyAgentActionIcon","Show the DF GUI");
-	  myRMA = anRMA;
-	}
-	
-	public void actionPerformed(ActionEvent e) 
-	{
-	  ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-	  msg.setDest("df");
-	  msg.setOntology("jade-extensions");
-	  msg.setProtocol("fipa-request");
-	  msg.setContent("(action df (SHOWGUI))");
-	  myRMA.send(msg);
-	}
-}
-	
+  ShowDFGuiAction(rma anRMA,ActionProcessor actPro ) {
+
+     // Note: this class uses the DummyAgentActionIcon just because it
+     // never displays an icon, but a parameter must anyway be passed.
+
+     super ("DummyAgentActionIcon","Show the DF GUI",actPro);
+     myRMA = anRMA;
+  }
+
+   public void doAction() {
+
+     ACLMessage msg = new ACLMessage("request");
+     msg.setDest("df");
+     msg.setOntology("jade-extensions");
+     msg.setProtocol("fipa-request");
+     msg.setContent("(action df (SHOWGUI))");
+     myRMA.send(msg);
+  }
+
+}  // End of ShowDFGuiAction
+
 
 

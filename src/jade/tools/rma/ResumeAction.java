@@ -24,52 +24,33 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
 import javax.swing.tree.TreeModel;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
+import jade.gui.AgentTree;
+import jade.gui.AgentTreeModel;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/**
- * ResumeAction resumes selected nodes
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class ResumeAction extends AMSAbstractAction {
+public class ResumeAction extends AgentAction {
 
   private rma myRMA;
 
-  public ResumeAction(rma anRMA) {
-    super ("ResumeActionIcon","Resume Selected Agents");
+  public ResumeAction(rma anRMA,ActionProcessor actPro) {
+    super ("ResumeActionIcon","Resume",actPro);
     myRMA = anRMA;
   }
 
-  public void actionPerformed(ActionEvent evt) {
-    for (int i=0;i<listeners.size();i++) {
-      TreeData current = (TreeData)listeners.elementAt(i);
-      current.setState(TreeData.RUNNING);
-      String toResume = current.getName();
+  public void doAction(AgentTree.AgentNode node ) {
 
-      int level = current.getLevel();
+    node.setState("Running");
+    node.changeIcon(1);
+    String toResume = node.getName();
 
-      switch(level) {
-      case TreeData.AGENT:
-	myRMA.resumeAgent(toResume);
-	break;
-      case TreeData.CONTAINER:
-	myRMA.resumeContainer(toResume);
-	break;
-      }
-      AMSTreeModel myModel = myRMA.getModel();
-      myModel.nodeChanged(current);
-    }
-    listeners.removeAllElements();
+    myRMA.resumeAgent(toResume);
+    AgentTreeModel myModel = myRMA.getModel();
+    myModel.nodeChanged(node);
   }
-
 
 }

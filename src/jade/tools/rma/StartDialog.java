@@ -24,24 +24,16 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.*;
-import java.util.*;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
-/**
- * The Dialog to set command line parameters
- * to start Agents. IT has many static attributes because
- * ONLY one Dialog of this kind can be shown at one moment
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class StartDialog extends JDialog implements ActionListener {
+public class StartDialog extends JDialog implements ActionListener{
   protected static JTextField agentName;
   protected static JTextField className;
   protected static JTextField container;
@@ -54,7 +46,7 @@ public class StartDialog extends JDialog implements ActionListener {
   protected static JButton CancelButton = new JButton ("Cancel");
 
   protected static String agentNameToolTip = "Name of the Agent to start";
-  protected static String classNameToolTip = "Class Name of the Agent to start"; 
+  protected static String classNameToolTip = "Class Name of the Agent to start";
   protected static String containerToolTip = "Container on which the Agent will start";
 
   protected static String result  = "";
@@ -119,34 +111,12 @@ public class StartDialog extends JDialog implements ActionListener {
     dispose();
   }
 
-  /**
-   * This method shows a modal Dialog
-   * useful to set parameters to start
-   * agents previously registered 
-   */
-  public static int showStartDialog(String agentNameP) {
-    agentName.setEditable(false);
-    StartDialog panel = new StartDialog(agentNameP, new JFrame("Start Dialog"));
-    return choice;
-  }
-
-  /**
-   * This method shows a modal Dialog
-   * useful to set parameters to start
-   * new agents  
-   */
   public static int showStartNewDialog(String containerName, Frame owner) {
+    choice=CANCEL_BUTTON;
     agentName.setEditable(true);
-    if(containerName == null) {
-      container.setEditable(true);
-      setContainer("");
-    }
-    else {
-      setContainer(containerName);
-      container.setEditable(false);
-    }
-
-    StartDialog panel = new StartDialog("New Agent", owner);
+    container.setEditable(false);
+    setContainer(containerName);
+    StartDialog panel = new StartDialog("", owner);
     return choice;
   }
 
@@ -174,5 +144,4 @@ public class StartDialog extends JDialog implements ActionListener {
     container.setText(containerP);
   }
 
-
-}
+} // End of class StartDialog

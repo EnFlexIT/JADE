@@ -25,29 +25,18 @@ package jade.tools.rma;
 
 import jade.gui.AgentTree;
 
-public class KillAction extends GenericAction {
 
-  private rma myRMA;
+/**
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
+ */
+abstract class ContainerAction extends RMAAction{
 
-  public KillAction(String label, rma anRMA,ActionProcessor actPro) {
-    super ("KillActionIcon", label,actPro);
-    myRMA = anRMA;
+  public ContainerAction(String IconPath,String ActionName,ActionProcessor actPro) {
+   super(IconPath,ActionName,actPro);
   }
 
-  public void doAction(AgentTree.AgentNode node ) {
-   if (node!=null) {
-     String toKill = node.getName();
-     myRMA.killAgent(toKill);
-   }
- }
+  public abstract void doAction(AgentTree.ContainerNode node);
 
-  public void doAction(AgentTree.ContainerNode node ) {
-   if (node!=null) {
-     String toKill = node.getName();
-     myRMA.killContainer(toKill);
-   }
-  }
-
- } //End of KillAction
-
-
+} // End of ContainerAction

@@ -24,37 +24,25 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.*;
-
- /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-
 /**
- * SnifferAction spawns an external application passing as parameters a 
- * String containing ALL agents selected in the Tree
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-
-public class SnifferAction extends AMSAbstractAction {
+class SnifferAction extends FixedAction {
 
   private static int progressiveNumber = 0;
   private rma myRMA;
 
-  public SnifferAction(rma anRMA) {
-    super ("SnifferActionIcon","Start Sniffer");
-    myRMA = anRMA;		
+  public SnifferAction(rma anRMA,ActionProcessor actPro) {
+    super ("SnifferActionIcon","Start Sniffer",actPro);
+    myRMA = anRMA;
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void doAction() {
     myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer", new String());
     progressiveNumber++;
   }
 
-}
-	
+} // End of SnifferAction
+

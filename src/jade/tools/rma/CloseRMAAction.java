@@ -37,17 +37,18 @@ Javadoc documentation for the file
  * Close RMA Action
  * @see jade.gui.AMSAbstractAction
  */
-public class CloseRMAAction extends AMSAbstractAction {
+public class CloseRMAAction extends FixedAction {
 
   private rma myRMA;
 
-  public CloseRMAAction (rma anRMA) {
-    super ("SuspendActionIcon","Close RMA Agent");
+  public CloseRMAAction (rma anRMA,ActionProcessor actPro) {
+    super ("SuspendActionIcon","Close RMA Agent",actPro);
     myRMA = anRMA;
   }
 
-  public void actionPerformed(ActionEvent evt) {
-    myRMA.doDelete();
+  public void doAction() {
+   myRMA.doDelete();
   }
-}
+  
+} // End of CloseRMAAction
 

@@ -23,43 +23,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.util.*;
+import jade.gui.AgentTree;
 
 /**
-Javadoc documentation for the file
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
-/** 
- * Reload Action
- * This action forces the AMSTree to reload ALL its nodes
- * @see jade.gui.AMSAbstractAction
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
-public class ReloadAction extends AMSAbstractAction
-{
+public abstract class AgentAction extends RMAAction {
 
-	public ReloadAction()
-	{
-		super ("PingActionIcon","Reload Tree from selected Node");
-	}
-	
-	/**
-	  * Determines the selection from the Tree and asks the treemodel
-	  * to reload itself from that node.
-	  */
-	public void actionPerformed(ActionEvent e) 
-	{
-	    DefaultMutableTreeNode lastItem = tree.getSelectedNode();
+  public AgentAction(String IconPath,String ActionName,ActionProcessor actPro) {
+   super(IconPath,ActionName,actPro);
+  }
 
-	    if(lastItem != null)
-		tree.getModel().reload(lastItem);
-	}
+  public abstract void doAction(AgentTree.AgentNode node);
 
-
-}
-
+} // End of AgentAction
