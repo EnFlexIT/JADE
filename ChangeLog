@@ -1,12 +1,20 @@
-MAJOR CHANGES in JADE Snapshot (19 August 2003)
+MAJOR CHANGES in JADE Snapshot (29 August 2003)
 ==========================================================================
 GENERAL IMPROVEMENTS:
 - new service-based kernel based on a Distributed Composition Filter pattern
 - Added support for replication of the main container
+- Added '-smhost' and '-smport' command line options, to locally install 
+  a Service Manager (for main containers only)
+- Added '-smaddrs' command line option, to specify a list of Service 
+  Manager addresses to use for fault tolerance (for peripheral containers 
+  only)
+- Added the 'shutdown-platform' action to the 'jade-management' ontology
+- Modified the semantics of 'kill-container' action. Now, it never kills 
+  the whole platform (POSSIBLE BACKWARD INCOMPATIBILITY)
 - jade.content: improved efficiency of LEAPCodec
 - Introspector tool: a list of agents to introspect can be now passed as
   argument on the command line (Karl-Heinz Krempels)
-- ACC returns a failure msg to sender when msg is bouncing.
+- ACC returns a failure msg to sender when msg is bouncing
 - LEAP IMTP and J2ME containers:
   - Modified to optimize container shutdown.
   - Adjusted synchronizations on local agents table
@@ -14,25 +22,24 @@ GENERAL IMPROVEMENTS:
   - Modified to support http as transport protocol
   - Improved exception reporting
   - Removed deadlock on flushing
-- jade.domain.RequestManagementBehaviour: the AGREE message is not sent anymore. 
+- jade.domain.RequestManagementBehaviour: the AGREE message is not sent anymore
 - added user-defined properties in the envelope
-- Changed support for user-defined slots in envelope so that Property value can 
-  include any "serializable" object
-- benchmark add-on: added parallel mode
+- benchmark add-on: added parallel mode and more configuration files
 - Added new add-on: MTP implementation based on JMS (Edward Curry)
 - Added new add-on: RDFCodec compliant to FIPA specs
-- misc add-on: DynamicFSMBehaviour is now capable of reading the FSM definition directly 
-  from an ACLMessage.
-
+- misc add-on: DynamicFSMBehaviour is now capable of reading the FSM 
+  definition directly from an ACLMessage.
+- DF: improved the DF Applet (possible backward incompatibility), fixed bug
+  in recursive search
+	
 DOCUMENTATION:
 - Added JADEApplets tutorial
-- administratorsguide: Added the description of how to pass arguments to the sniffer 
-  and to the introspector (Karl-Heinz Krempels)
-- JADE4Beginners: Added a JADE-JBuilder tutorial and made a few small changes to the 4 
-  older ones (David Grimshaw)
+- administratorsguide: Added the description of how to pass arguments to the 
+  sniffer and to the introspector (Karl-Heinz Krempels)
+- JADE4Beginners: Added a JADE-JBuilder tutorial and made a few small changes 
+  to the 4 older ones (David Grimshaw)
 - Added new add-on & Tutorial on how to use JADE from Servlet (Fabien Gandon)
 - Args&Props.html: Fixed a bug in the tutorial (setArguments is final!) [Dick Cowan]
-
 
 BUG FIXES:
 - jade.content 
@@ -40,14 +47,18 @@ BUG FIXES:
     Hashtable implementations.
   - Fixed bug in management of mandator empty aggregates
   - Fixed bug related to facets defined upon an inherited slot.
-- Correctly handled the 'create an agent with an already existing name' use case. 
-  In case of a name clash the AMS answers with an 'already-registered' FAILURE 
-  message.
+- Correctly handled the 'create an agent with an already existing name' use 
+  case. In case of a name clash the AMS answers with an 'already-registered' 
+  FAILURE message.
 - BasicJessBehaviour : replaced the usage of setReplyBy with setReplyByDate. 
-  Backward incompatibility: JESS batches have now to manage a date represented in 
-  milliseconds from 1/1/1970 instead of a Date represented in ISO8601 format
+  Backward incompatibility: JESS batches have now to manage a date represented
+  in milliseconds from 1/1/1970 instead of a Date represented in ISO8601 format
 - ACLMessage bug fix: userDefinedProperties were not cloned (Jason H Li)
 - XML add-on Bug fix: Aggregate members can have a "type" tag now in xml encoding.
+- jade.util.leap.Properties: Fixed bug when cloning properties with null values
+- StringACLCodec: did not parse/encode properly some words with strange symbols
+- SearchConstraints: Fixed bug in renewSearchId due to 
+  System.currentTimeMillis() limited precision
 
 OTHERS:
 - added method isMandatory() in jade.content.schema.ObjectSchema
@@ -55,6 +66,8 @@ OTHERS:
 - jade.domain.DFDBKB.java Increased the default size values of the fields in 
   some tables (Andriy Panchenko)
 - changed MAIN_PROTO constant in Profile.java
+- Added the jade.core.Profile parameter to the method activate() of the MTPs
+
 
 
 
