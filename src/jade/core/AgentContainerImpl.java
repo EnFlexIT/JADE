@@ -79,7 +79,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   protected Profile myProfile;
 
   // The Command Processor through which all the vertical commands in this container will pass
-  CommandProcessor myCommandProcessor;
+  private CommandProcessor myCommandProcessor;
 
   //#MIDP_EXCLUDE_BEGIN
 
