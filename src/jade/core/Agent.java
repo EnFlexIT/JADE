@@ -30,6 +30,8 @@ import jade.util.leap.Serializable;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
+import java.util.Hashtable;
+import java.util.Enumeration;
 
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.*;
@@ -48,6 +50,7 @@ import java.io.ObjectOutputStream;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+
 import java.util.Vector;
 
 import jade.security.Authority;
@@ -108,8 +111,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   // synchronized because is accessed both by agent internal thread
   // and high priority Timer Dispatcher thread.
   private static class AssociationTB {
-    private Map BtoT = new HashMap();
-    private Map TtoB = new HashMap();
+    private Hashtable BtoT = new Hashtable();
+    private Hashtable TtoB = new Hashtable();
 
     public synchronized void addPair(Behaviour b, Timer t) {
       BtoT.put(b, t);
@@ -138,8 +141,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
       return (Behaviour)TtoB.get(t);
     }
 
-    public synchronized Iterator timers() {
-      return TtoB.keySet().iterator();
+    public synchronized Enumeration timers() {
+      //return TtoB.keySet().iterator();
+      return TtoB.keys();
     }
 
   } // End of AssociationTB class
@@ -1395,7 +1399,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	//#MIDP_EXCLUDE_END
 
   // This method is used by the Agent Container to fire up a new agent for the first time
-  void powerUp(AID id, ResourceManager rm) {
+  void powerUp(AID id, Thread t) {
 
     // Set this agent's name and address and start its embedded thread
     if ( (myAPState == AP_INITIATED) 
@@ -1412,7 +1416,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
         myToolkit.setPlatformAddresses(myAID);
       }
 
-      myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
+      //myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
+      myThread = t;
       myThread.start();
     }
   }
@@ -1623,9 +1628,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 	private void destroy() { 
 		// Remove all pending timers
-		Iterator it = pendingTimers.timers();
-		while (it.hasNext()) {
-			Timer t = (Timer)it.next();
+		Enumeration e = pendingTimers.timers();
+		while (e.hasMoreElements()) {
+			Timer t = (Timer) e.nextElement();
 			theDispatcher.remove(t);
 		}
 
@@ -1697,7 +1702,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
     try {
-      myToolkit.handleSend(msg);
+      myToolkit.handleSend(msg, myAID);
     } 
     catch (AuthException ae) {
     } 
@@ -1940,7 +1945,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // Notify toolkit of the need to send a message
   private void notifySend(ACLMessage msg) throws AuthException {
-  	myToolkit.handleSend(msg);
+  	myToolkit.handleSend(msg, myAID);
   }
 
   // Notify toolkit of the need to move the current agent

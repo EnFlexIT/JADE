@@ -44,7 +44,7 @@ interface AgentToolkit {
   void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
-  void handleSend(ACLMessage msg) throws AuthException;
+  void handleSend(ACLMessage msg, AID sender) throws AuthException;
   //#MIDP_EXCLUDE_BEGIN
   void handleMove(AID agentID, Location where) throws AuthException, IMTPException, NotFoundException;
   void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException;

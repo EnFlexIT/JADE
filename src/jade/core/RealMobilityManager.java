@@ -250,8 +250,8 @@ class RealMobilityManager implements MobilityManager {
 	      for (int i = messages.size(); i > 0; i--) {
 		  agent.putBack((ACLMessage) messages.get(i - 1));
 	      }
-
-	      agent.powerUp(agentID, myResourceManager);
+        Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), agent);
+	      agent.powerUp(agentID, t);
 	  }
         }
         finally {

@@ -215,7 +215,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   agentCerts.setIdentityCertificate(identity);
               }
               myPlatform.bornAgent(agentID, myID, agentCerts);
-              instance.powerUp(agentID, myResourceManager);
+              //instance.powerUp(agentID, myResourceManager);
+              Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), instance);
+              instance.powerUp(agentID, t);
           }
           catch(NameClashException nce) {
               // System.out.println("Agentname already in use:"+nce.getMessage());
@@ -679,7 +681,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           for (int i = 0; i < allLocalNames.length; i++) {
               AID id = allLocalNames[i];
               Agent agent = localAgents.acquire(id);
-              agent.powerUp(id, myResourceManager);
+              Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, id.getLocalName(), agent);
+              agent.powerUp(id, t);
               localAgents.release(id);
           }
       }
@@ -783,7 +786,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return myID;
   }
 
-	public void handleSend(ACLMessage msg) throws AuthException {
+	public void handleSend(ACLMessage msg, AID sender) throws AuthException {
 
 		AgentPrincipal target1 = getAgentPrincipal(msg.getSender());
 		//System.out.println("AgContImpl:  target1="+target1);
@@ -1019,7 +1022,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		final ACLMessage failure = msg.createReply();
 		failure.setPerformative(ACLMessage.FAILURE);
 		//System.err.println(failure.toString());
-		failure.setSender(getAMS());
+		final AID ams = getAMS();
+		failure.setSender(ams);
 		// FIXME: the content is not completely correct, but that should
 		// also avoid creating wrong content
 		// FIXME: the content should include the indication about the 
@@ -1032,7 +1036,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		authority.doPrivileged(new PrivilegedExceptionAction() {
 		        public Object run() {
 					try {
-						handleSend(failure);
+						handleSend(failure, ams);
 					} catch (AuthException ae) {
 						// it does not have permission to notify the failure 
 						// it never happens if the policy file gives 

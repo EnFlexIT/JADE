@@ -66,7 +66,7 @@ final class DummyToolkit implements AgentToolkit {
     public void handleEnd(AID agentID) {}
     public void handleMove(AID agentID, Location where) {}
     public void handleClone(AID agentID, Location where, String newName) {}
-    public void handleSend(ACLMessage msg) throws AuthException {}
+    public void handleSend(ACLMessage msg, AID sender) throws AuthException {}
     public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {}
     public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {}
     public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {}
