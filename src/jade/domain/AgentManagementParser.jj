@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1998/11/15 23:07:10  rimassa
+  Removed an obsolete grammar production 'DeadAgentEvent()'.
+  Added a new grammar production to represent 'kill-container' AMS
+  action.
+
   Revision 1.13  1998/11/09 00:19:20  rimassa
   Modified some grammar productions to support both 'create-agent' AMS
   action and 'new-agent' AMS notification event, avoiding also name
@@ -154,7 +159,7 @@ AgentManagementOntology.AMSAction AMSAction() :
   AgentManagementOntology.AMSAction a;
 }
 {
-  "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() ) ")"
+  "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | a = KillContainerBody() ) ")"
   { return a; }
 }
 
@@ -203,15 +208,6 @@ AgentManagementOntology.AMSEvent AgentEvent() :
     amse.setAgentDescriptor(amsd);
     return amse;
   }
-}
-
-AgentManagementOntology.AMSEvent DeadAgentEvent() :
-{
-  AgentManagementOntology.AMSEvent amse = null;
-}
-{
-
-  { return amse; }
 }
 
 
@@ -316,6 +312,24 @@ void KillAgentArg(AgentManagementOntology.KillAgentAction kaa) :
 {
     ( <AGENT_NAME> s = AgentName() { kaa.setAgentName(s); } )
   | ( <PASSWORD> t = <WORD> { kaa.setPassword(t.image); } )
+}
+
+AgentManagementOntology.KillContainerAction KillContainerBody() :
+{
+  AgentManagementOntology.KillContainerAction kca = new AgentManagementOntology.KillContainerAction();
+  Token t;
+  Token name;
+}
+{
+  t = <KILL_CONTAINER>
+  {
+    kca.setName(t.image);
+  }
+  name = <WORD>
+  {
+    kca.setContainerName(name.image);
+    return kca;
+  }
 }
 
 AgentManagementOntology.DFAction DFActionBody() :
@@ -700,6 +714,7 @@ TOKEN:
 | <AGENT_CODE : ":agent-code">
 | <AGENT_PROPERTIES : ":agent-properties">
 | <KILL_AGENT : "kill-agent">
+| <KILL_CONTAINER : "kill-container">
 | <PASSWORD : ":password">
 | <FORWARD : "forward">
 | <AGENT_NAME : ":agent-name">
