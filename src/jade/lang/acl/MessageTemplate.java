@@ -187,6 +187,12 @@ public class MessageTemplate {
     return new MessageTemplate(msg);
   }
 
+  public static MessageTemplate MatchType(String value) {
+    ACLMessage msg = allWildCard();
+    msg.setType(value);
+    return new MessageTemplate(msg);
+  }
+
 
   // Boolean operation on message templates.
 
