@@ -31,7 +31,9 @@ import java.util.TreeMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+
 import java.util.LinkedList;
+import java.util.Hashtable;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -54,6 +56,8 @@ import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 
+import jade.util.ExpandedProperties;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -61,62 +65,72 @@ import java.io.*;
 
 
 /**
- *  This is the <em>Sniffer</em> agent.<br>
- *  This class implements the low level part of the Sniffer, interacting with Jade
- *  environment and with the sniffer GUI.<br>
- *  At startup, the sniffer subscribes itself as an rma to be informed every time
- *  an agent is born or dead, a container is created or deleted.<br>
- *  For more information see <a href="../../../../intro.htm" target="_top">Introduction to the Sniffer</a>
- * Javadoc documentation for the file
- * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement) 
- * @author Gianluca Tanca (Concept & Early Version)
- * @version $Date$ $Revision$
- * 
- * Modified by:
- * @author Robert Kessler, University of Utah
- * Added the ability to have a configuration file (snifferagentname.inf) which allows
- * you to specify agents that should be sniffed as soon as they appear.  The file
- * contains a line by line list of agent names (if there is no @ in the name, it assumes
- * the current HAP for it).  Following the agent name is an optional list of performatives
- * that the sniffer will sniff.  If the list is not present, then the sniffer will
- * display all messages.  Otherwise, only those messages that have a matching
- * performative mentioned will be displayed.  A typical file might contain:
+ * This is the <em>Sniffer</em> agent.
+ * <br>
+ * This class implements the low level part of the Sniffer, interacting with Jade
+ * environment and with the sniffer GUI.<br>
+ * At startup, the sniffer subscribes itself as an rma to be informed every time
+ * an agent is born or dead, a container is created or deleted.
+ * <br>
+ * For more information see <a href="../../../../intro.htm" target="_top">Introduction to the Sniffer</a>.
+ * <p>
+ * A properties file while may be used to control different sniffer properties.
+ * These optional properties are as follows:
+ * <ul>
+ * <li>preload - A list of preload descriptions seperated by a semi-colon. Each description
+ * consists of an agent name match string and optional list of performatives each seperated by a space.
+ * For details on the agent name match string, see the method isMatch().
+ * If there is no @ in the agent name, it assumes the current HAP for it. 
+ * If the performative list is not present, then the sniffer will display all messages;
+ * otherwise, only those messages that have a matching performative mentioned will be displayed.
+ * <br>
+ * Examples:
+ * <pre>
+ * preload=da0;da1 inform propose
+ * preload=agent?? inform
+ * preload=*   
+ * </pre>
+ * <li>clip - A list of agent name prefixes seperated by a semi-colon which will be removed when
+ * showing the agent's name in the agent box. This is helpful to eliminate common agent prefixes.
+ * <br>
+ * Example:
+ * <pre>
+ * clip=com.hp.palo-alto.;helper.
+ * </pre>
+ * </ul>
+ * The property file is looked for in the current directory, and if not found, it looks in
+ * the parent directory and continues this until the file is either found or there isn't a parent
+ * directory.
+ * <p>
+ * The original implementation processed a .inf file. For backward compatability this has
+ * been preserved but its usage should be converted to use the new .properties file. The format
+ * of the .inf file is each line contains an agent name and optional list of performatives. 
+ * <br>
+ * Example:
+ * <pre>
  * da0
- * da1 inform propose 
- * sniffer0@disjunior:1099/JADE
- *
- * Note - the file is looked for in the current directory, and if not found, it scans
- * for the file at the top level directory (/snifferagentname.inf)
- *
- * One other change was made to the system - that is the performative of the message
- * is now displayed above each message.  This gives additional information to the
- * user so they can see exactly what is happening dynamically.
- *
- * More changes - M. Griss changed the display to include information about the 
- * conversation id and other ids.  He also enhanced the one click information at the
- * bottom.  R. Kessler changed MainPanel, so the scrollPane has a column header, which
- * is the agent canvas list.  Now when it scrolls down, the agents stay on top.
- *
- * This functionality required changes to: Sniffer (read the file, when an agent is 
- * born - see if in the list and auto sniff, and when a message arrives - determine 
- * if it should be displayed or not); MainWindow (made the ActionProcessor local 
- * variable public so we can get a hold of the code in DoSniffAction); DoSniffAction
- * (modified so there is a new method doSniff - which takes an agent name and does
- * the actual sniffing - I broke this out from the doAction method); MMCanvas (added
- * the ability to display the performative name above the message).
- *
- * Some notes:
- * 1-if a message is one that is to be ignored, then it is dropped totally.  If you
+ * da1 inform propose
+ * </pre>
+ * <p>
+ * Notes:
+ * <ol>
+ * <li>If a message is one that is to be ignored, then it is dropped totally.  If you
  *   look at the sniffer dump of messages, it will not be there.  Might want to change
  *   this.
- * 2-Should develop a GUI to allow dynamically setting which messages are filtered instead
- *   of forcing them to be in the .inf file.
- * 3-Probably should allow one to turn on and off the display of the performative name.
+ * <li>Should develop a GUI to allow dynamically setting which messages are filtered instead
+ *   of forcing them to be in the properties file.
+ * <li>Probably should allow one to turn on and off the display of the performative name.
  *   Although, it seems pretty nice to have this information and although one might
  *   consider that it clutters the display, it sure provides a lot of information with
  *   it.
- * 4-Since we can now sniff agents when they appear, you could imagine another option
- *   that would allow you to turn on a sniff all new agents flag.
+ * </ol>
+ * 
+ * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement) 
+ * @author Gianluca Tanca (Concept & Early Version)
+ * @author Robert Kessler University of Utah (preload configuration, don't scroll agent boxes)
+ * @author Martin Griss HP Labs (display additional message information)
+ * @author Dick Cowan HP Labs (property handling, display full agent name when mouse over)
+ * @version $Date$ $Revision$
  *
  */
 public class Sniffer extends ToolAgent {
@@ -124,24 +138,21 @@ public class Sniffer extends ToolAgent {
   public static final boolean SNIFF_ON = true;
   public static final boolean SNIFF_OFF = false;
   
-  // Note - these two are parallel vectors, so we add at the same time to both.
-  // Could use a better mechanism, like a vector of two element lists or something.
-  private Vector preLoadedAgents; // The agents in the .inf file that we are to pre-sniff.
-  private Vector preLoadedFilters; // Filtering array for the pre-sniffed agents.
+  private Hashtable preload = null;
+  private ExpandedProperties properties = null;
 
   private ArrayList agentsUnderSniff = new ArrayList();
 
 
-  // Sends requests to the AMS
-   
+    // Sends requests to the AMS
     private class AMSClientBehaviour extends SimpleAchieveREInitiator {
 
     private String actionName;
 
-      public AMSClientBehaviour(String an, ACLMessage request) {
+    public AMSClientBehaviour(String an, ACLMessage request) {
 	  super(Sniffer.this, request);
-	  actionName = an;
-      }
+      actionName = an;
+    }
 
     protected void handleNotUnderstood(ACLMessage reply) {
       myGUI.showError("NOT-UNDERSTOOD received during " + actionName);
@@ -209,8 +220,9 @@ public class Sniffer extends ToolAgent {
           // that the sniffer might dump does not include the message!!!!
           boolean filters [];
           String agentName = msg.getSender().getName();
-          if (preLoadedAgents.contains(agentName)) {
-              filters = (boolean[])preLoadedFilters.elementAt(preLoadedAgents.indexOf(agentName));
+          String key = preloadContains(agentName);
+          if (key != null) {
+              filters = (boolean[])preload.get(key);
               if ((msg.getPerformative() >= 0) && filters[msg.getPerformative()]) {
                 myGUI.mainPanel.panelcan.canvMess.recMessage(msg);
               }
@@ -231,6 +243,56 @@ public class Sniffer extends ToolAgent {
 
   } // End of SniffListenerBehaviour
 
+    /**
+     * Search keys in preload for a string which matches (using isMatch method)
+     * the agent name.
+     * @param agentName The agent name.
+     * @return String The key which matched.
+     */
+    protected String preloadContains(String agentName) {
+        for (Enumeration enum = preload.keys(); enum.hasMoreElements() ;) {
+            String key = (String)enum.nextElement();
+            if (isMatch(key, agentName)) {
+                return key;
+            }
+        }
+        return null;
+    }
+     
+   /**
+    * Given two strings determine if they match. We iterate over the match expression 
+    * string from left to right as follows:
+    * <ol>
+    * <li> If we encounter a '*' in the expression token they match.
+    * <li> If there aren't any more characters in the subject string token they don't match.
+    * <li> If we encounter a '?' in the expression token we ignore the subject string's
+    * character and move on to the next iteration.
+    * <li> If the character in the expression token isn't equal to the character in
+    * the subject string they don't match.
+    * </ol>
+    * If we complete the iteration they match only if there are the same number of
+    * characters in both strings.
+    * @param aMatchExpression An expression string with special significance to '?' and '*'.
+    * @param aString The subject string.
+    * @return True if they match, false otherwise.
+    */
+   protected boolean isMatch(String aMatchExpression, String aString)
+   {
+      int expressionLength = aMatchExpression.length();
+      for (int i = 0; i < expressionLength; i++)
+      {
+         char expChar = aMatchExpression.charAt(i);
+         if (expChar == '*')
+            return true;   // * matches the remainder of anything
+         if (i == aString.length())
+            return false;  // if we run out of characters they don't match
+         if (expChar == '?')
+            continue;      // ? matches any single character so keep going
+         if (expChar != aString.charAt(i))
+            return false;  // if non wild then must be exactly equal
+      }
+      return (expressionLength == aString.length());
+   }
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
@@ -288,13 +350,13 @@ public class Sniffer extends ToolAgent {
 	    // Here we check to see if the agent is one that we automatically will
 	    // start sniffing.  If so, we invoke DoSnifferAction's doSniff and start
 	    // the sniffing process.
-	    if(preLoadedAgents.contains(agent.getName())) {
+	    if (preloadContains(agent.getName()) != null) {
 	      // System.out.println("Found one: " + agent.getName());
 	      ActionProcessor ap = myGUI.actPro;
-              DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
-              sa.doSniff(agent.getName());
+          DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
+          sa.doSniff(agent.getName());
 	    } else {
-              // System.out.println("Agent not in .inf: " + agent.getName());
+           // System.out.println("Agent not in .inf: " + agent.getName());
 	    }
 	  }
         });
@@ -330,7 +392,30 @@ public class Sniffer extends ToolAgent {
    */
   public void toolSetup() {
 
-    loadSnifferConfigurationFile();
+    ExpandedProperties properties = new ExpandedProperties();
+    String fileName = locateFile("sniffer.properties");
+    if (fileName != null) {
+        try {
+            properties.addFromFile(fileName);
+        } catch (IOException ioe) {
+            // ignore - Properties not processed
+        }
+    } else {
+        // This is only being done for backward compatability.
+        fileName = locateFile("sniffer.inf");
+        if (fileName != null) {
+            loadSnifferConfigurationFile(fileName, properties);
+        }
+    }
+
+    preload = new Hashtable();
+    String preloadDescriptions = properties.getProperty("preload", null);
+    if (preloadDescriptions != null) {
+        StringTokenizer parser = new StringTokenizer(preloadDescriptions, ";");
+        while (parser.hasMoreElements()) {
+            parsePreloadDescription(parser.nextToken());
+        }
+    }
 
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
@@ -343,72 +428,104 @@ public class Sniffer extends ToolAgent {
     addBehaviour(new SniffListenerBehaviour()); 
 
     // Show Graphical User Interface
-    myGUI = new MainWindow(this);
+    myGUI = new MainWindow(this, properties);
     myGUI.ShowCorrect();
 
   }
 
-  /* Private function to go out and grab the configuration file, fill the
-   * preLoadedAgents vector with the agents that are to be automatically sniffed.
-   * Also fill the parallel vector preLoadedFilters vector with special message
-   * filtering.
-   */
-  private void loadSnifferConfigurationFile () {
-      // See if there is a sniffer configuration file that lists the agents to
-      // start sniffing.  Each line of the file lists an agent, optionally followed
-      // by a set of messages to sniff.  If there are no tokens, then we assume
-      // that means to sniff all.  The tokens are the name of the performative type
-      // such as INFORM, QUERY, etc.
-      // Look for the sniffer file locally and if not found, look at the top-level
-      // directory.
-      StringTokenizer st;
-      preLoadedAgents = new Vector();
-      preLoadedFilters = new Vector();
-      String name;
-      int atPos;
-      List nameAndFilter;
-      boolean filter[];
-      BufferedReader in = null;
-      try {
-          // Hack - need to figure out where to put the sniffer .inf file.
-          try {
-              // First look locally
-              in = new BufferedReader(new FileReader(getLocalName() + ".inf"));
-          } catch (IOException nolocal) {
-              try {
-                  // Try at top-level
-                  in = new BufferedReader(new FileReader("\\" + getLocalName() + ".inf"));
-              } catch (IOException notop) {
-              }
-          }
-          // Read each line.  Will toss an exception on EOF (I guess).
-          while (true) {
-              st = new StringTokenizer(in.readLine());
-              name = st.nextToken();
-              atPos = name.lastIndexOf('@');
-              if(atPos == -1)
-                  name = name + "@" + getHap();
-              preLoadedAgents.add(name);
-              
-              filter = new boolean[22];
-              boolean initVal;
-              initVal = (st.hasMoreTokens() ? false : true);
-              for (int i=0;i<22;i++) {
-                  filter[i] = initVal;
-              }
-              while (st.hasMoreTokens())
-              {
-                  int perfIndex = ACLMessage.getInteger(st.nextToken());
-                  if (perfIndex != -1) {
-                      filter[perfIndex] = true;
-                  }
-              }
-              preLoadedFilters.add(filter);
-          }
-      } catch(Exception e) {
-          try { if (in != null) in.close(); } catch (IOException ee) {};
-      }
-  }
+    /**
+     * Private function to read configuration file containing names of agents to be
+     * preloaded. Also supports message filtering based on performatives.
+     * Each line of the file lists an agent, optionally followed
+     * by a set of messages to sniff.  If there are no tokens, then we assume
+     * that means to sniff all.  The tokens are the name of the performative type
+     * such as INFORM, QUERY, etc.
+     * @deprecated Use sniffer.properties file instead.
+     */
+    private void loadSnifferConfigurationFile (String aFileName, ExpandedProperties theProperties) {
+        StringBuffer sb = new StringBuffer();
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new FileReader(aFileName));
+            boolean eof = false;
+            while (!eof) {
+                String line = in.readLine();
+                eof = (line == null);
+                if (!eof) {
+                    line = line.trim();
+                    if (line.length() > 0) {
+                        sb.append(line);
+                        sb.append(";");
+                    }
+                }
+            }
+        } catch(Exception e) {
+            // ignore
+        }
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException ee) {
+                // ignore
+            }
+        }
+        if (sb.length() > 0) {
+            theProperties.setProperty("preload", sb.toString());
+        }
+    }
+
+    private String locateFile(String aFileName) {
+        try {
+            String path = (new File(".")).getAbsolutePath();
+            while (path != null) {
+                path = path.replace('\\','/');
+                if (path.endsWith(".")) {
+                    path = path.substring(0, path.length() - 1);    // drop dot
+                }
+
+                if (path.endsWith("/")) {
+                    path = path.substring(0, path.length() - 1);    // drop last separator
+                }
+                File dir = new File(path);
+                File theFile = new File(dir, aFileName);
+                if (theFile.exists()) {
+                    return theFile.getCanonicalPath();
+                } else {
+                    path = dir.getParent();    // reduce the path by one
+                }
+            }
+        } catch (Exception any) {
+            // ignore
+        }
+        return null;
+    }
+
+
+    private void parsePreloadDescription(String aDescription) {
+        StringTokenizer st = new StringTokenizer(aDescription);
+        String name = st.nextToken();
+        if (!name.endsWith("*")) {
+            int atPos = name.lastIndexOf('@');
+            if(atPos == -1) {
+                name = name + "@" + getHap();
+            }
+        }
+
+        int performativeCount = ACLMessage.getAllPerformativeNames().length;             
+        boolean[] filter = new boolean[performativeCount];
+        boolean initVal = (st.hasMoreTokens() ? false : true);
+        for (int i=0; i<performativeCount; i++) {
+            filter[i] = initVal;
+        }
+        while (st.hasMoreTokens())
+        {
+            int perfIndex = ACLMessage.getInteger(st.nextToken());
+            if (perfIndex != -1) {
+                filter[perfIndex] = true;
+            }
+        }
+        preload.put(name, filter);
+    }
 
 /**
    * Cleanup during agent shutdown. This method cleans things up when
@@ -437,7 +554,7 @@ public class Sniffer extends ToolAgent {
 
     // Now we unsubscribe from the rma list
     send(getCancel());
-    myGUI.setVisible(false);
+    // myGUI.setVisible(false); Not needed. Can cause thread deadlock.
     myGUI.disposeAsync();
 
   }
