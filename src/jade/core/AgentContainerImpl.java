@@ -599,9 +599,9 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
   }
 
   public void moveSource(String name, Location where) {
-    try {
-      // Mutual exclusion with dispatch() method
-      synchronized(localAgents) {
+    // Mutual exclusion with dispatch() method
+    synchronized(localAgents) {
+      try {
         String proto = where.getProtocol();
 	if(!proto.equalsIgnoreCase("JADE-IPMT"))
 	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
@@ -641,14 +641,20 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	  ac.postTransferResult(name, transferResult, messages);
 	}
       }
-    }
-    catch(RemoteException re) {
-      re.printStackTrace();
-      // FIXME: Complete undo on exception
-    }
-    catch(NotFoundException nfe) {
-      nfe.printStackTrace();
-      // FIXME: Complete undo on exception
+      catch(RemoteException re) {
+	re.printStackTrace();
+	// FIXME: Complete undo on exception
+	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	if(a != null)
+	  a.doDelete();
+      }
+      catch(NotFoundException nfe) {
+	nfe.printStackTrace();
+	// FIXME: Complete undo on exception
+	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	if(a != null)
+	  a.doDelete();
+      }
     }
   }
 
