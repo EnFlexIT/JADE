@@ -104,6 +104,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private ContainerID myID;
   private NodeDescriptor myNodeDescriptor;
 
+  // These are only used at bootstrap-time to initialize the local 
+  // NodeDescriptor. Further modifications take no effect
   private JADEPrincipal ownerPrincipal;
   private Credentials ownerCredentials;
   
@@ -330,24 +332,52 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
-
-      myNodeDescriptor = new NodeDescriptor(myID, localNode, null, null);
   }
 
+  /**
+     Add the node to the platform with the basic services
+   */
   protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
-	  // Register with the platform 
-	  // This call can modify the name of this container
-	  myServiceManager.addNode(myNodeDescriptor, new ServiceDescriptor[0]);
-
-	  // Activate all the container fundamental services
-	  startService("jade.core.management.AgentManagementService");
+	  // Start all the container fundamental services (without activating them)
+  	List basicServices = new ArrayList();
+	  ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
+	  basicServices.add(dsc);
 	  //#MIDP_EXCLUDE_BEGIN
-	  startService("jade.core.messaging.MessagingService");
+	  dsc = startService("jade.core.messaging.MessagingService", false);
+	  basicServices.add(dsc);
 	  //#MIDP_EXCLUDE_END
 	  /*#MIDP_INCLUDE_BEGIN
-	  startService("jade.core.messaging.LightMessagingService");
+	  dsc = startService("jade.core.messaging.LightMessagingService", false);
+	  basicServices.add(dsc);
 	  #MIDP_INCLUDE_END*/
-	  
+    List l = myProfile.getSpecifiers(Profile.SERVICES);
+    myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
+    Iterator serviceSpecifiers = l.iterator();
+    while(serviceSpecifiers.hasNext()) {
+		  Specifier s = (Specifier) serviceSpecifiers.next();
+		  String serviceClass = s.getClassName();
+		  if (serviceClass.equals("jade.core.security.SecurityService")) {
+		  	l.remove(s);
+		  	dsc = startService("jade.core.security.SecurityService", false);
+			  basicServices.add(dsc);
+			  break;
+		  }
+    }
+			  	
+	  // Register with the platform 
+    myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
+    ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
+    for (int i = 0; i < descriptors.length; ++i) {
+    	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
+    }
+	  // This call can modify the name of this container
+	  myServiceManager.addNode(myNodeDescriptor, descriptors);
+
+	  // Boot all basic services
+    for (int i = 0; i < descriptors.length; ++i) {
+    	descriptors[i].getService().boot(myProfile);
+    }
+	  	
 	  //#MIDP_EXCLUDE_BEGIN
 	  // If we are the master main container --> start the AMS and DF
 	  if(myMainContainer != null) {
@@ -367,7 +397,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      try {
 				  s = (Specifier) serviceSpecifiers.next();
 				  String serviceClass = s.getClassName();
-				  startService(serviceClass);
+				  startService(serviceClass, true);
 	      }
 	      catch(Exception e) {
 		  		System.out.println("Error starting service "+s.getClassName());
@@ -445,7 +475,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
               try {
                   createAgent(agentID, s.getClassName(), s.getArgs(),
-                              ownerPrincipal, ownerCredentials, CREATE_ONLY);
+                              myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials(), CREATE_ONLY);
               } catch (AuthException ae) {
                   Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
@@ -1015,24 +1045,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     // Utility method to start a kernel service
-    protected void startService(String name) throws ServiceException {
+    protected ServiceDescriptor startService(String name, boolean activateIt) throws ServiceException {
 
 	try {
-
 	    Class svcClass = Class.forName(name);
 	    Service svc = (Service)svcClass.newInstance();
 	    svc.init(this, myProfile);
+	    ServiceDescriptor dsc = new ServiceDescriptor(svc.getName(), svc);
 
-	    myServiceManager.activateService(new ServiceDescriptor(svc.getName(), svc));
-
-	    // If this service extends BaseService, attach it to the container Command Processor
-	    if(svc instanceof BaseService) {
-		BaseService bs = (BaseService)svc;
-		bs.setCommandProcessor(myCommandProcessor);
+	    if (activateIt) {
+		    myServiceManager.activateService(dsc);	
+		    svc.boot(myProfile);
 	    }
-
-	    svc.boot(myProfile);
-
+	    return dsc;
 	}
 	catch(ServiceException se) {
 	    // Let it through
