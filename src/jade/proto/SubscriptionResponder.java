@@ -262,7 +262,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
      */
     protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
     	Subscription s = getSubscription(cancel);
-    	if (s == null) {
+    	if (s != null) {
     		mySubscriptionManager.deregister(s);
     	}
     	return null;
