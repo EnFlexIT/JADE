@@ -69,8 +69,8 @@ public IntrospectorGUI(Introspector i) {
     debugger = i;
 
     panel = new TreePanel(this);
-    panel.treeAgent.register("FIPAAGENT", new TreeAgentPopupMenu(debugger), "images/runtree.gif");
-    panel.treeAgent.register("FIPACONTAINER", null, "images/TreeClosed.gif");
+    panel.treeAgent.register("FIPAAGENT", new TreeAgentPopupMenu(debugger, panel.treeAgent), "images/runtree.gif");
+    panel.treeAgent.register("FIPACONTAINER", null, "images/foldergreen.gif");
 
     scroll = new JScrollPane();
     desk = new JDesktopPane();
@@ -240,7 +240,10 @@ public IntrospectorGUI(Introspector i) {
   // Adds a new InternalFrame (MainWindow)
   public void addWindow(MainWindow m) {
     desk.add(m);
+    m.pack();
     m.setVisible(true);
+    m.adjustDividerLocation();
+
   }
 
   // Shuts down the desktop
