@@ -443,14 +443,12 @@ public class Agent implements Runnable, Serializable {
   }
 
   /**
-  Constructor with arguments
-  @param args an array of string as passed on the command line
+  This method must be overridden in order to pass arguments to the agent.
+  @param args an array of string as passed on the command line.
   */
-  public Agent(String[] args)
-  {
-	  this();
-	  
-  }
+  protected void setArguments(String args[])
+   {
+   }
   
 
   /**
