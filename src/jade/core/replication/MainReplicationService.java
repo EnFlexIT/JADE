@@ -747,6 +747,13 @@ public class MainReplicationService extends BaseService {
 
     } // End of ServiceComponent class
 
+  /*#PJAVA_INCLUDE_BEGIN
+  // PJAVA workaround as protected methods inherited from parent class 
+  // are not accessible to inner classes
+  public void log(String txt, int l) {
+    super.log(txt,l);
+  }
+  #PJAVA_INCLUDE_END*/
 
 
     private AgentContainer myContainer;

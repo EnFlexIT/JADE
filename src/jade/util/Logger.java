@@ -36,9 +36,11 @@ import jade.util.leap.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+//#MIDP_EXCLUDE_END
+//#J2ME_EXCLUDE_BEGIN
 import java.util.logging.Level;
 import java.io.ObjectStreamException;
-//#MIDP_EXCLUDE_END
+//#J2ME_EXCLUDE_END
 
 import jade.util.leap.Serializable;
 

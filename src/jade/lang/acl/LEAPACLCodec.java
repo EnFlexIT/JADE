@@ -35,6 +35,7 @@ import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.util.leap.Properties;
 import jade.util.leap.Iterator;
+import jade.lang.acl.ACLCodec.CodecException;
 
 /**
  * This class implements the LEAP codec for ACLMessages.
@@ -42,7 +43,7 @@ import jade.util.leap.Iterator;
  * @author Giovanni Caire - TILAB
  * @version $Date$ $Revision$
  */
-public class LEAPACLCodec implements ACLCodec{
+public class LEAPACLCodec implements ACLCodec {
 
   public static String NAME = "leap.acl.rep";
 

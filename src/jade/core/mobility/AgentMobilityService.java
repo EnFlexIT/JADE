@@ -996,8 +996,14 @@ public class AgentMobilityService extends BaseService {
         	throws IOException, ClassNotFoundException {
             MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(classSiteName);
             if (cl == null) {
-                cl = new MobileAgentClassLoader(classSiteName, finder, myLogger);
-                loaders.put(classSiteName, cl);
+              //#PJAVA_EXCLUDE_BEGIN
+              cl = new MobileAgentClassLoader(classSiteName, finder, myLogger);
+              //#PJAVA_EXCLUDE_END
+              /*#PJAVA_INCLUDE_BEGIN
+                // Hack because protected variable myLogger is not accessible here
+                cl = new MobileAgentClassLoader(classSiteName, finder, null);  
+                #PJAVA_INCLUDE_END*/
+              loaders.put(classSiteName, cl);
             }
             Class c = cl.loadClass(v.getName());
             return c;
@@ -1084,6 +1090,15 @@ public class AgentMobilityService extends BaseService {
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);
     }
+
+  /*#PJAVA_INCLUDE_BEGIN
+  // PJAVA workaround as protected methods inherited from parent class 
+  // are not accessible to inner classes
+  public void log(String txt, int l) {
+    super.log(txt,l);
+  }
+  #PJAVA_INCLUDE_END*/
+
     
   private void initCredentials(Command cmd, AID id) {
   	Agent agent = myContainer.acquireLocalAgent(id);

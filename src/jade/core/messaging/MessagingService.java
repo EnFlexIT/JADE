@@ -1288,4 +1288,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   protected Service.Slice getFreshSlice(String name) throws ServiceException {
     return super.getFreshSlice(name);
   }
+  
+  /*#PJAVA_INCLUDE_BEGIN
+  // PJAVA workaround as protected methods inherited from parent class 
+  // are not accessible to inner classes
+  public void log(String txt, int l) {
+    super.log(txt,l);
+  }
+  #PJAVA_INCLUDE_END*/
+  
 }

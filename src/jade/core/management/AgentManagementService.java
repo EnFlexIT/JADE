@@ -829,6 +829,14 @@ public class AgentManagementService extends BaseService {
 	    throw ae;
 	}
     }
+  
+  /*#PJAVA_INCLUDE_BEGIN
+  // PJAVA workaround as protected methods inherited from parent class 
+  // are not accessible to inner classes
+  public void log(String txt, int l) {
+    super.log(txt,l);
+  }
+  #PJAVA_INCLUDE_END*/
 
     // The concrete agent container, providing access to LADT, etc.
     private AgentContainer myContainer;
