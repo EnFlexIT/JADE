@@ -40,17 +40,17 @@ import java.util.Enumeration;
  */
 public class AID implements Cloneable, Comparable, Serializable {
   
-	/**
+  /**
   @serial
   */
-	private String name = new String();
+  private String name = new String();
   
-	/**
+  /**
   @serial
   */
-	private List addresses = new ArrayList();
+  private List addresses = new ArrayList();
   
-	/**
+  /**
   @serial
   */
   private List resolvers = new ArrayList();
@@ -73,7 +73,7 @@ public class AID implements Cloneable, Comparable, Serializable {
    * assumes that value in the constructed object. 
    */
   public AID(String guid) {
-    name =guid;
+    name = guid;
   }
 
   public void setName(String n){
@@ -135,9 +135,9 @@ public class AID implements Cloneable, Comparable, Serializable {
   try {
     w.write("( agent-identifier ");
     if ((name!=null)&&(name.length()>0))
-      w.write(":name "+name);
+      w.write(" :name " + name);
     if (addresses.size()>0)
-      w.write(":addresses (sequence ");
+      w.write(" :addresses (sequence ");
     for (int i=0; i<addresses.size(); i++)
       try {
 	w.write((String)addresses.get(i) + " ");
@@ -145,7 +145,7 @@ public class AID implements Cloneable, Comparable, Serializable {
     if (addresses.size()>0)
       w.write(")");
     if (resolvers.size()>0)
-      w.write(":resolvers (sequence ");
+      w.write(" :resolvers (sequence ");
     for (int i=0; i<resolvers.size(); i++) { 
       try {
 	((AID)resolvers.get(i)).toText(w);
