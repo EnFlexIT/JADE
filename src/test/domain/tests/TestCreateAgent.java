@@ -52,7 +52,7 @@ public class TestCreateAgent extends Test {
   	try {
   		//Object[] args = getGroupArguments();
   		//ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(JADEManagementOntologyTesterAgent.INFORM_MSG_NAME);
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(JADEManagementOntologyTesterAgent.INFORM_MSG_KEY);
                 final Agent fa = a;
   		Behaviour b = new SuccessExpectedInitiator(a, msg, ds, resultKey) {
     		protected Vector prepareRequests(ACLMessage request) {
