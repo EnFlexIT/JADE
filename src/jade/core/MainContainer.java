@@ -53,6 +53,6 @@ public interface MainContainer {
 
     boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException;
 
-    RemoteProxy getProxy(AID id) throws IMTPException, NotFoundException;
+    AgentProxy getProxy(AID id) throws IMTPException, NotFoundException;
 
 }

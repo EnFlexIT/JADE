@@ -150,9 +150,9 @@ class MainContainerImpl implements Platform, AgentManager {
       throw new NotFoundException("Agent " + receiverID.getName() + " not found in GADT.");
     }
     ad.lock();
-    RemoteProxy rp = ad.getProxy();
+    AgentProxy ap = ad.getProxy();
     ad.unlock();
-    rp.dispatch(msg);
+    ap.dispatch(msg);
   }
 
   // this variable holds a progressive number just used to name new containers
@@ -362,15 +362,15 @@ class MainContainerImpl implements Platform, AgentManager {
 
     AgentDescriptor desc = new AgentDescriptor();
     AgentContainer ac = containers.getContainer(cid.getName());
-    RemoteProxy rp = myIMTPManager.createAgentProxy(ac, name);
-    desc.setProxy(rp);
+    AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
+    desc.setProxy(ap);
     desc.setContainerID(cid);
     AgentDescriptor old = platformAgents.put(name, desc);
 
     // If there's already an agent with name 'name' throw a name clash
     // exception unless the old agent's container is dead.
     if(old != null) {
-      RemoteProxy oldProxy = old.getProxy();
+      AgentProxy oldProxy = old.getProxy();
       try {
 	oldProxy.ping(); // Make sure agent is reachable, then raise a name clash exception
 	platformAgents.put(name, old);
@@ -398,23 +398,23 @@ class MainContainerImpl implements Platform, AgentManager {
     fireDeadAgent(cid, name);
   }
 
-  public RemoteProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
-    RemoteProxy rp;
+  public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
+    AgentProxy ap;
     AgentDescriptor ad = platformAgents.get(agentID);
 
     if(ad == null)
       throw new NotFoundException("getProxy() failed to find " + agentID.getName());
     else {
       ad.lock();
-      rp = ad.getProxy();
+      ap = ad.getProxy();
       ad.unlock();
       try {
-	rp.ping();
+	ap.ping();
       }
       catch(UnreachableException ue) {
 	throw new NotFoundException("Container for " + agentID.getName() + " is unreachable");
       }
-      return rp;
+      return ap;
     }
   }
 

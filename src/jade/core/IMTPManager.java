@@ -61,7 +61,7 @@ public interface IMTPManager {
     /**
        Creates a proxy for the given agent, on the given container.
      */
-    RemoteProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException;
+    AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException;
 
     /**
        Return the MainContainer or a stub of it depending on whether

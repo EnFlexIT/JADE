@@ -86,7 +86,7 @@ class MainContainerProxy implements Platform {
       adaptee.newMTP(mtpAddress, cid);
     }
 
-    public RemoteProxy getProxy(AID id) throws IMTPException, NotFoundException {
+    public AgentProxy getProxy(AID id) throws IMTPException, NotFoundException {
       return adaptee.getProxy(id);
     }
 

@@ -33,7 +33,7 @@ import jade.core.MainContainer;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
-import jade.core.RemoteProxy;
+import jade.core.AgentProxy;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -59,7 +59,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.deadMTP(mtpAddress, cid);
     }
 
-    public RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
+    public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException {
       return impl.getProxy(id);
     }
 

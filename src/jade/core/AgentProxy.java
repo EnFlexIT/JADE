@@ -24,13 +24,15 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
+import java.io.Serializable;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
-interface AgentProxy {
+public interface AgentProxy extends Serializable {
   void dispatch(ACLMessage msg) throws NotFoundException;
+  void ping() throws UnreachableException;
 }
 

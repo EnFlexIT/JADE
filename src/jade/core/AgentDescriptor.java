@@ -30,15 +30,15 @@ package jade.core;
 
 class AgentDescriptor {
 
-  private RemoteProxy proxy;
+  private AgentProxy proxy;
   private ContainerID containerID;
   private boolean locked = false;
 
-  public void setProxy(RemoteProxy rp) {
+  public void setProxy(AgentProxy rp) {
     proxy = rp;
   }
 
-  public RemoteProxy getProxy() {
+  public AgentProxy getProxy() {
     return proxy;
   }
 

@@ -30,7 +30,7 @@ import java.rmi.RemoteException;
 import jade.core.AgentContainer;
 //import jade.core.AgentContainerImpl;
 import jade.core.MainContainer;
-import jade.core.RemoteProxy;
+import jade.core.AgentProxy;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.NotFoundException;
@@ -67,11 +67,11 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public RemoteProxy getProxy(AID id) throws IMTPException, NotFoundException {
+  public AgentProxy getProxy(AID id) throws IMTPException, NotFoundException {
     try {
-      RemoteProxy rp = adaptee.getProxy(id);
-      manager.adopt(rp); // This needs to be restored by hand, since it must not be serialized...
-      return rp;
+      AgentProxy ap = adaptee.getProxy(id);
+      manager.adopt(ap); // This needs to be restored by hand, since it must not be serialized...
+      return ap;
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

@@ -28,7 +28,7 @@ import java.rmi.RemoteException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.RemoteProxy;
+import jade.core.AgentProxy;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
@@ -39,7 +39,7 @@ import jade.core.NameClashException;
  */
 public interface MainContainerRMI extends Remote {
     public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException, IMTPException;
-    public RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException;
+    public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException;
     public void bornAgent(AID name, ContainerID cid) throws RemoteException, NameClashException, NotFoundException, IMTPException;
     public String getPlatformName() throws RemoteException, IMTPException;
     public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException;

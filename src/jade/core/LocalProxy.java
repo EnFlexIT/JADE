@@ -33,10 +33,10 @@ import jade.lang.acl.ACLMessage;
 
 class LocalProxy implements AgentProxy {
 
-  private AgentContainerImpl container;
+  private AgentContainer container;
   private AID receiverID;
 
-  public LocalProxy(AgentContainerImpl ac, AID id) {
+  public LocalProxy(AgentContainer ac, AID id) {
     container = ac;
     receiverID = id;
   }
@@ -46,9 +46,18 @@ class LocalProxy implements AgentProxy {
       container.dispatch(msg, receiverID);
     }
     catch(IMTPException imtpe) {
-	throw new NotFoundException("Communication problem: " + imtpe.getMessage());
+			throw new NotFoundException("Communication problem: " + imtpe.getMessage());
     }
 
   }
 
+  public void ping() throws UnreachableException {
+    try {
+      container.ping(false);
+    }
+    catch(IMTPException imtpe) {
+			throw new UnreachableException("Unreachable remote object: [" + imtpe.getMessage() + "]");
+    }
+  }
+  	
 }

@@ -43,7 +43,7 @@ import jade.mtp.TransportAddress;
  */
 public class RMIIMTPManager implements IMTPManager {
 
-  private static class RemoteProxyRMI implements RemoteProxy {
+  private static class RemoteProxyRMI implements AgentProxy {
     private AgentContainerRMI ref;
     private AID               receiver;
 
@@ -227,7 +227,7 @@ public class RMIIMTPManager implements IMTPManager {
     // Unexport the RMI object
   }
 
-  public RemoteProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException {
+  public AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException {
     AgentContainerRMI acRMI = getRMIStub(ac);
     RemoteProxyRMI rp = new RemoteProxyRMI(acRMI, id);
     rp.setMgr(this);
@@ -286,9 +286,9 @@ public class RMIIMTPManager implements IMTPManager {
     return ac;
   }
 
-  void adopt(RemoteProxy rp) throws IMTPException {
+  void adopt(AgentProxy ap) throws IMTPException {
     try {
-      RemoteProxyRMI rpRMI = (RemoteProxyRMI)rp;
+      RemoteProxyRMI rpRMI = (RemoteProxyRMI)ap;
       rpRMI.setMgr(this);
     }
     catch(ClassCastException cce) {
