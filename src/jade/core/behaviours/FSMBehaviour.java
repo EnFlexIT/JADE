@@ -101,6 +101,7 @@ public class FSMBehaviour extends CompositeBehaviour {
      @param name The name identifying the state.
   */
   public void registerState(Behaviour state, String name) {
+  	state.setBehaviourName(name);
   	state.setParent(this);
   	states.put(name, state);
   }
