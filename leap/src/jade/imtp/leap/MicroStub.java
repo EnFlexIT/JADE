@@ -38,9 +38,11 @@ public class MicroStub {
 	private int activeCnt = 0;
 	private boolean flushing = false;
 	private Thread flusher;
+  private Logger logger;
 	
 	public MicroStub(Dispatcher d) {
 		myDispatcher = d;
+    logger = Logger.getMyLogger(this.getClass().getName());
 	}
 	
 	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
@@ -53,7 +55,7 @@ public class MicroStub {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
 					// Unexpected exception thrown in the remote site
 					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site processing command "+c.getCode()+". "+(String) r.getParamAt(2));
-					Logger.println(msg);
+					logger.log(Logger.SEVERE,msg);
       		throw new IMTPException(msg);
 				}
 				else if (((String) r.getParamAt(1)).equals("jade.core.IMTPException")) {
@@ -83,11 +85,11 @@ public class MicroStub {
 	}
 	
 	private void postpone(Command c) {
-		//Logger.println(Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
+		//logger.log(Logger.INFO,Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		pendingCommands.addElement(c);
 		int size = pendingCommands.size();
   	if (size > 100 && size < 110) {
-  		jade.util.Logger.println(size+" postponed commands");
+  		logger.log(Logger.INFO,size+" postponed commands");
   	}
 	}
 	
@@ -99,7 +101,7 @@ public class MicroStub {
 			// deadlock
 			flusher = new Thread() {
 				public void run() {
-					Logger.println("Flushing thread activated");
+					logger.log(Logger.INFO,"Flushing thread activated");
 					// 1) Lock the buffer of pending commands to avoid calling 
 					// remote methods while flushing
 					synchronized (pendingCommands) {
@@ -114,7 +116,7 @@ public class MicroStub {
 					}
 					
 					// Flush the buffer of pending commands
-					Logger.println("Start flushing");
+					logger.log(Logger.INFO,"Start flushing");
 					Enumeration e = pendingCommands.elements();
 					int flushedCnt = 0;
 					while (e.hasMoreElements()) {
@@ -123,15 +125,15 @@ public class MicroStub {
 						// was delayed for disconnection problems can and must not
 						// be handled!!!
 						try {
-							//Logger.println("Flushing command "+c.getCode());
+							//logger.log(Logger.INFO,"Flushing command "+c.getCode());
 							Command r = executeRemotely(c, 0);
 							flushedCnt++;
 							if (r.getCode() == Command.ERROR) {
-								Logger.println("WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
+								logger.log(Logger.SEVERE,"WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
 							}
 						}
 						catch (Exception ex) {
-							Logger.println("WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
+							logger.log(Logger.SEVERE,"WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
 							// We are disconnected again
 							break;
 						}
@@ -151,7 +153,7 @@ public class MicroStub {
 						flushing = false;
 						pendingCommands.notifyAll();
 					}
-					Logger.println("Flushing thread terminated ("+flushedCnt+")");
+					logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
 			flusher.start();

@@ -41,6 +41,7 @@ import jade.imtp.leap.JICP.Connection; // To avoid ambiguity with microedition.i
 import jade.imtp.leap.JICP.*;
 
 import jade.util.leap.Properties;
+import jade.util.Logger;
 
 import java.util.Vector;
 import java.io.*;
@@ -744,7 +745,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
-      jade.util.Logger.println(name+": "+s);
+      Logger logger = Logger.getMyLogger(this.getClass().getName());
+      logger.log(Logger.INFO,name+": "+s);
     } 
   } 
 }

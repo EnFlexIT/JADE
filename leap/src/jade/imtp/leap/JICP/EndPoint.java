@@ -37,11 +37,13 @@ package jade.imtp.leap.JICP;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.*;
+import jade.util.Logger;
 import java.io.*;
 
 /**
  * Class declaration
  * @author Giovanni Caire - TILAB
+ * @author Jerome Picault - Motorola Labs
  */
 public abstract class EndPoint extends Thread {
 	
@@ -524,7 +526,8 @@ public abstract class EndPoint extends Thread {
   void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
-      jade.util.Logger.println(name+": "+s);
+      Logger logger = Logger.getMyLogger(this.getClass().getName());
+      logger.log(Logger.INFO,name+": "+s);
     } 
   } 
 

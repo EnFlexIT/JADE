@@ -39,6 +39,7 @@ import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.ConnectionListener;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 
 import java.io.*;
 import java.util.Vector;
@@ -238,8 +239,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	
 		  try {
 	      log("Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+
 	      JICPConnection con = new JICPConnection(mediatorTA);
+
 	      writePacket(pkt, con);
+
 	      pkt = con.readPacket();
 
 		    String replyMsg = new String(pkt.getData());
@@ -683,7 +687,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
-      jade.util.Logger.println(name+": "+s);
+      Logger logger = Logger.getMyLogger(this.getClass().getName());
+      logger.log(Logger.INFO,name+": "+s);
     } 
   } 
 }

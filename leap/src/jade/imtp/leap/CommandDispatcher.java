@@ -281,16 +281,18 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       // The default router must be directly reachable -->
       // Its URL can be converted into a TransportAddress by
       // the ICP registered to this CommandDispatcher
+      Logger logger = Logger.getMyLogger(this.getClass().getName());
+
     	try {
 	      TransportAddress ta = stringToAddr(url);
     		if (routerTA != null && !routerTA.equals(ta)) {
-      		Logger.println("WARNING : transport address of current router has been changed");
+      		logger.log(Logger.WARNING,"WARNING : transport address of current router has been changed");
     		} 
     		routerTA = ta;
     	}
     	catch (Exception e) {
 	      // Just print a warning: default (i.e. main TA) will be used
-	      Logger.println("Can't initialize router address");
+	      logger.log(Logger.SEVERE,"Can't initialize router address");
     	}
     }    		
   } 
