@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package examples.mobile;
 
+import java.util.*;
+
 import jade.proto.*;
 import jade.lang.acl.*;
 
@@ -36,6 +38,7 @@ import jade.lang.sl.SL0Codec;
 
 import jade.core.*;
 import jade.onto.OntologyException;
+import jade.onto.basic.Action;
 
   /*
    * This behaviour extends FipaRequestInitiatorBehaviour in order
@@ -55,16 +58,19 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
      super(a, new ACLMessage(ACLMessage.REQUEST), template);
      request = getRequest();
      // fills all parameters of the request ACLMessage
-     request.removeAllDests();
-     request.addDest("AMS");
+     request.clearAllReceiver();
+     request.addReceiver(a.getAMS());
      request.setLanguage(SL0Codec.NAME);
      request.setOntology(MobilityOntology.NAME);
      request.setProtocol("fipa-request");
      // creates the content of the ACLMessage
      try {
-       MobilityOntology.QueryPlatformLocationsAction action = new MobilityOntology.QueryPlatformLocationsAction();
-       action.setActor("AMS");
-       a.fillContent(request, action, MobilityOntology.QUERY_PLATFORM_LOCATIONS);
+       Action action = new Action();
+       action.setActor(a.getAMS());
+       action.setAction(new MobilityOntology.QueryPlatformLocationsAction());
+       List tuple = new ArrayList();
+       tuple.add(action);
+       a.fillContent(request, tuple);
      }
      catch(FIPAException fe) {
        fe.printStackTrace();
@@ -93,6 +99,8 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
 
    protected void handleInform(ACLMessage inform) {
      String content = inform.getContent();
+     System.out.println(inform.toString());
+     /*** FIXME cosa ritorna lo AMS?
      try {
        Codec c = myAgent.lookupLanguage(SL0Codec.NAME);
        MobilityOntology.Location[] list = MobilityOntology.parseLocationsList(c, content);
@@ -105,6 +113,7 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
      catch(Codec.CodecException cce) {
        cce.printStackTrace();
      }
+     ***/
    }
 
 }
