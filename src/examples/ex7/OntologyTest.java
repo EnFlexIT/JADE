@@ -176,13 +176,13 @@ public class OntologyTest {
 
     Ontology withFrames = new DefaultOntology();
     try {
-      withFrames.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
+      withFrames.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
 	    });
 
-      withFrames.addFrame("User", Ontology.CONCEPT, new TermDescriptor[] {
+      withFrames.addFrame("User", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("NAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("SURNAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
@@ -221,13 +221,13 @@ public class OntologyTest {
     Ontology withClasses = new DefaultOntology();
     try {
 
-      withClasses.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
+      withClasses.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
 	    });
 
-      withClasses.addFrame("User", Ontology.CONCEPT, new TermDescriptor[] {
+      withClasses.addFrame("User", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("NAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("SURNAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
@@ -260,7 +260,7 @@ public class OntologyTest {
 	oe.printStackTrace();
       }
 
-      withClasses.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
+      withClasses.addFrame("Address", Ontology.CONCEPT_TYPE, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M),
