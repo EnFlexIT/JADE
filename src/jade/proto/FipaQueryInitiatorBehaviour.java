@@ -81,9 +81,9 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       //queryMsg.setType("query-ref");
       queryMsg.setProtocol("FIPA-Query");
       queryMsg.setSource(myAgent.getName());
-      if (queryMsg.getReplyWith() == null)
+      if (queryMsg.getReplyWith().length()<1)
       	queryMsg.setReplyWith("Query"+(new Date()).getTime());
-      if (queryMsg.getConversationId() == null)
+      if (queryMsg.getConversationId().length()<1)
 	      queryMsg.setConversationId("Query"+(new Date()).getTime());
       timeout = queryMsg.getReplyByDate().getTime()-(new Date()).getTime();
       if (timeout <= 1000) timeout = -1; // infinite timeout

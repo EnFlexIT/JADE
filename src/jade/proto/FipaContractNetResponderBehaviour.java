@@ -140,7 +140,7 @@ private long timeout, blockTime, endingTime;
       proposeMsg.setReplyTo(cfpMsg.getReplyWith());
       proposeMsg.setProtocol("FIPA-Contract-Net");
       proposeMsg.setConversationId(cfpMsg.getConversationId());
-      if (proposeMsg.getReplyWith() == null)
+      if (proposeMsg.getReplyWith().length()<1)
 	proposeMsg.setReplyWith("ContractNetResponder"+(new Date()).getTime());
       template = MessageTemplate.MatchReplyTo(proposeMsg.getReplyWith());
       myAgent.send(proposeMsg);

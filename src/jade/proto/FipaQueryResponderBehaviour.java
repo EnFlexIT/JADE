@@ -137,9 +137,9 @@ private void SendReply(ACLMessage msg, ACLMessage reply) {
   reply.setReplyTo(msg.getReplyWith());
   reply.setConversationId(msg.getConversationId());
   reply.setProtocol("FIPA-Query");
-  if (reply.getLanguage() == null)
+  if (reply.getLanguage().length()<1)
     reply.setLanguage(msg.getLanguage());
-  if (reply.getOntology() == null)
+  if (reply.getOntology().length()<1)
     reply.setOntology(msg.getOntology());
   myAgent.send(reply);
 }
