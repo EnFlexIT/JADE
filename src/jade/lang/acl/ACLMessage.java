@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.12  1999/02/22 09:25:18  rimassa
+ Added support for ISO 8601 time format using a custom new class for
+ all format conversions.
+
  Revision 1.11  1999/02/04 11:28:26  rimassa
  Added checks for null object references in modifier methods.
  Removed redundant code from time handling.
@@ -83,9 +87,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 import java.util.Date;
-import java.util.GregorianCalendar;
-
-import java.text.SimpleDateFormat;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
@@ -204,44 +205,19 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setReplyBy( String str ) {
     if (str != null) {
       reply_by = new String(str);
-      if (str.equals("*"))  // wildcard
-	reply_byInMillisec = new Date().getTime();
-      else {
-	int m_flag, pos;
-	long millisec;
-	Date data;
-	if(reply_by.substring(0, 1).equals("+")) {
-	  // add current time
-	pos = 1;
-	millisec = Integer.parseInt(reply_by.substring(pos, pos + 4))*365*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 4, pos + 6))*30*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 6, pos + 8))*24*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 9, pos +11))*60*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 11, pos + 13))*60*1000+
-	  Integer.parseInt(reply_by.substring(pos + 13, pos + 15))*1000;
-	data = new Date((new Date()).getTime() + millisec);
-      } else {
-    	pos = 0;
-	GregorianCalendar cal = new GregorianCalendar(
-						      Integer.parseInt(reply_by.substring(pos, pos + 4)),
-						      Integer.parseInt(reply_by.substring(pos + 4, pos + 6))-1,
-    		Integer.parseInt(reply_by.substring(pos + 6, pos + 8)),
-						      Integer.parseInt(reply_by.substring(pos + 9, pos +11)),
-						      Integer.parseInt(reply_by.substring(pos + 11, pos + 13)),
-						      Integer.parseInt(reply_by.substring(pos + 13, pos + 15))
-      );
-	data = cal.getTime();
+      try {
+	reply_byInMillisec = ISO8601.toDate(str).getTime();
+      } catch (Exception e) {
+	reply_byInMillisec = new Date().getTime(); // now
       }
-	reply_byInMillisec = data.getTime();
-      } // end of else
     }
-  }
+  }	
+
 
 
   public void setReplyByDate(Date date) {
    reply_byInMillisec = date.getTime();
-   SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd'T'HHmmssSSS");
-   reply_by=formatter.format(date);
+   reply_by=ISO8601.toString(date);
   }
 
 
