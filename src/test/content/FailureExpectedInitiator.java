@@ -62,7 +62,7 @@ public abstract class FailureExpectedInitiator extends OneShotBehaviour {
   	catch (Throwable t) {
   		TestUtility.log(t);
   	}
-  	getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+  	getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
   }
   
   protected abstract ACLMessage prepareMessage() throws Exception;
