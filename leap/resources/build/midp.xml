@@ -110,7 +110,7 @@
 	<target name="do-lib" depends="do-compile"
 	        description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
-		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
+		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}" manifest="jade-leap.manifest"/>
 	</target>
 
 	
