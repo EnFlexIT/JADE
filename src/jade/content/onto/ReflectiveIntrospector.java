@@ -39,7 +39,7 @@ public class ReflectiveIntrospector implements Introspector {
     /**
      * Externalize
      *
-     * @param onto
+     * @param ontology
      * @param obj
      *
      * @return
@@ -47,8 +47,10 @@ public class ReflectiveIntrospector implements Introspector {
      * @throws OntologyException
      *
      */
-    public AbsObject externalise(Ontology onto, 
+    public AbsObject externalise(Ontology ontology, 
                                  Object obj) throws OntologyException {
+	FullOntology onto = (FullOntology)ontology;
+
         try {
             if (obj == null) {
                 return null;
@@ -71,22 +73,26 @@ public class ReflectiveIntrospector implements Introspector {
             } 
 
             if (obj instanceof List) {
-                return AbsAggregate.fromObject((List) obj, onto);
-            } 
+                return AbsHelper.fromObject((List) obj, onto);
+            }
+
+	    if(obj instanceof jade.core.AID) {
+		return AbsHelper.fromObject((jade.core.AID)obj, onto);
+	    }
 
             if (obj instanceof ContentElementList) {
-                return AbsContentElementList.fromObject((List) obj, onto);
+                return AbsHelper.fromContentElementListObject((List) obj, onto);
             } 
 	    
 	    if (obj instanceof Iterator) {
-		return AbsAggregate.fromObject((Iterator) obj, onto);
+		return AbsHelper.fromObject((Iterator) obj, onto);
 	    }
 
             Class        javaClass = obj.getClass();
-            ObjectSchema schema = onto.getElementSchema(javaClass);
+            ObjectSchema schema = onto.getSchema(javaClass);
             AbsObject    abs = schema.newInstance();
             Method[]     methods = javaClass.getMethods();
-            String[]     names = schema.getAttributeNames();
+            String[]     names = schema.getNames();
 
             for (int i = 0; i < methods.length; i++) {
                 String name = methods[i].getName();
@@ -101,7 +107,7 @@ public class ReflectiveIntrospector implements Introspector {
                                                                    obj);
 
                         if (attributeValue != null) {
-                            abs.setAttribute(attributeName, attributeValue);
+                            abs.set(attributeName, attributeValue);
                         } 
                     } 
                 } 
@@ -117,7 +123,7 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    private AbsObject invokeGetMethod(Ontology onto, Method method, 
+    private AbsObject invokeGetMethod(FullOntology onto, Method method, 
                                       Object obj) throws OntologyException {
         try {
             Object result = method.invoke(obj, null);
@@ -136,7 +142,7 @@ public class ReflectiveIntrospector implements Introspector {
     /**
      * Internalize
      *
-     * @param onto
+     * @param ontology
      * @param abs
      *
      * @return
@@ -145,8 +151,10 @@ public class ReflectiveIntrospector implements Introspector {
      * @throws UngroundedException
      *
      */
-    public Object internalise(Ontology onto, AbsObject abs) 
+    public Object internalise(Ontology ontology, AbsObject abs) 
             throws UngroundedException, OntologyException {
+	FullOntology onto = (FullOntology)ontology;
+
         try {
             if (abs == null) {
                 return null;
@@ -157,18 +165,22 @@ public class ReflectiveIntrospector implements Introspector {
             } 
 
             if (abs instanceof AbsAggregate) {
-                return ((AbsAggregate) abs).toObject(onto);
+                return AbsHelper.toListObject((AbsAggregate) abs, onto);
             } 
+
+	    if (abs instanceof AbsAID) {
+		return AbsHelper.toAIDObject((AbsAID) abs, onto);
+	    }
 
             if (abs instanceof AbsContentElementList) {
-                return ((AbsContentElementList) abs).toObject(onto);
+                return AbsHelper.toListObject((AbsContentElementList) abs, onto);
             } 
 
-            Class        javaClass = onto.getElementClass(abs.getTypeName());
+            Class        javaClass = onto.getClass(abs.getTypeName());
             Object       obj = javaClass.newInstance();
-            ObjectSchema schema = onto.getElementSchema(javaClass);
+            ObjectSchema schema = onto.getSchema(javaClass);
             Method[]     methods = javaClass.getMethods();
-            String[]     names = schema.getAttributeNames();
+            String[]     names = schema.getNames();
 
             for (int i = 0; i < methods.length; i++) {
                 String name = methods[i].getName();
@@ -179,7 +191,7 @@ public class ReflectiveIntrospector implements Introspector {
 
                     if (schema.isAttribute(attributeName)) {
                         AbsObject attributeValue = 
-                            abs.getAttribute(attributeName);
+                            abs.getAbsObject(attributeName);
 
                         if (attributeValue != null) {
                             invokeSetMethod(onto, methods[i], obj, 
@@ -199,7 +211,7 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    private void invokeSetMethod(Ontology onto, Method method, Object obj, 
+    private void invokeSetMethod(FullOntology onto, Method method, Object obj, 
                                  AbsObject value) throws OntologyException {
         try {
             Object objValue = internalise(onto, value);

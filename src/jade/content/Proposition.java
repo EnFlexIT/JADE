@@ -27,5 +27,5 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class Proposition extends ContentElement {}
+public interface Proposition extends ContentElement {}
 

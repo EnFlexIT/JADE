@@ -46,8 +46,8 @@ public class AbsConcept extends AbsTerm {
      * @param value value of the slot.
      *
      */
-    public void setSlot(String name, AbsTerm value) {
-        setAttribute(name, value);
+    public void set(String name, AbsTerm value) {
+        super.set(name, value);
     } 
 
     /**
@@ -57,8 +57,8 @@ public class AbsConcept extends AbsTerm {
      * @param value value of the slot.
      *
      */
-    public void setSlot(String name, String value) {
-        setAttribute(name, AbsPrimitive.wrap(value));
+    public void set(String name, String value) {
+        set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
@@ -68,8 +68,8 @@ public class AbsConcept extends AbsTerm {
      * @param value value of the slot.
      *
      */
-    public void setSlot(String name, boolean value) {
-        setAttribute(name, AbsPrimitive.wrap(value));
+    public void set(String name, boolean value) {
+        set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
@@ -79,8 +79,8 @@ public class AbsConcept extends AbsTerm {
      * @param value value of the slot.
      *
      */
-    public void setSlot(String name, int value) {
-        setAttribute(name, AbsPrimitive.wrap(value));
+    public void set(String name, int value) {
+        set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
@@ -90,8 +90,8 @@ public class AbsConcept extends AbsTerm {
      * @param value value of the slot.
      *
      */
-    public void setSlot(String name, float value) {
-        setAttribute(name, AbsPrimitive.wrap(value));
+    public void set(String name, float value) {
+        set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
@@ -101,8 +101,8 @@ public class AbsConcept extends AbsTerm {
      * @return the value.
      *
      */
-    public AbsTerm getAbsTermSlot(String name) {
-        return (AbsTerm)getAttribute(name);
+    public AbsTerm getAbsTerm(String name) {
+        return (AbsTerm)getAbsObject(name);
     }
 
    /**
@@ -112,8 +112,8 @@ public class AbsConcept extends AbsTerm {
      * @return the value.
      *
      */
-    public String getStringSlot(String name) {
-        return ((AbsPrimitive)getAttribute(name)).getStringValue();
+    public String getString(String name) {
+        return ((AbsPrimitive)getAbsTerm(name)).getString();
     }
 
     /**
@@ -123,8 +123,8 @@ public class AbsConcept extends AbsTerm {
      * @return the value.
      *
      */
-    public boolean getBooleanSlot(String name) {
-      	return ((AbsPrimitive)getAttribute(name)).getBooleanValue();
+    public boolean getBoolean(String name) {
+      	return ((AbsPrimitive)getAbsTerm(name)).getBoolean();
     }
 
     /**
@@ -134,8 +134,8 @@ public class AbsConcept extends AbsTerm {
      * @return the value.
      *
      */
-    public int getIntegerSlot(String name) {
-    	return ((AbsPrimitive)getAttribute(name)).getIntegerValue();
+    public int getInteger(String name) {
+    	return ((AbsPrimitive)getAbsTerm(name)).getInteger();
     }
 
     /**
@@ -145,8 +145,8 @@ public class AbsConcept extends AbsTerm {
      * @return the value.
      *
      */
-    public float getRealSlot(String name) {
-    	return ((AbsPrimitive)getAttribute(name)).getRealValue();
+    public float getFloat(String name) {
+    	return ((AbsPrimitive)getAbsTerm(name)).getFloat();
     }
 }
 

@@ -24,6 +24,11 @@
  */
 package jade.content.abs;
 
+import jade.util.leap.*;
+
+import jade.core.AID;
+
+import jade.content.*;
 import jade.content.onto.*;
 import jade.content.schema.*;
 import java.util.Vector;
@@ -33,34 +38,51 @@ import java.util.Enumeration;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsAID extends AbsTerm {
-
+    // FIXME: AbsAID does not support user-defined slots because 
+    // there's no way for enumerating the slots contained in an AID.
     /**
      * Constructor
      *
      * @param name the name
      * @param addresses the list of addresses
      * @param resolvers the list of resolvers
-     * @param userDefinedSlots list of user-defined slots.
      *
      */
     public AbsAID(String name, AbsAggregate addresses, 
-                  AbsAggregate resolvers, AbsAggregate userDefinedSlots) {
+                  AbsAggregate resolvers) {
         super(BasicOntology.AID);
 
-        setAttribute(BasicOntology.NAME, AbsPrimitive.wrap(name));
+        set(BasicOntology.NAME, AbsPrimitive.wrap(name));
 
         if (addresses != null) {
-            setAttribute(BasicOntology.ADDRESSES, addresses);
+            set(BasicOntology.ADDRESSES, addresses);
         } 
 
         if (resolvers != null) {
-            setAttribute(BasicOntology.RESOLVERS, resolvers);
-        } 
-
-        if (userDefinedSlots != null) {
-            setAttribute(BasicOntology.USER_DEFINED_SLOTS, userDefinedSlots);
-        } 
+            set(BasicOntology.RESOLVERS, resolvers);
+        }
     }
 
-}
+    protected void dump(int indent) {
+        for (int i = 0; i < indent; i++) {
+            System.out.print("  ");
+        }
 
+        System.out.println("(AID ");
+
+	AbsObject abs = getAbsObject(BasicOntology.NAME);
+	abs.dump(indent+1);
+
+	abs = getAbsObject(BasicOntology.ADDRESSES);
+	abs.dump(indent+1);
+
+	abs = getAbsObject(BasicOntology.RESOLVERS);
+	abs.dump(indent+1);
+
+        for (int i = 0; i < indent; i++) {
+            System.out.print("  ");
+        }
+
+        System.out.println(")");
+    } 
+}

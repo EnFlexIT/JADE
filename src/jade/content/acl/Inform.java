@@ -30,7 +30,7 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class Inform extends CommunicativeAct {
+public class Inform extends CommunicativeActBase {
     private Proposition proposition = null;
 
     /**

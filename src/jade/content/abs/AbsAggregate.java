@@ -53,7 +53,7 @@ public class AbsAggregate extends AbsTerm {
      * @param element the element to add.
      *
      */
-    public void addElement(AbsTerm element) {
+    public void add(AbsTerm element) {
         elements.add(element);
     } 
 
@@ -171,26 +171,6 @@ public class AbsAggregate extends AbsTerm {
        	return tmp;
     }
 
-    /**
-     * Converts to a <code>List</code> using the specified ontology.
-     *
-     * @param onto the ontology
-     *
-     * @return the list
-     *
-     * @throws OntologyException
-     *
-     */
-    public List toObject(Ontology onto) throws OntologyException {
-        List ret = new ArrayList();
-
-        for (int i = 0; i < elements.size(); i++) {
-            ret.add((Term) (onto.toObject((AbsObject) elements.get(i))));
-        }
-
-        return ret;
-    } 
-
     protected void dump(int indent) {
         for (int i = 0; i < indent; i++) {
             System.out.print("  ");
@@ -208,51 +188,5 @@ public class AbsAggregate extends AbsTerm {
 
         System.out.println(")");
     } 
-
-    /**
-     * Converts a <code>List</code> into a <code>AbsAggregate</code> using
-     * the specified ontology.
-     *
-     * @param obj the <code>List</code>
-     * @param onto the ontology.
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     */
-    public static AbsAggregate fromObject(List obj, Ontology onto) 
-            throws OntologyException {
-        AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
-
-        for (int i = 0; i < obj.size(); i++) {
-            ret.addElement((AbsTerm) (onto.fromObject(obj.get(i))));
-        }
-
-        return ret;
-    } 
-
-    /**
-     * Converts an <code>Iterator</code> into a <code>AbsAggregate</code> using
-     * the specified ontology.
-     *
-     * @param obj the <code>Iterator</code>
-     * @param onto the ontology.
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     */
-    public static AbsAggregate fromObject(Iterator obj, Ontology onto)
-            throws OntologyException {
-        AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
-
-        while(obj.hasNext())
-            ret.addElement((AbsTerm) (onto.fromObject(obj.next())));
-
-        return ret;
-    }
-
 }
 

@@ -27,5 +27,5 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class Concept extends Term {}
+public interface Concept extends Term {}
 

@@ -27,5 +27,5 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class AgentAction extends GenericAction {}
+public interface AgentAction extends GenericAction {}
 

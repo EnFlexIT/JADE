@@ -24,9 +24,10 @@
  */
 package jade.content.abs;
 
+import jade.util.leap.Serializable;
+
 import java.util.Hashtable;
 import java.util.Enumeration;
-import java.io.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -62,7 +63,7 @@ public class AbsObject implements Serializable {
      * @param value value of the attribute.
      *
      */
-    public void setAttribute(String name, AbsObject value) {
+    public void set(String name, AbsObject value) {
         elements.put(name.toUpperCase(), value);
     } 
 
@@ -74,7 +75,7 @@ public class AbsObject implements Serializable {
      * @return value of the attribute.
      *
      */
-    public AbsObject getAttribute(String name) {
+    public AbsObject getAbsObject(String name) {
         return (AbsObject) elements.get(name.toUpperCase());
     } 
 
@@ -84,8 +85,8 @@ public class AbsObject implements Serializable {
      * @return the name of the attributes.
      *
      */
-    public String[] getAttributeNames() {
-        String[] ret = new String[getAttributeCount()];
+    public String[] getNames() {
+        String[] ret = new String[getCount()];
         int      count = 0;
 
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
@@ -114,7 +115,7 @@ public class AbsObject implements Serializable {
      * @return the number of attributes.
      *
      */
-    public int getAttributeCount() {
+    public int getCount() {
         return elements.size();
     } 
 
@@ -125,16 +126,16 @@ public class AbsObject implements Serializable {
 
         System.out.println(getTypeName());
 
-        String[] names = getAttributeNames();
+        String[] names = getNames();
 
-        for (int i = 0; i < getAttributeCount(); i++) {
+        for (int i = 0; i < getCount(); i++) {
             for (int j = 0; j < indent; j++) {
                 System.out.print("  ");
             }
 
             System.out.println(":" + names[i]);
 
-            AbsObject abs = getAttribute(names[i]);
+            AbsObject abs = getAbsObject(names[i]);
 
             abs.dump(indent + 1);
         } 

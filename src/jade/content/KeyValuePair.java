@@ -29,8 +29,8 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class KeyValuePair extends Concept {
-    private String key = null;
+public class KeyValuePair implements Concept {
+    private String key   = null;
     private String value = null;
 
     /**

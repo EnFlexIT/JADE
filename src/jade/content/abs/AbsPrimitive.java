@@ -77,7 +77,7 @@ public class AbsPrimitive extends AbsTerm {
     } 
 
     public static AbsPrimitive wrap(float value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.REAL, 
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, 
                                             new Float(value));
 
         return ret;
@@ -93,7 +93,7 @@ public class AbsPrimitive extends AbsTerm {
      * @param value the value to set.
      *
      */
-    public void setValue(String value) {
+    public void set(String value) {
         this.value = value;
     } 
 
@@ -103,7 +103,7 @@ public class AbsPrimitive extends AbsTerm {
      * @param value the value to set.
      *
      */
-    public void setValue(boolean value) {
+    public void set(boolean value) {
         this.value = new Boolean(value);
     } 
 
@@ -113,7 +113,7 @@ public class AbsPrimitive extends AbsTerm {
      * @param value the value to set.
      *
      */
-    public void setValue(int value) {
+    public void set(int value) {
         this.value = new Integer(value);
     } 
 
@@ -123,7 +123,7 @@ public class AbsPrimitive extends AbsTerm {
      * @param value the value to set.
      *
      */
-    public void setValue(float value) {
+    public void set(float value) {
         this.value = new Float(value);
     } 
 
@@ -133,7 +133,7 @@ public class AbsPrimitive extends AbsTerm {
      * @return the string.
      *
      */
-    public String getStringValue() {
+    public String getString() {
         return (String) value;
     } 
 
@@ -143,7 +143,7 @@ public class AbsPrimitive extends AbsTerm {
      * @return the integer.
      *
      */
-    public int getIntegerValue() {
+    public int getInteger() {
         return ((Integer) value).intValue();
     } 
 
@@ -153,7 +153,7 @@ public class AbsPrimitive extends AbsTerm {
      * @return the float.
      *
      */
-    public float getRealValue() {
+    public float getFloat() {
         return ((Float) value).floatValue();
     } 
 
@@ -163,11 +163,11 @@ public class AbsPrimitive extends AbsTerm {
      * @return the boolean.
      *
      */
-    public boolean getBooleanValue() {
+    public boolean getBoolean() {
         return ((Boolean) value).booleanValue();
     } 
 
-    public Object getObjectValue() {
+    public Object getObject() {
         return value;
     } 
 
@@ -176,7 +176,7 @@ public class AbsPrimitive extends AbsTerm {
             System.out.print("  ");
         }
 
-        System.out.println(getObjectValue());
+        System.out.println(getObject());
     } 
 
 }

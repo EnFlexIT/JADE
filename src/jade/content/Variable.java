@@ -29,8 +29,8 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class Variable extends Term {
-    private String name = null;
+public class Variable implements Term {
+    private String name     = null;
     private String typeName = null;
 
     /**

@@ -22,33 +22,63 @@
  * Boston, MA  02111-1307, USA.
  * **************************************************************
  */
-package jade.content.abs;
+package jade.content;
+
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.content.onto.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderPredicate extends AbsProposition {
-
+public class Equals implements Proposition {
+    private IRE     ire     = null;
+    private Concept concept = null;
+   
     /**
      * Constructor
      *
-     * @param name
-     *
      */
-    public AbsHigherOrderPredicate(String name) {
-        super(name);
-    }
+    public Equals() {}
 
     /**
-     * Sets an argument of the predicate.
+     * Sets the IRE that describes the object.
      *
-     * @param name the name of the argument.
-     * @param value the value of the argument.
+     * @param ire the describing IRE.
      *
      */
-    public void set(String name, AbsProposition value) {
-        super.set(name, value);
+    public void setIRE(IRE ire) {
+        this.ire = ire;
     } 
 
+    /**
+     * Retrieves the IRE that descripes the object.
+     *
+     * @return the describing IRE.
+     *
+     */
+    public IRE getIRE() {
+        return ire;
+    } 
+
+    /**
+     * Sets the described concept.
+     *
+     * @param concept the described concept.
+     *
+     */
+    public void setConcept(Concept concept) {
+        this.concept = concept;
+    } 
+
+    /**
+     * Retrieves the described concept.
+     *
+     * @return the described concept.
+     *
+     */
+    public Concept getConcept() {
+        return concept;
+    } 
 }
 

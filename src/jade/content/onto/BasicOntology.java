@@ -36,9 +36,9 @@ import jade.util.leap.List;
  *
  * @author Federico Bergenti - Universita` di Parma
  */
-public class BasicOntology extends Ontology {
+public class BasicOntology extends FullOntology {
     public static final String         STRING = "String";
-    public static final String         REAL = "Rela";
+    public static final String         FLOAT = "Float";
     public static final String         INTEGER = "Integer";
     public static final String         BOOLEAN = "Boolean";
     public static final String         CONCEPT = "Concept";
@@ -62,8 +62,6 @@ public class BasicOntology extends Ontology {
     public static final String         AID = "AID";
     public static final String         ADDRESSES = "Addresses";
     public static final String         RESOLVERS = "Resolvers";
-    public static final String         USER_DEFINED_SLOTS = 
-        "UserDefinedSlots";
     public static final String         QUANTIFIER = "Quantifier";
     private static final BasicOntology theInstance = new BasicOntology();
 
@@ -75,59 +73,57 @@ public class BasicOntology extends Ontology {
         super("BASIC_ONTOLOGY");
 
         try {
-            addElement(VariableSchema.getBaseSchema(), Variable.class);
-            addElement(TermSchema.getBaseSchema(), Term.class);
-            addElement(PropositionSchema.getBaseSchema(), Proposition.class);
-            addElement(PrimitiveSchema.getBaseSchema());
-            addElement(ConceptSchema.getBaseSchema(), Concept.class);
-            addElement(AggregateSchema.getBaseSchema(), List.class);
-            addElement(GenericActionSchema.getBaseSchema(), 
-                       GenericAction.class);
-            addElement(new PrimitiveSchema(STRING));
-            addElement(new PrimitiveSchema(REAL));
-            addElement(new PrimitiveSchema(INTEGER));
-            addElement(new PrimitiveSchema(BOOLEAN));
-            addElement(new AggregateSchema(SEQUENCE));
-            addElement(new AggregateSchema(SET));
+            add(VariableSchema.getBaseSchema(), Variable.class);
+            add(TermSchema.getBaseSchema(), Term.class);
+            add(PropositionSchema.getBaseSchema(), Proposition.class);
+            add(PrimitiveSchema.getBaseSchema());
+            add(ConceptSchema.getBaseSchema(), Concept.class);
+            add(AggregateSchema.getBaseSchema(), List.class);
+            add(GenericActionSchema.getBaseSchema(), GenericAction.class);
+            add(new PrimitiveSchema(STRING));
+            add(new PrimitiveSchema(FLOAT));
+            add(new PrimitiveSchema(INTEGER));
+            add(new PrimitiveSchema(BOOLEAN));
+            add(new AggregateSchema(SEQUENCE));
+            add(new AggregateSchema(SET));
 
             ConceptSchema keyValuePairSchema = 
                 new ConceptSchema(KEY_VALUE_PAIR);
 
-            keyValuePairSchema.addSlot(KEY, 
-                                       (TermSchema) getElementSchema(STRING));
-            keyValuePairSchema.addSlot(VALUE, 
-                                       (TermSchema) getElementSchema(STRING));
-            addElement(keyValuePairSchema, KeyValuePair.class);
+            keyValuePairSchema.add(KEY, 
+                                   (TermSchema) getSchema(STRING));
+            keyValuePairSchema.add(VALUE, 
+                                   (TermSchema) getSchema(STRING));
+            add(keyValuePairSchema, KeyValuePair.class);
 
             ConceptSchema quantifiedVariableSchema = 
                 new ConceptSchema(QUANTIFIED_VARIABLE);
 
-            quantifiedVariableSchema.addSlot(KIND, 
-                                             (TermSchema) getElementSchema(STRING));
-            quantifiedVariableSchema.addSlot(VARIABLE, 
-                                             VariableSchema.getBaseSchema());
-            addElement(quantifiedVariableSchema, QuantifiedVariable.class);
+            quantifiedVariableSchema.add(KIND, 
+                                         (TermSchema) getSchema(STRING));
+            quantifiedVariableSchema.add(VARIABLE, 
+                                         VariableSchema.getBaseSchema());
+            add(quantifiedVariableSchema, QuantifiedVariable.class);
 
             AggregateSchema setSchema = 
-                (AggregateSchema) getElementSchema(SET);
+                (AggregateSchema) getSchema(SET);
             ConceptSchema   aidSchema = new ConceptSchema(AID);
 
-            aidSchema.addSlot(NAME, (TermSchema) getElementSchema(STRING));
-            aidSchema.addSlot(RESOLVERS, setSchema);
-            aidSchema.addSlot(ADDRESSES, setSchema);
-            aidSchema.addSlot(USER_DEFINED_SLOTS, setSchema);
-            addElement(aidSchema, AID.class);
+            aidSchema.add(NAME, (TermSchema) getSchema(STRING));
+            aidSchema.add(RESOLVERS, setSchema);
+            aidSchema.add(ADDRESSES, setSchema);
+            add(aidSchema, AID.class);
 
             HigherOrderPredicateSchema quantifierSchema = 
                 new HigherOrderPredicateSchema(QUANTIFIER);
 
-            quantifierSchema.addArgument(KIND, 
-                                         (TermSchema) getElementSchema(STRING));
-            quantifierSchema.addArgument(VARIABLE, 
-                                         (TermSchema) getElementSchema(VARIABLE));
-            quantifierSchema.addArgument(PROPOSITION, 
-                                         (PropositionSchema) getElementSchema(PROPOSITION));
-            addElement(quantifierSchema, Quantifier.class);
+            quantifierSchema.add(KIND, 
+                                 (TermSchema) getSchema(STRING));
+            quantifierSchema.add(VARIABLE, 
+                                 (TermSchema) getSchema(VARIABLE));
+            quantifierSchema.add(PROPOSITION, 
+                                 (PropositionSchema) getSchema(PROPOSITION));
+            add(quantifierSchema, Quantifier.class);
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -143,6 +139,4 @@ public class BasicOntology extends Ontology {
     public static BasicOntology getInstance() {
         return theInstance;
     } 
-
 }
-

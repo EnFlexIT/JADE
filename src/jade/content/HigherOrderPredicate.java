@@ -27,5 +27,5 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class HigherOrderPredicate extends Proposition {}
+public interface HigherOrderPredicate extends Proposition {}
 

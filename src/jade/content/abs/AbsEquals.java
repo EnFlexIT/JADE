@@ -24,31 +24,60 @@
  */
 package jade.content.abs;
 
+import jade.content.onto.*;
+import jade.content.schema.*;
+
 /**
- * @author Federico Bergenti - Universita` di Parma
+ * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderPredicate extends AbsProposition {
+public class AbsEquals extends AbsProposition {
 
     /**
      * Constructor
      *
-     * @param name
-     *
      */
-    public AbsHigherOrderPredicate(String name) {
-        super(name);
+    public AbsEquals() {
+        super(EqualsSchema.BASE_NAME);
     }
 
     /**
-     * Sets an argument of the predicate.
+     * Sets the IRE describing the concept.
      *
-     * @param name the name of the argument.
-     * @param value the value of the argument.
+     * @param ire the IRE describing the concept.
      *
      */
-    public void set(String name, AbsProposition value) {
-        super.set(name, value);
+    public void setIRE(AbsIRE absIRE) {
+        set(EqualsSchema.IRE, absIRE);
     } 
 
+    /**
+     * Sets the described concept.
+     *
+     * @param concept the concept.
+     *
+     */
+    public void setConcept(AbsConcept concept) {
+        set(EqualsSchema.CONCEPT, concept);
+    } 
+
+    /**
+     * Gets the IRE describing the concept.
+     *
+     * @return the IRE.
+     *
+     */
+    public AbsIRE getIRE() {
+        return (AbsIRE) getAbsObject(EqualsSchema.IRE);
+    } 
+
+    /**
+     * Gets the described concept.
+     *
+     * @return the described concept.
+     *
+     */
+    public AbsConcept getConcept() {
+        return (AbsConcept) getAbsObject(EqualsSchema.CONCEPT);
+    }
 }
 

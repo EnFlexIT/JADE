@@ -30,7 +30,7 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class Request extends CommunicativeAct {
+public class Request extends CommunicativeActBase {
     private GenericAction action = null;
 
     /**

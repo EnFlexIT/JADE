@@ -27,4 +27,4 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class ActionPredicate extends Proposition {}
+public interface ActionPredicate extends Proposition {}

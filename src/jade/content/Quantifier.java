@@ -29,9 +29,9 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class Quantifier extends HigherOrderPredicate {
-    private String      kind = null;
-    private Variable    variable = null;
+public class Quantifier implements HigherOrderPredicate {
+    private String      kind        = null;
+    private Variable    variable    = null;
     private Proposition proposition = null;
 
     /**

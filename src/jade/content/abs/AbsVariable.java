@@ -62,7 +62,7 @@ public class AbsVariable extends AbsTerm {
      *
      */
     public void setName(String name) {
-        setAttribute(BasicOntology.NAME, AbsPrimitive.wrap(name));
+        set(BasicOntology.NAME, AbsPrimitive.wrap(name));
     } 
 
     /**
@@ -72,7 +72,7 @@ public class AbsVariable extends AbsTerm {
      *
      */
     public void setType(String name) {
-        setAttribute(BasicOntology.TYPE_NAME, AbsPrimitive.wrap(name));
+        set(BasicOntology.TYPE_NAME, AbsPrimitive.wrap(name));
     } 
 
     /**
@@ -82,9 +82,9 @@ public class AbsVariable extends AbsTerm {
      *
      */
     public String getName() {
-        AbsPrimitive abs = (AbsPrimitive) getAttribute(BasicOntology.NAME);
+        AbsPrimitive abs = (AbsPrimitive) getAbsObject(BasicOntology.NAME);
 
-        return abs.getStringValue();
+        return abs.getString();
     } 
 
     /**
@@ -95,9 +95,9 @@ public class AbsVariable extends AbsTerm {
      */
     public String getType() {
         AbsPrimitive abs = 
-            (AbsPrimitive) getAttribute(BasicOntology.TYPE_NAME);
+            (AbsPrimitive) getAbsObject(BasicOntology.TYPE_NAME);
 
-        return abs.getStringValue();
+        return abs.getString();
     } 
 
 }

@@ -46,8 +46,8 @@ public class AbsActionPredicate extends AbsProposition {
      * @param value value of the argument.
      *
      */
-    public void setArgument(String name, AbsContentElement value) {
-        setAttribute(name, value);
+    public void set(String name, AbsContentElement value) {
+        super.set(name, value);
     } 
 
 }

@@ -31,7 +31,7 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class IRE extends Proposition {
+public class IRE implements Proposition {
     private Proposition proposition = null;
     private Variable    variable = null;
     private String      kind = null;

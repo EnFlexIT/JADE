@@ -47,7 +47,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public void setKind(String kind) {
-        setAttribute(IRESchema.KIND, AbsPrimitive.wrap(kind));
+        set(IRESchema.KIND, AbsPrimitive.wrap(kind));
     } 
 
     /**
@@ -57,7 +57,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public void setVariable(AbsVariable variable) {
-        setAttribute(IRESchema.VARIABLE, variable);
+        set(IRESchema.VARIABLE, variable);
     } 
 
     /**
@@ -67,7 +67,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public void setProposition(AbsProposition proposition) {
-        setAttribute(IRESchema.PROPOSITION, proposition);
+        set(IRESchema.PROPOSITION, proposition);
     } 
 
     /**
@@ -77,7 +77,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public String getKind() {
-        return ((AbsPrimitive) getAttribute(IRESchema.KIND)).getStringValue();
+        return ((AbsPrimitive) getAbsObject(IRESchema.KIND)).getString();
     } 
 
     /**
@@ -87,7 +87,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public AbsAggregate getVariable() {
-        return (AbsAggregate) getAttribute(IRESchema.VARIABLE);
+        return (AbsAggregate) getAbsObject(IRESchema.VARIABLE);
     } 
 
     /**
@@ -97,7 +97,7 @@ public class AbsIRE extends AbsProposition {
      *
      */
     public AbsProposition getProposition() {
-        return (AbsProposition) getAttribute(IRESchema.PROPOSITION);
+        return (AbsProposition) getAbsObject(IRESchema.PROPOSITION);
     } 
 
 }

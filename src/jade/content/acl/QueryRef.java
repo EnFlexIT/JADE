@@ -30,7 +30,7 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class QueryRef extends CommunicativeAct {
+public class QueryRef extends CommunicativeActBase {
     private IRE ire = null;
 
     /**

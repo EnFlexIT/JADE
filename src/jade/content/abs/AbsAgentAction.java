@@ -46,8 +46,8 @@ public class AbsAgentAction extends AbsGenericAction {
      * @param value value of the parameter.
      *
      */
-    public void setParameter(String name, AbsTerm value) {
-        setAttribute(name, value);
+    public void set(String name, AbsTerm value) {
+        super.set(name, value);
     } 
 
 }

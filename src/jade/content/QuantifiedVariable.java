@@ -29,8 +29,8 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class QuantifiedVariable extends Concept {
-    private String   kind = null;
+public class QuantifiedVariable implements Concept {
+    private String   kind     = null;
     private Variable variable = null;
 
     /**

@@ -51,7 +51,7 @@ public class AbsContentElementList extends AbsContentElement {
      * @param e the new element. 
      *
      */
-    public void addElement(AbsContentElement e) {
+    public void add(AbsContentElement e) {
         list.add(e);
     } 
 
@@ -61,51 +61,8 @@ public class AbsContentElementList extends AbsContentElement {
      * @return the list of elements.
      *
      */
-    public List getElements() {
+    public List getList() {
         return list;
     } 
-
-    /**
-     * Converts to a <code>List</code> using a specified ontology.
-     *
-     * @param onto the ontology
-     *
-     * @return the <code>List</code>
-     *
-     * @throws OntologyException
-     *
-     */
-    public List toObject(Ontology onto) throws OntologyException {
-        List ret = new ArrayList();
-
-        for (Iterator i = list.iterator(); i.hasNext(); ) {
-            ret.add(onto.toObject((AbsObject) i.next()));
-        }
-
-        return ret;
-    } 
-
-    /**
-     * Converts to an abstract descriptor using the specified ontology.
-     *
-     * @param obj the <code>List</code> to convert.
-     * @param onto the ontology to use for the conversion.
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     */
-    public static AbsContentElementList fromObject(List obj, 
-            Ontology onto) throws OntologyException {
-        AbsContentElementList ret = new AbsContentElementList();
-
-        for (Iterator i = obj.iterator(); i.hasNext(); ) {
-            ret.addElement((AbsContentElement) (onto.fromObject(i.next())));
-        }
-
-        return ret;
-    } 
-
 }
 

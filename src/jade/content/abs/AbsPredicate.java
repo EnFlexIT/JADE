@@ -48,8 +48,8 @@ public class AbsPredicate extends AbsProposition {
      * @param value of the argument.
      *
      */
-    public void setArgument(String name, AbsTerm value) {
-        setAttribute(name, value);
+    public void set(String name, AbsTerm value) {
+        super.set(name, value);
     } 
 
 }

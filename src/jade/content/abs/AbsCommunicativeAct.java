@@ -52,13 +52,13 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      * @throws UngroundedException
      *
      */
-    public void setParameter(String name, AbsContentElement value) 
+    public void set(String name, AbsContentElement value) 
             throws UngroundedException {
         if (!value.isGrounded()) {
             throw new UngroundedException();
         } 
 
-        setAttribute(name, value);
+        set(name, value);
     } 
 
     /**
@@ -69,8 +69,8 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      * @return the value of the parameter.
      *
      */
-    public AbsContentElement getParameter(String name) {
-        return (AbsContentElement) getAttribute(name);
+    public AbsContentElement getAbsContentElement(String name) {
+        return (AbsContentElement) getAbsObject(name);
     } 
 
     /**
@@ -80,7 +80,7 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      *
      */
     public void setSender(AbsAID sender) {
-        setAttribute(ACLOntology.SENDER, sender);
+        set(ACLOntology.SENDER, sender);
     } 
 
     /**
@@ -90,7 +90,7 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      *
      */
     public void setReceivers(AbsAggregate receivers) {
-        setAttribute(ACLOntology.RECEIVERS, receivers);
+        set(ACLOntology.RECEIVERS, receivers);
     } 
 
     /**
@@ -100,7 +100,7 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      *
      */
     public AbsAID getSender() {
-        return (AbsAID) getAttribute(ACLOntology.SENDER);
+        return (AbsAID) getAbsObject(ACLOntology.SENDER);
     } 
 
     /**
@@ -110,7 +110,7 @@ public class AbsCommunicativeAct extends AbsGenericAction {
      *
      */
     public AbsAggregate getReceivers() {
-        return (AbsAggregate) getAttribute(ACLOntology.RECEIVERS);
+        return (AbsAggregate) getAbsObject(ACLOntology.RECEIVERS);
     } 
 
 }

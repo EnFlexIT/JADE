@@ -35,7 +35,7 @@ import jade.content.schema.*;
  *
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ACLOntology extends Ontology {
+public class ACLOntology extends FullOntology {
     public static final String       INFORM = "Inform";
     public static final String       PROPOSITION = "Proposition";
     public static final String       QUERY_REF = "QueryRef";
@@ -48,6 +48,8 @@ public class ACLOntology extends Ontology {
     public static final String       IOTA = "Iota";
     public static final String       ALL = "All";
     public static final String       VARIABLES = "Variables";
+    public static final String       CONCEPT = "Concept";
+    public static final String       EQUALS = "Equals";
     private static final ACLOntology theInstance = new ACLOntology();
 
     /**
@@ -58,28 +60,29 @@ public class ACLOntology extends Ontology {
         super("ACL_ONTOLOGY", BasicOntology.getInstance());
 
         try {
-            addElement(IRESchema.getBaseSchema());
-            addElement(ContentElementSchema.getBaseSchema());
-            addElement(CommunicativeActSchema.getBaseSchema());
+            add(IRESchema.getBaseSchema());
+            add(ContentElementSchema.getBaseSchema());
+            add(CommunicativeActSchema.getBaseSchema());
+	    add(EqualsSchema.getBaseSchema());
 
             CommunicativeActSchema informSchema = 
                 new CommunicativeActSchema(INFORM);
 
-            informSchema.addParameter(PROPOSITION, 
-                                      PropositionSchema.getBaseSchema());
-            addElement(informSchema, Inform.class);
+            informSchema.add(PROPOSITION, 
+                             PropositionSchema.getBaseSchema());
+            add(informSchema, Inform.class);
 
             CommunicativeActSchema queryRefSchema = 
                 new CommunicativeActSchema(QUERY_REF);
 
-            queryRefSchema.addParameter(IRE, IRESchema.getBaseSchema());
-            addElement(queryRefSchema, QueryRef.class);
+            queryRefSchema.add(IRE, IRESchema.getBaseSchema());
+            add(queryRefSchema, QueryRef.class);
 
             CommunicativeActSchema requestSchema = 
                 new CommunicativeActSchema(REQUEST);
 
-            requestSchema.addParameter(ACTION, new GenericActionSchema());
-            addElement(requestSchema, Request.class);
+            requestSchema.add(ACTION, new GenericActionSchema());
+            add(requestSchema, Request.class);
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -95,6 +98,4 @@ public class ACLOntology extends Ontology {
     public static ACLOntology getInstance() {
         return theInstance;
     } 
-
 }
-

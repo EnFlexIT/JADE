@@ -22,32 +22,77 @@
  * Boston, MA  02111-1307, USA.
  * **************************************************************
  */
-package jade.content.abs;
+package jade.content.acl;
+
+import jade.content.*;
+import jade.content.onto.*;
+
+import jade.core.AID;
+
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderPredicate extends AbsProposition {
+public class CommunicativeActBase implements CommunicativeAct {
+    private AID  sender = null;
+    private List receivers = new ArrayList();
 
     /**
-     * Constructor
-     *
-     * @param name
+     * Constructor.
      *
      */
-    public AbsHigherOrderPredicate(String name) {
-        super(name);
-    }
+    public CommunicativeActBase() {}
 
     /**
-     * Sets an argument of the predicate.
+     * Sets the <code>sender</code>.
      *
-     * @param name the name of the argument.
-     * @param value the value of the argument.
+     * @param sender the sender.
      *
      */
-    public void set(String name, AbsProposition value) {
-        super.set(name, value);
+    public void setSender(AID sender) {
+        this.sender = sender;
+    } 
+
+    /**
+     * Retrieves the <code>sender</code>.
+     *
+     * @return the sender.
+     *
+     */
+    public AID getSender() {
+        return sender;
+    } 
+
+    /**
+     * Sets the receivers.
+     *
+     * @param receivers the receivers.
+     *
+     */
+    public void setReceivers(List receivers) {
+        this.receivers = receivers;
+    } 
+
+    /**
+     * Retrieves the receivers.
+     *
+     * @return the receivers.
+     *
+     */
+    public List getReceivers() {
+        return receivers;
+    } 
+
+    /**
+     * Add a new receiver to the list.
+     *
+     * @param aid the AID of the receiver.
+     *
+     */
+    public void addReceiver(AID aid) {
+        receivers.add(aid);
     } 
 
 }

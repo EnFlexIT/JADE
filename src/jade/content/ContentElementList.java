@@ -31,7 +31,7 @@ import jade.util.leap.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ContentElementList extends ContentElement {
+public class ContentElementList implements ContentElement {
     private List elements = new ArrayList();
 
     /**
@@ -81,28 +81,5 @@ public class ContentElementList extends ContentElement {
     public Iterator getElements() {
         return elements.iterator();
     } 
-
-    /**
-     * Converts this list to an abstract descriptor using the ontology 
-     * <code>onto</code>
-     *
-     * @param onto the ontology to use.
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     */
-    public AbsContentElementList fromObject(Ontology onto) 
-            throws OntologyException {
-        AbsContentElementList ret = new AbsContentElementList();
-
-        for (int i = 0; i < elements.size(); i++) {
-            ret.addElement((AbsContentElement) (onto.fromObject(elements.get(i))));
-        }
-
-        return ret;
-    } 
-
 }
 
