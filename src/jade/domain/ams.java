@@ -959,6 +959,10 @@ public class ams extends Agent {
     }
   }
 
+  // This one is called in response to a 'query-platform-locations' action
+  MobilityOntology.Location[] AMSGetPlatformLocations() {
+    return mobilityMgr.getLocations();
+  }
 
   /**
    The AMS must have a special version for this method, or a deadlock will occur.
