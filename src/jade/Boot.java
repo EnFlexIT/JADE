@@ -124,8 +124,7 @@ public class Boot {
       while( n < args.length ){
 	if(args[n].equals("-host")) {
 	  if(++n  == args.length) usage();
-	  //platformHost = args[n];
-	  insertedHost = args[n];
+	  insertedHost = args[n]; 
 	  
 	}
 	else if(args[n].equals("-port")) {
@@ -176,12 +175,15 @@ public class Boot {
 
     // If -host is given with a platform different from local host
     // the platform exit.
-    if (isPlatform && (insertedHost != null))
-        if (!(platformHost.equalsIgnoreCase(insertedHost)))
+    if (isPlatform) {
+    	if ((insertedHost != null) && (!(platformHost.equalsIgnoreCase(insertedHost))))
            {
-            System.out.println("  Not possible to lunch a platform on host different from local host");
-            System.exit(1);
+            System.out.println("    WARNING: Not possible to lunch a platform on a different host.");
+            System.out.println("    The platform will be launched on local host.\n");
            }
+    }
+    else 
+    	platformHost = insertedHost;
     
     // If '-gui' option is given, add 'RMA:jade.domain.rma' to
     // startup agents, making sure that the RMA starts before all
@@ -208,7 +210,7 @@ public class Boot {
     System.out.println("  -host\t\tHost where RMI registry for the platform is located");
     System.out.println("  -port\t\tThe port where RMI registry for the platform resides");
     System.out.println("  -file\t\tA file name containing tne agent specifiers");
-    System.out.println("  -gui\tIf specified, a new Remote Management Agent is created.");
+    System.out.println("  -gui\t\tIf specified, a new Remote Management Agent is created.");
     System.out.println("  -platform\tIf specified, a new Agent Platform is created.");
     System.out.println("  \t\tOtherwise a new Agent Container is added to an existing platform");
     System.out.println("  -version\tIf specified, current JADE version number and build date is printed.");
@@ -220,11 +222,10 @@ public class Boot {
     System.out.println("  Connect to default platform, starting an agent named 'peter'");
     System.out.println("  implemented in 'myAgent' class:");
     System.out.println("  \tjava jade.Boot peter:myAgent");
-    // Not possible with actual implementation
-    //System.out.println("");
-    //System.out.println("  Connect to a platform on host zork.zot.za, on port 1100,");
-    //System.out.println("  starting two agents");
-    //System.out.println("  java jade.Boot -host zork.zot.za -port 1100 peter:heAgent paula:sheAgent");
+    System.out.println("");
+    System.out.println("  Connect to a platform on host zork.zot.za, on port 1100,");
+    System.out.println("  starting two agents");
+    System.out.println("  java jade.Boot -host zork.zot.za -port 1100 peter:heAgent paula:sheAgent");
     System.out.println("");
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
     System.out.println("  \tjava jade.Boot -platform Willy:searchAgent");
