@@ -24,14 +24,17 @@ Boston, MA  02111-1307, USA.
 package jade.imtp.leap;
 
 /**
-   This interface provides a set of callback methods that are called
+   This interface provides a callback method that is called
    by the JADE runtime (front-end of a split container) when connection 
-   specific events happens on the device.
+   specific events happen on the device.
    Application developers wishing to handle these events may provide
    a class implementating this interface and set the 
    <code>connection-listener</code> property to the fully qualified name 
    of that class. ConnectionListener implementation classes must have 
-   an accessible default constructor;
+   an accessible default constructor;<br>
+   Alternatively an object implementing the ConnectionListener interface 
+   may be put in the activation <code>Properties</code> specified ad
+   JADE runtime activation.
    @author Giovanni Caire - TILAB
  */
 public interface ConnectionListener {
@@ -64,9 +67,22 @@ public interface ConnectionListener {
 
 	/**
 	   This event is raised when the mediator replies with a BE Not Found
-	   to a connection request.
+	   to a CONNECT_MEDIATOR request.
 	 */
 	public static final int BE_NOT_FOUND = 5;
 	
+	/**
+	   This event is raised when the mediator replies with an error
+	   response of type Not Authorized to a CREATE_MEDIATOR or 
+	   CONNECT_MEDIATOR request.
+	 */
+	public static final int NOT_AUTHORIZED = 6;
+
+	/**
+	   This callback method is called by the JADE runtime (front-end of 
+	   a split container) when connection specific events happen on the 
+	   device.
+	   @param ev The event that happened
+	 */
 	public void handleConnectionEvent(int ev);
 }
