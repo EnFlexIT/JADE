@@ -75,7 +75,7 @@ public class TestMissingNotification extends TestBase {
   		
   		private void interrupt() {
   			replyReceiver.interrupt();
-  			forceTransitionTo(CHECK_SESSIONS);
+  			//forceTransitionTo(CHECK_SESSIONS);
   			restart();
   		}	
   	};
