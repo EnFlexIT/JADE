@@ -801,7 +801,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   void federateAction(final Federate action, AID requester) {
-		final AID remoteDF = action.getDf();
+		AID remoteDF = action.getDf();
     log("Agent "+requester+" requesting action Federate with DF "+remoteDF.getName(), 2);
 		Register r = new Register();
 		DFAgentDescription tmp = action.getDescription();
@@ -811,7 +811,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     	public int onEnd() {
     		Object result = getResult();
     		if (!(result instanceof InternalError)) {
-					addParent(remoteDF, dfd);
+					addParent(getRemoteDF(), dfd);
     		}
     		sendPendingNotification(action, result);
     		return 0;
@@ -825,7 +825,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   void registerWithAction(final RegisterWith action, AID requester){
-		final AID remoteDF = action.getDf();
+		AID remoteDF = action.getDf();
     log("Agent "+requester+" requesting action RegisterWith on DF "+remoteDF.getName(), 2);
 		Register r = new Register();
 		final DFAgentDescription dfd = action.getDescription();
@@ -836,7 +836,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     		if (!(result instanceof InternalError)) {
 					if(dfd.getName().equals(myAgent.getAID())) { 
 						// The registered agent is the DF itself --> This is a federation
-						addParent(remoteDF, dfd);
+						addParent(getRemoteDF(), dfd);
 					}
     		}
     		sendPendingNotification(action, result);
@@ -851,7 +851,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   void deregisterFromAction(final DeregisterFrom action, AID requester){
-		final AID remoteDF = action.getDf();
+		AID remoteDF = action.getDf();
     log("Agent "+requester+" requesting action DeregisterFrom on DF "+remoteDF.getName(), 2);
 		Deregister d = new Deregister();
 		final DFAgentDescription dfd = action.getDescription();
@@ -862,7 +862,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     		if (!(result instanceof InternalError)) {
 					if(dfd.getName().equals(myAgent.getAID())) { 
 						// The deregistered agent is the DF itself --> Remove a federation
-						removeParent(remoteDF);
+						removeParent(getRemoteDF());
 					}
     		}
     		sendPendingNotification(action, result);
@@ -930,7 +930,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					break;
 				}
 				case DFGUIAdapter.REGISTER: {
-					final AID df = (AID) ev.getParameter(0);
+					AID df = (AID) ev.getParameter(0);
 			    final DFAgentDescription dfd = (DFAgentDescription) ev.getParameter(1);
 				  DFService.checkIsValid(dfd, true);
 			
@@ -950,7 +950,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			  				  gui.showStatusMsg("Registration request processed. Ready for new request");
 				  				if(dfd.getName().equals(myAgent.getAID())) { 
 				  					// The registered agent is the DF itself --> This is a federation
-				  					addParent(df, dfd);
+				  					addParent(getRemoteDF(), dfd);
 				  				}
 				    		}
 				    		else {
@@ -964,7 +964,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					break;
 				}
 				case DFGUIAdapter.DEREGISTER: {
-					final AID df = (AID) ev.getParameter(0);
+					AID df = (AID) ev.getParameter(0);
 			    final DFAgentDescription dfd = (DFAgentDescription) ev.getParameter(1);
 			    DFService.checkIsValid(dfd, false);
 	
@@ -984,7 +984,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			  				  gui.showStatusMsg("Deregistration request processed. Ready for new request");
 				  				if(dfd.getName().equals(myAgent.getAID())) { 
 				  					// The deregistered agent is the DF itself --> Remove a federation
-				  					removeParent(df);
+				  					removeParent(getRemoteDF());
 				  				}
 				  				else {
 										gui.removeSearchResult(dfd.getName());
@@ -1031,7 +1031,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					break;
 				}
 			  case DFGUIAdapter.SEARCH: {
-					final AID df = (AID) ev.getParameter(0);
+					AID df = (AID) ev.getParameter(0);
 			    DFAgentDescription dfd = (DFAgentDescription) ev.getParameter(1);
 			  	SearchConstraints sc = (SearchConstraints)ev.getParameter(2);
 
@@ -1047,7 +1047,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			    		Object result = getResult();
 			    		if (!(result instanceof InternalError)) {
 		  				  gui.showStatusMsg("Search request processed. Ready for new request");
-							  gui.refreshLastSearchResults((List) result, df);
+							  gui.refreshLastSearchResults((List) result, getRemoteDF());
 			    		}
 			    		else {
 		  				  gui.showStatusMsg("Error processing request. "+((InternalError) result).getMessage());
@@ -1059,7 +1059,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					break;
 			  }
 			 	case DFGUIAdapter.FEDERATE: {
-					final AID df = (AID) ev.getParameter(0);
+					AID df = (AID) ev.getParameter(0);
 			    final DFAgentDescription dfd = (DFAgentDescription) ev.getParameter(1);
 			
 		      gui.showStatusMsg("Processing your request & waiting for result...");
@@ -1070,7 +1070,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			    		Object result = getResult();
 			    		if (!(result instanceof InternalError)) {
 		  				  gui.showStatusMsg("Federation request processed. Ready for new request");
-		  					addParent(df, dfd);
+		  					addParent(getRemoteDF(), dfd);
 			    		}
 			    		else {
 		  				  gui.showStatusMsg("Error processing request. "+((InternalError) result).getMessage());
@@ -1119,73 +1119,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	}
 		
 	
-  /**
-     Inner class RemoteDFRequester.
-     This behaviour handles a request to another DF. These requests can 
-     be triggered by an action of the DF-Applet ontology (e.g. Federate) 
-     or by a GUI event. The onEnd() method must be re-defined to manage
-     the result properly.
-   */
-  private class RemoteDFRequester extends SimpleAchieveREInitiator {
-  	private AID remoteDF;
-  	private Concept action;
-  	private Object result = null;
-  	
-  	private RemoteDFRequester(AID remoteDF, Concept action) {
-  		super (df.this, null);
-  		this.remoteDF = remoteDF;
-  		this.action = action;
-  	}
-  	
-    protected ACLMessage prepareRequest(ACLMessage msg){
-    	ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-    	request.addReceiver(remoteDF);
-    	request.setOntology(FIPAManagementOntology.getInstance().getName());
-    	request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-    	request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-    	
-    	Action act = new Action(remoteDF, action);
-    	try {
-    		myAgent.getContentManager().fillContent(request, act);
-    		return request;
-    	}
-    	catch (Exception e) {
-    		// Should never happen
-    		e.printStackTrace();
-    		result = new InternalError("Error encoding request ["+e.getMessage()+"]");
-    	}
-    	return null;
-    }
-    
-    protected void handleInform(ACLMessage inform) {
-    	try {
-    		Predicate p = (Predicate) myAgent.getContentManager().extractContent(inform);
-    		if (p instanceof Result) {
-    			result = ((Result) p).getValue();
-    		}
-    	}
-    	catch (Exception e) {
-    		result = new InternalError("Error decoding response ["+e.getMessage()+"]");
-    	}
-    }
-    
-    protected void handleRefuse(ACLMessage refuse) {
-    	result = new InternalError("Agent "+remoteDF.getName()+" replyed with "+ACLMessage.getPerformative(refuse.getPerformative()));
-    }
-    
-    protected void handleNotUnderstood(ACLMessage notUnderstood) {
-    	result = new InternalError("Agent "+remoteDF.getName()+" replyed with "+ACLMessage.getPerformative(notUnderstood.getPerformative()));
-    }
-    
-    protected void handleFailure(ACLMessage failure) {
-    	result = new InternalError("Agent "+remoteDF.getName()+" replyed with "+ACLMessage.getPerformative(failure.getPerformative()));
-    }
-    
-    protected Object getResult() {
-    	return result;
-    }
-  } // END of inner class RemoteDFRequester
-    	
   
 	/////////////////////////////////////
 	// Utility methods 
