@@ -718,7 +718,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
     }
     catch(NotFoundException nfe) {
-      notifyFailureToSender(msg, new InternalError("Agent not found: " + nfe.getMessage()));
+      notifyFailureToSender(msg, new InternalError("\"Agent not found: " + nfe.getMessage()+"\""));
     }
 
   }
