@@ -981,8 +981,12 @@ public class ams extends Agent implements AgentManager.Listener {
     getContentManager().registerOntology(IntrospectionOntology.getInstance());
     getContentManager().registerOntology(jade.domain.mobility.MobilityOntology.getInstance());
 
-    // register the supported languages
-    getContentManager().registerLanguage(codec, "FIPA-SL0");
+    // register the supported languages: all profiles of SL are ok for ams
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
+
 		
     // Add a Behaviour for all ams actions following from a
     // 'fipa-request' interaction with 'fipa-agent-management' ontology.
