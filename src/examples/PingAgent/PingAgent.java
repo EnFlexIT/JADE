@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.OutputStreamWriter;
 
+
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
@@ -54,101 +55,100 @@ The exchanged message are written in a log file whose name is the local name of 
 
 public class PingAgent extends Agent {
 
-	PrintWriter logFile;
+    Logger logFile;
+    
+    class WaitPingAndReplyBehaviour extends SimpleBehaviour {
 	
-  class WaitPingAndReplyBehaviour extends SimpleBehaviour {
-
   	private boolean finished = false;
-    
-    public WaitPingAndReplyBehaviour(Agent a) {
-      super(a);
-    }
-
-    public void action() {
-    	
-    	ACLMessage  msg = blockingReceive();
-    	
-      if(msg != null){
-      	if(msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD)
-      	{
-      		log("Received the following message: "+ msg.toString());
-      		log("No reply message sent.");
-      	}
-      	else{
-      		log("Received the following message: "+ msg.toString());
-      		ACLMessage reply = msg.createReply();
-      	
-      		//if((msg.getPerformative()== ACLMessage.QUERY_REF)||(msg.getPerformative()== ACLMessage.QUERY_IF))
-      		if(msg.getPerformative()== ACLMessage.QUERY_REF)
-      		{
-      		  String content = msg.getContent();
-		  if ((content != null) && (content.indexOf("ping") != -1))
-		      {
-			  reply.setPerformative(ACLMessage.INFORM);
-			  //reply.setContent("(pong)");
-			  reply.setContent("alive");
-		      }
-		  else
-		      {
-			  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-			  reply.setContent("( UnexpectedContent (expected ping))");
-		      }
+	
+	public WaitPingAndReplyBehaviour(Agent a) {
+	    super(a);
+	}
+	
+	public void action() {
+	    
+	    ACLMessage  msg = blockingReceive();
+	    
+	    if(msg != null){
+		if(msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD){
+			//received a NOT-UNDERSTOOD message
+			logFile.log(msg.getSender().getName(),Logger.RECEIVED,ACLMessage.getPerformative(msg.getPerformative()));
+			logFile.log("No reply message sent");
+		    }
+		else{
+		    
+		    ACLMessage reply = msg.createReply();
+		    
+		    //if((msg.getPerformative()== ACLMessage.QUERY_REF)||(msg.getPerformative()== ACLMessage.QUERY_IF))
+		    if(msg.getPerformative()== ACLMessage.QUERY_REF){
+		
+			String content = msg.getContent();
+			if ((content != null) && (content.indexOf("ping") != -1)){
+			    //received a QUERY_REF with correct content.
+			    logFile.log(msg.getSender().getName(),Logger.RECEIVED,ACLMessage.getPerformative(msg.getPerformative()));
+			    reply.setPerformative(ACLMessage.INFORM);
+			    //reply.setContent("(pong)");
+			    reply.setContent("alive");
+			    logFile.log(((AID)reply.getAllReceiver().next()).getName(), Logger.TRANSMITTED,ACLMessage.getPerformative(reply.getPerformative()));
+			}
+			else{
+			    //received a QUERY_REF with uncorrect content.
+			    logFile.log(msg.getSender().getName(),Logger.RECEIVED,ACLMessage.getPerformative(msg.getPerformative()),msg.toString());
+			    reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+			    reply.setContent("( UnexpectedContent (expected ping))");
+			    //write the full message.
+			    logFile.log(((AID)reply.getAllReceiver().next()).getName(),Logger.TRANSMITTED,ACLMessage.getPerformative(reply.getPerformative()),reply.toString());
+			}
+			
+		    }
+		    else {
+			//received a wrong performative.
+			logFile.log(msg.getSender().getName(),Logger.RECEIVED,ACLMessage.getPerformative(msg.getPerformative()),msg.toString());
+			reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+			reply.setContent("( (Unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+") ( expected (query-ref :content ping)))");   
+			logFile.log(((AID)(reply.getAllReceiver().next())).getName(),Logger.TRANSMITTED,ACLMessage.getPerformative(reply.getPerformative()),reply.toString());
+		    }
+		    
 		  
-      		}
-      		else
-      		{
-      			reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-      			reply.setContent("( (Unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+") ( expected (query-ref :content ping)))");
-
-      		}
-       	      		
-      		log("Replied with the following message: "+ reply.toString());
-          send(reply);
-      	}
-      }else{
-      	//System.out.println("No message received");
-      }
-    }
-  
-    public boolean done() {
-      return finished;
-    }
-  } //End class WaitPingAndReplyBehaviour
+		    send(reply);
+		}
+	    }else{
+		//System.out.println("No message received");
+	    }
+	}
+	
+	public boolean done() {
+	    return finished;
+	}
+    } //End class WaitPingAndReplyBehaviour
     
-  
-  protected void setup() {
+    
+    protected void setup() {
   	
-      /** Registration with the DF */
-      DFAgentDescription dfd = new DFAgentDescription();
-      ServiceDescription sd = new ServiceDescription();   
-      sd.setType("AgentcitiesPingAgent"); 
-      sd.setName(getName());
-      sd.setOwnership("TILAB");
-      //sd.addOntologies("PingAgent");
-      dfd.setName(getAID());
-      dfd.addServices(sd);
-      try {
-	  DFService.register(this,dfd);
-      } catch (FIPAException e) {
-	  System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
-	  doDelete();
-      }
-      
-      try{
-	  logFile = new PrintWriter(new FileWriter(getLocalName()+".txt",true));
-	  log("Agent: " + getName() + " born");
-	  WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
-	  addBehaviour(PingBehaviour);
-      }catch(IOException e){
-	  System.out.println("WARNING: The agent needs the "+ getLocalName()+".txt file.");
-	  e.printStackTrace();
-      }
-  }
+	/** Registration with the DF */
+	DFAgentDescription dfd = new DFAgentDescription();
+	ServiceDescription sd = new ServiceDescription();   
+	sd.setType("AgentcitiesPingAgent"); 
+	sd.setName(getName());
+	sd.setOwnership("TILAB");
+	//sd.addOntologies("PingAgent");
+	dfd.setName(getAID());
+	dfd.addServices(sd);
+	try {
+	    DFService.register(this,dfd);
+	} catch (FIPAException e) {
+	    System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
+	    doDelete();
+	}
+	
 
-    public synchronized void log(String str) {
-      	
-	logFile.println((new Date()).toString()+ " - " + str);
-	logFile.flush();
+	logFile = new Logger(getLocalName());
+	logFile.log("Agent: " + getName() + " born");
+	WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
+	addBehaviour(PingBehaviour);
+	
     }
+    
+   
     
 }//end class PingAgent
