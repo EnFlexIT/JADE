@@ -33,7 +33,7 @@ import jade.wrapper.*;
    This class is an example of how you can embed JADE runtime
    environment within your applications.
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
 
  */
 public class InProcessTest {
