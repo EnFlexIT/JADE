@@ -478,13 +478,16 @@ private int performative; // keeps the performative type of this object
   * </PRE>
   * 
   * @return the object read from the content of this ACLMessage
-  * @exception UnreadableException when an error occurs during the deconding.
+  * @exception UnreadableException when an error occurs during the decoding.
   */
   public java.io.Serializable getContentObject() throws UnreadableException
   {
   	
     try{
-      ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(getByteSequenceContent()));
+			byte[] data = getByteSequenceContent();
+			if (data == null)
+					return null;
+      ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(data));
       java.io.Serializable s = (java.io.Serializable)oin.readObject();
       return s;
     }
