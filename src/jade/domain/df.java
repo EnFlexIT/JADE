@@ -265,6 +265,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
   
   private Logger logger = Logger.getMyLogger(this.getClass().getName());
   
+  /*
+   *  WebService Integration Gateway (WSIG) requirements
+   *  added by Whitestein Technologies AG,
+   *  Contributor(s): Jozef Nagy (jna at whitestein.com)
+   */
+  // AID of the WebService Integration Gateway
+  private AID gatewayAID = null;
+  // a gateway agent's name
+  private static final String GATEWAY_LOCAL_NAME = "wsig"; 
+  /*
+   *  End: WSIG requirements
+   */
+	
     /**
        Default constructor. This constructor does nothing; however,
        applications can create their own DF agents using regular
@@ -886,6 +899,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Do it
 		DFRegister(dfd);
+		
+		/*
+		 *  WebService Integration Gateway (WSIG) requirements
+		 *  added by Whitestein Technologies AG,
+		 *  Contributor(s): Jozef Nagy (jna at whitestein.com)
+		 */
+		if ( null == gatewayAID && isAGateway( dfd ) ) {
+		// The WSIG is registered
+			gatewayAID = dfd.getName();
+		}
+		/*
+		 *  End: WSIG requirements
+		 */
 	}
 	
   /**
@@ -902,6 +928,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Do it
 		DFDeregister(dfd);
+		
+		/*
+		 *  WebService Integration Gateway (WSIG) requirements
+		 *  added by Whitestein Technologies AG,
+		 *  Contributor(s): Jozef Nagy (jna at whitestein.com)
+		 */
+		if (dfd.getName().equals(gatewayAID)) {
+		// The WSIG is deregistered
+			gatewayAID = null;
+		}
+		/*
+		 *  End: WSIG requirements
+		 */
 	}
 	
   /**
@@ -1550,5 +1589,55 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		return false;
   	}
   }  
+  
+  /*
+	 *  WebService Integration Gateway (WSIG) requirements
+	 *  added by Whitestein Technologies AG,
+	 *  Contributor(s): Jozef Nagy (jna at whitestein.com)
+	 */
+	/**
+	 * adds a Web Service Integration Gateway's AID into notification's receivers.
+	 * When no gateway is registered or an requester is a gateway itself,
+	 * the notification is not changed.
+	 * The method is only used by DFFipaAgentManagementBehaviour.
+	 * 
+	 * @param request an original request
+	 * @param notification a reply for a request
+	 */
+	void addGatewayIfNeeded( ACLMessage request, ACLMessage notification ) {
+		// please, inform also WebService Integration Gateway
+		// avoid a duplication in receivers
+		if ( null != gatewayAID
+				&&
+				! isFromGatewayRegistered( request ) ) {
+			notification.addReceiver( gatewayAID );
+		}
+	}
+
+	/**
+	 * checks, if a request is from a gateway registered
+	 * 
+	 * @param request a request
+	 * @return true, if a request is from a gateway registered
+	 */
+	private boolean isFromGatewayRegistered( ACLMessage request ) {
+		return request.getSender().equals( gatewayAID );
+	}
+
+	/**
+	 * checks, if a description is from a Web Service Integration Gateway.
+	 * Any agent named by GATEWAY_LOCAL_NAME is a gateway.
+	 * 
+	 * @param dfd a description
+	 * @return true, if a description is from a gateway
+	 */
+	private boolean isAGateway(DFAgentDescription dfd) {
+		//FIXME an identification must be changed
+		return dfd.getName().getLocalName().equalsIgnoreCase(GATEWAY_LOCAL_NAME);
+	}
+	/*
+	 *  End: WSIG requirements
+	 */
+
   
 }

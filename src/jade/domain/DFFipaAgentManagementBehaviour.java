@@ -97,6 +97,17 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 	  	}
 	  	else {
 	  		p = new Done(slAction);
+	  		
+	  		/*
+			 *  WebService Integration Gateway (WSIG) requirements
+			 *  added by Whitestein Technologies AG,
+			 *  Contributor(s): Jozef Nagy (jna at whitestein.com)
+			 */
+	  		// Also inform the WebService Integration Gateway
+	  		theDF.addGatewayIfNeeded( request, notification );
+			/*
+			 *  End: WSIG requirements
+			 */
 	  	}
 	  	try {
 		  	theDF.getContentManager().fillContent(notification, p);
