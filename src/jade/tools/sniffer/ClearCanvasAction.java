@@ -34,7 +34,7 @@ import java.awt.event.ActionEvent;
 /**
  * Clears the Message Canvas. This action cannot be undone 
  *
- * @see jade.Sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.MMAbstractAction
  */
 public class ClearCanvasAction extends MMAbstractAction{
 	

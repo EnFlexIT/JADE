@@ -40,9 +40,9 @@ import java.io.ObjectInputStream;
  * Class for loading a snapshot file in Serialized form.
  * It loads from the stream an AgentList object and a MessageList object.
  *   
- * @see jade.Sniffer.MMAbstractAction
- * @see jade.Sniffer.AgentList
- * @see jade.Sniffer.MessageList
+ * @see jade.tools.sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.AgentList
+ * @see jade.tools.sniffer.MessageList
  */
  
 public class DisplayLogFileAction extends MMAbstractAction{

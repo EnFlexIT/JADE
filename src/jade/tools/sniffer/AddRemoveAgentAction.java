@@ -33,7 +33,7 @@ import java.awt.event.ActionEvent;
 /** 
  *  Opens the <em>Selection Agents</em> windows.
  *
- *	@see jade.Sniffer.MMAbstractAction
+ *	@see jade.tools.sniffer.MMAbstractAction
  *
  */
 public class AddRemoveAgentAction extends MMAbstractAction{
