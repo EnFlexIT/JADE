@@ -37,6 +37,7 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 
+import jade.domain.FIPAAgentManagement.Envelope;
 
 /**
    The horizontal interface for the JADE kernel-level service managing
@@ -46,80 +47,80 @@ import jade.mtp.MTPException;
 */
 public interface MessagingSlice extends Service.Slice {
 
-    // Constants for the names of the service vertical commands
+  // Constants for the names of the service vertical commands
 
-    /**
-       The name of this service.
-    */
-    static final String NAME = "jade.core.messaging.Messaging";
+  /**
+     The name of this service.
+  */
+  static final String NAME = "jade.core.messaging.Messaging";
 
-    /**
-       This command name represents the action of sending an ACL
-       message from an agent to another.
-    */
-    static final String SEND_MESSAGE = "Send-Message";
+  /**
+     This command name represents the action of sending an ACL
+     message from an agent to another.
+  */
+  static final String SEND_MESSAGE = "Send-Message";
 
-    /**
-       This command name represents the action of sending back a
-       FAILURE ACL message to notify the message originator of a
-       failed delivery.
-    */
-    static final String NOTIFY_FAILURE = "Notify-Failure";
+  /**
+     This command name represents the action of sending back a
+     FAILURE ACL message to notify the message originator of a
+     failed delivery.
+  */
+  static final String NOTIFY_FAILURE = "Notify-Failure";
 
-    /**
-       This command name represents the <code>install-mtp</code>
-       action.
-    */
-    static final String INSTALL_MTP = "Install-MTP";
+  /**
+     This command name represents the <code>install-mtp</code>
+     action.
+  */
+  static final String INSTALL_MTP = "Install-MTP";
 
-    /**
-       This command name represents the <code>uninstall-mtp</code>
-       action.
-    */
-    static final String UNINSTALL_MTP = "Uninstall-MTP";
+  /**
+     This command name represents the <code>uninstall-mtp</code>
+     action.
+  */
+  static final String UNINSTALL_MTP = "Uninstall-MTP";
 
-    /**
-       This command name represents the <code>new-mtp</code>
-       event.
-    */
-    static final String NEW_MTP = "New-MTP";
+  /**
+     This command name represents the <code>new-mtp</code>
+     event.
+  */
+  static final String NEW_MTP = "New-MTP";
 
-    /**
-       This command name represents the <code>dead-mtp</code>
-       action.
-    */
-    static final String DEAD_MTP = "Dead-MTP";
+  /**
+     This command name represents the <code>dead-mtp</code>
+     action.
+  */
+  static final String DEAD_MTP = "Dead-MTP";
 
-    /**
-       This command name represents the <code>set-platform-addresses</code>
-       action.
-    */
-    static final String SET_PLATFORM_ADDRESSES = "Set-Platform-Addresses";
+  /**
+     This command name represents the <code>set-platform-addresses</code>
+     action.
+  */
+  static final String SET_PLATFORM_ADDRESSES = "Set-Platform-Addresses";
 
 
 
-    // Constants for the names of horizontal commands associated to methods
-    static final String H_DISPATCHLOCALLY = "1";
-    static final String H_ROUTEOUT = "2";
-    static final String H_GETAGENTLOCATION = "3";
-    static final String H_INSTALLMTP = "4";
-    static final String H_UNINSTALLMTP ="5";
-    static final String H_NEWMTP = "6";
-    static final String H_DEADMTP = "7";
-    static final String H_ADDROUTE = "8";
-    static final String H_REMOVEROUTE = "9";
+  // Constants for the names of horizontal commands associated to methods
+  static final String H_DISPATCHLOCALLY = "1";
+  static final String H_ROUTEOUT = "2";
+  static final String H_GETAGENTLOCATION = "3";
+  static final String H_INSTALLMTP = "4";
+  static final String H_UNINSTALLMTP ="5";
+  static final String H_NEWMTP = "6";
+  static final String H_DEADMTP = "7";
+  static final String H_ADDROUTE = "8";
+  static final String H_REMOVEROUTE = "9";
 
-    void dispatchLocally(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException;
-    void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException;
-    ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException;
+  void dispatchLocally(AID senderAID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException;
+  void routeOut(Envelope env, byte[] payload, AID receiverID, String address) throws IMTPException, MTPException;
+  ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException;
 
-    MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException;
-    void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException;
+  MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException;
+  void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException;
 
-    void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException;
-    void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException;
+  void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException;
+  void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException;
 
-    void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException;
-    void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException;
+  void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException;
+  void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException;
 
 }

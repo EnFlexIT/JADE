@@ -149,7 +149,7 @@ public class PersistentDeliveryProxy extends Service.SliceProxy implements Persi
 	}
     }*/
 
-    public boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, NotFoundException {
+    public boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, NotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_STOREMESSAGE, NAME, null);
 	    cmd.addParam(storeName);

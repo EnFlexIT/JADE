@@ -30,20 +30,20 @@ import java.io.IOException;
 import java.util.Date;
 
 import jade.core.AID;
+import jade.core.Profile;
 import jade.lang.acl.ACLMessage;
-
 
 public interface MessageStorage {
 
-    interface LoadListener {
-	void loadStarted(String storeName);
-	void itemLoaded(String storeName, ACLMessage msg, AID receiver, Date dueDate);
-	void loadEnded(String storeName);
-    }
-
-    void store(ACLMessage msg, AID receiver, Date dueDate) throws IOException;
-    void delete(ACLMessage msg, AID receiver) throws IOException;
-
-    void loadAll(LoadListener ll) throws IOException;
+  interface LoadListener {
+    void loadStarted(String storeName);
+    void itemLoaded(String storeName, GenericMessage msg, AID receiver);
+    void loadEnded(String storeName);
+  }
+  
+  void init(Profile p);
+  String store(GenericMessage msg, AID receiver) throws IOException;
+  void delete(String storeName, AID receiver) throws IOException;
+  void loadAll(LoadListener ll) throws IOException;
 
 }

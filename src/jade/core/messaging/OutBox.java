@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.RoundList;
-import jade.lang.acl.ACLMessage;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
 import jade.core.messaging.MessageManager.Channel;
@@ -36,7 +35,7 @@ class OutBox {
 	 * This method is executed by an agent's thread requesting to deliver 
 	 * a new message.
 	 */
-	synchronized void addLast(AID receiverID, ACLMessage msg, Channel ch) {
+	synchronized void addLast(AID receiverID, GenericMessage msg, Channel ch) {
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b == null){
 			// There is no Box of messages for this receiver yet. Create a new one 

@@ -34,7 +34,7 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
-import jade.lang.acl.ACLMessage;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
@@ -49,12 +49,12 @@ import jade.mtp.MTPException;
 public class MessagingProxy extends Service.SliceProxy implements MessagingSlice {
 
 
-    public void dispatchLocally(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
+    public void dispatchLocally(AID senderID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_DISPATCHLOCALLY, NAME, null);
+      cmd.addParam(senderID);
 	    cmd.addParam(msg);
-	    cmd.addParam(receiverID);
-
+      cmd.addParam(receiverID);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -75,10 +75,11 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 	}
     }
 
-    public void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
+    public void routeOut(Envelope env, byte[] payload,AID receiverID, String address) throws IMTPException, MTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_ROUTEOUT, NAME, null);
-	    cmd.addParam(msg);
+	    cmd.addParam(env);
+      cmd.addParam(payload);
 	    cmd.addParam(receiverID);
 	    cmd.addParam(address);
 

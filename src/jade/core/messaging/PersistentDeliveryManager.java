@@ -34,8 +34,6 @@ import jade.core.Profile;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 
-import jade.lang.acl.ACLMessage;
-
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
@@ -49,313 +47,293 @@ import jade.util.leap.Iterator;
  * utility tasks related to the service.
  *
  * @author  Giovanni Rimassa - FRAMeTech s.r.l.
+ * @author  Nicolas Lhuillier - Motorola
  *
  */
 class PersistentDeliveryManager {
 
-    public static synchronized PersistentDeliveryManager instance(Profile p, MessageManager.Channel ch) {
-	if(theInstance == null) {
+  public static synchronized PersistentDeliveryManager instance(Profile p, MessageManager.Channel ch) {
+    if(theInstance == null) {
 	    theInstance = new PersistentDeliveryManager();
 	    theInstance.initialize(p, ch);
-	}
-
-	return theInstance;
     }
 
-    // How often to check for expired deliveries
-    private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
+    return theInstance;
+  }
 
-    // How often to send enqueued messages
-    private static final long DEFAULT_DELIVERPERIOD = 10*1000; // 10 sec
+  // How often to check for expired deliveries
+  private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
 
-    private class DeliveryItem {
+  // How often to send enqueued messages
+  private static final long DEFAULT_DELIVERPERIOD = 10*1000; // 10 sec
 
-	public DeliveryItem(ACLMessage msg, AID id, long delay, MessageManager.Channel ch) {
-	    if(delay != PersistentDeliveryFilter.NEVER) {
-		dueDate = new Date(System.currentTimeMillis() + delay);
-	    }
+  // Default storage class
+  private static final String DEFAULT_STORAGE = "jade.core.messaging.PersistentDeliveryManager$DummyStorage";
 
+  private static class DeliveryItem {
+
+    public DeliveryItem(GenericMessage msg, AID id, MessageManager.Channel ch, String sid) {
 	    toDeliver = msg;
 	    receiver = id;
 	    channel = ch;
-	}
-
-	public DeliveryItem(ACLMessage msg, AID id, Date d, MessageManager.Channel ch) {
-	    toDeliver = msg;
-	    receiver = id;
-	    dueDate = d;
-	    channel = ch;
-	}
-
-	public boolean isExpired() {
-	    if(dueDate != null) {
-		return new Date().after(dueDate);
-	    }
-	    else {
-		return false;
-	    }
-	}
-
-	public ACLMessage getMessage() {
+      storeName = sid;
+    }
+    
+    public GenericMessage getMessage() {
 	    return toDeliver;
-	}
+    }
 
-	public AID getReceiver() {
+    public AID getReceiver() {
 	    return receiver;
-	}
+    }
 
-	public Date getDueDate() {
-	    return dueDate;
-	}
-
-	public MessageManager.Channel getChannel() {
+    public MessageManager.Channel getChannel() {
 	    return channel;
-	}
+    }
 
-	private Date dueDate;
-	private ACLMessage toDeliver;
-	private AID receiver;
-	private MessageManager.Channel channel;
+    public String getStoreName() {
+	    return storeName;
+    }
+    
+    private GenericMessage toDeliver;
+    private AID receiver;
+    private MessageManager.Channel channel;
+    private String storeName;
 
 
-    } // End of DeliveryItem class
+  } // End of DeliveryItem class
 
 
 
-    private class ExpirationChecker implements Runnable {
+  private class ExpirationChecker implements Runnable {
 
-	public ExpirationChecker(long t) {
+    public ExpirationChecker(long t) {
 	    period = t;
 	    myThread = new Thread(this, "Persistent Delivery Service -- Expiration Checker Thread");
-	}
-
-	public void run() {
-    while(active) {
-			try {
-		    Thread.sleep(period);
-		    synchronized(pendingMessages) {
-					// Try to send all stored messages...
-				  // If the receiver still not exists and the due date has elapsed
-				  // the sender will get back a FAILURE
-					Object[] keys = pendingMessages.keySet().toArray();
-					for(int i = 0; i < keys.length; i++) {
-						flushMessages((AID) keys[i]);
-					}
-		    }
-			}
-			catch (InterruptedException ie) {
-				// Just do nothing
-			}
     }
-	}
 
-	public void start() {
+    public void run() {
+      while(active) {
+        try {
+          Thread.sleep(period);
+          synchronized(pendingMessages) {
+            // Try to send all stored messages...
+            // If the receiver still not exists and the due date has elapsed
+            // the sender will get back a FAILURE
+            Object[] keys = pendingMessages.keySet().toArray();
+            for(int i = 0; i < keys.length; i++) {
+              flushMessages((AID) keys[i]);
+            }
+          }
+        }
+        catch (InterruptedException ie) {
+          // Just do nothing
+        }
+      }
+    }
+
+    public void start() {
 	    active = true;
 	    myThread.start();
-	}
+    }
 
-	public void stop() {
+    public void stop() {
 	    active = false;
 	    myThread.interrupt();
-	}
+    }
 
-	private boolean active = false;
-	private long period;
-	private Thread myThread;
+    private boolean active = false;
+    private long period;
+    private Thread myThread;
 
-    } // End of ExpirationChecker class
+  } // End of ExpirationChecker class
 
 
-    private class DummyStorage implements MessageStorage {
+  public static class DummyStorage implements MessageStorage {
+    
+    public void init(Profile p) {
+      // Do nothing
+    }
 
-	public void store(ACLMessage msg, AID receiver, Date dueDate) throws IOException {
+    public String store(GenericMessage msg, AID receiver) throws IOException {
+      // Do nothing
+      return null;
+    }
+
+    public void delete(String storeName, AID receiver) throws IOException {
 	    // Do nothing
-	}
+    }
 
-	public void delete(ACLMessage msg, AID receiver) throws IOException {
+    public void loadAll(LoadListener il) throws IOException {
 	    // Do nothing
-	}
+    }
 
-	public void loadAll(LoadListener il) throws IOException {
-	    // Do nothing
-	}
-
-    } // End of DummyStorage class
+  } // End of DummyStorage class
 
 
-    public void initialize(Profile p, MessageManager.Channel ch) {
+  public void initialize(Profile p, MessageManager.Channel ch) {
 
-	users = 0;
-	myMessageManager = MessageManager.instance(p);
-	deliveryChannel = ch;
+    users = 0;
+    myMessageManager = MessageManager.instance(p);
+    deliveryChannel = ch;
 
-	// Choose the persistent storage method
-	String storageMethod = p.getParameter(Profile.PERSISTENT_DELIVERY_STORAGEMETHOD, null);
-
-	if(storageMethod != null) {
-	    // Load the proper class and instantiate it
-	    if(storageMethod.equals("file")) {
-		storage = new FileMessageStorage(p);
-	    }
-	    else {
-		storage = new DummyStorage();
-	    }
-	}
-	else {
-	    // Use the default, no-op implementation
-	    storage = new DummyStorage();
-	}
-
-	// Load all data persisted from previous sessions
-	try {
+    try {
+      // Choose the persistent storage method
+      String storageClass = p.getParameter(Profile.PERSISTENT_DELIVERY_STORAGEMETHOD,DEFAULT_STORAGE);
+      storage = (MessageStorage)Class.forName(storageClass).newInstance();
+      storage.init(p);
+      
+      // Load all data persisted from previous sessions
 	    storage.loadAll(new MessageStorage.LoadListener() {
-		    public void loadStarted(String storeName) {
-			System.out.println("--> Load BEGIN <--");
-		    }
+          public void loadStarted(String storeName) {
+            System.out.println("--> Load BEGIN <--");
+          }
 
-		    public void itemLoaded(String storeName, ACLMessage msg, AID receiver, Date dueDate) {
+          public void itemLoaded(String storeName, GenericMessage msg, AID receiver) {
 
-			// Put the item into the pending messages table
-			synchronized(pendingMessages) {
-			    List msgs = (List)pendingMessages.get(receiver);
-			    if(msgs == null) {
-				msgs = new LinkedList();
-				pendingMessages.put(receiver, msgs);
-			    }
+            // Put the item into the pending messages table
+            synchronized(pendingMessages) {
+              List msgs = (List)pendingMessages.get(receiver);
+              if(msgs == null) {
+                msgs = new LinkedList();
+                pendingMessages.put(receiver, msgs);
+              }
 
-			    DeliveryItem item = new DeliveryItem(msg, receiver, dueDate, deliveryChannel);
-			    msgs.add(item);
-			}
+              DeliveryItem item = new DeliveryItem(msg, receiver, deliveryChannel, storeName);
+              msgs.add(item);
+            }
 
-			System.out.println("Message for <" + receiver.getLocalName() + ">");
-			System.out.println("Expiration date: " + ((dueDate != null) ? dueDate.toString() : "NEVER"));
-		    }
+            System.out.println("Message for <" + receiver.getLocalName() + ">");
+          }
 
-		    public void loadEnded(String storeName) {
-			System.out.println("--> Load END <--");
-		    }
+          public void loadEnded(String storeName) {
+            System.out.println("--> Load END <--");
+          }
 
-	    });
-	}
-	catch(IOException ioe) {
+        });
+    }
+    catch(IOException ioe) {
 	    ioe.printStackTrace();
-	}
+    }
+    catch(Exception e) {
+	    e.printStackTrace();
+    }
 
-	sendFailurePeriod = DEFAULT_SENDFAILUREPERIOD;
-	String s = p.getParameter(Profile.PERSISTENT_DELIVERY_SENDFAILUREPERIOD, null);
-	if(s != null) {
+    sendFailurePeriod = DEFAULT_SENDFAILUREPERIOD;
+    String s = p.getParameter(Profile.PERSISTENT_DELIVERY_SENDFAILUREPERIOD, null);
+    if(s != null) {
 	    try {
-		sendFailurePeriod = Long.parseLong(s);
+        sendFailurePeriod = Long.parseLong(s);
 	    }
 	    catch(NumberFormatException nfe) {
-		// Do nothing: the default value will be used...
+        // Do nothing: the default value will be used...
 	    }
-	}
-
-	deliverPeriod = DEFAULT_DELIVERPERIOD;
-
     }
 
-    public void storeMessage(String storeName, ACLMessage msg, AID receiver, long dueDate) throws IOException {
+    deliverPeriod = DEFAULT_DELIVERPERIOD;
 
-	// Store the ACL message and its receiver for later re-delivery...
-	synchronized(pendingMessages) {
+  }
+
+  public void storeMessage(String storeName, GenericMessage msg, AID receiver) throws IOException {
+
+    // Store the ACL message and its receiver for later re-delivery...
+    synchronized(pendingMessages) {
 	    List msgs = (List)pendingMessages.get(receiver);
 	    if(msgs == null) {
-		msgs = new LinkedList();
-		pendingMessages.put(receiver, msgs);
+        msgs = new LinkedList();
+        pendingMessages.put(receiver, msgs);
 	    }
 
-	    storage.store(msg, receiver, new Date(dueDate));
-	    msgs.add(new DeliveryItem(msg, receiver, dueDate, deliveryChannel));
-	}
-
+	    String tmpName = storage.store(msg, receiver);
+	    msgs.add(new DeliveryItem(msg, receiver, deliveryChannel, tmpName));
     }
 
-    public int flushMessages(AID receiver) {
+  }
 
-	// Send messages for this agent, if any...
-  int cnt = 0;
-	List l = null;
-	synchronized(pendingMessages) {
+  public int flushMessages(AID receiver) {
+
+    // Send messages for this agent, if any...
+    int cnt = 0;
+    List l = null;
+    synchronized(pendingMessages) {
 	    l = (List)pendingMessages.remove(receiver);
-	}
+    }
 
-	if(l != null) {
+    if(l != null) {
 	    Iterator it = l.iterator();
 	    while(it.hasNext()) {
-		DeliveryItem item = (DeliveryItem)it.next();
-		retry(item);
-		cnt++;
+        DeliveryItem item = (DeliveryItem)it.next();
+        retry(item);
+        cnt++;
 	    }
-	}
-	return cnt;
     }
+    return cnt;
+  }
 
-    public synchronized void start() {
+  public synchronized void start() {
 
-	if(users == 0) {
+    if(users == 0) {
 	    failureSender = new ExpirationChecker(sendFailurePeriod);
 	    failureSender.start();
-	}
-
-	users++;
-
     }
 
-    public synchronized void stop() {
-	users--;
+    users++;
 
-	if(users == 0) {
+  }
+
+  public synchronized void stop() {
+    users--;
+
+    if(users == 0) {
 	    failureSender.stop();
-	}
     }
+  }
 
 
-    // A shared instance to have a single thread pool
-    private static PersistentDeliveryManager theInstance; // FIXME: Maybe a table, indexed by a profile subset, would be better?
+  // A shared instance to have a single thread pool
+  private static PersistentDeliveryManager theInstance; // FIXME: Maybe a table, indexed by a profile subset, would be better?
 
 
-    private PersistentDeliveryManager() {
+  private PersistentDeliveryManager() {
+  }
+
+  private void retry(DeliveryItem item) {
+    myMessageManager.deliver(item.getMessage(), item.getReceiver(), item.getChannel());
+    // Also remove the message from the storage
+    try {
+      storage.delete(item.getStoreName(), item.getReceiver());
     }
-
-    private void retry(DeliveryItem item) {
-			myMessageManager.deliver(item.getMessage(), item.getReceiver(), item.getChannel());
-	    // Also remove the message from the storage
-			try {
-				storage.delete(item.getMessage(), item.getReceiver());
-	    }
-	    catch(IOException ioe) {
-				ioe.printStackTrace();
-	    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
     }
+  }
 
 
-    // The component managing asynchronous message delivery and retries
-    private MessageManager myMessageManager;
+  // The component managing asynchronous message delivery and retries
+  private MessageManager myMessageManager;
 
-    // The actual channel over which messages will be sent
-    private MessageManager.Channel deliveryChannel;
+  // The actual channel over which messages will be sent
+  private MessageManager.Channel deliveryChannel;
 
-    // How often multiple ACL messages for the same recipient will be
-    // delivered (this parameter acts as a bandwidth limiter)
-    private long deliverPeriod;
+  // How often multiple ACL messages for the same recipient will be
+  // delivered (this parameter acts as a bandwidth limiter)
+  private long deliverPeriod;
 
-    // How often pending messages due date will be checked (the
-    // message will be sent out if expired)
-    private long sendFailurePeriod;
+  // How often pending messages due date will be checked (the
+  // message will be sent out if expired)
+  private long sendFailurePeriod;
 
-    // How many containers are sharing this active component
-    private long users;
+  // How many containers are sharing this active component
+  private long users;
 
-    // The table of undelivered messages to send
-    private Map pendingMessages = new HashMap();
+  // The table of undelivered messages to send
+  private Map pendingMessages = new HashMap();
 
-    // The active object that periodically checks the due date of ACL
-    // messages and sends them after it expired
-    private ExpirationChecker failureSender;
+  // The active object that periodically checks the due date of ACL
+  // messages and sends them after it expired
+  private ExpirationChecker failureSender;
 
-    // The component performing the actual storage and retrieval from
-    // a persistent support
-    private MessageStorage storage;
+  // The component performing the actual storage and retrieval from
+  // a persistent support
+  private MessageStorage storage;
 }

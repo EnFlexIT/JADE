@@ -97,7 +97,7 @@ public interface PersistentDeliverySlice extends Service.Slice {
     void deregisterTemplate(String storeName, MessageTemplate mt) throws IMTPException, NotFoundException;
     */
 
-    boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, NotFoundException;
+    boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, NotFoundException;
     void flushMessages(AID receiver) throws IMTPException;
 
 }

@@ -359,7 +359,7 @@ public class PersistentDeliveryService extends BaseService {
 
 	private boolean handleNotifyFailure(VerticalCommand cmd) throws IMTPException, ServiceException {
 	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
+	    GenericMessage msg = (GenericMessage)params[0];//FIXME: check object type
 	    AID receiver = (AID)params[1];
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
@@ -527,7 +527,7 @@ public class PersistentDeliveryService extends BaseService {
 		}*/
 		if (cmdName.equals(PersistentDeliverySlice.H_STOREMESSAGE)) {
 		    String storeName = (String)params[0];
-		    ACLMessage msg = (ACLMessage)params[1];
+		    GenericMessage msg = (GenericMessage)params[1];//FIXME: check object type(should be GenericMessage instead of ACLMessage
 		    AID receiver = (AID)params[2];
 
 		    boolean stored = storeMessage(storeName, msg, receiver);
@@ -551,22 +551,23 @@ public class PersistentDeliveryService extends BaseService {
 	   This is called following a message delivery failure to check 
 	   whether or not the message must be stored.
 	 */
-	private boolean storeMessage(String storeName, ACLMessage msg, AID receiver) throws IMTPException, ServiceException {
+	private boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, ServiceException {
+
 		boolean	firstTime = false;
 		long now = System.currentTimeMillis();
 		long dueDate = now; 
 		try {
 			// If the due-date parameter is already set, this is a re-transmission 
 			// attempt --> Use the due-date value
-			String dd = msg.getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
+		    String dd = msg.getACLMessage().getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
 			dueDate = Long.parseLong(dd);
 		}
 		catch (Exception e) {
 			// Due date not yet set (or unknown value)
-	    long delay = messageFilter.delayBeforeExpiration(msg);
+		    long delay = messageFilter.delayBeforeExpiration(msg.getACLMessage());
 	    if (delay != PersistentDeliveryFilter.NOW) {
 	    	dueDate = (delay == PersistentDeliveryFilter.NEVER ? delay : now+delay);
-		    msg.addUserDefinedParameter(ACL_USERDEF_DUE_DATE, String.valueOf(dueDate));
+        msg.getACLMessage().addUserDefinedParameter(ACL_USERDEF_DUE_DATE, String.valueOf(dueDate));
 		    firstTime = true;
 	    }
 		}
@@ -579,7 +580,7 @@ public class PersistentDeliveryService extends BaseService {
 			    else {
 			    	log("Re-Storing message\n"+msg+"\nDue date is "+dueDate, 2);
 			    }
-			    myManager.storeMessage(storeName, msg, receiver, dueDate);
+			    myManager.storeMessage(storeName, msg, receiver);
 			    return true;
 			}
 			catch(IOException ioe) {

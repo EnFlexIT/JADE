@@ -51,12 +51,14 @@ import java.util.Enumeration;
  * @author  Giovanni Caire - TILAB
  * @author  Elisabetta Cortese - TILAB
  * @author  Fabio Bellifemine - TILAB
+ * @author  Jerome Picault - Motorola Labs
+ * @version $Date$ $Revision$
  */
 class MessageManager implements TimerListener {
 
     public interface Channel {
-	void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException;
-	void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force);
+	void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException;
+	void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie, boolean force);
     }
 
 
@@ -154,9 +156,9 @@ class MessageManager implements TimerListener {
 	}
 			
 	/**
-	   Activate the asynchronuos delivery of an ACLMessage
+	   Activate the asynchronous delivery of a GenericMessage
    */
-	public void deliver(ACLMessage msg, AID receiverID, Channel ch) {
+	public void deliver(GenericMessage msg, AID receiverID, Channel ch) {
 //#MIDP_EXCLUDE_BEGIN
 		outBox.addLast(receiverID, msg, ch);
 //#MIDP_EXCLUDE_END
@@ -198,14 +200,14 @@ class MessageManager implements TimerListener {
  				// Get a message from the OutBox
 //#MIDP_EXCLUDE_BEGIN
  				PendingMsg pm = outBox.get();
- 				ACLMessage msg = pm.getMessage();
+ 				GenericMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
 				//log("Serving message for "+receiverID.getName());
 	    	try {
 	    		// Deliver the message
 		        Channel ch = pm.getChannel();
 		    	ch.deliverNow(msg, receiverID);
-					//log("Message served");
+			//log("Message served");
 	    		outBox.handleDelivered(receiverID);	
 	    	}
 	    	catch (UnreachableException ue) {
@@ -220,7 +222,7 @@ class MessageManager implements TimerListener {
 /*#MIDP_INCLUDE_BEGIN
  				// Get the next message to be delivered
  				PendingMsg pm = getFromOutBox();
- 				ACLMessage msg = pm.getMessage();
+ 				GenericMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
 				Channel ch = pm.getChannel();
  				if (checkPostpone(receiverID, msg.getSender())) {
@@ -251,19 +253,19 @@ class MessageManager implements TimerListener {
 	   Inner class PendingMsg
 	 */
 	public static class PendingMsg {
-	    private final ACLMessage msg;
+	    private final GenericMessage msg;
 	    private final AID receiverID;
 	    private final Channel channel;
 	    private long deadline;
 		
-	    public PendingMsg(ACLMessage msg, AID receiverID, Channel channel, long deadline) {
+	    public PendingMsg(GenericMessage msg, AID receiverID, Channel channel, long deadline) {
 		this.msg = msg;
 		this.receiverID = receiverID;
 		this.channel = channel;
 		this.deadline = deadline;
 	    }
 
-	    public ACLMessage getMessage() {
+	    public GenericMessage getMessage() {
 		return msg;
 	    }
 		
@@ -318,7 +320,7 @@ class MessageManager implements TimerListener {
 				long deadline = current + retryMaximum;
 				// If the reply_by field is set in the message and this is less 
 				// than retryMaximum --> set the deadline to the reply_by field
-				Date d = pm.getMessage().getReplyByDate();
+				Date d = pm.getMessage().getACLMessage().getReplyByDate();
 				if (d != null) {
 					long rb = d.getTime();
 					if (rb < deadline) {

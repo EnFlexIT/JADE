@@ -36,7 +36,6 @@ import jade.core.CaseInsensitiveString;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 
-
 import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLMessage;
@@ -47,10 +46,10 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
 class RoutingTable {
-
-    public interface OutPort {
-	void route(ACLMessage msg, AID receiver, String address) throws MTPException;
-    }
+  
+  public interface OutPort {
+    void route(Envelope env, byte[] payload, AID receiver, String address) throws MTPException;
+  }
 
 
   // This class wraps an MTP installed on a remote container, using
@@ -65,9 +64,9 @@ class RoutingTable {
 	slice = ms;
     }
 
-    public void route(ACLMessage msg, AID receiver, String address) throws MTPException {
+    public void route(Envelope env, byte[] payload, AID receiver, String address) throws MTPException {
       try {
-	slice.routeOut(msg, receiver, address);
+        slice.routeOut(env, payload, receiver, address);
       }
       catch(IMTPException imtpe) {
 	throw new MTPException("Container unreachable during routing", imtpe);
@@ -95,24 +94,14 @@ class RoutingTable {
   // the message into an MTP payload.
   private static class OutViaMTP implements OutPort {
 
-    private final MessagingService myService;
     private final OutChannel myChannel;
 
-    public OutViaMTP(MessagingService ms, OutChannel proto) {
-      myService = ms;
+    public OutViaMTP(OutChannel proto) {
       myChannel = proto;
     }
 
-    public void route(ACLMessage msg, AID receiver, String address) throws MTPException {
-      try {
-        myService.prepareEnvelope(msg, receiver);
-        Envelope env = msg.getEnvelope();
-        byte[] payload = myService.encodeMessage(msg);
-        myChannel.deliver(address, env, payload);
-      }
-      catch(NotFoundException nfe) {
-        throw new MTPException("ACL encoding not found.");
-      }
+    public void route(Envelope env, byte[] payload, AID receiver, String address) throws MTPException {
+      myChannel.deliver(address, env, payload);
     }
 
     public boolean equals(Object o) {
@@ -180,10 +169,8 @@ class RoutingTable {
   private final Map outPorts = new HashMap();
     private static final int EXPECTED_PLATFORMADDRESSES_SIZE = 2;
   private final List platformAddresses = new ArrayList(EXPECTED_PLATFORMADDRESSES_SIZE);
-  private final MessagingService myService;
-
-  public RoutingTable(MessagingService ms) {
-    myService = ms;
+  
+  public RoutingTable() {
   }
 
   /**
@@ -198,7 +185,7 @@ class RoutingTable {
     inPorts.put(urlTmp, proto);
 
     // A local MTP can also send messages, over all supported protocols
-    OutPort out = new OutViaMTP(myService, proto);
+    OutPort out = new OutViaMTP(proto);
     String[] protoNames = proto.getSupportedProtocols();
     for(int i = 0; i < protoNames.length; i++) {
       addOutPort(protoNames[i], out, LOCAL);
@@ -208,12 +195,12 @@ class RoutingTable {
     platformAddresses.add(url);
 
     /*
-    java.util.Iterator it = outPorts.keySet().iterator();
-    while(it.hasNext()) {
+      java.util.Iterator it = outPorts.keySet().iterator();
+      while(it.hasNext()) {
       String name = (String)it.next();
       OutPortList l = (OutPortList)outPorts.get(name);
       System.out.println("<" + name + "> ==> " + l.size());
-    }
+      }
     */
 
   }
@@ -231,7 +218,7 @@ class RoutingTable {
       // Remove all outgoing ports associated with this MTP
       String[] protoNames = proto.getSupportedProtocols();
       for(int i = 0; i < protoNames.length; i++) {
-	OutPort out = new OutViaMTP(myService, proto);
+	OutPort out = new OutViaMTP(proto);
 	removeOutPort(protoNames[i], out);
       }
     }
