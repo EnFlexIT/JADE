@@ -45,11 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import org.omg.CORBA.*;
-
 import jade.lang.acl.*;
-
-import FIPA_Agent_97;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -77,8 +73,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // IIOP address of the platform, will be used for inter-platform communications
   protected String platformAddress;
-
-  protected ORB myORB;
 
   private Map SniffedAgents = new HashMap();
   private String theSniffer;           
@@ -114,10 +108,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     td.setThread(t);
     // This call starts the timer dispatcher thread
     Agent.setDispatcher(td);
-
-
-    // Initialize CORBA runtime
-    myORB = ORB.init(args, null);
 
   }
 
@@ -868,9 +858,7 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	try {
 	  if(addr.equalsIgnoreCase(platformAddress))
 	    throw new NotFoundException("No agent named " + name + " present in this platform");
-	  OutGoingIIOP outChannel = new OutGoingIIOP(myORB, addr);
-	  FIPA_Agent_97 dest = outChannel.getObject();
-	  result = new RemoteProxyIIOP(dest, platformAddress);
+	  result = null;
 	}
 	catch(IIOPFormatException iiopfe) { // Invalid address
 	  throw new NotFoundException("Invalid agent address: [" + iiopfe.getMessage() + "]");

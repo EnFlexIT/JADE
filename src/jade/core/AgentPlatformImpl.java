@@ -51,12 +51,9 @@ import jade.domain.AgentManagementOntology;
 
 import jade.lang.acl.ACLMessage;
 
-import _FIPA_Agent_97ImplBase;
-
 class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, AgentManager {
 
   private static final String AMS_NAME = "ams";
-  private static final String ACC_NAME = "acc";
   private static final String DEFAULT_DF_NAME = "df";
 
   // Initial size of containers hash table
@@ -69,41 +66,22 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
   private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
 
-
+  // The two mandatory system agents.
   private ams theAMS;
   private df defaultDF;
 
-  // For now ACC agent and ACC CORBA server are different objects and run
-  // within different threads of control.
+  // The ACC is a platform service acting as a framework for MTPs.
   private acc theACC;
-  private InComingIIOP frontEndACC;
 
   private Map containers = Collections.synchronizedMap(new HashMap(CONTAINERS_SIZE));
   private Map platformAgents = Collections.synchronizedMap(new HashMap(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR));
-
-  private class InComingIIOP extends _FIPA_Agent_97ImplBase {
-    public void message(String acl_message) {
-      System.out.println("\n\n"+(new java.util.Date()).toString()+" INCOMING IIOP MESSAGE: "+acl_message);
-      try {
-      // Recover ACL message object from String
-      ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));
-      // Create and handle a suitable communication event
-      CommEvent ev = new CommEvent(theACC, msg);
-      CommHandle(ev);
-      }
-      catch (jade.lang.acl.ParseException e) {
-	e.printStackTrace();
-      }
-    }
-  }
 
   public AgentPlatformImpl(String args[]) throws RemoteException {
     super(args);
     myName = AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
-    initIIOP();
-    initAMS();
     initACC();
+    initAMS();
     initDF();
   }
 
@@ -129,61 +107,14 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   private void initACC() {
     theACC = new acc();
-
-    // Subscribe as a listener for the AMS agent
-    theACC.addCommListener(this);
-
-    // Insert AMS into local agents table
-    localAgents.put(ACC_NAME, theACC);
-
-    AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this, ACC_NAME);
-    desc.setContainerName(myName);
-    desc.setProxy(rp);
-
-    String accName = ACC_NAME + '@' + platformAddress;
-    platformAgents.put(accName.toLowerCase(), desc);
-
-  }
-
-  private void initIIOP() {
-
-    // Setup CORBA server
-    frontEndACC = new InComingIIOP();
-    myORB.connect(frontEndACC);
-
-    // Generate and store IIOP URL for the platform
-    try {
-      OutGoingIIOP dummyChannel = new OutGoingIIOP(myORB, frontEndACC);
-      platformAddress = dummyChannel.getIOR();
-      System.out.println(platformAddress);
-
-      try {
-      	FileWriter f = new FileWriter("JADE.IOR");
-      	f.write(platformAddress,0,platformAddress.length());
-      	f.close();
-      	f = new FileWriter("JADE.URL");
-	String iiopAddress = dummyChannel.getURL();
-      	f.write(iiopAddress,0,iiopAddress.length());
-      	f.close();
-      }
-      catch (IOException io) {
-      	io.printStackTrace();
-      }
-    }
-    catch(IIOPFormatException iiopfe) {
-      System.err.println("FATAL ERROR: Could not create IIOP server for the platform");
-      iiopfe.printStackTrace();
-      System.exit(0);
-    }
-
+    platformAddress = "IOR:0000cafebabe0000deadbeef0000";
   }
 
   private void initDF() {
 
     defaultDF = new df();
 
-    // Subscribe as a listener for the AMS agent
+    // Subscribe as a listener for the DF agent
     defaultDF.addCommListener(this);
 
     // Insert DF into local agents table
@@ -221,8 +152,6 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
     Agent a = theAMS;
     a.powerUp(AMS_NAME, platformAddress, systemAgentsThreads);
-    a = theACC;
-    a.powerUp(ACC_NAME, platformAddress, systemAgentsThreads);
     a = defaultDF;
     a.powerUp(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
 
@@ -464,9 +393,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     for(int i = 0; i < allLocalAgents.length; i++) {
       String name = (String)allLocalAgents[i];
       if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
-				 name.equalsIgnoreCase(theACC.getLocalName()) ||
-				 name.equalsIgnoreCase(defaultDF.getLocalName()))
-					continue;
+	 name.equalsIgnoreCase(defaultDF.getLocalName()))
+	  continue;
 
       // Kill agent and wait for its termination
       Agent a = (Agent)localAgents.get(name);
@@ -481,18 +409,13 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     systemAgent.doDelete();
     systemAgent.join();
 
-    systemAgent = theACC;
-    systemAgent.doDelete();
-    systemAgent.join();
-
     theAMS.removeCommListener(this);
     systemAgent = theAMS;
     systemAgent.doDelete();
     systemAgent.join();
 
-    // Now, close CORBA link to outside world
-    myORB.disconnect(frontEndACC);
-
+    // Now, close MTP link to outside world
+    theACC.shutdown();
   }
 
   // These methods dispatch agent management operations to
