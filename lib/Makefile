@@ -3,10 +3,13 @@
 # The following targets are not file names
 .PHONY: all clean
 
+AR = jar
+ARFLAGS1 = c0vf
+ARFLAGS2 = `find $(SRCDIR) -name '*.class' -name '*.gif'`
 
-AR = zip
-ARFLAGS1 = -0r
-ARFLAGS2 = . -i '*.class' '*.gif'
+#AR = zip
+#ARFLAGS1 = -0r
+#ARFLAGS2 = . -i '*.class' '*.gif'
 
 all: 
 	@echo Making library ...
