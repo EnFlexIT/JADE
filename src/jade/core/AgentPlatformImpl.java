@@ -1,5 +1,8 @@
 package jade.core;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -40,11 +43,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put("ams", theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setAll("ams", myDispatcher, "ams@" + platformAddress, null, null, null, Agent.AP_INITIATED);
-    desc.setName("ams");
     desc.setDemux(myDispatcher);
 
-    platformAgents.put(desc.getName(), desc);
+    platformAgents.put("ams", desc);
     System.out.println("AMS OK");
   }
 
@@ -62,11 +63,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put("df", defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setAll("df", myDispatcher, "df@" + platformAddress, null, null, null, Agent.AP_INITIATED);
-    desc.setName("df");
     desc.setDemux(myDispatcher);
 
-    platformAgents.put(desc.getName(), desc);
+    platformAgents.put("df", desc);
     System.out.println("DF OK");
 
   }
@@ -85,9 +84,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     containers.removeElement(ac);
   }
 
-  public void bornAgent(AgentDescriptor desc) throws RemoteException {
-    System.out.println("Born agent " + desc.getName());
-    platformAgents.put(desc.getName(), desc);
+  public void bornAgent(String name, AgentDescriptor desc) throws RemoteException {
+    System.out.println("Born agent " + name);
+    platformAgents.put(name, desc);
   }
 
   public void deadAgent(String name) throws RemoteException {
@@ -109,25 +108,35 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
 
   // This one is called in response to a 'register-agent' action
-  public void AMSNewData(String agentName, String address, String signature,
-			 String delegateAgent, String forwardAddress, String APState)
+  public void AMSNewData(String agentName, String address, String signature, String APState,
+			 String delegateAgentName, String forwardAddress, String ownership)
     throws FIPAException, AgentAlreadyRegisteredException {
 
     try {
+      // Extract the agent name from the beginning to the '@'
+      agentName = agentName.substring(0,agentName.indexOf('@'));
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
-      if(ad.getAPState() != Agent.AP_INITIATED) {
+      if(ad.getDesc() != null) {
 	throw new AgentAlreadyRegisteredException();
       }
 
       AgentManagementOntology o = AgentManagementOntology.instance();
       int state = o.getAPStateByName(APState);
 
-      MessageDispatcher md = ad.getDemux(); // Preserve original MessageDispatcher
+      AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
-      ad.setAll(agentName, md, address, signature, delegateAgent, forwardAddress, state);
+      amsd.setName(agentName); // FIXME: When name changes Global Descriptor Table should be updated
+      amsd.setAddress(address);
+      amsd.setSignature(signature);
+      amsd.setAPState(state);
+      amsd.setDelegateAgentName(delegateAgentName);
+      amsd.setForwardAddress(forwardAddress);
+      amsd.setOwnership(ownership);
+
+      ad.setDesc(amsd);
     }
     catch(NotFoundException nfe) {
       nfe.printStackTrace();
@@ -136,28 +145,33 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   // This one is called in response to a 'modify-agent' action
-  public void AMSChangeData(String agentName, String address, String signature, String delegateAgent,
-			    String forwardAddress, String APState) throws FIPAException {
+  public void AMSChangeData(String agentName, String address, String signature, String APState,
+			    String delegateAgentName, String forwardAddress, String ownership)
+    throws FIPAException {
 
     try {
+      // Extract the agent name from the beginning to the '@'
+      agentName = agentName.substring(0,agentName.indexOf('@'));
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName);
       if(ad == null)
 	throw new NotFoundException("Failed to find " + agentName);
 
+      AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
+      
       if(address != null)
-	ad.setAddress(address);
+	amsd.setAddress(address);
       if(signature != null)
-	ad.setSignature(signature);
-      if(signature != null)
-	ad.setDelegateAgent(delegateAgent);
+	amsd.setSignature(signature);
+      if(delegateAgentName != null)
+	amsd.setDelegateAgentName(delegateAgentName);
       if(forwardAddress != null)
-	ad.setAddress(forwardAddress);
-
+	amsd.setAddress(forwardAddress);
+      if(ownership != null)
+	amsd.setOwnership(ownership);
       if(APState != null) {
-
 	AgentManagementOntology o = AgentManagementOntology.instance();
 	int state = o.getAPStateByName(APState);
-	ad.setAPState(state);
+	amsd.setAPState(state);
       }
     }
     catch(NotFoundException nfe) {
@@ -168,9 +182,12 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
 
   // This one is called in response to a 'deregister-agent' action
-  public void AMSRemoveData(String agentName, String address, String signature, String delegateAgent,
-			    String forwardAddress, String APState) throws FIPAException {
+  public void AMSRemoveData(String agentName, String address, String signature, String APState,
+			    String delegateAgentName, String forwardAddress, String ownership)
+    throws FIPAException {
 
+    // Extract the agent name from the beginning to the '@'
+    agentName = agentName.substring(0,agentName.indexOf('@'));
     AgentDescriptor ad = (AgentDescriptor)platformAgents.remove(agentName);
     if(ad == null)
       throw new jade.domain.UnableToDeregisterException();
@@ -180,13 +197,17 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     Enumeration descriptors = platformAgents.elements();
     while(descriptors.hasMoreElements()) {
       AgentDescriptor desc = (AgentDescriptor)descriptors.nextElement();
-      desc.dump();
+      AgentManagementOntology.AMSAgentDescriptor amsd = desc.getDesc();
+      amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     }
   }
 
   public void AMSDumpData(String agentName) {
+    // Extract the agent name from the beginning to the '@'
+    agentName = agentName.substring(0,agentName.indexOf('@'));
     AgentDescriptor desc = (AgentDescriptor)platformAgents.get(agentName);
-    desc.dump();
+    AgentManagementOntology.AMSAgentDescriptor amsd = desc.getDesc();
+    amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
 }
