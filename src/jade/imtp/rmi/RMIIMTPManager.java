@@ -22,6 +22,7 @@ package jade.imtp.rmi;
 
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import java.rmi.*;
 import java.rmi.registry.*;
@@ -94,7 +95,8 @@ public class RMIIMTPManager implements IMTPManager {
 
   } // End of RemoteProxyRMI class
 
-
+	private static final int DEFAULT_RMI_PORT = 1099;
+	
   private Profile myProfile;
   private String mainHost;
   private int mainPort;
@@ -114,7 +116,27 @@ public class RMIIMTPManager implements IMTPManager {
     try {
       myProfile = p;
       mainHost = myProfile.getParameter(Profile.MAIN_HOST);
-      mainPort = Integer.parseInt(myProfile.getParameter(Profile.MAIN_PORT));
+      if (mainHost == null) {
+      	// Use the local host by default
+      	try {
+	  			mainHost= InetAddress.getLocalHost().getHostName();      
+      	} 
+      	catch(UnknownHostException uhe) {
+      		throw new IMTPException("Unknown main host");
+      	}
+      }
+      
+      mainPort = DEFAULT_RMI_PORT;
+      String mainPortStr = myProfile.getParameter(Profile.MAIN_PORT);
+      if (mainPortStr != null) {
+      	try {
+      		mainPort = Integer.parseInt(mainPortStr);
+      	}
+      	catch (NumberFormatException nfe) {
+      		// Do nothing. The DEFAULT_RMI_PORT is used 
+      	}
+      }
+      
       platformRMI = "rmi://" + mainHost + ":" + mainPort + "/JADE";
     }
     catch (ProfileException pe) {
