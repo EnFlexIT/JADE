@@ -811,9 +811,12 @@ public class ams extends Agent implements AgentManager.Listener {
 	  catch (Exception e) {
 	   	e.printStackTrace();
 	  }
-
-	  // Add the new tool to tools list.
-	  tools.add(newTool);
+	  
+	  // Add the new tool to tools list (unless it is already there; this
+	  // can happen after a container crash)
+	  if (!tools.contains(newTool)) {
+		  tools.add(newTool);
+	  }
 	}
 	catch(NotFoundException nfe) {
 	  nfe.printStackTrace();
