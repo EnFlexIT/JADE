@@ -44,7 +44,7 @@ public class Sender extends Agent {
     // This agent speaks a language called "LEAP"
     private Codec          codec    = new LEAPCodec();
     // This agent complies with the People ontology
-    private FullOntology   ontology = PeopleOntology.getInstance();
+    private Ontology   ontology = PeopleOntology.getInstance();
 
     class SenderBehaviour extends SimpleBehaviour {
 	private boolean finished = false;
@@ -120,9 +120,8 @@ public class Sender extends Agent {
 		absFatherOf.set(PeopleOntology.FATHER, absX);
 		absFatherOf.set(PeopleOntology.CHILDREN, absChildren);
 
-		AbsIRE absIRE = new AbsIRE();
+		AbsIRE absIRE = new AbsIRE(LEAPCodec.IOTA);
 		absIRE.setVariable(absX);
-		absIRE.setKind(ACLOntology.IOTA);
 		absIRE.setProposition(absFatherOf);
 
       		// Fill the content of the message

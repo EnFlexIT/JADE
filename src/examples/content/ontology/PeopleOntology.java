@@ -36,7 +36,7 @@ import jade.util.leap.List;
 @author Federico Bergenti - Universita` di Parma
 */
 
-public class PeopleOntology extends FullOntology {
+public class PeopleOntology extends Ontology {
 	//A symbolic constant, containing the name of this ontology.
 	public static final String ONTOLOGY_NAME = "PEOPLE_ONTOLOGY";
 
@@ -74,8 +74,8 @@ public class PeopleOntology extends FullOntology {
 		return theInstance;
 	}
 	
-	public PeopleOntology(FullOntology base) {
-		super(ONTOLOGY_NAME, base);
+	public PeopleOntology(Ontology base) {
+		super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
 
 		try {
 			PrimitiveSchema stringSchema  = (PrimitiveSchema)getSchema(BasicOntology.STRING);
