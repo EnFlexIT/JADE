@@ -579,14 +579,27 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	// The following copies must always be cloned!
       	cloneFirst = false;
       }
-      cmd.addParam(new GenericMessage(toBeSent));
+      GenericMessage gmsg = new GenericMessage(toBeSent);
+      cmd.addParam(gmsg);
       cmd.addParam(receiver);
       // Set the credentials of the sender
       initCredentials(cmd, sender);
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
       	if (ret instanceof Throwable) {
-      		((Throwable) ret).printStackTrace();
+      		// The SEND_MESSAGE VerticalCommand was blocked by some Filter 
+      		// before reaching the Messaging Souce Sink --> Issue
+      		// a NOTIFY_FAILURE VerticalCommand to notify the sender
+			  	cmd = new GenericCommand(jade.core.messaging.MessagingSlice.NOTIFY_FAILURE, jade.core.messaging.MessagingSlice.NAME, null);
+			    cmd.addParam(gmsg);
+			    cmd.addParam(receiver);
+			    cmd.addParam(new InternalError("Message blocked: "+ret));
+		      ret = myCommandProcessor.processOutgoing(cmd);
+		      if (ret != null) {
+		      	if (ret instanceof Throwable) {
+		      		((Throwable) ret).printStackTrace();
+		      	}
+		      }
       	}
       }
     }
