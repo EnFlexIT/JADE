@@ -312,7 +312,7 @@ public class LEAPFrameCodec implements jade.util.leap.Serializable {
   	else {
   		stream.writeByte(tag);
   		stream.writeUTF(s);
-  		if (stringReferences.size() < 256) {
+  		if ((s.length() > 1) && stringReferences.size() < 256) {
   			stringReferences.addElement(s);
      		//System.out.println("writeString: added:"+s);
   		}
