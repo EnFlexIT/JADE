@@ -43,6 +43,16 @@ import jade.security.AuthException;
 public interface ServiceManager {
 
     /**
+       Retrieves the platform name from the platform <i>Service Manager</i>.
+
+       @return The name of the platform, that can be used to compose
+       the GUID of the resident agents.
+       @throws IMTPException If an underlying network error forbids to
+       fetch the name from the remote end.
+    */
+    String getPlatformName() throws IMTPException;
+
+    /**
        Adds a new node to the distributed platform. The node
        abstraction can correspond to an agent container, but also to a
        different kind of networked component (command proxy server,
