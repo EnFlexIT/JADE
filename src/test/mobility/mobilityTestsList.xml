@@ -36,5 +36,15 @@
 			Then the tester requests the AMS to CLONE the mobile agent on Container-2 and then waits for a confirmation message from the clone (who sends this message in his afterClone() method).
 			</HowWorkTest>
 			<WhenTestPass> The test passes if the tester agent correctly receives the two CONFIRMs.</WhenTestPass>
+		</Test>
+		
+		<Test name="Agent size" skip="false">
+			<TestClassName>test.mobility.tests.TestAgentSize</TestClassName>
+			<WhatTest> Test agent cloning and the transfer of an agent whose status includes a big amount of data.
+			</WhatTest>
+			<HowWorkTest> A Vector of 100000 10-byte-long elements (total 1MByte) is created. Then the TesterAgent itself is cloned on a remote container. 
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent is actually cloned and the Vector is correctly transferred.
+			</WhenTestPass>
 		</Test>		
 	</TestsList>

@@ -54,8 +54,8 @@ public class MobilityTesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/mobility/mobilityTestsList.xml"){		
 			 
-			private JadeController jc1;
-			private JadeController jc2;
+			private transient JadeController jc1;
+			private transient JadeController jc2;
 			
 			protected void initialize(Agent a) throws TestException {
 				jc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
