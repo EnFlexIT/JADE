@@ -52,7 +52,7 @@ starting with JADE; from that directory, you can type
 
 - make examples         To build example programs.
 
-- make all              Performs 'make lib', 'make doc' and 'make examples'
+- make all              Performs 'make lib' and 'make examples'
 
 
 After compiling, one can run the example programs in 'src/examples'
@@ -106,10 +106,50 @@ mechanisms) can be found in test subdirectory. Please refer to the
 'README' file in 'src/examples' directory to get some explanations of
 each example program behaviour:
 
+NEW FEATURES
+============
+
+Version 0.99b1:
+
+ - Javadoc-generated HTML documentation for all JADE public classes.
+
+ - jade.domain.FipaRequestClientBehaviour has been replaced by
+   jade.proto.FipaRequestInitiatorBehaviour and a new
+   FipaRequestResponderBehaviour has been added in jade.proto package.
+
+ - ACL messages now can have many agent names in :receiver slot. This
+   required making some changes to ACLMessage interface. Please see
+   HTML documentation for ACLMessage class.
+
+ - Agents can be suspended and resumed by the GUI or they can suspend
+   themselves; user should not suspend neither the AMS nor the RMA,
+   since they obviously wouldn't be able to resume then back.
+
+ - Now an agent can create another agent and starting it up with
+   Agent.doStart(String name).
+
+
 BUGS
 ====
 
+  1) During startup with both '-platform' and '-gui' options, sometimes
+     a deadlock occurs and neither the DF GUI nor the RMA GUI appear.
+     This bug will be elimintated in a future release by making the DF
+     GUI a part of RMA GUI, so that will be only one main window on startup.
 
+  2) During shutdown, sometimes an InterruptedException stack trace is dumped
+     standard error. This is a problem with AWT internals; in fact the generated
+     exception is correctly handled by AWT code and no bad consequences arise for
+     JADE, apart from the stack printout.
+
+  3) When an ACL message has more than one agent in its :receiver
+     field, every agent in the list receives a copy ohf that message,
+     but in the :receiver slot of the copy only that agent name is
+     present, instead of the complete receiver list. This is not
+     strictly a bug, but is probably non compliant.
+
+  4) The Programmer's Guide has not been updated since Version
+     0.975. Please refer to HTML documentation for the new features.
 
 TODO
 ====
@@ -117,9 +157,6 @@ TODO
  - Add support for message content language parsing.
 
  - Add support for message ontology checking.
-
- - Add support for platform administration and direct agent
-   manipulation through a GUI.
 
 
 CONTACT
