@@ -67,6 +67,7 @@ import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
+import jade.security.CertificateFolder;
 import jade.security.PrivilegedExceptionAction;
 //__SECURITY__END
 
@@ -439,9 +440,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private Authority authority;
   private String ownership = jade.security.JADEPrincipal.NONE;
   private AgentPrincipal principal = null;
-  private IdentityCertificate identity = null;
-  private DelegationCertificate delegation = null;
-  private DelegationCertificate[] delegations = null;
+  private CertificateFolder certs = new CertificateFolder();
 //__SECURITY__END
   
   /**
@@ -929,7 +928,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   /**
-     Reads message queue size. A zero value means that the message
+     Reads message queue size. A zero value means that thee message
      queue is unbounded (its size is limited only by amount of
      available memory).
      @return The actual size of the message queue.
@@ -956,14 +955,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				ownership.substring(dot2 + 1, ownership.length()).getBytes() : new byte[] {};
 	}
 
-	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
+	public void setPrincipal(CertificateFolder certs) {
 		AgentPrincipal old = getPrincipal();
 		synchronized (principalLock) {
-			this.identity = identity;
-			this.delegation = delegation;
-			this.delegations = new DelegationCertificate[] {delegation};
-			this.principal = (AgentPrincipal)identity.getSubject();
-			notifyChangedAgentPrincipal(old, identity, delegation);
+			this.certs = certs;
+			this.principal = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
+			notifyChangedAgentPrincipal(old, certs);
 		}
 	}
 
@@ -981,31 +978,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		return p;
 	}
-
-	public IdentityCertificate getIdentity() {
-		return identity;
-	}
 	
-	public DelegationCertificate getDelegation() {
-		return delegation;
-	}
-	
-    //FIXME Removed synchornized because of a deadlock creation.
-    //maybe we should have a delegationsLock object
-	private void setDelegations(DelegationCertificate[] delegations) {
-		this.delegations = delegations;
-	}
-	
-    //FIXME Removed synchornized because of a deadlock creation.
-    //maybe we should have a delegationsLock object
-	private DelegationCertificate[] getDelegations() {
-		if (delegations == null && delegation != null)
-			delegations = new DelegationCertificate[] {delegation};
-		return delegations;
+	public CertificateFolder getCertificateFolder() {
+		return certs;
 	}
 	
 	private void doPrivileged(PrivilegedExceptionAction action) throws Exception {
-		getAuthority().doAsPrivileged(action, getIdentity(), getDelegations());
+		getAuthority().doAsPrivileged(action, getCertificateFolder());
 	}
 	//__SECURITY__END
 
@@ -1911,6 +1890,23 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myScheduler.remove(b);
   }
 
+	class SendAction implements jade.security.PrivilegedExceptionAction {
+		ACLMessage msg;
+		
+		public SendAction() {
+		}
+		
+		public void setMessage(ACLMessage msg) {
+			this.msg = msg;
+		}
+		
+		public Object run() throws AuthException {
+			notifySend(msg);
+			return null;
+		}
+	}
+	
+	SendAction sendAction = new SendAction();
 
 	/**
 		Send an <b>ACL</b> message to another agent. This methods sends
@@ -1931,12 +1927,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		try {
 			// Notify send
-			doPrivileged(new jade.security.PrivilegedExceptionAction() {
-				public Object run() throws AuthException {
-					notifySend(msg);
-					return null;
-				}
-			});
+			sendAction.setMessage(msg);
+			doPrivileged(sendAction);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1996,13 +1988,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				if (pattern == null || pattern.match(cursor)) {
 					try {
 						messages.remove(); //!!! msgQueue.remove(msg);
+						notifyReceived(cursor);
 						// Notify receive
-						doPrivileged(new jade.security.PrivilegedExceptionAction() {
+						/*doPrivileged(new jade.security.PrivilegedExceptionAction() {
 							public Object run() throws AuthException {
 								notifyReceived(cursor);
 								return null;
 							}
-						});
+						});*/
 						currentMessage = cursor;
 						msg = cursor;
 						break; // Exit while loop
@@ -2203,9 +2196,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 //__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
-  private void notifyChangedAgentPrincipal(AgentPrincipal from, IdentityCertificate identity, DelegationCertificate delegation) {
+  private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
     if (myToolkit != null)
-      myToolkit.handleChangedAgentPrincipal(myAID, from, identity, delegation);
+      myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
   }
 //__SECURITY__END
 

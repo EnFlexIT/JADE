@@ -44,6 +44,7 @@ import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
+import jade.security.CertificateFolder;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -132,9 +133,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public void createAgent(AID agentID, String className, Object[] arguments, String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] arguments, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
     try {
-      adaptee.createAgent(agentID, className, arguments, ownership, identity, delegation, startIt);
+      adaptee.createAgent(agentID, className, arguments, ownership, certs, startIt);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -186,9 +187,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
   
-  public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+  public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
     try {
-      adaptee.changeAgentPrincipal(agentID, identity, delegation);
+      adaptee.changeAgentPrincipal(agentID, certs);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -204,9 +205,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
   
-  public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
+  public void changeContainerPrincipal(CertificateFolder certs) throws IMTPException {
     try {
-      adaptee.changeContainerPrincipal(identity, delegation);
+      adaptee.changeContainerPrincipal(certs);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);

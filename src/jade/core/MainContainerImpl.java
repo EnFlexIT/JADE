@@ -63,6 +63,7 @@ import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
+import jade.security.CertificateFolder;
 //__SECURITY__END
 
 
@@ -145,17 +146,12 @@ class MainContainerImpl implements Platform, AgentManager {
 	public void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 		// Authenticate user
 		ContainerPrincipal principal = getAuthority().createContainerPrincipal(cid, username);
-		IdentityCertificate identity = authority.createIdentityCertificate();
-		DelegationCertificate delegation = authority.createDelegationCertificate();
-		if (identity != null && delegation != null) {
-			identity.setSubject(principal);
-			authority.authenticate(identity, delegation, password);
-		}
-		authority.checkAction(Authority.PLATFORM_CREATE, principal, identity, new DelegationCertificate[] {delegation});
-		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[] {delegation});
+		CertificateFolder certs = authority.authenticate(principal, password);
+		authority.checkAction(Authority.PLATFORM_CREATE, principal, certs);
+		authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
 
 		// Set the container-principal
-		ac.changeContainerPrincipal(identity, delegation);
+		ac.changeContainerPrincipal(certs);
 
 		// Add the calling container as the main container and set its name
 		cid.setName(MAIN_CONTAINER_NAME);
@@ -168,11 +164,8 @@ class MainContainerImpl implements Platform, AgentManager {
 		theAMS = new ams(this);
 		theAMS.setOwnership(agentOwnership);
 		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(Agent.getAMS(), username);
-		IdentityCertificate amsIdentity = authority.createIdentityCertificate();
-		DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-		amsIdentity.setSubject(amsPrincipal);
-		authority.authenticate(amsIdentity, amsDelegation, password);
-		theAMS.setPrincipal(amsIdentity, amsDelegation);
+		CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
+		theAMS.setPrincipal(amsCerts);
 		ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
 		theAMS.waitUntilStarted();
 
@@ -184,11 +177,8 @@ class MainContainerImpl implements Platform, AgentManager {
 		defaultDF = new df();
 		defaultDF.setOwnership(agentOwnership);
 		AgentPrincipal dfPrincipal = authority.createAgentPrincipal(Agent.getDefaultDF(), username);
-		IdentityCertificate dfIdentity = authority.createIdentityCertificate();
-		DelegationCertificate dfDelegation = authority.createDelegationCertificate();
-		dfIdentity.setSubject(dfPrincipal);
-		authority.authenticate(dfIdentity, dfDelegation, password);
-		defaultDF.setPrincipal(dfIdentity, dfDelegation);
+		CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
+		defaultDF.setPrincipal(dfCerts);
 		ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
 		defaultDF.waitUntilStarted();
 		
@@ -483,14 +473,11 @@ class MainContainerImpl implements Platform, AgentManager {
 	public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
 		// Authenticate user
 		ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
-		IdentityCertificate identity = authority.createIdentityCertificate();
-		DelegationCertificate delegation = authority.createDelegationCertificate();
-		identity.setSubject(principal);
-		authority.authenticate(identity, delegation, password);
-		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[] {delegation});
+		CertificateFolder certs = authority.authenticate(principal, password);
+		authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
 		
 		// Set the container-principal
-		ac.changeContainerPrincipal(identity, delegation);
+		ac.changeContainerPrincipal(certs);
 		
 		// Send all platform addresses to the new container
 		ContainerID[] containerNames = containers.names();
@@ -542,17 +529,17 @@ class MainContainerImpl implements Platform, AgentManager {
     return ac;
   }
 
-  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
 
-		// verify identity certificate
-		authority.verify(identity);
+    // verify identity certificate
+    authority.verify(certs.getIdentityCertificate());
 
     AgentDescriptor desc = new AgentDescriptor();
     AgentContainer ac = containers.getContainer(cid);
     AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
     desc.setProxy(ap);
     desc.setContainerID(cid);
-		desc.setPrincipal((AgentPrincipal)identity.getSubject());
+    desc.setPrincipal((AgentPrincipal)certs.getIdentityCertificate().getSubject());
     AgentDescriptor old = platformAgents.put(name, desc);
 
     // If there's already an agent with name 'name' throw a name clash
@@ -571,19 +558,17 @@ class MainContainerImpl implements Platform, AgentManager {
     }
 
     // Notify listeners
-    fireBornAgent(cid, name, (AgentPrincipal)identity.getSubject());
+    fireBornAgent(cid, name, (AgentPrincipal)certs.getIdentityCertificate().getSubject());
 
-		// Delegate ams
-		if (delegation != null) {
-			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-			amsDelegation.setSubject(amsPrincipal);
-			for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); ) {
-				amsDelegation.addPermission(i.next());
-			}
-			authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
-			theAMS.setDelegation(name, amsDelegation);
-		}
+    // Delegate ams
+    AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+    amsDelegation.setSubject(amsPrincipal);
+    for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
+      amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+    }
+    authority.sign(amsDelegation, certs);
+    theAMS.setDelegation(name, amsDelegation);
   }
 
   public void deadAgent(AID name) throws IMTPException, NotFoundException {
@@ -618,16 +603,16 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 //__SECURITY__BEGIN
-	public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+	public void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException {
 		AgentDescriptor ad = platformAgents.get(name);
 		if (ad == null)
 			throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
 		
 		try {
-			authority.verify(identity);
+			authority.verify(certs.getIdentityCertificate());
 			
 			AgentPrincipal from = ad.getPrincipal();
-			AgentPrincipal to = (AgentPrincipal)identity.getSubject();
+			AgentPrincipal to = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
 			ContainerID cid = ad.getContainerID();
 			
 			// Notify containers
@@ -666,16 +651,14 @@ class MainContainerImpl implements Platform, AgentManager {
 			fireChangedAgentPrincipal(cid, name, from, to);
     
 			// Delegate ams
-			if (delegation != null) {
-				AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-				DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-				amsDelegation.setSubject(amsPrincipal);
-				for (Iterator i = delegation.getPermissions().iterator(); i.hasNext(); ) {
-					amsDelegation.addPermission(i.next());
-				}
-				authority.sign(amsDelegation, identity, new DelegationCertificate[] {delegation});
-				theAMS.setDelegation(name, amsDelegation);
-			}		
+			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
+			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+			amsDelegation.setSubject(amsPrincipal);
+			for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
+				amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+			}
+			authority.sign(amsDelegation, certs);
+			theAMS.setDelegation(name, amsDelegation);
 		}
 		catch (AuthException ae) {
 			ae.printStackTrace();
@@ -746,7 +729,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
 		try {
-			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).killAgent(agentID);
@@ -763,7 +746,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 	public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
 		try {
-			authority.checkAction(Authority.AGENT_SUSPEND, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_SUSPEND, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).suspendAgent(agentID);
@@ -780,7 +763,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
 	public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
 		try {
-			authority.checkAction(Authority.AGENT_RESUME, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_RESUME, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).resumeAgent(agentID);
@@ -798,17 +781,14 @@ class MainContainerImpl implements Platform, AgentManager {
 //__SECURITY__BEGIN
 	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
 		try {
-			authority.checkAction(Authority.AGENT_TAKE, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_TAKE, getAgentPrincipal(agentID), null);
 
 			final AgentPrincipal principal = authority.createAgentPrincipal(agentID, username);
-			final IdentityCertificate identity = authority.createIdentityCertificate();
-			identity.setSubject(principal);
-			final DelegationCertificate delegation = authority.createDelegationCertificate();
-			authority.authenticate(identity, delegation, password);
+			final CertificateFolder certs = authority.authenticate(principal, password);
 			
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
-	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, identity, delegation);
+	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, certs);
 	  			return null;
 				}
 			});
@@ -843,7 +823,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void move(final AID agentID, final Location where) throws NotFoundException, UnreachableException, AuthException {
     try {
-			authority.checkAction(Authority.AGENT_MOVE, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_MOVE, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).moveAgent(agentID, where);
@@ -860,7 +840,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void copy(final AID agentID, final Location where, final String newName) throws NotFoundException, UnreachableException, AuthException {
     try {
-			authority.checkAction(Authority.AGENT_COPY, getAgentPrincipal(agentID), null, null);
+			authority.checkAction(Authority.AGENT_COPY, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
 	  			getContainerFromAgent(agentID).copyAgent(agentID, where, newName);
@@ -1020,9 +1000,9 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(final String agentName, final String className, final String args[], final ContainerID cid, final String ownership, final IdentityCertificate identity, final DelegationCertificate delegation) throws UnreachableException, AuthException {
+  public void create(final String agentName, final String className, final String args[], final ContainerID cid, final String ownership, final CertificateFolder certs) throws UnreachableException, AuthException {
     try {
-      authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)identity.getSubject(), null, null);
+      authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
 
       String containerName = cid.getName();
       AgentContainer where;
@@ -1046,7 +1026,7 @@ class MainContainerImpl implements Platform, AgentManager {
       final AgentContainer ac = where;
       authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
       	public Object run() throws IMTPException {
-      		ac.createAgent(id, className, args, ownership, identity, delegation, AgentContainer.START);
+      		ac.createAgent(id, className, args, ownership, certs, AgentContainer.START);
       		return null;
       	}
       });
@@ -1154,8 +1134,8 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
-    authority.sign(certificate, identity, delegations);
+  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException {
+    authority.sign(certificate, certs);
     return certificate;
   }
   

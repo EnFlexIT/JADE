@@ -43,6 +43,7 @@ import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
+import jade.security.CertificateFolder;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -79,16 +80,16 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.uninstallMTP(address);
     }
     
-    public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
-      impl.changeAgentPrincipal(agentID, identity, delegation);
+    public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws RemoteException, NotFoundException, IMTPException {
+      impl.changeAgentPrincipal(agentID, certs);
     }
     
     public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws RemoteException, IMTPException {
       impl.changedAgentPrincipal(agentID, principal);
     }
     
-    public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException {
-      impl.changeContainerPrincipal(identity, delegation);
+    public void changeContainerPrincipal(CertificateFolder certs) throws RemoteException, IMTPException {
+      impl.changeContainerPrincipal(certs);
     }
     
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {
@@ -111,8 +112,8 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.disableSniffer(snifferName, notToBeSniffed);
     }
     
-    public void createAgent(AID agentID, String className, Object[] arguments, String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws RemoteException, IMTPException {
-      impl.createAgent(agentID, className, arguments, ownership, identity, delegation, startIt);
+    public void createAgent(AID agentID, String className, Object[] arguments, String ownership, CertificateFolder certs, boolean startIt) throws RemoteException, IMTPException {
+      impl.createAgent(agentID, className, arguments, ownership, certs, startIt);
     }
     
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {

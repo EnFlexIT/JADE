@@ -40,6 +40,7 @@ import jade.security.AgentPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -48,19 +49,19 @@ import jade.security.DelegationCertificate;
 public interface MainContainerRMI extends Remote {
     public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException;
     public AgentProxy getProxy(AID id) throws RemoteException, NotFoundException, IMTPException;
-    public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NameClashException, NotFoundException, IMTPException, AuthException;
+    public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws RemoteException, NameClashException, NotFoundException, IMTPException, AuthException;
     public String getPlatformName() throws RemoteException, IMTPException;
     public AgentContainerRMI lookup(ContainerID cid) throws RemoteException, NotFoundException, IMTPException;
     public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
     public void suspendedAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
     public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
-    public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException;
+    public void changedAgentPrincipal(AID name, CertificateFolder certs) throws RemoteException, NotFoundException, IMTPException;
     public AgentPrincipal getAgentPrincipal(AID name) throws RemoteException, IMTPException, NotFoundException;
     public String addContainer(AgentContainerRMI ac, ContainerID cid, String username, byte[] password) throws RemoteException, IMTPException, AuthException;
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException;
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException;
     public void removeContainer(ContainerID cid) throws RemoteException, IMTPException;
-    public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException;
+    public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws RemoteException, IMTPException, AuthException;
     public byte[] getPublicKey() throws RemoteException, IMTPException;
 }
 

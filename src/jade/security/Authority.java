@@ -108,15 +108,15 @@ public interface Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public void sign(JADECertificate certificate, CertificateFolder certs) throws AuthException;
 
-	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException;
+	public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws AuthException;
 	
 	public Object doPrivileged(PrivilegedExceptionAction action) throws Exception;
 	
-	public Object doAsPrivileged(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
+	public Object doAsPrivileged(PrivilegedExceptionAction action, CertificateFolder certs) throws Exception;
 	
-	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public void checkAction(String action, JADEPrincipal target, CertificateFolder certs) throws AuthException;
 	
 	public AgentPrincipal createAgentPrincipal(AID aid, String ownership);
 
@@ -126,4 +126,11 @@ public interface Authority {
 
 	public DelegationCertificate createDelegationCertificate();
 	
+	//!!! to remove
+	/*
+	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException;
+	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
+	public Object doAsPrivileged(PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception;
+	*/
 }

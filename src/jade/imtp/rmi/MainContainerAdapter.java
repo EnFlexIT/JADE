@@ -44,6 +44,7 @@ import jade.security.AgentPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -84,9 +85,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
     try {
-      adaptee.bornAgent(name, cid, identity, delegation);
+      adaptee.bornAgent(name, cid, certs);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -138,9 +139,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     }
   }
 
-  public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws NotFoundException, IMTPException {
+  public void changedAgentPrincipal(AID name, CertificateFolder certs) throws NotFoundException, IMTPException {
     try {
-      adaptee.changedAgentPrincipal(name, identity, delegation);
+      adaptee.changedAgentPrincipal(name, certs);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -210,9 +211,9 @@ public class MainContainerAdapter implements MainContainer, Serializable {
     return adaptee;
   }
 
-  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
+  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException {
     try {
-      return adaptee.sign(certificate, identity, delegations);
+      return adaptee.sign(certificate, certs);
     }
     catch (RemoteException re) {
       throw new IMTPException("Communication Failure", re);

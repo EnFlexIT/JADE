@@ -40,6 +40,7 @@ import jade.security.AgentPrincipal;
 import jade.security.AuthException;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 //__SECURITY__END
 
 /**
@@ -72,7 +73,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   ContainerID getContainerID(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, AuthException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException;
 
   void killContainer(ContainerID cid) throws AuthException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;

@@ -42,6 +42,7 @@ import jade.security.AgentPrincipal;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -79,8 +80,8 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     return impl.getPlatformName();
   }
 
-  public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NameClashException, NotFoundException, IMTPException, AuthException {
-    impl.bornAgent(name, cid, identity, delegation);
+  public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws RemoteException, NameClashException, NotFoundException, IMTPException, AuthException {
+    impl.bornAgent(name, cid, certs);
   }
   
   public void removeContainer(ContainerID cid) throws RemoteException, IMTPException {
@@ -104,8 +105,8 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     impl.resumedAgent(name);
   }
   
-  public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
-    impl.changedAgentPrincipal(name, identity, delegation);
+  public void changedAgentPrincipal(AID name, CertificateFolder certs) throws RemoteException, NotFoundException, IMTPException {
+    impl.changedAgentPrincipal(name, certs);
   }
   
   public AgentPrincipal getAgentPrincipal(AID name) throws RemoteException, IMTPException, NotFoundException {
@@ -116,8 +117,8 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     impl.newMTP(mtp, cid);
   }
   
-  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws RemoteException, IMTPException, AuthException {
-    return impl.sign(certificate, identity, delegations);
+  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws RemoteException, IMTPException, AuthException {
+    return impl.sign(certificate, certs);
   }
   
   public byte[] getPublicKey() throws RemoteException, IMTPException {

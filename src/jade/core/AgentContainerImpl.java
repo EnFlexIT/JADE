@@ -48,6 +48,7 @@ import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 //__SECURITY__END
 
 
@@ -104,8 +105,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private ContainerPrincipal principal = null;
   private String username = null;
   private byte[] password = null;
-  private IdentityCertificate identity;
-  private DelegationCertificate delegation;
+  private CertificateFolder certs;
   private Authority authority;
   private Map principals = new HashMap();
 
@@ -128,26 +128,26 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
   // /////////////////////////////////////////
-  public void createAgent(AID agentID, String className, Object[] args, String ownership, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
     Agent agent = null;
     try {
       agent = (Agent)Class.forName(new String(className)).newInstance();
       agent.setArguments(args);
       // Set agent principal and certificates
-      if (identity != null) {
-	      agent.setPrincipal(identity, delegation);
+      if (certs != null) {
+	      agent.setPrincipal(certs);
 	    }
       // Set agent ownership
       if (ownership != null)
 	      agent.setOwnership(ownership);
-	    else if (identity != null)
-      	agent.setOwnership(((AgentPrincipal)identity.getSubject()).getOwnership());
+	    else if (certs.getIdentityCertificate() != null)
+      	agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
     }
     catch (ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
   		throw new IMTPException("Exception in createAgent",cnfe); 
     }
-    catch (Exception e ){
+    catch (Exception e ) {
       e.printStackTrace();
   		throw new IMTPException("Exception in createAgent",e); 
     }
@@ -182,15 +182,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		Agent previous = localAgents.put(agentID, instance);
 		if (startIt) {
 			try {
-				IdentityCertificate identity = instance.getIdentity();
-				DelegationCertificate delegation = instance.getDelegation();
-				if (identity == null) {
+				CertificateFolder agentCerts = instance.getCertificateFolder();
+				if (agentCerts.getIdentityCertificate() == null) {
 					AgentPrincipal principal = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
-					identity = authority.createIdentityCertificate();
+					IdentityCertificate identity = authority.createIdentityCertificate();
 					identity.setSubject(principal);
-					authority.sign(identity, this.identity, new DelegationCertificate[] {this.delegation});
+					authority.sign(identity, certs);
+					agentCerts.setIdentityCertificate(identity);
 				}
-				myPlatform.bornAgent(agentID, myID, identity, delegation);
+				myPlatform.bornAgent(agentID, myID, agentCerts);
 				instance.powerUp(agentID, myResourceManager);
 			}
 			catch (NameClashException nce) {
@@ -232,20 +232,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 //__SECURITY__BEGIN
-	public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
 		Agent agent = localAgents.get(agentID);
 		if (agent != null)
-			agent.setPrincipal(identity, delegation);
+			agent.setPrincipal(certs);
 	}
 
 	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
 		principals.put(agentID, principal);
 	}
 
-	public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
-		this.identity = identity;
-		this.delegation = delegation;
-		if (identity.getSubject() == null) new Exception().printStackTrace();
+	public void changeContainerPrincipal(CertificateFolder certs) throws IMTPException {
+		this.certs = certs;
 	}
 	
 	public AgentPrincipal getAgentPrincipal(final AID agentID) {
@@ -559,29 +557,30 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				try {
 					String agentOwnership = username;
 					AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+
 					IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+					agentIdentity.setSubject(agentPrincipal);
+					authority.sign(agentIdentity, certs);
+
 					DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-					
-					try {
-						agentIdentity.setSubject(agentPrincipal);
-						authority.sign(agentIdentity, identity, new DelegationCertificate[] {delegation});
-						agentDelegation.setSubject(agentPrincipal);
-						agentDelegation.addPermissions(delegation.getPermissions());
-						authority.sign(agentDelegation, identity, new DelegationCertificate[] {delegation});
+					agentDelegation.setSubject(agentPrincipal);
+					for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
+						agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+					authority.sign(agentDelegation, certs);
+
+					CertificateFolder agentCerts = new CertificateFolder();
+					agentCerts.setIdentityCertificate(agentIdentity);
+					agentCerts.addDelegationCertificate(agentDelegation);
 						
-						createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, identity, delegation, NOSTART);
+					try {
+						createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, NOSTART);
 					}
 					catch (IMTPException imtpe) {
 						// The call to createAgent() in this case is local --> no need to
 						// print the exception again. Just skip this agent
 						continue;
 					}
-					catch (AuthException ae) {
-						// The call to createAgent() in this case is local --> no need to
-						// print the exception again. Just skip this agent
-						continue;
-					}
-					myPlatform.bornAgent(agentID, myID, agentIdentity, agentDelegation);
+					myPlatform.bornAgent(agentID, myID, agentCerts);
 				}
 				catch (IMTPException imtpe1) {
 					imtpe1.printStackTrace();
@@ -680,7 +679,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	public void handleSend(ACLMessage msg) throws AuthException {
 
 		AgentPrincipal target1 = getAgentPrincipal(msg.getSender());
-		authority.checkAction(Authority.AGENT_SEND_AS, target1, null, null);
+		authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
 
 		AuthException lastException = null;
 
@@ -724,7 +723,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			try {
 				AID dest = (AID)it.next();
 				AgentPrincipal target2 = getAgentPrincipal(dest);
-				authority.checkAction(Authority.AGENT_SEND_TO, target2, null, null);
+				authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
 				ACLMessage copy = (ACLMessage)msg.clone();
 				unicastPostMessage(copy, dest);
 			}
@@ -751,19 +750,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
-  	AgentPrincipal target = getAgentPrincipal(msg.getSender());
-		authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null, null);
+    //!!!AgentPrincipal target = getAgentPrincipal(msg.getSender());
+    //!!!authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
     //fireReceivedMessage(msg, agentID);
     myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
-    	new Object[]{msg, agentID});
+      new Object[]{msg, agentID});
   }
 
 //__SECURITY__BEGIN
-  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, IdentityCertificate identity, DelegationCertificate delegation) {
+  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, CertificateFolder certs) {
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
-      new Object[]{agentID, oldPrincipal, (AgentPrincipal)identity.getSubject()});
+      new Object[]{agentID, oldPrincipal, (AgentPrincipal)certs.getIdentityCertificate().getSubject()});
     try {
-      myPlatform.changedAgentPrincipal(agentID, identity, delegation);
+      myPlatform.changedAgentPrincipal(agentID, certs);
     }
     catch (IMTPException re) {
       re.printStackTrace();

@@ -77,6 +77,7 @@ import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 import jade.security.AuthException;
 //__SECURITY__END
 
@@ -636,7 +637,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 			final IdentityCertificate identity = authority.createIdentityCertificate();
 			identity.setSubject(agent);
-			authority.sign(identity, getIdentity(), new DelegationCertificate[] {creatorDelegation});
+			authority.sign(identity, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 
 			final DelegationCertificate delegation = authority.createDelegationCertificate();
 			if (ca.getDelegation() != null) {
@@ -646,18 +647,19 @@ public class ams extends Agent implements AgentManager.Listener {
 				delegation.setSubject(agent);
 				if (creatorDelegation != null)
 					delegation.addPermissions(creatorDelegation.getPermissions());
-				authority.sign(delegation, getIdentity(), new DelegationCertificate[] {creatorDelegation});
+				authority.sign(delegation, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 			}
+			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 
 			sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
 			try {
 				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
 					public Object run() throws UnreachableException, AuthException {
-						myPlatform.create(agentName, className, arguments, container, ownership, identity, delegation);
+						myPlatform.create(agentName, className, arguments, container, ownership, agentCerts);
 						return null;
 					}
-				}, getIdentity(), new DelegationCertificate[] {creatorDelegation});
+				}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
 
 				// An 'inform Done' message will be sent to the requester only
 				// when the newly created agent will register itself with the
@@ -667,7 +669,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				reply.setPerformative(ACLMessage.INFORM);
 				reply.setContent(doneAction(a));
 
-				creations.put(agentID, new CreationInfo(getRequest(), reply, ownership, identity, delegation));
+				creations.put(agentID, new CreationInfo(getRequest(), reply, ownership, agentCerts));
 			}
 			catch (UnreachableException ue) {
 				throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
@@ -881,15 +883,13 @@ public class ams extends Agent implements AgentManager.Listener {
 		private ACLMessage request;
 		private ACLMessage reply;
 		private String ownership;
-		private IdentityCertificate identity;
-		private DelegationCertificate delegation;
+		private CertificateFolder certs;
 
-		public CreationInfo(ACLMessage request, ACLMessage reply, String ownership, IdentityCertificate identity, DelegationCertificate delegation) {
+		public CreationInfo(ACLMessage request, ACLMessage reply, String ownership, CertificateFolder certs) {
 			this.request = request;
 			this.reply = reply;
 			this.ownership = ownership;
-			this.identity = identity;
-			this.delegation = delegation;
+			this.certs = certs;
 		}
 
 		public ACLMessage getRequest() {
@@ -904,12 +904,8 @@ public class ams extends Agent implements AgentManager.Listener {
 			return ownership;
 		}
 
-		public IdentityCertificate getIdentity() {
-			return identity;
-		}
-
-		public DelegationCertificate getDelegation() {
-			return delegation;
+		public CertificateFolder getCertificateFolder() {
+			return certs;
 		}
 
 	}
@@ -1244,11 +1240,12 @@ public class ams extends Agent implements AgentManager.Listener {
 		IdentityCertificate actorIdentity = null;
 		DelegationCertificate actorDelegation = null;
 		// we use sender's delegation to ams
-		actorIdentity = getIdentity();
+		actorIdentity = getCertificateFolder().getIdentityCertificate();
 		actorDelegation = (DelegationCertificate)delegations.get(sender.getName());
+		CertificateFolder actorCerts = new CertificateFolder(actorIdentity, actorDelegation);
 
 		try {
-			authority.checkAction(action, oldAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
+			authority.checkAction(action, oldAgent, actorCerts);
 
 			if (action.equals(Authority.AMS_DEREGISTER))
 				return;
@@ -1260,7 +1257,7 @@ public class ams extends Agent implements AgentManager.Listener {
 						myPlatform.take(name, username, password);
 						return null;
 					}
-				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				}, actorCerts);
 				amsd.setOwnership(username);
 			}
 			agentDescriptions.register(amsd.getName(), amsd);
@@ -1273,7 +1270,7 @@ public class ams extends Agent implements AgentManager.Listener {
 						myPlatform.suspend(name);
 						return null;
 					}
-				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				}, actorCerts);
 				amsd.setState(newState);
 			}
 			else if (oldState.equals(AMSAgentDescription.SUSPENDED) && ! newState.equals(AMSAgentDescription.SUSPENDED)) {
@@ -1282,7 +1279,7 @@ public class ams extends Agent implements AgentManager.Listener {
 						myPlatform.activate(name);
 						return null;
 					}
-				}, actorIdentity, new DelegationCertificate[] {actorDelegation});
+				}, actorCerts);
 				amsd.setState(newState);
 			}
 			agentDescriptions.register(amsd.getName(), amsd);
@@ -1351,11 +1348,11 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	void checkAction(String action, AID agent, AID sender) throws AuthException {
-		getAuthority().checkAction(action, getAgentPrincipal(agent), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
+		getAuthority().checkAction(action, getAgentPrincipal(agent), new CertificateFolder(getCertificateFolder().getIdentityCertificate(), (DelegationCertificate)delegations.get(sender.getName())));
 	}
 	
 	void checkAction(String action, ContainerID container, AID sender) throws AuthException {
-		getAuthority().checkAction(action, getContainerPrincipal(container), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
+		getAuthority().checkAction(action, getContainerPrincipal(container), new CertificateFolder(getCertificateFolder().getIdentityCertificate(), (DelegationCertificate)delegations.get(sender.getName())));
 	}
 	
 	AgentPrincipal getAgentPrincipal(AID agent) {
@@ -1453,7 +1450,7 @@ public class ams extends Agent implements AgentManager.Listener {
     String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
     
     if (creations.get(agentID) == null)
-    	creations.put(agentID, new CreationInfo(null, null, ownership, null, null));
+    	creations.put(agentID, new CreationInfo(null, null, ownership, null));
 
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);

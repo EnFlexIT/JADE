@@ -53,21 +53,26 @@ public class DummyAuthority implements Authority {
 	public void verify(JADECertificate cert) throws AuthException {
 	}
 	
-	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
+	public void sign(JADECertificate certificate, CertificateFolder certs) throws AuthException {
 	}
 	
-	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException {
+	public CertificateFolder authenticate(JADEPrincipal principal, byte[] password) throws AuthException {
+		IdentityCertificate identity = createIdentityCertificate();
+		identity.setSubject(principal);
+		CertificateFolder certs = new CertificateFolder();
+		certs.setIdentityCertificate(identity);
+		return certs;
 	}
 	
 	public Object doPrivileged(jade.security.PrivilegedExceptionAction action) throws Exception {
 		return action.run();
 	}
 
-	public Object doAsPrivileged(jade.security.PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception {
+	public Object doAsPrivileged(jade.security.PrivilegedExceptionAction action, CertificateFolder certs) throws Exception {
 		return action.run();
 	}
 	
-	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
+	public void checkAction(String action, JADEPrincipal target, CertificateFolder certs) throws AuthException {
 	}
 	
 	public AgentPrincipal createAgentPrincipal(AID aid, String ownership){
@@ -84,6 +89,23 @@ public class DummyAuthority implements Authority {
 	
 	public DelegationCertificate createDelegationCertificate() {
 		return new DummyCertificate();
+	}
+	
+	//!!! to remove
+	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
+	}
+	
+	//!!! to remove
+	public void authenticate(IdentityCertificate identity, DelegationCertificate delegation, byte[] password) throws AuthException {
+	}
+	
+	//!!! to remove
+	public Object doAsPrivileged(jade.security.PrivilegedExceptionAction action, IdentityCertificate identity, DelegationCertificate[] delegations) throws Exception {
+		return action.run();
+	}
+
+	//!!! to remove
+	public void checkAction(String action, JADEPrincipal target, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
 	}
 	
 }

@@ -36,6 +36,7 @@ import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 //__SECURITY__END
 
 /**
@@ -113,8 +114,8 @@ class MainContainerProxy implements Platform {
       return adaptee.getProxy(id);
     }
 
-    public void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException {
-      adaptee.bornAgent(name, cid, identity, delegation);
+    public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
+      adaptee.bornAgent(name, cid, certs);
     }
 
     public String getPlatformName() throws IMTPException {
@@ -139,8 +140,8 @@ class MainContainerProxy implements Platform {
     }
 
 //__SECURITY__BEGIN
-    public void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
-      adaptee.changedAgentPrincipal(name, identity, delegation);
+    public void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException {
+      adaptee.changedAgentPrincipal(name, certs);
     }
     
     public AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
@@ -269,7 +270,7 @@ class MainContainerProxy implements Platform {
 
 				// Register again the agent with the Main Container.
 				try {
-	  			adaptee.bornAgent(agentID, myID, agents[i].getIdentity(), agents[i].getDelegation()); // Remote call
+	  			adaptee.bornAgent(agentID, myID, agents[i].getCertificateFolder()); // Remote call
 				}
 				catch (NameClashException nce) {
 	  			throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
@@ -296,8 +297,8 @@ class MainContainerProxy implements Platform {
     }
   }
   
-  public JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException {
-    return adaptee.sign(certificate, identity, delegations);
+  public JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException {
+    return adaptee.sign(certificate, certs);
   }
   
   public byte[] getPublicKey() throws IMTPException {

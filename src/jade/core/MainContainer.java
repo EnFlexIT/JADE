@@ -33,6 +33,7 @@ import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.CertificateFolder;
 //__SECURITY__END
 
 
@@ -56,16 +57,16 @@ public interface MainContainer {
 
     AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
 
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
 //__SECURITY__BEGIN
-    void changedAgentPrincipal(AID name, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
+    void changedAgentPrincipal(AID name, CertificateFolder certs) throws IMTPException, NotFoundException;
     AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException;
-    JADECertificate sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws IMTPException, AuthException;
+    JADECertificate sign(JADECertificate certificate, CertificateFolder certs) throws IMTPException, AuthException;
     byte[] getPublicKey() throws IMTPException;
 //__SECURITY__END
 
