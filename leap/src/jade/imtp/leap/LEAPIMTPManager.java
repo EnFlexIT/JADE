@@ -92,9 +92,6 @@ public class LEAPIMTPManager implements IMTPManager {
     theProfile = p;
 
     // Get the singleton CommandDispatcher
-    if (!CommandDispatcher.create(theProfile)) {
-      throw new IMTPException("wrong type of command dispatcher!");
-    } 
     theDispatcher = CommandDispatcher.getDispatcher();
 
     // Add to the CommandDispatcher the ICPs specified in the Profile
