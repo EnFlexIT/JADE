@@ -45,20 +45,15 @@ import jade.core.ServiceException;
  */
 class NodeAdapter extends BaseNode {
 
-    public NodeAdapter(String name, boolean hasSM, int port) throws RemoteException {
+    public NodeAdapter(String name, boolean hasSM, int port, RMIIMTPManager mgr) throws RemoteException {
 	super(name, hasSM);
 	try {
-	    adaptee = new NodeRMIImpl(this, port);
+	    adaptee = new NodeRMIImpl(this, port, mgr);
 	}
 	catch(Exception e) {
-	    adaptee = new NodeRMIImpl(this, 0);
+	    adaptee = new NodeRMIImpl(this, 0, mgr);
 	}
     }
-
-    /*public NodeAdapter(String name, NodeRMI node) {
-	super(name);
-	adaptee = node;
-    }*/
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
 	try {
