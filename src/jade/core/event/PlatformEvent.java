@@ -342,6 +342,11 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
               .append(" from: ").append(oldPrincipal)
               .append(" to: ").append(newPrincipal);
               break;
+          case CHANGED_CONTAINER_PRINCIPAL:
+              buf.append("changed container principal: ").append(getSource())
+              .append(" from: ").append(oldPrincipal)
+              .append(" to: ").append(newPrincipal);
+              break;
 //__SECURITY__END
           default:
               // This should never happen, but just in case...
