@@ -47,6 +47,7 @@ import jade.core.CaseInsensitiveString;
 import jade.mtp.TransportAddress;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
+import jade.util.Logger;
 
 /**
  * This class provides a lightweight implementation of a command
@@ -165,7 +166,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         return true;
       } 
       catch (Exception e) {
-        System.out.println("Instantiation of class "+implementation+" failed ["+e+"].");
+        Logger.println("Instantiation of class "+implementation+" failed ["+e+"].");
       } 
 
       return false;
@@ -254,13 +255,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     	try {
 	      TransportAddress ta = stringToAddr(url);
     		if (routerTA != null && !routerTA.equals(ta)) {
-      		System.out.println("WARNING : transport address of current router has been changed");
+      		Logger.println("WARNING : transport address of current router has been changed");
     		} 
     		routerTA = ta;
     	}
     	catch (Exception e) {
 	      // Just print a warning: default (i.e. main TA) will be used
-	      System.out.println("Can't initialize router address");
+	      Logger.println("Can't initialize router address");
     	}
     }    		
   } 
@@ -282,13 +283,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       url = icp.getProtocol().addrToString(icpTA);
 
       if (replace) {
-        System.out.println("WARNING : icp has been changed");
+        Logger.println("WARNING : icp has been changed");
       } 
     } 
     catch (ICPException icpe) {
 
       // Print a warning
-      System.out.println("Error setting ICP "+peer+"["+icpe.getMessage()+"].");
+      Logger.println("Error setting ICP "+peer+"["+icpe.getMessage()+"].");
     } 
   } 
 
@@ -375,7 +376,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     id++;
 
     if (id > 2) {
-      System.out.println("WARNING : remotized object has been changed");
+      Logger.println("WARNING : remotized object has been changed");
     } 
   } 
 

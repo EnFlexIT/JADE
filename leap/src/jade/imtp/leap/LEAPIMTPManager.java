@@ -40,6 +40,7 @@ import jade.mtp.TransportAddress;
 import jade.util.leap.*;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.Connection;
+import jade.util.Logger;
 import java.io.IOException;
 
 /**
@@ -106,13 +107,13 @@ public class LEAPIMTPManager implements IMTPManager {
           theDispatcher.addICP(peer, id, theProfile);
         } 
         catch (Exception e) {
-          System.out.println("Error adding ICP. "+e);
+          Logger.println("Error adding ICP. "+e);
         } 
       } 
     } 
     catch (ProfileException pe) {
       // Just print a warning
-      System.out.println("Profile error. "+pe.getMessage());
+      Logger.println("Profile error. "+pe.getMessage());
     } 
 
     // Now check that some ICP is active. Note that, as a CommandDispatcher
@@ -125,10 +126,10 @@ public class LEAPIMTPManager implements IMTPManager {
     else {
       Iterator it = URLs.iterator();
 
-      System.out.println("Listening for intra-platform commands on address:");
+      Logger.println("Listening for intra-platform commands on address:");
 
       while (it.hasNext()) {
-        System.out.println((String) it.next());
+        Logger.println((String) it.next());
       } 
     } 
 
