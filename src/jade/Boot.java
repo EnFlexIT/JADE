@@ -51,7 +51,9 @@ public class Boot {
 
  
   // This separates agent name from agent class on the command line
-  private static final String SEPARATOR = ":";
+	private static final String SEPARATOR = ":";
+	//This separates the single arguments in a list of arguments
+	private static final String ARGUMENT_SEPARATOR = ";";
   //Default port used to start the platform
   private static String platformPort = "1099";
   
@@ -102,7 +104,8 @@ public class Boot {
    * <li>  <b>-conf <code>filename</code></b> <em>To start JADE using the configuration properties read in the specified file.</em>
    * <li>  <b>-version</b>  <em>Prints out version information and exits.</em>
    * <li>  <b>-help</b>     <em>Prints out usage informations.</em>
-   *   
+   * <li>  <b>-mtp</b>      <em>Specifies a list of external Message Transport Protocols to be activated on this container (by default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers).</em>
+   * <li>  <b>-nomtp</b>			<em>has precedence over -mtp and overrides it. It should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).</em>
    * </ul>
    *
    * In any case the properties specified by command line replace the properties read by a file (if specified) or the default ones.
@@ -248,14 +251,14 @@ public class Boot {
     // Translate the value of the 'mtp' property into an array of Strings
     String mtpList = p.getProperty("mtp");
     try {
-      List l = parseMTPList(mtpList);
+      List l = parseArgumentList(mtpList,true);
 
       String[] containerMTPs = new String[l.size()];
       for(int i = 0; i < l.size(); i++) {
 	String s = (String)l.get(i);
 	containerMTPs[i] = s;
       }
-
+    
       // For the Main Container, if no '-nomtp' option is given, a
       // single IIOP MTP is installed, using the Sun JDK 1.2 ORB and
       // with a default address.
@@ -264,6 +267,15 @@ public class Boot {
 	containerMTPs = new String[] { "jade.mtp.iiop.MessageTransportProtocol", "" };
       }
 
+      //Translate the value of the "aclcodec" property into an array of Strings
+      String aclCodecList = p.getProperty("aclcodec");
+      List ls = parseArgumentList(aclCodecList,false);
+      String[] ACLCodecs = new String[ls.size()];
+      for(int i = 0;i<ls.size(); i++){
+      	String s = (String)ls.get(i);
+      	ACLCodecs[i] = s;
+      }
+      
       // Build a unique ID for this platform, using host name, port and
       // object name for the main container, taken from default values
       // and command line options.
@@ -287,11 +299,10 @@ public class Boot {
 	jnue.printStackTrace();
       }
 
-
   
       // Start a new JADE runtime system, passing along suitable
       // information extracted from command line arguments.
-      jade.core.Starter.startUp(isPlatform, platformID, agents.iterator(), containerMTPs);
+      jade.core.Starter.startUp(isPlatform, platformID, agents.iterator(), containerMTPs, ACLCodecs);
 
     }
     catch(BootException be) {
@@ -325,7 +336,11 @@ public class Boot {
     System.out.println("  -conf\t\t\tShows the gui to set the configuration properties to start JADE.");
     System.out.println("  -conf <file name>\tStarts JADE using the configuration properties read in the specified file.");	
     System.out.println("  -version\t\tIf specified, current JADE version number and build date is printed.");
-    System.out.println("  -help \t\tPrints out usage informations.");
+    System.out.println("  -mtp\t\t\tSpecifies a list of external Message Transport Protocols to be activated.");
+    System.out.println("  \t\t\tBy default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers.");
+    System.out.println("  -nomtp\t\tHas precedence over -mtp and overrides it.");
+    System.out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected.");
+    System.out.println("  -help\t\t\tPrints out usage informations.");
     System.out.println("");
     System.out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");
     System.out.println(SEPARATOR + "\"");
@@ -429,6 +444,7 @@ public class Boot {
       PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "Select to launch an agent-container",false);
       PropertyType MTPProperty = new PropertyType("mtp", PropertyType.STRING_TYPE, "", "List of MTPs to activate", false);
       PropertyType NoMTPProperty = new PropertyType("nomtp", PropertyType.BOOLEAN_TYPE, "false", "Disable all external MTPs on this container", false);
+      PropertyType ACLCodecProperty = new PropertyType("aclcodec", PropertyType.STRING_TYPE,"","List of ACLCodec to install",false);
       
       //update the propertyVector with all the -option 
       propertyVector.add(HostProperty);
@@ -437,7 +453,8 @@ public class Boot {
       propertyVector.add(ContainerProperty);
       propertyVector.add(MTPProperty);
       propertyVector.add(NoMTPProperty);
-
+			propertyVector.add(ACLCodecProperty);
+			
       while( n < args.length && !endCommand)
       {
       	
@@ -513,6 +530,10 @@ public class Boot {
 	    if(++n  == args.length) usage();
 	    MTPProperty.setCommandLineValue(args[n]);
 	}
+	else if(args[n].equals("-aclcodec")){
+		if(++n == args.length) usage();
+		ACLCodecProperty.setCommandLineValue(args[n]);
+	}
 	else
 	  if(isAgentName(args[n])>-1)
 	    endCommand = true; //no more command line
@@ -574,46 +595,45 @@ public class Boot {
       return all.iterator();
 	} // 0 
 
-  // Parses the given String to extract the set of the MTPs to
-  // activate on this container.
-  private static List parseMTPList(String mtpList) throws BootException {
+  
+	//parser a string og arguments of the type property1(arg1);property2(arg2);property3
+	//if  the property can have arguments set arguments to true, false otherwise
+  private static List parseArgumentList(String argList, boolean arguments) throws BootException {
 
     // Cursor on the given string: marks the parser position
     int cursor = 0;
-    List mtps = new ArrayList();
-    while(cursor < mtpList.length()) {
-      int commaPos = mtpList.indexOf(',', cursor);
+    List out = new ArrayList();
+    while(cursor < argList.length()) {
+      int commaPos = argList.indexOf(ARGUMENT_SEPARATOR, cursor);
       if(commaPos == -1)
-	commaPos = mtpList.length();
-      int openBracketPos = mtpList.indexOf('(', cursor);
-      int closedBracketPos = mtpList.indexOf(')', cursor);
+				commaPos = argList.length();
+      int openBracketPos = argList.indexOf('(', cursor);
+      int closedBracketPos = argList.indexOf(')', cursor);
 
       // No brackets: use default address.
       if((openBracketPos == -1)&&(closedBracketPos == -1)) {
-	String className = mtpList.substring(cursor, commaPos);
-	mtps.add(className); // Put MTP class name into the list
-	mtps.add("");  // with an empty URL as the address
+      	String className = argList.substring(cursor, commaPos);
+				out.add(className); // Put MTP class name into the list
+				if (arguments)
+					out.add("");  // with an empty URL as the address
       }
       else {
-	// An open bracket, then something, then a closed bracket:
+				// An open bracket, then something, then a closed bracket:
         // the class name is before the open bracket, and the
         // address URL is between brackets.
-	if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
-	  String className = mtpList.substring(cursor, openBracketPos);
-	  String addressURL = mtpList.substring(openBracketPos + 1, closedBracketPos);
-	  mtps.add(className);
-	  mtps.add(addressURL);
-	}
-	else
-	  throw new BootException("Ill-formed MTP specifier: mismatched parentheses.");
+				if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
+	  				String className = argList.substring(cursor, openBracketPos);
+	  				String arg = argList.substring(openBracketPos + 1, closedBracketPos);
+	  				out.add(className);
+	  				if (arguments)
+	  					out.add(arg);
+				}
+				else
+	  			throw new BootException("Ill-formed MTP specifier: mismatched parentheses.");
       }
-
       cursor = commaPos + 1;
-
     }
-
-    return mtps;
-
+    return out;
   }
 
 	/**

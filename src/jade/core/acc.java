@@ -82,6 +82,12 @@ class acc implements InChannel.Dispatcher {
     accID = "fipa-mts://" + platformID + "/acc";
     translator = new AIDTranslator(platformID);
   }
+  
+  protected void addACLCodec(ACLCodec codec){
+  
+  	messageEncodings.put(codec.getName().toLowerCase(),codec);
+  	
+  }
 
   /*
   * This method is called by ACCProxy before preparing the Envelope of an outgoing message.
@@ -153,10 +159,29 @@ class acc implements InChannel.Dispatcher {
   public byte[] encodeMessage(ACLMessage msg) throws NotFoundException {
     Envelope env = msg.getEnvelope();
     String enc = env.getAclRepresentation();
-    ACLCodec codec = (ACLCodec)messageEncodings.get(enc.toLowerCase());
+    System.out.println("Using coding: " + enc);
+ 		/*ACLCodec codec = (ACLCodec)messageEncodings.get(enc.toLowerCase());
     if(codec == null) 
       throw new UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");
-    return codec.encode(msg);
+    return codec.encode(msg);*/
+    
+    if(enc != null)
+    {//a Codec has been selected
+    	ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
+    	if(codec!=null){
+    		//supported Codec
+    		//FIXME:should be verified that the recevivers supports this Codec
+    		return codec.encode(msg);
+    	}else{
+    		//unsupported Codec
+    		//FIXME:find the best according to the supported, the MTP (and the receivers Codec)
+    		throw new UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");
+    	}
+    }else{
+    	//no codec indicated. 
+    	//FIXME:find the better according to the supported Codec, the MTP (and the receiver codec)
+    	throw new UnknownACLEncodingException("No ACL encoding set.");
+    }
   }
 
   public void forwardMessage(Envelope env, byte[] payload, String address) throws MTPException {
@@ -280,6 +305,8 @@ class acc implements InChannel.Dispatcher {
 
     // To avoid message loops, make sure that the ID of this ACC does
     // not appear in a previous 'received' stamp
+  	
+  	
     ReceivedObject[] stamps = env.getStamps();
     for(int i = 0; i < stamps.length; i++) {
       String id = stamps[i].getBy();
