@@ -30,7 +30,10 @@ import java.net.InetAddress;
 
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Iterator;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.tree.MutableTreeNode;
@@ -53,7 +56,11 @@ class MainWindow extends JFrame {
   private ActionProcessor actPro;
   private PopupMenuAgent popA;
   private PopupMenuContainer popC;
- 	private String logojade = "images/logosmall.jpg";
+  private InstallMTPDialog installDlg = new InstallMTPDialog(this, true);
+  private String logojade = "images/logosmall.jpg";
+
+  private List containerNames = new LinkedList();
+  private List addresses = new LinkedList();
  	
   public MainWindow (rma anRMA) {
     super(anRMA.getName() +" - JADE Remote Agent Management GUI");
@@ -119,6 +126,7 @@ class MainWindow extends JFrame {
       public void run() {
         MutableTreeNode node = tree.treeAgent.createNewNode(name, 0);
         tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+	containerNames.add(name);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -131,6 +139,7 @@ class MainWindow extends JFrame {
 
       public void run() {
        tree.treeAgent.removeContainerNode(name);
+       containerNames.remove(name);
      }
     };
     SwingUtilities.invokeLater(removeIt);
@@ -167,6 +176,25 @@ class MainWindow extends JFrame {
     SwingUtilities.invokeLater(removeIt);
   }
 
+  public void addAddress(final String address, final String where) {
+    Runnable addIt = new Runnable() {
+      public void run() {
+	addresses.add(address);
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
+  }
+
+  public void removeAddress(final String address, final String where) {
+    Runnable removeIt = new Runnable() {
+      public void run() {
+	addresses.remove(address);
+      }
+    };
+    SwingUtilities.invokeLater(removeIt);
+  }
+
+
   public void showErrorDialog(String text, ACLMessage msg) {
     String messages[] = new String[3];
     messages[0] = text;
@@ -183,9 +211,39 @@ class MainWindow extends JFrame {
   }
 
   public boolean showExitDialog(String message) {
-    int n = JOptionPane.showConfirmDialog(this,"Are you really sure to exit ?", message, JOptionPane.YES_NO_OPTION);
+    int n = JOptionPane.showConfirmDialog(this, "Are you really sure to exit ?", message, JOptionPane.YES_NO_OPTION);
     if(n == JOptionPane.YES_OPTION)
       return true;
+    else
+      return false;
+  }
+
+  public boolean showInstallMTPDialog(jade.domain.JADEAgentManagement.InstallMTP imtp) {
+    String[] names = (String[])containerNames.toArray(new String[0]);
+    installDlg.reset(names, imtp.getContainer());
+    installDlg.pack();
+    installDlg.setVisible(true);
+    imtp.setContainer(installDlg.getContainer());
+    imtp.setAddress(installDlg.getAddress());
+    imtp.setClassName(installDlg.getClassName());
+    return installDlg.isConfirmed();
+  }
+
+  public boolean showUninstallMTPDialog(jade.domain.JADEAgentManagement.UninstallMTP umtp) {
+    if(addresses.isEmpty()) {
+      JOptionPane.showMessageDialog(this, "No MTPs are currently installed.",
+				    "Error during MTP removal", JOptionPane.ERROR_MESSAGE);
+      return false;
+    }
+
+    Object[] names = addresses.toArray();
+    String address = (String)JOptionPane.showInputDialog(this, "Choose the MTP to remove.",
+							 "Remove an MTP", JOptionPane.INFORMATION_MESSAGE,
+							 null, names, names[0]);
+    if(address != null) {
+      umtp.setAddress(address);
+      return true;
+    }
     else
       return false;
   }
