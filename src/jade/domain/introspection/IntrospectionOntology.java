@@ -81,7 +81,8 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
   		
   	  super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
 
-	  try {	
+	  try {
+	        add(new ConceptSchema(META_RESETEVENTS), ResetEvents.class);
 		add(new ConceptSchema(EVENTRECORD), EventRecord.class);
 		add(new ConceptSchema(CONTAINERID), ContainerID.class);
 		add(new ConceptSchema(AGENTSTATE), AgentState.class);
