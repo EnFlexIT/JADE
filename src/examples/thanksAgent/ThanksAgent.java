@@ -93,12 +93,13 @@ public class ThanksAgent extends Agent {
 
 	    /* THIS CODE WORKS AFTER JADE 2.3. 
 	       IT IS AN EXAMPLE OF USAGE OF THE INPROCESS INTERFACE
+  */
 	    // Get a hold on JADE runtime
 	    Runtime rt = Runtime.instance();
 	    // Create a default profile
 	    ProfileImpl p = new ProfileImpl();
 	    // set the profile to be non-main container
-	    p.putProperty(Profile.MAIN, "false");
+	    p.setParameter(Profile.MAIN, "false");
 
 	    try {
 		// Create a new non-main container, connecting to the default
@@ -117,7 +118,7 @@ public class ThanksAgent extends Agent {
 	    } catch (Exception e2) {
 		e2.printStackTrace();
 	    }
-	    */
+//end comment was first here
 
 	    // send them a GREETINGS message
 	    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
