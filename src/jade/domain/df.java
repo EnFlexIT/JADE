@@ -24,23 +24,14 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import java.lang.reflect.Method;
-
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import java.util.Vector;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.net.InetAddress;
 
-import java.io.*;
-
-import jade.core.*;
+import jade.core.AID;
 import jade.core.behaviours.*;
-
 import jade.domain.FIPAAgentManagement.Register;
 import jade.domain.FIPAAgentManagement.Deregister;
 import jade.domain.FIPAAgentManagement.Modify;
@@ -52,24 +43,16 @@ import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
-
 import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
-
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
 import jade.lang.sl.SL0Codec;
-
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
-
 import jade.proto.FipaRequestResponderBehaviour;
-
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.tools.dfgui.DFGUI;
-import jade.gui.GUI2DFCommunicatorInterface;
-
 import jade.proto.FipaRequestInitiatorBehaviour;
 
 
@@ -93,7 +76,7 @@ import jade.proto.FipaRequestInitiatorBehaviour;
   @version $Date$ $Revision$
 
 */
-public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
+public class df extends GuiAgent implements DFGUIAdapter {
 
   private abstract class DFBehaviour
     extends FipaRequestResponderBehaviour.ActionHandler 
@@ -529,7 +512,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   */
   private DFAgentDescription thisDF = null;
   
- 
+ 	
   
   /**
     This constructor creates a new <em>DF</em> agent. This can be used
@@ -814,99 +797,30 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     return agentDescriptions.search(dfd);
     
   }
-
-  
-	// GUI HANDLING
-
-	// DF GUI EVENT 
-	private class DFGuiEvent extends GuiEvent
-	{
-		public static final int REGISTER = 1001;
-		public static final int DEREGISTER = 1002;
-		public static final int MODIFY = 1003;
-		public static final int SEARCH = 1004;
-		public static final int FEDERATE = 1005;
-
-	
-		public AID dfName;
-		public DFAgentDescription dfd;
-		public SearchConstraints constraints = new SearchConstraints();
-
-		public DFGuiEvent(Object source, int type, AID dfName, DFAgentDescription dfd)
-		{
-			super(source, type);
-			this.dfName = dfName;
-			this.dfd =dfd;
-		}
-		
-		public DFGuiEvent(Object source, int type, AID dfName, DFAgentDescription dfd, SearchConstraints constraints)
-		{
-			super(source,type);
-      this.dfName = dfName;
-      this.dfd = dfd;
-		  this.constraints = constraints; 
-		}
-	}
-		
-	// METHODS PROVIDED TO THE GUI TO POST EVENTS REQUIRING AGENT DATA MODIFICATIONS 
-	// This methods are executed by the GUI Thread and their execution results into
-	// posting an event into the Agent Thread. Having received that event, the
-	// Agent thread executes the method onGuiEvent
-	public void postRegisterEvent(Object source, AID dfName, DFAgentDescription dfd)
-	{
-		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.REGISTER, dfName, dfd);
-		postGuiEvent(ev);
-	}
-	
-	public void postDeregisterEvent(Object source, AID dfName, DFAgentDescription dfd)
-	{
-		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.DEREGISTER, dfName, dfd);
-		postGuiEvent(ev);
-	}
-
-	public void postModifyEvent(Object source, AID dfName, DFAgentDescription dfd)
-	{
-		DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.MODIFY, dfName, dfd);
-		postGuiEvent(ev);
-	}
-
-	public void postSearchEvent(Object source, AID dfName, DFAgentDescription dfd, SearchConstraints c)
-	{
-	 DFGuiEvent ev = new DFGuiEvent(source, DFGuiEvent.SEARCH, dfName, dfd, c);
-	 postGuiEvent(ev);
-	}	
-	
-	public void postFederateEvent(Object source, AID dfName, DFAgentDescription dfd)
-	{
-		DFGuiEvent ev = new DFGuiEvent(source,DFGuiEvent.FEDERATE, dfName, dfd);
-		postGuiEvent(ev);
-	
-	}
-	
 	
 	// AGENT DATA MODIFICATIONS FOLLOWING GUI EVENTS
 	protected void onGuiEvent(GuiEvent ev)
 	{
 		try
 		{
-			DFGuiEvent e;
+		
 			switch(ev.getType()) 
 			{
-			case DFGuiEvent.EXIT:
+			case DFGUIAdapter.EXIT:
 				gui.disposeAsync();
 				gui = null;
 				doDelete();
 				break;
-			case DFGuiEvent.CLOSEGUI:
+			case DFGUIAdapter.CLOSEGUI:
 				gui.disposeAsync();
 				gui = null;
 				break;
-			case DFGuiEvent.REGISTER:
-				e = (DFGuiEvent) ev;
-				if (e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
+			case DFGUIAdapter.REGISTER:
+		
+				if (ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Register an agent with this DF
-						DFRegister(e.dfd);
+						DFRegister((DFAgentDescription)ev.getParameter(1));
 					
 				}
 				else 
@@ -915,18 +829,18 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				  try
 				    {
 				      gui.showStatusMsg("Process your request & waiting for result...");
-				      addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
+				      addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
 				    }catch (FIPAException fe) {
 				      fe.printStackTrace(); //it should never happen
 				    } catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
-			case DFGuiEvent.DEREGISTER:
-				e = (DFGuiEvent) ev;
-				if(e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
+			case DFGUIAdapter.DEREGISTER:
+
+				if(ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Deregister an agent with this DF
-					DFDeregister(e.dfd);
+					DFDeregister((DFAgentDescription)ev.getParameter(1));
 					
 				}
 				else 
@@ -935,18 +849,18 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				try
 		 		{
 		  	   gui.showStatusMsg("Process your request & waiting for result...");
-		  		 addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.DEREGISTER,e.dfd,null,gui));
+		  		 addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.DEREGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
 		 		}catch (FIPAException fe) {
 		 			fe.printStackTrace(); //it should never happen
 		 			} catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
-			case DFGuiEvent.MODIFY:
-				e = (DFGuiEvent) ev;
-				if(e.dfName.equals(getName()) || e.dfName.equals(getLocalName())) 
+			case DFGUIAdapter.MODIFY:
+				
+				if(ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Modify the description of an agent with this DF
-					DFModify(e.dfd);
+					DFModify((DFAgentDescription)ev.getParameter(1));
 					
 				}
 				else 
@@ -954,36 +868,32 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 					// Modify the description of an agent with another DF
 					try{
 						gui.showStatusMsg("Process your request & waiting for result..");
-						addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName, FIPAAgentManagementOntology.MODIFY, e.dfd,null,gui));
+						addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0), FIPAAgentManagementOntology.MODIFY, (DFAgentDescription)ev.getParameter(1),null,gui));
 					}catch(FIPAException fe1){
 						fe1.printStackTrace();
 					}//it should never happen
 		 			catch(Exception ex){} //Might happen if the gui has been closed
 				}
 				break;
-		  case DFGuiEvent.SEARCH:
-		  	e = (DFGuiEvent) ev;
-		  	
-		  	if (gui != null)
-		  	   gui.showStatusMsg("Process your request & waiting for result...");
+		  case DFGUIAdapter.SEARCH:
+		  	 
 		  	try{
-	  		  addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.SEARCH,e.dfd,e.constraints,gui));
+		  		gui.showStatusMsg("Process your request & waiting for result...");
+	  		  addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.SEARCH,(DFAgentDescription)ev.getParameter(1),(SearchConstraints)ev.getParameter(2),gui));
 	  	  }catch(FIPAException fe){
 	  	   fe.printStackTrace();
-	  	  }
+	  	  }catch(Exception ex1){} //Might happen if the gui has been closed.
 		  	 
 		  	break;
-		 	case DFGuiEvent.FEDERATE:
-		 		e = (DFGuiEvent) ev;
-		 	
+		 	case DFGUIAdapter.FEDERATE:
 		 		try
 		 		{
 		  	   gui.showStatusMsg("Process your request & waiting for result...");
 		  	   
-		  	   if(e.dfName.equals(getAID()) || e.dfName.equals(getLocalName()))
+		  	   if(ev.getParameter(0).equals(getAID()) || ev.getParameter(1).equals(getLocalName()))
 		 	  		gui.showStatusMsg("Self Federation not allowed");
 		  		else
-		  		addBehaviour(new GUIRequestDFServiceBehaviour(e.dfName,FIPAAgentManagementOntology.REGISTER,e.dfd,null,gui));
+		  		addBehaviour(new GUIRequestDFServiceBehaviour((AID)ev.getParameter(0),FIPAAgentManagementOntology.REGISTER,(DFAgentDescription)ev.getParameter(1),null,gui));
 		 		}catch (FIPAException fe) {
 		 			fe.printStackTrace(); //it should never happen
 		 			} catch(Exception ex){} //Might happen if the gui has been closed
@@ -1090,9 +1000,6 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 		dscDFParentMap.remove(dfName);
 
 	}
-	
-	
-	
 
 	
 }
