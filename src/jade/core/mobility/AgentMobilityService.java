@@ -41,6 +41,7 @@ import java.util.zip.*;
 import java.net.URL;
 
 import jade.core.ServiceFinder;
+import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -146,8 +147,8 @@ public class AgentMobilityService extends BaseService {
     static final boolean CREATE_AND_START = true;
     static final boolean CREATE_ONLY = false;
 
-    static final boolean       TRANSFER_ABORT = false;
-    static final boolean       TRANSFER_COMMIT = true;
+    static final boolean TRANSFER_ABORT = false;
+    static final boolean TRANSFER_COMMIT = true;
 
 
     public AgentMobilityService(AgentContainer ac, Profile p) throws ProfileException {
@@ -175,7 +176,7 @@ public class AgentMobilityService extends BaseService {
 	return localSlice;
     }
 
-    public Filter getCommandFilter() {
+    public Filter getCommandFilter(boolean direction) {
 	return localSlice;
     }
 
@@ -257,7 +258,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	public void serve(VerticalCommand cmd) {
+	public VerticalCommand serve(HorizontalCommand cmd) {
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -316,6 +317,14 @@ public class AgentMobilityService extends BaseService {
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+	    }
+	    finally {
+		if(cmd instanceof VerticalCommand) {
+		    return (VerticalCommand)cmd;
+		}
+		else {
+		    return null;
+		}
 	    }
 	}
 
