@@ -64,16 +64,17 @@ public class Command {
     static final int SERVICE_BASE = 0;
 
     // Service management related command IDs
-    static final int GET_PLATFORM_NAME = 1;
-    static final int ADD_NODE = 2;
-    static final int REMOVE_NODE = 3;
-    static final int ACTIVATE_SERVICE = 4;
-    static final int DEACTIVATE_SERVICE = 5;
-    static final int FIND_SLICE_NODE = 6;
-    static final int FIND_ALL_NODES = 7;
-    static final int ACCEPT_COMMAND = 8;
-    static final int PING_NODE = 9;
-    static final int EXIT_NODE = 10;
+    public static final int GET_PLATFORM_NAME = 1;
+    public static final int ADD_NODE = 2;
+    public static final int REMOVE_NODE = 3;
+    public static final int ACTIVATE_SERVICE = 4;
+    public static final int DEACTIVATE_SERVICE = 5;
+    public static final int FIND_SLICE_NODE = 6;
+    public static final int FIND_ALL_NODES = 7;
+    public static final int ACCEPT_COMMAND = 8;
+    public static final int PING_NODE_BLOCKING = 9;
+    public static final int PING_NODE_NONBLOCKING = 10;
+    public static final int EXIT_NODE = 11;
 
 
     // Lower limit for agent management related commands
