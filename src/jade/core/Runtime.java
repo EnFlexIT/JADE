@@ -100,7 +100,8 @@ public class Runtime {
 
 
   /**
-     This method just wraps <code>createAgentContainer()</code> and
+     This method just wraps <code>createAgentContainer()</code> 
+     or <code>createMainContainer()</code> and
      is here for compatibility with PersonalJava.
      @parameter p the profile containing boostrap and configuration
      data for this container
@@ -111,8 +112,20 @@ public class Runtime {
         // when there are no more containers around
         Runtime.instance().setCloseVM(true);
         
-        // Start the platform
-        Runtime.instance().createAgentContainer(p);
+      	// Start the platform
+        String isMain = null;
+        try {
+        	 isMain = p.getParameter(Profile.MAIN);
+        }
+        catch (ProfileException pe) {
+        	// do nothing
+        }
+      	if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+        	createMainContainer(p);
+      	}
+      	else {
+        	createAgentContainer(p);
+      	}
   }
 
 
