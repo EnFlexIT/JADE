@@ -121,7 +121,7 @@ public class GenericCommand implements HorizontalCommand, VerticalCommand  {
      public void setCredentials( jade.security.Credentials creds) {
        // credentials can be set only one time
        // following setCredentials are ignored
-       if (creds==null) {
+       if (this.creds==null) {
          this.creds = creds;
        }
      } // end setCredentials
