@@ -44,9 +44,16 @@ public class AID implements Cloneable, Serializable {
  private Properties userDefSlots = new Properties();
 
 
+public AID(){}
 
-
-
+  /**
+   * constructor
+   * @param guid is the globally unique id that is the name attribute of this AID
+   */
+public AID(String guid) {
+  name = guid;
+}
+  
 public void setName(String n){
  name = n;
 }
