@@ -68,7 +68,7 @@ class JICPServer extends Thread {
    * @param port
    * @param cmdHandler
    */
-  public JICPServer(int port, ICP.Listener l, boolean changePortIfBusy) throws ICP.ICPException {
+  public JICPServer(int port, ICP.Listener l, boolean changePortIfBusy) throws ICPException {
     cmdListener = l;
 
     try {
@@ -81,11 +81,11 @@ class JICPServer extends Thread {
       		server = new ServerSocket(0);
     		}
     		catch (IOException ioe2) {
-      		throw new ICP.ICPException("Problems initializing server socket. No free port found");
+      		throw new ICPException("Problems initializing server socket. No free port found");
 				}
     	}
     	else {
-	      throw new ICP.ICPException("I/O error opening server socket on port "+port);
+	      throw new ICPException("I/O error opening server socket on port "+port);
     	}
     } 
     
@@ -326,13 +326,13 @@ class JICPServer extends Thread {
 
   }
 
-  private Properties parseProperties(String s) throws ICP.ICPException {
+  private Properties parseProperties(String s) throws ICPException {
   	StringTokenizer st = new StringTokenizer(s, "=;");
   	Properties p = new Properties();
   	while (st.hasMoreTokens()) {
   		String key = st.nextToken();
   		if (!st.hasMoreTokens()) {
-  			throw new ICP.ICPException("Wrong initialization properties format.");
+  			throw new ICPException("Wrong initialization properties format.");
   		}
   		p.setProperty(key, st.nextToken());
   	}
@@ -347,7 +347,7 @@ class JICPServer extends Thread {
   		return m;
 		}
 		else {
-			throw new ICP.ICPException("No JICPMediator class specified.");
+			throw new ICPException("No JICPMediator class specified.");
 		}
   }
   

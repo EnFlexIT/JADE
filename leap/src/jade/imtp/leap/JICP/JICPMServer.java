@@ -35,6 +35,7 @@
 package jade.imtp.leap.JICP;
 
 import jade.imtp.leap.ICP;
+import jade.imtp.leap.ICPException;
 import jade.mtp.TransportAddress;
 import java.io.*;
 // import java.net.*;
@@ -75,7 +76,7 @@ public class JICPMServer extends Thread {
    * @param l The <code>ICP.Listener</code> that will handle commands
    * received by this JICPMServer
    */
-  public JICPMServer(TransportAddress ta, ICP.Listener l, JICPMPeer p, long r, long m) throws ICP.ICPException {
+  public JICPMServer(TransportAddress ta, ICP.Listener l, JICPMPeer p, long r, long m) throws ICPException {
     cmdListener = l;
     mediatorTA = ta;
     myPeer = p;

@@ -241,7 +241,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         System.out.println("WARNING : icp has been changed");
       } 
     } 
-    catch (ICP.ICPException icpe) {
+    catch (ICPException icpe) {
 
       // Print a warning
       System.out.println("Error setting ICP "+peer+"["+icpe.getMessage()+"].");
@@ -597,7 +597,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     try {
       return icp.deliverCommand(ta, commandPayload);
     } 
-    catch (ICP.ICPException icpe) {
+    catch (ICPException icpe) {
       throw new UnreachableException("ICPException delivering command to address "+ta+".");
     } 
   } 
@@ -658,7 +658,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         // System.out.println("ICP deactivated.");
       } 
     } 
-    catch (ICP.ICPException icpe) {
+    catch (ICPException icpe) {
 
       // Do nothing as this means that this peer had never been
       // activated.

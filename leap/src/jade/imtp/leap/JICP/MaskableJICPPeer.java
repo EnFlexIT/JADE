@@ -63,7 +63,7 @@ public class MaskableJICPPeer extends JICPPeer {
   /**
    * Start listening for internal platform messages on the specified port
    */
-  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICP.ICPException {
+  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
   	// Initialize masks
   	try {
 	  	StringBuffer sb = null;
@@ -92,7 +92,7 @@ public class MaskableJICPPeer extends JICPPeer {
     	} 
   	}
   	catch (ProfileException pe) {
-  		throw new ICP.ICPException("Profile error. "+pe.getMessage());
+  		throw new ICPException("Profile error. "+pe.getMessage());
   	}
 			
     return super.activate(l, peerID, p);
@@ -101,12 +101,12 @@ public class MaskableJICPPeer extends JICPPeer {
   /**
    * deliver a serialized command to a given transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICP.ICPException {
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
     if (!isMasked(ta.getHost())) {
       return super.deliverCommand(ta, payload);
     } 
     else {
-      throw new ICP.ICPException("Destination masked");
+      throw new ICPException("Destination masked");
     } 
   } 
 
@@ -115,11 +115,11 @@ public class MaskableJICPPeer extends JICPPeer {
    * 
    * @param m
    * 
-   * @throws ICP.ICPException
+   * @throws ICPException
    * 
    * @see
    */
-  private void updateMask(String m) throws ICP.ICPException {
+  private void updateMask(String m) throws ICPException {
     int[] mask = parseIP(m);
     masks.addElement(mask);
   } 
@@ -158,7 +158,7 @@ public class MaskableJICPPeer extends JICPPeer {
 
       return false;
     } 
-    catch (ICP.ICPException icpe) {
+    catch (ICPException icpe) {
       // If the host is not in the form a.b.c.d --> it cannot be masked
       return false;
     } 
@@ -171,11 +171,11 @@ public class MaskableJICPPeer extends JICPPeer {
    * 
    * @return
    * 
-   * @throws ICP.ICPException
+   * @throws ICPException
    * 
    * @see
    */
-  private int[] parseIP(String addr) throws ICP.ICPException {
+  private int[] parseIP(String addr) throws ICPException {
     int[] abcd = new int[4];
     int   first = 0;
     int   n = 0;
@@ -199,7 +199,7 @@ public class MaskableJICPPeer extends JICPPeer {
     } 
 
     if (n == 0) {
-      throw new ICP.ICPException("Wrong mask");
+      throw new ICPException("Wrong mask");
     } 
 
     int[] ipAddr = new int[n];

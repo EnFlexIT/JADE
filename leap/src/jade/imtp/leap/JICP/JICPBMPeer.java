@@ -38,6 +38,7 @@ import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.imtp.leap.ICP;
+import jade.imtp.leap.ICPException;
 import jade.imtp.leap.TransportProtocol;
 import jade.mtp.TransportAddress;
 import jade.util.leap.*;
@@ -85,7 +86,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
   /**
    * Prepare to receive commands by activating a Mediator
    */
-  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICP.ICPException {  	
+  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {  	
 		cmdListener = l;
   	
   	log("Activating JICPBMPeer");
@@ -147,7 +148,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
    * Shut down this JICP peer.
    * This is called when the local container is exiting.
    */
-  public void deactivate() throws ICP.ICPException {
+  public void deactivate() throws ICPException {
     terminator = Thread.currentThread();
   	shutdown();
     log("Shutdown initiated. Terminator thread is "+terminator);
@@ -157,7 +158,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
    * Deliver a serialized command to a given transport address through 
    * the Mediator
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICP.ICPException {
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
   	// Note that we don't care about handling a PING command 
   	// differently as a mediated container will never send a PING. 
   	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, JICPProtocol.getInstance().addrToString(ta), payload);
@@ -168,12 +169,12 @@ public class JICPBMPeer extends EndPoint implements ICP {
   /**
      Mutual exclusion with handleConnectionReady/Error()
    */
-  private synchronized void waitUntilConnected() throws ICP.ICPException {
+  private synchronized void waitUntilConnected() throws ICPException {
     while (!isConnected()) {
       try {
         wait();
         if (!isConnected()) {
-        	throw new ICP.ICPException(errorMsg);
+        	throw new ICPException(errorMsg);
         }
       } 
       catch (InterruptedException ie) {
@@ -184,7 +185,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
   ////////////////////////////
   // EndPoint IMPLEMENTATION
   ////////////////////////////
-  protected void setup() throws ICP.ICPException {
+  protected void setup() throws ICPException {
     while (true) {
       try {
         connect();
@@ -205,19 +206,19 @@ public class JICPBMPeer extends EndPoint implements ICP {
 	          totalDisconnectionTime += retryTime;
 	        }
 	        else {
-	        	throw new ICP.ICPException("Timeout expired");
+	        	throw new ICPException("Timeout expired");
 	        }
       	}
       	else {
       		// Can't reach the JICPServer to create my Mediator. Notify and exit
       		errorMsg = ioe.toString();
-	        throw new ICP.ICPException("Can't contact remote host");
+	        throw new ICPException("Can't contact remote host");
       	}
       }
     }
   }  
 
-  private void connect() throws IOException, ICP.ICPException {
+  private void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
     Connection c = new Connection(mediatorServerTA);
     DataOutputStream out = new DataOutputStream(c.getOutputStream());
@@ -245,7 +246,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();
     	errorMsg = (data != null ? new String(data) : null);
-    	throw new ICP.ICPException(errorMsg);
+    	throw new ICPException(errorMsg);
     } 
 		if (!mediatorAlive) {
 			mediatorId = new String(pkt.getData());

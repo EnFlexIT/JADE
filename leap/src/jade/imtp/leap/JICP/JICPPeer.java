@@ -71,7 +71,7 @@ public class JICPPeer implements ICP {
   /**
    * Start listening for internal platform messages on the specified port
    */
-  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICP.ICPException {
+  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
   	String host = null;
     int    port = JICPProtocol.DEFAULT_PORT;
     
@@ -105,7 +105,7 @@ public class JICPPeer implements ICP {
           host = Connection.getLocalHost();
         } 
         catch (Exception e) {
-          throw new ICP.ICPException("Host address has not been specified and could not be retrieved automatically.");
+          throw new ICPException("Host address has not been specified and could not be retrieved automatically.");
         }
   		}
 		}
@@ -136,19 +136,19 @@ public class JICPPeer implements ICP {
   /**
    * stop listening for internal platform messages
    */
-  public void deactivate() throws ICP.ICPException {
+  public void deactivate() throws ICPException {
     if (server != null) {
       server.shutdown();
     } 
     else {
-      throw new ICP.ICPException("No external listener was activated.");
+      throw new ICPException("No external listener was activated.");
     } 
   } 
 
   /**
    * deliver a serialized command to a given transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICP.ICPException {
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
     byte[] respPayload = client.send(ta, JICPProtocol.COMMAND_TYPE, payload);
 
     return (respPayload);
@@ -162,9 +162,9 @@ public class JICPPeer implements ICP {
    * @return The local IP address of the local container as a
    * <code>String</code>.
    * 
-   * @throws ICP.ICPException
+   * @throws ICPException
    */
-  private String getAddress(String pingURL) throws ICP.ICPException {
+  private String getAddress(String pingURL) throws ICPException {
     byte[] respPayload = null;
 
     try {
@@ -172,8 +172,8 @@ public class JICPPeer implements ICP {
 
       respPayload = client.send(pingAddr, JICPProtocol.GET_ADDRESS_TYPE, new byte[0]);
     } 
-    catch (ICP.ICPException icpe) {
-      throw new ICP.ICPException("JICP GET_ADDRESS error. Cannot retrieve local hostname: "
+    catch (ICPException icpe) {
+      throw new ICPException("JICP GET_ADDRESS error. Cannot retrieve local hostname: "
                                  +icpe.getMessage());
     } 
 

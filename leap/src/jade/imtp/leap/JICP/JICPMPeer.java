@@ -68,7 +68,7 @@ public class JICPMPeer implements ICP {
   /**
    * Prepare to receive commands by activating a Mediator
    */
-  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICP.ICPException {
+  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
   	long             retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
   	long             maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
   	TransportAddress mediatorTA = null;
@@ -141,19 +141,19 @@ public class JICPMPeer implements ICP {
 
   /**
    */
-  public void deactivate() throws ICP.ICPException {
+  public void deactivate() throws ICPException {
     if (server != null) {
       server.shutdown();
     } 
     else {
-      throw new ICP.ICPException("No external listener has been activated.");
+      throw new ICPException("No external listener has been activated.");
     } 
   } 
 
   /**
    * Deliver a serialized command to a given transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICP.ICPException {
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
     byte[] respPayload = client.send(ta, JICPProtocol.COMMAND_TYPE, payload);
 
     return (respPayload);

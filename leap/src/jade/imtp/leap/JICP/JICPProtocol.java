@@ -36,7 +36,7 @@ package jade.imtp.leap.JICP;
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.TransportProtocol;
-import jade.imtp.leap.ICP.ICPException;
+import jade.imtp.leap.ICPException;
 import jade.util.leap.List;
 
 /**

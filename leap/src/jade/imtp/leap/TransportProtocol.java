@@ -48,12 +48,12 @@ public abstract class TransportProtocol {
   /**
    * FIXME: should throw a dedicated exception
    */
-  public abstract String addrToString(TransportAddress ta) throws ICP.ICPException;
+  public abstract String addrToString(TransportAddress ta) throws ICPException;
 
   /**
    * FIXME: should throw a dedicated exception
    */
-  public abstract TransportAddress stringToAddr(String s) throws ICP.ICPException;
+  public abstract TransportAddress stringToAddr(String s) throws ICPException;
 
   /**
    */
@@ -72,9 +72,9 @@ public abstract class TransportProtocol {
   /**
    * FIXME: should throw a dedicated exception
    */
-  protected List parseURL(String url) throws ICP.ICPException {
+  protected List parseURL(String url) throws ICPException {
     if (url == null) {
-      throw new ICP.ICPException("Null URL");
+      throw new ICPException("Null URL");
     } 
 
     String protocol = null;
@@ -92,7 +92,7 @@ public abstract class TransportProtocol {
       protocol = url.substring(fieldStart, fieldEnd);
     } 
     else {
-      throw new ICP.ICPException("Incorrect URL: "+url+".");
+      throw new ICPException("Incorrect URL: "+url+".");
     } 
 
     fieldStart = fieldEnd+3;

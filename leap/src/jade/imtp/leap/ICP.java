@@ -71,28 +71,6 @@ public interface ICP {
 
 
   /**
-   * Generic exception class for ICP errors.
-   */
-  public static class ICPException extends WrapperException {
-
-    /**
-     * @param msg A message detailing the cause of the exception.
-     */
-    public ICPException(String msg) {
-      super(msg);
-    }
-
-    /**
-     * @param msg A message detailing the cause of the exception.
-     * @param t The exception wrapped by this object.
-     */
-    public ICPException(String msg, Throwable t) {
-      super(msg, t);
-    }
-
-  }    // End of ICPException class.
-
-  /**
    * Start listening for platform management commands
    */
   public TransportAddress activate(Listener l, String peerID, Profile p) throws ICPException;

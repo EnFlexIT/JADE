@@ -41,6 +41,7 @@ import java.net.*;
 import java.util.*;
 import jade.imtp.leap.Command;
 import jade.imtp.leap.ICP;
+import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
@@ -76,7 +77,7 @@ public class Mediator extends EndPoint implements JICPMediator {
   /**
      Initialize this JICPMediator
    */
-  public void init(JICPServer srv, String id, Properties props) throws ICP.ICPException {
+  public void init(JICPServer srv, String id, Properties props) throws ICPException {
     myJICPServer = srv;
     myID = id;
     try {
@@ -84,7 +85,7 @@ public class Mediator extends EndPoint implements JICPMediator {
     }
     catch (NumberFormatException nfe) {
     	log("Error parsing max-disconnection-time.");
-    	throw new ICP.ICPException("Error parsing max-disconnection-time.");
+    	throw new ICPException("Error parsing max-disconnection-time.");
     }
 
     start();
@@ -139,7 +140,7 @@ public class Mediator extends EndPoint implements JICPMediator {
    * Push the received command to the mediated container unless it is a PING
    * Called by the JICPServer this Mediator is attached to.
    */
-  public JICPPacket handleJICPPacket(JICPPacket p) throws ICP.ICPException {
+  public JICPPacket handleJICPPacket(JICPPacket p) throws ICPException {
   	if (isPing(p)) {
   		// If the command is a PING handle it locally
 			return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, Command.getSerializedOk());   		
@@ -243,12 +244,12 @@ public class Mediator extends EndPoint implements JICPMediator {
   //////////////////////////////////////////  
   /**
    */
-  protected synchronized void setup() throws ICP.ICPException {
+  protected synchronized void setup() throws ICPException {
     while (!newConnectionReady) {
       try {
         wait(maxDisconnectionTime);
         if (!newConnectionReady) {
-        	throw new ICP.ICPException("Mediated container is probably down!");
+        	throw new ICPException("Mediated container is probably down!");
         }
       } 
       catch (InterruptedException ie) {

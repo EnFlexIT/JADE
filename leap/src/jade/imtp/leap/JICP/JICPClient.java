@@ -63,9 +63,9 @@ class JICPClient {
    * @param data the command
    * @return a byte array corresponding to the answer
    * 
-   * @throws ICP.ICPException
+   * @throws ICPException
    */
-  public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICP.ICPException {
+  public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICPException {
     Connection       connection = null;
     DataOutputStream out = null;
     DataInputStream  inp = null;
@@ -76,7 +76,7 @@ class JICPClient {
       String proto = ta.getProto();
 
       if (!CaseInsensitiveString.equalsIgnoreCase(proto, JICPProtocol.NAME)) {
-        throw new ICP.ICPException("Incorrect protocol "+proto);
+        throw new ICPException("Incorrect protocol "+proto);
       } 
 
       // Open the connection and gets the output and input streams
@@ -112,16 +112,16 @@ class JICPClient {
       reply = JICPPacket.readFrom(inp);
     } 
     catch (EOFException eof) {
-      throw new ICP.ICPException("EOF reached");
+      throw new ICPException("EOF reached");
     } 
     // catch (UnknownHostException uhe) {
-    // throw new ICP.ICPException("Cannot connect to "+ta.getHost()+":"+ta.getPort());
+    // throw new ICPException("Cannot connect to "+ta.getHost()+":"+ta.getPort());
     // }
     catch (IOException ioe) {
-      throw new ICP.ICPException("I/O error sending/receiving data to "+ta.getHost()+":"+ta.getPort(), ioe);
+      throw new ICPException("I/O error sending/receiving data to "+ta.getHost()+":"+ta.getPort(), ioe);
     } 
     catch (Exception e) {
-      throw new ICP.ICPException("Problems in communication with "+ta.getHost()+":"+ta.getPort(), e);
+      throw new ICPException("Problems in communication with "+ta.getHost()+":"+ta.getPort(), e);
     } 
     finally {
       try {
@@ -139,12 +139,12 @@ class JICPClient {
         } 
       } 
       catch (IOException ioe) {
-        throw new ICP.ICPException("I/O error while closing the connection", ioe);
+        throw new ICPException("I/O error while closing the connection", ioe);
       } 
     } 
 
     if (reply.getDataType() == JICPProtocol.ERROR_TYPE) {
-      throw new ICP.ICPException(new String(reply.getData()));
+      throw new ICPException(new String(reply.getData()));
     } 
 
     return reply.getData();

@@ -35,6 +35,7 @@
 package jade.imtp.leap.JICP;
 
 import jade.imtp.leap.ICP;
+import jade.imtp.leap.ICPException;
 import jade.util.leap.*;
 import java.io.*;
 
@@ -62,12 +63,12 @@ public abstract class EndPoint extends Thread {
   	super();
   }
 
-  public JICPPacket deliverCommand(JICPPacket cmd) throws ICP.ICPException {
+  public JICPPacket deliverCommand(JICPPacket cmd) throws ICPException {
   	OutgoingHandler h = new OutgoingHandler();
   	JICPPacket rsp = h.handle(cmd);
     if (rsp.getDataType() == JICPProtocol.ERROR_TYPE) {
     	// We are connected, but there was a JICP error on the peer
-      throw new ICP.ICPException(new String(rsp.getData()));
+      throw new ICPException(new String(rsp.getData()));
     } 
     return rsp;
   }
@@ -81,7 +82,7 @@ public abstract class EndPoint extends Thread {
   	return connected;
   }
   
-  protected abstract void setup() throws ICP.ICPException;
+  protected abstract void setup() throws ICPException;
 	protected abstract JICPPacket handleCommand(JICPPacket cmd) throws Exception;
 	protected void handleConnectionReady() {
 	}
@@ -101,7 +102,7 @@ public abstract class EndPoint extends Thread {
       	log("Connection ready");
 	    	handleConnectionReady();
 	    }
-	    catch (ICP.ICPException icpe) {
+	    catch (ICPException icpe) {
       	log("Connection cannot be (re)established. "+icpe.getMessage());
 	    	handleConnectionError();
 	    	break;
@@ -280,7 +281,7 @@ public abstract class EndPoint extends Thread {
 
     /**
      */
-    private final JICPPacket handle(JICPPacket cmd) throws ICP.ICPException {
+    private final JICPPacket handle(JICPPacket cmd) throws ICPException {
     	// Register as waiting for a response and acquire a free ID
 	  	byte myId = registerOutgoing(this);
 	    log("Start serving outgoing command. OUT-SID="+myId);
@@ -290,7 +291,7 @@ public abstract class EndPoint extends Thread {
     		// We are disconnected --> Deregister and throw an Exception
     		log("WARNING: Can't push command. OUT-SID="+myId, 0);
     		deregisterOutgoing(myId);
-    		throw new ICP.ICPException("Disconnected");
+    		throw new ICPException("Disconnected");
     	}
     	else {
     		log("Command pushed. OUT-SID="+myId);
@@ -308,10 +309,10 @@ public abstract class EndPoint extends Thread {
      * the Connection or a timeout has expired.
      * Mutual exclusion with setResponse()
      */
-    private synchronized final void waitForResponse() throws ICP.ICPException {
+    private synchronized final void waitForResponse() throws ICPException {
       while (!rspReceived) {
         try {
-          wait(10000);
+          wait(60000);
           // If the timeout expired, rsp is null and an exception will be thrown
           break;
         } 
@@ -322,7 +323,7 @@ public abstract class EndPoint extends Thread {
 
       if (rsp == null) {
       	// The connection went down while we were waiting for the response
-      	throw new ICP.ICPException("Disconnection while waiting for response");
+      	throw new ICPException("Disconnection while waiting for response");
       }
     } 
 
@@ -345,7 +346,7 @@ public abstract class EndPoint extends Thread {
      @return an ID that will identify the session managed by the 
      calling OutgoingHandler.
    */
-  private final byte registerOutgoing(OutgoingHandler h) throws ICP.ICPException {
+  private final byte registerOutgoing(OutgoingHandler h) throws ICPException {
   	synchronized (outgoings) {
   		try {
 		    // Find the first free position and put the handler there
@@ -355,7 +356,7 @@ public abstract class EndPoint extends Thread {
 	    	return (byte)i;
   		}
   		catch (ArrayIndexOutOfBoundsException aioobe) {
-  			throw new ICP.ICPException("Can't allocate a new session");
+  			throw new ICPException("Can't allocate a new session");
   		}
   	}
   } 
@@ -399,6 +400,9 @@ public abstract class EndPoint extends Thread {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
       System.out.println(name+": "+s);
+      if (level <= 1) {
+      	jade.util.Logger.println(s);
+      }
     } 
   } 
 

@@ -150,7 +150,7 @@ class FullCommandDispatcher extends CommandDispatcher {
 
       list.add(peer);
     } 
-    catch (ICP.ICPException icpe) {
+    catch (ICPException icpe) {
 
       // Print a warning.
       System.out.println("Error adding ICP "+peer+"["+icpe.getMessage()+"].");
@@ -217,7 +217,7 @@ class FullCommandDispatcher extends CommandDispatcher {
         // protocol. Use the first one.
         return ((ICP) ((List) peers.nextElement()).get(0)).getProtocol().stringToAddr(url);
       } 
-      catch (ICP.ICPException icpe) {
+      catch (ICPException icpe) {
 
         // Do nothing and try the next one.
       } 
@@ -320,7 +320,7 @@ class FullCommandDispatcher extends CommandDispatcher {
       try {
         return ((ICP) list.get(i)).deliverCommand(ta, commandPayload);
       } 
-      catch (ICP.ICPException icpe) {
+      catch (ICPException icpe) {
         // Print a warning and try next address
       	System.out.println("Warning: can't deliver command to "+ta+". "+icpe.getMessage());
       } 
@@ -348,7 +348,7 @@ class FullCommandDispatcher extends CommandDispatcher {
           // DEBUG
           // System.out.println("ICP deactivated.");
         } 
-        catch (ICP.ICPException icpe) {
+        catch (ICPException icpe) {
 
           // Do nothing as this means that this peer had never been
           // activated.
