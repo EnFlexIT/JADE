@@ -166,8 +166,13 @@ class MainContainerImpl implements Platform, AgentManager {
 		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(Agent.getAMS(), username);
 		CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
 		theAMS.setPrincipal(amsCerts);
-		ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
-		theAMS.waitUntilStarted();
+                try {
+                    ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
+                    theAMS.waitUntilStarted();
+                }
+                catch(Exception e) {
+                    throw new IMTPException("Exception during AMS startup", e);
+                }
 
 		// Notify the AMS about the main container existence
 		fireAddedContainer(cid);
@@ -179,9 +184,14 @@ class MainContainerImpl implements Platform, AgentManager {
 		AgentPrincipal dfPrincipal = authority.createAgentPrincipal(Agent.getDefaultDF(), username);
 		CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
 		defaultDF.setPrincipal(dfCerts);
-		ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
-		defaultDF.waitUntilStarted();
-		
+                try {
+                    ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
+                    defaultDF.waitUntilStarted();
+                }
+                catch(Exception e) {
+                    throw new IMTPException("Exception during Default DF startup", e);
+                }
+
 		// Make itself accessible from remote JVMs
 		myIMTPManager.remotize(this);
 	}
