@@ -268,8 +268,8 @@ class MainContainerProxy implements Platform {
 
       // Restore registration of local agents
       ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
-      regMsg.setSender(Agent.getAMS());
-      regMsg.addReceiver(Agent.getAMS());
+      regMsg.setSender(localContainer.getAMS());
+      regMsg.addReceiver(localContainer.getAMS());
       regMsg.setLanguage(jade.lang.sl.SL0Codec.NAME);
       regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
       regMsg.setProtocol("fipa-request");
@@ -286,10 +286,10 @@ class MainContainerProxy implements Platform {
 	  			throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
 				}
 
-				String content = "((action (agent-identifier :name " + Agent.getAMS().getName() + " ) (register (ams-agent-description :name (agent-identifier :name " + agentID.getName() + " ) :ownership JADE :state active ) ) ))";
+				String content = "((action (agent-identifier :name " + localContainer.getAMS().getName() + " ) (register (ams-agent-description :name (agent-identifier :name " + agentID.getName() + " ) :ownership JADE :state active ) ) ))";
 				// Register again the agent with the AMS
 				regMsg.setContent(content);
-				localContainer.routeIn(regMsg, Agent.getAMS());
+				localContainer.routeIn(regMsg, localContainer.getAMS());
 
       }
 

@@ -52,7 +52,8 @@ public class TestCreateAgent extends Test {
   	try {
   		//Object[] args = getGroupArguments();
   		//ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(JADEManagementOntologyTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(JADEManagementOntologyTesterAgent.INFORM_MSG_NAME);
+                final Agent fa = a;
   		Behaviour b = new SuccessExpectedInitiator(a, msg, ds, resultKey) {
     		protected Vector prepareRequests(ACLMessage request) {
     			Vector v = new Vector();
@@ -60,7 +61,7 @@ public class TestCreateAgent extends Test {
     			ca.setAgentName(TARGET);
     			ca.setClassName(TestUtility.TARGET_CLASS_NAME);
     			ca.setContainer((ContainerID) myAgent.here());
-    			Action action = new Action(Agent.getAMS(), ca);
+    			Action action = new Action(fa.getAMS(), ca);
     			try {
     				myAgent.getContentManager().fillContent(request, action);
     				v.add(request);    				

@@ -63,7 +63,7 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
     		
 				// Prepare the message that will be used in all tests
 				ACLMessage msg  = new ACLMessage(ACLMessage.REQUEST);
-				msg.addReceiver(Agent.getAMS());
+				msg.addReceiver(getAMS());
   			msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
   			msg.setOntology(ontology.getName());
     		msg.setProtocol(FIPAProtocolNames.FIPA_REQUEST);
