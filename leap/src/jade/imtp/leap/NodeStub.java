@@ -135,7 +135,7 @@ class NodeStub extends Stub implements Node {
   }
 
   public void interrupt() throws IMTPException {
-		Command cmd = new Command(Command.EXIT_NODE, remoteID);
+		Command cmd = new Command(Command.INTERRUPT_NODE, remoteID);
 	
 		try {
 		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
@@ -148,10 +148,10 @@ class NodeStub extends Stub implements Node {
 		    throw new IMTPException(UNRCH_ERROR_MSG, ue);
 		}
   }
-  
+
   public void exit() throws IMTPException {
-		Command cmd = new Command(Command.INTERRUPT_NODE, remoteID);
-	
+		Command cmd = new Command(Command.EXIT_NODE, remoteID);
+
 		try {
 		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 		    checkResult(result, new String[] { });
