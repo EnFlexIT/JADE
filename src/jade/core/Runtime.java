@@ -75,7 +75,9 @@ public class Runtime {
   private LinkedList terminators = new LinkedList();
   private AgentContainerImpl theContainer = null;
   private int mode = UNKNOWN_MODE;
-
+  
+  private Logger myLogger = Logger.getMyLogger(getClass().getName());
+  
   // Private constructor to forbid instantiation outside the class.
   private Runtime() {
 	  // Do nothing
@@ -168,7 +170,7 @@ public class Runtime {
   	  	public void run() {
   	  		// Give one more chance to other threads to complete
   	  		Thread.yield();
-    			System.out.println("JADE is closing down now.");
+    			myLogger.log(Logger.INFO, "JADE is closing down now.");
     			System.exit(0);
  	   		}
     	} );
@@ -217,7 +219,7 @@ public class Runtime {
 
   // Called by a starting up container.
   void beginContainer() {
-    Logger.println(getCopyrightNotice());
+    myLogger.log(Logger.INFO, "----------------------------------\n"+getCopyrightNotice()+"----------------------------------------");
     if(activeContainers == 0) {
       // Initialize and start up the timer dispatcher
       TimerDispatcher theDispatcher = new TimerDispatcher();
@@ -270,7 +272,7 @@ public class Runtime {
 				criticalThreads.destroy();
       }
       catch(IllegalThreadStateException itse) {
-				System.out.println("Time-critical threads still active: ");
+				myLogger.log(Logger.WARNING, "Time-critical threads still active: ");
 				criticalThreads.list();
       }
       finally {
