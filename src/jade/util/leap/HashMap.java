@@ -40,7 +40,7 @@ import java.util.Enumeration;
    @see java.util.HashMap
  */
 public class HashMap implements Map, Serializable {
-    private transient java.util.HashMap realHiddenMap = null;
+    private transient java.util.Map realHiddenMap = null;
     /**
      * Proxy to the realHiddenMap keys Set
      */
@@ -334,6 +334,17 @@ public class HashMap implements Map, Serializable {
             realHiddenMap.put(key, value);
         } 
     } 
+
+
+    // For persistence service
+    private void setData(java.util.Map data) {
+	realHiddenMap = data;
+    }
+
+    // For persistence service
+    private java.util.Map getData() {
+	return realHiddenMap;
+    }
 
 }
 

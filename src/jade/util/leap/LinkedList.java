@@ -40,7 +40,7 @@ import java.util.Enumeration;
    @see java.util.LinkedList
  */
 public class LinkedList implements List, Serializable {
-    private transient java.util.LinkedList realHiddenList = null;
+    private transient java.util.List realHiddenList = null;
     private Vector                         hiddenList;
     
     // This is needed to ensure compatibility with the J2ME version of 
@@ -179,7 +179,7 @@ public class LinkedList implements List, Serializable {
      * @throws NoSuchElementException if this list is empty.
      */
     public Object removeFirst() {
-        return realHiddenList.removeFirst();
+        return ((java.util.LinkedList)realHiddenList).removeFirst();
     } 
 
     /**
@@ -188,7 +188,7 @@ public class LinkedList implements List, Serializable {
      * @param o the element to be inserted at the beginning of this list.
      */
     public void addFirst(Object o) {
-        realHiddenList.addFirst(o);
+        ((java.util.LinkedList)realHiddenList).addFirst(o);
     } 
 
     /**
@@ -198,7 +198,7 @@ public class LinkedList implements List, Serializable {
      * @param o the element to be inserted at the end of this list.
      */
     public void addLast(Object o) {
-        realHiddenList.addLast(o);
+        ((java.util.LinkedList)realHiddenList).addLast(o);
     } 
 
     // private Object writeReplace() throws java.io.ObjectStreamException {
@@ -238,7 +238,17 @@ public class LinkedList implements List, Serializable {
         while (e.hasMoreElements()) {
             realHiddenList.add(e.nextElement());
         } 
-    } 
+    }
+
+    // For persistence service
+    private void setData(java.util.List data) {
+	realHiddenList = data;
+    }
+
+    // For persistence service
+    private java.util.List getData() {
+	return realHiddenList;
+    }
 
 }
 

@@ -40,7 +40,7 @@ import java.util.Enumeration;
    @see java.util.ArrayList
  */
 public class ArrayList implements List, Serializable {
-    private transient java.util.ArrayList realHiddenList = null;
+    private transient java.util.List realHiddenList = null;
     private Vector                        hiddenList;
     
     // This is needed to ensure compatibility with the J2ME version of 
@@ -190,8 +190,10 @@ public class ArrayList implements List, Serializable {
      * 
      */
     public Object clone() {
-        return (new ArrayList((java.util.ArrayList) realHiddenList.clone()));    // FIXME: To be checked if this is a real cloning
-    } 
+	ArrayList result = new ArrayList();
+	result.fromList(realHiddenList);
+	return result;
+    }
 
     /**
      * Method declaration
@@ -251,6 +253,16 @@ public class ArrayList implements List, Serializable {
             realHiddenList.add(e.nextElement());
         } 
     } 
+
+    // For persistence service
+    private void setData(java.util.List data) {
+	realHiddenList = data;
+    }
+
+    // For persistence service
+    private java.util.List getData() {
+	return realHiddenList;
+    }
 
 }
 
