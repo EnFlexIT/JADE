@@ -78,11 +78,16 @@ public class DFAppletCommunicator implements DFGUIAdapter{
     try {
 
     a = applet;
+    //retrive the HAP from the html file.
+    hap = a.getParameter("HAP");
+    //System.out.println("HAP:" + hap);
+ 
     Socket s = new Socket(a.getCodeBase().getHost(), DEFAULT_PORT);
     System.out.println("DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
     in = new DataInputStream(s.getInputStream());
     parser = new ACLParser(in);
     out = new PrintStream(s.getOutputStream(),true);
+    
    
   } catch (IOException e) {e.printStackTrace(); a.stop();}
 }
@@ -114,7 +119,9 @@ public class DFAppletCommunicator implements DFGUIAdapter{
    * with the default DF.
    */
 public String getName() {
-	return "df";
+    String dfName = "df" + "@" + hap;
+    //System.out.println("In get Name: " + dfName);
+	return dfName;
 }
 
   
@@ -366,8 +373,9 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
   {
     if(thisDF == null)
   	{
-  	  AID df = new AID(getName(), AID.ISGUID);
-    
+	    AID df = new AID(getName(), AID.ISGUID);
+	    
+	    System.out.println(df.getName());
 	    try
  	    {
 		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletManagementOntology.GETDEFAULTDESCRIPTION,null,null);
@@ -387,6 +395,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
   */
   public DFAgentDescription getDescriptionOfThisDF(AID df)
   {
+      System.out.println("CALLED METHOD: getDescriptionOfThisDF(aid) into DFAppletCommunicator");
     DFAgentDescription output = null;
   	try{
     	

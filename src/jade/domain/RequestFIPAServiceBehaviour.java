@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+import java.util.Date;
+import java.util.Vector;
+
 import jade.util.leap.*; 
 
 import jade.core.*;
@@ -39,7 +42,7 @@ import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 import jade.onto.Ontology;
 
-import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.proto.SimpleAchieveREInitiator;
 
 /** 
   This class extends the <code>FipaRequestIntiatorBehaviour</code> in order to request an agent, e.g. <em>DF or AMS</em> 
@@ -59,7 +62,8 @@ to specify additional search constraints.
   @author Fabio Bellifemine (CSELT S.p.A.)
   @version $Date$ $Revision$
 */
-public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
+
+public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
 
   /**
    Exception class for timeouts. This exception is thrown when trying
@@ -74,10 +78,10 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     }
   }
 
-  private static final MessageTemplate mt = 
-    MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
-			MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
-
+    /* private static final MessageTemplate mt = 
+       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
+       MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
+    */
   /**
   @serial
 	*/
@@ -90,7 +94,11 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   @serial
 	*/
   private Codec c; 
-  
+
+    //to set a timeout for the search request: 5 minutes.
+    private long timeout = 300000;
+    
+
   private static Ontology o = FIPAAgentManagementOntology.instance();
 
     /**
@@ -108,8 +116,9 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   *  @see jade.domain.FIPAAgentManagement.SearchConstraints
   */
    public RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription, SearchConstraints constraints) throws FIPAException {
-     super(a, new ACLMessage(ACLMessage.REQUEST), mt);
-     ACLMessage msg = FIPAServiceCommunicator.createRequestMessage(a,receiver);
+       //super(a, new ACLMessage(ACLMessage.REQUEST), mt);
+       super(a,new ACLMessage(ACLMessage.REQUEST));
+       ACLMessage msg = FIPAServiceCommunicator.createRequestMessage(a,receiver);
      Action act = new Action();
      act.set_0(receiver);
      if (actionName.equalsIgnoreCase(FIPAAgentManagementOntology.REGISTER)) {
@@ -132,6 +141,8 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
        action.set_0(agentDescription);
        action.set_1(constraints);
        act.set_1(action);
+       // set a timeout for the recursive search.
+       msg.setReplyByDate(new Date(System.currentTimeMillis()+ timeout));
      }
      else
        throw new UnsupportedFunction();
@@ -214,6 +225,27 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     notYetReady=false;
     lastMsg=(ACLMessage)reply.clone();
   }
+
+  /**
+    Method to handle out of sequence replies.
+    @param reply The actual ACL message received.
+  */
+    protected void handleOutOfSequence(ACLMessage reply){
+	notYetReady = false;
+	lastMsg = (ACLMessage)reply.clone();
+    }
+
+    /**
+       This method handle is called after receiving all the responses and when the timeout is expired( in this case no reply has been received.
+     */
+    protected void handleAllResponses(Vector reply){
+	notYetReady = false;
+	if(reply.size() == 0)
+	    //the timeout has expired: no replies received.
+	    lastMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+	else
+	    lastMsg = (ACLMessage)((ACLMessage)reply.get(0)).clone();
+    }
 
     // This exception object records last outcome. When it is
     // 'null', all went OK.

@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import java.lang.reflect.Method;
+import java.util.Vector;
+
 import jade.util.leap.HashMap;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
@@ -45,6 +47,16 @@ import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 import jade.domain.FIPAAgentManagement.Unauthorised;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.domain.FIPAAgentManagement.UnrecognisedValue;
+import jade.domain.FIPAAgentManagement.UnexpectedAct;
+
+import jade.onto.Ontology;
+import jade.onto.Frame;
+import jade.onto.OntologyException;
 import jade.onto.basic.TrueProposition;
 import jade.domain.JADEAgentManagement.*;
 
@@ -55,10 +67,9 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.sl.SL0Codec;
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
-import jade.proto.FipaRequestResponderBehaviour;
+
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
-import jade.proto.FipaRequestInitiatorBehaviour;
 import jade.onto.basic.DonePredicate;
 
 /**
@@ -78,119 +89,11 @@ import jade.onto.basic.DonePredicate;
   :ontology jade-extensions :protocol fipa-request)</code>
  
   @author Giovanni Rimassa - Universita` di Parma
+  @author Tiziana Trucco - TILAB S.p.A.
   @version $Date$ $Revision$
 
 */
 public class df extends GuiAgent implements DFGUIAdapter {
-
-  private abstract class DFBehaviour
-    extends FipaRequestResponderBehaviour.ActionHandler 
-    implements FipaRequestResponderBehaviour.Factory {
-
-    protected DFBehaviour(ACLMessage req) {
-      super(df.this,req);
-    }
-  
-
-    // Each concrete subclass will implement this deferred method to
-    // do action-specific work
-    protected abstract void processAction(Action a) throws FIPAException;
-
-    public void action() {
-	Action a = null;
-	try {
-	    ACLMessage msg = getRequest();
-	    // Extract the Action object from the message content
-	    List l = extractMsgContent(msg);
-	    a = (Action)l.get(0);
-	    // Do real action, deferred to subclasses
-	    processAction(a);
-	} catch(FIPAException fe) {	
-	    sendReply(ACLMessage.REFUSE, createExceptionalMsgContent(a, fe));
-	}
-    }
-
-      public boolean done() {
-      	return true;
-      }
-
-      public void reset() {}
-
-  } // End of DFBehaviour class
-
-
-  // These four concrete classes serve both as a Factory and as
-  // Action: when seen as Factory they can spawn a new
-  // Behaviour to process a given request, and when seen as
-  // Action they process their request and terminate.
-
-  private class RegBehaviour extends DFBehaviour {
-
-    public RegBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new RegBehaviour(msg);
-    }
-
-    protected void processAction(Action a) throws FIPAException {
-      Register r = (Register)a.getAction();
-      DFAgentDescription dfd = (DFAgentDescription)r.get_0();
-      //to avoid autoregistration
-      if ((dfd.getName()!=null) && ((dfd.getName().equals(getAID()) || dfd.getName().equals(getLocalName())))) 
-      	{
-      		//send a refuse
-      	  getReply().setPerformative(ACLMessage.REFUSE);
-	  getReply().setContent(createExceptionalMsgContent(a, new Unauthorised()));
-      	  myAgent.send(getReply());
-      	} 
-      	else
-      	
-      {
-      	DFRegister(dfd);
-        sendReply(ACLMessage.AGREE,createAgreeContent(a));
-        sendReply(ACLMessage.INFORM,createInformDoneContent(a));
-      }
-    }
-
-  } // End of RegBehaviour class
-
-  private class DeregBehaviour extends DFBehaviour {
-    public DeregBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new DeregBehaviour(msg);
-    }
-
-    protected void processAction(Action a) throws FIPAException {
-      Deregister dereg = (Deregister)a.getAction();
-      DFAgentDescription dfd = (DFAgentDescription)dereg.get_0();
-      DFDeregister(dfd);
-      sendReply(ACLMessage.AGREE,createAgreeContent(a));
-      sendReply(ACLMessage.INFORM,createInformDoneContent(a));
-    }
-
-  } // End of DeregBehaviour class
-
-  private class ModBehaviour extends DFBehaviour {
-    public ModBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new ModBehaviour(msg);
-    }
-
-    protected void processAction(Action a) throws FIPAException {
-      Modify m = (Modify)a.getAction();
-      DFAgentDescription dfd = (DFAgentDescription)m.get_0();
-      DFModify(dfd);
-      sendReply(ACLMessage.AGREE,createAgreeContent(a)); 
-      sendReply(ACLMessage.INFORM,createInformDoneContent(a));
-    }
-
-  } // End of ModBehaviour class
 
   private class RecursiveSearchBehaviour extends RequestFIPAServiceBehaviour 
   {
@@ -240,91 +143,61 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		}catch(FIPAException e){e.printStackTrace();}
 
   	}
+
+      //send a not understood message if an out of sequence message arrives.
+      protected void handleOutOfSequence(ACLMessage reply){
+	  super.handleOutOfSequence(reply);
+	  try{
+	      rsh.addResults(this,new ArrayList(0));
+	      ACLMessage res = reply.createReply();
+	      res.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+	      UnexpectedAct ua = new UnexpectedAct(ACLMessage.getPerformative(reply.getPerformative()));
+	      String cont = "( (action "+reply.getSender()+" "+reply+") "+ua.getMessage()+")";
+	      res.setContent(cont);
+	      myAgent.send(res);
+	  }catch(FIPAException e){e.printStackTrace();}
+      }
+
+      //called when the timeout is expired.
+      protected void handleAllResponses(Vector reply){
+	  super.handleAllResponses(reply);
+	  try{
+	      if(reply.size() == 0) //the timeout has expired: no replies received.
+		  rsh.addResults(this,new ArrayList(0));
+	  }catch(FIPAException e){e.printStackTrace();}
+      }
   }//End class RecursiveSearchBehaviour
   
-   private class SrchBehaviour extends DFBehaviour {
-    public SrchBehaviour(ACLMessage msg) {
-      super(msg);
-    }
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
-      return new SrchBehaviour(msg);
-    }
+     
+    /*
+      This method called into the DFFIPAAgentManagementBehaviour add the behaviours for a recursive search.
+return true if the Df has children, false otherwise
+     */
+	protected boolean performRecursiveSearch(List l, SearchConstraints constraints, DFAgentDescription dfd, ACLMessage request, Action action){
 
-    protected void processAction(Action a) throws FIPAException {
-      sendReply(ACLMessage.AGREE,createAgreeContent(a)); 
-      Search s = (Search)a.getAction();
-      DFAgentDescription dfd = (DFAgentDescription)s.get_0();
-      SearchConstraints constraints = s.get_1();
-      List l = DFSearch(dfd, constraints, getReply());
-      Long maxResults = constraints.getMaxResults();
-      
-      if( maxResults != null)
-      		if (l.size() >= maxResults.intValue()) 
-      		{
-		    ArrayList dummy = new ArrayList();
-		    for(Iterator i = l.iterator(); i.hasNext();)
-			dummy.add(i.next());
+	    boolean out = false;
 
-			l = dummy;
-			// subList not supported by jade.util.leap.List
-      			// l = l.subList(0, maxResults.intValue());
-      		
-      			ACLMessage msg = getRequest().createReply();
-      			msg.setPerformative(ACLMessage.INFORM);
-            ResultPredicate r = new ResultPredicate();
-            r.set_0(a);
-            for (int i=0; i<l.size(); i++)
-      	      r.add_1(l.get(i));
-            l.clear();
-            l.add(r);
-            fillMsgContent(msg,l); 
-            send(msg);
-      			return;
-      		}
-      	
-      Long maxDepth = constraints.getMaxDepth();
-      
-      if(maxDepth != null)		
-      if (maxDepth.intValue() > 0 )
-      { //recursive search on children
-        
-      	RecursiveSearchHandler rsh = new RecursiveSearchHandler(l, constraints, dfd, getRequest(),a);
-      	SearchConstraints newConstr = new SearchConstraints();
-      	
-      	newConstr.setMaxDepth(new Long ((new Integer(constraints.getMaxDepth().intValue()-1)).longValue()));
-      	
-      	if(maxResults != null)
-      	newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));
-      	
-      
-      	Iterator childIt = children.iterator();
-      	while(childIt.hasNext())
-      	{
-      	
-      	    try{
-      	    	RecursiveSearchBehaviour b = new RecursiveSearchBehaviour(rsh,(AID)childIt.next(), dfd, newConstr);
-      	    	addBehaviour(b);
-      	      rsh.addChildren(b);
-      	    }catch(FIPAException e){}
-      	}
-      	if (children.size() != 0) 
-      	return;
-      }		
-      ACLMessage msg = getRequest().createReply();
-      msg.setPerformative(ACLMessage.INFORM);
-      ResultPredicate r = new ResultPredicate();
-      r.set_0(a);
-      for (int i=0; i<l.size(); i++)
-      	r.add_1(l.get(i));
-      l.clear();
-      l.add(r);
-      fillMsgContent(msg,l); 
-      send(msg);
-    }
-
-  } // End of SrchBehaviour class
-
-
+	    Long maxResults=constraints.getMaxResults();
+ 
+	    RecursiveSearchHandler rsh = new RecursiveSearchHandler(l, constraints, dfd, request, action);
+	    SearchConstraints newConstr = new SearchConstraints();
+	    
+	    newConstr.setMaxDepth(new Long ((new Integer(constraints.getMaxDepth().intValue()-1)).longValue()));
+	    
+	    if(maxResults != null)
+		newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));	    
+	    Iterator childIt = children.iterator();
+	    while(childIt.hasNext()){
+		try{
+		    out = true;
+		    RecursiveSearchBehaviour b = new RecursiveSearchBehaviour(rsh,(AID)childIt.next(), dfd, newConstr);
+		    addBehaviour(b);
+		    rsh.addChildren(b);
+		}catch(FIPAException e){}
+	    }
+	    return out;
+	}
+	
   private class RecursiveSearchHandler {
   	List children;
   	long deadline;
@@ -333,7 +206,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	DFAgentDescription dfd;
   	ACLMessage request;
   	Action action;
-    int DEFAULTTIMEOUT = 60000; // 1 minute	
+        int DEFAULTTIMEOUT = 300000; // 5 minutes	
   	long MAXRESULTS = 100; //Maximum number of results if not set 
   	
     //constructor
@@ -343,16 +216,18 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    constraints.setMaxDepth(c.getMaxDepth()); //MaxDepth is not null by definition of this point of the code
 	    if(c.getMaxResults() != null)
 	      constraints.setMaxResults(c.getMaxResults());
-	    else
-	      constraints.setMaxResults(new Long(MAXRESULTS));
+	    // else
+	    // constraints.setMaxResults(new Long(MAXRESULTS));
 	    this.dfd = dfd;
 	    this.request = msg;
 	    this.children = new ArrayList();
-	    
-    	if (this.request.getReplyByDate() == null)
+	 
+	    //the replybyDate should have been set; if not the recursive handler set a deadline after 5 minutes.  
+	  if (this.request.getReplyByDate() == null)
   		   this.deadline = System.currentTimeMillis() + DEFAULTTIMEOUT;
   	  else 
   	     this.deadline = this.request.getReplyByDate().getTime();
+
   	  this.action = a;   
   	}
   	
@@ -363,629 +238,384 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		this.children.remove(b);
   	}
   	
-   	void addResults(Behaviour b, List localResults) throws FIPAException {
-  		this.children.remove(b);
-  	// add local results to the full list of results
-  		for (Iterator i=localResults.iterator(); i.hasNext(); )
-  			results.add(i.next());
-  		
-  		if ( (results.size() >= constraints.getMaxResults().intValue()) || 
-  			   (System.currentTimeMillis() >= deadline) || 
-  			   (children.size() == 0)  )
-   
-  			{
-  		   ACLMessage inform = request.createReply();
-  		   inform.setPerformative(ACLMessage.INFORM);
-  		   ResultPredicate r = new ResultPredicate();
-         r.set_0(action);
-         for (int i=0; i<results.size(); i++)
-      	  r.add_1(results.get(i));
-      	 ArrayList tuple = new ArrayList(1);
-      	 tuple.add(r);
-         fillMsgContent(inform,tuple); 
-         send(inform);
-         //kill the behaviours in children
-  			} 
-  	}
+      void addResults(Behaviour b, List localResults) throws FIPAException {
+	  
+	  this.children.remove(b);
+	  
+	  if(constraints.getMaxResults() != null){
+	      //number of results still missing	 
+	      int remainder = constraints.getMaxResults().intValue() - results.size();
+
+	      if(remainder > 0){
+		  //add the local result to fill the list of results
+		  Iterator it = localResults.iterator();
+		  for(int i =0; i < remainder && it.hasNext(); i++){
+		      results.add(it.next());
+		  }
+	      }
+	  }else{// add all the results returned by the children.
+	      for (Iterator i=localResults.iterator(); i.hasNext(); )
+		  results.add(i.next());    
+	  }
+
+	 
+	  if   ((System.currentTimeMillis() >= deadline) || (children.size() == 0)) {
+		  ACLMessage inform = request.createReply();
+		  inform.setPerformative(ACLMessage.INFORM);
+		  ResultPredicate r = new ResultPredicate();
+		  r.set_0(action);
+		  for (int i=0; i<results.size(); i++)
+		      r.add_1(results.get(i));
+		  ArrayList tuple = new ArrayList(1);
+		  tuple.add(r);
+		  fillMsgContent(inform,tuple); 
+		  send(inform);
+		  //kill the behaviours in children
+	      } 
+      }
   }
-  private class ShowGUIBehaviour extends FipaRequestResponderBehaviour.ActionHandler 
-                                 implements FipaRequestResponderBehaviour.Factory 
-  {
-  	protected ShowGUIBehaviour(ACLMessage msg) 
-	{
-      	super(df.this,msg);
-  	}
+   
+    //performs the ShowGui action: show the GUI of the DF.
+    protected void showGuiAction(Action a) throws FailureException{
+	//no AGREE sent
+	if (!showGui()){
+	    throw new FailureException("Gui_is_being_shown_already");
+	}
+    }
 
-  	public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) 
-  	{
-      	return new ShowGUIBehaviour(msg);
-  	}
+    //this method return an ACLMessage that will be sent to the applet to know the parent with which this df is federated.
+    protected ACLMessage getParentAction(Action a,ACLMessage request)throws FailureException{
+	try {
+	    	    
+	    ACLMessage inform = request.createReply();
+	    inform.setPerformative(ACLMessage.INFORM);
 
-  	public void action () 
-  	{ 
-	    //sendReply(ACLMessage.AGREE,"( true )");
-	    if (((df)myAgent).showGui())
-	      sendReply(ACLMessage.INFORM,"( )");
-	    else //FIXME no exception predicate in the Jade-Extension ontology
-	      sendReply(ACLMessage.FAILURE,"(Gui_is_being_shown_already)");
-  	}
-      
-      public boolean done() 
-      {
-	  return true;
-      }
-
-      public void reset() 
-      {
-      }
-  } // End of ShowGUIBehaviour class
-
-  // This behaviour will be used to respond to request from the applet to know the parent with which this df is federated.
-  private class GetParentsBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
-  {
-      protected GetParentsBehaviour(ACLMessage msg)
-      {
-	       super(df.this,msg);
-      }
-  	
-      public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-      {
-	       return new GetParentsBehaviour(msg);
-      }
-
-      public void action ()
-      {
-	      sendReply(ACLMessage.AGREE,"( true )");
-  		
-	      try {
-	    	// Extract the Action object from the message content
-	      ACLMessage request = getRequest();
-	    	List l = extractMsgContent(request);
-	      Action a = (Action)l.get(0);
-
-	      ACLMessage inform = request.createReply();
-	      inform.setPerformative(ACLMessage.INFORM);
-	      ResultPredicate rp = new ResultPredicate();
-	      rp.set_0(a);
-	      for(int i = 0; i<parents.size() ;i++)
+	    ResultPredicate rp = new ResultPredicate();
+	    rp.set_0(a);
+	    for(int i = 0; i<parents.size() ;i++)
 	      	rp.add_1(parents.get(i));
-	      ArrayList list = new ArrayList(1);
-	      list.add(rp);
-	      fillMsgContent(inform,list);
-	      send(inform);
-	      
-	    }
-	    catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
-	     sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");}
-      }
+	    ArrayList list = new ArrayList(1);
+	    list.add(rp);
+	    fillMsgContent(inform,list);
 
-      public boolean done()
-      {
-	      return true;
-      }
-
-      public void reset()
-      {
-
-      }
-  	
-  } // End of GetParentsBehaviour class
-  
-  //This Behaviour returns the description of this df. 
-  //It is used to reply to a request from the applet 
-  private class GetDescriptionOfThisDFBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
-  {
-    protected GetDescriptionOfThisDFBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
+	    return inform;
+	    
+	}
+	catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	    throw new InternalError("Impossible_to_provide_the_needed_information");
+	}
     }
-  	
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-      return new GetDescriptionOfThisDFBehaviour(msg);
-    }
-  	
-    public void action()
-      {
-      	sendReply(ACLMessage.AGREE,"( true )");
-        try
-        {
-      	  ACLMessage request = getRequest();
-	    	  List l = extractMsgContent(request);
-	        Action a = (Action)l.get(0);
 
+
+    //Returns the description of this df. 
+    //Used to reply to a request from the applet  
+    protected ACLMessage getDescriptionOfThisDFAction(Action a,ACLMessage request) throws FailureException{
+
+        try{
       	  ACLMessage inform = request.createReply();      
           inform.setPerformative(ACLMessage.INFORM);
-       
-	        ResultPredicate rp = new ResultPredicate();
-	        rp.set_0(a);
-	        rp.add_1(thisDF);
-	        ArrayList list = new ArrayList(1);
-	        list.add(rp);
-	        fillMsgContent(inform,list);
-	        send(inform);
-       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
-	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
+
+	  ResultPredicate rp = new ResultPredicate();
+	  rp.set_0(a);
+	  rp.add_1(thisDF);
+	  ArrayList list = new ArrayList(1);
+	  list.add(rp);
+	  fillMsgContent(inform,list);
+
+	  return inform;
+	  
+	  }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	   throw new InternalError("Impossible_to_provide_the_needed_information");
        }
-      }
-
-    public boolean done()
-    {
-      return true;
     }
-
-    public void reset()
-    {
-
-    }
-
-  } //  End of GetDescriptionOfThisDFBehaviour class
-  
-  //this behaviour is used to reply (agree message) to a request made by the applet to request the df to perform an actionon another df.
-  private class FirstStep extends SimpleBehaviour
- 			{
- 				boolean finished = false;
- 				ACLMessage request;
- 				FirstStep(Agent a, ACLMessage m)
- 				{
- 					super(a);
- 					request = (ACLMessage)m.clone();
- 				}
- 				
- 				public void action()
- 				{
- 					ACLMessage reply = request.createReply();
- 					reply.setPerformative(ACLMessage.AGREE);
- 					send(reply);
- 					finished = true;
- 				}
- 				
- 				public boolean done()
- 				{
- 					return finished;
- 				}
- 			
- 			}
- 	//this behaviour send the reply to the dfproxy: inform if the federation occur failure otherwise	
- 	private class ThirdStep extends SimpleBehaviour
- 		{
- 			private boolean finished = false;
- 			private GUIRequestDFServiceBehaviour previousStep;
- 			private String token;
- 			private ACLMessage request;
- 			ThirdStep(GUIRequestDFServiceBehaviour b, String action,ACLMessage msg)
- 			{
- 				super(df.this);
- 				previousStep = b;
- 				token = action;
- 				request = msg;
- 			}
  
- 			public void action()
- 			{
- 				ACLMessage reply = request.createReply();
- 				if(previousStep.correctly)
- 				{
- 					if(token.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
- 					
- 						try{	
- 							reply.setPerformative(ACLMessage.INFORM); 
- 						  List l = extractMsgContent(request);
-	            Action a = (Action)l.get(0);
-            
-  						// Convert search result from array to list
-  						Object[] r = previousStep.getSearchResults();
-  						List result = new ArrayList();
-  						for (int i = 0; i < r.length; ++i) {
-  							result.add(r[i]);
-  						}
- 				 
-	            ResultPredicate rp = new ResultPredicate();
-	            rp.set_0(a);
-	          
-              for (int i=0; i<result.size(); i++)
-      	        rp.add_1(result.get(i));
+   
+ 	//this behaviour send the reply to the dfproxy	
+    private class ThirdStep extends SimpleBehaviour
+    {
+	private boolean finished = false;
+	private GUIRequestDFServiceBehaviour previousStep;
+	private String token;
+	private ACLMessage request;
+	ThirdStep(GUIRequestDFServiceBehaviour b, String action,ACLMessage msg)
+	{
+	    super(df.this);
+	    previousStep = b;
+	    token = action;
+	    request = msg;
+	}
+	
+	public void action()
+	{
+	    System.out.println("Agent: " + getName() + "in ThirdStep...Token: " + token);
+	    ACLMessage reply = request.createReply();
+	    if(previousStep.correctly)
+		{
+		    if(token.equalsIgnoreCase(DFAppletManagementOntology.SEARCHON))
+			
+			try{	
+			    reply.setPerformative(ACLMessage.INFORM); 
+			    List l = extractMsgContent(request);
+			    Action a = (Action)l.get(0);
+			    
+			    // Convert search result from array to list
+			    Object[] r = previousStep.getSearchResults();
+			    List result = new ArrayList();
+			    for (int i = 0; i < r.length; ++i) {
+				result.add(r[i]);
+			    }
+			    
+			    ResultPredicate rp = new ResultPredicate();
+			    rp.set_0(a);
+			    
+			    for (int i=0; i<result.size(); i++)
+				rp.add_1(result.get(i));
+			    
+			    result.clear();
+			    result.add(rp);
+			    fillMsgContent(reply,result);
+			}catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+			    reply.setPerformative(ACLMessage.FAILURE);
+			    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+			}catch(RequestFIPAServiceBehaviour.NotYetReady nyr){
+			    reply.setPerformative(ACLMessage.FAILURE);
+			    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+			}
+		    
+		    else
+			{
+			    reply.setPerformative(ACLMessage.INFORM);
+			    reply.setContent("( done (" + token + " ) )" );
+			}
+		}
+	    else
+		{
+		    reply.setPerformative(ACLMessage.FAILURE);
+		    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
+		}
+	    send(reply);
+	    finished = true;
+	}			
+	
+	
+	public boolean done()
+	{
+	    return finished;
+	}
+	
+    }
 
-	            result.clear();
-	            result.add(rp);
-	            fillMsgContent(reply,result);
- 					  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
-            	reply.setPerformative(ACLMessage.FAILURE);
- 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
- 					  }catch(RequestFIPAServiceBehaviour.NotYetReady nyr){
- 					    reply.setPerformative(ACLMessage.FAILURE);
- 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
- 					  }
- 					
- 					else
- 						{
- 					   reply.setPerformative(ACLMessage.INFORM);
- 					   reply.setContent("( done (" + token + " ) )" );
- 						}
- 				}
- 				else
- 				{
- 					reply.setPerformative(ACLMessage.FAILURE);
- 					reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
- 				}
- 				send(reply);
- 				finished = true;
- 			}			
-
- 			
- 			public boolean done()
- 			{
- 				return finished;
- 			}
- 			
- 		}
+    // request another DF to federate this DF (require by the applet)
+    protected void federateWithAction(Action a, ACLMessage request){
+	FederateWithBehaviour fwb = new FederateWithBehaviour(a,request);
+	addBehaviour(fwb);
+    }
 
   //This behaviour allows the federation of this df with another df required by the APPLET
-  private class FederateWithBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
+  private class FederateWithBehaviour extends SequentialBehaviour {
 
- 		private class mySequentialBehaviour extends SequentialBehaviour
- 		{
- 	
- 			String token;
- 				
- 			mySequentialBehaviour(ACLMessage msg)
- 			{
- 				
- 				token = DFAppletManagementOntology.FEDERATEWITH;
- 				addSubBehaviour(new FirstStep(df.this,msg));
- 				
- 				//extract content from request message
- 		    try{
- 		    	List l = extractMsgContent(msg);
-	        Action a = (Action)l.get(0);
-
-	        Federate f = (Federate)a.getAction(); 	
-	        AID parentDF = (AID)f.getParentDF();
-	        DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
-	        //send request to parentDF
-	        GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
-	        addSubBehaviour(secondStep);
-      
-	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
-	        
- 		    }catch(FIPAException e){
- 		    	//FIXME: send a failure
- 		    	System.err.println(e.getMessage());
- 		    }
-	     	
- 			}
- 			
- 		}//end mySequentialBehaviour
-
-    protected FederateWithBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-    
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-    	return new FederateWithBehaviour(msg);
-    }
-    
-    public void action()
-    {
-    	addBehaviour(new mySequentialBehaviour(getRequest()));
-    }
-    
-    public boolean done()
-    {
-    	return true;
-    }
-    public void reset(){}
- 		
-  } // End of FederateWithBehaviour
-  
-  //This Behaviour returns the description of this df. 
-  //It is used to reply to a request from the applet 
-  private class GetDescriptionUsedBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
-  {
-    protected GetDescriptionUsedBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-  	
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-      return new GetDescriptionUsedBehaviour(msg);
-    }
-  	
-    public void action()
+    			
+      FederateWithBehaviour(Action action, ACLMessage msg)
       {
-      	sendReply(ACLMessage.AGREE,"( true )");
-        try
-        {
-      	  ACLMessage request = getRequest();
-	    	  List l = extractMsgContent(request);
-	        Action a = (Action)l.get(0);
-          
-	        GetDescriptionUsed act = (GetDescriptionUsed)a.getAction();
-	        AID parent = (AID)act.getParentDF();
-	        
-      	  ACLMessage inform = request.createReply();      
-          inform.setPerformative(ACLMessage.INFORM);
-       
-	        ResultPredicate rp = new ResultPredicate();
-	        rp.set_0(a);
-	        rp.add_1(dscDFParentMap.get(parent));
-	        
-	        ArrayList list = new ArrayList(1);
-	        list.add(rp);
-	        fillMsgContent(inform,list);
-	        send(inform);
-       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
-	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
-       }
+	  super(df.this);
+
+	  String token = DFAppletManagementOntology.FEDERATEWITH;
+ 			
+	  try{
+	    	      
+	      Federate f = (Federate)action.getAction(); 	
+	      AID parentDF = (AID)f.getParentDF();
+	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
+	      //send request to parentDF
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
+	      addSubBehaviour(secondStep);
+	      
+	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
+	      
+	  }catch(FIPAException e){
+	      //FIXME: set the content of the failure message
+	      System.err.println(e.getMessage());
+	      ACLMessage failure = msg.createReply();
+	      failure.setPerformative(ACLMessage.FAILURE);
+	      msg.setContent(createExceptionalMsgContent(action, e)); 
+	      send(failure);
+	  }
+	  
       }
+      
+  }//end FederateWithBehaviour
+    
+    
+    //This returns the description of this df. 
+    //It is used to reply to a request from the applet 
+    protected ACLMessage getDescriptionUsedAction(Action a, ACLMessage request) throws FailureException{
+	try{
+      	  
+	    GetDescriptionUsed act = (GetDescriptionUsed)a.getAction();
+	    AID parent = (AID)act.getParentDF();
+	        
+	    ACLMessage inform = request.createReply();      
+	    inform.setPerformative(ACLMessage.INFORM);
+       
+	    ResultPredicate rp = new ResultPredicate();
+	    rp.set_0(a);
+	    rp.add_1(dscDFParentMap.get(parent));
+	    
+	    ArrayList list = new ArrayList(1);
+	    list.add(rp);
+	    fillMsgContent(inform,list);
+	    return inform;
 
-    public boolean done()
-    {
-      return true;
+       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	   throw new InternalError("Impossible_to_provide_the_needed_information");
+       }
     }
 
-    public void reset()
-    {
 
+    protected void deregisterFromAction(Action a, ACLMessage request){
+	DeregisterFromBehaviour dfb = new DeregisterFromBehaviour(a,request);
+	addBehaviour(dfb);
     }
-
-  } //  End of GetDescriptionUsedBehaviour class
-  
+   
   //This behaviour allow the applet to required the df to deregister itself from a parent of the federation
-  private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
-
- 		private class mySequentialBehaviour extends SequentialBehaviour
- 		{
- 		
- 			String token;
+  private class DeregisterFromBehaviour extends SequentialBehaviour{
+     
+      DeregisterFromBehaviour(Action action, ACLMessage msg)
+      {
+	  String token = DFAppletManagementOntology.DEREGISTERFROM;
  			
- 			mySequentialBehaviour(ACLMessage msg)
- 			{
- 				token = DFAppletManagementOntology.DEREGISTERFROM;
- 				addSubBehaviour(new FirstStep(df.this,msg));
- 				
- 				//extract content from request message
-				Action a = null;
- 		    try{
- 		    	List l = extractMsgContent(msg);
-			a = (Action)l.get(0);
-
-	        DeregisterFrom f = (DeregisterFrom)a.getAction(); 	
-	        AID parentDF = (AID)f.getParentDF();
-	        DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
-	        //send request to parentDF
-	        GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.DEREGISTER,dfd,null,gui);
-	        addSubBehaviour(secondStep);
+	  try{
+	     
+	      DeregisterFrom f = (DeregisterFrom)action.getAction(); 	
+	      AID parentDF = (AID)f.getParentDF();
+	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
+	      //send request to parentDF
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAAgentManagementOntology.DEREGISTER,dfd,null,gui);
+	      addSubBehaviour(secondStep);
+	      
+	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
+	      
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	      //FIXME: send a failure
+	      ACLMessage failure = msg.createReply();
+	      failure.setPerformative(ACLMessage.FAILURE);
+	      failure.setContent(createExceptionalMsgContent(action, e)); 
+	      send(failure); 
+	      System.err.println(e.getMessage());
+	  }
+	  
+      }
       
-	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
-	        
- 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
- 		    	//FIXME: send a failure
- 		    	msg.createReply();
- 		    	msg.setPerformative(ACLMessage.FAILURE);
-			msg.setContent(createExceptionalMsgContent(a, e)); 
-			send(msg); 
- 		    	System.err.println(e.getMessage());
- 		    }
-	     	
- 			}
- 			
- 		}//end mySequentialBehaviour
-
-    protected DeregisterFromBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-    
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-    	return new DeregisterFromBehaviour(msg);
-    }
-    
-    public void action()
-    {
-    	addBehaviour(new mySequentialBehaviour(getRequest()));
-    }
-    
-    public boolean done()
-    {
-    	return true;
-    }
-    public void reset(){}
- 		
-  } // End of DeregisterFromBehaviour
+   } // End of DeregisterFromBehaviour
   
+
+    protected void registerWithAction(Action a, ACLMessage request){
+	RegisterWithBehaviour rwb = new RegisterWithBehaviour(a,request);
+	addBehaviour(rwb);
+    }
+
   //This behaviour allow the applet to require the df to register an agent with another df federated with it
-  private class RegisterWithBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
+  private class RegisterWithBehaviour extends SequentialBehaviour{
 
- 		private class mySequentialBehaviour extends SequentialBehaviour
- 		{
+      RegisterWithBehaviour(Action a, ACLMessage msg){
  		
- 			String token;
- 			
- 			mySequentialBehaviour(ACLMessage msg)
- 			{
- 				token = DFAppletManagementOntology.REGISTERWITH;
- 				addSubBehaviour(new FirstStep(df.this,msg));
- 				
- 				//extract content from request message
-				Action a = null;
- 		    try{
- 		    	List l = extractMsgContent(msg);
-			a = (Action)l.get(0);
-
-	        RegisterWith rf = (RegisterWith)a.getAction(); 	
-	        AID df = rf.getDf();
-	        DFAgentDescription dfd = rf.getDescription();
-	        //send request to the DF indicated
-	        GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
-	        addSubBehaviour(secondStep);
-      
-	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
-	        
- 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
- 		    	//FIXME: send a failure
- 		    	msg.createReply();
- 		    	msg.setPerformative(ACLMessage.FAILURE);
-			msg.setContent(createExceptionalMsgContent(a, e)); 
-			send(msg); 
- 		    	System.err.println(e.getMessage());
- 		    }
-	     	
- 			}
- 			
- 		}//end mySequentialBehaviour
-
-    protected RegisterWithBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-    
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-    	return new RegisterWithBehaviour(msg);
-    }
-    
-    public void action()
-    {
-    	addBehaviour(new mySequentialBehaviour(getRequest()));
-    }
-    
-    public boolean done()
-    {
-    	return true;
-    }
-    public void reset(){}
+	  String token = DFAppletManagementOntology.REGISTERWITH;
  		
+	  try{
+             
+	      RegisterWith rf = (RegisterWith)a.getAction(); 	
+	      AID df = rf.getDf();
+	      DFAgentDescription dfd = rf.getDescription();
+	      //send request to the DF indicated
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.REGISTER,dfd,null,gui);
+	      addSubBehaviour(secondStep);
+	      
+	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
+	      
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	      //FIXME: send a failure
+	      ACLMessage failure = msg.createReply();
+	      failure.setPerformative(ACLMessage.FAILURE);
+	      failure.setContent(createExceptionalMsgContent(a, e)); 
+	      send(failure); 
+	      System.err.println(e.getMessage());
+	  }
+	  
+      }
+     
   } // End of RegisterWithBehaviour
   
+    protected void modifyOnAction(Action a, ACLMessage request){
+	ModifyOnBehaviour mob = new ModifyOnBehaviour(a, request);
+	addBehaviour(mob);
+    }
+
   //This behaviour allow the applet to require the df to modify the DFAgentDescription of an agent register with another df
-  private class ModifyOnBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
+  private class ModifyOnBehaviour extends SequentialBehaviour{
 
- 		private class mySequentialBehaviour extends SequentialBehaviour
- 		{
- 		
- 			String token;
- 			
- 			mySequentialBehaviour(ACLMessage msg)
- 			{
- 				token = DFAppletManagementOntology.MODIFYON;
- 				addSubBehaviour(new FirstStep(df.this,msg));
- 				
- 				//extract content from request message
-				Action a = null;
- 		    try{
- 		    	List l = extractMsgContent(msg);
-			a = (Action)l.get(0);
-
-	        ModifyOn mod = (ModifyOn)a.getAction(); 	
-	        AID df = mod.getDf();
-	        DFAgentDescription dfd = mod.getDescription();
-	        //send request to the DF indicated
-	        GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.MODIFY,dfd,null,gui);
-	        addSubBehaviour(secondStep);
       
-	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
-	        
- 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
- 		    	// send a failure
- 		    	msg.createReply();
- 		    	msg.setPerformative(ACLMessage.FAILURE);
-			msg.setContent(createExceptionalMsgContent(a, e)); 
-			send(msg); 
- 		    	System.err.println(e.getMessage());
- 		    }
-	     	
- 			}
- 			
- 		}//end mySequentialBehaviour
+      ModifyOnBehaviour(Action a, ACLMessage msg){
+	  String token = DFAppletManagementOntology.MODIFYON;
 
-    protected ModifyOnBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-    
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-    	return new ModifyOnBehaviour(msg);
-    }
-    
-    public void action()
-    {
-    	addBehaviour(new mySequentialBehaviour(getRequest()));
-    }
-    
-    public boolean done()
-    {
-    	return true;
-    }
-    public void reset(){}
- 		
+	  try{
+
+	      ModifyOn mod = (ModifyOn)a.getAction(); 	
+	      AID df = mod.getDf();
+	      DFAgentDescription dfd = mod.getDescription();
+	      //send request to the DF indicated
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.MODIFY,dfd,null,gui);
+	      addSubBehaviour(secondStep);
+	      
+	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
+	      
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	      // send a failure
+	      ACLMessage failure = msg.createReply();
+	      failure.setPerformative(ACLMessage.FAILURE);
+	      failure.setContent(createExceptionalMsgContent(a, e)); 
+	      send(failure); 
+	      System.err.println(e.getMessage());
+	  }
+	  
+      }   		
   } // End of ModifyOnBehaviour
   
-  //this class is  used to request an agent to perform a search. Used for the applet.
-  private class SearchOnBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
-
- 		private class mySequentialBehaviour extends SequentialBehaviour
- 		{
- 	
- 			String token;
- 				
- 			mySequentialBehaviour(ACLMessage msg)
- 			{
- 				
- 				token = DFAppletManagementOntology.SEARCHON;
- 				addSubBehaviour(new FirstStep(df.this,msg));
- 				
- 				//extract content from request message
- 		    try{
- 		    	List l = extractMsgContent(msg);
-	        Action a = (Action)l.get(0);
-
-	        SearchOn s = (SearchOn)a.getAction(); 	
-	        AID df = s.getDf();
-	        DFAgentDescription dfd = s.getDescription();
-	        SearchConstraints sc = s.getConstraints();
-	        
-	        //send request to the DF
-	        GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.SEARCH,dfd,sc,gui);
-	        addSubBehaviour(secondStep);
+    protected void searchOnAction(Action a, ACLMessage request){
+	SearchOnBehaviour sob = new SearchOnBehaviour(a,request);
+	addBehaviour(sob);
+    }
+  
+//this class is  used to request an agent to perform a search. Used for the applet.
+  private class SearchOnBehaviour extends SequentialBehaviour{
       
-	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
-	        
- 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
- 		    	//FIXME: send a failure
- 		    	System.err.println(e.getMessage());
- 		    }
-	     	
- 			}
- 			
- 		}//end mySequentialBehaviour
+      SearchOnBehaviour(Action a, ACLMessage msg)
+      {
+	  
+	 String token = DFAppletManagementOntology.SEARCHON;
 
-    protected SearchOnBehaviour(ACLMessage msg)
-    {
-      super(df.this,msg);
-    }
-    
-    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg)
-    {
-    	return new SearchOnBehaviour(msg);
-    }
-    
-    public void action()
-    {
-    	addBehaviour(new mySequentialBehaviour(getRequest()));
-    }
-    
-    public boolean done()
-    {
-    	return true;
-    }
-    public void reset(){}
- 		
+	  try{
+	      SearchOn s = (SearchOn)a.getAction(); 	
+	      AID df = s.getDf();
+	      DFAgentDescription dfd = s.getDescription();
+	      SearchConstraints sc = s.getConstraints();
+	      
+	      //send request to the DF
+	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(df,FIPAAgentManagementOntology.SEARCH,dfd,sc,gui);
+	      addSubBehaviour(secondStep);
+	      
+	      addSubBehaviour(new ThirdStep(secondStep,token,msg));
+	      
+	  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
+	      //FIXME: send a failure
+	      // send a failure
+	      ACLMessage failure = msg.createReply();
+	      failure.setPerformative(ACLMessage.FAILURE);
+	      failure.setContent(createExceptionalMsgContent(a, e)); 
+	      send(failure); 
+	      System.err.println(e.getMessage());
+	  }
+      }
+      		
   } // End of SearchOnBehaviour
 
   /**
@@ -999,8 +629,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     DFAgentDescription dfd;
     boolean correctly = false; //used to verify if the protocol finish correctly
     
-  	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUIInterface gui) throws FIPAException
-  	{
+  	GUIRequestDFServiceBehaviour(AID receiverDF, String actionName, DFAgentDescription dfd, SearchConstraints constraints, DFGUIInterface gui) throws FIPAException{
   		
   		super(df.this,receiverDF,actionName,dfd,constraints);
   		
@@ -1012,7 +641,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	
   	protected void handleInform(ACLMessage msg)
   	{
-  		super.handleInform(msg);
+	    super.handleInform(msg);
   		correctly =true;
   		if(actionName.equalsIgnoreCase(FIPAAgentManagementOntology.SEARCH))
   		{
@@ -1089,17 +718,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	}
   	
   	protected void handleRefuse(ACLMessage msg)
-  	{
-  		super.handleRefuse(msg);
-  		try{
-  			gui.showStatusMsg("Request Refused: " + msg.getContent());
-  		}catch(Exception e)
+      {
+	  super.handleRefuse(msg);
+	    try{
+		gui.showStatusMsg("Request Refused: " + msg.getContent());
+	    }catch(Exception e)
   		{}
   	}
   	
   	protected void handleFailure(ACLMessage msg)
   	{
-  		super.handleFailure(msg);
+	    super.handleFailure(msg);
   		try{
   		gui.showStatusMsg("Request Failed: " + msg.getContent());
   		}catch(Exception e){}
@@ -1107,34 +736,35 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	
   	protected void handleNotUnderstood(ACLMessage msg)
   	{
-  		super.handleNotUnderstood(msg);
+	    super.handleNotUnderstood(msg);
   		try{
   			gui.showStatusMsg("Request not understood: " + msg.getContent());
   		}catch(Exception e){}
   	}
 
+      protected void handleOutOfSequence(ACLMessage msg){
+	  super.handleOutOfSequence(msg);
+	  try{
+	      //the receiver replied with an out of sequence message.
+	      gui.showStatusMsg("Out of sequence response." );
+	 } catch(Exception e){}
+      }
 
+      //called when the timeout is expired.
+      protected void handleAllResponses(Vector reply){
+	  super.handleAllResponses(reply);
+	  try{
+	      if(reply.size() == 0)
+		  gui.showStatusMsg("Timeout expired for request");
+	  }catch(Exception e){}
+      }
   }
   
   private static int NUMBER_OF_AGENT_FOUND = 1000;
 
-  /**
-  @serial
-  */
-  private FipaRequestResponderBehaviour dispatcher;
 
-  /**
-  @serial
-  */
-  private FipaRequestResponderBehaviour jadeExtensionDispatcher;
-
-  
-  /**
-  @serial
-  */
-  private FipaRequestResponderBehaviour appletExtensionDispatcher;
-
-  /**
+   
+   /**
   @serial
   */
   private List children = new ArrayList();
@@ -1160,103 +790,35 @@ public class df extends GuiAgent implements DFGUIAdapter {
   */
   private DFAgentDescription thisDF = null;
   
- 	
+    private DFFipaAgentManagementBehaviour fipaRequestResponder;
+    private DFJadeAgentManagementBehaviour jadeRequestResponder;
+    private DFAppletManagementBehaviour appletRequestResponder;
   
   /**
     This constructor creates a new <em>DF</em> agent. This can be used
     to create additional <em>DF</em> agents, beyond the default one
     created by <em><b>JADE</b></em> on platform startup.
   */
-  public df() {
-
-    MessageTemplate mt = 
-      MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
-			  MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
-
-    dispatcher = new FipaRequestResponderBehaviour(this, mt);
+    public df() {
+	MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
 
     // Associate each DF action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerFactory(FIPAAgentManagementOntology.REGISTER, new RegBehaviour(null));
-    dispatcher.registerFactory(FIPAAgentManagementOntology.DEREGISTER, new DeregBehaviour(null));
-    dispatcher.registerFactory(FIPAAgentManagementOntology.MODIFY, new ModBehaviour(null));
-    dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour(null));
+    fipaRequestResponder = new DFFipaAgentManagementBehaviour(this,mt);
 
     // Behaviour to deal with the GUI
     
-    MessageTemplate mt1 = MessageTemplate.and(
-                             MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
-    	                       MessageTemplate.MatchLanguage(SL0Codec.NAME));
-    	                       	                       
-    jadeExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt1);
-    jadeExtensionDispatcher.registerFactory(JADEAgentManagementOntology.SHOWGUI, new ShowGUIBehaviour(null));
-    
+    MessageTemplate mt1 = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME));
+    jadeRequestResponder = new DFJadeAgentManagementBehaviour(this,mt1);
+
     MessageTemplate mt2 = MessageTemplate.and(
                              MessageTemplate.MatchOntology(DFAppletManagementOntology.NAME),
-    	                       MessageTemplate.MatchLanguage(SL0Codec.NAME));
+    	                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+    appletRequestResponder = new DFAppletManagementBehaviour(this,mt2);
 
-    appletExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt2);
-	                       
-    // The following actions are used only by the DFApplet
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.FEDERATEWITH, new FederateWithBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.GETDEFAULTDESCRIPTION, new GetDescriptionOfThisDFBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.GETPARENT, new GetParentsBehaviour(null)); 
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.GETDESCRIPTIONUSED,new GetDescriptionUsedBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.DEREGISTERFROM, new DeregisterFromBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.REGISTERWITH, new RegisterWithBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.SEARCHON, new SearchOnBehaviour(null));
-    appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.MODIFYON, new ModifyOnBehaviour(null));
-    
   }
 
-
-    /**
-     * Create the content for the INFORM done message
-     * @param a is the action that has been performed
-     * @return a String with the content ready to be set into the message
-     **/
-    private String createInformDoneContent(Action a) {
-	ACLMessage temp = new ACLMessage(ACLMessage.INFORM); 
-	temp.setLanguage(SL0Codec.NAME);
-	temp.setOntology(FIPAAgentManagementOntology.NAME);
-	DonePredicate d = new DonePredicate();
-	d.set_0(a);
-	ArrayList tupla = new ArrayList(1);
-	tupla.add(d);
-	try {
-	    fillMsgContent(temp,tupla);
-	} catch (Exception e) {
-	    return "( (done unknownAction) )";
-	}
-	return temp.getContent();
-    }
-
-    /**
-     * Create the content for the AGREE message
-     * @param a is the action that has been agreed to perform
-     * @return a String with the content ready to be set into the message
-     **/
-    //FIXME. Maybe we can find a better place for this method (e.g. in the interaction protocol class)
-    private String createAgreeContent(Action a) {
-	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
-	temp.setLanguage(SL0Codec.NAME);
-	temp.setOntology(FIPAAgentManagementOntology.NAME);
-	List l = new ArrayList(2);
-	if (a == null) {
-	    a = new Action();
-	    a.set_0(getAID());
-	    a.set_1("UnknownAction");
-	}
-	l.add(a);
-	l.add(new TrueProposition());
-	try {
-	    fillMsgContent(temp,l);
-	} catch (Exception ee) { // in any case try to return some good content
-	    return "( true )";
-	} 
-	return temp.getContent();
-    }
 
     /**
      * Create the content for a so-called "exceptional" message, i.e.
@@ -1267,7 +829,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      * message; in case an exception is thrown somewhere, the method
      * try to return anyway a valid content with a best-effort strategy
      **/
-    //FIXME. Maybe we can find a better place for this method (e.g. in the interaction protocol class)
+    //FIXME. This method is only used for create the reply to the APPLET request.
     private String createExceptionalMsgContent(Action a, FIPAException e) {
 	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
 	temp.setLanguage(SL0Codec.NAME);
@@ -1303,9 +865,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
     registerOntology(DFAppletManagementOntology.NAME,DFAppletManagementOntology.instance());
 
     // Add a message dispatcher behaviour
-    addBehaviour(dispatcher);
-    addBehaviour(jadeExtensionDispatcher);
-    addBehaviour(appletExtensionDispatcher);
+    addBehaviour(fipaRequestResponder);
+   
+    addBehaviour(jadeRequestResponder);
+
+    addBehaviour(appletRequestResponder);
     setDescriptionOfThisDF(getDefaultDescription());
    
   }  // End of method setup()
@@ -1382,7 +946,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   * @param dfd is the DFAgentDescription to be checked for
   * @throws MissingParameter if one of the mandatory slots is missing
   **/
-  private void checkMandatorySlots(String actionName, DFAgentDescription dfd) throws MissingParameter {
+  void checkMandatorySlots(String actionName, DFAgentDescription dfd) throws MissingParameter {
   	try {
   	  if (dfd.getName().getName().length() == 0)
   		  throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
@@ -1489,65 +1053,69 @@ public class df extends GuiAgent implements DFGUIAdapter {
       }
     };
 
-
-private void DFRegister(DFAgentDescription dfd) throws FIPAException {
-    
-    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
-    
-    Object old = agentDescriptions.register(dfd.getName(), dfd);
-    if(old != null)
-      throw new AlreadyRegistered();
-
-    if (isADF(dfd)) {
-    	children.add(dfd.getName());
-    	try {
+       
+    void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
+	
+	//checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+	
+	Object old = agentDescriptions.register(dfd.getName(), dfd);
+	if(old != null)
+	    throw new AlreadyRegistered();
+	
+	if (isADF(dfd)) {
+	    children.add(dfd.getName());
+	    try {
     		gui.addChildren(dfd.getName());
-    	} catch (Exception ex) {}
+	    } catch (Exception ex) {}
+	}
+	try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
+	    gui.addAgentDesc(dfd.getName());
+	    gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
+	}catch(Exception ex){}
+	
     }
-    try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-    		 gui.addAgentDesc(dfd.getName());
-    		 gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
-    }catch(Exception ex){}
+
+    //this method is called into the prepareResponse of the DFFipaAgentManagementBehaviour to perform a Deregister action
     
-  }
-
-
-  private void DFDeregister(DFAgentDescription dfd) throws FIPAException {
-    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
-
-    Object old = agentDescriptions.deregister(dfd.getName());
-    if(old == null)
-      throw new NotRegistered();
-
-    if (children.remove(dfd.getName()))
-    	try {
-    		gui.removeChildren(dfd.getName());
-    	} catch (Exception e) {}
-    try{ 
-    	// refresh the GUI if shown, exception thrown if the GUI was not shown
-      // this refresh must be here, otherwise the GUI is not synchronized with 
-      // registration/deregistration made without using the GUI
-      gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-      gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
-    }catch(Exception e1){}	
-  }
+    void DFDeregister(DFAgentDescription dfd) throws NotRegistered {
+	//checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
+      
+      Object old = agentDescriptions.deregister(dfd.getName());
+      if(old == null)
+	  throw new NotRegistered();
+      
+      
+      if (children.remove(dfd.getName()))
+	  try {
+	      gui.removeChildren(dfd.getName());
+	  } catch (Exception e) {}
+      try{ 
+	  // refresh the GUI if shown, exception thrown if the GUI was not shown
+	  // this refresh must be here, otherwise the GUI is not synchronized with 
+	  // registration/deregistration made without using the GUI
+	  gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+	  gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
+      }catch(Exception e1){}	
+    }
     
-  private void DFModify(DFAgentDescription dfd) throws FIPAException {
-    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
 
-    Object old = agentDescriptions.deregister(dfd.getName());
-    if(old == null)
-      throw new NotRegistered();
-    agentDescriptions.register(dfd.getName(), dfd);    
-    try{
-    	gui.removeAgentDesc(dfd.getName(), df.this.getAID());
-    	gui.addAgentDesc(dfd.getName());
-    	gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
-    }catch(Exception e){}
+    
+    void DFModify(DFAgentDescription dfd) throws NotRegistered {
+	//	checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+	
+	Object old = agentDescriptions.deregister(dfd.getName());
+	if(old == null)
+	    throw new NotRegistered();
+	agentDescriptions.register(dfd.getName(), dfd);    
+	try{
+	    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
+	    gui.addAgentDesc(dfd.getName());
+	    gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
+	}catch(Exception e){}
+	
+    }
 
-  }
-
-  private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
+  List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply){
     // Search has no mandatory slots
   	
     return agentDescriptions.search(dfd);
@@ -1576,7 +1144,9 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				if (ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Register an agent with this DF
-						DFRegister((DFAgentDescription)ev.getParameter(1));
+				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
+				    checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+				    DFRegister(dfd);
 					
 				}
 				else 
@@ -1596,7 +1166,9 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				if(ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Deregister an agent with this DF
-					DFDeregister((DFAgentDescription)ev.getParameter(1));
+				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
+				    checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
+				    DFDeregister(dfd);
 					
 				}
 				else 
@@ -1616,7 +1188,9 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 				if(ev.getParameter(0).equals(getName()) || ev.getParameter(0).equals(getLocalName())) 
 				{
 					// Modify the description of an agent with this DF
-					DFModify((DFAgentDescription)ev.getParameter(1));
+				    DFAgentDescription dfd = (DFAgentDescription)ev.getParameter(1);
+				    checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+				    DFModify(dfd);
 					
 				}
 				else 

@@ -48,6 +48,7 @@ import java.applet.Applet;
   
     DFAppletCommunicator dfc = new DFAppletCommunicator(this);
     DFGUI gui = new DFGUI(dfc);
+    gui.enableRefreshButton();
     dfc.setGUI(gui);
     dfc.refreshDFGUI();
     gui.setVisible(true); 

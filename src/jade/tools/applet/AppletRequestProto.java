@@ -84,13 +84,15 @@ abstract class AppletRequestProto
         
         try{
             ACLMessage reply = receiveMessage();
-            
+            System.out.println("Received Message:" + reply.toString());
             if(ACLMessage.AGREE == (reply.getPerformative()))
             {
+	
                 handleAgree(reply);
+	
                 ACLMessage inform = receiveMessage();
                 
-                //System.out.println(inform.toString());
+                System.out.println(inform.toString());
                 
                 if(ACLMessage.INFORM == inform.getPerformative())
                     handleInform(inform);
@@ -108,7 +110,9 @@ abstract class AppletRequestProto
                 else if(ACLMessage.NOT_UNDERSTOOD == reply.getPerformative())
                     handleNotUnderstood(reply);
                 else handleOtherMessage(reply);
-        }catch(ParseException e){}
+        }catch(ParseException e){
+	    e.printStackTrace();
+	}
         return;
     }
     
@@ -116,7 +120,9 @@ abstract class AppletRequestProto
          * private method to read the message
          */
     private ACLMessage receiveMessage() throws ParseException {
+	System.out.println("In receiveMessage");
         return myParser.Message();
+       
     }
     
   /**
