@@ -66,12 +66,6 @@ class DFGUIFederateAction extends AbstractAction
 		if (parent != null)
 		{
 			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-			/*if(gui.isApplet())
-				{
-					dlg.ShowDFDGui(dfd,false,false);
-				  editedDfd = dfd;
-				}
-			else*/
 			//FIXME the AID should not be editable
 			editedDfd = dlg.ShowDFDGui(dfd,true,true);
 		
