@@ -47,7 +47,7 @@ import jade.domain.FIPANames;
  * @author Elisabetta Cortese - TILab
  *
  */
-public class DFMemKB extends MemKB{
+class DFMemKB extends MemKB{
 	
 	public DFMemKB(){
 		super();
@@ -55,13 +55,8 @@ public class DFMemKB extends MemKB{
 	}
 
 	public DFMemKB(int max){
-
 		super();
-		RESULT_TO_RETURN = max;
-		if(RESULT_TO_RETURN > MAX_RESULT_TO_RETURN)
-			RESULT_TO_RETURN = MAX_RESULT_TO_RETURN;
-
-//		System.out.println("USO LA MEMORIA: "+RESULT_TO_RETURN);
+		maxResults = max;
 		clean();
 	}
 

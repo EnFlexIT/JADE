@@ -69,23 +69,63 @@ import jade.content.abs.*;
   Standard <em>Directory Facilitator</em> agent. This class implements
   <em><b>FIPA</b></em> <em>DF</em> agent. <b>JADE</b> applications
   cannot use this class directly, but interact with it through
-  <em>ACL</em> message passing. More <em>DF</em> agents can be created
+  <em>ACL</em> message passing. The <code>DFService</code> class provides
+  a number of static methods that facilitate this task.
+  More <em>DF</em> agents can be created
   by application programmers to divide a platform into many
   <em><b>Agent Domains</b></em>.
-
+	<p>
+	A DF agent accepts a number of optional configuration parameters that can be set
+	either as command line options or within a properties file (to be passed to 
+	the DF as an argument).
+	<ul>
+	<li>
+	<code>jade_domain_df_maxleasetime</code> Indicates the maximum lease
+	time (in millisecond) that the DF will grant for agent description registrations (defaults
+	to infinite).
+	</li>
+	<li>
+	<code>jade_domain_df_maxresult</code> Indicates the maximum number of items found
+	in a search operation that the DF will return to the requester (defaults 
+	to infinite).
+	</li>
+	<li>
+	<code>jade_domain_df_db-url</code> Indicates the JDBC URL of the database
+	the DF will store its catalogue into. If this parameter is not specified 
+	the DF will keep its catalogue in memory.
+	</li>
+	<li>
+	<code>jade_domain_df_db-driver</code> Indicates the JDBC driver to be used
+	to access the DF database (defaults to the ODBC-JDBC bridge). This parameter 
+	is ignored if <code>jade_domain_df_db-url</code> is not set.
+	</li>
+	<li>
+	<code>jade_domain_df_db-username</code>, <code>jade_domain_df_db-password</code>
+	Indicate the username and password to be used to access the DF database 
+	(default to null). These parameters are ignored if 
+	<code>jade_domain_df_db-url</code> is not set.
+	</li>
+	</ul>
+	For instance the following command line will launch a JADE main container
+	with a DF that will store its catalogue into a database accessible at 
+	URL jdbc:odbc:dfdb and that will keep agent registrations for 1 hour at most.
+	<p>
+	<code>
+	java jade.Boot -gui -jade_domain_df_db-url jdbc:odbc:dfdb -jade_domain_df_maxleasetime 3600000
+	</code>
+	<p>
   Each DF has a GUI but, by default, it is not visible. The GUI of the
   agent platform includes a menu item that allows to show the GUI of the
   default DF. 
-
   In order to show the GUI, you should simply send the following message
   to each DF agent: <code>(request :content (action DFName (SHOWGUI))
-  :ontology jade-extensions :protocol fipa-request)</code>
+  :ontology JADE-Agent-Management :protocol fipa-request)</code>
  
+ 	@see DFService
   @author Giovanni Rimassa - Universita` di Parma
   @author Tiziana Trucco - TILAB S.p.A.
   @author Elisabetta Cortese - TILAB S.p.A.
   @version $Date$ $Revision$
-
 */
 public class df extends GuiAgent implements DFGUIAdapter {
 
@@ -874,7 +914,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   // Configuration parameter keys
   private static final String VERBOSITY = "jade_domain_df_verbosity";
 	private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
-	private static final String MAX_RESULTS = "jade_domain_df_maxres";
+	private static final String MAX_RESULTS = "jade_domain_df_maxresult";
   private static final String DB_DRIVER = "jade_domain_df_db-driver";
   private static final String DB_URL = "jade_domain_df_db-url";
   private static final String DB_USERNAME = "jade_domain_df_db-username";
@@ -883,8 +923,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   // limit of searchConstraints.maxresult
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
   // a negative value of maxresults indicates that the sender agent is willing to receive
-  // all available results --> we limit the result to 20 for practical reasons
-  private static final String DEFAULT_MAX_RESULTS = "20";
+  // all available results 
+  private static final String DEFAULT_MAX_RESULTS = "-1";
   /*
    * This is the actual value for the limit on the maximum number of results to be
    * returned in case of an ulimited search. This value is read from the Profile,
@@ -1090,25 +1130,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
     //FIXME. This method is only used for create the reply to the APPLET request.
     private String createExceptionalMsgContent(Action a, FIPAException e) {
 	    return e.getMessage();
-	// FIXME: The following code is hard to port to the new Ontology support
-	/*
-	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
-	temp.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-	temp.setOntology(FIPAManagementOntology.getInstance().getName());
-	List l = new ArrayList();
-	if (a == null) {
-	    a = new Action();
-	    a.set_0(getAID());
-	    a.set_1("UnknownAction");
-	}
-	l.add(a);
-	l.add(e);
-	try {
-	    fillMsgContent(temp,l);
-	} catch (Exception ee) { // in any case try to return some good content
-	    return e.getMessage();
-	} 
-	return temp.getContent();*/
     }
 
 	/**

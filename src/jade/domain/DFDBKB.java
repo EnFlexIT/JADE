@@ -256,7 +256,7 @@ class DFDBKB extends DBKB {
 			s = conn.createStatement();
 			rs = s.executeQuery(select);
 			int cnt = 0;
-			while(rs.next() && cnt < maxResults) { 
+			while(rs.next() && (cnt < maxResults || maxResults < 0)) { 
     		String aidS = rs.getString("aid");
 
       	// Skip DFDs whose lease time has already expired
@@ -312,7 +312,7 @@ class DFDBKB extends DBKB {
 			rs = s.executeQuery(select);
 			if (rs.next()) {
 				dfd = new DFAgentDescription();
-				id = new AID(aidN);
+				id = new AID(aidN, AID.ISGUID);
 				dfd.setName(id);
 				String sLease = rs.getString("lease");
 				long lease = Long.parseLong(sLease);
