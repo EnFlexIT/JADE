@@ -646,7 +646,7 @@ public class AgentMobilityService extends BaseService {
 		catch(NameClashException nce) {
 		    try {
 			ContainerID oldCid = impl.getContainerID(agentID);
-			Node n = impl.getContainerNode(oldCid);
+			Node n = impl.getContainerNode(oldCid).getNode();
 
 			// Perform a non-blocking ping to check...
 			n.ping(false);

@@ -578,7 +578,7 @@ public class AgentManagementService extends BaseService {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
 	  #J2ME_INCLUDE_END*/
 		agent.setArguments(arguments);
-
+ 
 		myContainer.initAgent(agentID, agent, owner, initialCredentials);
 		if (startIt) {
 			myContainer.powerUpLocalAgent(agentID);
@@ -650,7 +650,7 @@ public class AgentManagementService extends BaseService {
 			//#CUSTOMJ2SE_EXCLUDE_BEGIN
 		    try {
 			ContainerID oldCid = impl.getContainerID(name);
-			Node n = impl.getContainerNode(oldCid);
+			Node n = impl.getContainerNode(oldCid).getNode();
 
 			// Perform a non-blocking ping to check...
 			n.ping(false);

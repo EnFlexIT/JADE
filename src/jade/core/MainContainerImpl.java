@@ -705,6 +705,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     public void killContainer(ContainerID cid, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException {
 			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 			cmd.addParam(cid);
+		  cmd.setPrincipal(requesterPrincipal);
+		  cmd.setCredentials(requesterCredentials);
+
 			Object ret = myCommandProcessor.processOutgoing(cmd);
 		  if (ret != null) {
 			  if(ret instanceof NotFoundException) {
@@ -1260,9 +1263,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Return the node a container is deployed at
   */
-  public Node getContainerNode(ContainerID cid) throws NotFoundException {
-    NodeDescriptor dsc = getDescriptor(cid.getName());
-  	return dsc.getNode();
+  public NodeDescriptor getContainerNode(ContainerID cid) throws NotFoundException {
+    return getDescriptor(cid.getName());
   }
 
   /**

@@ -625,7 +625,7 @@ public class MainReplicationService extends BaseService {
 	    catch(NameClashException nce) {
 		try {
 		    ContainerID oldCid = myMain.getContainerID(name);
-		    Node n = myMain.getContainerNode(oldCid);
+		    Node n = myMain.getContainerNode(oldCid).getNode();
 
 		    // Perform a non-blocking ping to check...
 		    n.ping(false);
