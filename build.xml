@@ -8,6 +8,7 @@
   <property environment="env"/>
   <property name="version" value="2.5"/>
   <!-- set global properties for this build -->
+  <property name="root" location="."/>
   <property name="lib" location="lib"/>
   <property name="src" location="src"/>
   <property name="dist" location=".."/>
@@ -25,16 +26,33 @@
         <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
       </not>
     </condition>
+
+    <condition property="jess.home.is.set">
+      <not>
+        <equals arg1="${env.JESS_HOME}" arg2="$${env.JESS_HOME}"/>
+      </not>
+    </condition>
+	
   </target>
   <target name="check_javacc" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
+
+  <target name="check_jess" unless="jess.home.is.set">
+    <echo>jess task is being skipped. If you want to compile the examples based on JESS, set the environment variable JESS_HOME to the home directory where your jess program has been installed.</echo>
+  </target>
+
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
   <target name="jade" depends="init,parser" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" excludes="demo/**, examples/**, test/**"/>
+    <delete dir="${build}/examples"/>
+    <delete dir="${build}/demo"/>
+
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" 
+		   excludes="demo/**,examples/**,test/**"
+    />
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
@@ -67,12 +85,12 @@
     <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
     <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
   </target>
+
   <!--     _______________________________________________
                               parser
          _______________________________________________ -->
   <target name="parser" depends="init, check_javacc, MakeACLParser, MakeSL0Parser, MakeSLParser" description="generate parser with javacc"/>
   <target name="MakeACLParser" depends="init, check_javacc" if="javacc.home.is.set">
-    <echo>prova</echo>
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
   </target>
   <target name="MakeSL0Parser" depends="init, check_javacc" if="javacc.home.is.set">
@@ -81,12 +99,13 @@
   <target name="MakeSLParser" depends="init, check_javacc" if="javacc.home.is.set">
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
   </target>
+
   <!--     ________________________________________________
                              jar
          ________________________________________________ -->
   <target name="lib" depends="jade" description="generate jar archive">
     <!-- Create the jadeTools.jar file -->
-    <jar jarfile="${lib}/jadeTools.jar" >
+    <jar jarfile="${lib}/jadeTools.jar">
       <fileset dir="${build}" includes="**/jade/tools/*"/>
       <fileset dir="${build}" includes="**/jade/tools/applet/*"/>
       <fileset dir="${build}" includes="**/jade/tools/dfgui/*"/>
@@ -110,36 +129,30 @@
       <fileset dir="${build}" includes="**/jade/gui/images/*"/>
       <fileset dir="${build}" includes="**/jade/gui/help/*"/>
     </jar>
-	
-	<delete dir="${build}/jade/tools"/>
+    <delete dir="${build}/jade/tools"/>
 
     <!-- Create the iiop.jar file -->
-    <jar jarfile="${lib}/iiop.jar" >
+    <jar jarfile="${lib}/iiop.jar">
       <fileset dir="${build}" includes="**/FIPA/*"/>
       <fileset dir="${build}" includes="**/jade/mtp/iiop/*"/>
     </jar>
-
-	<delete dir="${build}/jade/mtp/iiop"/>
-	<delete dir="${build}/FIPA"/>
+    <delete dir="${build}/jade/mtp/iiop"/>
+    <delete dir="${build}/FIPA"/>
 
     <!-- Create the Base64.jar file -->
-    <jar jarfile="${lib}/Base64.jar" >
+    <jar jarfile="${lib}/Base64.jar">
       <fileset dir="${build}" includes="**/starlight/util/*"/>
     </jar>
-
-	<delete dir="${build}/starlight/util"/>
+    <delete dir="${build}/starlight"/>
 
     <!-- Create the jade.jar file -->
-	<jar jarfile="${lib}/jade.jar" 
-		 basedir="${build}"
-		 excludes="${build}/jade/tools/*,${build}/FIPA/*"
-    />	
-    <!--
- includes="${build}/jade.mf, ${build}/jade/gui/**, ${build}/jade/tools/**" />
-    <delete includeEmptyDirs="true" > 
-	<fileset dir="${build}/jade/tools"/>
+    <jar jarfile="${lib}/jade.jar" basedir="${build}" manifest="${build}/jade.mf"/>
+<!--    <delete dir="${build}/jade"/> -->
+
+	<delete includeEmptyDirs="true" >
+	    <fileset dir="${build}/jade" />
     </delete>
--->
+
   </target>
 
   <!--    __________________________________________________
@@ -151,6 +164,7 @@
       <fileset dir="${build}" excludes="**/*.mf"/>
     </delete>
   </target>
+
   <!--    __________________________________________________
                             doc
         __________________________________________________ -->
@@ -158,4 +172,105 @@
     <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap"/>
     <javadoc destdir="${doc}/tools/sniffer/html/jdoc" author="true" windowtitle="JADE ${version} Sniffer Reference" sourcepath="${src}" packagenames="jade.tools.sniffer"/>
   </target>
-</project>
+
+  <!--     _______________________________________________
+                               test
+         _______________________________________________ -->
+  <target name="test" depends="lib" description="compile the test ">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="test/**" classpath="${lib}/jade.jar"/>
+  </target>
+
+  
+  <!--     _______________________________________________
+                               examples
+         _______________________________________________ -->
+  <target name="examples" depends="jade,lib" description="compile the examples ">
+  
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${lib}/jade.jar"/>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
+	<delete dir="${build}/jade" />
+  </target>
+  
+  <!--     _______________________________________________
+                               JESS-based examples
+         _______________________________________________ -->
+  <target name="jessexamples" depends="init,check_jess,lib" if="jess.home.is.set" description="compile the JESS-based examples ">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <echo>Trying to compile the examples based on JESS. If the JESS library is not included into the CLASSPATH, a number of errors will be generated by the compiler but the task will contine.</echo>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="examples/jess/** examples/JadeJessProtege/**" classpath="${lib}/jade.jar,${env.JESS_HOME}/jess.jar,${env.JESS_HOME}/JessTab.jar" failonerror="false"/>
+  </target>
+
+  <!--     _______________________________________________
+                               dist
+         _______________________________________________ -->
+  <!-- Make distribution zip file and put in ${dist} -->
+  <target name="dist" depends="dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+  
+  <target name="dist_src" depends="init">
+    <jar jarfile="${dist}/JADE-src-2.5.zip">
+      <fileset dir="${dist}" includes="jade/src/FIPA/**"/>
+      <fileset dir="${dist}" includes="jade/src/starlight/**"/>
+      <fileset dir="${dist}" includes="jade/src/jade/**"/>
+      <fileset dir="${dist}" includes="jade/build.xml"/>
+      <fileset dir="${dist}" includes="jade/README"/>
+      <fileset dir="${dist}" includes="jade/COPYNG"/>
+      <fileset dir="${dist}" includes="jade/ChangeLog"/>
+      <fileset dir="${dist}" includes="jade/License"/>
+      <fileset dir="${dist}" includes="jade/src/Makefile"/>
+      <fileset dir="${dist}" includes="jade/src/*.idl"/>
+      <fileset dir="${dist}" includes="jade/src/*.html"/>
+      <fileset dir="${dist}" includes="jade/classes/*.mf"/>
+      <fileset dir="${dist}" includes="jade/lib/Makefile"/>
+	</jar>
+  </target>
+
+  <target name="dist_examples" depends="init">
+    <jar jarfile="${dist}/JADE-examples-2.5.zip">  
+      <fileset dir="${dist}" includes="jade/src/examples/**"/>
+      <fileset dir="${dist}" includes="jade/src/demo/**"/>
+      <fileset dir="${dist}" includes="jade/demo/**"/>
+      <fileset dir="${dist}" includes="jade/README"/>
+      <fileset dir="${dist}" includes="jade/COPYNG"/>
+      <fileset dir="${dist}" includes="jade/ChangeLog"/>
+      <fileset dir="${dist}" includes="jade/License"/>
+	</jar>
+  </target>
+
+  <target name="dist_doc" depends="init,doc">
+    <jar jarfile="${dist}/JADE-doc-2.5.zip"> 
+      <fileset dir="${dist}" includes="jade/doc/**"/>
+      <fileset dir="${dist}" includes="jade/README"/>
+      <fileset dir="${dist}" includes="jade/COPYNG"/>
+      <fileset dir="${dist}" includes="jade/ChangeLog"/>
+      <fileset dir="${dist}" includes="jade/License"/>
+	</jar>
+  </target>
+  
+  <target name="dist_bin" depends="init,lib,examples">
+    <jar jarfile="${root}/MeetingScheduler.jar" manifest="demo/demo.mf">
+      <fileset dir="${root}" includes="**/demo/*"/>
+    </jar>
+	<move file="${root}/MeetingScheduler.jar" todir="${root}/demo"/>
+    <jar jarfile="${dist}/JADE-bin-2.5.zip"> 
+      <fileset dir="${dist}" includes="jade/lib/**"/>
+      <fileset dir="${dist}" includes="jade/demo/**"/>
+      <fileset dir="${dist}" includes="jade/README"/>
+      <fileset dir="${dist}" includes="jade/COPYNG"/>
+      <fileset dir="${dist}" includes="jade/ChangeLog"/>
+      <fileset dir="${dist}" includes="jade/License"/>
+	</jar>
+  </target>
+  
+  <target name="dist_all" depends="init,dist_src,dist_examples,dist_doc,dist_bin">
+    <jar jarfile="${dist}/JADE-all-2.5.zip"> 
+      <fileset dir="${dist}" includes="JADE-src-2.5.zip"/>
+      <fileset dir="${dist}" includes="JADE-examples-2.5.zip"/>
+      <fileset dir="${dist}" includes="JADE-doc-2.5.zip"/>
+      <fileset dir="${dist}" includes="JADE-bin-2.5.zip"/>
+	</jar>
+  </target>
+  
+  </project>
+
