@@ -26,6 +26,7 @@ package jade.domain.introspection;
 
 import jade.core.Channel;
 
+import jade.content.Concept;
 
 /**
 
@@ -33,7 +34,7 @@ import jade.core.Channel;
    @version $Date$ $Revision$
 */
 
-public class RoutedMessage {
+public class RoutedMessage implements Concept {
 
   private Channel from;
   private Channel to;

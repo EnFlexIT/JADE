@@ -26,6 +26,7 @@ package jade.domain.introspection;
 import java.util.Date;
 
 import jade.core.Location;
+import jade.content.Concept;
 
 /**
    This class represents the <code>event-record</code> concept in the
@@ -34,7 +35,7 @@ import jade.core.Location;
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
  */
-public class EventRecord {
+public class EventRecord implements Concept {
   private Event what;
   private Date when;
   private Location where;

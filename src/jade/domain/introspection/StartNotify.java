@@ -29,6 +29,8 @@ import jade.util.leap.Iterator;
 
 import jade.core.AID;
 
+import jade.content.AgentAction;
+
 /**
 
   This class represents the 'start-notify' action, requesting to start
@@ -38,7 +40,7 @@ import jade.core.AID;
   @version $Date$ $Revision$
 
 */
-public class StartNotify {
+public class StartNotify implements AgentAction {
 
   private AID observer;
   private List events = new ArrayList();

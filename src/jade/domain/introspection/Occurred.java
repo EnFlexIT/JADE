@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
+import jade.content.Predicate;
 
 /**
 
@@ -32,7 +33,7 @@ package jade.domain.introspection;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class Occurred {
+public class Occurred implements Predicate {
 
   private EventRecord arg;
 
@@ -41,8 +42,7 @@ public class Occurred {
   }
 
   public EventRecord get_0() {
-    return arg;
+  	return arg;
   }
-
 
 }

@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.introspection;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.content.Concept;
 
 /**
 
@@ -33,7 +34,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
   @version $Date$ $Revision$
 
 */
-public class ACLMessage {
+public class ACLMessage implements Concept {
 
   private Envelope env;
   private String payload;

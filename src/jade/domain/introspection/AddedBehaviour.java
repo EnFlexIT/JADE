@@ -26,7 +26,6 @@ package jade.domain.introspection;
 
 import jade.core.AID;
 import jade.core.BehaviourID;
-import jade.domain.introspection.Event;
 
 /**
 
