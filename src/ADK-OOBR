@@ -1,0 +1,116 @@
+
+(setq
+br-env-version
+"02.09.12"
+
+br-sys-search-dirs
+'("/home/Giovanni/DEVEL/ADK/src/")
+
+br-lib-search-dirs
+'nil
+
+br-lang-prefix
+'"java-"
+
+br-env-spec
+'nil
+
+br-children-alist
+'(
+(("AgentDescriptor") . "Serializable")
+(("AgentContainerImpl") . "CommListener")
+(("ACLParser") . "Parser")
+(("AgentPlatform" "MessageDispatcher") . "Remote")
+(("Agent" "MessageDispatcherImpl") . "CommBroadcaster")
+(("Behaviour" "CommBroadcaster" "ExprItem" "Message" "MessageBuilder" "MessageParameter" "MessageStructure" "ParseException" "Parser") . "Object")
+(("CommEvent") . "AWTEvent")
+(("Expression" "NumberItem" "StringItem" "WordItem") . "ExprItem")
+(("contentParam" "conversationIdParam" "envelopeParam" "inReplyToParam" "languageParam" "ontologyParam" "protocolParam" "receiverParam" "replyByParam" "replyWithParam" "senderParam") . "MessageParameter")
+(("MessageDispatcherImpl") . "implements")
+(("CommListener") . "EventListener")
+(("MessageImpl") . "MessageStructure")
+(("AgentContainerImpl" "AgentPlatformImpl" "MessageDispatcherImpl") . "UnicastRemoteObject")
+(("df") . "Agent")
+(("ams") . "ThreadListener")
+(("AgentPlatformImpl") . "AgentPlatform")
+)
+
+br-sys-paths-alist
+'(
+(("AgentPlatform" "AgentPlatformImpl") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentPlatform.java")
+(("MessageDispatcher" "MessageDispatcherImpl") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/MessageDispatcher.java")
+(("ams") . "/home/Giovanni/DEVEL/ADK/src/fipa/domain/ams.java")
+(("AWTEvent" "EventListener" "Object" "Remote" "Serializable" "ThreadListener" "UnicastRemoteObject" "implements") . "<none>")
+(("Behaviour") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/Behaviour.java")
+(("df") . "/home/Giovanni/DEVEL/ADK/src/fipa/domain/df.java")
+(("ParseException") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ParseException.java")
+(("CommBroadcaster") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/CommBroadcaster.java")
+(("CommListener") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/CommListener.java")
+(("Agent") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/Agent.java")
+(("ACLParser") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ACLParser.java")
+(("AgentContainerImpl") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentContainer.java")
+(("MessageBuilder" "MessageStructure") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/MessageBuilder.java")
+(("AgentDescriptor") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentDescriptor.java")
+(("Parser") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/Parser.java")
+(("Message" "MessageImpl") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/Message.java")
+(("ExprItem" "Expression" "MessageParameter" "NumberItem" "StringItem" "WordItem" "contentParam" "conversationIdParam" "envelopeParam" "inReplyToParam" "languageParam" "ontologyParam" "protocolParam" "receiverParam" "replyByParam" "replyWithParam" "senderParam") . "/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/grammar.java")
+(("CommEvent") . "/home/Giovanni/DEVEL/ADK/src/fipa/core/CommEvent.java")
+)
+
+br-lib-paths-alist
+'(
+)
+
+br-sys-parents-alist
+'(
+(("MessageStructure") . "MessageImpl")
+(nil . "Serializable")
+(("MessageParameter") . "senderParam")
+(("Object") . "Behaviour")
+(("MessageParameter") . "contentParam")
+(("Object") . "MessageBuilder")
+(("Object") . "Parser")
+(("Remote") . "MessageDispatcher")
+(("EventListener") . "CommListener")
+(("MessageParameter") . "ontologyParam")
+(("MessageParameter") . "receiverParam")
+(("Agent") . "df")
+(("MessageParameter") . "inReplyToParam")
+(("Object") . "ParseException")
+(("ExprItem") . "StringItem")
+(nil . "Remote")
+(("MessageParameter") . "replyWithParam")
+(("ExprItem") . "Expression")
+(("ThreadListener") . "ams")
+(nil . "Object")
+(("Object") . "CommBroadcaster")
+(("Serializable") . "AgentDescriptor")
+(("MessageParameter") . "envelopeParam")
+(("ExprItem") . "NumberItem")
+(("Parser") . "ACLParser")
+(nil . "AWTEvent")
+(("Object") . "MessageParameter")
+(("Object") . "ExprItem")
+(("MessageParameter") . "conversationIdParam")
+(("MessageParameter") . "replyByParam")
+(("UnicastRemoteObject" "AgentPlatform") . "AgentPlatformImpl")
+(nil . "implements")
+(("UnicastRemoteObject" "CommListener") . "AgentContainerImpl")
+(nil . "EventListener")
+(("Object") . "Message")
+(("MessageParameter") . "languageParam")
+(("Object") . "MessageStructure")
+(("UnicastRemoteObject" "implements" "CommBroadcaster") . "MessageDispatcherImpl")
+(nil . "UnicastRemoteObject")
+(("CommBroadcaster") . "Agent")
+(nil . "ThreadListener")
+(("ExprItem") . "WordItem")
+(("MessageParameter") . "protocolParam")
+(("AWTEvent") . "CommEvent")
+(("Remote") . "AgentPlatform")
+)
+
+br-lib-parents-alist
+'(
+)
+)
