@@ -1,6 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -305,11 +306,23 @@ public abstract class Behaviour implements Serializable {
      @see jade.core.behaviours.Behaviour#block()
   */
   public void restart() {
-    if(myAgent != null)
-     myAgent.notifyRestarted(this);
     myEvent.init(true, NOTIFY_UP);
     handle(myEvent);
+    if(myAgent != null)
+     myAgent.notifyRestarted(this);
   }
 
+
+  /**
+     Associates this behaviour with the agent it belongs to. There is
+     no need to call this method explicitly, since the
+     <code>addBehaviour()</code> call takes care of the association
+     transparently.
+     @param a The agent this behaviour belongs to.
+     @see jade.core.Agent#addBehaviour(Behaviour b)
+   */
+  public void setAgent(Agent a) {
+    myAgent = a;
+  }
 
 }
