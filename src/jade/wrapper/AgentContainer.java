@@ -38,6 +38,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
+import jade.util.Logger;
 
 /**
    This class is a Proxy class, allowing access to a JADE agent
@@ -60,7 +61,9 @@ public class AgentContainer implements PlatformController {
   private AgentContainerImpl myImpl;
   private String myPlatformName;
   private State platformState = PlatformState.PLATFORM_STATE_VOID;
-	private ListenerManager myListenerManager = new ListenerManager();
+  private ListenerManager myListenerManager = new ListenerManager();
+	
+  private static Logger logger = Logger.getMyLogger(AgentContainer.class.getName());	
 	
   /**
      Public constructor. This constructor requires a concrete
@@ -303,22 +306,22 @@ public class AgentContainer implements PlatformController {
   	}
   	
  		public void addedMTP(MTPEvent ev) {
- 			System.out.println("Added MTP");
+ 			logger.log(Logger.CONFIG,"Added MTP");
   	} 
   	public void removedMTP(MTPEvent ev) {
- 			System.out.println("Removed MTP");
+ 			logger.log(Logger.CONFIG,"Removed MTP");
   	} 
   	public void messageIn(MTPEvent ev) {
- 			System.out.println("Message IN");
+ 			logger.log(Logger.CONFIG,"Message IN");
   	} 
   	public void messageOut(MTPEvent ev) {
- 			System.out.println("Message OUT");
+ 			logger.log(Logger.CONFIG,"Message OUT");
   	} 
   	public void addedContainer(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Added container");
+ 			logger.log(Logger.CONFIG,"Added container");
   	} 
   	public void removedContainer(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Removed container");
+ 			logger.log(Logger.CONFIG,"Removed container");
   	} 
   	public void bornAgent(jade.core.event.PlatformEvent ev) {
   		Enumeration e = listeners.elements();
@@ -337,26 +340,26 @@ public class AgentContainer implements PlatformController {
   		}
   	}
   	public void movedAgent(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Moved agent");
+ 			logger.log(Logger.CONFIG,"Moved agent");
   	} 
   	public void suspendedAgent(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Suspended agent");
+ 			logger.log(Logger.CONFIG,"Suspended agent");
   	} 
   	public void resumedAgent(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Resumed agent");
+ 			logger.log(Logger.CONFIG,"Resumed agent");
   	} 
         public void frozenAgent(jade.core.event.PlatformEvent ev) {
-	                System.out.println("Frozen agent");
+	                logger.log(Logger.CONFIG,"Frozen agent");
 	}
         public void thawedAgent(jade.core.event.PlatformEvent ev) {
-	                System.out.println("Thawed agent");
+	                logger.log(Logger.CONFIG,"Thawed agent");
 	}
 //__SECURITY__BEGIN  
   	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Changed agent principal");
+ 			logger.log(Logger.CONFIG,"Changed agent principal");
   	} 
   	public void changedContainerPrincipal(jade.core.event.PlatformEvent ev) {
- 			System.out.println("Changed container principal");
+ 			logger.log(Logger.CONFIG,"Changed container principal");
   	} 
 //__SECURITY__END 
   }

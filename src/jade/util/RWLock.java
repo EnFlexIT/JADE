@@ -46,6 +46,8 @@ public class RWLock {
 	// writeLock()/unlock() can be nested. This indicates the current 
 	// depth
 	private int writeLockDepth = 0;
+	
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
     /**
        Default constructor.
@@ -71,7 +73,7 @@ public class RWLock {
 				wait();
 			}
 			catch (InterruptedException ie) {
-				System.out.println("Unexpected interruption. "+ie.getMessage());
+				logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
 			}
 		}
 		writeLockDepth++;
@@ -112,7 +114,7 @@ public class RWLock {
 				wait();
 			}
 			catch (InterruptedException ie) {
-				System.out.println("Unexpected interruption. "+ie.getMessage());
+				logger.log(Logger.WARNING,"Unexpected interruption. "+ie.getMessage());
 			}
 		}
 		readersCnt++;
