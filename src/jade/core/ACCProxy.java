@@ -27,8 +27,11 @@ import java.util.Date;
 import java.util.Iterator;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+
 import jade.lang.acl.ACLMessage;
+
 import jade.mtp.MTP;
+import jade.mtp.MTPException;
 
 /**
   @author Giovanni Rimassa - Universita` di Parma
@@ -77,7 +80,7 @@ class ACCProxy implements AgentProxy {
 	myACC.forwardMessage(env, payload, address);
 	return;
       }
-      catch(MTP.MTPException mtpe) {
+      catch(MTPException mtpe) {
 	System.out.println("Bad address [" + address + "]: trying the next one...");
       }
     }
