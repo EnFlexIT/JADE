@@ -50,7 +50,8 @@ public class InProcessTest {
       if(args.length > 0) {
 	if(args[0].equalsIgnoreCase("-container")) {
 	  // Create a default profile
-	  Profile p = new ProfileImpl();
+	  ProfileImpl p = new ProfileImpl();
+	  p.putProperty(Profile.MAIN, "false");
 
 	  // Create a new non-main container, connecting to the default
 	  // main container (i.e. on this host, port 1099)
