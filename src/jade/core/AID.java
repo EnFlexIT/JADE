@@ -52,7 +52,7 @@ public class AID implements Comparable, Serializable {
   */
   private String name; 
   
-    private static final int EXPECTED_ADDRESSES_SIZE = 1;
+    private static final int EXPECTED_ADDRESSES_SIZE = 0;
     //#CUSTOM_EXCLUDE_BEGIN
     private static final int EXPECTED_RESOLVERS_SIZE = 0;
     //#CUSTOM_EXCLUDE_END
@@ -63,9 +63,9 @@ public class AID implements Comparable, Serializable {
   private Properties userDefSlots = new Properties();
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
-  private Vector addresses = new Vector(EXPECTED_ADDRESSES_SIZE);
+  private Vector addresses = new Vector(EXPECTED_ADDRESSES_SIZE,1);
 	//#CUSTOM_EXCLUDE_BEGIN
-  private Vector resolvers = new Vector(EXPECTED_RESOLVERS_SIZE);
+  private Vector resolvers = new Vector(EXPECTED_RESOLVERS_SIZE,1);
   private Properties userDefSlots = new Properties();
   //#CUSTOM_EXCLUDE_END
 		#MIDP_INCLUDE_END*/
@@ -126,9 +126,6 @@ public class AID implements Comparable, Serializable {
     /** constant to be used in the constructor of the AID **/
     public static final boolean ISLOCALNAME = false;
 
-    /** private variable containing the right part of a local name **/
-    private static String atHAP = null; 
-
   /**
   * This method permits to set the symbolic name of an agent.
   * The passed parameter must be a GUID and not a local name. 
@@ -142,17 +139,16 @@ public class AID implements Comparable, Serializable {
   * The passed parameter must be a local name. 
   */
   public void setLocalName(String n){
-		// initialize the static variable atHAP, if not yet initialized
-		if (atHAP == null) {
 			String hap = getPlatformID();
 			if (hap == null) {
 				throw new RuntimeException("Unknown Platform Name");
 			}
-	    atHAP = "@"+hap;
-		}
-    name = n.trim();
-    if (!name.toLowerCase().endsWith(atHAP.toLowerCase()))
-	name = name.concat(atHAP); 
+			setName(n); 
+			// Concatenates the HAP only if the passed name 
+			// does not ends already with HAP (case-insensitive)
+			if (! ( (name.length() > hap.length()) && 
+							name.regionMatches(true, name.length() - hap.length(), hap, 0, hap.length())))
+					name = name.concat("@"+hap); 
   }
 
   /**
