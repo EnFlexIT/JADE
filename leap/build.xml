@@ -121,12 +121,12 @@
     <!-- Add the WMA classes to the bootclasspath if present -->
     <condition property="boot-midp-classes" 
                value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
-       <isset property="${wma-classes}" />
+    	<isset property="wma-classes" />
     </condition>
     <condition property="boot-midp-classes" 
-               value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
+               value="${boot-midp-classes-tmp}">
     	<not>
-      	<isset property="${wma-classes}" />
+      	<isset property="wma-classes" />
       </not>
     </condition>
     
