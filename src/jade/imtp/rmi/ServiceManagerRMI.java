@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.rmi;
 
+//#APIDOC_EXCLUDE_FILE
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -39,12 +40,15 @@ import java.util.Vector;
 
 /**
    @author Giovanni Rimassa - FRAMeTech s.r.l
-
+   @version $Date$ $Revision$
  */
-interface ServiceManagerRMI extends Remote {
+// Notice that this interface (and the method getPlatformName)
+// are declared public just for the purpose of 
+// the program jade.misc.JADEPlatformTest
+public interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
-    String getPlatformName() throws RemoteException;
+    public String getPlatformName() throws RemoteException;
     String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, JADESecurityException;
     void removeNode(NodeDescriptor dsc, boolean propagated) throws RemoteException, ServiceException;
     void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws RemoteException, ServiceException;
