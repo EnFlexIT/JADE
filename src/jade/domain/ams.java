@@ -1310,20 +1310,17 @@ public class ams extends Agent implements AgentManager.Listener {
   public synchronized void addedMTP(MTPEvent ev) {
     Channel ch = ev.getChannel();
     ContainerID cid = ev.getPlace();
+    String proto = ch.getProtocol();
     String address = ch.getAddress();
 
     // Add the new address to the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
-    MTPDescription desc = new MTPDescription();
-    int colonPos = address.indexOf(':');
-    if(colonPos != -1)
-      desc.setMtpName(address.substring(0, colonPos));
+    MTPDescription desc = findMTPDescription(mtps, proto);
     desc.addAddresses(address);
-    mtps.addAvailableMtps(desc);
- 
-    //Update the APDescription file.
+
+    // Update the APDescription file.
     if(getState() != AP_INITIATED)
-    	writeAPDescription();
+      writeAPDescription();
 
     // Retrieve all agent descriptors
     AMSAgentDescription amsd = new AMSAgentDescription();
@@ -1364,23 +1361,27 @@ public class ams extends Agent implements AgentManager.Listener {
 
     Channel ch = ev.getChannel();
     ContainerID cid = ev.getPlace();
+    String proto = ch.getProtocol();
     String address = ch.getAddress();
 
     // Remove the dead address from the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
-    Iterator it = mtps.getAllAvailableMtps();
-    while(it.hasNext()) {
-      MTPDescription desc = (MTPDescription)it.next();
-      Iterator addresses = desc.getAllAddresses();
-      while(addresses.hasNext()) {
-	// Remove all MTPs that have the 'address' String in their
-	// address list.
-	String nextAddr = (String)addresses.next();
-	if(nextAddr.equalsIgnoreCase(address))
-	  it.remove();
-      }
+    MTPDescription desc = findMTPDescription(mtps, proto);
+    Iterator addresses = desc.getAllAddresses();
+    while(addresses.hasNext()) {
+      // Remove all MTPs that have the 'address' String in their
+      // address list.
+      String nextAddr = (String)addresses.next();
+      if(nextAddr.equalsIgnoreCase(address))
+	addresses.remove();
     }
-    
+
+    // Check if there are other addresses left for this MTP: if not,
+    // remove the MTP from the 'ap-platform-description' object
+    addresses = desc.getAllAddresses();
+    if(!addresses.hasNext())
+      mtps.removeAvailableMtps(desc);
+
     //update the APDescription file
     writeAPDescription();
 
@@ -1390,8 +1391,8 @@ public class ams extends Agent implements AgentManager.Listener {
     for(int i = 0; i < agents.length; i++) {
       amsd.setName(agents[i]);
       List l = agentDescriptions.search(amsd);
-      AMSAgentDescription desc = (AMSAgentDescription)l.get(0);
-      AID name = desc.getName();
+      AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
+      AID name = amsDesc.getName();
       name.removeAddresses(address);
     }
 
@@ -1435,5 +1436,21 @@ public class ams extends Agent implements AgentManager.Listener {
 
   }
 
+  private MTPDescription findMTPDescription(APTransportDescription mtps, String proto) {
+    Iterator it = mtps.getAllAvailableMtps();
+    while(it.hasNext()) {
+      MTPDescription desc = (MTPDescription)it.next();
+      if(proto.equalsIgnoreCase(desc.getMtpName()))
+	return desc;
+    }
+
+    // No MTP was found: create a new one and add it to the
+    // 'ap-transport-description' object.
+    MTPDescription desc = new MTPDescription();
+    desc.setMtpName(proto);
+    mtps.addAvailableMtps(desc);
+    return desc;
+
+  }
 
 } // End of class ams
