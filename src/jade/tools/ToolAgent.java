@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.util.leap.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -62,99 +64,19 @@ public abstract class ToolAgent extends Agent {
   private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
   private ACLMessage AMSRequest = new ACLMessage(ACLMessage.REQUEST);
 
-  private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-
-    //#APIDOC_EXCLUDE_BEGIN
-
-  // Used by AMSListenerBehaviour
-  // FIXME. This interface should have been declared protected. However JDK1.2.2 complains and
-  // requires it to be declared public.
-
-    /**
-       This interface must be implemented by concrete event handlers
-       installed by actual tool agents.
-    */
-  public static interface EventHandler {
-
-      /**
-	 Handle the given event.
-	 @param ev The event to handle 
-      */
-    void handle(Event ev);
+  // This is left here for backward compatibility
+  public static interface EventHandler extends AMSSubscriber.EventHandler {
   }
-
-    //#APIDOC_EXCLUDE_END
-
-
-
+  
     /**
        This abstract behaviour is used to receive notifications from
        the AMS. 
     */
-  protected abstract class AMSListenerBehaviour extends CyclicBehaviour {
-
-    private MessageTemplate listenTemplate;
-
-    // Ignore case for event names
-    private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-
-      /**
-	 Default constructor. This constructor sets up the resources
-	 needed to receive notifications from the AMS and process them
-	 by invoking user installed event handlers.
-      */
-    protected AMSListenerBehaviour() {
-
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(IntrospectionOntology.NAME);
-      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-
-      mt1 = MessageTemplate.MatchInReplyTo("tool-subscription");
-      mt2 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-      listenTemplate = MessageTemplate.and(mt1, mt2);
-      listenTemplate = MessageTemplate.and(listenTemplate, mt12);
-
-      // Fill the event handler table, using a deferred operation.
-      installHandlers(handlers);
-
-    }
-
-    /**
-       This method has to be implemented by concrete subclasses,
-       filling the <code>Map</code> passed as parameter with
-       implementations of the <code>EventHandler</code> interface,
-       using the name of the event as key (see the <code>Event</code>
-       interface.
-       @param handlersTable The table that associates each event name
-       with a proper handler.
-     */
-    protected abstract void installHandlers(Map handlersTable);
-
-    public void action() {
-      ACLMessage current = receive(listenTemplate);
-      if(current != null) {
-	// Handle 'inform' messages from the AMS
-  try {
-	  Occurred o = (Occurred)getContentManager().extractContent(current);
-	  EventRecord er = (EventRecord)o.getWhat();
-	  Event ev = er.getWhat();
-	  String eventName = ev.getName();
-	  EventHandler h = (EventHandler)handlers.get(eventName);
-	  if(h != null)
-	    h.handle(ev);
-	}
-        catch(ClassCastException cce) {
-          cce.printStackTrace();
-        }
-	catch(Exception fe) {
-	  fe.printStackTrace();
-	}
-      }
-      else
-	block();
-    }
-
+  protected abstract class AMSListenerBehaviour extends AMSSubscriber {
+  	// Redefine the onStart() method not to automatically subscribe.
+  	public void onStart() {
+  	}
   } // End of AMSListenerBehaviour class
 
 
@@ -209,7 +131,6 @@ public abstract class ToolAgent extends Agent {
     return AMSRequest;
   }
 
-    //#APIDOC_EXCLUDE_BEGIN
   public final void setup() {
 
     // Register the supported ontologies
@@ -226,10 +147,10 @@ public abstract class ToolAgent extends Agent {
     AMSSubscription.addReceiver(getAMS());
     AMSSubscription.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     AMSSubscription.setOntology(IntrospectionOntology.NAME);
-    AMSSubscription.setReplyWith("tool-subscription");
+    AMSSubscription.setReplyWith(AMSSubscriber.AMS_SUBSCRIPTION);
     AMSSubscription.setConversationId(getLocalName());
 
-    String content = "platform-events";
+    String content = AMSSubscriber.PLATFORM_EVENTS;
     AMSSubscription.setContent(content);
 
     AMSCancellation.setSender(getAID());
@@ -237,7 +158,7 @@ public abstract class ToolAgent extends Agent {
     AMSCancellation.addReceiver(getAMS());
     AMSCancellation.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     AMSCancellation.setOntology(IntrospectionOntology.NAME);
-    AMSCancellation.setReplyWith("tool-cancellation");
+    AMSCancellation.setReplyWith(AMSSubscriber.AMS_CANCELLATION);
     AMSCancellation.setConversationId(getLocalName());
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
@@ -251,13 +172,9 @@ public abstract class ToolAgent extends Agent {
     toolSetup();
 
   }
-    //#APIDOC_EXCLUDE_END
 
-    //#APIDOC_EXCLUDE_BEGIN
   protected final void takeDown() {
     // Call tool-specific takedown
     toolTakeDown();
   }
-    //#APIDOC_EXCLUDE_END
-
 }
