@@ -163,11 +163,11 @@ class MainContainerImpl implements Platform, AgentManager {
 		// Start the AMS
 		theAMS = new ams(this);
 		theAMS.setOwnership(agentOwnership);
-		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(Agent.getAMS(), username);
+		AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), username);
 		CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
 		theAMS.setPrincipal(amsCerts);
                 try {
-                    ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
+                    ac.initAgent(ac.getAMS(), theAMS, AgentContainer.START);
                     theAMS.waitUntilStarted();
                 }
                 catch(Exception e) {
@@ -181,11 +181,11 @@ class MainContainerImpl implements Platform, AgentManager {
 		// Start the Default DF
 		defaultDF = new df();
 		defaultDF.setOwnership(agentOwnership);
-		AgentPrincipal dfPrincipal = authority.createAgentPrincipal(Agent.getDefaultDF(), username);
+		AgentPrincipal dfPrincipal = authority.createAgentPrincipal(ac.getDefaultDF(), username);
 		CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
 		defaultDF.setPrincipal(dfCerts);
                 try {
-                    ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
+                    ac.initAgent(ac.getDefaultDF(), defaultDF, AgentContainer.START);
                     defaultDF.waitUntilStarted();
                 }
                 catch(Exception e) {
@@ -239,7 +239,7 @@ class MainContainerImpl implements Platform, AgentManager {
     systemAgent.doDelete();
     systemAgent.join();
     systemAgent.resetToolkit();
-    removeListener(theAMS);    
+    removeListener(theAMS);
 
     // Make itself no longer accessible from remote JVMs
     myIMTPManager.unremotize(this);
