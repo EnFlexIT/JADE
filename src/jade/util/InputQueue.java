@@ -48,6 +48,7 @@ public class InputQueue {
 	   @param b The <code>Behaviour</code> to associate.
 	 */
 	public synchronized void associate(Behaviour b) {
+
 		myManager = b;
 		// If there were objects already inserted --> restart the manager 
 		// so that it can manages them
@@ -84,4 +85,9 @@ public class InputQueue {
 		}
 		return obj;
 	}			
+
+        public synchronized void clear() {
+	    queue.clear();
+	}
+
 }
