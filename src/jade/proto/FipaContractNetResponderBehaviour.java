@@ -216,6 +216,7 @@ private long timeout, blockTime, endingTime;
     }
     case 4: { // send the last message
       informMsg.setSource(myAgent.getName());
+      informMsg.removeAllDests();
       informMsg.addDest(acceptMsg.getSource());
       informMsg.setReplyTo(acceptMsg.getReplyWith());
       informMsg.setProtocol("FIPA-Contract-Net");
