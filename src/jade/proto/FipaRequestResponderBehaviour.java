@@ -1,6 +1,7 @@
 
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -164,7 +165,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
     protected void sendNotUnderstood() {
-      myReply.setType("not-understood");
+      myReply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
       myAgent.send(myReply);
     }
 
@@ -179,7 +180,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
     protected void sendRefuse(String reason) {
-      myReply.setType("refuse");
+      myReply.setPerformative(ACLMessage.REFUSE);
       myReply.setContent("( ( action " + myAgent.getLocalName() + " " + myActionName + " ) " + reason + ")");
       myAgent.send(myReply);
     }
@@ -195,7 +196,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
     protected void sendFailure(String reason) {
-        myReply.setType("failure");
+        myReply.setPerformative(ACLMessage.FAILURE);
 	myReply.setContent("( ( action " + myAgent.getLocalName() + " " + myActionName + " ) " + reason + ")");
 	myAgent.send(myReply);
     }
@@ -208,7 +209,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
     protected void sendAgree() {
-      myReply.setType("agree");
+      myReply.setPerformative(ACLMessage.AGREE);
       myReply.setContent("( action " + myAgent.getLocalName() + " " + myActionName + " )");
       myAgent.send(myReply);
     }
@@ -221,7 +222,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
     protected void sendInform() {
-      myReply.setType("inform");
+      myReply.setPerformative(ACLMessage.INFORM);
       myReply.setContent("( done ( " + myActionName + " ) )");
       myAgent.send(myReply);
     }
@@ -262,7 +263,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   public void action() {
     ACLMessage msg = myAgent.receive(requestTemplate);
     if(msg != null) {
-      ACLMessage reply = new ACLMessage("inform");
+      ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
 
       // Write content-independent fields of reply message
 
@@ -358,7 +359,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   // Send a 'not-understood' message back to the requester
 
   void sendNotUnderstood(ACLMessage msg) {
-    msg.setType("not-understood");
+    msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
     myAgent.send(msg);
   }
 

@@ -85,7 +85,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SequentialBehaviour 
     super(client);
 
     // Set type and protocol for request
-    request.setType("request");
+    request.setPerformative(ACLMessage.REQUEST);
     request.setProtocol("fipa-request");
 
     String destName = request.getFirstDest();

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -101,7 +102,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// Add the current message editing fields (an AclGui) to the WEST part of the border layout manager
 		currentMsgGui = new AclGui();
 		currentMsgGui.setBorder(new TitledBorder("Current message"));
-		ACLMessage msg = new ACLMessage("accept-proposal");
+		ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 		msg.setSource(agentName);
 		currentMsgGui.setMsg(msg);
 		getContentPane().add("West", currentMsgGui);
@@ -256,7 +257,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		// RESET
 		if      (command.equals("Reset"))
 		{
-			ACLMessage m = new ACLMessage("accept-proposal");
+			ACLMessage m = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 			m.setSource(agentName);
 			currentMsgGui.setMsg(m);
 		}

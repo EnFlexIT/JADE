@@ -243,7 +243,7 @@ public final class ReceiverBehaviour extends Behaviour {
     future = (MessageFuture)h;
     timeOut = millis;
     timeToWait = timeOut;
-    result = new ACLMessage("not-understood");
+    result = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
     template = mt;
   }
 
@@ -308,7 +308,7 @@ public final class ReceiverBehaviour extends Behaviour {
     if(future != null) {
       result = null;
       future.reset();
-      result = new ACLMessage("not-understood");
+      result = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
     }
     timeToWait = timeOut;
     blockingTime = 0;
@@ -316,7 +316,7 @@ public final class ReceiverBehaviour extends Behaviour {
 
   private void copyInResult(ACLMessage msg) {
     // Copies msg into result
-    result.setType(msg.getType());
+    result.setPerformative(msg.getPerformative());
     String s = msg.getContent();
     if(s != null)
       result.setContent(s);

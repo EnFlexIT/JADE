@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -52,9 +53,9 @@ public class Sniffer extends jade.core.Agent {
 	public static final boolean SNIFF_ON = true;		//by BENNY
 	public static final boolean SNIFF_OFF = false;  //by BENNY
 
-  private ACLMessage AMSSubscription = new ACLMessage("subscribe");
-  private ACLMessage AMSCancellation = new ACLMessage("cancel");
-  private ACLMessage requestMsg = new ACLMessage("request");
+  private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
+  private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
+  private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
   private Vector agentsUnderSniff = new Vector();
 
   // Sends requests to the AMS
@@ -369,7 +370,7 @@ public class Sniffer extends jade.core.Agent {
    */
 	private void sniffMsgStr(String agentStr, boolean onFlag) { //by BENNY
 
-	ACLMessage SniffV = new ACLMessage("request");
+	ACLMessage SniffV = new ACLMessage(ACLMessage.REQUEST);
 	SniffV.setSource(getLocalName());
 	SniffV.addDest("ams");
 	SniffV.setLanguage("SL0");

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -146,7 +147,7 @@ public abstract ACLMessage handleQueryMessage(ACLMessage msg);
 private void SendFailure(ACLMessage msg, String reason) {
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
   msg.setContent(content);
-  msg.setType("failure");
+  msg.setPerformative(ACLMessage.FAILURE);
   msg.removeAllDests();
   msg.addDest(msg.getSource());
   msg.setSource(myAgent.getName());
@@ -172,7 +173,7 @@ private void SendReply(ACLMessage msg, ACLMessage reply) {
 private void SendNotUnderstood(ACLMessage msg, String reason) {
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
   msg.setContent(content);
-  msg.setType("not-understood");
+  msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
   msg.removeAllDests();
   msg.addDest(msg.getSource());
   msg.setSource(myAgent.getName());
