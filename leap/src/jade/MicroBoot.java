@@ -245,7 +245,7 @@ public class MicroBoot extends MIDlet implements Runnable {
   }
   
   protected void customize(Properties props) {
-    Display.getDisplay(this).setCurrent(new Form("JADE version 3.1"));
+    Display.getDisplay(this).setCurrent(new Form("JADE version 3.3"));
   }
 }
 #MIDP_INCLUDE_END*/
