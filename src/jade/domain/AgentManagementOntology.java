@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  1999/05/20 15:41:41  rimassa
+  Moved RMA agent from jade.domain package to jade.tools.rma package.
+
   Revision 1.22  1999/04/06 14:05:57  rimassa
   Added Javadoc comments and made package scoped all unnecessarily
   public classes.
@@ -1014,7 +1017,7 @@ public class AgentManagementOntology {
 
   }
 
-  static abstract class AMSEvent {
+  public static abstract class AMSEvent {
 
     public static final int NEWCONTAINER = 0;
     public static final int DEADCONTAINER = 1;
@@ -1041,7 +1044,7 @@ public class AgentManagementOntology {
 
   }
 
-  static class AMSContainerEvent extends AMSEvent {
+  public static class AMSContainerEvent extends AMSEvent {
 
     private String containerName;
 
@@ -1065,7 +1068,7 @@ public class AgentManagementOntology {
 
   }
 
-  static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
+  public static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
 
     private AMSAgentDescriptor agentDescriptor;
 

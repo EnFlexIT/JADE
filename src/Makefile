@@ -26,7 +26,6 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/core/behaviours/SimpleBehaviour.java \
 		jade/core/behaviours/SenderBehaviour.java \
 		jade/core/behaviours/ReceiverBehaviour.java \
-		jade/domain/rma.java \
 		jade/domain/SearchDFBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
 		jade/proto/Standard.java \
@@ -36,7 +35,8 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
 		jade/proto/FipaContractNetResponderBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
-		jade/gui/AMSMainFrame.java
+		jade/tools/rma/rma.java
+
 STUBDIR     =	.
 IDLSTUBS    =   _FIPA_Agent_97Stub.java \
 		FIPA_Agent_97.java \

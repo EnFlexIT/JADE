@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.18  1999/05/20 15:41:41  rimassa
+  Moved RMA agent from jade.domain package to jade.tools.rma package.
+
   Revision 1.17  1999/04/06 00:09:19  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -217,7 +220,7 @@ public class Boot {
       // other agents.
       if(hasGUI) {
 	agents.insertElementAt(new String("RMA"), 0);
-	agents.insertElementAt(new String("jade.domain.rma"), 1);
+	agents.insertElementAt(new String("jade.tools.rma.rma"), 1);
       }
 
     // Build the complete URL of the agent platform from default
