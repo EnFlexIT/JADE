@@ -32,28 +32,13 @@ package jade.core;
  */
 public interface Profile {
 
-  /**
-     Access the host name where the Main Container is.
-     @return The name (or the IP address) of the network host where
-     the JADE Main Container is running.
-   */
-  String getMainContainerHost();
 
   /**
-     Access the port where the Main Container is listening for new
-     containers registrations.
-     @return A <code>String</code>, which contains an integer value
-     representing the port number where the Main Container is
-     listening.
+     Access a named parameter of this profile object.
+     @param name The name of the desired parameter.
+     @return The <code>String</code> value, associated to the given
+     name in the current profile object.
    */
-  String getMainContainerPort();
-
-  /**
-     Access the platform ID, that uniquely determines a JADE platform.
-     @return A <code>String</code>, containing the unique platform ID
-     of a JADE platform. Agent GUIDs in JADE are made by a
-     platform-unique nickname, the '@' character and the platform ID.
-   */
-  String getPlatformID();
+  String getParameter(String name);
 
 }
