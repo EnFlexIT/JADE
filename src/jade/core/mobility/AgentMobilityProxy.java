@@ -54,7 +54,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(serializedInstance);
 	    cmd.addParam(classSiteName);
@@ -89,7 +89,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_FETCHCLASSFILE, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_FETCHCLASSFILE, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(name);
 
 
@@ -115,7 +115,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_MOVEAGENT, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_MOVEAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
 
@@ -141,7 +141,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_COPYAGENT, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_COPYAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
 	    cmd.addParam(newName);
@@ -168,7 +168,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public boolean prepare() throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_PREPARE, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_PREPARE, AgentMobilitySlice.NAME, null);
 
 
 	    Node n = getNode();
@@ -191,7 +191,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_TRANSFERIDENTITY, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_TRANSFERIDENTITY, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(src);
 	    cmd.addParam(dest);
@@ -220,7 +220,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_HANDLETRANSFERRESULT, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_HANDLETRANSFERRESULT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(new Boolean(result));
 	    cmd.addParam(messages);
@@ -247,7 +247,7 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 
     public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_CLONEDAGENT, AgentMobilityService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_CLONEDAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(cid);
 	    cmd.addParam(certs);
