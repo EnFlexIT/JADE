@@ -143,7 +143,6 @@ public class OutgoingEncodingFilter extends Filter {
   public void prepareEnvelope(ACLMessage msg, AID receiver, GenericMessage gmsg) {
     Envelope env = msg.getEnvelope();
     String defaultRepresentation = null;
-  	//if (myAgentContainer.livesHere(receiver)) {
   	if (myService.livesHere(receiver)) {
   		// The agent lives in the platform
 	    if (env == null) {
@@ -165,6 +164,12 @@ public class OutgoingEncodingFilter extends Filter {
 	    	defaultRepresentation = StringACLCodec.NAME;
 	    }
     }
+    
+    // If no ACL representation is found, then default one (LEAP for 
+    // local receivers, String for foreign receivers) 
+    String rep = env.getAclRepresentation();
+    if(rep == null)
+	    env.setAclRepresentation(defaultRepresentation);
 
     // If no 'to' slot is present, copy the 'to' slot from the
     // 'receiver' slot of the ACL message
@@ -187,12 +192,6 @@ public class OutgoingEncodingFilter extends Filter {
     if(d == null)
 	    env.setDate(new Date());
 
-    // If no ACL representation is found, then default to String
-    // representation
-    String rep = env.getAclRepresentation();
-    if(rep == null)
-	    env.setAclRepresentation(defaultRepresentation);
-
     // Write 'intended-receiver' slot as per 'FIPA Agent Message
     // Transport Service Specification': this ACC splits all
     // multicasts, since JADE has already split them in the
@@ -203,17 +202,6 @@ public class OutgoingEncodingFilter extends Filter {
     Long payloadLength = env.getPayloadLength();
     if(payloadLength == null)
 	    env.setPayloadLength(new Long(-1));
-    
-    /*
-      Moved to IIOP MessageTransportProtocol class
-      String comments = env.getComments();
-      if(comments == null)
-      env.setComments("");
-      
-      String payloadEncoding = env.getPayloadEncoding();
-      if(payloadEncoding == null)
-      env.setPayloadEncoding("");
-    */
   }
 
   /**
@@ -226,15 +214,13 @@ public class OutgoingEncodingFilter extends Filter {
   public byte[] encodeMessage(ACLMessage msg) throws MessagingService.UnknownACLEncodingException{
 
     Envelope env = msg.getEnvelope();
-    String enc;
-    if (env==null) enc = LEAPACLCodec.NAME;
-    else enc = env.getAclRepresentation();
+    String enc = (env != null ? env.getAclRepresentation() : LEAPACLCodec.NAME);
 
     if(enc != null) { // A Codec was selected
 	    ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
 	    if(codec!=null) {
     		// Supported Codec
-    		// FIXME: should verifY that the receivers supports this Codec
+    		// FIXME: should verify that the receivers supports this Codec
     		String charset;  
         if ((env == null) ||
             ((charset = env.getPayloadEncoding()) == null)) {
