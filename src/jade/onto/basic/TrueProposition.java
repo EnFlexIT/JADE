@@ -3,6 +3,8 @@ JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
+This work has been partially supported by the IST-1999-10211 LEAP Project
+
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
