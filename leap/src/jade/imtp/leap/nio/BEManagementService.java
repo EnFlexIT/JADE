@@ -431,9 +431,12 @@ public class BEManagementService extends BaseService {
 			        // Create a new Mediator
 			        Properties p = parseProperties(new String(pkt.getData()));
 			        
+			        String owner = p.getProperty(JICPProtocol.OWNER_KEY);
+			        myLogger.log(Logger.INFO, myLogPrefix+" Owner = "+owner);
+			        
 			        // If there is a PDPContextManager add the PDP context properties
 			        if (myPDPContextManager != null) {
-			        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, p.getProperty(JICPProtocol.OWNER_KEY));
+			        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);
 			        	if (pdpContextInfo != null) {
 			          	mergeProperties(p, pdpContextInfo);
 			        	}
@@ -964,7 +967,8 @@ public class BEManagementService extends BaseService {
   					((IOEventServer) ss[i]).tick(currentTime);
   				}
   			}
-  			catch (InterruptedException ie) {
+  			catch (Throwable t) {
+		  		myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Enexpected exception "+t);
   			}
   		}
   	}
