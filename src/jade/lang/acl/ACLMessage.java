@@ -914,6 +914,7 @@ private int performative; // keeps the performative type of this object
       result = (ACLMessage)super.clone();
       result.dests = (ArrayList)dests.clone();       // Deep copy
       result.reply_to = (ArrayList)reply_to.clone(); // Deep copy
+      result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
       if(messageEnvelope != null)
 	  result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
