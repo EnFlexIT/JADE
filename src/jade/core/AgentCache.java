@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.2  1999/03/31 15:56:14  rimassa
+  Remoded dead code.
+  Added a check for null argument in remove() method.
+
   Revision 1.1  1999/03/24 12:22:58  rimassa
   This class acts as an address cache for agents, using an LRU replacement policy.
 
@@ -62,9 +66,6 @@ class AgentCache {
   // This Set is sorted according to last access date and is used to
   // implement LRU replacement policy.
   private SortedSet keysByTime;
-
-  // This fake cache key is used as a template to search the cache.
-  private CacheKey targetLine = new CacheKey("Dummy");
 
   private int maxSize;
 
@@ -141,9 +142,13 @@ class AgentCache {
   }
 
   public synchronized AgentProxy remove(String agentName) {
+    AgentProxy result = null;
     CacheKey key = (CacheKey)keysByName.remove(agentName);
-    keysByTime.remove(key);
-    return (AgentProxy)mappings.remove(key);
+    if(key != null) {
+      keysByTime.remove(key);
+      result = (AgentProxy)mappings.remove(key);
+    }
+    return result;
   }
 
 }
