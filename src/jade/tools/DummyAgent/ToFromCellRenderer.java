@@ -1,4 +1,5 @@
 package jade.tools.DummyAgent;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.border.*;
@@ -9,7 +10,7 @@ import java.util.*;
 
 class ToFromCellRenderer extends DefaultListCellRenderer
 {
-	public ToFromCellRenderer() 
+	ToFromCellRenderer() 
 	{
 		super();
 	}
