@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.22  1999/04/06 14:05:57  rimassa
+  Added Javadoc comments and made package scoped all unnecessarily
+  public classes.
+
   Revision 1.21  1999/02/04 12:13:47  rimassa
   Fixed a bug in the String representation of the search result of the DF.
 
@@ -87,33 +91,55 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 
-/**************************************************************
+/**
+   Holds an OO model of standard <code>fipa-agent-management</code>
+   ontology. This class contains all elements of
+   <code>fipa-agent-management</code> ontology as inner classes. User
+   defined agents can access this class to create Java objects
+   representing ontological entities and build message content out of
+   a <code>String</code> representation of these objects.  Since
+   <em>ACL</em> message content is a raw <code>String</code>, all
+   <code>AgentManagementOntology</code> inner classes hava a pair of
+   methods to perform bidirectional conversions to/from character
+   stream objects: a <code>fromText(Reader r)</code> static
+   <em>Factory Method</code> builds a new ontology object out of a
+   <code>java.io.Reader</code> object, whereas <code>toText(Writer
+   w)</code> method writes an existing object onto a suitable
+   <code>java.io.Writer</code> object. These two methods work just
+   like <em>Java Serialization API</em>, letting programmers deal with
+   objects all the time and converting to an external format only for
+   storage or transmission.
 
-  Name: AgentManagementOntology
+   Every inner class is a simple collection of attributes, with
+   <code>public</code> methods to read and write them; if the class
+   has an attribute named <code>attr</code> of type
+   <code>attrType</code>, two cases are possible:
+   <ol>
+   <li> The attribute has a single value; then it can be read with
+   <code>attrType getAttr()</code> and written with <code>void
+   setAttr(attrType a)</code>; every call to <code>setAttr()</code>
+   overwrites any previous value of the attribute.
+   <li> The attribute has a list of values; then there is a <code>void
+   addAttr(attrType a)</code> method to insert a new value and a
+   <code>void removeAttrs()</code> to remove all the values (the list
+   becomes empty). Reading is performed by a <code>Enumeration
+   getAttrs()</code> method; then the programmer must iterate along
+   the <code>Enumeration</code> and cast its elements to the
+   appropriate type.
+   </ol>
 
-  Responsibility and Collaborations:
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 
-  + Holds in a single place all constants and data of
-    'fipa-agent-management' ontology.
-
-  + Provides access methods to check message correctness with respect
-    to 'fipa-agent-management' ontology.
-
-****************************************************************/
+ */
 public class AgentManagementOntology {
 
-  /*****************************************************************
-
-    Name: ServiceDescriptor
-
-    Responsibility and Collaborations:
-
-    + Represents a 'FIPA-Service-Desc' of 'fipa-agent-management'
-      ontology as a Java object, to avoid scattering parsing code
-      throughout applications.
-      (df, AgentManagementParser)
-
-  ******************************************************************/
+  /**
+     Models service descriptors for DF data base.
+     Represents a <code>FIPA-Service-Desc</code> object of
+     <code>fipa-agent-management</code> ontology as a Java object, to
+     avoid scattering parsing code throughout applications.
+  */
   public static class ServiceDescriptor {
 
     static final String TITLE = ":service-description";
@@ -137,6 +163,15 @@ public class AgentManagementOntology {
     private String negotiableProperties;
     private String communicationProperties;
 
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>service-descriptor</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>ServiceDescriptor</code> object,
+       initialized from stream data.
+     */
     public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseServiceDescriptor(r);
     }
@@ -189,8 +224,12 @@ public class AgentManagementOntology {
       return communicationProperties;
     }
 
-    // Convert a service description object to characters text
-
+    /**
+       Writes an object to a stream. This method writes a
+       <code>service-descriptor</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( " + TITLE);
@@ -219,22 +258,12 @@ public class AgentManagementOntology {
 
 
 
-  /************************************************************************
-
-    Name: AMSAgentDescriptor
-
-    Responsibilities and Collaborations:
-
-    + Provide platform-level support to AMS agent, holding all
-      informations needed by 'AMS-agent-description' objects in
-      'fipa-agent-management' ontology.
-      (ams)
-
-    + Represent the information above as an object, to avoid scattering
-      parsing code throughout applications.
-      (AgentManagementParser)
-
-  ************************************************************************/
+  /**
+     Model of AMS agent descriptors. This class provides platform-level
+     support to <em>AMS</em> agent, holding all informations needed by
+     <code>AMS-agent-description</code> objects in
+     <code>fipa-agent-management</code> ontology.
+  */
   public static class AMSAgentDescriptor implements Serializable {
 
     // These String constants are the keywords in
@@ -258,7 +287,15 @@ public class AgentManagementOntology {
     private String forwardAddress;
     private String ownership;
 
-
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>AMS-agent-description</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>AMSAgentDescriptor</code> object,
+       initialized from stream data.
+     */
     public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSDescriptor(r);
     }
@@ -332,8 +369,12 @@ public class AgentManagementOntology {
       return ownership;
     }
 
-    // Print out AMS descriptor
-
+    /**
+       Writes an object to a stream. This method writes a
+       <code>AMS-agent-descriptor</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
 
       AgentManagementOntology o = AgentManagementOntology.instance();
@@ -368,22 +409,12 @@ public class AgentManagementOntology {
   } // End of AMSAgentDescriptor class
 
 
-  /************************************************************************
-
-    Name: DFAgentDescriptor
-
-    Responsibilities and Collaborations:
-
-    + Provide platform-level support to DF agent, holding all
-      informations needed by 'DF-agent-description' objects in
-      'fipa-agent-management' ontology.
-      (df)
-
-    + Represent the information above as an object, to avoid scattering
-      parsing code throughout applications.
-      (AgentManagementParser)
-
-  ************************************************************************/
+  /**
+    Models a DF agent descriptor.  This class provides platform-level
+    support to <em>DF</em> agent, holding all informations needed by
+    <code>DF-agent-description</code> objects in
+    <code>fipa-agent-management</code> ontology.
+  */
   public static class DFAgentDescriptor {
 
     // These String constants are the keywords in
@@ -409,7 +440,15 @@ public class AgentManagementOntology {
     private String ownership;
     private String DFState;
 
-
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>DF-agent-descriptor</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>DFAgentDescriptor</code> object,
+       initialized from stream data.
+     */
     public static DFAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseDFDescriptor(r);
     }
@@ -490,6 +529,12 @@ public class AgentManagementOntology {
       return DFState;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>DF-agent-descriptor</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	Enumeration e = null;
@@ -544,7 +589,11 @@ public class AgentManagementOntology {
 
   } // End of DFAgentDescriptor class
 
-
+  /**
+     Models a DF search constraint. This class is used as a
+     <code>constraint</code> within parameters of a
+     <code>search</code> <em>DF</em> action.
+  */
   public static class Constraint {
 
     public static final String DFDEPTH = ":df-depth";
@@ -585,6 +634,16 @@ public class AgentManagementOntology {
   } // End of Constraint class
 
 
+  /**
+    Models the result set of a <code>search</code> <em>DF</em>
+    action. This class is used to hold a set of
+    <code>DFAgentDescriptor</code> objects, that is the result of a
+    previous query to a <em>DF</em> agent. When such a query succeeds,
+    a <code>DFSearchResult</code> object allows both access to agent
+    descriptor by name and iteration through the result set. If the
+    query failed, a <code>FIPAException</code> is thrown as soon as
+    data access is attempted.
+  */
   public static class DFSearchResult {
 
     private Hashtable results = new Hashtable();
@@ -593,6 +652,15 @@ public class AgentManagementOntology {
     // 'null', all went OK.
     private FIPAException searchOutcome = null;
 
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>DFSearchResult</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>DFSearchResult</code> object,
+       initialized from stream data.
+     */
     public static DFSearchResult fromText(Reader r) throws ParseException {
       AgentManagementOntology o = AgentManagementOntology.instance();
       DFSearchResult dfsr;
@@ -616,6 +684,12 @@ public class AgentManagementOntology {
       searchOutcome = fe;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>DFSearchResult</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) throws FIPAException {
       if(searchOutcome != null)
 	throw searchOutcome;
@@ -656,13 +730,22 @@ public class AgentManagementOntology {
 
   } // End of DFSearchResult class
 
-
+  /**
+     Generic property-based interface. This interface allows to
+     describe <em>JADE</em> specific concepts (such as agent
+     containers) as string proerties.
+  */
   public static interface PropertyContainer {
     void addProperty(String name, String value);
     String getProperty(String name);
     void removeProperty(String name);
   }
 
+  /**
+    Generic interface for actions. This interface is implemented by
+    all classes representing actions described in
+    <code>fipa-agent-management</code> ontology.
+  */
   public static interface Action {
     void setName(String name);
     String getName();
@@ -672,6 +755,14 @@ public class AgentManagementOntology {
 
   }
 
+  /**
+    Model of <em>AMS</em> actions. This class represent all the
+    actions that an <em>AMS</em> agent can perform. Since most of
+    these actions have the same parameters, there is no need to have a
+    separate subclass for each one of them. Only peculiar actions such
+    as <code>create-agent</code> will be represented as a specific
+    subclass.
+  */
   public static class AMSAction implements Action {
 
     // These String constants are the names of the actions supported
@@ -691,7 +782,15 @@ public class AgentManagementOntology {
     protected String actor;
     protected AMSAgentDescriptor arg;
 
-
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>AMSAction</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>AMSAction</code> object,
+       initialized from stream data.
+     */
     public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSAction(r);
     }
@@ -724,6 +823,12 @@ public class AgentManagementOntology {
       return arg;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>AMSAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + actor + " ");
@@ -742,7 +847,9 @@ public class AgentManagementOntology {
 
   } // End of AMSAction class
 
-
+  /**
+   Models <code>kill-container</code> <em>AMS</em> action.
+  */
   public static class KillContainerAction extends AMSAction {
 
     private String containerName;
@@ -759,6 +866,12 @@ public class AgentManagementOntology {
       return containerName;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>KillContainerAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + actor + " ");
@@ -775,6 +888,9 @@ public class AgentManagementOntology {
 
   } // End of KillContainerAction class
 
+  /**
+    Models <code>create-agent</code> <em>AMS</em> action.
+  */
   public static class CreateAgentAction extends AMSAction implements PropertyContainer {
 
     public static final String AGENTCODE = ":agent-code";
@@ -809,6 +925,12 @@ public class AgentManagementOntology {
       agentProperties.remove(name.toLowerCase());
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>CreateAgentAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + getActor() + " ");
@@ -837,6 +959,9 @@ public class AgentManagementOntology {
 
   }
 
+  /**
+    Models <code>kill-agent</code> <em>AMS</em> action.
+  */
   public static class KillAgentAction extends AMSAction {
 
     public static final String AGENTNAME = ":agent-name";
@@ -865,6 +990,12 @@ public class AgentManagementOntology {
       return password;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>KillAgentAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + getActor() + " ");
@@ -883,7 +1014,7 @@ public class AgentManagementOntology {
 
   }
 
-  public static abstract class AMSEvent {
+  static abstract class AMSEvent {
 
     public static final int NEWCONTAINER = 0;
     public static final int DEADCONTAINER = 1;
@@ -910,7 +1041,7 @@ public class AgentManagementOntology {
 
   }
 
-  public static class AMSContainerEvent extends AMSEvent {
+  static class AMSContainerEvent extends AMSEvent {
 
     private String containerName;
 
@@ -934,7 +1065,7 @@ public class AgentManagementOntology {
 
   }
 
-  public static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
+  static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
 
     private AMSAgentDescriptor agentDescriptor;
 
@@ -983,6 +1114,14 @@ public class AgentManagementOntology {
 
   }
 
+  /**
+    Model of <em>DF</em> actions. This class represent all the
+    actions that a <em>DF</em> agent can perform. Since most of
+    these actions have the same parameters, there is no need to have a
+    separate subclass for each one of them. Only peculiar actions such
+    as <code>search</code> will be represented as a specific
+    subclass.
+  */
   public static class DFAction implements Action {
 
     // These String constants are the names of the actions supported
@@ -999,7 +1138,15 @@ public class AgentManagementOntology {
     private String actor;
     private DFAgentDescriptor arg;
 
-
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>DFAction</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>DFAction</code> object,
+       initialized from stream data.
+     */
     public static DFAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseDFAction(r);
     }
@@ -1028,6 +1175,12 @@ public class AgentManagementOntology {
       return arg;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>DFAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + actor + " ");
@@ -1046,6 +1199,9 @@ public class AgentManagementOntology {
 
   } // End of DFAction class
 
+  /**
+   Models <em>DF</em> <code>search</code> action.
+  */
   public static class DFSearchAction extends DFAction {
 
     private Vector constraints = new Vector();
@@ -1067,6 +1223,12 @@ public class AgentManagementOntology {
       return constraints.elements();
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>DFSearchAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	Constraint c = null;
@@ -1093,6 +1255,13 @@ public class AgentManagementOntology {
 
   } // End of DFSearchAction class
 
+
+  /**
+    Model of <em>ACC</em> actions. This class represent all the
+    actions that an <em>ACC</em> agent can perform. Since most of
+    these actions have the same parameters, there is no need to have a
+    separate subclass for each one of them.
+  */
   public static class ACCAction implements Action {
     public static final String FORWARD = "forward";
     static final String ARGNAME = "";
@@ -1106,6 +1275,15 @@ public class AgentManagementOntology {
       actor = "acc";
     }
 
+    /**
+       Reads an object from a stream. This static <em>Factory
+       Method</em> recovers a <code>ACCAction</code> object
+       from a readable stream.
+       @param r The <code>Reader</code> containing a string
+       representation for this object.
+       @return A new <code>ACCAction</code> object,
+       initialized from stream data.
+     */
     public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseACCAction(r);
     }
@@ -1134,6 +1312,12 @@ public class AgentManagementOntology {
       return arg;
     }
 
+    /**
+       Writes an object to a stream. This method writes a
+       <code>ACCAction</code> object on a writable stream.
+       @param w The <code>Writer</code> object onto which a string
+       representation of this object will be written.
+    */
     public void toText(Writer w) {
       try {
 	w.write("( action " + actor + " ");
@@ -1151,6 +1335,10 @@ public class AgentManagementOntology {
   } // End of ACCAction class
 
 
+  /**
+     This class contains string constants for Agent Platform Life
+     Cycle states.
+  */
   public static class APLifeCycle {
 
     // These String constants are the states of AP Life-Cycle
@@ -1170,6 +1358,10 @@ public class AgentManagementOntology {
   } // End of APLifeCycle class
 
 
+  /**
+     This class contains string constants for Domain Life Cycle
+     states.
+  */
   public static class DomainLifeCycle {
 
     // These String constants are the states of Domain Life-Cycle
@@ -1187,7 +1379,10 @@ public class AgentManagementOntology {
 
   } // End of DomainLifeCycle class
 
-
+  /**
+     This class contains the string constants for Agent Platform
+     Profile.
+  */
   public static class PlatformProfile {
 
     // These String constants are the keywords in
@@ -1211,7 +1406,7 @@ public class AgentManagementOntology {
   } // End of PlatformProfile class
 
 
-  public static class ServiceTypes {
+  static class ServiceTypes {
 
     // These String constants are the names of FIPA special services
     static final String FIPADF = "fipa-df";
@@ -1225,7 +1420,10 @@ public class AgentManagementOntology {
 
   } // End of ServiceTypes class
 
-
+  /**
+     This class contains string constants for <em><b>FIPA</b></em>
+     standard exception names.
+  */
   public static class Exception {
 
     // These String constants are the names of all
@@ -1384,8 +1582,12 @@ public class AgentManagementOntology {
   };
 
 
-  // Static method to obtain an handle to the single instance of
-  // AgentManagementOntology class
+  /**
+     Get <em>Singleton</em> object for
+     <code>fipa-agent-management</code> ontology.  Static <em>Factory
+     Method</em> to obtain an handle to the single instance of
+     <code>AgentManagementOntology</code> class.
+  */
   public static final AgentManagementOntology instance() {
 
     // Double-Checked Locking initialization
@@ -1405,34 +1607,34 @@ public class AgentManagementOntology {
   // content
 
   // Check that 'keyword' is a valid 'FIPA-DF-description' keyword
-  public boolean isValidDFADKeyword(String keyword) {
+  boolean isValidDFADKeyword(String keyword) {
     return DFAgentDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-AP-description' keyword
-  public boolean isValidPPKeyword(String keyword) {
+  boolean isValidPPKeyword(String keyword) {
     return PlatformProfile.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-Service-Desc-Item' keyword
-  public boolean isValidSDKeyword(String keyword) {
+  boolean isValidSDKeyword(String keyword) {
     return ServiceDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-AMS-description' keyword
-  public boolean isValidAMSADKeyword(String keyword) {
+  boolean isValidAMSADKeyword(String keyword) {
     return AMSAgentDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'message' is a valid 'AgentManagementException' error
   // message
-  public boolean isValidException(String message) {
+  boolean isValidException(String message) {
     return Exception.JavaExceptions.containsKey(message);
   }
 
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' AMS action
-  public boolean isMandatoryForAMS(String actionName, String attributeName) {
+  boolean isMandatoryForAMS(String actionName, String attributeName) {
     Integer actionIndex = (Integer)AMSAction.actions.get(actionName);
     Integer attributeIndex = (Integer)AMSAgentDescriptor.keywords.get(attributeName);
     return AMSMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
@@ -1440,7 +1642,7 @@ public class AgentManagementOntology {
 
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' DF action
-  public boolean isMandatoryForDF(String actionName, String attributeName) {
+  boolean isMandatoryForDF(String actionName, String attributeName) {
     Integer actionIndex = (Integer)DFAction.actions.get(actionName);
     Integer attributeIndex = (Integer)DFAgentDescriptor.keywords.get(attributeName);
     return DFMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
@@ -1449,7 +1651,11 @@ public class AgentManagementOntology {
 
   // Lookup methods to convert between different data representations
 
-  // Return the Java exception corresponding to a given message
+   /**
+      Access a standard <b><em>FIPA</em></b> exception by name.
+      @param message The name of the exception.
+      @return the Java exception corresponding to a given message.
+   */
   public FIPAException getException(String message) {
     FIPAException fe = (FIPAException)Exception.JavaExceptions.get(message);
     if(fe == null)
@@ -1458,6 +1664,14 @@ public class AgentManagementOntology {
     return fe;
   }
 
+  /**
+     Reads a standard <em><b>FIPA</b></em> exception from a readable
+     stream.
+     @param r a <code>Reader</code> object, containing a string
+     representation of a <em><b>FIPA</b></em> exception.
+     @return A <code>FIPAException</code> object, whose string
+     representation was contained in the given stream.
+  */
   public FIPAException getException(Reader r) {
     FIPAException fe = null;
     try {
@@ -1474,14 +1688,25 @@ public class AgentManagementOntology {
     return fe;
   }
 
-  // Return the number code of a given AP Life-Cycle state
+  /**
+     Converts standard Agent Platform Life Cycle states names to
+     <b>JADE</b> specific codes.
+     @param name The state name.
+     @return The number code of a given Agent Platform Life-Cycle
+     state.
+  */
   public int getAPStateByName(String name) throws FIPAException {
     Integer i = (Integer)APLifeCycle.states.get(name);
     if(i == null) throw getException(Exception.UNRECOGNIZEDVALUE);
     return i.intValue();
   }
 
-  // Return the name of the AP Life-Cycle state of a given code
+  /**
+     Converts <b>JADE</b> specific codes to standard Agent Platform
+     Life Cycle states.
+     @param code The code of a state.
+     @return The standard name for that state.
+  */
   public String getAPStateByCode(int code) throws FIPAException {
     switch(code) {
     case Agent.AP_INITIATED:
@@ -1499,14 +1724,24 @@ public class AgentManagementOntology {
     }
   }
 
-  // Return the number code of a given Domain Life-Cycle state
+  /**
+     Converts standard Domain Life Cycle states names to <b>JADE</b>
+     specific codes.
+     @param name The state name.
+     @return The number code of a given Domain Life-Cycle state.
+  */
   public int getDomainStateByName(String name) throws FIPAException {
     Integer i = (Integer)DomainLifeCycle.states.get(name);
     if(i == null) throw getException(Exception.UNRECOGNIZEDVALUE);
     return i.intValue();
   }
 
-
+  /**
+     Converts <b>JADE</b> specific codes to standard Domain Life Cycle
+     states.
+     @param code The code of a state.
+     @return The standard name for that state.
+  */
   public String getDomainStatebyCode(int code) throws FIPAException {
     switch(code) {
     case Agent.D_ACTIVE:
