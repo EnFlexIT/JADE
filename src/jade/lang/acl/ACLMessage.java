@@ -228,6 +228,14 @@ private int performative; // keeps the performative type of this object
   private Properties userDefProps = new Properties();
 
   /**
+  Returns the list of the communicative acts.
+  */
+  public static List getAllPerformatives()
+  {
+  	return performatives;
+  }
+  
+  /**
      @deprecated Since every ACL Message must have a message type, you
      should use the new constructor which gets a message type as a
      parameter.  To avoid problems, now this constructor silently sets
