@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.18  1998/11/05 23:36:31  rimassa
+  Added a deregisterRMABehaviour to listen to 'cancel' messages from
+  registered Remote Management Agents.
+
   Revision 1.17  1998/11/03 00:37:33  rimassa
   Added AMS event notification to the Remote Management Agent. Now the
   AMS picks up AgentPlatform events from synchronized buffers and
@@ -385,6 +389,44 @@ public class ams extends Agent {
 
   } // End of RegisterRMABehaviour class
 
+  private class DeregisterRMABehaviour extends CyclicBehaviour {
+
+    private MessageTemplate cancellationTemplate;
+
+    DeregisterRMABehaviour() {
+
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage("SL");
+      MessageTemplate mt2 = MessageTemplate.MatchOntology("jade-agent-management");
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+
+      mt1 = MessageTemplate.MatchReplyWith("RMA-cancellation");
+      mt2 = MessageTemplate.MatchType("cancel");
+      cancellationTemplate = MessageTemplate.and(mt1, mt2);
+      cancellationTemplate = MessageTemplate.and(cancellationTemplate, mt12);
+
+    }
+
+    public void action() {
+
+      // Receive 'cancel' ACL messages.
+      ACLMessage current = receive(cancellationTemplate);
+      if(current != null) {
+	// FIXME: Should parse 'iota ?x ...'
+
+	// Send back the whole container list.
+
+	// Add the new RMA to RMAs agent group.
+	RMAs.removeMember(current.getSource());
+
+      }
+      else
+	block();
+
+    }
+
+  } // End of DeregisterRMABehaviour class
+
+
   private class NotifyRMAsBehaviour extends CyclicBehaviour {
 
     private void processNewContainers() {
@@ -560,13 +602,17 @@ public class ams extends Agent {
   // Maintains an association between action names and behaviours
   private FipaRequestServerBehaviour dispatcher;
 
-  // Behaviour to listen to incomin 'subscribe' messages from Remote
+  // Behaviour to listen to incoming 'subscribe' messages from Remote
   // Management Agents.
   private RegisterRMABehaviour registerRMA;
 
   // Behaviour to broadcats AgentPlatform notifications to each
   // registered Remote Management Agent.
   private NotifyRMAsBehaviour notifyRMAs;
+
+  // Behaviour to listen to incoming 'cancel' messages from Remote
+  // Management Agents.
+  private DeregisterRMABehaviour deregisterRMA;
 
   // Group of Remote Management Agents registered with this AMS
   private AgentGroup RMAs;
@@ -589,6 +635,7 @@ public class ams extends Agent {
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
     dispatcher = new FipaRequestServerBehaviour(this, mt);
     registerRMA = new RegisterRMABehaviour();
+    deregisterRMA = new DeregisterRMABehaviour();
     notifyRMAs = new NotifyRMAsBehaviour();
 
     RMAs = new AgentGroup();
@@ -620,6 +667,7 @@ public class ams extends Agent {
     // Add a Behaviour to accept incoming RMA registrations and a
     // Behaviour to broadcast events to registered RMAs.
     addBehaviour(registerRMA);
+    addBehaviour(deregisterRMA);
     addBehaviour(notifyRMAs);
 
   }
