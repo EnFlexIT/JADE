@@ -211,6 +211,12 @@ public class MessageTransportProtocol implements MTP {
       IIOPAddress iiopAddr = (IIOPAddress)ta;
       FIPA.MTS objRef = iiopAddr.getObject();
 
+      // verifies if the server object really exists (useful if the IOR is
+      // valid, i.e corresponds to a good object) (e.g. old IOR)
+      // FIXME. To check if this call slows down performance
+      if (objRef._non_existent()) 
+        throw new MTPException("Bad IIOP server object reference:"+objRef.toString());
+
       // Fill in the 'to' field of the IDL envelope
       Iterator itTo = env.getAllTo();
       List to = new ArrayList();
