@@ -21,48 +21,39 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.domain.JADEAgentManagement;
 
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
-
-import jade.core.AID;
 import jade.core.ContainerID;
 import jade.content.onto.*;
 import jade.content.schema.*;
-import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPAAgentManagement.ExceptionOntology;
+import jade.domain.FIPAAgentManagement.NotRegistered;
 
 /**
-   This class represents the ontology
-   <code>jade-agent-management</code>, containing all JADE extensions
-   related to agent management. There is only a single instance of
-   this class.
+   This class represents the JADE-Agent-Management-ontology i.e. the set of
+   concepts, actions and predicates that relates to the JADE specific
+   actions that can be requested to the JADE AMS and DF.
    <p>
-   The package contains one class for each element in the ontology.
-   <p>
+   The actual <code>Ontology</code> object representing the 
+   JADE-Agent-Management-ontology is a singleton and is accessible through 
+   the static method <code>getInstance()</code>
    @author Giovanni Caire -  TILAB
-*/
+ */
 public class JADEManagementOntology extends Ontology implements JADEManagementVocabulary {
  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new JADEManagementOntology();
 	
   /**
-     This method grants access to the unique instance of the
-     ontology.
-     @return An <code>Ontology</code> object, containing the concepts
-     of the ontology.
+     This method returns the unique instance (according to the singleton 
+     pattern) of the JADE-Agent-Management-ontology.
+     @return The singleton <code>Ontology</code> object, containing the 
+     schemas for the elements of the JADE-Agent-Management-ontology.
   */
 	public static Ontology getInstance() {
 		return theInstance;
 	}
 	
-  /**
-   * Constructor
-   */
   private JADEManagementOntology() {
     //#MIDP_EXCLUDE_BEGIN
   	super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
@@ -94,14 +85,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new AgentActionSchema(QUERY_PLATFORM_LOCATIONS), QueryPlatformLocationsAction.class);
 
     	// Predicates definitions
-    	add(new PredicateSchema(UNSUPPORTEDVALUE), UnsupportedValue.class);
-    	add(new PredicateSchema(UNRECOGNISEDVALUE), UnrecognisedValue.class);
-    	add(new PredicateSchema(UNSUPPORTEDFUNCTION), UnsupportedFunction.class);
-    	add(new PredicateSchema(MISSINGPARAMETER), MissingParameter.class);
-    	add(new PredicateSchema(UNEXPECTEDPARAMETER), UnexpectedParameter.class);
-    	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE), UnrecognisedParameterValue.class);
     	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
-    	add(new PredicateSchema(INTERNALERROR), jade.domain.FIPAAgentManagement.InternalError.class);
     	//#MIDP_EXCLUDE_END
     	
 			/*#MIDP_INCLUDE_BEGIN    	
@@ -186,35 +170,10 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	as.add(DEBUGOFF_PASSWORD, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
     	
     	as = (AgentActionSchema)getSchema(WHEREISAGENT);
-		as.add(WHEREISAGENT_AGENTIDENTIFIER, (ConceptSchema)getSchema(BasicOntology.AID));
+			as.add(WHEREISAGENT_AGENTIDENTIFIER, (ConceptSchema)getSchema(BasicOntology.AID));
     
     	as = (AgentActionSchema)getSchema(QUERYAGENTSONLOCATION);
-    	as.add(QUERYAGENTSONLOCATION_LOCATION, (ConceptSchema)getSchema(LOCATION));
-    	
-		PredicateSchema ps = (PredicateSchema) getSchema(UNSUPPORTEDVALUE);
-    	ps.add(UNSUPPORTEDVALUE_VALUE, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(UNRECOGNISEDVALUE);
-    	ps.add(UNRECOGNISEDVALUE_VALUE, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(UNSUPPORTEDFUNCTION);
-    	ps.add(UNSUPPORTEDFUNCTION_FUNCTION, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(MISSINGPARAMETER);
-    	ps.add(MISSINGPARAMETER_OBJECT_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	ps.add(MISSINGPARAMETER_PARAMETER_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(UNEXPECTEDPARAMETER);
-    	ps.add(UNEXPECTEDPARAMETER_OBJECT_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	ps.add(UNEXPECTEDPARAMETER_PARAMETER_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(UNRECOGNISEDPARAMETERVALUE);
-    	ps.add(UNRECOGNISEDPARAMETERVALUE_OBJECT_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	ps.add(UNRECOGNISEDPARAMETERVALUE_PARAMETER_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
-    	
-		ps = (PredicateSchema) getSchema(INTERNALERROR);
-    	ps.add(INTERNALERROR_MESSAGE, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
-
+    	as.add(QUERYAGENTSONLOCATION_LOCATION, (ConceptSchema)getSchema(LOCATION));    	
     }
     catch(OntologyException oe) {
       oe.printStackTrace();

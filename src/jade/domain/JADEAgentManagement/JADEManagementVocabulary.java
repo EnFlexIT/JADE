@@ -1,24 +1,44 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 package jade.domain.JADEAgentManagement;
 
-public interface JADEManagementVocabulary {
-	
-	 /**
+import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
+
+public interface JADEManagementVocabulary extends ExceptionVocabulary {	
+	/**
     A symbolic constant, containing the name of this ontology.
    */
   public static final String NAME = "JADE-Agent-Management";
 
-  public static final String AGENTIDENTIFIER = "agent-identifier";
-  
   // Concepts
-  public static final String CONTAINERID = "container-ID";
-  public static final String CONTAINERID_NAME = "name";
-  public static final String CONTAINERID_ADDRESS = "address";
-  
   public static final String LOCATION = "location";
   public static final String LOCATION_NAME = "name";
   public static final String LOCATION_ADDRESS = "address";
   public static final String LOCATION_PROTOCOL = "protocol";
 
+  public static final String CONTAINERID = "container-ID";
+  
   // Actions supported by the ams
   public static final String QUERYAGENTSONLOCATION = "query-agents-on-location";
   public static final String QUERYAGENTSONLOCATION_LOCATION = "location";
@@ -78,28 +98,4 @@ public interface JADEManagementVocabulary {
 
   // Exception Predicates
   public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.NOTREGISTERED;
-  
-  public static final String INTERNALERROR = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.INTERNALERROR;
-  public static final String INTERNALERROR_MESSAGE = "_0";
-
-  public static final String UNSUPPORTEDVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNSUPPORTEDVALUE;
-  public static final String UNSUPPORTEDVALUE_VALUE = "_0";
-
-  public static final String UNRECOGNISEDVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNRECOGNISEDVALUE;
-  public static final String UNRECOGNISEDVALUE_VALUE = "_0";
-
-  public static final String UNSUPPORTEDFUNCTION = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNSUPPORTEDFUNCTION;
-  public static final String UNSUPPORTEDFUNCTION_FUNCTION = "_0";
-
-  public static final String MISSINGPARAMETER = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.MISSINGPARAMETER;
-  public static final String MISSINGPARAMETER_OBJECT_NAME = "_0";
-  public static final String MISSINGPARAMETER_PARAMETER_NAME = "_1";
-
-  public static final String UNEXPECTEDPARAMETER = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNEXPECTEDPARAMETER;
-  public static final String UNEXPECTEDPARAMETER_OBJECT_NAME = "_0";
-  public static final String UNEXPECTEDPARAMETER_PARAMETER_NAME = "_1";
-
-  public static final String UNRECOGNISEDPARAMETERVALUE = jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.UNRECOGNISEDPARAMETERVALUE;
-  public static final String UNRECOGNISEDPARAMETERVALUE_OBJECT_NAME = "_0";
-  public static final String UNRECOGNISEDPARAMETERVALUE_PARAMETER_NAME = "_1";
 }
