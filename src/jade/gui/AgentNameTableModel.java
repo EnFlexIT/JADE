@@ -86,38 +86,26 @@ class AgentNameTableModel extends AbstractTableModel
 
 	public Object getValueAt(int row, int column)
 	{
-		return names.elementAt(row);
-		
-		/*String value, completeName, localName, address;
-		value = new String("");
-		completeName = (String) names.get(row);
-    		int atPos = completeName.indexOf('@');
-    		if(atPos != -1)
-		{ 
-			localName = completeName.substring(0, atPos);
-			address = completeName.substring(atPos + 1);
-		}
-		else
-		{
-			localName = completeName;
-			address = null;
-		}
-		switch(column)
-		{
-		case 0:
-			value = new String(localName);
-			break;
-		case 1:
-			if (address != null)
-			{
-			    value = "STUB";
-			}
-			break;
-		case 2:
-			if (address != null)
-				value = new String(address);
-			break;
-		}
-		return ((Object) value);*/	
+		AID aid=getElementAt(row);
+		String out = new String();
+		switch (column) {
+		  case 0:  out = aid.getName(); break;
+		  case 1:  for ( Iterator i=aid.getAllAddresses(); i.hasNext(); )
+		  	         try{
+		  	         	out = out+(String)i.next()+" "; 
+		  	         }catch(Exception e){
+		  	         	e.printStackTrace();
+		  	         out = " ";
+		  	         }
+		  	      break;
+		  case 2:  for ( Iterator i=aid.getAllResolvers(); i.hasNext(); )
+		  	         try{
+		  	         	out = out+((AID)i.next()).getName()+" "; 
+		  	         }catch(Exception e1){
+		  	         	e1.printStackTrace();
+		  	          out = " ";
+		  	         }
+		  	      break;		}
+		return out;
 	}
 }
