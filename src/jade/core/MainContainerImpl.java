@@ -244,7 +244,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// Notify the AMS about the main container existence
 	fireAddedContainer(cid);
-	fireChangedContainerPrincipal(cid, null, cp);
+	// FIXME: where do we get the container ownership?
+	fireChangedContainerPrincipal(cid, null, null);
 
 	// Start the Default DF
 	defaultDF = new df();
@@ -643,18 +644,11 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     /**
        Kill an agent wherever it is
     */
-    public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-
-	// --- This code should go into the Security Service ---
-
-	// Check permissions
-	//authority.checkAction(Authority.CONTAINER_KILL_IN, getPrincipal(getContainerID(agentID)), null);
-	//authority.checkAction(Authority.AGENT_KILL, getPrincipal(agentID), null);
-
-	// --- End of code that should go into the Security Service ---
-
+    public void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, AuthException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_KILL, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
+  cmd.setPrincipal(requesterPrincipal);
+  cmd.setCredentials(requesterCredentials);
 
 	Object ret = myCommandProcessor.processOutgoing(cmd);
   if (ret != null) {
@@ -1657,11 +1651,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-  private void fireChangedContainerPrincipal(ContainerID cid, JADEPrincipal from, JADEPrincipal to) {
-  	if (from == null) {
-                // TOFIX
-  		from = new DummyPrincipal(cid, JADEPrincipal.NONE); //authority.createContainerPrincipal(cid, JADEPrincipal.NONE);
-  	}
+  private void fireChangedContainerPrincipal(ContainerID cid, String from, String to) {
     PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_CONTAINER_PRINCIPAL, null, cid, from, to);
     for (int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
@@ -1670,7 +1660,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
   private void fireBornAgent(ContainerID cid, AID agentID, String ownership) {
-    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, null);
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, ownership);
 
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
@@ -1723,10 +1713,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, JADEPrincipal from, JADEPrincipal to) {
-      if (from == null) {
-	  from = new DummyPrincipal(agentID, JADEPrincipal.NONE);//authority.createAgentPrincipal(agentID, JADEPrincipal.NONE);
-      }
+  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, String from, String to) {
       PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_AGENT_PRINCIPAL, agentID, cid, from, to);
 
       for (int i = 0; i < platformListeners.size(); i++) {

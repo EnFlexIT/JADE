@@ -68,10 +68,11 @@ import jade.security.Credentials;
 
    @author Giovanni Rimassa - Universita' di Parma
    @author Jerome Picault - Motorola Labs
+   @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
 
 */
-public class AgentContainerImpl implements AgentContainer, AgentToolkit {
+class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
   // Local agents, indexed by agent name
@@ -201,8 +202,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				// Do as if it was a remote call from the main to allows 
 				// security checks to take place if needed
 				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
-				// FIXME: set Principal and Credentials 
-				target.killAgent(id);
+				target.killAgent(id, dummyCmd);
 			}
 			
 			public void moveAgent(AID id, Location where) throws Throwable {
@@ -718,7 +718,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void handleEnd(AID agentID) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
-			// No security check is meaningful on this action --> don't even set the Credentials
+      // Set the credentials of the terminating agent
+      initCredentials(cmd, agentID);
       
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
@@ -829,7 +830,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return myProfile.getParameter(key, aDefault);
   }
 
-  //#MIDP_EXCLUDE_BEGIN
   public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
       try {
 
@@ -845,7 +845,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  throw new ServiceException(" ServiceHelper could not be created for: " + serviceName, imtpe);
       }
   }
-  //#MIDP_EXCLUDE_END
 
 
   // Private and package scoped methods

@@ -39,7 +39,6 @@ import jade.security.Credentials;
 
 interface AgentToolkit {
   Location here();
-  //void handleStart(String localName, Agent instance);
   void handleEnd(AID agentID);
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
   void handleSend(ACLMessage msg, AID sender);
@@ -50,9 +49,7 @@ interface AgentToolkit {
   void handleBehaviourAdded(AID agentID, Behaviour b);
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
-  //void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
 
-  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
   Authority getAuthority();
 
   // FIXME: Needed due to the Persistence Service being an add-on
@@ -62,6 +59,8 @@ interface AgentToolkit {
 
   jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials);
   //#MIDP_EXCLUDE_END
+  
+  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
 
   void setPlatformAddresses(AID id);
   AID getAMS();

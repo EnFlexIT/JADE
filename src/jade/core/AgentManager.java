@@ -94,7 +94,7 @@ public interface AgentManager {
      * @throws AuthException if this action is not authorized
      **/
   void create(String agentName, String className, String arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, AuthException, NotFoundException, NameClashException;
-  void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
+  void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, AuthException;
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
