@@ -250,7 +250,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
 	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
 					myPlatform.create(agentName, className, args, container, ownership, agentCerts);
 					return null;
 		    }
@@ -268,6 +268,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		}
 		catch (NotFoundException nfe) {
 	    throw new InternalError("Destination container notfound. "+nfe.getMessage());
+		}
+		catch (NameClashException nce) {
+		    throw new AlreadyRegistered();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
