@@ -97,7 +97,7 @@ public abstract class EndPoint extends Thread {
   	terminator = Thread.currentThread();
   	if ((terminator != this) && !(terminator instanceof IncomingHandler)) {
   		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO), null);
-  		log("Pushing termination notification");
+  		log("Pushing termination notification", 2);
   		push((byte) 0, pkt);
   	} 		
   }
@@ -168,6 +168,7 @@ public abstract class EndPoint extends Thread {
           		// The remote EndPoint has terminated as a consequence
           		// of a command issued by the local peer --> 
           		// just close the connection and exit
+          		log("Last response received. Close connection", 2);
           		shutdown();
           		resetConnection();
           	}
@@ -195,6 +196,7 @@ public abstract class EndPoint extends Thread {
   		if (connected) {
   			try {
   				if (Thread.currentThread() == terminator) {
+  					log("Setting TERMINATED_INFO", 2);
   					pkt.setTerminatedInfo();
   				}
 			    // Write the session id and the packet
@@ -326,7 +328,7 @@ public abstract class EndPoint extends Thread {
 	    int size = push(myId, cmd);
     	if (size == -1) {  	
     		// We are disconnected --> Deregister and throw an Exception
-    		log("WARNING: Can't push command. OUT-SID="+myId, 0);
+    		log("WARNING: Can't push command. OUT-SID="+myId, 1);
     		deregisterOutgoing(myId);
     		throw new ICPException("Disconnected");
     	}
@@ -354,7 +356,7 @@ public abstract class EndPoint extends Thread {
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down
-          	log("Response timeout expired. Reset the connection", 2);
+          	log("Response timeout expired. Reset the connection", 1);
           	resetConnection();
           	break;
           }

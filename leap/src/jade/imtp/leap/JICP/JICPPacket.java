@@ -35,6 +35,7 @@
 package jade.imtp.leap.JICP;
 
 import java.io.*;
+import jade.util.Logger;
 
 /**
  * This class is the JICP data packet representation along
@@ -224,7 +225,11 @@ class JICPPacket {
       if (data != null) {
 	      // Size
       	int size = data.length;
-      	out.writeInt(size);
+      	// Work-around to avoid bug in readInt() 
+      	out.writeByte((byte) (size & 0x000000ff));
+      	out.writeByte((byte) ((size >> 8) & 0x000000ff));
+      	//Logger.println("W Size is "+size+". MSB is "+(byte) ((size >> 8) & 0x000000ff)+". LSB is "+(byte) (size & 0x000000ff));
+      	//out.writeInt(size);
       	// Payload
       	if (size > 0) {
         	out.write(data, 0, size);
@@ -265,7 +270,12 @@ class JICPPacket {
 
     // Read data if present
     if ((p.dataInfo & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	int size = in.readInt();
+    	//int size = in.readInt();
+      // Work-around to avoid bug in readInt() 
+    	int b1 = in.readByte();
+    	int b2 = in.readByte();
+    	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+      //Logger.println("R Size is "+size+". MSB is "+(byte) b2+". LSB is "+(byte) b1);
     	if (size == 0) {
       	p.data = new byte[0];
     	} 
