@@ -17,7 +17,7 @@ import jade.core.*;
     (Interaction)
 
 ****************************************************************/
-public class ProtocolDrivenBehaviour implements Behaviour {
+public class ProtocolDrivenBehaviour extends SimpleBehaviour {
 
   private boolean starting = true;
   private boolean finished = false;
@@ -62,7 +62,7 @@ public class ProtocolDrivenBehaviour implements Behaviour {
   // message of a given CA, invokes the message handler and advances
   // interaction state corresponding to message destination.
 
-  public void execute() {
+  public void action() {
 
     if(starting) {
 
