@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.12  1998/11/03 00:33:43  rimassa
+  Complete implementation of a class hierarchy for AMS events; now each
+  AMS event has set()/get() methods for all its fields and a couple of
+  fromText()/toText() methods to convert it to and from strings.
+
   Revision 1.11  1998/11/02 01:59:41  rimassa
   Added inner classes to represent AMS notifications of various events
   (container creation and deletion, new agents, ecc.).
@@ -653,22 +658,26 @@ public class AgentManagementOntology {
 
   public static abstract class AMSEvent {
 
-    public static final String NEWCONTAINER = "new-container";
-    public static final String DEADCONTAINER = "dead-container";
-    public static final String NEWAGENT = "new-agent";
-    public static final String DEADAGENT = "dead-agent";
+    public static final int NEWCONTAINER = 0;
+    public static final int DEADCONTAINER = 1;
+    public static final int NEWAGENT = 2;
+    public static final int DEADAGENT = 3;
 
-    private String kind;
+    protected static final String[] eventNames = { "new-container", "dead-container", "new-agent", "dead-agent" };
+
+    private int kind;
 
     public static AMSEvent fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSEvent(r);
     }
 
-    public void setKind(String k) {
+    public abstract void toText(Writer w);
+
+    public void setKind(int k) {
       kind = k;
     }
 
-    public String getKind() {
+    public int getKind() {
       return kind;
     }
 
@@ -677,6 +686,16 @@ public class AgentManagementOntology {
   public static class AMSContainerEvent extends AMSEvent {
 
     private String containerName;
+
+    public void toText(Writer w) {
+      try {
+	w.write("(" + eventNames[kind] + " " + containerName + " )\n");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
 
     public void setContainerName(String cn) {
       containerName = cn;
@@ -691,6 +710,21 @@ public class AgentManagementOntology {
   public static class AMSAgentEvent extends AMSContainerEvent {
 
     private AMSAgentDescriptor agentDescriptor;
+
+    public void toText(Writer w) {
+      try {
+	w.write("( ");
+	w.write(eventNames[kind] + " ( :container " + containerName + " ) ");
+	w.write("( " + AMSAction.ARGNAME + " ");
+	agentDescriptor.toText(w);
+	w.write(" )");
+	w.write(" )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
 
     public void setAgentDescriptor(AMSAgentDescriptor amsd) {
       agentDescriptor = amsd;
