@@ -53,8 +53,8 @@ public class InProcessTest {
       if(args.length > 0) {
 	if(args[0].equalsIgnoreCase("-container")) {
 	  // Create a default profile
-	  ProfileImpl p = new ProfileImpl();
-	  p.putProperty(Profile.MAIN, "false");
+	  Profile p = new ProfileImpl();
+	  //p.setParameter(Profile.MAIN, "false");
 
 	  // Create a new non-main container, connecting to the default
 	  // main container (i.e. on this host, port 1099)
@@ -78,7 +78,7 @@ public class InProcessTest {
 	  // NB. Two containers CAN'T share the same Profile object!!! -->
 	  // Create a new one.
 	  p = new ProfileImpl();
-	  p.putProperty(Profile.MAIN, "false");
+	  //p.putProperty(Profile.MAIN, "false");
 	  AgentContainer another = rt.createAgentContainer(p);
 
 	  // Launch the Mobile Agent example
@@ -102,7 +102,6 @@ public class InProcessTest {
 
       // set now the default Profile to start a container
       ProfileImpl pContainer = new ProfileImpl(null, 8888, null);
-      pContainer.putProperty(pMain.MAIN, "false");
       System.out.println("Launching the agent container ..."+pContainer);
       AgentContainer cont = rt.createAgentContainer(pContainer);
 
