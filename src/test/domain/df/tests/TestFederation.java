@@ -45,12 +45,7 @@ public class TestFederation extends Test {
 	private AID df1;
 	private DFAgentDescription[] dfds;
 	private static final int N_REGISTRATIONS = 3;
-	
-  public String getName() {
-  	return "Test Federation";
-  }
-  
-  
+	  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final DataStore store = ds;
   	final String key = resultKey;
@@ -91,10 +86,7 @@ public class TestFederation extends Test {
 		request.setOntology(DFAppletOntology.getInstance().getName());
 		try {
 			Federate f = new Federate();
-			f.setParentDF(a.getDefaultDF());
-			DFAgentDescription dfd1 = new DFAgentDescription();
-			dfd1.setName(df1);
-			f.setChildrenDF(dfd1);
+			f.setDf(a.getDefaultDF());
 			Action act = new Action(df1, f);
 			a.getContentManager().fillContent(request, act);
 		}
