@@ -26,5 +26,6 @@ batch:
 	echo 'cd src\examples' >> $(BATCH_JESSEXAMPLE)
 	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -d ..\..\classes -classpath %CLASSPATH%;..;..\..\classes $(subst /,\,$(TARGETS))' >> $(BATCH_JESSEXAMPLE)
 	echo >> $(BATCH_JESSEXAMPLE)
+	echo 'cd ..\..' >> $(BATCH_JESSEXAMPLE)
 
 

@@ -33,7 +33,6 @@ Boston, MA  02111-1307, USA.
 //* Replaced all 'stringValue()' with 'stringValue(context)'
 //* Replaced '(jess.display()).stderr()'
 //			with 'System.err'
-//* Line 356, 388 & 414 - Replaced 'List' with 'jade.util.leap.List'
 //* Updated getAIDListFromCache to take a ValueVector as parameter. It also requires Context as a parameter to
 //	resolve JESS variables
 
@@ -64,8 +63,10 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jess.*;
 import java.io.*;
-import jade.util.leap.*;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 /**
 Javadoc documentation for the file
@@ -385,7 +386,7 @@ public class BasicJessBehaviour extends CyclicBehaviour{
    * @param list is a ValueVector of agent names
    * @return a List of AID
    */
-  public jade.util.leap.List getAIDListFromCache(Context context, ValueVector list) {
+  public List getAIDListFromCache(Context context, ValueVector list) {
     ArrayList l = new ArrayList();
     for(int i = 0; i < list.size(); i++){
       try{
@@ -423,7 +424,7 @@ public class BasicJessBehaviour extends CyclicBehaviour{
     if (vv.get(1).stringValue(context) != "nil")
       msg.setSender(getAIDFromCache(vv.get(1).stringValue(context)));
     if (vv.get(2).toString() != "nil") {
-      jade.util.leap.List l = getAIDListFromCache(context, vv.get(2).listValue(context));
+      List l = getAIDListFromCache(context, vv.get(2).listValue(context));
       for (int i=0; i<l.size(); i++)
 	msg.addReceiver((AID)l.get(i));
     }
@@ -449,7 +450,7 @@ public class BasicJessBehaviour extends CyclicBehaviour{
       msg.setEncoding(vv.get(11).stringValue(context));
     //System.err.println("JessFact2ACL type is "+vv.get(15).type());
     if (vv.get(12).toString() != "nil") {
-      jade.util.leap.List l = getAIDListFromCache(context, vv.get(12).listValue(context));
+      List l = getAIDListFromCache(context, vv.get(12).listValue(context));
       for (int i=0; i<l.size(); i++)
 	msg.addReplyTo((AID)l.get(i));
     }

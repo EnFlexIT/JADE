@@ -26,5 +26,6 @@ batch:
 	echo 'cd src\examples' >> $(BATCH_JADEJESSPROTEGEEXAMPLE)
 	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -classpath %CLASSPATH%;..;..\..\classes $(subst /,\,$(TARGETS))' >> $(BATCH_JADEJESSPROTEGEEXAMPLE)
 	echo >> $(BATCH_JADEJESSPROTEGEEXAMPLE)
+	echo 'cd ..\..' >> $(BATCH_JADEJESSPROTEGEEXAMPLE)
 
 
