@@ -59,8 +59,12 @@ public class Starter {
      @param platformID An <em>globally unique ID</em> for the
      platform, built from JADE default settings and command line
      parameters.
-     @param agents A <code>List</code> containing names and classes
+     @param agents An <code>Iterator</code> containing names and classes
      of the agents to fire up during JADE startup.
+     @ param MTPs is an array of Strings, as parsed from the command line,
+     containing names and arguments to the MTPs to be activated
+     @ param ACLCodecs is an array of Strings, as parsed from the command line,
+     containing the class names of the ACLCodecs to be activated
      @param args Command line arguments, used by CORBA ORB.
   */
   public static void startUp(boolean isPlatform, String platformID, Iterator agents, String[] MTPs,String[] ACLCodecs) {
