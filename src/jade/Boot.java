@@ -378,7 +378,7 @@ public class Boot {
         out.println("  -dump\t\t\tIf specified, lists boot's current properties.");
         out.println("  -version\t\tIf specified, current JADE version number and build date is printed.");
         out.println("  -mtp\t\t\tSpecifies a list, separated by ';', of external Message Transport Protocols to be activated.");
-        out.println("  \t\t\tBy default the JDK1.2 IIOP is activated on the main-container and no MTP is activated on the other containers.");
+        out.println("  \t\t\tBy default the HTTP-MTP is activated on the main-container and no MTP is activated on the other containers.");
         out.println("  -nomtp\t\tHas precedence over -mtp and overrides it.");
         out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
         out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
