@@ -513,6 +513,23 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 	public String addContainer(AgentContainer ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
+
+		// Set the container name
+		if (cid.getName().equals("No-Name")) { // no name => assign a new name
+                     String name = AUX_CONTAINER_NAME + containersProgNo;
+		     containersProgNo++;
+                     cid.setName(name);
+		} else { // if this name exists already, assign a new name
+		    try {
+			containers.getContainer(cid);
+			String name = cid.getName() + containersProgNo;
+			containersProgNo++;
+			cid.setName(name);
+		    } catch (NotFoundException e) { 
+			// no container with this name exists, ok, go on.
+		    }
+		}
+
 		// Authenticate user
 		ContainerPrincipal principal = authority.createContainerPrincipal(cid, username);
 		CertificateFolder certs = authority.authenticate(principal, password);
@@ -520,7 +537,10 @@ class MainContainerImpl implements Platform, AgentManager {
 		
 		// Set the container-principal
 		ac.changeContainerPrincipal(certs);
-		
+
+		// add to the platform's container list
+		containers.addContainer(cid, ac, principal);
+
 		// Send all platform addresses to the new container
 		ContainerID[] containerNames = containers.names();
 		for(int i = 0; i < containerNames.length; i++) {
@@ -540,22 +560,7 @@ class MainContainerImpl implements Platform, AgentManager {
 			}
 		}
 
-		// Add the calling container and set its name
-		if (cid.getName().equals("No-Name")) { // no name => assign a new name
-                     String name = AUX_CONTAINER_NAME + containersProgNo;
-		     containersProgNo++;
-                     cid.setName(name);
-		} else { // if this name exists already, assign a new name
-		    try {
-			containers.getContainer(cid);
-			String name = cid.getName() + containersProgNo;
-			containersProgNo++;
-			cid.setName(name);
-		    } catch (NotFoundException e) { 
-			// no container with this name exists, ok, go on.
-		    }
-		}
-		containers.addContainer(cid, ac, principal);
+
 
 		// Spawn a blocking call to the remote container in a separate
 		// thread. This is a failure notification technique.
@@ -786,6 +791,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	public void kill(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
 		try {
 			authority.checkAction(Authority.CONTAINER_KILL_IN, getContainerPrincipal(getContainerIDFromAgent(agentID)), null);
+
 			authority.checkAction(Authority.AGENT_KILL, getAgentPrincipal(agentID), null);
 			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		  	public Object run() throws IMTPException, NotFoundException, AuthException {
