@@ -1,0 +1,308 @@
+options {
+//  LOOKAHEAD = 1;	      
+//  CHOICE_AMBIGUITY_CHECK = 2;
+//  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = true;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = true;
+//  UNICODE_INPUT = false;
+//  IGNORE_CASE = true;
+//  USER_TOKEN_MANAGER = false;
+//  USER_CHAR_STREAM = false;
+//  BUILD_PARSER = true;
+//  BUILD_TOKEN_MANAGER = true;
+//  SANITY_CHECK = true;
+//  FORCE_LA_CHECK = true;	// Force LookAhead Cecking
+}
+
+PARSER_BEGIN(SL0Parser)
+
+import java.io.StringReader;
+
+import jade.lang.Codec;
+
+import jade.onto.Frame;
+import jade.onto.Ontology;
+import jade.onto.DummyOntology;
+
+//import java.io.*;
+
+public class SL0Parser implements Codec {
+
+  public String encodeConcept(Frame f) {
+    return "";
+  }
+
+  public Frame decodeConcept(String s) {
+    ReInit(new StringReader(s));
+    return SL0Concept();
+  }
+
+  public String encodeAction(Action a) {
+    return "";
+  }
+
+  public Action decodeAction(String s) {
+    ReInit(new StringReader(s));
+    return SL0Action();
+  }
+
+  public String encodeProposition(Predicate p) {
+    return "";
+  }
+
+  public Predicate decodeProposition(String s) {
+    ReInit(new StringReader(s));
+    return SL0Predicate();
+  }
+
+}
+
+PARSER_END(SL0Parser)
+
+
+
+
+
+/*   P R O D U C T I O N    R U L E S  */
+
+/**
+* This production rule represents the more general expression that can
+* serve as content for an ACL message. Since different communicative
+* acts have different content (action expressions for
+* <code>request</code>, predicate for <code>inform</code>, etc.), any
+* allowed SL content expression can be parsed from here.
+*/
+Frame SL0Content() :
+{ Frame result; }
+{
+  result = ActionAndProposition() | result = Formula() | result = ActionExpression()
+  { return result; }
+}
+
+
+/**
+* This production represents the content of a propose, agree, ...
+* communicative act. 
+* <p> <code> ActionAndProposition = "(" ActionExpression Formula ")" </code>
+*/
+Frame ActionAndProposition():
+{
+  Frame result = new Frame("Couple");
+  Frame action;
+  Frame proposition;
+  Ontology o = DummyOntology.instance();
+}
+{
+  <LBRACE>
+  action = ActionExpression()
+  { result.putSlot(o.getSlotName("", 1), action); }
+  proposition = Formula()
+  { result.putSlot(o.getSlotName("", 2), proposition); }
+  <RBRACE>
+}
+
+
+/**
+* This production represents the content of an inform, ... comm. act. 
+* <p> <code> Formula = "(" PredicateSymbol SL0Term* ")" | PropositionSymbol  </code>
+*/
+void Formula(Frame parent):
+{
+  String s;
+  Frame result;
+}
+{
+
+<LBRACE> s=String() (SL0Term())*  <RBRACE>
+| ( s=String() { parent.put
+
+}
+
+
+/**
+* <p> <code> String = WORD | STRING_LITERAL  </code>
+*/
+String String() :
+{ Token t;}
+{
+  t=<WORD>		{return t.image;}
+| t=<STRING_LITERAL>	{return t.image;}
+}
+
+
+/**
+* This production represents the content of a request, ... comm. act.
+* <p> <code> ActionExpression = "(" ContentActionExpressionwithoutBraces ")" </code>
+*/
+void ActionExpression(Ontology o) :
+{String s;}
+{ 
+<LBRACE> ContentActionExpressionWithoutBraces(o) <RBRACE>
+}
+
+
+/**
+* This strange production rule is necessary to reduce lookahead between
+* functionalterm and ACLCommunicativeAct. Further to that, it allows
+* to avoid having functional terms as the content of a REQUEST ca. 
+* <p> <code> ContentActionExpressionWithoutBraces = ActionExpressionwithoutBraces | ACLCommunicativeActWithoutBraces </code>
+**/
+void ContentActionExpressionWithoutBraces(Ontology o):
+{}
+{
+  ActionExpressionWithoutBraces(o)
+| ACLCommunicativeActWithoutBraces(o)
+}
+
+
+/**
+* Notice that this production does not match an ACL Communicative act.
+* <p> <code> ActionExpressionWithoutBraces = "action" AID "(" FunctionalTermOrACLWithoutBraces ")" </code>
+*/
+void ActionExpressionWithoutBraces(Ontology o) :
+{}
+{ <ACTION> AID(o) <LBRACE> FunctionalTermOrACLWithoutBraces(o) <RBRACE>
+}
+
+/*
+* AID. 
+*/
+void AID(Ontology o) :
+{String s; }
+{ 
+  String() //FIXME. Only for FIPA97
+| <LBRACE> s=String() (String() SL0Term(o))* <RBRACE>
+  { if (o.isAObjectSymbol(s)) { }
+   else throw new ParseException(s+" is not an object symbol in this ontolgy"); } 	
+//FIXME This production rule should be more restrictive to allow only for AID symbol. To check with SL0 definition
+}
+
+
+/*
+* <code> ACLCommunicativeActWithoutBraces = String ( String SL0Term )* </code>
+*/
+void ACLCommunicativeActWithoutBraces(Ontology o) :
+{String s; }
+{
+ s=String() (String() SL0Term(o))*
+ {if (jade.lang.acl.ACLMessage.getPerformative(s)==jade.lang.acl.ACLMessage.UNKNOWN) throw new ParseException(s+" is not a performative symbol"); } 	
+}
+
+
+/*
+* <code> SL0Term = String | Number | "(" SL0TermWithoutBraces ")"  </code>
+*/
+void SL0Term(Ontology o) :
+{ 
+}
+{
+  String() 
+| Number() 
+| <LBRACE> SL0TermWithoutBraces(o) <RBRACE>
+}
+
+/*
+* <code> SL0TermWithoutBraces = ActionExpressionWithoutBraces | FunctionalOrObjectOrACLTermWithoutBraces </code>
+*/
+void SL0TermWithoutBraces(Ontology o) :
+{ }
+{
+  ActionExpressionWithoutBraces(o)
+| FunctionalOrObjectOrACLTermWithoutBraces(o)
+}
+
+/**
+* Here I can have a functional term or an object description term
+* or an ACL communicative act
+* <code> FunctionalOrObjectOrACLTermWithoutBraces = String SL0Term* </code>
+*/
+void FunctionalOrObjectOrACLTermWithoutBraces(Ontology o) :
+{ String s;}
+{ s=String() (SL0Term(o))* 
+  {if (o.isAFunctionSymbol(s)) { }
+   else if (o.isAObjectSymbol(s)) { }
+   else if (jade.lang.acl.ACLMessage.getPerformative(s)!=jade.lang.acl.ACLMessage.UNKNOWN) {}
+   else throw new ParseException(s+" is neither a performative symbol nor a function symbol nor an object symbol in this ontolgy"); } 	
+}
+
+/**
+* This production rule enforces a term to be a function symbol or a 
+* communicative act name. It is called by ActionExpressionWithoutBraces.
+* That avoids having an objectdescription as a functional term argument of an action.
+* <code> FunctionalTermOrACLWithoutBraces = String SL0Term* </code>
+**/
+void FunctionalTermOrACLWithoutBraces(Ontology o) :
+{ String s;}
+{ s=String() (SL0Term(o))* 
+  {if (o.isAFunctionSymbol(s)) { }
+   else if (jade.lang.acl.ACLMessage.getPerformative(s)!=jade.lang.acl.ACLMessage.UNKNOWN) {}
+   else throw new ParseException(s+" is neither a performative symbol nor a function symbol in this ontolgy"); } 	
+}
+
+
+void Number():
+{  }
+{ 
+  <INTEGER>   
+| <FLOATONE>  
+| <FLOATTWO>  
+}
+
+
+
+
+
+
+
+/*   T O K E N    D E F I N I T I O N  */
+
+<DEFAULT>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DEFAULT>
+TOKEN:
+{
+  < LBRACE     : "("       > 
+| < RBRACE     : ")"       >
+| < ACTION     : "action"  >
+| < INTEGER :       (["+","-"])? (["0"-"9"])+ >
+| < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
+                    (["e","E"] (["-","+"])? (["0"-"9"])+)? >
+| < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
+| < WORD: (~["\u0000"-"\u001F"," ","(",")","\""]) (~["\u0000"-"\u001F"," ","(",")"])* >
+|  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}	
+
+
+
+
+
+
+
+
+
+
+
+
+
