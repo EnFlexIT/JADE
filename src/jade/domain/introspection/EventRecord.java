@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.domain.JADEIntrospection;
+package jade.domain.introspection;
 
 import java.util.Date;
 
@@ -35,15 +35,25 @@ import jade.core.Location;
    @version $Date$ $Revision$
  */
 public class EventRecord {
-  private Object what;
+  private Event what;
   private Date when;
   private Location where;
 
-  public void setWhat(Object evt) {
+  // Default constructor, used by the ontology engine.
+  public EventRecord() {
+  }
+
+  public EventRecord(Event evt, Location l) {
+    what = evt;
+    when = new Date();
+    where = l;
+  }
+
+  public void setWhat(Event evt) {
     what = evt;
   }
 
-  public Object getWhat() {
+  public Event getWhat() {
     return what;
   }
 
