@@ -139,7 +139,11 @@ public abstract class ToolAgent extends Agent {
     getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 
     // register the supported languages
-    getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+    SLCodec codec = new SLCodec();
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);
 
     // Fill ACL messages fields
     AMSSubscription.setSender(getAID());
