@@ -39,7 +39,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
     RMA) and then drag and drop a file onto the tree.  The file should contain 
     a text representation of an ACL message.  The message will be sent to all 
     selected agents.
-
+- Added the SLFormatter tool (jade.tools.sl.SLFormatter) that allows to
+  format an SL-expression into a human-friendly string. (Craig Sayers, HP)
 
 	
 	
