@@ -539,10 +539,21 @@ class MainContainerImpl implements Platform, AgentManager {
 		}
 
 		// Add the calling container and set its name
-		String name = AUX_CONTAINER_NAME + containersProgNo;
-		cid.setName(name);
+		if (cid.getName()=="No-Name") { // no name => assign a new name
+                     String name = AUX_CONTAINER_NAME + containersProgNo;
+		     containersProgNo++;
+                     cid.setName(name);
+		} else { // if this name exists already, assign a new name
+		    try {
+			containers.getContainer(cid);
+			String name = cid.getName() + containersProgNo;
+			containersProgNo++;
+			cid.setName(name);
+		    } catch (NotFoundException e) { 
+			// no container with this name exists, ok, go on.
+		    }
+		}
 		containers.addContainer(cid, ac, principal);
-		containersProgNo++;
 
 		// Spawn a blocking call to the remote container in a separate
 		// thread. This is a failure notification technique.
@@ -553,7 +564,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		fireAddedContainer(cid);
 
 		// Return the name given to the new container
-		return name;
+		return cid.getName();
 
 	}
 

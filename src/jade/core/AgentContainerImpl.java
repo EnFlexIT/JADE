@@ -568,7 +568,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
           // Initialize the Container ID
           TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-          myID = new ContainerID("No-Name", addr);
+	  // the name for this container is got from the Profile, if exists
+	  // "No-name" is needed because the NAME is mandatory in the Ontology
+          myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME,
+							"No-Name"), addr);
 
           // Acquire username and password
           String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);

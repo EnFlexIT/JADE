@@ -97,6 +97,16 @@ public abstract class Profile {
      * identifies the IMTP Manager to be created by ProfileImpl
      **/
     public static final String IMTP = "imtp";
+
+    /**
+     * This constant is the key of the property whose value contains
+     * the desired name of the container. If this container name exists
+     * already, then a default name is assigned by the platform.
+     * The name of the main-container is always assigned by the platform
+     * and cannot be changed.
+     **/
+    public static final String CONTAINER_NAME = "container-name";
+
   /**
    * This constant is the key of the property whose value contains the
    * list of ACLCODECSs that have to be launched at bootstrap time.
