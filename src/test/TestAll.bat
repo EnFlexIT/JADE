@@ -1,3 +1,10 @@
+echo modify the following line and set the default compiler and JVM to be 1.2
+set PATH=c:\MyPrograms\jdk1.2.2\bin;%PATH%
+echo check now that the JVM is actually 1.2
+java -version
+echo check that idlj will not be launched and the FIPa classes will remain clean
+idlj
+
 REM set CLASSPATH=..\..\lib\jade.jar;..\..\lib\jadeTools.jar;..\..\lib\iiop.jar;..\..\lib\Base64.jar;..\..\classes
 set JESS51=c:\myprograms\jess51
 set CLASSPATH=..\..\classes;%JESS51%
