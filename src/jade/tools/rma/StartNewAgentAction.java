@@ -26,8 +26,11 @@ package jade.tools.rma;
 
 
 import java.awt.Frame;
+
 import jade.gui.AgentTree;
-import jade.BootArguments;
+import jade.Boot;
+import jade.core.Specifier;
+
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.ArrayList;
@@ -68,26 +71,12 @@ class StartNewAgentAction extends ContainerAction {
       {
       	  String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
       	  //not remove '"'and '\'
-      	  ArrayList al = BootArguments.T2(agentSpecifier,true);
+      	  ArrayList al = Boot.T2(agentSpecifier,true);
       	  
       	  ArrayList argList = new ArrayList();
       	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
-        	for (Iterator it = BootArguments.getCommandLineAgentSpecifiers(al); it.hasNext();)
-          {
-    	      List l1 = (List)it.next();
-          	//System.out.println("Agent Name: "+ l1.get(0));
-    	      //System.out.println("Agent class: " + l1.get(1));
-    	      for(int i = 2; i<l1.size(); i++)
-    		     {
-    		     	//System.out.println("Arg["+i+"]: " +l1.get(i));
-    		     	argList.add(l1.get(i));
-    		     }
-           }
-          
-          String[] arg = new String[argList.size()];
-      	  for(int n=0; n<argList.size(); n++)
-      	  	arg[n] = (String)argList.get(n);
-      	  
+	  Iterator it = Boot.getCommandLineAgentSpecifiers(al);
+	  String[] arg = (it.hasNext()?((Specifier)it.next()).getArgs():new String[0]);
       	  myRMA.newAgent(agentName, className, arg, container);
       }
     }
