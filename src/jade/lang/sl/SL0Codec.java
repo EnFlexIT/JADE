@@ -36,6 +36,16 @@ import jade.onto.Ontology;
   implements the <code>Codec</code> interface and allows converting
   back and forth between strings and frames, according to the SL0
   grammar.
+  <p>  
+  <b>WARNING:</b> When creating the Ontology, notice that this SL0Parser 
+  returns a Java object of type <code>Long</code> everytime it parses an 
+  integer, and
+  it returns a Java object of type <code>Double</code> everytime it parses a 
+  float.
+  Therefore, the slots of the frames in the ontology must be of type,
+  respectively, <code>Ontology.LONG_TYPE</code> and 
+  <code>Ontology.DOUBLE_TYPE</code>, otherwise you get an 
+  <code>IllegalArgumentException</code>.
 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
