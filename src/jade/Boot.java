@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1998/12/08 00:27:44  rimassa
+  Updated version number.
+
   Revision 1.10  1998/11/09 22:10:08  Giovanni
   Added explanation of '-version' option in usage() method.
 
@@ -125,7 +128,7 @@ public class Boot {
 	  hasGUI = true;
 	}
 	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	  System.out.println("JADE Version 0.9 $Name$ - $Date$");
+	  System.out.println("JADE Version 0.91 $Name$ - $Date$");
 	  System.exit(0);
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
