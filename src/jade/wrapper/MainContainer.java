@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import jade.core.MainContainerImpl;
+import jade.core.AgentContainerImpl;
 
 /**
    This class is a Proxy class, allowing access to a JADE main
@@ -40,8 +40,6 @@ import jade.core.MainContainerImpl;
  */
 public class MainContainer extends AgentContainer {
 
-  private MainContainerImpl myImpl;
-
   /**
      Public constructor. This constructor requires a concrete
      implementation of a JADE main container, which cannot be
@@ -52,9 +50,8 @@ public class MainContainer extends AgentContainer {
      @see jade.core.Runtime#createMainContainer(Profile p)
      @param impl A concrete implementation of a JADE main container.
    */
-  public MainContainer(MainContainerImpl impl) {
+  public MainContainer(AgentContainerImpl impl) {
     super(impl);
-    myImpl = impl;
   }
 
 }
