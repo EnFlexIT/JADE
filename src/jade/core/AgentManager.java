@@ -23,10 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.net.InetAddress;
-
 import java.util.Set;
 import java.util.List;
+
+import jade.core.ContainerID;
+
+import jade.core.event.PlatformListener;
+import jade.core.event.MTPListener;
 
 import jade.mtp.MTPException;
 
@@ -47,29 +50,22 @@ public interface AgentManager {
   /**
      This callback interface is implemented by the AMS in order to be
      notified of significant platform-level events (e.g. container
-     added or removed, agent state changes, etc.).
+     added or removed, agents birth or death, mtp configuration changes, etc.).
    */
-  public static interface Listener {
-    void handleNewContainer(String name, InetAddress host);
-    void handleDeadContainer(String name);
-    void handleNewAgent(String containerName, AID agentID);
-    void handleDeadAgent(String containerName, AID agentID);
-    void handleMovedAgent(String fromContainer, String toContainer, AID agentID);
-    void handleNewAddress(String address, String container);
-    void handleDeadAddress(String address, String container);
+  public static interface Listener extends PlatformListener, MTPListener {
   }
 
   void addListener(Listener l);
   void removeListener(Listener l);
 
-  String[] containerNames();
+  ContainerID[] containerIDs();
   AID[] agentNames();
   String[] platformAddresses();
 
-  String getContainerName(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[], String containerName) throws UnreachableException;
+  ContainerID getContainerID(AID agentID) throws NotFoundException;
+  void create(String agentName, String className, String arguments[], ContainerID cid) throws UnreachableException;
 
-  void killContainer(String containerName);
+  void killContainer(ContainerID cid);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
 
   void suspend(AID agentID, String password) throws NotFoundException, UnreachableException;
@@ -84,8 +80,8 @@ public interface AgentManager {
   void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
   void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
-  String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException, MTPException;
-  void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException, MTPException;
+  String installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
+  void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;
 
 }
 
