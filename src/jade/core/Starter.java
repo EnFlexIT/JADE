@@ -72,21 +72,27 @@ public class Starter {
 
 	  String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
-	  if(isPlatform) {
-	      theContainer = new MainContainerImpl(p);
+          theContainer = new AgentContainerImpl(p);
 
+          MainContainer mc;
+          
+	  if(isPlatform) {
 	      // Create an embedded RMI Registry within the platform and
-	      // bind the Agent Platform to it
+	      // bind the Main Container to it.
+              mc = new MainContainerImpl(p);
 
 	      Registry theRegistry = LocateRegistry.createRegistry(port);
-	      Naming.bind(platformRMI, theContainer);
+	      Naming.bind(platformRMI, mc);
 	  }
 	  else {
-	      theContainer = new AgentContainerImpl(p);
-	  }
-	
-	  Runtime.instance().beginContainer();
-	  theContainer.joinPlatform(platformRMI, agents, MTPs,ACLCodecs);
+            // Look the remote Main Container up into the
+            // RMI Registry, then create a Smart Proxy for it.
+            MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
+            mc = new MainContainerProxy(remoteMC);
+          }
+
+          Runtime.instance().beginContainer();
+          theContainer.joinPlatform(mc, agents, MTPs, ACLCodecs);
 
 	  Runtime.instance().setDefaultToolkit(theContainer); // FIXME: Temporary hack for JSP example
 
