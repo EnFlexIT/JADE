@@ -421,7 +421,7 @@ private int performative; // keeps the performative type of this object
       catch(InterruptedException ie) {
       }
 
-      content = new StringBuffer();
+      content = null;
     }
   }
 
@@ -473,8 +473,9 @@ private int performative; // keeps the performative type of this object
       return Base64.decode(cc);
     } catch(java.lang.StringIndexOutOfBoundsException e){
     		return new byte[0];
-    }
-    	catch(java.lang.NoClassDefFoundError jlncdfe) {
+    } catch(java.lang.NullPointerException e){
+    		return new byte[0];
+    } catch(java.lang.NoClassDefFoundError jlncdfe) {
       	System.err.println("\t\t===== E R R O R !!! =======\n");
       	System.err.println("Missing support for Base64 conversions");
       	System.err.println("Please refer to the documentation for details.");
@@ -892,9 +893,11 @@ private int performative; // keeps the performative type of this object
     try {
       w.write("(");
       w.write(getPerformative(getPerformative()) + "\n");
-      w.write(SENDER + " ");
-      source.toText(w);
-      w.write("\n");
+      if (source != null) {
+	w.write(SENDER + " ");
+	source.toText(w);
+	w.write("\n");
+      }
       if (dests.size() > 0) {
 	w.write(RECEIVER + " (set ");
 	Iterator it = dests.iterator();
@@ -1007,7 +1010,7 @@ private int performative; // keeps the performative type of this object
   reply_byInMillisec = new Date().getTime();
   protocol = null;
   conversation_id = null;
-  userDefProps = new Properties();
+  userDefProps.clear();
  }
 
   /**
@@ -1033,7 +1036,10 @@ private int performative; // keeps the performative type of this object
     m.setProtocol(getProtocol());
     m.setSender(null);
     m.setInReplyTo(getReplyWith());
-    m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
+    if (source != null)
+      m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
+    else
+      m.setReplyWith("X"+java.lang.System.currentTimeMillis()); 
     m.setConversationId(getConversationId());
     m.setReplyBy(null);
     m.setContent(null);

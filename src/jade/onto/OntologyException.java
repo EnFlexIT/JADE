@@ -33,6 +33,8 @@ package jade.onto;
 */
 public class OntologyException extends Exception {
 
+    private Throwable nested;
+
   /**
     Create a new exception object.
     @param msg The message for this exception object.
@@ -41,5 +43,20 @@ public class OntologyException extends Exception {
     super(msg);
   }
 
+  /**
+    Create a new exception object.
+    @param msg The message for this exception object.
+    @param t The exception wrapped by this object.
+  */
+  public OntologyException(String msg, Throwable t) {
+    super(msg);
+    nested = t;
+  }
+
+    public void printStackTrace() {
+      if (nested != null)
+	nested.printStackTrace();
+      super.printStackTrace();
+    }
 }
 

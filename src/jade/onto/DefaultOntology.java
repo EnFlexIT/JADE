@@ -25,7 +25,6 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 import java.lang.reflect.*;
-
 import java.util.*;
 
 /**
@@ -37,38 +36,6 @@ import java.util.*;
   @version $Date$ $Revision$
 */
 public final class DefaultOntology implements Ontology {
-
-  private static final List primitiveTypes = new ArrayList(12);
-
-  static { 
-    primitiveTypes.add(BOOLEAN_TYPE, Boolean.class);
-    primitiveTypes.add(BYTE_TYPE, Byte.class);
-    primitiveTypes.add(CHARACTER_TYPE, Character.class);
-    primitiveTypes.add(DOUBLE_TYPE, Double.class);
-    primitiveTypes.add(FLOAT_TYPE, Float.class);
-    primitiveTypes.add(INTEGER_TYPE, Integer.class);
-    primitiveTypes.add(LONG_TYPE, Long.class);
-    primitiveTypes.add(SHORT_TYPE, Short.class);
-    primitiveTypes.add(STRING_TYPE, String.class);
-    primitiveTypes.add(BINARY_TYPE, Byte[].class);
-    primitiveTypes.add(DATE_TYPE, java.util.Date.class);
-    primitiveTypes.add(ANY_TYPE, Object.class);
-  }
-
-
-  /** Symbolic constant identifying a frame representing an action **/ 
-  public static String NAME_OF_ACTION_FRAME = "action";
-  /** Symbolic constant identifying a slot representing an actor **/ 
-  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
-  /** Symbolic constant identifying a slot representing an action **/ 
-  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
-  /** Symbolic constant identifying a frame representing a set **/ 
-  public static String NAME_OF_SET_FRAME = "set";
-  /** Symbolic constant identifying a frame representing a sequence **/ 
-  public static String NAME_OF_SEQUENCE_FRAME = "sequence";
-
-  // Special slot, all actions must have it.
-  private static final TermDescriptor actorSlot = new TermDescriptor(NAME_OF_ACTOR_SLOT, ANY_TERM, ANY_TYPE, M);
 
   private Map schemas;
   private Map factories;
@@ -88,43 +55,95 @@ public final class DefaultOntology implements Ontology {
     return (FrameSchema)schemas.get(new Name(name));
   }
 
-  RoleFactory lookupFactory(String name) {
-    return (RoleFactory)factories.get(new Name(name));
+  RoleEntityFactory lookupFactory(String name) {
+    return (RoleEntityFactory)factories.get(new Name(name));
   }
 
   /**
-    Adds a new frame to this ontology, without an user defined Java class to
+    Adds a new role to this ontology, without a user defined Java class to
     represent it.
-    @see jade.onto.Ontology#addFrame(String conceptName, TermDescriptor[] slots)
+    @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots)
   */
-  public void addFrame(String conceptName, TermDescriptor[] slots) throws OntologyException {
-
-    FrameSchema fs = new FrameSchema(this, conceptName);
+  public void addRole(String roleName, SlotDescriptor[] slots) throws OntologyException {
+		// Checks whether a role with this name already exists in the ontology
+  	if (schemas.containsKey(new Name(roleName)))
+			throw new OntologyException("A role with name \""+roleName+"\" already exists in the ontology");
+  	
+		// Adds the new role
+    FrameSchema fs = new FrameSchema(this, roleName);
 
     for(int i = 0; i < slots.length; i++) {
       String n = slots[i].getName();
       if(n.length() == 0)
-	slots[i].setName(Frame.UNNAMEDPREFIX+ "_"+i);
-      fs.addTerm(slots[i]);
+				slots[i].setName(Frame.UNNAMEDPREFIX+ "_"+i);
+      fs.addSlot(slots[i]);
     }
 
-    addSchemaToTable(conceptName, fs);
+    addSchemaToTable(roleName, fs);
 
+  }
+  
+  /**
+    Adds a new role to this ontology, with a user defined Java class to
+    represent it.
+    @see jade.onto.Ontology#addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref)
+  */  
+  public void addRole(String roleName, SlotDescriptor[] slots, RoleEntityFactory ref) throws OntologyException {
+    // Checks whether the user defined class representing the role already represents another role in the ontology
+    Class newClass = ref.getClassForRole();
+    Iterator i = factories.values().iterator();
+  	while (i.hasNext()){
+  		RoleEntityFactory fac = (RoleEntityFactory) i.next();
+  		Class c = fac.getClassForRole();
+  		if (newClass.equals(c))
+				throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in the ontology");
+  	}
+  	
+  	// Adds the role to the ontology
+  	addRole(roleName, slots);
+
+  	// Registers the factory of objects of the user defined class representing the role
+    checkClass(roleName, newClass);
+    addFactoryToTable(roleName, ref);
   }
 
   /**
-    Adds a new frame to this ontology, with an user defined Java class to
-    represent it.
-    @see jade.onto.Ontology#addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf)
-  */  
-  public void addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf) throws OntologyException {
-    addFrame(conceptName, slots);
-
-    Class c = rf.getClassForRole();
-    checkClass(conceptName, c);
-    addFactoryToTable(conceptName, rf);
+    Adds to this ontology all roles included into another ontology 
+    @param o The <code>Ontology</code> object whose roles will 
+    be added
+  */
+  public void joinOntology(Ontology o) throws OntologyException
+  {
+  	// Gets the names of all roles in the ontology to join
+  	List roleNames = o.getVocabulary();
+	  Iterator i = roleNames.iterator();
+	  
+	  // For each role try to add it to the current ontology
+	  while (i.hasNext()){
+	  	String name = (String) (i.next());
+	  	// DEBUG: System.out.println("Try to add role \""+name+"\"");
+			SlotDescriptor[] slots = o.getSlots(name);
+			RoleEntityFactory fac = null;
+			boolean hasFactoryFlag;
+			try{
+				fac = o.getFactory(name);
+				// If no exception has been thrown --> the role has a factory associated to it
+				hasFactoryFlag = true; 
+			}
+			catch (OntologyException oe){
+				// If an exception has been thrown --> the role does not have a factory associated to it
+				hasFactoryFlag = false; 
+			}
+			try{
+			if (hasFactoryFlag)
+				addRole(name, slots, fac);
+			else
+				addRole(name, slots);
+			}
+			catch (OntologyException oe){oe.printStackTrace();}
+	  }		
   }
-
+  	
 
   /**
     Creates a List of Java objects from the given list of frame.
@@ -144,30 +163,29 @@ public final class DefaultOntology implements Ontology {
   private Object createSingleObject(Frame f) throws OntologyException {
 
       String roleName = f.getName();
-      RoleFactory fac = lookupFactory(roleName);
+      RoleEntityFactory fac = lookupFactory(roleName);
 
       if(fac == null)
-	throw new OntologyException("No class able to play " + roleName + " role. Check the definition of the ontology.");
+				throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
 
       Class c = fac.getClassForRole();
 
       Object o = fac.create(f);
       return initObject(f, o, c);
-
   }
 
   /**
-    Creates a frame from a given Java Object, playing a given role.
+    Creates a frame from a given Java Object, representing an instance of a given role.
     @see jade.onto.Ontology#createFrame(Object o, String roleName)
   */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
-    RoleFactory rf = lookupFactory(roleName);
-    if(rf == null)
-      throw new OntologyException("No class able to play " + roleName + " role.Check the definition of the ontology.");
+    RoleEntityFactory fac = lookupFactory(roleName);
+    if(fac == null)
+      throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
 
-    Class theConceptClass = rf.getClassForRole();
-    if(!theConceptClass.isInstance(o))
-      throw new OntologyException("The object <" + o + "> is not an instance of " + theConceptClass.getName() + " class.");
+    Class theRoleClass = fac.getClassForRole();
+    if(!theRoleClass.isInstance(o))
+      throw new OntologyException("The object <" + o + "> is not an instance of " + theRoleClass.getName() + " class.");
 
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
@@ -176,7 +194,7 @@ public final class DefaultOntology implements Ontology {
     //  throw new OntologyException("The role " + roleName + " is not a concept in this ontology.");
 
     Frame f = new Frame(roleName);
-    buildFromObject(f, fs, o, theConceptClass);
+    buildFromObject(f, fs, o, theRoleClass);
 
     return f;
   }
@@ -201,70 +219,114 @@ public final class DefaultOntology implements Ontology {
      *  Algorithm: 
      *
      * - Check that the object is an instance of the correct class
-     * - FOR EACH term t
-     *   - The Object get method must not return 'null'
+     * - FOR EACH mandatory slot S
+     *   - The getS method of the class o is an instance of must not return 'null'
      */
 
-    RoleFactory rf = lookupFactory(roleName);
-    if(rf == null)
-      throw new OntologyException("No class able to play " + roleName + " role.");
+    RoleEntityFactory fac = lookupFactory(roleName);
+    if(fac == null)
+      throw new OntologyException("No class able to represent " + roleName + " role.");
 
-    Class implementationClass = rf.getClassForRole();
-    if(!implementationClass.isInstance(o))
-      throw new OntologyException("The object is not an instance of " + implementationClass.getName() + " class.");
+    Class theRoleClass = fac.getClassForRole();
+    if(!theRoleClass.isInstance(o))
+      throw new OntologyException("The object is not an instance of " + theRoleClass.getName() + " class.");
 
     FrameSchema fs = lookupSchema(roleName);
-    Iterator it = fs.subSchemas();
+    Iterator it = fs.subSchemas(); // This iterates on the slots of the FrameSchema
 
     while(it.hasNext()) {
+      SlotDescriptor desc = (SlotDescriptor)it.next();
+			Method m = findMethodCaseInsensitive("get" + translateName(desc.getName()), theRoleClass);
+			try {
+	  		Object value = m.invoke(o, new Object[] { });
 
-      TermDescriptor desc = (TermDescriptor)it.next();
-	Method m = findMethodCaseInsensitive("get" + translateName(desc.getName()), implementationClass);
-	try {
-	  Object value = m.invoke(o, new Object[] { });
+	  		if(!desc.isOptional() && (value == null))
+	    		throw new OntologyException("The given object has a 'null' value for the mandatory term " + desc.getName());
 
-	  if(!desc.isOptional() && (value == null))
-	    throw new OntologyException("The given object has a 'null' value for the mandatory term " + desc.getName());
-
-	  if(desc.isConcept() || desc.isSet())// Recursive check for subobjects
-	    check(value, desc.getTypeName());
-
-	}
-	catch(InvocationTargetException ite) {
-	  String msg = ite.getTargetException().getMessage();
-	  throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
-	}
-	catch(IllegalAccessException iae) {
-	  throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
-	}
-	catch(SecurityException se) {
-	  throw new OntologyException("Wrong class: some required method is not accessible."); 
-	}
+	  		if(desc.isComplex() || desc.isSet())// Recursive check for sub-objects
+	    		check(value, desc.getType());
+			}
+			catch(InvocationTargetException ite) {
+	  		String msg = ite.getTargetException().getMessage();
+	  		throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
+			}
+			catch(IllegalAccessException iae) {
+	  		throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+			}
+			catch(SecurityException se) {
+	  		throw new OntologyException("Wrong class: some required method is not accessible."); 
+			}
     }
   }
 
   /**
-    Checks whether a given frame is a concept in this ontology.
+    Checks whether a given string is the name of a role in this ontology.
     @see jade.onto.Ontology#isConcept(String roleName)
   */
-  public boolean isConcept(String roleName) throws OntologyException {
-    FrameSchema fs = lookupSchema(roleName);
-    if(fs == null)
-      throw new OntologyException("No schema was found for " + roleName + "role.");
-    return true; 
+  public boolean isRole(String roleName) throws OntologyException {
+  	FrameSchema fs = lookupSchema(roleName);
+  	return (fs != null);
   }
-
 
   /**
-    Get the descriptions for all the slots that made the structure of a given
+    Get the descriptions for all the slots that define the structure of a given
     ontological role.
-    @see jade.onto.Ontology#getTerms(String roleName)
+    @see jade.onto.Ontology#getSlots(String roleName)
   */
-  public TermDescriptor[] getTerms(String roleName) throws OntologyException {
+  public SlotDescriptor[] getSlots(String roleName) throws OntologyException {
     FrameSchema fs = lookupSchema(roleName);
-    return fs.termsArray();
+    return fs.slotsArray();
   }
 
+  /** @return the name of the role represented by the passed class as registered in this ontology
+   * @throws OntologyException if no role is found for this class
+  **/
+	public String getRoleName(Class c) throws OntologyException{
+  	Set s = factories.entrySet(); // each element of the Set is a Map.Entry
+  	Iterator i = s.iterator();
+  	while (i.hasNext()) {
+    	Map.Entry element = (Map.Entry)i.next();
+    	// element.getValue() returns a RoleFactory
+    	if (c.equals(((RoleEntityFactory)element.getValue()).getClassForRole()))
+      	return ((Name)element.getKey()).toString();
+  	}
+  	throw new OntologyException("No rolename registered in the ontology for class "+c.getName());
+	}
+  
+	/** 
+  	@return a <code>List</code> including the names of all the roles
+  	in the ontology, i.e. the Vocabulary used by the ontology
+    @see jade.onto.Ontology#getVocabulary()
+  */
+  public List getVocabulary(){
+  	// The Vocabulary is the list of the names of the roles in the ontology;
+  	// role names are stored as Name while we want to return them as String
+  	List vocabulary = new ArrayList();
+  	Iterator i = schemas.keySet().iterator();
+  	while (i.hasNext()){
+  		String roleNameAsString = ((Name) (i.next())).toString();
+  		vocabulary.add(roleNameAsString);
+  	}
+  	return vocabulary;	
+  }
+  
+  /** 
+  	Returns the factory for instances of the user defined class
+  	representing a given role
+  	@param roleName The name of the ontological role.
+  	@return the factory for instances of the user defined class
+  	representing a given role
+    @throws OntologyException if no role is found with the specified name
+    or if a factory is not registered for the role
+    @see jade.onto.Ontology#getFactory(String roleName)
+  */
+  public RoleEntityFactory getFactory(String roleName) throws OntologyException{
+    if (!factories.containsKey(new Name(roleName)))
+ 			throw new OntologyException("No role with name \""+roleName+"\" has a factory registered");
+
+ 		return (RoleEntityFactory) factories.get(new Name(roleName));
+  }
+  
 
 
   // Private methods.
@@ -283,14 +345,14 @@ public final class DefaultOntology implements Ontology {
       char c = buf.charAt(i);
       switch(c) {
       case ':':
-	buf.deleteCharAt(i);
-	--i;
-	break;
+				buf.deleteCharAt(i);
+				--i;
+				break;
       case '-':
-	buf.deleteCharAt(i);
-	buf.setCharAt(i, Character.toUpperCase(buf.charAt(i)));
-	--i;
-	break;
+				buf.deleteCharAt(i);
+				buf.setCharAt(i, Character.toUpperCase(buf.charAt(i)));
+				--i;
+				break;
       }
     }
     
@@ -348,27 +410,25 @@ public final class DefaultOntology implements Ontology {
   /**
    * This method checks for correct get and set methods for the
    * current descriptor and retrieves the implementation type.
-   * This check is for terms of type SET_TERM or SEQUENCE_TERM.
+   * This check is for slots of category SET_SLOT or SEQUENCE_SLOT.
    * <p> 
-   * For every <code>TermDescriptor</code> 
-   * of type <code>SET_TERM</code> or <code>SEQUENCE_TERM</code>
+   * For every <code>SlotDescriptor</code> 
+   * of category <code>SET_SLOT</code> or <code>SEQUENCE_SLOT</code>
    * and named <code>XXX</code>, with elements of type <code>T</code>, the
-   * class must have four accessible methods, with the following
+   * class must have two accessible methods, with the following
    * signature:</i>
    *  <ul>
    *  <li> <code>Iterator getAllXXX()</code>
    *  <li> <code>void addXXX(T t)</code>
    *  </ul>
    */
-  //   *  <li> <code>boolean removeXXX(T t)</code>
-  // *  <li> <code>void clearAllXXX()</code>
   private Class checkGetAndSet2(String name, Class c) throws OntologyException {
     Method getMethod = findMethodCaseInsensitive("getAll" + name, c);
     Method addMethod = findMethodCaseInsensitive("add" + name, c);
     //Method remMethod = findMethodCaseInsensitive("remove" + name, c);
     //Method clrMethod = findMethodCaseInsensitive("clearAll" + name, c);
     Class result = getArgumentType(addMethod,0);  
-    //FIXME. The type of result should be taken from the TermDescriptor 
+    //FIXME. The type of result should be taken from the SlotDescriptor 
     // and not directly from the method argument. 
 
     // check "get" method 
@@ -410,42 +470,49 @@ public final class DefaultOntology implements Ontology {
       throw new OntologyException("No schema was found for " + roleName + "role.");
 
     Iterator it = fs.subSchemas();
+    // System.out.println("checkClass. Role=\""+fs.getName()+"\" represented by class "+c.getName());
+    
     while(it.hasNext()) {
-      TermDescriptor desc = (TermDescriptor)it.next();
-      //System.err.println("checkClass. TermDescriptor="+desc.toString());
-      String termName = translateName(desc.getName());
+      SlotDescriptor desc = (SlotDescriptor)it.next();
+      // System.out.println("checkClass. SlotDescriptor="+desc.toString());
+      String slotName = translateName(desc.getName());
       try {
-	// Check for correct set and get methods for the current
-	// descriptor and retrieve the implementation type.
-	Class implType;
-	if ((desc.getType() == SET_TERM) || (desc.getType() == SEQUENCE_TERM))
-	  implType = checkGetAndSet2(termName, c);
-	else
-	  implType = checkGetAndSet(termName, c);
+				// Check for correct set and get methods for the current
+				// descriptor and retrieve the implementation type.
+				Class implType;
+				//if ((desc.getType() == SET_SLOT) || (desc.getType() == SEQUENCE_SLOT))
+				if (desc.isSet())
+	  			implType = checkGetAndSet2(slotName, c);
+				else
+	  			implType = checkGetAndSet(slotName, c);
+	  		// System.out.println("- implType class is: "+implType.getName());
 
-	// If the descriptor is a complex term (Concept)
-	// and some class C is registered for that role,
-	// then the implementation type must be a supertype of C.
-	if(desc.isConcept() || desc.isSet()) {
-	  RoleFactory rf = lookupFactory(desc.getTypeName());
-	  if(rf != null) {
-	    Class roleType = rf.getClassForRole();
-	    if(!implType.isAssignableFrom(roleType))
-	      throw new OntologyException("Wrong class: the " + desc.getName() + " role is played by " + roleType + " class, which is not a subtype of " + implType + " class.");
-	  }
-	}
-	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
-	  int typeIndex=0;
-	  for (int i=0; i<Ontology.typeNames.length; i++)
-	    if (Ontology.typeNames[i].equalsIgnoreCase(desc.getTypeName()))
-	      typeIndex = i;
-	  Class primitive = (Class)primitiveTypes.get(typeIndex);
-	  if(!implType.isAssignableFrom(primitive))
-	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + primitive + " class.");
-	}
+				// If the descriptor is a complex slot (i.e. its values are instances of a 
+				// role) and some class C is registered for that role,
+				// then the implementation type must be a supertype of C.
+				if(desc.isComplex() || desc.isSet()) { //DUBBIO Non dovrebbe essere if (!desc.hasPrimitiveTypes())
+	  			RoleEntityFactory fac = lookupFactory(desc.getType());
+	  			if(fac != null) {
+	    			Class complex = fac.getClassForRole();
+	  				// System.out.println("- complex class is: "+complex.getName());
+	    			if(!implType.isAssignableFrom(complex))
+	      			throw new OntologyException("Wrong class: the " + desc.getName() + " role is represented by " + complex + " class, which is not a subtype of " + implType + " class.");
+	  			}
+				}
+				else {	// Check that the returned type is compatible with the one dictated by the SlotDescriptor
+	  			try {
+	    			Class primitive = Class.forName(desc.getType()); 
+	  				// System.out.println("- primitive class is: "+primitive.getName());
+	    			if(!implType.isAssignableFrom(primitive))
+	      			throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	  			} 
+	  			catch (Exception e) {
+	    			throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " must be a subtype of " + implType + " class.");
+	  			}
+				}
       }
       catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible."); 
+				throw new OntologyException("Wrong class: some required method is not accessible."); 
       }
 
     }
@@ -453,7 +520,7 @@ public final class DefaultOntology implements Ontology {
   }
 
 
-  private Object initObject(Frame f, Object concept, Class theConceptClass) throws OntologyException {
+  private Object initObject(Frame f, Object entity, Class theRoleClass) throws OntologyException {
 
     String roleName = f.getName();
 
@@ -462,123 +529,128 @@ public final class DefaultOntology implements Ontology {
     int slotPosition = 0;
 
     while(it.hasNext()) {
-      TermDescriptor desc = (TermDescriptor)it.next();
+      SlotDescriptor desc = (SlotDescriptor)it.next();
       String slotName = desc.getName();
       String methodName;
       if (desc.isSet())
-	methodName = "add" + translateName(slotName);
+				methodName = "add" + translateName(slotName);
       else
-	methodName = "set" + translateName(slotName);
+				methodName = "set" + translateName(slotName);
 
       // Retrieve the modifier method from the class and call it
-      Method setMethod = findMethodCaseInsensitive(methodName, theConceptClass);
+      Method setMethod = findMethodCaseInsensitive(methodName, theRoleClass);
       try {
-	Object slotValue;
-	if (slotName.startsWith(Frame.UNNAMEDPREFIX))
-	  slotValue = f.getSlot(slotPosition);
-	else
-	  slotValue = f.getSlot(slotName);
-	// For complex slots, transform from sub-frame to sub-object.
-	// This is performed calling createObject() recursively.
-	if(desc.isConcept()) {
-	  slotValue = createSingleObject((Frame)slotValue);
-	  setMethod.invoke(concept, new Object[] { slotValue });
-	}
-	else if (desc.isSet()) {
-	  Frame set = (Frame)slotValue;//this is the frame representing the set
-	  if (desc.hasPrimitiveTypeElements())
-	    for (int i=0; i<set.size(); i++) // add all the elements of the set
-	      setMethod.invoke(concept, new Object[]{set.getSlot(i)}); 
-	  else // convert the elements into an object and then add
-	    for (int i=0; i<set.size(); i++) { 
-	      Object element = createSingleObject((Frame)set.getSlot(i));
-	      setMethod.invoke(concept, new Object[]{element});
-	    } 
-	} else 
-	  setMethod.invoke(concept, new Object[] { slotValue });
-	slotPosition++;
+				Object slotValue;
+				if (slotName.startsWith(Frame.UNNAMEDPREFIX))
+	  			slotValue = f.getSlot(slotPosition);
+				else
+	  			slotValue = f.getSlot(slotName);
+				// For complex slots, transform from sub-frame to sub-object.
+				// This is performed calling createObject() recursively.
+				if(desc.isComplex()) {
+	  			slotValue = createSingleObject((Frame)slotValue);
+	  			setMethod.invoke(entity, new Object[] { slotValue });
+				}
+				else if (desc.isSet()) {
+	  			Frame set = (Frame)slotValue;//this is the frame representing the set
+	  			if (desc.hasPrimitiveType())
+	    			for (int i=0; i<set.size(); i++) // add all the elements of the set
+	      			setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
+	  			else // convert the elements into an object and then add
+	    			for (int i=0; i<set.size(); i++) { 
+	      			Object element = createSingleObject((Frame)set.getSlot(i));
+	      			setMethod.invoke(entity, new Object[]{element});
+	    			} 
+				} 
+				else 
+	  			setMethod.invoke(entity, new Object[] { slotValue });
+				slotPosition++;
       }
       catch(Frame.NoSuchSlotException fnsse) { // Ignore 'No such slot' errors for optional slots
-	if(!desc.isOptional())
-	  throw fnsse;
+				if(!desc.isOptional())
+	  			throw fnsse;
       }
       catch(InvocationTargetException ite) {
-	Throwable e = ite.getTargetException();
-	e.printStackTrace();
-	throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()");
+				Throwable e = ite.getTargetException();
+				e.printStackTrace();
+				throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()",ite);
       }
       catch(IllegalAccessException iae) {
-	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+				throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]",iae);
       }
       catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible."); 
+				throw new OntologyException("Wrong class: some required method is not accessible.",se); 
       }
       catch(IllegalArgumentException iare){
-      throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]. For role "+roleName+" and slot "+slotName);	
+      	throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]. For role "+roleName+" and slot "+slotName,iare);	
+      }
+      catch(ClassCastException iacce) {
+      	throw new OntologyException("Possibly a primitive value has been used instead of a Frame slot",iacce);
       }
     }
 
-    return concept;
+    return entity;
   }
 
 
-  private void buildFromObject(Frame f, FrameSchema fs, Object o, Class c) throws OntologyException {
+  private void buildFromObject(Frame f, FrameSchema fs, Object o, Class theRoleClass) throws OntologyException {
     Iterator it = fs.subSchemas();
     while(it.hasNext()) {
-      TermDescriptor desc = (TermDescriptor)it.next();
+      SlotDescriptor desc = (SlotDescriptor)it.next();
       String slotName = desc.getName();
       String methodName;
       if (desc.isSet())
-	methodName = "getAll" + translateName(slotName);
+				methodName = "getAll" + translateName(slotName);
       else
-	methodName = "get" + translateName(slotName);
+				methodName = "get" + translateName(slotName);
 
       // Retrieve the accessor method from the class and call it
-      Method getMethod = findMethodCaseInsensitive(methodName, c);
+      Method getMethod = findMethodCaseInsensitive(methodName, theRoleClass);
       try {
-	Object value = getMethod.invoke(o, new Object[] { });
-	if (value == null) {
-	  if (!desc.isOptional())
-	    throw new OntologyException("Slot "+slotName+" has a null value and it is mandatory"); 
-	} else {
-	  // Now set the corresponding frame subterm appropriately
-	  if(!desc.isConcept() && !desc.isSet()) { // For elementary terms, just put the Object as a slot
-	    f.putSlot(slotName, value);
-	  }
-	  else if (desc.isConcept()) { 
-	    // For complex terms, do a name lookup and 
-	    //call createFrame() recursively
-	    String roleName = desc.getTypeName();
-	    if (roleName.equalsIgnoreCase(Ontology.typeNames[Ontology.ANY_TYPE]))
-	      roleName = getRoleName(value.getClass());
-	    f.putSlot(slotName, createFrame(value, roleName));
-	  }
-	  else if (desc.isSet()) {
-	    Frame setFrame;
-	    if (desc.getType() == Ontology.SET_TERM)
-	      setFrame = new Frame(NAME_OF_SET_FRAME); 
-	    else
-	      setFrame = new Frame(NAME_OF_SEQUENCE_FRAME); 
-	    Iterator i = (Iterator)value;
-	    if (desc.hasPrimitiveTypeElements())
-	      while (i.hasNext()) 
-		setFrame.putSlot(i.next());
-	    else 
-	      while (i.hasNext()) 
-		setFrame.putSlot(createFrame(i.next(), desc.getTypeName()));
-	    f.putSlot(slotName,setFrame);
-	  }
-	} //if (value==null) else
+				Object value = getMethod.invoke(o, new Object[] { });
+				if (value == null) {
+	  			if (!desc.isOptional())
+	    			throw new OntologyException("Slot "+slotName+" has a null value and it is mandatory"); 
+				} 
+				else {
+	  			// Now set the corresponding frame subterm appropriately
+	  			if(!desc.isComplex() && !desc.isSet()) { // For elementary terms, just put the Object as a slot
+	    			f.putSlot(slotName, value);
+	  			}
+	  			else if (desc.isComplex()) { 
+	    			// For complex terms, do a name lookup and 
+	    			// call createFrame() recursively
+	    			String roleName = desc.getType();
+	    			if (roleName.equalsIgnoreCase(Ontology.ANY_TYPE))
+	      			roleName = getRoleName(value.getClass());
+	    			f.putSlot(slotName, createFrame(value, roleName));
+	  			}
+	  			else if (desc.isSet()) {
+	    			Frame setFrame;
+	    			if (desc.getCategory() == Ontology.SET_SLOT)
+	      			setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
+	    			else
+	      			setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
+	    			Iterator i = (Iterator)value;
+	    			if (desc.hasPrimitiveType())
+	      			while (i.hasNext()) 
+								setFrame.putSlot(i.next());
+	    			else 
+	      			while (i.hasNext()) 
+								setFrame.putSlot(createFrame(i.next(), desc.getType()));
+	    			f.putSlot(slotName,setFrame);
+	  			}
+				} //if (value==null) else
       }
       catch(InvocationTargetException ite) {
-	String msg = ite.getTargetException().getMessage();
-	throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
+				String msg = ite.getTargetException().getMessage();
+				throw new OntologyException("Internal error: a reflected method threw an exception.\nMessage was " + msg);
       }
       catch(IllegalAccessException iae) {
-	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
+				throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]");
       }
       catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible."); 
+				throw new OntologyException("Wrong class: some required method is not accessible."); 
       }
 
     }
@@ -591,36 +663,19 @@ public final class DefaultOntology implements Ontology {
   }
 
 
-  private void addFactoryToTable(String roleName, RoleFactory rf) {
-    factories.put(new Name(roleName), rf);
+  private void addFactoryToTable(String roleName, RoleEntityFactory fac) {
+    factories.put(new Name(roleName), fac);
   }
 
-  //FIXME Needs a better implemenation.
-  /** @return the roleName of the passed object as registered in this ontology
-   * @throws OntologyException if no role is found for this object
-  **/
-public String getRoleName(Class c) throws OntologyException{
-  Set s = factories.entrySet(); // each element of the Set is a Map.Entry
-  Iterator i = s.iterator();
-  while (i.hasNext()) {
-    Map.Entry element = (Map.Entry)i.next();
-    // element.getValue() returns a RoleFactory
-    if (c.equals(((RoleFactory)element.getValue()).getClassForRole()))
-      return ((Name)element.getKey()).toString();
-  }
-  throw new OntologyException("No rolename registered in the ontology for class "+c.getName());
-}
 
-  private Method findMethodCaseInsensitive(String name, Class implementationClass) throws OntologyException {
-    Method[] methods = implementationClass.getMethods();
+  private Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
+    Method[] methods = c.getMethods();
     for(int i = 0; i < methods.length; i++) {
       String ithName = methods[i].getName();
       if(ithName.equalsIgnoreCase(name))
-	return methods[i];
+				return methods[i];
     }
-    throw new OntologyException("Method " + name + " not found in class "+implementationClass.getName());
-
+    throw new OntologyException("Method " + name + " not found in class "+c.getName());
   }
-
 
 }

@@ -28,8 +28,10 @@ import java.io.StringReader;
 import jade.lang.Codec;
 
 import jade.onto.Frame;
+
 import jade.onto.Ontology;
-import jade.onto.DefaultOntology;
+import jade.onto.basic.BasicOntologyVocabulary;
+
 
 import java.util.List;
 
@@ -68,7 +70,7 @@ public class SL0Codec implements Codec {
   public static final String NAME = "FIPA-SL0";
 
   /** Symbolic constant identifying a frame representing an action **/ 
-  public static String NAME_OF_ACTION_FRAME = DefaultOntology.NAME_OF_ACTION_FRAME;
+  public static String NAME_OF_ACTION_FRAME = BasicOntologyVocabulary.ACTION;
   /** Symbolic constant identifying a slot representing an actor **/ 
   public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
   /** Symbolic constant identifying a slot representing an action **/ 

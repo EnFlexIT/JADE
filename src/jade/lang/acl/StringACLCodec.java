@@ -70,6 +70,8 @@ public class StringACLCodec implements ACLCodec {
   public ACLMessage decode() throws ACLCodec.CodecException {
     try {
       return parser.Message();
+    } catch (jade.lang.acl.TokenMgrError e1) {
+      throw new ACLCodec.CodecException(getName()+" ACLMessage decoding token exception",e1);
     } catch (Exception e) {
       throw new ACLCodec.CodecException(getName()+" ACLMessage decoding exception",e);
     }
@@ -100,8 +102,10 @@ public class StringACLCodec implements ACLCodec {
   public ACLMessage decode(byte[] data) throws ACLCodec.CodecException {
     try {
       return ACLParser.create().parse(new InputStreamReader(new ByteArrayInputStream(data)));
-    } catch (Exception e) {
-      throw new ACLCodec.CodecException(getName()+" ACLMessage decoding exception",e);
+    } catch (jade.lang.acl.TokenMgrError e1) {
+      throw new ACLCodec.CodecException(getName()+" ACLMessage decoding token exception",e1);
+    } catch (Exception e2) {
+      throw new ACLCodec.CodecException(getName()+" ACLMessage decoding exception",e2);
     }
   }
 
