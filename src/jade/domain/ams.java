@@ -168,6 +168,19 @@ public class ams extends Agent implements AgentManager.Listener {
       // message from the Map and send it back.
       ACLMessage informCreator = (ACLMessage)pendingInforms.remove(amsd.getName());
 
+      //The message in pendingInforms can be registered with only the localName 
+      //without the platformID
+      if(informCreator == null)
+        {
+        	String name = amsd.getName().getName();
+      		int atPos = name.lastIndexOf('@');
+    			if(atPos > 0)
+          {
+          	name = name.substring(0, atPos);
+						informCreator = (ACLMessage)pendingInforms.remove(name);
+          }
+        }
+
       try {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
