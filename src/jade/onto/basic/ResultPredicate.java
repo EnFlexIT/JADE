@@ -24,11 +24,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
+import java.util.*;
+
 public class ResultPredicate {
 Action s;
-Object result;
+  //Object result;
+List result = new ArrayList();
 public void set_0(Action a){s=a;}
 public Action get_0() {return s;}
-public void set_1(Object o){result=o;}
-public Object get_1() {return result;}
+  //public void set_1(Object o){result=o;}
+  //public Object get_1() {return result;}
+public void add_1(Object o) {result.add(o);}
+public Iterator getAll_1(){return result.iterator();}
 }

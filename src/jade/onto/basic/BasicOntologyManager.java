@@ -133,7 +133,7 @@ public class BasicOntologyManager {
 				BasicOntologyVocabulary.RESULT, 
 				new SlotDescriptor[] {
 					new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntologyVocabulary.ACTION, Ontology.M),
-					new SlotDescriptor(Ontology.ANY_SLOT, Ontology.ANY_TYPE, Ontology.M)
+					new SlotDescriptor(Ontology.SET_SLOT, Ontology.ANY_TYPE, Ontology.M)
 				}, 
 				new RoleEntityFactory() {
 					public Object create(Frame f) {return new ResultPredicate(); }
