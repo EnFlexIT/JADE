@@ -43,7 +43,7 @@ public class BehaviourID {
 
 	private String name;
 	private String className;
-  private String kind; // Simple, FSM, Parallel or Sequential
+  private String kind; 
   private List children = new ArrayList();
 
   public BehaviourID () {
@@ -52,35 +52,18 @@ public class BehaviourID {
   public BehaviourID (Behaviour b) {
       
       name = b.getBehaviourName();
-      //name = b.getClass().getName();
-      className = b.getClass().getName();
-      
+      className = b.getClass().getName();      
       kind = getClassKind(b.getClass());      
 
       // If we have a composite behaviour, add the
       // children to this behaviour id.
       if (b instanceof CompositeBehaviour) {
-      		/*if (b instanceof SequentialBehaviour) {
-	          kind = "SequentialBehaviour";
-      		}
-      		else if (b instanceof ParallelBehaviour) {
-	          kind = "ParallelBehaviour";
-      		}
-      		else if (b instanceof FSMBehaviour) {
-	          kind = "FSMBehaviour";
-      		}
-      		else {
-	          kind = "CompositeBehaviour";
-      		}*/
           CompositeBehaviour c = (CompositeBehaviour)b;
           Iterator iter = c.getChildren().iterator();
           while (iter.hasNext()) {
               addChildren(new BehaviourID((Behaviour)iter.next()));
           }
       }
-      /*else {
-          kind = "SimpleBehaviour";
-      }*/
   }
 
   private String getClassKind(Class c) {
@@ -140,7 +123,7 @@ public class BehaviourID {
   }
   
   public boolean isSimple() {
-      return (children.size() == 0) ? true : false;
+      return (children.size() == 0);
   }
   
   public boolean equals(Object o) {
