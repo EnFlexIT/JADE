@@ -190,7 +190,7 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		}
 		// EXIT
 		else if (command.equalsIgnoreCase(EXITLABEL)) {
-			myAgent.postExitEvent((Object) this);
+			myAgent.postSimpleEvent(myAgent.EXIT);
 		}
 		else if (command.equalsIgnoreCase(PAUSELABEL)) {
 		  myAgent.postSimpleEvent(myAgent.STOP_EVENT);

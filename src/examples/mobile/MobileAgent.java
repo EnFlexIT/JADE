@@ -72,6 +72,7 @@ public class MobileAgent extends GuiAgent {
   Location nextSite;  // this variable holds the destination site
 
   // These constants are used by the Gui to post Events to the Agent
+  public static final int EXIT = 1000;
   public static final int MOVE_EVENT = 1001;
   public static final int STOP_EVENT = 1002;
   public static final int CONTINUE_EVENT = 1003;
@@ -200,7 +201,7 @@ public class MobileAgent extends GuiAgent {
 	{
 		switch(ev.getType()) 
 		{
-		case MobGuiEvent.EXIT:
+		case EXIT:
 			gui.dispose();
 			gui = null;
 			doDelete();
