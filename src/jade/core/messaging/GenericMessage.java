@@ -144,5 +144,19 @@ public class GenericMessage implements Serializable {
     return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
   }
 
-
+  public int length() {
+  	int length = 0;
+		if (payload != null) {
+			length = payload.length;
+		}
+		else {
+			if (msg != null) {
+				byte[] content = msg.getByteSequenceContent();
+				if (content != null) {
+					length = content.length;
+				}
+			}
+		}
+		return length;
+  }
 }

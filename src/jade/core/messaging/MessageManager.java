@@ -57,11 +57,12 @@ class MessageManager {
     // A shared instance to have a single thread pool
     private static MessageManager theInstance; // FIXME: Maybe a table, indexed by a profile subset, would be better?
 
-	private static final int  DEFAULT_POOL_SIZE = 5;
+	private static final int  POOL_SIZE_DEFAULT = 5;
 	private static final int  MAX_POOL_SIZE = 100;
-	private int poolSize = DEFAULT_POOL_SIZE;
+	
+	private static final int  MAX_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 
-	private OutBox outBox = new OutBox();
+	private OutBox outBox;
 
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
@@ -79,14 +80,27 @@ class MessageManager {
 
 	public void initialize(Profile p) {
 		// POOL_SIZE
+		int poolSize = POOL_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_MessageManager_pool-size", null);
+			String tmp = p.getParameter("jade_core_MessageManager_poolsize", null);
 			poolSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
 			// Do nothing and keep default value
 		}
 			
+		// OUT_BOX_MAX_SIZE
+		int maxQueueSize = MAX_QUEUE_SIZE_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_MessageManager_maxqueuesize", null);
+			maxQueueSize = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		outBox = new OutBox(maxQueueSize);
+
+		
 		try {
 			ResourceManager rm = p.getResourceManager();
 			for (int i = 0; i < poolSize; ++i) {
@@ -126,15 +140,14 @@ class MessageManager {
  				PendingMsg pm = outBox.get();
  				GenericMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
-				if (myLogger.isLoggable(Logger.FINEST)) {
-					myLogger.log(Logger.FINEST, "Serving message "+stringify(msg)+" for agent "+receiverID.getName());
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Serving message "+stringify(msg)+" for agent "+receiverID.getName());
 				}
     		
  				// Deliver the message
         Channel ch = pm.getChannel();
 	    	try {
 		    	ch.deliverNow(msg, receiverID);
-	    		outBox.handleDelivered(receiverID);	
 					if (myLogger.isLoggable(Logger.FINEST)) {
 						myLogger.log(Logger.FINEST, "Message served.");
 					}
@@ -144,6 +157,7 @@ class MessageManager {
 	    		myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". "+t);
 				  ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
 				}
+    		outBox.handleServed(receiverID);
 	 		}
  		}
  	

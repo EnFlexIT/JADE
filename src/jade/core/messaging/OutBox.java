@@ -8,7 +8,9 @@ import jade.util.leap.RoundList;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
 import jade.core.messaging.MessageManager.Channel;
+import jade.lang.acl.ACLMessage;
 
+import jade.util.Logger;
 
 /**
  * Object to mantain message to send and
@@ -18,13 +20,23 @@ import jade.core.messaging.MessageManager.Channel;
  */
 
 class OutBox {
-	private int verbosity = 2;
+	private int size = 0;
+	private int maxSize; 
+	private boolean overMaxSize = false;
+	
 	// The massages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
 	private final Hashtable messagesByReceiver = new Hashtable(); 
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
 	private final RoundList messagesByOrder = new RoundList();
+	
+	private Logger myLogger;
+	
+	OutBox(int s) {
+		maxSize = s;
+		myLogger = Logger.getMyLogger(getClass().getName());
+	}
 	
 	/**
 	 * Add a message to the tail of the Box of messages for the indicated 
@@ -34,6 +46,15 @@ class OutBox {
 	 * a new message.
 	 */
 	synchronized void addLast(AID receiverID, GenericMessage msg, Channel ch) {
+		if (msg.getPayload() != null) {
+			ACLMessage acl = msg.getACLMessage();
+			if (acl != null) {
+				acl.setContent(null);
+			}
+		}
+		
+		increaseSize(msg.length());
+		
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b == null){
 			// There is no Box of messages for this receiver yet. Create a new one 
@@ -54,14 +75,14 @@ class OutBox {
 	 * retransmission timer expires. Therefore a Box of messages for the
 	 * indicated receiver must already exist. Moreover the busy flag of 
 	 * this Box must be reset to allow deliverers to handle messages in it
-   */
+   *
 	synchronized void addFirst(PendingMsg pm){
 		Box b = (Box) messagesByReceiver.get(pm.getReceiver());
 		b.addFirst(pm);
 		b.setBusy(false);
 		// Wakes up all deliverers
 		notifyAll();
-	}
+	}*/
 	
 
 
@@ -83,7 +104,9 @@ class OutBox {
 				// Just do nothing
 			}
 		}
-	 	return b.removeFirst();
+	 	PendingMsg pm = b.removeFirst();
+	 	decreaseSize(pm.getMessage().length());
+	 	return pm;
 	}
 	
 	
@@ -109,11 +132,11 @@ class OutBox {
 	}
 	
 	/**
-	 * A message for the receiver receiverID has been successfully delivered
+	 * A message for the receiver receiverID has been served
 	 * If the Box of messages for that receiver is now empty --> remove it.
 	 * Otherwise just mark it as idel (not busy).
    */
-	synchronized void handleDelivered( AID receiverID ){
+	synchronized void handleServed( AID receiverID ){
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b.isEmpty()) {
 			messagesByReceiver.remove(receiverID);
@@ -124,8 +147,32 @@ class OutBox {
 			b.setBusy(false);
 		}
 	}
-	
 
+	// No need for synchronization since this is called from a synchronized 
+	// block
+	private void increaseSize(int k) {
+		size += k;
+		if (size >= maxSize) {
+			if (!overMaxSize) {
+				myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize);
+				overMaxSize = true;
+			}
+			System.gc();
+		}
+	}
+
+	// No need for synchronization since this is called from a synchronized 
+	// block
+	private void decreaseSize(int k) {
+		size -= k;
+		if (size < maxSize) {
+			if (overMaxSize) {
+				myLogger.log(Logger.INFO, "MessageManager queue size < "+maxSize);
+				overMaxSize = false;
+			}
+		}
+	}
+	
 	/**
 	 * This class represents a Box of messages to be delivered to 
 	 * a single receiver
@@ -166,9 +213,9 @@ class OutBox {
 			messages.add(msg);
 		}*/
 		
-		private void addFirst(PendingMsg pm) {
+		/*private void addFirst(PendingMsg pm) {
 			messages.add(0, pm);
-		}
+		}*/
 		/*private void addFirst(ACLMessage msg) {
 			messages.add(0, msg);
 		}*/
@@ -183,14 +230,5 @@ class OutBox {
 		private boolean isEmpty() {
 			return messages.isEmpty();
 		}	
-	}
-
-	private void log(String s, int level) {
-    if (verbosity >= level) {
-      String name = Thread.currentThread().toString();
-			//String name = Thread.currentThread().getName();
-      System.out.println("MessageManager("+name+"): "+s);
-    } 
-  } 	
-  
+	} // END of inner class Box
 }
