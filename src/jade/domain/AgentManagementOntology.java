@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.18  1998/12/01 23:40:04  rimassa
+  Modified DFSearchResult class to hold a FIPAException object when a
+  search goes wrong and throw it when someone tries to read the result.
+  Added a constructor to DFSearchAction class to set its action name at
+  construction time.
+
   Revision 1.17  1998/11/30 00:17:58  rimassa
   Added a DFSearchResult inner class to model the result of a 'search' DF action.
   Changed some badly named DFAgentDescriptor methods.
@@ -568,11 +574,36 @@ public class AgentManagementOntology {
 
     private Hashtable results = new Hashtable();
 
+    // This exception object records last search outcome. When it is
+    // 'null', all went OK.
+    private FIPAException searchOutcome = null;
+
     public static DFSearchResult fromText(Reader r) throws ParseException {
-      return parser.parseSearchResult(r);
+      AgentManagementOntology o = AgentManagementOntology.instance();
+      DFSearchResult dfsr;
+      try {
+	dfsr = parser.parseSearchResult(r);
+      }
+      catch(ParseException pe) {
+	dfsr = new AgentManagementOntology.DFSearchResult();
+	dfsr.searchOutcome = o.getException(Exception.UNRECOGNIZEDVALUE);
+	throw pe;
+      }
+      catch(TokenMgrError tme) {
+	dfsr = new AgentManagementOntology.DFSearchResult();
+	dfsr.searchOutcome = o.getException(Exception.UNRECOGNIZEDVALUE);
+	throw tme;
+      }
+      return dfsr;
     }
 
-    public void toText(Writer w) {
+    public void setException(FIPAException fe) {
+      searchOutcome = fe;
+    }
+
+    public void toText(Writer w) throws FIPAException {
+      if(searchOutcome != null)
+	throw searchOutcome;
       try {
 	w.write("( result ( ");
 	Enumeration e = results.elements();
@@ -594,11 +625,15 @@ public class AgentManagementOntology {
       results.put(agentName, dfd);
     }
 
-    public DFAgentDescriptor get(String agentName) {
+    public DFAgentDescriptor get(String agentName) throws FIPAException {
+      if(searchOutcome != null)
+	throw searchOutcome;
       return (DFAgentDescriptor)results.get(agentName);
     }
 
-    public Enumeration elements() {
+    public Enumeration elements() throws FIPAException {
+      if(searchOutcome != null)
+	throw searchOutcome;
       return results.elements();
     }
 
@@ -964,6 +999,11 @@ public class AgentManagementOntology {
   public static class DFSearchAction extends DFAction {
 
     private Vector constraints = new Vector();
+
+    public DFSearchAction() {
+      super();
+      super.setName(super.SEARCH);
+    }
 
     public void addConstraint(Constraint c) {
       constraints.addElement(c);
@@ -1356,9 +1396,11 @@ public class AgentManagementOntology {
       fe = parser.parseFIPAException(r, this);
     }
     catch(ParseException pe) {
+      pe.printStackTrace();
       fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
     }
     catch(TokenMgrError tme) {
+      tme.printStackTrace();
       fe = getException(AgentManagementOntology.Exception.FAILEDMANACTION);
     }
     return fe;
