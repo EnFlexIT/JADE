@@ -169,9 +169,9 @@ public abstract class Profile {
      */
     protected abstract CommandProcessor getCommandProcessor() throws ProfileException;
 
-    /**
-     */
+    //#MIDP_EXCLUDE_BEGIN
     protected abstract MainContainerImpl getMain() throws ProfileException;
+    //#MIDP_EXCLUDE_END
     
     /**
      */

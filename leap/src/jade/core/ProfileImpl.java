@@ -63,10 +63,10 @@ public class ProfileImpl extends Profile {
   private ServiceManager myServiceManager = null;
   private ServiceFinder myServiceFinder = null;
   private CommandProcessor myCommandProcessor = null; 
-  private Platform            myPlatform = null;
   private IMTPManager         myIMTPManager = null;
 	//#MIDP_EXCLUDE_BEGIN
   private ResourceManager     myResourceManager = null;
+  private MainContainerImpl myMain = null;
 	//#MIDP_EXCLUDE_END
 
   /**
@@ -233,25 +233,12 @@ public class ProfileImpl extends Profile {
     }
 
 
-  /**
-   */
-  protected Platform getPlatform() throws ProfileException {
-      //#MIDP_EXCLUDE_BEGIN
-    if (myPlatform == null) {
-
-      createPlatform();
-
+    //#MIDP_EXCLUDE_BEGIN
+    protected MainContainerImpl getMain() throws ProfileException {
+	return myMain;
     }
-
-    return myPlatform;
-
     //#MIDP_EXCLUDE_END
 
-    /*#MIDP_INCLUDE_BEGIN
-      return null;
-      #MIDP_INCLUDE_END*/
-    
-  }
 
   /**
    */
@@ -301,8 +288,9 @@ public class ProfileImpl extends Profile {
 	    String isMain = props.getProperty(MAIN);
 	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
 		// This is a main container: create a real Service Manager and export it
-		myServiceManager = new ServiceManagerImpl(this);
-		myIMTPManager.exportServiceManager(myServiceManager);
+		myMain = new MainContainerImpl(this);
+		myServiceManager = new ServiceManagerImpl(this, myMain);
+		myIMTPManager.exportServiceManager((ServiceManagerImpl)myServiceManager);
 	    }
 	    else {
 		// This is a peripheral container: create a Service Manager Proxy
@@ -350,15 +338,6 @@ public class ProfileImpl extends Profile {
 	    throw pe;
 	}
     }
-
-  //#MIDP_EXCLUDE_BEGIN
-  private void createPlatform() throws ProfileException {
-      if (CaseInsensitiveString.equalsIgnoreCase("true", getParameter(MAIN, "true"))) {
-	  // The real Main
-	  myPlatform = new MainContainerImpl(this);
-      }
-  }
-  //#MIDP_EXCLUDE_END
 
 
   //#MIDP_EXCLUDE_BEGIN

@@ -81,8 +81,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Command Processor through which all the vertical commands in this container will pass
   CommandProcessor myCommandProcessor;
 
+  //#MIDP_EXCLUDE_BEGIN
+
   // The agent platform this container belongs to
   private MainContainerImpl myMainContainer; // FIXME: It should go away
+
+  //#MIDP_EXCLUDE_END
 
   // The IMTP manager, used to access IMTP-dependent functionalities
   private IMTPManager myIMTPManager;
@@ -261,8 +265,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  myServiceManager = myProfile.getServiceManager();
 	  myServiceFinder = myProfile.getServiceFinder();
 
+	  //#MIDP_EXCLUDE_BEGIN
+
 	  // FIXME: It should probably go away...
 	  myMainContainer = myProfile.getMain();
+
+	  //#MIDP_EXCLUDE_END
 
           // Create and init container-authority
           try {
@@ -276,7 +284,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               if (type != null) {
                   authority = (Authority)Class.forName(type).newInstance();
                   authority.setName("container-authority");
+		  //#MIDP_EXCLUDE_BEGIN
                   authority.init(myProfile, myMainContainer);
+		  //#MIDP_EXCLUDE_END
               }
           }
           catch (Exception e1) {
@@ -289,7 +299,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               if (authority == null) {
                   authority = new jade.security.dummy.DummyAuthority();
                   authority.setName("container-authority");
+		  //#MIDP_EXCLUDE_BEGIN
                   authority.init(myProfile, myMainContainer);
+		  //#MIDP_EXCLUDE_END
               }
           }
           catch (Exception e2) {
@@ -309,18 +321,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
           // Initialize the Container ID
           TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-	  // the name for this container is got from the Profile, if exists
-	  // "No-name" is needed because the NAME is mandatory in the Ontology
-          myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME,
-							AgentManager.UNNAMED_CONTAINER_NAME), addr);
 
           // Acquire username and password
 	  //#MIDP_EXCLUDE_BEGIN
+
+	  // the name for this container is got from the Profile, if exists
+	  // "No-name" is needed because the NAME is mandatory in the Ontology
+          myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, AgentManager.UNNAMED_CONTAINER_NAME), addr);
           String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
           password = Agent.extractPassword(ownership);
           username = Agent.extractUsername(ownership);
 	  //#MIDP_EXCLUDE_END
 	  /*#MIDP_INCLUDE_BEGIN
+	    myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
 	    password = new byte[] {};
 	    username = ContainerPrincipal.NONE;
 	    #MIDP_INCLUDE_END*/
@@ -383,6 +396,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
 
+	  //#MIDP_EXCLUDE_BEGIN
+
 	  if(myMainContainer != null) {
 	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null) == null);
 	      myMainContainer.initSystemAgents(this, startThem);
@@ -393,6 +408,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  if(isMain) {
 	      startService("jade.core.replication.MainReplicationService");
 	  }
+
+	  //#MIDP_EXCLUDE_END
 
       }
       catch (IMTPException imtpe) {
@@ -514,12 +531,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
 
 	myServiceManager.removeNode(myNodeDescriptor);
-
-	/***
-	if(myMainContainer != null) {
-	    myMainContainer.removeLocalContainer(myID);
-	}
-	***/
 
 	myIMTPManager.unexportServiceManager(myServiceManager);
 	myIMTPManager.disconnect(myID);
@@ -925,7 +936,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     public MainContainer getMain() {
+	//#MIDP_EXCLUDE_BEGIN
 	return myMainContainer;
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+	return null;
+	#MIDP_INCLUDE_END*/
     }
 
     public ServiceManager getServiceManager() {
@@ -958,12 +974,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     public void becomeLeader() {
+	//#MIDP_EXCLUDE_BEGIN
 	try {
 	    myMainContainer.startSystemAgents(this);
 	}
 	catch(Exception e) {
 	    e.printStackTrace();
 	}
+	//#MIDP_EXCLUDE_END
     }
 
 
