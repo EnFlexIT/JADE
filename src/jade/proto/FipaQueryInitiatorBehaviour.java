@@ -50,7 +50,7 @@ import java.io.*;
 * to handle all received messages different from "inform" message with
 * the value of <code>:in-reply-to</code> parameter set (fixed) correctly
 * <li> <code> public void handleInformeMessages(Vector messages) </code>
-* to handle the "inform" messages received 
+* to handle the "inform" messages received (eventually no message)
 * </ul> <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
 * </ul>
 * <p>
@@ -84,8 +84,9 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
    * Agent class and use the methods of the extended class.
    * For instance
    * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
-   * @param msg is the Query-ref message to be sent
-   * @param group is the group of agents to which the query-ref must be sent
+   * @param msg is the Query message to be sent (notice that the performative
+   * must be set to <code>QUERY-IF</code> or <code>QUERY-REF</code>
+   * @param group is the group of agents to which the query must be sent
    */
     public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
       super(a);
@@ -95,6 +96,12 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
     }
 
 
+    /**
+    * constructor of the behaviour.
+    * In this case the set of agents to which the message is sent is
+    * exactly the receivers set in the passed ACLMessage.
+    * @see FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
+    */
 public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
   this(a,msg,msg.getDests());
 }
@@ -146,22 +153,23 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
 	}
       }
 
-      //      System.err.println("FipaQueryInitiatorBehaviour: receive");
-      //msg.dump();
-
+      // a new message is arrived and must be processed.		
+      
+      // remove the sender of this message from the list of responders that have not yet responded
       waitedAgents.removeMemberAddressAndCaseInsensitive(msg.getSource());
-      //      System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
-      if (!waitedAgents.getMembers().hasMoreElements()) {
+      // if all responders have already responded then go into the next state
+      if (!waitedAgents.getMembers().hasMoreElements()) 
       	state=2;
-      }
-      if (ACLMessage.INFORM == msg.getPerformative()) {
-        // msg contains an inform ACLMessage
-	msgInforms.addElement(msg);
-      } else	handleOtherMessages(msg);
+      
+      if (ACLMessage.INFORM == msg.getPerformative()) 
+        // add msg to the vector of the received inform messages
+	      msgInforms.addElement(msg);
+      else	
+      	handleOtherMessages(msg);
       break;
     }
     case 2: {
-      handleInformMessages(msgInforms);
+    	handleInformMessages(msgInforms);
       finished = true;
       break;
     }
@@ -199,13 +207,17 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
    * If no reply-by parameter was set, an infinite timeout
    * is used, instead.
    * After this timeout, this method is called to react to all the received
-   * messages.
+   * INFORM messages.
+   * Notice that the method might be called even when the timeout is expired
+   * but no INFORM message is yet arrived; in such a case the size of the 
+   * <code>Vector</code>parameter is 0. Therefore, this method is always
+   * called to handle the last state of the protocol. The condition
+   * <code>messages.size()==0</code> allows to discriminate between
+   * timeout elapsed / all responders have sent an answer (not necessarily
+   * an INFORM answer!).
    * @param messages is the Vector of ACLMessage received so far
    */
    public abstract void handleInformMessages(Vector messages);
 }
-
-
-
 
 
