@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 11:33:55  rimassa
+  Actually implemented the action body.
+
   Revision 1.1  1999/05/20 15:42:09  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -21,20 +24,34 @@ import java.awt.event.*;
 import java.awt.*;
 import java.lang.*;
 
+import jade.lang.acl.ACLMessage;
+
 /** 
  * Send Custom message Action
- * @see jade.gui.AMSAbstractAction
+ * @see jade.tools.rma.AMSAbstractAction
  */
 public class CustomAction extends AMSAbstractAction
 {
-	public CustomAction()
-	{
-		super ("CustomActionIcon","Send Custom Message to Selected Agents");
-	}
+    private rma myRMA;
+    public CustomAction(rma anRMA)
+    {
+	super ("CustomActionIcon","Send Custom Message to Selected Agents");
+	myRMA = anRMA;
+    }
 
-	public void actionPerformed(ActionEvent e) 
-	{
-		System.out.println(ActionName);                                     
+    public void actionPerformed(ActionEvent e) 
+    {
+	ACLMessage msg2 = new ACLMessage("not-understood");
+	for (int i=0;i<listeners.size();i++) {
+	  TreeData current = (TreeData)listeners.elementAt(i);
+	  if (current.getLevel() == TreeData.AGENT) {
+	    System.err.println("AddDest "+ current.getName());
+	    msg2.addDest(current.getName());
+	  }
 	}
+	ACLMessage msg = jade.tools.DummyAgent.AclGui.editMsgInDialog(msg2, null);
+	if (msg != null)
+	  myRMA.send(msg);
+
+    }
 }
-
