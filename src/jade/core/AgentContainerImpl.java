@@ -372,6 +372,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // This call can modify the name of this container
 	  myServiceManager.addNode(myNodeDescriptor, baseServices);
 
+	  // Start the Service Manager address notification service
+	  startService("jade.core.replication.AddressNotificationService");
+
 
 	  //#MIDP_EXCLUDE_BEGIN
 
