@@ -933,81 +933,82 @@ public class MainContainerImpl implements Platform, AgentManager {
 		}
 	}
 
-	/**
-	   Activate sniffing on a given agent
-	 */
+
+  /**
+     Activate sniffing on a given agent
+  */
   public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
-      /***
-    Iterator it = toBeSniffed.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableSniffer(snifferName, id);
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.SNIFF_ON, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(snifferName);
+      cmd.addParam(toBeSniffed);
+
+      Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      throw (UnreachableException)result;
+	  }
       }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-      ***/
+
   }
 
-	/**
-	   Deactivate sniffing on a given agent
-	 */
+  /**
+     Deactivate sniffing on a given agent
+  */
   public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
-      /***
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.SNIFF_OFF, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(snifferName);
+      cmd.addParam(notToBeSniffed);
 
-    Iterator it = notToBeSniffed.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableSniffer(snifferName, id);
+      Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      throw (UnreachableException)result;
+	  }
       }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-      ***/
   }
 
-	/**
-	   Activate debugging on a given agent
-	 */
+  /**
+     Activate debugging on a given agent
+  */
   public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
-      /***
-    Iterator it = toBeDebugged.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.enableDebugger(debuggerName, id);
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.DEBUG_ON, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(debuggerName);
+      cmd.addParam(toBeDebugged);
+
+      Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      throw (UnreachableException)result;
+	  }
       }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-      ***/
   }
 
-	/**
-	   Deactivate debugging on a given agent
-	 */
+  /**
+     Deactivate debugging on a given agent
+  */
   public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
-      /***
-    Iterator it = notToBeDebugged.iterator();
-    try {
-      while(it.hasNext()) {
-	AID id = (AID)it.next();
-	AgentContainer ac = getContainerFromAgent(id);
-	ac.disableDebugger(debuggerName, id);
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.DEBUG_OFF, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(debuggerName);
+      cmd.addParam(notToBeDebugged);
+
+      Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      throw (UnreachableException)result;
+	  }
       }
-    }
-    catch(IMTPException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-      ***/
   }
 
   /**
