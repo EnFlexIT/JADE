@@ -103,7 +103,7 @@ class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
 			res = myAgent.createAgentAction((CreateAgent)action,request,reply);
 	    } else if(action instanceof KillAgent){
 			//performs a KILLAGENT
-			myAgent.killAgentAction((KillAgent)action);
+			myAgent.killAgentAction((KillAgent)action, request.getSender());
 			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
 	    } else if(action instanceof KillContainer){
 			//performs a KILLCONTAINER
