@@ -39,6 +39,11 @@ KNOWN BUGS
   3) A deadlock happens when using the ORB of JDK1.3 for inter-platform
      communication. ORBacus or JDK1.4 must be used instead.
 
+  4) The AMS actions move-agent and clone-agent succeed when the
+     proper method (doMove() and doClone()) is called on the target
+     agent; this means tat if the migration or cloning subsequently fail
+     the interaction protocol still completes successfully.
+
 CONTACT
 =======
 Fabio Bellifemine - TILab S.p.A.
