@@ -34,11 +34,8 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 
-import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
 
 import jade.security.AuthException;
 
@@ -53,240 +50,6 @@ import jade.mtp.TransportAddress;
  */
 public class RMIIMTPManager implements IMTPManager {
 
-  // A smart proxy class for the real Service Manager and Service Finder implementation
-  private class ServiceManagerProxy implements ServiceManager, ServiceFinder {
-
-      public ServiceManagerProxy(ServiceManagerRMI sm, CommandProcessor proc) {
-	  myRemoteImpl = sm;
-	  myCommandProcessor = proc;
-	  services = new HashMap();
-      }
-
-
-      public String getPlatformName() throws IMTPException {
-	  try {
-	      return myRemoteImpl.getPlatformName();
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception occurred", re);
-	  }
-      }
-
-      public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
-
-	  try {
-	      String name = desc.getName();
-	      NodeAdapter localNode = (NodeAdapter)desc.getNode();
-	      ContainerID cid = desc.getContainer();
-	      String[] svcNames = new String[services.length];
-	      Class[] svcInterfaces = new Class[services.length];
-
-	      // Fill the parameter arrays
-	      for(int i = 0; i < services.length; i++) {
-		  svcNames[i] = services[i].getName();
-		  svcInterfaces[i] = services[i].getService().getHorizontalInterface();
-	      }
-
-	      // Now register this node and all its services with the Service Manager
-	      String containerName = myRemoteImpl.addNode(desc, svcNames, svcInterfaces);
-
-	      if(cid != null) {
-		  cid.setName(containerName);
-		  connect(cid);
-	      }
-
-	      List failedServices = new LinkedList();
-	      for(int i = 0; i < services.length; i++) {
-		  // Install the local component of the new service
-		  ServiceDescriptor svcDesc = services[i];
-		  String svcName = svcDesc.getName();
-		  Class svcInterface = svcDesc.getService().getHorizontalInterface();
-		  try {
-		      installServiceLocally(svcName, svcDesc.getService());
-		  }
-		  catch(IMTPException imtpe) {
-		      // Undo the local service installation
-		      failedServices.add(desc.getName());
-		      uninstallServiceLocally(desc.getName());
-		  }
-	      }
-
-	      // Throw a failure exception, if needed
-	      if(!failedServices.isEmpty()) {
-
-		  // All service activations failed: throw a single exception 
-		  if(failedServices.size() == services.length) {
-		      throw new ServiceException("Total failure in locally installing the services");
-		  }
-		  else {
-
-		      // Only some service activations failed: throw a single exception with the list of the failed services
-		      Iterator it = failedServices.iterator();
-		      String names = "[ ";
-		      while(it.hasNext()) {
-			  names = names.concat((String)it.next() + " ");		
-		      }
-		      names = names.concat("]");
-		      throw new ServiceException("Partial failure in locally installing the services " + names);
-		  }
-	      }
-
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception was thrown", re);
-	  }
-      }
-
-      public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
-	  String name = desc.getName();
-	  NodeAdapter localNode = (NodeAdapter)desc.getNode();
-
-	  try {
-	      // First, deregister this node with the service manager
-	      myRemoteImpl.removeNode(desc);
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("RMI exception", re);
-	  }
-
-	  // Then, locally deactivate all the services
-	  Object[] names = services.keySet().toArray();
-	      for(int i = 0; i < names.length; i++) {
-		  try {
-		      String svcName = (String)names[i];
-		      uninstallServiceLocally(svcName);
-		  }
-		  catch(IMTPException imtpe) {
-		      // This should never happen, because it's a local call...
-		      imtpe.printStackTrace();
-		  }
-	      }
-
-
-      }
-
-      public void activateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
-	  try {
-
-	      String name = desc.getName();
-	      Service svc = desc.getService();
-
-	      // Install the local component of the new service
-	      try {
-		  installServiceLocally(name, svc);
-	      }
-	      catch(IMTPException imtpe) {
-		  // Undo the local service installation
-		  uninstallServiceLocally(name);
-	      }
-
-	      myRemoteImpl.activateService(name, svc.getHorizontalInterface(), localNode.getName(), localNode.getRMIStub());
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception was thrown", re);
-	  }
-      }
-
-      public void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
-	  try {
-
-	      String name = desc.getName();
-
-	      myRemoteImpl.deactivateService(name, localNode.getRMIStub());
-
-	      // Uninstall the local component of the service
-	      uninstallServiceLocally(name);
-
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception was thrown", re);
-	  }
-      }
-
-      public Service findService(String key) throws IMTPException, ServiceException {
-	  return (Service)services.get(key);
-      }
-
-      public Service.Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
-	  try {
-
-	      // FIXME: It should not be needed, and the horizontal interface should be returned from the remote end
-	      Service localService = findService(serviceKey);
-	      if(localService == null) {
-		  // FIXME: Should install a DummyService...
-		  throw new ServiceException("The service <" + serviceKey + "> is not available on node <" + localNode.getName() + ">");
-	      }
-
-	      NodeAdapter node = myRemoteImpl.findSliceNode(serviceKey, sliceKey);
-	      return createSliceProxy(serviceKey, localService.getHorizontalInterface(), node);
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception was thrown", re);
-	  }
-      }
-
-      public Service.Slice[] findAllSlices(String serviceKey) throws IMTPException, ServiceException {
-	  try {
-
-	      // FIXME: It should not be needed, and the horizontal interface should be returned from the remote end
-	      Service localService = findService(serviceKey);
-	      if(localService == null) {
-		  // FIXME: Should install a DummyService...
-		  throw new ServiceException("The service <" + serviceKey + "> is not available on node <" + localNode.getName() + ">");
-	      }
-
-	      NodeAdapter[] nodes = myRemoteImpl.findAllNodes(serviceKey);
-	      Class itf = localService.getHorizontalInterface();
-	      Service.Slice[] result = new Service.Slice[nodes.length];
-	      for(int i = 0; i < nodes.length; i++) {
-		  result[i] = createSliceProxy(serviceKey, itf, nodes[i]);
-	      }
-
-	      return result;
-	  }
-	  catch(RemoteException re) {
-	      throw new IMTPException("An RMI exception was thrown", re);
-	  }
-      }
-
-
-      // Private helper method, common to one-shot and batch service activation
-      private void installServiceLocally(String name, Service svc) throws IMTPException {
-	  // Install the service filter
-	  Filter f = svc.getCommandFilter();
-	  myCommandProcessor.addFilter(f);
-
-	  // Export the local slice so that it can be reached through the network
-	  Service.Slice localSlice = svc.getLocalSlice();
-	  if(localSlice != null) {
-	      exportSlice(name, localSlice);
-	  }
-
-	  // Add the service to the local service finder so that it can be found
-	  services.put(svc.getName(), svc);
-      }
-
-      // Private helper method, common to one-shot and batch service deactivation
-      private void uninstallServiceLocally(String name) throws IMTPException {
-	  // FIXME: It should remove the service only if there are no more active slices in the whole platform.
-	  Service svc = (Service)services.get(name); // Find the local copy of the service
-	  services.remove(name);
-	  unexportSlice(name, svc.getLocalSlice());
-
-	  // Uninstall the service filter
-	  Filter f = svc.getCommandFilter();
-	  myCommandProcessor.removeFilter(f);
-      }
-
-
-      private Map services;
-      private ServiceManagerRMI myRemoteImpl;
-      private CommandProcessor myCommandProcessor;
-
-  } // End of ServiceManagerProxy class
-
-
-
 
   private static final int DEFAULT_RMI_PORT = 1099;
 
@@ -297,15 +60,12 @@ public class RMIIMTPManager implements IMTPManager {
   private String baseRMI;
   private String platformRMI;
   private NodeAdapter localNode;
-  private ServiceManagerProxy myServiceManagerProxy;
-
-  // Maps agent containers into their stubs
-  private Map stubs;
+  private BaseServiceManagerProxy myServiceManagerProxy;
+  private ServiceManagerRMIImpl myRMIServiceManager;
 
   public RMIIMTPManager() {
       try {
 	  localNode = new NodeAdapter("No-Name");
-	  stubs = new HashMap();
       }
       catch(RemoteException re) {
 	  re.printStackTrace();
@@ -381,9 +141,9 @@ public class RMIIMTPManager implements IMTPManager {
     try {
 
       String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
-      ServiceManagerRMI smRMI = new ServiceManagerRMIImpl((ServiceManagerImpl)sm, this);
+      myRMIServiceManager = new ServiceManagerRMIImpl((ServiceManagerImpl)sm, this);
       Registry theRegistry = getRmiRegistry(null, mainPort);
-      Naming.bind(svcMgrName, smRMI);
+      Naming.bind(svcMgrName, myRMIServiceManager);
     }
     catch(ConnectException ce) {
       // This one is thrown when trying to bind in an RMIRegistry that
@@ -409,6 +169,25 @@ public class RMIIMTPManager implements IMTPManager {
   }
 
 
+  public void unexportServiceManager(ServiceManager sm) throws IMTPException {
+      if(sm instanceof ServiceManagerImpl) { // Local implementation
+	  try {
+
+	      // Remove the RMI remote object from the RMI registry
+	      // and disconnect it from the network
+	      String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
+	      Naming.unbind(svcMgrName);
+	      myRMIServiceManager.unexportObject(myRMIServiceManager, true);
+	  }
+	  catch(Exception e) {
+	      throw new IMTPException("Error in unexporting the RMI Service Manager", e);
+	  }
+      }
+      else { // Remote Proxy
+	  // Do Nothing...
+      }
+  }
+
   public ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException {
       try {
 	  String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
@@ -416,9 +195,84 @@ public class RMIIMTPManager implements IMTPManager {
 	  // Look up the actual remote object in the RMI Registry
 	  final ServiceManagerRMI remoteSvcMgr = (ServiceManagerRMI)Naming.lookup(svcMgrName);
 
-	  final CommandProcessor myCommandProcessor = proc;
+	  myServiceManagerProxy = new BaseServiceManagerProxy(this, proc) {
 
-	  myServiceManagerProxy = new ServiceManagerProxy(remoteSvcMgr, proc);
+	      public String getPlatformName() throws IMTPException {
+		  try {
+		      return remoteSvcMgr.getPlatformName();
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception occurred", re);
+		  }
+	      }
+
+	      protected String addRemoteNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
+		  String[] svcNames = new String[services.length];
+		  Class[] svcInterfaces = new Class[services.length];
+
+		  // Fill the parameter arrays
+		  for(int i = 0; i < services.length; i++) {
+		      svcNames[i] = services[i].getName();
+		      svcInterfaces[i] = services[i].getService().getHorizontalInterface();
+		  }
+
+		  try {
+		      // Now register this node and all its services with the Service Manager
+		      return remoteSvcMgr.addNode(desc, svcNames, svcInterfaces);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception occurred", re);
+		  }
+	      }
+
+	      protected void removeRemoteNode(NodeDescriptor desc) throws IMTPException, ServiceException {
+		  try {
+		      // First, deregister this node with the service manager
+		      remoteSvcMgr.removeNode(desc);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("RMI exception", re);
+		  }
+	      }
+
+	      protected void addRemoteSlice(String svcName, Class itf, NodeDescriptor where) throws IMTPException, ServiceException {
+		  try {
+		      remoteSvcMgr.activateService(svcName, itf, where);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception was thrown", re);
+		  }
+	      }
+
+	      protected void removeRemoteSlice(String svcName, NodeDescriptor where) throws IMTPException, ServiceException {
+		  try {
+		      remoteSvcMgr.deactivateService(svcName, where);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception was thrown", re);
+		  }
+	      }
+
+	      protected Node findSliceNode(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
+		  try {
+		      return remoteSvcMgr.findSliceNode(serviceKey, sliceKey);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception was thrown", re);
+		  }
+	      }
+
+	      protected Node[] findAllNodes(String serviceKey) throws IMTPException, ServiceException {
+		  try {
+		      return remoteSvcMgr.findAllNodes(serviceKey);
+		  }
+		  catch(RemoteException re) {
+		      throw new IMTPException("An RMI exception was thrown", re);
+		  }
+	      }
+
+	  };
+
 	  return myServiceManagerProxy;
       }
       catch (Exception e) {
@@ -453,10 +307,9 @@ public class RMIIMTPManager implements IMTPManager {
 	  }
 
 	  // Recover the RMI stub from the node where the slice represented by this proxy resides.
-	  NodeAdapter adapter = (NodeAdapter)where;
-	  final NodeRMI target = adapter.getRMIStub();
 	  final String svcName = serviceName;
 	  final Class intface = itf;
+	  final NodeAdapter target = (NodeAdapter)where;
 
 	  // Build and return a Dynamic Proxy for the remote Slice
 	  return (Service.Slice)Proxy.newProxyInstance(myCL, new Class[] {itf}, new InvocationHandler() {
@@ -481,7 +334,7 @@ public class RMIIMTPManager implements IMTPManager {
 
 		      Class[] classes = meth.getParameterTypes();
 		      Class retType = meth.getReturnType();
-		      Object result = target.accept(cmd, intface, classes);
+		      Object result = target.getRMIStub().accept(cmd, intface, classes);
 
 		      if(result == null) {
 			  return result;
@@ -564,16 +417,16 @@ public class RMIIMTPManager implements IMTPManager {
        @return The client socket factory.
     */
     public RMIClientSocketFactory getClientSocketFactory() {
-	return null;
+ 	return null;
     }
-
+ 
     /**
        Creates the server socket factory, which will be used
        to instantiate a <code>UnicastRemoteObject</code>.
        @return The server socket factory.
     */
     public RMIServerSocketFactory getServerSocketFactory() { 
-	return null;
+ 	return null;
     }
 
 
