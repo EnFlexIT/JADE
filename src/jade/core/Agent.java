@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.33  1999/02/15 11:41:46  rimassa
+  Changed some code to use getXXX() naming methods.
+
   Revision 1.32  1999/02/14 23:06:15  rimassa
   Changed agent name handling: now getName() returns the GUID, whereas
   getLocalName() yields only the agent name.
@@ -592,8 +595,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
-    amsd.setName(myName + "@" + myAddress);
-    amsd.setAddress(myAddress);
+    amsd.setName(getName());
+    amsd.setAddress(getAddress());
     amsd.setAPState(APState);
     amsd.setDelegateAgentName(delegateAgent);
     amsd.setForwardAddress(forwardAddress);
@@ -630,7 +633,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
-    amsd.setName(myName + "@" + myAddress);
+    amsd.setName(getName());
     a.setName(AgentManagementOntology.AMSAction.DEREGISTERAGENT);
     a.setArg(amsd);
 
@@ -655,8 +658,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
 
-    amsd.setName(myName + "@" + myAddress);
-    amsd.setAddress(myAddress);
+    amsd.setName(getName());
+    amsd.setAddress(getAddress());
     amsd.setAPState(APState);
     amsd.setDelegateAgentName(delegateAgent);
     amsd.setForwardAddress(forwardAddress);
