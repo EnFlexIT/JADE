@@ -99,7 +99,7 @@ public class Logger {
 		}
 	}
 	
-	public void log(String msg, int level) {
+	public synchronized void log(String msg, int level) {
 		if (verbosity >= level) {
 			// Time
 			if (formatter != null) {
