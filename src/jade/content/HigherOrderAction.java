@@ -25,6 +25,7 @@
 package jade.content;
 
 /**
- * @author Federico Bergenti - Universita` di Parma
+ * @author Giovanni Caire - TILAB
  */
-public interface ActionPredicate extends Proposition {}
+public interface HigherOrderAction extends GenericAction, Term {}
+

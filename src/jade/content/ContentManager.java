@@ -28,7 +28,8 @@ import jade.lang.acl.ACLMessage;
 import jade.util.leap.*;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
-import jade.content.abs.*;
+import jade.content.abs.AbsContentElement;
+import jade.content.schema.ObjectSchema;
 import jade.content.onto.*;
 
 /**
@@ -81,7 +82,7 @@ public class ContentManager implements Serializable {
      * @param name the name.
      * @return the codec.
      */
-    private Codec lookupLanguage(String name) {
+    public Codec lookupLanguage(String name) {
         return (Codec) languages.get(name);
     }
 
@@ -90,7 +91,7 @@ public class ContentManager implements Serializable {
      * @param name the name.
      * @return the ontology.
      */
-    private Ontology lookupOntology(String name) {
+    public Ontology lookupOntology(String name) {
         return (Ontology) ontologies.get(name);
     }
 
@@ -106,6 +107,10 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
+        // Validate the content against the ontology
+    		ObjectSchema schema = onto.getSchema(content.getTypeName());
+        schema.validate(content, onto);
+        	
         msg.setByteSequenceContent(codec.encode(onto, content));
     } 
 
@@ -141,6 +146,11 @@ public class ContentManager implements Serializable {
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
         AbsContentElement abs = (AbsContentElement) onto.fromObject(content);
+        
+        // Validate the content against the ontology
+    		ObjectSchema schema = onto.getSchema(abs.getTypeName());
+        schema.validate(abs, onto);
+        	        
 				msg.setByteSequenceContent(codec.encode(onto, abs));
     } 
 

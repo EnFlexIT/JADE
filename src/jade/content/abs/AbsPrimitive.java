@@ -26,6 +26,9 @@ package jade.content.abs;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import java.io.PrintStream;
+
+import java.util.Date;
 
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
@@ -75,7 +78,16 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
      * containing a given <code>int</code> value.
      */
     public static AbsPrimitive wrap(int value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Integer(value));
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Long((long) value));
+        return ret;
+    } 
+
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.INTEGER</code>
+     * containing a given <code>long</code> value.
+     */
+    public static AbsPrimitive wrap(long value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Long(value));
         return ret;
     } 
 
@@ -85,14 +97,29 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
      * containing a given <code>float</code> value.
      */
     public static AbsPrimitive wrap(float value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Float(value));
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Double((double) value));
+        return ret;
+    } 
+    
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.FLOAT</code>
+     * containing a given <code>double</code> value.
+     */
+    public static AbsPrimitive wrap(double value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Double(value));
         return ret;
     } 
     //__CLDC_UNSUPPORTED__END
 
-    //public static Object toObject(AbsPrimitive abs) {
-    //    return abs.value;
-    //} 
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.DATE</code>
+     * containing a given <code>Date</code> value.
+     */
+    public static AbsPrimitive wrap(Date value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.DATE, value);
+        return ret;
+    } 
+
 
     /**
      * Set the value of this AbsPrimitive to the given String.
@@ -127,7 +154,19 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
     public void set(int value) {
     	if (!getTypeName().equals(BasicOntology.INTEGER))
     		throw new IllegalArgumentException("Wrong type");
-      this.value = new Integer(value);
+      this.value = new Long((long) value);
+    } 
+
+    /**
+     * Set the value of this AbsPrimitive to the given long value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.INTEGER</code>
+     */
+    public void set(long value) {
+    	if (!getTypeName().equals(BasicOntology.INTEGER))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = new Long(value);
     } 
 
     //__CLDC_UNSUPPORTED__BEGIN
@@ -140,9 +179,33 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
     public void set(float value) {
     	if (!getTypeName().equals(BasicOntology.FLOAT))
     		throw new IllegalArgumentException("Wrong type");
-      this.value = new Float(value);
+      this.value = new Double((double) value);
+    }
+    
+    /**
+     * Set the value of this AbsPrimitive to the given double value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.FLOAT</code>
+     */
+    public void set(double value) {
+    	if (!getTypeName().equals(BasicOntology.FLOAT))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = new Double(value);
     } 
     //__CLDC_UNSUPPORTED__END
+
+    /**
+     * Set the value of this AbsPrimitive to the given Date value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.DATE</code>
+     */
+    public void set(Date value) {
+    	if (!getTypeName().equals(BasicOntology.DATE))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = value;
+    } 
 
     /**
      * @return the value of this AbsPrimitive as a String.
@@ -168,7 +231,16 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
      * is not <code>BasicOntology.INTEGER</code>
      */
     public int getInteger() {
-        return ((Integer) value).intValue();
+        return (int) ((Long) value).longValue();
+    } 
+
+    /**
+     * @return the value of this AbsPrimitive as a long.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.INTEGER</code>
+     */
+    public long getLong() {
+        return ((Long) value).longValue();
     } 
 
     //__CLDC_UNSUPPORTED__BEGIN
@@ -178,9 +250,27 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
      * is not <code>BasicOntology.FLOAT</code>
      */
     public float getFloat() {
-        return ((Float) value).floatValue();
+        return (float) ((Double) value).doubleValue();
+    } 
+    
+    /**
+     * @return the value of this AbsPrimitive as a double.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.FLOAT</code>
+     */
+    public double getDouble() {
+        return ((Double) value).doubleValue();
     } 
     //__CLDC_UNSUPPORTED__END
+
+    /**
+     * @return the value of this AbsPrimitive as a Date.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.DATE</code>
+     */
+    public Date getDate() {
+        return (Date) value;
+    } 
 
     /**
      * @return the value of this AbsPrimitive as an Object.
@@ -192,12 +282,12 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
         return value;
     } 
 
-    protected void dump(int indent) {
+    protected void dump(int indent, PrintStream ps) {
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println(getObject());
+        ps.println(getObject());
     } 
 
 }

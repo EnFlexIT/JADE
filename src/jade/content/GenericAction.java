@@ -27,5 +27,5 @@ package jade.content;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface GenericAction extends ContentElement {}
+public interface GenericAction extends ContentElement, Term {}
 

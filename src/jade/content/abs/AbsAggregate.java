@@ -27,6 +27,7 @@ package jade.content.abs;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import java.io.PrintStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -138,22 +139,22 @@ public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
       return tmp;
     }
 
-    protected void dump(int indent) {
+    protected void dump(int indent, PrintStream ps) {
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println("(");
+        ps.println("(");
 
         for (int i = 0; i < elements.size(); i++) {
-            ((AbsObjectImpl) elements.get(i)).dump(indent + 1);
+            ((AbsObjectImpl) elements.get(i)).dump(indent + 1, ps);
         }
 
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println(")");
+        ps.println(")");
     } 
 }
 

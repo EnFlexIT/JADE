@@ -28,6 +28,6 @@ package jade.content.abs;
  * Represent an Abstract descriptor that can hold a generic action
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface AbsGenericAction extends AbsContentElement {
+public interface AbsGenericAction extends AbsContentElement, AbsTerm {
 }
 

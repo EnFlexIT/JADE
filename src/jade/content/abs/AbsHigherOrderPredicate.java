@@ -31,8 +31,8 @@ public class AbsHigherOrderPredicate extends AbsObjectImpl implements AbsProposi
 
     /**
      * Construct an Abstract descriptor to hold a higher order predicate of
-     * the proper type (e.g. BELIEF, AND...).
-     * @param typeName The name of the type of the agent action held by 
+     * the proper type (e.g. BELIEF, AND, DONE...).
+     * @param typeName The name of the type of the higher order predicate action held by 
      * this abstract descriptor.
      */
     public AbsHigherOrderPredicate(String typeName) {
@@ -40,43 +40,13 @@ public class AbsHigherOrderPredicate extends AbsObjectImpl implements AbsProposi
     }
 
     /**
-     * Sets a proposition attribute of the higher order predicate held 
+     * Sets an attribute of the higher order predicate held 
      * by this abstract descriptor.
      * @param name The name of the attribute to be set.
      * @param value The new value of the attribute.
      */
-    public void set(String name, AbsProposition value) {
+    public void set(String name, AbsObject value) {
         super.set(name, value);
-    } 
-
-    /**
-     * Sets a term attribute of the higher order predicate held 
-     * by this abstract descriptor.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, AbsTerm value) {
-        super.set(name, value);
-    } 
-
-    /**
-     * Gets the value of a proposition attribute of the higher order predicate 
-     * held by this abstract descriptor.
-     * @param name The name of the attribute.
-     * @return value The value of the attribute.
-     */
-    public AbsProposition getAbsProposition(String name) {
-        return (AbsProposition) getAbsObject(name);
-    } 
-
-    /**
-     * Gets the value of a term attribute of the higher order predicate 
-     * held by this abstract descriptor.
-     * @param name The name of the attribute.
-     * @return value The value of the attribute.
-     */
-    public AbsTerm getAbsTerm(String name) {
-        return (AbsTerm) getAbsObject(name);
     } 
 }
 

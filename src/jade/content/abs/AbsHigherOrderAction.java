@@ -27,17 +27,26 @@ package jade.content.abs;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAgentAction extends AbsConcept implements AbsGenericAction {
+public class AbsHigherOrderAction extends AbsObjectImpl implements AbsProposition {
 
     /**
-     * Construct an Abstract descriptor to hold an agent action of
-     * the proper type.
-     * @param typeName The name of the type of the agent action held by 
+     * Construct an Abstract descriptor to hold a higher order action of
+     * the proper type (e.g. the ACTION operator in SL...).
+     * @param typeName The name of the type of the higher order action held by 
      * this abstract descriptor.
      */
-    public AbsAgentAction(String typeName) {
+    public AbsHigherOrderAction(String typeName) {
         super(typeName);
     }
 
+    /**
+     * Sets an attribute of the higher order action held 
+     * by this abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
+     */
+    public void set(String name, AbsObject value) {
+        super.set(name, value);
+    } 
 }
 

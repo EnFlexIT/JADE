@@ -28,6 +28,7 @@ import jade.content.schema.ContentElementListSchema;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import java.io.PrintStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -135,5 +136,22 @@ public class AbsContentElementList extends AbsObjectImpl implements AbsContentEl
       return tmp;
     }
 
+    protected void dump(int indent, PrintStream ps) {
+        for (int i = 0; i < indent; i++) {
+            ps.print("  ");
+        }
+
+        ps.println("(");
+
+        for (int i = 0; i < elements.size(); i++) {
+            ((AbsObjectImpl) elements.get(i)).dump(indent + 1, ps);
+        }
+
+        for (int i = 0; i < indent; i++) {
+            ps.print("  ");
+        }
+
+        ps.println(")");
+    } 
 }
 

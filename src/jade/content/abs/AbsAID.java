@@ -28,6 +28,7 @@ import jade.util.leap.*;
 
 import jade.content.onto.BasicOntology;
 import jade.content.schema.AIDSchema;
+import java.io.PrintStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -61,26 +62,26 @@ public class AbsAID extends AbsConcept {
         }
     }
 
-    protected void dump(int indent) {
+    /*protected void dump(int indent, PrintStream ps) {
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println("(AID ");
+        ps.println("(AID ");
 
 				AbsObjectImpl abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_NAME);
-				abs.dump(indent+1);
+				abs.dump(indent+1, ps);
 
 				abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_ADDRESSES);
-				abs.dump(indent+1);
+				abs.dump(indent+1, ps);
 
 				abs = (AbsObjectImpl) getAbsObject(BasicOntology.AID_RESOLVERS);
-				abs.dump(indent+1);
+				abs.dump(indent+1, ps);
 
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println(")");
-    } 
+        ps.println(")");
+    } */
 }

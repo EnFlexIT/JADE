@@ -30,9 +30,11 @@ import jade.content.schema.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
-
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
+
+import java.io.PrintStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -211,5 +213,10 @@ public class AbsHelper {
         return ret;
     } 
 
+    public static String toString(AbsObject abs) {
+			ByteArrayOutputStream str = new ByteArrayOutputStream();
+			((AbsObjectImpl) abs).dump(0, new PrintStream(str));
+			return new String(str.toByteArray());
+    }
 }
 

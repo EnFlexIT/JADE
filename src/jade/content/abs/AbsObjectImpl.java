@@ -26,6 +26,7 @@ package jade.content.abs;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.io.PrintStream;
 
 /**
  * Base class for all abstract descriptor classes.
@@ -123,25 +124,25 @@ public class AbsObjectImpl implements AbsObject {
         return elements.size();
     } 
 
-    protected void dump(int indent) {
+    protected void dump(int indent, PrintStream ps) {
         for (int i = 0; i < indent; i++) {
-            System.out.print("  ");
+            ps.print("  ");
         }
 
-        System.out.println(getTypeName());
+        ps.println(getTypeName());
 
         String[] names = getNames();
 
         for (int i = 0; i < getCount(); i++) {
             for (int j = 0; j < indent; j++) {
-                System.out.print("  ");
+                ps.print("  ");
             }
 
-            System.out.println(":" + names[i]);
+            ps.println(":" + names[i]);
 
             AbsObjectImpl abs = (AbsObjectImpl) getAbsObject(names[i]);
 
-            abs.dump(indent + 1);
+            abs.dump(indent + 1, ps);
         } 
     }
 
@@ -149,7 +150,7 @@ public class AbsObjectImpl implements AbsObject {
      * @see AbsObject#dump()
      */
     public void dump() {
-        dump(0);
+        dump(0, System.out);
     } 
 
     public String toString() {
