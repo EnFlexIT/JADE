@@ -40,6 +40,9 @@ import jade.content.Concept;
 
 import java.util.Date;
 
+/** This type of object represents the description that can be registered with the
+ * DF service.
+ */
   public class DFAgentDescription implements Concept{
 
     private AID name;
@@ -52,29 +55,47 @@ import java.util.Date;
 	// Added lease default value -1
 	private Date leaseTime = new Date(-1);
 
+        /** Set the identifier of the agent
+         * @param n the identifier of the agent
+         */        
     public void setName(AID n) {
       name = n;
     }
 
+    /**
+     * @return the identifier of the agent
+     */    
     public AID getName() {
       return name;
     }
-
+    
+    /** Set the time at which the lease for the registration will expire.
+     *
+     * @param absoluteTime time at which the lease for this registration will expire
+     */    
     public void setLeaseTime(Date absoluteTime) {
       leaseTime = absoluteTime;
     }
 
+    /** Return the lease time
+     *
+     */    
     public Date getLeaseTime() {
       return leaseTime;
     }
     
+    /** Set the duration at which the lease for the registration will expire.
+     * @param relativeTime duration of lease time in milliseconds.
+     */    
     public void setRemainingLeaseTime(long relativeTime){
     	long currentTime = System.currentTimeMillis();
     	leaseTime = new Date(currentTime+relativeTime);
     }
     
-	// ritorna i msec che restano prima che il 
-	// lease scada
+	
+    
+    /** Get the remaining lease time in milliseconds.
+     */    
     public long getRemainingLeaseTime(){
     	return (leaseTime.getTime() - System.currentTimeMillis());
     }
