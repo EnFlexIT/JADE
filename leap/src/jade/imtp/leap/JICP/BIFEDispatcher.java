@@ -366,8 +366,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	    
 	  	myId = cnt++;
-  		if (myLogger.isLoggable(Logger.FINE)) {
-  			myLogger.log(Logger.FINE, "IM-"+myId+" started");
+  		if (myLogger.isLoggable(Logger.CONFIG)) {
+  			myLogger.log(Logger.CONFIG, "IM-"+myId+" started");
   		}
 	  	
 	  	int status = 0;
@@ -416,15 +416,15 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		}
   		catch (IOException ioe) {
 				if (active) {
-		  		if (myLogger.isLoggable(Logger.FINE)) {
-		  			myLogger.log(Logger.FINE, "IOException IC["+status+"]"+ioe);
+		  		if (myLogger.isLoggable(Logger.CONFIG)) {
+		  			myLogger.log(Logger.CONFIG, "IOException IC["+status+"]"+ioe);
 		  		}
   				refreshInp();
 				}
   		}
   		
-  		if (myLogger.isLoggable(Logger.FINE)) {
-  			myLogger.log(Logger.FINE, "IM-"+myId+" terminated");
+  		if (myLogger.isLoggable(Logger.CONFIG)) {
+  			myLogger.log(Logger.CONFIG, "IM-"+myId+" terminated");
   		}
 	  }
 	  
@@ -508,8 +508,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	long startTime = System.currentTimeMillis();
   	while (active) {
 	  	try {
-	  		if (myLogger.isLoggable(Logger.FINE)) {
-	  			myLogger.log(Logger.FINE, "Connect to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")");
+	  		if (myLogger.isLoggable(Logger.INFO)) {
+	  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")");
 	  		}
 		  	Connection c = new JICPConnection(mediatorTA);
 		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
@@ -544,16 +544,16 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  else {
 				  // The local-host address may have changed
 				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-		  		if (myLogger.isLoggable(Logger.FINE)) {
-		  			myLogger.log(Logger.FINE, "Connect OK");
+		  		if (myLogger.isLoggable(Logger.INFO)) {
+		  			myLogger.log(Logger.INFO, "Connect OK");
 		  		}
 				  handleReconnection(c, type);
 			  }
 			  return;
 	  	}
 	  	catch (IOException ioe) {
-	  		if (myLogger.isLoggable(Logger.FINE)) {
-	  			myLogger.log(Logger.FINE, "Connect failed "+ioe.toString());
+	  		if (myLogger.isLoggable(Logger.INFO)) {
+	  			myLogger.log(Logger.INFO, "Connect failed "+ioe.toString());
 	  		}
 	  		cnt++;
 	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
