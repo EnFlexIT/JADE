@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.20  1999/07/19 00:06:38  rimassa
+  Added liexical and syntactical production rules to support FIPA 98
+  compilant platform profile ontology object.
+
   Revision 1.19  1999/02/16 08:08:18  rimassa
   Removed a useless Reader, fixing a FIXME.
 
@@ -163,6 +167,11 @@ class AgentManagementParser {
     return FIPA_Service_Desc();
   }
 
+  public AgentManagementOntology.PlatformProfile parsePlatformProfile(Reader r) throws ParseException {
+    ReInit(r);
+    return AP_Profile();
+  }
+
   public AgentManagementOntology.DFSearchResult parseSearchResult(Reader r) throws ParseException {
     ReInit(r);
     return Search_Result();
@@ -208,7 +217,8 @@ AgentManagementOntology.AMSAction AMSAction() :
 }
 {
   "(" <ACTION> AgentName()
-    "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | a = KillContainerBody() ) ")"
+    "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | 
+	  a = KillContainerBody() | a = QueryPlatformProfileBody() ) ")"
   ")"
   { return a; }
 }
@@ -298,6 +308,19 @@ AgentManagementOntology.AMSAction AMSActionBody() :
   { a.setArg(amsd); }
 
   { return a; }
+}
+
+AgentManagementOntology.AMSAction QueryPlatformProfileBody() :
+{
+  Token t;
+  AgentManagementOntology.AMSAction a = new AgentManagementOntology.QueryPlatformProfileAction();
+}
+{
+  t = <QUERY_PLATFORM_PROFILE>
+  {
+    a.setName(t.image);
+    return a;
+  }
 }
 
 AgentManagementOntology.CreateAgentAction CreateAgentBody() :
@@ -656,6 +679,61 @@ void FIPA_Service_Desc_Item(AgentManagementOntology.ServiceDescriptor sd) :
 
 }
 
+AgentManagementOntology.PlatformProfile AP_Profile() :
+{
+  AgentManagementOntology.PlatformProfile result = new AgentManagementOntology.PlatformProfile();
+}
+{
+  "(" <AP_PROFILE> ("(" AP_Profile_Item(result) ")" )+ ")"
+  {
+    return result;
+  }
+}
+
+void AP_Profile_Item(AgentManagementOntology.PlatformProfile pp) :
+{
+  Token t;
+  String s;
+}
+{
+  <PLATFORM_NAME> t = <WORD>
+  {
+    if(pp.getPlatformName() == null) pp.setPlatformName(t.image);
+    else throw new ParseException();
+  }
+| <IIOP_URL> s = CommAddress()
+  {
+    if(pp.getIiopURL() == null) pp.setIiopURL(s);
+    else throw new ParseException();
+  }
+| <DYNAMIC_REG> ( t = "true" | t = "false" )
+  {
+    if(pp.getDynReg() == null) pp.setDynReg(t.image);
+    else throw new ParseException();
+  }
+| <MOBILITY> ( t = "true" | t = "false" )
+  {
+    if(pp.getMobility() == null) pp.setMobility(t.image);
+    else throw new ParseException();
+  }
+| <OWNERSHIP> s = SL1Term()
+  {
+    if(pp.getOwnership() == null) pp.setOwnership(s);
+    else throw new ParseException();
+  }
+| <CERT_AUTH> s = SL1Term()
+  {
+    if(pp.getCertificationAuthority() == null) pp.setCertificationAuthority(s);
+    else throw new ParseException();
+  }
+| <FIPA_VERSION> ( t = "fipa97-part1-v1" | t = "fipa97-part1-v2" | t = "fipa98-part1-v1" )
+  {
+    if(pp.getFipaVersion() == null) pp.setFipaVersion(t.image);
+    else throw new ParseException();
+  }
+
+}
+
 String AgentName() :
 {
   Token t;
@@ -852,6 +930,7 @@ TOKEN:
 | <REGISTER_AGENT : "register-agent">
 | <DEREGISTER_AGENT : "deregister-agent">
 | <AUTHENTICATE : "authenticate">
+| <QUERY_PLATFORM_PROFILE : "query-platform-profile">
 | <MODIFY_AGENT : "modify-agent">
 | <CREATE_AGENT : "create-agent">
 | <AGENT_CODE : ":agent-code">
@@ -876,7 +955,14 @@ TOKEN:
 | <SERVICE_DESCRIPTION : ":service-description">
 | <SERVICE_NAME : ":service-name">
 | <SERVICE_TYPE : ":service-type">
-| <SERVICE_ONTOLOGY : ":service-ontology"> 
+| <SERVICE_ONTOLOGY : ":service-ontology">
+| <AP_PROFILE : "ap-profile"> 
+| <PLATFORM_NAME : ":platform-name">
+| <IIOP_URL : ":iiop-url">
+| <DYNAMIC_REG : ":dynamic-registration">
+| <MOBILITY : ":mobility">
+| <CERT_AUTH : ":certification-authority">
+| <FIPA_VERSION : ":fipa-man-compliance">
 | <FIXED_PROPERTIES : ":fixed-properties">
 | <NEGOTIABLE_PROPERTIES : ":negotiable-properties">
 | <COMMUNICATION_PROPERTIES : ":communication-properties">
