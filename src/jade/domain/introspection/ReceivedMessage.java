@@ -40,7 +40,8 @@ public class ReceivedMessage implements Event {
        A string constant for the name of this event.
     */
     public static final String NAME = "Received-Message";
-
+    
+    private AID sender;
     private AID receiver;
     private ACLMessage message;
 
@@ -60,6 +61,26 @@ public class ReceivedMessage implements Event {
     }
 
 
+    /**
+       Set the <code>sender</code> slot of this event.
+       @param id The agent identifier of the agent that sent the
+       message.
+    */
+    public void setSender(AID id) {
+	sender = id;
+    }
+
+    /**
+       Retrieve the value of the <code>sender</code> slot of this
+       event, containing the agent identifier of the agent that sent
+       the message.
+       @return The value of the <code>sender</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getSender() {
+	return sender;
+    }
+    
     /**
        Set the <code>message</code> slot of this event.
        @param msg The ACL message that was extracted from the receiver

@@ -244,11 +244,23 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		
 		cs = (ConceptSchema)getSchema(SENTMESSAGE);
 		cs.add(SENTMESSAGE_SENDER, (ConceptSchema)getSchema(BasicOntology.AID));
+		cs.add(SENTMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(SENTMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
 		
 		cs = (ConceptSchema)getSchema(RECEIVEDMESSAGE);
+		cs.add(RECEIVEDMESSAGE_SENDER, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(RECEIVEDMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(RECEIVEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
+		
+		cs = (ConceptSchema)getSchema(POSTEDMESSAGE);
+		cs.add(POSTEDMESSAGE_SENDER, (ConceptSchema)getSchema(BasicOntology.AID));
+		cs.add(POSTEDMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
+		cs.add(POSTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
+
+		cs = (ConceptSchema)getSchema(ROUTEDMESSAGE);
+		cs.add(ROUTEDMESSAGE_FROM, (ConceptSchema)getSchema(CHANNEL));
+		cs.add(ROUTEDMESSAGE_TO, (ConceptSchema)getSchema(CHANNEL));
+		cs.add(ROUTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
 		
 		cs = (ConceptSchema)getSchema(APDESCRIPTION);
 	  	cs.add(APDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
@@ -259,15 +271,6 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
                 cs.add(APSERVICE_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING));
                 cs.add(APSERVICE_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
 	  	
-		cs = (ConceptSchema)getSchema(POSTEDMESSAGE);
-		cs.add(POSTEDMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
-		cs.add(POSTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
-
-		cs = (ConceptSchema)getSchema(ROUTEDMESSAGE);
-		cs.add(ROUTEDMESSAGE_FROM, (ConceptSchema)getSchema(CHANNEL));
-		cs.add(ROUTEDMESSAGE_TO, (ConceptSchema)getSchema(CHANNEL));
-		cs.add(ROUTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
-		
 		AgentActionSchema as = (AgentActionSchema)getSchema(STARTNOTIFY);
 		as.add(STARTNOTIFY_OBSERVED, (ConceptSchema)getSchema(BasicOntology.AID));
 		as.add(STARTNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);

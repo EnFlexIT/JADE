@@ -42,6 +42,7 @@ public class PostedMessage implements Event {
     public static final String NAME = "Posted-Message";
 
     private ACLMessage message;
+    private AID sender;
     private AID receiver;
 
 
@@ -60,6 +61,26 @@ public class PostedMessage implements Event {
 	return NAME;
     }
 
+    /**
+       Set the <code>sender</code> slot of this event.
+       @param id The agent identifier of the agent that sent the
+       message.
+    */
+    public void setSender(AID id) {
+	sender = id;
+    }
+
+    /**
+       Retrieve the value of the <code>sender</code> slot of this
+       event, containing the agent identifier of the agent that sent
+       the message.
+       @return The value of the <code>sender</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getSender() {
+	return sender;
+    }
+    
     /**
        Set the <code>message</code> slot of this event.
        @param msg The ACL message that was posted to the receiver

@@ -43,6 +43,7 @@ public class SentMessage implements Event {
     public static final String NAME = "Sent-Message";
 
     private AID sender;
+    private AID receiver;
     private ACLMessage message;
 
     /**
@@ -80,6 +81,25 @@ public class SentMessage implements Event {
 	return sender;
     }
 
+    /**
+       Set the unicast <code>receiver</code> slot of this event.
+       @param id The agent identifier of the unicast receiver of the
+       sent message.
+    */
+    public void setReceiver(AID id) {
+	receiver = id;
+    }
+
+    /**
+       Retrieve the value of the unicast <code>receiver</code> slot of this
+       event.
+       @return The value of the unicast <code>receiver</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getReceiver() {
+	return receiver;
+    }
+    
     /**
        Set the <code>message</code> slot of this event.
        @param msg The ACL message that was sent.

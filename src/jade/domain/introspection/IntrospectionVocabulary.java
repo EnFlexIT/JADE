@@ -127,13 +127,16 @@ public interface IntrospectionVocabulary {
     
   public static final String SENTMESSAGE = "sent-message";
   public static final String SENTMESSAGE_SENDER = "sender";
+  public static final String SENTMESSAGE_RECEIVER = "receiver";
   public static final String SENTMESSAGE_MESSAGE = "message";
   
   public static final String RECEIVEDMESSAGE = "received-message";
+  public static final String RECEIVEDMESSAGE_SENDER = "sender";
   public static final String RECEIVEDMESSAGE_RECEIVER = "receiver";
   public static final String RECEIVEDMESSAGE_MESSAGE = "message";
    
   public static final String POSTEDMESSAGE = "posted-message";
+  public static final String POSTEDMESSAGE_SENDER = "sender";
   public static final String POSTEDMESSAGE_RECEIVER = "receiver";
   public static final String POSTEDMESSAGE_MESSAGE = "message";
   
