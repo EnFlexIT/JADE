@@ -47,7 +47,7 @@ public abstract class Profile {
      This constant is the name of the property whose value is a String
      indicating the protocol to use to connect to the Main Container.
    */
-  public static final String MAIN_PROTO = "main-proto";
+  //public static final String MAIN_PROTO = "main-proto";
 
   /**
      This constant is the name of the property whose value is the name
@@ -98,6 +98,15 @@ public abstract class Profile {
    * method.
    */
   public static final String ACLCODECS = "aclcodecs";
+  
+  /**
+   * This constant is the key of the property whose value contains the
+   * indication about the type of JVM. 
+   */
+  public static final String JVM = "jvm";
+  public static final String J2SE = "j2se";
+  public static final String PJAVA = "pjava";
+  public static final String MIDP = "midp";
   
     /**
      */
