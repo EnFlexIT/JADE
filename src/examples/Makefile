@@ -8,7 +8,7 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java \
 	  subdf/SubDF.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
-	  ontology/OntologyTest.java \
+	  ontology/ExecutorAgent.java ontology/RequesterAgent.java \
 	  mobile/MobileAgent.java
 
 all: 
