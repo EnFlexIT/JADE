@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/02/04 13:25:02  rimassa
+  Removed some debugging code.
+
   Revision 1.1  1999/02/03 15:36:55  rimassa
   A class working as a GUI for DF agents.
 
@@ -118,19 +121,6 @@ public DFGUI() {
   public DFGUI(df a) {
     this("DF " + a.getName());
     agent = a;
-    // FIXME. To remove. only here for debugging
-   ACLMessage msg = new ACLMessage("request");
-   msg.setSource(agent.getName());
-   msg.setDest(agent.getName());
-   msg.setOntology("fipa-agent-management");
-   msg.setLanguage("SL0");
-   msg.setProtocol("fipa-request");
-   msg.setContent("(action df (register (:df-description (:agent-name XXX)  (:agent-address  iiop://fellini.it:50/acc) (:agent-services  (:service-description  (:service-name service1)  (:service-type MeetingScheduler) (:service-ontology fipa-meeting) (:fixed-properties priority) (:negotiable-properties cost) (:communication-properties addr) ))  (:agent-type fipa-agent) (:interaction-protocols (fipa-request)) (:ontology fipa-agent-management )  (:ownership fabio ) ( :df-state active))))");
-   agent.send(msg); // agent with only 1 service
-   msg.setContent("(action df (register (:df-description (:agent-name fabioAgent2)  (:agent-address  iiop://pippo.cselt.it:50/acc) (:agent-type fipa-agent) (:interaction-protocols (fipa-request fipa-query)) (:ontology fipa-agent-management )  (:ownership fabio ) ( :df-state active))))");
-   agent.send(msg); // agent with 0 services
-   msg.setContent("(action df (register (:df-description (:agent-name FelliniAgent)  (:agent-address  iiop://pippo.cselt.it:50/acc) (:agent-services  (:service-description  (:service-name service1)  (:service-type MeetingScheduler) (:service-ontology Meeting) (:fixed-properties location) (:negotiable-properties urgency) )   (:service-description  (:service-name service2)  (:service-type servicetype2) (:service-ontology serviceonto2) (:fixed-properties priority2) (:negotiable-properties cost2) (:communication-properties addr2))   (:service-description  (:service-name service3)  (:service-type servicetype3) (:service-ontology serviceonto3) (:fixed-properties priority3) (:negotiable-properties cost3) (:communication-properties addr3) ))  (:agent-type fipa-agent) (:interaction-protocols (fipa-request)) (:ontology (Meeting Travel Cinema) )  (:ownership FedericoFellini ) ( :df-state active))))");
-   agent.send(msg); // agent with 3services
   }
 	
     /**
@@ -300,7 +290,7 @@ public DFGUI() {
 		// to do: code goes here.
 		// Registration of this DF with another DF
 		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-		dfd.setName(agent.getName());
+		dfd.setName(agent.getName()+"@"+agent.getAddress());
 		dfd.addAddress(agent.getAddress());
 		dfd.setType("DF");
 		dfd.addInteractionProtocol("fipa-request");
