@@ -24,12 +24,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.introspector.gui;
 
-
-import java.util.Vector;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 
 import javax.swing.*;
 import javax.swing.table.*;
 
+import jade.lang.acl.ACLMessage;
 
 /**
    The panel containing the message tables.
@@ -52,6 +54,8 @@ public class MessagePanel extends JSplitPane{
     outMessage=new JTable(outModel);
     inMessage.setName("IN");
     outMessage.setName("OUT");
+    inMessage.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
+    outMessage.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
     listener = new TableMouseListener();
     inMessage.addMouseListener(listener);
     outMessage.addMouseListener(listener);
@@ -83,10 +87,34 @@ public class MessagePanel extends JSplitPane{
   public MessageTableModel getModelOut(){
     return outModel;
   }
-  /*public void setModels(Vector in,Vector out){
-    inModel=new MessageTableModel(in,"Message In");
-    outModel=new MessageTableModel(in,"Message Out");
-  }*/
+
+  private static class ACLMessageRenderer extends JLabel implements TableCellRenderer {
+
+    private Icon myIcon;
+
+    public ACLMessageRenderer() {
+      setHorizontalAlignment(SwingConstants.LEFT);
+      setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+      String path =  "/jade/tools/introspector/gui/images/aclMessage.gif";
+      myIcon = new ImageIcon(getClass().getResource(path));
+      setIcon(myIcon);
+    }
+
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      int height = myIcon.getIconHeight();
+      if(table.getRowHeight() != height)
+	table.setRowHeight(height);
+      ACLMessage msg = (ACLMessage)value;
+      if(isSelected)
+	setBackground(Color.cyan);
+      else
+	setBackground(table.getBackground());
+      setText(ACLMessage.getPerformative(msg.getPerformative()));
+      return this;
+    }
+
+  }
+
 }
 
 
