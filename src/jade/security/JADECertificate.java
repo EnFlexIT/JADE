@@ -79,12 +79,5 @@ public interface JADECertificate extends Serializable {
 		certificate itself.
 		@return The canonical string representation.
 	*/
-	public String encode();
-
-	/**
-		Builds back a certificate from its string encoding.
-		@param encoded The string to restore the certificate from.
-	*/
-	public void decode(String encoded);
-	
+	public byte[] getEncoded() throws jade.security.CertificateEncodingException;
 }

@@ -126,6 +126,10 @@ public interface Authority {
 
 	public DelegationCertificate createDelegationCertificate();
 	
+	public DelegationCertificate createDelegationCertificate(byte[] encoded) throws CertificateException;
+	
+		public DelegationCertificate createDelegationCertificate(String encoded) throws CertificateException;
+	
 	//!!! to remove
 	/*
 	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException;
