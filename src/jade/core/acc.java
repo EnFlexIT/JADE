@@ -25,7 +25,7 @@ package jade.core;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -43,7 +43,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
   <em><b>FIPA</b></em> <em>ACC</em> service. <b>JADE</b> applications
   cannot use this class directly, but interact with it transparently
   when using <em>ACL</em> message passing.
-  
+
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
@@ -56,33 +56,23 @@ class acc implements MTP.Dispatcher {
     }
   }
 
-  private Map messageEncodings = new HashMap();
-  private Map MTPs = new HashMap();
-  private ArrayList externalAddresses = new ArrayList(); // list of the external input addresses
+  private Map messageEncodings = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  private Map localMTPs = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  private RoutingTable routes = new RoutingTable();
   private AgentContainerImpl myContainer;
-  private MainContainer main;
 
-  public acc(AgentContainerImpl ac, MainContainer mc) {
+  public acc(AgentContainerImpl ac) {
     ACLCodec stringCodec = new StringACLCodec();
     messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
     myContainer = ac;
-    main = mc;
   }
 
-  /**
-  @ return true is the passed address is one of the addresses of this platform, false otherwise
-  **/
-  boolean isAPlatformAddress(String address) {
-  		String tmp = address.toLowerCase();
-  		if (tmp.startsWith("ior"))
-  			tmp = "iiop://"+tmp;
-  	return externalAddresses.contains(tmp);
-  }
   /*
   * This method is called by ACCProxy before preparing the Envelope of an outgoing message.
   * It checks for all the AIDs present in the message and adds the addresses, if not present
   **/
   void addAddressesToLocalAgents(ACLMessage msg) {
+      /*
   	String platformId = '@' + myContainer.getPlatformID();
     AID aid = msg.getSender();
 	  // if aid is null, then there is nothing to do
@@ -94,11 +84,7 @@ class acc implements MTP.Dispatcher {
   	  if (!aid.getAllAddresses().hasNext()) 
   	  	for (Iterator i=externalAddresses.iterator(); i.hasNext(); )
   		    aid.addAddresses(((String)i.next()).toUpperCase());	
-  	  
-  	  /* if has no resolver set, then add the local AMS
-  	  resolvers are optional in FIPA2000
-  	  if (!aid.getAllResolvers().hasNext()) {
-  	  }*/
+       
     } 
     msg.setSender(aid);
     for (Iterator i=msg.getAllReceiver(); i.hasNext(); ) {
@@ -125,8 +111,9 @@ class acc implements MTP.Dispatcher {
          aid.setName(aid.getName().concat(platformId));
     	}
     }
+      */
   }
-  
+
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
     Envelope env = msg.getEnvelope();
     if(env == null) {
@@ -182,7 +169,7 @@ class acc implements MTP.Dispatcher {
     String payloadEncoding = env.getPayloadEncoding();
     if(payloadEncoding == null)
       env.setPayloadEncoding("");
-    
+
   }
 
   public byte[] encodeMessage(ACLMessage msg) throws NotFoundException {
@@ -195,24 +182,21 @@ class acc implements MTP.Dispatcher {
   }
 
   public void forwardMessage(Envelope env, byte[] payload, String address) throws MTP.MTPException {
-    int colonPos = address.indexOf(':');
-    if(colonPos == -1)
-      throw new MTP.MTPException("Missing protocol delimiter", null);
-    String proto = address.substring(0, colonPos);
-    MTP outGoing = (MTP)MTPs.get(proto.toLowerCase());
-    if(outGoing != null) {
-      TransportAddress ta = outGoing.strToAddr(address);
-      outGoing.deliver(ta, env, payload);
-    }
-    else {
-      // FIXME: Temporary hack...
-      if(myContainer.getName().equals(AgentManager.MAIN_CONTAINER_NAME))
+
+    boolean ok = routeMessage(env, payload, address);
+
+    if(!ok) { // Try to find another container who can route the outgoing message
+      String proto = extractProto(address);
+      if(proto == null)
+	throw new MTP.MTPException("Missing protocol delimiter");
+      AgentContainer ac = routes.lookup(proto);
+      if(ac == null)
 	throw new MTP.MTPException("MTP not available in this platform");
       try {
-	main.route(env, payload, address);
+	ac.route(env, payload, address);
       }
       catch(java.rmi.RemoteException re) {
-	throw new MTP.MTPException("Main Container unreachable during routing");
+	throw new MTP.MTPException("Container unreachable during routing");
       }
       catch(NotFoundException nfe) {
 	throw new MTP.MTPException("MTP not available in this platform [after routing]");
@@ -222,22 +206,100 @@ class acc implements MTP.Dispatcher {
 
   }
 
+  // This method returns true when a local MTP is found and the
+  // message is delivered.
+  public boolean routeMessage(Object o, byte[] payload, String address) {
+    String proto = extractProto(address);
+    if(proto == null)
+      return false;
+
+    MTP outGoing = (MTP)localMTPs.get(proto);
+    if(outGoing != null) { // A suitable MTP is installed in this container.
+      try {
+	TransportAddress ta = outGoing.strToAddr(address);
+	Envelope env = (Envelope)o;
+	outGoing.deliver(ta, env, payload);
+	return true;
+      }
+      catch(MTP.MTPException mtpe) {
+	return false;
+      }
+    }
+    else
+      return false;
+  }
+
   public AgentProxy getProxy(AID agentID) throws NotFoundException {
     return new ACCProxy(agentID, this);
   }
 
-  public TransportAddress addMTP(MTP proto) throws MTP.MTPException {
-    MTPs.put(proto.getName().toLowerCase(), proto);
-    //iiop and ior are both valid protocol names for iiop 
-    if (proto.getName().equalsIgnoreCase("iiop"))
-    	MTPs.put("ior", proto);
-    TransportAddress ta = proto.activate(this);
-    externalAddresses.add(proto.getName().toLowerCase()+"://"+proto.addrToStr(ta).toLowerCase());
-    return ta;
+  public TransportAddress addMTP(MTP proto, String address) throws MTP.MTPException {
+    if(address == null) { // Let the protocol choose the address
+      localMTPs.put(proto.getName(), proto);
+      if(proto.getName().equalsIgnoreCase("iiop")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("corbaloc", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(proto.getName().equalsIgnoreCase("ior")) {
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaloc", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(proto.getName().equalsIgnoreCase("corbaloc")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(proto.getName().equalsIgnoreCase("corbaname")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaloc", proto);
+      }
+      TransportAddress ta = proto.activate(this);
+      return ta;
+    }
+    else { // Convert the given string into a TransportAddress object and use it
+      TransportAddress ta = proto.strToAddr(address);
+      localMTPs.put(ta.getProto(), proto);
+      if(ta.getProto().equalsIgnoreCase("iiop")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("corbaloc", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(ta.getProto().equalsIgnoreCase("ior")) {
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaloc", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(ta.getProto().equalsIgnoreCase("corbaloc")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaname", proto);
+      }
+      if(ta.getProto().equalsIgnoreCase("corbaname")) {
+	localMTPs.put("ior", proto);
+	localMTPs.put("iiop", proto);
+	localMTPs.put("corbaloc", proto);
+      }
+      proto.activate(this, ta);
+      return ta;
+    }
+
+  }
+
+  public void addRoute(String address, AgentContainer ac) {
+    String proto = extractProto(address);
+    routes.addMTP(proto, ac);
+  }
+
+  public void removeRoute(String address, AgentContainer ac) {
+    String proto = extractProto(address);
+    routes.removeMTP(proto, ac);
   }
 
   public void shutdown() {
-
+    // FIXME: To be implemented
   }
 
   public void dispatchMessage(Envelope env, byte[] payload) {
@@ -271,15 +333,21 @@ class acc implements MTP.Dispatcher {
       if(!it.hasNext())
   	    it = env.getAllTo();
       while(it.hasNext()) {
-	      AID receiver = (AID)it.next();
-	      System.err.println("dispatchMessage receiver = "+receiver.toString());
-	      myContainer.unicastPostMessage(msg, receiver);
+	AID receiver = (AID)it.next();
+	myContainer.unicastPostMessage(msg, receiver);
       }
 
     }
     catch(ACLCodec.CodecException ce) {
       ce.printStackTrace();
     }
+  }
+
+  private String extractProto(String address) {
+    int colonPos = address.indexOf(':');
+    if(colonPos == -1)
+      return null;
+    return address.substring(0, colonPos);
   }
 
 }
