@@ -120,7 +120,7 @@ public class TestMessageOrder extends Test {
 			private void launchParticipant(int index) {
 				try {						
 					String p = "p"+index;
-					AID id = TestUtility.createAgent(myAgent, p, "test.leap.ParticipantAgent", new String[] {myAgent.getLocalName(), LIGHT_AGENT, String.valueOf(nMessages), String.valueOf(period)});
+					AID id = TestUtility.createAgent(myAgent, p, "test.leap.tests.ParticipantAgent", new String[] {myAgent.getLocalName(), LIGHT_AGENT, String.valueOf(nMessages), String.valueOf(period)});
 					participants.add(id);
 				}
 				catch (Exception e) {
