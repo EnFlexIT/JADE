@@ -1,4 +1,7 @@
-MAJOR CHANGES since JADE 2.3 ($Date$ $Name$)
+MAJOR CHANGES since JADE 2.4 ($Date$ $Name$)
+==========================================================================
+	
+MAJOR CHANGES in JADE 2.4 (25 Sep. 2001) 
 ==========================================================================
 GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - Modified the deprecated constructor of jade.core.AID in order to ensure
@@ -43,6 +46,8 @@ BUG FIX
   getMessage method.
 - fixed bug in ams.java and in InternalError.java: they did not send
   proper failure/refuse messages (reported by Alfredo Ricchi)
+- fixed bug in method MessageTransportProtocol.deliver that caused agents to 
+  die when sending messages to wrong addresses (reported by Steve Willmott)
 EXAMPLES
 - added TestReceiverBehaviourAgent in the examples/behaviours
 - added ThanksAgent in examples/thanksAgent
