@@ -103,9 +103,10 @@ public class FSMBehaviour extends SerialBehaviour {
   public void registerState(Behaviour state, String name) {
   	state.setBehaviourName(name);
   	state.setParent(this);
+	state.setAgent(myAgent);
   	states.put(name, state);
   }
-  
+
   /** 
      Register a <code>Behaviour</code> as the initial state of this 
      <code>FSMBehaviour</code>. 
@@ -474,4 +475,36 @@ public class FSMBehaviour extends SerialBehaviour {
   		return t;
   	}
   }
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private java.util.Map getSubBehaviours() {
+
+	java.util.Map result = new java.util.HashMap();
+	Set keys = states.keySet();
+	Iterator it = keys.iterator();
+	while(it.hasNext()) {
+	    Object key = it.next();
+	    result.put(key, states.get(key));
+	}
+
+	return result;
+    }
+
+    // For persistence service
+    private void setSubBehaviours(java.util.Map behaviours) {
+	states.clear();
+	java.util.Set entries = behaviours.entrySet();
+	java.util.Iterator it = entries.iterator();
+	while(it.hasNext()) {
+	    java.util.Map.Entry e = (java.util.Map.Entry)it.next();
+	    states.put(e.getKey(), e.getValue());
+	}
+    }
+
+  //#MIDP_EXCLUDE_END
+
+
+
 }
