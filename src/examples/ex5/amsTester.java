@@ -13,36 +13,36 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 
-class Receiver {
-
-  // Utility class with private constructor -- do not instantiate.
-  private Receiver() {
-  }
-
-  public static final ACLMessage receive(amsTester a, String messageType) {
-
-    // Receive <messageType> message from peer
-
-    MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
-    MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
-    MessageTemplate mt3 = MessageTemplate.MatchSource("ams");
-    MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
-
-    MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
-    MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
-
-    MessageTemplate mt = MessageTemplate.and(mt12, mt34);
-
-    ACLMessage msg = a.receive(mt);
-
-    return msg;
-
-  }
-
-} // End of Receiver
-
-
 public class amsTester extends Agent {
+
+  private static class Receiver {
+
+    // Utility class with private constructor -- do not instantiate.
+    private Receiver() {
+    }
+
+    public static final ACLMessage receive(amsTester a, String messageType) {
+
+      // Receive <messageType> message from peer
+
+      MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
+      MessageTemplate mt2 = MessageTemplate.MatchConversationId(a.getConvID());
+      MessageTemplate mt3 = MessageTemplate.MatchSource("ams");
+      MessageTemplate mt4 = MessageTemplate.MatchType(messageType);
+
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+      MessageTemplate mt34 = MessageTemplate.and(mt3, mt4);
+
+      MessageTemplate mt = MessageTemplate.and(mt12, mt34);
+
+      ACLMessage msg = a.receive(mt);
+
+      return msg;
+
+    }
+
+  } // End of Receiver class
+
 
   // Used to generate conversation IDs.
   private int convCounter = 0;
@@ -80,7 +80,7 @@ public class amsTester extends Agent {
       return finished;
     }
     
-  } // End of ReceiveBehaviour
+  } // End of ReceiveBehaviour class
 
 
   protected void setup() {
