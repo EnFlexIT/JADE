@@ -14,9 +14,9 @@ ant testsuite - to compile test Suite
   <property name="dest" value="classes"/>
   
   <!-- Definitions for the LEAP target -->
-  <property name="j2me-wtk-home" location="C:/Java/J2MEWTK"/>
+  <property name="j2me-wtk-home" location="C:/Java/WTK104"/>
 	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
-  <property name="javac" location="C:/Java/jdk1.4/bin/javac"/>
+  <property name="javac" location="C:/Java/jdk1.4.1/bin/javac"/>
   <property name="leaphome" value="add-ons/leap" />
   <property name="leapmidp" value="${leaphome}/midp/lib/JadeLeap.jar" />
   <property name="unverified" value="${src}/test/unverified" />
@@ -77,6 +77,7 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/mobility/mobilityTestsList.xml" todir="${dest}/test/mobility"/>
     <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/proto/contractNetProtoTestsList.xml" todir="${dest}/test/proto"/>
+    <copy file="${src}/test/proto/twoPhTestsList.xml" todir="${dest}/test/proto"/>
     <copy file="${src}/test/roundTripTime/roundTripTimeTestsList.xml" todir="${dest}/test/roundTripTime"/>
     <copy file="${src}/test/leap/LEAPTestsList.xml" todir="${dest}/test/leap"/>
   </target>
