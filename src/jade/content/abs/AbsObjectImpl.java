@@ -24,8 +24,6 @@
  */
 package jade.content.abs;
 
-//#APIDOC_EXCLUDE_FILE
-
 import jade.core.CaseInsensitiveString;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -37,7 +35,7 @@ import java.util.Enumeration;
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
-public class AbsObjectImpl implements AbsObject {
+class AbsObjectImpl implements AbsObject {
     private Hashtable elements = new Hashtable();
     private String    typeName = null;
 
