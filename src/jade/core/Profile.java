@@ -41,7 +41,7 @@ public abstract class Profile {
      boolean indicating if this is the Main Container or a peripheral
      container.
    */
-  //public static final String MAIN = "main";
+  public static final String MAIN = "main";
   
   /**
      This constant is the name of the property whose value is a String
@@ -70,12 +70,6 @@ public abstract class Profile {
      platform ID.
    */
   public static final String PLATFORM_ID = "platform-id";
-  
-  /**
-     This constant is the name of the property whose value contains a
-     boolean indicating if an RMA agent must be started on this container
-   */
-  public static final String GUI = "gui";
   
   /**
      This constant is the name of the property whose value contains the
@@ -143,103 +137,6 @@ public abstract class Profile {
      */
     public abstract List getSpecifiers(String key) throws ProfileException;
 
-    /**
-     * Utility method that parses a stringified object specifier in the form
-     * name:class(arg1, arg2...) and returns
-     * a Specifier object.
-     * Both the name and the list of arguments are optional.
-     * Concrete implementations can take advantage from this method to
-     * implement the getSpecifiers() method.
-     */
-    protected static Specifier parseSpecifier(String specString) 
-            throws ProfileException {
-        Specifier s = new Specifier();
-
-        // NAME
-        int       index1 = specString.indexOf(':');
-        int       index2 = specString.indexOf('(');
-
-        if (index2 < 0) {
-            index2 = 99999;
-        } 
-
-        if (index1 > 0 && index1 < index2) {
-
-            // The name exists, colon exists, and is followed by the class name
-            s.setName(specString.substring(0, index1));
-
-            // Skip colon
-            index1++;
-        } 
-        else {
-
-            // No name specified
-            index1 = 0;
-        } 
-
-        // CLASS
-        index2 = specString.indexOf('(', index1);
-
-        if (index2 < 0) {
-
-            // No arguments --> just add the class name
-            s.setClassName(specString.substring(index1, specString.length()));
-        } 
-        else {
-
-            // There are arguments --> add the class name and then parse the args
-            s.setClassName(specString.substring(index1, index2));
-
-            // ARGUMENTS
-            if (!specString.endsWith(")")) {
-                throw new ProfileException("Incorrect specifier \"" 
-                                           + specString 
-                                           + "\". Missing final parenthesis");
-            } 
-
-            // Get everything is in between '(' and ')'
-            String args = specString.substring(index2 + 1, 
-                                               specString.length() - 1);
-
-            s.setArgs(parseArguments(args));
-        } 
-
-        return s;
-    } 
-
-    /**
-     */
-    private static String[] parseArguments(String args) {
-        List argList = new ArrayList();
-        int  argStart = 0;
-        int  argEnd = args.indexOf(',');
-
-        while (argEnd > 0) {
-            String arg = args.substring(argStart, argEnd);
-
-            argList.add(arg.trim());
-
-            argStart = argEnd + 1;
-            argEnd = args.indexOf(',', argStart);
-        } 
-
-        // Last argument
-        String arg = args.substring(argStart, args.length());
-
-        argList.add(arg.trim());
-
-        // Convert the List into an Array
-        String   arguments[] = new String[argList.size()];
-        Iterator it = argList.iterator();
-        int      i = 0;
-
-        while (it.hasNext()) {
-            arguments[i] = (String) it.next();
-            ++i;
-        } 
-
-        return arguments;
-    } 
 
 }
 
