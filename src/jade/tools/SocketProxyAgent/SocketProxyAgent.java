@@ -392,8 +392,8 @@ class Connection extends Thread {
                 }
             } // END while (!done)
         }
-        catch (ParseException e) {
-            close(e);
+        catch (Throwable any) {
+            close(any);
             return;
         }
     } // END run()
@@ -409,7 +409,7 @@ class Connection extends Thread {
         catch (InterruptedException ignore) {}
     }
     
-    void close(Exception e) {
+    void close(Throwable e) {
         done = true;
         try {
             client.close();
