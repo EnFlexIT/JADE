@@ -89,81 +89,39 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 
     public Object accept(HorizontalCommand cmd, String itfName, String[] formalParameterTypes) throws IMTPException {
 
-	try {
-	    Class itf = Class.forName(itfName);
-	    Class[] classes = new Class[formalParameterTypes.length];
-	    for(int i = 0; i < formalParameterTypes.length; i++) {
-		String className = formalParameterTypes[i];
-		if(className.equals("boolean")) {
-		    classes[i] = Boolean.TYPE;
-		}
-		else if(className.equals("int")) {
-		    classes[i] = Integer.TYPE;
-		}
-		else {
-		    classes[i] = Class.forName(className);
-		}
-	    }
+	System.out.println("--- Command Received ---");
+	System.out.println("Name: <" + cmd.getName() + ">");
+	System.out.println("Service: <" + cmd.getService() + ">");
 
-	    System.out.println("--- Command Received ---");
-	    System.out.println("Name: <" + cmd.getName() + ">");
-	    System.out.println("Service: <" + cmd.getService() + ">");
-
-	    /***
-		Object[] args = cmd.getParams();
-		for(int i = 0; i < args.length; i++) {
-		System.out.println("param[" + i + "] = " + args[i]);
-		}
-	    ***/
-	    System.out.println("--- ================ ---");
-
-	    String serviceName = cmd.getService();
-	    String commandName = cmd.getName();
-	    Object[] commandParams = cmd.getParams();
-
-	    // Look up in the local slices table and find the slice to dispatch to
-	    Service.Slice slice = impl.getSlice(serviceName);
-
-	    if(slice != null) {
-		// Reflective dispatching
-		try {
-		    Method toCall = itf.getMethod(commandName, classes);
-		    try {
-			return toCall.invoke(slice, commandParams);
-		    }
-		    catch(InvocationTargetException ite) {
-			Throwable cause = ite.getCause();
-
-			// If this is a declared exception of the method, let it through
-			Class[] declaredExceptions = toCall.getExceptionTypes();
-			for(int i = 0; i < declaredExceptions.length; i++) {
-			    if(declaredExceptions[i].equals(cause.getClass())) {
-				return cause;
-			    }
-			}
-
-			// Unknown or runtime exception: just print it for now...
-			cause.printStackTrace();
-		    }
-
-		}
-		catch(Exception e) {
-		    // FIXME: Throw something to mean 'Wrong version', 'Bad parameter' or whatever is needed
-		    e.printStackTrace();
-		}
-	    }
-	    else {
-		// FIXME: Throw something to mean 'Service Unknown'
-		System.out.println("-- Service Unknown --");
-	    }
-
-	    // FIXME: Make it so that the execution never reaches here (i.e. throw in every catch clause)
-	    return null;
+	/***
+	Object[] args = cmd.getParams();
+	for(int i = 0; i < args.length; i++) {
+	    System.out.println("param[" + i + "] = " + args[i]);
 	}
-	catch(Exception e) {
-	    e.printStackTrace();
-	    throw new IMTPException("Error during horizontal command dispatching", e);
+	***/
+
+	System.out.println("--- ================ ---");
+
+	String serviceName = cmd.getService();
+	String commandName = cmd.getName();
+	Object[] commandParams = cmd.getParams();
+
+	// Look up in the local slices table and find the slice to dispatch to
+	Service.Slice slice = impl.getSlice(serviceName);
+
+	if(slice != null) {
+
+	    slice.serve((jade.core.VerticalCommand)cmd);
+	    return cmd.getReturnValue();
 	}
+	else {
+	    // FIXME: Throw something to mean 'Service Unknown'
+	    System.out.println("-- Service Unknown --");
+	}
+
+	// FIXME: Make it so that the execution never reaches here (i.e. throw in every catch clause)
+	return null;
+
     }
 
     public void ping(boolean hang) throws IMTPException {

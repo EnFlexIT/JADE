@@ -34,8 +34,6 @@
 
 package jade.imtp.leap;
 
-// FIXME: Temporary Hack
-import java.lang.reflect.*;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -248,86 +246,15 @@ public class LEAPIMTPManager implements IMTPManager {
   }
 
   public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
-
-	  ClassLoader myCL = getClass().getClassLoader();
-
-	  if(itf == null) {
-	      throw new IMTPException("No proxy interface specified");
-	  }
-
-	  // Make sure that the first element of the array is a sub-interface of Service.Slice
-	  if(!itf.isInterface() || !Service.Slice.class.isAssignableFrom(itf)) {
-	      throw new IMTPException("The first proxy interface must extend Service.Slice [" + itf.getName() + "]");
-	  }
-
-	  // Recover the RMI stub from the node where the slice represented by this proxy resides.
-	  final String svcName = serviceName;
-	  final Class intface = itf;
-	  final NodeAdapter target = (NodeAdapter)where;
-
-	  // Build and return a Dynamic Proxy for the remote Slice
-	  return (Service.Slice)Proxy.newProxyInstance(myCL, new Class[] {itf}, new InvocationHandler() {
-
-	      // Reflective invocation handler, creating a
-	      // GenericCommand object from the method name and
-	      // parameters, and then dispatching it to the remote
-	      // slice over the NodeRMI remote interface, wrapping any
-	      // thrown RemoteException into an IMTPException.
-	      //
-	      // Notice: For this proxy to work, every parameter must be Serializable.
-	      //
-	      public Object invoke(Object proxy, Method meth, Object[] args) throws Throwable {
-
-		  GenericCommand cmd = new GenericCommand(meth.getName(), svcName, "");
-		  if(args != null) {
-		      for(int i = 0; i < args.length; i++) {
-			  cmd.addParam(args[i]);
-		      }
-		  }
-
-		  Class[] classes = meth.getParameterTypes();
-		  String[] classNames = new String[classes.length];
-
-		  // Fill the class names array
-		  for(int i = 0; i < classNames.length; i++) {
-		      classNames[i] = classes[i].getName();
-		  }
-
-		  Class retType = meth.getReturnType();
-		  Object result = target.getAdaptee().accept(cmd, intface.getName(), classNames);
-
-		  if(result == null) {
-		      return result;
-		  }
-
-		  // Check for:
-		  // a. A legitimate result, instance of the declared return type
-		  // b. A thrown exception of a declared type
-		  // c. A thrown exception of an unknown type
-		  // The 'isPrimitive()' clause is needed to cope with wrapper types (e.g. boolean vs. java.lang.Boolean)
-		  if(retType.isInstance(result) || (retType.isPrimitive() && !(result instanceof Throwable))) {
-		      return result;
-		  }
-		  else if(result instanceof Throwable) {
-
-		      // If this is a declared exception of the method, let it through
-		      Class[] declaredExceptions = meth.getExceptionTypes();
-		      for(int i = 0; i < declaredExceptions.length; i++) {
-			  if(declaredExceptions[i].equals(result.getClass())) {
-			      throw (Throwable)result; // A declared exception: fine
-			  }
-		      }
-
-		      // Unknown or runtime exception: just print it for now...
-		      ((Throwable)result).printStackTrace();
-		      return null;
-		  }
-		  else {
-		      throw new IMTPException("Incorrect type returned from a remote call: " + result.getClass().getName() + " [expected " + retType.getName() + " ]");
-		  }
-	      }
-	  });
-
+      try {
+	  Class proxyClass = Class.forName(serviceName + "Proxy");
+	  Service.SliceProxy proxy = (Service.SliceProxy)proxyClass.newInstance();
+	  proxy.setNode(where);
+	  return proxy;
+      }
+      catch(Exception e) {
+	  throw new IMTPException("Error creating a slice proxy", e);
+      }
   }
 
   /**
