@@ -24,114 +24,95 @@ Boston, MA  02111-1307, USA.
 package examples.behaviours;
 
 import jade.core.Agent;
-import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.FSMBehaviour;
 
 /**
-This an examples of an agent whose behaviours built as finite state
-machine.
-Note that the first behaviour never ends since the method <code>done</code>
-always returns false
-
-@author Tiziana Trucco - CSELT S.p.A.
-@version  $Date$ $Revision$  
-*/
-
-// An example of agent behaviours like  state machines.
+   This example shows the usage of the <code>FSMBehavior</code> that allows
+   composing behaviours according to a Finite State Machine.<br>
+   @author Giovanni Caire - TILAB
+ */
 public class FSMAgent extends Agent {
+	// State names
+	private static final String STATE_A = "A";
+	private static final String STATE_B = "B";
+	private static final String STATE_C = "C";
+	private static final String STATE_D = "D";
+	private static final String STATE_E = "E";
+	private static final String STATE_F = "F";
+	
+	protected void setup() {
+		FSMBehaviour fsm = new FSMBehaviour(this) {
+			public int onEnd() {
+				System.out.println("FSM behaviour completed.");
+				myAgent.doDelete();
+				return super.onEnd();
+			}
+		};
+		
+		// Register state A (first state)
+		fsm.registerFirstState(new NamePrinter(), STATE_A);
+		
+		// Register state B
+		fsm.registerState(new NamePrinter(), STATE_B);
+		
+		// Register state C
+		fsm.registerState(new RandomGenerator(3), STATE_C);
+		
+		// Register state D
+		fsm.registerState(new NamePrinter(), STATE_D);
+		
+		// Register state E
+		fsm.registerState(new RandomGenerator(4), STATE_E);
+		
+		// Register state F (final state)
+		fsm.registerLastState(new NamePrinter(), STATE_F);
 
-  class my3StepBehaviour extends SimpleBehaviour {
-
-  	final int FIRST = 1;
-  	final int SECOND = 2;
-  	final int THIRD = 3;
-
-  	private int state = FIRST;
-      private int numberOfExecutions = 3; // it will be executed N times
-    
-    public my3StepBehaviour(Agent a) {
-      super(a);
-    }
-
-    public void action() {
-      switch (state){
-      	case FIRST: {op1(); state = SECOND; break;}
-      	case SECOND:{op2(); state = THIRD;  break;}
-      	case THIRD: {op3(); state = FIRST; numberOfExecutions--; break;}
-      }
-    }
-
-    
-    public boolean done(){
-    	return (!(numberOfExecutions>0));
-    }
-    
-    private void op1(){
-    	System.out.println("\nAgent: "+ myAgent.getLocalName() + " is executing Step 1.1");
-    }
-    
-    private void op2(){
-    	System.out.println("\nAgent: "+ myAgent.getLocalName() + " is executing Step 1.2");
-    }
-    
-    private void op3(){
-    	System.out.println("\nAgent: "+ myAgent.getLocalName() + " is executing Step 1.3" );
-    }     
+		// Register the transitions
+		fsm.registerDefaultTransition(STATE_A, STATE_B);
+		fsm.registerDefaultTransition(STATE_B, STATE_C);
+		fsm.registerTransition(STATE_C, STATE_C, 0);
+		fsm.registerTransition(STATE_C, STATE_D, 1);
+		fsm.registerTransition(STATE_C, STATE_A, 2);
+		fsm.registerDefaultTransition(STATE_D, STATE_E);
+		fsm.registerTransition(STATE_E, STATE_F, 3);
+		fsm.registerDefaultTransition(STATE_E, STATE_B);
+		
+		addBehaviour(fsm);
 	}
 	
-	class my4StepBehaviour extends SimpleBehaviour {
-
-    final int FIRST  = 1;
-    final int SECOND = 2;
-    final int THIRD  = 3;
-    final int FOURTH = 4;
-    
-		private int state = FIRST;
-    private boolean finished = false;
-    
-    public my4StepBehaviour(Agent a) {
-      super(a);
-    }
-
-   	public void action() {
-      switch (state){
-      	case FIRST:{op1();  state = SECOND; break;}
-      	case SECOND:{op2(); state = THIRD;  break;}
-      	case THIRD:{op3();  state = FOURTH; break;}
-      	case FOURTH:{op4(); state = FIRST; finished = true; break;}
-      }
-      
-    }
-
-    public boolean done(){
-    	return finished;
-    }
-    
-
-		private void op1(){
-    	System.out.println("\n\tAgent: "+ myAgent.getLocalName() + " is executing Step 2.1" );
-    }
-    
-    private void op2(){
-    	System.out.println("\n\tAgent: "+ myAgent.getLocalName() + " is executing Step 2.2");
-    }
-    
-    private void op3(){
-    	System.out.println("\n\tAgent: "+ myAgent.getLocalName() + " is executing Step 2.3" );
-    }
-    private void op4(){
-    	System.out.println("\n\tAgent: "+ myAgent.getLocalName() + " is executing Step 2.4");
-    }
+	/**
+	   Inner class NamePrinter.
+	   This behaviour just prints its name
+	 */
+	private class NamePrinter extends OneShotBehaviour {
+		public void action() {
+			System.out.println("Executing behaviour "+getBehaviourName());
+		}
 	}
-  
-	protected void setup() {
-
-    my3StepBehaviour mybehaviour = new my3StepBehaviour(this);
-    addBehaviour(mybehaviour);
-    
-    // This is another way to add a new behaviour. 
-    // The only difference being the programming style. 
-		addBehaviour(new my4StepBehaviour(this));
-  }
-
-
+	
+	/**
+	   Inner class RandomGenerator.
+	   This behaviour prints its name and exits with a random value
+	   between 0 and a given integer value
+	 */
+	private class RandomGenerator extends NamePrinter {
+		private int maxExitValue;
+		private int exitValue;
+		
+		private RandomGenerator(int max) {
+			super();
+			maxExitValue = max;
+		}
+		
+		public void action() {
+			System.out.println("Executing behaviour "+getBehaviourName());
+			exitValue = (int) (Math.random() * maxExitValue);
+			System.out.println("Exit value is "+exitValue);
+		}
+		
+		public int onEnd() {
+			return exitValue;
+		}
+	}
 }
