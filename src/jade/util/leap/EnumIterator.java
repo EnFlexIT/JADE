@@ -54,9 +54,12 @@ public class EnumIterator implements Iterator {
     } 
 
     /**
+		 * THIS OPERATION IS NOT SUPPORTED!
      */
     public void remove() {
-      throw new RuntimeException("Unsupported Operation");
+			RuntimeException e = new RuntimeException("Unsupported Operation");
+      jade.util.Logger.println(e.getMessage());
+			throw e;
     } 
 
   }
