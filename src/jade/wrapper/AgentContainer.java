@@ -128,6 +128,30 @@ public class AgentContainer {
 
   }
 
+    /**
+     * Add an Agent to this container. Typically Agent would be some class extending
+     * Agent which was instantiated and configured.
+     * Usage of this method needs special care in order to avoid mistakes,
+     * therefore developers are encouraged to use <code>createAgent</code>
+     * instead. 
+     * @param nickname A platform-unique nickname for the newly created agent.
+     * The agent will be given a FIPA compliant agent identifier using the nickname and
+     * the ID of the platform it is running on.
+     * @param anAgent The agent to be added to this agent container.
+     * @return A proxy object, allowing to call state-transition forcing methods on the real agent instance.
+     */
+    public Agent acceptNewAgent(String nickname, jade.core.Agent anAgent)
+                                          throws StaleProxyException {
+        if (myImpl == null)
+            throw new StaleProxyException();
+
+        AID agentID = new AID(nickname, AID.ISLOCALNAME);
+        myImpl.initAgent(agentID, anAgent, false);
+
+        return new Agent(agentID, anAgent);
+    }
+
+
 
 
   /**
