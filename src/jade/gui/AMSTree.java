@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1998/11/09 00:30:39  rimassa
+  Removed older, commented out code and unused variables.
+
   Revision 1.5  1998/11/03 00:43:23  rimassa
   Added automatic GUI tree updating in response to AMS 'inform' messages to
   Remote Management Agent.
@@ -91,8 +94,6 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
   public void valueChanged(TreeSelectionEvent e)
     {
       TreePath paths[] = tree.getSelectionPaths();
-      Object pathObj[];
-      int i,max;
       int j,numPaths;
       String formattedPath = "";
       AMSAbstractAction.removeAllListeners();
@@ -104,9 +105,9 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
 
       for(j=0;j<numPaths;j++) {
 	if (paths[j].getLastPathComponent() instanceof TreeData) {
-			
+
 	  current = (TreeData) (paths[j].getLastPathComponent());
-				
+
 	  AMSAbstractAction.AddListener(current);
 	  formattedPath += getPathAsString(paths[j]);
 	}
@@ -183,15 +184,6 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     else return new TreeData(name,TreeData.AGENT);
   }
 
-  /*
-  public void expandPath(TreePath tp) {
-    tree.expandPath(tp);
-  }
-
-  public void scrollPathToVisible(TreePath tp) {
-    tree.scrollPathToVisible(tp);
-  }
-  */
 
   /**
    * @return current TreeModel
