@@ -106,20 +106,7 @@ public class AboutBoxAction extends AbstractAction{
 					gridbag.setConstraints(label,c);
 	        theCont.add(label);
 	        
-	        String CVSname = "$Name$";
-					int colonPos = CVSname.indexOf(":");
-	    		int dollarPos = CVSname.lastIndexOf('$');
-	    		String name = CVSname.substring(colonPos + 1, dollarPos);
-	    		
-	    		if(name.indexOf("JADE") == -1)
-							name = "JADE snapshot";
-	    		else {
-	        			name = name.replace('-', ' ');
-								name = name.replace('_', '.');
-								name = name.trim();
-	    		}
-	
-	    		label = new JLabel(name);
+	    		label = new JLabel(jade.core.Runtime.getVersionInfo());
 	        label.setForeground(dark_blue);
 					c.ipady = 1;
 					c.gridwidth = 1;

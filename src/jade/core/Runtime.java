@@ -295,19 +295,19 @@ public class Runtime {
    * Return a String with copyright Notice, Name and Version of this version of JADE
    */
   public static String getCopyrightNotice() {
-    return("    This is "+instance().getVersionInfo()+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
+    return("    This is "+getVersionInfo()+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.tilab.com/\n");
   }
   //#APIDOC_EXCLUDE_END
 
   /**
      Return the version number and date of this JADE Runtime.
    */
-  public String getVersionInfo() {
-    String CVSname = "$Name$";
-		String CVSdate = "- revision $WCREV$ of $WCDATE$"; // these keywords are automatically replaced by WCREV with subversion
-    String name = CVSname; //.substring(colonPos + 1, dollarPos);
+  public static String getVersionInfo() {
+			String CVSname = "$Name$"; //this keyword is automatically replaced by the target doTag of build.xml
+		String CVSdate = " - revision $WCREV$ of $WCDATE$"; // these keywords are automatically replaced by WCREV with subversion
+    String name = CVSname; 
     if(name.indexOf("JADE") == -1)
-    	name = "JADE snapshot ";
+    	name = "JADE snapshot";
     else 
     {
         name = name.replace('-', ' ');

@@ -11,13 +11,7 @@ ant dist - to create the distribution files
 <!-- set properties for this project -->
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
-  <property name="version" value="3.3"/>
-  <property name="build.compiler" value="modern"/>
-  <property name="javac.optimize" value="on"/>
-  <property name="javac.debug" value="off"/>
-  <property name="EXECidlj" value="false"/>
-  <!-- by default idlj is not executed, set to true the value for the
-       previous property if you want to execute idlj -->
+  <property file="build.properties"/>
   <property environment="env"/>
   <!-- set global properties for this build -->
   <property name="root" location="."/>
@@ -27,7 +21,6 @@ ant dist - to create the distribution files
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
   <property name="demo" location="demo"/>
-  <property name="SubWCRev.exe" value="c:\Program Files\TortoiseSVN\bin\SubWCRev.exe"/>
   
   <target name="init">
     <!-- Create the time stamp -->
@@ -52,6 +45,9 @@ ant dist - to create the distribution files
     <condition property="EXECSubWCRev">
       <available file="${SubWCRev.exe}"/>
     </condition>
+    <condition property="tagThisVersion.is.true">
+        <equals arg1="${tagThisVersion}" arg2="true"/>
+    </condition>
   </target>
   <target name="check_javacc" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
@@ -69,7 +65,7 @@ ant dist - to create the distribution files
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
-  <target name="jade" depends="init,parser,idlj,SubWCRev" description="compile the source ">
+  <target name="jade" depends="init,parser,idlj,doTag" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
@@ -126,6 +122,15 @@ ant dist - to create the distribution files
     </exec>
   </target>
 
+	 <!--     _______________________________________________
+	                                doTag
+	 This task is needed because, contrary to CVS, subversion does not replace $Name$ with the tag name
+	          _______________________________________________ -->
+	  <target name="doTag" depends="SubWCRev" if="tagThisVersion.is.true" description="Set the JADE version number in jade.core.Runtime.">
+	    <echo>tagging new release: JADE-${version}</echo>
+	  	<replace file="src/jade/core/Runtime.java" token="$Name$" value="JADE-${version}" summary="yes"/>
+	  </target>
+	
   <!--     _______________________________________________
                                 SubWCRev
           _______________________________________________ -->
@@ -207,12 +212,17 @@ ant dist - to create the distribution files
     <delete includeEmptyDirs="true">
       <fileset dir="${build}" excludes="**/*.mf"/>
     </delete>
+  	<!-- clean the doc/api directory -->
+  	<delete dir="${doc}/api" excludes="javalogo52x88.gif" includeEmptyDirs="true"/>
   </target>
   <!--    __________________________________________________
                             doc
         __________________________________________________ -->
   <target name="doc" description="generate javadoc documentation">
-    <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" use="true" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap, jade.mtp, jade.mtp.iiop jade.mtp.http jade.mtp.http.https"/>
+  	<!-- clean the doc/api directory -->
+  	<delete dir="${doc}/api" excludes="javalogo52x88.gif" includeEmptyDirs="true"/>
+  	<!-- generate new javadoc documentation -->
+    <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" use="true" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper.gateway, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap, jade.mtp, jade.mtp.iiop jade.mtp.http jade.mtp.http.https"/>
     <javadoc destdir="${doc}/tools/sniffer/html/jdoc" author="true" windowtitle="JADE ${version} Sniffer Reference" sourcepath="${src}" packagenames="jade.tools.sniffer"/>
   </target>
   <!--     _______________________________________________
