@@ -466,7 +466,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       //copy.addDest(subDF);
       try {
       	//searchThemAll.addSubBehaviour(new SearchDFBehaviour(df.this, copy, dfd, constraints, result));
-        searchThemAll.addSubBehaviour(new RequestDFActionBehaviour(df.this,subDF,AgentManagementOntology.DFAction.SEARCH,dfd,constraints,result)); 
+      	searchThemAll.addSubBehaviour(new RequestDFActionBehaviour(df.this,subDF,AgentManagementOntology.DFAction.SEARCH,dfd,constraints,result)); 
       }catch(FIPAException fe) {
       		fe.printStackTrace();}
       }
@@ -661,6 +661,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		{
 			gui = new DFGUI((GUI2DFCommunicatorInterface) (df.this));
 			gui.refresh();
+			
 			gui.setVisible(true);
 			return true;
   		}
@@ -668,6 +669,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
    return false;
   }
    
+ 
 
 
   /**
@@ -1181,7 +1183,6 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		while (e.hasMoreElements())
 		{
 			 AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) e.nextElement();
-			 System.out.println("name in found: " + dfd.getName());
 			 if (dfd.getName() == name)
 			  out = dfd;	
 		}
