@@ -76,7 +76,7 @@ class MainWindow extends JFrame {
     int centerX = (int)screenSize.getWidth() / 2;
     int centerY = (int)screenSize.getHeight() / 2;
     setLocation(centerX - 300, centerY - 200);
-    tree.adjustDividerLocation();
+    tree.adjustDividersLocation();
     setVisible(true);
     toFront();
   }
@@ -99,7 +99,7 @@ class MainWindow extends JFrame {
     }
 
     // Make AWT Event Dispatcher thread dispose RMA window for us.
-    EventQueue.invokeLater(new disposeIt(this));
+    SwingUtilities.invokeLater(new disposeIt(this));
 
   }
 
