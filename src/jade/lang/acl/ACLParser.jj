@@ -65,7 +65,7 @@ Javadoc documentation for the file
 @version $Date$ $Revision$
 */
 
-public class ACLParser {
+class ACLParser {
   ACLMessage msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 
   public static void main(String args[]) throws ParseException {
@@ -83,12 +83,12 @@ public class ACLParser {
     }
   }
 
-  public static ACLParser create() {
+  static ACLParser create() {
     Reader r = new StringReader("");
     return new ACLParser(r);
   }
 
-  public ACLMessage parse(Reader text) throws ParseException {
+  ACLMessage parse(Reader text) throws ParseException {
     ReInit(text);
     return Message();
   }

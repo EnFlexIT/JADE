@@ -849,7 +849,7 @@ private int performative; // keeps the performative type of this object
      @param w A <code>Writer</code> object to write the message onto.
      @see jade.lang.acl.ACLMessage#fromText(Reader r)
   */
-  public void toText(Writer w) {
+  void toText(Writer w) {
     try {
       w.write("(");
       w.write(getPerformative(getPerformative()) + "\n");
