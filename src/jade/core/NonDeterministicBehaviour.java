@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.6  1998/10/31 12:54:14  rimassa
+  Added an implementation of reset() method and modified class code to
+  support it. Now a NonDeterministicBehaviour object has a list of
+  terminated children instead of a simple counter; this allows to put
+  sub-behaviours back from the terminated list to the active list.
+
   Revision 1.5  1998/10/04 18:01:10  rimassa
   Added a 'Log:' field to every source file.
 
@@ -30,8 +36,8 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   private int whenToStop;
 
-  private int terminatedSubBehaviours;
   private Hashtable blockedChildren = new Hashtable(); 
+  private BehaviourList terminatedChildren = new BehaviourList();
 
   private boolean evalCondition() {
 
@@ -41,10 +47,10 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
       cond = subBehaviours.isEmpty();
       break;
     case WHEN_ANY:
-      cond = (terminatedSubBehaviours > 0);
+      cond = (terminatedChildren.size() > 0);
       break;
     default:
-      cond = (terminatedSubBehaviours >= whenToStop);
+      cond = (terminatedChildren.size() >= whenToStop);
       break;
     }
 
@@ -71,7 +77,7 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
     boolean partialResult = b.done();
     if(partialResult == true) {
       subBehaviours.removeElement(b);
-      ++terminatedSubBehaviours;
+      terminatedChildren.addElement(b);
     }
 
     boolean endReached = subBehaviours.next();
@@ -82,6 +88,22 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   }
 
+  public void reset() {
+    blockedChildren.clear();
+
+    terminatedChildren.begin();
+    Behaviour b = terminatedChildren.getCurrent();
+
+    // Restore all terminated sub-behaviours
+    while(b != null) {
+      terminatedChildren.removeElement(b);
+      subBehaviours.addElement(b);
+      terminatedChildren.next();
+      b = terminatedChildren.getCurrent();
+    }
+    super.reset();
+
+  }
 
   // Handle notifications of runnable/not-runnable transitions
   protected void handle(RunnableChangedEvent rce) {
