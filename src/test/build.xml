@@ -1,31 +1,44 @@
 
-<!-- ANT BUILD FILE FOR THE TEST SUITE -->
-
-<!-- The following targets are expected to be used by users:
-ant testsuite - to compile test Suite
--->
+<!-- ANT BUILD FILE FOR THE JADE TEST SUITE -->
 
 <!-- set properties for this project -->
 <project name="testsuite" default="compile" basedir="../..">
   <description>Test Suite build file</description>
-  <property name="version" value="2.6"/>
+  <property environment="env"/>
+  <property name="java-home" value="${env.JAVA_HOME}"/>
+  
+  <property name="version" value="3.1"/>
   <property name="classpath" value="classes"/>
   <property name="src" value="src"/>
   <property name="dest" value="classes"/>
   
   <!-- Definitions for the LEAP target -->
-  <property name="j2me-wtk-home" location="C:/Java/WTK104"/>
+  <property file="add-ons/leap/buildLEAP.properties"/>
 	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
-  <property name="javac" location="C:/Java/jdk1.4.1/bin/javac"/>
-  <property name="leaphome" value="add-ons/leap" />
-  <property name="leapmidp" value="${leaphome}/midp/lib/JadeLeap.jar" />
+  <property name="leap-home" value="add-ons/leap" />
+  <property name="leapmidp" value="${leap-home}/midp/lib/JadeLeap.jar" />
   <property name="unverified" value="${src}/test/unverified" />
   <property name="verified" value="${src}/test/verified" />
+  <property name="minimized" value="${src}/test/minimized" />
+  <property name="dlc-file" value="${src}/test/testleap.dlc" />
+  <property name="tmp-jar-file" value="${src}/test/testleap-tmp.jar" />
+  <property name="manifest-file" value="${src}/test/testleap.manifest" />
+  <property name="jar-file" value="${src}/test/testleap.jar" />
+  <property name="jad-file" value="${src}/test/testleap.jad" />
   
+	<!-- Preverifier -->
 	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
-  	<classpath path ="${leaphome}/resources/antTasks/StampysoftAntTasks.jar" />
+  	<classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
 	</taskdef>
   <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+	<!-- Minimizer -->
+	<taskdef name = "minimize"    classname="leapTools.Minimizer">
+		<classpath path ="${leap-home}/resources/antTasks/leapTools.jar"/>
+	</taskdef>
+  <!-- Jad Updater -->
+    <taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
+	<classpath path ="${leap-home}/resources/antTasks/StampysoftAntTasks.jar" />
+	</taskdef>  
   
   
   <!-- TARGETS -->
@@ -137,7 +150,9 @@ ant testsuite - to compile test Suite
   	
 		<mkdir dir = "${verified}"/>
 		<mkdir dir = "${unverified}"/>
+		<mkdir dir = "${minimized}"/>
 		
+		<!-- Compile -->
     <javac srcdir="${src}/test" 
            destdir="${unverified}" 
            classpath="${leapmidp};${boot-midp-classes}" 
@@ -147,19 +162,51 @@ ant testsuite - to compile test Suite
   	       includes="**/leap/midp/**"
   	       verbose="false"
   	       fork="yes"
-  	       executable="${javac}"
+  	       executable="${java-home}/bin/javac"
   	       compiler="modern"/>
+
   	       
+		<!-- Unjar JADE-LEAP -->
     <unjar src="${leapmidp}" dest="${unverified}" />
-		<preverify unverified="${unverified}" 
-		           verified="${verified}"/>
-		           
     
-  	<delete file="${src}/test/testleap.jar" quiet="true"/>
-		<jar jarfile="${src}/test/testleap.jar" basedir="${verified}" manifest="${src}/test/testleap.manifest"/>
+		<!-- Preverify the whole -->
+		<preverify unverified="${unverified}" verified="${verified}"/>
+		           
+  	<!-- Detect all classes that are referenced starting from the testleap.dlc file --> 
+		<java classname="leapTools.Package" fork="true">
+			<classpath>
+				<pathelement location="${leap-home}/resources/antTasks/packagingtool.jar"/>
+				<pathelement location="${boot-midp-classes}"/>
+				<pathelement location="${verified}"/>
+			</classpath>
+			<arg line="-d ${tmp-jar-file} -f ${dlc-file} -e -s"/>
+		</java>
 		
+    <!-- Minimize (Remove from verified all .class files that are not in minimized) -->
+    <unjar src="${tmp-jar-file}" dest="${minimized}" />
+		<minimize basedir="${verified}" checkdir="${minimized}" verbose="false"/>
+    
+		<!-- Update the manifest -->
+		<manifest file="${manifest-file}" mode="update">
+			<attribute name="MicroEdition-Profile" value="MIDP-${midp-version}"/>
+		</manifest>
+   
+		<!-- Create the JAR -->
+  	<delete file="${jar-file}" quiet="true"/>
+		<jar jarfile="${jar-file}" basedir="${verified}" manifest="${manifest-file}"/>
+		
+		<!-- Delete temporary things -->
 		<delete dir = "${verified}"/>
 		<delete dir = "${unverified}"/>
+		<delete dir = "${minimized}"/>
+		<delete file = "${tmp-jar-file}"/>
+		
+		<!-- Update the JAD -->
+		<copy file="${manifest-file}" toFile="${jad-file}" overWrite="yes"/>
+		<manifest file="${jad-file}" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="testleap.jar"/>
+		</manifest>
+		<updatejad jad="${jad-file}" />
 	</target>
 	
   <!--  __________________________________________________
