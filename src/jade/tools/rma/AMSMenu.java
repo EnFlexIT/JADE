@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/09 13:00:25  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.2  1999/06/04 11:31:40  rimassa
   Integrated RMA GUI with DummyAgent tool.
 
@@ -41,7 +44,7 @@ import javax.swing.border.*;
  */
 public class AMSMenu extends JMenuBar {
 
-  public AMSMenu (rma anRMA) {
+  public AMSMenu (rma anRMA, Frame mainWnd) {
     super();
 
     AMSAbstractAction act;
@@ -81,7 +84,7 @@ public class AMSMenu extends JMenuBar {
 
     menu = new JMenu ("Actions");
 
-    act = new StartNewAgentAction(anRMA);
+    act = new StartNewAgentAction(anRMA, mainWnd);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
@@ -106,7 +109,7 @@ public class AMSMenu extends JMenuBar {
     tmp.setEnabled(false);
     tmp.setIcon(null);
 
-    act = new CustomAction(anRMA);
+    act = new CustomAction(anRMA, mainWnd);
     tmp = menu.add(act);
     tmp.setIcon(null);
 

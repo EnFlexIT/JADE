@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/09 13:00:46  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.2  1999/06/04 11:32:33  rimassa
   Changed some code to support DummyAgent tool.
 
@@ -56,7 +59,7 @@ public class AMSPopupMenu extends JPopupMenu {
   protected AddAgentPlatformAction NewAgentPlatform = new AddAgentPlatformAction();
   private JMenu ActionsMenu;
 
-  public AMSPopupMenu (PopupMenuListener parent, rma anRMA) {
+  public AMSPopupMenu (PopupMenuListener parent, rma anRMA, Frame mainWnd) {
     super();
     this.parent = parent;
 
@@ -70,7 +73,7 @@ public class AMSPopupMenu extends JPopupMenu {
     tmp.setEnabled(false);
     tmp.setIcon(null);
 
-    NewAgent = new StartNewAgentAction(anRMA);
+    NewAgent = new StartNewAgentAction(anRMA, mainWnd);
     tmp = ActionsMenu.add(NewAgent);
     tmp.setIcon(null);
 
@@ -97,7 +100,7 @@ public class AMSPopupMenu extends JPopupMenu {
     tmp.setEnabled(false);
     tmp.setIcon(null);
 
-    custom = new CustomAction(anRMA);
+    custom = new CustomAction(anRMA, mainWnd);
     tmp = ActionsMenu.add(custom);
     tmp.setIcon(null);
 

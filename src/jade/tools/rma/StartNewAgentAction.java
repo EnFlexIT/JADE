@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/09 13:03:53  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.2  1999/06/06 21:56:06  rimassa
   Removed old, commented out code.
 
@@ -50,14 +53,16 @@ import java.lang.*;
 public class StartNewAgentAction extends AMSAbstractAction {
 
   private rma myRMA;
+  private Frame mainWnd;
 
-  public StartNewAgentAction(rma anRMA) {
+  public StartNewAgentAction(rma anRMA, Frame f) {
     super ("StartNewAgentActionIcon","Start New Agent");
     myRMA = anRMA;
+    mainWnd = f;
   }
 
   private int doStartNewAgent(String containerName) {
-    int result = StartDialog.showStartNewDialog(containerName);
+    int result = StartDialog.showStartNewDialog(containerName, mainWnd);
     if (result == StartDialog.OK_BUTTON) {
 
       String agentName = StartDialog.getAgentName();

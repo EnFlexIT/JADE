@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/09 13:03:16  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.1  1999/05/20 15:42:11  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -47,8 +50,6 @@ public class StartDialog extends JDialog implements ActionListener {
   protected static JButton OKButton = new JButton ("OK");
   protected static JButton CancelButton = new JButton ("Cancel");
 
-  protected static JFrame frame = new JFrame ("Insert Start Parameters");
-
   protected static String agentNameToolTip = "Name of the Agent to start";
   protected static String classNameToolTip = "Class Name of the Agent to start"; 
   protected static String containerToolTip = "Container on which the Agent will start";
@@ -77,7 +78,7 @@ public class StartDialog extends JDialog implements ActionListener {
 
   }
 
-  protected StartDialog (String agentNameP) {
+  protected StartDialog (String agentNameP, Frame frame) {
     super(frame,"Insert Start Parameters",true);
 
     getContentPane().setLayout(new GridLayout(4,2));
@@ -99,6 +100,7 @@ public class StartDialog extends JDialog implements ActionListener {
     getContentPane().add(CancelButton);
 
     setSize(getPreferredSize());
+    setLocation(frame.getX() + (frame.getWidth() - getWidth()) / 2, frame.getY() + (frame.getHeight() - getHeight()) / 2);
     setVisible(true);
   }
 
@@ -121,7 +123,7 @@ public class StartDialog extends JDialog implements ActionListener {
    */
   public static int showStartDialog(String agentNameP) {
     agentName.setEditable(false);
-    StartDialog panel = new StartDialog(agentNameP);
+    StartDialog panel = new StartDialog(agentNameP, new JFrame("Start Dialog"));
     return choice;
   }
 
@@ -130,7 +132,7 @@ public class StartDialog extends JDialog implements ActionListener {
    * useful to set parameters to start
    * new agents  
    */
-  public static int showStartNewDialog(String containerName) {
+  public static int showStartNewDialog(String containerName, Frame owner) {
     agentName.setEditable(true);
     if(containerName == null) {
       container.setEditable(true);
@@ -141,7 +143,7 @@ public class StartDialog extends JDialog implements ActionListener {
       container.setEditable(false);
     }
 
-    StartDialog panel = new StartDialog("New Agent");
+    StartDialog panel = new StartDialog("New Agent", owner);
     return choice;
   }
 

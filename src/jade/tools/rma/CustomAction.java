@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/09 13:01:56  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.2  1999/06/04 11:33:55  rimassa
   Actually implemented the action body.
 
@@ -33,10 +36,12 @@ import jade.lang.acl.ACLMessage;
 public class CustomAction extends AMSAbstractAction
 {
     private rma myRMA;
-    public CustomAction(rma anRMA)
+    private Frame mainWnd;
+    public CustomAction(rma anRMA, Frame f)
     {
 	super ("CustomActionIcon","Send Custom Message to Selected Agents");
 	myRMA = anRMA;
+	mainWnd = f;
     }
 
     public void actionPerformed(ActionEvent e) 
@@ -49,7 +54,7 @@ public class CustomAction extends AMSAbstractAction
 	    msg2.addDest(current.getName());
 	  }
 	}
-	ACLMessage msg = jade.tools.DummyAgent.AclGui.editMsgInDialog(msg2, null);
+	ACLMessage msg = jade.tools.DummyAgent.AclGui.editMsgInDialog(msg2, mainWnd);
 	if (msg != null)
 	  myRMA.send(msg);
 

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/06/09 13:01:08  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.2  1999/06/04 11:32:58  rimassa
   Changed some code to support DummyAgent tool.
 
@@ -45,7 +48,7 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
   protected JComboBox ShowChoice = new JComboBox ();
   protected AMSTree tree;
 
-  public AMSToolBar (AMSTree treeP, rma anRMA) {
+  public AMSToolBar (AMSTree treeP, rma anRMA, Frame mainWnd) {
     super();
     tree = treeP;
     setBorderPainted(true);
@@ -54,7 +57,7 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
 
     // addSeparator();
 	
-    addAction(new StartNewAgentAction(anRMA));
+    addAction(new StartNewAgentAction(anRMA, mainWnd));
     addAction(new StartAction());
     addAction(new KillAction("Kill Selected Items", anRMA));
     addAction(new SuspendAction(anRMA));
@@ -64,7 +67,7 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
     addSeparator();
 
     // addAction(new SnifferAction());
-    addAction(new CustomAction(anRMA));
+    addAction(new CustomAction(anRMA, mainWnd));
     addAction(new DummyAgentAction(anRMA));
 
     addSeparator();

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/06/09 13:01:28  rimassa
+  Added support for dialog centering with respect to RMA main window.
+
   Revision 1.3  1999/06/06 21:55:15  rimassa
   Removed a debugging printout.
 
@@ -62,7 +65,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
   private DefaultMutableTreeNode AMSFirstNode;  
   private static int i = 1;
 
-  public AMSTree(rma anRMA) {
+  public AMSTree(rma anRMA, Frame mainWnd) {
     table = new TablePanel();
     TreeSelectionModel selModel;
     Font f;
@@ -91,7 +94,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     ToolTipManager.sharedInstance().registerComponent(tree);
 
     AddAgentPlatformAction.setTree(this);
-    popup = new AMSPopupMenu (this, anRMA);
+    popup = new AMSPopupMenu (this, anRMA, mainWnd);
     tree.addTreeSelectionListener(this);
     tree.addMouseListener(new PopupMouser(popup));
     popup.addPopupMenuListener(this);
