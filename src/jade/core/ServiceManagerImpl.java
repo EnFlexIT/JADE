@@ -794,7 +794,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    });
 
 	// Start a new node failure monitor
-	Thread t = new Thread(failureMonitor);
+	Thread t = new Thread(failureMonitor); 
+	t.setName(target.getName()+"-failure-monitor");
 	t.start();
     }
 
