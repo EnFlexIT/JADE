@@ -1,4 +1,4 @@
-README file for JADE, Version 0.77
+README file for JADE, Version 0.78
 
 INTRODUCTION
 ============
@@ -11,7 +11,20 @@ according to FIPA standard specifications.
 LICENSE
 =======
 
+THE SOFTWARE CAN BE USED ONLY FOR THE FACTS PROJECT. 
+YOU HAVE ALREADY AGREED TO SIGN AN AGREEMENT WITH CSELT WHERE YOU COMMIT TO: 
+- NOT TO DISCLOSE THE SOFTWARE, AND ANY SOFTWARE DETAIL, TO ANYONE ELSE;
+- NOT TO USE THE SOFTWARE OUTSIDE THE FACTS PROJECT;
+- NOT TO REVERSE ENGINEER ANY MODULE OF THE SOFTWARE.
 
+I'm sending the software to you before the agreement 
+has been signed explicitly. However, it is our intention that this email binds you to 
+the above agreements. If you feel unable to accept these agreements then you should NOT 
+use the software in any way. 
+
+Your feedback as users is very important to us. Please, if you have new requirements that 
+you would like to see implemented or if you have examples of usage or if you discover some 
+bugs, send me information. 
 
 
 SYSTEM REQUIREMENTS
@@ -29,34 +42,34 @@ INSTALLATION AND TEST
 After uncompressing the archive, you will have a directory tree
 starting with JADE; from that directory, you can type
 
-- make clean 		To remove compiled classes, HTML docs and the like.
+- make clean            To remove compiled classes, HTML docs and the like.
 
-- make src		To compile source code and create RMI stubs and skeletons.
+- make src              To compile source code and create RMI stubs and skeletons.
 
-- make lib		To create a compressed file in 'lib' directory, containing all compiled classes.
+- make lib              To create a compressed file in 'lib' directory, containing all compiled classes.
 
-- make doc		To create HTML documentation for the framework in 'doc' directory.
+- make doc              To create HTML documentation for the framework in 'doc' directory.
 
-- make examples		To build example programs.
+- make examples         To build example programs.
 
-- make all		Performs 'make lib', 'make doc' and 'make examples'
+- make all              Performs 'make lib', 'make doc' and 'make examples'
 
 
 After compiling, one can run the example programs in 'src/examples'
 subdirectory; remember to set CLASSPATH environment variable to
-include the zip file in 'lib' directory and the current directory,
+include the file jade.zip in 'lib' directory and the current directory,
 then change to 'src' directory.
 
 The Agent Platform uses Java RMI, so one has to start the RMI registry
 on the same host the Agent Platform will run on. Be careful to set a
-suitable CLASSPATH (i.e. including both the zip file with compiled
+suitable CLASSPATH (i.e. including both the jade.zip file with compiled
 classes and the current directory) *also* in the command shell where
 you start the RMI registry, otherwise you will get a
 'ClassNotFoundException' during 'Naming.bind()' operation.
 
 To run the Agent Platform, one must issue the command:
 
-	java jade.Boot -platform [options] [Agent list]
+        java jade.Boot -platform [options] [Agent list]
 
 Use -h option to get a list of command line arguments.
 
@@ -67,7 +80,7 @@ Agent Platform from outside.
 
 An Agent Container can be started using the command:
 
-	java jade.Boot [options] [Agent list]
+        java jade.Boot [options] [Agent list]
 
 Again, using -h command-line option explains program usage. As can be
 seen from above, the same command is issued in the two cases, with the
@@ -116,9 +129,29 @@ TODO
  - Add support for platform administration and direct agent
    manipulation through a GUI.
 
+ - Add support for IIOP-based inter-platform communication
+
 CONTACT
 =======
+Fabio Bellifemine - CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
+e-mail: bellifemine@cselt.it
 
-
-
-
+EXAMPLE
+=======
+#first of all set the CLASSPATH to include also jade.zip and the current directory
+# (WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.zip
+rmiregistry     
+        # start the RMI registry on one shell on the host kim.cselt.it
+java jade.Boot -name facts -platform -host kim.cselt.it 
+        # start the platform on another shell on the same host
+java jade.Boot -name facts -host kim.cselt.it sender1:examples.ex2.AgentSender 
+        # start an agent container on another shell and tell to join the AgentPlatform
+        # called "facts" running on the host "kim.cselt.it" and
+        # start an agent. The name of this agent is "sender1", 
+        # while examples.ex2.AgentSender is the code that implements the agent
+java jade.Boot -name facts -host kim.cselt.it receiver2:examples.ex2.AgentReceiver sender2:examples.ex2.AgentSender
+        # start an agent container on another shell and tell to join the AgentPlatform
+        # called "facts" running on the host "kim.cselt.it" and
+        # start two agents. The name of these agents are "sender2" (and 
+        # examples.ex2.AgentSender is the code that implements the agent) and
+        # receiver2 and examples.ex2.AgentReceiver is the code that implements the agent.
