@@ -825,11 +825,12 @@ private int performative; // keeps the performative type of this object
   /**
    * Add a new user defined parameter to this ACLMessage.
    * Notice that according to the FIPA specifications, the keyword of a
-   * user-defined parameter must not contain space inside and must start with the String "X-". 
-   * If it does not, then the encoding method adds the prefix silently!
+   * user-defined parameter must not contain space inside.
+   * Note that the user does not need to (and shall not) add the prefix "X-" to the keyword.
+   * This is automatically added by the StringACLCodec. 
    * @param key the property key.
    * @param value the property value
-  **/
+   */
    public void addUserDefinedParameter(String key, String value) {
 			 userDefProps = (userDefProps == null ? new Properties() : userDefProps);
        userDefProps.setProperty(key,value);
@@ -1019,8 +1020,7 @@ private int performative; // keeps the performative type of this object
  /**
   * Resets all the message slots.
  */
- public void reset() {
-  source = null;
+ public void reset() {   source = null;
 	//#MIDP_EXCLUDE_BEGIN
   dests.clear();
   if (reply_to != null)
