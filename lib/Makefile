@@ -6,7 +6,7 @@
 
 AR = zip
 ARFLAGS1 = -0r
-ARFLAGS2 = . -i '*.class'
+ARFLAGS2 = . -i '*.class' '*.gif'
 
 all: 
 	@echo Making library ...
