@@ -35,6 +35,7 @@ import jade.core.ProfileException;
 import jade.core.Runtime;
 import jade.core.Timer;
 import jade.core.TimerListener;
+import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
 import java.util.Date;
@@ -54,8 +55,8 @@ import java.util.Enumeration;
 class MessageManager implements TimerListener {
 
     public interface Channel {
-	void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException;
-	void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie);
+	void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException, NotFoundException;
+	void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force);
     }
 
 
@@ -212,6 +213,9 @@ class MessageManager implements TimerListener {
 	    		// be delivered at a later time.
 	    		deliverLater(pm);
 	    	}
+		catch(NotFoundException nfe) {
+		    nfe.printStackTrace();
+		}
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
  				// Get the next message to be delivered
@@ -233,6 +237,9 @@ class MessageManager implements TimerListener {
  						log("Destination unreachable. Will retry later", 1);
     				deliverLater(pm);
     			}
+			catch(NotFoundException nfe) {
+			    nfe.printStackTrace();
+			}
  				}
 #MIDP_INCLUDE_END*/    
 	 		}
@@ -340,7 +347,7 @@ class MessageManager implements TimerListener {
 				if (System.currentTimeMillis() > pm.getDeadline()) {
 				    // If the deadline has expired, don't even try again
 				    Channel ch = pm.getChannel();
-				    ch.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""));
+				    ch.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""), false);
 				}
 				else {
 					// Otherwise schedule again the message for delivery
