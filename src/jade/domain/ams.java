@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.12  1998/10/26 00:08:47  rimassa
+  Added two new Behaviours to support new 'create-agent' and
+  'kill-agent' actions. Some modifications to AMSBehaviour abstract base
+  class to use it with the two new subclasses, which have different
+  parameters. Now the AMS is just like the DF, which has 'search' action
+  with different parameters.
+
   Revision 1.11  1998/10/04 18:01:36  rimassa
   Added a 'Log:' field to every source file.
 
@@ -63,6 +70,21 @@ public class ams extends Agent {
       myOntology = AgentManagementOntology.instance();
     }
 
+    protected void checkMandatory(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+      // Make sure mandatory attributes for the current AMS
+      // action are non-null
+
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.NAME, amsd.getName());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.ADDRESS, amsd.getAddress());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.SIGNATURE, amsd.getSignature());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.APSTATE, amsd.getAPState());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.DELEGATE, amsd.getDelegateAgentName());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.FORWARD, amsd.getForwardAddress());
+      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.OWNERSHIP, amsd.getOwnership());
+
+    }
+
+
     // This method throws a FIPAException if the attribute is
     // mandatory for the current AMS action but it is a null object
     // reference
@@ -94,23 +116,11 @@ public class ams extends Agent {
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
-      // Finally, make sure mandatory attributes for the current AMS
-      // action are non-null
-      AgentManagementOntology.AMSAgentDescriptor amsd = myAction.getArg();
-
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.NAME, amsd.getName());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.ADDRESS, amsd.getAddress());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.SIGNATURE, amsd.getSignature());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.APSTATE, amsd.getAPState());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.DELEGATE, amsd.getDelegateAgentName());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.FORWARD, amsd.getForwardAddress());
-      checkAttribute(AgentManagementOntology.AMSAgentDescriptor.OWNERSHIP, amsd.getOwnership());
-
     }
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException;
+    protected abstract void processAction(AgentManagementOntology.AMSAction a) throws FIPAException;
 
     public void action() {
 
@@ -120,7 +130,7 @@ public class ams extends Agent {
 	crackMessage();
 
 	// Do real action, deferred to subclasses
-	processArgs(myAction.getArg());
+	processAction(myAction);
 
       }
       catch(FIPAException fe) {
@@ -196,7 +206,11 @@ public class ams extends Agent {
       return new AuthBehaviour(msg, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+
+      checkMandatory(amsd);
+
       String agentName = amsd.getName();
       if(agentName != null)
 	myPlatform.AMSDumpData(agentName);
@@ -223,7 +237,11 @@ public class ams extends Agent {
       return new RegBehaviour(msg, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+
+      checkMandatory(amsd);
+
       // Write new agent data in Global Agent Descriptor Table
       try {
 	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
@@ -255,7 +273,11 @@ public class ams extends Agent {
       return new DeregBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+
+      checkMandatory(amsd);
+
       // Remove the agent data from Global Descriptor Table
       myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
@@ -280,7 +302,11 @@ public class ams extends Agent {
       return new ModBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+
+      checkMandatory(amsd);
+
       // Modify agent data from Global Descriptor Table
       myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
@@ -289,6 +315,75 @@ public class ams extends Agent {
     }
 
   } // End of ModBehaviour class
+
+
+  private class CreateBehaviour extends AMSBehaviour {
+
+    CreateBehaviour() {
+      super(AgentManagementOntology.AMSAction.CREATEAGENT);
+    }
+
+    CreateBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.CREATEAGENT, request, reply);
+    }
+
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new CreateBehaviour(request, reply);
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+
+      // Make sure it is RMA that's calling
+      String peerName = myRequest.getSource();
+      if(!peerName.equalsIgnoreCase("RMA"))
+	 throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
+
+      AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
+      String className = caa.getClassName();
+      int containerID = caa.getContainerID();
+
+      // Create a new agent
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+      myPlatform.AMSCreateAgent(amsd.getName(), className, containerID);
+
+      sendAgree(myReply);
+      sendInform(myReply);
+
+    }
+
+  } // End of CreateBehaviour class
+
+  private class KillBehaviour extends AMSBehaviour {
+
+    KillBehaviour() {
+      super(AgentManagementOntology.AMSAction.KILLAGENT);
+    }
+
+    KillBehaviour(ACLMessage request, ACLMessage reply) {
+      super(AgentManagementOntology.AMSAction.KILLAGENT, request, reply);
+    }
+
+    public Behaviour instance(ACLMessage request, ACLMessage reply) {
+      return new KillBehaviour(request, reply);
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+
+    // Make sure it is RMA that's calling
+    String peerName = myRequest.getSource();
+    if(!peerName.equalsIgnoreCase("RMA"))
+       throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
+
+      // Create a new agent
+      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
+      myPlatform.AMSKillAgent(amsd.getName());
+
+      sendAgree(myReply);
+      sendInform(myReply);
+
+    }
+
+  } // End of KillBehaviour class
 
 
   // The AgentPlatform where information about agents is stored 
@@ -314,6 +409,9 @@ public class ams extends Agent {
     dispatcher.registerPrototype(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
     dispatcher.registerPrototype(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
     dispatcher.registerPrototype(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
+
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
+    dispatcher.registerPrototype(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
 
   }
 
