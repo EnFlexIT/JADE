@@ -200,7 +200,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPANames.Intera
     } 
     
     /**
-       Reset this behaviour.
+       Reset this behaviour using the same MessageTemplate.
      */
     public void reset() {
 			super.reset();
@@ -241,7 +241,9 @@ public class AchieveREResponder extends FSMBehaviour implements FIPANames.Intera
     
     /**   
      * This method is called after the response has been sent
-     * and only if the response was an <code>agree</code> message. 
+     * and only when one of the folliwing two cases arise:
+		 * the response was an <code>agree</code> message OR no response
+		 * message was sent.
      * This default implementation return null which has
      * the effect of sending no result notification. Programmers should
      * override the method in case they need to react to this event.
