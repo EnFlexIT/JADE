@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-
+import jade.wrapper.PlatformController.Listener;
 import jade.core.AID;
 import jade.core.AgentContainerImpl;
 import jade.core.NotFoundException;
