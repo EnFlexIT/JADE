@@ -256,15 +256,25 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException {
-    // Directly use the GADT
-    AgentDescriptor ad = platformAgents.get(receiverID);
-    if(ad == null) {
-      throw new NotFoundException("Agent " + receiverID.getName() + " not found in GADT.");
-    }
-    ad.lock();
-    AgentProxy ap = ad.getProxy();
-    ad.unlock();
-    ap.dispatch(msg);
+  	// Directly use the GADT
+  	while (true) {
+	    AgentDescriptor ad = platformAgents.get(receiverID);
+  	  if(ad == null) {
+    	  throw new NotFoundException("Agent " + receiverID.getName() + " not found in GADT.");
+    	}
+    	ad.lock();
+    	AgentProxy ap = ad.getProxy();
+    	ad.unlock();
+    	try {
+		    ap.dispatch(msg);
+		    // Dispatch OK --> break out the loop
+		    return;
+    	}
+    	catch (NotFoundException nfe) {
+    		// The agent can have been moved to another container just
+    		// while we where dispatching the message --> try again
+    	}
+  	}
   }
 
   // this variable holds a progressive number just used to name new containers
