@@ -132,10 +132,13 @@ public class HTTPPacket {
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
     BufferedReader inpReader = new BufferedReader(new InputStreamReader(bais));
   	firstLine = inpReader.readLine();
+  	//System.out.println(firstLine);
   	while (true) {
   		String line = inpReader.readLine();
+  		//System.out.println(line);
       if (line == null || line.length() == 0) {
       	// Header completed
+		  	//System.out.println("------------------------------");
       	break;
       }
       try {
@@ -152,18 +155,19 @@ public class HTTPPacket {
   	// Get the payload Payload
   	try {
   		int length = Integer.parseInt((String) fields.get(CONTENT_LENGTH_KEY));
+		  //System.out.println("Reading "+length+" bytes...");
   		payload = new byte[length];
 	    int n = 0;
 	    while (n < length) {
     		n += is.read(payload, n, length-n);
 	    }
+		  //System.out.println("Done");
   	}
   	catch (IOException ioe) {
   		// Rethrow the exception
   		throw ioe;
   	}
   	catch (Exception e) {
-  		e.printStackTrace();
   		payload = null;
   	}
   } 
