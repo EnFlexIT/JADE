@@ -92,17 +92,12 @@ public class JICPPeer implements ICP {
 			}
   		else {
   			// Retrieve local host automatically
-        try {
-          host = Connection.getLocalHost();
-        } 
-        catch (Exception e) {
-          throw new ICPException("Host address has not been specified and could not be retrieved automatically.");
-        }
+  			host = Profile.getDefaultNetworkName();
   		}
 		}
 			
 		// Local port: a peripheral container can change it if busy...
-		boolean changePortIfBusy = !p.getParameter(Profile.MAIN, true);
+		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true);
 		sb.setLength(idLength);
 		sb.append(JICPProtocol.LOCAL_PORT_KEY);
 		String strPort = p.getParameter(sb.toString(), null);
