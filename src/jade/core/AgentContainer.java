@@ -14,6 +14,6 @@ import java.rmi.RemoteException;
           startAgent() will be needed. Making them remote will help
           with distributed platform administration.
 */
-interface AgentContainer extends Remote {
+public interface AgentContainer extends Remote {
 }
 
