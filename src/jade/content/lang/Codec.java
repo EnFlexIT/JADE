@@ -51,6 +51,9 @@ public abstract class Codec {
 
     }
 
+    /** This string is the prefix of all the unnamed slots of a Frame **/
+    public static String UNNAMEDPREFIX = "_JADE.UNNAMED"; 
+
     private String name = null;
 
     /**

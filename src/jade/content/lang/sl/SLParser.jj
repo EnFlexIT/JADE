@@ -1,0 +1,458 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+options {
+//  LOOKAHEAD = 1;	      
+//  CHOICE_AMBIGUITY_CHECK = 2;
+//  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = true;
+//  DEBUG_LOOKAHEAD = true;
+//  DEBUG_TOKEN_MANAGER = true;
+  ERROR_REPORTING = true;
+//  JAVA_UNICODE_ESCAPE = true;
+//  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+//  USER_TOKEN_MANAGER = false;
+//  USER_CHAR_STREAM = false;
+//  BUILD_PARSER = true;
+//  BUILD_TOKEN_MANAGER = true;
+//  SANITY_CHECK = true;
+//  FORCE_LA_CHECK = true;	// Force LookAhead Checking
+}
+
+PARSER_BEGIN(SLParser)
+
+package jade.content.lang.sl;
+
+import jade.content.abs.*;
+import jade.core.CaseInsensitiveString;
+import jade.content.lang.Codec;
+
+import java.io.ByteArrayInputStream;
+import java.util.Date;
+
+
+
+/**
+* SLParser that embeds also lower profiles of SL, namely SL-0, SL-1 and SL-2.
+* @author Fabio Bellifemine, TILab S.p.A. (formerly CSELT S.p.A.)
+* @version $Date$ $Revision$
+**/
+class SLParser {
+
+  /**
+   * @param slType (0 for FIPa-SL0, 1 for SL1, 2 for SL2, >2 for full SL) 
+  **/ 
+  SLParser(java.io.InputStream stream, int slType) {
+	this(stream);
+	this.slType = slType;
+  }
+
+  /**
+   * @param content the content as a byte array
+  */
+  AbsContentElement parse(byte[] content) throws ParseException, TokenMgrError{
+    ReInit(new ByteArrayInputStream(content));
+    AbsContentElementList tuple = Content();
+    if (tuple.size() > 1)
+      return tuple;
+    else  // if there is a single ContentExpression than return just it, not the tuple
+      return tuple.get(0);
+  }
+
+  /** (0 for FIPa-SL0, 1 for SL1, 2 for SL2, >2 for full SL) **/
+  int slType=3;
+
+  public static void main(String[] args) {
+
+    SLParser theParser = null;  
+    try {
+      theParser = new SLParser(System.in, Integer.parseInt(args[0]));
+    } catch (Exception e) {
+      System.out.println("usage: SLParser SLLevel\n  where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL");
+      System.exit(0);
+    }
+    if (theParser.slType < 3)
+       System.out.println("SL-"+theParser.slType+" Parser Started ...");
+    else
+       System.out.println("Full-SL"+" Parser Started ...");
+
+    //SL0Codec codec = new SL0Codec();
+    //Ontology o = new DefaultOntology();
+
+    while (true) {
+	System.out.println("insert an SL expression to parse: ");
+      try {
+	AbsContentElementList result = theParser.Content();
+	System.out.println("\n\n RESULT=\n"+result.toString());
+	System.out.println("\n\n");
+	result.dump();
+	//System.out.println("AFTER ENCODING: "+codec.encode(result,o));
+      }
+      catch(Exception pe) {
+	pe.printStackTrace();
+	System.exit(0);
+      }
+    }
+  }
+
+}
+
+PARSER_END(SLParser)
+
+
+
+
+
+
+/*   P R O D U C T I O N    R U L E S  */
+
+/**
+* This production rule represents the more general expression that can
+* serve as content for an ACL message. Since different communicative
+* acts have different content (action expressions for
+* <code>request</code>, predicate for <code>inform</code>, etc.), any
+* allowed SL content expression can be parsed from here.
+*/
+AbsContentElementList Content():
+{ AbsContentElementList tuple = new AbsContentElementList();  
+  AbsContentElement     val;
+}
+{
+ LBrace() (val=ContentExpression() {tuple.add(val);})+ RBrace()
+ {return tuple;} 
+}
+
+/** Left Brace in all of the possible states of the Token Manager **/
+void LBrace() :
+{}
+{ <LBRACE> | <LBRACE2> } // lbrace2 in the OperatorState of the Token Manager
+
+/** Right Brace in all of the possible states of the Token Manager **/
+void RBrace() :
+{}
+{ <RBRACE> | <RBRACE2> } // rbrace2 in the OperatorState of the Token Manager
+
+
+AbsContentElement ContentExpression():
+{ AbsContentElement val=null; String s; }
+{
+ ( s=String() { val=new AbsPredicate(s);} // true, false, PropositionSymbol
+   | LBrace() ( val=ContentExpression_NoBrace() ) RBrace()
+ )
+ {return val;}
+}
+
+AbsContentElement ContentExpression_NoBrace() :
+{ AbsContentElement val=null; }
+{
+ (  val=IdentifyingExpression_NoBrace()
+  | val=ActionExpression_NoBrace()
+  | val=Wff_NoBrace() )
+ {return val;}
+}
+
+
+//FIXME. The IRE has been constrained to contain a Variable instead of a Term.
+AbsIRE IdentifyingExpression_NoBrace() :
+{ Token t; AbsIRE ire=null; AbsProposition prop; AbsTerm term; AbsVariable var;}
+{
+ t=<REFERENTIALOP> {if (slType<2) throw new ParseException("NotFullSL_IdentifyExpression_NotParsable_UseAtLeastSL2");} /* t=Term()*/ var=Variable() prop=Wff()
+ { ire = new AbsIRE(t.image); 
+   ire.setVariable(var); ire.setProposition(prop); 
+   return ire;}
+}
+
+
+AbsVariable Variable():
+{ AbsVariable val=null; Token v;}
+{
+  v=<VARIABLE>
+  {val = new AbsVariable(); val.setName(v.image); return val;}
+}
+
+
+AbsTerm Term():
+{ Token v; AbsTerm val=null;}
+{
+ (  val=Variable() 
+  | val=Constant()
+  | LBrace() 
+   (   val=FunctionalTerm_NoBrace()
+     | val=ActionExpression_NoBrace()
+     | val=IdentifyingExpression_NoBrace()
+   ) 
+   RBrace() 
+ )
+ {return val;}
+}
+
+
+AbsPrimitive Constant() :
+{ String s; AbsPrimitive val=null; Token t; }
+{
+ (  s= String() { 
+	// if it is true or false, then converts the String into a Boolean
+        if (CaseInsensitiveString.equalsIgnoreCase(s, "true") ||  
+            CaseInsensitiveString.equalsIgnoreCase(s, "false") )  
+	        val = AbsPrimitive.wrap(Boolean.getBoolean(s));
+	else
+		val = AbsPrimitive.wrap(s);
+                }
+  | val=Number() 
+  | t=<DATETIME> { 
+	try { 
+	  Date d=jade.lang.acl.ISO8601.toDate(t.image);
+	  val = AbsPrimitive.wrap(d);
+	} catch (Exception e) { 
+	  val = AbsPrimitive.wrap(t.image); 
+        }
+	       }
+ )
+ {return val;}
+}
+
+
+AbsConcept FunctionalTerm_NoBrace() :  
+{ Token t; AbsTerm term1, term2; AbsConcept val=null; String s;}
+{
+ (  t=<ARITHMETICOP> term1=Term() term2=Term() 
+    {  	val = new AbsConcept(t.image);
+        val.set(Codec.UNNAMEDPREFIX+"0", term1);
+        val.set(Codec.UNNAMEDPREFIX+"1", term2);
+    }	
+  | s=String() {val = new AbsConcept(s);}
+   (FunctionalTermParameters(val))?
+ )
+ {return val;} 
+}
+
+// artificial production, needed to avoid a bad warning from javacc
+void FunctionalTermParameters(AbsConcept val) :
+{ AbsTerm t; int slotNumber=0;}
+{
+   (t=Term() {val.set(Codec.UNNAMEDPREFIX+slotNumber,t); slotNumber++;})+ 
+ | (Parameter(val))+ 
+}
+
+void Parameter(AbsConcept val) :
+{ Token t; AbsTerm term;}
+{
+ t=<PARAMETERNAME> term=Term() {val.set(t.image,term);}
+}
+
+AbsGenericAction ActionExpression_NoBrace() :
+{ AbsHigherOrderAction val=null; AbsObject term1, term2; Token t;}
+{
+//FIXME. Maybe we can remove AbsHigherOrderAction and replace with AbsAgentAction
+ (  t=<ACTION> term1=Term() term2=Term() 
+     { val = new AbsHigherOrderAction(t.image);
+       val.set(Codec.UNNAMEDPREFIX+"0",term1);
+       val.set(Codec.UNNAMEDPREFIX+"1",term2);
+     }
+  | t=<ACTIONOPLL> {if (slType<2) throw new ParseException("NotFullSL_ActionOperatorExpression_NotParsable");} term1=ActionExpression() term2=ActionExpression()
+     { val = new AbsHigherOrderAction(t.image);
+       val.set(Codec.UNNAMEDPREFIX+"0",term1);
+       val.set(Codec.UNNAMEDPREFIX+"1",term2);
+     }
+ )
+ { return val;}
+}
+
+
+AbsGenericAction ActionExpression() :
+{ AbsGenericAction val=null; }
+{ 
+  LBrace() val=ActionExpression_NoBrace() RBrace()
+  {return val;}
+}
+
+
+AbsProposition Wff() :
+{ AbsProposition val=null; String s;}
+{
+ (  s=String() { val = new AbsPredicate(s);} // expands to true, false, PropositionSymbol
+  | LBrace() val=Wff_NoBrace() RBrace()
+ )
+ {return val;}
+}
+
+AbsProposition Wff_NoBrace() :
+{ AbsProposition arg1, arg2, val=null; Token t; AbsTerm term; String s;
+  AbsGenericAction act;}
+{
+ (  t=<UNARYLOGICALOP> {if (slType<1) throw new ParseException("NotFullSL_NotExpression_NotParsable_UseAtLeastSL1");} arg1=Wff() 
+   {val = new AbsHigherOrderPredicate(t.image); ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"0",arg1);}
+  | t=<BINARYLOGICALOP> {if (slType<1) throw new ParseException("NotFullSL_BinaryLogicalExpression_NotParsable_UseAtLeastSL1");} arg1=Wff() arg2=Wff()
+   {val = new AbsHigherOrderPredicate(t.image); ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"0",arg1); ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"1",arg2); }
+//FIXME QUANTIFIERS STILL TO DO!!
+  | t=<QUANTIFIER> {if (slType<2) throw new ParseException("NotFullSL_QuantifierExpression_NotParsable_UseAtLeastSL2"); AbsVariable var; } var=Variable() arg1=Wff()
+  | t=<MODALOP> {if (slType<2) throw new ParseException("NotFullSL_ModalOperatorExpression_NotParsable_UseAtLeastSL2");} term=Term() arg1=Wff()
+   {val = new AbsHigherOrderPredicate(t.image); ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"0",term); ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"1",arg1); }
+  | t=<ACTIONOP> act=ActionExpression() 
+   {val = new AbsHigherOrderPredicate(t.image); 
+    ((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"0",act);
+   }
+   (arg1=Wff() {((AbsHigherOrderPredicate)val).set(Codec.UNNAMEDPREFIX+"1",arg1); })?
+  | s=String() {val = new AbsPredicate(s); int slotNumber=0;} (term=Term() {((AbsPredicate)val).set(Codec.UNNAMEDPREFIX+slotNumber,term);})+
+ )
+ {return val;}
+}
+
+
+AbsPrimitive Number():
+{  Token t; AbsPrimitive val = null;}
+{ 
+ (  t = <INTEGER> { long value;
+                  try {
+                   value=Long.parseLong(t.image); 
+                  } catch (NumberFormatException e) { //should never happen
+		   e.printStackTrace();
+                   val=AbsPrimitive.wrap(t.image);
+                  }
+                 }
+ | t = <HEXINTEGER> { val=AbsPrimitive.wrap(t.image); } 
+ | t = <FLOATONE> { double d1;
+                   try {
+                    d1=Double.parseDouble(t.image); 
+		    val=AbsPrimitive.wrap(d1);
+                  } catch (NumberFormatException e) { //should never happen
+		    e.printStackTrace();
+                    val=AbsPrimitive.wrap(t.image);
+                  }
+                 }
+ | t = <FLOATTWO> { double d2;
+                   try {
+                    d2=Double.parseDouble(t.image); 
+		    val=AbsPrimitive.wrap(d2);
+                  } catch (NumberFormatException e) { //should never happen
+		    e.printStackTrace();
+                    val=AbsPrimitive.wrap(t.image);
+                  }
+                 }
+ )
+{return val;}
+}
+
+
+/**
+* <p> <code> String = WORD | STRING_LITERAL  </code>
+*/
+String String() :
+{ Token t;}
+{
+  t=<WORD2>             {return t.image;} //operator state of the token manager
+| t=<STRING_LITERAL2>   {return t.image;} //operator state of the token manager
+| t=<WORD>		{return t.image;}
+| t=<STRING_LITERAL>	{ /* Take a quoted FIPA SL0 String and convert to a 
+                           * normal Java-style String.  Remove the
+                           * leading/trailing quotation marks, and
+                           * un-escape any included quotation marks.
+                           * This must be the exact inverse of the 
+                           * quotedString() procedure in the SLEncoder.
+                           */
+                          StringBuffer result = new StringBuffer(t.image.length());
+                          for( int i=1; i<t.image.length()-1; i++)
+                            if( t.image.charAt(i) == '\\' && t.image.charAt(i+1) == '\"' )
+                            {
+                              result.append("\"");
+                              i++;
+                            }
+                            else
+                              result.append(t.image.charAt(i));
+                          return result.toString();
+                        }
+ 
+}
+
+
+
+/*   T O K E N    D E F I N I T I O N  */
+
+<DEFAULT>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DEFAULT>
+TOKEN:
+{
+  < LBRACE     : "("       > : OPERATORSTATE
+| < RBRACE     : ")"       >
+| < VARIABLE   : "?" <WORD> | "?" <STRING_LITERAL> >
+| < INTEGER    : (["+","-"])? (["0"-"9"])+ >
+| < HEXINTEGER : (["+","-"])? "0" ["x","X"] (["0"-"9" , "a"-"f" , "A"-"F"])+ >
+| < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
+                    (["e","E"] (["-","+"])? (["0"-"9"])+)? >
+| < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
+| < WORD: (~["\u0000"-"\u0020","(",")","\"","#","0"-"9",":","-","?"]) 
+          (~["\u0000"-"\u0020","(",")","\""])* >
+| < STRING_LITERAL:
+      "\""
+      ( (~["\""]) | "\\\"" )*
+      "\""
+  >
+| < PARAMETERNAME : ":"<WORD> | ":"<STRING_LITERAL> >
+| < DATETIME :  (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["a"-"z","A"-"Z"])? > 
+}
+
+
+<OPERATORSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<OPERATORSTATE>
+TOKEN:
+{
+  < LBRACE2     : "("       > : OPERATORSTATE
+| < RBRACE2     : ")"       > : DEFAULT
+| < ACTION     : "action"  > : DEFAULT
+| < REFERENTIALOP : "iota" | "any" | "all" > : DEFAULT
+| < MODALOP    : "B" | "U" | "PG" | "I" > : DEFAULT
+| < ARITHMETICOP : "+" | "-" | "*" | "/" | "%" > : DEFAULT
+| < ACTIONOP   : "feasible" | "done" > : DEFAULT
+| < ACTIONOPLL : "|" | ";" > : DEFAULT // action operator low level
+| < UNARYLOGICALOP : "not" > : DEFAULT
+| < BINARYLOGICALOP : "and" | "or" | "implies" | "equiv" > : DEFAULT
+| < QUANTIFIER : "forall" | "exists" > : DEFAULT
+| < WORD2: (~["\u0000"-"\u0020","(",")","\"","#","0"-"9",":","-","?"]) 
+          (~["\u0000"-"\u0020","(",")","\""])* > : DEFAULT
+| < STRING_LITERAL2:
+      "\""
+      ( (~["\""]) | "\\\"" )*
+      "\""
+  > :DEFAULT
+}

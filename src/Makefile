@@ -56,7 +56,6 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/imtp/rmi/RMIIMTPManager.java \
 
 ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
-		jade/content/abs/AbsActionPredicate.java \
 		jade/content/abs/AbsAgentAction.java \
 		jade/content/abs/AbsAggregate.java \
 		jade/content/abs/AbsCommunicativeAct.java \
@@ -65,6 +64,7 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/abs/AbsContentElementList.java \
 		jade/content/abs/AbsGenericAction.java \
 		jade/content/abs/AbsHigherOrderPredicate.java \
+		jade/content/abs/AbsHigherOrderAction.java \
 		jade/content/abs/AbsIRE.java \
 		jade/content/abs/AbsObject.java \
 		jade/content/abs/AbsPredicate.java \
@@ -76,7 +76,6 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/acl/Inform.java \
 		jade/content/acl/Request.java \
 		jade/content/acl/CommunicativeActBase.java \
-		jade/content/ActionPredicate.java \
 		jade/content/AgentAction.java \
 		jade/content/CommunicativeAct.java \
 		jade/content/Concept.java \
@@ -85,6 +84,7 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/ContentManager.java \
 		jade/content/GenericAction.java \
 		jade/content/HigherOrderPredicate.java \
+		jade/content/HigherOrderAction.java \
 		jade/content/OntoAID.java \
 		jade/content/Predicate.java \
 		jade/content/Proposition.java \
@@ -104,7 +104,6 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/onto/BasicIntrospector.java \
 		jade/content/onto/UngroundedException.java \
 		jade/content/onto/UnknownSchemaException.java \
-		jade/content/schema/ActionPredicateSchema.java \
 		jade/content/schema/AgentActionSchema.java \
 		jade/content/schema/AggregateSchema.java \
 		jade/content/schema/AIDSchema.java \
@@ -114,6 +113,7 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/schema/ContentElementSchema.java \
 		jade/content/schema/GenericActionSchema.java \
 		jade/content/schema/HigherOrderPredicateSchema.java \
+		jade/content/schema/HigherOrderActionSchema.java \
 		jade/content/schema/IRESchema.java \
 		jade/content/schema/ObjectSchema.java \
 		jade/content/schema/PredicateSchema.java \

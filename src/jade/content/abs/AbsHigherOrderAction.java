@@ -27,7 +27,7 @@ package jade.content.abs;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderAction extends AbsObjectImpl implements AbsProposition {
+public class AbsHigherOrderAction extends AbsObjectImpl implements AbsGenericAction {
 
     /**
      * Construct an Abstract descriptor to hold a higher order action of
