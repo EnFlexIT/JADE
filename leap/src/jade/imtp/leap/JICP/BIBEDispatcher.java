@@ -59,6 +59,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 	
 	private int frontEndStatus = UNREACHABLE;
   private long              maxDisconnectionTime;
+  private long              keepAliveTime;
+  private long              lastReceivedTime;
 
   private JICPServer        myJICPServer;
   private String            myID;
@@ -113,12 +115,24 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	// Keep default
     }
     
-    // Start the embedded thread dealing with outgoing commands only on the master copy
+  	// Keep-alive time
+    keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+    try {
+    	keepAliveTime = Long.parseLong(props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    
+		// Start the embedded thread dealing with outgoing commands only on the master copy
     if(props.getProperty(Profile.MASTER_NODE_NAME) == null) {
     	start();
     }
 
-    myLogger.log("Created BIBEDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);  	
+    myLogger.log("Created BIBEDispatcher V2.0 ID = "+myID, 1);
+    myLogger.log("Max-disconnection-time = "+maxDisconnectionTime, 1);  	
+    myLogger.log("Keep-alive-time = "+keepAliveTime, 1);  
+    
     startBackEndContainer(props);
   }
 
@@ -127,7 +141,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	myStub = new FrontEndStub(this);
 
     	props.setProperty(Profile.MAIN, "false");
-	String nodeName = "Back-End[" + myID.replace(':', '_') + "]";
+    	String nodeName = "Back-End[" + myID.replace(':', '_') + "]";
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
 			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
 
@@ -164,8 +178,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private Object shutdownLock = new Object();
   
   /**
-     Shutdown forced by the JICPServer this BackEndContainer is attached 
-     to
+     Shutdown self initiated or forced by the JICPServer this 
+     BackEndContainer is attached to.
    */
   public void kill() {
   	// Avoid killing two times
@@ -181,7 +195,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   }
   
   /**
-     This is called by the JICPServer. In the case of the BIBEDispatcher
+     This is called by the JICPServer when a JICP packet addressing this
+     mediator as recipient-ID is received. In the case of the BIBEDispatcher
      this should never happen.
    */
   public JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException {
@@ -189,6 +204,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   } 
 
   /**
+     This is called by the JICPServer when a JICP CREATE_MEDIATOR or
+     CONNECT_MEDIATOR is received.
    */
   public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
   	boolean inp = false;
@@ -217,6 +234,34 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     }
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
+
+  public void tick(long currentTime) {
+  	if ((currentTime - lastReceivedTime) > (keepAliveTime + 60000)) {
+  		// Missing keep-alive.
+  		// The OUT connection is no longer valid
+  		if (outHolder.isConnected()) {
+	  		myLogger.log("Missing keep-alive", 2);
+	  		outHolder.resetConnection();
+  		}
+  		// Check the INP connection. Since this method must return
+  		// asap, does it in a separated Thread
+  		if (inpHolder.isConnected()) {
+	  		Thread t = new Thread() {
+	  			public void run() {
+	  				try {
+		  				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+		  				dispatchPacket(pkt, false);
+	  					myLogger.log("IC valid", 2);
+	  				}
+	  				catch (Exception e) {
+	  					// Just do nothing
+	  				}
+	  			}
+	  		};
+	  		t.start();
+  		}
+  	}	
+  }
   
   ////////////////////////////////////////////////
   // BEConnectionManager interface implementation
@@ -296,12 +341,22 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   //////////////////////////////////////////
   // Dispatcher interface implementation
   //////////////////////////////////////////
-  public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+  public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	  JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+	  pkt = dispatchPacket(pkt, flush);
+	  return pkt.getData();
+  }
+  
+  private synchronized JICPPacket dispatchPacket(JICPPacket pkt, boolean flush) throws ICPException {
   	Connection inpConnection = inpHolder.getConnection(flush);
   	if (inpConnection != null && active) {
   		int status = 0;
-	  	myLogger.log("Issuing command to FE "+inpCnt, 3);
-	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+  		if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+		  	myLogger.log("Issuing Keep-alive to FE "+inpCnt, 2);
+  		}
+  		else {
+		  	myLogger.log("Issuing command to FE "+inpCnt, 3);
+  		}
 	  	pkt.setSessionID((byte) inpCnt);
 	  	try {
 		  	inpConnection.writePacket(pkt);
@@ -324,7 +379,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		    	shutdown();
 		    }
 		  	inpCnt = (inpCnt+1) & 0x0f;
-		    return pkt.getData();
+		    return pkt;
 	  	}
 	  	catch (IOException ioe) {
 	  		// Can't reach the FrontEnd. 
@@ -422,6 +477,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private JICPPacket readPacket(Connection c) throws IOException {
   	JICPPacket pkt = c.readPacket();
   	// Update keep-alive info
+  	lastReceivedTime =System.currentTimeMillis();
   	return pkt;
   }
   	
@@ -538,6 +594,10 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 	  		}
 	  		myConnection = null;
   		}
+  	}
+  	
+  	private synchronized boolean isConnected() {
+  		return myConnection != null;
   	}
   } // END of inner class OutConnectionHolder
 

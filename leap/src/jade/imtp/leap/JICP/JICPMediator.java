@@ -78,6 +78,11 @@ public interface JICPMediator {
    * @param addr the address of the mediated entity
    * @param port the local port used by the mediated entity
    */
-  JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException; 
+   JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException;
+   
+   /**
+      This is called by the JICPPeer ticker at each tick.
+    */
+   void tick(long time);
 }
 

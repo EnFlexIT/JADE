@@ -86,23 +86,9 @@ class JICPClient {
 				if (cw.isOneShot()) {
 					dataInfo |= JICPProtocol.TERMINATED_INFO;
 				}
-	      /*if (dataType == JICPProtocol.COMMAND_TYPE) {
-	        int commandType = Command.getCommandType(data);
-	        switch (commandType) {
-	        case Command.PING_NODE_NONBLOCKING:
-	          dataInfo |= JICPProtocol.NON_BLOCKING_IMTP_PING_INFO;
-	          break;
 	
-	        case Command.PING_NODE_BLOCKING:
-	          dataInfo |= JICPProtocol.BLOCKING_IMTP_PING_INFO;
-	          break;
-	        }
-	      }*/ 
-	
-	      // Get the actual connection
+	      // Get the actual connection and send the request
 	      Connection connection = cw.getConnection();
-	      
-	      // Send the request
 	      JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
 	      connection.writePacket(request);
 	
@@ -156,5 +142,10 @@ class JICPClient {
   public void shutdown() {
   	pool.shutdown();
   }
+  
+  /**
+     Called by the JICPPeer ticker at each tick
+   */
+  public void tick(long currentTime) {
+  }
 }
-

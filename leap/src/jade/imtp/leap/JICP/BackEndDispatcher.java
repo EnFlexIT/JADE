@@ -178,7 +178,11 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   	// through the permanent connection
   	return null;
   } 
-
+  
+  public void tick(long time) {
+  	// Not used
+  }
+  
   ////////////////////////////////////////////////
   // BEConnectionManager interface implementation
   ////////////////////////////////////////////////

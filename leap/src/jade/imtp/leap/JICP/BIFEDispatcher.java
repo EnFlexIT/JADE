@@ -345,21 +345,25 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				while (isConnected()) {
 					status = 0;
 					JICPPacket pkt = myConnection.readPacket();
-					if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
-						// Keep-alive. Just ignore it
-						continue;
-					}
 					status = 1;
   				byte sid = pkt.getSessionID();
   				if (sid == lastSid) {
-  					log("Duplicated command received "+sid, 2);
+  					// Duplicated packet
+  					log("Duplicated packet received "+sid, 2);
   					pkt = lastResponse;
   				}
   				else {
-	      		log("Incoming command received "+sid, 3);
-						byte[] rspData = mySkel.handleCommand(pkt.getData());
-	      		log("Incoming command served "+ sid, 3);
-					  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+						if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+							// Keep-alive
+						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+						}
+						else {
+							// Incoming command
+		      		log("Incoming command received "+sid, 3);
+							byte[] rspData = mySkel.handleCommand(pkt.getData());
+		      		log("Incoming command served "+ sid, 3);
+						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+						}
 					  pkt.setSessionID(sid);
 					  if (Thread.currentThread() == terminator) {
 					  	// Attach the TERMINATED_INFO flag to the response

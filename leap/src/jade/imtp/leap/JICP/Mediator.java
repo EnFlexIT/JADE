@@ -124,6 +124,10 @@ public class Mediator extends EndPoint implements JICPMediator {
   	shutdown();
   }
   
+  public void tick(long currentTime) {
+  	// Not used
+  }
+  
   ///////////////////////////////////////////////
   // COMMANDS TO THE MEDIATED CONTAINER
   ///////////////////////////////////////////////

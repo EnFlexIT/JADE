@@ -293,6 +293,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	t.start();
   }
   
+  public void tick(long currentTime) {
+  	// Not used
+  }
+  
   //////////////////////////////////////////
   // Dispatcher interface implementation
   //////////////////////////////////////////

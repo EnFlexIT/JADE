@@ -54,11 +54,9 @@ import java.net.*;
 public class JICPPeer implements ICP {
 	private static final int POOL_SIZE = 10;
 	
-  /**
-   * Default port for the local container JICP transport address
-   */
   private JICPClient   client;
   private JICPServer   server;
+  private Ticker       ticker;
 
   /**
    * Start listening for internal platform messages on the specified port
@@ -125,6 +123,10 @@ public class JICPPeer implements ICP {
     server = new JICPServer(port, changePortIfBusy, l, getConnectionFactory(), POOL_SIZE);
     server.start();
 
+    // Start the Ticker
+    ticker = new Ticker(60000);
+    ticker.start();
+    
     // Creates the local transport address
     TransportAddress localTA = getProtocol().buildAddress(host, String.valueOf(server.getLocalPort()), null, null);
 
@@ -138,6 +140,7 @@ public class JICPPeer implements ICP {
   	if (server != null) {
   		client.shutdown();
       server.shutdown();
+      ticker.shutdown();
     } 
     else {
       throw new ICPException("No external listener was activated.");
@@ -201,5 +204,41 @@ public class JICPPeer implements ICP {
 			}
     };
   }  
+  
+  /**
+     Inner class Ticker
+   */
+  private class Ticker extends Thread {
+  	private long period;
+  	private boolean active = false;
+  	
+  	private Ticker(long period) {
+  		super();
+  		this.period = period;
+  	}
+  	
+  	public void start() {
+  		active = true;
+  		super.start();
+  	}
+  	
+  	public void run() {
+  		while (active) {
+  			try {
+  				Thread.sleep(period);
+  				long currentTime = System.currentTimeMillis();
+  				client.tick(currentTime);
+  				server.tick(currentTime);
+  			}
+  			catch (InterruptedException ie) {
+  			}
+  		}
+  	}
+  	
+  	public void shutdown() {
+  		active = false;
+  		interrupt();
+  	}
+  } // END of inner class Ticker
 }
 

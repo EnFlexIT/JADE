@@ -197,7 +197,21 @@ public class JICPServer extends Thread {
   public void deregisterMediator(String id) {
     mediators.remove(id);
   } 
-
+  
+  /**
+     Called by the JICPPeer ticker at each tick
+   */
+  public void tick(long currentTime) {
+  	synchronized (mediators) {
+	    Enumeration e = mediators.elements();
+	    while (e.hasMoreElements()) {
+	      JICPMediator m = (JICPMediator) e.nextElement();
+	      m.tick(currentTime);
+	    }
+  	}
+  }
+  		
+  	
   /**
      Inner class ConnectionHandler.
      Handle a connection accepted by this JICPServer
