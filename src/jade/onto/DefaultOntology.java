@@ -111,6 +111,7 @@ public final class DefaultOntology implements Ontology {
     Adds to this ontology all roles included into another ontology 
     @param o The <code>Ontology</code> object whose roles will 
     be added
+    @see jade.onto.Ontology#joinOntology(Ontology o)
   */
   public void joinOntology(Ontology o) throws OntologyException
   {
@@ -156,7 +157,7 @@ public final class DefaultOntology implements Ontology {
     return outvec;
   }
 		 
-  /**
+  /*
    * Creates a Java object from the given Frame.
    * This method is called by createObject().
    */
@@ -175,7 +176,8 @@ public final class DefaultOntology implements Ontology {
   }
 
   /**
-    Creates a frame from a given Java Object, representing an instance of a given role.
+    Creates a frame from a given Java Object representing an instance of 
+    a given role.
     @see jade.onto.Ontology#createFrame(Object o, String roleName)
   */
   public Frame createFrame(Object o, String roleName) throws OntologyException {
@@ -261,7 +263,7 @@ public final class DefaultOntology implements Ontology {
 
   /**
     Checks whether a given string is the name of a role in this ontology.
-    
+    @see jade.onto.Ontology#isRole(String roleName)
   */
   public boolean isRole(String roleName) throws OntologyException {
   	FrameSchema fs = lookupSchema(roleName);
@@ -278,8 +280,11 @@ public final class DefaultOntology implements Ontology {
     return fs.slotsArray();
   }
 
-  /** @return the name of the role represented by the passed class as registered in this ontology
-   * @throws OntologyException if no role is found for this class
+  /** 
+  	@return the name of the role represented by the passed class as 
+  	registered in this ontology
+  	@throws OntologyException if no role is found for this class
+    @see jade.onto.Ontology#getRoleName(Class c)
   **/
 	public String getRoleName(Class c) throws OntologyException{
   	Set s = factories.entrySet(); // each element of the Set is a Map.Entry

@@ -136,6 +136,10 @@ public class Frame {
      return slotNames.size();
    }
 
+	/**
+    @return The name of the slot at the indicated position 
+    @exception OntologyException If no suitable slot exists.
+  */
   public String getSlotName(int position) throws OntologyException { 
     try {
       return ((Name)slotNames.get(position)).toString();
