@@ -25,7 +25,8 @@ public class AgentMessageFilter extends Agent {
 	ACLMessage reply = new ACLMessage();
 	reply.setSource(myAgent.getName());
 	reply.setDest(source);
-	reply.setContent("Thank you for adhering to p1 discussion thread, " + source);
+	reply.setContent("Thank you for adhering to alt.agents.fipa discussion thread, " + source);
+	reply.setReplyTo("alt.agents.fipa");
 	myAgent.send(reply);
       }
 
