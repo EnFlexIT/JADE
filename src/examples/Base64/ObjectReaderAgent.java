@@ -28,7 +28,7 @@ import jade.lang.acl.UnreadableException;
 import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 
 import java.io.*;
 
@@ -40,18 +40,22 @@ This agent makes the following task:
 3. reads the content of the message;
    if the language was set to "JavaSerialization", then
   the agent knows a-priori that 
-   it is encoded in Base64 and contains a Java object;
+   it is encoded in Base64 and contains a Java object. Notice that
+   this is a private a-priori agreement between the Writer and the Reader and
+   it does not comply to any standard.
+<p>
+Becase this agent implements a single sequential task, it does not
+use any Behaviour.
+*
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
 
 public class ObjectReaderAgent extends Agent {
 
-private DFAgentDescription dfd = new DFAgentDescription();    
-
 protected void setup() {
-
   /** Registration with the DF */
+  DFAgentDescription dfd = new DFAgentDescription();    
   ServiceDescription sd = new ServiceDescription();
   sd.setType("ObjectReaderAgent"); 
   sd.setName(getName());
@@ -60,7 +64,7 @@ protected void setup() {
   dfd.setName(getAID());
   dfd.addOntologies("Test_Example");
   try {
-    DFServiceCommunicator.register(this,dfd);
+    DFService.register(this,dfd);
   } catch (FIPAException e) {
     System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
     doDelete();
@@ -88,7 +92,7 @@ protected void setup() {
 
   public void takeDown() {
     try {
-      DFServiceCommunicator.deregister(this, dfd);
+      DFService.deregister(this);
     }
     catch (FIPAException e) {
       System.err.println(getLocalName()+" deregistration with DF unsucceeded. Reason: "+e.getMessage());

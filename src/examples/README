@@ -56,27 +56,21 @@ This examples shows some examples of agent behaviours.
 'Base64' subdirectory
 =====================
 This examples shows how to transport serialized Java object over an ACLMessage.
-You can execute it, for instance, with the following command:
+It is also an example of how to register, deregister, and search 
+agents and services with the DF.
+Finally, it also show how to force the platform to encode messages in
+bit-efficient ACLCodec or XML ACLCodec.
+You can launch the example with the following simple command:
 	
-	java jade.Boot -platform a1:examples.Base64.ObjectWriterAgent
-	a2:examples.ex7.ObjectReaderAgent
+	java jade.Boot -platform writer:examples.Base64.ObjectWriterAgent \
+	reader:examples.Base64.ObjectReaderAgent
 
- - ObjectReaderAgent.class	This agent makes the following task: 
-				1. registers itself with the df as a reader;
-				2. waits a message from its companion, the ObjectWriterAgent; 
-				3. reads the content of the message, knowing a-priori that 
-   				   it is encoded in Base64 and contains a Java object;
-				
-	
- 
- - ObjectWriterAgent.class	This agent makes the following task:
-				1. searches in the DF for an ObjectReaderAgent;
-				2. sends an ACLMessage with a content encoded in Base64 to the 
-                                   ObjectReaderAgent.
-
- - Person.class			This is  just a support class for the object reader
-				and writer agents.
-
+or, much better, with the following 2 commands:
+	java jade.Boot -port 1099 writer:examples.Base64.ObjectWriterAgent
+	java jade.Boot -port 1200 reader:examples.eBase64.ObjectReaderAgent
+in this case, you must also federated the DF of the two platforms such that 
+the ObjectWriterAgent's search is propagated to the DF of the second platform 
+also.
 
 
 

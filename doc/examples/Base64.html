@@ -46,26 +46,33 @@ vlink="#0000FF" alink="#0000FF">
 <p><font size="6" face="Arial"><b>Base64</b></font> </p>
 
 <p>Author: Fabio Bellifemine (TILab S.p.a)<br>
-Date: 17/09/2001</p>
+Date: 6/01/2001</p>
 
 <p><span lang="EN-GB"> </p>
 
-<p><font face="Arial,Helvetica">This example shows how to
-transport serialized Java object over an ACLMessage, both with the default
-ACLCodec and with the XML-based and bit-efficient based ACLCodecs.</font> <br>
-<font face="Arial,Helvetica">You can execute it, for instance,
-with the following command:</font></p>
+<p><font face="Arial,Helvetica">This examples shows how to transport serialized Java objects
+inside an ACLMessage.<br>
+It is also an example of how to register, deregister, and search agents and services with the DF.<br>
+Finally, it also show how to force the platform to encode messages in bit-efficient ACLCodec or XML
+ACLCodec.</font> </p>
 
-<p><br>
-<font face="Arial,Helvetica">&nbsp;java jade.Boot -platform
-a1:examples.Base64.ObjectWriterAgent</font> <br>
-<font face="Arial,Helvetica">&nbsp;a2:examples.ex7.ObjectReaderAgent</font><br>
-</p>
+<p><font face="Arial,Helvetica">You can launch the example with the following simple command:</font> </p>
 
-<p><font face="Arial,Helvetica">The Person class used in examples
-is&nbsp; just a support class for the object reader and writer
-agents.</font> <br>
-&nbsp; <br>
+<p><font face="Arial,Helvetica">java jade.Boot -platform writer:examples.Base64.ObjectWriterAgent&nbsp;
+reader:examples.Base64.ObjectReaderAgent</font> </p>
+
+<p><font face="Arial,Helvetica">or, much more interesting, with the following 2 commands:</font> </p>
+
+<p><font face="Arial,Helvetica">java jade.Boot -port 1099 writer:examples.Base64.ObjectWriterAgent</font> </p>
+
+<p><font face="Arial,Helvetica">java jade.Boot -port 1200 reader:examples.eBase64.ObjectReaderAgent</font> </p>
+
+<p><font face="Arial,Helvetica">in this case, you must also federated the DF of
+the two platforms such that the ObjectWriterAgent's search is propagated to the
+DF of the second platform also.</font></p>
+
+<p><font face="Arial,Helvetica">The Person class it is here used&nbsp; just as a support class for the object reader and writer
+agents.</font>&nbsp; <br>
 &nbsp;</p>
 
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
@@ -146,32 +153,23 @@ agents.</font> <br>
     </tr>
 </table>
 
-<p></span> <br>
-&nbsp;</p>
+<p></span> &nbsp;</p>
 
 <hr>
 
-<p align="center"><a href="http://jade.cselt.it/"><font size="2"
+<p align="left"><a href="http://jade.cselt.it/"><font size="2"
 face="Arial">JADE</font></a><font size="2" face="Arial"> is a
-trademark of </font><a href="http://www.cselt.it"><font size="2"
-face="Arial">CSELT</font></a><font size="2" face="Arial">. </font><a
-href="http://jade.cselt.it/"><font size="2" face="Arial">JADE</font></a><font
-size="2" face="Arial"> has been developed jointly by </font><a
-href="http://www.cselt.it"><font size="2" face="Arial">CSELT</font></a><font
-size="2" face="Arial"> and the </font><a
+trademark of <a href="http://www.telecomitalialab.com">TILAB</a> (formerly </font><a href="http://www.cselt.it"><font size="2"
+face="Arial">CSELT</font></a><font size="2" face="Arial">).&nbsp;</font><a
+href="http://jade.cselt.it/"><font size="2" face="Arial"><br>
+JADE</font></a><font
+size="2" face="Arial"> has been developed jointly by <a href="http://www.telecomitalialab.com">TILAB</a>
+(formerly </font><a href="http://www.cselt.it"><font size="2"
+face="Arial">CSELT</font></a><font size="2" face="Arial">) and the </font><a
 href="http://www.ce.unipr.it"><font size="2" face="Arial">Computer
 Engineering Group</font></a><font size="2" face="Arial"> of the </font><a
 href="http://www.unipr.it"><font size="2" face="Arial">University
 of Parma</font></a> </p>
 
-<p><br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-</p>
 </body>
 </html>

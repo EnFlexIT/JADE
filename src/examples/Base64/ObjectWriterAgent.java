@@ -27,7 +27,7 @@ import jade.lang.acl.ACLMessage;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 import jade.domain.FIPANames;
 
 import java.util.*;
@@ -38,11 +38,21 @@ This agent makes the following task:
 1. searches in the DF for an ObjectReaderAgent;
 2. sends an ACLMessage with a content encoded in Base64 to the 
    ObjectReaderAgent.
-3. sends the same message by using the BitEfficient ACLCodec (notice that
-   the message is actually coded only and only if the receiver belongs
-   to another platform) first, and the XML ACLCodec then
+3. sends the same message by using the BitEfficient ACLCodec 
+   first, and the XML ACLCodec then
 4. sends an ACLMessage with a content encoded as a String
 5. sends the same message by using again BitfficientACLCodec and XMLACLCodec
+
+Notice that JADE actually encodes ACLMessages only and only if the receiver
+of the message belongs to a remote platform. Notice that the ObjectReaderAgent
+does not need any special provision to read bit-efficient or XML-coded messages
+because all the burden is put into the platform that most provide the proper
+decoding capabilities.
+See also the bitefficient tutorial and the XMLACL tutorial that describe how
+to launch the platform with this codec capabilities.
+
+Because this agent implements a single sequential task, it does not use
+any Behaviour.
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -51,8 +61,6 @@ public class ObjectWriterAgent extends Agent {
 
 
 protected void setup() {
-
-  System.out.println(getLocalName()+" agent sends an ACLMessage whose content is a Java object");
 
   /** Search with the DF for the name of the ObjectReaderAgent **/
   AID reader = new AID();
@@ -65,9 +73,9 @@ protected void setup() {
       System.out.println(getLocalName()+ " waiting for an ObjectReaderAgent registering with the DF");
       SearchConstraints c = new SearchConstraints();
       c.setMaxDepth(new Long(3));
-      List result = DFServiceCommunicator.search(this,dfd,c);
-      if (result.size() > 0) {
-	dfd = (DFAgentDescription)result.get(0);
+      DFAgentDescription[] result = DFService.search(this,dfd,c);
+      if ((result != null) && (result.length > 0)) {
+	dfd = result[0]; 
 	reader = dfd.getName();
 	break;
       }
@@ -78,6 +86,8 @@ protected void setup() {
       System.err.println(getLocalName()+" search with DF is not succeeded because of " + fe.getMessage());
       doDelete();
   }
+
+  System.out.println(getLocalName()+" agent sends ACLMessages whose content is a Java object");
 
    try {
       ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -114,7 +124,8 @@ protected void setup() {
       send(msg);
       System.out.println(getLocalName()+" sent 2nd msg with xml aclCodec "+msg);
   } catch (IOException e ) {
-    e.printStackTrace();}
-   //doDelete();
+    e.printStackTrace();
+  }
+   doDelete(); // kill itself because it has completed its task.
   }
 }
