@@ -80,4 +80,19 @@ public class Agent implements Serializable{
   onCanv = false;
  }
 
+ public boolean equals(Object o) {
+
+   if(o instanceof String) {
+     return agentName.equalsIgnoreCase((String)o);
+   }
+   try {
+     Agent ag = (Agent)o;
+     return agentName.equalsIgnoreCase(ag.agentName);
+   }
+   catch(ClassCastException cce) {
+     return false;
+   }
+
+ }
+
 }  // End of class Agent
