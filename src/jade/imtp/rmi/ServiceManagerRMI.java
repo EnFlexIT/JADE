@@ -28,6 +28,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import jade.core.Service;
+import jade.core.Node;
 import jade.core.NodeDescriptor;
 import jade.core.ServiceException;
 
@@ -43,14 +44,13 @@ interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
     String getPlatformName() throws RemoteException;
-    void activateService(String name, Class itf, String sliceName, NodeRMI node) throws ServiceException, RemoteException;
-    void deactivateService(String name, NodeRMI node) throws ServiceException, RemoteException;
+    void activateService(String name, Class itf, NodeDescriptor desc) throws ServiceException, RemoteException;
+    void deactivateService(String name, NodeDescriptor desc) throws ServiceException, RemoteException;
     String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces) throws ServiceException, AuthException, RemoteException;
     void removeNode(NodeDescriptor desc) throws ServiceException, RemoteException;
 
     // Added ServiceFinder-like method
-    NodeAdapter[] findAllNodes(String serviceKey) throws ServiceException, RemoteException;
-    NodeAdapter findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException;
-
+    Node[] findAllNodes(String serviceKey) throws ServiceException, RemoteException;
+    Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException;
 
 }
