@@ -72,7 +72,12 @@ public class NIOJICPConnection extends Connection {
 		    	int b3 = (int) headerBuf.get();
 		    	int b4 = (int) headerBuf.get();
 		    	payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
-					payload = new byte[payloadLength];
+		    	// FIXME: Set a meaningful maximum packet size
+		    	if (payloadLength > JICPPacket.MAX_SIZE) {
+		    		throw new IOException("Packet size greater that maximum allowed size. "+payloadLength);
+		    	}
+		    		
+		    	payload = new byte[payloadLength];
 					
 					int payloadRead = headerBuf.remaining();
 					int payloadUnread = payloadLength - payloadRead;
