@@ -403,8 +403,8 @@ public class BEReplicationService extends BaseService {
 	    }
 
 	    // Set up a failure monitor on the target slice...
-      nodeMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, slice.getNode(), this);
-	    nodeMonitor.start();
+      nodeMonitor = NodeFailureMonitor.getFailureMonitor();
+	    nodeMonitor.start(slice.getNode(), this);
 
 	}
 
