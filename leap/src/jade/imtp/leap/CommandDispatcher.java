@@ -888,7 +888,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       return serializeCommand(response);
     } 
     catch (Exception e) {
-      e.printStackTrace();
 
       // FIXME. If this throws an exception this is not handled by
       // the CommandDispatcher.
