@@ -198,23 +198,14 @@ public class LoaderBehaviour extends Behaviour {
 			ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zip));
 			ZipEntry ze = zis.getNextEntry();
 			while (ze != null) {
-				int length = (int) ze.getSize();
-				byte[] code = null;
-				if (length > 0) {
-					code = new byte[length];
-					zis.read(code, 0, length);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				byte[] tmp = new byte[1024];
+				int k = zis.read(tmp, 0, tmp.length);
+				while (k > 0) {
+					baos.write(tmp, 0, k);
+					k = zis.read(tmp, 0, tmp.length);
 				}
-				if (length < 0) {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					byte[] tmp = new byte[1];
-					while (zis.read(tmp, 0, 1) != -1) {
-						baos.write(tmp);
-					}
-					code = baos.toByteArray();
-				}	
-				if (code != null) {
-					classes.put(ze.getName(), code);
-				}
+				classes.put(ze.getName(), baos.toByteArray());
 				zis.closeEntry();
 				ze = zis.getNextEntry();
 			}
