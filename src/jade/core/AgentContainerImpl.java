@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.30  1999/03/09 12:54:55  rimassa
+  Some minor modifications for a better container name handling.
+
   Revision 1.29  1999/03/07 22:50:12  rimassa
   Added support for ACL messages with more than one receiver.
 
@@ -157,7 +160,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   private Hashtable remoteAgentsCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
   // The agent platform this container belongs to
-  private AgentPlatform myPlatform;
+  protected AgentPlatform myPlatform;
+
+  protected String myName;
 
   // IIOP address of the platform, will be used for inter-platform communications
   protected String platformAddress;
@@ -165,7 +170,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   protected ORB myORB;
 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
-  private ThreadGroup systemAgentThreads = new ThreadGroup("JADE System Agents");
 
   public AgentContainerImpl(String args[]) throws RemoteException {
 
@@ -179,7 +183,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.MIN_PRIORITY);
-    systemAgentThreads.setMaxPriority(Thread.MAX_PRIORITY);
 
     // Initialize CORBA runtime
     myORB = ORB.init(args, null);
@@ -217,7 +220,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Insert new agent into local agents table
     localAgents.put(agentName.toLowerCase(), instance);
 
-    desc.setContainer(this);
+    desc.setContainer(this, myName);
 
     try {
       myPlatform.bornAgent(agentName, desc); // RMI call
@@ -304,7 +307,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
      // Retrieve agent platform from RMI registry and register as agent container
     try {
       myPlatform = lookup3(platformRMI);
-      platformAddress = myPlatform.addContainer(this); // RMI call
+      myName = myPlatform.addContainer(this); // RMI call
+      platformAddress = myPlatform.getAddress(); // RMI call
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -362,7 +366,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       }
 
       // Deregister itself as a container
-      myPlatform.removeContainer(this); // RMI call
+      myPlatform.removeContainer(myName); // RMI call
 
     }
     catch(RemoteException re) {
