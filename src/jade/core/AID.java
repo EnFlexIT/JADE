@@ -120,7 +120,7 @@ public class AID implements Comparable, Serializable {
   * The passed parameter must be a GUID and not a local name. 
   */
   public void setName(String n){
-    name = n;
+    name = n.trim();
   }
 
   /**
@@ -128,7 +128,7 @@ public class AID implements Comparable, Serializable {
   * The passed parameter must be a local name. 
   */
   public void setLocalName(String n){
-    name = n;
+    name = n.trim();
     if ((name != null) && (!name.endsWith(atHAP))) 
 	name = name.concat(atHAP); 
   }
