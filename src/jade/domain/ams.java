@@ -66,6 +66,7 @@ import jade.proto.FipaRequestResponderBehaviour;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
+
 */
 public class ams extends Agent implements AgentManager.Listener {
 
@@ -529,17 +530,13 @@ public class ams extends Agent implements AgentManager.Listener {
     }
 
     protected void processAction(Action a) throws FIPAException {
-	/*
-      AgentManagementOntology.SniffAgentOnAction saoa = (AgentManagementOntology.SniffAgentOnAction)a;
+      SniffOn so = (SniffOn)a.get_1();
       try {
-	myPlatform.sniffOn(saoa.getSnifferName(), saoa.getEntireList());
-	sendReply(ACLMessage.AGREE, "(true)");
-	sendReply(ACLMessage.INFORM,"FIXME");
+	myPlatform.sniffOn(so.getSniffer(), so.getAllSniffedAgents());
       }
       catch(UnreachableException ue) {
-	throw new NoCommunicationMeansException();
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
-	*/
     }
 
   } // End of SniffAgentOnBehaviour class
@@ -553,17 +550,13 @@ public class ams extends Agent implements AgentManager.Listener {
     }
 
     protected void processAction(Action a) throws FIPAException {
-	/*
-      AgentManagementOntology.SniffAgentOffAction saoa = (AgentManagementOntology.SniffAgentOffAction)a;
+      SniffOff so = (SniffOff)a.get_1();
       try {
-	myPlatform.sniffOff(saoa.getSnifferName(), saoa.getEntireList());
-	sendReply(ACLMessage.AGREE, "(true)");
-	sendReply(ACLMessage.INFORM,"FIXME");
+	myPlatform.sniffOff(so.getSniffer(), so.getAllSniffedAgents());
       }
       catch(UnreachableException ue) {
-	throw new NoCommunicationMeansException();
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
-	*/
     }
 
   } // End of SniffAgentOffBehaviour class
@@ -767,8 +760,8 @@ public class ams extends Agent implements AgentManager.Listener {
   }
   
   /**
-  @serial
-  */
+     @serial
+   */
   private KB agentDescriptions = new KBAbstractImpl() {
       protected boolean match(Object template, Object fact) {
 	try {
@@ -804,7 +797,7 @@ public class ams extends Agent implements AgentManager.Listener {
       }
     };
 
-  /** Registration with the AMS. It is called also by Agent.java **/
+  /** it is called also by Agent.java **/
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
     Object old = agentDescriptions.register(amsd.getName(), amsd);
@@ -812,7 +805,7 @@ public class ams extends Agent implements AgentManager.Listener {
       throw new AlreadyRegistered();
   }
 
-  /** Deregistration with the AMS. It is called also by Agent.java **/
+  /** it is called also by Agent.java **/
   public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
     Object old = agentDescriptions.deregister(amsd.getName());
