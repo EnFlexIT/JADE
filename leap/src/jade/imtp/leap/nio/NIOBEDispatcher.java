@@ -40,6 +40,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 
   private JICPMediatorManager myMediatorManager;
   private String myID;
+  private Properties myProperties;
   private BackEndContainer myContainer = null;
 
   protected InputManager  inpManager;
@@ -56,11 +57,19 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	}
 	
 	/**
+	   Retrieve the startup Properties for this NIOBEDispatcher.
+	 */
+	public Properties getProperties() {
+		return myProperties;
+	}
+	
+	/**
 	   Initialize this JICPMediator
 	 */
 	public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
 		myMediatorManager = mgr;
 		myID = id;
+		myProperties = props;
 		
   	// Max disconnection time
     long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -172,14 +181,14 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
    	if (inp) {
    		inpManager.setConnection(c);
    		if (myLogger.isLoggable(Logger.CONFIG)) {
-   			myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd"
+   			myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd");
    		}
    		((NIOJICPConnection) c).configureBlocking();
    	}
    	else {
    		outManager.setConnection(c);
    		if (myLogger.isLoggable(Logger.CONFIG)) {
-   			myLogger.log(Logger.CONFIG, myID+": New OUT Connection establishd"
+   			myLogger.log(Logger.CONFIG, myID+": New OUT Connection establishd");
    		}
    	}
 
@@ -227,8 +236,8 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	   Overloaded version of the handleJICPPacket() method including
 	   the <code>Connection</code> the incoming JICPPacket was received
 	   from. This information is important since, unlike normal mediators,
-	   a NIOMediator never reads packets from connections on its own (the
-	   JICPMediatorManager always does that).
+	   a NIOMediator may not read packets from connections on its own (the
+	   JICPMediatorManager does that in general).
 	 */
 	public JICPPacket handleJICPPacket(Connection c, JICPPacket pkt, InetAddress addr, int port) throws ICPException {
 		checkTerminatedInfo(pkt);
@@ -448,6 +457,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 					JICPPacket reply = myConnection.readPacket();
 				  readStartTime = -1;
 				  checkTerminatedInfo(reply);
+				  System.out.println("peer active = "+peerActive);
 				  lastReceivedTime = System.currentTimeMillis();
 				  long end = lastReceivedTime;
 				  if ((end - start) > 100) {
@@ -462,9 +472,10 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			      throw new ICPException(new String(pkt.getData()));
 			    }
 			    if (!peerActive) {
+					  System.out.println("Calling shutdown()");
 			    	// This is the response to an exit command --> Suicide, without
 			    	// killing the above container since it is already dying. 
-			    	shutdown();
+			    	NIOBEDispatcher.this.shutdown();
 			    }
 			  	inpCnt = (inpCnt+1) & 0x0f;
 			  	return reply;
