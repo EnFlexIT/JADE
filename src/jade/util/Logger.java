@@ -47,69 +47,68 @@ import jade.util.leap.Serializable;
 
 /**
  * This class provides a uniform way to produce logging printouts
- * in a device dependent way. The J2SE implementation is a pure
- * extension of the java Logger class and it provides the whole set of
- * functionalities of java logging facility.<br>A call to the static method
- * <code>getMyLogger()</code> results in a call to native method
- * <code>java.util.logging.Logger.getLogger()</code>. Then a
- * call to the method <code>log()</code> on the Logger object retrieved
- * logs the real message.<br>
- * Logging levels can be used to control logging output.<br>
- * The re-definition of logging levels has been implemented to allow the
- * portability of code in PersonalJava e MIDP environments.<br>
- * If you want to create a log in a PersonalJava or MIDP environment you
- * don't need to change anything in your code.<br><br>
+ * in a device dependent way. Different implementation of this class are 
+ * provided according to the target environment (J2SE, pJava, MIDP), where all 
+ * implementations keep the same API. See also this 
+ * <a href="../../../tutorials/logging/JADELoggingService.html"> tutorial </a>
+ * for an overview of the JADE Logging Service.
  *
- * For instance to log the warning message  "Attention!"the code should be<br><br>
- *
- * <code>Logger logger = Logger.getMyLogger(this.getClass().getName());</code><br>
- * <code>logger.log("Logger.WARNING","Attention!"); </code><br><br>
- *
- *
- * The call to <code>log<code> method will result in the creation of an
- * object of type java.util.logging.Logger if you're running in a
- * J2SE environment or in a <code>System.out.println()</code> if you're
- * running in a PersonalJava environment (through the LEAP add-on).<br>On the
- * other hand, if you are running JADE in a MIDP environment (again through
- * the LEAP add-on) printouts are redirected so that they can be later viewed
- * by means of the <code>jade.util.leap.OutputViewer</code> MIDlet included
- * in the LEAP add-on.<br><br>
- *
- * According to java logging philosophy a logging level can be set thus enabling
- * loggings at level higher than the one specified.<br><br>
- * The levels in descending order are: <br><br>
+ * Logging levels can be used to control logging output.
+ * According to java logging philosophy, several logging levels can be set. 
+ * The levels in descending order are: <p>
  * SEVERE (highest value) <br>
  * WARNING <br>
  * INFO <br>
  * CONFIG <br>
  * FINE <br>
  * FINER <br>
- * FINEST (lowest value) <br><br><br>
- * In addition there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
- * In J2SE environment the logging configuration can be initialized using a logging
- * configuration file that will be read at startup. This file is in standard
- * java.util.Properties format. The default logging configuration that ships with the JRE
- * is only a default, and can be overridden with the java.util.logging.config.file <br>
- * system property. For example: <br><br>
- * java -Djava.util.logging.config.file=mylogging.properties jade.Boot <br><br><br>
+ * FINEST (lowest value) 
+ * <p> In addition, there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
+ * <p>
+ * Notice that re-definition of logging levels was necessary in order to allow
+ * portability of calling code in PersonalJava e MIDP environments. 
+ * <p>
+ * For instance, in order to log the warning message  "Attention!", the 
+ * following code should be used, independently of the target device: <br><br>
  *
- * If you're running in a MIDP environment the levels defined are the same as the J2SE
- * environment. The levels are mapped to int values.<br><br>
- * The levels in descending order are: <br><br>
- * SEVERE (highest value)  <br>
- * WARNING <br>
- * INFO <br>
- * CONFIG <br>
- * FINE <br>
- * FINER <br>
- * FINEST (lowest value) <br><br><br>
- * In addition there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
- * The default level for logging is set to INFO. All messages of higher level will be logged.
- * To modify logging level you have to set the MIDlet-LEAP-level at the selected level
- * property in the manifest file of your MIDlet.For performance reasons, in MIDP and PJAVA
- * evironments the log level is unique for the whole JVM.<br><br>
- * Example:<br><br>
- * MIDlet-LEAP-log_level:warning
+ * <code>Logger logger = Logger.getMyLogger(this.getClass().getName());</code><br>
+ * <code>if (logger.isLoggable(logger.WARNING)) </code>
+ * <br> <code>logger.log(Logger.WARNING,"Attention!"); </code>
+ * <p>
+ * Notice that the test <code>isLoggable</code> allows just to improve performance, but
+ * it has no side-effect. 
+ * <p> <b>J2SE</b><br>
+ * The J2SE implementation is a pure
+ * extension of the <code>java.util.logging.Logger</code> class and 
+ * it provides the whole set of
+ * functionalities of java.util.logging. 
+ * <p> In the J2SE environment, the logging configuration can be initialized by using a logging
+ * configuration file that will be read at startup. This file is in standard
+ * java.util.Properties format. The default logging configuration,
+ * that is part of the JRE distribution, 
+ * can be overridden by setting the java.util.logging.config.file 
+ * system property, like the following example: <br>
+ * <code>java -Djava.util.logging.config.file=mylogging.properties jade.Boot </code> 
+ * <p><b>PersonaJava</b><br>
+ * The call to <code>log</code> method will result in
+ * a <code>System.out.println()</code> if you're
+ * running in a PersonalJava environment (through the LEAP add-on). 
+ * <br> For performance reasons, in MIDP and PJAVA
+ * evironments the log level is unique for the whole JVM.
+ * <p><b>MIDP</b><br>
+ * If you are running JADE in a MIDP environment (again through
+ * the LEAP add-on), printouts are redirected so that they can be later viewed
+ * by means of the <code>jade.util.leap.OutputViewer</code> MIDlet included
+ * in the LEAP add-on.<br>
+ * Notice that, in a MIDP environment, the constants that represent the logging levels 
+ * keeps the same names of the J2SE 
+ * environment. However, for better performance, they are mapped to int values.<br>
+ * The default level for logging is set to INFO, all messages of higher level will be logged.
+ * In order to modify logging level you have to set the MIDlet-LEAP-level at the selected level
+ * property in the manifest file of your MIDlet, like this:
+ * <br><code>MIDlet-LEAP-log_level:warning</code>
+ * <br> For performance reasons, in MIDP and PJAVA
+ * evironments the log level is unique for the whole JVM.
  *
  * @author Rosalba Bochicchio - TILAB
  * @author Nicolas Lhuillier - Motorola (MIDP version)
