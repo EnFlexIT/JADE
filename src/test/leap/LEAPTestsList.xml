@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Basic life-cycle and communication" skip="false">
+			<TestClassName>test.leap.tests.TestLCCommunication</TestClassName>
+			<WhatTest> Tests the basic operations of life-cycle management (agent creation/killing) and communication (message exchange) in a MIDP environment.</WhatTest>
+			<HowWorkTest> 
+				1) The tester agent (running in the fixed network) requests the AMS to create a ping agent (a simple agent that just replies to messages sending back each received message) on a MIDP container.
+				2) The tester agent sends a first message to the ping agent and waits for the reply. This reply must have the same fields (except sender and receiver) of the message that was sent.
+				3) The tester agent requests the AMS to kill the ping agent.
+				4) The tester agent sends a second message to the ping agent and waits for a FAILURE notification from the AMS since the ping agent should no longer be there.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if all the described checks are OK, no exception is thrown and everything is completed within 30 sec.</WhenTestPass>
+		</Test>	
+		
+		<Test name="Message order preservation" skip="false">
+			<TestClassName>test.leap.tests.TestMessageOrder</TestClassName>
+			<WhatTest> Tests whether a number of messages exchanged between agents both in the fixed network and in the wireless environment are posted correctly and in the same order they were sent.</WhatTest>
+			<HowWorkTest>
+				An agent (the "light agent") on a wireless container carries out "conversations" with N participants agents in the fixed network. 
+				Conversation with each participant Pi consists of sending K messages to Pi and receiving K messages from Pi. 
+				Both the light agent and the participants waits a fixed time T after sending each message.
+			</HowWorkTest>
+			<WhenTestPass> 
+				The test passes if all conversations are carried out (including message order) successfully.
+			</WhenTestPass>
+			<Argument key="n-participants" value="10"> The number of participant agents in the fixed network </Argument>
+			<Argument key="n-messages" value="10"> The number of messages sent and received in each conversation </Argument>
+			<Argument key="period" value="5000"> The time interval (in ms) between sending two successive messages </Argument>
+		</Test>	
+		
+	</TestsList>
