@@ -1,10 +1,9 @@
 /*
- * $Id
+ * $Id$
  */
 
-package Bare;
+package fipa.lang.acl;
 
-import java.lang.*;
 import java.net.*;
 import java.io.*;
 
@@ -14,7 +13,7 @@ import java.io.*;
  * Le keyword sono delle strighe di tipo <em>final</em>, quindi parametri.
  * I valori sono settati con i metodi <em>set</em> e letti con i metodi <em>get</em>.
  */
-public class aclMessage {
+public class ACLMessage implements Serializable {
 
   private final String SOURCE          = new String(" :sender ");
   private final String DEST            = new String(" :receiver ");
@@ -58,7 +57,7 @@ public class aclMessage {
  * Costruttore usato durante la fase di ricezione, nella quale non serve riempire
  * i campi durante la costruzione del messaggio.
  */
-  public aclMessage() {
+  public ACLMessage() {
     tempMessage = new StringBuffer();
   }
 
@@ -67,7 +66,7 @@ public class aclMessage {
  * Costruisce e appende il campo <IT>source</IT>.
  * NOTICE: Agent name not compliant with section 7.5.1 of FIPA 97 Part I (at least target is missing)
  */
-  public aclMessage( String source, int port ) {
+  public ACLMessage( String source, int port ) {
     this();
     this.source = new String( source );
     //this.source = new String( source + "@localhost:" + port );
