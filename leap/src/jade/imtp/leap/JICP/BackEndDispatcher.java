@@ -35,6 +35,7 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.ProfileException;
 import jade.core.ContainerID;
+import jade.core.PlatformManager;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.BackEndSkel;
@@ -136,7 +137,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	myContainer = new BackEndContainer(props, this);
 			// Check that the BackEndContainer has successfully joined the platform
 			ContainerID cid = (ContainerID) myContainer.here();
-			if (cid == null || cid.getName().equals(AgentContainer.UNNAMED_CONTAINER_NAME)) {
+			if (cid == null || cid.getName().equals(PlatformManager.NO_NAME)) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
